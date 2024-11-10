@@ -1,0 +1,5 @@
+python-dotenv
+spotdl
+argparse
+Flask
+flask_sock

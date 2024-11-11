@@ -4,6 +4,8 @@ import "@/styles/default.css";
 
 if (!Astro.locals.user) {
 	return Astro.redirect("/login")
+} else {
+	return Astro.redirect("/download-demo")
 }
 ---
 

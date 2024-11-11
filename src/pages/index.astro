@@ -2,10 +2,13 @@
 import Layout from '../layouts/Layout.astro';
 import "@/styles/default.css";
 
+if (!Astro.locals.user) {
+	return Astro.redirect("/login")
+}
 ---
 
 <Layout title="Welcome to Astro.">
-	<main class="text-red-50 bg-green-500">
-		test
+	<main class="text-red-50 bg-zinc-800">
+		test {Astro.locals.user?.updatedAt} {Astro.locals.user?.id}
 	</main>
 </Layout>

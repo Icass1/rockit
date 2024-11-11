@@ -1,0 +1,78 @@
+---
+import "@/styles/default.css";
+---
+<!doctype html>
+<html lang="en" class="dark"></html>
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="description" content="FileBrowser login" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <meta name="generator" content={Astro.generator} />
+    <title>Login</title>
+</head>
+
+
+<body>
+	<main class="overflow-hidden h-full w-full">
+		<div class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 max-w-md w-full space-y-8 p-8 bg-background rounded-xl shadow-lg">
+			<div class="text-center">
+				<h2 class="mt-6 text-3xl font-extrabold text-foreground">Sign in to your account</h2>
+					<p class="mt-2 text-sm text-fo">
+						Or{" "}
+						<a href="/signup" class="font-medium text-primary hover:text-primary/80">
+							create a new account
+						</a>
+					</p>
+			</div>
+			<form class="mt-8 space-y-6" method="post" action="/api/login">
+				<div class="space-y-4">
+					<div>
+						<label for="email">Username</label>
+						<input id="username" name="username" autocomplete="username" required class="mt-1" />
+					</div>
+					<div>
+						<label for="password">Password</label>
+						<div class="relative mt-1">
+							<input id="password" name="password" type="password"
+								autocomplete="current-password" required />
+						</div>
+					</div>
+				</div>
+
+				<p id="form-error" class='text-[#ed4337]'></p>
+
+				<button type="submit" class="w-full flex justify-center items-center">
+					Sign in
+				</button>
+			</form>
+		</div>
+
+
+
+		<script>
+			const errorMessageElement = document.getElementById("form-error")!;
+
+			document.forms[0].addEventListener("submit", async (e) => {
+				e.preventDefault();
+				errorMessageElement.innerText = "";
+				const formElement = e.target as HTMLFormElement;
+				const response = await fetch(formElement.action, {
+					method: formElement.method,
+					body: new FormData(formElement)
+				});
+				if (response.ok) {
+					window.location.href = "/";
+					console.log("Login correct")
+				} else {
+					console.log("Login error")
+					errorMessageElement.innerText = (await response.json()).error;
+				}
+			});
+		</script>
+		</div>
+	</main>
+</body>
+
+</html>

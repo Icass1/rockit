@@ -27,3 +27,4 @@ venv/
 site-packages
 temp
 __pycache__
+rest

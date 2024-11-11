@@ -2,7 +2,7 @@ from spotdl.utils.search import QueryError, create_ytm_album, create_ytm_playlis
 from spotdl.utils.spotify import SpotifyClient
 from spotdl.utils.config import SPOTIFY_OPTIONS
 
-from spotdl.types.song import Song as SpotdlSong, SongList
+from spotdl.types.song import Song, SongList
 from spotdl.types.album import Album
 from spotdl.types.playlist import Playlist
 from spotdl.types.artist import Artist
@@ -33,7 +33,7 @@ class Spotify:
 
         request = re.sub(r"\/intl-\w+\/", "/", request)
 
-        songs: List[SpotdlSong] = []
+        songs: List[Song] = []
 
         if (
             "https://music.youtube.com/playlist?list=" in request
@@ -129,7 +129,7 @@ class Spotify:
                     song_data["album_artist"] = song_list.author_name
                     song_data["cover_url"] = song_list.cover_url
 
-            songs.append(SpotdlSong.from_dict(song_data))
+            songs.append(Song.from_dict(song_data))
 
         return songs, song_list
     

@@ -1,5 +1,5 @@
 from spotdl.utils.static import BAD_CHARS
-from spotdl.utils.config import DOWNLOADER_OPTIONS
+from constants import DOWNLOADER_OPTIONS
 from spotdl.utils.formatter import create_file_name
 
 import random

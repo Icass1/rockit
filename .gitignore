@@ -28,3 +28,4 @@ site-packages
 temp
 __pycache__
 rest
+*.db

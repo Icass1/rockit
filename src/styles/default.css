@@ -15,7 +15,7 @@
       rgb(var(--accent)),
       rgb(var(--accent-light)) 30%,
       white 60%);
-  color-scheme: dark white;
+  color-scheme: dark;
 }
 
 html {
@@ -42,5 +42,3 @@ code {
     Courier New,
     monospace;
 }
-
-

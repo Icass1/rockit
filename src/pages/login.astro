@@ -1,5 +1,6 @@
 ---
 import "@/styles/default.css";
+
 ---
 <!doctype html>
 <html lang="en" class="dark"></html>
@@ -64,9 +65,7 @@ import "@/styles/default.css";
 				});
 				if (response.ok) {
 					window.location.href = "/";
-					console.log("Login correct")
 				} else {
-					console.log("Login error")
 					errorMessageElement.innerText = (await response.json()).error;
 				}
 			});

@@ -2,16 +2,24 @@
 
 from flask import Flask, Response, request, jsonify
 from flask_sock import Sock
+from flask_cors import CORS
 
 from downloader import Downloader
 from spotify import Spotify
 from colors import *
-import threading
 from utils import create_id
-import time
 
 app = Flask(__name__)
 sock = Sock(app)
+
+CORS(app, supports_credentials=True, resources={
+    r"/*": {
+        "origins": "*"  # Replace with your allowed origin
+    },
+    r"*": {
+        "origins": "*"  # Replace with your allowed origin
+    }
+})
 
 spotify = Spotify()
 downloader = Downloader(spotify)
@@ -52,7 +60,10 @@ def start_download():
 
     # return jsonify({"download_id": download_id})
 
-    downloads[download_id] = downloader.download_url(url)
+    if USER_ID not in downloads:
+        downloads[USER_ID] = {}
+
+    downloads[USER_ID][download_id] = downloader.download_url(url)
 
 
     return jsonify({"download_id": download_id})
@@ -60,7 +71,7 @@ def start_download():
 @app.route('/download-status/<string:id>')
 def download_status(id: str):
     
-    if id not in downloads:
+    if id not in downloads[USER_ID]:
         return Response("Download not found"), 404
 
     # return downloads[id].status()
@@ -82,14 +93,17 @@ def download_status(id: str):
     #             last_messages_len = len(downloader.downloads_dict[id]["messages"])
     #             time.sleep(0.5)
 
-    return Response(downloads[id].status(), mimetype='text/event-stream')
+    return Response(downloads[USER_ID][id].status(), mimetype='text/event-stream')
+
 
 @app.route('/downloads')
 def check_downloads():
     if USER_ID not in downloads:
         return Response("User doesn't have any downloads"), 404
     
-    return jsonify(downloads[USER_ID])
+    return jsonify(list(downloads[USER_ID].keys()))
+
+
 
 @app.route('/cancel-download')
 def cancel_download():

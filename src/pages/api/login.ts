@@ -37,8 +37,6 @@ export async function POST(context: APIContext): Promise<Response> {
 		);
 	}
 
-	console.log(existingUser.passwordHash, password)
-
 	const validPassword = await verify(existingUser.passwordHash, password, {
 		memoryCost: 19456,
 		timeCost: 2,

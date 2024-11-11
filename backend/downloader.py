@@ -15,6 +15,7 @@ from spotify import Spotify
 import threading
 from typing import Any, Dict, Optional, List
 import time
+import json
 
 THREADS = 4
 
@@ -102,7 +103,7 @@ class ListDownloader:
 
         if not self.res:
             text = {'completed': 0, 'total': 100, 'message': 'Fetching'}
-            yield f"data: {text}\n\n"
+            yield f"data: {json.dumps(text)}\n\n"
 
             while not self.res:
                 time.sleep(0.2)
@@ -115,7 +116,7 @@ class ListDownloader:
         while completed < len(self.res):
             for song in self.res:
                 for k in self.downloader.downloads_dict[song.song_id]["messages"][last_messages_len[song.song_id]:]:
-                    yield f"data: {k}\n\n"
+                    yield f"data: {json.dumps(k)}\n\n"
                     if k["completed"] == 100:
                         completed += 1
                     
@@ -153,7 +154,7 @@ class SongDownloader:
 
         if not self.song or self.song.song_id not in self.downloader.downloads_dict:
             text = {'completed': 0, 'total': 100, 'message': 'Fetching'}
-            yield f"data: {text}\n\n"
+            yield f"data: {json.dumps(text)}\n\n"
 
             while not self.song or self.song.song_id not in self.downloader.downloads_dict:
                 time.sleep(0.5)
@@ -162,7 +163,7 @@ class SongDownloader:
         finish = False
         while not finish:
             for k in self.downloader.downloads_dict[self.song.song_id]["messages"][last_messages_len:]:
-                yield f"data: {k}\n\n"
+                yield f"data: {json.dumps(k)}\n\n"
                 if k["completed"] == 100:
                     finish = True
                 

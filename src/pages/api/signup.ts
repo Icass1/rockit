@@ -1,7 +1,7 @@
 import { lucia } from "@/auth";
 import { generateId } from "lucia";
 import { hash } from "@node-rs/argon2";
-import { db, User, eq } from 'astro:db';
+import { db, User } from 'astro:db';
 
 import type { APIContext } from "astro";
 

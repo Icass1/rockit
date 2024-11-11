@@ -1,4 +1,4 @@
-import { defineDb, defineTable, column, NOW } from 'astro:db';
+import { defineDb, } from 'astro:db';
 import { Song, User, Session } from "@/db/tables"
 
 // https://astro.build/db/config

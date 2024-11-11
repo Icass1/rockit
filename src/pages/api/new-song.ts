@@ -1,5 +1,5 @@
 import type { APIContext } from "astro";
-import { db, Song, sql, eq } from 'astro:db';
+import { db, Song, eq } from 'astro:db';
 
 
 export async function POST(context: APIContext): Promise<Response> {

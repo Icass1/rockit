@@ -20,7 +20,7 @@ export const Song = defineTable({
         explicit: column.boolean({ optional: true }),
         publisher: column.text({ optional: true }),
         url: column.text({ unique: true }),
-        path: column.text({ unique: true }),
+        path: column.text({ unique: false, optional: false }),
         isrc: column.text({ optional: true }),
         cover_url: column.text(),
         copyright_text: column.text({ optional: true }),

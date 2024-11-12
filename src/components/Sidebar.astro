@@ -1,0 +1,107 @@
+---
+const links = [
+  { href: "/home", label: "Home", icon: "M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8 M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" },
+  { href: "#", label: "Biblioteca", icon: "m16 6 4 14 M12 6v14 M8 8v12 M4 4v16" },
+  { href: "/search", label: "Buscar", icon: "M11 11c4.418 0 8-3.582 8-8s-3.582-8-8-8-8 3.582-8 8 3.582 8 8 8zm10 10-4.3-4.3" },
+];
+---
+
+<div class="sidebar" id="sidebar">
+  <button id="toggle-button">☰</button>
+  <nav>
+    <ul>
+      {links.map(link => (
+        <li>
+          <a href={link.href}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
+              <path d={link.icon}></path>
+            </svg>
+            <!-- <span class="icon-text">{link.label}</span> -->
+          </a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+</div>
+
+<style>
+  /* Estilos del sidebar basados en tu archivo styles.css */
+  .sidebar {
+    position: relative;
+    width: 60px;
+    background: #000;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    z-index: 999;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    transition: width 0.3s ease;
+  }
+
+  .sidebar.active {
+    width: 250px;
+  }
+
+  .sidebar nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 100px 0;
+    text-align: center;
+  }
+
+  .sidebar nav ul li {
+    margin: 20px 10px;
+  }
+
+  .sidebar nav ul li a {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    color: white;
+    text-decoration: none;
+    height: auto;
+    padding: 5px 5px;
+  }
+
+  .sidebar nav ul li a .icon {
+    
+    width: 22px;
+    transition: margin-left 0.3s ease;
+  }
+
+  .sidebar.active nav ul li a .icon {
+    margin-left: 30px;
+  }
+
+  /*.sidebar nav ul li a .icon-text {
+    display: inline-block;
+    font-size: 17px;
+    opacity: 0;
+    transform: translateX(-20px);
+    transition: transform 0.3s ease, opacity 0.3s ease;
+  }*/
+
+  .sidebar.active nav ul li a .icon-text {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  #toggle-button {
+    position: fixed;
+    top: 20px;
+    left: 5px;
+    background: #000;
+    border: none;
+    color: white;
+    font-size: 22px;
+    cursor: pointer;
+    z-index: 1000;
+    padding: 10px;
+    margin: 0;
+    width: 50px;
+    text-align: center;
+  }
+</style>

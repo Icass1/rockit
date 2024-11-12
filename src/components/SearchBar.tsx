@@ -236,9 +236,9 @@ export default function SearchBar({ }) {
             onChange={(e) => { setValue(e.target.value) }} 
             className="font-semibold mx-auto rounded-full block text-1xl px-10 w-1/3 py-1.5 focus:outline-0" 
             style={{
-                backgroundImage: 'url(/search-icon.png)', // Cambia esta ruta a la de tu icono
-                backgroundPosition: '15px center',  // Ajusta la posición del ícono dentro del input
-                backgroundSize: '14px', // Ajusta el tamaño del ícono
+                backgroundImage: 'url(/search-icon.png)',
+                backgroundPosition: '15px center',
+                backgroundSize: '14px',
                 backgroundRepeat: 'no-repeat',
             }} 
             placeholder="Search a song or artist..." 

@@ -9,4 +9,8 @@ if (!Astro.locals.user) {
 }
 ---
 
-<Layout title="Rock It!" activePage={activePage} />
+<Layout title="Rock It!" activePage={activePage}>
+    <div class="p-2">
+        <SearchBar client:only="react"/>
+    </div>
+  </Layout>

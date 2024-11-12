@@ -9,9 +9,9 @@ interface EventSourceStatus {
     song: SpotifyTrack
 }
 
-function RenderTrackSearchResults({ tracksInfo, downloadSong }: { tracksInfo: SpotifyTrack[], downloadSong: (song: SpotifyTrack) => void }) {
+function RenderTrackSearchResults({ tracksInfo, handleDownload }: { tracksInfo: SpotifyTrack[], handleDownload: (url: string) => void }) {
     const handleClick = (element: SpotifyTrack) => {
-        downloadSong(element)
+        handleDownload(element.external_urls.spotify)
     }
 
     return (
@@ -35,9 +35,9 @@ function RenderTrackSearchResults({ tracksInfo, downloadSong }: { tracksInfo: Sp
 
     )
 }
-function RenderAlbumSearchResults({ tracksInfo, downloadSong }: { tracksInfo: SpotifyAlbum[], downloadSong: (song: SpotifyTrack) => void }) {
-    const handleClick = (element: SpotifyTrack) => {
-        downloadSong(element)
+function RenderAlbumSearchResults({ tracksInfo, handleDownload }: { tracksInfo: SpotifyAlbum[], handleDownload: (url: string) => void }) {
+    const handleClick = (element: SpotifyAlbum) => {
+        handleDownload(element.external_urls.spotify)
     }
 
     return (
@@ -47,7 +47,7 @@ function RenderAlbumSearchResults({ tracksInfo, downloadSong }: { tracksInfo: Sp
             {tracksInfo.map((element, index) =>
                 <div
                     key={'element' + element.uri + index}
-                    // onClick={() => { handleClick(element) }}
+                    onClick={() => { handleClick(element) }}
                     className="flex flex-row h-12 rounded overflow-hidden gap-x-2 bg-zinc-700 hover:bg-zinc-500/60 transition-colors cursor-pointer"
                 >
                     <img className="aspect-square w-auto h-full" src={element.images[0].url}></img>
@@ -175,17 +175,13 @@ export default function SearchBar({ }) {
         else {
             setStatus((value: statusType) => {
                 let newValue = { ...value }
-                if (message.id == undefined) {
+                if (newValue.lists[message.list.id] == undefined) {
+                    newValue.lists[message.list.id] = { listInfo: message.list, totalCompleted: message.list_completed, songs: {} }
+                } else {
+                    newValue.lists[message.list.id].listInfo = message.list
+                    newValue.lists[message.list.id].totalCompleted = message.list_completed
                 }
-                else {
-                    if (newValue.lists[message.list.id] == undefined) {
-                        newValue.lists[message.list.id] = { listInfo: message.list, totalCompleted: message.list_completed, songs: {} }
-                    } else {
-                        newValue.lists[message.list.id].listInfo = message.list
-                        newValue.lists[message.list.id].totalCompleted = message.list_completed
-                    }
-                    newValue.lists[message.list.id].songs[message.id] = { completed: message.completed, message: message.message, song: message.song }
-                }
+                newValue.lists[message.list.id].songs[message.id] = { completed: message.completed, message: message.message, song: message.song }
                 return newValue
             })
             if (message.list_completed == 100) {
@@ -216,31 +212,16 @@ export default function SearchBar({ }) {
         })
     }, [])
 
-    const downloadSong = (song: SpotifyTrack) => {
+    const handleDownload = (url: string) => {
 
-        fetch(`http://localhost:8000/start-download?url=${song.external_urls.spotify}`).then(data => data.json()).then(json => {
+        fetch(`http://localhost:8000/start-download?url=${url}`).then(data => data.json()).then(json => {
             const eventSource = new EventSource(`http://localhost:8000/download-status/${json.download_id}`)
             eventSource.onmessage = (event) => {
 
                 onMessage(event, eventSource)
-                return
 
-                const message = JSON.parse(event.data);
-                setStatus((value: statusType) => {
-                    let newValue = { ...value }
-                    newValue.songs[song.id] = { completed: message.completed, message: message.message, song: song }
-                    return newValue
-                })
-                if (message.completed == 100) {
-                    eventSource.close()
-                }
             }
             eventSource.onerror = (error) => {
-                setStatus((value: statusType) => {
-                    let newValue = { ...value }
-                    newValue.songs[song.id] = { completed: 0, message: "Error", song: song }
-                    return newValue
-                })
                 console.error('EventSource failed:', error);
                 eventSource.close();
             };
@@ -255,9 +236,9 @@ export default function SearchBar({ }) {
                 {searchResults ?
                     <div className="w-full min-w-0 max-w-full">
                         <label className="font-bold text-xl text-white ">Songs</label>
-                        <RenderTrackSearchResults tracksInfo={searchResults.songs} downloadSong={downloadSong} />
+                        <RenderTrackSearchResults tracksInfo={searchResults.songs} handleDownload={handleDownload} />
                         <label className="font-bold text-xl text-white ">Albums</label>
-                        <RenderAlbumSearchResults tracksInfo={searchResults.albums} downloadSong={downloadSong} />
+                        <RenderAlbumSearchResults tracksInfo={searchResults.albums} handleDownload={handleDownload} />
                     </div>
                     :
                     <div className="w-1/2 mx-auto text-white">

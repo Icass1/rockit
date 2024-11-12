@@ -6,7 +6,7 @@ import spotdl.providers.audio.base
 
 from api_types import RawSpotifyApiSong, RawSpotifyApiAlbum, AlbumItem
 
-from utils import get_song_name
+from utils import get_song_name, sanitize_folder_name, get_output_file
 from colors import *
 from constants import DOWNLOADER_OPTIONS
 
@@ -17,6 +17,7 @@ from typing import Any, Dict, Optional, List, Tuple
 import json
 import time
 from bs4 import BeautifulSoup
+import os
 import logging
 
 # # Set up a handler specifically for spotdl
@@ -111,7 +112,7 @@ def get_best_result(self, results: Dict[Result, float]) -> Tuple[Result, float]:
 spotdl.providers.audio.base.AudioProvider.get_best_result = get_best_result
 
 
-THREADS = 4
+THREADS = 16
 
 class ListDownloader:
     def __init__(self, url, downloader: "Downloader"):
@@ -327,12 +328,23 @@ class Downloader:
     def download_song(self, song: Song):
 
         print(OKBLUE, "[DOWNLOADER] Downloading", get_song_name(song), ENDC)
-        _, path = self.spotify_downloader.search_and_download(song)
 
-        if path == None:
-            print(FAIL, "[DOWNLOADER] Error downloading", get_song_name(song), ENDC)
-        else:
-            print(OKGREEN, "[DOWNLOADER] Downloaded", get_song_name(song), ENDC)
+        album_path = os.path.join("backend", "temp", sanitize_folder_name(song.artist), sanitize_folder_name(song.album_name))
+        final_path = os.path.join(album_path, get_output_file(song).replace("backend/temp/", ""))
+
+        if os.path.exists():
+            print(WARNING, "TODO - Handle song already downloaded")
+        else: 
+            _, path = self.spotify_downloader.search_and_download(song)
+
+            if not os.path.exists(album_path):
+                os.makedirs(album_path)
+            if path == None:
+                print(FAIL, "[DOWNLOADER] Error downloading", get_song_name(song), ENDC)
+            else:
+                print(OKGREEN, "[DOWNLOADER] Downloaded", get_song_name(song), ENDC)
+                os.rename(path, final_path)
+                path = final_path
 
         requests.post("http://localhost:4321/api/new-song", json={
             "name": song.name,

@@ -7,8 +7,6 @@ const activePage = "Home";
 
 if (!Astro.locals.user) {
 	return Astro.redirect("/login")
-} else {
-	return Astro.redirect("/")
 }
 ---
 

@@ -37,6 +37,11 @@ const links = [
     `
   },*/
 ];
+
+export interface Props {
+  activePage: string;
+}
+const { activePage } = Astro.props;
 ---
 
 
@@ -46,7 +51,7 @@ const links = [
     <ul>
       {links.map(link => (
         <li>
-          <a href={link.href} aria-label={link.label}>
+          <a href={link.href} aria-label={link.label} class={link.label === activePage ? "active-icon" : ""}>
             <div class="icon" set:html={link.icon}></div>
             <!-- <span class="icon-text">{link.label}</span> -->
           </a>
@@ -64,8 +69,9 @@ const links = [
     width: 60px;
     background: #000;
     color: white;
-    display: flex;
+    display: inline;
     flex-direction: column;
+    justify-content: center;
     position: fixed;
     z-index: 999;
     top: 0;
@@ -87,35 +93,41 @@ const links = [
 
   .sidebar nav ul li {
     margin: 20px 10px;
+    justify-content: center;
   }
 
   .sidebar nav ul li a {
-    display: flex;
+    display: inline-block;
     align-items: center;
     justify-content: center;
     color: white;
     text-decoration: none;
     height: auto;
-    padding: 5px 5px;
   }
 
-  .sidebar nav ul li a .icon {
-    
-    width: 22px;
+  .sidebar nav ul li a {
+    justify-content: center;
     transition: margin-left 0.3s ease;
   }
 
-  .sidebar.active nav ul li a .icon {
+  .sidebar.active nav ul li a {
     margin-left: 30px;
   }
 
-  /*.sidebar nav ul li a .icon-text {
-    display: inline-block;
-    font-size: 17px;
-    opacity: 0;
-    transform: translateX(-20px);
-    transition: transform 0.3s ease, opacity 0.3s ease;
-  }*/
+  .icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    align-items: center;
+    border-radius: 4px;
+  }
+
+  .active-icon .icon{
+    color: black;
+    background-color: white;
+  }
 
   .sidebar.active nav ul li a .icon-text {
     opacity: 1;

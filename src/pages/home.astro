@@ -2,6 +2,7 @@
 import Layout from "@/layouts/Layout.astro";
 import SearchBar from "@/components/SearchBar";
 import Sidebar from "@/components/Sidebar.astro";
+const activePage = "Home";
 
 if (!Astro.locals.user) {
   return Astro.redirect("/login");
@@ -9,7 +10,7 @@ if (!Astro.locals.user) {
 ---
 
 <Layout title="Rock It!">
-    <Sidebar />
+    <Sidebar activePage={activePage} />
     <main class="p-5">
         <SearchBar client:only="react"/>
         <!-- <input class="mx-auto rounded-full block text-2xl px-4 w-1/2 py-1 focus:outline-0" placeholder="Enter a spotify URL..."/> -->

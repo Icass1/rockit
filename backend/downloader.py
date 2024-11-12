@@ -28,7 +28,7 @@ class ListDownloader:
         self.list_info: Album | Playlist | Artist | Saved = None
         self.downloader = downloader
 
-        threading.Thread(target=lambda : self.fetch_song()).start()
+        threading.Thread(target=lambda : self.fetch_song(), name=f"List downloader {url}").start()
 
     def fetch_song(self):
         print(OKBLUE, "[LIST DOWNLOADER]", "Fetching list", ENDC)
@@ -131,7 +131,7 @@ class SongDownloader:
         self.song: Song = None
 
         self.downloader = downloader
-        threading.Thread(target=lambda : self.fetch_song()).start()
+        threading.Thread(target=lambda : self.fetch_song(), name=f"Song downloader {url}").start()
 
     def fetch_song(self):
         # self.downloader.downloads_dict[self.download_id] = {"messages": [{'id': self.download_id, 'completed': 0, 'total': 100, 'message': 'Processing'}]}
@@ -152,17 +152,22 @@ class SongDownloader:
 
     def status(self):
 
+        threading.current_thread().name = f"Test"
+
         if not self.song or self.song.song_id not in self.downloader.downloads_dict:
             text = {'completed': 0, 'total': 100, 'message': 'Fetching'}
             yield f"data: {json.dumps(text)}\n\n"
 
             while not self.song or self.song.song_id not in self.downloader.downloads_dict:
                 time.sleep(0.5)
+                
+        threading.current_thread().name = f"status - {self.song.name} - {self.song.artist}"
 
         last_messages_len = 0
         finish = False
         while not finish:
             for k in self.downloader.downloads_dict[self.song.song_id]["messages"][last_messages_len:]:
+                k["song"] = self.song.json
                 yield f"data: {json.dumps(k)}\n\n"
                 if k["completed"] == 100:
                     finish = True

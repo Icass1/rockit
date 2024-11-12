@@ -37,13 +37,7 @@ def search():
 
     query = request.args.get('q')
     out = spotify.spotify_search(query)
-
-
-    # url = request.args.get('url')
-    # print(OKBLUE, url, ENDC)
-    # song = spotify.get_simple_songs(url)
-
-    # return jsonify(song)
+    
     return jsonify(out)
 
 @app.route('/start-download')
@@ -51,14 +45,6 @@ def start_download():
         
     url = request.args.get('url')
     download_id = create_id(length=16)
-
-    # if USER_ID in downloads:
-    #     downloads[USER_ID].append({"id": download_id, "status": ""})
-    # else:
-    #     downloads[USER_ID] = [{"id": download_id, "status": ""}]
-    # threading.Thread(target=lambda : downloader.download_url(url=url, download_id=download_id)).start()
-
-    # return jsonify({"download_id": download_id})
 
     if USER_ID not in downloads:
         downloads[USER_ID] = {}
@@ -71,29 +57,11 @@ def start_download():
 @app.route('/download-status/<string:id>')
 def download_status(id: str):
     
-    if id not in downloads[USER_ID]:
+    if USER_ID not in downloads or id not in downloads[USER_ID]:
         return Response("Download not found"), 404
 
-    # return downloads[id].status()
-
-    # def stream_download_status():
-
-    #     if id in downloader.list_downloads:
-    #         print(downloader.list_downloads[id])
-
-    #     else:
-    #         last_messages_len = 0
-    #         finish = False
-    #         while not finish:
-    #             for k in downloader.downloads_dict[id]["messages"][last_messages_len:]:
-    #                 yield f"data: {k}\n\n"
-    #                 if k["completed"] == 100:
-    #                     finish = True
-                    
-    #             last_messages_len = len(downloader.downloads_dict[id]["messages"])
-    #             time.sleep(0.5)
-
     return Response(downloads[USER_ID][id].status(), mimetype='text/event-stream')
+
 
 
 @app.route('/downloads')

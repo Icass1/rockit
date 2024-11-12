@@ -332,7 +332,7 @@ class Downloader:
         album_path = os.path.join("backend", "temp", sanitize_folder_name(song.artist), sanitize_folder_name(song.album_name))
         final_path = os.path.join(album_path, get_output_file(song).replace("backend/temp/", ""))
 
-        if os.path.exists():
+        if os.path.exists(final_path):
             print(WARNING, "TODO - Handle song already downloaded")
         else: 
             _, path = self.spotify_downloader.search_and_download(song)

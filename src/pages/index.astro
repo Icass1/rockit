@@ -1,16 +1,25 @@
 ---
-import Layout from '../layouts/Layout.astro';
+import Layout from "@/layouts/Layout.astro";
+import SearchBar from "@/components/SearchBar";
 import "@/styles/default.css";
+
+const activePage = "Home";
 
 if (!Astro.locals.user) {
 	return Astro.redirect("/login")
 } else {
-	return Astro.redirect("/home")
+	return Astro.redirect("/")
 }
 ---
 
-<Layout title="Welcome to Astro.">
-	<main class="text-red-50 bg-zinc-800">
-		test {Astro.locals.user?.updatedAt} {Astro.locals.user?.id}
-	</main>
+<Layout title="Rock It!" activePage={activePage}>
+    <main class="p-5">
+        <SearchBar client:only="react"/>
+        <!-- <input class="mx-auto rounded-full block text-2xl px-4 w-1/2 py-1 focus:outline-0" placeholder="Enter a spotify URL..."/> -->
+    </main>
 </Layout>
+
+
+<script>
+    // const a = EventSource()
+</script>

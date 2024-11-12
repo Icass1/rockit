@@ -1,8 +1,48 @@
 ---
-interface Props {
-	title: string;
-}
+/* Sidebar links to other pages, playlists (lo que queramos) */
+const links = [
+  { 
+    href: "/home", 
+    label: "Home", 
+    icon: `
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8 M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+      </svg>
+    `
+  },
+  { 
+    href: "/library", 
+    label: "Library", 
+    icon: `
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m16 6 4 14 M12 6v14 M8 8v12 M4 4v16"></path>
+      </svg>
+    `
+  },
+  { 
+    href: "/search", 
+    label: "Search", 
+    icon: `
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"></circle>
+        <path d="m21 21-4.3-4.3"></path>
+      </svg>
+    `
+  },
+  /*{ 
+    href: "#", 
+    label: "Test", 
+    icon: `
+      <img src="path/to/icon.png" alt="Test for an album" width="20" height="20">
+    `
+  },*/
+];
 
+export interface Props {
+  activePage: string;
+  title: string;
+}
+const { activePage } = Astro.props;
 const { title } = Astro.props;
 
 
@@ -20,7 +60,23 @@ const { title } = Astro.props;
 		<title>{title}</title>
 	</head>
 	<body>
-		<slot />
+
+		<div class="sidebar" id="sidebar">
+			<button id="toggle-button">☰</button>
+			<nav>
+			  <ul>
+				{links.map(link => (
+				  <li>
+					<a href={link.href} aria-label={link.label} class={link.label === activePage ? "active-icon" : ""}>
+					  <div class="icon" set:html={link.icon}></div>
+					  <!-- <span class="icon-text">{link.label}</span> -->
+					</a>
+				  </li>
+				))}
+			  </ul>
+			</nav>
+		  </div>
+
 	</body>
 </html>
 <style is:global>
@@ -49,5 +105,93 @@ const { title } = Astro.props;
 			Bitstream Vera Sans Mono,
 			Courier New,
 			monospace;
+	}
+
+
+	/* Estilos del sidebar basados en tu archivo styles.css */
+	.sidebar {
+		position: relative;
+		width: 60px;
+		background: #000;
+		color: white;
+		display: inline;
+		flex-direction: column;
+		justify-content: center;
+		position: fixed;
+		z-index: 999;
+		top: 0;
+		left: 0;
+		bottom: 0;
+		transition: width 0.3s ease;
+	}
+
+	.sidebar.active {
+		width: 250px;
+	}
+
+	.sidebar nav ul {
+		list-style: none;
+		padding: 0;
+		margin: 100px 0;
+		text-align: center;
+	}
+
+	.sidebar nav ul li {
+		margin: 20px 10px;
+		justify-content: center;
+	}
+
+	.sidebar nav ul li a {
+		display: inline-block;
+		align-items: center;
+		justify-content: center;
+		color: white;
+		text-decoration: none;
+		height: auto;
+	}
+
+	.sidebar nav ul li a {
+		justify-content: center;
+		transition: margin-left 0.3s ease;
+	}
+
+	.sidebar.active nav ul li a {
+		margin-left: 30px;
+	}
+
+	.icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 30px;
+		height: 30px;
+		align-items: center;
+		border-radius: 4px;
+	}
+
+	.active-icon .icon{
+		color: black;
+		background-color: white;
+	}
+
+	.sidebar.active nav ul li a .icon-text {
+		opacity: 1;
+		transform: translateX(0);
+	}
+
+	#toggle-button {
+		position: fixed;
+		top: 20px;
+		left: 5px;
+		background: #000;
+		border: none;
+		color: white;
+		font-size: 22px;
+		cursor: pointer;
+		z-index: 1000;
+		padding: 10px;
+		margin: 0;
+		width: 50px;
+		text-align: center;
 	}
 </style>

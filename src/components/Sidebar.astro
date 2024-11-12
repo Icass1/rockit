@@ -1,10 +1,49 @@
 ---
+/* Sidebar links to other pages, playlists (lo que queramos) */
 const links = [
-  { href: "/home", label: "Home", icon: "M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8 M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" },
-  { href: "#", label: "Biblioteca", icon: "m16 6 4 14 M12 6v14 M8 8v12 M4 4v16" },
-  { href: "/search", label: "Buscar", icon: "M11 11c4.418 0 8-3.582 8-8s-3.582-8-8-8-8 3.582-8 8 3.582 8 8 8zm10 10-4.3-4.3" },
+  { 
+    href: "/home", 
+    label: "Home", 
+    icon: `
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8 M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+      </svg>
+    `
+  },
+  { 
+    href: "/library", 
+    label: "Library", 
+    icon: `
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m16 6 4 14 M12 6v14 M8 8v12 M4 4v16"></path>
+      </svg>
+    `
+  },
+  { 
+    href: "/search", 
+    label: "Search", 
+    icon: `
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"></circle>
+        <path d="m21 21-4.3-4.3"></path>
+      </svg>
+    `
+  },
+  /*{ 
+    href: "#", 
+    label: "Test", 
+    icon: `
+      <img src="path/to/icon.png" alt="Test for an album" width="20" height="20">
+    `
+  },*/
 ];
+
+export interface Props {
+  activePage: string;
+}
+const { activePage } = Astro.props;
 ---
+
 
 <div class="sidebar" id="sidebar">
   <button id="toggle-button">☰</button>
@@ -12,10 +51,8 @@ const links = [
     <ul>
       {links.map(link => (
         <li>
-          <a href={link.href}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
-              <path d={link.icon}></path>
-            </svg>
+          <a href={link.href} aria-label={link.label} class={link.label === activePage ? "active-icon" : ""}>
+            <div class="icon" set:html={link.icon}></div>
             <!-- <span class="icon-text">{link.label}</span> -->
           </a>
         </li>
@@ -24,6 +61,7 @@ const links = [
   </nav>
 </div>
 
+
 <style>
   /* Estilos del sidebar basados en tu archivo styles.css */
   .sidebar {
@@ -31,8 +69,9 @@ const links = [
     width: 60px;
     background: #000;
     color: white;
-    display: flex;
+    display: inline;
     flex-direction: column;
+    justify-content: center;
     position: fixed;
     z-index: 999;
     top: 0;
@@ -54,35 +93,41 @@ const links = [
 
   .sidebar nav ul li {
     margin: 20px 10px;
+    justify-content: center;
   }
 
   .sidebar nav ul li a {
-    display: flex;
+    display: inline-block;
     align-items: center;
-    justify-content: flex-start;
+    justify-content: center;
     color: white;
     text-decoration: none;
     height: auto;
-    padding: 5px 5px;
   }
 
-  .sidebar nav ul li a .icon {
-    
-    width: 22px;
+  .sidebar nav ul li a {
+    justify-content: center;
     transition: margin-left 0.3s ease;
   }
 
-  .sidebar.active nav ul li a .icon {
+  .sidebar.active nav ul li a {
     margin-left: 30px;
   }
 
-  /*.sidebar nav ul li a .icon-text {
-    display: inline-block;
-    font-size: 17px;
-    opacity: 0;
-    transform: translateX(-20px);
-    transition: transform 0.3s ease, opacity 0.3s ease;
-  }*/
+  .icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    align-items: center;
+    border-radius: 4px;
+  }
+
+  .active-icon .icon{
+    color: black;
+    background-color: white;
+  }
 
   .sidebar.active nav ul li a .icon-text {
     opacity: 1;

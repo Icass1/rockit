@@ -231,8 +231,19 @@ export default function SearchBar({ }) {
 
     return (
         <div className="flex flex-col gap-y-5">
-            <input value={value} onChange={(e) => { setValue(e.target.value) }} className="font-semibold mx-auto rounded-full block text-2xl px-4 w-1/2 py-1 focus:outline-0" placeholder="Enter a spotify URL..." />
-            <div className="grid grid-cols-[4fr_min-content] w-full gap-x-3">
+            <input 
+            value={value} 
+            onChange={(e) => { setValue(e.target.value) }} 
+            className="font-semibold mx-auto rounded-full block text-1xl px-10 w-1/3 py-1.5 focus:outline-0" 
+            style={{
+                backgroundImage: 'url(/search-icon.png)', // Cambia esta ruta a la de tu icono
+                backgroundPosition: '15px center',  // Ajusta la posición del ícono dentro del input
+                backgroundSize: '14px', // Ajusta el tamaño del ícono
+                backgroundRepeat: 'no-repeat',
+            }} 
+            placeholder="Search a song or artist..." 
+            />
+            <div className="grid grid-cols-[4fr_3fr] w-full gap-x-3">
                 {searchResults ?
                     <div className="w-full min-w-0 max-w-full">
                         <label className="font-bold text-xl text-white ">Songs</label>

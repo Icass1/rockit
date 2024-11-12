@@ -48,12 +48,11 @@ export default function SearchBar({ }) {
     }, [])
 
     const search = (query: string) => {
-        console.log("query", "'", query, "'")
         if (query == "") { return }
         setSearchResults(undefined)
 
         fetch(`http://localhost:8000/search?q=${query}`).then(data => data.json()).then(json => {
-            console.log(json)
+            // console.log(json)
             setSearchResults(json)
         })
     }
@@ -63,6 +62,45 @@ export default function SearchBar({ }) {
         searchDebounce.current(value)
     }, [value])
 
+    useEffect(() => {
+        console.log("fetch downloads")
+        fetch(`http://localhost:8000/downloads`).then(response => {
+            console.log(response.ok)
+            if (response.ok) {
+                response.json().then(json => {
+                    for (let downloadId of json) {
+                        console.log("EventSource", `http://localhost:8000/download-status/${downloadId}`)
+                        const eventSource = new EventSource(`http://localhost:8000/download-status/${downloadId}`)
+                        eventSource.onmessage = (event) => {
+                            const message = JSON.parse(event.data);
+                            setStatus((value: any) => {
+                                let newValue = { ...value }
+                                if (message.id == undefined) {
+                                }
+                                else {
+                                    newValue[message.id] = { completed: message.completed, message: message.message, song: message.song }
+
+                                }
+                                return newValue
+                            })
+                            if (message.completed == 100) {
+                                eventSource.close()
+                            }
+                        }
+                        eventSource.onerror = (error) => {
+                            // setStatus((value: any) => {
+                            //     let newValue = { ...value }
+                            //     newValue[song.id] = { completed: 0, message: "Error"}
+                            //     return newValue
+                            // })
+                            console.error('EventSource failed:', error);
+                            eventSource.close();
+                        };
+                    }
+                })
+            }
+        })
+    }, [])
 
     const downloadSong = (song: SongsEntity) => {
 
@@ -120,14 +158,14 @@ export default function SearchBar({ }) {
                     {/* {messages.map((message, index) => <div key={index}>{message.completed}/{message.total} - {message.message}</div>)} */}
                     {Object.entries(status).map(songStatus => (
                         <div key={songStatus[0]} className="bg-zinc-400/10 rounded h-14 flex flex-row gap-x-2 overflow-hidden">
-                            <img src={songStatus[1].song.image_url} className="h-full w-auto" />
+                            <img src={songStatus[1]?.song?.image_url || songStatus[1]?.song?.cover_url} className="h-full w-auto" />
                             <div className="flex flex-col w-full p-1 pr-2 min-w-0 max-w-full">
-                                <label className="truncate min-w-0 max-w-full">{songStatus[1].song.name} - {songStatus[1].song.artists.map(artist => artist.name).join(", ")}</label>
+                                <label className="truncate min-w-0 max-w-full">{songStatus[1].song?.name} - {songStatus[1].song?.artists.map(artist => artist.name || artist).join(", ")}</label>
                                 <div className="w-full grid grid-cols-[1fr_max-content] items-center gap-x-2 ">
-                                    <div className={"bg-gray-500 h-2 w-full rounded relative " + (songStatus[1].message == "Error" && "bg-red-400")}>
-                                        <div className="bg-green-500 absolute h-2 rounded" style={{ width: `${songStatus[1].completed}%` }}></div>
+                                    <div className={"bg-gray-500 h-2 w-full rounded-full relative " + (songStatus[1].message == "Error" && "bg-red-400")}>
+                                        <div className="bg-green-500 absolute h-full rounded-full transition-all" style={{ width: `${songStatus[1].completed}%` }}></div>
                                     </div>
-                                    <label className="w-auto flex-nowrap"> {songStatus[1].message}</label>
+                                    <label className="w-auto flex-nowrap text-sm"> {songStatus[1].message}</label>
                                 </div>
                             </div>
                         </div>

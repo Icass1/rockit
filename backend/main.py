@@ -4,10 +4,12 @@ from flask import Flask, Response, request, jsonify
 from flask_sock import Sock
 from flask_cors import CORS
 
-from downloader import Downloader
-from spotify import Spotify
 from colors import *
+
+from spotify import Spotify
+from downloader import Downloader
 from utils import create_id
+import json
 
 app = Flask(__name__)
 sock = Sock(app)
@@ -21,12 +23,15 @@ CORS(app, supports_credentials=True, resources={
     }
 })
 
+
 spotify = Spotify()
 downloader = Downloader(spotify)
 
 USER_ID = "randomtestuserid"
 
 downloads = {}
+
+
 
 @app.route('/')
 def home():
@@ -36,13 +41,17 @@ def home():
 def search():
 
     query = request.args.get('q')
-    out = spotify.spotify_search(query)
     
-    return jsonify(out)
+    search_results = spotify.api_call(path="search", params={"q": query, "type": "track,album", "limit": "6"})
+
+    return {
+        "songs": search_results["tracks"]["items"],
+        "albums": search_results["albums"]["items"],
+        # "playlists": search_results["playlists"]["items"],
+    }
 
 @app.route('/start-download')
-def start_download():
-        
+def start_download():    
     url = request.args.get('url')
     download_id = create_id(length=16)
 
@@ -50,7 +59,6 @@ def start_download():
         downloads[USER_ID] = {}
 
     downloads[USER_ID][download_id] = downloader.download_url(url)
-
 
     return jsonify({"download_id": download_id})
 
@@ -62,15 +70,12 @@ def download_status(id: str):
 
     return Response(downloads[USER_ID][id].status(), mimetype='text/event-stream')
 
-
-
 @app.route('/downloads')
 def check_downloads():
     if USER_ID not in downloads:
         return Response("User doesn't have any downloads"), 404
     
     return jsonify(list(downloads[USER_ID].keys()))
-
 
 
 @app.route('/cancel-download')

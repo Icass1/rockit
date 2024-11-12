@@ -25,7 +25,7 @@ export async function POST(context: APIContext): Promise<Response> {
     let publisher = data.publisher
     let url = data.url
     let isrc = data.isrc
-    let cover_url = data.cover_url
+    let cover_url = data.cover_url[0]
     let copyright_text = data.copyright_text
     let download_url = data.download_url
     let lyrics = data.lyrics
@@ -33,6 +33,7 @@ export async function POST(context: APIContext): Promise<Response> {
     let album_id = data.album_id
     let artist_id = data.artist_id
     let path = data.path
+
 
     const a = (await db.select({ song_id: Song.song_id }).from(Song).where(eq(Song.song_id, song_id)))[0]
     const b = (await db.select({ song_id: Song.song_id }).from(Song).where(eq(Song.path, path)))[0]
@@ -76,8 +77,8 @@ export async function POST(context: APIContext): Promise<Response> {
             path,
         })
     } catch (err) {
-
         console.warn("Error in new-song", err?.toString())
+        console.log(data)
     }
 
     return new Response("OK")

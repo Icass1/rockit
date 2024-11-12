@@ -1,195 +1,157 @@
-from spotdl.utils.search import QueryError, create_ytm_album, create_ytm_playlist, logger
-from spotdl.utils.spotify import SpotifyClient
-from spotdl.utils.config import SPOTIFY_OPTIONS
-
-from spotdl.types.song import Song, SongList
-from spotdl.types.album import Album
-from spotdl.types.playlist import Playlist
-from spotdl.types.artist import Artist
-from spotdl.types.saved import Saved
-
+import requests
+import re
+import json
+from dotenv import load_dotenv
+import base64
+import os
 from typing import List
 import re
 
+from spotdl.types.song import Song
+
+from api_types import RawSpotifyApiSong, RawSpotifyApiAlbum, AlbumItem
+from colors import *
+
 class Spotify:
     def __init__(self):
-        self.spotify_client = SpotifyClient.init(**SPOTIFY_OPTIONS)
+        load_dotenv()
+        self.client_id = os.getenv('CLIENT_ID')
+        self.client_secret = os.getenv('CLIENT_SECRET')
+        self.token: str = None
+        self.get_token()
 
-    def get_simple_songs(
-        self,
-        request: str,
-        use_ytm_data: bool = False,
-        playlist_numbering: bool = False,
-    ):
-        """
-        Parse query and return list containing simple song objects
+    def get_token(self):
+        auth_string = self.client_id + ':' + self.client_secret
+        auth_bytes = auth_string.encode('utf-8')
+        auth_base64 = str(base64.b64encode(auth_bytes), "utf-8")
 
-        ### Arguments
-        - query: List of strings containing query
 
-        ### Returns
-        - List of simple song objects
-        """
+        url = "https://accounts.spotify.com/api/token"
+        headers = {
+            "Authorization": "Basic " + auth_base64,
+            "Content-Type": "application/x-www-form-urlencoded"
+        }
+        data = {"grant_type": "client_credentials"}
 
-        request = re.sub(r"\/intl-\w+\/", "/", request)
+        result = requests.post(url, headers=headers, data=data)
+        json_response = json.loads(result.content)
 
-        songs: List[Song] = []
+        self.token = json_response["access_token"]
 
-        if (
-            "https://music.youtube.com/playlist?list=" in request
-            or "https://music.youtube.com/browse/VLPL" in request
-        ):
-            split_urls = request.split("|")
-            if len(split_urls) == 1:
-                if "?list=OLAK5uy_" in request:
-                    song_list = create_ytm_album(request, fetch_songs=False)
-                elif "?list=PL" in request or "browse/VLPL" in request:
-                    song_list = create_ytm_playlist(request, fetch_songs=False)
-            else:
-                if ("spotify" not in split_urls[1]) or not any(
-                    x in split_urls[0]
-                    for x in ["?list=PL", "?list=OLAK5uy_", "browse/VLPL"]
-                ):
-                    raise QueryError(
-                        'Incorrect format used, please use "YouTubeMusicURL|SpotifyURL". '
-                        "Currently only supports YouTube Music playlists and albums."
-                    )
+    def get_auth_header(self):
+        return {"Authorization": "Bearer " + self.token}
 
-                if ("open.spotify.com" in request and "album" in request) and (
-                    "?list=OLAK5uy_" in request
-                ):
-                    ytm_list: SongList = create_ytm_album(
-                        split_urls[0], fetch_songs=False
-                    )
-                    spot_list = Album.from_url(split_urls[1], fetch_songs=False)
-                elif ("open.spotify.com" in request and "playlist" in request) and (
-                    "?list=PL" in request or "browse/VLPL" in request
-                ):
-                    ytm_list = create_ytm_playlist(split_urls[0], fetch_songs=False)
-                    spot_list = Playlist.from_url(split_urls[1], fetch_songs=False)
-                else:
-                    raise QueryError(
-                        f"URLs are not of the same type, {split_urls[0]} is not "
-                        f"the same type as {split_urls[1]}."
-                    )
-
-                if ytm_list.length != spot_list.length:
-                    raise QueryError(
-                        f"The YouTube Music ({ytm_list.length}) "
-                        f"and Spotify ({spot_list.length}) lists have different lengths. "
-                    )
-
-                if use_ytm_data:
-                    for index, song in enumerate(ytm_list.songs):
-                        song.url = spot_list.songs[index].url
-
-                    song_list = ytm_list
-                else:
-                    for index, song in enumerate(spot_list.songs):
-                        song.download_url = ytm_list.songs[index].download_url
-
-                    song_list = spot_list
-        elif "open.spotify.com" in request and "playlist" in request:
-            song_list = Playlist.from_url(request, fetch_songs=False)
-        elif "open.spotify.com" in request and "album" in request:
-            song_list = Album.from_url(request, fetch_songs=False)
-        elif "open.spotify.com" in request and "artist" in request:
-            song_list = Artist.from_url(request, fetch_songs=False)
-        elif "album:" in request:
-            song_list = Album.from_search_term(request, fetch_songs=False)
-        elif "playlist:" in request:
-            song_list = Playlist.from_search_term(request, fetch_songs=False)
-        elif "artist:" in request:
-            song_list = Artist.from_search_term(request, fetch_songs=False)
-        elif request == "saved":
-            song_list = Saved.from_url(request, fetch_songs=False)
-        else:
-            print("Error", request)
-        logger.info(
-            "Found %s songs in %s (%s)",
-            len(song_list.urls),
-            song_list.name,
-            song_list.__class__.__name__,
-        )
-
-        for index, song in enumerate(song_list.songs):
-            song_data = song.json
-            song_data["list_name"] = song_list.name
-            song_data["list_url"] = song_list.url
-            song_data["list_position"] = index + 1
-            song_data["list_length"] = song_list.length
-
-            if playlist_numbering:
-                song_data["track_number"] = song_data["list_position"]
-                song_data["tracks_count"] = song_data["list_length"]
-                song_data["album_name"] = song_data["list_name"]
-                song_data["disc_number"] = 1
-                song_data["disc_count"] = 1
-                if isinstance(song_list, Playlist):
-                    song_data["album_artist"] = song_list.author_name
-                    song_data["cover_url"] = song_list.cover_url
-
-            songs.append(Song.from_dict(song_data))
-
-        return songs, song_list
+    def spotdl_songs_from_url(self, url):
     
-    def spotify_search(self, query):
+        url = self.parse_url(url)
+    
+        spotdl_songs: List[Song] = []
+        raw_songs: List[AlbumItem] = []
+
+
+        if "/album/" in url:
+            raw_album = self.api_call(path=f"albums/{url.replace('https://open.spotify.com/album/', '')}")
+            album = RawSpotifyApiAlbum.from_dict(raw_album)
+
+            for song in album.tracks.items:
+                song_dict = {}
+                song_dict["name"] = song.name
+                song_dict["artists"] = [artist.name for artist in song.artists]
+                song_dict["artist"] = song.artists[0].name
+                song_dict["artist_id"] = song.artists[0].id
+                song_dict["album_id"] = album.id
+                song_dict["album_name"] = album.name
+                song_dict["album_artist"] = album.artists[0].name
+                song_dict["album_type"] = album.artists[0].type
+                song_dict["copyright_text"]  = album.copyrights[0].text
+                song_dict["genres"] = album.genres
+                song_dict["disc_number"] = song.disc_number
+                song_dict["disc_count"] = album.tracks.items[-1].disc_number
+                song_dict["duration"] = song.duration_ms/1000
+                song_dict["year"] = int(album.release_date[:4])
+                song_dict["date"] = album.release_date
+                song_dict["track_number"] = song.track_number
+                song_dict["tracks_count"] = album.total_tracks
+                song_dict["isrc"] = album.external_ids.isrc
+                song_dict["song_id"] = song.id
+                song_dict["explicit"] = song.explicit
+                song_dict["publisher"] = album.label
+                song_dict["url"] = song.external_urls.spotify
+                song_dict["popularity"] = album.popularity
+                song_dict["cover_url"] = (
+                            max(album.images, key=lambda i: i.width * i.height)[
+                                "url"
+                            ]
+                            if album.images
+                            else None
+                        ),
+                spotdl_songs.append(Song.from_dict(song_dict))
+                raw_songs.append(song)
+
+            return album, spotdl_songs, raw_songs
+
+    def spotdl_song_from_url(self, url):
+        url = self.parse_url(url)
+
+        if "/track/" not in url:
+            raise Exception("Invalid URL")
+
+        raw_song = self.api_call(path=f"tracks/{url.replace('https://open.spotify.com/track/', '')}")
+        song = RawSpotifyApiSong.from_dict(raw_song)
+
+        raw_album = self.api_call(path=f"albums/{song.album.id}")
+        album = RawSpotifyApiAlbum.from_dict(raw_album)
+
+        song_dict = {}
+
+        song_dict["name"] = song.name
+        song_dict["artists"] = [artist.name for artist in song.artists]
+        song_dict["artist"] = song.artists[0].name
+        song_dict["artist_id"] = song.artists[0].id
+        song_dict["album_id"] = album.id
+        song_dict["album_name"] = album.name
+        song_dict["album_artist"] = album.artists[0].name
+        song_dict["album_type"] = album.artists[0].type
+        song_dict["copyright_text"]  = album.copyrights[0].text
+        song_dict["genres"] = album.genres
+        song_dict["disc_number"] = song.disc_number
+        song_dict["disc_count"] = album.tracks.items[-1].disc_number
+        song_dict["duration"] = song.duration_ms/1000
+        song_dict["year"] = int(album.release_date[:4])
+        song_dict["date"] = album.release_date
+        song_dict["track_number"] = song.track_number
+        song_dict["tracks_count"] = album.total_tracks
+        song_dict["isrc"] = song.external_ids.isrc
+        song_dict["song_id"] = song.id
+        song_dict["explicit"] = song.explicit
+        song_dict["publisher"] = album.label
+        song_dict["url"] = song.external_urls.spotify
+        song_dict["popularity"] = song.popularity
+        song_dict["cover_url"] = (
+                    max(album.images, key=lambda i: i.width * i.height)[
+                        "url"
+                    ]
+                    if album.images
+                    else None
+                ),
+    
+        return Song.from_dict(song_dict), song
+
+
+    def api_call(self, path: str, params: dict = {}):
+
+        parsed_params = ""
         
-        result = self.spotify_client.search(q=query, type="album,playlist,track")
+        for k in list(params.items()):
+            parsed_params += "&" + k[0] + "=" + k[1]
 
-        out = {"albums": [], "playlists": [], "songs": []}
+        url = f"https://api.spotify.com/v1/{path}"
+        headers = self.get_auth_header()
 
-        for k in result["albums"]["items"]:
-            
-            album = {}
-            
-            album["name"] = k["name"]
-            album["type"] = "album"
-            album["id"] = k["id"]
-            album["release_date"] = k["release_date"]
-            album["total_tracks"] = k["total_tracks"]
-            album["spotify_url"] = k["external_urls"]["spotify"]
-            if len(k["images"]) != 0: 
-                album["image_url"] = k["images"][0]["url"] 
-            else:
-                album["image_url"] = None
-            album["artists"] = [{"name": artist["name"], "type": artist["type"]} for artist in k["artists"]]
-                
-            out["albums"].append(album)
-        
-        for k in result["playlists"]["items"]:
-    
-            playlist = {}
-            
-            playlist["name"] = k["name"]
-            playlist["type"] = "playlist"
-            playlist["id"] = k["id"]
-            playlist["release_date"] = None
-            playlist["total_tracks"] = k["tracks"]["total"]
-            playlist["spotify_url"] = k["external_urls"]["spotify"]
+        query_url = url + "?" + parsed_params
 
-            if len(k["images"]) != 0: 
-                playlist["image_url"] = k["images"][0]["url"] 
-            else:
-                playlist["image_url"] = None
+        result = requests.get(query_url, headers=headers)
+        return json.loads(result.content)
 
-            playlist["artists"] = [{"name": k["owner"]["display_name"]}]
-                
-            out["playlists"].append(playlist)
-    
-        for k in result["tracks"]["items"]:
-    
-            song = {}
-            
-            song["name"] = k["name"]
-            song["type"] = "song"
-            song["release_date"] = None
-            song["id"] = k["id"]
-            song["total_tracks"] = None
-            song["image_url"] = k["album"]["images"][0]["url"]
-            song["artists"] = [{"name": artist["name"], "type": artist["type"]} for artist in k["artists"]]
-            song["spotify_url"] = k["external_urls"]["spotify"]
-                
-            out["songs"].append(song)
-        
-        return out
+    def parse_url(self, url):
+        return re.sub(r"\/intl-\w+\/", "/", url).split("?")[0]

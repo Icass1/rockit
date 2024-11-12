@@ -1,12 +1,9 @@
 from spotdl.download.downloader import Downloader as SpotifyDownloader
 from spotdl.types.song import Song
-from spotdl.types.album import Album
-from spotdl.types.playlist import Playlist
-from spotdl.types.artist import Artist
-from spotdl.types.saved import Saved
 
+from api_types import RawSpotifyApiSong, RawSpotifyApiAlbum, AlbumItem
 
-from utils import get_song_name, create_id
+from utils import get_song_name
 from colors import *
 from constants import DOWNLOADER_OPTIONS
 
@@ -20,22 +17,30 @@ import json
 THREADS = 4
 
 class ListDownloader:
-    def __init__(self, url, downloader):
+    def __init__(self, url, downloader: "Downloader"):
         """Must be executed instantly"""
-        self.url = url
 
-        self.res: list[Song] = None
-        self.list_info: Album | Playlist | Artist | Saved = None
         self.downloader = downloader
 
-        threading.Thread(target=lambda : self.fetch_song(), name=f"List downloader {url}").start()
+        self.url = self.downloader.spotify.parse_url(url)
+        self.list: RawSpotifyApiAlbum
+        self.spotdl_songs: List[Song]
+        self.raw_songs: List[AlbumItem]
 
-    def fetch_song(self):
+        if "/album/" in self.url:
+            self.type = "album"
+        elif "/playlist/" in self.url:
+            self.type = "playlist"
+        else: raise Exception("Invalid URL", url)
+
+        threading.Thread(target=lambda : self.fetch_list(), name=f"List downloader {url}").start()
+
+    def fetch_list(self):
         print(OKBLUE, "[LIST DOWNLOADER]", "Fetching list", ENDC)
-        self.res, self.list_info = self.downloader.spotify.get_simple_songs(request=self.url)
-        print(OKGREEN, "[LIST DOWNLOADER]", "Fetched list", self.list_info.name, ENDC)
+        self.list, self.spotdl_songs, self.raw_songs = self.downloader.spotify.spotdl_songs_from_url(url=self.url)
+        print(OKGREEN, "[LIST DOWNLOADER]", "Fetched list", self.list.name, ENDC)
 
-        for song in self.res:
+        for song in self.spotdl_songs:
             if song.song_id in self.downloader.downloads_dict:
                 print(WARNING, "Song already in downloads_dict", ENDC)
                 continue
@@ -46,31 +51,34 @@ class ListDownloader:
 
     def download_manager(self):
 
+        threading.current_thread().name = f"Download manager - {self.list.name} - {self.list.artists[0].name}"
+
+
         threads: List[threading.Thread] = []
 
         for i in range(THREADS):
             print(f"[LIST DOWNLOADER MANAGER]: Started thread {i}")
-            if i >= len(self.res):
-                # print(f"[LIST DOWNLOADER MANAGER]: {i} is greater than {len(self.res)}")
+            if i >= len(self.spotdl_songs):
+                # print(f"[LIST DOWNLOADER MANAGER]: {i} is greater than {len(self.spotdl_songs)}")
                 continue
-            thread = threading.Thread(target=self.downloader.download_song, args=(self.res[i],))
+            thread = threading.Thread(target=self.downloader.download_song, args=(self.spotdl_songs[i],), name=f"List song downloader {self.spotdl_songs[i].name} - {self.spotdl_songs[i].artist}")
             thread.start()
             threads.append(thread)
         
         index = i + 1
 
-        while len(threads) != 0 or index < len(self.res):
+        while len(threads) != 0 or index < len(self.spotdl_songs):
             time.sleep(0.1)
             for thread in threads:
                 if not thread.is_alive():
                     threads.remove(thread)
             for _ in range(THREADS - len(threads)):
-                if index >= len(self.res):
-                    # print(f"[LIST DOWNLOADER MANAGER]: {index} is greater than {len(self.res)}")
+                if index >= len(self.spotdl_songs):
+                    # print(f"[LIST DOWNLOADER MANAGER]: {index} is greater than {len(self.spotdl_songs)}")
                     continue
 
                 print(f"[LIST DOWNLOADER MANAGER]: Started thread {index}")
-                thread = threading.Thread(target=self.downloader.download_song, args=(self.res[index],))
+                thread = threading.Thread(target=self.downloader.download_song, name=f"List song downloader {self.spotdl_songs[i].name} - {self.spotdl_songs[i].artist}", args=(self.spotdl_songs[index],))
                 thread.start()
                 threads.append(thread)
                 
@@ -80,99 +88,104 @@ class ListDownloader:
 
     def status(self):
 
-        completed = 0
 
+        songs_completed = 0
+        list_completed = {}
 
-        # if not self.song or self.song.song_id not in self.downloader.downloads_dict:
-        #     text = {'completed': 0, 'total': 100, 'message': 'Fetching'}
-        #     yield f"data: {text}\n\n"
-
-        #     while not self.song or self.song.song_id not in self.downloader.downloads_dict:
-        #         time.sleep(0.5)
-
-        # last_messages_len = 0
-        # finish = False
-        # while not finish:
-        #     for k in self.downloader.downloads_dict[self.song.song_id]["messages"][last_messages_len:]:
-        #         yield f"data: {k}\n\n"
-        #         if k["completed"] == 100:
-        #             finish = True
-                
-        #     last_messages_len = len(self.downloader.downloads_dict[self.song.song_id]["messages"])
-        #     time.sleep(0.5)
-
-        if not self.res:
+        if not self.spotdl_songs:
             text = {'completed': 0, 'total': 100, 'message': 'Fetching'}
             yield f"data: {json.dumps(text)}\n\n"
 
-            while not self.res:
+            while not self.spotdl_songs:
                 time.sleep(0.2)
+
+        threading.current_thread().name = f"status - {self.list.name} - {self.list.artists[0].name}"
 
         last_messages_len = {}
 
-        for song in self.res:
+        for song in self.spotdl_songs:
             last_messages_len[song.song_id] = 0
+            list_completed[song.song_id] = 0
 
-        while completed < len(self.res):
-            for song in self.res:
-                for k in self.downloader.downloads_dict[song.song_id]["messages"][last_messages_len[song.song_id]:]:
+        while songs_completed < len(self.spotdl_songs):
+            for song in self.raw_songs:
+                
+                for k in self.downloader.downloads_dict[song.id]["messages"][last_messages_len[song.id]:]:
+                    # k["song"] = song.json # Too much data
+                    k["song"] = {}
+                    k["song"]["name"] = song.name
+                    k["song"]["artists"] = [artist.json for artist in song.artists]
+
+
+                    # k["list"] = self.list.json # Too much data
+                    k["list"] = {}
+                    k["list"]["name"] = self.list.name
+                    k["list"]["artists"] = [artist.json for artist in self.list.artists]
+                    k["list"]["images"] = [image.json for image in self.list.images]
+
+                    
+                    list_completed[song.id] = k["completed"]
+                    k["list_completed"] = sum(list_completed.values())/len(self.spotdl_songs)
+                    
                     yield f"data: {json.dumps(k)}\n\n"
                     if k["completed"] == 100:
-                        completed += 1
+                        songs_completed += 1
                     
-                last_messages_len[song.song_id] = len(self.downloader.downloads_dict[song.song_id]["messages"])
+                last_messages_len[song.id] = len(self.downloader.downloads_dict[song.id]["messages"])
                 time.sleep(0.2)
 
 class SongDownloader:
-    def __init__(self, url, downloader):
+    def __init__(self, url, downloader: "Downloader"):
         """Must be executed instantly"""
 
         self.url = url
-        self.song: Song = None
+        self.spotdl_song: Song = None
+        self.raw_song: RawSpotifyApiSong = None
 
         self.downloader = downloader
         threading.Thread(target=lambda : self.fetch_song(), name=f"Song downloader {url}").start()
 
     def fetch_song(self):
-        # self.downloader.downloads_dict[self.download_id] = {"messages": [{'id': self.download_id, 'completed': 0, 'total': 100, 'message': 'Processing'}]}
-        # self.song = Song.from_url(self.url)
-        # self.downloader.downloads_ids_dict[get_song_name(self.song)] = self.download_id
-        # self.download()
+        self.spotdl_song, self.raw_song = self.downloader.spotify.spotdl_song_from_url(self.url)
+        threading.current_thread().name = f"Song downloader - {self.raw_song.name} - {self.raw_song.artists[0].name}"
 
-        self.song = Song.from_url(self.url)
-        if self.song.song_id in self.downloader.downloads_dict:
+        if self.spotdl_song.song_id in self.downloader.downloads_dict:
             print(WARNING, "[SONG DOWNLOADER] Song already in downloads_dict", ENDC)
         else:
-            self.downloader.downloads_dict[self.song.song_id] = {"messages": [{'id': self.song.song_id, 'completed': 0, 'total': 100, 'message': 'Processing'}]}
-            self.downloader.downloads_ids_dict[get_song_name(self.song)] = self.song.song_id
+            self.downloader.downloads_dict[self.spotdl_song.song_id] = {"messages": [{'id': self.spotdl_song.song_id, 'completed': 0, 'total': 100, 'message': 'Processing'}]}
+            self.downloader.downloads_ids_dict[get_song_name(self.spotdl_song)] = self.spotdl_song.song_id
             self.download()
 
     def download(self):
-        self.downloader.download_song(self.song)
+        self.downloader.download_song(self.spotdl_song)
 
     def status(self):
 
         threading.current_thread().name = f"Test"
 
-        if not self.song or self.song.song_id not in self.downloader.downloads_dict:
+        if not self.spotdl_song or self.spotdl_song.song_id not in self.downloader.downloads_dict:
             text = {'completed': 0, 'total': 100, 'message': 'Fetching'}
             yield f"data: {json.dumps(text)}\n\n"
 
-            while not self.song or self.song.song_id not in self.downloader.downloads_dict:
+            while not self.spotdl_song or self.spotdl_song.song_id not in self.downloader.downloads_dict:
                 time.sleep(0.5)
                 
-        threading.current_thread().name = f"status - {self.song.name} - {self.song.artist}"
+        threading.current_thread().name = f"Status - {self.spotdl_song.name} - {self.spotdl_song.artist}"
 
         last_messages_len = 0
         finish = False
         while not finish:
-            for k in self.downloader.downloads_dict[self.song.song_id]["messages"][last_messages_len:]:
-                k["song"] = self.song.json
+            for k in self.downloader.downloads_dict[self.spotdl_song.song_id]["messages"][last_messages_len:]:
+                # k["song"] = self.raw_song.json
+                k["song"] = {}
+                k["song"]["name"] = self.raw_song.name
+                k["song"]["artists"] = [artist.json for artist in self.raw_song.artists]
+
                 yield f"data: {json.dumps(k)}\n\n"
                 if k["completed"] == 100:
                     finish = True
                 
-            last_messages_len = len(self.downloader.downloads_dict[self.song.song_id]["messages"])
+            last_messages_len = len(self.downloader.downloads_dict[self.spotdl_song.song_id]["messages"])
             time.sleep(0.5)
 
 class Downloader:
@@ -189,40 +202,11 @@ class Downloader:
 
     def download_url(self, url):
 
-        print(OKBLUE, url, ENDC)
-
         if "/track/" in url:
-
             return SongDownloader(url, self)
 
-            # self.downloads_dict[download_id] = {"messages": [{'id': download_id, 'completed': 0, 'total': 100, 'message': 'Processing'}]}
-
-            # song = Song.from_url(url)
-
-            # self.downloads_dict[download_id]["song"] = song
-            # self.downloads_ids_dict[get_song_name(song)] = download_id
-    
-            # self.download_song(song, download_id)
-        else:
+        elif "/playlist/" in url or "/album/" in url:
             return ListDownloader(url, self)
-
-            res, list_info = self.spotify.get_simple_songs(request=url)
-
-            self.downloads_dict["total"] = {"messages": []}
-            self.downloads_ids_dict["Total"] = "total"
-
-            self.list_downloads[download_id] = []
-
-            for song in res:
-                print(OKBLUE, song, ENDC)
-                song_id = create_id()
-                self.list_downloads[download_id].append(song_id)
-
-                self.downloads_dict[song_id] = {"messages": [{'id': song_id, 'completed': 0, 'total': 100, 'message': 'Processing'}]}
-                self.downloads_dict[song_id]["song"] = song
-                self.downloads_ids_dict[get_song_name(song)] = song_id
-                self.download_song(song, song_id)
-
 
     def download_song(self, song: Song):
 

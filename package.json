@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "export ASTRO_DATABASE_FILE=/home/icass/rockit/prod_db.db && astro check && astro build",
+    "build": "export ASTRO_DATABASE_FILE=/home/icass/rockit/.astro/content.db && astro check && astro build",
     "preview": "astro preview",
     "astro": "astro"
   },

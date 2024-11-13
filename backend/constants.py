@@ -44,7 +44,7 @@ DOWNLOADER_OPTIONS: DownloaderOptions = {
     "proxy": None,
     "skip_explicit": False,
     "log_format": None,
-    "redownload": False,
+    "redownload": True,
     "skip_album_art": False,
     "create_skip_file": False,
     "respect_skip_file": False,

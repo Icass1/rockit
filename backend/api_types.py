@@ -45,13 +45,14 @@ class SongImage:
     height: int
     url: str
     width: int
+    json: dict
 
     @staticmethod
     def from_dict(obj: Any) -> 'SongImage':
         _height = int(obj.get("height"))
         _url = str(obj.get("url"))
         _width = int(obj.get("width"))
-        return SongImage(_height, _url, _width)
+        return SongImage(_height, _url, _width, obj)
 
 @dataclass
 class SongAlbum:
@@ -107,6 +108,7 @@ class RawSpotifyApiSong:
     uri: str
     json: dict
 
+
     @staticmethod
     def from_dict(obj: Any) -> 'RawSpotifyApiSong':
         _album = SongAlbum.from_dict(obj.get("album"))
@@ -136,12 +138,13 @@ class RawSpotifyApiSong:
 class AlbumCopyright:
     text: str
     type: str
+    json: dict
 
     @staticmethod
     def from_dict(obj: Any) -> 'AlbumCopyright':
         _text = str(obj.get("text"))
         _type = str(obj.get("type"))
-        return AlbumCopyright(_text, _type)
+        return AlbumCopyright(_text, _type, obj)
 
 @dataclass
 class AlbumExternalIds:
@@ -290,6 +293,10 @@ class AlbumTracks:
     previous: str
     total: int
     items: List[AlbumItem]
+    json: dict
+
+    def __dict__(self):
+        return self.json
 
     @staticmethod
     def from_dict(obj: Any) -> 'AlbumTracks':
@@ -300,7 +307,9 @@ class AlbumTracks:
         _previous = str(obj.get("previous"))
         _total = int(obj.get("total"))
         _items = [AlbumItem.from_dict(y) for y in obj.get("items")]
-        return AlbumTracks(_href, _limit, _next, _offset, _previous, _total, _items)
+        return AlbumTracks(_href, _limit, _next, _offset, _previous, _total, _items, obj)
+
+
 
 @dataclass
 class RawSpotifyApiAlbum:

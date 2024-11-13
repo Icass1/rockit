@@ -14,6 +14,7 @@ function RenderTrackSearchResults({ tracksInfo, handleDownload }: { tracksInfo: 
         handleDownload(element.external_urls.spotify)
     }
 
+
     return (
         <div
             className="grid grid-cols-2 gap-2 mt-2 mb-5 h-fit"
@@ -63,6 +64,7 @@ function RenderAlbumSearchResults({ tracksInfo, handleDownload }: { tracksInfo: 
 }
 
 function RenderSongDownload({ songStatus }: { songStatus: [string, EventSourceStatus] }) {
+
     return (
         <div className="bg-zinc-400/10 rounded h-14 flex flex-row gap-x-2 overflow-hidden">
             <img src={songStatus[1].song?.album?.images[0]?.url} className="h-full w-auto" />
@@ -82,6 +84,7 @@ function RenderSongDownload({ songStatus }: { songStatus: [string, EventSourceSt
 function RenderListDownload({ list }: {
     list: [string, {
         listInfo: SpotifyAlbum;
+        listError: number;
         totalCompleted: number;
         songs: {
             [key: string]: EventSourceStatus;
@@ -98,12 +101,13 @@ function RenderListDownload({ list }: {
                 <div className="flex flex-col min-w-0 max-w-full w-full pr-1">
                     <label className="text-base font-semibold">{list[1].listInfo.name} </label>
                     <label className="text-sm">{list[1].listInfo.artists.map(artist => artist.name || artist).join(", ")}</label>
-                    <div className={"bg-gray-500 h-2 w-full rounded-full relative "}>
-                        <div className="bg-green-500 absolute h-full rounded-full transition-all" style={{ width: `${list[1].totalCompleted}%` }}></div>
+                    <div className={"bg-gray-500 h-2 w-full rounded-full relative overflow-hidden"}>
+                        <div className="bg-red-400 absolute h-full rounded-full transition-all" style={{ width: `calc(${list[1].listError}% + 20px)`, left: `calc(${list[1].totalCompleted}% - 20px)` }}></div>
+                        <div className={"bg-green-500 absolute h-full rounded-full transition-all" } style={{ width: `${list[1].totalCompleted}%` }}></div>
                     </div>
                 </div>
             </div>
-            <label className="hover:underline text-sm text-blue-500 p-1 select-none" onClick={() => { setShowAllSongs(value => !value) }}>Show more</label>
+            <label className="hover:underline text-sm text-blue-500 p-1 select-none" onClick={() => { setShowAllSongs(value => !value) }}>Show {showAllSongs ? "less" : "more"}</label>
             <div className="overflow-auto transition-all " style={{ maxHeight: `${showAllSongs ? 400 : 0}px` }}>
                 <div className="flex flex-col gap-2 p-1">
                     {Object.entries(list[1].songs).map(songStatus => (
@@ -125,11 +129,11 @@ function RenderListDownload({ list }: {
     )
 }
 
-type statusType = { songs: { [key: string]: EventSourceStatus }, lists: { [key: string]: { listInfo: SpotifyAlbum, totalCompleted: number, songs: { [key: string]: EventSourceStatus } } } }
+type statusType = { songs: { [key: string]: EventSourceStatus }, lists: { [key: string]: { listInfo: SpotifyAlbum, totalCompleted: number, listError: number, songs: { [key: string]: EventSourceStatus } } } }
 
 export default function SearchBar({ }) {
 
-    const [value, setValue] = useState("")
+    const [value, setValue] = useState("supertamp")
     const [searchResults, setSearchResults] = useState<SearchResults | undefined>(undefined)
 
     const searchDebounce = useRef<pkg.DebouncedFunc<(query: string) => void>>()
@@ -176,15 +180,16 @@ export default function SearchBar({ }) {
             setStatus((value: statusType) => {
                 let newValue = { ...value }
                 if (newValue.lists[message.list.id] == undefined) {
-                    newValue.lists[message.list.id] = { listInfo: message.list, totalCompleted: message.list_completed, songs: {} }
+                    newValue.lists[message.list.id] = { listInfo: message.list, totalCompleted: message.list_completed, songs: {}, listError: message.list_error }
                 } else {
                     newValue.lists[message.list.id].listInfo = message.list
                     newValue.lists[message.list.id].totalCompleted = message.list_completed
+                    newValue.lists[message.list.id].listError = message.list_error
                 }
                 newValue.lists[message.list.id].songs[message.id] = { completed: message.completed, message: message.message, song: message.song }
                 return newValue
             })
-            if (message.list_completed == 100) {
+            if (Math.round(message.list_completed + message.list_error) == 100) {
                 eventSource.close()
             }
         }
@@ -231,17 +236,17 @@ export default function SearchBar({ }) {
 
     return (
         <div className="flex flex-col gap-y-5">
-            <input 
-            value={value} 
-            onChange={(e) => { setValue(e.target.value) }} 
-            className="font-semibold mx-auto rounded-full block text-1xl px-10 w-1/3 py-1.5 focus:outline-0" 
-            style={{
-                backgroundImage: 'url(/search-icon.png)',
-                backgroundPosition: '15px center',
-                backgroundSize: '14px',
-                backgroundRepeat: 'no-repeat',
-            }} 
-            placeholder="Search a song or artist..." 
+            <input
+                value={value}
+                onChange={(e) => { setValue(e.target.value) }}
+                className="font-semibold mx-auto rounded-full block text-1xl px-10 w-1/3 py-1.5 focus:outline-0"
+                style={{
+                    backgroundImage: 'url(/search-icon.png)',
+                    backgroundPosition: '15px center',
+                    backgroundSize: '14px',
+                    backgroundRepeat: 'no-repeat',
+                }}
+                placeholder="Search a song or artist..."
             />
             <div className="grid grid-cols-[4fr_3fr] w-full gap-x-3">
                 {searchResults ?

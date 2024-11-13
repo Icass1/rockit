@@ -54,7 +54,6 @@ class Spotify:
             album = RawSpotifyApiAlbum.from_dict(raw_album)
 
             for song in album.tracks.items:
-                print(album.genres)
                 song_dict = {}
                 song_dict["name"] = song.name
                 song_dict["artists"] = [artist.name for artist in song.artists]
@@ -112,7 +111,7 @@ class Spotify:
         song_dict["album_id"] = album.id
         song_dict["album_name"] = album.name
         song_dict["album_artist"] = album.artists[0].name
-        song_dict["album_type"] = album.artists[0].type
+        song_dict["album_type"] = album.type
         song_dict["copyright_text"]  = album.copyrights[0].text
         song_dict["genres"] = album.genres
         song_dict["disc_number"] = song.disc_number

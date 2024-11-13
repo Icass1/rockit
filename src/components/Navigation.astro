@@ -7,20 +7,55 @@ import {
 	Download,
 } from "lucide-react";
 
+export interface Props {
+	activePage: string;
+}
+
+const { activePage } = Astro.props;
 ---
 
-<div class="mx-auto flex flex-col gap-4 w-fit pt-2">
-    <Menu />
+<div class="mx-auto flex flex-col gap-4 w-fit pt-4">
+    <div class="p-2">
+        <Menu />
+    </div>
+    
     <a href="/" title="Home">
-        <Home />
+        <div
+            class={`w-8 h-8 rounded-md items-center justify-center flex flex-col mx-auto my-auto ${
+                activePage === "Home" ? "bg-white text-black" : "text-white"
+            }`}
+        >
+            <Home className="w-5 h-5"/>
+        </div>
     </a>
+
     <a href="/library" title="Library">
-        <Library />
+        <div
+            class={`w-8 h-8 rounded-md items-center justify-center flex flex-col mx-auto my-auto ${
+                activePage === "Library" ? "bg-white text-black" : "text-white"
+            }`}
+        >
+            <Library className="w-5 h-5"/>
+        </div>
     </a>
+
     <a href="/search" title="Search">
-        <Search />
+        <div
+            class={`w-8 h-8 rounded-md items-center justify-center flex flex-col mx-auto my-auto ${
+                activePage === "Search" ? "bg-white text-black" : "text-white"
+            }`}
+        >
+            <Search className="w-5 h-5"/>
+        </div>
     </a>
+
     <a href="/downloads" title="Downloads">
-        <Download />
+        <div
+            class={`w-8 h-8 rounded-md items-center justify-center flex flex-col mx-auto my-auto ${
+                activePage === "Downloads" ? "bg-white text-black" : "text-white"
+            }`}
+        >
+            <Download className="w-5 h-5"/>
+        </div>
     </a>
 </div>

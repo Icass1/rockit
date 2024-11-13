@@ -18,9 +18,10 @@
   color-scheme: dark;
 }
 
-html {
+html,
+main {
   font-family: system-ui, sans-serif;
-  background: #13151a;
+  background: #0b0b0b;
 }
 
 main,

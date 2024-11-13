@@ -1,0 +1,83 @@
+---
+import {
+	Shuffle,
+	SkipBack,
+	SkipForward,
+	CirclePlay,
+	Volume2,
+	Repeat,
+} from "lucide-react";
+
+---
+<footer
+    class="bg-black text-white py-4 px-5 w-full min-w-[500px] h-24 box-border"
+>
+    <div class="flex justify-center items-center w-full">
+        <!-- Sección Izquierda -->
+        <div class="flex items-center w-1/3 space-x-3">
+            <img
+                id="footer-album-cover"
+                src="/song-placeholder.png"
+                alt="Album Cover"
+                class="w-16 h-16 rounded-md"
+            />
+            <div class="flex flex-col">
+                <span id="footer-song-title" class="font-semibold"
+                    >Escoge una canción</span
+                >
+                <span id="footer-song-artist" class="text-sm text-gray-400"
+                    >;P</span
+                >
+            </div>
+        </div>
+
+        <!-- Sección Central -->
+        <div class="flex flex-col items-center justify-center w-1/3 space-y-1">
+            <div class="flex items-center space-x-3">
+                <!-- Iconos de control -->
+                <Shuffle
+                    className="w-4 h-4 text-gray-400 hover:text-white cursor-pointer"
+                />
+                <SkipBack
+                    className="w-5 h-5 fill-current text-gray-400 hover:text-white cursor-pointer"
+                />
+                <CirclePlay
+                    className="w-8 h-8 text-gray-400 hover:text-white cursor-pointer"
+                />
+                <SkipForward
+                    className="w-5 h-5 fill-current text-gray-400 hover:text-white cursor-pointer"
+                />
+                <Repeat
+                    className="w-5 h-5 text-gray-400 hover:text-white cursor-pointer"
+                />
+            </div>
+            <!-- Barra de progreso -->
+            <div class="flex items-center space-x-2">
+                <span id="current-time" class="text-xs">0:00</span>
+                <div class="relative w-4/5 h-1 bg-gray-400">
+                    <div
+                        class="absolute top-0 left-0 h-20px bg-green-500"
+                        style="width: 40%;"
+                    >
+                    </div>
+                </div>
+                <span id="total-time" class="text-xs">0:00</span>
+            </div>
+        </div>
+
+        <!-- Sección Derecha -->
+        <div class="flex items-center w-1/3 justify-end space-x-3">
+            <Volume2
+                className="w-5 h-5 text-gray-400 hover:text-white cursor-pointer"
+            />
+            <!-- Control de volumen -->
+            <div class="relative w-16 h-1 rounded-full bg-gray-400">
+                <div
+                    class="absolute top-0 left-0 h-full rounded-full bg-green-500"
+                    style="width: 50%;"
+                >
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>

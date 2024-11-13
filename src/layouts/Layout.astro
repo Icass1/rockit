@@ -1,52 +1,15 @@
 ---
-/* Sidebar links to other pages, playlists (lo que queramos) */
-const links = [
-  { 
-    href: "/", 
-    label: "Home", 
-    icon: `
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8 M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-    </svg>
-    `,
-	},
-	{
-		href: "/library",
-		label: "Library",
-		icon: `
-	<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-		<path d="m16 6 4 14 M12 6v14 M8 8v12 M4 4v16"></path>
-	</svg>
-    `,
-	},
-	{
-		href: "/search",
-		label: "Search",
-		icon: `
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="11" cy="11" r="8"></circle>
-        <path d="m21 21-4.3-4.3"></path>
-    </svg>
-    `,
-	},
-	/*{ 
-    href: "#", 
-    label: "Test", 
-    icon: `
-      <img src="path/to/icon.png" alt="Test for an album" width="20" height="20">
-    `
-  },*/
-];
-
 import "@/styles/default.css";
-import { Shuffle,SkipBack,SkipForward,CirclePlay,Volume2,Repeat, Repeat1} from 'lucide-astro';
+import Navigation from "@/components/Navigation.astro";
+import Footer from "@/components/Footer.astro";
+
+import { ViewTransitions } from "astro:transitions";
 
 export interface Props {
 	activePage: string;
 	title: string;
 }
 
-const { activePage } = Astro.props;
 const { title } = Astro.props;
 ---
 
@@ -62,137 +25,21 @@ const { title } = Astro.props;
 		<link rel="icon" type="image/svg+xml" href="/rockit-logo.ico" />
 		<meta name="generator" content={Astro.generator} />
 		<title>{title}</title>
+		<ViewTransitions />
 	</head>
 	<body>
-		<main class="grid grid-cols-[min-content_1fr]">
-			<div class="w-10 bg-black"></div>
-			<div class="sidebar fixed top-0 left-0 bottom-0 z-40 bg-black text-white flex flex-col justify-center transition-all duration-300 ease-in-out" id="sidebar">
-				<button id="toggle-button" class="absolute top-5 left-2 bg-black text-white text-2xl p-2 cursor-pointer w-12 h-12 flex items-center justify-center z-50">☰</button>
-				<nav>
-					<ul class="list-none text-center">
-						{
-							links.map((link) => (
-								<li class="mx-[20px] my-[10px]">
-									<a
-										href={link.href}
-										aria-label={link.label}
-										class={ link.label === activePage ? "flex items-center justify-center active-icon" : "flex items-center justify-center"}
-									>
-										<div
-											class="icon flex items-center justify-center w-8 h-8 rounded-md"
-											set:html={link.icon}
-										/>
-									</a>
-								</li>
-							))
-						}
-					</ul>
-				</nav>
+		<main class="grid grid-rows-[1fr_min-content]">
+			<div
+				class="grid grid-cols-[min-content_1fr] h-full min-h-0 max-h-full"
+			>
+				<div class="w-10 bg-black">
+					<Navigation />
+				</div>
+				<div class="min-w-0 max-w-full min-h-0 max-h-full">
+					<slot />
+				</div>
 			</div>
-			<div class="min-w-0 max-w-full h-full">
-				<slot />
-			</div>
+			<Footer />
 		</main>
-
-		<footer class="bg-black text-white py-4 px-5 fixed bottom-0 left-0 w-full z-50 min-w-[500px] h-24 box-border">
-			<div class="flex justify-center items-center w-full">
-
-				<!-- Sección Izquierda -->
-				<div class="flex items-center w-1/3 space-x-3">
-					<img id="footer-album-cover" src="/song-placeholder.png" alt="Album Cover" class="w-16 h-16 rounded-md">
-					<div class="flex flex-col">
-					<span id="footer-song-title" class="font-semibold">Escoge una canción</span>
-					<span id="footer-song-artist" class="text-sm text-gray-400">;P</span>
-					</div>
-				</div>
-			
-				<!-- Sección Central -->
-				<div class="flex flex-col items-center justify-center w-1/3 space-y-1">
-					<div class="flex items-center space-x-3">
-					<!-- Iconos de control -->
-					<Shuffle class="w-4 h-4 text-gray-400 hover:text-white cursor-pointer"/>
-					<SkipBack class="w-5 h-5 fill-current text-gray-400 hover:text-white cursor-pointer"/>
-					<CirclePlay class="w-8 h-8 text-gray-400 hover:text-white cursor-pointer"/>
-					<SkipForward class="w-5 h-5 fill-current text-gray-400 hover:text-white cursor-pointer"/>
-					<Repeat class="w-5 h-5  text-gray-400 hover:text-white cursor-pointer"/>
-					</div>
-					<!-- Barra de progreso -->
-					<div class="flex items-center space-x-2">
-					<span id="current-time" class="text-xs">0:00</span>
-					<div class="relative w-4/5 h-1 bg-gray-400">
-						<div class="absolute top-0 left-0 h-20px bg-green-500" style="width: 40%;"></div>
-					</div>
-					<span id="total-time" class="text-xs">0:00</span>
-					</div>
-				</div>
-		
-			<!-- Sección Derecha -->
-				<div class="flex items-center w-1/3 justify-end space-x-3">
-					<Volume2 class="w-5 h-5 text-gray-400 hover:text-white cursor-pointer"/>
-					<!-- Control de volumen -->
-					<div class="relative w-16 h-1 rounded-full bg-gray-400">
-					<div class="absolute top-0 left-0 h-full rounded-full bg-green-500" style="width: 50%;"></div>
-					</div>
-				</div>
-
-			</div>
-		</footer>
-		
 	</body>
-	
-	<style is:global>
-		:root {
-			--accent: 136, 58, 234;
-			--accent-light: 224, 204, 250;
-			--accent-dark: 49, 10, 101;
-			--accent-gradient: linear-gradient(
-				45deg,
-				rgb(var(--accent)),
-				rgb(var(--accent-light)) 30%,
-				white 60%
-			);
-		}
-		html, main {
-			font-family: system-ui, sans-serif;
-			background: #0b0b0b;
-		}
-		code {
-			font-family:
-				Menlo,
-				Monaco,
-				Lucida Console,
-				Liberation Mono,
-				DejaVu Sans Mono,
-				Bitstream Vera Sans Mono,
-				Courier New,
-				monospace;
-		}
-
-		/* Estilos del sidebar basados en tu archivo styles.css */
-
-		.sidebar.active {
-			width: 250px;
-		}
-
-		.active-icon .icon {
-			color: black;
-			background-color: white;
-		}
-
-		#toggle-button {
-			position: fixed;
-			top: 20px;
-			left: 5px;
-			background: #000;
-			border: none;
-			color: white;
-			font-size: 22px;
-			cursor: pointer;
-			z-index: 1000;
-			padding: 10px;
-			margin: 0;
-			width: 50px;
-			text-align: center;
-		}
-	</style>
 </html>

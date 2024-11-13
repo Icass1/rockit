@@ -50,9 +50,9 @@ importers:
       lucide:
         specifier: ^0.456.0
         version: 0.456.0
-      lucide-astro:
+      lucide-react:
         specifier: ^0.456.0
-        version: 0.456.0(astro@4.16.10(@types/node@22.9.0)(rollup@4.25.0)(typescript@5.6.3))
+        version: 0.456.0(react@18.3.1)
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -1682,10 +1682,10 @@ packages:
   lucia@3.2.2:
     resolution: {integrity: sha512-P1FlFBGCMPMXu+EGdVD9W4Mjm0DqsusmKgO7Xc33mI5X1bklmsQb0hfzPhXomQr9waWIBDsiOjvr1e6BTaUqpA==}
 
-  lucide-astro@0.456.0:
-    resolution: {integrity: sha512-nXy48K93Yc79pxT7jm7UCNbjNyf+JuPVT+58UhvJqih1FtQULn+llKbDBfP9LRVeXaToM5a/CwQa5jiln/u+ww==}
+  lucide-react@0.456.0:
+    resolution: {integrity: sha512-DIIGJqTT5X05sbAsQ+OhA8OtJYyD4NsEMCA/HQW/Y6ToPQ7gwbtujIoeAaup4HpHzV35SQOarKAWH8LYglB6eA==}
     peerDependencies:
-      astro: '>=2.7.1'
+      react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0-rc
 
   lucide@0.456.0:
     resolution: {integrity: sha512-/QHD4F0KXx7YECX9bhaac5TMPtR6vSv6qxHLtL61Z6Xp6IdUUsEF1zo6McEoGJw1z9msAx8QiQn6u3g704mGlg==}
@@ -4270,9 +4270,9 @@ snapshots:
       '@oslojs/crypto': 1.0.1
       '@oslojs/encoding': 1.1.0
 
-  lucide-astro@0.456.0(astro@4.16.10(@types/node@22.9.0)(rollup@4.25.0)(typescript@5.6.3)):
+  lucide-react@0.456.0(react@18.3.1):
     dependencies:
-      astro: 4.16.10(@types/node@22.9.0)(rollup@4.25.0)(typescript@5.6.3)
+      react: 18.3.1
 
   lucide@0.456.0: {}
 

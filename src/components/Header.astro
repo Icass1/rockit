@@ -2,16 +2,16 @@
 
 ---
 
-<header class="w-full z-50 flex items-center justify-between p-4 text-white">
+<header class="w-full z-50 flex items-center justify-between pl-4 pr-8 py-4 text-white">
     <!-- Logo a la izquierda -->
     <div class="flex items-center">
-        <img src="/logo-banner.png" alt="Logo" class="h-10 ml-11" />
+        <img src="/logo-banner.png" alt="Logo" class="h-14" />
     </div>
 
     <!-- Barra de búsqueda en el centro -->
-    <div class="flex-grow mx-4">
+    <div class="flex-grow -mx-4">
         <input
-            class="font-semibold mx-auto rounded-full block text-1xl px-10 w-1/3 py-1.5 focus:outline-0"
+            class="font-semibold mx-auto rounded-full block text-1xl px-10 w-2/5 py-2 focus:outline-0"
             style={{
                 backgroundImage: "url(/search-icon.png)",
                 backgroundPosition: "15px center",
@@ -24,7 +24,7 @@
 
     <!-- Texto "unknown" y círculo gris a la derecha -->
     <div class="flex items-center space-x-4">
-        <span>Unknown</span>
-        <div class="w-8 h-8 bg-gray-400 rounded-full"></div>
+        <span class="font-medium">{Astro.locals.user?.username}</span>
+        <div class="w-10 h-10 bg-gray-400 rounded-full"></div>
     </div>
 </header>

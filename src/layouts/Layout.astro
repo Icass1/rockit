@@ -1,5 +1,6 @@
 ---
 import "@/styles/default.css";
+import Header from "@/components/Header.astro";
 import Navigation from "@/components/Navigation.astro";
 import Footer from "@/components/Footer.astro";
 
@@ -31,6 +32,7 @@ const { title } = Astro.props;
 	</head>
 	<body>
 		<main class="grid grid-rows-[1fr_min-content]">
+			<Header />
 			<div
 				class="grid grid-cols-[min-content_1fr] h-full min-h-0 max-h-full"
 			>

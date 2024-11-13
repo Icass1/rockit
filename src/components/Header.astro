@@ -1,0 +1,21 @@
+---
+import SearchBar from "@/components/SearchBar";
+---
+
+<header class="fixed top-0 left-0 w-full z-50 flex items-center justify-between p-4 text-white">
+    <!-- Logo a la izquierda -->
+    <div class="flex items-center">
+        <img src="/logo-banner.png" alt="Logo" class="h-10 ml-11" />
+    </div>
+
+    <!-- Barra de búsqueda en el centro -->
+    <div class="flex-grow mx-4">
+        <SearchBar client:only="react" />
+    </div>
+
+    <!-- Texto "unknown" y círculo gris a la derecha -->
+    <div class="flex items-center space-x-4">
+        <span>Unknown</span>
+        <div class="w-8 h-8 bg-gray-400 rounded-full"></div>
+    </div>
+</header>

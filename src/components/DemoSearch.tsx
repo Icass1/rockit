@@ -103,7 +103,7 @@ function RenderListDownload({ list }: {
                     <label className="text-sm">{list[1].listInfo.artists.map(artist => artist.name || artist).join(", ")}</label>
                     <div className={"bg-gray-500 h-2 w-full rounded-full relative overflow-hidden"}>
                         <div className="bg-red-400 absolute h-full rounded-full transition-all" style={{ width: `calc(${list[1].listError}% + 20px)`, left: `calc(${list[1].totalCompleted}% - 20px)` }}></div>
-                        <div className={"bg-green-500 absolute h-full rounded-full transition-all" } style={{ width: `${list[1].totalCompleted}%` }}></div>
+                        <div className={"bg-green-500 absolute h-full rounded-full transition-all"} style={{ width: `${list[1].totalCompleted}%` }}></div>
                     </div>
                 </div>
             </div>

@@ -1,8 +1,8 @@
 ---
-import SearchBar from "@/components/SearchBar";
+
 ---
 
-<header class="fixed top-0 left-0 w-full z-50 flex items-center justify-between p-4 text-white">
+<header class="w-full z-50 flex items-center justify-between p-4 text-white">
     <!-- Logo a la izquierda -->
     <div class="flex items-center">
         <img src="/logo-banner.png" alt="Logo" class="h-10 ml-11" />
@@ -10,7 +10,16 @@ import SearchBar from "@/components/SearchBar";
 
     <!-- Barra de búsqueda en el centro -->
     <div class="flex-grow mx-4">
-        <SearchBar client:only="react" />
+        <input
+            class="font-semibold mx-auto rounded-full block text-1xl px-10 w-1/3 py-1.5 focus:outline-0"
+            style={{
+                backgroundImage: "url(/search-icon.png)",
+                backgroundPosition: "15px center",
+                backgroundSize: "14px",
+                backgroundRepeat: "no-repeat",
+            }}
+            placeholder="Search a song or artist..."
+        />
     </div>
 
     <!-- Texto "unknown" y círculo gris a la derecha -->

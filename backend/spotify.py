@@ -151,6 +151,12 @@ class Spotify:
         query_url = url + "?" + parsed_params
 
         result = requests.get(query_url, headers=headers)
+        if result.status_code == 401:
+            print("Token espired")
+            self.get_token()
+            headers = self.get_auth_header()
+            result = requests.get(query_url, headers=headers)
+
         return json.loads(result.content)
 
     def parse_url(self, url):

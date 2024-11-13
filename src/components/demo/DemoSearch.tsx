@@ -14,8 +14,6 @@ function RenderTrackSearchResults({ tracksInfo, handleDownload }: { tracksInfo: 
         handleDownload(element.external_urls.spotify)
     }
 
-
-
     return (
         <div
             className="grid grid-cols-2 gap-2 mt-2 mb-5 h-fit"

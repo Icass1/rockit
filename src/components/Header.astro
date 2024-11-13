@@ -1,29 +1,28 @@
 ---
-
+import SearchBar from "@/components/searchBar";
+import RenderSearchResults from "@/components/searchResults"
 ---
 
-<header class="w-full z-50 flex items-center justify-between pl-4 pr-8 py-4 text-white">
+<header
+    class="w-full z-50 grid grid-cols-[200px_3fr_200px] justify-between pl-4 pr-8 py-4 text-white"
+>
     <!-- Logo a la izquierda -->
     <div class="flex items-center">
         <img src="/logo-banner.png" alt="Logo" class="h-14" />
     </div>
 
     <!-- Barra de búsqueda en el centro -->
-    <div class="flex-grow -mx-4">
-        <input
-            class="font-semibold mx-auto rounded-full block text-1xl px-10 w-2/5 py-2 focus:outline-0"
-            style={{
-                backgroundImage: "url(/search-icon.png)",
-                backgroundPosition: "15px center",
-                backgroundSize: "14px",
-                backgroundRepeat: "no-repeat",
-            }}
-            placeholder="Search a song or artist..."
-        />
+    <div class="w-full h-full relative">
+        <div
+            class="h-fit bg-neutral-800 absolute w-4/5 left-1/2 -translate-x-1/2 top-1/2 rounded-b-xl flex flex-col pt-7 pb-2 px-2 gap-2 transition-all"
+        >
+            <RenderSearchResults client:only="react"/>
+        </div>
+        <SearchBar client:only="react"/>
     </div>
 
     <!-- Texto "unknown" y círculo gris a la derecha -->
-    <div class="flex items-center space-x-4">
+    <div class="flex items-center space-x-4 ml-auto">
         <span class="font-medium">{Astro.locals.user?.username}</span>
         <div class="w-10 h-10 bg-gray-400 rounded-full"></div>
     </div>

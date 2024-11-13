@@ -22,6 +22,7 @@ html,
 main {
   font-family: system-ui, sans-serif;
   background: #0b0b0b;
+  min-width: 820px;
 }
 
 main,

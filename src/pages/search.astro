@@ -1,14 +1,13 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import SearchBar from "@/components/SearchBar";
-const activePage = "Search";
 
 if (!Astro.locals.user) {
   return Astro.redirect("/login");
 }
 ---
 
-<Layout title="Rock It!" activePage={activePage}>
+<Layout title="Rock It!" currentPage="Search">
   <div class="p-2">
       <SearchBar client:only="react"/>
   </div>

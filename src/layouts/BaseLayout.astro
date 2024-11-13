@@ -1,0 +1,33 @@
+---
+import "@/styles/default.css";
+
+if (!Astro.locals.user) {
+    return Astro.redirect("/login");
+}
+
+export interface Props {
+    title?: string;
+}
+
+const { title } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta
+            name="description"
+            content="Rock It! - A music player by Icass & Nicorebo18"
+        />
+        <meta name="viewport" content="width=device-width" />
+        <link rel="icon" type="image/svg+xml" href="/rockit-logo.ico" />
+        <meta name="generator" content={Astro.generator} />
+        <title>{title || "RockIt"}</title>
+    </head>
+    <body>
+        <main>
+            <slot />
+        </main>
+    </body>
+</html>

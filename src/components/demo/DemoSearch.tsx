@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type Dispatch } from "react"
+import { useContext, useEffect, useRef, useState, type Dispatch } from "react"
 import pkg from 'lodash';
 import type { SearchResults, SpotifyAlbum, SpotifyTrack } from "@/types";
 const { debounce } = pkg;
@@ -13,6 +13,7 @@ function RenderTrackSearchResults({ tracksInfo, handleDownload }: { tracksInfo: 
     const handleClick = (element: SpotifyTrack) => {
         handleDownload(element.external_urls.spotify)
     }
+
 
 
     return (
@@ -131,7 +132,7 @@ function RenderListDownload({ list }: {
 
 type statusType = { songs: { [key: string]: EventSourceStatus }, lists: { [key: string]: { listInfo: SpotifyAlbum, totalCompleted: number, listError: number, songs: { [key: string]: EventSourceStatus } } } }
 
-export default function SearchBar({ }) {
+export default function DemoSearch({ }) {
 
     const [value, setValue] = useState("supertamp")
     const [searchResults, setSearchResults] = useState<SearchResults | undefined>(undefined)
@@ -235,7 +236,7 @@ export default function SearchBar({ }) {
 
 
     return (
-        <div className="flex flex-col gap-y-5">
+        <div className="flex flex-col gap-y-5 p-4">
             <input
                 value={value}
                 onChange={(e) => { setValue(e.target.value) }}

@@ -1,0 +1,148 @@
+# RockIt ToDo
+## Backend
+- Add queue to all downloads
+- Add downloader log to database
+- Download playlist
+- &check; Download album
+- &check; Download song
+- Notify the client when downloading song is in queue
+- If two songs have the same name -> must not be downloaded at the same time
+- Clean downloads_ids_dict downloads_dict after download
+- Cancel download
+- Change all database column names to camelCase
+## Frontend
+- Song view
+  - Album cover
+  - Artist
+    - Link to artist view
+  - Duration
+  - Name
+  - Album
+    - Link to album view
+    - Album songs?
+    - Name
+    - Release date
+- Artist view
+  - Artist name
+  - Genres
+  - Cover
+  - Most listened songs
+    - Name
+    - Album
+  - Albums
+    - Link to album
+    - Release date
+    - Name
+- Album view
+  - Album name
+  - Artist
+  - Release date
+  - Cover
+  - Number of songs
+  - Number of discs
+  - Total duration
+  - Genres
+  - Songs
+    - Name
+    - Artists if they are not the same as the artists on the album
+    - Duration
+- Playlist view
+  - Playlist name
+  - Creted by
+  - Cover
+  - Number of songs
+  - Total duration
+  - Genres
+  - Songs
+    - Name
+    - Album
+    - Duration
+    - Artists names
+- User
+  - User name
+  - Change password
+  - Most played songs
+  - Most played album
+  - Most played artist
+  - Most played genre
+- Library
+  - User albums
+  - User playlist
+  - Recomendations?
+- Search
+  - Best result
+    - If album
+      - Show if in database
+      - Click to download
+      - Album name
+      - Album artist
+      - Album cover
+    - If song
+      - Show if in database
+      - Click to download
+      - Song name
+      - Song artist
+      - Album cover
+      - Album name?
+    - If playlist
+      - Show if in database
+      - Click to download
+      - Playlist name
+      - Cover
+      - Created by
+    - If Artist
+      - Cover
+      - Name
+  - Artists
+    - Cover
+    - Name
+  - Albums
+    - Show if in database
+    - Click to download
+    - Album name
+    - Album artist
+    - Album cover
+  - Songs
+    - Show if in database
+    - Click to download
+    - Song name
+    - Song artist
+    - Album cover
+    - Album name?
+  - Playlists
+    - Show if in database
+    - Click to download
+    - Playlist name
+    - Cover
+    - Created by
+- Home
+  - Most played song (if count > 10)
+  - Most played album (if count > 10)
+  - Most played artist (if count > 10)
+  - Recomendations
+  - Recently played song
+  - Recently played album
+- Downloads
+  - Downloads status
+    - Percentage
+    - Name of song or list
+    - Cover
+    - Artist
+    - Songs if list
+    - Cancel download
+  - Downloads history
+    - Name of song or list
+    - Cover
+    - Artist
+    - Songs if list
+    - Date downloaded
+- Audio Player
+  - Set song
+  - Play song
+  - Stop song
+  - Queue
+    - Set queue
+    - Set queue index
+    - Next song
+    - Previous song
+  - Set volume

@@ -50,15 +50,15 @@ export default async function seed() {
 	]);
 
 
-	await db.insert(Playlist).values([
-		{
-			id: "test",
-			images: "Test",
-			name: "test",
-			description: "test test",
-			owner: "Test",
-			followers: 10,
-			songs: { a: "asf" }
-		}
-	])
+	// await db.insert(Playlist).values([
+	// 	{
+	// 		id: "test",
+	// 		images: "Test",
+	// 		name: "test",
+	// 		description: "test test",
+	// 		owner: "Test",
+	// 		followers: 10,
+	// 		songs: { a: "asf" }
+	// 	}
+	// ])
 }

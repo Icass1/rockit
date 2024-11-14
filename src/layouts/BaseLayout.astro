@@ -1,10 +1,6 @@
 ---
 import "@/styles/default.css";
 
-if (!Astro.locals.user) {
-    return Astro.redirect("/login");
-}
-
 export interface Props {
     title?: string;
 }

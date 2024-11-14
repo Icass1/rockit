@@ -11,6 +11,7 @@
 - Clean downloads_ids_dict downloads_dict after download
 - Cancel download
 - Change all database column names to camelCase
+- Handle .env missing
 
 ## Frontend
 - **Main Components** (Header, Footer, Menu Bar)
@@ -19,7 +20,12 @@
     - ✅ Add search bar on middle
     - ✅ Add user information & Profile pic on right
   - Footer
-    - ✅ Add song information on Left (Cover Img, Title, Artist, <span style="color:#3287a8">(Impr: Add Album next to artist?)</span>)
+    - ✅ Add song information on Left 
+      - Cover
+      - Img
+      - Title
+      - Artist
+      - <span style="color:#3287a8">(Impr: Add Album next to artist?)</span>
     - Add song & playlist control buttons on middle (Need to fix CSS)
     - Add song times and bur under control buttons (Need to fix Bar)
     - ✅ Add volume control bar & icon on the right
@@ -32,7 +38,18 @@
     - ✅ Placeholders for each components (Mockup)
     - Replace Mockups wih real tags & identifiers
 
-- **Song view**
+- **Audio Player**
+  - Set song
+  - Play song
+  - Stop song
+  - Queue
+    - Set queue
+    - Set queue index
+    - Next song
+    - Previous song
+  - Set volume
+
+- **Song page**
   - Album cover / Song Img
   - Artist
     - Link to artist view
@@ -44,18 +61,7 @@
     - Name
     - Release date
 
-- **Audio Player (Merge with Song View?)**
-  - Set song
-  - Play song
-  - Stop song
-  - Queue
-    - Set queue
-    - Set queue index
-    - Next song
-    - Previous song
-  - Set volume
-
-- **Artist view**
+- **Artist page**
   - Artist name
   - Genres
   - Cover
@@ -68,7 +74,7 @@
     - Name
   - <span style="color:#3287a8">(Impr: Similar songs/artists?)</span>
 
-- **Album view**
+- **Album page**
   - Album name
   - Artist
   - Release date
@@ -82,7 +88,7 @@
     - Artists if they are not the same as the artists on the album
     - Duration
 
-- **Playlist view**
+- **Playlist page**
   - Playlist name
   - Creted by
   - Cover

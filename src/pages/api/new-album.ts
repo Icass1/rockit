@@ -1,5 +1,5 @@
 import type { APIContext } from "astro";
-import { db, Song, List, eq } from 'astro:db';
+import { db, Song, Album, eq } from 'astro:db';
 
 
 export async function POST(context: APIContext): Promise<Response> {
@@ -7,25 +7,25 @@ export async function POST(context: APIContext): Promise<Response> {
     const data = await context.request.json()
 
     let name = data.name
-    let artists = JSON.stringify(data.artists)
-    let genres = JSON.stringify(data.genres)
+    let artists = data.artists
+    let genres = data.genres
     let type = data.type
     let id = data.id
-    let images = JSON.stringify(data.images)
+    let images = data.images
     let releaseDate = data.release_date
-    let copyrights = JSON.stringify(data.copyrights)
+    let copyrights = data.copyrights
     let popularity = data.popularity
-    let songs = JSON.stringify(data.songs)
+    let songs = data.songs
     let discCount = data.disc_count
 
 
-    const list = (await db.select({ id: List.id }).from(List).where(eq(List.id, id)))[0]
+    const list = (await db.select({ id: Album.id }).from(Album).where(eq(Album.id, id)))[0]
     if (list) {
         return new Response("OK")
     }
 
     try {
-        await db.insert(List).values({
+        await db.insert(Album).values({
             id,
             type,
             images,
@@ -40,7 +40,7 @@ export async function POST(context: APIContext): Promise<Response> {
 
         })
     } catch (err) {
-        console.warn("Error in new-list", err?.toString())
+        console.warn("Error in new-album", err?.toString())
         console.log(data)
     }
 

@@ -7,12 +7,11 @@ export async function POST(context: APIContext): Promise<Response> {
     const data = await context.request.json()
 
     let name = data.name
-    let artists = JSON.stringify(data.artists)
-    let genres = JSON.stringify(data.genres)
+    let artists = data.artists
+    let genres = data.genres
     let disc_number = data.disc_number
-    let disc_count = data.disc_count
     let album_name = data.album_name
-    let album_artists = JSON.stringify(data.album_artists)
+    let album_artists = data.album_artists
     let album_type = data.album_type
     let duration = data.duration
     let year = data.year
@@ -26,7 +25,7 @@ export async function POST(context: APIContext): Promise<Response> {
     let popularity = data.popularity
     let album_id = data.album_id
     let path = data.path
-    let images = JSON.stringify(data.images)
+    let images = data.images
     let copyright = data.copyright
 
 
@@ -42,7 +41,6 @@ export async function POST(context: APIContext): Promise<Response> {
             artists,
             genres,
             disc_number,
-            disc_count,
             album_name,
             album_artists,
             album_type,

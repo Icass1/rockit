@@ -30,6 +30,7 @@ export interface SpotifyTrack {
   type: string
   uri: string
   is_local: boolean
+  inDatabase: boolean
 }
 
 export interface SpotifyTrackAlbum {
@@ -124,6 +125,7 @@ export interface SpotifyAlbum {
   type: string
   uri: string
   artists: SpotifyAlbumArtist[]
+  inDatabase: boolean
 }
 
 export interface SpotifyAlbumExternalUrls {
@@ -201,6 +203,7 @@ export interface SpotifyPlaylist {
   tracks: SpotifyPlaylistTracks
   type: string
   uri: string
+  inDatabase: boolean
 }
 
 export interface SpotifyPlaylistExternalUrls {

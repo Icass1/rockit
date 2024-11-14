@@ -9,7 +9,7 @@ import re
 
 from spotdl.types.song import Song
 
-from api_types import RawSpotifyApiSong, RawSpotifyApiAlbum, AlbumItem, RawSpotifyApiPlaylist, PlaylistTracks
+from api_types import RawSpotifyApiTrack, RawSpotifyApiAlbum, AlbumItems, RawSpotifyApiPlaylist, PlaylistTracks, PlaylistItems
 from colors import *
 
 class Spotify:
@@ -46,7 +46,7 @@ class Spotify:
         url = self.parse_url(url)
     
         spotdl_songs: List[Song] = []
-        raw_songs: List[AlbumItem] = []
+        raw_songs: List[AlbumItems] | List[PlaylistItems] = []
 
 
         if "/album/" in url:
@@ -94,9 +94,45 @@ class Spotify:
             raw_playlist = self.api_call(path=f"playlists/{url.replace('https://open.spotify.com/playlist/', '')}")
             playlist = RawSpotifyApiPlaylist.from_dict(raw_playlist)
 
-            print(playlist)
+            for item in playlist.tracks.items:
+                song = item.track
 
-            return playlist, [], []
+                song_dict = {}
+                song_dict["name"] = song.name
+                song_dict["artists"] = [artist.name for artist in song.artists]
+                song_dict["artist"] = song.artists[0].name
+                song_dict["artist_id"] = song.artists[0].id
+                song_dict["album_id"] = song.album.id
+                song_dict["album_name"] = song.album.name
+                song_dict["album_artist"] = song.album.artists[0].name
+                song_dict["album_type"] = song.album.type
+                song_dict["copyright_text"]  = ""
+                song_dict["genres"] = []
+                song_dict["disc_number"] = song.disc_number
+                song_dict["disc_count"] = 1
+                song_dict["duration"] = song.duration_ms/1000
+                song_dict["year"] = int(song.album.release_date[:4])
+                song_dict["date"] = song.album.release_date
+                song_dict["track_number"] = song.track_number
+                song_dict["tracks_count"] = song.album.total_tracks
+                song_dict["isrc"] = song.external_ids.isrc
+                song_dict["song_id"] = song.id
+                song_dict["explicit"] = song.explicit
+                song_dict["publisher"] = ""
+                song_dict["url"] = song.external_urls.spotify
+                song_dict["popularity"] = song.popularity
+                song_dict["cover_url"] = (
+                            max(song.album.images, key=lambda i: i.width * i.height)[
+                                "url"
+                            ]
+                            if song.album.images
+                            else None
+                        ),
+                spotdl_songs.append(Song.from_dict(song_dict))
+                raw_songs.append(item)
+
+
+            return playlist, spotdl_songs, raw_songs
 
     def spotdl_song_from_url(self, url):
         url = self.parse_url(url)
@@ -105,7 +141,7 @@ class Spotify:
             raise Exception("Invalid URL")
 
         raw_song = self.api_call(path=f"tracks/{url.replace('https://open.spotify.com/track/', '')}")
-        song = RawSpotifyApiSong.from_dict(raw_song)
+        song = RawSpotifyApiTrack.from_dict(raw_song)
 
         raw_album = self.api_call(path=f"albums/{song.album.id}")
         album = RawSpotifyApiAlbum.from_dict(raw_album)

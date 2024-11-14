@@ -3,12 +3,11 @@ import { defineTable, column, NOW } from "astro:db";
 export const Song = defineTable({
     columns: {
         name: column.text(),
-        artists: column.text(),
-        genres: column.text(),
+        artists: column.json(),
+        genres: column.json(),
         disc_number: column.text({ optional: true }),
-        disc_count: column.text({ optional: true }),
         album_name: column.text(),
-        album_artists: column.text(),
+        album_artists: column.json(),
         album_type: column.text(),
         album_id: column.text(),
         duration: column.number(),
@@ -19,7 +18,7 @@ export const Song = defineTable({
         song_id: column.text({ unique: true, primaryKey: true }),
         publisher: column.text({ optional: true }),
         path: column.text({ unique: false, optional: false }),
-        images: column.text(),
+        images: column.json(),
         copyright: column.text({ optional: true }),
         download_url: column.text({ optional: true }),
         lyrics: column.text({ optional: true }),
@@ -28,23 +27,34 @@ export const Song = defineTable({
     }
 })
 
-export const List = defineTable({
+export const Album = defineTable({
     columns: {
         id: column.text({primaryKey: true}),
         type: column.text(),
-        images: column.text(),
+        images: column.json(),
         name: column.text(),
         releaseDate: column.text(),
-        artists: column.text(),
-        copyrights: column.text(),
+        artists: column.json(),
+        copyrights: column.json(),
         popularity: column.number(),
-        genres: column.text(),
-        songs: column.text(),
+        genres: column.json(),
+        songs: column.json(),
         discCount: column.number(),
         dateAdded: column.date({ default: NOW, nullable: true, optional: true }),
     }
 })
 
+export const Playlist = defineTable({
+    columns: {
+        id: column.text({primaryKey: true}),
+        images: column.json(),
+        name: column.text(),
+        description: column.text(),
+        owner: column.text(),
+        followers: column.number(),
+        songs: column.json()
+    }
+})
 
 export const Session = defineTable({
     columns: {

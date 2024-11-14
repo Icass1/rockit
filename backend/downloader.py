@@ -1,10 +1,7 @@
 from spotdl.download.downloader import Downloader as SpotifyDownloader
 from spotdl.types.song import Song
-from spotdl.utils.matching import get_best_matches, order_results
-from spotdl.types.result import Result
-import spotdl.providers.audio.base
 
-from api_types import RawSpotifyApiSong, RawSpotifyApiAlbum, AlbumItem
+from api_types import RawSpotifyApiTrack, RawSpotifyApiAlbum, AlbumItems, RawSpotifyApiPlaylist, PlaylistItems
 
 from utils import get_song_name, sanitize_folder_name, get_output_file
 from colors import *
@@ -50,9 +47,9 @@ class ListDownloader:
         self.downloader = downloader
 
         self.url = self.downloader.spotify.parse_url(url)
-        self.list: RawSpotifyApiAlbum = None
+        self.list: RawSpotifyApiAlbum | RawSpotifyApiPlaylist = None
         self.spotdl_songs: List[Song] = None
-        self.raw_songs: List[AlbumItem] = None
+        self.raw_songs: List[AlbumItems] | List[PlaylistItems]= None
 
         if "/album/" in self.url:
             self.type = "album"
@@ -78,8 +75,10 @@ class ListDownloader:
 
     def download_manager(self):
 
-        threading.current_thread().name = f"Download manager - {self.list.name} - {self.list.artists[0].name}"
-
+        if self.list.type == "album":
+            threading.current_thread().name = f"Download manager - {self.list.name} - {self.list.artists[0].name}"
+        else:
+            threading.current_thread().name = f"Download manager - {self.list.name} - {self.list.owner.display_name}"
 
         threads: List[threading.Thread] = []
 
@@ -101,7 +100,6 @@ class ListDownloader:
                     threads.remove(thread)
             for _ in range(THREADS - len(threads)):
                 if index >= len(self.spotdl_songs):
-                    # print(f"[LIST DOWNLOADER MANAGER]: {index} is greater than {len(self.spotdl_songs)}")
                     continue
 
                 print(f"[LIST DOWNLOADER MANAGER]: Started thread {index}")
@@ -112,19 +110,30 @@ class ListDownloader:
                 index += 1
         print(f"[LIST DOWNLOADER MANAGER]: Finished")
 
-        requests.post("http://localhost:4321/api/new-list", json={
-            "id": self.list.id,
-            "images": [image.json for image in self.list.images],
-            "name": self.list.name,
-            "release_date": self.list.release_date,
-            "type": self.list.type,
-            "artists": [{"name": artist.name, "id": artist.id} for artist in self.list.artists],
-            "copyrights": [_copyright.json for _copyright in self.list.copyrights],
-            "popularity": self.list.popularity,
-            "genres": self.list.genres,
-            "songs": [song.id for song in self.list.tracks.items],
-            "disc_count": max([song.disc_number for song in self.list.tracks.items])
-        })
+        if self.list.type == "album":
+            requests.post("http://localhost:4321/api/new-album", json={
+                "id": self.list.id,
+                "images": [image._json for image in self.list.images],
+                "name": self.list.name,
+                "release_date": self.list.release_date,
+                "type": self.list.type,
+                "artists": [{"name": artist.name, "id": artist.id} for artist in self.list.artists],
+                "copyrights": [_copyright._json for _copyright in self.list.copyrights],
+                "popularity": self.list.popularity,
+                "genres": self.list.genres,
+                "songs": [song.id for song in self.list.tracks.items],
+                "disc_count": max([song.disc_number for song in self.list.tracks.items])
+            })
+        elif self.list.type == "playlist":
+            requests.post("http://localhost:4321/api/new-playlist", json={
+                "id": self.list.id,
+                "images": [image._json for image in self.list.images],
+                "name": self.list.name,
+                "songs": [{"id": song.track.id, "added_at": song.added_at} for song in self.list.tracks.items],
+                "description": self.list.description,
+                "owner": self.list.owner.display_name,
+                "followers": self.list.followers.total,
+            })
 
 
     def status(self):
@@ -139,8 +148,11 @@ class ListDownloader:
             while not self.spotdl_songs:
                 time.sleep(0.2)
 
-        threading.current_thread().name = f"status - {self.list.name} - {self.list.artists[0].name}"
-
+        if self.list.type == "album":
+            threading.current_thread().name = f"status - {self.list.name} - {self.list.artists[0].name}"
+        else:
+            threading.current_thread().name = f"status - {self.list.name} - {self.list.owner.display_name}"
+            
         last_messages_len = {}
 
         for song in self.spotdl_songs:
@@ -150,21 +162,17 @@ class ListDownloader:
 
         while songs_completed < len(self.spotdl_songs):
             for song in self.raw_songs:
-                
+                song = song if self.list.type == "album" else song.track
                 for k in self.downloader.downloads_dict[song.id]["messages"][last_messages_len[song.id]:]:
-                    # k["song"] = song.json # Too much data
                     k["song"] = {}
                     k["song"]["name"] = song.name
-                    k["song"]["artists"] = [artist.json for artist in song.artists]
+                    k["song"]["artists"] = [artist._json for artist in song.artists]
 
-
-                    # k["list"] = self.list.json # Too much data
                     k["list"] = {}
                     k["list"]["name"] = self.list.name
                     k["list"]["id"] = self.list.id
-                    k["list"]["artists"] = [artist.json for artist in self.list.artists]
-                    k["list"]["images"] = [image.json for image in self.list.images]
-
+                    k["list"]["artists"] = [artist._json for artist in self.list.artists] if self.list.type == "album" else [self.list.owner.display_name]
+                    k["list"]["images"] = [image._json for image in self.list.images]
                     
                     list_completed[song.id] = k["completed"]
                     list_error[song.id] = 100 if k["message"] == "Error" else 0
@@ -177,7 +185,7 @@ class ListDownloader:
                         songs_completed += 1
                     
                 last_messages_len[song.id] = len(self.downloader.downloads_dict[song.id]["messages"])
-                time.sleep(0.2)
+            time.sleep(0.2)
 
 class SongDownloader:
     def __init__(self, url, downloader: "Downloader"):
@@ -185,7 +193,7 @@ class SongDownloader:
 
         self.url = url
         self.spotdl_song: Song = None
-        self.raw_song: RawSpotifyApiSong = None
+        self.raw_song: RawSpotifyApiTrack = None
 
         self.downloader = downloader
         self.thread = threading.Thread(target=lambda : self.fetch_song(), name=f"Song downloader {url}")
@@ -228,8 +236,8 @@ class SongDownloader:
                 last_time_new_message = time.time()
                 k["song"] = {}
                 k["song"]["name"] = self.raw_song.name
-                k["song"]["artists"] = [artist.json for artist in self.raw_song.artists]
-                k["song"]["album"] = {"images": [images.json for images in self.raw_song.album.images]}
+                k["song"]["artists"] = [artist._json for artist in self.raw_song.artists]
+                k["song"]["album"] = {"images": [images._json for images in self.raw_song.album.images]}
 
                 yield f"data: {json.dumps(k)}\n\n"
                 if k["completed"] == 100:
@@ -265,14 +273,12 @@ class Downloader:
         self.list_downloads = {}
 
     def download_url(self, url):
-
         if "/track/" in url:
             return SongDownloader(url, self)
-
         elif "/playlist/" in url or "/album/" in url:
             return ListDownloader(url, self)
 
-    def download_song(self, spotdl_song: Song, raw_song: RawSpotifyApiSong | AlbumItem, raw_album: RawSpotifyApiAlbum=None):
+    def download_song(self, spotdl_song: Song, raw_song: RawSpotifyApiTrack | AlbumItems | PlaylistItems, raw_list: RawSpotifyApiAlbum | RawSpotifyApiPlaylist=None):
 
         print(OKBLUE, "[DOWNLOADER] Downloading", get_song_name(spotdl_song), ENDC)
 
@@ -295,30 +301,79 @@ class Downloader:
                 os.rename(path, final_path)
                 path = final_path
 
-        requests.post("http://localhost:4321/api/new-song", json={
-            "name": spotdl_song.name,
-            "artists": [{"name": artist.name, "id": artist.id} for artist in raw_song.artists],
-            "genres": spotdl_song.genres,
-            "disc_number": spotdl_song.disc_number,
-            "disc_count": spotdl_song.disc_count,
-            "album_name": spotdl_song.album_name,
-            "album_artists": [{"name": artist.name, "id": artist.id} for artist in raw_album.artists] if raw_album else [{"name": artist.name, "id": artist.id} for artist in raw_song.album.artists],
-            "album_type": spotdl_song.album_type,
-            "duration": spotdl_song.duration,
-            "year": spotdl_song.year,
-            "date": spotdl_song.date,
-            "track_number": spotdl_song.track_number,
-            "tracks_count": spotdl_song.tracks_count,
-            "song_id": spotdl_song.song_id,
-            "publisher": spotdl_song.publisher,
-            "path": str(path),
-            "images": [image.json for image in raw_album.images] if raw_album else [image.json for image in raw_song.album.images],
-            "copyright":  spotdl_song.copyright_text,
-            "download_url": spotdl_song.download_url,
-            "lyrics": spotdl_song.lyrics,
-            "popularity": spotdl_song.popularity,
-            "album_id": spotdl_song.album_id,
-        })
+        if raw_list == None:
+            requests.post("http://localhost:4321/api/new-song", json={
+                "name": spotdl_song.name,
+                "artists": [{"name": artist.name, "id": artist.id} for artist in raw_song.artists],
+                "genres": spotdl_song.genres,
+                "disc_number": spotdl_song.disc_number,
+                "album_name": spotdl_song.album_name,
+                "album_artists": [{"name": artist.name, "id": artist.id} for artist in raw_song.album.artists],
+                "album_type": spotdl_song.album_type,
+                "duration": spotdl_song.duration,
+                "year": spotdl_song.year,
+                "date": spotdl_song.date,
+                "track_number": spotdl_song.track_number,
+                "tracks_count": spotdl_song.tracks_count,
+                "song_id": spotdl_song.song_id,
+                "publisher": spotdl_song.publisher,
+                "path": str(path),
+                "images": [image._json for image in raw_song.album.images],
+                "copyright":  spotdl_song.copyright_text,
+                "download_url": spotdl_song.download_url,
+                "lyrics": spotdl_song.lyrics,
+                "popularity": spotdl_song.popularity,
+                "album_id": spotdl_song.album_id,
+            })
+        elif raw_list.type == "album":
+            requests.post("http://localhost:4321/api/new-song", json={
+                "name": spotdl_song.name,
+                "artists": [{"name": artist.name, "id": artist.id} for artist in raw_song.artists],
+                "genres": spotdl_song.genres,
+                "disc_number": spotdl_song.disc_number,
+                "album_name": spotdl_song.album_name,
+                "album_artists": [{"name": artist.name, "id": artist.id} for artist in raw_list.artists] if raw_list else [{"name": artist.name, "id": artist.id} for artist in raw_song.album.artists],
+                "album_type": spotdl_song.album_type,
+                "duration": spotdl_song.duration,
+                "year": spotdl_song.year,
+                "date": spotdl_song.date,
+                "track_number": spotdl_song.track_number,
+                "tracks_count": spotdl_song.tracks_count,
+                "song_id": spotdl_song.song_id,
+                "publisher": spotdl_song.publisher,
+                "path": str(path),
+                "images": [image._json for image in raw_list.images] if raw_list else [image._json for image in raw_song.album.images],
+                "copyright":  spotdl_song.copyright_text,
+                "download_url": spotdl_song.download_url,
+                "lyrics": spotdl_song.lyrics,
+                "popularity": spotdl_song.popularity,
+                "album_id": spotdl_song.album_id,
+            })
+        elif raw_list.type == "playlist":
+            requests.post("http://localhost:4321/api/new-song", json={
+                "name": spotdl_song.name,
+                "artists": [{"name": artist.name, "id": artist.id} for artist in raw_song.track.artists],
+                "genres": spotdl_song.genres,
+                "disc_number": spotdl_song.disc_number,
+                "album_name": spotdl_song.album_name,
+                "album_artists": [{"name": artist.name, "id": artist.id} for artist in raw_song.track.album.artists],
+                "album_type": spotdl_song.album_type,
+                "duration": spotdl_song.duration,
+                "year": spotdl_song.year,
+                "date": spotdl_song.date,
+                "track_number": spotdl_song.track_number,
+                "tracks_count": spotdl_song.tracks_count,
+                "song_id": spotdl_song.song_id,
+                "publisher": spotdl_song.publisher,
+                "path": str(path),
+                "images": [image._json for image in raw_list.images] if raw_list else [image._json for image in raw_song.track.album.images],
+                "copyright":  spotdl_song.copyright_text,
+                "download_url": spotdl_song.download_url,
+                "lyrics": spotdl_song.lyrics,
+                "popularity": spotdl_song.popularity,
+                "album_id": spotdl_song.album_id,
+            })
+
 
     def add_task(
         self,

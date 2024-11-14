@@ -41,32 +41,42 @@ def generate_class(name, json_data, nested_classes_dict):
     #     class_def.append("    pass")
     #     return "\n".join(class_def)
 
-    for key, value in json_data.items():
-        var_name = (key)
+    items = json_data.items()
+
+    for key, value in items:
+        var_name = key
         var_type = parse_type(key, value, nested_classes_dict)
         class_def.append(f"    {var_name}: {var_type}")
+    class_def.append(f"    _json: dict")
 
     class_def.append(f"    def from_dict(obj: Any) -> '{name}':")
-    for key, value in json_data.items():
-        var_name = (key)
+    for key, value in items:
+        var_name = key
         var_type = parse_type(key, value, nested_classes_dict)
         if "List" in var_type and var_name in nested_classes_dict:
             print(var_name, key, nested_classes_dict)
-            class_def.append(f"        _{var_name} = [{nested_classes_dict[var_name]}.from_dict(k) for k in obj.get('{key}')]")
+            class_def.append(f"        _{var_name} = [{nested_classes_dict[var_name]}.from_dict(k) for k in obj.get('{key}')] if obj and '{key}' in obj else None")
         elif var_name in nested_classes_dict:
-            class_def.append(f"        _{var_name} = {nested_classes_dict[var_name]}.from_dict(obj.get('{key}'))")
+            class_def.append(f"        _{var_name} = {nested_classes_dict[var_name]}.from_dict(obj.get('{key}')) if obj and '{key}' in obj else None")
         else: class_def.append(f"        _{var_name} = obj.get('{key}') if obj and '{key}' in obj else None")
 
-    class_def.append(f"        return {name}({', '.join([f'_{var_name}' for var_name in json_data.keys()])})")
+    class_def.append(f"        return {name}({', '.join([f'_{var_name}' for var_name in json_data.keys()] + ['obj'])})")
+
+    if len(items) > 0:
+        class_def.append(f"    def __getitem__(self, item):")
+        first = True
+        for key, value in list(items):
+            class_def.append(f"        {'' if first else 'el'}if item == '{key}':")
+            class_def.append(f"            return self.{key}")
+            first = False
+        class_def.append(f"        return None")
 
     return "\n".join(class_def)
 
 nested_class_names = []
 
-def generate_classes(name, json_data, classes):
+def generate_classes(name, json_data, classes, base_name):
     """Recursively generate class definitions for nested JSON."""
-
-    base_name = "Playlist"
 
     if isinstance(json_data, dict):
 
@@ -80,13 +90,13 @@ def generate_classes(name, json_data, classes):
                     nested_class_name = base_name + to_pascal_case(key) + str(index)
                     index += 1
 
-                generate_classes(nested_class_name, value, classes)
+                generate_classes(nested_class_name, value, classes, base_name=base_name)
                 nested_class_names.append(nested_class_name)
                 nested_classes_dict[key] = nested_class_name
 
             elif isinstance(value, list) and value and isinstance(value[0], dict):
                 nested_class_name = base_name + to_pascal_case(key)
-                generate_classes(nested_class_name, value[0], classes)
+                generate_classes(nested_class_name, value[0], classes, base_name=base_name)
 
                 nested_class_names.append(nested_class_name)
                 nested_classes_dict[key] = nested_class_name
@@ -102,7 +112,8 @@ def main():
         json_data = json.load(f)
 
     classes = []
-    generate_classes("RawSpotifyApiPlaylist", json_data, classes)
+    base_name = "Track"
+    generate_classes(name="RawSpotifyApiTrack", json_data=json_data, classes=classes, base_name=base_name)
 
     with open("backend/types.out.py", "w") as f:
         f.write("from typing import List, Dict, Any\n")

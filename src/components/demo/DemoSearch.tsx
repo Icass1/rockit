@@ -1,6 +1,7 @@
 import { useContext, useEffect, useRef, useState, type Dispatch } from "react"
 import pkg from 'lodash';
 import type { SearchResults, SpotifyAlbum, SpotifyArtist, SpotifyPlaylist, SpotifyTrack } from "@/types";
+import { CheckIcon } from "lucide-react";
 const { debounce } = pkg;
 
 interface EventSourceStatus {
@@ -22,39 +23,42 @@ function RenderTrackSearchResults({ tracksInfo, handleDownload }: { tracksInfo: 
                 <div
                     key={'element' + element.uri + index}
                     onClick={() => { handleClick(element) }}
-                    className="flex flex-row h-12 rounded overflow-hidden gap-x-2 bg-zinc-700 hover:bg-zinc-500/60 transition-colors cursor-pointer"
+                    className="flex flex-row h-12 rounded overflow-hidden gap-x-2 bg-zinc-700 hover:bg-zinc-500/60 transition-colors cursor-pointer pr-1 items-center"
                 >
                     <img className="aspect-square w-auto h-full" src={element.album.images[0].url}></img>
-                    <div className="flex flex-col text-white min-w-0 max-w-full">
+                    <div className="flex flex-col text-white min-w-0 max-w-full w-full">
                         <label className="text-base font-semibold truncate">{element.name}</label>
                         <label className="text-sm truncate">{element.artists && element.artists.map(artist => artist.name).join(", ")}</label>
                     </div>
+                    {element.inDatabase && <CheckIcon className="w-8 text-green-400" />}
                 </div>
             )}
         </div>
 
     )
 }
-function RenderAlbumSearchResults({ tracksInfo, handleDownload }: { tracksInfo: SpotifyAlbum[], handleDownload: (url: string) => void }) {
+function RenderAlbumSearchResults({ albumsInfo, handleDownload }: { albumsInfo: SpotifyAlbum[], handleDownload: (url: string) => void }) {
     const handleClick = (element: SpotifyAlbum) => {
         handleDownload(element.external_urls.spotify)
     }
+
 
     return (
         <div
             className="grid grid-cols-2 gap-2 mt-2 mb-5 h-fit"
         >
-            {tracksInfo.map((element, index) =>
+            {albumsInfo.map((element, index) =>
                 <div
                     key={'element' + element.uri + index}
                     onClick={() => { handleClick(element) }}
-                    className="flex flex-row h-12 rounded overflow-hidden gap-x-2 bg-zinc-700 hover:bg-zinc-500/60 transition-colors cursor-pointer"
+                    className="flex flex-row h-12 rounded overflow-hidden gap-x-2 bg-zinc-700 hover:bg-zinc-500/60 transition-colors cursor-pointer items-center pr-1"
                 >
                     <img className="aspect-square w-auto h-full" src={element.images[0].url}></img>
-                    <div className="flex flex-col text-white min-w-0 max-w-full">
+                    <div className="flex flex-col text-white min-w-0 max-w-full w-full">
                         <label className="text-base font-semibold truncate">{element.name}</label>
                         <label className="text-sm truncate">{element.artists && element.artists.map(artist => artist.name).join(", ")}</label>
                     </div>
+                    {element.inDatabase && <CheckIcon className="w-8 text-green-400" />}
                 </div>
             )}
         </div>
@@ -73,13 +77,14 @@ function RenderPlaylistSearchResults({ playlistInfo, handleDownload }: { playlis
                 <div
                     key={'element' + element.uri + index}
                     onClick={() => { handleClick(element) }}
-                    className="flex flex-row h-12 rounded overflow-hidden gap-x-2 bg-zinc-700 hover:bg-zinc-500/60 transition-colors cursor-pointer"
+                    className="flex flex-row h-12 rounded overflow-hidden gap-x-2 bg-zinc-700 hover:bg-zinc-500/60 transition-colors cursor-pointer items-center pr-1"
                 >
-                    <img className="aspect-square w-auto h-full" src={element.images[0].url}></img>
-                    <div className="flex flex-col text-white min-w-0 max-w-full">
+                    <img className="aspect-square w-auto h-full " src={element.images[0].url}></img>
+                    <div className="flex flex-col text-white min-w-0 max-w-full w-full">
                         <label className="text-base font-semibold truncate">{element.name}</label>
                         <label className="text-sm truncate">{element.owner.display_name}</label>
                     </div>
+                    {element.inDatabase && <CheckIcon className="w-8 text-green-400" />}
                 </div>
             )}
         </div>
@@ -87,9 +92,6 @@ function RenderPlaylistSearchResults({ playlistInfo, handleDownload }: { playlis
 }
 
 function RenderArtistSearchResults({ artistInfo }: { artistInfo: SpotifyArtist[] }) {
-
-
-    console.log(artistInfo)
 
     return (
         <div
@@ -100,7 +102,7 @@ function RenderArtistSearchResults({ artistInfo }: { artistInfo: SpotifyArtist[]
                     key={'element' + element.uri + index}
                     className="flex flex-row items-center gap-2"
                 >
-                    <img src={element.images[0].url} className="h-12 rounded-full w-auto aspect-square"/>
+                    <img src={element.images[0].url} className="h-12 rounded-full w-auto aspect-square" />
                     <label className="text-xl font-semibold">{element.name}</label>
                 </div>
             )}
@@ -195,7 +197,7 @@ export default function DemoSearch({ }) {
         if (query == "") { return }
         setSearchResults(undefined)
 
-        fetch(`http://localhost:8000/search?q=${query}`).then(data => data.json()).then(json => {
+        fetch(`/api/search?q=${query}`).then(data => data.json()).then(json => {
             setSearchResults(json)
         })
     }
@@ -299,7 +301,7 @@ export default function DemoSearch({ }) {
                         <label className="font-bold text-xl text-white ">Songs</label>
                         <RenderTrackSearchResults tracksInfo={searchResults.songs} handleDownload={handleDownload} />
                         <label className="font-bold text-xl text-white ">Albums</label>
-                        <RenderAlbumSearchResults tracksInfo={searchResults.albums} handleDownload={handleDownload} />
+                        <RenderAlbumSearchResults albumsInfo={searchResults.albums} handleDownload={handleDownload} />
                         <label className="font-bold text-xl text-white ">Playlists</label>
                         <RenderPlaylistSearchResults playlistInfo={searchResults.playlists} handleDownload={handleDownload} />
                         <RenderArtistSearchResults artistInfo={searchResults.artists} />

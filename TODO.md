@@ -3,7 +3,7 @@
 ## Backend
 - Add queue to all downloads
 - Add downloader log to database
-- Download playlist
+- ✅ Download playlist
 - ✅ Download album
 - ✅ Download song
 - Notify the client when downloading song is in queue

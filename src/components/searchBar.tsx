@@ -11,6 +11,11 @@ export default function SearchBar({ }) {
 
     useEffect(() => {
         if (!searchDebounce.current) { return }
+        if (value == "") {
+            searchResults.setKey("albums", undefined)
+            searchResults.setKey("songs", undefined)
+        }
+
         searchDebounce.current(value)
     }, [value])
 
@@ -21,11 +26,15 @@ export default function SearchBar({ }) {
     }, [])
 
     const search = (query: string) => {
-        if (query == "") { return }
+        if (query == "") {
+            return
+        }
 
         fetch(`http://localhost:8000/search?q=${query}`).then(data => data.json()).then(json => {
             searchResults.setKey("albums", json.albums)
             searchResults.setKey("songs", json.songs)
+            searchResults.setKey("playlists", json.playlists)
+            searchResults.setKey("artists", json.artists)
         })
     }
 
@@ -33,7 +42,7 @@ export default function SearchBar({ }) {
         <input
             value={value}
             onChange={(e) => { setValue(e.target.value) }}
-            className="font-semibold bg-neutral-900 shadow mx-auto rounded-full block relative text-1xl px-10 w-4/5 h-3/4 top-1/2 -translate-y-1/2 focus:outline-0"
+            className="font-semibold bg-neutral-900 z-50 shadow mx-auto rounded-full block relative text-1xl px-10 w-4/5 h-3/4 top-1/2 -translate-y-1/2 focus:outline-0"
             style={{
                 backgroundImage: "url(/search-icon.png)",
                 backgroundPosition: "15px center",

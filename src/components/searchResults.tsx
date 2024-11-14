@@ -60,28 +60,33 @@ function RenderAlbumSearchResults({ tracksInfo, handleDownload }: { tracksInfo: 
 export default function RenderSearchResults() {
 
     const $searchResults = useStore(searchResults);
-    console.log($searchResults)
-
-    console.log($searchResults.songs)
 
     const handleDownload = (url: string) => {
 
     }
 
     return (
-        <>
-            {$searchResults.songs &&
-                <>
-                    <label className="font-bold text-xl text-white ">Songs</label>
-                    <RenderTrackSearchResults tracksInfo={$searchResults.songs} handleDownload={handleDownload} />
-                </>
-            }
-            {$searchResults.albums &&
-                <>
-                    <label className="font-bold text-xl text-white ">Albums</label>
-                    <RenderAlbumSearchResults tracksInfo={$searchResults.albums} handleDownload={handleDownload} />
-                </>
-            }
-        </>
+        ($searchResults.songs == undefined && $searchResults.albums == undefined) ?
+            <div>
+            </div>
+            :
+            <div
+                className="h-fit bg-neutral-800 absolute w-4/5 left-1/2 -translate-x-1/2 top-1/2 rounded-b-xl flex flex-col pt-7 pb-2 px-2 gap-2 z-50"
+            >
+                {
+                    $searchResults.songs &&
+                    <>
+                        <label className="font-bold text-xl text-white ">Songs</label>
+                        <RenderTrackSearchResults tracksInfo={$searchResults.songs.slice(0, 2)} handleDownload={handleDownload} />
+                    </>
+                }
+                {
+                    $searchResults.songs &&
+                    <>
+                        <label className="font-bold text-xl text-white ">Albums</label>
+                        <RenderAlbumSearchResults tracksInfo={$searchResults.albums.slice(0, 2)} handleDownload={handleDownload} />
+                    </>
+                }
+            </div >
     )
 }

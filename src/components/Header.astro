@@ -13,11 +13,8 @@ import RenderSearchResults from "@/components/searchResults"
 
     <!-- Barra de búsqueda en el centro -->
     <div class="w-full h-full relative">
-        <div
-            class="h-fit bg-neutral-800 absolute w-4/5 left-1/2 -translate-x-1/2 top-1/2 rounded-b-xl flex flex-col pt-7 pb-2 px-2 gap-2 transition-all"
-        >
+
             <RenderSearchResults client:only="react"/>
-        </div>
         <SearchBar client:only="react"/>
     </div>
 

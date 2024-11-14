@@ -9,7 +9,7 @@ import re
 
 from spotdl.types.song import Song
 
-from api_types import RawSpotifyApiSong, RawSpotifyApiAlbum, AlbumItem
+from api_types import RawSpotifyApiSong, RawSpotifyApiAlbum, AlbumItem, RawSpotifyApiPlaylist, PlaylistTracks
 from colors import *
 
 class Spotify:
@@ -89,6 +89,14 @@ class Spotify:
                 raw_songs.append(song)
 
             return album, spotdl_songs, raw_songs
+        
+        if "/playlist/" in url:
+            raw_playlist = self.api_call(path=f"playlists/{url.replace('https://open.spotify.com/playlist/', '')}")
+            playlist = RawSpotifyApiPlaylist.from_dict(raw_playlist)
+
+            print(playlist)
+
+            return playlist, [], []
 
     def spotdl_song_from_url(self, url):
         url = self.parse_url(url)
@@ -138,7 +146,7 @@ class Spotify:
         return Song.from_dict(song_dict), song
 
 
-    def api_call(self, path: str, params: dict = {}):
+    def api_call(self, path: str, params: dict = {}) -> dict:
 
         parsed_params = ""
         

@@ -42,12 +42,17 @@ def search():
 
     query = request.args.get('q')
     
-    search_results = spotify.api_call(path="search", params={"q": query, "type": "track,album", "limit": "6"})
+    search_results = spotify.api_call(path="search", params={"q": query, "type": "track,album,playlist,artist", "limit": "6"})
+
+    out = open("out.json", "w")
+    out.write(json.dumps(search_results, indent=4))
+    out.close()
 
     return {
         "songs": search_results["tracks"]["items"],
         "albums": search_results["albums"]["items"],
-        # "playlists": search_results["playlists"]["items"],
+        "playlists": search_results["playlists"]["items"],
+        "artists": search_results["artists"]["items"],
     }
 
 @app.route('/start-download')

@@ -19,15 +19,15 @@
     - ✅ Add search bar on middle
     - ✅ Add user information & Profile pic on right
   - Footer
-    - ✅ Add song information on Left (Cover Img, Title, Artist, <span style="color:blue">(Impr: Add Album next to artist?)</span>)
+    - ✅ Add song information on Left (Cover Img, Title, Artist, <span style="color:#3287a8">(Impr: Add Album next to artist?)</span>)
     - Add song & playlist control buttons on middle (Need to fix CSS)
     - Add song times and bur under control buttons (Need to fix Bar)
     - ✅ Add volume control bar & icon on the right
-    - <span style="color:blue">(Impr: Add arrow up button to go to song full size player?)</span>
+    - <span style="color:#3287a8">(Impr: Add arrow up button to go to song full size player?)</span>
   - Menu bar
     - ✅ Add functional icons to menu bar
-    - <span style="color:blue">(Impr: Add hover menu to display each icons name/page?)</span>
-    - <span style="color:blue">(Impr: Add placeholders for top listened artists/ songs?)</span>
+    - <span style="color:#3287a8">(Impr: Add hover menu to display each icons name/page?)</span>
+    - <span style="color:#3287a8">(Impr: Add placeholders for top listened artists/ songs?)</span>
   - General
     - ✅ Placeholders for each components (Mockup)
     - Replace Mockups wih real tags & identifiers
@@ -40,7 +40,7 @@
   - Name
   - Album
     - Link to album view
-    - <span style="color:blue">(Impr: Album songs?)</span>
+    - <span style="color:#3287a8">(Impr: Album songs?)</span>
     - Name
     - Release date
 
@@ -66,7 +66,7 @@
     - Link to album
     - Release date
     - Name
-  - <span style="color:blue">(Impr: Similar songs/artists?)</span>
+  - <span style="color:#3287a8">(Impr: Similar songs/artists?)</span>
 
 - **Album view**
   - Album name
@@ -110,8 +110,8 @@
     - Recent songs 
     - In the last x days most listened songs
   - User playlists
-  - <span style="color:blue">(Impr: Recommendations?)</span>
-  - <span style="color:blue">(Impr: Recaps?)</span>
+  - <span style="color:#3287a8">(Impr: Recommendations?)</span>
+  - <span style="color:#3287a8">(Impr: Recaps?)</span>
 
 - **Search**
   - Best result

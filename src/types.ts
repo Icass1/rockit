@@ -3,6 +3,8 @@
 export interface SearchResults {
   songs: SpotifyTrack[]
   albums: SpotifyAlbum[]
+  playlists: SpotifyPlaylist[]
+  artists: SpotifyArtist[]
 }
 
 
@@ -156,47 +158,81 @@ export interface SpotifyAlbumExternalUrls2 {
 
 
 
+export interface SpotifyArtist {
+  external_urls: SpotifyArtistExternalUrls
+  followers: SpotifyArtistFollowers
+  genres: string[]
+  href: string
+  id: string
+  images: SpotifyArtistImage[]
+  name: string
+  popularity: number
+  type: string
+  uri: string
+}
+
+export interface SpotifyArtistExternalUrls {
+  spotify: string
+}
+
+export interface SpotifyArtistFollowers {
+  href: string
+  total: number
+}
+
+export interface SpotifyArtistImage {
+  url: string
+  height: number
+  width: number
+}
 
 
-// export interface SearchResults {
-//     albums?: (AlbumsEntity)[] | null;
-//     playlists?: (PlaylistsEntity)[] | null;
-//     songs?: (SongsEntity)[] | null;
-// }
-// export interface AlbumsEntity {
-//     artists?: (ArtistsEntity)[] | null;
-//     id: string;
-//     image_url: string;
-//     name: string;
-//     release_date: string;
-//     spotify_url: string;
-//     total_tracks: number;
-//     type: string;
-// }
-// export interface ArtistsEntity {
-//     name: string;
-//     type: string;
-// }
-// export interface PlaylistsEntity {
-//     artists?: (ArtistsEntity1)[] | null;
-//     id: string;
-//     image_url: string;
-//     name: string;
-//     release_date?: null;
-//     spotify_url: string;
-//     total_tracks: number;
-//     type: string;
-// }
-// export interface ArtistsEntity1 {
-//     name: string;
-// }
-// export interface SongsEntity {
-//     artists?: (ArtistsEntity)[] | null;
-//     id: string;
-//     image_url: string;
-//     name: string;
-//     release_date?: null;
-//     spotify_url: string;
-//     total_tracks?: null;
-//     type: string;
-// }
+export interface SpotifyPlaylist {
+  collaborative: boolean
+  description: string
+  external_urls: SpotifyPlaylistExternalUrls
+  href: string
+  id: string
+  images: SpotifyPlaylistImage[]
+  name: string
+  owner: SpotifyPlaylistOwner
+  public: boolean
+  snapshot_id: string
+  tracks: SpotifyPlaylistTracks
+  type: string
+  uri: string
+}
+
+export interface SpotifyPlaylistExternalUrls {
+  spotify: string
+}
+
+export interface SpotifyPlaylistImage {
+  url: string
+  height: number
+  width: number
+}
+
+export interface SpotifyPlaylistOwner {
+  external_urls: SpotifyPlaylistExternalUrls2
+  followers: SpotifyPlaylistFollowers
+  href: string
+  id: string
+  type: string
+  uri: string
+  display_name: string
+}
+
+export interface SpotifyPlaylistExternalUrls2 {
+  spotify: string
+}
+
+export interface SpotifyPlaylistFollowers {
+  href: string
+  total: number
+}
+
+export interface SpotifyPlaylistTracks {
+  href: string
+  total: number
+}

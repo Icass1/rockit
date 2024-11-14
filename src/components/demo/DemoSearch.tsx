@@ -1,6 +1,6 @@
 import { useContext, useEffect, useRef, useState, type Dispatch } from "react"
 import pkg from 'lodash';
-import type { SearchResults, SpotifyAlbum, SpotifyTrack } from "@/types";
+import type { SearchResults, SpotifyAlbum, SpotifyPlaylist, SpotifyTrack } from "@/types";
 const { debounce } = pkg;
 
 interface EventSourceStatus {
@@ -58,7 +58,31 @@ function RenderAlbumSearchResults({ tracksInfo, handleDownload }: { tracksInfo: 
                 </div>
             )}
         </div>
+    )
+}
 
+function RenderPlaylistSearchResults({ tracksInfo, handleDownload }: { tracksInfo: SpotifyPlaylist[], handleDownload: (url: string) => void }) {
+    const handleClick = (element: SpotifyPlaylist) => {
+        handleDownload(element.external_urls.spotify)
+    }
+    return (
+        <div
+            className="grid grid-cols-2 gap-2 mt-2 mb-5 h-fit"
+        >
+            {tracksInfo.map((element, index) =>
+                <div
+                    key={'element' + element.uri + index}
+                    onClick={() => { handleClick(element) }}
+                    className="flex flex-row h-12 rounded overflow-hidden gap-x-2 bg-zinc-700 hover:bg-zinc-500/60 transition-colors cursor-pointer"
+                >
+                    <img className="aspect-square w-auto h-full" src={element.images[0].url}></img>
+                    <div className="flex flex-col text-white min-w-0 max-w-full">
+                        <label className="text-base font-semibold truncate">{element.name}</label>
+                        <label className="text-sm truncate">{element.owner.display_name}</label>
+                    </div>
+                </div>
+            )}
+        </div>
     )
 }
 
@@ -254,6 +278,8 @@ export default function DemoSearch({ }) {
                         <RenderTrackSearchResults tracksInfo={searchResults.songs} handleDownload={handleDownload} />
                         <label className="font-bold text-xl text-white ">Albums</label>
                         <RenderAlbumSearchResults tracksInfo={searchResults.albums} handleDownload={handleDownload} />
+                        <label className="font-bold text-xl text-white ">Playlists</label>
+                        <RenderPlaylistSearchResults tracksInfo={searchResults.playlists} handleDownload={handleDownload} />
                     </div>
                     :
                     <div className="w-1/2 mx-auto text-white">

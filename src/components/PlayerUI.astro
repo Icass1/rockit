@@ -1,4 +1,82 @@
 ---
-/* Este componente representa el reproductor de música. */
+const currentLyric = "This is the current lyric"; // Lírica actual (puede ser dinámica)
+const pastLyrics = ["Previous lyric line 1", "Previous lyric line 2"]; // Líricas anteriores
+const futureLyrics = ["Next lyric line 1", "Next lyric line 2"]; // Líricas futuras
+const songTitle = "Song Title Placeholder"; // Título de la canción
+const albumInfo = "Album Placeholder · 2024"; // Información del álbum
+const songCover = "/song-placeholder.png"; // Placeholder de la portada
 ---
-<div class="h-full w-full bg-black border-4 border-green-500"></div>
+
+<div
+  class="relative w-full h-full bg-black text-white"
+  style={{
+    backgroundImage: `url(${songCover})`,
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+  }}
+>
+  <!-- Background Blur Overlay -->
+  <div class="absolute inset-0 bg-black/80 backdrop-blur-md"></div>
+
+  <!-- Grid Content -->
+  <div class="relative z-10 grid grid-cols-[30%_40%_30%] h-full">
+    <!-- Left Column: Lyrics -->
+    <div class="flex flex-col justify-center items-center px-4 space-y-6 overflow-hidden relative h-full">
+        <!-- Espaciador flexible para equilibrar -->
+        <div class="flex-grow"></div>
+      
+        {pastLyrics.map((lyric, index) => (
+          <p
+            class={`truncate ${
+              index === pastLyrics.length - 1
+                ? "text-gray-300 text-2xl text-center" // Última línea pasada: más grande.
+                : "text-gray-400 text-lg text-center" // Otras pasadas.
+            }`}
+          >
+            {lyric}
+          </p>
+        ))}
+      
+        <!-- Línea actual -->
+        <p class="text-white text-5xl font-extrabold mt-4 mb-4 text-center">
+          {currentLyric}
+        </p>
+      
+        {futureLyrics.map((lyric, index) => (
+          <p
+            class={`truncate ${
+              index === 0
+                ? "text-gray-300 text-2xl text-center" // Primera línea futura: más grande.
+                : "text-gray-400 text-lg text-center" // Otras futuras.
+            }`}
+          >
+            {lyric}
+          </p>
+        ))}
+      
+        <!-- Espaciador flexible para equilibrar -->
+        <div class="flex-grow"></div>
+      </div>      
+      
+
+    <!-- Middle Column: Cover & Info -->
+    <div class="flex flex-col items-center justify-center">
+      <div class="w-4/6 h-4/6">
+        <img
+          src={songCover}
+          alt="Song Cover"
+          class="object-cover w-full h-full rounded-lg"
+        />
+      </div>
+      <div class="text-center mt-5">
+        <h1 class="text-3xl font-bold">{songTitle}</h1>
+        <p class="text-gray-400 text-lg mt-2 font-medium">{albumInfo}</p>
+      </div>
+    </div>
+
+    <!-- Right Column: Queue -->
+    <div class="overflow-hidden px-4">
+      <slot />
+    </div>
+  </div>
+</div>

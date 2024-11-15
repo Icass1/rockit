@@ -15,7 +15,7 @@ import FooterLeft from "@/components/FooterLeft"
 <footer
     class="bg-black text-white py-4 px-5 w-full min-w-[500px] h-24 box-border"
 >
-    <div class="flex justify-center items-center w-full">
+    <div class="flex justify-center items-center w-full h-full">
         <!-- Sección Izquierda -->
 
 
@@ -24,18 +24,19 @@ import FooterLeft from "@/components/FooterLeft"
         
 
         <!-- Sección Derecha -->
-        <div class="flex items-center w-1/3 justify-end space-x-3">
+        <div class="flex items-center w-1/3 h-full justify-end space-x-3 group">
             <Volume2
                 className="w-5 h-5 text-gray-400 hover:text-white cursor-pointer"
             />
             <!-- Control de volumen -->
             <div class="relative w-16 h-1 rounded-full bg-gray-400">
                 <div
-                    class="absolute top-0 left-0 h-full rounded-full bg-gradient-to-r from-[#ee1086] to-[#fb6467]"
-                    style="width: 50%;"
-                >
-                </div>
-            </div>
+                  class="absolute top-0 left-0 h-full rounded-full bg-gradient-to-r from-[#ee1086] to-[#fb6467]"
+                  style="width: 50%;"
+                ></div>
+                <!-- Círculo blanco que aparece al hacer hover -->
+                <div class="absolute top-1/2 -translate-y-1/2 left-0 w-2 h-2 bg-white rounded-full opacity-0 group-hover:opacity-100 group-hover:cursor-pointer"></div>
+            </div>              
         </div>
     </div>
 </footer>

@@ -51,18 +51,23 @@ export default function FooterCenter() {
                     className="w-5 h-5 text-gray-400 hover:text-white cursor-pointer"
                 />
             </div>
-            <div className="flex items-center space-x-2 w-full">
+            <div className="flex items-center space-x-2 h-7 w-full group">
                 <span id="current-time" className="text-xs">{getTime($currentTime || 0)}</span>
-                <div className="w-full relative min-w-0 max-w-full rounded h-1 bg-gray-700" onMouseUp={handleMouseUp}>
-                    {$currentTime != undefined && $totalTime != undefined ?
+                <div
+                    className="w-full relative min-w-0 max-w-full rounded h-1 bg-gray-700 group"
+                    onMouseUp={handleMouseUp}
+                    >
+                    {$currentTime != undefined && $totalTime != undefined ? (
                         <div
-                            className="absolute top-0 left-0 h-1 bg-gradient-to-r from-[#ee1086] to-[#fb6467] rounded"
-                            style={{ width: `${$currentTime / $totalTime * 100}%` }}
-
+                        className="absolute top-0 left-0 h-1 bg-gradient-to-r from-[#ee1086] to-[#fb6467] rounded"
+                        style={{ width: `${($currentTime / $totalTime) * 100}%` }}
                         />
-                        : <></>
-                    }
+                    ) : (
+                        <></>
+                    )}
+                    <div className="absolute top-1/2 -translate-y-1/2 left-0 w-3 h-3 bg-white rounded-full opacity-0 group-hover:opacity-100 group-hover:cursor-pointer"></div>
                 </div>
+
                 <span id="total-time" className="text-xs">{getTime($totalTime || 0)}</span>
             </div>
         </div>

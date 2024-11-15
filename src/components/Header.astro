@@ -4,7 +4,7 @@ import RenderSearchResults from "@/components/searchResults"
 ---
 
 <header
-    class="w-full z-50 grid grid-cols-[200px_3fr_200px] justify-between pl-4 pr-8 py-4 text-white"
+    class="w-full z-50 grid grid-cols-[200px_3fr_200px] justify-between pl-4 pr-4 py-4 text-white"
 >
     <!-- Logo a la izquierda -->
     <a href="/" class="flex items-center">
@@ -20,7 +20,7 @@ import RenderSearchResults from "@/components/searchResults"
     </div>
 
     <!-- Texto "unknown" y círculo gris a la derecha -->
-    <div class="flex items-center space-x-4 ml-auto">
+    <div class="flex items-center space-x-4 ml-auto hover:bg-[#272727] p-3 hover:cursor-pointer rounded-lg">
         <span class="font-medium">{Astro.locals.user?.username}</span>
         <div class="w-10 h-10 bg-gray-400 rounded-full overflow-hidden flex items-center justify-center">
             <img 

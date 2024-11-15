@@ -21,11 +21,11 @@
     - ✅ Add user information & Profile pic on right
   - Footer
     - ✅ Add song information on Left 
-      - Cover
-      - Img
-      - Title
-      - Artist
-      - <span style="color:#3287a8">(Impr: Add Album next to artist?)</span>
+      - ✅ Cover
+      - ✅ Img
+      - ✅ Title
+      - ✅ Artist
+      - ✅ <span style="color:#3287a8">(Impr: Add Album next to artist?)</span>
     - Add song & playlist control buttons on middle (Need to fix CSS)
     - Add song times and bur under control buttons (Need to fix Bar)
     - ✅ Add volume control bar & icon on the right
@@ -192,3 +192,6 @@
     - Artist
     - Songs if list
     - Date downloaded
+
+- **Error page**
+- **Loading page**

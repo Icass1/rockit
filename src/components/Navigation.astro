@@ -18,8 +18,8 @@ const { activePage } = Astro.props;
     <a
         href="/"
         title="Home"
-        class={`w-8 h-8 rounded-md items-center justify-center flex flex-col mx-auto  ${
-            activePage === "Home" ? "bg-white text-black" : "text-white"
+        class={`w-8 h-8 rounded-md items-center justify-center flex flex-col mx-auto transition-all ${
+            activePage === "Home" ? "bg-white text-black" : "text-white hover:bg-[#414141]"
         }`}
     >
         <Home className="w-5 h-5" />
@@ -28,8 +28,8 @@ const { activePage } = Astro.props;
     <a
         href="/library"
         title="Library"
-        class={`w-8 h-8 rounded-md items-center justify-center flex flex-col mx-auto  ${
-            activePage === "Library" ? "bg-white text-black" : "text-white"
+        class={`w-8 h-8 rounded-md items-center justify-center flex flex-col mx-auto transition-all ${
+            activePage === "Library" ? "bg-white text-black" : "text-white hover:bg-[#414141]"
         }`}
     >
         <Library className="w-5 h-5" />
@@ -38,8 +38,8 @@ const { activePage } = Astro.props;
     <a
         href="/search"
         title="Search"
-        class={`w-8 h-8 rounded-md items-center justify-center flex flex-col mx-auto ${
-            activePage === "Search" ? "bg-white text-black" : "text-white"
+        class={`w-8 h-8 rounded-md items-center justify-center flex flex-col mx-auto transition-all ${
+            activePage === "Search" ? "bg-white text-black" : "text-white hover:bg-[#414141]"
         }`}
     >
         <Search className="w-5 h-5" />
@@ -48,8 +48,8 @@ const { activePage } = Astro.props;
     <a
         href="/downloads"
         title="Downloads"
-        class={`w-8 h-8 rounded-md items-center justify-center flex flex-col mx-auto ${
-            activePage === "Downloads" ? "bg-white text-black" : "text-white"
+        class={`w-8 h-8 rounded-md items-center justify-center flex flex-col mx-auto transition-all ${
+            activePage === "Downloads" ? "bg-white text-black" : "text-white hover:bg-[#414141]"
         }`}
     >
         <Download className="w-5 h-5" />

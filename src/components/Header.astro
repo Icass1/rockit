@@ -21,6 +21,12 @@ import RenderSearchResults from "@/components/searchResults"
     <!-- Texto "unknown" y círculo gris a la derecha -->
     <div class="flex items-center space-x-4 ml-auto">
         <span class="font-medium">{Astro.locals.user?.username}</span>
-        <div class="w-10 h-10 bg-gray-400 rounded-full"></div>
-    </div>
+        <div class="w-10 h-10 bg-gray-400 rounded-full overflow-hidden flex items-center justify-center">
+            <img 
+                src="/user-placeholder.png" 
+                alt="User avatar" 
+                class="w-9/12 h-9/12 object-cover"
+            />
+        </div>
+    </div>    
 </header>

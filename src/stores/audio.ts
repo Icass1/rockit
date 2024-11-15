@@ -1,10 +1,17 @@
 import { map, atom } from 'nanostores';
 
-export const songSrc = atom();
-
+const songSrc = atom();
 
 console.log("ASDFASDFASFDASDF")
+const audio = new Audio()
 
-const audio = new Audio("/api/song/2dHqn394dziubxaN5vuhy8")
+songSrc.subscribe((value) => {
 
-export { audio }
+    console.log(value)
+    if (value?.id) {
+        console.log(value.id)
+        audio.src = `/api/song/${value.id}`
+    }
+})
+
+export { songSrc }

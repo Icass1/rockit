@@ -1,3 +1,5 @@
+import { songSrc } from "@/stores/audio";
+import { useStore } from "@nanostores/react";
 import {
     Shuffle,
     SkipBack,
@@ -6,9 +8,13 @@ import {
     Repeat,
 } from "lucide-react";
 
-import { audio } from "@/stores/audio";
 
-export default function () {
+
+export default function FooterCenter() {
+    const $songSrc = useStore(songSrc)
+
+    console.log($songSrc)
+
     return (
         <div className="flex flex-col items-center justify-center w-1/3 space-y-1">
             <div className="flex items-center space-x-3">

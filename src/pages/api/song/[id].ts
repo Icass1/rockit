@@ -13,7 +13,12 @@ export async function GET(context: APIContext) {
     }
 
     const filePath = song.path;
-    const stat = fs.statSync(filePath);
+    let stat
+    try {
+        stat = fs.statSync(filePath);
+    } catch {
+        return new Response("Song not found", {status: 404})
+    }
     const fileSize = stat.size;
     const range = context.request.headers.get("range");
 

@@ -32,6 +32,7 @@ export async function POST(context: APIContext): Promise<Response> {
     const song = (await db.select({ song_id: Song.song_id }).from(Song).where(eq(Song.song_id, song_id)))[0]
 
     if (song) {
+        await db.update(Song).set({path: path})
         return new Response("OK")
     }
 

@@ -1,7 +1,7 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import { db, Album, eq, Song } from "astro:db";
-
+import AlbumSong from "@/components/AlbumSong"
 const { id } = Astro.params as { id: string };
 
 const album = await db.select().from(Album).where(eq(Album.id, id)).get();
@@ -24,6 +24,8 @@ const songs = await Promise.all(
                 name: Song.name,
                 duration: Song.duration,
                 path: Song.path,
+                artists: Song.artists,
+                images: Song.images,
             })
             .from(Song)
             .where(eq(Song.song_id, songId))
@@ -105,24 +107,7 @@ function getDate(date: string) {
         >
             {
                 songs.map((song, index) => (
-                    <div
-                        class={
-                            "flex flex-row items-center gap-4  transition-colors px-2 py-1 rounded " +
-                            (song.path == "None"
-                                ? "opacity-50"
-                                : "hover:bg-zinc-500/10")
-                        }
-                    >
-                        <label class="text-sm text-white/80 w-10 text-center">
-                            {index + 1}
-                        </label>
-                        <label class="text-base font-semibold w-full">
-                            {song.name}
-                        </label>
-                        <label class="text-sm text-white/80">
-                            {getTime(song.duration)}
-                        </label>
-                    </div>
+                    <AlbumSong song={song} index={index} client:only="react"/>
                 ))
             }
         </div>

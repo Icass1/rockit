@@ -26,17 +26,17 @@
       - ✅ Title
       - ✅ Artist
       - ✅ <span style="color:#3287a8">(Impr: Add Album next to artist?)</span>
-    - Add song & playlist control buttons on middle (Need to fix CSS)
-    - Add song times and bur under control buttons (Need to fix Bar)
+    - ✅ Add song & playlist control buttons on middle (Need to fix CSS)
+    - ✅ Add song times and bur under control buttons (Need to fix Bar)
     - ✅ Add volume control bar & icon on the right
     - <span style="color:#3287a8">(Impr: Add arrow up button to go to song full size player?)</span>
   - Menu bar
     - ✅ Add functional icons to menu bar
-    - <span style="color:#3287a8">(Impr: Add hover menu to display each icons name/page?)</span>
+    - ✅<span style="color:#3287a8">(Impr: Add hover menu to display each icons name/page?)</span>
     - <span style="color:#3287a8">(Impr: Add placeholders for top listened artists/ songs?)</span>
   - General
     - ✅ Placeholders for each components (Mockup)
-    - Replace Mockups wih real tags & identifiers
+    - Replace Mockups wih real tags & functionalities
 
 - **Audio Player**
   - Set song

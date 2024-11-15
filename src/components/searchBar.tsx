@@ -42,7 +42,7 @@ export default function SearchBar({ }) {
         <input
             value={value}
             onChange={(e) => { setValue(e.target.value) }}
-            className="font-semibold bg-neutral-900 z-50 shadow mx-auto rounded-full block relative text-1xl px-10 w-4/5 h-3/4 top-1/2 -translate-y-1/2 focus:outline-0"
+            className="font-semibold bg-neutral-900 z-50 shadow mx-auto rounded-full block relative text-1xl px-10 w-1/2 h-3/4 top-1/2 -translate-y-1/2 focus:outline-0"
             style={{
                 backgroundImage: "url(/search-icon.png)",
                 backgroundPosition: "15px center",

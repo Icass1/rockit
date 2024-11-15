@@ -24,8 +24,12 @@ export default function FooterCenter() {
                 className="w-16 h-16 rounded-md"
             />
             <div className="flex flex-col">
-                <span id="footer-song-title" className="font-semibold">{$currentSong?.name || "Escoge una canción"}</span>
-                <span id="footer-song-artist" className="text-sm text-gray-400 hover:underline cursor-pointer">{$currentSong?.artists?.map(artist => artist.name) || "Escoge una canción"}</span>
+                <span id="footer-song-title" className="font-semibold">{$currentSong?.name || "Canción desconocida :("}</span>
+                <span id="footer-song-artist" className="text-sm text-gray-400">
+                    <a href="/artist-url" className="hover:underline">{$currentSong?.artists?.map(artist => artist.name) || "Artista desconocido"}</a>
+                    <span className="mx-1">·</span>
+                    <a href="/album-url" className="hover:underline">Álbum Desconocido</a>
+                </span> 
             </div>
         </div>
     )

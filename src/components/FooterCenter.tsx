@@ -27,12 +27,12 @@ export default function FooterCenter() {
 
     return (
         <div className="flex flex-col items-center justify-center w-1/3 space-y-1">
-            <div className="flex items-center space-x-3">
-                <Shuffle
-                    className="w-4 h-4 text-gray-400 hover:text-white cursor-pointer"
+            <div className="grid grid-cols-5 justify-items-center items-center gap-2">
+            <Shuffle
+                    className="w-[18px] h-[18px] text-gray-400 hover:text-white cursor-pointer"
                 />
                 <SkipBack
-                    className="w-5 h-5 fill-current text-gray-400 hover:text-white cursor-pointer"
+                    className="w-[22px] h-[22px] fill-current text-gray-400 hover:text-white cursor-pointer"
                 />
                 {$playing ?
                     <CirclePause
@@ -45,7 +45,7 @@ export default function FooterCenter() {
                     />
                 }
                 <SkipForward
-                    className="w-5 h-5 fill-current text-gray-400 hover:text-white cursor-pointer"
+                    className="w-[22px] h-[22px] fill-current text-gray-400 hover:text-white cursor-pointer"
                 />
                 <Repeat
                     className="w-5 h-5 text-gray-400 hover:text-white cursor-pointer"
@@ -56,7 +56,7 @@ export default function FooterCenter() {
                 <div className="w-full relative min-w-0 max-w-full rounded h-1 bg-gray-700" onMouseUp={handleMouseUp}>
                     {$currentTime != undefined && $totalTime != undefined ?
                         <div
-                            className="absolute top-0 left-0 h-1 bg-white rounded"
+                            className="absolute top-0 left-0 h-1 bg-gradient-to-r from-[#ee1086] to-[#fb6467] rounded"
                             style={{ width: `${$currentTime / $totalTime * 100}%` }}
 
                         />

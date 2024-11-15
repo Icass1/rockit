@@ -1,6 +1,6 @@
 import { useContext, useEffect, useRef, useState, type Dispatch } from "react"
 import pkg from 'lodash';
-import type { SearchResults, SpotifyAlbum, SpotifyArtist, SpotifyPlaylist, SpotifyTrack } from "@/types";
+import type { SearchResults, SpotifyAlbum, SpotifyArtist, SpotifyPlaylist, SpotifyTrack } from "@/types/spotify";
 import { CheckIcon } from "lucide-react";
 const { debounce } = pkg;
 
@@ -79,7 +79,7 @@ function RenderPlaylistSearchResults({ playlistInfo, handleDownload }: { playlis
                     onClick={() => { handleClick(element) }}
                     className="flex flex-row h-12 rounded overflow-hidden gap-x-2 bg-zinc-700 hover:bg-zinc-500/60 transition-colors cursor-pointer items-center pr-1"
                 >
-                    <img className="aspect-square w-auto h-full " src={element.images[0].url}></img>
+                    <img className="aspect-square w-auto h-full " src={element.images[0]?.url || "/song-placeholder.png"}></img>
                     <div className="flex flex-col text-white min-w-0 max-w-full w-full">
                         <label className="text-base font-semibold truncate">{element.name}</label>
                         <label className="text-sm truncate">{element.owner.display_name}</label>

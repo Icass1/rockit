@@ -2,7 +2,7 @@
 import { useStore } from '@nanostores/react';
 import { searchResults } from '@/stores/searchResults';
 
-import type { SpotifyAlbum, SpotifyTrack } from "@/types";
+import type { SpotifyAlbum, SpotifyTrack } from "@/types/spotify";
 
 function RenderTrackSearchResults({ tracksInfo, handleDownload }: { tracksInfo: SpotifyTrack[], handleDownload: (url: string) => void }) {
     const handleClick = (element: SpotifyTrack) => {

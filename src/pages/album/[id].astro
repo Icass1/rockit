@@ -1,7 +1,8 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import { db, Album, eq, Song } from "astro:db";
-import AlbumSong from "@/components/AlbumSong"
+import AlbumSong from "@/components/AlbumSong";
+import type { SpotifyAlbumArtist, SpotifyAlbumImage } from "@/types/spotify";
 const { id } = Astro.params as { id: string };
 
 const album = await db.select().from(Album).where(eq(Album.id, id)).get();
@@ -16,8 +17,10 @@ if (!album) {
     );
 }
 
+album.songs = album.songs as string[];
+
 const songs = await Promise.all(
-    album.songs.map(async (songId: string) => {
+    (album?.songs as string[])?.map(async (songId: string) => {
         return await db
             .select({
                 id: Song.song_id,
@@ -33,24 +36,6 @@ const songs = await Promise.all(
     }),
 );
 
-function getTime(seconds: number) {
-    seconds = Math.round(seconds);
-
-    if (typeof seconds !== "number" || isNaN(seconds)) {
-        return "Invalid input";
-    }
-
-    // Calculate minutes and remaining seconds
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = Math.round(seconds % 60);
-
-    // Format the result with leading zeros
-    const formattedMinutes = String(minutes).padStart(2, "0");
-    const formattedSeconds = String(remainingSeconds).padStart(2, "0");
-
-    return `${formattedMinutes}:${formattedSeconds}`;
-}
-
 function getMinutes(seconds: number) {
     seconds = Math.round(seconds);
 
@@ -64,7 +49,6 @@ function getMinutes(seconds: number) {
 
     // Format the result with leading zeros
     const formattedMinutes = String(minutes).padStart(2, "0");
-    const formattedSeconds = String(remainingSeconds).padStart(2, "0");
 
     return `${formattedMinutes}`;
 }
@@ -84,19 +68,25 @@ function getDate(date: string) {
             class="flex flex-col gap-1 relative top-1/2 -translate-y-1/2 w-1/3 max-w-96 h-fit mx-10"
         >
             <label class="text-center text-xl font-semibold"
-                >{album.artists.map((artist) => artist.name)}</label
+                >{
+                    (album.artists as SpotifyAlbumArtist[]).map(
+                        (artist) => artist.name,
+                    )
+                }</label
             >
             <img
-                src={album.images[0].url}
+                src={(album.images as SpotifyAlbumImage[])[0].url}
                 class=""
                 transition:name={`img-album-${album.id}`}
             />
             <label class="text-xl font-semibold">{album.name}</label>
             <label class="text-sm"
-                >{getDate(album.releaseDate)} | {album.songs.length} Songs | {
+                >{getDate(album.releaseDate)} | {
+                    (album.songs as string[]).length
+                } Songs | {
                     getMinutes(
                         songs.reduce((accumulator: number, song) => {
-                            return accumulator + song.duration;
+                            return accumulator + (song?.duration || 0);
                         }, 0),
                     )
                 } Minutes</label
@@ -106,9 +96,19 @@ function getDate(date: string) {
             class="min-w-0 max-w-full w-full min-h-0 max-h-full h-full overflow-auto flex flex-col gap-y-4"
         >
             {
-                songs.map((song, index) => (
-                    <AlbumSong song={song} index={index} client:only="react"/>
-                ))
+                songs.map((song, index) => {
+                    if (song) {
+                        return (
+                            <AlbumSong
+                                song={song}
+                                index={index}
+                                client:only="react"
+                            />
+                        );
+                    } else {
+                        return <div>Song is undefined</div>;
+                    }
+                })
             }
         </div>
     </div>

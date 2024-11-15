@@ -5,7 +5,7 @@ const { debounce } = pkg;
 
 export default function SearchBar({ }) {
 
-    const [value, setValue] = useState("supertramp")
+    const [value, setValue] = useState("")
 
     const searchDebounce = useRef<pkg.DebouncedFunc<(query: string) => void>>()
 

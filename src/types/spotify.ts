@@ -1,5 +1,6 @@
 
 
+
 export interface SearchResults {
   songs: SpotifyTrack[]
   albums: SpotifyAlbum[]

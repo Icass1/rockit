@@ -1,4 +1,4 @@
-import type { SearchResults } from "@/types";
+import type { SearchResults } from "@/types/spotify";
 import type { APIContext } from "astro";
 import { db, Song, Album, eq, Playlist } from 'astro:db';
 

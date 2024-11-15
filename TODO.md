@@ -12,6 +12,7 @@
 - Cancel download
 - Change all database column names to camelCase
 - Handle .env missing
+- <span style="color:#3287a8">(Impr: Make songs crossover between them so it seems like endless)</span>
 
 ## Frontend
 - **Main Components** (Header, Footer, Menu Bar)

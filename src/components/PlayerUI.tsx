@@ -1,9 +1,21 @@
 import { currentSong } from "@/stores/audio";
 import { isPlayerUIVisible } from "@/stores/isPlayerUIVisible";
 import { useStore } from "@nanostores/react";
+import { useState } from "react";
 
 export default function PlayerUI() {
     const $currentSong = useStore(currentSong)
+
+    const [currentTab, setCurrentTab] = useState("queue");
+
+    // Mockup de canciones en la cola
+    const mockQueue = Array.from({ length: 20 }, (_, i) => ({
+        id: i,
+        title: `Canción ${i + 1}` || "Canción desconocida",
+        artist: `Artista ${i + 1}` || "Artista desconocido",
+        cover: "/song-placeholder.png",
+        duration: "0:00",
+    }));
 
     const $isPlayerUIVisible = useStore(isPlayerUIVisible)
 
@@ -84,9 +96,58 @@ export default function PlayerUI() {
                     </div>
 
                     {/* Right Column: Queue */}
-                    <div className="overflow-hidden px-4">
-                        <slot />
-                    </div>
+                    <div className="overflow-hidden px-4 flex flex-col h-full">
+                        {/* Selector */}
+                        <div className="flex space-x-4 mb-4">
+                            <button
+                            className={`px-4 py-2 rounded ${
+                                currentTab === "queue"
+                                ? "bg-gray-700 text-white"
+                                : "bg-gray-300 text-gray-700"
+                            }`}
+                            onClick={() => setCurrentTab("queue")}
+                            >
+                            Cola
+                            </button>
+                            <button
+                            className={`px-4 py-2 rounded ${
+                                currentTab === "recommended"
+                                ? "bg-gray-700 text-white"
+                                : "bg-gray-300 text-gray-700"
+                            }`}
+                            onClick={() => setCurrentTab("recommended")}
+                            >
+                            Recomendados
+                            </button>
+                        </div>
+
+                        {/* Contenido dinámico */}
+                        <div className="flex-1 overflow-auto bg-gray-800 rounded p-4">
+                            {currentTab === "queue" ? (
+                            <ul className="space-y-4">
+                                {mockQueue.map((song) => (
+                                <li key={song.id} className="flex items-center">
+                                    {/* Cover */}
+                                    <img
+                                    src={song.cover}
+                                    alt={song.title}
+                                    className="w-12 h-12 rounded mr-4"
+                                    />
+                                    {/* Song Info */}
+                                    <div className="flex-1">
+                                    <p className="text-white font-bold truncate">{song.title}</p>
+                                    <p className="text-gray-400 text-sm truncate">{song.artist}</p>
+                                    </div>
+                                    {/* Duration */}
+                                    <p className="text-gray-300">{song.duration}</p>
+                                </li>
+                                ))}
+                            </ul>
+                            ) : (
+                            <slot />
+                            )}
+                        </div>
+                        </div>
                 </div>
             </div>
         </div>

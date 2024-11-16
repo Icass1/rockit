@@ -13,6 +13,8 @@
 - Change all database column names to camelCase
 - Handle .env missing
 - <span style="color:#3287a8">(Impr: Make songs crossover between them so it seems like endless)</span>
+- Fix "MetadataError: Failed to embed metadata to the song"
+- Migrate from Astro DB to SQLite3
 
 ## Frontend
 - **Main Components** (Header, Footer, Menu Bar)
@@ -26,23 +28,31 @@
       - ✅ Img
       - ✅ Title
       - ✅ Artist
+        - ✅ Link
       - ✅ <span style="color:#3287a8">(Impr: Add Album next to artist?)</span>
+        - ✅ Link
     - ✅ Add song & playlist control buttons on middle (Need to fix CSS)
-    - ✅ Add song times and bur under control buttons (Need to fix Bar)
-    - ✅ Add volume control bar & icon on the right
-    - <span style="color:#3287a8">(Impr: Add arrow up button to go to song full size player?)</span>
+    - Add song times and bur under control buttons
+      - ✅ Total audio time
+      - ✅ Current audio time
+      - Progress bar
+        - Click on progress bar and change current audio time
+    - Add volume control bar & icon on the right
+      - ✅ Icon and bar
+      - Change audio volume
+    - ✅ <span style="color:#3287a8">(Impr: Add arrow up button to go to song full size player?)</span>
   - Menu bar
     - ✅ Add functional icons to menu bar
-    - ✅<span style="color:#3287a8">(Impr: Add hover menu to display each icons name/page?)</span>
+    - ✅ <span style="color:#3287a8">(Impr: Add hover menu to display each icons name/page?)</span>
     - <span style="color:#3287a8">(Impr: Add placeholders for top listened artists/ songs?)</span>
   - General
     - ✅ Placeholders for each components (Mockup)
     - Replace Mockups wih real tags & functionalities
 
 - **Audio Player**
-  - Set song
-  - Play song
-  - Stop song
+  - ✅ Set song
+  - ✅ Play song
+  - ✅ Stop song
   - Queue
     - Set queue
     - Set queue index
@@ -76,18 +86,18 @@
   - <span style="color:#3287a8">(Impr: Similar songs/artists?)</span>
 
 - **Album page**
-  - Album name
-  - Artist
-  - Release date
-  - Cover
-  - Number of songs
+  - ✅ Album name
+  - ✅ Artist
+  - ✅ Release date
+  - ✅ Cover
+  - ✅ Number of songs
   - Number of discs
-  - Total duration
+  - ✅ Total duration
   - Genres
   - Songs
-    - Name
+    - ✅ Name
     - Artists if they are not the same as the artists on the album
-    - Duration
+    - ✅ Duration
 
 - **Playlist page**
   - Playlist name

@@ -1,19 +1,8 @@
 import { currentSong } from "@/stores/audio";
 import { useStore } from "@nanostores/react";
-import {
-    Shuffle,
-    SkipBack,
-    SkipForward,
-    CirclePlay,
-    Repeat,
-} from "lucide-react";
-
-
 
 export default function FooterCenter() {
     const $currentSong = useStore(currentSong)
-
-    console.log($currentSong)
 
     return (
         <div className="flex items-center w-1/3 space-x-3">
@@ -24,12 +13,14 @@ export default function FooterCenter() {
                 className="w-16 h-16 rounded-md"
             />
             <div className="flex flex-col">
-                <span id="footer-song-title" className="font-semibold">{$currentSong?.name || "Canción desconocida :("}</span>
-                <span id="footer-song-artist" className="text-sm text-gray-400">
-                    <a href="/artist-url" className="hover:underline">{$currentSong?.artists?.map(artist => artist.name) || "Artista desconocido"}</a>
-                    <span className="mx-1">·</span>
-                    <a href="/album-url" className="hover:underline">Álbum Desconocido</a>
-                </span> 
+                <span className="font-semibold">{$currentSong?.name || "Canción desconocida :("}</span>
+                <span className="text-sm text-gray-400 flex flex-row gap-x-1">
+                    <div className="flex flex-row gap-x-1">
+                        {$currentSong?.artists?.map((artist, index) => <a href={`/artist/${artist.id}`} className="hover:underline" key={index}>{artist.name}{(index < $currentSong.artists.length - 1) ? "," : ""}</a>)}
+                    </div>
+                    <span>·</span>
+                    <a href={`/album/${$currentSong?.albumId}`} className="hover:underline">{$currentSong?.albumName || "Artista desconocido"}</a>
+                </span>
             </div>
         </div>
     )

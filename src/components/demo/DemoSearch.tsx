@@ -102,7 +102,7 @@ function RenderArtistSearchResults({ artistInfo }: { artistInfo: SpotifyArtist[]
                     key={'element' + element.uri + index}
                     className="flex flex-row items-center gap-2"
                 >
-                    <img src={element.images[0].url} className="h-12 rounded-full w-auto aspect-square" />
+                    <img src={element.images[0]?.url || "/song-placeholder.png"} className="h-12 rounded-full w-auto aspect-square" />
                     <label className="text-xl font-semibold">{element.name}</label>
                 </div>
             )}
@@ -114,7 +114,7 @@ function RenderSongDownload({ songStatus }: { songStatus: [string, EventSourceSt
 
     return (
         <div className="bg-zinc-400/10 rounded h-14 flex flex-row gap-x-2 overflow-hidden">
-            <img src={songStatus[1].song?.album?.images[0]?.url} className="h-full w-auto" />
+            <img src={songStatus[1].song?.album?.images[0]?.url || "/song-placeholder.png"} className="h-full w-auto" />
             <div className="flex flex-col w-full p-1 pr-2 min-w-0 max-w-full">
                 <label className="truncate min-w-0 max-w-full">{songStatus[1].song?.name} - {songStatus[1].song?.artists.map(artist => artist.name || artist).join(", ")}</label>
                 <div className="w-full grid grid-cols-[1fr_max-content] items-center gap-x-2 ">

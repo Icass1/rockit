@@ -12,6 +12,7 @@ from spotdl.types.song import Song
 from api_types import RawSpotifyApiTrack, RawSpotifyApiAlbum, AlbumItems, RawSpotifyApiPlaylist, PlaylistTracks, PlaylistItems
 from colors import *
 
+
 class Spotify:
     def __init__(self):
         load_dotenv()
@@ -48,12 +49,12 @@ class Spotify:
         spotdl_songs: List[Song] = []
         raw_songs: List[AlbumItems] | List[PlaylistItems] = []
 
-
         if "/album/" in url:
             raw_album = self.api_call(path=f"albums/{url.replace('https://open.spotify.com/album/', '')}")
             album = RawSpotifyApiAlbum.from_dict(raw_album)
+            raw_album_tracks = [RawSpotifyApiTrack.from_dict(song) for song in self.api_call(path="tracks", params={"ids": ",".join([item.id for item in album.tracks.items])})["tracks"]]
 
-            for song in album.tracks.items:
+            for song in raw_album_tracks:
                 song_dict = {}
                 song_dict["name"] = song.name
                 song_dict["artists"] = [artist.name for artist in song.artists]
@@ -72,19 +73,14 @@ class Spotify:
                 song_dict["date"] = album.release_date
                 song_dict["track_number"] = song.track_number
                 song_dict["tracks_count"] = album.total_tracks
-                song_dict["isrc"] = album.external_ids.isrc
+                song_dict["isrc"] = song.external_ids.isrc
                 song_dict["song_id"] = song.id
                 song_dict["explicit"] = song.explicit
                 song_dict["publisher"] = album.label
                 song_dict["url"] = song.external_urls.spotify
                 song_dict["popularity"] = album.popularity
-                song_dict["cover_url"] = (
-                            max(album.images, key=lambda i: i.width * i.height)[
-                                "url"
-                            ]
-                            if album.images
-                            else None
-                        ),
+                song_dict["cover_url"] =  max(album.images, key=lambda i: i.width * i.height)["url"] if album.images else None
+
                 spotdl_songs.append(Song.from_dict(song_dict))
                 raw_songs.append(song)
 

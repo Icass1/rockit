@@ -13,7 +13,7 @@ export default function TogglePlayerUI() {
         >
             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
                 <ChevronUp
-                    className="w-5 h-6 transition-all cursor-pointer"
+                    className="w-5 h-6 transition-all cursor-pointer duration-700 ease-in-out"
                     style={{ rotate: $isPlayerUIVisible ? '180deg' : '0deg' }}
                 />
             </div>

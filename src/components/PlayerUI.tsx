@@ -13,7 +13,7 @@ export default function PlayerUI() {
 
     return (
         <div
-            className="absolute inset-0 bg-black/80 backdrop-blur-md z-50 flex justify-center items-center transition-all overflow-hidden"
+            className="absolute inset-0 bg-black/80 backdrop-blur-md z-50 flex justify-center items-center transition-all overflow-hidden duration-700"
             // style={{ display: $isPlayerUIVisible ? 'flex' : 'none' }}
             style={{ maxHeight: $isPlayerUIVisible ? '2000px' : '0px' }}
         > {/* Invert flex and none */}

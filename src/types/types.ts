@@ -5,6 +5,8 @@ export type songDB = {
     path: string;
     artists: songDBArtist[];
     images: songDBImage[];
+    albumName: string;
+    albumId: string;
 }
 export type songDBImage = {
     url: string

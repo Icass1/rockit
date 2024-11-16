@@ -3,6 +3,7 @@ import Layout from "@/layouts/Layout.astro";
 import { db, Album, eq, Song } from "astro:db";
 import AlbumSong from "@/components/AlbumSong";
 import type { SpotifyAlbumArtist, SpotifyAlbumImage } from "@/types/spotify";
+import type { songDB } from "@/types/types";
 const { id } = Astro.params as { id: string };
 
 const album = await db.select().from(Album).where(eq(Album.id, id)).get();
@@ -29,12 +30,14 @@ const songs = await Promise.all(
                 path: Song.path,
                 artists: Song.artists,
                 images: Song.images,
+                albumName: Song.album_name,
+                albumId: Song.album_id,
             })
             .from(Song)
             .where(eq(Song.song_id, songId))
             .get();
     }),
-);
+) as songDB[]
 
 function getMinutes(seconds: number) {
     seconds = Math.round(seconds);

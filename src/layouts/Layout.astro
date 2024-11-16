@@ -5,16 +5,14 @@ import Navigation from "@/components/Navigation.astro";
 import Footer from "@/components/Footer.astro";
 
 import { ViewTransitions } from "astro:transitions";
-import PlayerUI from "@/components/PlayerUI.astro";
+import PlayerUI from "@/components/PlayerUI.tsx";
 
 export interface Props {
 	currentPage: string;
 	title?: string;
-	isPlayerVisible: boolean;
 }
 
 const { currentPage } = Astro.props;
-const { isPlayerVisible } = Astro.props;
 const { title } = Astro.props;
 ---
 
@@ -45,13 +43,8 @@ const { title } = Astro.props;
 			<div
 				class="min-w-0 max-w-full min-h-0 max-h-full overflow-auto relative"
 				style={{ gridArea: "main" }}
-				>
-				<div
-					class="absolute inset-0 bg-black/80 backdrop-blur-md z-50 flex justify-center items-center"
-					style={{ display: isPlayerVisible ? 'flex' : 'none' }} 
-				> <!-- Invert flex and none -->
-					<PlayerUI />
-				</div>
+			>
+				<PlayerUI client:only="react" />
 				<slot />
 			</div>
 			<div

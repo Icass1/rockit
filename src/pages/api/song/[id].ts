@@ -1,13 +1,14 @@
 import fs from 'fs';
 import type { APIContext } from "astro";
-import { db, Song, eq } from 'astro:db';
+import { db, type SongDB } from '@/lib/db';
 
 export async function GET(context: APIContext) {
 
     const { id } = context.params as { id: string }
 
-    const song = await db.select().from(Song).where(eq(Song.song_id, id)).get()
-
+    const song = db
+        .prepare("SELECT * FROM song WHERE id = ?")
+        .get(id) as SongDB;
     if (!song) {
         return new Response("Song not found", {status: 404})
     }

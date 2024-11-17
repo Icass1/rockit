@@ -1,65 +1,63 @@
 import type { APIContext } from "astro";
-import { db, Song, eq } from 'astro:db';
-
+import { db } from "@/lib/db";
 
 export async function POST(context: APIContext): Promise<Response> {
 
     const data = await context.request.json()
 
     let name = data.name
-    let artists = data.artists
-    let genres = data.genres
-    let disc_number = data.disc_number
-    let album_name = data.album_name
-    let album_artists = data.album_artists
-    let album_type = data.album_type
+    let artists = JSON.stringify(data.artists)
+    let genres =  JSON.stringify(data.genres)
+    let discNumber = data.disc_number
+    let albumName = data.album_name
+    let albumArtists =  JSON.stringify(data.album_artists)
+    let albumType = data.album_type
     let duration = data.duration
     let year = data.year
     let date = data.date
-    let track_number = data.track_number
-    let tracks_count = data.tracks_count
-    let song_id = data.song_id
+    let trackNumber = data.track_number
+    let tracksCount = data.tracks_count
+    let id = data.song_id
     let publisher = data.publisher
-    let download_url = data.download_url
+    let downloadUrl = data.download_url
     let lyrics = data.lyrics
     let popularity = data.popularity
-    let album_id = data.album_id
+    let albumId = data.album_id
     let path = data.path
-    let images = data.images
+    let images =  JSON.stringify(data.images)
     let copyright = data.copyright
 
-
-    const song = (await db.select({ song_id: Song.song_id }).from(Song).where(eq(Song.song_id, song_id)))[0]
+    const song = db.prepare("SELECT * FROM song WHERE id = ?").get(id)
 
     if (song) {
-        await db.update(Song).set({path: path}).where(eq(Song.song_id, song_id))
         return new Response("OK")
     }
 
     try {
-        await db.insert(Song).values({
+        db.prepare("INSERT INTO song (id, name, artists, genres, discNumber, albumName, albumArtist, albumType, albumId, duration, year, date, trackNumber, tracksCount, publisher, path, images, copyright, downloadUrl, lyrics, popularity, dateAdded) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").run(
+            id,
             name,
             artists,
             genres,
-            disc_number,
-            album_name,
-            album_artists,
-            album_type,
-            album_id,
+            discNumber,
+            albumName,
+            albumArtists,
+            albumType,
+            albumId,
             duration,
             year,
             date,
-            track_number,
-            tracks_count,
-            song_id,
+            trackNumber,
+            tracksCount,
             publisher,
             path,
             images,
             copyright,
-            download_url,
+            downloadUrl,
             lyrics,
             popularity,
-        })
+            new Date().getTime()
+        )
     } catch (err) {
         console.warn("Error in new-song", err?.toString())
         console.log(data)

@@ -1,6 +1,6 @@
 import type { APIContext } from "astro";
-import { db, Playlist, eq } from 'astro:db';
 
+import { db } from "@/lib/db";
 
 export async function POST(context: APIContext): Promise<Response> {
 
@@ -8,28 +8,27 @@ export async function POST(context: APIContext): Promise<Response> {
 
     let name = data.name
     let id = data.id
-    let images = data.images
+    let images = JSON.stringify(data.images)
     let description = data.description
     let followers = data.followers
     let owner = data.owner
-    let songs = data.songs
+    let songs = JSON.stringify(data.songs)
 
-
-    const list = (await db.select({ id: Playlist.id }).from(Playlist).where(eq(Playlist.id, id)))[0]
-    if (list) {
+    const playlist = db.prepare("SELECT * FROM playlist WHERE id = ?").get(id)
+    if (playlist) {
         return new Response("OK")
     }
 
     try {
-        await db.insert(Playlist).values({
+        db.prepare("INSERT INTO playlist (id, images, name, description, owner, followers, songs) VALUES(?, ?, ?, ?, ?, ?, ?)").run(
             id,
             images,
             name,
             description,
             owner,
             followers,
-            songs,
-        })
+            songs
+        )
     } catch (err) {
         console.warn("Error in new-playlist", err?.toString())
         console.log(data)

@@ -1,7 +1,8 @@
 import { lucia } from "@/auth";
 import { generateId } from "lucia";
 import { hash } from "@node-rs/argon2";
-import { db, User } from 'astro:db';
+
+import { db } from "@/lib/db";
 
 import type { APIContext } from "astro";
 
@@ -49,7 +50,16 @@ export async function POST(context: APIContext): Promise<Response> {
 
     try {
         
-        await db.insert(User).values({ id: userId, username: username, passwordHash: passwordHash })
+
+		db.prepare("INSERT INTO user (id, username, passwordHash, updatedAt, createdAt) VALUES(?, ?, ?, ?, ?)").run(
+			userId,
+			username,
+			passwordHash,
+            new Date().getTime(),
+            new Date().getTime(),
+		);
+
+        // await db.insert(User).values({ id: userId, username: username, passwordHash: passwordHash })
         const session = await lucia.createSession(userId, {});
         const sessionCookie = lucia.createSessionCookie(session.id);
         context.cookies.set(sessionCookie.name, sessionCookie.value, sessionCookie.attributes);

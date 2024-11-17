@@ -1,6 +1,6 @@
 import { lucia } from "@/auth";
 import { verify } from "@node-rs/argon2";
-import { db, User, eq } from 'astro:db';
+import { db, type UserDB } from "@/lib/db";
 
 import type { APIContext } from "astro";
 
@@ -24,8 +24,9 @@ export async function POST(context: APIContext): Promise<Response> {
 		});
 	}
 
-	const existingUser = (await db.select().from(User).where(eq(User.username, username)))[0]
-
+	const existingUser = db.prepare("SELECT * FROM user WHERE username = ?").get(username) as
+		| UserDB
+		| undefined;
 	if (!existingUser) {
 		return new Response(
 			JSON.stringify({

@@ -1,13 +1,13 @@
 ---
 import Layout from "@/layouts/Layout.astro";
-import { db, Playlist, Album } from "astro:db";
+import { db, type AlbumDB, type PlaylistDB } from "@/lib/db";
 
 if (!Astro.locals.user) {
     return Astro.redirect("/login");
 }
 
-const playlists = await db.select().from(Playlist);
-const albums = await db.select().from(Album);
+const playlists = db.prepare("SELECT * FROM playlist").all() as PlaylistDB[];
+const albums = db.prepare("SELECT * FROM album").all() as AlbumDB[];
 ---
 
 <Layout title="Rock It!" currentPage="Library">
@@ -20,7 +20,10 @@ const albums = await db.select().from(Album);
             {
                 playlists.map((playlist) => (
                     <div class="flex flex-col gap-1">
-                        <img class="" src={playlist.images[0]?.url} />
+                        <img
+                            class=""
+                            src={JSON.parse(playlist.images)[0]?.url}
+                        />
                         <label class="truncate font-semibold">
                             {playlist.name}
                         </label>
@@ -36,14 +39,16 @@ const albums = await db.select().from(Album);
                     >
                         <img
                             class=""
-                            src={album.images[0]?.url}
+                            src={JSON.parse(album.images)[0]?.url}
                             transition:name={`img-album-${album.id}`}
                         />
                         <label class="truncate font-semibold">
                             {album.name}
                         </label>
                         <label class="truncate text-sm">
-                            {album.artists.map((artist) => artist.name)}
+                            {JSON.parse(album.artists).map(
+                                (artist) => artist.name,
+                            )}
                         </label>
                     </a>
                 ))

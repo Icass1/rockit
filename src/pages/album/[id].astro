@@ -1,13 +1,15 @@
 ---
 import Layout from "@/layouts/Layout.astro";
-import { db, Album, eq, Song } from "astro:db";
+import { db, type AlbumDB, type PlaylistDB, type SongDB } from "@/lib/db";
 import AlbumSong from "@/components/AlbumSong";
 import type { SpotifyAlbumArtist, SpotifyAlbumImage } from "@/types/spotify";
-import type { songDB } from "@/types/types";
 const { id } = Astro.params as { id: string };
 
-const album = await db.select().from(Album).where(eq(Album.id, id)).get();
-if (!album) {
+const albumDB = db.prepare("SELECT * FROM album WHERE id = ?").get(id) as
+    | AlbumDB
+    | undefined;
+
+if (!albumDB) {
     return new Response(
         JSON.stringify({
             error: "",
@@ -18,26 +20,37 @@ if (!album) {
     );
 }
 
-album.songs = album.songs as string[];
+const album = {
+    id: albumDB.id,
+    type: albumDB.type,
+    images: JSON.parse(albumDB.images),
+    name: albumDB.name,
+    releaseDate: albumDB.releaseDate,
+    artists: JSON.parse(albumDB.artists),
+    copyrights: JSON.parse(albumDB.copyrights),
+    popularity: albumDB.popularity,
+    genres: JSON.parse(albumDB?.genres),
+    songs: JSON.parse(albumDB.songs),
+    discCount: albumDB.discCount,
+    dateAdded: albumDB.dateAdded,
+};
 
-const songs = await Promise.all(
-    (album?.songs as string[])?.map(async (songId: string) => {
-        return await db
-            .select({
-                id: Song.song_id,
-                name: Song.name,
-                duration: Song.duration,
-                path: Song.path,
-                artists: Song.artists,
-                images: Song.images,
-                albumName: Song.album_name,
-                albumId: Song.album_id,
-            })
-            .from(Song)
-            .where(eq(Song.song_id, songId))
-            .get();
-    }),
-) as songDB[]
+
+const songs = album.songs.map((songID: string) => {
+    const song = db
+        .prepare("SELECT * FROM song WHERE id = ?")
+        .get(songID) as SongDB;
+    return {
+        id: song.id,
+        name: song.name,
+        duration: song.duration,
+        path: song.path,
+        artists: JSON.parse(song.artists),
+        images: JSON.parse(song.images),
+        albumName: song.albumName,
+        albumId: song.albumId,
+    };
+});
 
 function getMinutes(seconds: number) {
     seconds = Math.round(seconds);

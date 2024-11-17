@@ -1,5 +1,5 @@
 import type { APIContext } from "astro";
-import { db, Song, Album, eq } from 'astro:db';
+import { db } from "@/lib/db";
 
 
 export async function POST(context: APIContext): Promise<Response> {
@@ -7,38 +7,28 @@ export async function POST(context: APIContext): Promise<Response> {
     const data = await context.request.json()
 
     let name = data.name
-    let artists = data.artists
-    let genres = data.genres
+    let artists = JSON.stringify(data.artists)
+    let genres = JSON.stringify(data.genres)
     let type = data.type
     let id = data.id
-    let images = data.images
+    let images = JSON.stringify(data.images)
     let releaseDate = data.release_date
-    let copyrights = data.copyrights
+    let copyrights = JSON.stringify(data.copyrights)
     let popularity = data.popularity
-    let songs = data.songs
+    let songs = JSON.stringify(data.songs)
     let discCount = data.disc_count
 
 
-    const list = (await db.select({ id: Album.id }).from(Album).where(eq(Album.id, id)))[0]
-    if (list) {
+    const album = db.prepare("SELECT * FROM album WHERE id = ?").get(id)
+    if (album) {
         return new Response("OK")
     }
 
+    
     try {
-        await db.insert(Album).values({
-            id,
-            type,
-            images,
-            name,
-            releaseDate,
-            artists,
-            copyrights,
-            popularity,
-            genres,
-            songs,
-            discCount,
-
-        })
+        db.prepare("INSERT INTO album (id, type, images, name, releaseDate, artists, copyrights, popularity, genres, songs, discCount, dateAdded) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").run(
+            id, type, images, name, releaseDate, artists, copyrights, popularity, genres, songs, discCount, new Date().getTime() 
+        )
     } catch (err) {
         console.warn("Error in new-album", err?.toString())
         console.log(data)

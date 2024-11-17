@@ -1,6 +1,6 @@
 import type { SearchResults } from "@/types/spotify";
 import type { APIContext } from "astro";
-import { db, Song, Album, eq, Playlist } from 'astro:db';
+import { db } from "@/lib/db";
 
 export async function GET(context: APIContext): Promise<Response> {
 
@@ -18,24 +18,18 @@ export async function GET(context: APIContext): Promise<Response> {
 
 
     for (let index in json.songs) {
-        const song = (await db.select({ song_id: Song.song_id }).from(Song).where(eq(Song.song_id, json.songs[index].id)))[0]
+        const song = db.prepare("SELECT * FROM song WHERE id = ?").get(json.songs[index].id)
         json.songs[index].inDatabase = song ? true : false
     }
 
     for (let index in json.albums) {
-        const album = (await db.select({ id: Album.id }).from(Album).where(eq(Album.id, json.albums[index].id)))[0]
+        const album = db.prepare("SELECT * FROM album WHERE id = ?").get(json.albums[index].id)
         json.albums[index].inDatabase = album ? true : false
     }
     for (let index in json.playlists) {
-        const playlist = (await db.select({ id: Playlist.id }).from(Playlist).where(eq(Playlist.id, json.playlists[index].id)))[0]
+        const playlist = db.prepare("SELECT * FROM playlist WHERE id = ?").get(json.playlists[index].id)
         json.playlists[index].inDatabase = playlist ? true : false
     }
-
-    // json.songs[0].inDatabase = true
-    // json.albums[0].inDatabase = true
-
-
-
 
     return new Response(JSON.stringify(json))
 }

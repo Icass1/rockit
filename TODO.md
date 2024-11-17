@@ -14,7 +14,7 @@
 - Handle .env missing
 - <span style="color:#3287a8">(Impr: Make songs crossover between them so it seems like endless)</span>
 - Fix "MetadataError: Failed to embed metadata to the song"
-- Migrate from Astro DB to SQLite3
+- ✅ Migrate from Astro DB to SQLite3
 
 ## Frontend
 - **Main Components** (Header, Footer, Menu Bar)

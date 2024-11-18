@@ -7,10 +7,10 @@ export async function POST(context: APIContext): Promise<Response> {
 
     let name = data.name
     let artists = JSON.stringify(data.artists)
-    let genres =  JSON.stringify(data.genres)
+    let genres = JSON.stringify(data.genres)
     let discNumber = data.disc_number
     let albumName = data.album_name
-    let albumArtists =  JSON.stringify(data.album_artists)
+    let albumArtists = JSON.stringify(data.album_artists)
     let albumType = data.album_type
     let duration = data.duration
     let year = data.year
@@ -24,12 +24,27 @@ export async function POST(context: APIContext): Promise<Response> {
     let popularity = data.popularity
     let albumId = data.album_id
     let path = data.path
-    let images =  JSON.stringify(data.images)
+    let images = JSON.stringify(data.images)
     let copyright = data.copyright
 
     const song = db.prepare("SELECT * FROM song WHERE id = ?").get(id)
 
     if (song) {
+        if (lyrics != null) {
+            db.prepare(`UPDATE song SET lyrics = ? WHERE id = ?`).run(lyrics, id)
+        }
+        if (path != null) {
+            db.prepare(`UPDATE song SET path = ? WHERE id = ?`).run(path, id)
+        }
+        if (JSON.parse(genres).length > 0) {
+            db.prepare(`UPDATE song SET genres = ? WHERE id = ?`).run(genres, id)
+        }
+        if (JSON.parse(images).length > 0) {
+            db.prepare(`UPDATE song SET images = ? WHERE id = ?`).run(images, id)
+        }
+        if (downloadUrl != null) {
+            db.prepare(`UPDATE song SET downloadUrl = ? WHERE id = ?`).run(downloadUrl, id)
+        }
         return new Response("OK")
     }
 

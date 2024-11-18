@@ -144,7 +144,7 @@ class ListDownloader:
 
         if not self.spotdl_songs:
             text = {'completed': 0, 'total': 100, 'message': 'Fetching'}
-            logger.debug(f"ListDownloader.status data: {json.dumps(k)}")
+            logger.debug(f"ListDownloader.status data: {json.dumps(text)}")
             yield f"data: {json.dumps(text)}\n\n"
 
             while not self.spotdl_songs:
@@ -158,6 +158,15 @@ class ListDownloader:
         last_messages_len = {}
 
         for song in self.spotdl_songs:
+            if song.song_id not in self.downloader.downloads_dict:
+                logger.error(f"ListDownloader.status song.song_id: {song.song_id} is not in self.downloader.downloads_dict: {self.downloader.downloads_dict}")
+
+            while song.song_id not in self.downloader.downloads_dict:
+                time.sleep(0.1)
+
+            if song.song_id not in self.downloader.downloads_dict:
+                logger.critical(f"ListDownloader.status song.song_id: {song.song_id} is not in self.downloader.downloads_dict: {self.downloader.downloads_dict}")
+
             last_messages_len[song.song_id] = max(len(self.downloader.downloads_dict[song.song_id]["messages"]) - 1, 0)
             list_completed[song.song_id] = 0
             list_error[song.song_id] = 0
@@ -319,7 +328,7 @@ class Downloader:
                 "tracks_count": spotdl_song.tracks_count,
                 "song_id": spotdl_song.song_id,
                 "publisher": spotdl_song.publisher,
-                "path": str(path),
+                "path": str(path) if path else None,
                 "images": [image._json for image in raw_song.album.images],
                 "copyright":  spotdl_song.copyright_text,
                 "download_url": spotdl_song.download_url,
@@ -334,7 +343,8 @@ class Downloader:
                 "genres": spotdl_song.genres,
                 "disc_number": spotdl_song.disc_number,
                 "album_name": spotdl_song.album_name,
-                "album_artists": [{"name": artist.name, "id": artist.id} for artist in raw_list.artists] if raw_list else [{"name": artist.name, "id": artist.id} for artist in raw_song.album.artists],
+                # "album_artists": [{"name": artist.name, "id": artist.id} for artist in raw_list.artists] if raw_list else [{"name": artist.name, "id": artist.id} for artist in raw_song.album.artists],
+                "album_artists": [{"name": artist.name, "id": artist.id} for artist in raw_list.artists],
                 "album_type": spotdl_song.album_type,
                 "duration": spotdl_song.duration,
                 "year": spotdl_song.year,
@@ -343,8 +353,9 @@ class Downloader:
                 "tracks_count": spotdl_song.tracks_count,
                 "song_id": spotdl_song.song_id,
                 "publisher": spotdl_song.publisher,
-                "path": str(path),
-                "images": [image._json for image in raw_list.images] if raw_list else [image._json for image in raw_song.album.images],
+                "path": str(path) if path else None,
+                # "images": [image._json for image in raw_list.images] if raw_list else [image._json for image in raw_song.album.images],
+                "images": [image._json for image in raw_list.images],
                 "copyright":  spotdl_song.copyright_text,
                 "download_url": spotdl_song.download_url,
                 "lyrics": spotdl_song.lyrics,
@@ -367,7 +378,7 @@ class Downloader:
                 "tracks_count": spotdl_song.tracks_count,
                 "song_id": spotdl_song.song_id,
                 "publisher": spotdl_song.publisher,
-                "path": str(path),
+                "path": str(path) if path else None,
                 "images": [image._json for image in raw_song.track.album.images],
                 "copyright":  spotdl_song.copyright_text,
                 "download_url": spotdl_song.download_url,

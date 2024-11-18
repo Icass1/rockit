@@ -8,6 +8,10 @@ db.exec(`CREATE TABLE IF NOT EXISTS session (
     FOREIGN KEY (user_id) REFERENCES user(id)
 )`);
 
+// ****************************************
+// ************** User stuff **************
+// ****************************************
+
 export interface UserDB {
     id: string
     username: string
@@ -50,7 +54,11 @@ db.exec(`CREATE TABLE IF NOT EXISTS user (
     createdAt INTEGER NOT NULL
 )`);
 
-export interface SongDB {
+// ****************************************
+// ************** Song stuff **************
+// ****************************************
+
+export interface RawSongDB {
     id: string
     name: string
     artists: string
@@ -66,13 +74,79 @@ export interface SongDB {
     trackNumber: number | undefined
     tracksCount: number | undefined
     publisher: string | undefined
-    path: string
+    path: string | undefined
     images: string
     copyright: string | undefined
     downloadUrl: string | undefined
     lyrics: string | undefined
     popularity: number | undefined
     dateAdded: string | undefined
+}
+
+export type SongDB = {
+    id: string
+    name: string
+    artists: DBArtist[]
+    genres: string
+    discNumber: number | undefined
+    albumName: string
+    albumArtist: DBArtist[]
+    albumType: string
+    albumId: string
+    duration: number
+    year: number
+    date: string
+    trackNumber: number | undefined
+    tracksCount: number | undefined
+    publisher: string | undefined
+    path: string | undefined
+    images: DBImage[]
+    copyright: string | undefined
+    downloadUrl: string | undefined
+    lyrics: string | undefined
+    popularity: number | undefined
+    dateAdded: string | undefined
+}
+export type DBImage = {
+    url: string
+    width: number
+    height: number
+}
+export type DBArtist = {
+    name: string
+    id: string
+}
+
+export function parseSong(rawSong: RawSongDB | undefined): SongDB | undefined {
+
+    if (!rawSong) {
+        return undefined
+    }
+
+    return {
+        id: rawSong.id,
+        name: rawSong.name,
+        artists: JSON.parse(rawSong.artists),
+        genres: JSON.parse(rawSong.genres),
+        discNumber: rawSong.discNumber,
+        albumName: rawSong.albumName,
+        albumArtist: JSON.parse(rawSong.albumArtist),
+        albumType: rawSong.albumType,
+        albumId: rawSong.albumId,
+        duration: rawSong.duration,
+        year: rawSong.year,
+        date: rawSong.date,
+        trackNumber: rawSong.discNumber,
+        tracksCount: rawSong.discNumber,
+        publisher: rawSong.publisher,
+        path: rawSong.path,
+        images: JSON.parse(rawSong.images),
+        copyright: rawSong.copyright,
+        downloadUrl: rawSong.downloadUrl,
+        lyrics: rawSong.lyrics,
+        popularity: rawSong.discNumber,
+        dateAdded: rawSong.dateAdded
+    }
 }
 
 db.exec(`CREATE TABLE IF NOT EXISTS song (
@@ -91,7 +165,7 @@ db.exec(`CREATE TABLE IF NOT EXISTS song (
     trackNumber INTEGER,
     tracksCount INTEGER,
     publisher TEXT,
-    path TEXT NOT NULL,
+    path TEXT,
     images TEXT NOT NULL,
     copyright TEXT,
     downloadUrl TEXT,
@@ -100,7 +174,10 @@ db.exec(`CREATE TABLE IF NOT EXISTS song (
     dateAdded TEXT
 )`);
 
-export interface PlaylistDB {
+// ********************************************
+// ************** Playlist stuff **************
+// ********************************************
+export interface RawPlaylistDB {
     id: string
     images: string
     name: string
@@ -108,6 +185,36 @@ export interface PlaylistDB {
     owner: string
     followers: number
     songs: string
+}
+
+export interface PlaylistDB {
+    id: string
+    images: DBImage[]
+    name: string
+    description: string
+    owner: string
+    followers: number
+    songs: PlaylistDBSong[]
+}
+
+export interface PlaylistDBSong {
+    id: string
+    added_at: string
+}
+
+export function parsePlaylist(playlist: RawPlaylistDB | undefined): PlaylistDB | undefined {
+
+    if (!playlist) return undefined
+
+    return {
+        id: playlist.id,
+        images: JSON.parse(playlist.images),
+        name: playlist.name,
+        description: playlist.description,
+        owner: playlist.owner,
+        followers: playlist.followers,
+        songs: JSON.parse(playlist.songs)
+    }
 }
 
 db.exec(`CREATE TABLE IF NOT EXISTS playlist (
@@ -120,7 +227,11 @@ db.exec(`CREATE TABLE IF NOT EXISTS playlist (
     songs TEXT NOT NULL 
 )`);
 
-export interface AlbumDB {
+// *****************************************
+// ************** Album stuff **************
+// *****************************************
+
+export interface RawAlbumDB {
     id: string
     type: string
     images: string
@@ -134,6 +245,49 @@ export interface AlbumDB {
     discCount: number
     dateAdded: number
 }
+export interface AlbumDB {
+    id: string
+    type: string
+    images: DBImage[]
+    name: string
+    releaseDate: string
+    artists: DBArtist[]
+    copyrights: AlbumDBCopyright[]
+    popularity: number
+    genres: string[]
+    songs: string[]
+    discCount: number
+    dateAdded: number
+}
+
+export interface AlbumDBCopyright {
+    text: string
+    type: string
+}
+
+export function parseAlbum(album: RawAlbumDB | undefined): AlbumDB | undefined {
+
+    if (!album) {
+        return undefined
+    }
+
+
+    return {
+        id: album.id,
+        type: album.type,
+        images: JSON.parse(album.images),
+        name: album.name,
+        releaseDate: album.releaseDate,
+        artists: JSON.parse(album.artists),
+        copyrights: JSON.parse(album.copyrights),
+        popularity: album.popularity,
+        genres: JSON.parse(album.genres),
+        songs: JSON.parse(album.songs),
+        discCount: album.discCount,
+        dateAdded: album.dateAdded
+    }
+}
+
 db.exec(`CREATE TABLE IF NOT EXISTS album (
     id TEXT NOT NULL PRIMARY KEY UNIQUE,
     type TEXT NOT NULL,

@@ -1,5 +1,4 @@
 
-
 from flask import Flask, Response, request, jsonify
 from flask_sock import Sock
 from flask_cors import CORS
@@ -9,7 +8,7 @@ from colors import *
 from spotify import Spotify
 from downloader import Downloader
 from utils import create_id
-import json
+from logger import getLogger
 
 app = Flask(__name__)
 sock = Sock(app)
@@ -31,7 +30,9 @@ USER_ID = "randomtestuserid"
 
 downloads = {}
 
+logger = getLogger(__name__)
 
+app.logger = logger
 
 @app.route('/')
 def home():

@@ -11,7 +11,10 @@ from spotdl.types.song import Song
 
 from api_types import RawSpotifyApiTrack, RawSpotifyApiAlbum, AlbumItems, RawSpotifyApiPlaylist, PlaylistTracks, PlaylistItems
 from colors import *
+import logging
+from logger import getLogger
 
+logger = getLogger(__name__)
 
 class Spotify:
     def __init__(self):
@@ -81,8 +84,13 @@ class Spotify:
                 song_dict["popularity"] = album.popularity
                 song_dict["cover_url"] =  max(album.images, key=lambda i: i.width * i.height)["url"] if album.images else None
 
-                spotdl_songs.append(Song.from_dict(song_dict))
+                spotdl_song = Song.from_dict(song_dict)
+
+                spotdl_songs.append(spotdl_song)
                 raw_songs.append(song)
+
+                logger.debug(f"spotdl_songs_from_url Album Spotdl song: {spotdl_song}")
+                logger.debug(f"spotdl_songs_from_url Album Raw song: {song}")
 
             return album, spotdl_songs, raw_songs
         
@@ -124,9 +132,13 @@ class Spotify:
                             if song.album.images
                             else None
                         ),
-                spotdl_songs.append(Song.from_dict(song_dict))
+                
+                spotdl_song = Song.from_dict(song_dict)
+                spotdl_songs.append(spotdl_song)
                 raw_songs.append(item)
 
+                logger.debug(f"spotdl_songs_from_url Playlist Spotdl song: {spotdl_song}")
+                logger.debug(f"spotdl_songs_from_url Playlist Raw song: {song}")
 
             return playlist, spotdl_songs, raw_songs
 
@@ -175,6 +187,11 @@ class Spotify:
                     else None
                 ),
     
+        spotdl_song = Song.from_dict(song_dict)
+
+        logger.debug(f"spotdl_song_from_url Spotdl song: {spotdl_song}")
+        logger.debug(f"spotdl_song_from_url Raw song: {song}")
+
         return Song.from_dict(song_dict), song
 
 
@@ -192,7 +209,8 @@ class Spotify:
 
         result = requests.get(query_url, headers=headers)
         if result.status_code == 401:
-            print("Token espired")
+            logger.info("Token espired")
+            # print("Token espired")
             self.get_token()
             headers = self.get_auth_header()
             result = requests.get(query_url, headers=headers)

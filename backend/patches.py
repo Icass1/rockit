@@ -5,15 +5,11 @@ from typing import Dict, List, Tuple
 from bs4 import BeautifulSoup
 
 import logging
-import re
-import shlex
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
-from yt_dlp import YoutubeDL
 
 from spotdl.types.result import Result
 from spotdl.types.song import Song
-from spotdl.utils.config import get_temp_path
 from spotdl.utils.formatter import (
     args_to_ytdlp_options,
     create_search_query,
@@ -27,6 +23,8 @@ logger = logging.getLogger(__name__)
 
 
 from difflib import SequenceMatcher
+
+from logger import getLogger
 
 
 def get_best_result(self, results: Dict[Result, float], song: Song) -> Tuple[Result, float]:
@@ -333,6 +331,5 @@ spotdl.providers.audio.base.AudioProvider.search = search
 
 
 
-
-
-print("Patches applied")
+logger = getLogger(__name__)
+logger.info("Patches applied")

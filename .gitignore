@@ -26,6 +26,9 @@ venv/
 
 site-packages
 temp
+songs
 __pycache__
 rest
 *.db
+
+backend/logs

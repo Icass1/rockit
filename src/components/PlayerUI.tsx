@@ -46,14 +46,12 @@ function MockupLyrics() {
     )
 }
 
-function Lyrics() {
-    const currentLyric = "This is the current lyric"; // Lírica actual (puede ser dinámica)
-    const pastLyrics = ["Previous lyric line 1", "Previous lyric line 2"]; // Líricas anteriores
-    const futureLyrics = ["Next lyric line 1", "Next lyric line 2"]; // Líricas futuras
+function DynamicLyrics() {
+    const $currentSong = useStore(currentSong)
 
-    const lyrics = Array(10).fill(1).map((value, index) => `Sentence ${index}`)
+    const lyrics = $currentSong?.lyrics?.split("\n") || ""
 
-    const [lyricsIndex, setLyricsIndex] = useState(2)
+    const [lyricsIndex, setLyricsIndex] = useState(0)
 
     useEffect(() => {
         const handleKey = (event: KeyboardEvent) => {
@@ -73,28 +71,32 @@ function Lyrics() {
 
     }, [])
 
-    const commonSyles = "absolute px-4 text-center -translate-y-1/2 transition-all duration-500"
+    if (lyrics == "") {
+        return <div>No lyrics found</div>
+    }
+
+    const commonSyles = "absolute px-4 text-center -translate-y-1/2 transition-all duration-500 text-balance"
 
     return (
         <div className="flex flex-col justify-center items-center px-4 overflow-hidden relative h-full">
             {lyrics.map((line, index) => {
                 switch (index - lyricsIndex) {
                     case -2:
-                        return <div key={index} className={commonSyles} style={{ top: "35%", fontSize: "18px", fontWeight: 400, lineHeight: '28px' }}>{line}</div>
+                        return <div key={index} className={commonSyles} style={{ top: "35%", fontSize: "15px", fontWeight: 600, lineHeight: '28px', maxWidth: "60%", color: "rgb(200, 200, 200)" }}>{line}</div>
                     case -1:
-                        return <div key={index} className={commonSyles} style={{ top: "40%", fontSize: "24px", fontWeight: 600, lineHeight: '32px' }}>{line}</div>
+                        return <div key={index} className={commonSyles} style={{ top: "40%", fontSize: "20px", fontWeight: 600, lineHeight: '32px', maxWidth: "80%", color: "rgb(200, 200, 200)" }}>{line}</div>
                     case 0:
-                        return <div key={index} className={commonSyles} style={{ top: "50%", fontSize: "48px", fontWeight: 800, lineHeight: '40px' }}>{line}</div>
+                        return <div key={index} className={commonSyles} style={{ top: "50%", fontSize: "25px", fontWeight: 600, lineHeight: '40px', maxWidth: "100%" }}>{line}</div>
                     case 1:
-                        return <div key={index} className={commonSyles} style={{ top: "60%", fontSize: "24px", fontWeight: 600, lineHeight: '32px' }}>{line}</div>
+                        return <div key={index} className={commonSyles} style={{ top: "60%", fontSize: "20px", fontWeight: 600, lineHeight: '32px', maxWidth: "80%", color: "rgb(200, 200, 200)" }}>{line}</div>
                     case 2:
-                        return <div key={index} className={commonSyles} style={{ top: "65%", fontSize: "18px", fontWeight: 400, lineHeight: '28px' }}>{line}</div>
+                        return <div key={index} className={commonSyles} style={{ top: "65%", fontSize: "15px", fontWeight: 600, lineHeight: '28px', maxWidth: "60%", color: "rgb(200, 200, 200)" }}>{line}</div>
                 }
 
                 if (index - lyricsIndex > 0) {
-                    return <div key={index} className={commonSyles} style={{ top: "67%", fontSize: "0", fontWeight: 400, lineHeight: '28px' }}>{line}</div>
+                    return <div key={index} className={commonSyles} style={{ top: "67%", fontSize: "0", fontWeight: 600, lineHeight: '28px', maxWidth: "10%", color: "rgb(200, 200, 200)" }}>{line}</div>
                 } else {
-                    return <div key={index} className={commonSyles} style={{ top: "33%", fontSize: "0", fontWeight: 400, lineHeight: '28px' }}>{line}</div>
+                    return <div key={index} className={commonSyles} style={{ top: "33%", fontSize: "0", fontWeight: 600, lineHeight: '28px', maxWidth: "10%", color: "rgb(200, 200, 200)" }}>{line}</div>
 
                 }
             })}
@@ -142,7 +144,7 @@ export default function PlayerUI() {
                 <div className="relative z-10 grid grid-cols-[30%_40%_30%] h-full">
                     {/* Left Column: Lyrics */}
 
-                    <Lyrics />
+                    <DynamicLyrics />
 
                     {/* Middle Column: Cover & Info */}
                     <div className="min-w-0 min-h-0 max-w-full relative max-h-full">

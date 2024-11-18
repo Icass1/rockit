@@ -1,0 +1,103 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import {
+    db,
+    type SongDB,
+    type RawSongDB,
+    parsePlaylist,
+    parseSong,
+    type RawPlaylistDB,
+} from "@/lib/db";
+import PlaylistSong from "@/components/PlaylistSong";
+import type { SpotifyAlbumImage } from "@/types/spotify";
+const { id } = Astro.params as { id: string };
+
+const playlist = parsePlaylist(
+    db.prepare("SELECT * FROM playlist WHERE id = ?").get(id) as RawPlaylistDB,
+);
+
+if (!playlist) {
+    return new Response(
+        JSON.stringify({
+            error: "",
+        }),
+        {
+            status: 404,
+        },
+    );
+}
+
+const songs = playlist.songs.map((songID): SongDB | undefined => {
+    return parseSong(
+        db
+            .prepare("SELECT * FROM song WHERE id = ?")
+            .get(songID.id) as RawSongDB,
+    );
+});
+
+function getMinutes(seconds: number) {
+    seconds = Math.round(seconds);
+
+    if (typeof seconds !== "number" || isNaN(seconds)) {
+        return "Invalid input";
+    }
+
+    // Calculate minutes and remaining seconds
+    const minutes = Math.floor(seconds / 60);
+
+    // Format the result with leading zeros
+    const formattedMinutes = String(minutes).padStart(2, "0");
+
+    return `${formattedMinutes}`;
+}
+
+
+---
+
+<Layout title={playlist.name} currentPage="">
+    <div
+        class="p-4 g rid flex flex-row w-full h-full grid-cols-[min-content_1fr] relative"
+    >
+        <div
+            class="flex flex-col gap-1 relative top-1/2 -translate-y-1/2 w-1/3 max-w-96 h-fit mx-10"
+        >
+            <label class="text-center text-xl font-semibold"
+                >{playlist.owner}</label
+            >
+            <img
+                src={(playlist.images as SpotifyAlbumImage[])[0].url}
+                class=""
+                transition:name={`img-album-${playlist.id}`}
+            />
+            <label class="text-xl font-semibold">{playlist.name}</label>
+            <label class="text-sm"
+                >{playlist.songs.length} Songs | {
+                    getMinutes(
+                        songs.reduce((accumulator: number, song) => {
+                            return accumulator + (song?.duration || 0);
+                        }, 0),
+                    )
+                } Minutes</label
+            >
+        </div>
+        <div
+            class="min-w-0 max-w-full w-full min-h-0 max-h-full h-full overflow-auto flex flex-col gap-y-1"
+        >
+            {
+                songs.map((song, index) => {
+                    if (song) {
+                        return (
+                            <PlaylistSong
+                                song={song}
+                                index={index}
+                                client:only="react"
+                            />
+                        );
+                    } else {
+                        return <div>Song is undefined</div>;
+                    }
+                })
+            }
+        </div>
+    </div>
+</Layout>

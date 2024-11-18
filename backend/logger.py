@@ -77,7 +77,8 @@ def getLogger(name):
     """Create or retrieve a logger with console and file handlers."""
     logger = logging.getLogger(name)
 
-    logger_level = logging.INFO
+    console_level = logging.INFO
+    file_level = logging.DEBUG
 
     # Avoid adding duplicate handlers
     if logger.hasHandlers():
@@ -88,7 +89,7 @@ def getLogger(name):
     ensure_dir_exists(log_dir)
 
     # Set logging level
-    logger.setLevel(logger_level)
+    logger.setLevel(logging.DEBUG)
 
     # Define formatters
     plain_formatter = logging.Formatter(
@@ -105,14 +106,14 @@ def getLogger(name):
 
     # Console handler with colors
     console_handler = logging.StreamHandler()
-    console_handler.setLevel(logger_level)
+    console_handler.setLevel(console_level)
     console_handler.setFormatter(color_formatter)
 
     # File handler with plain formatting
     current_time = datetime.now().strftime('%Y-%m-%d_%H-%M')
     log_file = os.path.join(log_dir, f"log_{current_time}.log")
     file_handler = logging.FileHandler(log_file, mode="a")
-    file_handler.setLevel(logger_level)
+    file_handler.setLevel(file_level)
     file_handler.setFormatter(plain_formatter)
 
     # Add handlers to logger

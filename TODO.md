@@ -15,6 +15,7 @@
 - <span style="color:#3287a8">(Impr: Make songs crossover between them so it seems like endless)</span>
 - Fix "MetadataError: Failed to embed metadata to the song"
 - ✅ Migrate from Astro DB to SQLite3
+- ✅ Add logger
 
 ## Frontend
 - **Main Components** (Header, Footer, Menu Bar)
@@ -100,17 +101,17 @@
     - ✅ Duration
 
 - **Playlist page**
-  - Playlist name
-  - Creted by
-  - Cover
-  - Number of songs
+  - ✅ Playlist name
+  - ✅ Creted by
+  - ✅ Cover
+  - ✅ Number of songs
   - Total duration
   - Genres
-  - Songs
-    - Name
-    - Album
-    - Duration
-    - Artists names
+  - ✅ Songs
+    - ✅ Name
+    - ✅ Album
+    - ✅ Duration
+    - ✅ Artists names
 
 - **User settings**
   - User display name

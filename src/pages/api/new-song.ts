@@ -30,12 +30,14 @@ export async function POST(context: APIContext): Promise<Response> {
     const song = db.prepare("SELECT * FROM song WHERE id = ?").get(id)
 
     if (song) {
+        console.log("path", path, typeof path)
+
         if (lyrics != null) {
             db.prepare(`UPDATE song SET lyrics = ? WHERE id = ?`).run(lyrics, id)
         }
-        if (path != null) {
+        // if (path != null) {
             db.prepare(`UPDATE song SET path = ? WHERE id = ?`).run(path, id)
-        }
+        // }
         if (JSON.parse(genres).length > 0) {
             db.prepare(`UPDATE song SET genres = ? WHERE id = ?`).run(genres, id)
         }

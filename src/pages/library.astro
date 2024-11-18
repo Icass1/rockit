@@ -1,13 +1,24 @@
 ---
 import Layout from "@/layouts/Layout.astro";
-import { db, type AlbumDB, type PlaylistDB } from "@/lib/db";
+import {
+    db,
+    parseAlbum,
+    parsePlaylist,
+    type RawAlbumDB,
+    type RawPlaylistDB,
+} from "@/lib/db";
 
 if (!Astro.locals.user) {
     return Astro.redirect("/login");
 }
 
-const playlists = db.prepare("SELECT * FROM playlist").all() as PlaylistDB[];
-const albums = db.prepare("SELECT * FROM album").all() as AlbumDB[];
+const playlists = (
+    db.prepare("SELECT * FROM playlist").all() as RawPlaylistDB[]
+).map((playlist: RawPlaylistDB) => parsePlaylist(playlist));
+
+const albums = (db.prepare("SELECT * FROM album").all() as RawAlbumDB[]).map(
+    (album) => parseAlbum(album),
+);
 ---
 
 <Layout title="Rock It!" currentPage="Library">
@@ -18,40 +29,50 @@ const albums = db.prepare("SELECT * FROM album").all() as AlbumDB[];
             style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));"
         >
             {
-                playlists.map((playlist) => (
-                    <div class="flex flex-col gap-1">
-                        <img
-                            class=""
-                            src={JSON.parse(playlist.images)[0]?.url}
-                        />
-                        <label class="truncate font-semibold">
-                            {playlist.name}
-                        </label>
-                        <label class="truncate text-sm">{playlist.owner}</label>
-                    </div>
-                ))
+                playlists.map((playlist) => {
+                    if (!playlist) return <label>Playlist is undefined</label>;
+                    return (
+                        <a
+                            href={`/playlist/${playlist.id}`}
+                            class="w-fit h-fit flex flex-col min-w-0 max-w-full hover:scale-105 transition-transform"
+                        >
+                            <img
+                                class=""
+                                src={playlist.images[0]?.url}
+                                transition:name={`img-playlist-${playlist.id}`}
+                            />
+                            <label class="truncate font-semibold">
+                                {playlist.name}
+                            </label>
+                            <label class="truncate text-sm">
+                                {playlist.owner}
+                            </label>
+                        </a>
+                    );
+                })
             }
             {
-                albums.map((album) => (
-                    <a
-                        href={`/album/${album.id}`}
-                        class="w-fit h-fit flex flex-col min-w-0 max-w-full hover:scale-105 transition-transform"
-                    >
-                        <img
-                            class=""
-                            src={JSON.parse(album.images)[0]?.url}
-                            transition:name={`img-album-${album.id}`}
-                        />
-                        <label class="truncate font-semibold">
-                            {album.name}
-                        </label>
-                        <label class="truncate text-sm">
-                            {JSON.parse(album.artists).map(
-                                (artist) => artist.name,
-                            )}
-                        </label>
-                    </a>
-                ))
+                albums.map((album) => {
+                    if (!album) return <label>Playlist is undefined</label>;
+                    return (
+                        <a
+                            href={`/album/${album.id}`}
+                            class="w-fit h-fit flex flex-col min-w-0 max-w-full hover:scale-105 transition-transform"
+                        >
+                            <img
+                                class=""
+                                src={album.images[0]?.url}
+                                transition:name={`img-album-${album.id}`}
+                            />
+                            <label class="truncate font-semibold">
+                                {album.name}
+                            </label>
+                            <label class="truncate text-sm">
+                                {album.artists.map((artist) => artist.name)}
+                            </label>
+                        </a>
+                    );
+                })
             }
         </div>
     </div>

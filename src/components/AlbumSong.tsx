@@ -1,10 +1,13 @@
 import { currentSong, getTime, play } from "@/stores/audio";
-import type { songDB } from "@/types/types"
+import type { SongDB } from "@/lib/db"
 
 
 
-export default function AlbumSong({ song, index }: { song: songDB, index: number }) {
-    const handleClick = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+export default function AlbumSong({ song, index }: { song: SongDB, index: number }) {
+    const handleClick = () => {
+        if (!song.path) {
+            return
+        }
         currentSong.set(song)
         play()
     }
@@ -13,7 +16,7 @@ export default function AlbumSong({ song, index }: { song: songDB, index: number
         <div
             className={
                 "flex flex-row items-center gap-4  transition-colors px-2 py-1 rounded " +
-                (song.path == "None"
+                (!song.path
                     ? "opacity-50"
                     : "hover:bg-zinc-500/10")
             }

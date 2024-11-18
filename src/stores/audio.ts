@@ -1,7 +1,7 @@
 import { atom } from 'nanostores';
-import type { songDB } from "@/types/types"
+import type { SongDB } from "@/lib/db"
 
-const currentSong = atom<songDB | undefined>(undefined);
+const currentSong = atom<SongDB | undefined>(undefined);
 const playing = atom<boolean>(false);
 const currentTime = atom<number | undefined>(undefined);
 const totalTime = atom<number | undefined>(undefined);

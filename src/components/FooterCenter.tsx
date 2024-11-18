@@ -1,4 +1,4 @@
-import { currentSong, currentTime, getTime, pause, play, playing, totalTime } from "@/stores/audio";
+import { currentTime, getTime, pause, play, playing, totalTime } from "@/stores/audio";
 import { useStore } from "@nanostores/react";
 import {
     Shuffle,
@@ -24,11 +24,10 @@ export default function FooterCenter() {
         const newTime = (event.clientX - boundaries.x) / boundaries.width * $totalTime
     }
 
-
     return (
         <div className="flex flex-col items-center justify-center w-1/3 space-y-1">
             <div className="grid grid-cols-5 justify-items-center items-center gap-2">
-            <Shuffle
+                <Shuffle
                     className="w-[18px] h-[18px] text-gray-400 hover:text-white cursor-pointer"
                 />
                 <SkipBack
@@ -56,11 +55,11 @@ export default function FooterCenter() {
                 <div
                     className="w-full relative min-w-0 max-w-full rounded h-1 bg-gray-700 group"
                     onMouseUp={handleMouseUp}
-                    >
+                >
                     {$currentTime != undefined && $totalTime != undefined ? (
                         <div
-                        className="absolute top-0 left-0 h-1 bg-gradient-to-r from-[#ee1086] to-[#fb6467] rounded"
-                        style={{ width: `${($currentTime / $totalTime) * 100}%` }}
+                            className="absolute top-0 left-0 h-1 bg-gradient-to-r from-[#ee1086] to-[#fb6467] rounded"
+                            style={{ width: `${($currentTime / $totalTime) * 100}%` }}
                         />
                     ) : (
                         <></>

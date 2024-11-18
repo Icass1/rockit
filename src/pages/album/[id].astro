@@ -1,15 +1,21 @@
 ---
 import Layout from "@/layouts/Layout.astro";
-import { db, type AlbumDB, type PlaylistDB, type SongDB } from "@/lib/db";
+import {
+    db,
+    type SongDB,
+    type RawSongDB,
+    type RawAlbumDB,
+    parseAlbum,
+    parseSong,
+} from "@/lib/db";
 import AlbumSong from "@/components/AlbumSong";
-import type { SpotifyAlbumArtist, SpotifyAlbumImage } from "@/types/spotify";
 const { id } = Astro.params as { id: string };
 
-const albumDB = db.prepare("SELECT * FROM album WHERE id = ?").get(id) as
-    | AlbumDB
-    | undefined;
+const album = parseAlbum(
+    db.prepare("SELECT * FROM album WHERE id = ?").get(id) as RawAlbumDB,
+);
 
-if (!albumDB) {
+if (!album) {
     return new Response(
         JSON.stringify({
             error: "",
@@ -20,36 +26,10 @@ if (!albumDB) {
     );
 }
 
-const album = {
-    id: albumDB.id,
-    type: albumDB.type,
-    images: JSON.parse(albumDB.images),
-    name: albumDB.name,
-    releaseDate: albumDB.releaseDate,
-    artists: JSON.parse(albumDB.artists),
-    copyrights: JSON.parse(albumDB.copyrights),
-    popularity: albumDB.popularity,
-    genres: JSON.parse(albumDB?.genres),
-    songs: JSON.parse(albumDB.songs),
-    discCount: albumDB.discCount,
-    dateAdded: albumDB.dateAdded,
-};
-
-
-const songs = album.songs.map((songID: string) => {
-    const song = db
-        .prepare("SELECT * FROM song WHERE id = ?")
-        .get(songID) as SongDB;
-    return {
-        id: song.id,
-        name: song.name,
-        duration: song.duration,
-        path: song.path,
-        artists: JSON.parse(song.artists),
-        images: JSON.parse(song.images),
-        albumName: song.albumName,
-        albumId: song.albumId,
-    };
+const songs = album.songs.map((songID: string): SongDB | undefined => {
+    return parseSong(
+        db.prepare("SELECT * FROM song WHERE id = ?").get(songID) as RawSongDB,
+    );
 });
 
 function getMinutes(seconds: number) {
@@ -84,22 +64,16 @@ function getDate(date: string) {
             class="flex flex-col gap-1 relative top-1/2 -translate-y-1/2 w-1/3 max-w-96 h-fit mx-10"
         >
             <label class="text-center text-xl font-semibold"
-                >{
-                    (album.artists as SpotifyAlbumArtist[]).map(
-                        (artist) => artist.name,
-                    )
-                }</label
+                >{album.artists.map((artist) => artist.name)}</label
             >
             <img
-                src={(album.images as SpotifyAlbumImage[])[0].url}
+                src={album.images[0].url}
                 class=""
                 transition:name={`img-album-${album.id}`}
             />
             <label class="text-xl font-semibold">{album.name}</label>
             <label class="text-sm"
-                >{getDate(album.releaseDate)} | {
-                    (album.songs as string[]).length
-                } Songs | {
+                >{getDate(album.releaseDate)} | {album.songs.length} Songs | {
                     getMinutes(
                         songs.reduce((accumulator: number, song) => {
                             return accumulator + (song?.duration || 0);

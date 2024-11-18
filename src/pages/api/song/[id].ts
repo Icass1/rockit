@@ -10,16 +10,22 @@ export async function GET(context: APIContext) {
         .prepare("SELECT * FROM song WHERE id = ?")
         .get(id) as SongDB;
     if (!song) {
-        return new Response("Song not found", {status: 404})
+        return new Response("Song not found", { status: 404 })
     }
 
     const filePath = song.path;
     let stat
-    try {
-        stat = fs.statSync(filePath);
-    } catch {
-        return new Response("Song not found", {status: 404})
+    if (filePath) {
+        try {
+            stat = fs.statSync(filePath);
+        } catch {
+            return new Response("Song not found", { status: 404 })
+        }
+
+    } else {
+        return new Response("Song not found", { status: 404 })
     }
+
     const fileSize = stat.size;
     const range = context.request.headers.get("range");
 

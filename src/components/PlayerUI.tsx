@@ -49,11 +49,17 @@ function MockupLyrics() {
 function DynamicLyrics() {
     const $currentSong = useStore(currentSong)
 
-    const lyrics = $currentSong?.lyrics?.split("\n") || ""
-
     const [lyricsIndex, setLyricsIndex] = useState(0)
+    const [lyrics, setLyrics] = useState<string[] | string>()
 
     useEffect(() => {
+        if (!$currentSong?.lyrics) { return }
+        setLyrics($currentSong.lyrics.split("\n") || "")
+    }, [$currentSong])
+
+    useEffect(() => {
+        if (!lyrics) { return }
+
         const handleKey = (event: KeyboardEvent) => {
             if (event.code == "ArrowRight") {
                 setLyricsIndex(value => Math.min(value + 1, lyrics.length - 1))
@@ -69,7 +75,7 @@ function DynamicLyrics() {
             document.removeEventListener("keyup", handleKey)
         }
 
-    }, [])
+    }, [lyrics])
 
     if (lyrics == "") {
         return <div>No lyrics found</div>
@@ -79,7 +85,7 @@ function DynamicLyrics() {
 
     return (
         <div className="flex flex-col justify-center items-center px-4 overflow-hidden relative h-full">
-            {lyrics.map((line, index) => {
+            {lyrics?.map((line, index) => {
                 switch (index - lyricsIndex) {
                     case -2:
                         return <div key={index} className={commonSyles} style={{ top: "35%", fontSize: "15px", fontWeight: 600, lineHeight: '28px', maxWidth: "60%", color: "rgb(200, 200, 200)" }}>{line}</div>

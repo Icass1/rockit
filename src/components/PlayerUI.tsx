@@ -77,7 +77,7 @@ function DynamicLyrics() {
 
     }, [lyrics])
 
-    if (lyrics == "") {
+    if (typeof lyrics == "string" || typeof lyrics == "undefined") {
         return <div>No lyrics found</div>
     }
 
@@ -85,7 +85,7 @@ function DynamicLyrics() {
 
     return (
         <div className="flex flex-col justify-center items-center px-4 overflow-hidden relative h-full">
-            {lyrics?.map((line, index) => {
+            {lyrics.map((line, index) => {
                 switch (index - lyricsIndex) {
                     case -2:
                         return <div key={index} className={commonSyles} style={{ top: "35%", fontSize: "15px", fontWeight: 600, lineHeight: '28px', maxWidth: "60%", color: "rgb(200, 200, 200)" }}>{line}</div>

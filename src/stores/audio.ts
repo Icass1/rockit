@@ -1,10 +1,10 @@
 import { atom } from 'nanostores';
 import type { SongDB } from "@/lib/db"
 
-const currentSong = atom<SongDB | undefined>(undefined);
-const playing = atom<boolean>(false);
-const currentTime = atom<number | undefined>(undefined);
-const totalTime = atom<number | undefined>(undefined);
+export const currentSong = atom<SongDB | undefined>(undefined);
+export const playing = atom<boolean>(false);
+export const currentTime = atom<number | undefined>(undefined);
+export const totalTime = atom<number | undefined>(undefined);
 
 const audio = new Audio()
 
@@ -15,15 +15,15 @@ currentSong.subscribe((value) => {
     }
 })
 
-const play = () => {
+export const play = () => {
     audio.play().then(data => { })
 }
 
-const pause = () => {
+export const pause = () => {
     audio.pause()
 }
 
-function getTime(seconds: number) {
+export function getTime(seconds: number) {
     seconds = Math.round(seconds);
 
     if (typeof seconds !== "number" || isNaN(seconds)) {
@@ -41,6 +41,10 @@ function getTime(seconds: number) {
     return `${formattedMinutes}:${formattedSeconds}`;
 }
 
+export function setTime(time: number) {
+    audio.currentTime = time
+}
+
 audio.addEventListener("canplay", () => {
     totalTime.set(audio.duration)
 })
@@ -56,5 +60,3 @@ audio.addEventListener("play", () => {
 audio.addEventListener("pause", () => {
     playing.set(false)
 })
-
-export { currentSong, play, pause, playing, currentTime, totalTime, getTime }

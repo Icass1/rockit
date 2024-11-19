@@ -9,6 +9,7 @@ import {
     parseSong,
 } from "@/lib/db";
 import AlbumSong from "@/components/AlbumSong";
+import { Disc } from "lucide-react";
 const { id } = Astro.params as { id: string };
 
 const album = parseAlbum(
@@ -26,10 +27,58 @@ if (!album) {
     );
 }
 
-const songs = album.songs.map((songID: string): SongDB | undefined => {
-    return parseSong(
-        db.prepare("SELECT * FROM song WHERE id = ?").get(songID) as RawSongDB,
-    );
+const songs = album.songs.map(
+    (
+        songID: string,
+    ):
+        | SongDB<
+              | "images"
+              | "id"
+              | "name"
+              | "artists"
+              | "albumId"
+              | "albumName"
+              | "path"
+              | "duration"
+              | "discNumber"
+              | "trackNumber"
+          >
+        | undefined => {
+        return parseSong(
+            db
+                .prepare(
+                    "SELECT images, id, name, artists, albumId, albumName, path, duration, discNumber, trackNumber FROM song WHERE id = ?",
+                )
+                .get(songID) as RawSongDB,
+        );
+    },
+);
+
+songs.sort((a, b) => {
+    if (
+        typeof a?.trackNumber == "undefined" ||
+        typeof b?.trackNumber == "undefined"
+    ) {
+        return 0;
+    }
+    return a.trackNumber - b.trackNumber;
+});
+
+const discs: SongDB<
+    | "images"
+    | "id"
+    | "name"
+    | "artists"
+    | "albumId"
+    | "albumName"
+    | "path"
+    | "duration"
+    | "discNumber"
+    | "trackNumber"
+>[][] = Array(Math.max(...songs.map((song) => song?.discNumber || 0))).fill([]);
+
+songs.map((song) => {
+    if (song?.discNumber) discs[song?.discNumber - 1].push(song);
 });
 
 function getMinutes(seconds: number) {
@@ -41,7 +90,6 @@ function getMinutes(seconds: number) {
 
     // Calculate minutes and remaining seconds
     const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = Math.round(seconds % 60);
 
     // Format the result with leading zeros
     const formattedMinutes = String(minutes).padStart(2, "0");
@@ -86,18 +134,30 @@ function getDate(date: string) {
             class="min-w-0 max-w-full w-full min-h-0 max-h-full h-full overflow-auto flex flex-col gap-y-4"
         >
             {
-                songs.map((song, index) => {
-                    if (song) {
-                        return (
-                            <AlbumSong
-                                song={song}
-                                index={index}
-                                client:only="react"
-                            />
-                        );
-                    } else {
-                        return <div>Song is undefined</div>;
-                    }
+                discs.map((songs, index) => {
+                    return (
+                        <>
+                            <label class="text-neutral-400 font-semibold flex flex-row gap-2 items-center">
+                                <Disc className="h-5 w-5" />
+                                Disc {index + 1}
+                            </label>
+
+                            {songs.map((song, index) => {
+                                if (song) {
+                                    return (
+                                        <AlbumSong
+                                            song={song}
+                                            index={index}
+                                            client:only="react"
+                                            albumId={id}
+                                        />
+                                    );
+                                } else {
+                                    return <div>Song is undefined</div>;
+                                }
+                            })}
+                        </>
+                    );
                 })
             }
         </div>

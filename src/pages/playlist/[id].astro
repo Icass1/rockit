@@ -27,13 +27,30 @@ if (!playlist) {
     );
 }
 
-const songs = playlist.songs.map((songID): SongDB | undefined => {
-    return parseSong(
-        db
-            .prepare("SELECT * FROM song WHERE id = ?")
-            .get(songID.id) as RawSongDB,
-    );
-});
+const songs = playlist.songs.map(
+    (
+        songID,
+    ):
+        | SongDB<
+              | "name"
+              | "albumId"
+              | "duration"
+              | "artists"
+              | "path"
+              | "albumName"
+              | "images"
+              | "id"
+          >
+        | undefined => {
+        return parseSong(
+            db
+                .prepare(
+                    "SELECT name, albumId, duration, artists, path, albumName, images, id FROM song WHERE id = ?",
+                )
+                .get(songID.id) as RawSongDB,
+        );
+    },
+);
 
 function getMinutes(seconds: number) {
     seconds = Math.round(seconds);
@@ -50,8 +67,6 @@ function getMinutes(seconds: number) {
 
     return `${formattedMinutes}`;
 }
-
-
 ---
 
 <Layout title={playlist.name} currentPage="">
@@ -90,6 +105,7 @@ function getMinutes(seconds: number) {
                             <PlaylistSong
                                 song={song}
                                 index={index}
+                                playlistId={id}
                                 client:only="react"
                             />
                         );

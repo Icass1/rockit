@@ -1,4 +1,4 @@
-import { currentTime, getTime, pause, play, playing, setTime, totalTime } from "@/stores/audio";
+import { currentTime, getTime, next, pause, play, playing, setTime, totalTime } from "@/stores/audio";
 import { useStore } from "@nanostores/react";
 import {
     Shuffle,
@@ -47,6 +47,7 @@ export default function FooterCenter() {
                 }
                 <SkipForward
                     className="w-[22px] h-[22px] fill-current text-gray-400 hover:text-white cursor-pointer"
+                    onClick={async () => { await next(); play() }}
                 />
                 <Repeat
                     className="w-5 h-5 text-gray-400 hover:text-white cursor-pointer"

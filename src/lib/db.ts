@@ -52,6 +52,11 @@ function getDifference(listA: Column[], listB: Column[]) {
 
 function checkTable(tableName: string, query: string, existingColumns: Column[]) {
 
+    if (existingColumns.length == 0) {
+        console.log("existingColumns.length is 0. This probably means the table doesn't exist")
+        return
+    }
+
     let columns = query.split("(")[1].split(")")[0].replaceAll("\n", "").split(",")
     columns = columns.map(column => {
         while (column.startsWith(" ")) {

@@ -24,6 +24,16 @@ const albums = (db.prepare("SELECT * FROM album").all() as RawAlbumDB[]).map(
 <Layout title="Rock It!" currentPage="Library">
     <div class="p-8 h-full">
         <label class="text-white text-4xl font-bold pb-6 block"> Library </label>
+        <input
+            class="absolute font-semibold bg-neutral-900 z-50 shadow mx-auto rounded-full block text-1xl px-10 w-1/10 h-8 -translate-y-12 focus:outline-0 right-5"
+            style={{
+                backgroundImage: "url(/search-icon.png)",
+                backgroundPosition: "15px center",
+                backgroundSize: "14px",
+                backgroundRepeat: "no-repeat",
+            }}
+            placeholder="Search in Library"
+        />
         <div
             class="grid gap-5"
             style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));"

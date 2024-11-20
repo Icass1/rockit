@@ -1,0 +1,63 @@
+---
+import { Home, Menu, Library, Search, Download } from "lucide-react";
+
+export interface Props {
+    activePage: string;
+}
+
+const { activePage } = Astro.props;
+---
+
+<div class="mx-auto flex flex-col gap-4 w-fit pt-4 min-h-0 max-h-full h-full">
+    <div class="p-2">
+        <Menu />
+    </div>
+
+    <a
+        href="/"
+        title="Home"
+        class={`w-8 h-8 rounded-md items-center justify-center flex flex-col mx-auto transition-all ${
+            activePage === "Home"
+                ? "bg-white text-black"
+                : "text-white hover:bg-[#414141]"
+        }`}
+    >
+        <Home className="w-5 h-5" />
+    </a>
+
+    <a
+        href="/library"
+        title="Library"
+        class={`w-8 h-8 rounded-md items-center justify-center flex flex-col mx-auto transition-all ${
+            activePage === "Library"
+                ? "bg-white text-black"
+                : "text-white hover:bg-[#414141]"
+        }`}
+    >
+        <Library className="w-5 h-5" />
+    </a>
+
+    <a
+        href="/search"
+        title="Search"
+        class={`w-8 h-8 rounded-md items-center justify-center flex flex-col mx-auto transition-all ${
+            activePage === "Search"
+                ? "bg-white text-black"
+                : "text-white hover:bg-[#414141]"
+        }`}
+    >
+        <Search className="w-5 h-5" />
+    </a>
+
+    <a
+        href="/downloads"
+        title="Downloads"
+        class={`w-8 h-8 rounded-md items-center justify-center flex flex-col mx-auto transition-all ${
+            activePage === "Downloads"
+                ? "bg-white text-black"
+                : "text-white hover:bg-[#414141]"
+        }`}
+    >
+        <Download className="w-5 h-5" />
+    </a>
+</div>

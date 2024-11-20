@@ -1,105 +1,147 @@
 import sqlite from "better-sqlite3";
-import * as fs from 'fs'
+import * as fs from "fs";
 
-fs.mkdir("database", { recursive: false }, () => { })
+fs.mkdir("database", { recursive: false }, () => {});
 export const db = sqlite("database/database.db");
 
 interface Column {
-    cid: number,
-    name: string,
-    type: string,
-    notnull: number,
-    dflt_value: null | string,
-    pk: number
+    cid: number;
+    name: string;
+    type: string;
+    notnull: number;
+    dflt_value: null | string;
+    pk: number;
 }
 
 function getDifference(listA: Column[], listB: Column[]) {
-    let addedColumns: string[] = []
-    let removedColumns: string[] = []
-    let modifiedColumns: { name: string, param: string, previous: string | null | number, next: string | null | number }[] = []
+    let addedColumns: string[] = [];
+    let removedColumns: string[] = [];
+    let modifiedColumns: {
+        name: string;
+        param: string;
+        previous: string | null | number;
+        next: string | null | number;
+    }[] = [];
 
-    listA.map(columnA => {
-        let columnB = listB.find(columnB => columnA.name == columnB.name)
+    listA.map((columnA) => {
+        let columnB = listB.find((columnB) => columnA.name == columnB.name);
         if (columnB == undefined) {
-            removedColumns.push(columnA.name)
-            return
+            removedColumns.push(columnA.name);
+            return;
         }
         if (columnA.dflt_value != columnB?.dflt_value) {
-            modifiedColumns.push({ name: columnA.name, param: "dflt_value", previous: columnA.dflt_value, next: columnB?.dflt_value })
+            modifiedColumns.push({
+                name: columnA.name,
+                param: "dflt_value",
+                previous: columnA.dflt_value,
+                next: columnB?.dflt_value,
+            });
         }
         if (columnA.pk != columnB?.pk) {
-            modifiedColumns.push({ name: columnA.name, param: "pk", previous: columnA.pk, next: columnB?.pk })
+            modifiedColumns.push({
+                name: columnA.name,
+                param: "pk",
+                previous: columnA.pk,
+                next: columnB?.pk,
+            });
         }
         if (columnA.type != columnB?.type) {
-            modifiedColumns.push({ name: columnA.name, param: "type", previous: columnA.type, next: columnB?.type })
+            modifiedColumns.push({
+                name: columnA.name,
+                param: "type",
+                previous: columnA.type,
+                next: columnB?.type,
+            });
         }
         if (columnA.notnull != columnB?.notnull) {
-            modifiedColumns.push({ name: columnA.name, param: "notnull", previous: columnA.notnull, next: columnB?.notnull })
+            modifiedColumns.push({
+                name: columnA.name,
+                param: "notnull",
+                previous: columnA.notnull,
+                next: columnB?.notnull,
+            });
         }
-    })
+    });
 
-    listB.map(columnB => {
-        let columnA = listA.find(columnA => columnA.name == columnB.name)
+    listB.map((columnB) => {
+        let columnA = listA.find((columnA) => columnA.name == columnB.name);
         if (columnA == undefined) {
-            addedColumns.push(columnB.name)
-            return
+            addedColumns.push(columnB.name);
+            return;
         }
-    })
+    });
 
-    return { modifiedColumns, removedColumns, addedColumns }
-
+    return { modifiedColumns, removedColumns, addedColumns };
 }
 
-function checkTable(tableName: string, query: string, existingColumns: Column[]) {
-
+function checkTable(
+    tableName: string,
+    query: string,
+    existingColumns: Column[]
+) {
     if (existingColumns.length == 0) {
-        console.log("existingColumns.length is 0. This probably means the table doesn't exist")
-        return
+        console.log(
+            "existingColumns.length is 0. This probably means the table doesn't exist"
+        );
+        return;
     }
 
-    let columns = query.split("(")[1].split(")")[0].replaceAll("\n", "").split(",")
-    columns = columns.map(column => {
+    let columns = query
+        .split("(")[1]
+        .split(")")[0]
+        .replaceAll("\n", "")
+        .split(",");
+    columns = columns.map((column) => {
         while (column.startsWith(" ")) {
-            column = column.replace(" ", "")
+            column = column.replace(" ", "");
         }
-        return column
-    })
+        return column;
+    });
     const newColumns = columns.map((column, index): Column => {
-        const columnSplit = column.split(" ")
+        const columnSplit = column.split(" ");
         return {
             cid: index,
             name: columnSplit[0],
             type: columnSplit[1],
             notnull: column.includes("NOT NULL") ? 1 : 0,
-            dflt_value: columnSplit.indexOf("DEFAULT") != -1 ? columnSplit[columnSplit.indexOf("DEFAULT") + 1] : null,
-            pk: column.includes("PRIMARY KEY") ? 1 : 0
-        }
+            dflt_value:
+                columnSplit.indexOf("DEFAULT") != -1
+                    ? columnSplit[columnSplit.indexOf("DEFAULT") + 1]
+                    : null,
+            pk: column.includes("PRIMARY KEY") ? 1 : 0,
+        };
+    });
 
-    })
-
-    const { modifiedColumns, addedColumns, removedColumns } = getDifference(existingColumns, newColumns)
+    const { modifiedColumns, addedColumns, removedColumns } = getDifference(
+        existingColumns,
+        newColumns
+    );
 
     if (modifiedColumns.length > 0) {
-        console.warn("Detected column change(s).", modifiedColumns)
+        console.warn("Detected column change(s).", modifiedColumns);
     }
 
     if (removedColumns.length > 0) {
-        console.warn("Detected removed column(s).", removedColumns)
+        console.warn("Detected removed column(s).", removedColumns);
     }
 
     if (addedColumns.length > 0) {
-        console.warn("Detected new column(s).", addedColumns)
-        addedColumns.map(column => {
-            const newColumn = newColumns.find(_column => _column.name == column)
+        console.warn("Detected new column(s).", addedColumns);
+        addedColumns.map((column) => {
+            const newColumn = newColumns.find(
+                (_column) => _column.name == column
+            );
             if (!newColumn) {
-                return console.error("Fatal, new column is not defined")
+                return console.error("Fatal, new column is not defined");
             }
 
-            query = `${newColumn.name} ${newColumn.type} ${newColumn.dflt_value ? 'DEFAULT ' + newColumn.dflt_value : ''} ${newColumn.notnull ? 'NOT NULL' : ''}`
-            console.log(column, newColumn)
-            console.log(query)
-            db.exec(`ALTER TABLE ${tableName} ADD COLUMN ${query}`)
-        })
+            query = `${newColumn.name} ${newColumn.type} ${
+                newColumn.dflt_value ? "DEFAULT " + newColumn.dflt_value : ""
+            } ${newColumn.notnull ? "NOT NULL" : ""}`;
+            console.log(column, newColumn);
+            console.log(query);
+            db.exec(`ALTER TABLE ${tableName} ADD COLUMN ${query}`);
+        });
     }
 }
 
@@ -115,51 +157,54 @@ db.exec(`CREATE TABLE IF NOT EXISTS session (
 // ****************************************
 
 export interface RawUserDB {
-    id: string
-    username: string
-    passwordHash: string
-    lists: string
-    lastPlayedSong: string | undefined
-    currentList: string | undefined
-    currentSong: string | undefined
-    currentTime: number | undefined
-    queue: string
-    queueIndex: number | undefined
-    randomQueue: string
-    volume: number
-    admin: string
-    superAdmin: string
-    devUser: string
-    showLyrics: string
-    updatedAt: number
-    createdAt: number
+    id: string;
+    username: string;
+    passwordHash: string;
+    lists: string;
+    lastPlayedSong: string | undefined;
+    currentList: string | undefined;
+    currentSong: string | undefined;
+    currentTime: number | undefined;
+    queue: string;
+    queueIndex: number | undefined;
+    randomQueue: string;
+    volume: number;
+    admin: string;
+    superAdmin: string;
+    devUser: string;
+    showLyrics: string;
+    updatedAt: number;
+    createdAt: number;
 }
 
 interface UserDBLastPlayedSong {
-    id: string
-    date: number
+    id: string;
+    date: number;
 }
 
-export type UserDB<Keys extends keyof UserDBFull = keyof UserDBFull> = Pick<UserDBFull, Keys>;
+export type UserDB<Keys extends keyof UserDBFull = keyof UserDBFull> = Pick<
+    UserDBFull,
+    Keys
+>;
 export interface UserDBFull {
-    id: string
-    username: string
-    passwordHash: string
-    lists: string[]
-    lastPlayedSong: UserDBLastPlayedSong[] | undefined
-    currentList: string | undefined
-    currentSong: string | undefined
-    currentTime: number | undefined
-    queue: string[]
-    queueIndex: number | undefined
-    randomQueue: string
-    volume: number
-    admin: string
-    superAdmin: string
-    devUser: string
-    showLyrics: string
-    updatedAt: number
-    createdAt: number
+    id: string;
+    username: string;
+    passwordHash: string;
+    lists: string[];
+    lastPlayedSong: UserDBLastPlayedSong[] | undefined;
+    currentList: string | undefined;
+    currentSong: string | undefined;
+    currentTime: number | undefined;
+    queue: string[];
+    queueIndex: number | undefined;
+    randomQueue: string;
+    volume: number;
+    admin: string;
+    superAdmin: string;
+    devUser: string;
+    showLyrics: string;
+    updatedAt: number;
+    createdAt: number;
 }
 
 const userQuery = `CREATE TABLE IF NOT EXISTS user (
@@ -182,24 +227,25 @@ const userQuery = `CREATE TABLE IF NOT EXISTS user (
     showLyrics BOOLEAN DEFAULT 0 NOT NULL,
     updatedAt INTEGER NOT NULL,
     createdAt INTEGER NOT NULL
-)`
+)`;
 
 export function parseUser(user: RawUserDB | undefined): UserDB | undefined {
-
     if (!user) {
-        return undefined
+        return undefined;
     }
 
     return {
         id: user.id,
         username: user.username,
         passwordHash: user.passwordHash,
-        lists: JSON.parse(user.lists|| "[]"),
-        lastPlayedSong: user.lastPlayedSong ? JSON.parse(user.lastPlayedSong|| "[]") : undefined,
+        lists: JSON.parse(user.lists || "[]"),
+        lastPlayedSong: user.lastPlayedSong
+            ? JSON.parse(user.lastPlayedSong || "[]")
+            : undefined,
         currentList: user.currentList,
         currentSong: user.currentSong,
         currentTime: user.currentTime,
-        queue: JSON.parse(user.queue|| "[]"),
+        queue: JSON.parse(user.queue || "[]"),
         queueIndex: user.queueIndex,
         randomQueue: user.randomQueue,
         volume: user.volume,
@@ -208,11 +254,15 @@ export function parseUser(user: RawUserDB | undefined): UserDB | undefined {
         devUser: user.devUser,
         showLyrics: user.showLyrics,
         updatedAt: user.updatedAt,
-        createdAt: user.createdAt
-    }
+        createdAt: user.createdAt,
+    };
 }
 
-checkTable("user", userQuery, db.prepare("PRAGMA table_info(user)").all() as Column[])
+checkTable(
+    "user",
+    userQuery,
+    db.prepare("PRAGMA table_info(user)").all() as Column[]
+);
 db.exec(userQuery);
 
 // ****************************************
@@ -220,71 +270,71 @@ db.exec(userQuery);
 // ****************************************
 
 export interface RawSongDB {
-    id: string
-    name: string
-    artists: string
-    genres: string
-    discNumber: number | undefined
-    albumName: string
-    albumArtist: string
-    albumType: string
-    albumId: string
-    duration: number
-    year: number
-    date: string
-    trackNumber: number | undefined
-    tracksCount: number | undefined
-    publisher: string | undefined
-    path: string | undefined
-    images: string
-    copyright: string | undefined
-    downloadUrl: string | undefined
-    lyrics: string | undefined
-    popularity: number | undefined
-    dateAdded: string | undefined
+    id: string;
+    name: string;
+    artists: string;
+    genres: string;
+    discNumber: number | undefined;
+    albumName: string;
+    albumArtist: string;
+    albumType: string;
+    albumId: string;
+    duration: number;
+    year: number;
+    date: string;
+    trackNumber: number | undefined;
+    tracksCount: number | undefined;
+    publisher: string | undefined;
+    path: string | undefined;
+    images: string;
+    copyright: string | undefined;
+    downloadUrl: string | undefined;
+    lyrics: string | undefined;
+    popularity: number | undefined;
+    dateAdded: string | undefined;
 }
 
-
-
-export type SongDB<Keys extends keyof SongDBFull = keyof SongDBFull> = Pick<SongDBFull, Keys>;
+export type SongDB<Keys extends keyof SongDBFull = keyof SongDBFull> = Pick<
+    SongDBFull,
+    Keys
+>;
 export type SongDBFull = {
-    id: string
-    name: string
-    artists: ArtistDB[]
-    genres: string
-    discNumber: number | undefined
-    albumName: string
-    albumArtist: ArtistDB[]
-    albumType: string
-    albumId: string
-    duration: number
-    year: number
-    date: string
-    trackNumber: number | undefined
-    tracksCount: number | undefined
-    publisher: string | undefined
-    path: string | undefined
-    images: ImageDB[]
-    copyright: string | undefined
-    downloadUrl: string | undefined
-    lyrics: string | undefined
-    popularity: number | undefined
-    dateAdded: string | undefined
-}
+    id: string;
+    name: string;
+    artists: ArtistDB[];
+    genres: string;
+    discNumber: number | undefined;
+    albumName: string;
+    albumArtist: ArtistDB[];
+    albumType: string;
+    albumId: string;
+    duration: number;
+    year: number;
+    date: string;
+    trackNumber: number | undefined;
+    tracksCount: number | undefined;
+    publisher: string | undefined;
+    path: string | undefined;
+    images: ImageDB[];
+    copyright: string | undefined;
+    downloadUrl: string | undefined;
+    lyrics: string | undefined;
+    popularity: number | undefined;
+    dateAdded: string | undefined;
+};
 export type ImageDB = {
-    url: string
-    width: number
-    height: number
-}
+    url: string;
+    width: number;
+    height: number;
+};
 export type ArtistDB = {
-    name: string
-    id: string
-}
+    name: string;
+    id: string;
+};
 
 export function parseSong(rawSong: RawSongDB | undefined): SongDB | undefined {
-
     if (!rawSong) {
-        return undefined
+        return undefined;
     }
 
     return {
@@ -309,8 +359,8 @@ export function parseSong(rawSong: RawSongDB | undefined): SongDB | undefined {
         downloadUrl: rawSong.downloadUrl,
         lyrics: rawSong.lyrics,
         popularity: rawSong.popularity,
-        dateAdded: rawSong.dateAdded
-    }
+        dateAdded: rawSong.dateAdded,
+    };
 }
 
 const songQuery = `CREATE TABLE IF NOT EXISTS song (
@@ -338,40 +388,45 @@ const songQuery = `CREATE TABLE IF NOT EXISTS song (
     dateAdded TEXT
 )`;
 
-checkTable("song", songQuery, db.prepare("PRAGMA table_info(song)").all() as Column[])
+checkTable(
+    "song",
+    songQuery,
+    db.prepare("PRAGMA table_info(song)").all() as Column[]
+);
 db.exec(songQuery);
 
 // ********************************************
 // ************** Playlist stuff **************
 // ********************************************
 export interface RawPlaylistDB {
-    id: string
-    images: string
-    name: string
-    description: string
-    owner: string
-    followers: number
-    songs: string
+    id: string;
+    images: string;
+    name: string;
+    description: string;
+    owner: string;
+    followers: number;
+    songs: string;
 }
 
 export interface PlaylistDB {
-    id: string
-    images: ImageDB[]
-    name: string
-    description: string
-    owner: string
-    followers: number
-    songs: PlaylistDBSong[]
+    id: string;
+    images: ImageDB[];
+    name: string;
+    description: string;
+    owner: string;
+    followers: number;
+    songs: PlaylistDBSong[];
 }
 
 export interface PlaylistDBSong {
-    id: string
-    added_at: string
+    id: string;
+    added_at: string;
 }
 
-export function parsePlaylist(playlist: RawPlaylistDB | undefined): PlaylistDB | undefined {
-
-    if (!playlist) return undefined
+export function parsePlaylist(
+    playlist: RawPlaylistDB | undefined
+): PlaylistDB | undefined {
+    if (!playlist) return undefined;
 
     return {
         id: playlist.id,
@@ -380,8 +435,8 @@ export function parsePlaylist(playlist: RawPlaylistDB | undefined): PlaylistDB |
         description: playlist.description,
         owner: playlist.owner,
         followers: playlist.followers,
-        songs: JSON.parse(playlist.songs)
-    }
+        songs: JSON.parse(playlist.songs),
+    };
 }
 
 const playlistQuery = `CREATE TABLE IF NOT EXISTS playlist (
@@ -394,7 +449,11 @@ const playlistQuery = `CREATE TABLE IF NOT EXISTS playlist (
     songs TEXT NOT NULL 
 )`;
 
-checkTable("playlist", playlistQuery, db.prepare("PRAGMA table_info(playlist)").all() as Column[])
+checkTable(
+    "playlist",
+    playlistQuery,
+    db.prepare("PRAGMA table_info(playlist)").all() as Column[]
+);
 db.exec(playlistQuery);
 
 // *****************************************
@@ -402,43 +461,42 @@ db.exec(playlistQuery);
 // *****************************************
 
 export interface RawAlbumDB {
-    id: string
-    type: string
-    images: string
-    name: string
-    releaseDate: string
-    artists: string
-    copyrights: string
-    popularity: number
-    genres: string
-    songs: string
-    discCount: number
-    dateAdded: number
+    id: string;
+    type: string;
+    images: string;
+    name: string;
+    releaseDate: string;
+    artists: string;
+    copyrights: string;
+    popularity: number;
+    genres: string;
+    songs: string;
+    discCount: number;
+    dateAdded: number;
 }
 export interface AlbumDB {
-    id: string
-    type: string
-    images: ImageDB[]
-    name: string
-    releaseDate: string
-    artists: ArtistDB[]
-    copyrights: AlbumDBCopyright[]
-    popularity: number
-    genres: string[]
-    songs: string[]
-    discCount: number
-    dateAdded: number
+    id: string;
+    type: string;
+    images: ImageDB[];
+    name: string;
+    releaseDate: string;
+    artists: ArtistDB[];
+    copyrights: AlbumDBCopyright[];
+    popularity: number;
+    genres: string[];
+    songs: string[];
+    discCount: number;
+    dateAdded: number;
 }
 
 export interface AlbumDBCopyright {
-    text: string
-    type: string
+    text: string;
+    type: string;
 }
 
 export function parseAlbum(album: RawAlbumDB | undefined): AlbumDB | undefined {
-
     if (!album) {
-        return undefined
+        return undefined;
     }
     return {
         id: album.id,
@@ -452,8 +510,8 @@ export function parseAlbum(album: RawAlbumDB | undefined): AlbumDB | undefined {
         genres: JSON.parse(album.genres),
         songs: JSON.parse(album.songs),
         discCount: album.discCount,
-        dateAdded: album.dateAdded
-    }
+        dateAdded: album.dateAdded,
+    };
 }
 
 const albumQuery = `CREATE TABLE IF NOT EXISTS album (
@@ -471,5 +529,9 @@ const albumQuery = `CREATE TABLE IF NOT EXISTS album (
     dateAdded INTEGER NOT NULL
 )`;
 
-checkTable("album", albumQuery, db.prepare("PRAGMA table_info(album)").all() as Column[])
+checkTable(
+    "album",
+    albumQuery,
+    db.prepare("PRAGMA table_info(album)").all() as Column[]
+);
 db.exec(albumQuery);

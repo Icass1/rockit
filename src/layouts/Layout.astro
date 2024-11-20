@@ -1,15 +1,15 @@
 ---
 import "@/styles/default.css";
 import Header from "@/components/Header.astro";
-import Navigation from "@/components/Navigation.astro";
+import Navigation from "@/components/Navigation.tsx";
 import Footer from "@/components/Footer.astro";
 
 import { ViewTransitions } from "astro:transitions";
 import PlayerUI from "@/components/PlayerUI.tsx";
 
 export interface Props {
-	currentPage: string;
-	title?: string;
+    currentPage: string;
+    title?: string;
 }
 
 const { currentPage } = Astro.props;
@@ -18,77 +18,81 @@ const { title } = Astro.props;
 
 <!doctype html>
 <html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta
-			name="description"
-			content="Rock It! - A music player by Icass & Nicorebo18"
-		/>
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/rockit-logo.ico" />
-		<meta name="generator" content={Astro.generator} />
-		<title>{title || "RockIt"}</title>
-		<ViewTransitions />
-	</head>
-	<body>
-		<main
-			class="grid grid-rows-[min-content_1fr_min-content] grid-cols-[min-content_1fr]"
-		>
-			<div style={{ gridArea: "header" }}>
-				<Header />
-			</div>
-			<div style={{ gridArea: "nav" }} class="w-12 bg-black">
-				<Navigation activePage={currentPage} />
-			</div>
-			<div
-				class="min-w-0 max-w-full min-h-0 max-h-full overflow-auto relative"
-				style={{ gridArea: "main" }}
-			>
-				<PlayerUI client:only="react" />
-				<slot />
-			</div>
-			<div
-				class="min-w-0 max-w-full min-h-0 max-h-full overflow-auto"
-				style={{ gridArea: "footer" }}
-			>
-				<Footer />
-			</div>
-		</main>
-	</body>
+    <head>
+        <meta charset="UTF-8" />
+        <meta
+            name="description"
+            content="Rock It! - A music player by Icass & Nicorebo18"
+        />
+        <meta name="viewport" content="width=device-width" />
+        <link rel="icon" type="image/svg+xml" href="/rockit-logo.ico" />
+        <meta name="generator" content={Astro.generator} />
+        <title>{title || "RockIt"}</title>
+        <ViewTransitions />
+    </head>
+    <body>
+        <main
+            class="grid grid-rows-[min-content_1fr_min-content] grid-cols-[min-content_1fr]"
+        >
+            <div style={{ gridArea: "header" }}>
+                <Header />
+            </div>
+            <div style={{ gridArea: "nav" }}>
+                <Navigation
+                    activePage={currentPage}
+                    client:only="react"
+                    transition:persist
+                />
+            </div>
+            <div
+                class="min-w-0 max-w-full min-h-0 max-h-full overflow-auto relative"
+                style={{ gridArea: "main" }}
+            >
+                <PlayerUI client:only="react" />
+                <slot />
+            </div>
+            <div
+                class="min-w-0 max-w-full min-h-0 max-h-full overflow-auto"
+                style={{ gridArea: "footer" }}
+            >
+                <Footer />
+            </div>
+        </main>
+    </body>
 </html>
 
 <style>
-	main {
-		grid-template-areas:
-			"nav header"
-			"nav main"
-			"footer footer";
-	}
+    main {
+        grid-template-areas:
+            "nav header"
+            "nav main"
+            "footer footer";
+    }
 
-	/* width */
-	*::-webkit-scrollbar {
-		width: 10px;
-		height: 10px;
-	}
+    /* width */
+    *::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
 
-	/* Track */
-	*::-webkit-scrollbar-track {
-		background: rgb(20, 20, 20);
-	}
+    /* Track */
+    *::-webkit-scrollbar-track {
+        background: rgb(20, 20, 20);
+    }
 
-	/* Handle */
-	*::-webkit-scrollbar-thumb {
-		background: #444;
-		border-radius: 10px;
-	}
+    /* Handle */
+    *::-webkit-scrollbar-thumb {
+        background: #444;
+        border-radius: 10px;
+    }
 
-	*::-webkit-scrollbar-thumb:horizontal {
-		background: rgb(50,50,50);
-		border-radius: 10px;
-	}
+    *::-webkit-scrollbar-thumb:horizontal {
+        background: rgb(50, 50, 50);
+        border-radius: 10px;
+    }
 
-	/* Handle on hover */
-	*::-webkit-scrollbar-thumb:hover {
-		background: #aaa;
-	}
+    /* Handle on hover */
+    *::-webkit-scrollbar-thumb:hover {
+        background: #aaa;
+    }
 </style>

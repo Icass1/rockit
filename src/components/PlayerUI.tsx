@@ -4,7 +4,6 @@ import { isPlayerUIVisible } from "@/stores/isPlayerUIVisible";
 import { useStore } from "@nanostores/react";
 import { useEffect, useState } from "react";
 
-
 function MockupLyrics() {
     const currentLyric = "This is the current lyric"; // Lírica actual (puede ser dinámica)
     const pastLyrics = ["Previous lyric line 1", "Previous lyric line 2"]; // Líricas anteriores
@@ -16,10 +15,11 @@ function MockupLyrics() {
 
             {pastLyrics.map((lyric, index) => (
                 <p
-                    className={`truncate ${index === pastLyrics.length - 1
-                        ? "text-gray-300 text-2xl text-center" // Última línea pasada: más grande.
-                        : "text-gray-400 text-lg text-center" // Otras pasadas.
-                        }`}
+                    className={`truncate ${
+                        index === pastLyrics.length - 1
+                            ? "text-gray-300 text-2xl text-center" // Última línea pasada: más grande.
+                            : "text-gray-400 text-lg text-center" // Otras pasadas.
+                    }`}
                 >
                     {lyric}
                 </p>
@@ -32,10 +32,11 @@ function MockupLyrics() {
 
             {futureLyrics.map((lyric, index) => (
                 <p
-                    className={`truncate ${index === 0
-                        ? "text-gray-300 text-2xl text-center" // Primera línea futura: más grande.
-                        : "text-gray-400 text-lg text-center" // Otras futuras.
-                        }`}
+                    className={`truncate ${
+                        index === 0
+                            ? "text-gray-300 text-2xl text-center" // Primera línea futura: más grande.
+                            : "text-gray-400 text-lg text-center" // Otras futuras.
+                    }`}
                 >
                     {lyric}
                 </p>
@@ -43,8 +44,7 @@ function MockupLyrics() {
             {/* Espaciador flexible para equilibrar*/}
             <div className="flex-grow"></div>
         </div>
-
-    )
+    );
 }
 
 const lyricsTimeStamp = {
@@ -101,112 +101,240 @@ const lyricsTimeStamp = {
         { time: 204.963814, index: 49 },
         { time: 211.339704, index: 50 },
         { time: 217.469934, index: 51 },
-        { time: 223.313882, index: 52 }
-    ].reverse()
-}
+        { time: 223.313882, index: 52 },
+    ].reverse(),
+};
 
 function DynamicLyrics() {
-    const $currentSong = useStore(currentSong)
-    const $currentTime = useStore(currentTime)
+    const $currentSong = useStore(currentSong);
+    const $currentTime = useStore(currentTime);
 
-    const [lyricsIndex, setLyricsIndex] = useState(0)
-    const [lyrics, setLyrics] = useState<string[] | string>()
-
-    useEffect(() => {
-
-        if (!$currentSong?.id) { return }
-
-        fetch(`/api/song/${$currentSong?.id}?q=lyrics`).then(response => response.json()).then((data: SongDB<"lyrics">) => {
-            if (!data.lyrics) { return }
-            setLyrics(data.lyrics.split("\n") || "")
-        })
-
-    }, [$currentSong])
+    const [lyricsIndex, setLyricsIndex] = useState(0);
+    const [lyrics, setLyrics] = useState<string[] | string>();
 
     useEffect(() => {
-        if (!lyrics) { return }
+        if (!$currentSong?.id) {
+            return;
+        }
+
+        fetch(`/api/song/${$currentSong?.id}?q=lyrics`)
+            .then((response) => response.json())
+            .then((data: SongDB<"lyrics">) => {
+                if (!data.lyrics) {
+                    return;
+                }
+                setLyrics(data.lyrics.split("\n") || "");
+            });
+    }, [$currentSong]);
+
+    useEffect(() => {
+        if (!lyrics) {
+            return;
+        }
 
         const handleKey = (event: KeyboardEvent) => {
             if (event.code == "ArrowRight") {
-                setLyricsIndex(value => Math.min(value + 1, lyrics.length - 1))
-                console.log(currentTime.get(), lyricsIndex)
+                setLyricsIndex((value) =>
+                    Math.min(value + 1, lyrics.length - 1)
+                );
+                console.log(currentTime.get(), lyricsIndex);
             } else if (event.code == "ArrowLeft") {
-                setLyricsIndex(value => Math.max(value - 1, 0))
+                setLyricsIndex((value) => Math.max(value - 1, 0));
             }
-        }
+        };
 
-        document.addEventListener("keyup", handleKey)
+        document.addEventListener("keyup", handleKey);
 
         return () => {
-            document.removeEventListener("keyup", handleKey)
-        }
-    }, [lyrics, lyricsIndex])
+            document.removeEventListener("keyup", handleKey);
+        };
+    }, [lyrics, lyricsIndex]);
 
     useEffect(() => {
-        if (!$currentSong || !$currentTime) { return }
+        if (!$currentSong || !$currentTime) {
+            return;
+        }
 
-        const timeStamps = Object.entries(lyricsTimeStamp).find((a) => { return a[0] == $currentSong.id })?.[1]
-        if (!timeStamps) { return }
+        const timeStamps = Object.entries(lyricsTimeStamp).find((a) => {
+            return a[0] == $currentSong.id;
+        })?.[1];
+        if (!timeStamps) {
+            return;
+        }
 
-        const index = timeStamps.find(timeStamp => timeStamp.time < $currentTime)?.index
-        if (typeof index != "number") { return }
+        const index = timeStamps.find(
+            (timeStamp) => timeStamp.time < $currentTime
+        )?.index;
+        if (typeof index != "number") {
+            return;
+        }
 
-        setLyricsIndex(index + 1)
-
-    }, [$currentTime, $currentSong])
+        setLyricsIndex(index + 1);
+    }, [$currentTime, $currentSong]);
 
     if (typeof lyrics == "string" || typeof lyrics == "undefined") {
-        return <div>No lyrics found</div>
+        return <div>No lyrics found</div>;
     }
 
-    const commonSyles = "absolute px-4 text-center -translate-y-1/2 transition-all duration-500 text-balance"
+    const commonSyles =
+        "absolute px-4 text-center -translate-y-1/2 transition-all duration-500 text-balance";
 
     return (
         <div className="flex flex-col justify-center items-center px-4 overflow-hidden relative h-full">
             {lyrics.map((line, index) => {
                 switch (index - lyricsIndex) {
                     case -2:
-                        return <div key={index} className={commonSyles} style={{ top: "30%", fontSize: "15px", fontWeight: 600, lineHeight: '28px', maxWidth: "60%", color: "rgb(200, 200, 200)" }}>{line}</div>
+                        return (
+                            <div
+                                key={index}
+                                className={commonSyles}
+                                style={{
+                                    top: "30%",
+                                    fontSize: "15px",
+                                    fontWeight: 600,
+                                    lineHeight: "28px",
+                                    maxWidth: "60%",
+                                    color: "rgb(200, 200, 200)",
+                                }}
+                            >
+                                {line}
+                            </div>
+                        );
                     case -1:
-                        return <div key={index} className={commonSyles} style={{ top: "40%", fontSize: "20px", fontWeight: 600, lineHeight: '32px', maxWidth: "80%", color: "rgb(200, 200, 200)" }}>{line}</div>
+                        return (
+                            <div
+                                key={index}
+                                className={commonSyles}
+                                style={{
+                                    top: "40%",
+                                    fontSize: "20px",
+                                    fontWeight: 600,
+                                    lineHeight: "32px",
+                                    maxWidth: "80%",
+                                    color: "rgb(200, 200, 200)",
+                                }}
+                            >
+                                {line}
+                            </div>
+                        );
                     case 0:
-                        return <div key={index} className={commonSyles} style={{ top: "50%", fontSize: "25px", fontWeight: 600, lineHeight: '40px', maxWidth: "100%" }}>{line}</div>
+                        return (
+                            <div
+                                key={index}
+                                className={commonSyles}
+                                style={{
+                                    top: "50%",
+                                    fontSize: "25px",
+                                    fontWeight: 600,
+                                    lineHeight: "40px",
+                                    maxWidth: "100%",
+                                }}
+                            >
+                                {line}
+                            </div>
+                        );
                     case 1:
-                        return <div key={index} className={commonSyles} style={{ top: "60%", fontSize: "20px", fontWeight: 600, lineHeight: '32px', maxWidth: "80%", color: "rgb(200, 200, 200)" }}>{line}</div>
+                        return (
+                            <div
+                                key={index}
+                                className={commonSyles}
+                                style={{
+                                    top: "60%",
+                                    fontSize: "20px",
+                                    fontWeight: 600,
+                                    lineHeight: "32px",
+                                    maxWidth: "80%",
+                                    color: "rgb(200, 200, 200)",
+                                }}
+                            >
+                                {line}
+                            </div>
+                        );
                     case 2:
-                        return <div key={index} className={commonSyles} style={{ top: "70%", fontSize: "15px", fontWeight: 600, lineHeight: '28px', maxWidth: "60%", color: "rgb(200, 200, 200)" }}>{line}</div>
+                        return (
+                            <div
+                                key={index}
+                                className={commonSyles}
+                                style={{
+                                    top: "70%",
+                                    fontSize: "15px",
+                                    fontWeight: 600,
+                                    lineHeight: "28px",
+                                    maxWidth: "60%",
+                                    color: "rgb(200, 200, 200)",
+                                }}
+                            >
+                                {line}
+                            </div>
+                        );
                 }
 
                 if (index - lyricsIndex > 0) {
-                    return <div key={index} className={commonSyles} style={{ top: "67%", fontSize: "0", fontWeight: 600, lineHeight: '28px', maxWidth: "10%", color: "rgb(200, 200, 200)" }}>{line}</div>
+                    return (
+                        <div
+                            key={index}
+                            className={commonSyles}
+                            style={{
+                                top: "67%",
+                                fontSize: "0",
+                                fontWeight: 600,
+                                lineHeight: "28px",
+                                maxWidth: "10%",
+                                color: "rgb(200, 200, 200)",
+                            }}
+                        >
+                            {line}
+                        </div>
+                    );
                 } else {
-                    return <div key={index} className={commonSyles} style={{ top: "33%", fontSize: "0", fontWeight: 600, lineHeight: '28px', maxWidth: "10%", color: "rgb(200, 200, 200)" }}>{line}</div>
-
+                    return (
+                        <div
+                            key={index}
+                            className={commonSyles}
+                            style={{
+                                top: "33%",
+                                fontSize: "0",
+                                fontWeight: 600,
+                                lineHeight: "28px",
+                                maxWidth: "10%",
+                                color: "rgb(200, 200, 200)",
+                            }}
+                        >
+                            {line}
+                        </div>
+                    );
                 }
             })}
         </div>
-    )
+    );
 }
 
 export default function PlayerUI() {
-    const $currentSong = useStore(currentSong)
+    const $currentSong = useStore(currentSong);
 
     const [currentTab, setCurrentTab] = useState("queue");
 
-    const $isPlayerUIVisible = useStore(isPlayerUIVisible)
-    const $queue = useStore(queue)
+    const $isPlayerUIVisible = useStore(isPlayerUIVisible);
+    const $queue = useStore(queue);
 
     return (
         <div
             className="absolute inset-0 bg-black/80 backdrop-blur-md z-50 flex justify-center items-center transition-all overflow-hidden duration-200"
             // style={{ display: $isPlayerUIVisible ? 'flex' : 'none' }}
-            style={{ transform: $isPlayerUIVisible ? 'translateY(0%)' : 'translateY(-100%)' }}
-        > {/* Invert flex and none */}
-
+            style={{
+                transform: $isPlayerUIVisible
+                    ? "translateY(0%)"
+                    : "translateY(-100%)",
+            }}
+        >
+            {" "}
+            {/* Invert flex and none */}
             <div
                 className="relative w-full h-full bg-black text-white"
                 style={{
-                    backgroundImage: `url(${$currentSong?.images[0]?.url || "/song-placeholder.png"})`,
+                    backgroundImage: `url(${
+                        $currentSong?.images[0]?.url || "/song-placeholder.png"
+                    })`,
                     backgroundSize: "cover",
                     backgroundPosition: "center",
                 }}
@@ -224,13 +352,20 @@ export default function PlayerUI() {
                     <div className="min-w-0 min-h-0 max-w-full relative max-h-full">
                         <div className="h-fit min-w-0 min-h-0 max-w-full top-1/2 relative -translate-y-1/2">
                             <img
-                                src={$currentSong?.images[0]?.url || "/song-placeholder.png"}
+                                src={
+                                    $currentSong?.images[0]?.url ||
+                                    "/song-placeholder.png"
+                                }
                                 alt="Song Cover"
                                 className="object-cover min-w-0 min-h-0 mx-auto max-h-full w-full max-w-[500px]  rounded-lg aspect-square"
                             />
                             <div className="text-center">
-                                <h1 className="text-3xl font-bold">{$currentSong?.name}</h1>
-                                <p className="text-gray-400 text-lg mt-2 font-medium">{$currentSong?.albumName} · Release date</p>
+                                <h1 className="text-3xl font-bold">
+                                    {$currentSong?.name}
+                                </h1>
+                                <p className="text-gray-400 text-lg mt-2 font-medium">
+                                    {$currentSong?.albumName} · Release date
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -240,19 +375,21 @@ export default function PlayerUI() {
                         {/* Selector */}
                         <div className="flex space-x-4 mb-4">
                             <button
-                                className={`px-4 py-2 rounded ${currentTab === "queue"
-                                    ? "bg-gray-700 text-white"
-                                    : "bg-gray-300 text-gray-700"
-                                    }`}
+                                className={`px-4 py-2 rounded ${
+                                    currentTab === "queue"
+                                        ? "bg-gray-700 text-white"
+                                        : "bg-gray-300 text-gray-700"
+                                }`}
                                 onClick={() => setCurrentTab("queue")}
                             >
                                 Cola
                             </button>
                             <button
-                                className={`px-4 py-2 rounded ${currentTab === "recommended"
-                                    ? "bg-gray-700 text-white"
-                                    : "bg-gray-300 text-gray-700"
-                                    }`}
+                                className={`px-4 py-2 rounded ${
+                                    currentTab === "recommended"
+                                        ? "bg-gray-700 text-white"
+                                        : "bg-gray-300 text-gray-700"
+                                }`}
                                 onClick={() => setCurrentTab("recommended")}
                             >
                                 Recomendados
@@ -264,7 +401,10 @@ export default function PlayerUI() {
                             {currentTab === "queue" ? (
                                 <ul className="flex flex-col gap-y-2">
                                     {$queue.map((song) => (
-                                        <li key={song.id} className="flex items-center gap-x-2">
+                                        <li
+                                            key={song.id}
+                                            className="flex items-center gap-x-2"
+                                        >
                                             {/* Cover */}
                                             <img
                                                 src={song.images[0].url}
@@ -273,11 +413,22 @@ export default function PlayerUI() {
                                             />
                                             {/* Song Info */}
                                             <div className="flex-1 min-w-0 max-w-full">
-                                                <p className="text-white text-sm font-bold truncate">{song.name}</p>
-                                                <p className="text-gray-400 text-xs truncate">{song.artists.map(artist => artist.name).join(", ")}</p>
+                                                <p className="text-white text-sm font-bold truncate">
+                                                    {song.name}
+                                                </p>
+                                                <p className="text-gray-400 text-xs truncate">
+                                                    {song.artists
+                                                        .map(
+                                                            (artist) =>
+                                                                artist.name
+                                                        )
+                                                        .join(", ")}
+                                                </p>
                                             </div>
                                             {/* Duration */}
-                                            <p className="text-gray-300 text-sm">{getTime(song.duration)}</p>
+                                            <p className="text-gray-300 text-sm">
+                                                {getTime(song.duration)}
+                                            </p>
                                         </li>
                                     ))}
                                 </ul>
@@ -289,5 +440,5 @@ export default function PlayerUI() {
                 </div>
             </div>
         </div>
-    )
+    );
 }

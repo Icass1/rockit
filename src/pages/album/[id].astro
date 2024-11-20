@@ -13,7 +13,7 @@ import { Disc } from "lucide-react";
 const { id } = Astro.params as { id: string };
 
 const album = parseAlbum(
-    db.prepare("SELECT * FROM album WHERE id = ?").get(id) as RawAlbumDB,
+    db.prepare("SELECT * FROM album WHERE id = ?").get(id) as RawAlbumDB
 );
 
 if (!album) {
@@ -23,13 +23,13 @@ if (!album) {
         }),
         {
             status: 404,
-        },
+        }
     );
 }
 
 const songs = album.songs.map(
     (
-        songID: string,
+        songID: string
     ):
         | SongDB<
               | "images"
@@ -47,11 +47,11 @@ const songs = album.songs.map(
         return parseSong(
             db
                 .prepare(
-                    "SELECT images, id, name, artists, albumId, albumName, path, duration, discNumber, trackNumber FROM song WHERE id = ?",
+                    "SELECT images, id, name, artists, albumId, albumName, path, duration, discNumber, trackNumber FROM song WHERE id = ?"
                 )
-                .get(songID) as RawSongDB,
+                .get(songID) as RawSongDB
         );
-    },
+    }
 );
 
 songs.sort((a, b) => {
@@ -137,7 +137,7 @@ function getDate(date: string) {
                     getMinutes(
                         songs.reduce((accumulator: number, song) => {
                             return accumulator + (song?.duration || 0);
-                        }, 0),
+                        }, 0)
                     )
                 } Minutes</label
             >

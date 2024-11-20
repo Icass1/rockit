@@ -67,7 +67,7 @@ const albums = (db.prepare("SELECT * FROM album").all() as RawAlbumDB[]).map(
                     return (
                         <a
                             href={`/album/${album.id}`}
-                            class="w-fit h-fit flex flex-col min-w-0 max-w-full hover:scale-110 transition-transform"
+                            class="w-fit h-fit flex flex-col min-w-0 max-w-full hover:scale-105 transition-transform"
                         >
                             <img
                                 class="rounded-md"

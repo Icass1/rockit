@@ -109,7 +109,7 @@ db.exec(`CREATE TABLE IF NOT EXISTS session (
 // ************** User stuff **************
 // ****************************************
 
-export interface UserDB {
+export interface RawUserDB {
     id: string
     username: string
     passwordHash: string
@@ -119,6 +119,33 @@ export interface UserDB {
     currentSong: string | undefined
     currentTime: number | undefined
     queue: string
+    queueIndex: number | undefined
+    randomQueue: string
+    volume: number
+    admin: string
+    superAdmin: string
+    devUser: string
+    showLyrics: string
+    updatedAt: number
+    createdAt: number
+}
+
+interface UserDBLastPlayedSong {
+    id: string
+    date: number
+}
+
+export type UserDB<Keys extends keyof UserDBFull = keyof UserDBFull> = Pick<UserDBFull, Keys>;
+export interface UserDBFull {
+    id: string
+    username: string
+    passwordHash: string
+    lists: string[]
+    lastPlayedSong: UserDBLastPlayedSong[] | undefined
+    currentList: string | undefined
+    currentSong: string | undefined
+    currentTime: number | undefined
+    queue: string[]
     queueIndex: number | undefined
     randomQueue: string
     volume: number
@@ -152,6 +179,34 @@ const userQuery = `CREATE TABLE IF NOT EXISTS user (
     createdAt INTEGER NOT NULL
 )`
 
+export function parseUser(user: RawUserDB | undefined): UserDB | undefined {
+
+    if (!user) {
+        return undefined
+    }
+
+    return {
+        id: user.id,
+        username: user.username,
+        passwordHash: user.passwordHash,
+        lists: JSON.parse(user.lists|| "[]"),
+        lastPlayedSong: user.lastPlayedSong ? JSON.parse(user.lastPlayedSong|| "[]") : undefined,
+        currentList: user.currentList,
+        currentSong: user.currentSong,
+        currentTime: user.currentTime,
+        queue: JSON.parse(user.queue|| "[]"),
+        queueIndex: user.queueIndex,
+        randomQueue: user.randomQueue,
+        volume: user.volume,
+        admin: user.admin,
+        superAdmin: user.superAdmin,
+        devUser: user.devUser,
+        showLyrics: user.showLyrics,
+        updatedAt: user.updatedAt,
+        createdAt: user.createdAt
+    }
+}
+
 checkTable("user", userQuery, db.prepare("PRAGMA table_info(user)").all() as Column[])
 db.exec(userQuery);
 
@@ -183,6 +238,8 @@ export interface RawSongDB {
     popularity: number | undefined
     dateAdded: string | undefined
 }
+
+
 
 export type SongDB<Keys extends keyof SongDBFull = keyof SongDBFull> = Pick<SongDBFull, Keys>;
 export type SongDBFull = {

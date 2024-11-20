@@ -13,6 +13,7 @@
 - Change all database column names to camelCase
 - Handle .env missing
 - <span style="color:#3287a8">(Impr: Make songs crossover between them so it seems like endless)</span>
+- <span style="color:#3287a8">(Impr: When no one playing music -> Use WhisperAI to process songs)</span>
 - Fix "MetadataError: Failed to embed metadata to the song"
 - ✅ Migrate from Astro DB to SQLite3
 - ✅ Add logger

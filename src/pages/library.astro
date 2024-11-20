@@ -22,10 +22,20 @@ const albums = (db.prepare("SELECT * FROM album").all() as RawAlbumDB[]).map(
 ---
 
 <Layout title="Rock It!" currentPage="Library">
-    <div class="p-4">
-        <label class="text-white text-4xl font-bold"> Library </label>
+    <div class="p-8 h-full">
+        <label class="text-white text-4xl font-bold pb-6 block"> Library </label>
+        <input
+            class="absolute font-semibold bg-neutral-900 z-50 shadow mx-auto rounded-full block text-1xl px-10 w-1/10 h-8 -translate-y-12 focus:outline-0 right-5"
+            style={{
+                backgroundImage: "url(/search-icon.png)",
+                backgroundPosition: "15px center",
+                backgroundSize: "14px",
+                backgroundRepeat: "no-repeat",
+            }}
+            placeholder="Search in Library"
+        />
         <div
-            class="grid gap-4"
+            class="grid gap-5"
             style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));"
         >
             {
@@ -34,17 +44,17 @@ const albums = (db.prepare("SELECT * FROM album").all() as RawAlbumDB[]).map(
                     return (
                         <a
                             href={`/playlist/${playlist.id}`}
-                            class="w-fit h-fit flex flex-col min-w-0 max-w-full hover:scale-105 transition-transform"
+                            class="w-fit h-fit flex flex-col min-w-0 max-w-full hover:scale-110 transition-transform"
                         >
                             <img
-                                class=""
+                                class="rounded-md"
                                 src={playlist.images[0]?.url}
                                 transition:name={`img-playlist-${playlist.id}`}
                             />
-                            <label class="truncate font-semibold">
+                            <label class="truncate font-semibold text-center">
                                 {playlist.name}
                             </label>
-                            <label class="truncate text-sm">
+                            <label class="truncate text-sm text-center text-gray-400">
                                 {playlist.owner}
                             </label>
                         </a>
@@ -57,17 +67,17 @@ const albums = (db.prepare("SELECT * FROM album").all() as RawAlbumDB[]).map(
                     return (
                         <a
                             href={`/album/${album.id}`}
-                            class="w-fit h-fit flex flex-col min-w-0 max-w-full hover:scale-105 transition-transform"
+                            class="w-fit h-fit flex flex-col min-w-0 max-w-full hover:scale-110 transition-transform"
                         >
                             <img
-                                class=""
+                                class="rounded-md"
                                 src={album.images[0]?.url}
                                 transition:name={`img-album-${album.id}`}
                             />
-                            <label class="truncate font-semibold">
+                            <label class="truncate font-semibold text-center mt-1">
                                 {album.name}
                             </label>
-                            <label class="truncate text-sm">
+                            <label class="truncate font-semibold text-sm text-center text-gray-400">
                                 {album.artists.map((artist) => artist.name)}
                             </label>
                         </a>

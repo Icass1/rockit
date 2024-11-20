@@ -104,23 +104,27 @@ function getDate(date: string) {
 }
 ---
 
-<Layout title={album.name} currentPage="">
+<Layout title={album.name + " • Rock It!"} currentPage="">
     <div
         class="p-4 g rid flex flex-row w-full h-full grid-cols-[min-content_1fr] relative"
     >
+        <a class="absolute px-5 py-2 hover:bg-[#2e2e2e] cursor-pointer bg-[#1d1d1d] rounded-xl left-[3.5rem]" href="/library">
+            Return
+        </a>
         <div
             class="flex flex-col gap-1 relative top-1/2 -translate-y-1/2 w-1/3 max-w-96 h-fit mx-10"
         >
-            <label class="text-center text-xl font-semibold"
-                >{album.artists.map((artist) => artist.name)}</label
-            >
             <img
                 src={album.images[0].url}
-                class=""
+                class=" rounded-md"
                 transition:name={`img-album-${album.id}`}
             />
-            <label class="text-xl font-semibold">{album.name}</label>
-            <label class="text-sm"
+            <a class="pt-2 text-2xl font-semibold hover:underline" href={`/album/${album.id}`}>{album.name}</a>
+            <a class="text-xl font-semibold text-stone-400 hover:underline"
+                >{album.artists.map((artist) => artist.name)}</a
+            >
+            <!-- Meter arriba cuando esté: href={`/artist/${artist.id}`} -->
+            <label class="text-sm text-stone-400"
                 >{getDate(album.releaseDate)} | {album.songs.length} Songs | {
                     getMinutes(
                         songs.reduce((accumulator: number, song) => {

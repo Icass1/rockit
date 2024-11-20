@@ -1,5 +1,5 @@
 import type { SongDB } from "@/lib/db";
-import { currentSong, currentTime, queue } from "@/stores/audio";
+import { currentSong, currentTime, queue, getTime } from "@/stores/audio";
 import { isPlayerUIVisible } from "@/stores/isPlayerUIVisible";
 import { useStore } from "@nanostores/react";
 import { useEffect, useState } from "react";
@@ -277,7 +277,7 @@ export default function PlayerUI() {
                                                 <p className="text-gray-400 text-xs truncate">{song.artists.map(artist => artist.name).join(", ")}</p>
                                             </div>
                                             {/* Duration */}
-                                            <p className="text-gray-300 text-sm">{song.duration}</p>
+                                            <p className="text-gray-300 text-sm">{getTime(song.duration)}</p>
                                         </li>
                                     ))}
                                 </ul>

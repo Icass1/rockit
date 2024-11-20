@@ -75,10 +75,14 @@ const discs: SongDB<
     | "duration"
     | "discNumber"
     | "trackNumber"
->[][] = Array(Math.max(...songs.map((song) => song?.discNumber || 0))).fill([]);
+>[][] = Array(Math.max(...songs.map((song) => song?.discNumber || 0)))
+    .fill(1)
+    .map((_) => []);
 
 songs.map((song) => {
-    if (song?.discNumber) discs[song?.discNumber - 1].push(song);
+    if (song?.discNumber) {
+        discs[song?.discNumber - 1].push({ ...song });
+    }
 });
 
 function getMinutes(seconds: number) {
@@ -104,11 +108,14 @@ function getDate(date: string) {
 }
 ---
 
-<Layout title={album.name + " • Rock It!"} currentPage="">
+<Layout title={album.name} currentPage="">
     <div
         class="p-4 g rid flex flex-row w-full h-full grid-cols-[min-content_1fr] relative"
     >
-        <a class="absolute px-5 py-2 hover:bg-[#2e2e2e] cursor-pointer bg-[#1d1d1d] rounded-xl left-[3.5rem]" href="/library">
+        <a
+            class="absolute px-5 py-2 hover:bg-[#2e2e2e] cursor-pointer bg-[#1d1d1d] rounded-xl left-[3.5rem]"
+            href="/library"
+        >
             Return
         </a>
         <div
@@ -116,11 +123,12 @@ function getDate(date: string) {
         >
             <img
                 src={album.images[0].url}
-                class=" rounded-md"
+                class="rounded-md"
                 transition:name={`img-album-${album.id}`}
             />
-            <a class="pt-2 text-2xl font-semibold hover:underline" href={`/album/${album.id}`}>{album.name}</a>
-            <a class="text-xl font-semibold text-stone-400 hover:underline"
+            <label class="pt-2 text-2xl font-semibold">{album.name}</label>
+            <a
+                class="text-xl font-semibold text-stone-400 hover:underline cursor-pointer"
                 >{album.artists.map((artist) => artist.name)}</a
             >
             <!-- Meter arriba cuando esté: href={`/artist/${artist.id}`} -->
@@ -138,20 +146,20 @@ function getDate(date: string) {
             class="min-w-0 max-w-full w-full min-h-0 max-h-full h-full overflow-auto flex flex-col gap-y-4"
         >
             {
-                discs.map((songs, index) => {
+                discs.map((discSongs, discIndex) => {
                     return (
                         <>
                             <label class="text-neutral-400 font-semibold flex flex-row gap-2 items-center">
                                 <Disc className="h-5 w-5" />
-                                Disc {index + 1}
+                                Disc {discIndex + 1}
                             </label>
 
-                            {songs.map((song, index) => {
+                            {discSongs.map((song, songIndex) => {
                                 if (song) {
                                     return (
                                         <AlbumSong
                                             song={song}
-                                            index={index}
+                                            index={songIndex}
                                             client:only="react"
                                             albumId={id}
                                         />

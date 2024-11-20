@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react"
 import pkg from 'lodash';
-import { searchResults } from "@/stores/searchResults";
+import { searchQuery, searchResults } from "@/stores/searchResults";
+import { useStore } from "@nanostores/react";
 const { debounce } = pkg;
 
 export default function SearchBar({ }) {
 
-    const [value, setValue] = useState("")
+    const value = useStore(searchQuery)
 
     const searchDebounce = useRef<pkg.DebouncedFunc<(query: string) => void>>()
 
@@ -30,7 +31,7 @@ export default function SearchBar({ }) {
             return
         }
 
-        fetch(`http://localhost:8000/search?q=${query}`).then(data => data.json()).then(json => {
+        fetch(`/api/search?q=${query}`).then(data => data.json()).then(json => {
             searchResults.setKey("albums", json.albums)
             searchResults.setKey("songs", json.songs)
             searchResults.setKey("playlists", json.playlists)
@@ -41,8 +42,8 @@ export default function SearchBar({ }) {
     return (
         <input
             value={value}
-            onChange={(e) => { setValue(e.target.value) }}
-            className="font-semibold bg-neutral-900 z-50 shadow mx-auto rounded-full block relative text-1xl px-10 w-1/2 h-3/4 top-1/2 -translate-y-1/2 focus:outline-0"
+            onChange={(e) => { searchQuery.set(e.target.value) }}
+            className="font-semibold bg-neutral-900 z-50 shadow mx-auto rounded-full block relative text-1xl px-10 w-3/4 max-w-[600px] h-3/4 top-1/2 -translate-y-1/2 focus:outline-0"
             style={{
                 backgroundImage: "url(/search-icon.png)",
                 backgroundPosition: "15px center",

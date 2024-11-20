@@ -1,4 +1,9 @@
 {
-  "recommendations": ["astro-build.astro-vscode", "bradlc.vscode-tailwindcss", "humao.rest-client"],
-  "unwantedRecommendations": []
+    "recommendations": [
+        "astro-build.astro-vscode",
+        "bradlc.vscode-tailwindcss",
+        "humao.rest-client",
+        "esbenp.prettier-vscode"
+    ],
+    "unwantedRecommendations": []
 }

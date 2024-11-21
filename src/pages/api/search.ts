@@ -4,8 +4,12 @@ import { db } from "@/lib/db";
 
 export async function GET(context: APIContext): Promise<Response> {
     const query = context.url.searchParams.get("q");
-
-    const response = await fetch(`http://localhost:8000/search?q=${query}`);
+    let response;
+    try {
+        response = await fetch(`http://localhost:8000/search?q=${query}`);
+    } catch {
+        return new Response("Unable to fetch", { status: 404 });
+    }
     const json = (await response.json()) as SearchResults;
 
     for (let index in json.songs) {

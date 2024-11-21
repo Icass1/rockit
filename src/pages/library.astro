@@ -17,7 +17,7 @@ const playlists = (
 ).map((playlist: RawPlaylistDB) => parsePlaylist(playlist));
 
 const albums = (db.prepare("SELECT * FROM album").all() as RawAlbumDB[]).map(
-    (album) => parseAlbum(album),
+    (album) => parseAlbum(album)
 );
 ---
 
@@ -51,7 +51,6 @@ const albums = (db.prepare("SELECT * FROM album").all() as RawAlbumDB[]).map(
                             <img
                                 class="rounded-md"
                                 src={playlist.images[0]?.url}
-                                transition:name={`img-playlist-${playlist.id}`}
                             />
                             <label class="truncate font-semibold text-center">
                                 {playlist.name}
@@ -74,7 +73,6 @@ const albums = (db.prepare("SELECT * FROM album").all() as RawAlbumDB[]).map(
                             <img
                                 class="rounded-md"
                                 src={album.images[0]?.url}
-                                transition:name={`img-album-${album.id}`}
                             />
                             <label class="truncate font-semibold text-center mt-1">
                                 {album.name}

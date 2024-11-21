@@ -199,6 +199,9 @@ class ListDownloader:
                 last_messages_len[song.id] = len(self.downloader.downloads_dict[song.id]["messages"])
             time.sleep(0.2)
 
+    def __str__(self) -> str:
+        return f"ListDownloader(url={self.url})"
+
 class SongDownloader:
     def __init__(self, url, downloader: "Downloader"):
         """Must be executed instantly"""
@@ -224,6 +227,9 @@ class SongDownloader:
 
     def download(self):
         self.downloader.download_song(spotdl_song=self.spotdl_song, raw_song=self.raw_song)
+
+    def __str__(self) -> str:
+        return f"SongDownloader(url={self.url})"
 
     def status(self):
 

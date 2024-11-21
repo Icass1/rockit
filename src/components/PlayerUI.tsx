@@ -1,5 +1,11 @@
 import type { SongDB } from "@/lib/db";
-import { currentSong, currentTime, queue, getTime } from "@/stores/audio";
+import {
+    currentSong,
+    currentTime,
+    queue,
+    getTime,
+    queueIndex,
+} from "@/stores/audio";
 import { isPlayerUIVisible } from "@/stores/isPlayerUIVisible";
 import { useStore } from "@nanostores/react";
 import { useEffect, useState } from "react";
@@ -49,6 +55,7 @@ function MockupLyrics() {
 
 const lyricsTimeStamp = {
     "3jnoftwNCmIuTNVkxakisg": [
+        { time: 0, index: -1 },
         { time: 3.616696, index: 0 },
         { time: 8.950831, index: 1 },
         { time: 9.215222, index: 2 },
@@ -316,6 +323,7 @@ export default function PlayerUI() {
 
     const $isPlayerUIVisible = useStore(isPlayerUIVisible);
     const $queue = useStore(queue);
+    const $queueIndex = useStore(queueIndex);
 
     return (
         <div
@@ -364,7 +372,7 @@ export default function PlayerUI() {
                                     {$currentSong?.name}
                                 </h1>
                                 <p className="text-gray-400 text-lg mt-2 font-medium">
-                                    {$currentSong?.albumName} · Release date
+                                    {$currentSong?.albumName} · No release date
                                 </p>
                             </div>
                         </div>
@@ -397,14 +405,21 @@ export default function PlayerUI() {
                         </div>
 
                         {/* Contenido dinámico */}
-                        <div className="flex-1 overflow-auto bg-gray-800 rounded p-4">
+                        <div className="flex-1 overflow-auto bg-gray-800 rounded pl-2 p-4">
                             {currentTab === "queue" ? (
                                 <ul className="flex flex-col gap-y-2">
-                                    {$queue.map((song) => (
+                                    {$queue.map((song, index) => (
                                         <li
                                             key={song.id}
                                             className="flex items-center gap-x-2"
                                         >
+                                            <div
+                                                className={` h-2 w-2 rounded-full ${
+                                                    index == $queueIndex
+                                                        ? " bg-green-700"
+                                                        : ""
+                                                }`}
+                                            ></div>
                                             {/* Cover */}
                                             <img
                                                 src={song.images[0].url}

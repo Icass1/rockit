@@ -1,5 +1,5 @@
-import { atom } from 'nanostores';
-import type { SongDB, UserDB } from "@/lib/db"
+import { atom } from "nanostores";
+import type { SongDB, UserDB } from "@/lib/db";
 
 const websocket = new WebSocket("ws://localhost:4321/ws");
 websocket.onopen = (event) => {
@@ -12,28 +12,40 @@ websocket.onclose = (event) => {
     console.log("Web socket close");
 };
 
-type Queue = SongDB<"id" | "name" | "artists" | "images" | "duration">[]
-type CurrentSong = SongDB<"images" | "id" | "name" | "artists" | "albumId" | "albumName"> | undefined
+type Queue = SongDB<"id" | "name" | "artists" | "images" | "duration">[];
+type CurrentSong =
+    | SongDB<"images" | "id" | "name" | "artists" | "albumId" | "albumName">
+    | undefined;
 
-const json = await (await fetch("/api/user?q=currentSong,currentTime,queue,queueIndex")).json() as UserDB<"currentSong" | "currentTime" | "queue" | "queueIndex">
+const json = (await (
+    await fetch("/api/user?q=currentSong,currentTime,queue,queueIndex")
+).json()) as UserDB<"currentSong" | "currentTime" | "queue" | "queueIndex">;
 
-let _currentSong = undefined
-let _queue: Queue = []
-let _queueIndex = json.queueIndex || 0
+let _currentSong = undefined;
+let _queue: Queue = [];
+let _queueIndex = json.queueIndex || 0;
 
 if (json.currentSong) {
-    _currentSong = await (await fetch(`/api/song/${json.currentSong}?q=images,id,name,artists,albumId,albumName`)).json() as CurrentSong
+    _currentSong = (await (
+        await fetch(
+            `/api/song/${json.currentSong}?q=images,id,name,artists,albumId,albumName`
+        )
+    ).json()) as CurrentSong;
 }
 
 if (json.queue.length > 0) {
-    _queue = await (await fetch(`/api/songs?songs=${json.queue.join()}&p=id,name,artists,images,duration`)).json() as Queue
+    _queue = (await (
+        await fetch(
+            `/api/songs?songs=${json.queue.join()}&p=id,name,artists,images,duration`
+        )
+    ).json()) as Queue;
 }
 
 const send = (json: any) => {
     if (websocket.OPEN == websocket.readyState) {
-        websocket.send(JSON.stringify(json))
+        websocket.send(JSON.stringify(json));
     }
-}
+};
 
 export const currentSong = atom<CurrentSong>(_currentSong);
 export const playing = atom<boolean>(false);
@@ -42,36 +54,37 @@ export const totalTime = atom<number | undefined>(undefined);
 export const queue = atom<Queue>(_queue);
 export const queueIndex = atom<number | undefined>(_queueIndex);
 
-const audio = new Audio(_currentSong?.id ? `/api/song/audio/${_currentSong?.id}` : undefined)
+const audio = new Audio(
+    _currentSong?.id ? `/api/song/audio/${_currentSong?.id}` : undefined
+);
 
 if (json.currentTime) {
-    audio.currentTime = json.currentTime
+    audio.currentTime = json.currentTime;
 }
 
 currentSong.subscribe((value) => {
-    send({ currentSong: currentSong.get()?.id })
+    send({ currentSong: currentSong.get()?.id });
     if (value) {
-        playing.set(false)
-        audio.src = `/api/song/audio/${value.id}`
+        playing.set(false);
+        audio.src = `/api/song/audio/${value.id}`;
     }
-})
+});
 
 queue.subscribe((value) => {
-    console.log("queue value", value)
-    send({ queue: value.map(value => value.id) })
-})
+    send({ queue: value.map((value) => value.id) });
+});
 
 queueIndex.subscribe((value) => {
-    send({ queueIndex: value })
-})
+    send({ queueIndex: value });
+});
 
 export const play = async () => {
-    await audio.play()
-}
+    await audio.play();
+};
 
 export const pause = () => {
-    audio.pause()
-}
+    audio.pause();
+};
 
 export function getTime(seconds: number) {
     seconds = Math.round(seconds);
@@ -92,37 +105,39 @@ export function getTime(seconds: number) {
 }
 
 export function setTime(time: number) {
-    audio.currentTime = time
+    audio.currentTime = time;
 }
 
 export async function next() {
-    console.log(queueIndex.get())
-
-    if (!queueIndex.get() && queueIndex.get() != 0) { return }
-    queueIndex.set(queueIndex.get() as number + 1)
-    await fetch(`/api/song/${queue.get()[queueIndex.get() as number].id}`).then(response => response.json()).then((data: SongDB) => {
-        currentSong.set(data)
-    })
+    if (!queueIndex.get() && queueIndex.get() != 0) {
+        return;
+    }
+    queueIndex.set((queueIndex.get() as number) + 1);
+    await fetch(`/api/song/${queue.get()[queueIndex.get() as number].id}`)
+        .then((response) => response.json())
+        .then((data: SongDB) => {
+            currentSong.set(data);
+        });
 }
 
 audio.addEventListener("canplay", () => {
-    totalTime.set(audio.duration)
-})
+    totalTime.set(audio.duration);
+});
 
 audio.addEventListener("timeupdate", () => {
-    currentTime.set(audio.currentTime)
-    send({ currentTime: audio.currentTime })
-})
+    currentTime.set(audio.currentTime);
+    send({ currentTime: audio.currentTime });
+});
 
 audio.addEventListener("play", () => {
-    playing.set(true)
-})
+    playing.set(true);
+});
 
 audio.addEventListener("pause", () => {
-    playing.set(false)
-})
+    playing.set(false);
+});
 
 audio.addEventListener("ended", async () => {
-    await next()
-    play()
-})
+    await next();
+    play();
+});

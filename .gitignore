@@ -32,3 +32,5 @@ rest
 *.db
 
 backend/logs
+
+adapters--astrojs-node-8.3.4

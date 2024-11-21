@@ -5,9 +5,15 @@ export async function GET(context: APIContext): Promise<Response> {
         return new Response("Unauthenticated", { status: 401 });
     }
 
-    const response = fetch(
-        `http://localhost:8000/downloads?user=${context.locals.user.id}`
-    );
+    let response;
+
+    try {
+        response = await fetch(
+            `http://localhost:8000/downloads?user=${context.locals.user.id}`
+        );
+    } catch {
+        return new Response("Error connecting to backend");
+    }
 
     return response;
 }

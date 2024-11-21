@@ -5,7 +5,7 @@ export default function FooterCenter() {
     const $currentSong = useStore(currentSong);
 
     return (
-        <div className="flex items-center w-1/3 space-x-3">
+        <div className="flex items-center w-1/3 gap-x-3">
             <img
                 id="footer-album-cover"
                 src={
@@ -15,8 +15,8 @@ export default function FooterCenter() {
                 alt="Album Cover"
                 className="w-16 h-16 rounded-md"
             />
-            <div className="flex flex-col">
-                <span className="font-semibold">
+            <div className="flex flex-col min-w-0 max-w-full w-full">
+                <span className="font-semibold truncate">
                     {$currentSong?.name || "Canción desconocida :("}
                 </span>
                 <span className="text-sm text-gray-400 flex flex-row gap-x-1">
@@ -41,7 +41,7 @@ export default function FooterCenter() {
                     <span>·</span>
                     <a
                         href={`/album/${$currentSong?.albumId}`}
-                        className="hover:underline"
+                        className="hover:underline truncate"
                     >
                         {$currentSong?.albumName || "Album desconocido"}
                     </a>

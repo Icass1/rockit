@@ -21,6 +21,17 @@ class Spotify:
         load_dotenv()
         self.client_id = os.getenv('CLIENT_ID')
         self.client_secret = os.getenv('CLIENT_SECRET')
+
+        if self.client_id == None or self.client_secret == None:
+            logger.critical("Missing .env file")
+            logger.critical("Creating a template, please fill the variables and try again")
+            with open(".env", "w") as f:
+                f.write("\n")
+                f.write("CLIENT_ID=\n")
+                f.write("CLIENT_SECRET=\n")
+            exit()
+
+
         self.token: str = None
         self.get_token()
 
@@ -41,6 +52,7 @@ class Spotify:
         json_response = json.loads(result.content)
 
         self.token = json_response["access_token"]
+        logger.info("New token")
 
     def get_auth_header(self):
         return {"Authorization": "Bearer " + self.token}

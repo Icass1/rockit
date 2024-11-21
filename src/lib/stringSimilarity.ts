@@ -13,11 +13,12 @@ export default function stringSimilarity(s1: string, s2: string): number {
                 if (a[i - 1] === b[j - 1]) {
                     dp[i][j] = dp[i - 1][j - 1];
                 } else {
-                    dp[i][j] = Math.min(
-                        dp[i - 1][j], // Deletion
-                        dp[i][j - 1], // Insertion
-                        dp[i - 1][j - 1] // Substitution
-                    ) + 1;
+                    dp[i][j] =
+                        Math.min(
+                            dp[i - 1][j], // Deletion
+                            dp[i][j - 1], // Insertion
+                            dp[i - 1][j - 1] // Substitution
+                        ) + 1;
                 }
             }
         }

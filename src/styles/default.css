@@ -2,74 +2,63 @@
 @tailwind components;
 @tailwind utilities;
 
-
-
-
-
-
 :root {
-  --accent: 136, 58, 234;
-  --accent-light: 224, 204, 250;
-  --accent-dark: 49, 10, 101;
-  --accent-gradient: linear-gradient(45deg,
-      rgb(var(--accent)),
-      rgb(var(--accent-light)) 30%,
-      white 60%);
-  color-scheme: dark;
+    --accent: 136, 58, 234;
+    --accent-light: 224, 204, 250;
+    --accent-dark: 49, 10, 101;
+    --accent-gradient: linear-gradient(
+        45deg,
+        rgb(var(--accent)),
+        rgb(var(--accent-light)) 30%,
+        white 60%
+    );
+    color-scheme: dark;
 }
 
 html,
 main {
-  font-family: system-ui, sans-serif;
-  background: #0b0b0b;
-  min-width: 820px;
-  min-height: 728px;
+    font-family: system-ui, sans-serif;
+    background: #0b0b0b;
+    min-width: 820px;
+    min-height: 728px;
 }
 
 main,
 body,
 html {
-  margin: 0px;
-  height: 100%;
-  width: 100%;
+    margin: 0px;
+    height: 100%;
+    width: 100%;
 }
 
 code {
-  font-family:
-    Menlo,
-    Monaco,
-    Lucida Console,
-    Liberation Mono,
-    DejaVu Sans Mono,
-    Bitstream Vera Sans Mono,
-    Courier New,
-    monospace;
+    font-family: Menlo, Monaco, Lucida Console, Liberation Mono,
+        DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace;
 }
 
-
 *::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+    width: 5px;
+    height: 5px;
 }
 
 /* Track */
 *::-webkit-scrollbar-track {
-  background: rgba(20, 20, 20, 0.5);
-  border-radius: 100px;
+    background: rgba(20, 20, 20, 0.5);
+    border-radius: 100px;
 }
 
 /* Handle */
 *::-webkit-scrollbar-thumb {
-  background: rgb(100, 100, 100);
-  border-radius: 10px;
+    background: rgb(100, 100, 100);
+    border-radius: 10px;
 }
 
 *::-webkit-scrollbar-thumb:horizontal {
-  background: rgb(100, 100, 100);
-  border-radius: 10px;
+    background: rgb(100, 100, 100);
+    border-radius: 10px;
 }
 
 /* Handle on hover */
 *::-webkit-scrollbar-thumb:hover {
-  background: #aaa;
+    background: #aaa;
 }

@@ -12,8 +12,8 @@ importers:
         specifier: ^0.9.4
         version: 0.9.4(typescript@5.6.3)
       '@astrojs/node':
-        specifier: file:adapters--astrojs-node-8.3.4/packages/node/astrojs-node-8.3.4.tgz
-        version: file:adapters--astrojs-node-8.3.4/packages/node/astrojs-node-8.3.4.tgz(@types/node@22.9.0)(astro@4.16.10(@types/node@22.9.0)(rollup@4.25.0)(typescript@5.6.3))(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+        specifier: file:astrojs-node-8.3.4.tgz
+        version: file:astrojs-node-8.3.4.tgz(@types/node@22.9.0)(astro@4.16.10(@types/node@22.9.0)(rollup@4.25.0)(typescript@5.6.3))(bufferutil@4.0.8)(utf-8-validate@5.0.10)
       '@astrojs/react':
         specifier: ^3.6.2
         version: 3.6.2(@types/react-dom@18.3.1)(@types/react@18.3.12)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(vite@5.4.11(@types/node@22.9.0))
@@ -124,8 +124,8 @@ packages:
   '@astrojs/markdown-remark@5.3.0':
     resolution: {integrity: sha512-r0Ikqr0e6ozPb5bvhup1qdWnSPUvQu6tub4ZLYaKyG50BXZ0ej6FhGz3GpChKpH7kglRFPObJd/bDyf2VM9pkg==}
 
-  '@astrojs/node@file:adapters--astrojs-node-8.3.4/packages/node/astrojs-node-8.3.4.tgz':
-    resolution: {integrity: sha512-xygGdF/rbbrmpQXwrNo3a/CPaJIOgoTyf+1+YcKBvq6w8FhhJst5t08l/CR9IwdqL8Z4wrmOtj0vE1JVN0FqvQ==, tarball: file:adapters--astrojs-node-8.3.4/packages/node/astrojs-node-8.3.4.tgz}
+  '@astrojs/node@file:astrojs-node-8.3.4.tgz':
+    resolution: {integrity: sha512-xygGdF/rbbrmpQXwrNo3a/CPaJIOgoTyf+1+YcKBvq6w8FhhJst5t08l/CR9IwdqL8Z4wrmOtj0vE1JVN0FqvQ==, tarball: file:astrojs-node-8.3.4.tgz}
     version: 8.3.4
     peerDependencies:
       astro: ^4.2.0
@@ -2704,7 +2704,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@astrojs/node@file:adapters--astrojs-node-8.3.4/packages/node/astrojs-node-8.3.4.tgz(@types/node@22.9.0)(astro@4.16.10(@types/node@22.9.0)(rollup@4.25.0)(typescript@5.6.3))(bufferutil@4.0.8)(utf-8-validate@5.0.10)':
+  '@astrojs/node@file:astrojs-node-8.3.4.tgz(@types/node@22.9.0)(astro@4.16.10(@types/node@22.9.0)(rollup@4.25.0)(typescript@5.6.3))(bufferutil@4.0.8)(utf-8-validate@5.0.10)':
     dependencies:
       '@types/ws': 8.5.13
       astro: 4.16.10(@types/node@22.9.0)(rollup@4.25.0)(typescript@5.6.3)

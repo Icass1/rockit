@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@astrojs/check": "^0.9.4",
-    "@astrojs/node": "file:adapters--astrojs-node-8.3.4/packages/node/astrojs-node-8.3.4.tgz",
+    "@astrojs/node": "file:astrojs-node-8.3.4.tgz",
     "@astrojs/react": "^3.6.2",
     "@astrojs/tailwind": "^5.1.2",
     "@lucia-auth/adapter-sqlite": "^3.0.2",

@@ -9,7 +9,7 @@ RUN npm install pnpm -g
 
 # Copy application code
 COPY . .
-RUN rm --ignore-missing .env
+RUN rm .env || true
 RUN chown -R 1000:1000 /app
 
 RUN pnpm install

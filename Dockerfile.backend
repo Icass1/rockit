@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y ffmpeg && \
     
 COPY backend backend
 
-RUN rm --ignore-missing backend/.env
+RUN rm backend/.env || true
 
 RUN chown -R 1000:1000 /backend
 RUN mkdir /.spotdl

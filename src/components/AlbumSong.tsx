@@ -78,7 +78,7 @@ export default function AlbumSong({
             </label>
             <label className="text-base font-semibold w-full">
                 {song.name}{" "}
-                <label className="text-xs text-neutral-400">{song.id}</label>
+                {/*<label className="text-xs text-neutral-400">{song.id}</label>*/}
             </label>
             <label className="text-sm text-white/80">
                 {getTime(song.duration)}

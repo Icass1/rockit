@@ -11,9 +11,12 @@ import {
 import PlaylistSong from "@/components/PlaylistSong";
 import type { SpotifyAlbumImage } from "@/types/spotify";
 const { id } = Astro.params as { id: string };
+if (!Astro.locals.user) {
+    return Astro.redirect("/login");
+}
 
 const playlist = parsePlaylist(
-    db.prepare("SELECT * FROM playlist WHERE id = ?").get(id) as RawPlaylistDB,
+    db.prepare("SELECT * FROM playlist WHERE id = ?").get(id) as RawPlaylistDB
 );
 
 if (!playlist) {
@@ -23,13 +26,13 @@ if (!playlist) {
         }),
         {
             status: 404,
-        },
+        }
     );
 }
 
 const songs = playlist.songs.map(
     (
-        songID,
+        songID
     ):
         | SongDB<
               | "name"
@@ -45,11 +48,11 @@ const songs = playlist.songs.map(
         return parseSong(
             db
                 .prepare(
-                    "SELECT name, albumId, duration, artists, path, albumName, images, id FROM song WHERE id = ?",
+                    "SELECT name, albumId, duration, artists, path, albumName, images, id FROM song WHERE id = ?"
                 )
-                .get(songID.id) as RawSongDB,
+                .get(songID.id) as RawSongDB
         );
-    },
+    }
 );
 
 function getMinutes(seconds: number) {
@@ -89,7 +92,7 @@ function getMinutes(seconds: number) {
                     getMinutes(
                         songs.reduce((accumulator: number, song) => {
                             return accumulator + (song?.duration || 0);
-                        }, 0),
+                        }, 0)
                     )
                 } Minutes</label
             >

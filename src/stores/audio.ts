@@ -1,7 +1,7 @@
 import { atom } from "nanostores";
 import type { SongDB, UserDB } from "@/lib/db";
 
-const websocket = new WebSocket("ws://localhost:4321/ws");
+const websocket = new WebSocket(`ws://${location.host}/ws`);
 websocket.onopen = (event) => {
     console.log("Web socket open");
 };

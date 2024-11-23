@@ -34,3 +34,4 @@ rest
 backend/logs
 
 adapters--astrojs-node-8.3.4
+docker-compose.yml

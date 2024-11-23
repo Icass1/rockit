@@ -14,8 +14,7 @@ import json
 import time
 import os
 from logger import getLogger, log_uncaught_exceptions
-import sys
-
+import shutil
 
 # # Set up a handler specifically for spotdl
 # spotdl_logger = logging.getLogger("spotdl")
@@ -111,7 +110,8 @@ class ListDownloader:
         logger.info(f"ListDownloader.download_manager Finished")
 
         if self.list.type == "album":
-            requests.post("http://localhost:4321/api/new-album", json={
+
+            requests.post(f"{os.getenv('FRONTEND_URL')}/api/new-album", json={
                 "id": self.list.id,
                 "images": [image._json for image in self.list.images],
                 "name": self.list.name,
@@ -125,7 +125,7 @@ class ListDownloader:
                 "disc_count": max([song.disc_number for song in self.list.tracks.items])
             })
         elif self.list.type == "playlist":
-            requests.post("http://localhost:4321/api/new-playlist", json={
+            requests.post(f"{os.getenv('FRONTEND_URL')}/api/new-playlist", json={
                 "id": self.list.id,
                 "images": [image._json for image in self.list.images],
                 "name": self.list.name,
@@ -299,8 +299,8 @@ class Downloader:
 
         logger.info(f"Downloader.download_song Downloading {get_song_name(spotdl_song)}")
 
-        album_path = os.path.join("songs", sanitize_folder_name(spotdl_song.artist), sanitize_folder_name(spotdl_song.album_name))
-        final_path = os.path.join(album_path, get_output_file(spotdl_song).replace("backend/temp/", ""))
+        album_path = os.path.join(os.getenv("SONGS_PATH"), sanitize_folder_name(spotdl_song.artist), sanitize_folder_name(spotdl_song.album_name))
+        final_path = os.path.join(album_path, get_output_file(spotdl_song).replace(f"{os.getenv('TEMP_PATH')}/", ""))
 
         if os.path.exists(final_path):
             self.downloads_dict[spotdl_song.song_id]["messages"].append({"id": spotdl_song.song_id, "completed": 100, "total": 100, "message": "Skipping"})
@@ -315,11 +315,13 @@ class Downloader:
                 logger.error(f"Downloader.download_song Error downloading {get_song_name(spotdl_song)}")
             else: 
                 logger.info(f"Downloader.download_song Downloaded {get_song_name(spotdl_song)}")
-                os.rename(path, final_path)
+                logger.info(f"Downloader.download_song path {path}")
+                logger.info(f"Downloader.download_song final_path {final_path}")
+                shutil.move(path, final_path)
                 path = final_path
 
         if raw_list == None:
-            requests.post("http://localhost:4321/api/new-song", json={
+            requests.post(f"{os.getenv('FRONTEND_URL')}/api/new-song", json={
                 "name": spotdl_song.name,
                 "artists": [{"name": artist.name, "id": artist.id} for artist in raw_song.artists],
                 "genres": spotdl_song.genres,
@@ -334,7 +336,7 @@ class Downloader:
                 "tracks_count": spotdl_song.tracks_count,
                 "song_id": spotdl_song.song_id,
                 "publisher": spotdl_song.publisher,
-                "path": str(path) if path else None,
+                "path": str(path).replace(os.getenv("SONGS_PATH"), "") if path else None,
                 "images": [image._json for image in raw_song.album.images],
                 "copyright":  spotdl_song.copyright_text,
                 "download_url": spotdl_song.download_url,
@@ -343,7 +345,7 @@ class Downloader:
                 "album_id": spotdl_song.album_id,
             })
         elif raw_list.type == "album":
-            requests.post("http://localhost:4321/api/new-song", json={
+            requests.post(f"{os.getenv('FRONTEND_URL')}/api/new-song", json={
                 "name": spotdl_song.name,
                 "artists": [{"name": artist.name, "id": artist.id} for artist in raw_song.artists],
                 "genres": spotdl_song.genres,
@@ -359,7 +361,7 @@ class Downloader:
                 "tracks_count": spotdl_song.tracks_count,
                 "song_id": spotdl_song.song_id,
                 "publisher": spotdl_song.publisher,
-                "path": str(path) if path else None,
+                "path": str(path).replace(os.getenv("SONGS_PATH"), "") if path else None,
                 # "images": [image._json for image in raw_list.images] if raw_list else [image._json for image in raw_song.album.images],
                 "images": [image._json for image in raw_list.images],
                 "copyright":  spotdl_song.copyright_text,
@@ -369,7 +371,7 @@ class Downloader:
                 "album_id": spotdl_song.album_id,
             })
         elif raw_list.type == "playlist":
-            requests.post("http://localhost:4321/api/new-song", json={
+            requests.post(f"{os.getenv('FRONTEND_URL')}/api/new-song", json={
                 "name": spotdl_song.name,
                 "artists": [{"name": artist.name, "id": artist.id} for artist in raw_song.track.artists],
                 "genres": spotdl_song.genres,
@@ -384,7 +386,7 @@ class Downloader:
                 "tracks_count": spotdl_song.tracks_count,
                 "song_id": spotdl_song.song_id,
                 "publisher": spotdl_song.publisher,
-                "path": str(path) if path else None,
+                "path": str(path).replace(os.getenv("SONGS_PATH"), "") if path else None,
                 "images": [image._json for image in raw_song.track.album.images],
                 "copyright":  spotdl_song.copyright_text,
                 "download_url": spotdl_song.download_url,

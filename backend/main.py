@@ -3,7 +3,9 @@ from flask import Flask, Response, request, jsonify
 from flask_sock import Sock
 from flask_cors import CORS
 
-from colors import *
+from dotenv import load_dotenv
+load_dotenv()
+
 
 from spotify import Spotify
 from downloader import Downloader, SongDownloader, ListDownloader
@@ -36,6 +38,10 @@ downloads: Dict[str, Dict[str, SongDownloader | ListDownloader | None]] = {}
 logger = getLogger(__name__)
 
 app.logger = logger
+
+import os
+print("FRONTEND_URL", os.getenv('FRONTEND_URL'))
+
 
 @app.route('/')
 def home():
@@ -106,6 +112,11 @@ def global_downloads():
 def cancel_download():
     pass
 
-with app.app_context():
-    # sock.init_app(app)
-    app.run(host='0.0.0.0', port=8000, debug=True)
+if os.getenv("ENVIRONMENT") == "DEV":
+    with app.app_context():
+        app.run(host='0.0.0.0', port=8000, debug=True)
+
+elif os.getenv("ENVIRONMENT") == "PROD":
+    with app.app_context():
+        if __name__ == '__main__':
+            app.run(host='0.0.0.0', port=8000, debug=True)

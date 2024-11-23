@@ -1,7 +1,6 @@
 import requests
 import re
 import json
-from dotenv import load_dotenv
 import base64
 import os
 from typing import List
@@ -10,17 +9,17 @@ import re
 from spotdl.types.song import Song
 
 from api_types import RawSpotifyApiTrack, RawSpotifyApiAlbum, AlbumItems, RawSpotifyApiPlaylist, PlaylistTracks, PlaylistItems
-from colors import *
-import logging
 from logger import getLogger
 
 logger = getLogger(__name__)
 
 class Spotify:
     def __init__(self):
-        load_dotenv()
         self.client_id = os.getenv('CLIENT_ID')
         self.client_secret = os.getenv('CLIENT_SECRET')
+
+        logger.info(f"CLIENT_ID: {self.client_id}")
+        logger.info(f"CLIENT_SECRET: {self.client_secret}")
 
         if self.client_id == None or self.client_secret == None:
             logger.critical("Missing .env file")

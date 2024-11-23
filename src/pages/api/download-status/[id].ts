@@ -1,4 +1,5 @@
 import type { APIContext } from "astro";
+const BACKEND_URL = process.env.BACKEND_URL;
 
 export async function GET(context: APIContext): Promise<Response> {
     if (!context.locals.user) {
@@ -6,7 +7,7 @@ export async function GET(context: APIContext): Promise<Response> {
     }
 
     const upstreamUrl =
-        "http://localhost:8000/download-status/" +
+        `${BACKEND_URL}/download-status/` +
         context.params.id +
         `?user=${context.locals.user.id}`;
 

@@ -1,5 +1,8 @@
 
 from spotdl.types.options import DownloaderOptions
+import os
+
+print("constants temp path", os.getenv("TEMP_PATH"))
 
 DOWNLOADER_OPTIONS: DownloaderOptions = {
     "audio_providers": ["youtube-music"],
@@ -8,7 +11,7 @@ DOWNLOADER_OPTIONS: DownloaderOptions = {
     "playlist_numbering": False,
     "scan_for_songs": False,
     "m3u": None,
-    "output": "backend/temp/{artists} - {title}.{output-ext}",
+    "output": f"{os.getenv('TEMP_PATH')}" + "/{artists} - {title}.{output-ext}",
     "overwrite": "skip",
     "search_query": None,
     "ffmpeg": "ffmpeg",

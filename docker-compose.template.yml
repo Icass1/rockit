@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  flask-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - "<Port to access RockIt>:8000"
+    networks:
+      - app-network
+    environment:
+      ENVIRONMENT: "PROD"
+      CLIENT_ID: "<CLIENT_ID for Spotify API>"
+      CLIENT_SECRET: "<CLIENT_SECRET for Spotify API>"
+      FRONTEND_URL: "http://astro-frontend:4321"
+      SONGS_PATH: "/songs"
+      TEMP_PATH: "/temp"
+      LOGS_PATH: "/logs"
+    volumes:
+      - <path to songs dir>:/songs
+  astro-frontend:
+    build:
+      context: .
+    ports:
+      - "8080:4321"
+    networks:
+      - app-network
+    environment:
+      BACKEND_URL: "http://flask-backend:8000"
+    volumes:
+      - <path to database dir>:/app/database
+      - <path to songs dir>:/app/songs
+  
+networks:
+  app-network:
+    driver: bridge

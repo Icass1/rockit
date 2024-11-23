@@ -20,6 +20,7 @@
 -   ✅ Add logger
 -   ✅ Redirect all backend routes through astro routes
 -   Remove extra data download-status. (keep id,total,completed)
+-   If frontend is not running, save the new-song, new-album etc into a temp folder so at some time, when it is running, all will be send at once
 
 ## Frontend
 

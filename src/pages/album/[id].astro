@@ -12,6 +12,10 @@ import AlbumSong from "@/components/AlbumSong";
 import { Disc } from "lucide-react";
 const { id } = Astro.params as { id: string };
 
+if (!Astro.locals.user) {
+    return Astro.redirect("/login");
+}
+
 const album = parseAlbum(
     db.prepare("SELECT * FROM album WHERE id = ?").get(id) as RawAlbumDB
 );
@@ -121,10 +125,7 @@ function getDate(date: string) {
         <div
             class="flex flex-col gap-1 relative top-1/2 -translate-y-1/2 w-1/3 max-w-96 h-fit mx-10"
         >
-            <img
-                src={album.images[0].url}
-                class="rounded-md"
-            />
+            <img src={album.images[0].url} class="rounded-md" />
             <label class="pt-2 text-2xl font-semibold">{album.name}</label>
             <a
                 class="text-xl font-semibold text-stone-400 hover:underline cursor-pointer"

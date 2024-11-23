@@ -22,7 +22,7 @@ export async function POST(context: APIContext): Promise<Response> {
     let lyrics = data.lyrics;
     let popularity = data.popularity;
     let albumId = data.album_id;
-    let path = data.path;
+    let path = "songs" + data.path;
     let images = JSON.stringify(data.images);
     let copyright = data.copyright;
 

@@ -1,4 +1,5 @@
 import type { APIContext } from "astro";
+const BACKEND_URL = process.env.BACKEND_URL;
 
 export async function GET(context: APIContext): Promise<Response> {
     if (!context.locals.user) {
@@ -6,7 +7,7 @@ export async function GET(context: APIContext): Promise<Response> {
     }
 
     const response = fetch(
-        `http://localhost:8000/start-download?url=${context.url.searchParams.get(
+        `${BACKEND_URL}/start-download?url=${context.url.searchParams.get(
             "url"
         )}&user=${context.locals.user.id}`
     );

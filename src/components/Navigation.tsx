@@ -1,4 +1,6 @@
+import type { AlbumDB } from "@/lib/db";
 import { downloads } from "@/stores/downloads";
+import { pinnedLists } from "@/stores/pinnedLists";
 import type { SpotifyAlbum, SpotifyTrack } from "@/types/spotify";
 import { useStore } from "@nanostores/react";
 import { Home, Menu, Library, Search, Download } from "lucide-react";
@@ -331,6 +333,8 @@ function Downloads({ navOpen }: { navOpen: boolean }) {
 export default function Navigation({ activePage }: { activePage: string }) {
     const [open, setOpen] = useState(false);
 
+    const $pinnedLists = useStore(pinnedLists);
+
     const pages = [
         { name: "Home", href: "/", icon: Home },
         { name: "Library", href: "/library", icon: Library },
@@ -370,6 +374,24 @@ export default function Navigation({ activePage }: { activePage: string }) {
                         <label className="font-semibold">{page.name}</label>
                     </a>
                 ))}
+                {$pinnedLists.map((list) => {
+                    return (
+                        <a
+                            key={list.id}
+                            href={`/${list.type}/${list.id}`}
+                            title={list.name}
+                            className={`h-8 rounded-md items-center ml-2 mr-2 transition-all flex gap-2 hover:opacity-65 cursor-pointer`}
+                        >
+                            <img
+                                className="w-8 h-8 flex items-center justify-center rounded-sm"
+                                src={list.images[0].url}
+                            />
+                            <label className="font-semibold text-sm truncate cursor-pointer">
+                                {list.name}
+                            </label>
+                        </a>
+                    );
+                })}
                 <div className="h-full"></div>
                 <Downloads navOpen={open} />
             </div>

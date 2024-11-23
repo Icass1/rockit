@@ -168,6 +168,7 @@ export interface RawUserDB {
     queue: string;
     queueIndex: number | undefined;
     randomQueue: string;
+    pinnedLists: string;
     volume: number;
     admin: string;
     superAdmin: string;
@@ -180,6 +181,11 @@ export interface RawUserDB {
 interface UserDBLastPlayedSong {
     id: string;
     date: number;
+}
+export interface UserDBPinnedLists {
+    type: string;
+    createdAt: number;
+    id: string;
 }
 
 export type UserDB<Keys extends keyof UserDBFull = keyof UserDBFull> = Pick<
@@ -198,6 +204,7 @@ export interface UserDBFull {
     queue: string[];
     queueIndex: number | undefined;
     randomQueue: string;
+    pinnedLists: UserDBPinnedLists[];
     volume: number;
     admin: string;
     superAdmin: string;
@@ -218,8 +225,8 @@ const userQuery = `CREATE TABLE IF NOT EXISTS user (
     currentTime INTEGER,
     queue TEXT DEFAULT "[]" NOT NULL,
     queueIndex INTEGER,
-    pinnedLists TEXT DEFAULT "[]" NOT NULL,
     randomQueue BOOLEAN DEFAULT 0 NOT NULL,
+    pinnedLists TEXT DEFAULT "[]" NOT NULL,
     volume INTEGER DEFAULT 1 NOT NULL,
     admin BOOLEAN DEFAULT 0 NOT NULL,
     superAdmin BOOLEAN DEFAULT 0 NOT NULL,
@@ -248,6 +255,7 @@ export function parseUser(user: RawUserDB | undefined): UserDB | undefined {
         queue: JSON.parse(user.queue || "[]"),
         queueIndex: user.queueIndex,
         randomQueue: user.randomQueue,
+        pinnedLists: JSON.parse(user.pinnedLists || "[]"),
         volume: user.volume,
         admin: user.admin,
         superAdmin: user.superAdmin,
@@ -398,6 +406,10 @@ db.exec(songQuery);
 // ********************************************
 // ************** Playlist stuff **************
 // ********************************************
+export type PlaylistDB<
+    Keys extends keyof PlaylistDBFull = keyof PlaylistDBFull
+> = Pick<PlaylistDBFull, Keys>;
+
 export interface RawPlaylistDB {
     id: string;
     images: string;
@@ -408,7 +420,7 @@ export interface RawPlaylistDB {
     songs: string;
 }
 
-export interface PlaylistDB {
+export interface PlaylistDBFull {
     id: string;
     images: ImageDB[];
     name: string;
@@ -430,12 +442,12 @@ export function parsePlaylist(
 
     return {
         id: playlist.id,
-        images: JSON.parse(playlist.images),
+        images: JSON.parse(playlist.images || "[]"),
         name: playlist.name,
         description: playlist.description,
         owner: playlist.owner,
         followers: playlist.followers,
-        songs: JSON.parse(playlist.songs),
+        songs: JSON.parse(playlist.songs || "[]"),
     };
 }
 
@@ -460,6 +472,11 @@ db.exec(playlistQuery);
 // ************** Album stuff **************
 // *****************************************
 
+export type AlbumDB<Keys extends keyof AlbumDBFull = keyof AlbumDBFull> = Pick<
+    AlbumDBFull,
+    Keys
+>;
+
 export interface RawAlbumDB {
     id: string;
     type: string;
@@ -474,7 +491,7 @@ export interface RawAlbumDB {
     discCount: number;
     dateAdded: number;
 }
-export interface AlbumDB {
+export interface AlbumDBFull {
     id: string;
     type: string;
     images: ImageDB[];
@@ -501,14 +518,14 @@ export function parseAlbum(album: RawAlbumDB | undefined): AlbumDB | undefined {
     return {
         id: album.id,
         type: album.type,
-        images: JSON.parse(album.images),
+        images: JSON.parse(album.images || "[]"),
         name: album.name,
         releaseDate: album.releaseDate,
-        artists: JSON.parse(album.artists),
-        copyrights: JSON.parse(album.copyrights),
+        artists: JSON.parse(album.artists || "[]"),
+        copyrights: JSON.parse(album.copyrights || "[]"),
         popularity: album.popularity,
-        genres: JSON.parse(album.genres),
-        songs: JSON.parse(album.songs),
+        genres: JSON.parse(album.genres || "[]"),
+        songs: JSON.parse(album.songs || "[]"),
         discCount: album.discCount,
         dateAdded: album.dateAdded,
     };

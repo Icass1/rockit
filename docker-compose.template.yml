@@ -2,11 +2,12 @@ version: '3.8'
 
 services:
   flask-backend:
+    container_name: "RockIt Backend"
     build:
       context: .
       dockerfile: Dockerfile.backend
-    ports:
-      - "<Port to access RockIt>:8000"
+    # ports:
+      # - "<Port to access RockIt backend routes (optional)>:8000"
     networks:
       - app-network
     environment:
@@ -20,10 +21,11 @@ services:
     volumes:
       - <path to songs dir>:/songs
   astro-frontend:
+    container_name: "RockIt Frontend"
     build:
       context: .
     ports:
-      - "8080:4321"
+      - "<Port to access RockIt>:4321"
     networks:
       - app-network
     environment:

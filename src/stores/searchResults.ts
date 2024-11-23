@@ -6,7 +6,7 @@ import type {
 } from "@/types/spotify";
 import { atom, map } from "nanostores";
 
-export const searchQuery = atom<string>("supertramp");
+export const searchQuery = atom<string>("");
 
 export const searchResults = map<{
     albums: SpotifyAlbum[] | undefined;

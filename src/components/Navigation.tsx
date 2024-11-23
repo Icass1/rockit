@@ -3,7 +3,7 @@ import { downloads } from "@/stores/downloads";
 import { pinnedLists } from "@/stores/pinnedLists";
 import type { SpotifyAlbum, SpotifyTrack } from "@/types/spotify";
 import { useStore } from "@nanostores/react";
-import { Home, Menu, Library, Search, Download } from "lucide-react";
+import { Home, Menu, Library, Search, Download, Pin } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 interface EventSourceStatus {
@@ -374,6 +374,23 @@ export default function Navigation({ activePage }: { activePage: string }) {
                         <label className="font-semibold">{page.name}</label>
                     </a>
                 ))}
+
+                <div
+                    className={`transition-all h-1 bg-neutral-600 ml-2 duration-[400ms] rounded-full ${
+                        open ? "w-52" : "w-8"
+                    }`}
+                ></div>
+
+                <div
+                    className="h-4 rounded-md items-center ml-2 mr-2 transition-all flex gap-2 hover:opacity-65 cursor-pointer"
+                    style={{ fontSize: open ? "" : "0 px" }}
+                >
+                    <div className="w-8 h-8 flex items-center justify-center">
+                        <Pin className="w-5 h-5" />
+                    </div>
+                    <label className="text-sm">Pinned lists</label>
+                </div>
+
                 {$pinnedLists.map((list) => {
                     return (
                         <a

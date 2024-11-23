@@ -40,10 +40,12 @@ export async function GET(context: APIContext): Promise<Response> {
     };
 
     const pinnedLists = DBPinnedLists.map((list) => {
-        console.log({ type: list.type });
-
         return { ...getList(list), type: list.type };
     });
 
-    return new Response(JSON.stringify(pinnedLists));
+    return new Response(JSON.stringify(pinnedLists), {
+        headers: {
+            "Content-Type": "application/json",
+        },
+    });
 }

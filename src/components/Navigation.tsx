@@ -272,7 +272,7 @@ function Downloads({ navOpen }: { navOpen: boolean }) {
         <>
             <div
                 ref={divRef}
-                className={`w-96 bg-blue-900 h-3/4 flex flex-col gap-2 shadow-lg p-2 absolute bottom-24 transition-all duration-[400ms] overflow-auto z-40 ${
+                className={`w-96 bg-[#252525] h-3/4 flex flex-col gap-2 shadow-lg p-2 rounded-tr-3xl absolute bottom-24 transition-all duration-[400ms] overflow-auto z-50 ${
                     navOpen ? "left-56" : "left-12"
                 }`}
                 style={{
@@ -283,24 +283,26 @@ function Downloads({ navOpen }: { navOpen: boolean }) {
                           }px, 24rem, 1000px, 0px)`,
                 }}
             >
-                <label className="text-lg font-semibold ">Downloads</label>
+                <label className="text-3xl font-bold text-center p-5">Music Downloader</label>
                 <input
-                    className="focus:outline-0 p-2 rounded"
-                    placeholder="Enter a spotify URL"
+                    className="focus:outline-0 p-2 rounded-full mx-5"
+                    placeholder="   Enter a spotify URL"
                     value={url}
                     onChange={(e) => {
                         setURL(e.target.value);
                     }}
                 ></input>
-                <button
-                    className="bg-green-800 text-green-500 w-fit p-1 rounded hover:bg-green-600 hover:text-green-300"
-                    onClick={handleStartDownload}
-                >
-                    Start download
-                </button>
+                <div className="flex justify-center items-center mb-3">
+                    <button
+                        className="bg-green-800 text-green-200 px-6 py-2 rounded-full shadow-md hover:bg-green-600 hover:text-white hover:shadow-lg transition duration-300 transform"
+                        onClick={handleStartDownload}
+                    >
+                        Start Download
+                    </button>
+                </div>
                 {Object.entries(status).length != 0 && (
-                    <label className="font-bold text-xl text-white ">
-                        Downloads
+                    <label className="font-semibold text-lg text-white ">
+                        Lastest Downloads
                     </label>
                 )}
 

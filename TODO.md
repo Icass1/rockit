@@ -127,8 +127,9 @@
 
 -   **User settings**
 
-    -   User display name
-    -   Change password
+    -   ✅ User display name
+    -   ✅ Change password
+    -   ✅ Change display Image
     -   (Why/where this ones?)
         -   Most played songs
         -   Most played album
@@ -203,12 +204,12 @@
 
 -   **Home**
 
-    -   Most played song (if count > 10)
-    -   Most played album (if count > 10)
+    -  ✅ Most played songs (if count > 10)
+    -  ✅ Most played album (if count > 10)
     -   Most played artist (if count > 10)
-    -   Recomendations
-    -   Recently played song
-    -   Recently played album
+    -  ✅ Recomendations
+    -  ✅ Recently played song (Banner on top)
+    -  ✅ Recently played album (Banner on top)
 
 -   **Downloads**
 

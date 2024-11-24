@@ -3,7 +3,7 @@ import { downloads } from "@/stores/downloads";
 import { pinnedLists } from "@/stores/pinnedLists";
 import type { SpotifyAlbum, SpotifyTrack } from "@/types/spotify";
 import { useStore } from "@nanostores/react";
-import { Home, Menu, Library, Search, Download, Pin } from "lucide-react";
+import { Home, Menu, Library, Search, Download, Pin, ChartLine } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 interface EventSourceStatus {
@@ -343,6 +343,7 @@ export default function Navigation({ activePage }: { activePage: string }) {
         { name: "Home", href: "/", icon: Home },
         { name: "Library", href: "/library", icon: Library },
         { name: "Search", href: "/search", icon: Search },
+        { name: "Stats & Friends", href: "/stats", icon: ChartLine },
     ];
 
     return (

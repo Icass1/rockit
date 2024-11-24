@@ -138,13 +138,13 @@
 
 -   **Library**
 
-    -   User albums
-        -   Liked songs
-        -   Recent songs
-        -   In the last x days most listened songs
-    -   User playlists
-    -   <span style="color:#3287a8">(Impr: Recommendations?)</span>
-    -   <span style="color:#3287a8">(Impr: Recaps?)</span>
+    -   ✅ User albums - Need to add backend
+        -   ✅ Liked songs
+        -   ✅ Recent songs
+        -   ✅ In the last x days most listened songs
+    -   ✅ User playlists
+    -   <span style="color:#3287a8">(Impr: Recommendations) - Could be added in fetured</span>
+    -   <span style="color:#3287a8">(Impr: Recaps) - Could be added in fetured</span>
 
 -   **Search**
 

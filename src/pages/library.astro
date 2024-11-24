@@ -22,8 +22,9 @@ const albums = (db.prepare("SELECT * FROM album").all() as RawAlbumDB[]).map(
 ---
 
 <Layout title="Rock It!" currentPage="Library">
+    
     <div class="p-8 h-full">
-        <label class="text-white text-4xl font-bold pb-6 block">
+        <label class="text-white text-4xl font-bold block">
             Library
         </label>
         <input
@@ -36,6 +37,34 @@ const albums = (db.prepare("SELECT * FROM album").all() as RawAlbumDB[]).map(
             }}
             placeholder="Search in Library"
         />
+
+        <section class="py-12 text-white">
+            <h2 class="text-2xl font-bold text-left">Featured Albums</h2>
+            <div
+                class="relative flex items-center gap-5 overflow-x-auto py-4"
+            >
+                <!-- Aquí creamos las canciones -->
+                {Array.from({ length: 3 }).map((_, index) => (
+                    <a
+                        href="#"
+                        class="flex-none w-48"
+                    >
+                        <img
+                            class="rounded-lg w-full aspect-square object-cover"
+                            src="/song-placeholder.png"
+                            alt="Song Cover"
+                        />
+                        <label class="truncate font-semibold text-center block mt-2">
+                            Album/Playlist {index + 1}
+                        </label>
+                        <label class="truncate text-sm text-center text-gray-400 block">
+                            ShortDescription
+                        </label>
+                    </a>
+                ))}
+            </div>
+        </section>
+
         <div
             class="grid gap-5"
             style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));"

@@ -1,102 +1,22 @@
 ---
 import Layout from "@/layouts/Layout.astro";
-
-if (!Astro.locals.user) {
-    return Astro.redirect("/login");
-}
+import AlbumsCarousel from "@/components/AlbumsCarousel.tsx";
 
 const albums = [
-    {
-        id: 1,
-        title: "Album 1",
-        artist: "Artist 1",
-        image: "/song-placeholder.png"
-    },
-    {
-        id: 2,
-        title: "Album 2",
-        artist: "Artist 2",
-        image: "/song-placeholder.png"
-    },
-    {
-        id: 3,
-        title: "Album 3",
-        artist: "Artist 3",
-        image: "/song-placeholder.png"
-    },
-    {
-        id: 4,
-        title: "Album 4",
-        artist: "Artist 4",
-        image: "/song-placeholder.png"
-    },
-    {
-        id: 5,
-        title: "Album 5",
-        artist: "Artist 5",
-        image: "/song-placeholder.png"
-    }
+    { id: 1, title: "Title 1", artist: "Artist 1", image: "/song-placeholder.png" },
+    { id: 2, title: "Title 2", artist: "Artist 2", image: "/song-placeholder.png" },
+    { id: 3, title: "Title 3", artist: "Artist 3", image: "/song-placeholder.png" },
+    { id: 4, title: "Title 4", artist: "Artist 4", image: "/song-placeholder.png" },
+    { id: 5, title: "Title 5", artist: "Artist 5", image: "/song-placeholder.png" },
+    { id: 6, title: "Title 6", artist: "Artist 6", image: "/song-placeholder.png" },
+    { id: 7, title: "Title 7", artist: "Artist 7", image: "/song-placeholder.png" },
 ];
 
-const centerIndex = Math.floor(albums.length / 2);
+const visibleAlbums = albums.slice(0, 7);
 ---
 
 <Layout title="Rock It!" currentPage="Home">
-    <div class="relative w-full h-screen bg-black flex items-center justify-center overflow-hidden">
-        <div class="relative w-full max-w-6xl h-[70vh] flex items-center justify-center">
-            {albums.map((album, index) => (
-                <div 
-                    class={`
-                        absolute transition-all duration-500 ease-in-out
-                        ${index === centerIndex 
-                            ? 'z-50 scale-150 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2' 
-                            : ''
-                        }
-                        ${index < centerIndex 
-                            ? `left-0 opacity-50 scale-75 -translate-x-1/2 z-10` 
-                            : ''
-                        }
-                        ${index > centerIndex 
-                            ? `right-0 opacity-50 scale-75 translate-x-1/2 z-10` 
-                            : ''
-                        }
-                    `}
-                    style={`
-                        transform: 
-                        ${index === centerIndex 
-                            ? 'scale(1.5) translate(-50%, -50%)' 
-                            : index < centerIndex 
-                            ? 'translateX(-50%) scale(0.75)' 
-                            : 'translateX(50%) scale(0.75)'
-                        };
-                        left: ${index < centerIndex 
-                            ? `${(centerIndex - index) * -10}%` 
-                            : index > centerIndex 
-                            ? `${(index - centerIndex) * 10}%` 
-                            : '50%'
-                        };
-                    `}
-                >
-                    <div class="relative w-64 h-64 rounded-2xl overflow-hidden shadow-2xl">
-                        <img 
-                            src={album.image} 
-                            alt={album.title} 
-                            class="absolute inset-0 w-full h-full object-cover"
-                        />
-                        <div class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 p-4 text-white">
-                            <h3 class="text-lg font-bold truncate">{album.title}</h3>
-                            <p class="text-sm opacity-75 truncate">{album.artist}</p>
-                        </div>
-                    </div>
-                </div>
-            ))}
-        </div>
+    <div class="text-white h-1/2 flex items-center justify-center">
+        <AlbumsCarousel albums={visibleAlbums} />
     </div>
 </Layout>
-
-<script>
-    // Opcional: Añadir lógica de rotación de álbumes
-    function rotateAlbums() {
-        // Implementar lógica de rotación
-    }
-</script>

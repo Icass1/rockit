@@ -1,10 +1,21 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import AlbumsCarousel from "@/components/AlbumsCarousel.tsx";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 ---
 
 <Layout title="Rock It!" currentPage="Home">
-    <div class="text-white h-1/2 flex items-center justify-center overflow-x-hidden">
+    <div class="text-white h-1/2 flex items-center justify-center overflow-x-hidden relative">
+        <ChevronLeft
+            className="z-50 absolute left-40 h-10 w-auto text-[#6d6d6d] hover:text-white p-2 rounded-full transition duration-300"
+            onClick={() => scrollAlbums('left')}
+        />
+    
         <AlbumsCarousel />
+    
+        <ChevronRight
+            className="z-50 absolute right-40 h-10 w-auto text-[#6d6d6d] hover:text-white p-2 rounded-full transition duration-300"
+            onClick={() => scrollAlbums('right')}
+        />
     </div>
 </Layout>

@@ -29,7 +29,7 @@ const AlbumsCarousel: React.FC<AlbumsCarouselProps> = ({ albums }) => {
               zIndex,
             }}
           >
-            <div className="relative w-72 bg-gray-800 rounded-lg overflow-hidden">
+            <div className="relative w-72 rounded-lg overflow-hidden">
               <img
                 src={album.image}
                 alt={album.title}

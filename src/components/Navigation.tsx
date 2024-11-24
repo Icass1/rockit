@@ -283,7 +283,9 @@ function Downloads({ navOpen }: { navOpen: boolean }) {
                           }px, 24rem, 1000px, 0px)`,
                 }}
             >
-                <label className="text-3xl font-bold text-center p-5">Music Downloader</label>
+                <label className="text-3xl font-bold text-center p-5">
+                    Music Downloader
+                </label>
                 <input
                     className="focus:outline-0 p-2 rounded-full mx-5"
                     placeholder="   Enter a spotify URL"

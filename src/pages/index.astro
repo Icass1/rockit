@@ -1,141 +1,142 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import AlbumsCarousel from "@/components/AlbumsCarousel.tsx";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 
 // Definimos la lista de categorías
 const categories = [
-  { label: "Relax", image: "https://img.freepik.com/free-vector/office-breakout-room-cartoon-vector-design-lounge-break-zone-creative-interior-young-community-coworking-background-modern-clinic-relax-recreation-space-with-armchair-football-sofa_107791-21455.jpg" },
-  { label: "Energetic", image: "https://www.shutterstock.com/image-vector/shining-basketball-court-wooden-floor-600nw-1759440986.jpg" },
-  { label: "Romance", image: "https://png.pngtree.com/background/20210710/original/pngtree-sweet-valentine-s-day-geometric-pink-banner-background-picture-image_996459.jpg" },
-  { label: "Party", image: "https://static.vecteezy.com/system/resources/previews/016/123/450/non_2x/colorful-background-cartoon-special-christmas-gift-new-year-background-for-social-media-offers-playful-fun-minimalist-abstract-post-banner-vector.jpg" },
-  { label: "Sad", image: "https://cdn.vectorstock.com/i/500p/79/46/paper-cut-rain-clouds-with-lightnings-and-drops-vector-50397946.jpg" },
-  { label: "Chill", image: "https://www.shutterstock.com/image-vector/bay-lo-fi-aesthetic-wallpaper-600nw-2358788689.jpg" },
-  { label: "Happy", image: "https://png.pngtree.com/background/20210709/original/pngtree-cartoon-banner-illustration-picture-image_938921.jpg" },
-  { label: "Mellow", image: "https://img.freepik.com/premium-photo/funny-ultra-soft-hot-air-balloon-isolated-pink-background-pastel-colors-colorful-poster-banner-cartoon-minimal-air-style-3d-illustration_76964-5239.jpg" },
+    {
+        label: "Relax",
+        image: "https://img.freepik.com/free-vector/office-breakout-room-cartoon-vector-design-lounge-break-zone-creative-interior-young-community-coworking-background-modern-clinic-relax-recreation-space-with-armchair-football-sofa_107791-21455.jpg",
+    },
+    {
+        label: "Energetic",
+        image: "https://www.shutterstock.com/image-vector/shining-basketball-court-wooden-floor-600nw-1759440986.jpg",
+    },
+    {
+        label: "Romance",
+        image: "https://png.pngtree.com/background/20210710/original/pngtree-sweet-valentine-s-day-geometric-pink-banner-background-picture-image_996459.jpg",
+    },
+    {
+        label: "Party",
+        image: "https://static.vecteezy.com/system/resources/previews/016/123/450/non_2x/colorful-background-cartoon-special-christmas-gift-new-year-background-for-social-media-offers-playful-fun-minimalist-abstract-post-banner-vector.jpg",
+    },
+    {
+        label: "Sad",
+        image: "https://cdn.vectorstock.com/i/500p/79/46/paper-cut-rain-clouds-with-lightnings-and-drops-vector-50397946.jpg",
+    },
+    {
+        label: "Chill",
+        image: "https://www.shutterstock.com/image-vector/bay-lo-fi-aesthetic-wallpaper-600nw-2358788689.jpg",
+    },
+    {
+        label: "Happy",
+        image: "https://png.pngtree.com/background/20210709/original/pngtree-cartoon-banner-illustration-picture-image_938921.jpg",
+    },
+    {
+        label: "Mellow",
+        image: "https://img.freepik.com/premium-photo/funny-ultra-soft-hot-air-balloon-isolated-pink-background-pastel-colors-colorful-poster-banner-cartoon-minimal-air-style-3d-illustration_76964-5239.jpg",
+    },
 ];
 ---
 
 <Layout title="Rock It!" currentPage="Home">
     <!-- Albums Carousel Section -->
-    <div class="text-white h-1/2 flex items-center justify-center overflow-x-hidden relative">
-        <ChevronLeft
-            className="z-30 absolute left-40 h-48 w-10 text-[#6d6d6d] hover:text-white p-2 rounded-full transition duration-300"
-            onClick={() => scrollAlbums('left')}
-        />
 
-        <AlbumsCarousel />
+    <AlbumsCarousel client:only="react"/>
 
-        <ChevronRight
-            className="z-30 absolute right-40 h-48 w-10 text-[#6d6d6d] hover:text-white p-2 rounded-full transition duration-300"
-            onClick={() => scrollAlbums('right')}
-        />
-    </div>
-
-    
     <section class="mt-12 text-center">
         <h2 class="text-3xl font-bold text-white mb-8">Explore by Category</h2>
         <div class="flex justify-center gap-3 flex-wrap">
-            {categories.map((category) => (
-                <div class="group relative cursor-pointer">
-                    <div
-                        class={`w-28 h-10 flex items-center justify-center rounded-full bg-cover bg-center transition duration-300`}
-                        style={{
-                            backgroundImage: `url(${category.image})`,
-                        }}
-                    >
-                        <p class="text-white text-lg font-semibold z-10">
-                            {category.label}
-                        </p>
-                        {/* Capa superpuesta negra al hacer hover */}
+            {
+                categories.map((category) => (
+                    <div class="group relative cursor-pointer">
                         <div
-                            class="absolute inset-0 bg-black rounded-full opacity-40 group-hover:opacity-20 transition duration-300 pointer-events-none"
-                        ></div>
+                            class={`w-28 h-10 flex items-center justify-center rounded-full bg-cover bg-center transition duration-300`}
+                            style={{
+                                backgroundImage: `url(${category.image})`,
+                            }}
+                        >
+                            <p class="text-white text-lg font-semibold z-10">
+                                {category.label}
+                            </p>
+                            {/* Capa superpuesta negra al hacer hover */}
+                            <div class="absolute inset-0 bg-black rounded-full opacity-40 group-hover:opacity-20 transition duration-300 pointer-events-none" />
+                        </div>
                     </div>
-                </div>
-            ))}
+                ))
+            }
         </div>
     </section>
 
     <section class="p-12 text-white">
         <h2 class="text-3xl font-bold text-left">Recently Played</h2>
-        <div
-            class="relative flex items-center gap-4 overflow-x-auto py-4"
-        >
+        <div class="relative flex items-center gap-4 overflow-x-auto py-4">
             <!-- Aquí creamos las canciones -->
-            {Array.from({ length: 20 }).map((_, index) => (
-                <a
-                    href="#"
-                    class="flex-none w-48"
-                >
-                    <img
-                        class="rounded-lg w-full aspect-square object-cover"
-                        src="/song-placeholder.png"
-                        alt="Song Cover"
-                    />
-                    <label class="truncate font-semibold text-center block mt-2">
-                        Song Title {index + 1}
-                    </label>
-                    <label class="truncate text-sm text-center text-gray-400 block">
-                        Artist Name
-                    </label>
-                </a>
-            ))}
+            {
+                Array.from({ length: 20 }).map((_, index) => (
+                    <a href="#" class="flex-none w-48">
+                        <img
+                            class="rounded-lg w-full aspect-square object-cover"
+                            src="/song-placeholder.png"
+                            alt="Song Cover"
+                        />
+                        <label class="truncate font-semibold text-center block mt-2">
+                            Song Title {index + 1}
+                        </label>
+                        <label class="truncate text-sm text-center text-gray-400 block">
+                            Artist Name
+                        </label>
+                    </a>
+                ))
+            }
         </div>
     </section>
 
     <section class="p-12 text-white">
         <h2 class="text-3xl font-bold text-left">Most Listened Songs</h2>
-        <div
-            class="relative flex items-center gap-4 overflow-x-auto py-4"
-        >
+        <div class="relative flex items-center gap-4 overflow-x-auto py-4">
             <!-- Aquí creamos las canciones -->
-            {Array.from({ length: 20 }).map((_, index) => (
-                <a
-                    href="#"
-                    class="flex-none w-48"
-                >
-                    <img
-                        class="rounded-lg w-full aspect-square object-cover"
-                        src="/song-placeholder.png"
-                        alt="Song Cover"
-                    />
-                    <label class="truncate font-semibold text-center block mt-2">
-                        Song Title {index + 1}
-                    </label>
-                    <label class="truncate text-sm text-center text-gray-400 block">
-                        Artist Name
-                    </label>
-                </a>
-            ))}
+            {
+                Array.from({ length: 20 }).map((_, index) => (
+                    <a href="#" class="flex-none w-48">
+                        <img
+                            class="rounded-lg w-full aspect-square object-cover"
+                            src="/song-placeholder.png"
+                            alt="Song Cover"
+                        />
+                        <label class="truncate font-semibold text-center block mt-2">
+                            Song Title {index + 1}
+                        </label>
+                        <label class="truncate text-sm text-center text-gray-400 block">
+                            Artist Name
+                        </label>
+                    </a>
+                ))
+            }
         </div>
     </section>
 
     <section class="p-12 text-white">
         <h2 class="text-3xl font-bold text-left">You Might Also Like</h2>
-        <div
-            class="relative flex items-center gap-4 overflow-x-auto py-4"
-        >
+        <div class="relative flex items-center gap-4 overflow-x-auto py-4">
             <!-- Aquí creamos las canciones -->
-            {Array.from({ length: 20 }).map((_, index) => (
-                <a
-                    href="#"
-                    class="flex-none w-48"
-                >
-                    <img
-                        class="rounded-lg w-full aspect-square object-cover"
-                        src="/song-placeholder.png"
-                        alt="Song Cover"
-                    />
-                    <label class="truncate font-semibold text-center block mt-2">
-                        Song Title {index + 1}
-                    </label>
-                    <label class="truncate text-sm text-center text-gray-400 block">
-                        Artist Name
-                    </label>
-                </a>
-            ))}
+            {
+                Array.from({ length: 20 }).map((_, index) => (
+                    <a href="#" class="flex-none w-48">
+                        <img
+                            class="rounded-lg w-full aspect-square object-cover"
+                            src="/song-placeholder.png"
+                            alt="Song Cover"
+                        />
+                        <label class="truncate font-semibold text-center block mt-2">
+                            Song Title {index + 1}
+                        </label>
+                        <label class="truncate text-sm text-center text-gray-400 block">
+                            Artist Name
+                        </label>
+                    </a>
+                ))
+            }
         </div>
     </section>
-    
 </Layout>

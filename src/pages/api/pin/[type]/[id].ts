@@ -76,7 +76,6 @@ export async function ALL(context: APIContext): Promise<Response> {
         context.locals.user.id
     );
 
-
     return new Response(JSON.stringify({ ...list, type: type }), {
         headers: {
             "Content-Type": "application/json",

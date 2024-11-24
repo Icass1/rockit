@@ -21,6 +21,7 @@
 -   ✅ Redirect all backend routes through astro routes
 -   Remove extra data download-status. (keep id,total,completed)
 -   If frontend is not running, save the new-song, new-album etc into a temp folder so at some time, when it is running, all will be send at once
+-   Download album and artits images
 
 ## Frontend
 
@@ -204,12 +205,12 @@
 
 -   **Home**
 
-    -  ✅ Most played songs (if count > 10)
-    -  ✅ Most played album (if count > 10)
+    -   ✅ Most played songs (if count > 10)
+    -   ✅ Most played album (if count > 10)
     -   Most played artist (if count > 10)
-    -  ✅ Recomendations
-    -  ✅ Recently played song (Banner on top)
-    -  ✅ Recently played album (Banner on top)
+    -   ✅ Recomendations
+    -   ✅ Recently played song (Banner on top)
+    -   ✅ Recently played album (Banner on top)
 
 -   **Downloads**
 

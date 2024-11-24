@@ -2,7 +2,6 @@ import { pinnedLists } from "@/stores/pinnedLists";
 import { PlusCircle } from "lucide-react";
 
 export default function PinList({ type, id }: { type: string; id: string }) {
-
     const handleClick = () => {
         fetch(`/api/pin/${type}/${id}`)
             .then((response) => response.json())

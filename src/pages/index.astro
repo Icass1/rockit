@@ -1,22 +1,10 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import AlbumsCarousel from "@/components/AlbumsCarousel.tsx";
-
-const albums = [
-    { id: 1, title: "Title 1", artist: "Artist 1", image: "/song-placeholder.png" },
-    { id: 2, title: "Title 2", artist: "Artist 2", image: "/song-placeholder.png" },
-    { id: 3, title: "Title 3", artist: "Artist 3", image: "/song-placeholder.png" },
-    { id: 4, title: "Title 4", artist: "Artist 4", image: "/song-placeholder.png" },
-    { id: 5, title: "Title 5", artist: "Artist 5", image: "/song-placeholder.png" },
-    { id: 6, title: "Title 6", artist: "Artist 6", image: "/song-placeholder.png" },
-    { id: 7, title: "Title 7", artist: "Artist 7", image: "/song-placeholder.png" },
-];
-
-const visibleAlbums = albums.slice(0, 7);
 ---
 
 <Layout title="Rock It!" currentPage="Home">
-    <div class="text-white h-1/2 flex items-center justify-center">
-        <AlbumsCarousel albums={visibleAlbums} />
+    <div class="text-white h-1/2 flex items-center justify-center overflow-x-hidden">
+        <AlbumsCarousel />
     </div>
 </Layout>

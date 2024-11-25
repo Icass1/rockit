@@ -159,10 +159,20 @@ const meta = {
             </div>
             <img src={album.images[0].url} class="rounded-md" />
             <label class="pt-2 text-2xl font-semibold">{album.name}</label>
-            <a
-                class="text-xl font-semibold text-stone-400 hover:underline cursor-pointer"
-                >{album.artists.map((artist) => artist.name)}</a
-            >
+
+            <div class="text-xl font-semibold text-stone-400">
+                {
+                    album.artists.map((artist, index) => (
+                        <label
+                            class="hover:underline"
+                            onclick={`event.preventDefault(); event.stopPropagation(); location.href='/artist/${artist.id}' `}
+                        >
+                            {`${artist.name}${index < album.artists.length - 1 ? "," : ""}`}
+                        </label>
+                    ))
+                }
+            </div>
+
             <!-- Meter arriba cuando esté: href={`/artist/${artist.id}`} -->
             <label class="text-sm text-stone-400"
                 >{getDate(album.releaseDate)} | {album.songs.length} Songs | {

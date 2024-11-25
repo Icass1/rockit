@@ -7,11 +7,14 @@ import type { APIContext } from "astro";
 export async function POST(context: APIContext): Promise<Response> {
     const formData = await context.request.formData();
     const username = formData.get("username");
+
+
+
     if (
         typeof username !== "string" ||
         username.length < 3 ||
         username.length > 31 ||
-        !/^[a-z0-9_-]+$/.test(username)
+        !/^[a-z0-9A-Z_-]+$/.test(username)
     ) {
         return new Response(JSON.stringify({ error: "Invalid username" }), {
             status: 400,

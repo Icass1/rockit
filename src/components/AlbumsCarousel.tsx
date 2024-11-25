@@ -339,7 +339,7 @@ export default function AlbumsCarousel() {
     return (
         <div className="text-white h-1/2 flex items-center justify-center overflow-x-hidden relative select-none">
             <ChevronLeft
-                className="z-30 absolute left-40 h-48 w-10 text-[#6d6d6d] hover:text-white p-2 rounded-full transition duration-300"
+                className="z-30 absolute left-32 h-48 w-10 text-[#6d6d6d] hover:text-white p-2 rounded-full transition duration-300"
                 onClick={() =>
                     setCurrentIndex((value) =>
                         value > 0 ? value - 1 : albums.length - 1
@@ -349,7 +349,7 @@ export default function AlbumsCarousel() {
             <Version2 albums={albums} currentIndex={currentIndex} />
 
             <ChevronRight
-                className="z-30 absolute right-40 h-48 w-10 text-[#6d6d6d] hover:text-white p-2 rounded-full transition duration-300"
+                className="z-30 absolute right-32 h-48 w-10 text-[#6d6d6d] hover:text-white p-2 rounded-full transition duration-300"
                 onClick={() =>
                     setCurrentIndex((value) =>
                         value < albums.length - 1 ? value + 1 : 0

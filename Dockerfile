@@ -3,6 +3,9 @@ FROM node:18-slim
 
 WORKDIR /app
 
+RUN apt-get update && apt-get install -y python3.10 && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
 # Install dependencies
 COPY package*.json ./
 RUN npm install pnpm -g

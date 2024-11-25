@@ -22,7 +22,7 @@ export default function PinList({ type, id }: { type: string; id: string }) {
             fetch(`/api/pin/${type}/${id}`, { method: "POST" })
                 .then((response) => response.json())
                 .then((data) => {
-                    pinnedLists.set([data]);
+                    pinnedLists.set([...pinnedLists.get(), data]);
                 });
         }
     };

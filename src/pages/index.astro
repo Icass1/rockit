@@ -2,6 +2,10 @@
 import Layout from "@/layouts/Layout.astro";
 import AlbumsCarousel from "@/components/AlbumsCarousel.tsx";
 
+if (!Astro.locals.user) {
+    return Astro.redirect("/login");
+}
+
 // Definimos la lista de categorías
 const categories = [
     {

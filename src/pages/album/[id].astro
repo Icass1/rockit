@@ -9,7 +9,7 @@ import {
     parseSong,
 } from "@/lib/db";
 import AlbumSong from "@/components/AlbumSong";
-import { ArrowLeft, Disc, Download, PlayCircle } from "lucide-react";
+import { ArrowLeft, Disc, Download, Music, PlayCircle } from "lucide-react";
 
 import PinList from "@/components/PinList";
 import AddToLibrary from "@/components/AddToLibrary";
@@ -119,9 +119,21 @@ function getDate(date: string) {
 
     return dateSplit[0];
 }
+
+const meta = {
+    "og:site_name": "Rockit",
+    site_name: "Rockit",
+    "og:title": album.name,
+    title: album.name,
+    description: `${album.artists.map((artist) => artist.name)} · Album · ${album.releaseDate} · 10 songs`,
+    "og:description": `${album.artists.map((artist) => artist.name)} · Album · ${album.releaseDate} · 10 songs`,
+    "og:url": `https://rockit.rockhosting.org/album/${id}`,
+    "og:type": "music.album",
+    "og:image": album.images[0].url,
+};
 ---
 
-<Layout title={album.name} currentPage="">
+<Layout title={album.name} currentPage="" meta={meta}>
     <div
         class="pl-4 pr-10 g rid flex flex-row w-full h-full grid-cols-[min-content_1fr] relative"
     >

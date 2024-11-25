@@ -192,7 +192,7 @@ export interface RawUserDB {
 
 interface UserDBLastPlayedSong {
     id: string;
-    date: number;
+    date: number[];
 }
 export interface UserDBPinnedLists {
     type: string;
@@ -215,7 +215,9 @@ export interface UserDBFull {
     username: string;
     passwordHash: string;
     lists: UserDBLists[];
-    lastPlayedSong: UserDBLastPlayedSong[] | undefined;
+    lastPlayedSong: {
+        [key: string]: number[];
+    };
     currentList: string | undefined;
     currentSong: string | undefined;
     currentTime: number | undefined;

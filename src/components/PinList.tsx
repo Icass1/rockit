@@ -1,33 +1,49 @@
 import { pinnedLists } from "@/stores/pinnedLists";
 import { useStore } from "@nanostores/react";
-import { Pin } from "lucide-react";
+import { Pin, PinOff } from "lucide-react";
 
 export default function PinList({ type, id }: { type: string; id: string }) {
-    const handleClick = () => {
-        fetch(`/api/pin/${type}/${id}`)
-            .then((response) => response.json())
-            .then((data) => {
-                pinnedLists.set([...pinnedLists.get(), data]);
-            });
-    };
-
     const $pinnedLists = useStore(pinnedLists);
-    const list = $pinnedLists.find((list) => list.id == id);
 
-    if (list) {
-        return <></>
-    }
+    // Determina si el elemento ya está en la lista
+    const isPinned = $pinnedLists.some((list) => list.id === id);
+
+    const handleClick = () => {
+        if (isPinned) {
+            // Si ya está en la lista, elimínalo
+            fetch(`/api/unpin/${type}/${id}`, { method: "DELETE" })
+                .then((response) => response.json())
+                .then(() => {
+                    const updatedLists = $pinnedLists.filter((list) => list.id !== id);
+                    pinnedLists.set(updatedLists);
+                });
+        } else {
+            // Si no está en la lista, añádelo
+            fetch(`/api/pin/${type}/${id}`, { method: "POST" })
+                .then((response) => response.json())
+                .then((data) => {
+                    pinnedLists.set([data]);
+                });
+        }
+    };
 
     return (
         <div
-            className="w-10 h-10 relative hover:scale-105"
+            className="w-10 h-10 relative hover:scale-105 cursor-pointer"
             onClick={handleClick}
         >
             <div className="border-white absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 border-solid rounded-full border-[2px] w-9 h-9"></div>
-            <Pin
-                strokeWidth={1.3}
-                className="h-6 w-6  left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 absolute transition-transform"
-            />
+            {isPinned ? (
+                <PinOff
+                    strokeWidth={1.3}
+                    className="h-6 w-6 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 absolute transition-transform"
+                />
+            ) : (
+                <Pin
+                    strokeWidth={1.3}
+                    className="h-6 w-6 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 absolute transition-transform"
+                />
+            )}
         </div>
     );
 }

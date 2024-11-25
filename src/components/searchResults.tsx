@@ -256,7 +256,7 @@ export default function RenderSearchResults() {
             {$searchResults.artists && (
                 <>
                     <label className="font-bold text-xl text-white ">
-                        Playlists
+                        Artists
                     </label>
                     <ResultsWrapper>
                         {$searchResults.artists

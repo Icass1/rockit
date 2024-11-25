@@ -74,11 +74,11 @@ const categories = [
 
     <section class="p-12 text-white">
         <h2 class="text-3xl font-bold text-left">Recently Played</h2>
-        <div class="relative flex items-center gap-4 overflow-x-auto py-4">
+        <div class="relative flex items-center gap-4 overflow-x-auto py-4 px-2">
             <!-- Aquí creamos las canciones -->
             {
                 Array.from({ length: 20 }).map((_, index) => (
-                    <a href="#" class="flex-none w-48">
+                    <a href="#" class="flex-none w-48 hover:scale-105 transition">
                         <img
                             class="rounded-lg w-full aspect-square object-cover"
                             src="/song-placeholder.png"
@@ -98,11 +98,11 @@ const categories = [
 
     <section class="p-12 text-white">
         <h2 class="text-3xl font-bold text-left">Most Listened Songs</h2>
-        <div class="relative flex items-center gap-4 overflow-x-auto py-4">
+        <div class="relative flex items-center gap-4 overflow-x-auto py-4 px-2">
             <!-- Aquí creamos las canciones -->
             {
                 Array.from({ length: 20 }).map((_, index) => (
-                    <a href="#" class="flex-none w-48">
+                    <a href="#" class="flex-none w-48 hover:scale-105 transition">
                         <img
                             class="rounded-lg w-full aspect-square object-cover"
                             src="/song-placeholder.png"
@@ -122,11 +122,11 @@ const categories = [
 
     <section class="p-12 text-white">
         <h2 class="text-3xl font-bold text-left">You Might Also Like</h2>
-        <div class="relative flex items-center gap-4 overflow-x-auto py-4">
+        <div class="relative flex items-center gap-4 overflow-x-auto py-4 px-2">
             <!-- Aquí creamos las canciones -->
             {
                 Array.from({ length: 20 }).map((_, index) => (
-                    <a href="#" class="flex-none w-48">
+                    <a href="#" class="flex-none w-48 hover:scale-105 transition">
                         <img
                             class="rounded-lg w-full aspect-square object-cover"
                             src="/song-placeholder.png"

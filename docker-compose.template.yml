@@ -18,6 +18,7 @@ services:
       SONGS_PATH: "/songs"
       TEMP_PATH: "/temp"
       LOGS_PATH: "/logs"
+      IMAGES_PATH: "/images"
     volumes:
       - <path to songs dir>:/songs
   astro-frontend:
@@ -30,6 +31,8 @@ services:
       - app-network
     environment:
       BACKEND_URL: "http://flask-backend:8000"
+      SONGS_PATH: "/songs"
+      IMAGES_PATH: "/images"
     volumes:
       - <path to database dir>:/app/database
       - <path to songs dir>:/app/songs

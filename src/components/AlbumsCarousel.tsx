@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { Play } from "lucide-react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Play, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface Album {
     id: number;

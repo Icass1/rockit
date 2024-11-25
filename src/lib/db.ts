@@ -188,6 +188,12 @@ export interface UserDBPinnedLists {
     id: string;
 }
 
+export interface UserDBLists {
+    type: string;
+    createdAt: number;
+    id: string;
+}
+
 export type UserDB<Keys extends keyof UserDBFull = keyof UserDBFull> = Pick<
     UserDBFull,
     Keys
@@ -196,7 +202,7 @@ export interface UserDBFull {
     id: string;
     username: string;
     passwordHash: string;
-    lists: string[];
+    lists: UserDBLists[];
     lastPlayedSong: UserDBLastPlayedSong[] | undefined;
     currentList: string | undefined;
     currentSong: string | undefined;

@@ -64,6 +64,51 @@ const images = [
     "https://i.scdn.co/image/ab67616d0000b273b7bea3d01f04e6d0408d2afe",
     "https://i.scdn.co/image/ab67616d0000b273aa5e4c9da271951ac0b31fa2",
     "https://i.scdn.co/image/ab67616d0000b2734121faee8df82c526cbab2be",
+    "https://i.scdn.co/image/ab67616d0000b2734121faee8df82c526cbab2be",
+    "https://i.scdn.co/image/ab67616d0000b2734121faee8df82c526cbab2be",
+    "https://i.scdn.co/image/ab67616d0000b2734121faee8df82c526cbab2be",
+    "https://i.scdn.co/image/ab67616d0000b2734121faee8df82c526cbab2be",
+    "https://i.scdn.co/image/ab67616d0000b2734121faee8df82c526cbab2be",
+    "https://i.scdn.co/image/ab67616d0000b2734121faee8df82c526cbab2be",
+    "https://i.scdn.co/image/ab67616d0000b2734121faee8df82c526cbab2be",
+    "https://i.scdn.co/image/ab67616d0000b2734121faee8df82c526cbab2be",
+    "https://i.scdn.co/image/ab67616d0000b2734121faee8df82c526cbab2be",
+    "https://i.scdn.co/image/ab67616d0000b2734121faee8df82c526cbab2be",
+    "https://i.scdn.co/image/ab67616d0000b2734121faee8df82c526cbab2be",
+    "https://i.scdn.co/image/ab67616d0000b2734121faee8df82c526cbab2be",
+    "https://i.scdn.co/image/ab67616d0000b2734121faee8df82c526cbab2be",
+    "https://i.scdn.co/image/ab67616d0000b2734121faee8df82c526cbab2be",
+    "https://i.scdn.co/image/ab67616d0000b2734121faee8df82c526cbab2be",
+    "https://i.scdn.co/image/ab67616d0000b2734121faee8df82c526cbab2be",
+    "https://i.scdn.co/image/ab67616d0000b2734121faee8df82c526cbab2be",
+    "https://i.scdn.co/image/ab67616d0000b2734121faee8df82c526cbab2be",
+    "https://i.scdn.co/image/ab67616d0000b2734121faee8df82c526cbab2be",
+    "https://i.scdn.co/image/ab67616d0000b2734121faee8df82c526cbab2be",
+    "https://i.scdn.co/image/ab67616d0000b2734121faee8df82c526cbab2be",
+    "https://i.scdn.co/image/ab67616d0000b2734121faee8df82c526cbab2be",
+    "https://i.scdn.co/image/ab67616d0000b2734121faee8df82c526cbab2be",
+    "https://i.scdn.co/image/ab67616d0000b2734121faee8df82c526cbab2be",
+    "https://i.scdn.co/image/ab67616d0000b2734121faee8df82c526cbab2be",
+    "https://i.scdn.co/image/ab67616d0000b2734121faee8df82c526cbab2be",
+    "https://i.scdn.co/image/ab67616d0000b2734121faee8df82c526cbab2be",
+    "https://i.scdn.co/image/ab67616d0000b2734121faee8df82c526cbab2be",
+    "https://i.scdn.co/image/ab67616d0000b2734121faee8df82c526cbab2be",
+    "https://i.scdn.co/image/ab67616d0000b2734121faee8df82c526cbab2be",
+    "https://i.scdn.co/image/ab67616d0000b2734121faee8df82c526cbab2be",
+    "https://i.scdn.co/image/ab67616d0000b2734121faee8df82c526cbab2be",
+    "https://i.scdn.co/image/ab67616d0000b2734121faee8df82c526cbab2be",
+    "https://i.scdn.co/image/ab67616d0000b2734121faee8df82c526cbab2be",
+    "https://i.scdn.co/image/ab67616d0000b2734121faee8df82c526cbab2be",
+    "https://i.scdn.co/image/ab67616d0000b2734121faee8df82c526cbab2be",
+    "https://i.scdn.co/image/ab67616d0000b2734121faee8df82c526cbab2be",
+    "https://i.scdn.co/image/ab67616d0000b2734121faee8df82c526cbab2be",
+    "https://i.scdn.co/image/ab67616d0000b2734121faee8df82c526cbab2be",
+    "https://i.scdn.co/image/ab67616d0000b2734121faee8df82c526cbab2be",
+    "https://i.scdn.co/image/ab67616d0000b2734121faee8df82c526cbab2be",
+    "https://i.scdn.co/image/ab67616d0000b2734121faee8df82c526cbab2be",
+    "https://i.scdn.co/image/ab67616d0000b2734121faee8df82c526cbab2be",
+    "https://i.scdn.co/image/ab67616d0000b2734121faee8df82c526cbab2be",
+    "https://i.scdn.co/image/ab67616d0000b2734121faee8df82c526cbab2be",
     "https://i.scdn.co/image/ab67616d0000b273fb2daafa0993f39d87a84385",
     "https://i.scdn.co/image/ab67616d0000b2733c73b2e0a6aa490736f19751",
     "https://i.scdn.co/image/ab67616d0000b273cf1fee2a55e98e22bf358512",
@@ -178,69 +223,6 @@ const images = [
     .sort((a, b) => a.sort - b.sort)
     .map(({ value }) => value);
 
-function Version1({ visibleAlbums }: { visibleAlbums: Album[] }) {
-    return (
-        <div className="relative flex items-center">
-            {visibleAlbums.map((album, index) => {
-                const distanceFromCenter = Math.abs(index - 3);
-                const scale = 1 - distanceFromCenter * 0.1; // Escalado en función de la distancia al centro
-                const zIndex = 20 - distanceFromCenter; // Profundidad dinámica
-                const translateX = (index - 3) * -5; // Separación horizontal
-                const brightness = 1 - distanceFromCenter * 0.2; // Brillo en función de la distancia al centro
-
-                return (
-                    <div
-                        key={album.id}
-                        className="relative transition-all duration-500" // Animación suave de 500ms
-                        style={{
-                            transform: `translateX(${translateX}rem) scale(${scale})`,
-                            zIndex,
-                            transition:
-                                "transform 500ms ease-in-out, filter 500ms ease-in-out", // Añadimos suavizado en la transición
-                        }}
-                    >
-                        <div className="relative w-72 rounded-lg overflow-hidden">
-                            {/* Imagen con brillo dinámico */}
-                            <img
-                                src={album.image}
-                                alt={album.title}
-                                className="w-full h-full object-cover"
-                                style={{
-                                    filter: `brightness(${brightness})`,
-                                }} // Aplicamos el brillo dinámico
-                            />
-                            {/* Degradado sobre la imagen */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
-                            {/* Mostrar título y artista solo para el álbum central */}
-                            {index === 3 ||
-                                (true && (
-                                    <>
-                                        <div className="absolute bottom-2 left-2 text-white p-2 rounded">
-                                            <h3 className="text-2xl font-bold">
-                                                {album.title}
-                                            </h3>
-                                            <p className="text-md font-semibold text-gray-100">
-                                                {album.artist}
-                                            </p>
-                                        </div>
-                                        <button
-                                            className="z-50 absolute bottom-4 backdrop-blur-sm right-4 bg-transparent text-white p-3 rounded-full hover:bg-black/40 transition duration-300"
-                                            onClick={() =>
-                                                alert("Play button clicked")
-                                            }
-                                        >
-                                            <Play className="h-5 w-5" />
-                                        </button>
-                                    </>
-                                ))}
-                        </div>
-                    </div>
-                );
-            })}
-        </div>
-    );
-}
-
 function Version2({
     albums,
     currentIndex,
@@ -269,7 +251,7 @@ function Version2({
 
                 if (distanceFromCenter > 4) {
                     scale = "0";
-                    distanceFromCenter = 3;
+                    distanceFromCenter = 4;
                     left = `${50 + distanceFromCenter * neg * -9}%`; // Separación horizontal
                     brightness = 1 - distanceFromCenter * 0.2; // Brillo en función de la distancia al centro
                 }
@@ -285,7 +267,7 @@ function Version2({
                     >
                         <div
                             className={
-                                "h-full w-auto rounded-lg overflow-hidden" +
+                                "h-full w-auto rounded-lg overflow-hidden bg-black relative" +
                                 transition
                             }
                             style={{
@@ -294,7 +276,7 @@ function Version2({
                         >
                             <img
                                 src={album.image}
-                                className={transition}
+                                className={`${transition} top-1/2 relative -translate-y-1/2`}
                                 style={{ filter: `brightness(${brightness})` }}
                             />
                             <div

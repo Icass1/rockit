@@ -9,7 +9,6 @@ import {
     type RawPlaylistDB,
 } from "@/lib/db";
 import PlaylistSong from "@/components/PlaylistSong";
-import type { SpotifyAlbumImage } from "@/types/spotify";
 import PinList from "@/components/PinList";
 import AddToLibrary from "@/components/AddToLibrary";
 import { Download, PlayCircle, ArrowLeft } from "lucide-react";
@@ -105,7 +104,7 @@ function getMinutes(seconds: number) {
                 <PlayCircle strokeWidth={0.9} className="h-10 w-10" />
             </div>
             <img
-                src={(playlist.images as SpotifyAlbumImage[])[0].url}
+                src={playlist.image ? `/api/image/${playlist.image}` : playlist.images[0].url}
                 class="rounded-md"
             />
             <label class="pt-2 text-2xl font-semibold">{playlist.name}</label>

@@ -3,7 +3,15 @@ import { downloads } from "@/stores/downloads";
 import { pinnedLists } from "@/stores/pinnedLists";
 import type { SpotifyAlbum, SpotifyTrack } from "@/types/spotify";
 import { useStore } from "@nanostores/react";
-import { Home, Menu, Library, Search, Download, Pin, ChartLine } from "lucide-react";
+import {
+    Home,
+    Menu,
+    Library,
+    Search,
+    Download,
+    Pin,
+    ChartLine,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 interface EventSourceStatus {
@@ -135,7 +143,7 @@ function RenderSongDownload({
     songStatus: [string, EventSourceStatus];
 }) {
     return (
-        <div className="bg-zinc-400/10 rounded h-14 flex flex-row gap-x-2 overflow-hidden">
+        <div className="bg-zinc-400/10 rounded h-14 min-h-14 flex flex-row gap-x-2 overflow-hidden">
             <img
                 src={
                     songStatus[1].song?.album?.images[0]?.url ||

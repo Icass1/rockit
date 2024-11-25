@@ -1,5 +1,6 @@
 import type { APIContext } from "astro";
-import { db } from "@/lib/db";
+import { db, type ImageDB } from "@/lib/db";
+import * as crypto from "node:crypto";
 
 export async function POST(context: APIContext): Promise<Response> {
     const data = await context.request.json();
@@ -10,6 +11,7 @@ export async function POST(context: APIContext): Promise<Response> {
     let type = data.type;
     let id = data.id;
     let images = JSON.stringify(data.images);
+    let image = data.image;
     let releaseDate = data.release_date;
     let copyrights = JSON.stringify(data.copyrights);
     let popularity = data.popularity;
@@ -17,7 +19,30 @@ export async function POST(context: APIContext): Promise<Response> {
     let discCount = data.disc_count;
 
     const album = db.prepare("SELECT * FROM album WHERE id = ?").get(id);
+
+    let imageId;
+
+    const imageDB = db
+        .prepare("SELECT * FROM image WHERE path = ?")
+        .get(image) as ImageDB;
+    if (imageDB) {
+        imageId = imageDB.id;
+    } else {
+        imageId = crypto.randomBytes(20).toString("hex");
+        db.prepare("INSERT INTO image (id, path, url) VALUES(?, ?, ?)").run(
+            imageId,
+            image,
+            `https://rockit.rockhosting.org/api/image/${imageId}`
+        );
+    }
+
     if (album) {
+        if (image != null) {
+            db.prepare(`UPDATE album SET image = ? WHERE id = ?`).run(
+                imageId,
+                id
+            );
+        }
         return new Response("OK");
     }
 

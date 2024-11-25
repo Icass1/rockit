@@ -100,7 +100,11 @@ if (userLists?.filter((list) => list.type == "album").length > 0) {
                         >
                             <img
                                 class="rounded-md"
-                                src={playlist.images[0]?.url}
+                                src={
+                                    playlist.image
+                                        ? `/api/image/${playlist.image}`
+                                        : playlist.images[0]?.url
+                                }
                             />
                             <label class="truncate font-semibold text-center">
                                 {playlist.name}
@@ -122,7 +126,11 @@ if (userLists?.filter((list) => list.type == "album").length > 0) {
                         >
                             <img
                                 class="rounded-md"
-                                src={album.images[0]?.url}
+                                src={
+                                    album.image
+                                        ? `/api/image/${album.image}`
+                                        : album.images[0]?.url
+                                }
                             />
                             <label class="truncate font-semibold text-center mt-1">
                                 {album.name}

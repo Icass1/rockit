@@ -1,6 +1,9 @@
 import fs from "fs";
+import path from "path";
 import type { APIContext } from "astro";
 import { db, type SongDB } from "@/lib/db";
+
+const SONGS_PATH = process.env.SONGS_PATH;
 
 export async function GET(context: APIContext) {
     const { id } = context.params as { id: string };
@@ -12,15 +15,20 @@ export async function GET(context: APIContext) {
         return new Response("Song not found", { status: 404 });
     }
 
-    const filePath = song.path;
+    if (!SONGS_PATH) {
+        return new Response("SONGS_PATH is not set", { status: 404 });
+    }
+
+    if (!song.path) {
+        return new Response("Song not found", { status: 404 });
+    }
+    // return new Response("Song not found", { status: 404 });
+
+    const filePath = path.join(SONGS_PATH, song.path);
     let stat;
-    if (filePath) {
-        try {
-            stat = fs.statSync(filePath);
-        } catch {
-            return new Response("Song not found", { status: 404 });
-        }
-    } else {
+    try {
+        stat = fs.statSync(filePath);
+    } catch {
         return new Response("Song not found", { status: 404 });
     }
 
@@ -40,21 +48,28 @@ export async function GET(context: APIContext) {
             "Content-Type": "audio/mpeg",
         };
 
-        const audioStream = fs.createReadStream(filePath, { start, end });
-        return new Response(audioStream as unknown as ReadableStream, {
-            status: 206,
-            headers,
-        });
+        try {
+            const audioStream = fs.createReadStream(filePath, { start, end });
+            return new Response(audioStream as unknown as ReadableStream, {
+                status: 206,
+                headers,
+            });
+        } catch (error) {
+            return new Response("Error reading song", { status: 500 });
+        }
     } else {
         const headers = {
             "Content-Length": fileSize.toString(),
             "Content-Type": "audio/mpeg",
         };
-
-        const audioStream = fs.createReadStream(filePath);
-        return new Response(audioStream as unknown as ReadableStream, {
-            status: 200,
-            headers,
-        });
+        try {
+            const audioStream = fs.createReadStream(filePath);
+            return new Response(audioStream as unknown as ReadableStream, {
+                status: 200,
+                headers,
+            });
+        } catch (error) {
+            return new Response("Error reading song", { status: 500 });
+        }
     }
 }

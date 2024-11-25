@@ -27,6 +27,7 @@ venv/
 site-packages
 temp
 songs
+images
 __pycache__
 rest
 *.db

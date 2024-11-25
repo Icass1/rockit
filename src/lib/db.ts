@@ -13,6 +13,18 @@ interface Column {
     pk: number;
 }
 
+// This code removes the songs/ from all songs of database. It should be removed once all databases have been changed
+(db.prepare("SELECT * FROM song").all() as RawSongDB[]).map((song) => {
+    if (song?.path?.startsWith("songs/")) {
+        console.log(song.id);
+        console.log(song.path.replace("songs/", ""));
+        db.prepare("UPDATE song SET path = ? WHERE id = ?").run(
+            song.path.replace("songs/", ""),
+            song.id
+        );
+    }
+});
+
 function getDifference(listA: Column[], listB: Column[]) {
     let addedColumns: string[] = [];
     let removedColumns: string[] = [];
@@ -280,6 +292,29 @@ checkTable(
 db.exec(userQuery);
 
 // ****************************************
+// ************** Images stuff **************
+// ****************************************
+
+export interface ImageDB {
+    id: string;
+    url: string;
+    path: string;
+}
+
+const imageQuery = `CREATE TABLE IF NOT EXISTS image (
+    id TEXT NOT NULL PRIMARY KEY,
+    path TEXT NOT NULL,
+    url TEXT NOT NULL
+)`;
+
+checkTable(
+    "image",
+    imageQuery,
+    db.prepare("PRAGMA table_info(image)").all() as Column[]
+);
+db.exec(imageQuery);
+
+// ****************************************
 // ************** Song stuff **************
 // ****************************************
 
@@ -301,6 +336,7 @@ export interface RawSongDB {
     publisher: string | undefined;
     path: string | undefined;
     images: string;
+    image: string;
     copyright: string | undefined;
     downloadUrl: string | undefined;
     lyrics: string | undefined;
@@ -329,14 +365,15 @@ export type SongDBFull = {
     tracksCount: number | undefined;
     publisher: string | undefined;
     path: string | undefined;
-    images: ImageDB[];
+    images: OldImageDB[];
+    image: string;
     copyright: string | undefined;
     downloadUrl: string | undefined;
     lyrics: string | undefined;
     popularity: number | undefined;
     dateAdded: string | undefined;
 };
-export type ImageDB = {
+export type OldImageDB = {
     url: string;
     width: number;
     height: number;
@@ -369,6 +406,7 @@ export function parseSong(rawSong: RawSongDB | undefined): SongDB | undefined {
         publisher: rawSong.publisher,
         path: rawSong.path,
         images: JSON.parse(rawSong.images || "[]"),
+        image: rawSong.image,
         copyright: rawSong.copyright,
         downloadUrl: rawSong.downloadUrl,
         lyrics: rawSong.lyrics,
@@ -395,6 +433,7 @@ const songQuery = `CREATE TABLE IF NOT EXISTS song (
     publisher TEXT,
     path TEXT,
     images TEXT NOT NULL,
+    image TEXT NOT NULL,
     copyright TEXT,
     downloadUrl TEXT,
     lyrics TEXT,
@@ -419,6 +458,7 @@ export type PlaylistDB<
 export interface RawPlaylistDB {
     id: string;
     images: string;
+    image: string;
     name: string;
     description: string;
     owner: string;
@@ -428,7 +468,8 @@ export interface RawPlaylistDB {
 
 export interface PlaylistDBFull {
     id: string;
-    images: ImageDB[];
+    images: OldImageDB[];
+    image: string;
     name: string;
     description: string;
     owner: string;
@@ -449,6 +490,7 @@ export function parsePlaylist(
     return {
         id: playlist.id,
         images: JSON.parse(playlist.images || "[]"),
+        image: playlist.image,
         name: playlist.name,
         description: playlist.description,
         owner: playlist.owner,
@@ -460,6 +502,7 @@ export function parsePlaylist(
 const playlistQuery = `CREATE TABLE IF NOT EXISTS playlist (
     id TEXT NOT NULL PRIMARY KEY UNIQUE,
     images TEXT NOT NULL,
+    image TEXT NOT NULL,
     name TEXT NOT NULL,
     description TEXT NOT NULL,
     owner TEXT NOT NULL,
@@ -487,6 +530,7 @@ export interface RawAlbumDB {
     id: string;
     type: string;
     images: string;
+    image: string;
     name: string;
     releaseDate: string;
     artists: string;
@@ -500,7 +544,8 @@ export interface RawAlbumDB {
 export interface AlbumDBFull {
     id: string;
     type: string;
-    images: ImageDB[];
+    images: OldImageDB[];
+    image: string;
     name: string;
     releaseDate: string;
     artists: ArtistDB[];
@@ -525,6 +570,7 @@ export function parseAlbum(album: RawAlbumDB | undefined): AlbumDB | undefined {
         id: album.id,
         type: album.type,
         images: JSON.parse(album.images || "[]"),
+        image: album.image,
         name: album.name,
         releaseDate: album.releaseDate,
         artists: JSON.parse(album.artists || "[]"),
@@ -541,6 +587,7 @@ const albumQuery = `CREATE TABLE IF NOT EXISTS album (
     id TEXT NOT NULL PRIMARY KEY UNIQUE,
     type TEXT NOT NULL,
     images TEXT NOT NULL,
+    image TEXT NOT NULL,
     name TEXT NOT NULL,
     releaseDate TEXT NOT NULL,
     artists TEXT NOT NULL,

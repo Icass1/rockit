@@ -66,8 +66,8 @@ def log_uncaught_exceptions(exc_type, exc_value, exc_traceback: traceback):
 # Override threading's excepthook for all threads
 def custom_thread_excepthook(args):
     print(args)
-    return
-    exc_type, exc_value, exc_traceback = args
+    # return
+    exc_type, exc_value, exc_traceback, thread = args
     log_uncaught_exceptions(exc_type, exc_value, exc_traceback)
 
 # Apply the custom handler to all new threads

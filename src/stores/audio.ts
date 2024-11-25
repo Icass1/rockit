@@ -145,6 +145,10 @@ audio.addEventListener("pause", () => {
 });
 
 audio.addEventListener("ended", async () => {
+    const currentSongId = currentSong?.get()?.id;
+    if (currentSongId) {
+        send({ songEnded: currentSongId });
+    }
     await next();
     play();
 });

@@ -1,11 +1,12 @@
 import type { APIContext } from "astro";
-import { db } from "@/lib/db";
+import { db, parseUser, type RawUserDB, type UserDB } from "@/lib/db";
 
 interface Message {
     currentSong?: string;
     currentTime?: number;
     queue?: string[];
     queueIndex?: number;
+    songEnded?: string;
 }
 
 export async function ALL(context: APIContext): Promise<Response> {
@@ -42,6 +43,35 @@ export async function ALL(context: APIContext): Promise<Response> {
             } else if (messageJson.queueIndex) {
                 db.prepare(`UPDATE user SET queueIndex = ? WHERE id = ?`).run(
                     messageJson.queueIndex,
+                    context.locals.user.id
+                );
+            } else if (messageJson.songEnded) {
+                let userLastPlayedSong = (
+                    parseUser(
+                        db
+                            .prepare(
+                                "SELECT lastPlayedSong FROM user WHERE id = ?"
+                            )
+                            .get(context.locals.user.id) as RawUserDB
+                    ) as UserDB<"lastPlayedSong">
+                ).lastPlayedSong;
+
+                if (!userLastPlayedSong) {
+                    userLastPlayedSong = {};
+                }
+
+                if (userLastPlayedSong[messageJson.songEnded]) {
+                    userLastPlayedSong[messageJson.songEnded].push(
+                        new Date().getTime()
+                    );
+                } else {
+                    userLastPlayedSong[messageJson.songEnded] = [
+                        new Date().getTime(),
+                    ];
+                }
+
+                db.prepare(`UPDATE user SET lastPlayedSong = ? WHERE id = ?`).run(
+                    JSON.stringify(userLastPlayedSong),
                     context.locals.user.id
                 );
             } else {

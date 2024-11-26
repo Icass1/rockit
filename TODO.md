@@ -31,7 +31,7 @@
         -   ✅ Add logo on left
         -   ✅ Add search bar on middle
         -   ✅ Add user information & Profile pic on right
-    -   Footer
+    -  ⌛ Footer
         -   ✅ Add song information on Left
             -   ✅ Cover
             -   ✅ Img
@@ -41,14 +41,14 @@
             -   ✅ <span style="color:#3287a8">(Impr: Add Album next to artist?)</span>
                 -   ✅ Link
         -   ✅ Add song & playlist control buttons on middle (Need to fix CSS)
-        -   Add song times and bur under control buttons
+        -  ✅ Add song times and bur under control buttons
             -   ✅ Total audio time
             -   ✅ Current audio time
-            -   Progress bar
-                -   Click on progress bar and change current audio time
-        -   Add volume control bar & icon on the right
+            -  ✅ Progress bar
+                -  ✅ Click on progress bar and change current audio time
+        -  ⌛ Add volume control bar & icon on the right
             -   ✅ Icon and bar
-            -   Change audio volume
+            -  ⌛ Change audio volume
         -   ✅ <span style="color:#3287a8">(Impr: Add arrow up button to go to song full size player?)</span>
     -   Menu bar
         -   ✅ Add functional icons to menu bar

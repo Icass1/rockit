@@ -133,9 +133,9 @@ const meta = {
 };
 ---
 
-<Layout title={album.name} currentPage="" meta={meta}>
+<Layout title={album.name + " • Rock It!"} currentPage="" meta={meta}>
     <div
-        class="pl-4 pr-10 g rid flex flex-row w-full h-full grid-cols-[min-content_1fr] relative"
+        class="pl-4 g rid flex flex-row w-full h-full grid-cols-[min-content_1fr] relative pr-2"
     >
         <a
             class="absolute px-3 py-2 flex flex-row gap-2 hover:bg-[#2e2e2e] cursor-pointer bg-[#1d1d1d] rounded-xl left-[3.5rem]"
@@ -185,7 +185,7 @@ const meta = {
             >
         </div>
         <div
-            class="min-w-0 max-w-full w-full min-h-0 max-h-full h-full overflow-auto flex flex-col gap-y-4"
+            class="min-w-0 max-w-full w-full min-h-0 max-h-full h-full overflow-auto flex flex-col gap-y-4 pr-6"
         >
             {
                 discs.map((discSongs, discIndex) => {
@@ -214,7 +214,7 @@ const meta = {
                     );
                 })
             }
-            <div class="min-h-56"></div>
+            <!--<div class="min-h-56"></div>-->
         </div>
     </div>
 </Layout>

@@ -81,7 +81,7 @@ function getMinutes(seconds: number) {
 
 <Layout title={playlist.name + " • Rock It!"} currentPage="">
     <div
-        class="pl-4 pr-10 g rid flex flex-row w-full h-full grid-cols-[min-content_1fr] relative"
+        class="pl-4 pr-2 g rid flex flex-row w-full h-full grid-cols-[min-content_1fr] relative"
     >
         <a
             class="absolute px-3 py-2 flex flex-row gap-2 hover:bg-[#2e2e2e] cursor-pointer bg-[#1d1d1d] rounded-xl left-[3.5rem]"
@@ -123,7 +123,7 @@ function getMinutes(seconds: number) {
             >
         </div>
         <div
-            class="min-w-0 max-w-full w-full min-h-0 max-h-full h-full overflow-auto flex flex-col gap-y-1"
+            class="min-w-0 max-w-full w-full min-h-0 max-h-full h-full overflow-auto flex flex-col gap-y-1 pr-6"
         >
             {
                 songs.map((song, index) => {

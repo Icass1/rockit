@@ -86,6 +86,9 @@ def getLogger(name):
 
     # Ensure log directory exists
     log_dir = os.getenv("LOGS_PATH")
+    if not log_dir:
+        print("LOGS_PATH environ variable is not set")
+        exit()
     ensure_dir_exists(log_dir)
 
     # Set logging level

@@ -61,6 +61,13 @@ def search():
         "artists": search_results["artists"]["items"],
     }
 
+@app.route('/album/<string:id>')
+def album(id: str):
+
+    album = spotify.api_call(path=f"albums/{id}")
+
+    return jsonify(album)
+
 @app.route('/start-download')
 def start_download():    
     USER_ID = request.args.get('user')

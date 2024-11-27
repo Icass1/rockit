@@ -402,7 +402,7 @@ export default function Navigation({ activePage }: { activePage: string }) {
                     <div className="w-8 h-8 flex items-center justify-center">
                         <Pin className="w-5 h-5" />
                     </div>
-                    <label className="text-sm">Pinned lists</label>
+                    <label className="text-md font-semibold">Pinned lists</label>
                 </div>
 
                 {$pinnedLists.map((list) => {
@@ -411,7 +411,7 @@ export default function Navigation({ activePage }: { activePage: string }) {
                             key={list.id}
                             href={`/${list.type}/${list.id}`}
                             title={list.name}
-                            className={`h-8 rounded-md items-center ml-2 mr-2 transition-all flex gap-2 hover:opacity-65 cursor-pointer`}
+                            className={`h-8 rounded-md items-center ml-2 mr-2 transition-all flex gap-3 hover:opacity-65 cursor-pointer`}
                         >
                             <img
                                 className="w-8 h-8 flex items-center justify-center rounded-sm"

@@ -31,7 +31,7 @@
         -   ✅ Add logo on left
         -   ✅ Add search bar on middle
         -   ✅ Add user information & Profile pic on right
-    -  ⌛ Footer
+    -   ⌛ Footer
         -   ✅ Add song information on Left
             -   ✅ Cover
             -   ✅ Img
@@ -41,14 +41,14 @@
             -   ✅ <span style="color:#3287a8">(Impr: Add Album next to artist?)</span>
                 -   ✅ Link
         -   ✅ Add song & playlist control buttons on middle (Need to fix CSS)
-        -  ✅ Add song times and bur under control buttons
+        -   ✅ Add song times and bur under control buttons
             -   ✅ Total audio time
             -   ✅ Current audio time
-            -  ✅ Progress bar
-                -  ✅ Click on progress bar and change current audio time
-        -  ⌛ Add volume control bar & icon on the right
+            -   ✅ Progress bar
+                -   ✅ Click on progress bar and change current audio time
+        -   ⌛ Add volume control bar & icon on the right
             -   ✅ Icon and bar
-            -  ⌛ Change audio volume
+            -   ⌛ Change audio volume
         -   ✅ <span style="color:#3287a8">(Impr: Add arrow up button to go to song full size player?)</span>
     -   Menu bar
         -   ✅ Add functional icons to menu bar
@@ -131,11 +131,6 @@
     -   ✅ User display name
     -   ✅ Change password
     -   ✅ Change display Image
-    -   (Why/where this ones?)
-        -   Most played songs
-        -   Most played album
-        -   Most played artist
-        -   Most played genre
 
 -   **Library**
 
@@ -147,61 +142,72 @@
     -   <span style="color:#3287a8">(Impr: Recommendations) - Could be added in fetured</span>
     -   <span style="color:#3287a8">(Impr: Recaps) - Could be added in fetured</span>
 
+-   **Stats**
+
+    -   ✅ Songs listened per day
+    -   ✅ Minutes listened per day
+    -   ✅ Most listened albums
+    -   Most listened songs
+    -   ✅ Most listened artists
+    -   Most listened genre
+    -   ✅ Total songs listened
+    -   ✅ Total minutes listened
+
 -   **Search**
 
-    -   Best result
+    -   ✅ Best result
 
-        -   If album
-            -   Show if in database
-            -   Click to download
-            -   Album name
-            -   Album artist
-            -   Album cover
-        -   If song
-            -   Show if in database
-            -   Click to download
-            -   Song name
-            -   Song artist
-            -   Album cover
-            -   Album name
-        -   If playlist
-            -   Show if in database
-            -   Click to download
-            -   Playlist name
-            -   Cover
-            -   Created by
-        -   If Artist
-            -   Cover
-            -   Name
+        -   Sort by popularity
+        -   ✅ If album
+            -   ✅ Show if in database
+            -   ✅ Click to open
+            -   ✅ Album name
+            -   ✅ Album artist
+            -   ✅ Album cover
+        -   ✅ If song
+            -   ✅ Show if in database
+            -   ✅ Click to open
+            -   ✅ Song name
+            -   ✅ Song artist
+            -   ✅ Album cover
+        -   ✅ If playlist
+            -   ✅ Show if in database
+            -   ✅ Click to open
+            -   ✅ Playlist name
+            -   ✅ Cover
+            -   ✅ Created by
+        -   ✅ If Artist
+            -   ✅ Cover
+            -   ✅ Name
 
-    -   Artists
+    -   ✅ Artists
 
-        -   Cover
-        -   Name
+        -   ✅ Cover
+        -   ✅ Name
 
-    -   Albums
+    -   ✅ Albums
 
-        -   Show if in database
-        -   Click to download
-        -   Album name
-        -   Album artist
-        -   Album cover
+        -   ✅ Show if in database
+        -   ✅ Click to open
+        -   ✅ Album name
+        -   ✅ Album artist
+        -   ✅ Album cover
 
-    -   Songs
+    -   ✅ Songs
 
-        -   Show if in database
-        -   Click to download
-        -   Song name
-        -   Song artist
-        -   Album cover
-        -   Album name
+        -   ✅ Show if in database
+        -   ✅ Click to open
+        -   ✅ Song name
+        -   ✅ Song artist
+        -   ✅ Album cover
+        -   ✅ Album name
 
-    -   Playlists
-        -   Show if in database
-        -   Click to download
-        -   Playlist name
-        -   Cover
-        -   Created by
+    -   ✅ Playlists
+        -   ✅ Show if in database
+        -   ✅ Click to open
+        -   ✅ Playlist name
+        -   ✅ Cover
+        -   ✅ Created by
 
 -   **Home**
 
@@ -215,11 +221,11 @@
 -   **Downloads**
 
     -   Downloads status
-        -   Percentage
-        -   Name of song or list
-        -   Cover
-        -   Artist
-        -   Songs if list
+        -   ✅ Percentage bar
+        -   ✅ Name of song or list
+        -   ✅ Cover
+        -   ✅ Artist
+        -   ✅ Songs if list
         -   Cancel download
     -   Downloads history
         -   Name of song or list

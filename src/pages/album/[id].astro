@@ -9,10 +9,14 @@ import {
     parseSong,
 } from "@/lib/db";
 import AlbumSong from "@/components/AlbumSong";
-import { ArrowLeft, Disc, Download, Music, PlayCircle } from "lucide-react";
+import { ArrowLeft, Disc, PlayCircle } from "lucide-react";
+
+import { getMinutes } from "@/lib/getTime";
 
 import PinList from "@/components/PinList";
 import AddToLibrary from "@/components/AddToLibrary";
+import DownloadList from "@/components/DownloadList";
+import type { SpotifyAlbum } from "@/types/spotify";
 
 const { id } = Astro.params as { id: string };
 
@@ -20,64 +24,11 @@ if (!Astro.locals.user) {
     return Astro.redirect("/login");
 }
 
+const BACKEND_URL = process.env.BACKEND_URL;
+
 let album;
 let inDatabase;
-
-album = parseAlbum(
-    db.prepare("SELECT * FROM album WHERE id = ?").get(id) as RawAlbumDB
-);
-
-if (album) {
-    inDatabase = true;
-} else {
-    return new Response(
-        JSON.stringify({
-            error: "",
-        }),
-        {
-            status: 404,
-        }
-    );
-}
-
-const songs = album.songs.map(
-    (
-        songID: string
-    ):
-        | SongDB<
-              | "images"
-              | "id"
-              | "name"
-              | "artists"
-              | "albumId"
-              | "albumName"
-              | "path"
-              | "duration"
-              | "discNumber"
-              | "trackNumber"
-          >
-        | undefined => {
-        return parseSong(
-            db
-                .prepare(
-                    "SELECT images, id, name, artists, albumId, albumName, path, duration, discNumber, trackNumber FROM song WHERE id = ?"
-                )
-                .get(songID) as RawSongDB
-        );
-    }
-);
-
-songs.sort((a, b) => {
-    if (
-        typeof a?.trackNumber == "undefined" ||
-        typeof b?.trackNumber == "undefined"
-    ) {
-        return 0;
-    }
-    return a.trackNumber - b.trackNumber;
-});
-
-const discs: SongDB<
+let songs: SongDB<
     | "images"
     | "id"
     | "name"
@@ -88,30 +39,142 @@ const discs: SongDB<
     | "duration"
     | "discNumber"
     | "trackNumber"
->[][] = Array(Math.max(...songs.map((song) => song?.discNumber || 0)))
-    .fill(1)
-    .map((_) => []);
+>[];
+let discs: SongDB<
+    | "images"
+    | "id"
+    | "name"
+    | "artists"
+    | "albumId"
+    | "albumName"
+    | "path"
+    | "duration"
+    | "discNumber"
+    | "trackNumber"
+>[][];
 
-songs.map((song) => {
-    if (song?.discNumber) {
-        discs[song?.discNumber - 1].push({ ...song });
+album = parseAlbum(
+    db.prepare("SELECT * FROM album WHERE id = ?").get(id) as RawAlbumDB
+);
+
+if (album) {
+    inDatabase = true;
+
+    songs = album.songs
+        .map(
+            (
+                songID: string
+            ):
+                | SongDB<
+                      | "images"
+                      | "id"
+                      | "name"
+                      | "artists"
+                      | "albumId"
+                      | "albumName"
+                      | "path"
+                      | "duration"
+                      | "discNumber"
+                      | "trackNumber"
+                  >
+                | undefined => {
+                return parseSong(
+                    db
+                        .prepare(
+                            "SELECT images, id, name, artists, albumId, albumName, path, duration, discNumber, trackNumber FROM song WHERE id = ?"
+                        )
+                        .get(songID) as RawSongDB
+                );
+            }
+        )
+        .filter((a) => typeof a !== "undefined");
+
+    songs.sort((a, b) => {
+        if (
+            typeof a?.trackNumber == "undefined" ||
+            typeof b?.trackNumber == "undefined"
+        ) {
+            return 0;
+        }
+        return a.trackNumber - b.trackNumber;
+    });
+
+    discs = Array(Math.max(...songs.map((song) => song?.discNumber || 0)))
+        .fill(1)
+        .map((_) => []);
+
+    songs.map((song) => {
+        if (song?.discNumber) {
+            discs[song?.discNumber - 1].push({ ...song });
+        }
+    });
+} else {
+    let response;
+    try {
+        response = await fetch(`${BACKEND_URL}/album/${id}`);
+    } catch (error) {
+        return new Response(
+            JSON.stringify({
+                error: "Error conecting to backend",
+            }),
+            {
+                status: 500,
+            }
+        );
     }
-});
-
-function getMinutes(seconds: number) {
-    seconds = Math.round(seconds);
-
-    if (typeof seconds !== "number" || isNaN(seconds)) {
-        return "Invalid input";
+    if (!response.ok) {
+        return new Response(
+            JSON.stringify({
+                error: "",
+            }),
+            {
+                status: 404,
+            }
+        );
     }
+    const data: SpotifyAlbum = await response.json();
+    album = {
+        artists: data.artists,
+        images: data.images,
+        name: data.name,
+        releaseDate: data.release_date,
+        songs: data.tracks.items,
+    };
 
-    // Calculate minutes and remaining seconds
-    const minutes = Math.floor(seconds / 60);
+    songs = data.tracks.items.map((item) => {
+        return {
+            id: item.id,
+            images: data.images,
+            name: item.name,
+            artists: data.artists,
+            albumId: data.id,
+            albumName: data.name,
+            path: "",
+            duration: item.duration_ms / 1000,
+            discNumber: item.disc_number,
+            trackNumber: item.track_number,
+        };
+    });
 
-    // Format the result with leading zeros
-    const formattedMinutes = String(minutes).padStart(2, "0");
+    songs.sort((a, b) => {
+        if (
+            typeof a?.trackNumber == "undefined" ||
+            typeof b?.trackNumber == "undefined"
+        ) {
+            return 0;
+        }
+        return a.trackNumber - b.trackNumber;
+    });
 
-    return `${formattedMinutes}`;
+    discs = Array(Math.max(...songs.map((song) => song?.discNumber || 0)))
+        .fill(1)
+        .map((_) => []);
+
+    songs.map((song) => {
+        if (song?.discNumber) {
+            discs[song?.discNumber - 1].push({ ...song });
+        }
+    });
 }
 
 function getDate(date: string) {
@@ -150,7 +213,10 @@ const meta = {
             <div class="flex flex-row gap-4">
                 {
                     !inDatabase && (
-                        <Download strokeWidth={0.9} className="h-10 w-10" />
+                        <DownloadList
+                            url={`https://open.spotify.com/album/${id}`}
+                            client:only="react"
+                        />
                     )
                 }
                 <PinList type="album" id={id} client:only="react" />

@@ -3,13 +3,13 @@ import {
     currentSong,
     currentTime,
     queue,
-    getTime,
     queueIndex,
 } from "@/stores/audio";
 import { isPlayerUIVisible } from "@/stores/isPlayerUIVisible";
 import { useStore } from "@nanostores/react";
 import { useEffect, useState } from "react";
 import { EllipsisVertical, Play } from "lucide-react";
+import { getTime } from "@/lib/getTime";
 
 function MockupLyrics() {
     const currentLyric = "This is the current lyric"; // Lírica actual (puede ser dinámica)

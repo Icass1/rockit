@@ -1,5 +1,6 @@
-import { currentSong, getTime, play, queue, queueIndex } from "@/stores/audio";
+import { currentSong, play, queue, queueIndex } from "@/stores/audio";
 import type { PlaylistDB, SongDB } from "@/lib/db";
+import { getTime } from "@/lib/getTime";
 
 export default function PlaylistSong({
     song,

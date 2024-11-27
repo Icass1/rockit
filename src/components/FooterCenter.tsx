@@ -1,6 +1,6 @@
+import { getTime } from "@/lib/getTime";
 import {
     currentTime,
-    getTime,
     next,
     pause,
     play,

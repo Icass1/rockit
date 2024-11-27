@@ -323,7 +323,7 @@ export default function PlayerUI() {
 
     return (
         <div
-            className="absolute inset-0 bg-black/80  z-50 flex justify-center items-center transition-all overflow-hidden duration-200"
+            className="absolute inset-0 bg-black/80  z-50 flex justify-center items-center transition-all overflow-hidden duration-300"
             // style={{ display: $isPlayerUIVisible ? 'flex' : 'none' }}
             style={{
                 transform: $isPlayerUIVisible

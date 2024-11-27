@@ -323,148 +323,142 @@ export default function PlayerUI() {
 
     return (
         <div
-            className="absolute inset-0 bg-black/80  z-50 flex justify-center items-center transition-all overflow-hidden duration-200"
+            className="absolute inset-0 bg-black/80 flex justify-center items-center transition-all overflow-hidden duration-200"
             // style={{ display: $isPlayerUIVisible ? 'flex' : 'none' }}
             style={{
                 transform: $isPlayerUIVisible
                     ? "translateY(0%)"
                     : "translateY(100%)",
+                zIndex: $isPlayerUIVisible ? "50" : "",
             }}
         >
             {" "}
             {/* Invert flex and none */}
-            <div
-                className="relative w-full h-full bg-black text-white"
-                style={{
-                    backgroundImage: `url(${
+            {/* Background Blur Overlay */}
+            {/* <div className="absolute inset-0 bg-black/80 backdrop-blur-md"></div> */}
+            {/* Grid Content */}
+            <div className="relative w-full  bg-black text-white z-10 grid grid-cols-[30%_40%_30%] h-full">
+                {/* Left Column: Lyrics */}
+                <img
+                    src={
                         $currentSong?.images[0]?.url || "/song-placeholder.png"
-                    })`,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                }}
-            >
-                {/* Background Blur Overlay */}
-                {/* <div className="absolute inset-0 bg-black/80 backdrop-blur-md"></div> */}
+                    }
+                    className="absolute w-full h-auto top-1/2 -translate-y-1/2 blur-md brightness-50"
+                ></img>
 
-                {/* Grid Content */}
-                <div className="relative z-10 grid grid-cols-[30%_40%_30%] h-full">
-                    {/* Left Column: Lyrics */}
+                <DynamicLyrics />
 
-                    <DynamicLyrics />
-
-                    {/* Middle Column: Cover & Info */}
-                    <div className="min-w-0 min-h-0 max-w-full relative max-h-full">
-                        <div className="h-fit min-w-0 min-h-0 max-w-full top-1/2 relative -translate-y-1/2">
-                            <img
-                                src={
-                                    $currentSong?.images[0]?.url ||
-                                    "/song-placeholder.png"
-                                }
-                                alt="Song Cover"
-                                className="object-cover min-w-0 min-h-0 mx-auto max-h-full w-full max-w-[500px]  rounded-lg aspect-square"
-                            />
-                            <div className="text-center">
-                                <h1 className="text-3xl font-bold">
-                                    {$currentSong?.name}
-                                </h1>
-                                <p className="text-gray-400 text-lg mt-2 font-medium">
-                                    {$currentSong?.albumName} · No release date
-                                </p>
-                            </div>
+                {/* Middle Column: Cover & Info */}
+                <div className="min-w-0 min-h-0 max-w-full relative max-h-full">
+                    <div className="h-fit min-w-0 min-h-0 max-w-full top-1/2 relative -translate-y-1/2">
+                        <img
+                            src={
+                                $currentSong?.images[0]?.url ||
+                                "/song-placeholder.png"
+                            }
+                            alt="Song Cover"
+                            className="object-cover min-w-0 min-h-0 mx-auto max-h-full w-full max-w-[500px]  rounded-lg aspect-square"
+                        />
+                        <div className="text-center">
+                            <h1 className="text-3xl font-bold">
+                                {$currentSong?.name}
+                            </h1>
+                            <p className="text-gray-400 text-lg mt-2 font-medium">
+                                {$currentSong?.albumName} · No release date
+                            </p>
                         </div>
                     </div>
+                </div>
 
-                    {/* Right Column: Queue */}
-                    <div className="overflow-hidden flex flex-col h-full bg-gradient-to-r from-[rgba(0,0,0,0.5)] to-black">
-                        {/* Selector */}
-                        <div className="flex justify-center items-center gap-10 pt-6 pb-4 relative border-b border-gray-600">
-                            <button
-                                className={`text-lg font-semibold transition ${
-                                    currentTab === "queue"
-                                        ? "text-white border-b-2 border-white"
-                                        : "text-gray-400 hover:text-white"
-                                }`}
-                                onClick={() => setCurrentTab("queue")}
-                            >
-                                Queue
-                            </button>
-                            <button
-                                className={`text-lg font-semibold transition ${
-                                    currentTab === "recommended"
-                                        ? "text-white border-b-2 border-white"
-                                        : "text-gray-400 hover:text-white"
-                                }`}
-                                onClick={() => setCurrentTab("recommended")}
-                            >
-                                Related
-                            </button>
-                        </div>
-                        {/* Contenido dinámico */}
-                        <div className="flex-1 overflow-auto py-3">
-                            {currentTab === "queue" ? (
-                                <ul className="flex flex-col">
-                                    {$queue.map((song, index) => (
-                                        <li
-                                            key={song.id}
-                                            className={`flex items-center gap-x-2 p-2 group ${
-                                                index === $queueIndex
-                                                    ? "bg-[#272727]"
-                                                    : "hover:bg-[#494949]"
-                                            }`}
-                                        >
-                                            {/* Espacio para el ícono */}
-                                            <div className="h-10 flex items-center justify-center">
-                                                <div
-                                                    className={`opacity-0 group-hover:opacity-100`}
-                                                >
-                                                    <EllipsisVertical className="text-white w-5 h-12 hover:cursor-move" />
+                {/* Right Column: Queue */}
+                <div className="overflow-hidden flex flex-col h-full bg-gradient-to-r z-10 from-[rgba(0,0,0,0.5)] to-black">
+                    {/* Selector */}
+                    <div className="flex justify-center items-center gap-10 pt-6 pb-4 relative border-b border-gray-600">
+                        <button
+                            className={`text-lg font-semibold transition ${
+                                currentTab === "queue"
+                                    ? "text-white border-b-2 border-white"
+                                    : "text-gray-400 hover:text-white"
+                            }`}
+                            onClick={() => setCurrentTab("queue")}
+                        >
+                            Queue
+                        </button>
+                        <button
+                            className={`text-lg font-semibold transition ${
+                                currentTab === "recommended"
+                                    ? "text-white border-b-2 border-white"
+                                    : "text-gray-400 hover:text-white"
+                            }`}
+                            onClick={() => setCurrentTab("recommended")}
+                        >
+                            Related
+                        </button>
+                    </div>
+                    {/* Contenido dinámico */}
+                    <div className="flex-1 overflow-auto py-3">
+                        {currentTab === "queue" ? (
+                            <ul className="flex flex-col">
+                                {$queue.map((song, index) => (
+                                    <li
+                                        key={song.id}
+                                        className={`flex items-center gap-x-2 p-2 group ${
+                                            index === $queueIndex
+                                                ? "bg-[#272727]"
+                                                : "hover:bg-[#494949]"
+                                        }`}
+                                    >
+                                        {/* Espacio para el ícono */}
+                                        <div className="h-10 flex items-center justify-center">
+                                            <div
+                                                className={`opacity-0 group-hover:opacity-100`}
+                                            >
+                                                <EllipsisVertical className="text-white w-5 h-12 hover:cursor-move" />
+                                            </div>
+                                        </div>
+                                        {/* Cover */}
+                                        {/* Cover */}
+                                        <div className="relative">
+                                            {/* Imagen de portada */}
+                                            <img
+                                                src={song.images[0].url}
+                                                alt={song.name}
+                                                className={`w-12 h-12 rounded object-cover ${
+                                                    index === $queueIndex
+                                                        ? "brightness-50"
+                                                        : ""
+                                                }`}
+                                            />
+                                            {/* Ícono Play */}
+                                            {index === $queueIndex && (
+                                                <div className="absolute inset-0 flex items-center justify-center">
+                                                    <Play className="text-white w-5 h-5 fill-current" />
                                                 </div>
-                                            </div>
-                                            {/* Cover */}
-                                            {/* Cover */}
-                                            <div className="relative">
-                                                {/* Imagen de portada */}
-                                                <img
-                                                    src={song.images[0].url}
-                                                    alt={song.name}
-                                                    className={`w-12 h-12 rounded object-cover ${
-                                                        index === $queueIndex
-                                                            ? "brightness-50"
-                                                            : ""
-                                                    }`}
-                                                />
-                                                {/* Ícono Play */}
-                                                {index === $queueIndex && (
-                                                    <div className="absolute inset-0 flex items-center justify-center">
-                                                        <Play className="text-white w-5 h-5 fill-current" />
-                                                    </div>
-                                                )}
-                                            </div>
-                                            {/* Song Info */}
-                                            <div className="flex-1 min-w-0 max-w-full">
-                                                <p className="text-white text-base font-semibold truncate">
-                                                    {song.name}
-                                                </p>
-                                                <p className="text-gray-400 text-sm truncate">
-                                                    {song.artists
-                                                        .map(
-                                                            (artist) =>
-                                                                artist.name
-                                                        )
-                                                        .join(", ")}
-                                                </p>
-                                            </div>
-                                            {/* Duration */}
-                                            <p className="text-gray-300 text-base pr-2">
-                                                {getTime(song.duration)}
+                                            )}
+                                        </div>
+                                        {/* Song Info */}
+                                        <div className="flex-1 min-w-0 max-w-full">
+                                            <p className="text-white text-base font-semibold truncate">
+                                                {song.name}
                                             </p>
-                                        </li>
-                                    ))}
-                                </ul>
-                            ) : (
-                                <slot />
-                            )}
-                        </div>
+                                            <p className="text-gray-400 text-sm truncate">
+                                                {song.artists
+                                                    .map(
+                                                        (artist) => artist.name
+                                                    )
+                                                    .join(", ")}
+                                            </p>
+                                        </div>
+                                        {/* Duration */}
+                                        <p className="text-gray-300 text-base pr-2">
+                                            {getTime(song.duration)}
+                                        </p>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <slot />
+                        )}
                     </div>
                 </div>
             </div>

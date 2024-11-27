@@ -57,9 +57,12 @@ function RenderListDownload({
                     className="h-full w-auto rounded"
                 />
                 <div className="flex flex-col min-w-0 max-w-full w-full pr-1">
-                    <label className="text-base font-semibold">
+                    <a
+                        className="text-base font-semibold truncate hover:underline"
+                        href={"/album/" + list[1].listInfo.id}
+                    >
                         {list[1].listInfo.name}{" "}
-                    </label>
+                    </a>
                     <label className="text-sm">
                         {list[1].listInfo.artists
                             .map((artist) => artist.name || artist)
@@ -402,7 +405,9 @@ export default function Navigation({ activePage }: { activePage: string }) {
                     <div className="w-8 h-8 flex items-center justify-center">
                         <Pin className="w-5 h-5" />
                     </div>
-                    <label className="text-md font-semibold">Pinned lists</label>
+                    <label className="text-md font-semibold">
+                        Pinned lists
+                    </label>
                 </div>
 
                 {$pinnedLists.map((list) => {

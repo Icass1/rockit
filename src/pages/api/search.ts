@@ -14,6 +14,9 @@ export async function GET(context: APIContext): Promise<Response> {
     const json = (await response.json()) as SearchResults;
 
     for (let index in json.songs) {
+        if (!json.songs[index]) {
+            continue;
+        }
         const song = db
             .prepare("SELECT * FROM song WHERE id = ?")
             .get(json.songs[index].id);
@@ -21,17 +24,31 @@ export async function GET(context: APIContext): Promise<Response> {
     }
 
     for (let index in json.albums) {
+        if (!json.albums[index]) {
+            continue;
+        }
         const album = db
             .prepare("SELECT * FROM album WHERE id = ?")
             .get(json.albums[index].id);
         json.albums[index].inDatabase = album ? true : false;
     }
     for (let index in json.playlists) {
+        if (!json.playlists[index]) {
+            continue;
+        }
         const playlist = db
             .prepare("SELECT * FROM playlist WHERE id = ?")
             .get(json.playlists[index].id);
         json.playlists[index].inDatabase = playlist ? true : false;
     }
 
-    return new Response(JSON.stringify(json));
+    json.playlists = json.playlists.filter((playlist) => playlist);
+    json.albums = json.albums.filter((album) => album);
+    json.songs = json.songs.filter((song) => song);
+
+    return new Response(JSON.stringify(json), {
+        headers: {
+            "Content-Type": "application/json",
+        },
+    });
 }

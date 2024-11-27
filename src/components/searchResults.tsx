@@ -209,7 +209,7 @@ export default function RenderSearchResults() {
                         {$searchResults.albums
                             .slice(0, 2)
                             .map((album, index) => (
-                                <div className="h-12">
+                                <div className="h-12" key={index}>
                                     <Result
                                         key={"album" + index}
                                         name={album.name}
@@ -237,7 +237,7 @@ export default function RenderSearchResults() {
                         {$searchResults.playlists
                             .slice(0, 2)
                             .map((playlist, index) => (
-                                <div className="h-12">
+                                <div className="h-12" key={index}>
                                     <Result
                                         key={"playlist" + index}
                                         name={playlist.name}
@@ -262,7 +262,7 @@ export default function RenderSearchResults() {
                         {$searchResults.artists
                             .slice(0, 2)
                             .map((artist, index) => (
-                                <div className="h-12">
+                                <div className="h-12" key={index}>
                                     <Result
                                         key={"playlist" + index}
                                         name={artist.name}

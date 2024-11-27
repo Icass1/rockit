@@ -254,8 +254,6 @@ function Downloads({ navOpen }: { navOpen: boolean }) {
                 `/api/download-status/${downloadId}`
             );
             eventSource.onmessage = (event) => {
-                console.log("onmessage eventsource", downloadId);
-                console.log(eventSources?.current);
                 onMessage(event, eventSource);
             };
             eventSource.onerror = (error) => {
@@ -333,10 +331,13 @@ function Downloads({ navOpen }: { navOpen: boolean }) {
                     setOpen((value) => !value);
                 }}
             >
-                <div className="w-8 h-8 flex items-center justify-center">
+                <div className="w-8 h-8 flex items-center justify-center relative">
                     <Download className="w-5 h-5" />
+                    <label className="absolute text-xs bg-red-500 rounded-full top-0 right-0 aspect-square w-auto h-4 text-center">
+                        {downloads.get().length}
+                    </label>
                 </div>
-                <label className="font-semibold">Downloads</label>
+                <label className="font-semibold">Downloads </label>
             </a>
         </>
     );

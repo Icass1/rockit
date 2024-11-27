@@ -281,7 +281,7 @@ function Downloads({ navOpen }: { navOpen: boolean }) {
         <>
             <div
                 ref={divRef}
-                className={`w-96 bg-[#252525] h-3/4 flex flex-col gap-2 shadow-lg p-2 rounded-tr-3xl absolute bottom-24 transition-all duration-[400ms] overflow-auto z-50 ${
+                className={`w-96 bg-[#252525] h-3/4 flex flex-col gap-2 shadow-lg p-2 rounded-tr-3xl absolute bottom-24 transition-all duration-[400ms] overflow-auto z-40 ${
                     navOpen ? "left-56" : "left-12"
                 }`}
                 style={{

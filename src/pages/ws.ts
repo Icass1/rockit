@@ -70,7 +70,9 @@ export async function ALL(context: APIContext): Promise<Response> {
                     ];
                 }
 
-                db.prepare(`UPDATE user SET lastPlayedSong = ? WHERE id = ?`).run(
+                db.prepare(
+                    `UPDATE user SET lastPlayedSong = ? WHERE id = ?`
+                ).run(
                     JSON.stringify(userLastPlayedSong),
                     context.locals.user.id
                 );

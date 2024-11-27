@@ -73,7 +73,10 @@ export async function POST(context: APIContext): Promise<Response> {
             );
         }
         if (imageId) {
-            db.prepare(`UPDATE song SET image = ? WHERE id = ?`).run(imageId, id);
+            db.prepare(`UPDATE song SET image = ? WHERE id = ?`).run(
+                imageId,
+                id
+            );
         }
         return new Response("OK");
     }

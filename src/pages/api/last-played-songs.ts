@@ -16,8 +16,9 @@ export async function GET(context: APIContext): Promise<Response> {
     } = JSON.parse(fileBuffer);
     // **************************
 
-    let songs: SongDB<"artists" | "id" | "name" | "duration" | "albumId" | "albumName">[] =
-        [];
+    let songs: SongDB<
+        "artists" | "id" | "name" | "duration" | "albumId" | "albumName"
+    >[] = [];
 
     Array(Math.round(Object.keys(lastPlayedSongs).length / 900) + 1)
         .fill(0)
@@ -32,7 +33,12 @@ export async function GET(context: APIContext): Promise<Response> {
             const tempSongs = (db.prepare(query).all() as RawSongDB[]).map(
                 (song) =>
                     parseSong(song) as SongDB<
-                        "artists" | "id" | "name" | "duration" | "albumId"| "albumName"
+                        | "artists"
+                        | "id"
+                        | "name"
+                        | "duration"
+                        | "albumId"
+                        | "albumName"
                     >
             );
             songs = [...songs, ...tempSongs];

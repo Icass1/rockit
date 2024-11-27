@@ -14,7 +14,9 @@ export default function PinList({ type, id }: { type: string; id: string }) {
             fetch(`/api/unpin/${type}/${id}`, { method: "DELETE" })
                 .then((response) => response.json())
                 .then(() => {
-                    const updatedLists = $pinnedLists.filter((list) => list.id !== id);
+                    const updatedLists = $pinnedLists.filter(
+                        (list) => list.id !== id
+                    );
                     pinnedLists.set(updatedLists);
                 });
         } else {

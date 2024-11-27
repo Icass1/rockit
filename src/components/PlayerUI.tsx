@@ -323,12 +323,12 @@ export default function PlayerUI() {
 
     return (
         <div
-            className="absolute inset-0 bg-black/80 backdrop-blur-md z-50 flex justify-center items-center transition-all overflow-hidden duration-200"
+            className="absolute inset-0 bg-black/80  z-50 flex justify-center items-center transition-all overflow-hidden duration-200"
             // style={{ display: $isPlayerUIVisible ? 'flex' : 'none' }}
             style={{
                 transform: $isPlayerUIVisible
                     ? "translateY(0%)"
-                    : "translateY(-100%)",
+                    : "translateY(100%)",
             }}
         >
             {" "}
@@ -344,7 +344,7 @@ export default function PlayerUI() {
                 }}
             >
                 {/* Background Blur Overlay */}
-                <div className="absolute inset-0 bg-black/80 backdrop-blur-md"></div>
+                {/* <div className="absolute inset-0 bg-black/80 backdrop-blur-md"></div> */}
 
                 {/* Grid Content */}
                 <div className="relative z-10 grid grid-cols-[30%_40%_30%] h-full">

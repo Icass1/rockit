@@ -52,7 +52,7 @@ const { meta } = Astro.props;
             <div style={{ gridArea: "header" }}>
                 <Header />
             </div>
-            <div style={{ gridArea: "nav" }}>
+            <div style={{ gridArea: "nav" }} class="z-50">
                 <Navigation
                     activePage={currentPage}
                     client:only="react"
@@ -63,7 +63,7 @@ const { meta } = Astro.props;
                 class="min-w-0 max-w-full min-h-0 max-h-full overflow-hidden relative"
                 style={{ gridArea: "main" }}
             >
-                <div class="w-full h-full absolute">
+                <div class="w-full h-full absolute z-10">
                     <PlayerUI client:only="react" />
                 </div>
                 <div class="overflow-auto w-full h-full absolute">

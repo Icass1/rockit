@@ -176,7 +176,11 @@ function DynamicLyrics() {
     }, [$currentTime, $currentSong]);
 
     if (typeof lyrics == "string" || typeof lyrics == "undefined") {
-        return <div>No lyrics found</div>;
+        return (
+            <div className="flex flex-col justify-center items-center px-4 overflow-hidden relative h-full">
+                No lyrics found
+            </div>
+        );
     }
 
     const commonSyles =
@@ -337,7 +341,7 @@ export default function PlayerUI() {
             {/* Background Blur Overlay */}
             {/* <div className="absolute inset-0 bg-black/80 backdrop-blur-md"></div> */}
             {/* Grid Content */}
-            <div className="relative w-full  bg-black text-white z-10 grid grid-cols-[30%_40%_30%] h-full">
+            <div className="relative w-full  bg-black text-white grid grid-cols-[30%_40%_30%] h-full z-20">
                 {/* Left Column: Lyrics */}
                 <img
                     src={

@@ -69,6 +69,8 @@ export function PlayedSongs(
                             timesPlayed: 1,
                         });
                     }
+                } else {
+                    // console.log("Song not in database", `https://open.spotify.com/track/${entry[0]}`)
                 }
             }
         });
@@ -80,7 +82,3 @@ export function PlayedSongs(
 
     return out;
 }
-
-// 1730361245000
-// 1730324981000
-// 1729513442000

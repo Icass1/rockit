@@ -117,6 +117,12 @@ export interface SpotifyAlbum {
     type: string;
     uri: string;
     artists: SpotifyAlbumArtist[];
+    tracks: SpotifyAlbumTracks;
+    copyrights: SpotifyAlbumCopyright[];
+    external_ids: SpotifyAlbumExternalIds;
+    genres: string[];
+    label: string;
+    popularity: number;
     inDatabase: boolean;
 }
 
@@ -145,6 +151,80 @@ export interface SpotifyAlbumArtist {
 
 export interface SpotifyAlbumExternalUrls2 {
     spotify: string;
+}
+
+export interface SpotifyAlbumTracks {
+    href: string;
+    limit: number;
+    next: string;
+    offset: number;
+    previous: string;
+    total: number;
+    items: SpotifyAlbumItem[];
+}
+
+export interface SpotifyAlbumItem {
+    artists: SpotifyAlbumArtist2[];
+    available_markets: string[];
+    disc_number: number;
+    duration_ms: number;
+    explicit: boolean;
+    external_urls: SpotifyAlbumExternalUrls4;
+    href: string;
+    id: string;
+    is_playable: boolean;
+    linked_from: SpotifyAlbumLinkedFrom;
+    restrictions: SpotifyAlbumRestrictions2;
+    name: string;
+    preview_url: string;
+    track_number: number;
+    type: string;
+    uri: string;
+    is_local: boolean;
+}
+
+export interface SpotifyAlbumArtist2 {
+    external_urls: SpotifyAlbumExternalUrls3;
+    href: string;
+    id: string;
+    name: string;
+    type: string;
+    uri: string;
+}
+
+export interface SpotifyAlbumExternalUrls3 {
+    spotify: string;
+}
+
+export interface SpotifyAlbumExternalUrls4 {
+    spotify: string;
+}
+
+export interface SpotifyAlbumLinkedFrom {
+    external_urls: SpotifyAlbumExternalUrls5;
+    href: string;
+    id: string;
+    type: string;
+    uri: string;
+}
+
+export interface SpotifyAlbumExternalUrls5 {
+    spotify: string;
+}
+
+export interface SpotifyAlbumRestrictions2 {
+    reason: string;
+}
+
+export interface SpotifyAlbumCopyright {
+    text: string;
+    type: string;
+}
+
+export interface SpotifyAlbumExternalIds {
+    isrc: string;
+    ean: string;
+    upc: string;
 }
 
 export interface SpotifyArtist {

@@ -2,7 +2,6 @@
 from spotdl.types.options import DownloaderOptions
 import os
 
-print("constants temp path", os.getenv("TEMP_PATH"))
 
 DOWNLOADER_OPTIONS: DownloaderOptions = {
     "audio_providers": ["youtube-music"],

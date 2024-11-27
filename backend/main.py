@@ -5,6 +5,14 @@ from flask_cors import CORS
 
 from dotenv import load_dotenv
 load_dotenv()
+import os
+
+environ_variables = ["ENVIRONMENT", "CLIENT_ID", "CLIENT_SECRET", "FRONTEND_URL", "SONGS_PATH", "TEMP_PATH", "LOGS_PATH", "IMAGES_PATH"]
+
+for variable in environ_variables:
+    if not os.getenv(variable):
+        print(f"{variable} is not set")
+        exit()
 
 
 from spotify import Spotify
@@ -13,6 +21,7 @@ from utils import create_id
 from logger import getLogger
 
 from typing import Dict
+
 
 app = Flask(__name__)
 sock = Sock(app)

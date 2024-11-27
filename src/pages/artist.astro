@@ -1,0 +1,59 @@
+---
+import Layout from "@/layouts/Layout.astro";
+
+if (!Astro.locals.user) {
+  return Astro.redirect("/login");
+}
+
+// Mockup de la página para un artista.
+const artistName = "Nombre del Artista";
+const artistImage = "/user-placeholder.png"; // Reemplaza con tu imagen de fondo estática.
+---
+
+<Layout title="Rock It!" currentPage="Search">
+    <body class="min-h-screen flex flex-col bg-gray-900 text-white">
+        <!-- Contenedor principal -->
+        <div
+            class="relative min-h-screen bg-cover bg-center"
+            style={`background-image: url('${artistImage}'); background-repeat: no-repeat; background-attachment: fixed;`}
+        >
+            <!-- Overlay -->
+            <div class="absolute inset-0 bg-black/50"></div>
+
+            <!-- Contenido -->
+            <div class="relative z-10 flex flex-col h-screen">
+                <!-- Parte superior -->
+                <div class="flex-1 flex items-end p-8 bg-gradient-to-b from-transparent to-black/60">
+                    <h1 class="text-4xl font-bold">{artistName}</h1>
+                </div>
+
+                <!-- Parte inferior -->
+                <div class="bg-gray-800 p-8 rounded-t-lg">
+                    <h2 class="text-2xl font-semibold mb-4">Información del Artista</h2>
+                    <p class="text-gray-400 mb-6">
+                        Placeholder para la descripción del artista o estadísticas. Este texto es un ejemplo.
+                    </p>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-gray-700 p-4 rounded-lg">
+                            <h3 class="text-lg font-medium">Estadística 1</h3>
+                            <p class="text-gray-400">Placeholder para el dato.</p>
+                        </div>
+                        <div class="bg-gray-700 p-4 rounded-lg">
+                            <h3 class="text-lg font-medium">Estadística 2</h3>
+                            <p class="text-gray-400">Placeholder para el dato.</p>
+                        </div>
+                        <div class="bg-gray-700 p-4 rounded-lg">
+                            <h3 class="text-lg font-medium">Estadística 3</h3>
+                            <p class="text-gray-400">Placeholder para el dato.</p>
+                        </div>
+                        <div class="bg-gray-700 p-4 rounded-lg">
+                            <h3 class="text-lg font-medium">Estadística 4</h3>
+                            <p class="text-gray-400">Placeholder para el dato.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</Layout>

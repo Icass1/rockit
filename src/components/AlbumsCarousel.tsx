@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type UIEvent } from "react";
 import { Play, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface Album {
@@ -334,9 +334,51 @@ export default function AlbumsCarousel() {
                 image: images[index],
             };
         });
-    const [currentIndex, setCurrentIndex] = useState(0); // Empezamos con el álbum central en el medio
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const [scrollIndex, setScrollIndex] = useState(0);
+    const lastScrollIndex = useRef(0);
+    const divRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (!divRef.current) {
+            return;
+        }
+        const handleScroll = (event: WheelEvent) => {
+            if (event.deltaX) {
+                event.stopPropagation();
+                event.preventDefault();
+                // console.log("1", event.deltaX);
+                setScrollIndex((value) => (value += event.deltaX));
+            }
+        };
+
+        divRef.current?.addEventListener("wheel", handleScroll);
+    }, [divRef]);
+
+    useEffect(() => {
+        console.log(scrollIndex);
+
+        if (Math.abs(lastScrollIndex.current - scrollIndex) > 500) {
+            console.log("AADSFSADF");
+            if (lastScrollIndex.current - scrollIndex > 0) {
+                setCurrentIndex((value) =>
+                    value > 0 ? value - 1 : albums.length - 1
+                );
+            } else {
+                setCurrentIndex((value) =>
+                    value < albums.length - 1 ? value + 1 : 0
+                );
+            }
+            lastScrollIndex.current = scrollIndex;
+
+        }
+    }, [scrollIndex]);
+
     return (
-        <div className="text-white h-1/2 flex items-center justify-center overflow-x-hidden relative select-none">
+        <div
+            className="text-white h-1/2 flex items-center justify-center overflow-x-hidden relative select-none"
+            ref={divRef}
+        >
             <ChevronLeft
                 className="z-30 absolute left-32 h-48 w-10 text-[#6d6d6d] hover:text-white p-2 rounded-full transition duration-300"
                 onClick={() =>

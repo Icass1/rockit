@@ -168,7 +168,7 @@ export default function RenderSearchResults({
     return (
         <div ref={divRef}>
             {open ? (
-                <div className="h-fit px-4 w-3/4 max-w-[600px] bg-neutral-800 absolute shadow-lg left-1/2 -translate-x-1/2 top-1/2 rounded-b-xl flex flex-col pt-7 pb-2  gap-2 z-50">
+                <div className="h-fit px-4 w-3/4 max-w-[600px] bg-neutral-800 absolute shadow-lg left-1/2 -translate-x-1/2 top-1/2 rounded-b-3xl flex flex-col pt-7 pb-2  gap-2 z-50">
                     {bestResult && (
                         <>
                             <label className="font-bold text-xl text-white ">

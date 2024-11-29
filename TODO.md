@@ -85,17 +85,17 @@
 
 -   **Artist page**
 
-    -   Artist name
-    -   Genres
-    -   Cover
-    -   Most listened songs
-        -   Name
-        -   Album
-    -   Albums
-        -   Link to album
-        -   Release date
-        -   Name
-    -   <span style="color:#3287a8">(Impr: Similar songs/artists?)</span>
+    - ✅  Artist name
+    - ✅  Genres - To add in description
+    - ✅  Cover
+    - ✅  Most listened songs
+        - ✅  Name
+        - ✅  Album
+    - ✅  Albums
+        - ✅  Link to album
+        - ✅  Release date
+        - ✅  Name
+    - ✅  <span style="color:#3287a8">(Impr: Similar songs/artists?)</span>
 
 -   **Album page**
 

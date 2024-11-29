@@ -383,21 +383,23 @@ export default function PlayerUI() {
                             alt="Song Cover"
                             className="object-cover min-w-0 min-h-0 mx-auto max-h-full w-full max-w-[500px]  rounded-lg aspect-square"
                         />
-                        <div className="text-center">
-                            <h1 className="text-3xl font-bold">
+                        <div className="flex flex-col items-center justify-center text-center h-full">
+                            <h1 className="text-4xl font-bold pt-7">
                                 {$currentSong?.name}
                             </h1>
-                            <p className="text-gray-400 text-lg mt-2 font-medium">
-                                {$currentSong?.albumName} · No release date
+                            <p className="text-gray-400 text-xl mt-1 font-medium flex items-center gap-2">
+                                <span className="hover:underline">{$currentSong?.albumName}</span>
+                                • 
+                                <span>No release date</span>
                             </p>
                         </div>
                     </div>
                 </div>
 
                 {/* Right Column: Queue */}
-                <div className="overflow-hidden flex flex-col h-full bg-gradient-to-r z-10 from-[rgba(0,0,0,0.5)] to-black">
+                <div className="overflow-hidden flex flex-col h-full bg-gradient-to-r z-10 from-[rgba(0,0,0,0)] to-[rgba(0,0,0,0.5)]">
                     {/* Selector */}
-                    <div className="flex justify-center items-center gap-10 pt-6 pb-4 relative border-b border-gray-600">
+                    <div className="flex justify-center items-center gap-10 pt-6 pb-4 relative border-b border-white">
                         <button
                             className={`text-lg font-semibold transition ${
                                 currentTab === "queue"
@@ -420,7 +422,7 @@ export default function PlayerUI() {
                         </button>
                     </div>
                     {/* Contenido dinámico */}
-                    <div className="flex-1 overflow-auto py-3">
+                    <div className="flex-1 overflow-auto pt-3 pb-7">
                         {currentTab === "queue" ? (
                             <ul className="flex flex-col">
                                 {$queue.map((song, index) => (
@@ -428,8 +430,8 @@ export default function PlayerUI() {
                                         key={song.id}
                                         className={`flex items-center gap-x-2 p-2 group ${
                                             index === $queueIndex
-                                                ? "bg-[#272727]"
-                                                : "hover:bg-[#494949]"
+                                                ? "bg-[rgba(50,50,50,0.75)]"
+                                                : "hover:bg-[rgba(75,75,75,0.75)]"
                                         }`}
                                     >
                                         {/* Espacio para el ícono */}
@@ -440,7 +442,6 @@ export default function PlayerUI() {
                                                 <EllipsisVertical className="text-white w-5 h-12 hover:cursor-move" />
                                             </div>
                                         </div>
-                                        {/* Cover */}
                                         {/* Cover */}
                                         <div className="relative">
                                             {/* Imagen de portada */}

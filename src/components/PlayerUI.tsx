@@ -357,7 +357,7 @@ export default function PlayerUI() {
     return (
         <div
             ref={divRef}
-            className="absolute inset-0 bg-black/80 flex justify-center items-center transition-all overflow-hidden duration-300 z-10"
+            className="absolute inset-0 bg-black/80 flex justify-center items-center transition-all overflow-hidden duration-300 z-40"
             style={{
                 top: $isPlayerUIVisible ? "0%" : "100%",
             }}

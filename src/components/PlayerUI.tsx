@@ -104,7 +104,6 @@ const lyricsTimeStamp = {
         { time: 204.963814, index: 49 },
         { time: 211.339704, index: 50 },
         { time: 217.469934, index: 51 },
-        { time: 223.313882, index: 52 },
     ].reverse(),
 };
 
@@ -197,11 +196,12 @@ function DynamicLyrics() {
                                 className={commonSyles}
                                 style={{
                                     top: "30%",
-                                    fontSize: "15px",
-                                    fontWeight: 600,
-                                    lineHeight: "28px",
-                                    maxWidth: "60%",
+                                    fontSize: "25px",
+                                    fontWeight: 500,
+                                    lineHeight: "40px",
+                                    maxWidth: "100%",
                                     color: "rgb(200, 200, 200)",
+                                    scale: "0.4",
                                 }}
                             >
                                 {line}
@@ -213,12 +213,13 @@ function DynamicLyrics() {
                                 key={index}
                                 className={commonSyles}
                                 style={{
-                                    top: "40%",
-                                    fontSize: "20px",
-                                    fontWeight: 600,
-                                    lineHeight: "32px",
-                                    maxWidth: "80%",
+                                    top: "37.5%",
+                                    fontSize: "25px",
+                                    fontWeight: 500,
+                                    lineHeight: "40px",
+                                    maxWidth: "100%",
                                     color: "rgb(200, 200, 200)",
+                                    scale: "0.6",
                                 }}
                             >
                                 {line}
@@ -246,12 +247,13 @@ function DynamicLyrics() {
                                 key={index}
                                 className={commonSyles}
                                 style={{
-                                    top: "60%",
-                                    fontSize: "20px",
-                                    fontWeight: 600,
-                                    lineHeight: "32px",
-                                    maxWidth: "80%",
+                                    top: "62.5%",
+                                    fontSize: "25px",
+                                    fontWeight: 500,
+                                    lineHeight: "40px",
+                                    maxWidth: "100%",
                                     color: "rgb(200, 200, 200)",
+                                    scale: "0.6",
                                 }}
                             >
                                 {line}
@@ -264,11 +266,12 @@ function DynamicLyrics() {
                                 className={commonSyles}
                                 style={{
                                     top: "70%",
-                                    fontSize: "15px",
-                                    fontWeight: 600,
-                                    lineHeight: "28px",
-                                    maxWidth: "60%",
+                                    fontSize: "25px",
+                                    fontWeight: 500,
+                                    lineHeight: "40px",
+                                    maxWidth: "100%",
                                     color: "rgb(200, 200, 200)",
+                                    scale: "0.4",
                                 }}
                             >
                                 {line}
@@ -284,7 +287,8 @@ function DynamicLyrics() {
                             style={{
                                 top: "67%",
                                 fontSize: "0",
-                                fontWeight: 600,
+                                fontWeight: 500,
+
                                 lineHeight: "28px",
                                 maxWidth: "10%",
                                 color: "rgb(200, 200, 200)",
@@ -301,7 +305,7 @@ function DynamicLyrics() {
                             style={{
                                 top: "33%",
                                 fontSize: "0",
-                                fontWeight: 600,
+                                fontWeight: 500,
                                 lineHeight: "28px",
                                 maxWidth: "10%",
                                 color: "rgb(200, 200, 200)",

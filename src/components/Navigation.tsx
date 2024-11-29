@@ -356,9 +356,11 @@ function Downloads({ navOpen }: { navOpen: boolean }) {
             >
                 <div className="w-8 h-8 flex items-center justify-center relative">
                     <Download className="w-5 h-5" />
-                    <label className="absolute text-xs bg-red-500 rounded-full top-0 right-0 aspect-square w-auto h-4 text-center">
-                        {downloads.get().length}
-                    </label>
+                    {downloads.get().length > 0 && (
+                        <label className="absolute text-xs bg-red-500 rounded-full top-0 right-0 aspect-square w-auto h-4 text-center">
+                            {downloads.get().length}
+                        </label>
+                    )}
                 </div>
                 <label className="font-semibold">Downloads </label>
             </div>

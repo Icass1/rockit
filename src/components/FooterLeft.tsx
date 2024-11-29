@@ -38,7 +38,7 @@ export default function FooterCenter() {
                             <div>Artista desconocido</div>
                         )}
                     </div>
-                    <span>·</span>
+                    <span>•</span>
                     <a
                         href={`/album/${$currentSong?.albumId}`}
                         className="hover:underline truncate"

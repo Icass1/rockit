@@ -384,12 +384,12 @@ export default function PlayerUI() {
                             className="object-cover min-w-0 min-h-0 mx-auto max-h-full w-full max-w-[500px]  rounded-lg aspect-square"
                         />
                         <div className="flex flex-col items-center justify-center text-center h-full">
-                            <h1 className="text-3xl font-bold pt-7">
+                            <h1 className="text-4xl font-bold pt-7">
                                 {$currentSong?.name}
                             </h1>
-                            <p className="text-gray-400 text-lg mt-1 font-medium flex items-center gap-2">
+                            <p className="text-gray-400 text-xl mt-1 font-medium flex items-center gap-2">
                                 <span className="hover:underline">{$currentSong?.albumName}</span>
-                                · 
+                                • 
                                 <span>No release date</span>
                             </p>
                         </div>
@@ -442,7 +442,6 @@ export default function PlayerUI() {
                                                 <EllipsisVertical className="text-white w-5 h-12 hover:cursor-move" />
                                             </div>
                                         </div>
-                                        {/* Cover */}
                                         {/* Cover */}
                                         <div className="relative">
                                             {/* Imagen de portada */}

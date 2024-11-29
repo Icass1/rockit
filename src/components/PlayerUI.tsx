@@ -328,21 +328,20 @@ export default function PlayerUI() {
     return (
         <div
             className="absolute inset-0 bg-black/80 flex justify-center items-center transition-all overflow-hidden duration-300 z-10"
-            // style={{ display: $isPlayerUIVisible ? 'flex' : 'none' }}
+            // style={{
+            //     transform: $isPlayerUIVisible
+            //         ? "translateY(0%)"
+            //         : "translateY(100%)",
+            //     zIndex: $isPlayerUIVisible ? "50" : "",
+            // }}
             style={{
-                transform: $isPlayerUIVisible
-                    ? "translateY(0%)"
-                    : "translateY(100%)",
-                zIndex: $isPlayerUIVisible ? "50" : "",
+                top: $isPlayerUIVisible
+                    ? "0%"
+                    : "100%",
             }}
+
         >
-            {" "}
-            {/* Invert flex and none */}
-            {/* Background Blur Overlay */}
-            {/* <div className="absolute inset-0 bg-black/80 backdrop-blur-md"></div> */}
-            {/* Grid Content */}
             <div className="relative w-full  bg-black text-white grid grid-cols-[30%_40%_30%] h-full z-20">
-                {/* Left Column: Lyrics */}
                 <img
                     src={
                         $currentSong?.images[0]?.url || "/song-placeholder.png"

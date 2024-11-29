@@ -15,42 +15,155 @@ const artistImage = "https://store.warnermusic.ca/cdn/shop/collections/twenty.we
         <!-- Contenedor principal -->
         <div
             class="relative min-h-screen bg-cover bg-center"
-            style={`background-image: url('${artistImage}'); background-repeat: no-repeat; background-attachment: fixed;`}
+            style={`background-image: url('${artistImage}'); background-repeat: no-repeat; background-size:cover; background-attachment: fixed;`}
         >
 
             <!-- Contenido -->
             <div class="relative z-10 flex flex-col h-screen">
                 <!-- Parte superior -->
-                <div class="flex-none h-1/2 w-full p-8 bg-gradient-to-b from-transparent to-black/50">
-                    <h1 class="text-8xl font-extrabold">{artistName}</h1>
-                </div>
+                <div class="h-1/2 w-full p-8 bg-gradient-to-b from-transparent to-black/50 flex flex-shrink-0 items-end">
+                    <h1 class="text-8xl font-extrabold text-left">{artistName}</h1>
+                </div>                
 
                 <!-- Parte inferior -->
-                <div class="bg-gradient-to-b from-[rgba(0,0,0,0.7)] to-[#171717] backdrop-blur-[20px] p-8 h-full">
+                <div class="bg-gradient-to-b from-[rgba(0,0,0,0.7)] to-[#171717] backdrop-blur-[20px] p-8">
                     <h2 class="text-2xl font-semibold mb-4">Información del Artista</h2>
                     <p class="text-gray-400 mb-6">
-                        Placeholder para la descripción del artista o estadísticas. Este texto es un ejemplo.
+                        Placeholder para la descripción del artista o estadísticas. Necesitamos debatir que poner aqui ignacio, tipo nº de oyentes o descripción de wikipdia o canciones y albums....
                     </p>
+                </div>
 
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="bg-gray-700 p-4 rounded-lg">
-                            <h3 class="text-lg font-medium">Estadística 1</h3>
-                            <p class="text-gray-400">Placeholder para el dato.</p>
+                <section class="bg-[#171717] h-full px-56">
+                    <div class="grid grid-cols-2 gap-56">
+                        <!-- Columna Izquierda: Top Songs -->
+                        <div>
+                            <h2 class="text-white text-2xl font-bold mb-4">Top Songs</h2>
+                            <div class="space-y-4">
+                                <!-- Canción 1 -->
+                                <div class="space-y-2">
+                                    {Array.from({ length: 5 }, (_, index) => (
+                                        <div class="flex items-center space-x-4 rounded-md hover:bg-[#212121] p-2 transition">
+                                            {/* Número de posición */}
+                                            <div class="text-gray-400 text-lg font-semibold w-6 text-center">
+                                                {index + 1}
+                                            </div>
+                                
+                                            {/* Cover de la canción */}
+                                            <div class="relative">
+                                                <img
+                                                    src="song-placeholder.png"
+                                                    alt={`Song ${index + 1}`}
+                                                    class="w-12 h-12 rounded object-cover"
+                                                />
+                                            </div>
+                                
+                                            {/* Información de la canción */}
+                                            <div class="flex-1 min-w-0">
+                                                <p class="text-white text-base font-semibold truncate">
+                                                    Song {index + 1} · 2024
+                                                </p>
+                                            </div>
+                                
+                                            {/* Número de reproducciones */}
+                                            <div class="text-gray-400 text-base font-medium pr-5">
+                                                {Math.floor(Math.random() * 10000000).toLocaleString()} plays
+                                            </div>
+                                
+                                            {/* Duración */}
+                                            <p class="text-gray-300 text-base pr-2">3:45</p>
+                                        </div>
+                                    ))}
+                                </div>                                                               
+                            </div>
                         </div>
-                        <div class="bg-gray-700 p-4 rounded-lg">
-                            <h3 class="text-lg font-medium">Estadística 2</h3>
-                            <p class="text-gray-400">Placeholder para el dato.</p>
-                        </div>
-                        <div class="bg-gray-700 p-4 rounded-lg">
-                            <h3 class="text-lg font-medium">Estadística 3</h3>
-                            <p class="text-gray-400">Placeholder para el dato.</p>
-                        </div>
-                        <div class="bg-gray-700 p-4 rounded-lg">
-                            <h3 class="text-lg font-medium">Estadística 4</h3>
-                            <p class="text-gray-400">Placeholder para el dato.</p>
+                
+                        <!-- Columna Derecha: Top Albums -->
+                        <div>
+                            <h2 class="text-white text-2xl font-bold mb-4">Top Albums</h2>
+                            <div class="space-y-4">
+                                <div class="space-y-2">
+                                    {Array.from({ length: 5 }, (_, index) => (
+                                        <div class="flex items-center space-x-4 rounded-md hover:bg-[#212121] p-2 transition">
+                                            {/* Número de posición */}
+                                            <div class="text-gray-400 text-lg font-semibold w-6 text-center">
+                                                {index + 1}
+                                            </div>
+                                
+                                            {/* Cover de la canción */}
+                                            <div class="relative">
+                                                <img
+                                                    src="song-placeholder.png"
+                                                    alt={`Song ${index + 1}`}
+                                                    class="w-12 h-12 rounded object-cover"
+                                                />
+                                            </div>
+                                
+                                            {/* Información de la canción */}
+                                            <div class="flex-1 min-w-0">
+                                                <p class="text-white text-base font-semibold truncate">
+                                                    Album {index + 1} · 2024
+                                                </p>
+                                            </div>
+                                
+                                            {/* Número de reproducciones */}
+                                            <div class="text-gray-400 text-base font-medium pr-5">
+                                                1 Disc
+                                            </div>
+                                
+                                            {/* Duración */}
+                                            <p class="text-gray-300 text-base pr-2">37 Minutes</p>
+                                        </div>
+                                    ))}
+                                </div> 
+                            </div>
                         </div>
                     </div>
-                </div>
+                </section>
+                
+                <section class="px-32 pt-12 pb-3 text-white bg-[#171717]">
+                    <h2 class="text-2xl font-bold text-left">Featured Albums</h2>
+                    <div class="relative flex items-center gap-5 overflow-x-auto py-4 px-2">
+                        <!-- Aquí creamos las canciones -->
+                        {
+                            Array.from({ length: 3 }).map((_, index) => (
+                                <a href="#" class="flex-none w-48 hover:scale-105 transition">
+                                    <img
+                                        class="rounded-lg w-full aspect-square object-cover"
+                                        src="/song-placeholder.png"
+                                        alt="Song Cover"
+                                    />
+                                    <label class="truncate font-semibold text-center block mt-2">
+                                        Album/Playlist {index + 1}
+                                    </label>
+                                    <label class="truncate text-sm text-center text-gray-400 block">
+                                        Year
+                                    </label>
+                                </a>
+                            ))
+                        }
+                    </div>
+                </section>
+
+                <section class="px-32 pt-3 pb-10 text-white bg-[#171717]">
+                    <h2 class="text-2xl font-bold text-left">Related Artists</h2>
+                    <div class="relative flex items-center gap-5 overflow-x-auto py-4 px-2">
+                        <!-- Aquí creamos las canciones -->
+                        {
+                            Array.from({ length: 3 }).map((_, index) => (
+                                <a href="#" class="flex-none w-48 hover:scale-105 transition">
+                                    <img
+                                        class="rounded-full w-full aspect-square object-cover"
+                                        src="/song-placeholder.png"
+                                        alt="Song Cover"
+                                    />
+                                    <label class="truncate font-semibold text-center block mt-2">
+                                        Artist {index + 1}
+                                    </label>
+                                </a>
+                            ))
+                        }
+                    </div>
+                </section>
             </div>
         </div>
     </body>

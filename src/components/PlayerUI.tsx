@@ -399,7 +399,7 @@ export default function PlayerUI() {
                 {/* Right Column: Queue */}
                 <div className="overflow-hidden flex flex-col h-full bg-gradient-to-r z-10 from-[rgba(0,0,0,0)] to-[rgba(0,0,0,0.5)]">
                     {/* Selector */}
-                    <div className="flex justify-center items-center gap-10 pt-6 pb-4 relative border-b border-gray-600">
+                    <div className="flex justify-center items-center gap-10 pt-6 pb-4 relative border-b border-white">
                         <button
                             className={`text-lg font-semibold transition ${
                                 currentTab === "queue"
@@ -430,8 +430,8 @@ export default function PlayerUI() {
                                         key={song.id}
                                         className={`flex items-center gap-x-2 p-2 group ${
                                             index === $queueIndex
-                                                ? "bg-[#272727]"
-                                                : "hover:bg-[#494949]"
+                                                ? "bg-[rgba(50,50,50,0.75)]"
+                                                : "hover:bg-[rgba(75,75,75,0.75)]"
                                         }`}
                                     >
                                         {/* Espacio para el ícono */}

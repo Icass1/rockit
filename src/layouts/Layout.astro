@@ -4,7 +4,6 @@ import Header from "@/components/Header.astro";
 import Navigation from "@/components/Navigation.tsx";
 import Footer from "@/components/Footer.astro";
 
-import { Tooltips } from "astro-tooltips";
 import { ViewTransitions } from "astro:transitions";
 import PlayerUI from "@/components/PlayerUI.tsx";
 
@@ -22,7 +21,6 @@ const { meta } = Astro.props;
 <!doctype html>
 <html lang="en">
     <head>
-        <Tooltips interactive={false} delay={[15, 14000]} />
         <meta charset="UTF-8" />
         <meta
             name="description"

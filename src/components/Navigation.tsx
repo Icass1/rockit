@@ -186,6 +186,7 @@ function RenderSongDownload({
 function Downloads({ navOpen }: { navOpen: boolean }) {
     const [open, setOpen] = useState(false);
     const divRef = useRef<HTMLDivElement>(null);
+    const downloadsButton = useRef<HTMLDivElement>(null);
     const [status, setStatus] = useState<statusType>({ songs: {}, lists: {} });
 
     const $downloads = useStore(downloads);
@@ -193,6 +194,24 @@ function Downloads({ navOpen }: { navOpen: boolean }) {
     const [url, setURL] = useState("");
 
     const eventSources = useRef<string[]>([]);
+
+    useEffect(() => {
+        if (!divRef.current || !downloadsButton.current) {
+            return;
+        }
+        const handleDocumentClick = (event: MouseEvent) => {
+            if (
+                !divRef.current?.contains(event?.target as Node) &&
+                !downloadsButton.current?.contains(event?.target as Node)
+            ) {
+                setOpen(false);
+            }
+        };
+        document.addEventListener("click", handleDocumentClick);
+        return () => {
+            document.removeEventListener("click", handleDocumentClick);
+        };
+    }, [divRef, downloadsButton]);
 
     const onMessage = (event: MessageEvent<any>, eventSource: EventSource) => {
         const message = JSON.parse(event.data);
@@ -327,12 +346,13 @@ function Downloads({ navOpen }: { navOpen: boolean }) {
                     <RenderListDownload key={list[0]} list={list} />
                 ))}
             </div>
-            <a
+            <div
                 title="Downloads"
                 className="h-8 rounded-md items-center ml-2 mr-2 transition-all flex gap-2 hover:bg-[#414141]"
                 onClick={() => {
                     setOpen((value) => !value);
                 }}
+                ref={downloadsButton}
             >
                 <div className="w-8 h-8 flex items-center justify-center relative">
                     <Download className="w-5 h-5" />
@@ -341,7 +361,7 @@ function Downloads({ navOpen }: { navOpen: boolean }) {
                     </label>
                 </div>
                 <label className="font-semibold">Downloads </label>
-            </a>
+            </div>
         </>
     );
 }

@@ -2,7 +2,7 @@ import type { SongDB } from "@/lib/db";
 import { currentSong, currentTime, queue, queueIndex } from "@/stores/audio";
 import { isPlayerUIVisible } from "@/stores/isPlayerUIVisible";
 import { useStore } from "@nanostores/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { EllipsisVertical, Play } from "lucide-react";
 import { getTime } from "@/lib/getTime";
 
@@ -53,7 +53,7 @@ const lyricsTimeStamp = {
     "3jnoftwNCmIuTNVkxakisg": [
         { time: 0, index: -1 },
         { time: 3.616696, index: 0 },
-        { time: 8.950831, index: 1 },
+        // { time: 8.950831, index: 1 },
         { time: 9.215222, index: 2 },
         { time: 14.526888, index: 3 },
         { time: 19.325092, index: 4 },
@@ -62,7 +62,7 @@ const lyricsTimeStamp = {
         { time: 35.822759, index: 7 },
         { time: 41.933646, index: 8 },
         { time: 45.124741, index: 9 },
-        { time: 47.509194, index: 10 },
+        // { time: 47.509194, index: 10 },
         { time: 47.509194, index: 11 },
         { time: 50.695647, index: 12 },
         { time: 55.217082, index: 13 },
@@ -71,7 +71,7 @@ const lyricsTimeStamp = {
         { time: 71.945134, index: 16 },
         { time: 78.338074, index: 17 },
         { time: 81.540765, index: 18 },
-        { time: 83.660661, index: 19 },
+        // { time: 83.660661, index: 19 },
         { time: 83.923712, index: 20 },
         { time: 87.139223, index: 21 },
         { time: 91.656725, index: 22 },
@@ -325,21 +325,38 @@ export default function PlayerUI() {
     const $queue = useStore(queue);
     const $queueIndex = useStore(queueIndex);
 
+    const divRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (!divRef.current) {
+            return;
+        }
+        const handleDocumentClick = (event: MouseEvent) => {
+            if (
+                !divRef.current?.contains(event?.target as Node) &&
+                !document
+                    .querySelector("#toggle-player-ui")
+                    ?.contains(event?.target as Node) &&
+                !document
+                    .querySelector("#footer-center")
+                    ?.contains(event?.target as Node)
+            ) {
+                isPlayerUIVisible.set(false);
+            }
+        };
+        document.addEventListener("click", handleDocumentClick);
+        return () => {
+            document.removeEventListener("click", handleDocumentClick);
+        };
+    }, [divRef]);
+
     return (
         <div
+            ref={divRef}
             className="absolute inset-0 bg-black/80 flex justify-center items-center transition-all overflow-hidden duration-300 z-10"
-            // style={{
-            //     transform: $isPlayerUIVisible
-            //         ? "translateY(0%)"
-            //         : "translateY(100%)",
-            //     zIndex: $isPlayerUIVisible ? "50" : "",
-            // }}
             style={{
-                top: $isPlayerUIVisible
-                    ? "0%"
-                    : "100%",
+                top: $isPlayerUIVisible ? "0%" : "100%",
             }}
-
         >
             <div className="relative w-full  bg-black text-white grid grid-cols-[30%_40%_30%] h-full z-20">
                 <img

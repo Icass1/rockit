@@ -1,6 +1,5 @@
 ---
-import SearchBar from "@/components/searchBar";
-import RenderSearchResults from "@/components/searchResults"
+import Search from "@/components/Search";
 ---
 
 <header
@@ -10,24 +9,29 @@ import RenderSearchResults from "@/components/searchResults"
     <a href="/" class="flex items-center">
         <img src="/logo-banner.png" alt="Logo" class="h-14" />
     </a>
-      
 
     <!-- Barra de búsqueda en el centro -->
-    <div class="w-full h-full relative">
+    <!-- <div class="w-full h-full relative">
+        <RenderSearchResults client:only="react" />
+        <SearchBar client:only="react" />
+    </div> -->
 
-            <RenderSearchResults client:only="react"/>
-        <SearchBar client:only="react"/>
-    </div>
+    <Search client:only="react" />
 
     <!-- Texto "unknown" y círculo gris a la derecha -->
-    <a class="flex items-center space-x-4 ml-auto hover:bg-[#272727] p-3 hover:cursor-pointer rounded-lg" href="/settings">
+    <a
+        class="flex items-center space-x-4 ml-auto hover:bg-[#272727] p-3 hover:cursor-pointer rounded-lg"
+        href="/settings"
+    >
         <span class="font-medium">{Astro.locals.user?.username}</span>
-        <div class="w-10 h-10 bg-gray-400 rounded-full overflow-hidden flex items-center justify-center">
-            <img 
-                src="/user-placeholder.png" 
-                alt="User avatar" 
+        <div
+            class="w-10 h-10 bg-gray-400 rounded-full overflow-hidden flex items-center justify-center"
+        >
+            <img
+                src="/user-placeholder.png"
+                alt="User avatar"
                 class="w-full h-full object-cover"
             />
         </div>
-    </a>    
+    </a>
 </header>

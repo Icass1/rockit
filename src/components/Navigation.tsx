@@ -310,7 +310,7 @@ function Downloads({ navOpen }: { navOpen: boolean }) {
                 }}
             >
                 {/* Logos */}
-                <div className="flex justify-center gap-6 ">
+                <div className="flex justify-center gap-6 mt-5">
                     <img
                         src="/youtube-music-logo.svg"
                         alt="YouTube Music Logo"

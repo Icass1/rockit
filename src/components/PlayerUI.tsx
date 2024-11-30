@@ -373,28 +373,28 @@ export default function PlayerUI() {
                 <DynamicLyrics />
 
                 {/* Middle Column: Cover & Info */}
-                <div className="min-w-0 min-h-0 max-w-full relative max-h-full">
-                    <div className="h-fit min-w-0 min-h-0 max-w-full top-1/2 relative -translate-y-1/2">
+                <div className="min-w-0 min-h-0 max-w-full max-h-full flex flex-col items-center justify-center z-40">
+                    <div className="max-h-[75%] aspect-square">
                         <img
                             src={
-                                $currentSong?.images[0]?.url ||
-                                "/song-placeholder.png"
+                                $currentSong?.images[0]?.url || "/song-placeholder.png"
                             }
                             alt="Song Cover"
-                            className="object-cover min-w-0 min-h-0 mx-auto max-h-full w-full max-w-[500px]  rounded-lg aspect-square"
-                        />
-                        <div className="flex flex-col items-center justify-center text-center h-full">
-                            <h1 className="text-4xl font-bold pt-7">
-                                {$currentSong?.name}
-                            </h1>
-                            <p className="text-gray-400 text-xl mt-1 font-medium flex items-center gap-2">
-                                <span className="hover:underline">{$currentSong?.albumName}</span>
-                                • 
-                                <span>No release date</span>
-                            </p>
-                        </div>
+                            className="object-cover mx-auto w-auto h-[100%] rounded-lg aspect-square"
+                        />   
+                    </div>
+                    <div className="flex flex-col items-center justify-center text-center mt-4">
+                        <h1 className="text-4xl font-bold">
+                            {$currentSong?.name}
+                        </h1>
+                        <p className="text-gray-400 text-xl mt-2 font-medium flex items-center gap-2">
+                            <span className="hover:underline">{$currentSong?.albumName}</span>
+                            • 
+                            <span>No release date</span>
+                        </p>
                     </div>
                 </div>
+
 
                 {/* Right Column: Queue */}
                 <div className="overflow-hidden flex flex-col h-full bg-gradient-to-r z-10 from-[rgba(0,0,0,0)] to-[rgba(0,0,0,0.5)]">

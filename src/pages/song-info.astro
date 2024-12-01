@@ -1,0 +1,9 @@
+---
+import Layout from "@/layouts/Layout.astro";
+
+if (!Astro.locals.user) {
+  return Astro.redirect("/login");
+}
+---
+
+<Layout title="Rock It!" currentPage="Song-Info"></Layout>

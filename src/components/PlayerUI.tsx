@@ -195,10 +195,10 @@ function DynamicLyrics() {
                                 key={index}
                                 className={commonSyles}
                                 style={{
-                                    top: "30%",
-                                    fontSize: "25px",
+                                    top: "25%",
+                                    fontSize: "4vh",
                                     fontWeight: 500,
-                                    lineHeight: "40px",
+                                    lineHeight: "4vh",
                                     maxWidth: "100%",
                                     color: "rgb(200, 200, 200)",
                                     scale: "0.4",
@@ -213,10 +213,10 @@ function DynamicLyrics() {
                                 key={index}
                                 className={commonSyles}
                                 style={{
-                                    top: "37.5%",
-                                    fontSize: "25px",
+                                    top: "35%",
+                                    fontSize: "4vh",
                                     fontWeight: 500,
-                                    lineHeight: "40px",
+                                    lineHeight: "4vh",
                                     maxWidth: "100%",
                                     color: "rgb(200, 200, 200)",
                                     scale: "0.6",
@@ -232,9 +232,9 @@ function DynamicLyrics() {
                                 className={commonSyles}
                                 style={{
                                     top: "50%",
-                                    fontSize: "25px",
+                                    fontSize: "4vh",
                                     fontWeight: 600,
-                                    lineHeight: "40px",
+                                    lineHeight: "4vh",
                                     maxWidth: "100%",
                                 }}
                             >
@@ -247,10 +247,10 @@ function DynamicLyrics() {
                                 key={index}
                                 className={commonSyles}
                                 style={{
-                                    top: "62.5%",
-                                    fontSize: "25px",
+                                    top: "63%",
+                                    fontSize: "4vh",
                                     fontWeight: 500,
-                                    lineHeight: "40px",
+                                    lineHeight: "4vh",
                                     maxWidth: "100%",
                                     color: "rgb(200, 200, 200)",
                                     scale: "0.6",
@@ -265,10 +265,10 @@ function DynamicLyrics() {
                                 key={index}
                                 className={commonSyles}
                                 style={{
-                                    top: "70%",
-                                    fontSize: "25px",
+                                    top: "75%",
+                                    fontSize: "4vh",
                                     fontWeight: 500,
-                                    lineHeight: "40px",
+                                    lineHeight: "4vh",
                                     maxWidth: "100%",
                                     color: "rgb(200, 200, 200)",
                                     scale: "0.4",
@@ -289,7 +289,7 @@ function DynamicLyrics() {
                                 fontSize: "0",
                                 fontWeight: 500,
 
-                                lineHeight: "28px",
+                                lineHeight: "4vh",
                                 maxWidth: "10%",
                                 color: "rgb(200, 200, 200)",
                             }}

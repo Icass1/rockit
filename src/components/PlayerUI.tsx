@@ -370,7 +370,11 @@ export default function PlayerUI() {
                     className="absolute w-full h-auto top-1/2 -translate-y-1/2 blur-md brightness-50"
                 ></img>
 
-                <DynamicLyrics />
+                <div className="z-40 w-full h-full">
+                    <h2 className="absolute w-[31%] text-center text-3xl font-bold mx-auto p-14 underline">Lyrics</h2>
+                    <DynamicLyrics />
+                </div>
+
 
                 {/* Middle Column: Cover & Info */}
                 <div className="min-w-0 min-h-0 max-w-full max-h-full flex flex-col items-center justify-center z-40">
@@ -466,7 +470,7 @@ export default function PlayerUI() {
                                             <p className="text-white text-base font-semibold truncate">
                                                 {song.name}
                                             </p>
-                                            <p className="text-gray-400 text-sm truncate">
+                                            <p className="text-gray-300 text-sm truncate">
                                                 {song.artists
                                                     .map(
                                                         (artist) => artist.name

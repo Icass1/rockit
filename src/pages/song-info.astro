@@ -6,4 +6,94 @@ if (!Astro.locals.user) {
 }
 ---
 
-<Layout title="Rock It!" currentPage="Song-Info"></Layout>
+<Layout title="Rock It!" currentPage="Song-Info">
+    <div class="w-full mx-auto p-6">
+        <!-- Header con botones y carátula -->
+        <div class="flex items-center justify-between mb-8">
+            <!-- Botón ART -->
+            <button class="flex items-center justify-center w-16 h-16 bg-gray-200 rounded-full shadow-md font-bold">
+                ART
+            </button>
+
+            <!-- Carátula de la canción -->
+            <div class="w-48 h-48 bg-gray-300 rounded-md shadow-lg"></div>
+
+            <!-- Botón ALB -->
+            <button class="flex items-center justify-center w-16 h-16 bg-gray-200 rounded-full shadow-md font-bold">
+                ALB
+            </button>
+        </div>
+
+        <!-- Título de la canción -->
+        <h1 class="text-center text-2xl font-semibold mb-8">CANCION</h1>
+
+        <section class="px-32 pt-12 pb-3 text-white">
+            <h2 class="text-2xl font-bold text-left">More songs from the Album</h2> <!-- Aqui podemos poner el nombre del artista tipo mas canciones del album... -->
+            <div class="relative flex items-center gap-5 overflow-x-auto py-4 px-2">
+                {
+                    Array.from({ length: 10 }).map((_, index) => (
+                        <a href="#" class="flex-none w-48 hover:scale-105 transition">
+                            <img
+                                class="rounded-lg w-full aspect-square object-cover"
+                                src="/song-placeholder.png"
+                                alt="Song Cover"
+                            />
+                            <label class="truncate font-semibold text-center block mt-2">
+                                Song {index + 1}
+                            </label>
+                            <label class="truncate text-sm text-center text-gray-400 block">
+                                Artists o Year
+                            </label>
+                        </a>
+                    ))
+                }
+            </div>
+        </section>
+
+        <section class="px-32 pt-12 pb-3 text-white">
+            <h2 class="text-2xl font-bold text-left">More songs from the Artist</h2> <!-- Aqui podemos poner el nombre del artista tipo mas canciones de Eminem -->
+            <div class="relative flex items-center gap-5 overflow-x-auto py-4 px-2">
+                {
+                    Array.from({ length: 10 }).map((_, index) => (
+                        <a href="#" class="flex-none w-48 hover:scale-105 transition">
+                            <img
+                                class="rounded-lg w-full aspect-square object-cover"
+                                src="/song-placeholder.png"
+                                alt="Song Cover"
+                            />
+                            <label class="truncate font-semibold text-center block mt-2">
+                                Song {index + 1}
+                            </label>
+                            <label class="truncate text-sm text-center text-gray-400 block">
+                                Artists o Albums
+                            </label>
+                        </a>
+                    ))
+                }
+            </div>
+        </section>
+
+        <section class="px-32 pt-12 pb-3 text-white">
+            <h2 class="text-2xl font-bold text-left">Related Songs</h2> <!-- Aqui podemos poner el nombre del artista tipo mas canciones de Eminem -->
+            <div class="relative flex items-center gap-5 overflow-x-auto py-4 px-2">
+                {
+                    Array.from({ length: 10 }).map((_, index) => (
+                        <a href="#" class="flex-none w-48 hover:scale-105 transition">
+                            <img
+                                class="rounded-lg w-full aspect-square object-cover"
+                                src="/song-placeholder.png"
+                                alt="Song Cover"
+                            />
+                            <label class="truncate font-semibold text-center block mt-2">
+                                Song {index + 1}
+                            </label>
+                            <label class="truncate text-sm text-center text-gray-400 block">
+                                Artist o Year
+                            </label>
+                        </a>
+                    ))
+                }
+            </div>
+        </section>
+    </div>
+</Layout>

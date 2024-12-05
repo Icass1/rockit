@@ -382,11 +382,23 @@ function Downloads({ navOpen }: { navOpen: boolean }) {
                         Start Download
                     </button>
                 </div>
-                {Object.entries(status).length != 0 && (
-                    <label className="font-bold text-lg text-white">
-                        Lastest Downloads
-                    </label>
-                )}
+                <div className="flex items-center justify-between mb-4">
+                    {Object.entries(status).length != 0 && (
+                        <label className="font-bold text-lg text-white">
+                            Lastest Downloads
+                        </label>
+                    )}
+
+                    <button
+                        className="text-blue-500 text-sm hover:underline mr-2"
+                        onClick={() => {
+                            // Lógica para limpiar los downloads
+                            console.log("Clear downloads clicked");
+                        }}
+                    >
+                        Clear downloads
+                    </button>
+                </div>
 
                 {Object.entries(status.songs).map((songStatus) => (
                     <RenderSongDownload

@@ -386,7 +386,7 @@ spotdl.providers.audio.base.AudioProvider.search = search
 
 
 def search_and_download(  # pylint: disable=R0911
-    self, song: Song
+    self: spotdl.Downloader, song: Song
 ) -> Tuple[Song, Optional[Path]]:
     """
     Search for the song and download it.

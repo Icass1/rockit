@@ -2,6 +2,11 @@ from spotdl.utils.static import BAD_CHARS
 from constants import DOWNLOADER_OPTIONS
 from spotdl.utils.formatter import create_file_name
 import re
+import requests
+from logger import getLogger
+
+logger = getLogger(__name__)
+
 
 import random
 
@@ -45,3 +50,17 @@ def sanitize_folder_name(name: str, max_length: int = 255) -> str:
         sanitized_name = sanitized_name[:max_length]
 
     return sanitized_name
+
+def download_image(url, path):
+    try:
+        # Send a GET request to the URL
+        response = requests.get(url, stream=True)
+        response.raise_for_status()  # Check for HTTP request errors
+
+        # Open the file in binary write mode and save the content
+        with open(path, 'wb') as file:
+            for chunk in response.iter_content(1024):  # Download in chunks of 1KB
+                file.write(chunk)
+        logger.debug(f"Image {url} successfully downloaded to {path}")
+    except requests.exceptions.RequestException as e:
+        logger.error(f"An error occurred: {e}")

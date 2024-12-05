@@ -1,9 +1,13 @@
 from spotdl.download.downloader import Downloader as SpotifyDownloader
 from spotdl.types.song import Song
 
-from api_types import RawSpotifyApiTrack, RawSpotifyApiAlbum, AlbumItems, RawSpotifyApiPlaylist, PlaylistItems
+from apiTypes.RawSpotifyApiTrack import RawSpotifyApiTrack
+from apiTypes.RawSpotifyApiAlbum import RawSpotifyApiAlbum, AlbumItems
+from apiTypes.RawSpotifyApiPlaylist import RawSpotifyApiPlaylist, PlaylistItems
+from apiTypes.RawYTMusicApiAlbum import RawYTMusicApiAlbum
+from apiTypes.RawYTMusicApiPlaylist import RawYTMusicApiPlaylist
 
-from utils import get_song_name, sanitize_folder_name, get_output_file
+from utils import get_song_name, sanitize_folder_name, get_output_file, download_image
 from constants import DOWNLOADER_OPTIONS
 
 import requests
@@ -13,26 +17,8 @@ from typing import Any, Dict, Optional, List
 import json
 import time
 import os
-from logger import getLogger, log_uncaught_exceptions
+from logger import getLogger
 import shutil
-
-# # Set up a handler specifically for spotdl
-# spotdl_logger = logging.getLogger("spotdl")
-# spotdl_logger.setLevel(logging.DEBUG)
-
-# # Create a console handler for the spotdl logger
-# console_handler = logging.StreamHandler()
-# console_handler.setLevel(logging.DEBUG)
-
-# # Optional: add formatting to the handler
-# formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-# console_handler.setFormatter(formatter)
-
-# # Add the handler to the spotdl logger
-# spotdl_logger.addHandler(console_handler)
-
-# # Remove other handlers to avoid duplicate logs
-# spotdl_logger.propagate = False
 
 logger = getLogger(__name__)
 
@@ -46,16 +32,10 @@ class ListDownloader:
 
         self.downloader = downloader
 
-        self.url = self.downloader.spotify.parse_url(url)
-        self.list: RawSpotifyApiAlbum | RawSpotifyApiPlaylist = None
+        self.url = url
+        self.list: RawSpotifyApiAlbum | RawSpotifyApiPlaylist | RawYTMusicApiAlbum | RawYTMusicApiPlaylist = None
         self.spotdl_songs: List[Song] = None
         self.raw_songs: List[AlbumItems] | List[PlaylistItems]= None
-
-        if "/album/" in self.url:
-            self.type = "album"
-        elif "/playlist/" in self.url:
-            self.type = "playlist"
-        else: raise Exception("Invalid URL", url)
 
         threading.Thread(target=lambda : self.fetch_list(), name=f"List downloader {url}").start()
 
@@ -77,15 +57,15 @@ class ListDownloader:
 
         if self.list.type == "album":
             threading.current_thread().name = f"Download manager - {self.list.name} - {self.list.artists[0].name}"
-        else:
+        elif self.list.type == "playlist":
             threading.current_thread().name = f"Download manager - {self.list.name} - {self.list.owner.display_name}"
 
         threads: List[threading.Thread] = []
 
         for i in range(THREADS):
-            logger.info(f"ListDownloader.download_manager Started thread {i}")
             if i >= len(self.spotdl_songs):
                 continue
+            logger.info(f"ListDownloader.download_manager Started thread {i}")
             thread = threading.Thread(target=self.downloader.download_song, args=(self.spotdl_songs[i], self.raw_songs[i], self.list), name=f"List song downloader {self.spotdl_songs[i].name} - {self.spotdl_songs[i].artist}")
             thread.start()
             threads.append(thread)
@@ -117,30 +97,37 @@ class ListDownloader:
 
 
         if self.list.type == "album":
+            pass
+            # if len(self.list.images) > 1:
 
-            image_path_dir = os.path.join("album", sanitize_folder_name(self.list.artists[0].name), sanitize_folder_name(self.list.name))
-            image_path = os.path.join(image_path_dir, "image.png")
+            #     image_url = max(self.list.images, key=lambda i: i.width * i.height)["url"] if self.list.images else None
+            # else:
+            #     image_url = self.list.images[0].url
 
-            if not os.path.exists(os.path.join(os.getenv("IMAGES_PATH"), image_path_dir)):
-                os.makedirs(os.path.join(os.getenv("IMAGES_PATH"), image_path_dir))
-            if not os.path.exists(os.path.join(os.getenv("IMAGES_PATH"), image_path)):
-                self.downloader.download_image(url=image_url, path=os.path.join(os.getenv("IMAGES_PATH"), image_path))
+            # image_path_dir = os.path.join("album", sanitize_folder_name(self.list.artists[0].name), sanitize_folder_name(self.list.name))
+            # image_path = os.path.join(image_path_dir, "image.png")
 
-            requests.post(f"{os.getenv('FRONTEND_URL')}/api/new-album", json={
-                "id": self.list.id,
-                "images": [image._json for image in self.list.images],
-                "image": image_path,
-                "name": self.list.name,
-                "release_date": self.list.release_date,
-                "type": self.list.type,
-                "artists": [{"name": artist.name, "id": artist.id} for artist in self.list.artists],
-                "copyrights": [_copyright._json for _copyright in self.list.copyrights],
-                "popularity": self.list.popularity,
-                "genres": self.list.genres,
-                "songs": [song.id for song in self.list.tracks.items],
-                "disc_count": max([song.disc_number for song in self.list.tracks.items])
-            })
+            # if not os.path.exists(os.path.join(os.getenv("IMAGES_PATH"), image_path_dir)):
+            #     os.makedirs(os.path.join(os.getenv("IMAGES_PATH"), image_path_dir))
+            # if not os.path.exists(os.path.join(os.getenv("IMAGES_PATH"), image_path)):
+            #     self.downloader.download_image(url=image_url, path=os.path.join(os.getenv("IMAGES_PATH"), image_path))
+
+            # requests.post(f"{os.getenv('FRONTEND_URL')}/api/new-album", json={
+            #     "id": self.list.id,
+            #     "images": [image._json for image in self.list.images],
+            #     "image": image_path,
+            #     "name": self.list.name,
+            #     "release_date": self.list.release_date,
+            #     "type": self.list.type,
+            #     "artists": [{"name": artist.name, "id": artist.id} for artist in self.list.artists],
+            #     "copyrights": [_copyright._json for _copyright in self.list.copyrights],
+            #     "popularity": self.list.popularity,
+            #     "genres": self.list.genres,
+            #     "songs": [song.id for song in self.list.tracks.items],
+            #     "disc_count": max([song.disc_number for song in self.list.tracks.items])
+            # })
         elif self.list.type == "playlist":
+            
             if len(self.list.images) > 1:
                 image_url = max(self.list.images, key=lambda i: i.width * i.height)["url"] if self.list.images else None
             else:
@@ -151,7 +138,7 @@ class ListDownloader:
             if not os.path.exists(os.path.join(os.getenv("IMAGES_PATH"), image_path_dir)):
                 os.makedirs(os.path.join(os.getenv("IMAGES_PATH"), image_path_dir))
             if not os.path.exists(os.path.join(os.getenv("IMAGES_PATH"), image_path)):
-                self.downloader.download_image(url=image_url, path=os.path.join(os.getenv("IMAGES_PATH"), image_path))
+                download_image(url=image_url, path=os.path.join(os.getenv("IMAGES_PATH"), image_path))
 
             requests.post(f"{os.getenv('FRONTEND_URL')}/api/new-playlist", json={
                 "id": self.list.id,
@@ -180,46 +167,48 @@ class ListDownloader:
             while not self.spotdl_songs:
                 time.sleep(0.2)
 
+
+
         if self.list.type == "album":
             threading.current_thread().name = f"status - {self.list.name} - {self.list.artists[0].name}"
-        else:
+        elif self.list.type == "playlist":
             threading.current_thread().name = f"status - {self.list.name} - {self.list.owner.display_name}"
+        else:
+            logger.critical("List type not known")
+            return "List type not known"
             
         last_messages_len = {}
 
-        for song in self.spotdl_songs:
-            if song.song_id not in self.downloader.downloads_dict:
-                logger.error(f"ListDownloader.status song.song_id: {song.song_id} is not in self.downloader.downloads_dict: {self.downloader.downloads_dict}")
+        text = {"list": {"id": self.list.id, "name": self.list.name, "artists": [artist._json for artist in self.list.artists] if self.list.type == "album" else [self.list.owner.display_name], "images": [image._json for image in self.list.images]}}
+        yield f"data: {json.dumps(text)}\n\n"
 
-            while song.song_id not in self.downloader.downloads_dict:
+        for song in self.raw_songs:
+            if song.id not in self.downloader.downloads_dict:
+                logger.error(f"ListDownloader.status song.id: {song.id} is not in self.downloader.downloads_dict: {self.downloader.downloads_dict}")
+
+            while song.id not in self.downloader.downloads_dict:
                 time.sleep(0.1)
 
-            if song.song_id not in self.downloader.downloads_dict:
-                logger.critical(f"ListDownloader.status song.song_id: {song.song_id} is not in self.downloader.downloads_dict: {self.downloader.downloads_dict}")
+            if song.id not in self.downloader.downloads_dict:
+                logger.critical(f"ListDownloader.status song.id: {song.id} is not in self.downloader.downloads_dict: {self.downloader.downloads_dict}")
 
-            last_messages_len[song.song_id] = max(len(self.downloader.downloads_dict[song.song_id]["messages"]) - 1, 0)
-            list_completed[song.song_id] = 0
-            list_error[song.song_id] = 0
+            text = {"song": {"id": song.id, "name": song.name, "artists":  [artist._json for artist in song.artists]}}
+            yield f"data: {json.dumps(text)}\n\n"
+
+            last_messages_len[song.id] = max(len(self.downloader.downloads_dict[song.id]["messages"]) - 1, 0)
+            list_completed[song.id] = 0
+            list_error[song.id] = 0
 
         while songs_completed < len(self.spotdl_songs):
             for song in self.raw_songs:
                 song = song if self.list.type == "album" else song.track
                 for k in self.downloader.downloads_dict[song.id]["messages"][last_messages_len[song.id]:]:
-                    k["song"] = {}
-                    k["song"]["name"] = song.name
-                    k["song"]["artists"] = [artist._json for artist in song.artists]
-
-                    k["list"] = {}
-                    k["list"]["name"] = self.list.name
-                    k["list"]["id"] = self.list.id
-                    k["list"]["artists"] = [artist._json for artist in self.list.artists] if self.list.type == "album" else [self.list.owner.display_name]
-                    k["list"]["images"] = [image._json for image in self.list.images]
-                    
                     list_completed[song.id] = k["completed"]
                     list_error[song.id] = 100 if k["message"] == "Error" else 0
 
                     k["list_completed"] = sum(list_completed.values())/len(self.spotdl_songs)
                     k["list_error"] = sum(list_error.values())/len(self.spotdl_songs)
+                    k["list_id"] = self.list.id
 
                     logger.debug(f"ListDownloader.status data: {json.dumps(k)}")
                     yield f"data: {json.dumps(k)}\n\n"
@@ -271,20 +260,16 @@ class SongDownloader:
 
             while not self.spotdl_song or self.spotdl_song.song_id not in self.downloader.downloads_dict:
                 time.sleep(0.5)
+
+        text = {"song": {"id": self.raw_song.id, "name":  self.raw_song.name, "artists":  [artist._json for artist in self.raw_song.artists], "album":  {"images": [images._json for images in self.raw_song.album.images]}}}
+        yield f"data: {json.dumps(text)}\n\n"
                 
         threading.current_thread().name = f"Status - {self.spotdl_song.name} - {self.spotdl_song.artist}"
 
         last_messages_len = 0
         finish = False
-        last_time_new_message = time.time()
         while not finish:
             for k in self.downloader.downloads_dict[self.spotdl_song.song_id]["messages"][last_messages_len:]:
-                last_time_new_message = time.time()
-                k["song"] = {}
-                k["song"]["name"] = self.raw_song.name
-                k["song"]["artists"] = [artist._json for artist in self.raw_song.artists]
-                k["song"]["album"] = {"images": [images._json for images in self.raw_song.album.images]}
-
                 logger.debug(f"SongDownloader.status data: {json.dumps(k)}")
                 yield f"data: {json.dumps(k)}\n\n"
                 if k["completed"] == 100:
@@ -292,20 +277,6 @@ class SongDownloader:
                 
             last_messages_len = len(self.downloader.downloads_dict[self.spotdl_song.song_id]["messages"])
             time.sleep(0.5)
-
-            # Timeout
-            # if last_time_new_message + 10 < time.time():
-            #     k["song"] = {}
-            #     k["song"]["name"] = self.raw_song.name
-            #     k["song"]["artists"] = [artist.json for artist in self.raw_song.artists]
-            #     k["completed"] = 100
-            #     k["message"] = "Timeout"
-
-            #     print("Stopping", self.thread.name)
-            #     self.thread.terminate()
-
-            #     yield f"data: {json.dumps(k)}\n\n"
-            #     finish = True
 
 class Downloader:
     def __init__(self, spotify: Spotify) -> None:
@@ -320,26 +291,15 @@ class Downloader:
         self.list_downloads = {}
 
     def download_url(self, url):
-        if "/track/" in url:
+        if "/track/" in url or "https://music.youtube.com/watch?v=" in url:
             return SongDownloader(url, self)
-        elif "/playlist/" in url or "/album/" in url:
+        elif "/playlist/" in url or "/album/" in url or "/playlist?list=" in url:
             return ListDownloader(url, self)
+        else:
+            logger.error(f"Unable to get a download hanlder for '{url}'")
 
-    def download_image(self, url, path):
-        try:
-            # Send a GET request to the URL
-            response = requests.get(url, stream=True)
-            response.raise_for_status()  # Check for HTTP request errors
 
-            # Open the file in binary write mode and save the content
-            with open(path, 'wb') as file:
-                for chunk in response.iter_content(1024):  # Download in chunks of 1KB
-                    file.write(chunk)
-            logger.debug(f"Image {url} successfully downloaded to {path}")
-        except requests.exceptions.RequestException as e:
-            logger.error(f"An error occurred: {e}")
-
-    def download_song(self, spotdl_song: Song, raw_song: RawSpotifyApiTrack | AlbumItems | PlaylistItems, raw_list: RawSpotifyApiAlbum | RawSpotifyApiPlaylist=None):
+    def download_song(self, spotdl_song: Song, raw_song: RawSpotifyApiTrack | AlbumItems | PlaylistItems, raw_list: RawSpotifyApiAlbum | RawSpotifyApiPlaylist | RawYTMusicApiAlbum | RawYTMusicApiPlaylist=None):
 
         logger.info(f"Downloader.download_song Downloading {get_song_name(spotdl_song)}")
 
@@ -365,7 +325,6 @@ class Downloader:
                 logger.error(f"Downloader.download_song Error downloading {get_song_name(spotdl_song)}")
             else: 
                 logger.info(f"Downloader.download_song Downloaded {get_song_name(spotdl_song)}")
-                logger.info(f"Downloader.download_song path {path}")
 
                 shutil.move(path, song_path)
                 path = relative_song_path
@@ -377,12 +336,14 @@ class Downloader:
         if not os.path.exists(image_path):
             if raw_list == None: 
                 image_url = max(raw_song.album.images, key=lambda i: i.width * i.height)["url"] if raw_song.album.images else None
+            elif raw_list.type == "ytPlaylist":
+                image_url = max(raw_list.thumbnails, key=lambda i: i.width * i.height)["url"] if raw_list.thumbnails else None
             elif raw_list.type == "album":
                 image_url = max(raw_list.images, key=lambda i: i.width * i.height)["url"] if raw_list.images else None
             elif raw_list.type == "playlist":
                 image_url = max(raw_song.track.album.images, key=lambda i: i.width * i.height)["url"] if raw_song.track.album.images else None
             
-            self.download_image(url=image_url, path=image_path)
+            download_image(url=image_url, path=image_path)
 
         if raw_list == None:
             requests.post(f"{os.getenv('FRONTEND_URL')}/api/new-song", json={

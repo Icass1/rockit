@@ -88,9 +88,12 @@ def start_download():
     if USER_ID not in downloads:
         downloads[USER_ID] = {}
 
-    downloads[USER_ID][download_id] = downloader.download_url(url)
-
-    return jsonify({"download_id": download_id})
+    download_handler = downloader.download_url(url)
+    if download_handler:
+        downloads[USER_ID][download_id] = download_handler
+        return jsonify({"download_id": download_id})
+    else:
+        return Response("Error starting download")
 
 @app.route('/download-status/<string:id>')
 def download_status(id: str):

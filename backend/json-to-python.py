@@ -1,5 +1,4 @@
 import json
-from typing import List, Dict, Any
 import re
 
 def camel_to_snake(name):
@@ -37,9 +36,6 @@ def parse_type(key, value, nested_classes_dict):
 def generate_class(name, json_data, nested_classes_dict):
     """Generate a class definition for a given dictionary."""
     class_def = [f"class {name}:"]
-    # if not json_data:
-    #     class_def.append("    pass")
-    #     return "\n".join(class_def)
 
     items = json_data.items()
 
@@ -54,7 +50,6 @@ def generate_class(name, json_data, nested_classes_dict):
         var_name = key
         var_type = parse_type(key, value, nested_classes_dict)
         if "List" in var_type and var_name in nested_classes_dict:
-            print(var_name, key, nested_classes_dict)
             class_def.append(f"        _{var_name} = [{nested_classes_dict[var_name]}.from_dict(k) for k in obj.get('{key}')] if obj and '{key}' in obj else None")
         elif var_name in nested_classes_dict:
             class_def.append(f"        _{var_name} = {nested_classes_dict[var_name]}.from_dict(obj.get('{key}')) if obj and '{key}' in obj else None")
@@ -83,9 +78,11 @@ def generate_classes(name, json_data, classes, base_name):
         nested_classes_dict = {}
 
         for key, value in json_data.items():
+
             if isinstance(value, dict):
                 nested_class_name = base_name + to_pascal_case(key)
                 index = 1
+                # print("1",nested_class_name, nested_class_names)
                 while nested_class_name in nested_class_names:
                     nested_class_name = base_name + to_pascal_case(key) + str(index)
                     index += 1
@@ -96,27 +93,32 @@ def generate_classes(name, json_data, classes, base_name):
 
             elif isinstance(value, list) and value and isinstance(value[0], dict):
                 nested_class_name = base_name + to_pascal_case(key)
+
+                index = 1
+                while nested_class_name in nested_class_names:
+                    nested_class_name = base_name + to_pascal_case(key) + str(index)
+                    index += 1
+
+                # print("2",nested_class_name, nested_class_names)
                 generate_classes(nested_class_name, value[0], classes, base_name=base_name)
 
                 nested_class_names.append(nested_class_name)
                 nested_classes_dict[key] = nested_class_name
 
-        # print(nested_classes_dict)
-
         class_def = generate_class(name, json_data, nested_classes_dict)
         classes.append(class_def)
 
 def main():
-    # Load JSON data (replace 'your_file.json' with the path to your JSON file)
     with open('backend/json.json', 'r') as f:
         json_data = json.load(f)
 
     classes = []
-    base_name = "Track"
-    generate_classes(name="RawSpotifyApiTrack", json_data=json_data, classes=classes, base_name=base_name)
+    base_name = "SpotifyArtist"
+    root_name = "RawSpotifyApiArtist"
+    generate_classes(name=root_name, json_data=json_data, classes=classes, base_name=base_name)
 
-    with open("backend/types.out.py", "w") as f:
-        f.write("from typing import List, Dict, Any\n")
+    with open(f"backend/apiTypes/{root_name}.py", "w") as f:
+        f.write("from typing import List, Any\n")
         f.write("from dataclasses import dataclass\n")
         f.write("\n")
         for class_def in classes:

@@ -17,6 +17,7 @@ import PinList from "@/components/PinList";
 import AddToLibrary from "@/components/AddToLibrary";
 import DownloadList from "@/components/DownloadList";
 import type { SpotifyAlbum } from "@/types/spotify";
+import getAlbum from "@/lib/getAlbum";
 
 const { id } = Astro.params as { id: string };
 
@@ -26,168 +27,36 @@ if (!Astro.locals.user) {
 
 const BACKEND_URL = process.env.BACKEND_URL;
 
-let album;
-let inDatabase;
-let songs: SongDB<
-    | "images"
-    | "id"
-    | "name"
-    | "artists"
-    | "albumId"
-    | "albumName"
-    | "path"
-    | "duration"
-    | "discNumber"
-    | "trackNumber"
->[];
-let discs: SongDB<
-    | "images"
-    | "id"
-    | "name"
-    | "artists"
-    | "albumId"
-    | "albumName"
-    | "path"
-    | "duration"
-    | "discNumber"
-    | "trackNumber"
->[][];
+// let album;
+// let inDatabase;
+// let songs: SongDB<
+//     | "images"
+//     | "id"
+//     | "name"
+//     | "artists"
+//     | "albumId"
+//     | "albumName"
+//     | "path"
+//     | "duration"
+//     | "discNumber"
+//     | "trackNumber"
+// >[];
+// let discs: SongDB<
+//     | "images"
+//     | "id"
+//     | "name"
+//     | "artists"
+//     | "albumId"
+//     | "albumName"
+//     | "path"
+//     | "duration"
+//     | "discNumber"
+//     | "trackNumber"
+// >[][];
 
-album = parseAlbum(
-    db.prepare("SELECT * FROM album WHERE id = ?").get(id) as RawAlbumDB
-);
 
-if (album) {
-    inDatabase = true;
+const {album, discs, songs, inDatabase} = await getAlbum(id);
 
-    songs = album.songs
-        .map(
-            (
-                songID: string
-            ):
-                | SongDB<
-                      | "images"
-                      | "id"
-                      | "name"
-                      | "artists"
-                      | "albumId"
-                      | "albumName"
-                      | "path"
-                      | "duration"
-                      | "discNumber"
-                      | "trackNumber"
-                  >
-                | undefined => {
-                return parseSong(
-                    db
-                        .prepare(
-                            "SELECT images, id, name, artists, albumId, albumName, path, duration, discNumber, trackNumber FROM song WHERE id = ?"
-                        )
-                        .get(songID) as RawSongDB
-                );
-            }
-        )
-        .filter((a) => typeof a !== "undefined");
-
-    songs.sort((a, b) => {
-        if (
-            typeof a?.trackNumber == "undefined" ||
-            typeof b?.trackNumber == "undefined"
-        ) {
-            return 0;
-        }
-        return a.trackNumber - b.trackNumber;
-    });
-
-    discs = Array(Math.max(...songs.map((song) => song?.discNumber || 0)))
-        .fill(1)
-        .map((_) => []);
-
-    songs.map((song) => {
-        if (song?.discNumber) {
-            discs[song?.discNumber - 1].push({ ...song });
-        }
-    });
-} else {
-    let response;
-    try {
-        response = await fetch(`${BACKEND_URL}/album/${id}`);
-    } catch (error) {
-        return new Response(
-            JSON.stringify({
-                error: "Error conecting to backend",
-            }),
-            {
-                status: 500,
-            }
-        );
-    }
-    if (!response.ok) {
-        return new Response(
-            JSON.stringify({
-                error: "",
-            }),
-            {
-                status: 404,
-            }
-        );
-    }
-    const data: SpotifyAlbum = await response.json();
-    album = {
-        artists: data.artists,
-        images: data.images,
-        name: data.name,
-        releaseDate: data.release_date,
-        songs: data.tracks.items,
-    };
-
-    songs = data.tracks.items.map((item) => {
-        const songDB = parseSong(
-            db
-                .prepare(
-                    "SELECT images, id, name, artists, albumId, albumName, path, duration, discNumber, trackNumber FROM song WHERE id = ?"
-                )
-                .get(item.id) as RawSongDB
-        );
-
-        if (songDB) {
-            return songDB
-        }
-
-        return {
-            id: item.id,
-            images: data.images,
-            name: item.name,
-            artists: data.artists,
-            albumId: data.id,
-            albumName: data.name,
-            path: "",
-            duration: item.duration_ms / 1000,
-            discNumber: item.disc_number,
-            trackNumber: item.track_number,
-        };
-    });
-
-    songs.sort((a, b) => {
-        if (
-            typeof a?.trackNumber == "undefined" ||
-            typeof b?.trackNumber == "undefined"
-        ) {
-            return 0;
-        }
-        return a.trackNumber - b.trackNumber;
-    });
-
-    discs = Array(Math.max(...songs.map((song) => song?.discNumber || 0)))
-        .fill(1)
-        .map((_) => []);
-
-    songs.map((song) => {
-        if (song?.discNumber) {
-            discs[song?.discNumber - 1].push({ ...song });
-        }
-    });
-}
 
 function getDate(date: string) {
     const dateSplit = date.split("-");

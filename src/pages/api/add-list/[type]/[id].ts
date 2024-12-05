@@ -8,7 +8,6 @@ import {
     type RawUserDB,
     type UserDB,
     type UserDBLists,
-    type UserDBPinnedLists,
 } from "@/lib/db";
 
 import type { APIContext } from "astro";

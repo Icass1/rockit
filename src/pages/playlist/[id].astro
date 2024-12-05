@@ -126,12 +126,11 @@ function getMinutes(seconds: number) {
             class="min-w-0 max-w-full w-full min-h-0 max-h-full h-full overflow-auto flex flex-col gap-y-1 pr-6"
         >
             {
-                songs.map((song, index) => {
+                songs.map((song) => {
                     if (song) {
                         return (
                             <PlaylistSong
                                 song={song}
-                                index={index}
                                 playlistId={id}
                                 client:only="react"
                             />

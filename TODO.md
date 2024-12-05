@@ -22,6 +22,14 @@
 -   Remove extra data download-status. (keep id,total,completed)
 -   If frontend is not running, save the new-song, new-album etc into a temp folder so at some time, when it is running, all will be send at once
 -   Download album and artits images
+-   Fetch song
+    -   Check if song is downloaded
+    -   Check if song is in database (request to frontend)
+        -   If is, get id from database
+            -   update spotify url or youtube url
+        -   If not, create new id in backend
+            -   Download song
+            -   Send request to frontend
 
 ## Frontend
 
@@ -85,17 +93,17 @@
 
 -   **Artist page**
 
-    - ✅  Artist name
-    - ✅  Genres - To add in description
-    - ✅  Cover
-    - ✅  Most listened songs
-        - ✅  Name
-        - ✅  Album
-    - ✅  Albums
-        - ✅  Link to album
-        - ✅  Release date
-        - ✅  Name
-    - ✅  <span style="color:#3287a8">(Impr: Similar songs/artists?)</span>
+    -   ✅ Artist name
+    -   ✅ Genres - To add in description
+    -   ✅ Cover
+    -   ✅ Most listened songs
+        -   ✅ Name
+        -   ✅ Album
+    -   ✅ Albums
+        -   ✅ Link to album
+        -   ✅ Release date
+        -   ✅ Name
+    -   ✅ <span style="color:#3287a8">(Impr: Similar songs/artists?)</span>
 
 -   **Album page**
 

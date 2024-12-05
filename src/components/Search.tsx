@@ -1,15 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import SearchBar from "./SearchBar";
 import RenderSearchResults from "./SearchResults";
-import { useStore } from "@nanostores/react";
-import { searchResults } from "@/stores/searchResults";
 
 export default function Search() {
     const searchBarRef = useRef<HTMLInputElement>(null);
     const divRef = useRef<HTMLDivElement>(null);
     const [open, setOpen] = useState(false);
-
-    const $searchResults = useStore(searchResults);
 
     useEffect(() => {
         if (!divRef.current || !searchBarRef.current) {

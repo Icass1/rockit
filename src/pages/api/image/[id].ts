@@ -1,5 +1,5 @@
 import type { APIContext } from "astro";
-import { db, parseSong, type ImageDB, type RawSongDB } from "@/lib/db";
+import { db, type ImageDB } from "@/lib/db";
 import { readFile } from "fs/promises";
 import { extname, join } from "path";
 

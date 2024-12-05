@@ -14,16 +14,16 @@ interface Column {
 }
 
 // This code removes the songs/ from all songs of database. It should be removed once all databases have been changed
-(db.prepare("SELECT * FROM song").all() as RawSongDB[]).map((song) => {
-    if (song?.path?.startsWith("songs/")) {
-        console.log(song.id);
-        console.log(song.path.replace("songs/", ""));
-        db.prepare("UPDATE song SET path = ? WHERE id = ?").run(
-            song.path.replace("songs/", ""),
-            song.id
-        );
-    }
-});
+// (db.prepare("SELECT * FROM song").all() as RawSongDB[]).map((song) => {
+//     if (song?.path?.startsWith("songs/")) {
+//         console.log(song.id);
+//         console.log(song.path.replace("songs/", ""));
+//         db.prepare("UPDATE song SET path = ? WHERE id = ?").run(
+//             song.path.replace("songs/", ""),
+//             song.id
+//         );
+//     }
+// });
 
 function getDifference(listA: Column[], listB: Column[]) {
     let addedColumns: string[] = [];
@@ -190,10 +190,6 @@ export interface RawUserDB {
     createdAt: number;
 }
 
-interface UserDBLastPlayedSong {
-    id: string;
-    date: number[];
-}
 export interface UserDBPinnedLists {
     type: string;
     createdAt: number;

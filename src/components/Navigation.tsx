@@ -1,7 +1,10 @@
-import type { AlbumDB } from "@/lib/db";
 import { downloads } from "@/stores/downloads";
 import { pinnedLists } from "@/stores/pinnedLists";
-import type { SpotifyAlbum, SpotifyTrack } from "@/types/spotify";
+import type {
+    SpotifyAlbum,
+    SpotifyAlbumImage,
+    SpotifyArtist,
+} from "@/types/spotify";
 import { useStore } from "@nanostores/react";
 import {
     Home,
@@ -17,14 +20,25 @@ import { useEffect, useRef, useState } from "react";
 interface EventSourceStatus {
     message: string;
     completed: number;
-    song: SpotifyTrack;
+    song: {
+        name: string;
+        artists: SpotifyArtist[];
+        album: SpotifyAlbum;
+    };
 }
 
-type statusType = {
+type ListInfo = {
+    id: string;
+    artists: SpotifyArtist[];
+    images: SpotifyAlbumImage[];
+    name: string;
+};
+
+type StatusType = {
     songs: { [key: string]: EventSourceStatus };
     lists: {
         [key: string]: {
-            listInfo: SpotifyAlbum;
+            listInfo: ListInfo;
             totalCompleted: number;
             listError: number;
             songs: { [key: string]: EventSourceStatus };
@@ -38,7 +52,7 @@ function RenderListDownload({
     list: [
         string,
         {
-            listInfo: SpotifyAlbum;
+            listInfo: ListInfo;
             listError: number;
             totalCompleted: number;
             songs: {
@@ -187,13 +201,23 @@ function Downloads({ navOpen }: { navOpen: boolean }) {
     const [open, setOpen] = useState(false);
     const divRef = useRef<HTMLDivElement>(null);
     const downloadsButton = useRef<HTMLDivElement>(null);
-    const [status, setStatus] = useState<statusType>({ songs: {}, lists: {} });
+    const [status, setStatus] = useState<StatusType>({ songs: {}, lists: {} });
 
     const $downloads = useStore(downloads);
 
     const [url, setURL] = useState("");
 
     const eventSources = useRef<string[]>([]);
+
+    const songs: {
+        [key: string]: {
+            name: string;
+            artists: SpotifyArtist[];
+            album: SpotifyAlbum;
+        };
+    } = {};
+
+    const lists: { [key: string]: ListInfo } = {};
 
     useEffect(() => {
         if (!divRef.current || !downloadsButton.current) {
@@ -215,15 +239,22 @@ function Downloads({ navOpen }: { navOpen: boolean }) {
 
     const onMessage = (event: MessageEvent<any>, eventSource: EventSource) => {
         const message = JSON.parse(event.data);
-        if (message.list == undefined) {
-            setStatus((value: statusType) => {
+        if (message.song) {
+            songs[message.song.id] = message.song;
+        }
+        if (message.list) {
+            lists[message.list.id] = message.list;
+        }
+        if (message.list_id == undefined) {
+            setStatus((value: StatusType) => {
                 let newValue = { ...value };
                 if (message.id == undefined) {
                 } else {
+                    console.log({ "songs[message.id]": songs[message.id] });
                     newValue.songs[message.id] = {
                         completed: message.completed,
                         message: message.message,
-                        song: message.song,
+                        song: songs[message.id],
                     };
                 }
                 return newValue;
@@ -232,26 +263,27 @@ function Downloads({ navOpen }: { navOpen: boolean }) {
                 eventSource.close();
             }
         } else {
-            setStatus((value: statusType) => {
+            setStatus((value: StatusType) => {
                 let newValue = { ...value };
-                if (newValue.lists[message.list.id] == undefined) {
-                    newValue.lists[message.list.id] = {
-                        listInfo: message.list,
+                if (newValue.lists[message.list_id] == undefined) {
+                    newValue.lists[message.list_id] = {
+                        listInfo: lists[message.list_id],
                         totalCompleted: message.list_completed,
                         songs: {},
                         listError: message.list_error,
                     };
                 } else {
-                    newValue.lists[message.list.id].listInfo = message.list;
-                    newValue.lists[message.list.id].totalCompleted =
+                    newValue.lists[message.list_id].listInfo =
+                        lists[message.list_id];
+                    newValue.lists[message.list_id].totalCompleted =
                         message.list_completed;
-                    newValue.lists[message.list.id].listError =
+                    newValue.lists[message.list_id].listError =
                         message.list_error;
                 }
-                newValue.lists[message.list.id].songs[message.id] = {
+                newValue.lists[message.list_id].songs[message.id] = {
                     completed: message.completed,
                     message: message.message,
-                    song: message.song,
+                    song: songs[message.id],
                 };
                 return newValue;
             });
@@ -300,13 +332,13 @@ function Downloads({ navOpen }: { navOpen: boolean }) {
         <>
             <div
                 ref={divRef}
-                className={`w-96 bg-gradient-to-r from-[#000000] to-[#0000009e] h-3/4 flex flex-col gap-2 shadow-lg p-2 rounded-tr-3xl absolute bottom-24 transition-all duration-[400ms] overflow-auto z-40 ${
+                className={`w-96 bg-gradient-to-r from-[#000000] to-[#000000d5] h-3/4 flex flex-col gap-2 shadow-lg p-2 rounded-tr-3xl absolute bottom-24 transition-all duration-[400ms] overflow-auto z-40 ${
                     navOpen ? "left-56" : "left-12"
                 }`}
                 style={{
                     clip: open
                         ? "rect(0px, 24rem, 1000px, 0px)"
-                        : "rect(0px, 0rem, 1000px, 0px)"
+                        : "rect(0px, 0rem, 1000px, 0px)",
                 }}
             >
                 {/* Logos */}
@@ -457,7 +489,7 @@ export default function Navigation({ activePage }: { activePage: string }) {
                         >
                             <img
                                 className="w-8 h-8 flex items-center justify-center rounded-sm"
-                                src={list.images[0].url}
+                                src={`/api/image/${list.image}`}
                             />
                             <label className="font-semibold text-sm truncate cursor-pointer">
                                 {list.name}

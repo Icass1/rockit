@@ -1,13 +1,8 @@
 import {
     db,
-    parseAlbum,
-    parsePlaylist,
     parseUser,
-    type RawAlbumDB,
-    type RawPlaylistDB,
     type RawUserDB,
     type UserDB,
-    type UserDBPinnedLists,
 } from "@/lib/db";
 
 import type { APIContext } from "astro";

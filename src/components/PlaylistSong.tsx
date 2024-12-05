@@ -4,7 +4,6 @@ import { getTime } from "@/lib/getTime";
 
 export default function PlaylistSong({
     song,
-    index,
     playlistId,
 }: {
     song: SongDB<
@@ -17,7 +16,6 @@ export default function PlaylistSong({
         | "images"
         | "id"
     >;
-    index: number;
     playlistId: string;
 }) {
     const handleClick = () => {

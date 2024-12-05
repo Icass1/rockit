@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type UIEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Play, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface Album {

@@ -59,5 +59,4 @@ export async function GET(context: APIContext): Promise<Response> {
             },
         }
     );
-    return new Response(fileBuffer);
 }

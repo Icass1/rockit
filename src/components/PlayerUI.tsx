@@ -6,48 +6,6 @@ import { useEffect, useRef, useState } from "react";
 import { EllipsisVertical, Play } from "lucide-react";
 import { getTime } from "@/lib/getTime";
 
-function MockupLyrics() {
-    const currentLyric = "This is the current lyric"; // Lírica actual (puede ser dinámica)
-    const pastLyrics = ["Previous lyric line 1", "Previous lyric line 2"]; // Líricas anteriores
-    const futureLyrics = ["Next lyric line 1", "Next lyric line 2"]; // Líricas futuras
-    return (
-        <div className="flex flex-col justify-center items-center px-4 space-y-6 overflow-hidden relative h-full">
-            {/* Espaciador flexible para equilibrar */}
-            <div className="flex-grow"></div>
-
-            {pastLyrics.map((lyric, index) => (
-                <p
-                    className={`truncate ${
-                        index === pastLyrics.length - 1
-                            ? "text-gray-300 text-2xl text-center" // Última línea pasada: más grande.
-                            : "text-gray-400 text-lg text-center" // Otras pasadas.
-                    }`}
-                >
-                    {lyric}
-                </p>
-            ))}
-
-            {/* Línea actual */}
-            <p className="text-white text-5xl font-extrabold mt-4 mb-4 text-center">
-                {currentLyric}
-            </p>
-
-            {futureLyrics.map((lyric, index) => (
-                <p
-                    className={`truncate ${
-                        index === 0
-                            ? "text-gray-300 text-2xl text-center" // Primera línea futura: más grande.
-                            : "text-gray-400 text-lg text-center" // Otras futuras.
-                    }`}
-                >
-                    {lyric}
-                </p>
-            ))}
-            {/* Espaciador flexible para equilibrar*/}
-            <div className="flex-grow"></div>
-        </div>
-    );
-}
 
 const lyricsTimeStamp = {
     "3jnoftwNCmIuTNVkxakisg": [

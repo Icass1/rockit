@@ -4,7 +4,6 @@ import { searchQuery, searchResults } from "@/stores/searchResults";
 import { DownloadCloud } from "lucide-react";
 import {
     useEffect,
-    useRef,
     useState,
     type MouseEvent,
     type ReactNode,

@@ -9,7 +9,7 @@ export async function POST(context: APIContext): Promise<Response> {
     let id = data.id;
     let images = JSON.stringify(data.images);
     let image = data.image;
-    let description = data.description;
+    let description = data.description || "";
     let followers = data.followers;
     let owner = data.owner;
     let songs = JSON.stringify(data.songs);
@@ -36,6 +36,13 @@ export async function POST(context: APIContext): Promise<Response> {
         if (image != null) {
             db.prepare(`UPDATE playlist SET image = ? WHERE id = ?`).run(
                 imageId,
+                id
+            );
+        }
+
+        if (JSON.parse(songs).length > 0) {
+            db.prepare(`UPDATE playlist SET songs = ? WHERE id = ?`).run(
+                songs,
                 id
             );
         }

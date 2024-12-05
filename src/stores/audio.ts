@@ -10,13 +10,13 @@ function startSocket() {
         websocket = new WebSocket(`ws://${location.host}/ws`);
     }
 
-    websocket.onopen = (event) => {
+    websocket.onopen = () => {
         console.log("Web socket open");
     };
     websocket.onmessage = (event) => {
         console.log("Web socket message", event.data);
     };
-    websocket.onclose = (event) => {
+    websocket.onclose = () => {
         console.log("Web socket close");
         startSocket();
     };

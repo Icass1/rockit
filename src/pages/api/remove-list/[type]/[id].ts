@@ -3,7 +3,6 @@ import {
     parseUser,
     type RawUserDB,
     type UserDB,
-    type UserDBLists,
 } from "@/lib/db";
 
 import type { APIContext } from "astro";

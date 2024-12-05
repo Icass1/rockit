@@ -1,10 +1,9 @@
-import type { OldImageDB } from "@/lib/db";
 import { atom } from "nanostores";
 
 interface PinnedList {
     name: string;
     id: string;
-    images: OldImageDB[];
+    image: string;
     type: string;
 }
 

@@ -27,13 +27,13 @@ export async function GET(context: APIContext): Promise<Response> {
         if (list.type == "album") {
             return parseAlbum(
                 db
-                    .prepare("SELECT id,images,name FROM album WHERE id = ?")
+                    .prepare("SELECT id,image,name FROM album WHERE id = ?")
                     .get(list.id) as RawAlbumDB
             );
         } else if (list.type == "playlist") {
             return parsePlaylist(
                 db
-                    .prepare("SELECT id,images,name FROM playlist WHERE id = ?")
+                    .prepare("SELECT id,image,name FROM playlist WHERE id = ?")
                     .get(list.id) as RawPlaylistDB
             );
         }

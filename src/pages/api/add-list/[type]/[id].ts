@@ -48,11 +48,11 @@ export async function ALL(context: APIContext): Promise<Response> {
     }
 
     if (!id) {
-        return new Response("Invalid ID");
+        return new Response("Invalid ID", { status: 400 });
     }
 
     if (lists.map((list) => list.id).includes(id)) {
-        return new Response("List already in user library");
+        return new Response("List already in user library", { status: 400 });
     }
 
     db.prepare(`UPDATE user SET lists = ? WHERE id = ?`).run(
@@ -67,7 +67,11 @@ export async function ALL(context: APIContext): Promise<Response> {
         context.locals.user.id
     );
 
-    console.log(lists, type, id);
+    return new Response(JSON.stringify({ ...list, type: type }), {
+        headers: {
+            "Content-Type": "application/json",
+        },
+    });
 
     return new Response("OK");
 }

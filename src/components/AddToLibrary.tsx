@@ -1,4 +1,4 @@
-import { pinnedLists } from "@/stores/pinnedLists";
+import { libraryLists } from "@/stores/libraryLists";
 import { useStore } from "@nanostores/react";
 import { Plus, Check } from "lucide-react";
 
@@ -9,42 +9,54 @@ export default function AddToLibrary({
     type: string;
     id: string;
 }) {
-    const $pinnedLists = useStore(pinnedLists);
+    const $libraryLists = useStore(libraryLists);
 
-    const isInLibrary = $pinnedLists.some((list) => list.id === id);
+    const isInLibrary = $libraryLists.some((list) => list.id === id);
+
+    console.log({ isInLibrary, $libraryLists });
 
     const handleClick = () => {
         if (isInLibrary) {
             // Quitar de la biblioteca
-            fetch(`/api/remove-list/${type}/${id}`, {
-                method: "DELETE",
-            })
-                .then((response) => {
-                    if (!response.ok) {
-                        throw new Error("Failed to remove from library");
-                    }
-                    return response.json();
-                })
+            fetch(`/api/remove-list/${type}/${id}`)
+                .then((response) => response.json())
                 .then(() => {
-                    // Actualizar el estado local eliminando la lista
-                    pinnedLists.set(
-                        $pinnedLists.filter((list) => list.id !== id)
+                    const updatedLists = $libraryLists.filter(
+                        (list) => list.id !== id
                     );
-                })
-                .catch((error) => {
-                    console.error("Error removing from library:", error);
+                    libraryLists.set(updatedLists);
                 });
+
+            // .then((response) => {
+            //     if (!response.ok) {
+            //         throw new Error("Failed to remove from library");
+            //     }
+            //     return response.json();
+            // })
+            // .then(() => {
+            //     // Actualizar el estado local eliminando la lista
+            //     libraryLists.set(
+            //         $libraryLists.filter((list) => list.id !== id)
+            //     );
+            // })
+            // .catch((error) => {
+            //     console.error("Error removing from library:", error);
+            // });
         } else {
             // Agregar a la biblioteca
             fetch(`/api/add-list/${type}/${id}`)
                 .then((response) => response.json())
                 .then((data) => {
-                    // Actualizar el estado local agregando la lista
-                    pinnedLists.set([...$pinnedLists, data]);
-                })
-                .catch((error) => {
-                    console.error("Error adding to library:", error);
+                    libraryLists.set([...libraryLists.get(), data]);
                 });
+            // .then((response) => response.json())
+            // .then((data) => {
+            //     // Actualizar el estado local agregando la lista
+            //     libraryLists.set([...libraryLists.get(), data]);
+            // })
+            // .catch((error) => {
+            //     console.error("Error adding to library:", error);
+            // });
         }
     };
 

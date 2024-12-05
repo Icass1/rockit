@@ -142,6 +142,18 @@ if (album) {
     };
 
     songs = data.tracks.items.map((item) => {
+        const songDB = parseSong(
+            db
+                .prepare(
+                    "SELECT images, id, name, artists, albumId, albumName, path, duration, discNumber, trackNumber FROM song WHERE id = ?"
+                )
+                .get(item.id) as RawSongDB
+        );
+
+        if (songDB) {
+            return songDB
+        }
+
         return {
             id: item.id,
             images: data.images,

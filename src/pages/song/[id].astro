@@ -1,11 +1,22 @@
 ---
 import Layout from "@/layouts/Layout.astro";
+import { db, parseSong, type RawSongDB } from "@/lib/db";
 
 if (!Astro.locals.user) {
-  return Astro.redirect("/login");
+    return Astro.redirect("/login");
 }
+const { id } = Astro.params as { id: string };
 
-let isExpanded = false;
+let inDatabase;
+let song;
+let album;
+song = parseSong(
+    db.prepare("SELECT * FROM song WHERE id = ?").get(id) as RawSongDB
+);
+
+if (song) {
+    inDatabase = true;
+}
 ---
 
 <Layout title="Rock It!" currentPage="Song-Info">
@@ -14,9 +25,13 @@ let isExpanded = false;
         <div class="w-full mx-auto p-6 grid grid-cols-3 gap-4 items-center">
             <!-- Columna izquierda: Artista -->
             <div class="flex flex-col items-center justify-center">
-                <div class="flex items-center bg-gray-200 p-4 rounded-lg shadow-md w-full max-w-sm">
+                <div
+                    class="flex items-center bg-gray-200 p-4 rounded-lg shadow-md w-full max-w-sm"
+                >
                     <!-- Foto del artista -->
-                    <div class="w-32 h-32 bg-gray-300 rounded-full overflow-hidden flex-shrink-0">
+                    <div
+                        class="w-32 h-32 bg-gray-300 rounded-full overflow-hidden flex-shrink-0"
+                    >
                         <img
                             src="/user-placeholder.png"
                             alt="Artista"
@@ -25,85 +40,114 @@ let isExpanded = false;
                     </div>
                     <!-- Nombre del artista -->
                     <div class="ml-4">
-                        <h2 class="text-2xl font-bold text-gray-800 text-left hover:underline hover:cursor-pointer">Nombre del Artista Principal</h2>
-                        <p class="text-gray-600 text-md font-semibold text-left hover:underline hover:cursor-pointer">Artistas Secundarios</p>
+                        <a
+                            class="text-2xl font-bold text-gray-800 text-left hover:underline hover:cursor-pointer"
+                            href={`/artist/${song?.artists[0].id}`}
+                        >
+                            {song?.artists[0].name}
+                        </a>
+                        {
+                            song?.artists.slice(1).length ? (
+                                <div class="text-gray-600 text-md font-semibold text-left">
+                                    ft.{" "}
+                                    {song?.artists
+                                        .slice(1)
+                                        .map((artist, index) => (
+                                            <a
+                                                href={`/artist/${artist.id}`}
+                                                class="hover:underline"
+                                            >
+                                                {artist.name +
+                                                    (index <
+                                                    song.artists.slice(1)
+                                                        .length -
+                                                        1
+                                                        ? ","
+                                                        : "")}
+                                            </a>
+                                        ))}
+                                </div>
+                            ) : (
+                                <div />
+                            )
+                        }
                     </div>
                 </div>
             </div>
-        
+
             <!-- Columna central: Canción -->
             <div class="flex flex-col items-center justify-center">
                 <!-- Imagen de la canción -->
-                <div class="w-full max-w-md h-auto bg-gray-300 rounded-lg overflow-hidden shadow-md">
+                <div
+                    class="w-full max-w-md h-auto bg-gray-300 rounded-lg overflow-hidden shadow-md"
+                >
                     <img
-                        src="/song-placeholder.png"
+                        src={`/api/image/${song?.image}` ||
+                            "/song-placeholder.png"}
                         alt="Carátula de la canción"
-                        class="w-full h-full object-cover"
+                        class="w-full h-full object-cover hover:brightness-50 transition-all"
                     />
                 </div>
                 <!-- Nombre de la canción -->
-                <h1 class="text-center text-2xl font-bold mt-4">Nombre de la Canción</h1>
+                <h1 class="text-center text-2xl font-bold mt-4">
+                    {song?.name}
+                </h1>
             </div>
-        
+
             <!-- Columna derecha: Álbum -->
             <div class="flex flex-col items-center justify-center">
-                <div class="flex items-center bg-gray-200 p-4 rounded-lg shadow-md w-full max-w-sm">
-                    <!-- Foto del álbum -->
-                    <div class="w-32 h-32 bg-gray-300 rounded-md overflow-hidden flex-shrink-0">
-                        <img
-                            src="/song-placeholder.png"
-                            alt="Álbum"
-                            class="w-full h-full object-cover"
-                        />
-                    </div>
+                <div
+                    class="flex items-center bg-gray-200 p-4 rounded-lg shadow-md w-full max-w-sm"
+                >
                     <!-- Nombre del álbum -->
                     <div class="ml-4">
-                        <h2 class="text-2xl font-bold text-gray-800 text-left hover:underline hover:cursor-pointer">Nombre del Álbum</h2>
-                        <p class="text-gray-600 text-md font-semibold text-left">Fecha de lanzamiento</p>
+                        <a
+                            class="text-2xl font-bold text-gray-800 text-left hover:underline hover:cursor-pointer"
+                            href={`/album/${song?.albumId}`}
+                        >
+                            {song?.albumName}
+                        </a>
+                        <p
+                            class="text-gray-600 text-md font-semibold text-left"
+                        >
+                            {song?.date.replaceAll("-", "/")}
+                        </p>
                     </div>
                 </div>
             </div>
-        </div>        
+        </div>
 
-        <section class="my-10 bg-[#303030] py-8 rounded-lg mx-16">
+        <section class="my-10 bg-[#303030] py-8 rounded-lg mx-16 w-fit">
             <div class="mx-auto px-8">
-                <h2 class="text-2xl font-semibold mb-4 text-center">Descripción, texto, letra lo que quieras Ignasio</h2>
+                <h2 class="text-2xl font-semibold mb-4 text-center">Lyrics</h2>
                 <div>
-                <p
-                    class={`text-white transition-all text-justify ${
-                    isExpanded ? "line-clamp-none" : "line-clamp-3"
-                    }`}
-                >
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam sodales, enim aliquet maximus efficitur, justo lorem maximus ipsum, vitae hendrerit risus arcu ac est. Duis libero leo, convallis ornare dolor sit amet, lobortis iaculis nisi. Cras ante mauris, tempus eu tellus a, vestibulum faucibus mi. Nunc ultricies ante libero, at rutrum arcu tristique et. Integer nec bibendum arcu. Duis ac nisi rutrum, consequat justo in, aliquam mauris. Donec ac laoreet neque. Integer sapien leo, pharetra id eleifend et, lobortis vel nisl. Sed a lorem non erat pulvinar efficitur id non erat. Quisque ligula enim, iaculis imperdiet nisl eget, consectetur euismod diam. Suspendisse sit amet hendrerit neque, eu fringilla justo. Suspendisse eu purus ac erat posuere vulputate.
-                Praesent vitae elit faucibus, gravida tellus sed, fermentum lacus. Fusce at ante vitae sem fermentum ullamcorper in sit amet arcu. Nullam non sem quis metus vestibulum iaculis venenatis non metus. Pellentesque eu dui nisl. Nulla purus justo, commodo quis nisi id, congue pellentesque lectus. Aenean mi tellus, dictum venenatis pretium at, dictum vel quam. Aenean id ex non erat vestibulum posuere. Suspendisse at tellus non risus dapibus malesuada ut nec est. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Suspendisse consequat congue leo ac dignissim. Nam urna metus, hendrerit et lectus at, malesuada efficitur augue. Praesent sed faucibus dolor, quis elementum lorem. Pellentesque eleifend magna id felis pulvinar maximus. Quisque a lorem non est fringilla laoreet.
-                Nulla ante erat, aliquam ut magna eu, iaculis accumsan justo. Donec at velit blandit, sagittis sapien id, efficitur sapien. Fusce non risus id tortor hendrerit ornare. Praesent euismod vulputate varius. Proin lacinia at nisi sit amet cursus. Morbi hendrerit, est ut auctor gravida, leo eros aliquet velit, ultrices efficitur ante augue in sapien. Suspendisse congue laoreet cursus.
-                Vestibulum sit amet faucibus nisi. Integer gravida sagittis eros sit amet varius. Sed eget magna ut lacus consequat pretium at eu dui. In convallis posuere interdum. Suspendisse suscipit lectus augue, a volutpat tortor ullamcorper id. Maecenas nulla ante, scelerisque in orci a, vehicula tincidunt diam. Fusce sit amet nulla pellentesque, tempor urna ut, malesuada lectus. Suspendisse potenti.
-                Proin porttitor ex vitae urna hendrerit, id posuere nunc cursus. Maecenas sodales nisl augue, id dignissim tortor tempor id. Curabitur sagittis, leo quis pulvinar posuere, velit felis malesuada libero, quis facilisis arcu eros at ex. Morbi eu lacus eget felis aliquam fermentum. Praesent mauris arcu, tincidunt euismod bibendum a, scelerisque eu sapien. Pellentesque rutrum massa tortor, gravida viverra purus commodo volutpat. Donec ultrices leo sit amet tellus commodo pellentesque. Integer finibus leo dolor, in semper ex euismod non. Nunc feugiat purus lacus, porta sollicitudin mauris faucibus nec. Pellentesque malesuada tellus lectus, scelerisque ultrices purus tempor a. Aenean non erat pulvinar, eleifend est sit amet, eleifend diam. Integer viverra ex sed elit dignissim pretium. Nullam aliquam ante nunc, eu varius nulla mattis vitae. Morbi sit amet lorem a eros blandit interdum quis eget ligula. Donec ultrices dignissim consequat.
-                Praesent sodales orci ut tellus dictum, eget consequat felis ultricies. Aliquam eu ante sit amet enim laoreet tincidunt eu eget sapien. Praesent tempor mollis metus. In sodales tempor porttitor. Praesent rhoncus maximus mauris, non lacinia dolor vestibulum a. Nunc luctus, arcu quis porttitor sollicitudin, sapien lectus feugiat dolor, eleifend consectetur sapien felis non turpis. Donec vitae nunc et enim efficitur lacinia non non ante. Nunc eu enim non enim venenatis feugiat. Maecenas imperdiet scelerisque nisl a luctus. Donec sodales odio nec risus placerat, eu interdum massa tristique. Donec malesuada eu erat at laoreet. Duis sodales posuere ornare. Donec malesuada orci id leo volutpat, in mattis nisi aliquet. Nullam et congue orci. Cras ornare egestas nunc, eu faucibus tortor blandit et. Duis tempor luctus tortor eget faucibus.
-                Nunc aliquam molestie nulla, sit amet congue ex tristique non. Maecenas lectus nisl, iaculis eget dignissim eget, vehicula at felis. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Mauris at mattis ex. Nullam non ex pharetra, efficitur felis nec, dictum dolor. Mauris suscipit neque id diam lacinia suscipit. Aenean arcu metus, euismod sed nibh vel, aliquam efficitur mauris. Aliquam vel arcu ligula. In non diam vitae ante interdum efficitur. Aenean gravida quis odio non bibendum. Aliquam placerat urna at placerat ullamcorper. Phasellus fringilla fringilla augue, at lobortis sem iaculis quis. Sed imperdiet ex urna, vel elementum lectus tempor eu. Phasellus eget leo odio. Proin interdum elit ac molestie mattis.
-                Nunc porta turpis ut eros pulvinar, ut tincidunt odio hendrerit. Mauris euismod magna a est ullamcorper pulvinar. Nulla sed purus sed enim sodales faucibus. Nulla efficitur nulla iaculis, accumsan quam ac, euismod justo. Sed finibus lobortis magna, nec mollis ex congue vitae. Aenean faucibus sed felis eget bibendum. Nunc in massa sed tortor venenatis commodo. Nulla nec eros in urna ullamcorper vestibulum vitae sit amet diam. Aenean commodo, enim at ornare facilisis, tortor mi ornare orci, sit amet rutrum felis tortor at odio. Nullam vestibulum eget tortor sed eleifend.
-                Donec a vehicula dolor. Nunc dignissim pellentesque est a interdum. Sed eleifend augue sit amet erat sodales scelerisque. Integer hendrerit dui a magna hendrerit, sit amet faucibus mi commodo. Quisque lacinia nunc ut magna venenatis, a vestibulum lectus convallis. Duis sit amet tincidunt mauris, in hendrerit lorem. Sed ullamcorper gravida sapien ullamcorper maximus. Praesent pulvinar elit massa, nec pellentesque erat tempus vel. Mauris vel eros purus. Maecenas a risus eget orci pulvinar sollicitudin et posuere sapien. Phasellus scelerisque mauris odio, sed aliquam ligula scelerisque et. Etiam congue a turpis sit amet feugiat. Phasellus nec congue massa. Curabitur eros nisi, ullamcorper ac gravida non, commodo vitae nisl.
-                Nulla ultrices vulputate efficitur. Proin elit odio, mollis ac leo vel, ultrices ultrices justo. Nam mattis risus sed risus dignissim viverra. Nam sollicitudin erat non scelerisque luctus. Vestibulum eu felis vitae ante tempus finibus non id justo. Morbi at purus eget eros sodales ornare quis at enim. Ut ligula mi, suscipit quis odio non, tempus eleifend nunc. Sed eu arcu congue, congue arcu sed, iaculis odio. Vivamus sodales quam sed odio accumsan, sed tempus metus suscipit. Praesent hendrerit, risus ac viverra congue, augue velit fermentum massa, ut ultrices eros nisl porttitor lorem. Suspendisse a pulvinar augue. Phasellus at erat tortor. Vestibulum justo ex, ornare id ante eget, porta gravida felis.
-                Fusce dignissim mattis magna, id scelerisque turpis sagittis non. Sed pretium tortor ac viverra rutrum. Nunc imperdiet sapien id mattis consequat. Nullam tellus erat, varius quis ante non, tempus elementum erat. Integer mattis massa et ipsum tincidunt porttitor. Donec tristique maximus condimentum. Nunc bibendum arcu nunc, eu sagittis lacus aliquam nec. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Nam varius varius quam, in auctor sem auctor in. Nullam eleifend maximus ipsum rutrum tempor.
-                Duis sodales, dolor in fermentum consectetur, nulla ex molestie enim, ut eleifend odio lacus a nulla. Cras nec tortor eu felis blandit mattis. Ut consequat posuere ipsum, eu volutpat nisl iaculis eget. Aliquam turpis tortor, dapibus in urna eu, blandit blandit urna. Pellentesque dapibus purus eget nunc aliquet, nec dapibus nisi efficitur. Nullam sit amet lacus ligula. Aenean quis leo a massa ullamcorper scelerisque vitae eu justo. Integer dignissim dapibus urna, a vehicula enim posuere a. Vestibulum efficitur enim nunc, non viverra nunc pretium egestas. Aenean elementum quam vel nibh dapibus fermentum. Nunc quis lacinia sapien, eget semper metus. Sed elit sapien, porta at cursus nec, porttitor rutrum nisl.
-                Morbi non pharetra magna, at bibendum sem. Pellentesque congue quam sit amet ligula consectetur, euismod ornare ligula gravida. In orci justo, tempus in lacus at, accumsan suscipit dolor. Suspendisse eleifend pellentesque eros non euismod. Fusce tortor quam, lacinia at felis eu, sodales varius lectus. Aliquam sagittis lorem in mi placerat volutpat. Etiam dignissim tincidunt leo. Aenean est mauris, scelerisque at mattis at, aliquam non diam. Integer euismod erat non orci viverra, mattis eleifend mi porta. Aenean luctus eu mauris ultrices hendrerit. Nullam nec iaculis sapien. Etiam arcu enim, sodales id auctor a, condimentum cursus magna. In vel blandit lacus, at suscipit neque. Proin posuere non augue sit amet egestas. Duis rutrum ipsum quis lorem lobortis lobortis.
-                </p>
-                <button
-                    class="mt-1 text-blue-500 hover:underline font-medium"
-                    id="button"
-                >
-                    {isExpanded ? "Show Less" : "Show More"}
-                </button>
+                    <div class="text-white transition-all text-justify">
+                        {
+                            song?.lyrics
+                                .split("\n")
+                                .map((line) => (
+                                    <p class="text-center">{line}</p>
+                                ))
+                        }
+                    </div>
                 </div>
             </div>
-        </section>        
+        </section>
 
         <section class="px-32 pt-12 pb-3 text-white">
-            <h2 class="text-2xl font-bold text-left">More songs from the Album</h2> <!-- Aqui podemos poner el nombre del artista tipo mas canciones del album... -->
-            <div class="relative flex items-center gap-5 overflow-x-auto py-4 px-2">
+            <h2 class="text-2xl font-bold text-left">
+                More songs from the Album
+            </h2>
+            <!-- Aqui podemos poner el nombre del artista tipo mas canciones del album... -->
+            <div
+                class="relative flex items-center gap-5 overflow-x-auto py-4 px-2"
+            >
                 {
                     Array.from({ length: 10 }).map((_, index) => (
-                        <a href="#" class="flex-none w-48 hover:scale-105 transition">
+                        <a
+                            href="#"
+                            class="flex-none w-48 hover:scale-105 transition"
+                        >
                             <img
                                 class="rounded-lg w-full aspect-square object-cover"
                                 src="/song-placeholder.png"
@@ -122,11 +166,19 @@ let isExpanded = false;
         </section>
 
         <section class="px-32 pt-12 pb-3 text-white">
-            <h2 class="text-2xl font-bold text-left">More songs from the Artist</h2> <!-- Aqui podemos poner el nombre del artista tipo mas canciones de Eminem -->
-            <div class="relative flex items-center gap-5 overflow-x-auto py-4 px-2">
+            <h2 class="text-2xl font-bold text-left">
+                More songs from the Artist
+            </h2>
+            <!-- Aqui podemos poner el nombre del artista tipo mas canciones de Eminem -->
+            <div
+                class="relative flex items-center gap-5 overflow-x-auto py-4 px-2"
+            >
                 {
                     Array.from({ length: 10 }).map((_, index) => (
-                        <a href="#" class="flex-none w-48 hover:scale-105 transition">
+                        <a
+                            href="#"
+                            class="flex-none w-48 hover:scale-105 transition"
+                        >
                             <img
                                 class="rounded-lg w-full aspect-square object-cover"
                                 src="/song-placeholder.png"
@@ -145,11 +197,17 @@ let isExpanded = false;
         </section>
 
         <section class="px-32 pt-12 pb-3 text-white">
-            <h2 class="text-2xl font-bold text-left">Related Songs</h2> <!-- Aqui podemos poner el nombre del artista tipo mas canciones de Eminem -->
-            <div class="relative flex items-center gap-5 overflow-x-auto py-4 px-2">
+            <h2 class="text-2xl font-bold text-left">Related Songs</h2>
+            <!-- Aqui podemos poner el nombre del artista tipo mas canciones de Eminem -->
+            <div
+                class="relative flex items-center gap-5 overflow-x-auto py-4 px-2"
+            >
                 {
                     Array.from({ length: 10 }).map((_, index) => (
-                        <a href="#" class="flex-none w-48 hover:scale-105 transition">
+                        <a
+                            href="#"
+                            class="flex-none w-48 hover:scale-105 transition"
+                        >
                             <img
                                 class="rounded-lg w-full aspect-square object-cover"
                                 src="/song-placeholder.png"

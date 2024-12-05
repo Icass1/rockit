@@ -24,6 +24,7 @@ interface EventSourceStatus {
         name: string;
         artists: SpotifyArtist[];
         album: SpotifyAlbum;
+        id: string;
     };
 }
 
@@ -160,7 +161,10 @@ function RenderSongDownload({
     songStatus: [string, EventSourceStatus];
 }) {
     return (
-        <div className="bg-zinc-400/10 rounded h-14 min-h-14 flex flex-row gap-x-2 overflow-hidden">
+        <a
+            className="bg-zinc-400/10 rounded h-14 min-h-14 flex flex-row gap-x-2 overflow-hidden hover:bg-zinc-400/30 cursor-pointer"
+            href={`/song/${songStatus[1].song.id}`}
+        >
             <img
                 src={
                     songStatus[1].song?.album?.images[0]?.url ||
@@ -193,7 +197,7 @@ function RenderSongDownload({
                     </label>
                 </div>
             </div>
-        </div>
+        </a>
     );
 }
 
@@ -214,6 +218,7 @@ function Downloads({ navOpen }: { navOpen: boolean }) {
             name: string;
             artists: SpotifyArtist[];
             album: SpotifyAlbum;
+            id: string;
         };
     } = {};
 

@@ -244,7 +244,7 @@ function Downloads({ navOpen }: { navOpen: boolean }) {
 
     const onMessage = (event: MessageEvent<any>, eventSource: EventSource) => {
         const message = JSON.parse(event.data);
-        if (message.song) {
+        if (message.song && !songs[message.song.id]) {
             songs[message.song.id] = message.song;
         }
         if (message.list) {
@@ -255,7 +255,6 @@ function Downloads({ navOpen }: { navOpen: boolean }) {
                 let newValue = { ...value };
                 if (message.id == undefined) {
                 } else {
-                    console.log({ "songs[message.id]": songs[message.id] });
                     newValue.songs[message.id] = {
                         completed: message.completed,
                         message: message.message,

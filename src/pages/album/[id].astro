@@ -1,13 +1,5 @@
 ---
 import Layout from "@/layouts/Layout.astro";
-import {
-    db,
-    type SongDB,
-    type RawSongDB,
-    type RawAlbumDB,
-    parseAlbum,
-    parseSong,
-} from "@/lib/db";
 import AlbumSong from "@/components/AlbumSong";
 import { ArrowLeft, Disc, PlayCircle } from "lucide-react";
 
@@ -16,7 +8,6 @@ import { getMinutes } from "@/lib/getTime";
 import PinList from "@/components/PinList";
 import AddToLibrary from "@/components/AddToLibrary";
 import DownloadList from "@/components/DownloadList";
-import type { SpotifyAlbum } from "@/types/spotify";
 import getAlbum from "@/lib/getAlbum";
 
 const { id } = Astro.params as { id: string };
@@ -25,38 +16,15 @@ if (!Astro.locals.user) {
     return Astro.redirect("/login");
 }
 
-const BACKEND_URL = process.env.BACKEND_URL;
+let _album = await getAlbum(id);
 
-// let album;
-// let inDatabase;
-// let songs: SongDB<
-//     | "images"
-//     | "id"
-//     | "name"
-//     | "artists"
-//     | "albumId"
-//     | "albumName"
-//     | "path"
-//     | "duration"
-//     | "discNumber"
-//     | "trackNumber"
-// >[];
-// let discs: SongDB<
-//     | "images"
-//     | "id"
-//     | "name"
-//     | "artists"
-//     | "albumId"
-//     | "albumName"
-//     | "path"
-//     | "duration"
-//     | "discNumber"
-//     | "trackNumber"
-// >[][];
+if (_album == "error connecting to backend") {
+    return new Response("Error connecting to backend", { status: 500 });
+} else if (_album == "not found") {
+    return new Response("Ablum not found", { status: 404 });
+}
 
-
-const {album, discs, songs, inDatabase} = await getAlbum(id);
-
+const { album, discs, songs, inDatabase } = _album;
 
 function getDate(date: string) {
     const dateSplit = date.split("-");

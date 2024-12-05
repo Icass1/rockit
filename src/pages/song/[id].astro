@@ -1,6 +1,15 @@
 ---
 import Layout from "@/layouts/Layout.astro";
-import { db, parseSong, type RawSongDB } from "@/lib/db";
+import { db, parseSong, type RawSongDB, type SongDB } from "@/lib/db";
+import getAlbum from "@/lib/getAlbum";
+
+import type {
+    SpotifyArtistTopTracks,
+    SpotifyArtist,
+    SpotifyTrack,
+} from "@/types/spotify";
+
+import SongPageCover from "@/components/SongPageCover";
 
 if (!Astro.locals.user) {
     return Astro.redirect("/login");
@@ -8,14 +17,82 @@ if (!Astro.locals.user) {
 const { id } = Astro.params as { id: string };
 
 let inDatabase;
-let song;
+let song:
+    | SongDB<
+          | "id"
+          | "albumId"
+          | "artists"
+          | "name"
+          | "lyrics"
+          | "image"
+          | "path"
+          | "images"
+          | "albumName"
+          | "duration"
+      >
+    | undefined;
+let artistSongs;
 let album;
+let artist: SpotifyArtist | undefined;
 song = parseSong(
     db.prepare("SELECT * FROM song WHERE id = ?").get(id) as RawSongDB
 );
 
+const BACKEND_URL = process.env.BACKEND_URL;
+
 if (song) {
     inDatabase = true;
+
+    const _album = await getAlbum(song?.albumId);
+    if (_album == "error connecting to backend") {
+    } else if (_album == "not found") {
+    } else {
+        album = _album;
+    }
+} else {
+    inDatabase = false;
+    let response;
+
+    response = await fetch(`${BACKEND_URL}/song/${id}`);
+    if (response.ok) {
+        const spotifySong = (await response.json()) as SpotifyTrack;
+        song = {
+            id: spotifySong.id,
+            image: "",
+            albumId: spotifySong.album.id,
+            artists: spotifySong.artists,
+            name: spotifySong.name,
+            lyrics: "",
+            path: "",
+            images: spotifySong.album.images,
+            albumName: spotifySong.album.name,
+            duration: spotifySong.duration_ms / 1000,
+        };
+    } else {
+        return new Response("Song not found", { status: 404 });
+    }
+    const _album = await getAlbum(song.albumId);
+    if (_album == "error connecting to backend") {
+    } else if (_album == "not found") {
+    } else {
+        album = _album;
+    }
+}
+
+if (!album) {
+    return new Response("Album not found", { status: 500 });
+}
+
+let response;
+
+response = await fetch(`${BACKEND_URL}/artist-top-songs/${song.artists[0].id}`);
+if (response.ok) {
+    artistSongs = (await response.json()) as SpotifyArtistTopTracks;
+}
+
+response = await fetch(`${BACKEND_URL}/artist/${song.artists[0].id}`);
+if (response.ok) {
+    artist = await response.json();
 }
 ---
 
@@ -33,7 +110,8 @@ if (song) {
                         class="w-32 h-32 bg-gray-300 rounded-full overflow-hidden flex-shrink-0"
                     >
                         <img
-                            src="/user-placeholder.png"
+                            src={artist?.images[0].url ||
+                                "/user-placeholder.png"}
                             alt="Artista"
                             class="w-full h-full object-cover"
                         />
@@ -78,16 +156,8 @@ if (song) {
             <!-- Columna central: Canción -->
             <div class="flex flex-col items-center justify-center">
                 <!-- Imagen de la canción -->
-                <div
-                    class="w-full max-w-md h-auto bg-gray-300 rounded-lg overflow-hidden shadow-md"
-                >
-                    <img
-                        src={`/api/image/${song?.image}` ||
-                            "/song-placeholder.png"}
-                        alt="Carátula de la canción"
-                        class="w-full h-full object-cover hover:brightness-50 transition-all"
-                    />
-                </div>
+                <SongPageCover song={song} album={album} client:only="react" />
+
                 <!-- Nombre de la canción -->
                 <h1 class="text-center text-2xl font-bold mt-4">
                     {song?.name}
@@ -103,61 +173,52 @@ if (song) {
                     <div class="ml-4">
                         <a
                             class="text-2xl font-bold text-gray-800 text-left hover:underline hover:cursor-pointer"
-                            href={`/album/${song?.albumId}`}
+                            href={`/album/${album?.album.id}`}
                         >
-                            {song?.albumName}
+                            {album?.album.name}
                         </a>
                         <p
                             class="text-gray-600 text-md font-semibold text-left"
                         >
-                            {song?.date.replaceAll("-", "/")}
+                            {album?.album.releaseDate.replaceAll("-", "/")}
                         </p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <section class="my-10 bg-[#303030] py-8 rounded-lg mx-16 w-fit">
-            <div class="mx-auto px-8">
+        <section class="my-10 mx-16 flex flex-row justify-between">
+            <div class="mx-auto px-8 py-8 bg-[#303030] rounded-lg">
                 <h2 class="text-2xl font-semibold mb-4 text-center">Lyrics</h2>
                 <div>
                     <div class="text-white transition-all text-justify">
                         {
-                            song?.lyrics
-                                .split("\n")
-                                .map((line) => (
-                                    <p class="text-center">{line}</p>
-                                ))
+                            song.lyrics
+                                ? song?.lyrics
+                                      .split("\n")
+                                      .map((line) => (
+                                          <p class="text-center">{line}</p>
+                                      ))
+                                : "Lyrics not available"
                         }
                     </div>
                 </div>
             </div>
-        </section>
-
-        <section class="px-32 pt-12 pb-3 text-white">
-            <h2 class="text-2xl font-bold text-left">
-                More songs from the Album
-            </h2>
-            <!-- Aqui podemos poner el nombre del artista tipo mas canciones del album... -->
-            <div
-                class="relative flex items-center gap-5 overflow-x-auto py-4 px-2"
-            >
+            <div class="mx-auto px-8 py-8 bg-[#303030] rounded-lg">
+                <h2 class="text-2xl font-bold text-left">
+                    More songs from the <a
+                        class="hover:underline"
+                        href={`/album/${album?.album.id}`}>Album</a
+                    >
+                </h2>
                 {
-                    Array.from({ length: 10 }).map((_, index) => (
+                    album?.songs.map((song, index) => (
                         <a
-                            href="#"
-                            class="flex-none w-48 hover:scale-105 transition"
+                            href={`/song/${song.id}`}
+                            class="flex-none w-48 hover:underline transition"
                         >
-                            <img
-                                class="rounded-lg w-full aspect-square object-cover"
-                                src="/song-placeholder.png"
-                                alt="Song Cover"
-                            />
-                            <label class="truncate font-semibold text-center block mt-2">
-                                Song {index + 1}
-                            </label>
-                            <label class="truncate text-sm text-center text-gray-400 block">
-                                Artists o Year
+                            <label class="truncate font-semibold block mt-2">
+                                {song.name}
                             </label>
                         </a>
                     ))
@@ -174,50 +235,24 @@ if (song) {
                 class="relative flex items-center gap-5 overflow-x-auto py-4 px-2"
             >
                 {
-                    Array.from({ length: 10 }).map((_, index) => (
+                    artistSongs?.tracks.map((song, index) => (
                         <a
-                            href="#"
+                            href={`/song/${song.id}`}
                             class="flex-none w-48 hover:scale-105 transition"
                         >
                             <img
                                 class="rounded-lg w-full aspect-square object-cover"
-                                src="/song-placeholder.png"
+                                src={
+                                    song.album.images[0].url ||
+                                    "/song-placeholder.png"
+                                }
                                 alt="Song Cover"
                             />
                             <label class="truncate font-semibold text-center block mt-2">
-                                Song {index + 1}
+                                {song.name}
                             </label>
                             <label class="truncate text-sm text-center text-gray-400 block">
-                                Artists o Albums
-                            </label>
-                        </a>
-                    ))
-                }
-            </div>
-        </section>
-
-        <section class="px-32 pt-12 pb-3 text-white">
-            <h2 class="text-2xl font-bold text-left">Related Songs</h2>
-            <!-- Aqui podemos poner el nombre del artista tipo mas canciones de Eminem -->
-            <div
-                class="relative flex items-center gap-5 overflow-x-auto py-4 px-2"
-            >
-                {
-                    Array.from({ length: 10 }).map((_, index) => (
-                        <a
-                            href="#"
-                            class="flex-none w-48 hover:scale-105 transition"
-                        >
-                            <img
-                                class="rounded-lg w-full aspect-square object-cover"
-                                src="/song-placeholder.png"
-                                alt="Song Cover"
-                            />
-                            <label class="truncate font-semibold text-center block mt-2">
-                                Song {index + 1}
-                            </label>
-                            <label class="truncate text-sm text-center text-gray-400 block">
-                                Artist o Year
+                                {song.album.name}
                             </label>
                         </a>
                     ))

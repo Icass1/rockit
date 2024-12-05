@@ -4,6 +4,7 @@ import {
     parseAlbum,
     parseSong,
     type AlbumDB,
+    type ArtistDB,
     type RawAlbumDB,
     type RawSongDB,
     type SongDB,
@@ -24,21 +25,23 @@ type Song = SongDB<
     | "trackNumber"
 >;
 
-interface ExtendedAlbumDB extends Omit<AlbumDB, "songs"> {
-    songs: SongDB[];
-}
+export type GetAlbum = {
+    album: AlbumDB<
+        "name" | "songs" | "artists" | "images" | "releaseDate" | "id"
+    >;
+    songs: Song[];
+    discs: Song[][];
+    inDatabase: boolean;
+};
 
-export default async function getAlbum(id: string): Promise<
-    | {
-          album: ExtendedAlbumDB;
-          songs: Song[];
-          discs: Song[][];
-          inDatabase: boolean;
-      }
-    | "error connecting to backend"
-    | "not found"
-> {
-    let album: ExtendedAlbumDB | undefined;
+export default async function getAlbum(
+    id: string
+): Promise<GetAlbum | "error connecting to backend" | "not found"> {
+    let album:
+        | AlbumDB<
+              "name" | "songs" | "artists" | "images" | "releaseDate" | "id"
+          >
+        | undefined;
     let inDatabase: boolean;
     let songs: Song[];
     let discs: Song[][];
@@ -110,15 +113,15 @@ export default async function getAlbum(id: string): Promise<
             return "not found";
         }
         const data: SpotifyAlbum = await response.json();
+
         album = {
-            artists: data.artists,
+            id: data.id,
+            artists: data.artists as ArtistDB[],
             images: data.images,
             name: data.name,
             releaseDate: data.release_date,
-            songs: data.tracks.items,
+            songs: data.tracks.items.map((item) => item.id),
         };
-
-        console.log(data.tracks.items);
 
         songs = data.tracks.items.map((item) => {
             const songDB = parseSong(

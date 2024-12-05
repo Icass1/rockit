@@ -77,6 +77,27 @@ def album(id: str):
 
     return jsonify(album)
 
+@app.route('/artist-top-songs/<string:id>')
+def artist_top_songs(id: str):
+
+    top_songs = spotify.api_call(path=f"artists/{id}/top-tracks")
+
+    return jsonify(top_songs)
+
+@app.route('/artist/<string:id>')
+def artist(id: str):
+
+    artist = spotify.api_call(path=f"artists/{id}")
+    
+    return jsonify(artist)
+
+@app.route('/song/<string:id>')
+def song(id: str):
+
+    song = spotify.api_call(path=f"tracks/{id}")
+    
+    return jsonify(song)
+
 @app.route('/start-download')
 def start_download():    
     USER_ID = request.args.get('user')

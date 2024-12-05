@@ -11,7 +11,12 @@ export async function GET(context: APIContext): Promise<Response> {
     } catch {
         return new Response("Unable to fetch", { status: 404 });
     }
+
+
+    console.log(query, response)
+
     const json = (await response.json()) as SearchResults;
+    console.log(json)
 
     for (let index in json.songs) {
         if (!json.songs[index]) {

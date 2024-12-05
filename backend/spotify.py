@@ -504,13 +504,19 @@ class Spotify:
 
         parsed_params = ""
         
-        for k in list(params.items()):
-            parsed_params += "&" + k[0] + "=" + k[1]
+        for index, k in enumerate(list(params.items())):
+            if index != 0:
+                parsed_params += "&"
+            parsed_params += k[0] + "=" + k[1]
 
         url = f"https://api.spotify.com/v1/{path}"
         headers = self.get_auth_header()
 
         query_url = url + "?" + parsed_params
+
+        print("====== query_url =======")
+        print(query_url)
+        print("========================")
 
         result = requests.get(query_url, headers=headers)
         if result.status_code == 401:

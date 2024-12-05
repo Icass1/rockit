@@ -5,6 +5,10 @@ export interface SearchResults {
     artists: SpotifyArtist[];
 }
 
+// ********************
+// *** SpotifyTrack ***
+// ********************
+
 export interface SpotifyTrack {
     album: SpotifyTrackAlbum;
     artists: SpotifyTrackArtist2[];
@@ -101,6 +105,10 @@ export interface SpotifyTrackLinkedFrom {}
 export interface SpotifyTrackRestrictions2 {
     reason: string;
 }
+
+// ********************
+// *** SpotifyAlbum ***
+// ********************
 
 export interface SpotifyAlbum {
     album_type: string;
@@ -227,6 +235,10 @@ export interface SpotifyAlbumExternalIds {
     upc: string;
 }
 
+// *********************
+// *** SpotifyArtist ***
+// *********************
+
 export interface SpotifyArtist {
     external_urls: SpotifyArtistExternalUrls;
     followers: SpotifyArtistFollowers;
@@ -254,6 +266,10 @@ export interface SpotifyArtistImage {
     height: number;
     width: number;
 }
+
+// ***********************
+// *** SpotifyPlaylist ***
+// ***********************
 
 export interface SpotifyPlaylist {
     collaborative: boolean;
@@ -304,4 +320,108 @@ export interface SpotifyPlaylistFollowers {
 export interface SpotifyPlaylistTracks {
     href: string;
     total: number;
+}
+
+// ******************************
+// *** SpotifyArtistTopTracks ***
+// ******************************
+
+export interface SpotifyArtistTopTracks {
+    tracks: SpotifyArtistTopTracksTrack[];
+}
+
+export interface SpotifyArtistTopTracksTrack {
+    album: SpotifyArtistTopTracksAlbum;
+    artists: SpotifyArtistTopTracksArtist2[];
+    available_markets: string[];
+    disc_number: number;
+    duration_ms: number;
+    explicit: boolean;
+    external_ids: SpotifyArtistTopTracksExternalIds;
+    external_urls: SpotifyArtistTopTracksExternalUrls4;
+    href: string;
+    id: string;
+    is_playable: boolean;
+    linked_from: SpotifyArtistTopTracksLinkedFrom;
+    restrictions: SpotifyArtistTopTracksRestrictions2;
+    name: string;
+    popularity: number;
+    preview_url: string;
+    track_number: number;
+    type: string;
+    uri: string;
+    is_local: boolean;
+}
+
+export interface SpotifyArtistTopTracksAlbum {
+    album_type: string;
+    total_tracks: number;
+    available_markets: string[];
+    external_urls: SpotifyArtistTopTracksExternalUrls;
+    href: string;
+    id: string;
+    images: SpotifyArtistTopTracksImage[];
+    name: string;
+    release_date: string;
+    release_date_precision: string;
+    restrictions: SpotifyArtistTopTracksRestrictions;
+    type: string;
+    uri: string;
+    artists: SpotifyArtistTopTracksArtist[];
+}
+
+export interface SpotifyArtistTopTracksExternalUrls {
+    spotify: string;
+}
+
+export interface SpotifyArtistTopTracksImage {
+    url: string;
+    height: number;
+    width: number;
+}
+
+export interface SpotifyArtistTopTracksRestrictions {
+    reason: string;
+}
+
+export interface SpotifyArtistTopTracksArtist {
+    external_urls: SpotifyArtistTopTracksExternalUrls2;
+    href: string;
+    id: string;
+    name: string;
+    type: string;
+    uri: string;
+}
+
+export interface SpotifyArtistTopTracksExternalUrls2 {
+    spotify: string;
+}
+
+export interface SpotifyArtistTopTracksArtist2 {
+    external_urls: SpotifyArtistTopTracksExternalUrls3;
+    href: string;
+    id: string;
+    name: string;
+    type: string;
+    uri: string;
+}
+
+export interface SpotifyArtistTopTracksExternalUrls3 {
+    spotify: string;
+}
+
+export interface SpotifyArtistTopTracksExternalIds {
+    isrc: string;
+    ean: string;
+    upc: string;
+}
+
+export interface SpotifyArtistTopTracksExternalUrls4 {
+    spotify: string;
+}
+
+export interface SpotifyArtistTopTracksLinkedFrom {}
+
+export interface SpotifyArtistTopTracksRestrictions2 {
+    reason: string;
 }

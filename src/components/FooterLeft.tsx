@@ -15,12 +15,12 @@ export default function FooterCenter() {
                 alt="Album Cover"
                 className="w-16 h-16 rounded-md"
             />
-            <div className="flex flex-col min-w-0 max-w-full w-full">
+            <div className="flex flex-col min-w-0 max-w-full w-full pr-4">
                 <span className="font-semibold truncate">
                     {$currentSong?.name || "Canción desconocida :("}
                 </span>
                 <span className="text-sm text-gray-400 flex flex-row gap-x-1">
-                    <div className="flex flex-row gap-x-1">
+                    <div className="flex flex-row gap-x-1 truncate">
                         {$currentSong?.artists ? (
                             $currentSong?.artists?.map((artist, index) => (
                                 <a

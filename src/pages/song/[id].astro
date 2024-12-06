@@ -2,6 +2,7 @@
 import Layout from "@/layouts/Layout.astro";
 import { db, parseSong, type RawSongDB, type SongDB } from "@/lib/db";
 import getAlbum from "@/lib/getAlbum";
+import { getTime } from "@/lib/getTime";
 
 import type {
     SpotifyArtistTopTracks,
@@ -159,7 +160,7 @@ if (response.ok) {
                 <SongPageCover song={song} album={album} client:only="react" />
 
                 <!-- Nombre de la canción -->
-                <h1 class="text-center text-2xl font-bold mt-4">
+                <h1 class="text-center text-3xl font-bold mt-4">
                     {song?.name}
                 </h1>
             </div>
@@ -180,7 +181,7 @@ if (response.ok) {
                         <p
                             class="text-gray-600 text-md font-semibold text-left"
                         >
-                            {album?.album.releaseDate.replaceAll("-", "/")}
+                            {album?.album.releaseDate.split('-').reverse().join('/')}
                         </p>
                     </div>
                 </div>
@@ -189,7 +190,7 @@ if (response.ok) {
 
         <section class="my-10 mx-16 flex flex-row justify-between">
             <div class="mx-auto px-8 py-8 bg-[#303030] rounded-lg">
-                <h2 class="text-2xl font-semibold mb-4 text-center">Lyrics</h2>
+                <h2 class="text-2xl font-bold mb-4 text-center">Lyrics</h2>
                 <div>
                     <div class="text-white transition-all text-justify">
                         {
@@ -204,22 +205,35 @@ if (response.ok) {
                     </div>
                 </div>
             </div>
-            <div class="mx-auto px-8 py-8 bg-[#303030] rounded-lg">
-                <h2 class="text-2xl font-bold text-left">
-                    More songs from the <a
-                        class="hover:underline"
-                        href={`/album/${album?.album.id}`}>Album</a
+            <div class="mx-auto px-8 py-8 bg-[#303030] rounded-lg h-fit">
+                <h2 class="text-2xl font-bold text-left pb-4">
+                    More songs from <a
+                        class="underline italic"
+                        href={`/album/${album?.album.id}`}>{album?.album.name}</a
                     >
                 </h2>
                 {
                     album?.songs.map((song, index) => (
                         <a
                             href={`/song/${song.id}`}
-                            class="flex-none w-48 hover:underline transition"
+                            class="flex-none w-48 group transition"
                         >
-                            <label class="truncate font-semibold block mt-2">
-                                {song.name}
-                            </label>
+                            <div class="flex justify-between items-center mt-2">
+                                {/* Índice */}
+                                <label class="text-[#b2b2b2] font-semibold mr-3">
+                                    {index + 1}
+                                </label>
+
+                                {/* Nombre de la canción */}
+                                <label class="truncate font-semibold block group-hover:underline">
+                                    {song.name}
+                                </label>
+
+                                {/* Duración */}
+                                <span class="ml-auto text-right text-[#b2b2b2]">
+                                    {getTime(song.duration)}
+                                </span>
+                            </div>
                         </a>
                     ))
                 }

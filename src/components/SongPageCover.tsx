@@ -1,7 +1,7 @@
 import type { SongDB } from "@/lib/db";
 import type { GetAlbum } from "@/lib/getAlbum";
 import { currentSong, play, queue, queueIndex } from "@/stores/audio";
-import { PlayCircle } from "lucide-react";
+import { PlayCircle,Play } from "lucide-react";
 import { useState } from "react";
 
 export default function SongPageCover({
@@ -50,15 +50,15 @@ export default function SongPageCover({
                 alt="Carátula de la canción"
                 className={
                     "w-full h-full absolute transition-all " +
-                    (hover ? "brightness-50" : "")
+                    (hover ? "brightness-[60%]" : "")
                 }
             />
-            <PlayCircle
+            <Play
                 className={
-                    "absolute top-1/2 left-1/2 w-40 h-40 -translate-x-1/2 -translate-y-1/2 stroke-0 transition-all" +
-                    (hover ? " stroke-1" : "")
+                    "absolute top-1/2 left-1/2 w-20 h-20 fill-transparent -translate-x-1/2 -translate-y-1/2 stroke-0 transition-all duration-75" +
+                    (hover ? " stroke-1 fill-white" : "")
                 }
-            ></PlayCircle>
+            ></Play>
         </div>
     );
 }

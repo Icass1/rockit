@@ -257,7 +257,6 @@ function Downloads({ navOpen }: { navOpen: boolean }) {
             songs[message.song.id] = message.song;
         }
         if (message.list) {
-            console.log("message.list", message.list);
             lists[message.list.id] = message.list;
         }
         if (message.list_id == undefined) {
@@ -316,7 +315,6 @@ function Downloads({ navOpen }: { navOpen: boolean }) {
                 continue;
             }
             console.log("EventSource", `/api/download-status/${downloadId}`);
-            console.log(eventSources?.current);
             eventSources?.current?.push(downloadId);
             const eventSource = new EventSource(
                 `/api/download-status/${downloadId}`

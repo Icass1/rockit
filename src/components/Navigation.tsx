@@ -109,7 +109,7 @@ function RenderListDownload({
                                 style={{ width: `${list[1].totalCompleted}%` }}
                             ></div>
                         </div>
-                        <label className="text-sm font-semibold">{list[1].totalCompleted}%</label>
+                        <label className="text-sm font-semibold">{Math.round(list[1].totalCompleted*10)/10}%</label>
                     </div>{" "}
                 </div>
             </div>

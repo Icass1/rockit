@@ -23,7 +23,6 @@ export default function BarGraph({
 
             <div className="relative w-full">
                 {items.map((item) => {
-                    console.log(item);
                     let top = item.index < 20 ? item.index * 20 : 21 * 20;
 
                     return (

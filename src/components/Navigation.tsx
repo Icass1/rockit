@@ -65,8 +65,6 @@ function RenderListDownload({
 }) {
     const [showAllSongs, setShowAllSongs] = useState(false);
 
-    console.log(list[1].listInfo);
-
     return (
         <div className="bg-zinc-400/10 min-w-0 max-w-full flex flex-col rounded">
             <div className="flex flex-row h-16 min-w-0 max-w-full gap-2">
@@ -304,7 +302,7 @@ function Downloads({ navOpen }: { navOpen: boolean }) {
                 return newValue;
             });
             if (
-                Math.round(message.list_completed + message.list_error) == 100
+                Math.round((message.list_completed + message.list_error)*100)/100 == 100
             ) {
                 eventSource.close();
             }

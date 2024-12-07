@@ -7,8 +7,9 @@ from apiTypes.RawSpotifyApiPlaylist import RawSpotifyApiPlaylist, PlaylistItems
 from apiTypes.RawYTMusicApiAlbum import RawYTMusicApiAlbum
 from apiTypes.RawYTMusicApiPlaylist import RawYTMusicApiPlaylist
 
-from utils import get_song_name, sanitize_folder_name, get_output_file, download_image
+from backendUtils import get_song_name, sanitize_folder_name, get_output_file, download_image, create_playlist_collage
 from constants import DOWNLOADER_OPTIONS
+
 
 import requests
 from spotify import Spotify
@@ -137,8 +138,13 @@ class ListDownloader:
             image_path = os.path.join(image_path_dir, "image.png")
             if not os.path.exists(os.path.join(os.getenv("IMAGES_PATH"), image_path_dir)):
                 os.makedirs(os.path.join(os.getenv("IMAGES_PATH"), image_path_dir))
-            if not os.path.exists(os.path.join(os.getenv("IMAGES_PATH"), image_path)):
-                download_image(url=image_url, path=os.path.join(os.getenv("IMAGES_PATH"), image_path))
+            # if not os.path.exists(os.path.join(os.getenv("IMAGES_PATH"), image_path)):
+                
+            images_url = []
+            for k in self.raw_songs:
+                images_url.append(k.track.album.images[0].url)
+            create_playlist_collage(output_path=os.path.join(os.getenv("IMAGES_PATH"), image_path), urls=list(set(images_url)))
+            print("saved image to", os.path.join(os.getenv("IMAGES_PATH"), image_path))
 
             requests.post(f"{os.getenv('FRONTEND_URL')}/api/new-playlist", json={
                 "id": self.list.id,
@@ -179,10 +185,11 @@ class ListDownloader:
             
         last_messages_len = {}
 
-        text = {"list": {"id": self.list.id, "name": self.list.name, "artists": [artist._json for artist in self.list.artists] if self.list.type == "album" else [self.list.owner.display_name], "images": [image._json for image in self.list.images]}}
+        text = {"list": {"type": self.list.type, "id": self.list.id, "name": self.list.name, "artists": [artist._json for artist in self.list.artists] if self.list.type == "album" else [self.list.owner.display_name], "images": [image._json for image in self.list.images]}}
         yield f"data: {json.dumps(text)}\n\n"
 
         for song in self.raw_songs:
+            song = song if self.list.type == "album" else song.track
             if song.id not in self.downloader.downloads_dict:
                 logger.error(f"ListDownloader.status song.id: {song.id} is not in self.downloader.downloads_dict: {self.downloader.downloads_dict}")
 

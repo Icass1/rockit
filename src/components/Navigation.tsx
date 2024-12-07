@@ -33,6 +33,7 @@ type ListInfo = {
     artists: SpotifyArtist[];
     images: SpotifyAlbumImage[];
     name: string;
+    type: "playlist" | "album";
 };
 
 type StatusType = {
@@ -64,6 +65,8 @@ function RenderListDownload({
 }) {
     const [showAllSongs, setShowAllSongs] = useState(false);
 
+    console.log(list[1].listInfo);
+
     return (
         <div className="bg-zinc-400/10 min-w-0 max-w-full flex flex-col rounded">
             <div className="flex flex-row h-14 min-w-0 max-w-full gap-2">
@@ -74,7 +77,12 @@ function RenderListDownload({
                 <div className="flex flex-col min-w-0 max-w-full w-full pr-1">
                     <a
                         className="text-base font-semibold truncate hover:underline"
-                        href={"/album/" + list[1].listInfo.id}
+                        href={
+                            "/" +
+                            list[1].listInfo.type +
+                            "/" +
+                            list[1].listInfo.id
+                        }
                     >
                         {list[1].listInfo.name}{" "}
                     </a>
@@ -248,6 +256,7 @@ function Downloads({ navOpen }: { navOpen: boolean }) {
             songs[message.song.id] = message.song;
         }
         if (message.list) {
+            console.log("message.list", message.list);
             lists[message.list.id] = message.list;
         }
         if (message.list_id == undefined) {

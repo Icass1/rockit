@@ -7,7 +7,7 @@ if (!Astro.locals.user) {
 ---
 
 <Layout title="Rock It!" currentPage="404 - Page not Found">
-    <div class="h-screen w-full flex items-center justify-center bg-gradient-to-r from-[#fca5a5] to-[#feb2b2] relative">
+    <div class="h-full w-full flex items-center justify-center bg-gradient-to-r from-[#fca5a5] to-[#feb2b2] relative">
         <!-- Contenedor de la página -->
         <div class="flex items-center gap-10">
             <!-- Sección de texto -->
@@ -22,19 +22,19 @@ if (!Astro.locals.user) {
             </div>
 
             <!-- Tocadiscos -->
-            <div class="relative w-32 h-32 flex items-center justify-center">
+            <div class="relative w-64 h-64 flex items-center justify-center">
                 <!-- Plato del tocadiscos -->
-                <div class="absolute w-full h-full rounded-full bg-green-500 animate-spin-slow"></div>
+                <div class="absolute w-full h-full rounded-full animate-spin-slow"></div>
                 
                 <!-- Disco giratorio -->
                 <img
-                    src="/vinyl-placeholder.png"
+                    src="/Vinil-CD.png"
                     alt="Vinyl Record"
                     class="absolute w-4/5 h-4/5 rounded-full object-cover animate-spin-slow"
                 />
 
                 <!-- Brazo del tocadiscos -->
-                <div class="absolute top-0 right-0 w-16 h-16 bg-blue-500 rotate-12 z-20"></div>
+                <div class="absolute top-0 right-0 w-16 h-44 bg-blue-500 rotate-[15deg] z-20"></div>
             </div>
         </div>
     </div>

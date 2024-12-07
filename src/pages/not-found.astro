@@ -30,7 +30,7 @@ if (!Astro.locals.user) {
                 <img
                     src="/Vinil-CD.png"
                     alt="Vinyl Record"
-                    class="absolute w-4/5 h-4/5 rounded-full object-cover animate-spin-slow"
+                    class="absolute w-4/5 h-4/5 rounded-full object-cover animate-spin-decelerate"
                 />
 
                 <!-- Brazo del tocadiscos -->
@@ -54,4 +54,22 @@ if (!Astro.locals.user) {
             transform: rotate(360deg);
         }
     }
+
+    /* Animación de giro rápido que se desacelera */
+    .animate-spin-decelerate {
+        animation: spin-decelerate 6s cubic-bezier(0.5, 1, 0.75, 1) forwards;
+    }
+
+    @keyframes spin-decelerate {
+        0% {
+        transform: rotate(0deg);
+        }
+        50% {
+        transform: rotate(720deg); /* Gira rápidamente dos vueltas */
+        }
+        100% {
+        transform: rotate(720deg); /* Se detiene después de dos vueltas */
+        }
+    }
+
 </style>

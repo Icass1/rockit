@@ -6,7 +6,6 @@ import { useEffect, useRef, useState } from "react";
 import { EllipsisVertical, Play } from "lucide-react";
 import { getTime } from "@/lib/getTime";
 
-
 const lyricsTimeStamp = {
     "3jnoftwNCmIuTNVkxakisg": [
         { time: 0, index: -1 },
@@ -243,13 +242,13 @@ function DynamicLyrics() {
                             key={index}
                             className={commonSyles}
                             style={{
-                                top: "67%",
-                                fontSize: "0",
+                                top: "75%",
+                                fontSize: "4vh",
                                 fontWeight: 500,
-
                                 lineHeight: "4vh",
-                                maxWidth: "10%",
+                                maxWidth: "100%",
                                 color: "rgb(200, 200, 200)",
+                                scale: 0,
                             }}
                         >
                             {line}
@@ -261,12 +260,13 @@ function DynamicLyrics() {
                             key={index}
                             className={commonSyles}
                             style={{
-                                top: "33%",
-                                fontSize: "0",
+                                top: "25%",
+                                fontSize: "4vh",
                                 fontWeight: 500,
-                                lineHeight: "28px",
-                                maxWidth: "10%",
+                                lineHeight: "4vh",
+                                maxWidth: "100%",
                                 color: "rgb(200, 200, 200)",
+                                scale: 0,
                             }}
                         >
                             {line}
@@ -329,34 +329,36 @@ export default function PlayerUI() {
                 ></img>
 
                 <div className="z-40 w-full h-full">
-                    <h2 className="absolute w-[31%] text-center text-3xl font-bold mx-auto p-14 underline">Lyrics</h2>
+                    <h2 className="absolute w-[31%] text-center text-3xl font-bold mx-auto p-14 underline">
+                        Lyrics
+                    </h2>
                     <DynamicLyrics />
                 </div>
-
 
                 {/* Middle Column: Cover & Info */}
                 <div className="min-w-0 min-h-0 max-w-full max-h-full flex flex-col items-center justify-center z-40">
                     <div className="max-h-[75%] aspect-square">
                         <img
                             src={
-                                $currentSong?.images[0]?.url || "/song-placeholder.png"
+                                $currentSong?.images[0]?.url ||
+                                "/song-placeholder.png"
                             }
                             alt="Song Cover"
                             className="object-cover mx-auto w-auto h-[100%] rounded-lg aspect-square"
-                        />   
+                        />
                     </div>
                     <div className="flex flex-col items-center justify-center text-center mt-4">
                         <h1 className="text-4xl font-bold">
                             {$currentSong?.name}
                         </h1>
                         <p className="text-gray-400 text-xl mt-2 font-medium flex items-center gap-2">
-                            <span className="hover:underline">{$currentSong?.albumName}</span>
-                            • 
-                            <span>No release date</span>
+                            <span className="hover:underline">
+                                {$currentSong?.albumName}
+                            </span>
+                            •<span>No release date</span>
                         </p>
                     </div>
                 </div>
-
 
                 {/* Right Column: Queue */}
                 <div className="overflow-hidden flex flex-col h-full bg-gradient-to-r z-10 from-[rgba(0,0,0,0)] to-[rgba(0,0,0,0.5)]">

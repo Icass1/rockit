@@ -417,13 +417,13 @@ function Downloads({ navOpen }: { navOpen: boolean }) {
                     </button>
                 </div>
 
-                {Object.entries(status.songs).map((songStatus) => (
+                {Object.entries(status.songs).toReversed().map((songStatus) => (
                     <RenderSongDownload
                         key={songStatus[0]}
                         songStatus={songStatus}
                     />
                 ))}
-                {Object.entries(status.lists).map((list) => (
+                {Object.entries(status.lists).toReversed().map((list) => (
                     <RenderListDownload key={list[0]} list={list} />
                 ))}
             </div>

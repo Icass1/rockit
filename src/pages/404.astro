@@ -8,10 +8,10 @@ if (!Astro.locals.user) {
 
 <Layout title="404 • Rock It!" currentPage="404 - Page not Found">
     <div
-        class="h-full w-full flex items-center justify-center bg-gradient-to-r from-[#d185ca] to-[#ffbb9e] relative select-none"
+        class="h-full w-full flex flex-col items-center justify-center bg-gradient-to-r from-[#d185ca] to-[#ffbb9e] relative select-none"
     >
         <!-- Contenedor de la página -->
-        <div class="flex items-center gap-10 h-full">
+        <div class="flex items-center gap-10 h-auto">
             <!-- Sección de texto -->
             <div class="text-black w-full">
                 <h1 class="text-9xl font-bold mb-4">404</h1>
@@ -49,6 +49,13 @@ if (!Astro.locals.user) {
                 />
             </div>
         </div>
+        <!-- Botón de retorno -->
+        <a
+            href="/"
+            class="mt-20 px-5 py-2 bg-white text-black font-bold text-lg rounded-full shadow-md hover:shadow-lg hover:bg-gray-200 transition"
+        >
+            Return Back to Home
+        </a>
     </div>
 </Layout>
 

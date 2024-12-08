@@ -99,8 +99,12 @@ export default function UserStats() {
                         className="absolute opacity-0"
                         value={startDate}
                         onChange={(e) => {
+                            if (e.target.value == "") {
+                                return;
+                            }
                             setStartDate(e.target.value);
                         }}
+                        required={true}
                     />
                     {getDate(startDate)}
                 </label>{" "}
@@ -118,11 +122,15 @@ export default function UserStats() {
                         ref={endDateInputRef}
                         type="date"
                         className="absolute opacity-0"
-                        value={startDate}
+                        value={endDate}
                         onChange={(e) => {
+                            if (e.target.value == "") {
+                                return;
+                            }
                             setEndDate(e.target.value);
                         }}
                     />
+
                     {getDate(endDate)}
                 </label>
             </label>

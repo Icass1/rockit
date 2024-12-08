@@ -114,7 +114,7 @@ def get_transfromed_image(image: Image.Image):
 
 def create_playlist_collage(output_path, urls: List[str]=[], paths: List[str]=[]):
     
-    out = Image.new("RGBA", (640, 640), (26, 26, 26, 255))
+    out = Image.new("RGBA", (640, 640), (0, 0, 0, 0)) #(26, 26, 26, 255)
 
     x_space = 300
     y_spcae = 0.5*x_space

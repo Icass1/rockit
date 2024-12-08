@@ -86,7 +86,7 @@ export default function SongPageCover({
 
             {/* Contenedor principal */}
             <div
-                className="w-full max-w-md h-auto object-cover aspect-square rounded-lg overflow-hidden relative cursor-pointer"
+                className="w-full max-w-md h-auto object-cover aspect-square rounded-lg overflow-hidden relative cursor-pointer select-none"
                 onMouseEnter={() => setHover(true)}
                 onMouseLeave={() => setHover(false)}
                 onClick={handleClick}

@@ -1,4 +1,4 @@
-import { getMinutes, getDate } from "@/lib/getTime";
+import { getDate } from "@/lib/getTime";
 import BarGraph from "./BarGraph.tsx";
 import { useEffect, useState } from "react";
 import type { Stats } from "@/lib/stats";

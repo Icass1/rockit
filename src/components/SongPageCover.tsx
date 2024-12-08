@@ -1,7 +1,7 @@
 import type { SongDB } from "@/lib/db";
 import type { GetAlbum } from "@/lib/getAlbum";
 import { currentSong, play, queue, queueIndex } from "@/stores/audio";
-import { PlayCircle, Play } from "lucide-react";
+import { Play } from "lucide-react";
 import { useState } from "react";
 
 export default function SongPageCover({

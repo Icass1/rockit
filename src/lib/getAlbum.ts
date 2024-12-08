@@ -57,8 +57,6 @@ export default async function getAlbum(
     if (album) {
         inDatabase = true;
 
-        let allSongsInDatabase = true;
-
         songs = album.songs
             .map(
                 (
@@ -88,7 +86,6 @@ export default async function getAlbum(
             )
             .map((song) => {
                 if (song == undefined) {
-                    allSongsInDatabase = false;
                     inDatabase = false;
                 }
                 return song;

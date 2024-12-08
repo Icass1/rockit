@@ -72,6 +72,4 @@ export async function ALL(context: APIContext): Promise<Response> {
             "Content-Type": "application/json",
         },
     });
-
-    return new Response("OK");
 }

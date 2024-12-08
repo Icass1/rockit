@@ -1,9 +1,4 @@
-import {
-    db,
-    parseUser,
-    type RawUserDB,
-    type UserDB,
-} from "@/lib/db";
+import { db, parseUser, type RawUserDB, type UserDB } from "@/lib/db";
 
 import type { APIContext } from "astro";
 

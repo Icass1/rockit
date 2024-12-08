@@ -14,7 +14,9 @@ export interface SpotifyError {
     error: ErrorMessage;
 }
 
-export function isSpotifyError(data: SpotifyAlbum | SpotifyError): data is SpotifyError {
+export function isSpotifyError(
+    data: SpotifyAlbum | SpotifyError
+): data is SpotifyError {
     return (data as SpotifyError).error !== undefined;
 }
 

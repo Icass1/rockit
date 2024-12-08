@@ -1,4 +1,8 @@
-import { isSpotifyError, type SpotifyAlbum, type SpotifyError } from "@/types/spotify";
+import {
+    isSpotifyError,
+    type SpotifyAlbum,
+    type SpotifyError,
+} from "@/types/spotify";
 import {
     db,
     parseAlbum,

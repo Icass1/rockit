@@ -3,10 +3,10 @@ import Layout from "@/layouts/Layout.astro";
 import UserStats from "@/components/UserStats.tsx";
 
 if (!Astro.locals.user) {
-  return Astro.redirect("/login");
+    return Astro.redirect("/login");
 }
 ---
 
-<Layout currentPage="Stats & Friends">
+<Layout title="Stats • Rock It!" currentPage="Stats & Friends">
     <UserStats client:only="react" />
 </Layout>

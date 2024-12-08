@@ -48,7 +48,7 @@ if (userLists?.filter((list) => list.type == "album").length > 0) {
 }
 ---
 
-<Layout title="Rock It!" currentPage="Library">
+<Layout title="Library • Rock It!" currentPage="Library">
     <div class="p-8 h-full">
         <label class="text-white text-4xl font-bold block"> Library </label>
         <input
@@ -64,11 +64,16 @@ if (userLists?.filter((list) => list.type == "album").length > 0) {
 
         <section class="py-12 text-white">
             <h2 class="text-2xl font-bold text-left">Featured Albums</h2>
-            <div class="relative flex items-center gap-5 overflow-x-auto py-4 px-2">
+            <div
+                class="relative flex items-center gap-5 overflow-x-auto py-4 px-2"
+            >
                 <!-- Aquí creamos las canciones -->
                 {
                     Array.from({ length: 3 }).map((_, index) => (
-                        <a href="#" class="flex-none w-48 hover:scale-105 transition">
+                        <a
+                            href="#"
+                            class="flex-none w-48 hover:scale-105 transition"
+                        >
                             <img
                                 class="rounded-lg w-full aspect-square object-cover"
                                 src="/song-placeholder.png"

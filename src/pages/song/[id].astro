@@ -181,7 +181,12 @@ if (response.ok) {
                         <p
                             class="text-gray-600 text-md font-semibold text-left"
                         >
-                            {album?.album.releaseDate.split('-').reverse().join('/')}
+                            {
+                                album?.album.releaseDate
+                                    .split("-")
+                                    .reverse()
+                                    .join("/")
+                            }
                         </p>
                     </div>
                 </div>
@@ -209,7 +214,8 @@ if (response.ok) {
                 <h2 class="text-2xl font-bold text-left pb-4">
                     More songs from <a
                         class="hover:underline italic"
-                        href={`/album/${album?.album.id}`}>{album?.album.name}</a
+                        href={`/album/${album?.album.id}`}
+                        >{album?.album.name}</a
                     >
                 </h2>
                 {

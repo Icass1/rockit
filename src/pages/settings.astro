@@ -3,72 +3,82 @@ import Layout from "@/layouts/Layout.astro";
 import { Pencil } from "lucide-react";
 
 if (!Astro.locals.user) {
-  return Astro.redirect("/login");
+    return Astro.redirect("/login");
 }
 
 // Datos ficticios del usuario
 const user = {
-  profilePicture: "user-placeholder.png", // Placeholder para la imagen de perfil
-  displayName: "Test Name",
-  username: "testname",
+    profilePicture: "user-placeholder.png", // Placeholder para la imagen de perfil
+    displayName: "Test Name",
+    username: "testname",
 };
 ---
 
-<Layout title="Rock It!" currentPage="Settings">
-	<section class="h-full flex items-center justify-center">
-		<div class="flex gap-16 items-start">
-			<!-- Columna izquierda -->
-			<div class="w-1/2 border-r border-gray-700 pr-8">
-				<div class="relative group">
-					<!-- Imagen de perfil -->
-					<img
-						src={user.profilePicture}
-						alt="User Profile Picture"
-						class="w-[100%] h-auto bg-gray-400 rounded-full object-cover shadow-md transition duration-300"
-					/>
-					<!-- Overlay con ícono al hacer hover -->
-					<div
-						class="absolute inset-0 bg-black/20 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition duration-300 cursor-pointer"
-					>
-						<Pencil className="text-white w-10 h-10" />
-					</div>
-				</div>
-				<!-- Display name -->
-				<h2 class="text-3xl font-bold text-white mt-4">{user.displayName}</h2>
-				<!-- Username -->
-				<p class="text-lg text-gray-500">@{user.username}</p>
-			</div>
+<Layout title="Settings • Rock It!" currentPage="Settings">
+    <section class="h-full flex items-center justify-center">
+        <div class="flex gap-16 items-start">
+            <!-- Columna izquierda -->
+            <div class="w-1/2 border-r border-gray-700 pr-8">
+                <div class="relative group">
+                    <!-- Imagen de perfil -->
+                    <img
+                        src={user.profilePicture}
+                        alt="User Profile Picture"
+                        class="w-[100%] h-auto bg-gray-400 rounded-full object-cover shadow-md transition duration-300"
+                    />
+                    <!-- Overlay con ícono al hacer hover -->
+                    <div
+                        class="absolute inset-0 bg-black/20 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition duration-300 cursor-pointer"
+                    >
+                        <Pencil className="text-white w-10 h-10" />
+                    </div>
+                </div>
+                <!-- Display name -->
+                <h2 class="text-3xl font-bold text-white mt-4">
+                    {user.displayName}
+                </h2>
+                <!-- Username -->
+                <p class="text-lg text-gray-500">@{user.username}</p>
+            </div>
 
-			<!-- Columna derecha -->
-			<div class="w-1/2">
-				<h2 class="text-2xl font-bold text-white mb-6">User Settings</h2>
-				<!-- Cambiar nombre de usuario -->
-				<div class="mb-6">
-					<label class="block text-gray-300 text-lg mb-2">Display Name</label>
-					<input
-						type="text"
-						class="w-full p-3 rounded-lg bg-[#1e1e1e] text-white border border-[#333] focus:outline-none focus:ring-2 focus:ring-green-500"
-						value={user.displayName}
-					/>
-				</div>
-				<!-- Cambiar contraseña -->
-				<div class="mb-6">
-					<label class="block text-gray-300 text-lg mb-2">Change Password</label>
-					<input
-						type="password"
-						placeholder="Enter new password"
-						class="w-full p-3 rounded-lg bg-[#1e1e1e] text-white border border-[#333] focus:outline-none focus:ring-2 focus:ring-green-500"
-					/>
-				</div>
-				<div class="mb-6">
-					<label class="block text-gray-300 text-lg mb-2">Repeat New Password</label>
-					<input
-						type="password"
-						placeholder="Repeat password"
-						class="w-full p-3 rounded-lg bg-[#1e1e1e] text-white border border-[#333] focus:outline-none focus:ring-2 focus:ring-green-500"
-					/>
-				</div>
-			</div>
-		</div>
-	</section>
+            <!-- Columna derecha -->
+            <div class="w-1/2">
+                <h2 class="text-2xl font-bold text-white mb-6">
+                    User Settings
+                </h2>
+                <!-- Cambiar nombre de usuario -->
+                <div class="mb-6">
+                    <label class="block text-gray-300 text-lg mb-2"
+                        >Display Name</label
+                    >
+                    <input
+                        type="text"
+                        class="w-full p-3 rounded-lg bg-[#1e1e1e] text-white border border-[#333] focus:outline-none focus:ring-2 focus:ring-green-500"
+                        value={user.displayName}
+                    />
+                </div>
+                <!-- Cambiar contraseña -->
+                <div class="mb-6">
+                    <label class="block text-gray-300 text-lg mb-2"
+                        >Change Password</label
+                    >
+                    <input
+                        type="password"
+                        placeholder="Enter new password"
+                        class="w-full p-3 rounded-lg bg-[#1e1e1e] text-white border border-[#333] focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                </div>
+                <div class="mb-6">
+                    <label class="block text-gray-300 text-lg mb-2"
+                        >Repeat New Password</label
+                    >
+                    <input
+                        type="password"
+                        placeholder="Repeat password"
+                        class="w-full p-3 rounded-lg bg-[#1e1e1e] text-white border border-[#333] focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                </div>
+            </div>
+        </div>
+    </section>
 </Layout>

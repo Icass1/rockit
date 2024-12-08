@@ -2,30 +2,36 @@
 import Layout from "@/layouts/Layout.astro";
 
 if (!Astro.locals.user) {
-  return Astro.redirect("/login");
+    return Astro.redirect("/login");
 }
 ---
 
-<Layout title="Rock It!" currentPage="404 - Page not Found">
-    <div class="h-full w-full flex items-center justify-center bg-gradient-to-r from-[#d185ca] to-[#ffbb9e] relative select-none">
+<Layout title="404 • Rock It!" currentPage="404 - Page not Found">
+    <div
+        class="h-full w-full flex items-center justify-center bg-gradient-to-r from-[#d185ca] to-[#ffbb9e] relative select-none"
+    >
         <!-- Contenedor de la página -->
         <div class="flex items-center gap-10 h-full">
             <!-- Sección de texto -->
             <div class="text-black w-full">
                 <h1 class="text-9xl font-bold mb-4">404</h1>
                 <p class="text-3xl font-semibold mb-2">
-                🎵 Whoops! Looks like this track is off-key :(
+                    🎵 Whoops! Looks like this track is off-key :(
                 </p>
                 <p class="text-md font-medium">
-                We couldn’t find the page you’re looking for, but don’t worry, the Rock It! still plays on.
+                    We couldn’t find the page you’re looking for, but don’t
+                    worry, the Rock It! still plays on.
                 </p>
             </div>
 
             <!-- Tocadiscos -->
-            <div class="relative w-2/3 aspect-square flex items-center justify-center">
+            <div
+                class="relative w-2/3 aspect-square flex items-center justify-center"
+            >
                 <!-- Plato del tocadiscos -->
-                <div class="absolute w-[92%] h-[92%] bg-white rounded-full"></div>
-                
+                <div class="absolute w-[92%] h-[92%] bg-white rounded-full">
+                </div>
+
                 <!-- Disco giratorio -->
                 <img
                     src="/Vinil-CD.png"
@@ -68,14 +74,13 @@ if (!Astro.locals.user) {
 
     @keyframes spin-decelerate {
         0% {
-        transform: rotate(0deg);
+            transform: rotate(0deg);
         }
         50% {
-        transform: rotate(780deg); /* Gira rápidamente dos vueltas */
+            transform: rotate(780deg); /* Gira rápidamente dos vueltas */
         }
         100% {
-        transform: rotate(780deg); /* Se detiene después de dos vueltas */
+            transform: rotate(780deg); /* Se detiene después de dos vueltas */
         }
     }
-
 </style>

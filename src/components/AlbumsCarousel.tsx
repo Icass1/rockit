@@ -370,7 +370,6 @@ export default function AlbumsCarousel() {
                 );
             }
             lastScrollIndex.current = scrollIndex;
-
         }
     }, [scrollIndex]);
 

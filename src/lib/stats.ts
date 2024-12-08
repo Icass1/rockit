@@ -80,26 +80,17 @@ export function getStats(
         });
     });
 
-
-
-    const sortedAlbums = [...out.albums]
-    sortedAlbums.sort(
-        (a, b) => b.timesPlayed - a.timesPlayed
-    );
+    const sortedAlbums = [...out.albums];
+    sortedAlbums.sort((a, b) => b.timesPlayed - a.timesPlayed);
     out.albums.map((album) => {
         album.index = sortedAlbums.indexOf(album);
     });
 
-
-    
-    const sortedArtists = [...out.artists]
-    sortedArtists.sort(
-        (a, b) => b.timesPlayed - a.timesPlayed
-    );
+    const sortedArtists = [...out.artists];
+    sortedArtists.sort((a, b) => b.timesPlayed - a.timesPlayed);
     out.artists.map((artist) => {
         artist.index = sortedArtists.indexOf(artist);
     });
-
 
     // out.artists.sort((a, b) => b.timesPlayed - a.timesPlayed);
     out.songs.sort((a, b) => a.timePlayed - b.timePlayed);

@@ -1,7 +1,7 @@
 import type { SongDB } from "@/lib/db";
 import type { GetAlbum } from "@/lib/getAlbum";
 import { currentSong, play, queue, queueIndex } from "@/stores/audio";
-import { PlayCircle,Play } from "lucide-react";
+import { PlayCircle, Play } from "lucide-react";
 import { useState } from "react";
 
 export default function SongPageCover({
@@ -46,7 +46,7 @@ export default function SongPageCover({
                 alt="Carátula desenfocada de la canción"
                 className="absolute z-10 w-full max-w-md h-auto blur-3xl brightness-105"
             />
-            
+
             {/* Contenedor principal */}
             <div
                 className="w-full max-w-md h-auto object-cover aspect-square rounded-lg overflow-hidden relative cursor-pointer"
@@ -59,7 +59,8 @@ export default function SongPageCover({
                     src={
                         (song?.image
                             ? `/api/image/${song.image}`
-                            : album?.album.images[0].url) || "/song-placeholder.png"
+                            : album?.album.images[0].url) ||
+                        "/song-placeholder.png"
                     }
                     alt="Carátula de la canción"
                     className={
@@ -67,7 +68,7 @@ export default function SongPageCover({
                         (hover ? "brightness-[60%]" : "")
                     }
                 />
-                
+
                 {/* Icono de Play */}
                 <Play
                     className={
@@ -77,5 +78,5 @@ export default function SongPageCover({
                 ></Play>
             </div>
         </div>
-    );       
+    );
 }

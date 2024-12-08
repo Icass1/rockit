@@ -82,7 +82,7 @@ function RenderListDownload({
                             list[1].listInfo.id
                         }
                     >
-                        {list[1].listInfo.name} 
+                        {list[1].listInfo.name}
                     </a>
                     <label className="text-sm">
                         {list[1].listInfo.artists
@@ -109,7 +109,9 @@ function RenderListDownload({
                                 style={{ width: `${list[1].totalCompleted}%` }}
                             ></div>
                         </div>
-                        <label className="text-sm font-semibold">{Math.round(list[1].totalCompleted*10)/10}%</label>
+                        <label className="text-sm font-semibold">
+                            {Math.round(list[1].totalCompleted * 10) / 10}%
+                        </label>
                     </div>{" "}
                 </div>
             </div>
@@ -301,7 +303,11 @@ function Downloads({ navOpen }: { navOpen: boolean }) {
                 return newValue;
             });
             if (
-                Math.round((message.list_completed + message.list_error)*100)/100 == 100
+                Math.round(
+                    (message.list_completed + message.list_error) * 100
+                ) /
+                    100 ==
+                100
             ) {
                 eventSource.close();
             }

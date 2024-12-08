@@ -2,18 +2,21 @@
 import Layout from "@/layouts/Layout.astro";
 
 if (!Astro.locals.user) {
-  return Astro.redirect("/login");
+    return Astro.redirect("/login");
 }
 ---
 
-<Layout title="Rock It!" currentPage="Search">
+<Layout title="Search • Rock It!" currentPage="Search">
     <section class="p-12 text-white">
         <h2 class="text-3xl font-bold text-left">Songs</h2>
         <div class="relative flex items-center gap-4 overflow-x-auto py-4 px-2">
             <!-- Aquí creamos las canciones -->
             {
                 Array.from({ length: 20 }).map((_, index) => (
-                    <a href="#" class="flex-none w-48 hover:scale-105 transition">
+                    <a
+                        href="#"
+                        class="flex-none w-48 hover:scale-105 transition"
+                    >
                         <img
                             class="rounded-lg w-full aspect-square object-cover"
                             src="/song-placeholder.png"
@@ -37,7 +40,10 @@ if (!Astro.locals.user) {
             <!-- Aquí creamos las canciones -->
             {
                 Array.from({ length: 20 }).map((_, index) => (
-                    <a href="#" class="flex-none w-48 hover:scale-105 transition">
+                    <a
+                        href="#"
+                        class="flex-none w-48 hover:scale-105 transition"
+                    >
                         <img
                             class="rounded-lg w-full aspect-square object-cover"
                             src="/song-placeholder.png"
@@ -61,7 +67,10 @@ if (!Astro.locals.user) {
             <!-- Aquí creamos las canciones -->
             {
                 Array.from({ length: 20 }).map((_, index) => (
-                    <a href="#" class="flex-none w-48 hover:scale-105 transition">
+                    <a
+                        href="#"
+                        class="flex-none w-48 hover:scale-105 transition"
+                    >
                         <img
                             class="rounded-full w-full aspect-square object-cover"
                             src="/user-placeholder.png"
@@ -82,7 +91,10 @@ if (!Astro.locals.user) {
             <!-- Aquí creamos las canciones -->
             {
                 Array.from({ length: 20 }).map((_, index) => (
-                    <a href="#" class="flex-none w-48 hover:scale-105 transition">
+                    <a
+                        href="#"
+                        class="flex-none w-48 hover:scale-105 transition"
+                    >
                         <img
                             class="rounded-lg w-full aspect-square object-cover"
                             src="/song-placeholder.png"

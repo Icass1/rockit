@@ -7,34 +7,40 @@ if (!Astro.locals.user) {
 ---
 
 <Layout title="Rock It!" currentPage="404 - Page not Found">
-    <div class="h-full w-full flex items-center justify-center bg-gradient-to-r from-[#fca5a5] to-[#feb2b2] relative">
+    <div class="h-full w-full flex items-center justify-center bg-gradient-to-r from-[#d185ca] to-[#ffbb9e] relative">
         <!-- Contenedor de la página -->
-        <div class="flex items-center gap-10">
+        <div class="flex items-center gap-10 h-full">
             <!-- Sección de texto -->
-            <div class="text-black">
+            <div class="text-black w-full">
                 <h1 class="text-9xl font-bold mb-4">404</h1>
-                <p class="text-lg font-semibold mb-2">
-                Whoops! Looks like this track is off-key. 🎵
+                <p class="text-3xl font-semibold mb-2">
+                🎵 Whoops! Looks like this track is off-key :(
                 </p>
                 <p class="text-md font-medium">
-                We couldn’t find the page you’re looking for, but don’t worry, the music still plays on.
+                We couldn’t find the page you’re looking for, but don’t worry, the Rock It! still plays on.
                 </p>
             </div>
 
             <!-- Tocadiscos -->
-            <div class="relative w-64 h-64 flex items-center justify-center">
+            <div class="relative w-2/3 aspect-square flex items-center justify-center">
                 <!-- Plato del tocadiscos -->
-                <div class="absolute w-full h-full rounded-full animate-spin-slow"></div>
+                <div class="absolute w-[92%] h-[92%] bg-white rounded-full"></div>
                 
                 <!-- Disco giratorio -->
                 <img
                     src="/Vinil-CD.png"
                     alt="Vinyl Record"
-                    class="absolute w-4/5 h-4/5 rounded-full object-cover animate-spin-decelerate"
+                    class="absolute w-[90%] h-[90%] rounded-full object-cover animate-spin-decelerate"
                 />
 
                 <!-- Brazo del tocadiscos -->
-                <div class="absolute top-0 right-0 w-16 h-44 bg-blue-500 rotate-[15deg] z-20"></div>
+                <!-- <div class="absolute top-0 right-0 w-16 h-44 bg-blue-500 rotate-[15deg] z-20"></div> -->
+
+                <img
+                    src="/brazovinilo.png"
+                    alt=""
+                    class="absolute top-0 right-0 w-[70%] h-[70%] rotate-[-20deg] z-20 translate-x-20 -translate-y-5"
+                />
             </div>
         </div>
     </div>
@@ -57,7 +63,7 @@ if (!Astro.locals.user) {
 
     /* Animación de giro rápido que se desacelera */
     .animate-spin-decelerate {
-        animation: spin-decelerate 6s cubic-bezier(0.5, 1, 0.75, 1) forwards;
+        animation: spin-decelerate 4s cubic-bezier(0.5, 1, 0.75, 1) forwards;
     }
 
     @keyframes spin-decelerate {
@@ -65,10 +71,10 @@ if (!Astro.locals.user) {
         transform: rotate(0deg);
         }
         50% {
-        transform: rotate(720deg); /* Gira rápidamente dos vueltas */
+        transform: rotate(780deg); /* Gira rápidamente dos vueltas */
         }
         100% {
-        transform: rotate(720deg); /* Se detiene después de dos vueltas */
+        transform: rotate(780deg); /* Se detiene después de dos vueltas */
         }
     }
 

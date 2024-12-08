@@ -16,8 +16,12 @@ export default function FooterCenter() {
                 className="w-16 h-16 rounded-md"
             />
             <div className="flex flex-col min-w-0 max-w-full w-full pr-4">
-                <span className="font-semibold truncate">
-                    {$currentSong?.name || "Canción desconocida :("}
+                <span className="font-semibold truncate hover:underline">
+                    <a
+                    href={`/song/${$currentSong?.id}`}
+                    >
+                        {$currentSong?.name || "Canción desconocida :("}
+                    </a>
                 </span>
                 <span className="text-sm text-gray-400 flex flex-row gap-x-1">
                     <div className="flex flex-row gap-x-1 truncate">

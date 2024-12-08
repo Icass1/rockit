@@ -73,7 +73,7 @@ function ResultsWrapper({ children }: { children: ReactNode[] }) {
     );
 }
 
-export default function RenderSearchResults({
+export default function RenderSearchBarResults({
     divRef,
     open,
 }: {

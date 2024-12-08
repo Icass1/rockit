@@ -1,5 +1,5 @@
 ---
-import Search from "@/components/Search";
+import SearchBar from "@/components/SearchBar";
 import { LogOut,Settings } from "lucide-react";
 ---
 
@@ -11,7 +11,7 @@ import { LogOut,Settings } from "lucide-react";
         <img src="/logo-banner.png" alt="Logo" class="h-14" />
     </a>
 
-    <Search client:only="react" />
+    <SearchBar client:only="react" />
 
     <!-- User Settings -->
     <div class="relative ml-auto">

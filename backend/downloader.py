@@ -330,9 +330,9 @@ class Downloader:
 
             if path == None:
                 logger.error(f"Downloader.download_song Error downloading {get_song_name(spotdl_song)}")
-                self.downloads_dict[raw_song.id]["messages"].append({'id': raw_song.id, 'completed': 100, 'message': 'Error'})
+                self.downloads_dict[spotdl_song.song_id]["messages"].append({'id': spotdl_song.song_id, 'completed': 100, 'message': 'Error'})
             else: 
-                self.downloads_dict[raw_song.id]["messages"].append({'id': raw_song.id, 'completed': 100, 'message': 'Done'})
+                self.downloads_dict[spotdl_song.song_id]["messages"].append({'id': spotdl_song.song_id, 'completed': 100, 'message': 'Done'})
                 logger.info(f"Downloader.download_song Downloaded {get_song_name(spotdl_song)}")
 
                 shutil.move(path, song_path)

@@ -16,7 +16,7 @@ export function getTime(seconds: number) {
     return `${formattedMinutes}:${formattedSeconds}`;
 }
 
-export function getDate(timeStamp: number) {
+export function getDate(timeStamp: number | string) {
     const date = new Date(timeStamp);
 
     const day = date.getDate();

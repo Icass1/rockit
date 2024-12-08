@@ -110,7 +110,11 @@ function RenderListDownload({
                             ></div>
                         </div>
                         <label className="text-sm font-semibold">
-                            {Math.round(list[1].totalCompleted * 10) / 10}%
+                            {Math.round(
+                                (list[1].totalCompleted + list[1].listError) *
+                                    10
+                            ) / 10}
+                            %
                         </label>
                     </div>{" "}
                 </div>

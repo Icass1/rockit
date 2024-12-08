@@ -39,7 +39,12 @@ export async function POST(context: APIContext): Promise<Response> {
                 id
             );
         }
-
+        if (name != null) {
+            db.prepare(`UPDATE playlist SET name = ? WHERE id = ?`).run(
+                name,
+                id
+            );
+        }
         if (JSON.parse(songs).length > 0) {
             db.prepare(`UPDATE playlist SET songs = ? WHERE id = ?`).run(
                 songs,

@@ -157,7 +157,7 @@ if (response.ok) {
             <!-- Columna central: Canción -->
             <div class="flex flex-col items-center justify-center">
                 <!-- Imagen de la canción -->
-                <SongPageCover song={song} album={album} client:only="react" />
+                <SongPageCover song={song} album={album} inDatabase={inDatabase} client:only="react" />
 
                 <!-- Nombre de la canción -->
                 <h1 class="text-center text-3xl font-bold mt-4">

@@ -1,12 +1,22 @@
 import type { SongDB } from "@/lib/db";
 import type { GetAlbum } from "@/lib/getAlbum";
-import { currentSong, play, queue, queueIndex } from "@/stores/audio";
-import { Play } from "lucide-react";
+import {
+    currentSong,
+    pause,
+    play,
+    playing,
+    queue,
+    queueIndex,
+} from "@/stores/audio";
+import { downloads } from "@/stores/downloads";
+import { useStore } from "@nanostores/react";
+import { Download, Pause, Play } from "lucide-react";
 import { useState } from "react";
 
 export default function SongPageCover({
     song,
     album,
+    inDatabase,
 }: {
     song: SongDB<
         | "image"
@@ -20,19 +30,46 @@ export default function SongPageCover({
         | "duration"
     >;
     album: GetAlbum;
+    inDatabase: boolean;
 }) {
     const [hover, setHover] = useState(false);
 
+    const $currentSong = useStore(currentSong);
+    const $playing = useStore(playing);
+
     const handleClick = () => {
+        if (!inDatabase) {
+            fetch(
+                `/api/start-download?url=https://open.spotify.com/track/${song.id}`
+            ).then((response) => {
+                response.json().then((data) => {
+                    downloads.set([...downloads.get(), data.download_id]);
+                });
+            });
+            return;
+        }
+
         if (!song.path) {
             return;
         }
-        currentSong.set(song);
-        play();
 
-        queueIndex.set(0);
-        queue.set([song]);
+        if ($currentSong?.id == song.id && $playing) {
+            pause();
+        } else if ($currentSong?.id == song.id) {
+            play();
+        } else {
+            currentSong.set(song);
+
+            play();
+
+            queueIndex.set(0);
+            queue.set([song]);
+        }
     };
+
+    const iconClassName =
+        "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition-all z-20" +
+        (hover ? " w-20 h-20 " : " w-0 h-0 ");
 
     return (
         <div className="relative w-full h-full max-w-md">
@@ -69,13 +106,13 @@ export default function SongPageCover({
                     }
                 />
 
-                {/* Icono de Play */}
-                <Play
-                    className={
-                        "absolute top-1/2 left-1/2 w-20 h-20 fill-transparent -translate-x-1/2 -translate-y-1/2 stroke-0 transition-all duration-75 z-20" +
-                        (hover ? " stroke-1 fill-white" : "")
-                    }
-                ></Play>
+                {!inDatabase ? (
+                    <Download className={iconClassName} />
+                ) : $currentSong?.id == song.id && $playing ? (
+                    <Pause className={iconClassName} />
+                ) : (
+                    <Play className={iconClassName + " fill-white"} />
+                )}
             </div>
         </div>
     );

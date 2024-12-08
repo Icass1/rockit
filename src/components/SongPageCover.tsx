@@ -81,7 +81,7 @@ export default function SongPageCover({
                         : album?.album.images[0].url) || "/song-placeholder.png"
                 }
                 alt="Carátula desenfocada de la canción"
-                className="absolute z-10 w-full max-w-md h-auto blur-3xl brightness-105"
+                className="absolute z-10 w-full max-w-md h-auto blur-3xl brightness-105 scale-110"
             />
 
             {/* Contenedor principal */}

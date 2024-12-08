@@ -48,14 +48,15 @@ const songs = playlist.songs.map(
               | "artists"
               | "path"
               | "albumName"
-              | "images"
+              | "image"
               | "id"
+              | "images"
           >
         | undefined => {
         return parseSong(
             db
                 .prepare(
-                    "SELECT name, albumId, duration, artists, path, albumName, images, id FROM song WHERE id = ?"
+                    "SELECT name, albumId, duration, artists, path, albumName, image, images id FROM song WHERE id = ?"
                 )
                 .get(songID.id) as RawSongDB
         );

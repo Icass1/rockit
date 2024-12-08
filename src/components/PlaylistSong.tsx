@@ -13,8 +13,9 @@ export default function PlaylistSong({
         | "artists"
         | "path"
         | "albumName"
-        | "images"
+        | "image"
         | "id"
+        | "images"
     >;
     playlistId: string;
 }) {
@@ -71,7 +72,10 @@ export default function PlaylistSong({
             }
             onClick={handleClick}
         >
-            <img src={song.images[0].url} className="h-14 w-auto rounded" />
+            <img
+                src={`/api/image/${song.image}`}
+                className="h-14 w-auto rounded"
+            />
             <div className="w-full flex flex-col">
                 <label className="text-base font-semibold truncate w-full">
                     {song.name}

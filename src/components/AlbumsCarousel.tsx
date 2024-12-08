@@ -81,7 +81,11 @@ function Song({
                 }}
             >
                 <img
-                    src={`/api/image/${song.image}`}
+                    src={
+                        song.image
+                            ? `/api/image/${song.image}`
+                            : song.images[0].url
+                    }
                     className={`${transition} top-1/2 relative -translate-y-1/2`}
                     style={{ filter: `brightness(${brightness})` }}
                 />

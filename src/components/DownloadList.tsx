@@ -5,7 +5,7 @@ export default function DownloadList({ url }: { url: string }) {
     const handleClick = () => {
         fetch(`/api/start-download?url=${url}`).then((response) => {
             response.json().then((data) => {
-                downloads.set([...downloads.get(), data.download_id]);
+                downloads.set([data.download_id, ...downloads.get()]);
             });
         });
     };

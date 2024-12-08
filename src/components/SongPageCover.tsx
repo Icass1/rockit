@@ -43,7 +43,7 @@ export default function SongPageCover({
                 `/api/start-download?url=https://open.spotify.com/track/${song.id}`
             ).then((response) => {
                 response.json().then((data) => {
-                    downloads.set([...downloads.get(), data.download_id]);
+                    downloads.set([data.download_id, ...downloads.get()]);
                 });
             });
             return;

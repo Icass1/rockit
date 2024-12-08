@@ -1,6 +1,6 @@
 import { getDate } from "@/lib/getTime";
 import BarGraph from "./BarGraph.tsx";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Stats } from "@/lib/stats";
 import type { SongDB } from "@/lib/db";
 
@@ -10,10 +10,11 @@ interface SongForStats extends SongDB<"id" | "name"> {
 }
 
 export default function UserStats() {
-    const [start, setStart] = useState(new Date("2024-07-01").getTime());
-    const [end, setEnd] = useState(new Date("2024-08-01").getTime());
-    // const [start, setStart] = useState(1);
-    // const [end, setEnd] = useState(2);
+    const [startDate, setStartDate] = useState("2024-06-01");
+    const [endDate, setEndDate] = useState("2024-07-01");
+
+    const startDateInputRef = useRef<HTMLInputElement>(null);
+    const endDateInputRef = useRef<HTMLInputElement>(null);
 
     const [songsBarGraph, setSongsBarGraph] = useState<SongForStats[]>([]);
 
@@ -52,51 +53,78 @@ export default function UserStats() {
     }, [data]);
 
     useEffect(() => {
-        fetch(`/api/stats?start=${start}&end=${end}`).then((response) => {
+        fetch(
+            `/api/stats?start=${new Date(startDate).getTime()}&end=${new Date(
+                endDate
+            ).getTime()}`
+        ).then((response) => {
             if (response.ok) {
                 response.json().then((data) => {
                     setData(data);
                 });
             }
         });
-    }, [start, end]);
+    }, [startDate, endDate]);
+
+    const getTodayDate = () => {
+        const today = new Date();
+        const yearNumber = today.getFullYear();
+        let monthNumber = today.getMonth() + 1; // Months start at 0!
+        let dayNumber = today.getDate();
+
+        let dayString: string = dayNumber.toString();
+        let monthString: string = monthNumber.toString();
+
+        if (dayNumber < 10) dayString = "0" + dayNumber;
+        if (monthNumber < 10) monthString = "0" + monthNumber;
+
+        return yearNumber + "-" + monthString + "-" + dayString;
+    };
 
     return (
         <>
-            <input
-                type="range"
-                value={start}
-                onChange={(e) => {
-                    setStart(Number(e.target.value));
-                }}
-                min={new Date("2024-07-01").getTime()}
-                max={new Date("2025-01-01").getTime()}
-            ></input>
-            <input
-                type="range"
-                value={end}
-                onChange={(e) => {
-                    setEnd(Number(e.target.value));
-                }}
-                min={new Date("2024-07-01").getTime()}
-                max={new Date("2025-01-01").getTime()}
-            ></input>
-            <button
-                onClick={() => {
-                    setEnd(1723309168142);
-                }}
-            >
-                b
-            </button>
-            <button
-                onClick={() => {
-                    setEnd(1724856722124);
-                }}
-            >
-                a
-            </button>
             <label className="text-2xl font-semibold px-5">
-                Showing data from {getDate(start)} to {getDate(end)}
+                Showing data from{" "}
+                <label
+                    className="hover:underline"
+                    onClick={() => {
+                        startDateInputRef.current &&
+                            startDateInputRef.current.showPicker();
+                    }}
+                >
+                    <input
+                        ref={startDateInputRef}
+                        max={endDate}
+                        type="date"
+                        className="absolute opacity-0"
+                        value={startDate}
+                        onChange={(e) => {
+                            setStartDate(e.target.value);
+                        }}
+                    />
+                    {getDate(startDate)}
+                </label>{" "}
+                to{" "}
+                <label
+                    className="hover:underline"
+                    onClick={() => {
+                        endDateInputRef.current &&
+                            endDateInputRef.current.showPicker();
+                    }}
+                >
+                    <input
+                        min={startDate}
+                        max={getTodayDate()}
+                        ref={endDateInputRef}
+                        type="date"
+                        className="absolute opacity-0"
+                        value={startDate}
+                        onChange={(e) => {
+                            setEndDate(e.target.value);
+                        }}
+                    />
+                    {getDate(endDate)}
+                </label>
             </label>
             <div className="p-4 flex flex-row gap-4">
                 {data.songs.length == 0 ? (

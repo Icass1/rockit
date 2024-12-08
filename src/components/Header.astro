@@ -70,7 +70,7 @@ import { LogOut,Settings } from "lucide-react";
         });
 
         document.addEventListener('click', (event) => {
-            if (!menu.contains(event.target as HTMLDivElement) && !toggleButton.contains(event.target as HTMLDivElement)) {
+            if (!menu.contains(event.target as Node) && !toggleButton.contains(event.target as Node)) {
                 menu.classList.add('opacity-0');
                 toggleButton.classList.remove('bg-[#2f2f2f]');
                 menu.classList.add('pointer-events-none');

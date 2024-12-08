@@ -374,7 +374,7 @@ function Downloads({ navOpen }: { navOpen: boolean }) {
 
                 {/* Input */}
                 <input
-                    className="focus:outline-0 p-2 rounded-full mx-5 my-3"
+                    className="focus:outline-0 py-2 px-4 rounded-full mx-5 my-3"
                     placeholder="Enter a Spotify or YT Music URL"
                     value={url}
                     onChange={(e) => {
@@ -454,7 +454,7 @@ export default function Navigation({ activePage }: { activePage: string }) {
     return (
         <div
             className={
-                "mx-auto pt-4 pb-4 min-h-0 max-h-full h-full transition-all duration-[400ms] bg-black overflow-hidden " +
+                "mx-auto pt-4 pb-4 min-h-0 max-h-full h-full transition-all duration-[400ms] bg-black overflow-hidden select-none" +
                 (open ? " w-56 " : " w-12 ")
             }
         >

@@ -35,30 +35,47 @@ export default function SongPageCover({
     };
 
     return (
-        <div
-            className="w-full max-w-md h-auto object-cover aspect-square bg-gray-300 rounded-lg overflow-hidden shadow-md relative cursor-pointer"
-            onMouseEnter={() => setHover(true)}
-            onMouseLeave={() => setHover(false)}
-            onClick={handleClick}
-        >
+        <div className="relative w-full h-full max-w-md">
+            {/* Imagen con blur como fondo */}
             <img
                 src={
                     (song?.image
                         ? `/api/image/${song.image}`
                         : album?.album.images[0].url) || "/song-placeholder.png"
                 }
-                alt="Carátula de la canción"
-                className={
-                    "w-full h-full absolute transition-all " +
-                    (hover ? "brightness-[60%]" : "")
-                }
+                alt="Carátula desenfocada de la canción"
+                className="absolute z-10 w-full max-w-md h-auto blur-3xl brightness-105"
             />
-            <Play
-                className={
-                    "absolute top-1/2 left-1/2 w-20 h-20 fill-transparent -translate-x-1/2 -translate-y-1/2 stroke-0 transition-all duration-75" +
-                    (hover ? " stroke-1 fill-white" : "")
-                }
-            ></Play>
+            
+            {/* Contenedor principal */}
+            <div
+                className="w-full max-w-md h-auto object-cover aspect-square rounded-lg overflow-hidden relative cursor-pointer"
+                onMouseEnter={() => setHover(true)}
+                onMouseLeave={() => setHover(false)}
+                onClick={handleClick}
+            >
+                {/* Imagen principal */}
+                <img
+                    src={
+                        (song?.image
+                            ? `/api/image/${song.image}`
+                            : album?.album.images[0].url) || "/song-placeholder.png"
+                    }
+                    alt="Carátula de la canción"
+                    className={
+                        "w-full h-full absolute transition-all z-10 " +
+                        (hover ? "brightness-[60%]" : "")
+                    }
+                />
+                
+                {/* Icono de Play */}
+                <Play
+                    className={
+                        "absolute top-1/2 left-1/2 w-20 h-20 fill-transparent -translate-x-1/2 -translate-y-1/2 stroke-0 transition-all duration-75 z-20" +
+                        (hover ? " stroke-1 fill-white" : "")
+                    }
+                ></Play>
+            </div>
         </div>
-    );
+    );       
 }

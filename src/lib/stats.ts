@@ -1,4 +1,12 @@
-import type { AlbumDB, ArtistDB, SongDB } from "./db";
+import {
+    type RawSongDB,
+    type AlbumDB,
+    type ArtistDB,
+    type SongDB,
+    db,
+    parseSong,
+} from "./db";
+import { readFile } from "fs/promises";
 
 interface AlbumForStats extends AlbumDB<"name" | "id" | "artists" | "image"> {
     timesPlayed: number;
@@ -20,22 +28,53 @@ export interface Stats {
     albums: AlbumForStats[];
 }
 
-export function getStats(
-    lastPlayedSongs: {
-        [key: string]: number[];
-    },
-    songs: SongDB<
-        | "artists"
-        | "id"
-        | "duration"
-        | "name"
-        | "albumId"
-        | "albumName"
-        | "image"
-    >[] = [],
+export async function getStats(
     start?: number | undefined,
     end?: number | undefined
 ) {
+    // **************************
+    // Replace with SELECT lastPlayedSong FROM user WHERE id = ?     context.locals.user.id
+    const fileBuffer = await readFile("lastPlayedSongs.json", "utf-8");
+    const lastPlayedSongs: {
+        [key: string]: number[];
+    } = JSON.parse(fileBuffer);
+    // **************************
+
+    let songs: SongDB<
+        | "artists"
+        | "id"
+        | "name"
+        | "duration"
+        | "albumId"
+        | "albumName"
+        | "image"
+    >[] = [];
+
+    Array(Math.round(Object.keys(lastPlayedSongs).length / 900) + 1)
+        .fill(0)
+        .map((_, index) => {
+            const query =
+                "SELECT id,artists,duration,name,albumId,albumName,image FROM song WHERE id = " +
+                Object.keys(lastPlayedSongs)
+                    .splice(index * 900, (index + 1) * 900)
+                    .map((key) => `'${key}'`)
+                    .join(" OR id = ");
+
+            const tempSongs = (db.prepare(query).all() as RawSongDB[]).map(
+                (song) =>
+                    parseSong(song) as SongDB<
+                        | "artists"
+                        | "id"
+                        | "name"
+                        | "duration"
+                        | "albumId"
+                        | "albumName"
+                        | "image"
+                    >
+            );
+            songs = [...songs, ...tempSongs];
+        });
+
     let out: Stats = { songs: [], artists: [], albums: [] };
 
     Object.entries(lastPlayedSongs).map((entry) => {

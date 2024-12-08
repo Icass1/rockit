@@ -60,3 +60,5 @@ wrapt==1.17.0
 wsproto==1.2.0
 yt-dlp==2024.12.6
 ytmusicapi==1.8.2
+gunicorn==23.0.0
+

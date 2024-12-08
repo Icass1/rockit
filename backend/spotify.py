@@ -13,10 +13,10 @@ from backendUtils import sanitize_folder_name, download_image
 
 from apiTypes.RawSpotifyApiTrack import RawSpotifyApiTrack, TrackArtists
 from apiTypes.RawSpotifyApiAlbum import RawSpotifyApiAlbum, AlbumItems
-from apiTypes.RawSpotifyApiPlaylist import RawSpotifyApiPlaylist, PlaylistItems, PlaylistAlbum, PlaylistArtists
+from apiTypes.RawSpotifyApiPlaylist import RawSpotifyApiPlaylist, PlaylistItems, PlaylistAlbum, PlaylistArtists, PlaylistTracks
 from apiTypes.RawSpotifyApiArtist import RawSpotifyApiArtist
 from apiTypes.RawSpotifyApiSearchResults import RawSpotifyApiSearchResults, SpotifySearchResultsArtists1, SpotifySearchResultsItems2
-from apiTypes.RawYTMusicApiPlaylist import RawYTMusicApiPlaylist, YTMusicPlaylistTracks
+from apiTypes.RawYTMusicApiPlaylist import RawYTMusicApiPlaylist
 from apiTypes.RawYTMusicApiAlbum import RawYTMusicApiAlbum
 from apiTypes.RawYTMusicApiSong import RawYTMusicApiSong
 
@@ -127,10 +127,25 @@ class Spotify:
         spotdl_songs: List[Song] = []
         raw_songs: List[AlbumItems] | List[PlaylistItems] = []
 
+
+        tracks: List[PlaylistItems] = []
+
+        raw_playlist_tracks = self.api_call(path=f"playlists/{url.replace('https://open.spotify.com/playlist/', '')}/tracks", params={"limit": "100"})
+        playlist_tracks = PlaylistTracks.from_dict(raw_playlist_tracks)
+
+        tracks += playlist_tracks.items
+
+        while playlist_tracks.next:
+            raw_playlist_tracks = self.api_call(path=playlist_tracks.next.replace("https://api.spotify.com/v1/", ""))
+            playlist_tracks = PlaylistTracks.from_dict(raw_playlist_tracks)
+            tracks += playlist_tracks.items
+
         raw_playlist = self.api_call(path=f"playlists/{url.replace('https://open.spotify.com/playlist/', '')}")
         if "error" in raw_playlist:
             return raw_playlist
+
         playlist = RawSpotifyApiPlaylist.from_dict(raw_playlist)
+        playlist.tracks.items = tracks
 
         for item in playlist.tracks.items:
 
@@ -514,7 +529,7 @@ class Spotify:
         url = f"https://api.spotify.com/v1/{path}"
         headers = self.get_auth_header()
 
-        query_url = url + "?" + parsed_params
+        query_url = url + ("?" + parsed_params if len(parsed_params) > 0 else "")
 
         print("====== query_url =======")
         print(query_url)

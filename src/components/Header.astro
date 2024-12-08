@@ -1,5 +1,6 @@
 ---
 import Search from "@/components/Search";
+import { LogOut,Settings } from "lucide-react";
 ---
 
 <header
@@ -13,19 +14,80 @@ import Search from "@/components/Search";
     <Search client:only="react" />
 
     <!-- User Settings -->
-    <a
-        class="flex items-center space-x-4 ml-auto hover:bg-[#272727] p-3 hover:cursor-pointer rounded-lg"
-        href="/settings"
-    >
-        <span class="font-medium">{Astro.locals.user?.username}</span>
-        <div
-            class="w-10 h-10 bg-gray-400 rounded-full overflow-hidden flex items-center justify-center"
+    <div class="relative ml-auto">
+        <!-- Botón para abrir/cerrar el menú -->
+        <button
+            id="toggleMenuButton"
+            class="flex items-center space-x-4 hover:bg-[#272727] p-3 hover:cursor-pointer rounded-lg"
         >
-            <img
-                src="/user-placeholder.png"
-                alt="User avatar"
-                class="w-full h-full object-cover"
-            />
+            <span class="font-medium">{Astro.locals.user?.username}</span>
+            <div
+                class="w-10 h-10 bg-gray-400 rounded-full overflow-hidden flex items-center justify-center"
+            >
+                <img
+                    src="/user-placeholder.png"
+                    alt="User avatar"
+                    class="w-full h-full object-cover"
+                />
+            </div>
+        </button>
+    
+        <!-- Menú desplegable -->
+        <div
+            id="userMenu"
+            class="opacity-0 absolute right-0 mt-2 w-48 bg-[#2f2f2f] shadow-lg rounded-lg z-40 transition-all"
+        >
+            <ul class="text-white">
+                <li
+                    class="hover:bg-[#4f4f4f] flex items-center p-3 space-x-2 cursor-pointer rounded-t-lg"
+                    data-action="settings"
+                >
+                    <Settings />
+                    <span>Settings</span>
+                </li>
+                <li
+                    class="hover:bg-[#4f4f4f] flex items-center p-3 space-x-2 cursor-pointer rounded-b-lg"
+                    data-action="signout"
+                >
+                    <LogOut />
+                    <span>Sign Out</span>
+                </li>
+            </ul>
         </div>
-    </a>
+    </div>
+    
+    <script>
+        // Obtener referencias a los elementos
+        const toggleButton = document.getElementById('toggleMenuButton') as HTMLDivElement;
+        const menu = document.getElementById('userMenu') as HTMLDivElement;
+        
+        // Mostrar/ocultar el menú al hacer clic en el botón
+        toggleButton.addEventListener('click', (event) => {
+            event.stopPropagation();
+            menu.classList.toggle('opacity-0');
+            toggleButton.classList.toggle('bg-[#2f2f2f]');
+            menu.classList.toggle('pointer-events-none');
+        });
+
+        document.addEventListener('click', (event) => {
+            if (!menu.contains(event.target as HTMLDivElement) && !toggleButton.contains(event.target as HTMLDivElement)) {
+                menu.classList.add('opacity-0');
+                toggleButton.classList.remove('bg-[#2f2f2f]');
+                menu.classList.add('pointer-events-none');
+            }
+        });
+
+        
+        // Manejar las acciones del menú
+        menu.querySelectorAll('li').forEach((item) => {
+            item.addEventListener('click', () => {
+            const action = item.getAttribute('data-action');
+            if (action === 'settings') {
+                window.location.href = '/settings';
+            } else if (action === 'signout') {
+                alert('Signed out! (Cambia esto inasio)');
+            }
+            });
+        });
+    </script>    
 </header>

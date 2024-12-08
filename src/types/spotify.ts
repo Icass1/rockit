@@ -5,6 +5,19 @@ export interface SearchResults {
     artists: SpotifyArtist[];
 }
 
+interface ErrorMessage {
+    message: string;
+    status: number;
+}
+
+export interface SpotifyError {
+    error: ErrorMessage;
+}
+
+export function isSpotifyError(data: SpotifyAlbum | SpotifyError): data is SpotifyError {
+    return (data as SpotifyError).error !== undefined;
+}
+
 // ********************
 // *** SpotifyTrack ***
 // ********************

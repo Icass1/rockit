@@ -1,0 +1,203 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { db, parseSong, type RawSongDB, type SongDB } from "@/lib/db";
+import { readFile } from "fs/promises";
+import { getStats } from "@/lib/stats";
+import { getMinutes, getDate } from "@/lib/getTime";
+import BarGraph from "@/components/BarGraph.astro";
+
+// **************************
+// Replace with SELECT lastPlayedSong FROM user WHERE id = ?     context.locals.user.id
+const fileBuffer = await readFile("lastPlayedSongs.json", "utf-8");
+const lastPlayedSongs: {
+    [key: string]: number[];
+} = JSON.parse(fileBuffer);
+// **************************
+
+let songs: SongDB<
+    "artists" | "id" | "name" | "duration" | "albumId" | "albumName"
+>[] = [];
+
+Array(Math.round(Object.keys(lastPlayedSongs).length / 900) + 1)
+    .fill(0)
+    .map((_, index) => {
+        const query =
+            "SELECT id,artists,duration,name,albumId,albumName FROM song WHERE id = " +
+            Object.keys(lastPlayedSongs)
+                .splice(index * 900, (index + 1) * 900)
+                .map((key) => `'${key}'`)
+                .join(" OR id = ");
+
+        const tempSongs = (db.prepare(query).all() as RawSongDB[]).map(
+            (song) =>
+                parseSong(song) as SongDB<
+                    | "artists"
+                    | "id"
+                    | "name"
+                    | "duration"
+                    | "albumId"
+                    | "albumName"
+                >
+        );
+        songs = [...songs, ...tempSongs];
+    });
+
+const start = new Date("2024-07-01").getTime();
+const end = new Date("2024-08-01").getTime();
+
+const data = getStats(lastPlayedSongs, songs, start, end);
+
+const totalTimesPlayedSong = data.songs.length;
+const totalMinutesListened = data.songs.reduce(
+    (partialSum, a) => partialSum + a.duration,
+    0
+);
+
+const songPlayedPerDay: { [key: string]: number } = {};
+const minutesListenedPerDay: { [key: string]: number } = {};
+
+Array(Math.floor((end - start) / (3600 * 1000 * 24)) + 1)
+    .fill(0)
+    .map((_, index) => {
+        const timeStamp = start + index * 3600 * 1000 * 24;
+        const date = new Date(timeStamp);
+        const datePlayed = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+        songPlayedPerDay[datePlayed] = 0;
+        minutesListenedPerDay[datePlayed] = 0;
+    });
+
+data.songs.map((song) => {
+    const date = new Date(song.timePlayed);
+    const datePlayed = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+    songPlayedPerDay[datePlayed] += 1;
+    minutesListenedPerDay[datePlayed] += song.duration;
+});
+
+const maxSongsListenedInADay = Math.max(...Object.values(songPlayedPerDay));
+const maxMinutesListenedInADay = Math.max(
+    ...Object.values(minutesListenedPerDay)
+);
+
+interface SongWithTimesPlayed extends SongDB<"id" | "name"> {
+    timesPlayed: number;
+}
+
+let songsBarGraph: SongWithTimesPlayed[] = [];
+
+data.songs.map((song) => {
+    let result = songsBarGraph.find((findSong) => findSong.id == song.id);
+    if (result) {
+        result.timesPlayed += 1;
+    } else {
+        songsBarGraph.push({ name: song.name, id: song.id, timesPlayed: 1 });
+    }
+});
+
+songsBarGraph.sort((a, b) => b.timesPlayed - a.timesPlayed);
+---
+
+<Layout currentPage="Stats & Friends">
+    <label class="text-2xl font-semibold px-5"
+        >Showing data from {getDate(start)} to {getDate(end)}</label
+    >
+    <div class="p-4 flex flex-row gap-4">
+        {
+            data.songs.length == 0 ? (
+                <div>No registered data.</div>
+            ) : (
+                <>
+                    <div class="w-96 bg-gray-800 rounded-lg p-2 h-fit flex flex-col font-semibold">
+                        <label>{totalTimesPlayedSong} songs listened</label>
+                        <label>
+                            {getMinutes(totalMinutesListened)} minutes listened
+                        </label>
+                    </div>
+
+                    <div class="w-96 bg-gray-800 rounded-lg p-2 h-fit flex flex-col font-semibold">
+                        <label class="mb-2">Songs listened per day</label>
+                        <div class="relative h-56">
+                            <div
+                                class="absolute left-0 right-0 top-0 bottom-0 bg-gradient-to-t from-[#ee1086] to-[#fb6467] rounded"
+                                style={`clip-path: polygon(${Object.entries(songPlayedPerDay).map((song) => `${((new Date(song[0]).getTime() - start) / (end - start)) * 100}% ${100 - (song[1] / maxSongsListenedInADay) * 100}%`)}, 100% 100%, 0% 100%);`}
+                            />
+                            {Array(11)
+                                .fill(0)
+                                .map((_, index) => (
+                                    <div
+                                        class="bg-gray-600/50 absolute w-[1px] h-full"
+                                        style={`left: ${index * 10}%;`}
+                                    />
+                                ))}
+                            {Array(11)
+                                .fill(0)
+                                .map((_, index) => (
+                                    <div
+                                        class="bg-gray-600/50 absolute h-[1px] w-full"
+                                        style={`top: ${index * 10}%;`}
+                                    />
+                                ))}
+                        </div>
+                    </div>
+
+                    <div class="w-96 bg-gray-800 rounded-lg p-2 h-fit flex flex-col font-semibold">
+                        <label class="mb-2">Minutes listened per day</label>
+                        <div class="relative h-56">
+                            <div
+                                class="absolute left-0 right-0 top-0 bottom-0 bg-gradient-to-t from-[#ee1086] to-[#fb6467] rounded"
+                                style={`clip-path: polygon(${Object.entries(minutesListenedPerDay).map((song) => `${((new Date(song[0]).getTime() - start) / (end - start)) * 100}% ${100 - (song[1] / maxMinutesListenedInADay) * 100}%`)}, 100% 100%, 0% 100%);`}
+                            />
+                            {Array(11)
+                                .fill(0)
+                                .map((_, index) => (
+                                    <div
+                                        class="bg-gray-600/50 absolute w-[1px] h-full"
+                                        style={`left: ${index * 10}%;`}
+                                    />
+                                ))}
+                            {Array(11)
+                                .fill(0)
+                                .map((_, index) => (
+                                    <div
+                                        class="bg-gray-600/50 absolute h-[1px] w-full"
+                                        style={`top: ${index * 10}%;`}
+                                    />
+                                ))}
+                        </div>
+                    </div>
+
+                    <BarGraph
+                        name="Most listened albums"
+                        items={data.albums.map((album) => {
+                            return {
+                                name: album.name,
+                                value: album.timesPlayed,
+                                href: `/album/${album.id}`,
+                            };
+                        })}
+                    />
+                    <BarGraph
+                        name="Most listened artists"
+                        items={data.artists.map((artist) => {
+                            return {
+                                name: artist.name,
+                                value: artist.timesPlayed,
+                                href: `/artist/${artist.id}`,
+                            };
+                        })}
+                    />
+                    <BarGraph
+                        name="Most listened songs"
+                        type="value"
+                        items={songsBarGraph.map((song) => {
+                            return {
+                                name: song.name,
+                                value: song.timesPlayed,
+                                href: `/song/${song.id}`,
+                            };
+                        })}
+                    />
+                </>
+            )
+        }
+    </div>
+</Layout>

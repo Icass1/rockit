@@ -9,7 +9,7 @@ from ytmusicapi import YTMusic
 
 from spotdl.types.song import Song
 
-from utils import sanitize_folder_name, download_image
+from backendUtils import sanitize_folder_name, download_image
 
 from apiTypes.RawSpotifyApiTrack import RawSpotifyApiTrack, TrackArtists
 from apiTypes.RawSpotifyApiAlbum import RawSpotifyApiAlbum, AlbumItems
@@ -128,6 +128,8 @@ class Spotify:
         raw_songs: List[AlbumItems] | List[PlaylistItems] = []
 
         raw_playlist = self.api_call(path=f"playlists/{url.replace('https://open.spotify.com/playlist/', '')}")
+        if "error" in raw_playlist:
+            return raw_playlist
         playlist = RawSpotifyApiPlaylist.from_dict(raw_playlist)
 
         for item in playlist.tracks.items:

@@ -1,4 +1,4 @@
-import type { SpotifyAlbum } from "@/types/spotify";
+import { isSpotifyError, type SpotifyAlbum, type SpotifyError } from "@/types/spotify";
 import {
     db,
     parseAlbum,
@@ -121,7 +121,11 @@ export default async function getAlbum(
         if (!response.ok) {
             return "not found";
         }
-        const data: SpotifyAlbum = await response.json();
+        const data: SpotifyAlbum | SpotifyError = await response.json();
+
+        if (isSpotifyError(data)) {
+            return "not found";
+        }
 
         album = {
             id: data.id,

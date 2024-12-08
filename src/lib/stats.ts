@@ -1,18 +1,26 @@
 import type { AlbumDB, ArtistDB, SongDB } from "./db";
 
-interface AlbumWithTimesPlayed extends AlbumDB<"name" | "id"> {
+interface AlbumForStats extends AlbumDB<"name" | "id"> {
     timesPlayed: number;
+    index: number;
 }
 
-interface ArtistWithTimesPlayed extends ArtistDB {
+interface ArtistForStats extends ArtistDB {
     timesPlayed: number;
+    index: number;
 }
-interface SongWithTimesPlayed
+interface SongWithTimePlayed
     extends SongDB<"artists" | "id" | "duration" | "name"> {
     timePlayed: number;
 }
 
-export function PlayedSongs(
+export interface Stats {
+    songs: SongWithTimePlayed[];
+    artists: ArtistForStats[];
+    albums: AlbumForStats[];
+}
+
+export function getStats(
     lastPlayedSongs: {
         [key: string]: number[];
     },
@@ -22,13 +30,7 @@ export function PlayedSongs(
     start: number,
     end: number
 ) {
-    interface Out {
-        songs: SongWithTimesPlayed[];
-        artists: ArtistWithTimesPlayed[];
-        albums: AlbumWithTimesPlayed[];
-    }
-
-    let out: Out = { songs: [], artists: [], albums: [] };
+    let out: Stats = { songs: [], artists: [], albums: [] };
 
     Object.entries(lastPlayedSongs).map((entry) => {
         entry[1].map((time) => {
@@ -50,6 +52,7 @@ export function PlayedSongs(
                             artistOut.timesPlayed += 1;
                         } else {
                             out.artists.push({
+                                index: 1,
                                 name: artist.name,
                                 id: artist.id,
                                 timesPlayed: 1,
@@ -64,6 +67,7 @@ export function PlayedSongs(
                         album.timesPlayed += 1;
                     } else {
                         out.albums.push({
+                            index: 1,
                             name: song.albumName,
                             id: song.albumId,
                             timesPlayed: 1,
@@ -76,8 +80,28 @@ export function PlayedSongs(
         });
     });
 
-    out.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
-    out.artists.sort((a, b) => b.timesPlayed - a.timesPlayed);
+
+
+    const sortedAlbums = [...out.albums]
+    sortedAlbums.sort(
+        (a, b) => b.timesPlayed - a.timesPlayed
+    );
+    out.albums.map((album) => {
+        album.index = sortedAlbums.indexOf(album);
+    });
+
+
+    
+    const sortedArtists = [...out.artists]
+    sortedArtists.sort(
+        (a, b) => b.timesPlayed - a.timesPlayed
+    );
+    out.artists.map((artist) => {
+        artist.index = sortedArtists.indexOf(artist);
+    });
+
+
+    // out.artists.sort((a, b) => b.timesPlayed - a.timesPlayed);
     out.songs.sort((a, b) => a.timePlayed - b.timePlayed);
 
     return out;

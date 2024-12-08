@@ -33,6 +33,7 @@ type ListInfo = {
     artists: SpotifyArtist[];
     images: SpotifyAlbumImage[];
     name: string;
+    type: "playlist" | "album";
 };
 
 type StatusType = {
@@ -66,7 +67,7 @@ function RenderListDownload({
 
     return (
         <div className="bg-zinc-400/10 min-w-0 max-w-full flex flex-col rounded">
-            <div className="flex flex-row h-14 min-w-0 max-w-full gap-2">
+            <div className="flex flex-row h-16 min-w-0 max-w-full gap-2">
                 <img
                     src={list[1].listInfo.images[0].url}
                     className="h-full w-auto rounded"
@@ -74,34 +75,42 @@ function RenderListDownload({
                 <div className="flex flex-col min-w-0 max-w-full w-full pr-1">
                     <a
                         className="text-base font-semibold truncate hover:underline"
-                        href={"/album/" + list[1].listInfo.id}
+                        href={
+                            "/" +
+                            list[1].listInfo.type +
+                            "/" +
+                            list[1].listInfo.id
+                        }
                     >
-                        {list[1].listInfo.name}{" "}
+                        {list[1].listInfo.name} 
                     </a>
                     <label className="text-sm">
                         {list[1].listInfo.artists
                             .map((artist) => artist.name || artist)
                             .join(", ")}
                     </label>
-                    <div
-                        className={
-                            "bg-gray-500 h-2 w-full rounded-full relative overflow-hidden"
-                        }
-                    >
-                        <div
-                            className="bg-red-400 absolute h-full rounded-full transition-all"
-                            style={{
-                                width: `calc(${list[1].listError}% + 20px)`,
-                                left: `calc(${list[1].totalCompleted}% - 20px)`,
-                            }}
-                        ></div>
+                    <div className="flex flex-row items-center gap-2">
                         <div
                             className={
-                                "bg-green-500 absolute h-full rounded-full transition-all"
+                                "bg-gray-500 h-2 w-full rounded-full relative overflow-hidden"
                             }
-                            style={{ width: `${list[1].totalCompleted}%` }}
-                        ></div>
-                    </div>
+                        >
+                            <div
+                                className="bg-red-400 absolute h-full rounded-full transition-all"
+                                style={{
+                                    width: `calc(${list[1].listError}% + 20px)`,
+                                    left: `calc(${list[1].totalCompleted}% - 20px)`,
+                                }}
+                            ></div>
+                            <div
+                                className={
+                                    "bg-green-500 absolute h-full rounded-full transition-all"
+                                }
+                                style={{ width: `${list[1].totalCompleted}%` }}
+                            ></div>
+                        </div>
+                        <label className="text-sm font-semibold">{Math.round(list[1].totalCompleted*10)/10}%</label>
+                    </div>{" "}
                 </div>
             </div>
             <label
@@ -292,7 +301,7 @@ function Downloads({ navOpen }: { navOpen: boolean }) {
                 return newValue;
             });
             if (
-                Math.round(message.list_completed + message.list_error) == 100
+                Math.round((message.list_completed + message.list_error)*100)/100 == 100
             ) {
                 eventSource.close();
             }
@@ -306,7 +315,6 @@ function Downloads({ navOpen }: { navOpen: boolean }) {
                 continue;
             }
             console.log("EventSource", `/api/download-status/${downloadId}`);
-            console.log(eventSources?.current);
             eventSources?.current?.push(downloadId);
             const eventSource = new EventSource(
                 `/api/download-status/${downloadId}`

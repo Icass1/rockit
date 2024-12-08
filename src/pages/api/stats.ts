@@ -1,11 +1,21 @@
-import { db, parseSong, type RawSongDB, type SongDB } from "@/lib/db";
-import { PlayedSongs } from "@/lib/stats";
 import type { APIContext } from "astro";
 import { readFile } from "fs/promises";
+import { getStats } from "@/lib/stats";
+
+import { db, parseSong, type RawSongDB, type SongDB } from "@/lib/db";
 
 export async function GET(context: APIContext): Promise<Response> {
     if (!context.locals.user) {
         return new Response("Unauthenticated", { status: 401 });
+    }
+
+    const start = context.url.searchParams.get("start");
+    const end = context.url.searchParams.get("end");
+
+    if (!start || !end) {
+        return new Response("Must pass start and end as search params", {
+            status: 404,
+        });
     }
 
     // **************************
@@ -44,19 +54,11 @@ export async function GET(context: APIContext): Promise<Response> {
             songs = [...songs, ...tempSongs];
         });
 
-    return new Response(
-        JSON.stringify(
-            PlayedSongs(
-                lastPlayedSongs,
-                songs,
-                new Date("2024-10-01T00:00:00").getTime(),
-                new Date("2024-11-01T00:00:00").getTime()
-            )
-        ),
-        {
-            headers: {
-                "Content-Type": "application/json",
-            },
-        }
-    );
+    const data = getStats(lastPlayedSongs, songs, Number(start), Number(end));
+
+    return new Response(JSON.stringify(data), {
+        headers: {
+            "Content-Type": "application/json",
+        },
+    });
 }

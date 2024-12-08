@@ -72,7 +72,12 @@ const meta = {
                 <AddToLibrary type="album" id={id} client:only="react" />
                 <PlayCircle strokeWidth={0.9} className="h-10 w-10" />
             </div>
-            <img src={album.images[0].url} class="rounded-md" />
+            <img
+                src={album.image
+                    ? `/api/image/${album.image}`
+                    : album.images[0].url}
+                class="rounded-md"
+            />
             <label class="pt-2 text-2xl font-semibold">{album.name}</label>
 
             <div class="text-xl font-semibold text-stone-400">
@@ -129,7 +134,7 @@ const meta = {
                     );
                 })
             }
-            <!--<div class="min-h-56"></div>-->
+            <div class="min-h-20"></div>
         </div>
     </div>
 </Layout>

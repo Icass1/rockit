@@ -37,7 +37,7 @@ export async function POST(context: APIContext): Promise<Response> {
     }
 
     if (album) {
-        if (image != null) {
+        if (imageId != null) {
             db.prepare(`UPDATE album SET image = ? WHERE id = ?`).run(
                 imageId,
                 id

@@ -31,7 +31,7 @@ type Song = SongDB<
 
 export type GetAlbum = {
     album: AlbumDB<
-        "name" | "songs" | "artists" | "images" | "releaseDate" | "id"
+        "name" | "songs" | "artists" | "images" | "releaseDate" | "id" | "image"
     >;
     songs: Song[];
     discs: Song[][];
@@ -43,7 +43,13 @@ export default async function getAlbum(
 ): Promise<GetAlbum | "error connecting to backend" | "not found"> {
     let album:
         | AlbumDB<
-              "name" | "songs" | "artists" | "images" | "releaseDate" | "id"
+              | "name"
+              | "songs"
+              | "artists"
+              | "images"
+              | "releaseDate"
+              | "id"
+              | "image"
           >
         | undefined;
     let inDatabase: boolean;
@@ -135,6 +141,7 @@ export default async function getAlbum(
             name: data.name,
             releaseDate: data.release_date,
             songs: data.tracks.items.map((item) => item.id),
+            image: "",
         };
 
         songs = data.tracks.items.map((item) => {

@@ -37,12 +37,16 @@ let _currentSong = undefined;
 let _queue: Queue = [];
 let _queueIndex = json.queueIndex || 0;
 
-if (json.currentSong) {
-    _currentSong = (await (
-        await fetch(
-            `/api/song/${json.currentSong}?q=images,id,name,artists,albumId,albumName`
-        )
-    ).json()) as CurrentSong;
+try {
+    if (json.currentSong) {
+        _currentSong = (await (
+            await fetch(
+                `/api/song/${json.currentSong}?q=images,id,name,artists,albumId,albumName`
+            )
+        ).json()) as CurrentSong;
+    }
+} catch {
+    _currentSong = undefined;
 }
 
 if (json.queue.length > 0) {

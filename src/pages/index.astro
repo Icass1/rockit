@@ -1,6 +1,7 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import AlbumsCarousel from "@/components/AlbumsCarousel.tsx";
+import { getStats, type SongForStats } from "@/lib/stats";
 
 if (!Astro.locals.user) {
     return Astro.redirect("/login");
@@ -41,15 +42,43 @@ const categories = [
         image: "https://img.freepik.com/premium-photo/funny-ultra-soft-hot-air-balloon-isolated-pink-background-pastel-colors-colorful-poster-banner-cartoon-minimal-air-style-3d-illustration_76964-5239.jpg",
     },
 ];
+
+const stats = await getStats();
+
+let songsTimesPlayed: SongForStats[] = [];
+
+stats.songs.map((song) => {
+    let result = songsTimesPlayed.find((findSong) => findSong.id == song.id);
+    if (result) {
+        result.timesPlayed += 1;
+    } else {
+        songsTimesPlayed.push({
+            artists: song.artists,
+            image: song.image,
+            index: 0,
+            name: song.name,
+            id: song.id,
+            timesPlayed: 1,
+            duration: song.duration,
+            images: song.images,
+            albumId: song.albumId,
+            albumName: song.albumName,
+        });
+    }
+});
+
+songsTimesPlayed.sort((a, b) => b.timesPlayed - a.timesPlayed);
 ---
 
 <Layout title="Rock It!" currentPage="Home">
     <!-- Albums Carousel Section -->
 
-    <AlbumsCarousel client:only="react" />
+    <AlbumsCarousel songsTimesPlayed={songsTimesPlayed} client:only="react" />
 
     <section class="mt-12 text-center">
-        <h2 class="text-3xl font-bold text-white mb-8">Explore by Category (🏗️ In Progess 🏗️)</h2>
+        <h2 class="text-3xl font-bold text-white mb-8">
+            Explore by Category (🏗️ In Progess 🏗️)
+        </h2>
         <div class="flex justify-center gap-3 flex-wrap">
             {
                 categories.map((category) => (
@@ -78,31 +107,10 @@ const categories = [
             <!-- Aquí creamos las canciones -->
             {
                 Array.from({ length: 20 }).map((_, index) => (
-                    <a href="#" class="flex-none w-48 hover:scale-105 transition">
-                        <img
-                            class="rounded-lg w-full aspect-square object-cover"
-                            src="/song-placeholder.png"
-                            alt="Song Cover"
-                        />
-                        <label class="truncate font-semibold text-center block mt-2">
-                            Song Title {index + 1}
-                        </label>
-                        <label class="truncate text-sm text-center text-gray-400 block">
-                            Artist Name
-                        </label>
-                    </a>
-                ))
-            }
-        </div>
-    </section>
-
-    <section class="p-12 text-white">
-        <h2 class="text-3xl font-bold text-left">Most Listened Songs</h2>
-        <div class="relative flex items-center gap-4 overflow-x-auto py-4 px-2">
-            <!-- Aquí creamos las canciones -->
-            {
-                Array.from({ length: 20 }).map((_, index) => (
-                    <a href="#" class="flex-none w-48 hover:scale-105 transition">
+                    <a
+                        href="#"
+                        class="flex-none w-48 hover:scale-105 transition"
+                    >
                         <img
                             class="rounded-lg w-full aspect-square object-cover"
                             src="/song-placeholder.png"
@@ -126,7 +134,10 @@ const categories = [
             <!-- Aquí creamos las canciones -->
             {
                 Array.from({ length: 20 }).map((_, index) => (
-                    <a href="#" class="flex-none w-48 hover:scale-105 transition">
+                    <a
+                        href="#"
+                        class="flex-none w-48 hover:scale-105 transition"
+                    >
                         <img
                             class="rounded-lg w-full aspect-square object-cover"
                             src="/song-placeholder.png"

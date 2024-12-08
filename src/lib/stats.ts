@@ -18,8 +18,32 @@ interface ArtistForStats extends ArtistDB {
     index: number;
 }
 interface SongWithTimePlayed
-    extends SongDB<"artists" | "id" | "duration" | "name"> {
+    extends SongDB<
+        | "artists"
+        | "id"
+        | "duration"
+        | "name"
+        | "image"
+        | "images"
+        | "albumId"
+        | "albumName"
+    > {
     timePlayed: number;
+}
+
+export interface SongForStats
+    extends SongDB<
+        | "id"
+        | "name"
+        | "image"
+        | "artists"
+        | "albumId"
+        | "albumName"
+        | "images"
+        | "duration"
+    > {
+    timesPlayed: number;
+    index: number;
 }
 
 export interface Stats {
@@ -48,13 +72,14 @@ export async function getStats(
         | "albumId"
         | "albumName"
         | "image"
+        | "images"
     >[] = [];
 
     Array(Math.round(Object.keys(lastPlayedSongs).length / 900) + 1)
         .fill(0)
         .map((_, index) => {
             const query =
-                "SELECT id,artists,duration,name,albumId,albumName,image FROM song WHERE id = " +
+                "SELECT id,artists,duration,name,albumId,albumName,image,images FROM song WHERE id = " +
                 Object.keys(lastPlayedSongs)
                     .splice(index * 900, (index + 1) * 900)
                     .map((key) => `'${key}'`)
@@ -70,6 +95,7 @@ export async function getStats(
                         | "albumId"
                         | "albumName"
                         | "image"
+                        | "images"
                     >
             );
             songs = [...songs, ...tempSongs];
@@ -88,6 +114,10 @@ export async function getStats(
                         timePlayed: time,
                         duration: song.duration,
                         name: song.name,
+                        image: song.image,
+                        images: song.images,
+                        albumId: song.albumId,
+                        albumName: song.albumName,
                     });
                     song.artists.map((artist) => {
                         let artistOut = out.artists.find(

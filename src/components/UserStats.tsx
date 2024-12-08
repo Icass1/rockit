@@ -1,13 +1,7 @@
 import { getDate } from "@/lib/getTime";
 import BarGraph from "./BarGraph.tsx";
 import { useEffect, useRef, useState } from "react";
-import type { Stats } from "@/lib/stats";
-import type { SongDB } from "@/lib/db";
-
-interface SongForStats extends SongDB<"id" | "name"> {
-    timesPlayed: number;
-    index: number;
-}
+import type { SongForStats, Stats } from "@/lib/stats";
 
 export default function UserStats() {
     const [startDate, setStartDate] = useState("2024-06-01");
@@ -39,6 +33,12 @@ export default function UserStats() {
                     name: song.name,
                     id: song.id,
                     timesPlayed: 1,
+                    albumId: song.albumId,
+                    albumName: song.albumName,
+                    duration: song.duration,
+                    images: song.images,
+                    artists: song.artists,
+                    image: song.image,
                 });
             }
         });

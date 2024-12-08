@@ -27,14 +27,20 @@ export async function GET(context: APIContext): Promise<Response> {
     // **************************
 
     let songs: SongDB<
-        "artists" | "id" | "name" | "duration" | "albumId" | "albumName"
+        | "artists"
+        | "id"
+        | "name"
+        | "duration"
+        | "albumId"
+        | "albumName"
+        | "image"
     >[] = [];
 
     Array(Math.round(Object.keys(lastPlayedSongs).length / 900) + 1)
         .fill(0)
         .map((_, index) => {
             const query =
-                "SELECT id,artists,duration,name,albumId,albumName FROM song WHERE id = " +
+                "SELECT id,artists,duration,name,albumId,albumName,image FROM song WHERE id = " +
                 Object.keys(lastPlayedSongs)
                     .splice(index * 900, (index + 1) * 900)
                     .map((key) => `'${key}'`)
@@ -49,6 +55,7 @@ export async function GET(context: APIContext): Promise<Response> {
                         | "duration"
                         | "albumId"
                         | "albumName"
+                        | "image"
                     >
             );
             songs = [...songs, ...tempSongs];

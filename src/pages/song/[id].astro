@@ -255,7 +255,7 @@ if (response.ok) {
                 class="relative flex items-center gap-5 overflow-x-auto py-4 px-2"
             >
                 {
-                    artistSongs?.tracks.map((song, index) => (
+                    artistSongs?.tracks.map((song) => (
                         <a
                             href={`/song/${song.id}`}
                             class="flex-none w-48 hover:scale-105 transition"

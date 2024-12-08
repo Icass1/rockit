@@ -1,6 +1,6 @@
 import type { AlbumDB, ArtistDB, SongDB } from "./db";
 
-interface AlbumForStats extends AlbumDB<"name" | "id"> {
+interface AlbumForStats extends AlbumDB<"name" | "id" | "artists" | "image"> {
     timesPlayed: number;
     index: number;
 }
@@ -25,16 +25,22 @@ export function getStats(
         [key: string]: number[];
     },
     songs: SongDB<
-        "artists" | "id" | "duration" | "name" | "albumId" | "albumName"
+        | "artists"
+        | "id"
+        | "duration"
+        | "name"
+        | "albumId"
+        | "albumName"
+        | "image"
     >[] = [],
-    start: number,
-    end: number
+    start?: number | undefined,
+    end?: number | undefined
 ) {
     let out: Stats = { songs: [], artists: [], albums: [] };
 
     Object.entries(lastPlayedSongs).map((entry) => {
         entry[1].map((time) => {
-            if (start < time && time < end) {
+            if ((start ? start < time : true) && (end ? time < end : true)) {
                 let song = songs.find((song) => song.id == entry[0]);
                 if (song) {
                     out.songs.push({
@@ -67,6 +73,8 @@ export function getStats(
                         album.timesPlayed += 1;
                     } else {
                         out.albums.push({
+                            artists: song.artists,
+                            image: song.image,
                             index: 1,
                             name: song.albumName,
                             id: song.albumId,

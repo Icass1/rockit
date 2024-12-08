@@ -4,13 +4,18 @@ import {
     db,
     parseAlbum,
     parsePlaylist,
+    parseSong,
     parseUser,
     type AlbumDB,
     type PlaylistDB,
     type RawAlbumDB,
     type RawPlaylistDB,
+    type RawSongDB,
     type RawUserDB,
+    type SongDB,
 } from "@/lib/db";
+import { getStats } from "@/lib/stats";
+import { readFile } from "fs/promises";
 
 if (!Astro.locals.user) {
     return Astro.redirect("/login");
@@ -46,6 +51,46 @@ if (userLists?.filter((list) => list.type == "album").length > 0) {
         (album) => parseAlbum(album) as AlbumDB
     );
 }
+
+// **************************
+// Replace with SELECT lastPlayedSong FROM user WHERE id = ?     context.locals.user.id
+const fileBuffer = await readFile("lastPlayedSongs.json", "utf-8");
+const lastPlayedSongs: {
+    [key: string]: number[];
+} = JSON.parse(fileBuffer);
+// **************************
+
+let songs: SongDB<
+    "artists" | "id" | "name" | "duration" | "albumId" | "albumName" | "image"
+>[] = [];
+
+Array(Math.round(Object.keys(lastPlayedSongs).length / 900) + 1)
+    .fill(0)
+    .map((_, index) => {
+        const query =
+            "SELECT id,artists,duration,name,albumId,albumName,image FROM song WHERE id = " +
+            Object.keys(lastPlayedSongs)
+                .splice(index * 900, (index + 1) * 900)
+                .map((key) => `'${key}'`)
+                .join(" OR id = ");
+
+        const tempSongs = (db.prepare(query).all() as RawSongDB[]).map(
+            (song) =>
+                parseSong(song) as SongDB<
+                    | "artists"
+                    | "id"
+                    | "name"
+                    | "duration"
+                    | "albumId"
+                    | "albumName"
+                    | "image"
+                >
+        );
+        songs = [...songs, ...tempSongs];
+    });
+
+const data = getStats(lastPlayedSongs, songs);
+data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
 ---
 
 <Layout title="Library • Rock It!" currentPage="Library">
@@ -69,21 +114,28 @@ if (userLists?.filter((list) => list.type == "album").length > 0) {
             >
                 <!-- Aquí creamos las canciones -->
                 {
-                    Array.from({ length: 3 }).map((_, index) => (
+                    data.albums.slice(0, 4).map((album) => (
                         <a
-                            href="#"
+                            href={`/album/${album.id}`}
                             class="flex-none w-48 hover:scale-105 transition"
                         >
                             <img
                                 class="rounded-lg w-full aspect-square object-cover"
-                                src="/song-placeholder.png"
+                                src={`/api/image/${album.image}`}
                                 alt="Song Cover"
                             />
                             <label class="truncate font-semibold text-center block mt-2">
-                                Album/Playlist {index + 1}
+                                {album.name}
                             </label>
                             <label class="truncate text-sm text-center text-gray-400 block">
-                                ShortDescription
+                                {album.artists.map((artist, index) => (
+                                    <label
+                                        class="hover:underline"
+                                        onclick={`event.preventDefault(); event.stopPropagation(); location.href='/artist/${artist.id}' `}
+                                    >
+                                        {`${artist.name}${index < album.artists.length - 1 ? "," : ""}`}
+                                    </label>
+                                ))}
                             </label>
                         </a>
                     ))

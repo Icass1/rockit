@@ -523,7 +523,11 @@ export default function Navigation({ activePage }: { activePage: string }) {
                         >
                             <img
                                 className="w-8 h-8 flex items-center justify-center rounded-sm"
-                                src={`/api/image/${list.image}`}
+                                src={
+                                    (list?.image
+                                        ? `/api/image/${list.image}`
+                                        : "/song-placeholder.png")
+                                } 
                             />
                             <label className="font-semibold text-sm truncate cursor-pointer">
                                 {list.name}
@@ -536,4 +540,5 @@ export default function Navigation({ activePage }: { activePage: string }) {
             </div>
         </div>
     );
+    //Aqui ignacio revisa lo de la cancion y el placeholder que no va bien (Lineas 526-530)
 }

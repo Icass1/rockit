@@ -76,7 +76,7 @@ data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
                     data.albums.slice(0, 4).map((album) => (
                         <a
                             href={`/album/${album.id}`}
-                            class="flex-none w-48 hover:scale-105 transition"
+                            class="flex-none w-48 md:hover:scale-105 transition"
                         >
                             <img
                                 class="rounded-lg w-full aspect-square object-cover"
@@ -112,7 +112,7 @@ data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
                     return (
                         <a
                             href={`/playlist/${playlist.id}`}
-                            class="w-fit h-fit flex flex-col min-w-0 max-w-full hover:scale-110 transition-transform"
+                            class="w-fit h-fit flex flex-col min-w-0 max-w-full md:hover:scale-110 transition-transform"
                         >
                             <img
                                 class="rounded-md"
@@ -139,7 +139,7 @@ data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
                     return (
                         <a
                             href={`/album/${album.id}`}
-                            class="w-fit h-fit flex flex-col min-w-0 max-w-full hover:scale-105 transition-transform"
+                            class="w-fit h-fit flex flex-col min-w-0 max-w-full md:hover:scale-105 transition-transform"
                         >
                             <img
                                 class="rounded-md"

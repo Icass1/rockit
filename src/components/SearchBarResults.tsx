@@ -33,7 +33,7 @@ function Result({
     return (
         <a
             className={
-                "flex flex-row h-full rounded overflow-hidden gap-x-2 bg-zinc-700 hover:bg-zinc-500/60 transition-colors cursor-pointer items-center " +
+                "flex flex-row h-full rounded overflow-hidden gap-x-2 bg-zinc-700 md:hover:bg-zinc-500/60 transition-colors cursor-pointer items-center " +
                 (artistsOrOwner == "" ? " rounded-l-[70px] rounded-r-lg " : " ")
             }
             href={url
@@ -55,7 +55,7 @@ function Result({
             </div>
             {!inDatabase && (
                 <div
-                    className="w-6 h-6 mr-2 text-blue-400 hover:scale-105 transition-transform"
+                    className="w-6 h-6 mr-2 text-blue-400 md:hover:scale-105 transition-transform"
                     onClick={handleClick}
                 >
                     <DownloadCloud />

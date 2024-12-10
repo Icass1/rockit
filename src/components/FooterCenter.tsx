@@ -40,31 +40,31 @@ export default function FooterCenter() {
 
     return (
         <div
-            className="flex flex-col items-center justify-center w-1/3 space-y-1"
+            className="hidden flex-col items-center justify-center w-1/3 space-y-1 md:flex"
             id="footer-center"
         >
             <div className="grid grid-cols-5 justify-items-center items-center gap-2">
-                <Shuffle className="w-[18px] h-[18px] text-gray-400 hover:text-white cursor-pointer hover:scale-105" />
-                <SkipBack className="w-[22px] h-[22px] fill-current text-gray-400 hover:text-white cursor-pointer hover:scale-105" />
+                <Shuffle className="w-[18px] h-[18px] text-gray-400 md:hover:text-white cursor-pointer md:hover:scale-105" />
+                <SkipBack className="w-[22px] h-[22px] fill-current text-gray-400 md:hover:text-white cursor-pointer md:hover:scale-105" />
                 {$playing ? (
                     <CirclePause
-                        className="w-8 h-8 text-gray-400 hover:text-white cursor-pointer hover:scale-105"
+                        className="w-8 h-8 text-gray-400 md:hover:text-white cursor-pointer md:hover:scale-105"
                         onClick={pause}
                     />
                 ) : (
                     <CirclePlay
-                        className="w-8 h-8 text-gray-400 hover:text-white cursor-pointer hover:scale-105"
+                        className="w-8 h-8 text-gray-400 md:hover:text-white cursor-pointer md:hover:scale-105"
                         onClick={play}
                     />
                 )}
                 <SkipForward
-                    className="w-[22px] h-[22px] fill-current text-gray-400 hover:text-white cursor-pointer hover:scale-105"
+                    className="w-[22px] h-[22px] fill-current text-gray-400 md:hover:text-white cursor-pointer md:hover:scale-105"
                     onClick={async () => {
                         await next();
                         play();
                     }}
                 />
-                <Repeat className="w-5 h-5 text-gray-400 hover:text-white cursor-pointer hover:scale-105" />
+                <Repeat className="w-5 h-5 text-gray-400 md:hover:text-white cursor-pointer md:hover:scale-105" />
             </div>
             <div className="flex items-center space-x-2 h-7 w-full group">
                 <span id="current-time" className="text-xs font-semibold">

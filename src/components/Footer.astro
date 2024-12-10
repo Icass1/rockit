@@ -1,25 +1,22 @@
 ---
-import { Volume2 } from "lucide-react";
+import { Volume2, Play } from "lucide-react";
 
 import FooterCenter from "@/components/FooterCenter";
 import FooterLeft from "@/components/FooterLeft";
 import TogglePlayerUI from "@/components/TogglePlayerUI";
 ---
 
-<footer
-    class="bg-[#1a1a1a] text-white py-4 px-5 w-full h-24 box-border z-50"
->
-    <div class="flex justify-center items-center w-full h-full">
+<footer class="bg-[#1a1a1a] text-white md:py-4 md:px-5 px-2 py-2 w-full md:h-24 box-border z-50">
+    <div class="flex md:justify-center items-center w-full h-full">
         <!-- Sección Izquierda -->
-
         <FooterLeft client:only="react" />
-        <FooterCenter client:only="react" />
 
-        <!-- Sección Derecha: Volumen -->
-        <div class="flex items-center w-1/3 h-full justify-end gap-x-3 group">
-            <Volume2
-                className="w-5 h-5 text-gray-400 hover:text-white cursor-pointer"
-            />
+        <!-- Sección Central (solo visible en pantallas medianas y más grandes) -->
+        <FooterCenter client:only="react"/>
+
+        <!-- Sección Derecha (Dispositivos grandes): Volumen -->
+        <div class="hidden md:flex items-center w-1/3 h-full justify-end gap-x-3 group">
+            <Volume2 className="w-5 h-5 text-gray-400 md:hover:text-white cursor-pointer" />
 
             <div class="relative w-16 h-1 rounded-full bg-gray-400">
                 <div
@@ -29,6 +26,11 @@ import TogglePlayerUI from "@/components/TogglePlayerUI";
                 </div>
             </div>
             <TogglePlayerUI client:only="react" />
+        </div>
+
+        <!-- Sección Derecha: Solo visible en pantallas pequeñas -->
+        <div class="flex items-center w-[10%] h-full justify-end pr-3 md:pr-0 gap-x-3 group md:hidden">
+            <Play className="w-5 h-5 text-white fill-current" />
         </div>
     </div>
 </footer>

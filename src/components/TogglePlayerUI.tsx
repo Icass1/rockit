@@ -7,7 +7,7 @@ export default function TogglePlayerUI() {
 
     return (
         <div
-            className="border-solid w-6 h-6 border-gray-400 border-[2.4px] rounded relative hover:border-white text-gray-400 hover:text-white transition-all"
+            className="border-solid w-6 h-6 border-gray-400 border-[2.4px] rounded relative md:hover:border-white text-gray-400 md:hover:text-white transition-all"
             onClick={() => {
                 isPlayerUIVisible.set(!$isPlayerUIVisible);
             }}

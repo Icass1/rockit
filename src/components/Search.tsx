@@ -13,7 +13,7 @@ export default function Search() {
                     {$searchResults.songs?.map((song) => (
                         <a
                             href={`/song/${song.id}`}
-                            className="flex-none w-48 hover:scale-105 transition"
+                            className="flex-none w-48 md:hover:scale-105 transition"
                             key={"song" + song.id}
                         >
                             <img
@@ -59,7 +59,7 @@ export default function Search() {
                     {$searchResults.albums?.map((album) => (
                         <a
                             href={`/album/${album.id}`}
-                            className="flex-none w-48 hover:scale-105 transition"
+                            className="flex-none w-48 md:hover:scale-105 transition"
                             key={"album" + album.id}
                         >
                             <img
@@ -105,7 +105,7 @@ export default function Search() {
                     {$searchResults.artists?.map((artist) => (
                         <a
                             href={`/artist/${artist.id}`}
-                            className="flex-none w-48 hover:scale-105 transition"
+                            className="flex-none w-48 md:hover:scale-105 transition"
                             key={"artist" + artist.id}
                         >
                             <img
@@ -132,7 +132,7 @@ export default function Search() {
                     {$searchResults.playlists?.map((playlist) => (
                         <a
                             href={`/playlist/${playlist.id}`}
-                            className="flex-none w-48 hover:scale-105 transition"
+                            className="flex-none w-48 md:hover:scale-105 transition"
                             key={"playlist" + playlist.id}
                         >
                             <img

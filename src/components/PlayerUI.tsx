@@ -368,7 +368,7 @@ export default function PlayerUI() {
                             className={`text-lg font-semibold transition ${
                                 currentTab === "queue"
                                     ? "text-white border-b-2 border-white"
-                                    : "text-gray-400 hover:text-white"
+                                    : "text-gray-400 md:hover:text-white"
                             }`}
                             onClick={() => setCurrentTab("queue")}
                         >
@@ -378,7 +378,7 @@ export default function PlayerUI() {
                             className={`text-lg font-semibold transition ${
                                 currentTab === "recommended"
                                     ? "text-white border-b-2 border-white"
-                                    : "text-gray-400 hover:text-white"
+                                    : "text-gray-400 md:hover:text-white"
                             }`}
                             onClick={() => setCurrentTab("recommended")}
                         >
@@ -403,7 +403,7 @@ export default function PlayerUI() {
                                             <div
                                                 className={`opacity-0 group-hover:opacity-100`}
                                             >
-                                                <EllipsisVertical className="text-white w-5 h-12 hover:cursor-move" />
+                                                <EllipsisVertical className="text-white w-5 h-12 md:hover:cursor-move" />
                                             </div>
                                         </div>
                                         {/* Cover */}

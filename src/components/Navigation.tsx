@@ -16,7 +16,7 @@ import {
     Pin,
     ChartLine,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type Dispatch } from "react";
 
 interface EventSourceStatus {
     message: string;
@@ -50,8 +50,10 @@ type StatusType = {
 };
 
 function RenderListDownload({
+    setOpen,
     list,
 }: {
+    setOpen: Dispatch<React.SetStateAction<boolean>>;
     list: [
         string,
         {
@@ -75,6 +77,9 @@ function RenderListDownload({
                 />
                 <div className="flex flex-col min-w-0 max-w-full w-full pr-1">
                     <a
+                        onClick={() => {
+                            setOpen(false);
+                        }}
                         className="text-base font-semibold truncate hover:underline"
                         href={
                             "/" +
@@ -173,8 +178,10 @@ function RenderListDownload({
 
 function RenderSongDownload({
     songStatus,
+    setOpen,
 }: {
     songStatus: [string, EventSourceStatus];
+    setOpen: Dispatch<React.SetStateAction<boolean>>;
 }) {
     return (
         <a
@@ -429,12 +436,17 @@ function Downloads({ navOpen }: { navOpen: boolean }) {
                         <RenderSongDownload
                             key={songStatus[0]}
                             songStatus={songStatus}
+                            setOpen={setOpen}
                         />
                     ))}
                 {Object.entries(status.lists)
                     .toReversed()
                     .map((list) => (
-                        <RenderListDownload key={list[0]} list={list} />
+                        <RenderListDownload
+                            key={list[0]}
+                            list={list}
+                            setOpen={setOpen}
+                        />
                     ))}
             </div>
             <div

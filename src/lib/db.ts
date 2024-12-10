@@ -16,10 +16,10 @@ interface Column {
 const insecureMode = false;
 
 if (insecureMode) {
-    console.log("**********************************************************");
-    console.log("****            Insecure mode is on                   ****");
-    console.log("**** Disable it to void accidental DROPs in database. ****");
-    console.log("**********************************************************");
+    console.log("***********************************************************");
+    console.log("****              Insecure mode is on                 *****");
+    console.log("**** Disable it to avoid accidental DROPs in database. ****");
+    console.log("***********************************************************");
 }
 
 function getDifference(listA: Column[], listB: Column[]) {

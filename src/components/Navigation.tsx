@@ -487,23 +487,25 @@ export default function Navigation({ activePage }: { activePage: string }) {
 
     if (innerWidth < 768) {
         return (
-            <div className="flex flex-row py-2 w-fit mx-auto min-w-0 max-w-full">
-                {pages.map((page) => (
-                    <a
-                        key={page.href}
-                        href={page.href}
-                        title={page.name}
-                        className={`h-8 rounded-md items-center ml-2 mr-2 transition-all flex gap-2 ${
-                            activePage === page.name
-                                ? "bg-white text-black"
-                                : "text-white hover:bg-[#414141]"
-                        }`}
-                    >
-                        <div className="w-8 h-8 flex items-center justify-center">
-                            <page.icon className="w-5 h-5" />
-                        </div>
-                    </a>
-                ))}
+            <div className="flex justify-center items-center py-2 w-full mx-auto min-w-0 max-w-full bg-[#1a1a1a]">
+                <div className="flex flex-row justify-center items-center md:pb-0 pb-4 w-full max-w-4xl">
+                    {pages.map((page) => (
+                        <a
+                            key={page.href}
+                            href={page.href}
+                            title={page.name}
+                            className={`h-full w-full flex justify-center items-center md:h-8 rounded-md ml-2 mr-2 transition-all gap-2 ${
+                                activePage === page.name
+                                    ? "bg-white text-black"
+                                    : "text-white hover:bg-[#414141]"
+                            }`}
+                        >
+                            <div className="w-8 h-8 flex justify-center items-center">
+                                <page.icon className="w-5 h-5" />
+                            </div>
+                        </a>
+                    ))}
+                </div>
             </div>
         );
     }

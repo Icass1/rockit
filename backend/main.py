@@ -6,6 +6,7 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 load_dotenv()
 import os
+from typing import Dict
 
 environ_variables = ["ENVIRONMENT", "CLIENT_ID", "CLIENT_SECRET", "FRONTEND_URL", "SONGS_PATH", "TEMP_PATH", "LOGS_PATH", "IMAGES_PATH"]
 
@@ -20,8 +21,6 @@ from downloader import Downloader, SongDownloader, ListDownloader
 from backendUtils import create_id
 from logger import getLogger
 
-from typing import Dict
-
 
 app = Flask(__name__)
 sock = Sock(app)
@@ -35,9 +34,9 @@ CORS(app, supports_credentials=True, resources={
     }
 })
 
-
 spotify = Spotify()
 downloader = Downloader(spotify)
+
 
 # USER_ID = "randomtestuserid"
 
@@ -49,8 +48,6 @@ logger = getLogger(__name__)
 app.logger = logger
 
 import os
-print("FRONTEND_URL", os.getenv('FRONTEND_URL'))
-
 
 @app.route('/')
 def home():
@@ -150,13 +147,14 @@ def global_downloads():
 
 @app.route('/cancel-download')
 def cancel_download():
+    return "TODO"
     pass
 
 if os.getenv("ENVIRONMENT") == "DEV":
     with app.app_context():
-        app.run(host='0.0.0.0', port=8000, debug=True)
+        app.run(host='0.0.0.0', port=8000, debug=False)
 
 elif os.getenv("ENVIRONMENT") == "PROD":
     with app.app_context():
         if __name__ == '__main__':
-            app.run(host='0.0.0.0', port=8000, debug=True)
+            app.run(host='0.0.0.0', port=8000)

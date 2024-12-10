@@ -148,6 +148,7 @@ function Version2({
                     currentIndex={currentIndex}
                     songsLength={songs.length}
                     song={song}
+                    key={"song" + index}
                 />
             ))}
         </div>

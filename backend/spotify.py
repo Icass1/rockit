@@ -6,6 +6,7 @@ import os
 from typing import List
 import re
 from ytmusicapi import YTMusic
+import math
 
 from spotdl.types.song import Song
 
@@ -77,7 +78,6 @@ class Spotify:
         spotdl_songs: List[Song] = []
         raw_songs: List[AlbumItems] | List[PlaylistItems] = []
 
-
         album = self.get_album(id=url.replace('https://open.spotify.com/album/', ''))
 
         self.update_album_db(album=album)
@@ -86,7 +86,6 @@ class Spotify:
         for song in raw_album_tracks:
 
             genres = self.get_genres(song.artists)
-
 
             song_dict = {}
             song_dict["name"] = song.name
@@ -129,7 +128,6 @@ class Spotify:
         spotdl_songs: List[Song] = []
         raw_songs: List[AlbumItems] | List[PlaylistItems] = []
 
-
         tracks: List[PlaylistItems] = []
 
         raw_playlist_tracks = self.api_call(path=f"playlists/{url.replace('https://open.spotify.com/playlist/', '')}/tracks", params={"limit": "100"})
@@ -148,6 +146,24 @@ class Spotify:
 
         playlist = RawSpotifyApiPlaylist.from_dict(raw_playlist)
         playlist.tracks.items = tracks
+
+
+        artist_ids = []
+        for song in playlist.tracks.items:
+            for artist in song.track.artists:
+                artist_ids.append(artist.id)
+
+        artist_ids = list(set(artist_ids))
+
+        for k in range(math.ceil(len(artist_ids)/50)):
+            raw_artists = self.api_call(path=f"artists", params={"ids": ','.join(artist_ids[k*50 : (k+1)*50])})
+            if "artists" in raw_artists:
+                for artist in raw_artists["artists"]:
+                    artist = RawSpotifyApiArtist.from_dict(artist)
+                    self.artists_cache[artist.id] = artist
+            else:
+                artist = RawSpotifyApiArtist.from_dict(raw_artists)
+                self.artists_cache[artist.id] = artist
 
         for item in playlist.tracks.items:
 
@@ -361,7 +377,7 @@ class Spotify:
         if not os.path.exists(os.path.join(os.getenv("IMAGES_PATH"), image_path)):
             download_image(url=image_url, path=os.path.join(os.getenv("IMAGES_PATH"), image_path))
 
-        print(f"Spotfy.update_album_db image_path={image_path}")
+        logger.info(f"Spotfy.update_album_db image_path={image_path}")
 
         requests.post(f"{os.getenv('FRONTEND_URL')}/api/new-album", json={
             "id": album.id,
@@ -379,20 +395,24 @@ class Spotify:
         })
 
     def get_genres(self, artists: List[TrackArtists] | List[PlaylistArtists] | List[SpotifySearchResultsArtists1]):
-        
         genres = []
 
         for track_artist in artists:
             if track_artist.id in self.artists_cache:
                 logger.debug(f"Spotify.get_genres Artist from cache {track_artist.id}")
-                genres += self.artists_cache[track_artist.id].genres
+                if self.artists_cache[track_artist.id].genres:
+                    genres += self.artists_cache[track_artist.id].genres
+                else:
+                    logger.error(f"Spotify.get_genres artist {track_artist.id} doesn't have genres.")
             else:
                 logger.debug(f"Spotify.get_genres Getting artist from API cache {track_artist.id}" )
                 raw_artist = self.api_call(path=f"artists/{track_artist.id}")
                 artist = RawSpotifyApiArtist.from_dict(raw_artist)
                 self.artists_cache[track_artist.id] = artist
-                genres += artist.genres
-
+                if artist.genres:
+                    genres += artist.genres
+                else:
+                    logger.error(f"Spotify.get_genres artist {artist.id} doesn't have genres.")
         return genres
 
     def get_spotify_song(self, url):
@@ -629,15 +649,18 @@ class Spotify:
 
         logger.debug(f"Spotify.api_call query_url {query_url}")
 
+
         result = requests.get(query_url, headers=headers)
         if result.status_code == 401:
             logger.info("Token espired")
-            # print("Token espired")
             self.get_token()
             headers = self.get_auth_header()
             result = requests.get(query_url, headers=headers)
 
-        return json.loads(result.content)
+        try: return json.loads(result.content)
+        except: 
+            logger.critical(f"Spotify.api_call unable to load json. content: {result.content}, text: {result.text}")
+
 
     def parse_url(self, url):
         return re.sub(r"\/intl-\w+\/", "/", url).split("?")[0]

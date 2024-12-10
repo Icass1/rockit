@@ -145,6 +145,14 @@ def global_downloads():
             out[k][i] = str(downloads[k][i])
     return jsonify(out)
 
+@app.route('/downloads-dict')
+def downloads_dict():
+    return jsonify(downloader.downloads_dict)
+
+@app.route('/downloads-ids-dict')
+def downloads_ids_dict():
+    return jsonify(downloader.downloads_ids_dict)
+
 @app.route('/cancel-download')
 def cancel_download():
     return "TODO"

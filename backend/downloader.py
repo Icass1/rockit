@@ -50,45 +50,28 @@ class ListDownloader:
             if song.song_id in self.downloader.downloads_dict:
                 logger.warning(f"ListDownloader.fetch_list Song already in downloads_dict {song.song_id}")
                 continue
-            self.downloader.downloads_dict[song.song_id] = {"messages": [{'id': song.song_id, 'completed': 0, 'total': 100, 'message': 'In queue'}]}
-            self.downloader.downloads_ids_dict[get_song_name(song)] = song.song_id
 
-            self.downloader.queue.append({"raw_list": self.list, "spotdl_song": self.spotdl_songs[index], "raw_song": self.raw_songs[index]})
- 
+            spotdl_song = self.spotdl_songs[index]
+
+            relative_album_path = os.path.join(sanitize_folder_name(spotdl_song.artist), sanitize_folder_name(spotdl_song.album_name))
+            album_path = os.path.join(os.getenv("SONGS_PATH"), relative_album_path)
+            song_path = os.path.join(album_path, get_output_file(spotdl_song).replace(f"{os.getenv('TEMP_PATH')}/", ""))
+            if os.path.exists(song_path):
+                logger.info(f"ListDownloader.fetch_list Skipped {get_song_name(spotdl_song)}")
+                self.downloader.downloads_dict[song.song_id] = {"messages": [{'id': song.song_id, 'completed': 100, 'total': 100, 'message': 'Skipping'}]}
+                self.downloader.downloads_ids_dict[get_song_name(song)] = song.song_id
+            else:
+                self.downloader.downloads_dict[song.song_id] = {"messages": [{'id': song.song_id, 'completed': 0, 'total': 100, 'message': 'In queue'}]}
+                self.downloader.downloads_ids_dict[get_song_name(song)] = song.song_id
+
+                self.downloader.queue.append({"raw_list": self.list, "spotdl_song": spotdl_song, "raw_song": self.raw_songs[index]})
+    
     def setup_list_db(self):
         if self.first_setup: return
         self.first_setup = True
 
         if self.list.type == "album":
             pass
-            # if len(self.list.images) > 1:
-
-            #     image_url = max(self.list.images, key=lambda i: i.width * i.height)["url"] if self.list.images else None
-            # else:
-            #     image_url = self.list.images[0].url
-
-            # image_path_dir = os.path.join("album", sanitize_folder_name(self.list.artists[0].name), sanitize_folder_name(self.list.name))
-            # image_path = os.path.join(image_path_dir, "image.png")
-
-            # if not os.path.exists(os.path.join(os.getenv("IMAGES_PATH"), image_path_dir)):
-            #     os.makedirs(os.path.join(os.getenv("IMAGES_PATH"), image_path_dir))
-            # if not os.path.exists(os.path.join(os.getenv("IMAGES_PATH"), image_path)):
-            #     self.downloader.download_image(url=image_url, path=os.path.join(os.getenv("IMAGES_PATH"), image_path))
-
-            # requests.post(f"{os.getenv('FRONTEND_URL')}/api/new-album", json={
-            #     "id": self.list.id,
-            #     "images": [image._json for image in self.list.images],
-            #     "image": image_path,
-            #     "name": self.list.name,
-            #     "release_date": self.list.release_date,
-            #     "type": self.list.type,
-            #     "artists": [{"name": artist.name, "id": artist.id} for artist in self.list.artists],
-            #     "copyrights": [_copyright._json for _copyright in self.list.copyrights],
-            #     "popularity": self.list.popularity,
-            #     "genres": self.list.genres,
-            #     "songs": [song.id for song in self.list.tracks.items],
-            #     "disc_count": max([song.disc_number for song in self.list.tracks.items])
-            # })
         elif self.list.type == "playlist":
             
             if len(self.list.images) > 1:
@@ -152,7 +135,8 @@ class ListDownloader:
         for song in self.raw_songs:
             song = song if self.list.type == "album" else song.track
             if song.id not in self.downloader.downloads_dict:
-                logger.error(f"ListDownloader.status song.id: {song.id} is not in self.downloader.downloads_dict: {self.downloader.downloads_dict}")
+                # logger.error(f"ListDownloader.status song.id: {song.id} is not in self.downloader.downloads_dict: {self.downloader.downloads_dict}")
+                logger.error(f"ListDownloader.status song.id: {song.id} is not in self.downloader.downloads_dict")
 
             while song.id not in self.downloader.downloads_dict:
                 time.sleep(0.1)
@@ -187,6 +171,7 @@ class ListDownloader:
                     
                 last_messages_len[song.id] = len(self.downloader.downloads_dict[song.id]["messages"])
             time.sleep(0.2)
+        
 
         self.setup_list_db()
 

@@ -111,7 +111,7 @@ function Song({
                     {song.artists[0].name}
                 </label>
                 <button
-                    className="absolute bottom-4 backdrop-blur-sm right-4 bg-transparent text-white p-3 rounded-full hover:bg-black/40 transition duration-300"
+                    className="absolute bottom-4 backdrop-blur-sm right-4 bg-transparent text-white p-3 rounded-full md:hover:bg-black/40 transition duration-300"
                     onClick={handleClick}
                 >
                     {$currentSong?.id == song.id && $playing ? (
@@ -205,7 +205,7 @@ export default function AlbumsCarousel({
             ref={divRef}
         >
             <ChevronLeft
-                className="z-30 absolute left-32 h-48 w-10 text-[#6d6d6d] hover:text-white p-2 rounded-full transition duration-300"
+                className="z-30 absolute left-32 h-48 w-10 text-[#6d6d6d] md:hover:text-white p-2 rounded-full transition duration-300"
                 onClick={() =>
                     setCurrentIndex((value) =>
                         value > 0 ? value - 1 : songs.length - 1
@@ -215,7 +215,7 @@ export default function AlbumsCarousel({
             <Version2 songs={songs} currentIndex={currentIndex} />
 
             <ChevronRight
-                className="z-30 absolute right-32 h-48 w-10 text-[#6d6d6d] hover:text-white p-2 rounded-full transition duration-300"
+                className="z-30 absolute right-32 h-48 w-10 text-[#6d6d6d] md:hover:text-white p-2 rounded-full transition duration-300"
                 onClick={() =>
                     setCurrentIndex((value) =>
                         value < songs.length - 1 ? value + 1 : 0

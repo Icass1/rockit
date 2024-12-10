@@ -34,7 +34,7 @@ export default function BarGraph({
                         >
                             <a
                                 href={item.href}
-                                className="truncate hover:underline"
+                                className="truncate md:hover:underline"
                             >
                                 {item.name}
                             </a>

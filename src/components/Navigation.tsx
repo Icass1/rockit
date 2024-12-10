@@ -80,7 +80,7 @@ function RenderListDownload({
                         onClick={() => {
                             setOpen(false);
                         }}
-                        className="text-base font-semibold truncate hover:underline"
+                        className="text-base font-semibold truncate md:hover:underline"
                         href={
                             "/" +
                             list[1].listInfo.type +
@@ -185,7 +185,7 @@ function RenderSongDownload({
 }) {
     return (
         <a
-            className="bg-zinc-400/10 rounded h-14 min-h-14 flex flex-row gap-x-2 overflow-hidden hover:bg-zinc-400/30 cursor-pointer"
+            className="bg-zinc-400/10 rounded h-14 min-h-14 flex flex-row gap-x-2 overflow-hidden md:hover:bg-zinc-400/30 cursor-pointer"
             href={`/song/${songStatus[1].song.id}`}
         >
             <img
@@ -406,7 +406,7 @@ function Downloads({ navOpen }: { navOpen: boolean }) {
                 ></input>
                 <div className="flex justify-center items-center mb-3">
                     <button
-                        className="bg-green-800 text-green-200 px-6 py-2 rounded-full shadow-md hover:bg-green-600 hover:text-white hover:shadow-lg transition duration-300 transform font-bold"
+                        className="bg-green-800 text-green-200 px-6 py-2 rounded-full shadow-md md:hover:bg-green-600 md:hover:text-white md:hover:shadow-lg transition duration-300 transform font-bold"
                         onClick={handleStartDownload}
                     >
                         Start Download
@@ -420,7 +420,7 @@ function Downloads({ navOpen }: { navOpen: boolean }) {
                     )}
 
                     <button
-                        className="text-blue-500 text-sm hover:underline mr-2"
+                        className="text-blue-500 text-sm md:hover:underline mr-2"
                         onClick={() => {
                             // Lógica para limpiar los downloads
                             console.log("Clear downloads clicked");
@@ -451,7 +451,7 @@ function Downloads({ navOpen }: { navOpen: boolean }) {
             </div>
             <div
                 title="Downloads"
-                className="h-8 rounded-md items-center ml-2 mr-2 transition-all flex gap-2 hover:bg-[#414141]"
+                className="h-8 rounded-md items-center ml-2 mr-2 transition-all flex gap-2 md:hover:bg-[#414141]"
                 onClick={() => {
                     setOpen((value) => !value);
                 }}
@@ -497,7 +497,7 @@ export default function Navigation({ activePage }: { activePage: string }) {
                             className={`h-full w-full flex justify-center items-center md:h-8 rounded-md ml-2 mr-2 transition-all gap-2 ${
                                 activePage === page.name
                                     ? "bg-white text-black"
-                                    : "text-white hover:bg-[#414141]"
+                                    : "text-white md:hover:bg-[#414141]"
                             }`}
                         >
                             <div className="w-8 h-8 flex justify-center items-center">
@@ -534,7 +534,7 @@ export default function Navigation({ activePage }: { activePage: string }) {
                         className={`h-8 rounded-md items-center ml-2 mr-2 transition-all flex gap-2 ${
                             activePage === page.name
                                 ? "bg-white text-black"
-                                : "text-white hover:bg-[#414141]"
+                                : "text-white md:hover:bg-[#414141]"
                         }`}
                     >
                         <div className="w-8 h-8 flex items-center justify-center">
@@ -551,7 +551,7 @@ export default function Navigation({ activePage }: { activePage: string }) {
                 ></div>
 
                 <div
-                    className="h-4 rounded-md items-center ml-2 mr-2 transition-all flex gap-2 hover:opacity-65 cursor-pointer"
+                    className="h-4 rounded-md items-center ml-2 mr-2 transition-all flex gap-2 md:hover:opacity-65 cursor-pointer"
                     style={{ fontSize: open ? "" : "0 px" }}
                 >
                     <div className="w-8 h-8 flex items-center justify-center">
@@ -568,7 +568,7 @@ export default function Navigation({ activePage }: { activePage: string }) {
                             key={list.id}
                             href={`/${list.type}/${list.id}`}
                             title={list.name}
-                            className={`h-8 rounded-md items-center ml-2 mr-2 transition-all flex gap-3 hover:opacity-65 cursor-pointer`}
+                            className={`h-8 rounded-md items-center ml-2 mr-2 transition-all flex gap-3 md:hover:opacity-65 cursor-pointer`}
                         >
                             <img
                                 className="w-8 h-8 flex items-center justify-center rounded-sm"

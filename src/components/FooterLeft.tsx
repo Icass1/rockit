@@ -16,28 +16,28 @@ export default function FooterCenter() {
                 className="md:w-16 md:h-16 rounded-md w-9 h-9"
             />
             <div className="flex flex-col min-w-0 max-w-full w-full pr-4">
-                <span className="font-semibold truncate hover:underline">
-                    <a
-                    href={`/song/${$currentSong?.id}`}
-                    >
+                <span className="font-semibold truncate md:hover:underline">
+                    <a href={`/song/${$currentSong?.id}`}>
                         {$currentSong?.name || "Canción desconocida :("}
                     </a>
                 </span>
                 <span className="text-sm text-gray-400 flex flex-row gap-x-1">
                     <div className="flex flex-row gap-x-1 max-w-1/2 w-fit truncate">
                         {$currentSong?.artists ? (
-                        $currentSong?.artists?.map((artist, index) => (
-                            <a
-                            href={`/artist/${artist.id}`}
-                            className="hover:underline"
-                            key={index}
-                            >
-                            {artist.name}
-                            {index < $currentSong.artists.length - 1 ? "," : ""}
-                            </a>
-                        ))
+                            $currentSong?.artists?.map((artist, index) => (
+                                <a
+                                    href={`/artist/${artist.id}`}
+                                    className="hover:underline"
+                                    key={index}
+                                >
+                                    {artist.name}
+                                    {index < $currentSong.artists.length - 1
+                                        ? ","
+                                        : ""}
+                                </a>
+                            ))
                         ) : (
-                        <div>Artista desconocido</div>
+                            <div>Artista desconocido</div>
                         )}
                     </div>
 

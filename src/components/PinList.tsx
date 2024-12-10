@@ -31,7 +31,7 @@ export default function PinList({ type, id }: { type: string; id: string }) {
 
     return (
         <div
-            className="w-10 h-10 relative hover:scale-105 cursor-pointer"
+            className="w-10 h-10 relative md:hover:scale-105 cursor-pointer"
             onClick={handleClick}
         >
             <div className="border-white absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 border-solid rounded-full border-[2px] w-9 h-9"></div>

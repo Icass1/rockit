@@ -22,7 +22,7 @@ export default function FooterCenter() {
                     </a>
                 </span>
                 <span className="text-sm text-gray-400 flex flex-row gap-x-1">
-                    <div className="flex flex-row gap-x-1 w-full truncate">
+                    <div className="flex flex-row gap-x-1 w-full md:w-fit truncate">
                         {$currentSong?.artists ? (
                             $currentSong?.artists?.map((artist, index) => (
                                 <a

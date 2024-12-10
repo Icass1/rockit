@@ -13,10 +13,8 @@ export async function POST(context: APIContext): Promise<Response> {
     let albumArtists = JSON.stringify(data.album_artists);
     let albumType = data.album_type;
     let duration = data.duration;
-    let year = data.year;
     let date = data.date;
     let trackNumber = data.track_number;
-    let tracksCount = data.tracks_count;
     let id = data.song_id;
     let publisher = data.publisher;
     let downloadUrl = data.download_url;
@@ -83,7 +81,7 @@ export async function POST(context: APIContext): Promise<Response> {
 
     try {
         db.prepare(
-            "INSERT INTO song (id, name, artists, genres, discNumber, albumName, albumArtist, albumType, albumId, duration, year, date, trackNumber, tracksCount, publisher, path, image, images, copyright, downloadUrl, lyrics, popularity, dateAdded) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            "INSERT INTO song (id, name, artists, genres, discNumber, albumName, albumArtist, albumType, albumId, duration, date, trackNumber, publisher, path, image, images, copyright, downloadUrl, lyrics, popularity, dateAdded) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         ).run(
             id,
             name,
@@ -95,10 +93,8 @@ export async function POST(context: APIContext): Promise<Response> {
             albumType,
             albumId,
             duration,
-            year,
             date,
             trackNumber,
-            tracksCount,
             publisher,
             path,
             imageId,

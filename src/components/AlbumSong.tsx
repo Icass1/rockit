@@ -1,6 +1,7 @@
 import { currentSong, play, queue, queueIndex } from "@/stores/audio";
 import type { AlbumDB, SongDB } from "@/lib/db";
 import { getTime } from "@/lib/getTime";
+import type { RockItAlbum } from "@/types/rockIt";
 
 export default function AlbumSong({
     song,
@@ -29,40 +30,22 @@ export default function AlbumSong({
 
         fetch(`/api/album/${albumId}`)
             .then((response) => response.json())
-            .then((data: AlbumDB) => {
-                fetch(
-                    `/api/songs?songs=${data.songs.join(
-                        ","
-                    )}&q=name,artists,id,images,duration`
-                )
-                    .then((response) => response.json())
-                    .then(
-                        (
-                            data: SongDB<
-                                | "name"
-                                | "artists"
-                                | "id"
-                                | "images"
-                                | "duration"
-                            >[]
-                        ) => {
-                            const firstSong = data.find(
-                                (dataSong) => dataSong.id == song.id
-                            );
-                            if (!firstSong) {
-                                console.error("song.id not in dataSong");
-                                return;
-                            }
-                            const index = data.indexOf(firstSong);
-                            const newQueue = [
-                                firstSong,
-                                ...data.slice(0, index),
-                                ...data.slice(index + 1),
-                            ];
-                            queueIndex.set(0);
-                            queue.set(newQueue);
-                        }
-                    );
+            .then((data: RockItAlbum) => {
+                const firstSong = data.songs.find(
+                    (dataSong) => dataSong.id == song.id
+                );
+                if (!firstSong) {
+                    console.error("song.id not in dataSong");
+                    return;
+                }
+                const index = data.songs.indexOf(firstSong);
+                const newQueue = [
+                    firstSong,
+                    ...data.songs.slice(0, index),
+                    ...data.songs.slice(index + 1),
+                ];
+                queueIndex.set(0);
+                queue.set(newQueue);
             });
     };
 

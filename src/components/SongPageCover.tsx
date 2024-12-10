@@ -38,7 +38,7 @@ export default function SongPageCover({
     const $playing = useStore(playing);
 
     const handleClick = () => {
-        if (!inDatabase) {
+        if (!inDatabase || song.path == undefined) {
             fetch(
                 `/api/start-download?url=https://open.spotify.com/track/${song.id}`
             ).then((response) => {
@@ -106,7 +106,7 @@ export default function SongPageCover({
                     }
                 />
 
-                {!inDatabase ? (
+                {!inDatabase || song.path == undefined ? (
                     <Download className={iconClassName} />
                 ) : $currentSong?.id == song.id && $playing ? (
                     <Pause className={iconClassName} />

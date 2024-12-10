@@ -40,7 +40,7 @@ export default function FooterCenter() {
 
     return (
         <div
-            className="flex flex-col items-center justify-center w-1/3 space-y-1"
+            className="hidden flex-col items-center justify-center w-1/3 space-y-1 md:flex"
             id="footer-center"
         >
             <div className="grid grid-cols-5 justify-items-center items-center gap-2">

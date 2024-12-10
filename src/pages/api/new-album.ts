@@ -62,7 +62,7 @@ export async function POST(context: APIContext): Promise<Response> {
             songs,
             discCount,
             new Date().getTime(),
-            imageId,
+            imageId
         );
     } catch (err) {
         console.warn("Error in new-album", err?.toString());

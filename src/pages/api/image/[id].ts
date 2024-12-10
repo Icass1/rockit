@@ -6,7 +6,6 @@ import { extname, join } from "path";
 const IMAGES_PATH = process.env.IMAGES_PATH;
 
 export async function GET(context: APIContext): Promise<Response> {
-
     const imageDB = db
         .prepare("SELECT path FROM image WHERE id = ?")
         .get(context.params.id) as ImageDB;

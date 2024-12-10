@@ -1,4 +1,4 @@
----
+--- 
 import "@/styles/default.css";
 import Header from "@/components/Header.astro";
 import Navigation from "@/components/Navigation.tsx";
@@ -26,7 +26,7 @@ const { meta } = Astro.props;
             name="description"
             content="Rock It! - A music player by Icass & Nicorebo18"
         />
-        <meta name="viewport" content="width=device-width" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="generator" content={Astro.generator} />
 
         {
@@ -57,6 +57,8 @@ const { meta } = Astro.props;
                     transition:persist
                 />
             </div>
+
+            <!-- Main content -->
             <div
                 class="min-w-0 max-w-full min-h-0 max-h-full overflow-hidden relative"
                 style={{ gridArea: "main" }}
@@ -68,21 +70,56 @@ const { meta } = Astro.props;
                 <!-- <div class="w-full h-4 top-0 bg-gradient-to-b absolute from-[#0b0b0b] to-transparent"></div> Este tapa algunmas cosas, en cuanto tengamos todo lo metemos como feature bien-->
                 <!-- <div class="w-full h-4 bottom-0 bg-gradient-to-t absolute from-[#1a1a1a] to-transparent"></div> El de arriba te lo puedo comprar este no me ha terminado de convencer -->
             </div>
+
+            <!-- Footer -->
             <div
                 class="min-w-0 max-w-full min-h-0 max-h-full overflow-auto"
                 style={{ gridArea: "footer" }}
             >
                 <Footer />
             </div>
+
+            <!-- Overlay Menu -->
+            <div
+                id="menu-overlay"
+                class="fixed top-0 left-0 w-full h-full bg-black/50 z-40 opacity-0 pointer-events-none transition-all duration-300"
+            ></div>
         </main>
     </body>
 </html>
 
+<script>
+  const menuIcon = document.querySelector("#menu-icon") as HTMLDivElement;
+  const mobileNav = document.querySelector("#mobile-navigation") as HTMLDivElement;
+  const menuOverlay = document.querySelector("#menu-overlay") as HTMLDivElement;
+
+  menuIcon.addEventListener("click", () => {
+    mobileNav.classList.toggle("hidden");
+    menuOverlay.classList.toggle("opacity-0");
+    menuOverlay.classList.toggle("pointer-events-none");
+  });
+
+  menuOverlay.addEventListener("click", () => {
+    mobileNav.classList.add("hidden");
+    menuOverlay.classList.add("opacity-0");
+    menuOverlay.classList.add("pointer-events-none");
+  });
+</script>
+
 <style>
     main {
         grid-template-areas:
-            "nav header"
-            "nav main"
-            "footer footer";
+            "header"
+            "main"
+            "footer";
+    }
+
+    @media (min-width: 640px) {
+        main {
+            grid-template-areas:
+                "nav header"
+                "nav main"
+                "footer footer";
+        }
     }
 </style>

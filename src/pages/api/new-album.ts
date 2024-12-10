@@ -48,7 +48,7 @@ export async function POST(context: APIContext): Promise<Response> {
 
     try {
         db.prepare(
-            "INSERT INTO album (id, type, images, name, releaseDate, artists, copyrights, popularity, genres, songs, discCount, dateAdded) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            "INSERT INTO album (id, type, images, name, releaseDate, artists, copyrights, popularity, genres, songs, discCount, dateAdded, image) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         ).run(
             id,
             type,
@@ -61,7 +61,8 @@ export async function POST(context: APIContext): Promise<Response> {
             genres,
             songs,
             discCount,
-            new Date().getTime()
+            new Date().getTime(),
+            imageId,
         );
     } catch (err) {
         console.warn("Error in new-album", err?.toString());

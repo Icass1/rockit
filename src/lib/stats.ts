@@ -103,6 +103,8 @@ export async function getStats(
 
     let out: Stats = { songs: [], artists: [], albums: [] };
 
+    // let notInDatabase = [];
+
     Object.entries(lastPlayedSongs).map((entry) => {
         entry[1].map((time) => {
             if ((start ? start < time : true) && (end ? time < end : true)) {
@@ -143,7 +145,7 @@ export async function getStats(
                     } else {
                         out.albums.push({
                             artists: song.artists,
-                            image: song.image,
+                            image: song.image as string, // song.image should always exist
                             index: 1,
                             name: song.albumName,
                             id: song.albumId,
@@ -151,11 +153,30 @@ export async function getStats(
                         });
                     }
                 } else {
+                    // if (
+                    //     !notInDatabase.includes(
+                    //         `https://open.spotify.com/track/${entry[0]}`
+                    //     )
+                    // ) {
+                    //     notInDatabase.push(
+                    //         `https://open.spotify.com/track/${entry[0]}`
+                    //     );
+                    // }
                     // console.log("Song not in database", `https://open.spotify.com/track/${entry[0]}`)
                 }
             }
         });
     });
+    // console.log(notInDatabase);
+
+    // // Write to the file
+    // await writeFile("out.json", JSON.stringify(notInDatabase), (err) => {
+    //     if (err) {
+    //         console.error("Error writing to file:", err);
+    //     } else {
+    //         console.log("File successfully written to out.json");
+    //     }
+    // });
 
     const sortedAlbums = [...out.albums];
     sortedAlbums.sort((a, b) => b.timesPlayed - a.timesPlayed);

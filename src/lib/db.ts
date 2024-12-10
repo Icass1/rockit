@@ -13,17 +13,14 @@ interface Column {
     pk: number;
 }
 
-// This code removes the songs/ from all songs of database. It should be removed once all databases have been changed
-// (db.prepare("SELECT * FROM song").all() as RawSongDB[]).map((song) => {
-//     if (song?.path?.startsWith("songs/")) {
-//         console.log(song.id);
-//         console.log(song.path.replace("songs/", ""));
-//         db.prepare("UPDATE song SET path = ? WHERE id = ?").run(
-//             song.path.replace("songs/", ""),
-//             song.id
-//         );
-//     }
-// });
+const insecureMode = false;
+
+if (insecureMode) {
+    console.log("**********************************************************");
+    console.log("****            Insecure mode is on                   ****");
+    console.log("**** Disable it to void accidental DROPs in database. ****");
+    console.log("**********************************************************");
+}
 
 function getDifference(listA: Column[], listB: Column[]) {
     let addedColumns: string[] = [];
@@ -135,6 +132,13 @@ function checkTable(
 
     if (removedColumns.length > 0) {
         console.warn("Detected removed column(s).", removedColumns);
+        if (insecureMode) {
+            removedColumns.map((column) =>
+                db.exec(`ALTER TABLE ${tableName} DROP COLUMN ${column}`)
+            );
+        } else {
+            console.log("insecureMode is off, enable it to remove columns.");
+        }
     }
 
     if (addedColumns.length > 0) {
@@ -327,10 +331,8 @@ export interface RawSongDB {
     albumType: string;
     albumId: string;
     duration: number;
-    year: number;
     date: string;
     trackNumber: number | undefined;
-    tracksCount: number | undefined;
     publisher: string | undefined;
     path: string | undefined;
     images: string;
@@ -350,21 +352,19 @@ export type SongDBFull = {
     id: string;
     name: string;
     artists: ArtistDB[];
-    genres: string;
+    genres: string[];
     discNumber: number | undefined;
     albumName: string;
     albumArtist: ArtistDB[];
     albumType: string;
     albumId: string;
     duration: number;
-    year: number;
     date: string;
     trackNumber: number | undefined;
-    tracksCount: number | undefined;
     publisher: string | undefined;
     path: string | undefined;
     images: OldImageDB[];
-    image: string;
+    image: string | undefined;
     copyright: string | undefined;
     downloadUrl: string | undefined;
     lyrics: string | undefined;
@@ -397,10 +397,8 @@ export function parseSong(rawSong: RawSongDB | undefined): SongDB | undefined {
         albumType: rawSong.albumType,
         albumId: rawSong.albumId,
         duration: rawSong.duration,
-        year: rawSong.year,
         date: rawSong.date,
         trackNumber: rawSong.trackNumber,
-        tracksCount: rawSong.tracksCount,
         publisher: rawSong.publisher,
         path: rawSong.path,
         images: JSON.parse(rawSong.images || "[]"),
@@ -424,10 +422,8 @@ const songQuery = `CREATE TABLE IF NOT EXISTS song (
     albumType TEXT NOT NULL,
     albumId TEXT NOT NULL,
     duration INTEGER NOT NULL,
-    year INTEGER NOT NULL,
     date TEXT NOT NULL,
     trackNumber INTEGER,
-    tracksCount INTEGER,
     publisher TEXT,
     path TEXT,
     images TEXT NOT NULL,
@@ -552,7 +548,7 @@ export interface AlbumDBFull {
     genres: string[];
     songs: string[];
     discCount: number;
-    dateAdded: number;
+    dateAdded: number | undefined;
 }
 
 export interface AlbumDBCopyright {

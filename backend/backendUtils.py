@@ -118,7 +118,7 @@ def create_playlist_collage(output_path, urls: List[str]=[], paths: List[str]=[]
     x_space = 300
     y_spcae = 0.5*x_space
     column_x_space = 100
-    column_y_space = 270
+    column_y_space = 260
 
     images = []
 
@@ -127,8 +127,10 @@ def create_playlist_collage(output_path, urls: List[str]=[], paths: List[str]=[]
 
     for k in urls:
         response = requests.get(k)
-        images.append(Image.open(BytesIO(response.content)))
-
+        try: 
+            images.append(Image.open(BytesIO(response.content)))
+        except:
+            print(k, response.content)
     index = 0
     while len(images) < 10:
         images.append(images[index])
@@ -169,17 +171,17 @@ def create_playlist_collage(output_path, urls: List[str]=[], paths: List[str]=[]
 if __name__ == "__main__":
     create_playlist_collage(output_path="test.png", urls=[
             "http://localhost:4321/api/image/630242b7f511492720b85cbab809b03c9c5d1d72",
-            # "http://localhost:4321/api/image/85530b18c84d2f112d9a7db27bec795d850c01ba",
-            # "https://i.scdn.co/image/ab67616d0000b2735405ef9e393f5f1e53b4b42e",
-            # "https://i.scdn.co/image/ab67616d0000b273093c6e7d6069b3c958071f73",
-            # "https://i.scdn.co/image/ab67616d0000b2736ca5c90113b30c3c43ffb8f4",
-            # "https://i.scdn.co/image/ab67616d0000b273eec04d194051bbdb926922b0",
+            "http://localhost:4321/api/image/85530b18c84d2f112d9a7db27bec795d850c01ba",
+            "https://i.scdn.co/image/ab67616d0000b2735405ef9e393f5f1e53b4b42e",
+            "https://i.scdn.co/image/ab67616d0000b273093c6e7d6069b3c958071f73",
+            "https://i.scdn.co/image/ab67616d0000b2736ca5c90113b30c3c43ffb8f4",
+            "https://i.scdn.co/image/ab67616d0000b273eec04d194051bbdb926922b0",
             "https://music.rockhosting.org/_next/image?url=https%3A%2F%2Fapi.music.rockhosting.org%2Fapi%2Flist%2Fimage%2FV0XHQF4ASvt7Yf2y_300x300&w=384&q=75",
         ], paths=[
-            "/home/icass/rockit/images/album/AC_DC/The Razors Edge/image.png",
-            "/home/icass/rockit/images/album/AC_DC/Highway to Hell/image.png",
+            # "/home/icass/rockit/images/album/AC_DC/The Razors Edge/image.png",
+            # "/home/icass/rockit/images/album/AC_DC/Highway to Hell/image.png",
             # "/home/icass/rockit/images/album/Eminem/Encore (Deluxe Version)/image.png",
-            "/home/icass/rockit/images/album/AC_DC/Back In Black/image.png",
+            # "/home/icass/rockit/images/album/AC_DC/Back In Black/image.png",
             # "/home/icass/rockit/images/album/AC_DC/High Voltage/image.png",
             # "/home/icass/rockit/images/album/AC_DC/For Those About to Rock (We Salute You)/image.png",
         ]

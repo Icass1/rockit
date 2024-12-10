@@ -112,7 +112,6 @@ def getLogger(name):
     # File handler with plain formatting
     current_time = datetime.now().strftime('%Y-%m-%d_%H-%M')
     log_file = os.path.join(log_dir, f"log_{current_time}.log")
-    print("log_file", log_file)
     file_handler = logging.FileHandler(log_file, mode="a")
     file_handler.setLevel(file_level)
     file_handler.setFormatter(plain_formatter)

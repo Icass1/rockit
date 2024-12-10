@@ -29,7 +29,7 @@ export default function BarGraph({
                         <div
                             key={item.id}
                             id={item.id}
-                            className="absolute transition-[top] duration-1000 w-full grid grid-cols-[1fr_2fr] gap-2 pr-7 "
+                            className="absolute transition-[top] duration-1000 w-full grid grid-cols-[1fr_1fr] gap-2 pr-7 "
                             style={{ top: `${top}px` }}
                         >
                             <a

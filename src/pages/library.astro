@@ -89,7 +89,7 @@ data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
                             <label class="truncate text-sm text-center text-gray-400 block">
                                 {album.artists.map((artist, index) => (
                                     <label
-                                        class="hover:underline"
+                                        class="md:hover:underline"
                                         onclick={`event.preventDefault(); event.stopPropagation(); location.href='/artist/${artist.id}' `}
                                     >
                                         {`${artist.name}${index < album.artists.length - 1 ? "," : ""}`}
@@ -155,7 +155,7 @@ data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
                             <div class=" font-semibold text-sm text-center flex flex-row text-gray-400 mx-auto">
                                 {album.artists.map((artist, index) => (
                                     <label
-                                        class="hover:underline"
+                                        class="md:hover:underline"
                                         onclick={`event.preventDefault(); event.stopPropagation(); location.href='/artist/${artist.id}' `}
                                     >
                                         {`${artist.name}${index < album.artists.length - 1 ? "," : ""}`}

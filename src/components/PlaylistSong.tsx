@@ -68,7 +68,7 @@ export default function PlaylistSong({
         <div
             className={
                 "flex flex-row items-center gap-4  transition-colors px-2 py-1 rounded " +
-                (!song.path ? "opacity-50" : "hover:bg-zinc-500/10")
+                (!song.path ? "opacity-50" : "md:hover:bg-zinc-500/10")
             }
             onClick={handleClick}
         >
@@ -84,7 +84,7 @@ export default function PlaylistSong({
                     {song.artists.map((artist, index) => (
                         <a
                             href={`/artist/${artist.id}`}
-                            className="hover:underline"
+                            className="md:hover:underline"
                             key={index}
                         >
                             {artist.name}
@@ -95,7 +95,7 @@ export default function PlaylistSong({
             </div>
             <a
                 href={`/album/${song.albumId}`}
-                className="hover:underline text-nowrap w-full truncate"
+                className="md:hover:underline text-nowrap w-full truncate"
             >
                 {song.albumName || "Artista desconocido"}
             </a>

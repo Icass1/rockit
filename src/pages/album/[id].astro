@@ -84,7 +84,7 @@ const meta = {
                 {
                     album.artists.map((artist, index) => (
                         <label
-                            class="hover:underline"
+                            class="md:hover:underline"
                             onclick={`event.preventDefault(); event.stopPropagation(); location.href='/artist/${artist.id}' `}
                         >
                             {`${artist.name}${index < album.artists.length - 1 ? "," : ""}`}

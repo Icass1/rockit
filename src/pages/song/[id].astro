@@ -134,7 +134,7 @@ if (response.ok) {
                                         .map((artist, index) => (
                                             <a
                                                 href={`/artist/${artist.id}`}
-                                                class="hover:underline"
+                                                class="md:hover:underline"
                                             >
                                                 {artist.name +
                                                     (index <
@@ -218,7 +218,7 @@ if (response.ok) {
             <div class="mx-auto px-8 py-8 bg-[#303030] rounded-lg h-fit">
                 <h2 class="text-2xl font-bold text-left pb-4">
                     More songs from <a
-                        class="hover:underline italic"
+                        class="md:hover:underline italic"
                         href={`/album/${album?.album.id}`}
                         >{album?.album.name}</a
                     >

@@ -126,7 +126,7 @@ function RenderListDownload({
                 </div>
             </div>
             <label
-                className="hover:underline text-sm text-blue-500 p-1 select-none"
+                className="md:hover:underline text-sm text-blue-500 p-1 select-none"
                 onClick={() => {
                     setShowAllSongs((value) => !value);
                 }}

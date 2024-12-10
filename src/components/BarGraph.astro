@@ -23,7 +23,7 @@ const totalValue = items.reduce((partialSum, a) => partialSum + a.value, 0);
                 items.slice(0, 20).map((item) => (
                     <tr>
                         <td class="max-w-1 truncate text-sm text-right ">
-                            <a class="hover:underline" href={item.href}>
+                            <a class="md:hover:underline" href={item.href}>
                                 {item.name}
                             </a>
                         </td>

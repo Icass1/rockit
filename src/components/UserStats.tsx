@@ -124,7 +124,7 @@ export default function UserStats() {
             <label className="text-2xl font-semibold px-5">
                 Showing data from{" "}
                 <label
-                    className="hover:underline"
+                    className="md:hover:underline"
                     onClick={() => {
                         startDateInputRef.current &&
                             startDateInputRef.current.showPicker();
@@ -148,7 +148,7 @@ export default function UserStats() {
                 </label>{" "}
                 to{" "}
                 <label
-                    className="hover:underline"
+                    className="md:hover:underline"
                     onClick={() => {
                         endDateInputRef.current &&
                             endDateInputRef.current.showPicker();

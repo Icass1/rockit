@@ -352,7 +352,7 @@ export default function PlayerUI() {
                             {$currentSong?.name}
                         </h1>
                         <p className="text-gray-400 text-xl mt-2 font-medium flex items-center gap-2">
-                            <span className="hover:underline">
+                            <span className="md:hover:underline">
                                 {$currentSong?.albumName}
                             </span>
                             •<span>No release date</span>
@@ -395,7 +395,7 @@ export default function PlayerUI() {
                                         className={`flex items-center gap-x-2 p-2 group ${
                                             index === $queueIndex
                                                 ? "bg-[rgba(50,50,50,0.75)]"
-                                                : "hover:bg-[rgba(75,75,75,0.75)]"
+                                                : "md:hover:bg-[rgba(75,75,75,0.75)]"
                                         }`}
                                     >
                                         {/* Espacio para el ícono */}

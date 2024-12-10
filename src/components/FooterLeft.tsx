@@ -22,12 +22,12 @@ export default function FooterCenter() {
                     </a>
                 </span>
                 <span className="text-sm text-gray-400 flex flex-row gap-x-1">
-                    <div className="flex flex-row gap-x-1 max-w-1/2 w-fit truncate">
+                    <div className="flex flex-row gap-x-1 w-full truncate">
                         {$currentSong?.artists ? (
                             $currentSong?.artists?.map((artist, index) => (
                                 <a
                                     href={`/artist/${artist.id}`}
-                                    className="hover:underline"
+                                    className="md:hover:underline"
                                     key={index}
                                 >
                                     {artist.name}
@@ -41,11 +41,11 @@ export default function FooterCenter() {
                         )}
                     </div>
 
-                    <span>•</span>
+                    <span className="hidden md:block">•</span>
 
                     <a
                         href={`/album/${$currentSong?.albumId}`}
-                        className="hover:underline truncate"
+                        className="hidden md:block hover:underline truncate"
                     >
                         {$currentSong?.albumName || "Album desconocido"}
                     </a>

@@ -31,7 +31,7 @@ export default function Search() {
                                 {song.artists.map((artist, index) => (
                                     <label
                                         key={song.id + artist.id}
-                                        className="hover:underline"
+                                        className="md:hover:underline"
                                         onClick={(event) => {
                                             event.preventDefault();
                                             event.stopPropagation();
@@ -77,7 +77,7 @@ export default function Search() {
                                 {album.artists.map((artist, index) => (
                                     <label
                                         key={album.id + artist.id}
-                                        className="hover:underline"
+                                        className="md:hover:underline"
                                         onClick={(event) => {
                                             event.preventDefault();
                                             event.stopPropagation();

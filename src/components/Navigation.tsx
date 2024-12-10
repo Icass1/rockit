@@ -202,7 +202,12 @@ function RenderSongDownload({
                         }
                     >
                         <div
-                            className="bg-green-500 absolute h-full rounded-full transition-all"
+                            className={
+                                "absolute h-full rounded-full transition-all " +
+                                (songStatus[1].message == "Error"
+                                    ? "bg-red-400"
+                                    : "bg-green-500")
+                            }
                             style={{ width: `${songStatus[1].completed}%` }}
                         ></div>
                     </div>
@@ -417,15 +422,19 @@ function Downloads({ navOpen }: { navOpen: boolean }) {
                     </button>
                 </div>
 
-                {Object.entries(status.songs).toReversed().map((songStatus) => (
-                    <RenderSongDownload
-                        key={songStatus[0]}
-                        songStatus={songStatus}
-                    />
-                ))}
-                {Object.entries(status.lists).toReversed().map((list) => (
-                    <RenderListDownload key={list[0]} list={list} />
-                ))}
+                {Object.entries(status.songs)
+                    .toReversed()
+                    .map((songStatus) => (
+                        <RenderSongDownload
+                            key={songStatus[0]}
+                            songStatus={songStatus}
+                        />
+                    ))}
+                {Object.entries(status.lists)
+                    .toReversed()
+                    .map((list) => (
+                        <RenderListDownload key={list[0]} list={list} />
+                    ))}
             </div>
             <div
                 title="Downloads"

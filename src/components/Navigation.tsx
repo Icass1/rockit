@@ -1,3 +1,4 @@
+import useWindowSize from "@/hooks/useWindowSize";
 import { downloads } from "@/stores/downloads";
 import { pinnedLists } from "@/stores/pinnedLists";
 import type {
@@ -470,6 +471,31 @@ export default function Navigation({ activePage }: { activePage: string }) {
         { name: "Stats & Friends", href: "/stats", icon: ChartLine },
     ];
 
+    const [innerWidth, innerHeight] = useWindowSize();
+
+    if (innerWidth < 768) {
+        return (
+            <div className="flex flex-row py-2 w-fit mx-auto min-w-0 max-w-full">
+                {pages.map((page) => (
+                    <a
+                        key={page.href}
+                        href={page.href}
+                        title={page.name}
+                        className={`h-8 rounded-md items-center ml-2 mr-2 transition-all flex gap-2 ${
+                            activePage === page.name
+                                ? "bg-white text-black"
+                                : "text-white hover:bg-[#414141]"
+                        }`}
+                    >
+                        <div className="w-8 h-8 flex items-center justify-center">
+                            <page.icon className="w-5 h-5" />
+                        </div>
+                    </a>
+                ))}
+            </div>
+        );
+    }
+
     return (
         <div
             className={
@@ -533,10 +559,10 @@ export default function Navigation({ activePage }: { activePage: string }) {
                             <img
                                 className="w-8 h-8 flex items-center justify-center rounded-sm"
                                 src={
-                                    (list?.image
+                                    list?.image
                                         ? `/api/image/${list.image}`
-                                        : "/song-placeholder.png")
-                                } 
+                                        : "/song-placeholder.png"
+                                }
                             />
                             <label className="font-semibold text-sm truncate cursor-pointer">
                                 {list.name}

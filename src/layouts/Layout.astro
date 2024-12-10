@@ -1,4 +1,4 @@
---- 
+---
 import "@/styles/default.css";
 import Header from "@/components/Header.astro";
 import Navigation from "@/components/Navigation.tsx";
@@ -45,9 +45,9 @@ const { meta } = Astro.props;
     </head>
     <body>
         <main
-            class="grid grid-rows-[min-content_1fr_min-content] grid-cols-[min-content_1fr]"
+            class="grid grid-rows-[min-content_1fr_min-content_min-content] md:grid-rows-[min-content_1fr_min-content] md:grid-cols-[min-content_1fr] max-w-full min-w-0 w-full"
         >
-            <div style={{ gridArea: "header" }}>
+            <div style={{ gridArea: "header" }} class="min-w-0 max-w-full w-full">
                 <Header />
             </div>
             <div style={{ gridArea: "nav" }} class="z-50">
@@ -60,7 +60,7 @@ const { meta } = Astro.props;
 
             <!-- Main content -->
             <div
-                class="min-w-0 max-w-full min-h-0 max-h-full overflow-hidden relative"
+                class="block min-w-0 max-w-full w-full min-h-0 max-h-full overflow-hidden relative"
                 style={{ gridArea: "main" }}
             >
                 <PlayerUI client:only="react" />
@@ -83,27 +83,32 @@ const { meta } = Astro.props;
             <div
                 id="menu-overlay"
                 class="fixed top-0 left-0 w-full h-full bg-black/50 z-40 opacity-0 pointer-events-none transition-all duration-300"
-            ></div>
+            >
+            </div>
         </main>
     </body>
 </html>
 
 <script>
-  const menuIcon = document.querySelector("#menu-icon") as HTMLDivElement;
-  const mobileNav = document.querySelector("#mobile-navigation") as HTMLDivElement;
-  const menuOverlay = document.querySelector("#menu-overlay") as HTMLDivElement;
+    const menuIcon = document.querySelector("#menu-icon") as HTMLDivElement;
+    const mobileNav = document.querySelector(
+        "#mobile-navigation"
+    ) as HTMLDivElement;
+    const menuOverlay = document.querySelector(
+        "#menu-overlay"
+    ) as HTMLDivElement;
 
-  menuIcon.addEventListener("click", () => {
-    mobileNav.classList.toggle("hidden");
-    menuOverlay.classList.toggle("opacity-0");
-    menuOverlay.classList.toggle("pointer-events-none");
-  });
+    menuIcon.addEventListener("click", () => {
+        mobileNav.classList.toggle("hidden");
+        menuOverlay.classList.toggle("opacity-0");
+        menuOverlay.classList.toggle("pointer-events-none");
+    });
 
-  menuOverlay.addEventListener("click", () => {
-    mobileNav.classList.add("hidden");
-    menuOverlay.classList.add("opacity-0");
-    menuOverlay.classList.add("pointer-events-none");
-  });
+    menuOverlay.addEventListener("click", () => {
+        mobileNav.classList.add("hidden");
+        menuOverlay.classList.add("opacity-0");
+        menuOverlay.classList.add("pointer-events-none");
+    });
 </script>
 
 <style>
@@ -111,10 +116,11 @@ const { meta } = Astro.props;
         grid-template-areas:
             "header"
             "main"
-            "footer";
+            "footer"
+            "nav";
     }
 
-    @media (min-width: 640px) {
+    @media (min-width: 768px) {
         main {
             grid-template-areas:
                 "nav header"

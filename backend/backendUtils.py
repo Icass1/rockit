@@ -7,6 +7,8 @@ from logger import getLogger
 from typing import List
 import numpy
 from io import BytesIO
+import cv2
+import math
 
 from PIL import Image, ImageTransform, ImageDraw, ImageFilter
 
@@ -70,7 +72,7 @@ def download_image(url, path):
     except requests.exceptions.RequestException as e:
         logger.error(f"An error occurred: {e}")
 
-def get_transfromed_image(image: Image.Image): 
+def get_transfromed_image(image: Image.Image, base_1, base_2): 
 
     image = image.convert("RGBA").resize((640, 640))
     blur_radius = 0
@@ -85,40 +87,64 @@ def get_transfromed_image(image: Image.Image):
 
     image = Image.composite(image, back_color, mask)
 
+    image_np = numpy.array(image)
+ 
+    translate_1 =  numpy.matrix([
+        [1, 0, -320], 
+        [0, 1, -320],
+        [0, 0, 1]
+    ])
+
     shear = numpy.matrix([
-        [1, -2, 0], 
-        [0.5, 1, 0],
-        [0, 0 ,1]
-    ])
-    translate = numpy.matrix([
-        [1, 0, -50], 
-        [0, 1, -300],
+        [base_1[0], -base_2[0], 0], 
+        [-base_1[1], base_2[1], 0],
         [0, 0, 1]
     ])
 
-    scale = numpy.matrix([
-        [1.1, 0, 0], 
-        [0, 2.3, 0],
+    translate_2 =  numpy.matrix([
+        [1, 0, 320], 
+        [0, 1, 320],
         [0, 0, 1]
     ])
 
-    transform = scale*shear*translate
+    transform_matrix = translate_2*shear*translate_1
 
-    transform = ImageTransform.AffineTransform([
-        transform.item(0, 0), transform.item(0, 1), transform.item(0, 2),
-        transform.item(1, 0), transform.item(1, 1), transform.item(1, 2)
-    ])
-    
-    return transform.transform((640, 640), image, fillcolor = (0, 0, 0, 0))
+    # Apply the affine transformation using OpenCV
+    transformed_image_np = cv2.warpAffine(
+        image_np,
+        transform_matrix[:2, :],
+        (image_np.shape[1], image_np.shape[0]),
+        flags=cv2.INTER_LINEAR,
+        borderMode=cv2.BORDER_CONSTANT,
+        borderValue=(0, 0, 0, 0),
+    )
+
+    # Convert back to a Pillow image
+    transformed_image_cv2 = Image.fromarray(transformed_image_np)
+
+    return transformed_image_cv2
 
 def create_playlist_collage(output_path, urls: List[str]=[], paths: List[str]=[]):
     
+    # https://www.desmos.com/calculator/pao5byd69d?lang=es
+
     out = Image.new("RGBA", (640, 640), (0, 0, 0, 0)) #(26, 26, 26, 255)
 
-    x_space = 300
-    y_spcae = 0.5*x_space
-    column_x_space = 100
-    column_y_space = 260
+    base_1 = (0.66, 0.11)
+    base_2 = (-0.28, 0.57)
+
+    gap  = 20
+
+    abs_base_1 = math.sqrt(base_1[0]**2 + base_1[1]**2)
+    abs_base_2 = math.sqrt(base_2[0]**2 + base_2[1]**2)
+
+    x_space = (gap + 640*abs_base_2)/(math.sqrt(1 + (base_2[1]/base_2[0])**2))
+    y_space = -base_2[1]/base_2[0]*x_space
+
+    d = (640*abs_base_1 + gap)/abs_base_1
+
+    column_x_space = base_1[0]*d - base_2[0]*640*abs_base_2/2 + gap/2
+    column_y_space = base_1[1]*d - base_2[1]*640*abs_base_2/2 + gap/2
 
     images = []
 
@@ -132,56 +158,56 @@ def create_playlist_collage(output_path, urls: List[str]=[], paths: List[str]=[]
         except:
             print(k, response.content)
     index = 0
-    while len(images) < 10:
+    while len(images) < 7:
         images.append(images[index])
         index += 1
 
     random.shuffle(images)
 
     for k in range(3):
-        image = get_transfromed_image(images[k])
+        image = get_transfromed_image(images[k], base_1=base_1, base_2=base_2)
         k -= 1
-        out.paste(image, (x_space*k, int(y_spcae*k)), image)
+        out.paste(image, (int(x_space*k), int(y_space*k)), image)
 
-    for k in range(3, 6):
-        image = get_transfromed_image(images[k])
-        k -= 4
-        out.paste(image, (x_space*k-column_x_space, int(y_spcae*k) + column_y_space), image)
+    for k in range(3, 5):
+        image = get_transfromed_image(images[k], base_1=base_1, base_2=base_2)
+        k -= 3
+        out.paste(image, (int(x_space*k-column_x_space), int(y_space*k + column_y_space)), image)
 
-    for k in range(6, 9):
-        image = get_transfromed_image(images[k])
-        k -= 7
-        out.paste(image, (x_space*k + column_x_space, int(y_spcae*k) - column_y_space), image)
+    for k in range(5, 7):
+        image = get_transfromed_image(images[k], base_1=base_1, base_2=base_2)
+        k -= 6
+        out.paste(image, (int(x_space*k + column_x_space), int(y_space*k - column_y_space)), image)
 
     # image = get_transfromed_image(images[9])
     # k = 1
-    # out.paste(image, (x_space*k + column_x_space*2, int(y_spcae*k) - column_y_space*2), image)
+    # out.paste(image, (x_space*k + column_x_space*2, int(y_space*k) - column_y_space*2), image)
 
-    image = get_transfromed_image(images[9])
-    k = -1
-    out.paste(image, (x_space*k - column_x_space*2, int(y_spcae*k) + column_y_space*2), image)
+    # image = get_transfromed_image(images[9], base_1=base_1, base_2=base_2)
+    # k = -1
+    # out.paste(image, (x_space*k - column_x_space*2, int(y_space*k) + column_y_space*2), image)
 
     # image = get_transfromed_image(images[10])
     # k = 0
-    # out.paste(image, (x_space*k - column_x_space*2, int(y_spcae*k) + column_y_space*2), image)
+    # out.paste(image, (x_space*k - column_x_space*2, int(y_space*k) + column_y_space*2), image)
 
     out.save(output_path)
 
 
 if __name__ == "__main__":
     create_playlist_collage(output_path="test.png", urls=[
-            "http://localhost:4321/api/image/630242b7f511492720b85cbab809b03c9c5d1d72",
-            "http://localhost:4321/api/image/85530b18c84d2f112d9a7db27bec795d850c01ba",
-            "https://i.scdn.co/image/ab67616d0000b2735405ef9e393f5f1e53b4b42e",
-            "https://i.scdn.co/image/ab67616d0000b273093c6e7d6069b3c958071f73",
-            "https://i.scdn.co/image/ab67616d0000b2736ca5c90113b30c3c43ffb8f4",
-            "https://i.scdn.co/image/ab67616d0000b273eec04d194051bbdb926922b0",
-            "https://music.rockhosting.org/_next/image?url=https%3A%2F%2Fapi.music.rockhosting.org%2Fapi%2Flist%2Fimage%2FV0XHQF4ASvt7Yf2y_300x300&w=384&q=75",
+            # "http://localhost:4321/api/image/630242b7f511492720b85cbab809b03c9c5d1d72",
+            # "http://localhost:4321/api/image/85530b18c84d2f112d9a7db27bec795d850c01ba",
+            # "https://i.scdn.co/image/ab67616d0000b2735405ef9e393f5f1e53b4b42e",
+            # "https://i.scdn.co/image/ab67616d0000b273093c6e7d6069b3c958071f73",
+            # "https://i.scdn.co/image/ab67616d0000b2736ca5c90113b30c3c43ffb8f4",
+            # "https://i.scdn.co/image/ab67616d0000b273eec04d194051bbdb926922b0",
+            # "https://music.rockhosting.org/_next/image?url=https%3A%2F%2Fapi.music.rockhosting.org%2Fapi%2Flist%2Fimage%2FV0XHQF4ASvt7Yf2y_300x300&w=384&q=75",
         ], paths=[
-            # "/home/icass/rockit/images/album/AC_DC/The Razors Edge/image.png",
-            # "/home/icass/rockit/images/album/AC_DC/Highway to Hell/image.png",
-            # "/home/icass/rockit/images/album/Eminem/Encore (Deluxe Version)/image.png",
-            # "/home/icass/rockit/images/album/AC_DC/Back In Black/image.png",
+            "/home/icass/rockit/images/album/AC_DC/The Razors Edge/image.png",
+            "/home/icass/rockit/images/album/AC_DC/Highway to Hell/image.png",
+            "/home/icass/rockit/images/album/Eminem/Encore (Deluxe Version)/image.png",
+            "/home/icass/rockit/images/album/AC_DC/Back In Black/image.png",
             # "/home/icass/rockit/images/album/AC_DC/High Voltage/image.png",
             # "/home/icass/rockit/images/album/AC_DC/For Those About to Rock (We Salute You)/image.png",
         ]

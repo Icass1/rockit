@@ -1,0 +1,21 @@
+{ 
+
+  "name": "Rock It!", 
+
+  "short_name": "RockIt", 
+
+  "start_url": "https://DomainName", 
+
+  "display": "standalone", 
+
+  "icons": [{ 
+
+    "src": "logos/logo-sq-2.png", 
+
+    "sizes": "512x512", 
+
+    "type": "image/png" 
+
+  }] 
+
+}

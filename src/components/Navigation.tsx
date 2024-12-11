@@ -15,6 +15,7 @@ import {
     Download,
     Pin,
     ChartLine,
+    Settings,
 } from "lucide-react";
 import { useEffect, useRef, useState, type Dispatch } from "react";
 
@@ -505,6 +506,19 @@ export default function Navigation({ activePage }: { activePage: string }) {
                             </div>
                         </a>
                     ))}
+                    <a
+                        href="/settings"
+                        title="Settings"
+                        className={`h-full w-full flex justify-center items-center md:h-8 rounded-md ml-2 mr-2 transition-all gap-2 ${
+                            activePage === "Settings"
+                                ? "bg-white text-black"
+                                : "text-white md:hover:bg-[#414141]"
+                        }`}
+                    >
+                        <div className="w-8 h-8 flex justify-center items-center">
+                            <Settings className="w-5 h-5" />
+                        </div>
+                    </a>
                 </div>
             </div>
         );

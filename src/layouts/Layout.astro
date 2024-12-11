@@ -29,6 +29,9 @@ const { meta } = Astro.props;
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="generator" content={Astro.generator} />
 
+        <!--Fullscreen de Apple-->
+        <meta name="apple-mobile-web-app-capable" content="yes">
+
         {
             meta &&
                 Object.entries(meta).map((metaItem) => (
@@ -40,6 +43,7 @@ const { meta } = Astro.props;
         }
 
         <link rel="icon" type="image/svg+xml" href="/rockit-logo.ico" />
+        <link rel="manifest" href="/manifest.json">
         <title>{title || "RockIt"}</title>
         <ViewTransitions />
     </head>

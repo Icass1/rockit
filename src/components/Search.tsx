@@ -6,7 +6,7 @@ export default function Search() {
 
     return (
         <>
-            <section className="p-12 text-white">
+            <section className="md:px-12 px-3 py-12 text-white">
                 <h2 className="text-3xl font-bold text-left">Songs</h2>
                 <div className="relative flex items-center gap-4 overflow-x-auto py-4 px-2">
                     {/* Aquí creamos las canciones */}
@@ -52,7 +52,7 @@ export default function Search() {
                 </div>
             </section>
 
-            <section className="p-12 text-white">
+            <section className="md:px-12 px-3 py-12 text-white">
                 <h2 className="text-3xl font-bold text-left">Albums</h2>
                 <div className="relative flex items-center gap-4 overflow-x-auto py-4 px-2">
                     {/* Aquí creamos las canciones */}
@@ -98,7 +98,7 @@ export default function Search() {
                 </div>
             </section>
 
-            <section className="p-12 text-white">
+            <section className="md:px-12 px-3 py-12 text-white">
                 <h2 className="text-3xl font-bold text-left">Artists</h2>
                 <div className="relative flex items-center gap-4 overflow-x-auto py-4 px-2">
                     {/* Aquí creamos las canciones */}
@@ -125,7 +125,7 @@ export default function Search() {
                 </div>
             </section>
 
-            <section className="p-12 text-white">
+            <section className="md:px-12 px-3 py-12 text-white">
                 <h2 className="text-3xl font-bold text-left">Playlists</h2>
                 <div className="relative flex items-center gap-4 overflow-x-auto py-4 px-2">
                     {/* Aquí creamos las canciones  */}

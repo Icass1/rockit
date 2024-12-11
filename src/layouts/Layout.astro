@@ -67,7 +67,7 @@ const { meta } = Astro.props;
                 style={{ gridArea: "main" }}
             >
                 <PlayerUI client:only="react" />
-                <div class="overflow-auto w-full h-full absolute">
+                <div class="overflow-auto w-full h-full absolute px-3 mb:px-0">
                     <slot />
                 </div>
                 <!-- <div class="w-full h-4 top-0 bg-gradient-to-b absolute from-[#0b0b0b] to-transparent"></div> Este tapa algunmas cosas, en cuanto tengamos todo lo metemos como feature bien-->

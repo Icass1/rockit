@@ -107,11 +107,13 @@ const meta = {
     site_name: "Rockit",
     "og:title": song.name,
     title: song.name,
-    description: `${song.artists.map((artist) => artist.name)}`,
-    "og:description": `${song.artists.map((artist) => artist.name)}`,
+    description: `${song.artists.map((artist) => artist.name)} • Song`,
+    "og:description": `${song.artists.map((artist) => artist.name)} • Song`,
     "og:url": `https://rockit.rockhosting.org/song/${id}`,
     "og:type": "music.song",
-    "og:image": song.image ? `/api/image/${song.image}` : song.images[0].url,
+    "og:image": song.image
+        ? `https://rockit.rockhosting.org/api/image/${song.image}`
+        : song.images[0].url,
 };
 ---
 

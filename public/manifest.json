@@ -9,9 +9,37 @@
     "orientation": "portrait",
     "icons": [
         {
-            "src": "logos/logo-sq-2.png",
+            "src": "logos/logo-512.png",
             "sizes": "512x512",
             "type": "image/png"
+        },
+        {
+            "src": "logos/logo-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "/screenshot-1.png",
+            "sizes": "1918x890",
+            "type": "image/png",
+            "form_factor": "wide",
+            "label": "Wonder Widgets"
+        },
+        {
+            "src": "/screenshot-2.png",
+            "sizes": "379x825",
+            "type": "image/png",
+            "form_factor": "narrow",
+            "label": "Wonder Widgets"
+        },
+        {
+            "src": "/screenshot-3.png",
+            "sizes": "382x828",
+            "type": "image/png",
+            "platform": "ios",
+            "label": "Dashboard view displaying key metrics"
         }
     ]
 }

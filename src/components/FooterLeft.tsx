@@ -6,6 +6,7 @@ export default function FooterCenter() {
     const $currentSong = useStore(currentSong);
 
     return (
+        // <!-- Para el Nicolás de mañana {$currentSong && <LikeButton song={$currentSong} />} -->
         <div className="flex items-center md:w-1/3 w-[90%] gap-x-3">
             <img
                 id="footer-album-cover"
@@ -24,7 +25,6 @@ export default function FooterCenter() {
                     >
                         {$currentSong?.name || "Canción desconocida :("}
                     </a>
-                    {$currentSong && <LikeButton song={$currentSong} />}
                 </span>
                 <span className="text-sm text-gray-400 flex flex-row gap-x-1">
                     <div className="flex flex-row gap-x-1 w-full md:w-fit truncate">

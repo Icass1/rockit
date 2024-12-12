@@ -7,6 +7,9 @@ import {
     parsePlaylist,
     parseSong,
     type RawPlaylistDB,
+    type UserDB,
+    parseUser,
+    type RawUserDB,
 } from "@/lib/db";
 import PlaylistSong from "@/components/PlaylistSong";
 import PinList from "@/components/PinList";
@@ -20,9 +23,26 @@ if (!Astro.locals.user) {
 let playlist;
 let inDatabase;
 
-playlist = parsePlaylist(
-    db.prepare("SELECT * FROM playlist WHERE id = ?").get(id) as RawPlaylistDB
-);
+if (id == "liked") {
+    const userDB = parseUser(
+        db
+            .prepare("SELECT likedSongs FROM user WHERE id = ?")
+            .get(Astro.locals.user.id) as RawUserDB
+    ) as UserDB<"likedSongs">;
+
+    playlist = {
+        name: "Liked",
+        songs: userDB.likedSongs.map((song) => song),
+        image: "",
+        images: [{ url: "/song-placeholder.png" }],
+    };
+} else {
+    playlist = parsePlaylist(
+        db
+            .prepare("SELECT * FROM playlist WHERE id = ?")
+            .get(id) as RawPlaylistDB
+    );
+}
 
 if (playlist) {
     inDatabase = true;
@@ -39,7 +59,7 @@ if (playlist) {
 
 const songs = playlist.songs.map(
     (
-        songID
+        song
     ):
         | SongDB<
               | "name"
@@ -58,7 +78,7 @@ const songs = playlist.songs.map(
                 .prepare(
                     "SELECT name, albumId, duration, artists, path, albumName, image, images, id FROM song WHERE id = ?"
                 )
-                .get(songID.id) as RawSongDB
+                .get(song.id) as RawSongDB
         );
     }
 );
@@ -105,7 +125,9 @@ function getMinutes(seconds: number) {
                 <PlayCircle strokeWidth={0.9} className="h-10 w-10" />
             </div>
             <img
-                src={playlist.image ? `/api/image/${playlist.image}` : playlist.images[0].url}
+                src={playlist.image
+                    ? `/api/image/${playlist.image}`
+                    : playlist.images[0].url}
                 class="rounded-md"
             />
             <label class="pt-2 text-2xl font-semibold">{playlist.name}</label>

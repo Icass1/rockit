@@ -10,7 +10,10 @@ export async function GET(context: APIContext): Promise<Response> {
 
     try {
         response = await fetch(
-            `${BACKEND_URL}/downloads?user=${context.locals.user.id}`
+            `${BACKEND_URL}/downloads?user=${context.locals.user.id}`,
+            {
+                signal: AbortSignal.timeout(1000),
+            }
         );
     } catch {
         return new Response("Error connecting to backend");

@@ -7,7 +7,10 @@ export async function GET(context: APIContext): Promise<Response> {
     const query = context.url.searchParams.get("q");
     let response;
     try {
-        response = await fetch(`${BACKEND_URL}/search?q=${query}`);
+        response = await fetch(`${BACKEND_URL}/search?q=${query}`,
+            {
+                signal: AbortSignal.timeout(1000),
+            });
     } catch {
         return new Response("Unable to fetch", { status: 404 });
     }

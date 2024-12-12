@@ -54,7 +54,9 @@ if (song) {
     inDatabase = false;
     let response;
 
-    response = await fetch(`${BACKEND_URL}/song/${id}`);
+    response = await fetch(`${BACKEND_URL}/song/${id}`, {
+        signal: AbortSignal.timeout(1000),
+    });
     if (response.ok) {
         const spotifySong = (await response.json()) as SpotifyTrack;
         song = {
@@ -86,12 +88,19 @@ if (!album) {
 
 let response;
 
-response = await fetch(`${BACKEND_URL}/artist-top-songs/${song.artists[0].id}`);
+response = await fetch(
+    `${BACKEND_URL}/artist-top-songs/${song.artists[0].id}`,
+    {
+        signal: AbortSignal.timeout(1000),
+    }
+);
 if (response.ok) {
     artistSongs = (await response.json()) as SpotifyArtistTopTracks;
 }
 
-response = await fetch(`${BACKEND_URL}/artist/${song.artists[0].id}`);
+response = await fetch(`${BACKEND_URL}/artist/${song.artists[0].id}`, {
+    signal: AbortSignal.timeout(1000),
+});
 if (response.ok) {
     artist = await response.json();
 }

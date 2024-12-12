@@ -9,7 +9,7 @@ import {
     Pause
 } from "lucide-react";
 
-export default function FooterLeftMobile() {
+export default function FooterRightMobile() {
     const $playing = useStore(playing);
 
     return (

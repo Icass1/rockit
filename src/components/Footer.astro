@@ -1,7 +1,7 @@
 ---
 import FooterCenter from "@/components/FooterCenter";
 import FooterLeft from "@/components/FooterLeft";
-import FooterLeftMobile from "@/components/FooterLeftMobile";
+import FooterRightMobile from "@/components/FooterMobile";
 import TogglePlayerUI from "@/components/TogglePlayerUI";
 import VolumeSlider from "./VolumeSlider";
 ---
@@ -25,6 +25,6 @@ import VolumeSlider from "./VolumeSlider";
         </div>
 
         <!-- Sección Derecha: Solo visible en pantallas pequeñas -->
-        <FooterLeftMobile client:only="react" />
+        <FooterRightMobile client:only="react" />
     </div>
 </footer>

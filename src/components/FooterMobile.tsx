@@ -18,11 +18,11 @@ export default function FooterRightMobile() {
         >
             {$playing ? (
                 <Pause 
-                    className="w-5 h-5 text-white fill-current" 
+                    className="h-full text-white fill-current" 
                     onClick={pause}
                 />
             ) : (
-                <Play className="w-5 h-5 text-white fill-current"
+                <Play className="h-full text-white fill-current"
                     onClick={play}
                 />
             )}

@@ -14,7 +14,7 @@ export default function FooterCenter() {
                     "/song-placeholder.png"
                 }
                 alt="Album Cover"
-                className="md:w-16 md:h-16 rounded-md w-9 h-9"
+                className="md:w-16 md:h-16 rounded-md select-none w-9 h-9"
             />
             <div className="flex flex-col min-w-0 max-w-full w-full pr-4">
                 <span className="font-semibold truncate  flex flex-row gap-3 items-center">
@@ -46,7 +46,7 @@ export default function FooterCenter() {
                         )}
                     </div>
 
-                    <span className="hidden md:block">•</span>
+                    <span className="hidden md:block select-none">•</span>
 
                     <a
                         href={`/album/${$currentSong?.albumId}`}

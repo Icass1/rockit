@@ -1,7 +1,7 @@
 import type { SongDB } from "@/lib/db";
 import { likedSongs } from "@/stores/likedList";
 import { useStore } from "@nanostores/react";
-import { Heart } from "lucide-react";
+import { Heart,HandMetal } from "lucide-react";
 import type { MouseEvent } from "react";
 
 export default function LikeButton({ song }: { song: SongDB<"id"> }) {
@@ -42,8 +42,9 @@ export default function LikeButton({ song }: { song: SongDB<"id"> }) {
     };
 
     return (
-        <div className="min-w-5 w-5 min-h-5 h-5">
-            <Heart
+        // Previous: Heart
+        <div className="min-w-5 min-h-5 md:h-5 h-full aspect-square">
+            <HandMetal
                 className="cursor-pointer transition-all w-full h-full"
                 onClick={handleToggleLiked}
                 fill={$likedSongs.includes(song.id) ? "white" : "transparent"}

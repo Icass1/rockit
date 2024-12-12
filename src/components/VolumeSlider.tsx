@@ -1,38 +1,7 @@
 import { volume } from "@/stores/audio";
 import { useStore } from "@nanostores/react";
 import { Volume1, Volume2, VolumeOff } from "lucide-react";
-import { useRef } from "react";
-import styled, { css } from "styled-components";
 import Slider from "./Slider";
-
-const Input = styled.input`
-    & {
-        position: absolute;
-        top: 0px;
-        left: 0px;
-        height: 100%;
-        width: 100%;
-        appearance: none;
-        // background-color: rgb(55 65 80);
-        background-color: transparent;
-        border-radius: 9999px;
-    }
-
-    &:hover::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        height: 10px;
-        width: 10px;
-        background-color: white;
-    }
-
-    &::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        background-color: transparent;
-        border-radius: 100%;
-    }
-    &::-webkit-slider-runnable-track {
-    }
-`;
 
 export default function VolumeSlider() {
     const $volume = useStore(volume);

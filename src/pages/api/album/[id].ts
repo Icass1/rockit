@@ -24,7 +24,7 @@ export async function GET(context: APIContext): Promise<Response> {
     if (!album) {
         try {
             const response = await fetch(`${BACKEND_URL}/album/${id}`, {
-                signal: AbortSignal.timeout(1000),
+                signal: AbortSignal.timeout(2000),
             });
             if (response.ok) {
                 let responseAlbum = (await response.json()) as SpotifyAlbum;
@@ -80,7 +80,7 @@ export async function GET(context: APIContext): Promise<Response> {
 
             try {
                 const response = await fetch(`${BACKEND_URL}/song/${songId}`, {
-                    signal: AbortSignal.timeout(1000),
+                    signal: AbortSignal.timeout(2000),
                 });
                 if (response.ok) {
                     song = (await response.json()) as SpotifyTrack;

@@ -109,13 +109,13 @@ const { meta } = Astro.props;
         "#menu-overlay"
     ) as HTMLDivElement;
 
-    menuIcon.addEventListener("click", () => {
+    menuIcon?.addEventListener("click", () => {
         mobileNav.classList.toggle("hidden");
         menuOverlay.classList.toggle("opacity-0");
         menuOverlay.classList.toggle("pointer-events-none");
     });
 
-    menuOverlay.addEventListener("click", () => {
+    menuOverlay?.addEventListener("click", () => {
         mobileNav.classList.add("hidden");
         menuOverlay.classList.add("opacity-0");
         menuOverlay.classList.add("pointer-events-none");

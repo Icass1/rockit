@@ -17,7 +17,6 @@ import {
     Repeat,
     CirclePause,
 } from "lucide-react";
-import { useRef } from "react";
 import Slider from "./Slider";
 
 export default function FooterCenter() {

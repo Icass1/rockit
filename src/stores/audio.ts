@@ -179,7 +179,9 @@ navigator.mediaSession.setActionHandler('pause', async () => {
     await pause();
 });
 
-navigator.mediaSession.setActionHandler("previoustrack", () => {});
+navigator.mediaSession.setActionHandler("previoustrack", () => {
+    // TODO
+});
 
 navigator.mediaSession.setActionHandler("nexttrack", async () => {
     await next();
@@ -196,13 +198,13 @@ navigator.mediaSession.setActionHandler("nexttrack", async () => {
 //    console.log("seekbackward");
 //});
 
-navigator.mediaSession.setActionHandler("seekto", async () => {
-    console.log("seekto");
+navigator.mediaSession.setActionHandler("seekto", async (details) => {
+    setTime(details.seekTime? details.seekTime : 0);
 });
 
-navigator.mediaSession.setActionHandler("skipad", async () => {
-    console.log("skipad");
-});
+//navigator.mediaSession.setActionHandler("skipad", async () => {
+//    console.log("skipad");
+//});
 
 audio.addEventListener("canplay", () => {
     totalTime.set(audio.duration);

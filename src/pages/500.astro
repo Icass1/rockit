@@ -1,19 +1,18 @@
 ---
 import Layout from "@/layouts/Layout.astro";
-console.log("ASDF")
+console.log("ASDF");
 
 if (!Astro.locals.user) {
     return Astro.redirect("/login");
 }
 
 interface Props {
-    error: unknown
+    error: unknown;
 }
 
-const { error } = Astro.props
+const { error } = Astro.props;
 
-console.log(error)
-
+console.log(error);
 ---
 
 <Layout title="500 • Rock It!" currentPage="500 - Internal server error">

@@ -1,6 +1,6 @@
 ---
 import SearchBar from "@/components/SearchBar";
-import { LogOut,Settings } from "lucide-react";
+import { LogOut, Settings } from "lucide-react";
 ---
 
 <header
@@ -31,7 +31,7 @@ import { LogOut,Settings } from "lucide-react";
                 />
             </div>
         </button>
-    
+
         <!-- Menú desplegable -->
         <div
             id="userMenu"
@@ -55,39 +55,43 @@ import { LogOut,Settings } from "lucide-react";
             </ul>
         </div>
     </div>
-    
+
     <script>
         // Obtener referencias a los elementos
-        const toggleButton = document.getElementById('toggleMenuButton') as HTMLDivElement;
-        const menu = document.getElementById('userMenu') as HTMLDivElement;
-        
+        const toggleButton = document.getElementById(
+            "toggleMenuButton"
+        ) as HTMLDivElement;
+        const menu = document.getElementById("userMenu") as HTMLDivElement;
+
         // Mostrar/ocultar el menú al hacer clic en el botón
-        toggleButton.addEventListener('click', (event) => {
+        toggleButton.addEventListener("click", (event) => {
             event.stopPropagation();
-            menu.classList.toggle('opacity-0');
-            toggleButton.classList.toggle('bg-[#2f2f2f]');
-            menu.classList.toggle('pointer-events-none');
+            menu.classList.toggle("opacity-0");
+            toggleButton.classList.toggle("bg-[#2f2f2f]");
+            menu.classList.toggle("pointer-events-none");
         });
 
-        document.addEventListener('click', (event) => {
-            if (!menu.contains(event.target as Node) && !toggleButton.contains(event.target as Node)) {
-                menu.classList.add('opacity-0');
-                toggleButton.classList.remove('bg-[#2f2f2f]');
-                menu.classList.add('pointer-events-none');
+        document.addEventListener("click", (event) => {
+            if (
+                !menu.contains(event.target as Node) &&
+                !toggleButton.contains(event.target as Node)
+            ) {
+                menu.classList.add("opacity-0");
+                toggleButton.classList.remove("bg-[#2f2f2f]");
+                menu.classList.add("pointer-events-none");
             }
         });
 
-        
         // Manejar las acciones del menú
-        menu.querySelectorAll('li').forEach((item) => {
-            item.addEventListener('click', () => {
-            const action = item.getAttribute('data-action');
-            if (action === 'settings') {
-                window.location.href = '/settings';
-            } else if (action === 'signout') {
-                alert('Signed out! (Cambia esto inasio)');
-            }
+        menu.querySelectorAll("li").forEach((item) => {
+            item.addEventListener("click", () => {
+                const action = item.getAttribute("data-action");
+                if (action === "settings") {
+                    window.location.href = "/settings";
+                } else if (action === "signout") {
+                    alert("Signed out! (Cambia esto inasio)");
+                }
             });
         });
-    </script>    
+    </script>
 </header>

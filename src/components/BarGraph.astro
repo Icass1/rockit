@@ -36,7 +36,7 @@ const totalValue = items.reduce((partialSum, a) => partialSum + a.value, 0);
                                     <div
                                         class="bg-gradient-to-r from-[#ee1086] to-[#fb6467] h-1 block rounded"
                                         style={`width: calc(${
-                                               (item.value / items[0].value) * 100
+                                            (item.value / items[0].value) * 100
                                         }%)`}
                                     />
                                     <label
@@ -55,7 +55,7 @@ const totalValue = items.reduce((partialSum, a) => partialSum + a.value, 0);
                                                     ) + "%"
                                                 );
                                             } else if (type == "value") {
-                                                return item.value
+                                                return item.value;
                                             }
                                         }}
                                     </label>

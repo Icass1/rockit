@@ -109,9 +109,9 @@ export default function SongPageCover({
                 {!inDatabase || song.path == undefined ? (
                     <Download className={iconClassName} />
                 ) : $currentSong?.id == song.id && $playing ? (
-                    <Pause className={iconClassName} />
+                    <Pause className={iconClassName} fill="white" />
                 ) : (
-                    <Play className={iconClassName + " fill-white"} />
+                    <Play className={iconClassName} fill="white" />
                 )}
             </div>
         </div>

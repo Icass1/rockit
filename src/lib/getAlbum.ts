@@ -122,7 +122,7 @@ export default async function getAlbum(
         let response;
         try {
             response = await fetch(`${BACKEND_URL}/album/${id}`, {
-                signal: AbortSignal.timeout(1000),
+                signal: AbortSignal.timeout(2000),
             });
         } catch (error) {
             return "error connecting to backend";

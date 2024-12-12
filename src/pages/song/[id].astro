@@ -55,7 +55,7 @@ if (song) {
     let response;
 
     response = await fetch(`${BACKEND_URL}/song/${id}`, {
-        signal: AbortSignal.timeout(1000),
+        signal: AbortSignal.timeout(2000),
     });
     if (response.ok) {
         const spotifySong = (await response.json()) as SpotifyTrack;
@@ -91,7 +91,7 @@ let response;
 response = await fetch(
     `${BACKEND_URL}/artist-top-songs/${song.artists[0].id}`,
     {
-        signal: AbortSignal.timeout(1000),
+        signal: AbortSignal.timeout(2000),
     }
 );
 if (response.ok) {
@@ -99,7 +99,7 @@ if (response.ok) {
 }
 
 response = await fetch(`${BACKEND_URL}/artist/${song.artists[0].id}`, {
-    signal: AbortSignal.timeout(1000),
+    signal: AbortSignal.timeout(2000),
 });
 if (response.ok) {
     artist = await response.json();

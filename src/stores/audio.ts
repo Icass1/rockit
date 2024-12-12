@@ -29,19 +29,21 @@ type CurrentSong =
     | SongDB<"images" | "id" | "name" | "artists" | "albumId" | "albumName">
     | undefined;
 
-const json = (await (
-    await fetch("/api/user?q=currentSong,currentTime,queue,queueIndex")
-).json()) as UserDB<"currentSong" | "currentTime" | "queue" | "queueIndex">;
+const userJson = (await (
+    await fetch("/api/user?q=currentSong,currentTime,queue,queueIndex,volume")
+).json()) as UserDB<
+    "currentSong" | "currentTime" | "queue" | "queueIndex" | "volume"
+>;
 
 let _currentSong = undefined;
 let _queue: Queue = [];
-let _queueIndex = json.queueIndex || 0;
+let _queueIndex = userJson.queueIndex || 0;
 
 try {
-    if (json.currentSong) {
+    if (userJson.currentSong) {
         _currentSong = (await (
             await fetch(
-                `/api/song/${json.currentSong}?q=images,id,name,artists,albumId,albumName`
+                `/api/song/${userJson.currentSong}?q=images,id,name,artists,albumId,albumName`
             )
         ).json()) as CurrentSong;
     }
@@ -49,10 +51,10 @@ try {
     _currentSong = undefined;
 }
 
-if (json.queue.length > 0) {
+if (userJson.queue.length > 0) {
     _queue = (await (
         await fetch(
-            `/api/songs?songs=${json.queue.join()}&p=id,name,artists,images,duration`
+            `/api/songs?songs=${userJson.queue.join()}&p=id,name,artists,images,duration`
         )
     ).json()) as Queue;
 }
@@ -69,13 +71,14 @@ export const currentTime = atom<number | undefined>(undefined);
 export const totalTime = atom<number | undefined>(undefined);
 export const queue = atom<Queue>(_queue);
 export const queueIndex = atom<number | undefined>(_queueIndex);
+export const volume = atom<number>(userJson.volume);
 
 const audio = new Audio(
     _currentSong?.id ? `/api/song/audio/${_currentSong?.id}` : undefined
 );
 
-if (json.currentTime) {
-    audio.currentTime = json.currentTime;
+if (userJson.currentTime) {
+    audio.currentTime = userJson.currentTime;
 }
 
 currentSong.subscribe((value) => {
@@ -92,6 +95,11 @@ queue.subscribe((value) => {
 
 queueIndex.subscribe((value) => {
     send({ queueIndex: value });
+});
+
+volume.subscribe((value) => {
+    audio.volume = value;
+    send({ volume: value });
 });
 
 export const play = async () => {

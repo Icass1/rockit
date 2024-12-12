@@ -18,25 +18,12 @@ import {
     CirclePause,
 } from "lucide-react";
 import { useRef } from "react";
+import Slider from "./Slider";
 
 export default function FooterCenter() {
     const $playing = useStore(playing);
     const $totalTime = useStore(totalTime);
     const $currentTime = useStore(currentTime);
-
-    const barRer = useRef<HTMLDivElement>(null);
-
-    const handleMouseUp = (
-        event: React.MouseEvent<HTMLDivElement, MouseEvent>
-    ) => {
-        if (!$totalTime || !barRer.current) {
-            return;
-        }
-        const boundaries = barRer.current.getBoundingClientRect();
-        const newTime =
-            ((event.clientX - boundaries.x) / boundaries.width) * $totalTime;
-        setTime(newTime);
-    };
 
     return (
         <div
@@ -70,34 +57,17 @@ export default function FooterCenter() {
                 <span id="current-time" className="text-xs font-semibold">
                     {getTime($currentTime || 0)}
                 </span>
-                <div
+
+                <Slider
                     className="w-full relative min-w-0 max-w-full rounded h-1 bg-gray-700 group"
-                    onMouseUp={handleMouseUp}
-                    ref={barRer}
-                >
-                    {$currentTime != undefined && $totalTime != undefined ? (
-                        <>
-                            <div
-                                className="absolute top-0 left-0 h-1 bg-gradient-to-r from-[#ee1086] to-[#fb6467] rounded"
-                                style={{
-                                    width: `${
-                                        ($currentTime / $totalTime) * 100
-                                    }%`,
-                                }}
-                            />
-                            <div
-                                className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full transition-opacity opacity-0 group-hover:opacity-100 group-hover:cursor-pointer"
-                                style={{
-                                    left: `calc(${
-                                        ($currentTime / $totalTime) * 100
-                                    }% - 6px)`,
-                                }}
-                            />
-                        </>
-                    ) : (
-                        <></>
-                    )}
-                </div>
+                    value={$currentTime ?? 0}
+                    min={0}
+                    max={$totalTime}
+                    step={0.001}
+                    onChange={(event) => {
+                        setTime(Number(event.target.value));
+                    }}
+                />
 
                 <span id="total-time" className="text-xs font-semibold">
                     {getTime($totalTime || 0)}

@@ -22,7 +22,6 @@ export default function AlbumSong({
     index: number;
     albumId: string;
 }) {
-
     const handleClick = () => {
         if (!song.path) {
             return;

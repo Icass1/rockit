@@ -1,8 +1,7 @@
 ---
-import { Play } from "lucide-react";
-
 import FooterCenter from "@/components/FooterCenter";
 import FooterLeft from "@/components/FooterLeft";
+import FooterLeftMobile from "@/components/FooterLeftMobile";
 import TogglePlayerUI from "@/components/TogglePlayerUI";
 import VolumeSlider from "./VolumeSlider";
 ---
@@ -26,10 +25,6 @@ import VolumeSlider from "./VolumeSlider";
         </div>
 
         <!-- Sección Derecha: Solo visible en pantallas pequeñas -->
-        <div
-            class="flex md:hidden items-center w-[10%] h-full justify-end pr-3 md:pr-0 gap-x-3 group"
-        >
-            <Play className="w-5 h-5 text-white fill-current" />
-        </div>
+        <FooterLeftMobile client:only="react" />
     </div>
 </footer>

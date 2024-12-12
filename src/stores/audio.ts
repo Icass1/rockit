@@ -171,6 +171,14 @@ export async function next() {
         });
 }
 
+navigator.mediaSession.setActionHandler('play', async () => {
+    await play();
+});
+
+navigator.mediaSession.setActionHandler('pause', async () => {
+    await pause();
+});
+
 navigator.mediaSession.setActionHandler("previoustrack", () => {});
 
 navigator.mediaSession.setActionHandler("nexttrack", async () => {

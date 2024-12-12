@@ -19,7 +19,7 @@ if (!Astro.locals.user) {
 let _album = await getAlbum(id);
 
 if (_album == "error connecting to backend") {
-    return new Response("Error connecting to backend", { status: 500 });
+    throw "Error connecting to backend";
 } else if (_album == "not found") {
     return new Response("Ablum not found", { status: 404 });
 }

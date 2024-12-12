@@ -86,7 +86,48 @@ if (userJson?.currentTime) {
 }
 
 currentSong.subscribe((value) => {
-    send({ currentSong: currentSong.get()?.id });
+    send({ currentSong: value?.id });
+
+    if ("mediaSession" in navigator && value) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: value.name,
+            artist: value.artists.map((artist) => artist.name).join(", "),
+            album: value.albumName,
+            artwork: [
+                {
+                    src: `${value.images[0].url}`, // Repalce value.images[0].url for value.image
+                    sizes: "96x96",
+                    type: "image/png",
+                },
+                {
+                    src: `${value.images[0].url}`,
+                    sizes: "128x128",
+                    type: "image/png",
+                },
+                {
+                    src: `${value.images[0].url}`,
+                    sizes: "192x192",
+                    type: "image/png",
+                },
+                {
+                    src: `${value.images[0].url}`,
+                    sizes: "256x256",
+                    type: "image/png",
+                },
+                {
+                    src: `${value.images[0].url}`,
+                    sizes: "384x384",
+                    type: "image/png",
+                },
+                {
+                    src: `${value.images[0].url}`,
+                    sizes: "512x512",
+                    type: "image/png",
+                },
+            ],
+        });
+    }
+
     if (value) {
         playing.set(false);
         audio.src = `/api/song/audio/${value.id}`;
@@ -129,6 +170,29 @@ export async function next() {
             currentSong.set(data);
         });
 }
+
+navigator.mediaSession.setActionHandler("previoustrack", () => {});
+
+navigator.mediaSession.setActionHandler("nexttrack", async () => {
+    await next();
+    await play();
+});
+
+navigator.mediaSession.setActionHandler("seekforward", async () => {
+    console.log("seekforward");
+});
+
+navigator.mediaSession.setActionHandler("seekbackward", async () => {
+    console.log("seekbackward");
+});
+
+navigator.mediaSession.setActionHandler("seekto", async () => {
+    console.log("seekto");
+});
+
+navigator.mediaSession.setActionHandler("skipad", async () => {
+    console.log("skipad");
+});
 
 audio.addEventListener("canplay", () => {
     totalTime.set(audio.duration);

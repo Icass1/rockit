@@ -29,18 +29,22 @@ type CurrentSong =
     | SongDB<"images" | "id" | "name" | "artists" | "albumId" | "albumName">
     | undefined;
 
-const userJson = (await (
-    await fetch("/api/user?q=currentSong,currentTime,queue,queueIndex,volume")
-).json()) as UserDB<
-    "currentSong" | "currentTime" | "queue" | "queueIndex" | "volume"
->;
+const userJsonResponse = await fetch(
+    "/api/user?q=currentSong,currentTime,queue,queueIndex,volume"
+);
+let userJson;
+if (userJsonResponse.ok) {
+    userJson = (await userJsonResponse.json()) as UserDB<
+        "currentSong" | "currentTime" | "queue" | "queueIndex" | "volume"
+    >;
+}
 
 let _currentSong = undefined;
 let _queue: Queue = [];
-let _queueIndex = userJson.queueIndex || 0;
+let _queueIndex = userJson?.queueIndex ?? 0;
 
 try {
-    if (userJson.currentSong) {
+    if (userJson?.currentSong) {
         _currentSong = (await (
             await fetch(
                 `/api/song/${userJson.currentSong}?q=images,id,name,artists,albumId,albumName`
@@ -51,7 +55,7 @@ try {
     _currentSong = undefined;
 }
 
-if (userJson.queue.length > 0) {
+if (userJson && userJson.queue.length > 0) {
     _queue = (await (
         await fetch(
             `/api/songs?songs=${userJson.queue.join()}&p=id,name,artists,images,duration`
@@ -71,13 +75,13 @@ export const currentTime = atom<number | undefined>(undefined);
 export const totalTime = atom<number | undefined>(undefined);
 export const queue = atom<Queue>(_queue);
 export const queueIndex = atom<number | undefined>(_queueIndex);
-export const volume = atom<number>(userJson.volume);
+export const volume = atom<number>(userJson?.volume ?? 1);
 
 const audio = new Audio(
     _currentSong?.id ? `/api/song/audio/${_currentSong?.id}` : undefined
 );
 
-if (userJson.currentTime) {
+if (userJson?.currentTime) {
     audio.currentTime = userJson.currentTime;
 }
 

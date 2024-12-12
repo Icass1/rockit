@@ -12,9 +12,6 @@ import type {
 
 import SongPageCover from "@/components/SongPageCover";
 
-if (!Astro.locals.user) {
-    return Astro.redirect("/login");
-}
 const { id } = Astro.params as { id: string };
 
 let inDatabase;
@@ -104,9 +101,21 @@ response = await fetch(`${BACKEND_URL}/artist/${song.artists[0].id}`, {
 if (response.ok) {
     artist = await response.json();
 }
+
+const meta = {
+    "og:site_name": "Rockit",
+    site_name: "Rockit",
+    "og:title": song.name,
+    title: song.name,
+    description: `${song.artists.map((artist) => artist.name)} • Album • 10 songs`,
+    "og:description": `${song.artists.map((artist) => artist.name)} • Album • 10 songs`,
+    "og:url": `https://rockit.rockhosting.org/album/${id}`,
+    "og:type": "music.album",
+    "og:image": song.image ? `/api/image/${song.image}` : song.images[0].url,
+};
 ---
 
-<Layout title="Rock It!" currentPage="Song-Info">
+<Layout title={song.name + " • Rock It!"} currentPage="Song" meta={meta}>
     <div class="w-full mx-auto p-6">
         <!-- Header con botones y carátula -->
         <div class="w-full mx-auto p-6 grid grid-cols-3 gap-4 items-center">

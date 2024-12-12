@@ -37,6 +37,7 @@ export default function SongPageCover({
     const $currentSong = useStore(currentSong);
     const $playing = useStore(playing);
 
+
     const handleClick = () => {
         if (!inDatabase || song.path == undefined) {
             fetch(

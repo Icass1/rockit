@@ -14,9 +14,9 @@ import AddToQueue from "@/components/AddToQueue";
 
 const { id } = Astro.params as { id: string };
 
-if (!Astro.locals.user) {
-    return Astro.redirect("/login");
-}
+// if (!Astro.locals.user) {
+//     return Astro.redirect("/login");
+// }
 
 let _album = await getAlbum(id);
 
@@ -43,11 +43,11 @@ const meta = {
     "og:description": `${album.artists.map((artist) => artist.name)} • Album • ${album.releaseDate} • 10 songs`,
     "og:url": `https://rockit.rockhosting.org/album/${id}`,
     "og:type": "music.album",
-    "og:image": album.images[0].url,
+    "og:image": album.image ? `/api/image/${album.image}` : album.images[0].url,
 };
 ---
 
-<Layout title={album.name + " • Rock It!"} currentPage="" meta={meta}>
+<Layout title={album.name + " • Rock It!"} currentPage="Album" meta={meta}>
     <div
         class="pl-4 g rid flex flex-row w-full h-full grid-cols-[min-content_1fr] relative pr-2"
     >

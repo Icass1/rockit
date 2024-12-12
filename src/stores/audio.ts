@@ -178,13 +178,15 @@ navigator.mediaSession.setActionHandler("nexttrack", async () => {
     await play();
 });
 
-navigator.mediaSession.setActionHandler("seekforward", async () => {
-    console.log("seekforward");
-});
-
-navigator.mediaSession.setActionHandler("seekbackward", async () => {
-    console.log("seekbackward");
-});
+//   ## Remove this part to make yhe next/prev song controls instead of seek ##
+//
+//navigator.mediaSession.setActionHandler("seekforward", async () => {
+//    console.log("seekforward");
+//});
+//
+//navigator.mediaSession.setActionHandler("seekbackward", async () => {
+//    console.log("seekbackward");
+//});
 
 navigator.mediaSession.setActionHandler("seekto", async () => {
     console.log("seekto");

@@ -1,7 +1,7 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import AlbumSong from "@/components/AlbumSong";
-import { ArrowLeft, Disc, PlayCircle } from "lucide-react";
+import { ArrowLeft, Disc } from "lucide-react";
 
 import { getMinutes } from "@/lib/getTime";
 
@@ -9,6 +9,7 @@ import PinList from "@/components/PinList";
 import AddToLibrary from "@/components/AddToLibrary";
 import DownloadList from "@/components/DownloadList";
 import getAlbum from "@/lib/getAlbum";
+import PlayList from "@/components/PlayList";
 
 const { id } = Astro.params as { id: string };
 
@@ -70,7 +71,7 @@ const meta = {
                 }
                 <PinList type="album" id={id} client:only="react" />
                 <AddToLibrary type="album" id={id} client:only="react" />
-                <PlayCircle strokeWidth={0.9} className="h-10 w-10" />
+                <PlayList client:only="react" songs={songs}/>
             </div>
             <img
                 src={album.image

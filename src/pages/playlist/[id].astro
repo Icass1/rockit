@@ -14,7 +14,8 @@ import {
 import PlaylistSong from "@/components/PlaylistSong";
 import PinList from "@/components/PinList";
 import AddToLibrary from "@/components/AddToLibrary";
-import { Download, PlayCircle, ArrowLeft } from "lucide-react";
+import { Download, ArrowLeft } from "lucide-react";
+import PlayList from "@/components/PlayList";
 
 const { id } = Astro.params as { id: string };
 if (!Astro.locals.user) {
@@ -122,7 +123,24 @@ function getMinutes(seconds: number) {
                 }
                 <PinList type="playlist" id={id} client:only="react" />
                 <AddToLibrary type="playlist" id={id} client:only="react" />
-                <PlayCircle strokeWidth={0.9} className="h-10 w-10" />
+                <PlayList
+                    client:only="react"
+                    songs={songs.filter(
+                        (
+                            song
+                        ): song is SongDB<
+                            | "id"
+                            | "images"
+                            | "image"
+                            | "name"
+                            | "albumId"
+                            | "duration"
+                            | "artists"
+                            | "path"
+                            | "albumName"
+                        > => song !== undefined
+                    )}
+                />
             </div>
             <img
                 src={playlist.image

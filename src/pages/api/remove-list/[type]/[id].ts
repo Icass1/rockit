@@ -37,8 +37,6 @@ export async function ALL(context: APIContext): Promise<Response> {
         context.locals.user.id
     );
 
-    console.log("Removed list:", listToRemove);
-
     return new Response(JSON.stringify({ success: true }), {
         headers: {
             "Content-Type": "application/json",

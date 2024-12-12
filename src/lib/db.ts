@@ -143,6 +143,7 @@ function checkTable(
 
     if (addedColumns.length > 0) {
         console.warn("Detected new column(s).", addedColumns);
+        console.warn("Adding new columns to database....");
         addedColumns.map((column) => {
             const newColumn = newColumns.find(
                 (_column) => _column.name == column
@@ -154,8 +155,6 @@ function checkTable(
             query = `${newColumn.name} ${newColumn.type} ${
                 newColumn.dflt_value ? "DEFAULT " + newColumn.dflt_value : ""
             } ${newColumn.notnull ? "NOT NULL" : ""}`;
-            console.log(column, newColumn);
-            console.log(query);
             db.exec(`ALTER TABLE ${tableName} ADD COLUMN ${query}`);
         });
     }

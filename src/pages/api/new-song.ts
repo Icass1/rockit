@@ -106,8 +106,8 @@ export async function POST(context: APIContext): Promise<Response> {
             new Date().getTime()
         );
     } catch (err) {
-        console.warn("Error in new-song", err?.toString());
         console.log(data);
+        console.warn("Error in new-song", err?.toString());
     }
 
     return new Response("OK");

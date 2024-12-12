@@ -11,13 +11,13 @@ function startSocket() {
     }
 
     websocket.onopen = () => {
-        console.log("Web socket open");
+        // console.log("Web socket open");
     };
     websocket.onmessage = (event) => {
-        console.log("Web socket message", event.data);
+        // console.log("Web socket message", event.data);
     };
     websocket.onclose = () => {
-        console.log("Web socket close");
+        // console.log("Web socket close");
         startSocket();
     };
 }

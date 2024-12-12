@@ -53,17 +53,6 @@ export async function ALL(context: APIContext): Promise<Response> {
         );
     }
 
-    console.log(
-        JSON.stringify([
-            ...user?.pinnedLists,
-            {
-                createdAt: new Date().getTime(),
-                type: type,
-                id: id,
-            } as UserDBPinnedLists,
-        ]),
-        id
-    );
     db.prepare(`UPDATE user SET pinnedLists = ? WHERE id = ?`).run(
         JSON.stringify([
             ...user?.pinnedLists,

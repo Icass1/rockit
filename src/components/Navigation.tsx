@@ -338,7 +338,6 @@ function Downloads({ navOpen }: { navOpen: boolean }) {
                 console.log("Skipping id", downloadId);
                 continue;
             }
-            console.log("EventSource", `/api/download-status/${downloadId}`);
             eventSources?.current?.push(downloadId);
             const eventSource = new EventSource(
                 `/api/download-status/${downloadId}`

@@ -81,9 +81,9 @@ export async function ALL(context: APIContext): Promise<Response> {
             }
         });
         socket.addEventListener("close", () => {
-            console.log("Web socket close", context.locals.user);
+            // console.log("Web socket close", context.locals.user);
         });
-        console.log("Web socket", context.locals.user);
+        // console.log("Web socket", context.locals.user);
         return response;
     }
     return new Response("New");

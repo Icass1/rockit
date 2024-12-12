@@ -92,8 +92,6 @@ export default function UserStats() {
 
     const minutesListenedPerDay: { [key: string]: number } = {};
 
-    console.log(Math.floor((end - start) / (3600 * 1000 * 24)) + 1);
-
     Array(Math.floor((end - start) / (3600 * 1000 * 24)) + 1)
         .fill(0)
         .map((_, index) => {
@@ -116,8 +114,6 @@ export default function UserStats() {
     const maxMinutesListenedInADay = Math.max(
         ...Object.values(minutesListenedPerDay)
     );
-
-    console.log(minutesListenedPerDay);
 
     return (
         <>

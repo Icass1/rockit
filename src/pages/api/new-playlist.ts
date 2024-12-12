@@ -59,8 +59,8 @@ export async function POST(context: APIContext): Promise<Response> {
             "INSERT INTO playlist (id, images, name, description, owner, followers, songs, image) VALUES(?, ?, ?, ?, ?, ?, ?, ?)"
         ).run(id, images, name, description, owner, followers, songs, imageId);
     } catch (err) {
-        console.warn("Error in new-playlist", err?.toString());
         console.log(data);
+        console.warn("Error in new-playlist", err?.toString());
     }
 
     return new Response("OK");

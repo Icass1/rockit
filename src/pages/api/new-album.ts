@@ -65,8 +65,8 @@ export async function POST(context: APIContext): Promise<Response> {
             imageId
         );
     } catch (err) {
-        console.warn("Error in new-album", err?.toString());
         console.log(data);
+        console.warn("Error in new-album", err?.toString());
     }
 
     return new Response("OK");

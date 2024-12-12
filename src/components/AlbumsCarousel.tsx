@@ -183,8 +183,6 @@ export default function AlbumsCarousel({
     }, [divRef]);
 
     useEffect(() => {
-        console.log(scrollIndex);
-
         if (Math.abs(lastScrollIndex.current - scrollIndex) > 500) {
             if (lastScrollIndex.current - scrollIndex > 0) {
                 setCurrentIndex((value) =>

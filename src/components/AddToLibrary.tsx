@@ -13,8 +13,6 @@ export default function AddToLibrary({
 
     const isInLibrary = $libraryLists.some((list) => list.id === id);
 
-    console.log({ isInLibrary, $libraryLists });
-
     const handleClick = () => {
         if (isInLibrary) {
             // Quitar de la biblioteca
@@ -26,22 +24,6 @@ export default function AddToLibrary({
                     );
                     libraryLists.set(updatedLists);
                 });
-
-            // .then((response) => {
-            //     if (!response.ok) {
-            //         throw new Error("Failed to remove from library");
-            //     }
-            //     return response.json();
-            // })
-            // .then(() => {
-            //     // Actualizar el estado local eliminando la lista
-            //     libraryLists.set(
-            //         $libraryLists.filter((list) => list.id !== id)
-            //     );
-            // })
-            // .catch((error) => {
-            //     console.error("Error removing from library:", error);
-            // });
         } else {
             // Agregar a la biblioteca
             fetch(`/api/add-list/${type}/${id}`)
@@ -49,14 +31,6 @@ export default function AddToLibrary({
                 .then((data) => {
                     libraryLists.set([...libraryLists.get(), data]);
                 });
-            // .then((response) => response.json())
-            // .then((data) => {
-            //     // Actualizar el estado local agregando la lista
-            //     libraryLists.set([...libraryLists.get(), data]);
-            // })
-            // .catch((error) => {
-            //     console.error("Error adding to library:", error);
-            // });
         }
     };
 

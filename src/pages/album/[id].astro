@@ -10,6 +10,7 @@ import AddToLibrary from "@/components/AddToLibrary";
 import DownloadList from "@/components/DownloadList";
 import getAlbum from "@/lib/getAlbum";
 import PlayList from "@/components/PlayList";
+import AddToQueue from "@/components/AddToQueue";
 
 const { id } = Astro.params as { id: string };
 
@@ -71,7 +72,8 @@ const meta = {
                 }
                 <PinList type="album" id={id} client:only="react" />
                 <AddToLibrary type="album" id={id} client:only="react" />
-                <PlayList client:only="react" songs={songs}/>
+                <PlayList client:only="react" songs={songs} />
+                <AddToQueue client:only="react" songs={songs} />
             </div>
             <img
                 src={album.image

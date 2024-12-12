@@ -13,7 +13,7 @@ function startSocket() {
     websocket.onopen = () => {
         // console.log("Web socket open");
     };
-    websocket.onmessage = (event) => {
+    websocket.onmessage = () => {
         // console.log("Web socket message", event.data);
     };
     websocket.onclose = () => {

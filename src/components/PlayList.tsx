@@ -39,7 +39,7 @@ export default function PlayList({
     return (
         <PlayCircle
             strokeWidth={0.9}
-            className="h-10 w-10"
+            className="h-10 w-10 cursor-pointer"
             onClick={handleClick}
         />
     );

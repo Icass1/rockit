@@ -16,6 +16,7 @@ import PinList from "@/components/PinList";
 import AddToLibrary from "@/components/AddToLibrary";
 import { Download, ArrowLeft } from "lucide-react";
 import PlayList from "@/components/PlayList";
+import AddToQueue from "@/components/AddToQueue";
 
 const { id } = Astro.params as { id: string };
 if (!Astro.locals.user) {
@@ -58,31 +59,47 @@ if (playlist) {
     );
 }
 
-const songs = playlist.songs.map(
-    (
-        song
-    ):
-        | SongDB<
-              | "name"
-              | "albumId"
-              | "duration"
-              | "artists"
-              | "path"
-              | "albumName"
-              | "image"
-              | "id"
-              | "images"
-          >
-        | undefined => {
-        return parseSong(
-            db
-                .prepare(
-                    "SELECT name, albumId, duration, artists, path, albumName, image, images, id FROM song WHERE id = ?"
-                )
-                .get(song.id) as RawSongDB
-        );
-    }
-);
+const songs = playlist.songs
+    .map(
+        (
+            song
+        ):
+            | SongDB<
+                  | "name"
+                  | "albumId"
+                  | "duration"
+                  | "artists"
+                  | "path"
+                  | "albumName"
+                  | "image"
+                  | "id"
+                  | "images"
+              >
+            | undefined => {
+            return parseSong(
+                db
+                    .prepare(
+                        "SELECT name, albumId, duration, artists, path, albumName, image, images, id FROM song WHERE id = ?"
+                    )
+                    .get(song.id) as RawSongDB
+            );
+        }
+    )
+    .filter(
+        (
+            song
+        ): song is SongDB<
+            | "id"
+            | "images"
+            | "image"
+            | "name"
+            | "albumId"
+            | "duration"
+            | "artists"
+            | "path"
+            | "albumName"
+        > => song !== undefined
+    );
 
 function getMinutes(seconds: number) {
     seconds = Math.round(seconds);
@@ -123,24 +140,8 @@ function getMinutes(seconds: number) {
                 }
                 <PinList type="playlist" id={id} client:only="react" />
                 <AddToLibrary type="playlist" id={id} client:only="react" />
-                <PlayList
-                    client:only="react"
-                    songs={songs.filter(
-                        (
-                            song
-                        ): song is SongDB<
-                            | "id"
-                            | "images"
-                            | "image"
-                            | "name"
-                            | "albumId"
-                            | "duration"
-                            | "artists"
-                            | "path"
-                            | "albumName"
-                        > => song !== undefined
-                    )}
-                />
+                <PlayList client:only="react" songs={songs} />
+                <AddToQueue client:only="react" songs={songs} />
             </div>
             <img
                 src={playlist.image

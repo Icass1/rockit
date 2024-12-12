@@ -1,5 +1,6 @@
 import { currentSong } from "@/stores/audio";
 import { useStore } from "@nanostores/react";
+import LikeButton from "./LikeButton";
 
 export default function FooterCenter() {
     const $currentSong = useStore(currentSong);
@@ -16,10 +17,14 @@ export default function FooterCenter() {
                 className="md:w-16 md:h-16 rounded-md w-9 h-9"
             />
             <div className="flex flex-col min-w-0 max-w-full w-full pr-4">
-                <span className="font-semibold truncate md:hover:underline">
-                    <a href={`/song/${$currentSong?.id}`}>
+                <span className="font-semibold truncate  flex flex-row gap-3 items-center">
+                    <a
+                        href={`/song/${$currentSong?.id}`}
+                        className="md:hover:underline"
+                    >
                         {$currentSong?.name || "Canción desconocida :("}
                     </a>
+                    {$currentSong && <LikeButton song={$currentSong} />}
                 </span>
                 <span className="text-sm text-gray-400 flex flex-row gap-x-1">
                     <div className="flex flex-row gap-x-1 w-full md:w-fit truncate">

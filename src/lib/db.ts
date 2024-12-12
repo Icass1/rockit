@@ -184,6 +184,7 @@ export interface RawUserDB {
     queue: string;
     queueIndex: number | undefined;
     randomQueue: string;
+    likedSongs: string;
     pinnedLists: string;
     volume: number;
     admin: string;
@@ -196,6 +197,11 @@ export interface RawUserDB {
 
 export interface UserDBPinnedLists {
     type: string;
+    createdAt: number;
+    id: string;
+}
+
+export interface UserDBLikedSong {
     createdAt: number;
     id: string;
 }
@@ -224,6 +230,7 @@ export interface UserDBFull {
     queue: string[];
     queueIndex: number | undefined;
     randomQueue: string;
+    likedSongs: UserDBLikedSong[];
     pinnedLists: UserDBPinnedLists[];
     volume: number;
     admin: string;
@@ -246,6 +253,7 @@ const userQuery = `CREATE TABLE IF NOT EXISTS user (
     queue TEXT DEFAULT "[]" NOT NULL,
     queueIndex INTEGER,
     randomQueue BOOLEAN DEFAULT 0 NOT NULL,
+    likedSongs TEXT DEFAULT "[]" NOT NULL,
     pinnedLists TEXT DEFAULT "[]" NOT NULL,
     volume INTEGER DEFAULT 1 NOT NULL,
     admin BOOLEAN DEFAULT 0 NOT NULL,
@@ -275,6 +283,7 @@ export function parseUser(user: RawUserDB | undefined): UserDB | undefined {
         queue: JSON.parse(user.queue || "[]"),
         queueIndex: user.queueIndex,
         randomQueue: user.randomQueue,
+        likedSongs: JSON.parse(user.likedSongs || "[]"),
         pinnedLists: JSON.parse(user.pinnedLists || "[]"),
         volume: user.volume,
         admin: user.admin,

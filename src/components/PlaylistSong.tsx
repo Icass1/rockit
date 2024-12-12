@@ -1,6 +1,10 @@
 import { currentSong, play, queue, queueIndex } from "@/stores/audio";
 import type { PlaylistDB, SongDB } from "@/lib/db";
 import { getTime } from "@/lib/getTime";
+import { Heart } from "lucide-react";
+import { useStore } from "@nanostores/react";
+import { likedSongs } from "@/stores/likedList";
+import type { MouseEvent } from "react";
 
 export default function PlaylistSong({
     song,
@@ -19,6 +23,42 @@ export default function PlaylistSong({
     >;
     playlistId: string;
 }) {
+    const $likedSongs = useStore(likedSongs);
+
+    const handleToggleLiked = (event: MouseEvent) => {
+        event.stopPropagation();
+
+        if (likedSongs.get().includes(song.id)) {
+            fetch(`/api/like/${song.id}`, { method: "DELETE" }).then(
+                (response) => {
+                    if (response.ok) {
+                        // Remove song to liked songs store
+                        likedSongs.set([
+                            ...likedSongs
+                                .get()
+                                .filter((likedSong) => likedSong != song.id),
+                        ]);
+                    } else {
+                        console.log("Error");
+                        // Tell user like request was unsuccessful
+                    }
+                }
+            );
+        } else {
+            fetch(`/api/like/${song.id}`, { method: "POST" }).then(
+                (response) => {
+                    if (response.ok) {
+                        // Add song to liked songs store
+                        likedSongs.set([...likedSongs.get(), song.id]);
+                    } else {
+                        console.log("Error");
+                        // Tell user like request was unsuccessful
+                    }
+                }
+            );
+        }
+    };
+
     const handleClick = () => {
         if (!song.path) {
             return;
@@ -86,6 +126,7 @@ export default function PlaylistSong({
                             href={`/artist/${artist.id}`}
                             className="md:hover:underline"
                             key={index}
+                            onClick={(event) => event.stopPropagation()}
                         >
                             {artist.name}
                             {index < song.artists.length - 1 ? ", " : ""}
@@ -96,10 +137,15 @@ export default function PlaylistSong({
             <a
                 href={`/album/${song.albumId}`}
                 className="md:hover:underline text-nowrap w-full truncate"
+                onClick={(event) => event.stopPropagation()}
             >
                 {song.albumName || "Artista desconocido"}
             </a>
-
+            <Heart
+                className="cursor-pointer transition-all w-10"
+                onClick={handleToggleLiked}
+                fill={$likedSongs.includes(song.id) ? "white" : ""}
+            />
             <label className="text-sm text-white/80">
                 {getTime(song.duration)}
             </label>

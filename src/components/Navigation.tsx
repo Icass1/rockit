@@ -488,7 +488,7 @@ export default function Navigation({ activePage }: { activePage: string }) {
     if (innerWidth < 768) {
         return (
             <div className="flex justify-center items-center md:py-2 w-full mx-auto min-w-0 max-w-full bg-[#1a1a1a]">
-                <div className="flex flex-row justify-center items-center md:pb-0 pb-4 w-full max-w-4xl">
+                <div className="flex flex-row justify-center items-center md:pb-0 pb-10 w-full max-w-4xl">
                     {pages.map((page) => (
                         <a
                             key={page.href}

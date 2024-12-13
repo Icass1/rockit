@@ -1,7 +1,7 @@
 import type { SongDB } from "@/lib/db";
 import { likedSongs } from "@/stores/likedList";
 import { useStore } from "@nanostores/react";
-import { Heart,HandMetal } from "lucide-react";
+import { HandMetal } from "lucide-react";
 import type { MouseEvent } from "react";
 
 export default function LikeButton({ song }: { song: SongDB<"id"> }) {

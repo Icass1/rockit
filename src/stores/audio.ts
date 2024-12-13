@@ -171,12 +171,12 @@ export async function next() {
         });
 }
 
-navigator.mediaSession.setActionHandler('play', async () => {
+navigator.mediaSession.setActionHandler("play", async () => {
     await play();
 });
 
-navigator.mediaSession.setActionHandler('pause', async () => {
-    await pause();
+navigator.mediaSession.setActionHandler("pause", async () => {
+    pause();
 });
 
 navigator.mediaSession.setActionHandler("previoustrack", () => {
@@ -188,8 +188,8 @@ navigator.mediaSession.setActionHandler("nexttrack", async () => {
     await play();
 });
 
-navigator.mediaSession.setActionHandler("seekto", async (details) => {
-    setTime(details.seekTime? details.seekTime : 0);
+navigator.mediaSession.setActionHandler("seekto", async (event) => {
+    if (event.seekTime) setTime(event.seekTime);
 });
 
 //   ## Remove this part to make the next/prev song controls instead of seek ##
@@ -205,7 +205,6 @@ navigator.mediaSession.setActionHandler("seekto", async (details) => {
 //navigator.mediaSession.setActionHandler("skipad", async () => {
 //    console.log("skipad");
 //});
-
 
 audio.addEventListener("canplay", () => {
     totalTime.set(audio.duration);

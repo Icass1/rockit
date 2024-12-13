@@ -1,6 +1,5 @@
 import { currentSong } from "@/stores/audio";
 import { useStore } from "@nanostores/react";
-import LikeButton from "./LikeButton";
 
 export default function FooterCenter() {
     const $currentSong = useStore(currentSong);

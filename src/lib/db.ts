@@ -132,6 +132,7 @@ function checkTable(
 
     if (removedColumns.length > 0) {
         console.warn("Detected removed column(s).", removedColumns);
+        console.warn("Removing them...");
         if (insecureMode) {
             removedColumns.map((column) =>
                 db.exec(`ALTER TABLE ${tableName} DROP COLUMN ${column}`)

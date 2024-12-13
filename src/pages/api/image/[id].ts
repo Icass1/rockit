@@ -2,8 +2,9 @@ import type { APIContext } from "astro";
 import { db, type ImageDB } from "@/lib/db";
 import { readFile } from "fs/promises";
 import { extname, join } from "path";
+import { ENV } from "@/rockitEnv";
 
-const IMAGES_PATH = process.env.IMAGES_PATH;
+const IMAGES_PATH = ENV.IMAGES_PATH;
 
 export async function GET(context: APIContext): Promise<Response> {
     const imageDB = db

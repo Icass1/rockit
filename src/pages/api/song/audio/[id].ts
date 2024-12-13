@@ -2,8 +2,9 @@ import fs from "fs";
 import path from "path";
 import type { APIContext } from "astro";
 import { db, type SongDB } from "@/lib/db";
+import { ENV } from "@/rockitEnv";
 
-const SONGS_PATH = process.env.SONGS_PATH;
+const SONGS_PATH = ENV.SONGS_PATH;
 
 export async function GET(context: APIContext) {
     const { id } = context.params as { id: string };

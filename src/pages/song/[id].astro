@@ -11,6 +11,7 @@ import type {
 } from "@/types/spotify";
 
 import SongPageCover from "@/components/SongPageCover";
+import { ENV } from "@/rockitEnv";
 
 const { id } = Astro.params as { id: string };
 
@@ -36,7 +37,7 @@ song = parseSong(
     db.prepare("SELECT * FROM song WHERE id = ?").get(id) as RawSongDB
 );
 
-const BACKEND_URL = process.env.BACKEND_URL;
+const BACKEND_URL = ENV.BACKEND_URL;
 
 if (song) {
     inDatabase = true;

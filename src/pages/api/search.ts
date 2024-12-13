@@ -1,7 +1,9 @@
 import type { SearchResults } from "@/types/spotify";
 import type { APIContext } from "astro";
 import { db } from "@/lib/db";
-const BACKEND_URL = process.env.BACKEND_URL;
+import { ENV } from "@/rockitEnv";
+
+const BACKEND_URL = ENV.BACKEND_URL;
 
 export async function GET(context: APIContext): Promise<Response> {
     const query = context.url.searchParams.get("q");

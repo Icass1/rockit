@@ -13,8 +13,9 @@ import {
     type RawSongDB,
     type SongDB,
 } from "./db";
+import { ENV } from "@/rockitEnv";
 
-const BACKEND_URL = process.env.BACKEND_URL;
+const BACKEND_URL = ENV.BACKEND_URL;
 
 type Song = SongDB<
     | "images"

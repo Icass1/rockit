@@ -23,4 +23,5 @@ sudo apt install build-essential
 ```bash
 ./backend/start-flask.sh
 pnpm run dev
+pnpm prettier -w src/*
 ```

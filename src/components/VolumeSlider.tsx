@@ -9,15 +9,24 @@ export default function VolumeSlider() {
     let volumeIcon;
     if ($volume == 0) {
         volumeIcon = (
-            <VolumeOff className="w-5 h-5 text-gray-400 md:hover:text-white cursor-pointer" />
+            <VolumeOff
+                className="w-5 h-5 text-gray-400 md:hover:text-white cursor-pointer"
+                onClick={() => {}}
+            />
         );
     } else if ($volume < 0.5) {
         volumeIcon = (
-            <Volume1 className="w-5 h-5 text-gray-400 md:hover:text-white cursor-pointer" />
+            <Volume1
+                className="w-5 h-5 text-gray-400 md:hover:text-white cursor-pointer"
+                onClick={() => {}}
+            />
         );
     } else {
         volumeIcon = (
-            <Volume2 className="w-5 h-5 text-gray-400 md:hover:text-white cursor-pointer" />
+            <Volume2
+                className="w-5 h-5 text-gray-400 md:hover:text-white cursor-pointer"
+                onClick={() => {}}
+            />
         );
     }
 

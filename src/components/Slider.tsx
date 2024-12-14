@@ -69,23 +69,24 @@ export default function Slider({
     }, []);
 
     return (
-        <div
-            className={
-                className + " relative w-16 h-1 rounded-full bg-gray-700 "
-            }
-        >
+        <div className={className + " relative w-16 h-[4.5px] rounded-full bg-gray-700"}>
+
+            {/* Barra de progreso */}
             <div
                 className="absolute block top-0 left-0 h-full rounded-full bg-gradient-to-r from-[#ee1086] to-[#fb6467]"
                 style={{ width: `${value * m + n}%` }}
             ></div>
+
+            {/* Input tipo rango */}
             {StyledInput.current && (
                 <StyledInput.current
-                    value={value}
-                    onChange={onChange}
-                    type="range"
-                    min={min}
-                    max={max}
-                    step={step}
+                value={value}
+                onChange={onChange}
+                type="range"
+                min={min}
+                max={max}
+                step={step}
+                className="absolute top-[-6px] left-0 w-full h-full cursor-pointer"
                 />
             )}
         </div>

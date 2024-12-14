@@ -22,11 +22,11 @@ export default function VolumeSlider() {
     }
 
     return (
-        <div className="flex flex-row items-center gap-x-2">
+        <div className="flex flex-row items-center gap-x-2 h-full">
             {volumeIcon}
 
             <Slider
-                className="w-16 h-1"
+                className="w-16 h-6"
                 value={Math.sqrt($volume)}
                 min={0}
                 max={1}

@@ -58,6 +58,7 @@ export default function FooterCenter() {
                 </span>
 
                 <Slider
+                    id="default-slider"
                     className="w-full relative min-w-0 max-w-full rounded h-1 bg-gray-700 group"
                     value={$currentTime ?? 0}
                     min={0}

@@ -26,6 +26,7 @@ export default function VolumeSlider() {
             {volumeIcon}
 
             <Slider
+                id="default-slider"
                 className="w-16 h-6"
                 value={Math.sqrt($volume)}
                 min={0}
@@ -35,23 +36,6 @@ export default function VolumeSlider() {
                     volume.set(Number(event.target.value) ** 2)
                 }
             />
-
-            {/* <div className="relative w-16 h-1 rounded-full bg-gray-700">
-                <div
-                    className="absolute top-0 left-0 h-full rounded-full bg-gradient-to-r from-[#ee1086] to-[#fb6467]"
-                    style={{ width: `${Math.sqrt($volume) * 100}%` }}
-                ></div>
-                <Input
-                    value={Math.sqrt($volume)}
-                    onChange={(event) =>
-                        volume.set(Number(event.target.value) ** 2)
-                    }
-                    type="range"
-                    min={0}
-                    max={1}
-                    step={0.01}
-                />
-            </div> */}
         </div>
     );
 }

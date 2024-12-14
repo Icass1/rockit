@@ -1,9 +1,4 @@
-import { useEffect, useRef, type ChangeEventHandler } from "react";
-import styled from "styled-components";
-import type {
-    FastOmit,
-    IStyledComponentBase,
-} from "styled-components/dist/types";
+import { type ChangeEventHandler } from "react";
 
 export default function Slider({
     value,
@@ -12,6 +7,7 @@ export default function Slider({
     max = 100,
     step = 1,
     className = "",
+    id,
 }: {
     className?: string;
     value: number;
@@ -19,58 +15,17 @@ export default function Slider({
     max?: number;
     min?: number;
     step?: number;
+    id: string;
 }) {
     const m = 100 / (max - min);
     const n = -m * min;
 
-    const StyledInput = useRef<
-        IStyledComponentBase<
-            "web",
-            FastOmit<
-                React.DetailedHTMLProps<
-                    React.InputHTMLAttributes<HTMLInputElement>,
-                    HTMLInputElement
-                >,
-                never
-            >
-        > &
-            string
-    >();
-
-    useEffect(() => {
-        StyledInput.current = styled.input`
-            & {
-                position: absolute;
-                top: 0px;
-                left: 0px;
-                height: 100%;
-                width: 100%;
-                appearance: none;
-                // background-color: rgb(55 65 80);
-                background-color: transparent;
-                border-radius: 9999px;
-            }
-
-            &:hover::-webkit-slider-thumb {
-                -webkit-appearance: none;
-                height: 10px;
-                width: 10px;
-                background-color: white;
-            }
-
-            &::-webkit-slider-thumb {
-                -webkit-appearance: none;
-                background-color: transparent;
-                border-radius: 100%;
-            }
-            &::-webkit-slider-runnable-track {
-            }
-        `;
-    }, []);
-
     return (
-        <div className={className + " relative w-16 h-[4.5px] rounded-full bg-gray-700"}>
-
+        <div
+            className={
+                className + " relative w-16 h-[4.5px] rounded-full bg-gray-700"
+            }
+        >
             {/* Barra de progreso */}
             <div
                 className="absolute block top-0 left-0 h-full rounded-full bg-gradient-to-r from-[#ee1086] to-[#fb6467]"
@@ -78,8 +33,8 @@ export default function Slider({
             ></div>
 
             {/* Input tipo rango */}
-            {StyledInput.current && (
-                <StyledInput.current
+            <input
+                id={id}
                 value={value}
                 onChange={onChange}
                 type="range"
@@ -87,8 +42,7 @@ export default function Slider({
                 max={max}
                 step={step}
                 className="absolute top-[-6px] left-0 w-full h-full cursor-pointer"
-                />
-            )}
+            />
         </div>
     );
 }

@@ -64,8 +64,28 @@ code {
     background: #aaa;
 }
 
-input[type=range]:hover::-webkit-slider-thumb {
+#default-slider {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    height: 100%;
+    width: 100%;
+    appearance: none;
+    background-color: transparent;
+    border-radius: 9999px;
+}
+
+#default-slider:hover::-webkit-slider-thumb {
+    -webkit-appearance: none;
     height: 13px;
     width: 13px;
     background-color: white;
+}
+
+#default-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    background-color: transparent;
+    border-radius: 100%;
+}
+#default-slider::-webkit-slider-runnable-track {
 }

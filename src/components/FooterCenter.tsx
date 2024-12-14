@@ -53,7 +53,7 @@ export default function FooterCenter() {
                 <Repeat className="w-5 h-5 text-gray-400 md:hover:text-white cursor-pointer md:hover:scale-105" />
             </div>
             <div className="flex items-center space-x-2 h-7 w-full group">
-                <span id="current-time" className="text-xs font-semibold">
+                <span id="current-time" className="text-xs font-semibold min-w-6">
                     {getTime($currentTime || 0)}
                 </span>
 
@@ -68,7 +68,7 @@ export default function FooterCenter() {
                     }}
                 />
 
-                <span id="total-time" className="text-xs font-semibold">
+                <span id="total-time" className="text-xs font-semibold min-w-6">
                     {getTime($totalTime || 0)}
                 </span>
             </div>

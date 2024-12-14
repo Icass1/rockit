@@ -63,9 +63,3 @@ code {
 *::-webkit-scrollbar-thumb:hover {
     background: #aaa;
 }
-
-input[type="range"]:hover::-webkit-slider-thumb {
-    height: 13px;
-    width: 13px;
-    background-color: white;
-}

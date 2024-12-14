@@ -48,13 +48,13 @@ export default function Slider({
                 appearance: none;
                 // background-color: rgb(55 65 80);
                 background-color: transparent;
-                border-radius: 9999px;
+                border-radius: 100%;
             }
 
             &:hover::-webkit-slider-thumb {
                 -webkit-appearance: none;
-                height: 10px;
-                width: 10px;
+                height: 13px;
+                width: 13px;
                 background-color: white;
             }
 
@@ -71,7 +71,7 @@ export default function Slider({
     return (
         <div
             className={
-                className + " relative w-16 h-[4.5px] rounded-full bg-gray-700"
+                className + " relative w-16 h-[4.5px] rounded-full bg-gray-700 "
             }
         >
             {/* Barra de progreso */}

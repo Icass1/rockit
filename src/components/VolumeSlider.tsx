@@ -11,7 +11,7 @@ export default function VolumeSlider() {
         volumeIcon = (
             <VolumeOff className="w-5 h-5 text-gray-400 md:hover:text-white cursor-pointer" />
         );
-    } else if ($volume < 0.3) {
+    } else if ($volume < 0.5) {
         volumeIcon = (
             <Volume1 className="w-5 h-5 text-gray-400 md:hover:text-white cursor-pointer" />
         );

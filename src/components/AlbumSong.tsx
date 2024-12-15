@@ -3,6 +3,8 @@ import type { SongDB } from "@/lib/db";
 import { getTime } from "@/lib/getTime";
 import type { RockItAlbum } from "@/types/rockIt";
 import LikeButton from "./LikeButton";
+import { ListPlus } from "lucide-react";
+
 
 export default function AlbumSong({
     song,
@@ -53,19 +55,20 @@ export default function AlbumSong({
     return (
         <div
             className={
-                "flex flex-row items-center gap-4  transition-colors px-2 py-1 rounded " +
+                "flex flex-row items-center gap-4 transition-colors px-2 py-3 rounded " +
                 (!song.path ? "opacity-50" : "md:hover:bg-zinc-500/10")
             }
             onClick={handleClick}
         >
-            <label className="text-sm text-white/80 w-10 text-center">
+            <label className="text-md text-white/80 w-5 text-center">
                 {index + 1}
             </label>
             <label className="text-base font-semibold w-full">
                 {song.name}{" "}
             </label>
             <LikeButton song={song} />
-            <label className="text-sm text-white/80 select-none">
+            <ListPlus className="text-gray-400 md:hover:text-white md:hover:scale-105"/>
+            <label className="text-sm text-white/80 select-none min-w-7">
                 {getTime(song.duration)}
             </label>
         </div>

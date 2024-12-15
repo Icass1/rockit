@@ -46,18 +46,25 @@ export default function PlaylistSong({
                                 | "duration"
                             >[]
                         ) => {
-                            const firstSong = data.find(
-                                (dataSong) => dataSong.id == song.id
+                            const newData = data.map((song) => {
+                                return {
+                                    song: song,
+                                    list: { type: "playlist", id: playlistId },
+                                };
+                            });
+
+                            const firstSong = newData.find(
+                                (dataSong) => dataSong.song.id == song.id
                             );
                             if (!firstSong) {
                                 console.error("song.id not in dataSong");
                                 return;
                             }
-                            const index = data.indexOf(firstSong);
+                            const index = newData.indexOf(firstSong);
                             const newQueue = [
                                 firstSong,
-                                ...data.slice(0, index),
-                                ...data.slice(index + 1),
+                                ...newData.slice(0, index),
+                                ...newData.slice(index + 1),
                             ];
                             queueIndex.set(0);
                             queue.set(newQueue);

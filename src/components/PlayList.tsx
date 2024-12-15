@@ -4,7 +4,11 @@ import { currentSong, play, queue, queueIndex } from "@/stores/audio";
 
 export default function PlayList({
     songs,
+    id,
+    type,
 }: {
+    type: string;
+    id: string;
     songs: SongDB<
         | "id"
         | "name"
@@ -16,21 +20,26 @@ export default function PlayList({
     >[];
 }) {
     const handleClick = () => {
-        const song = songs[Math.floor(Math.random() * songs.length)];
+        const songsToAdd = songs.map((song) => {
+            return { song: song, list: { type, id } };
+        });
+        const song = songsToAdd[Math.floor(Math.random() * songs.length)];
 
-        currentSong.set(song);
+        currentSong.set(song.song);
         play();
 
-        const firstSong = songs.find((dataSong) => dataSong.id == song.id);
+        const firstSong = songsToAdd.find(
+            (dataSong) => dataSong.song.id == song.song.id
+        );
         if (!firstSong) {
             console.error("song.id not in dataSong");
             return;
         }
-        const index = songs.indexOf(firstSong);
+        const index = songsToAdd.indexOf(firstSong);
         const newQueue = [
             firstSong,
-            ...songs.slice(0, index),
-            ...songs.slice(index + 1),
+            ...songsToAdd.slice(0, index),
+            ...songsToAdd.slice(index + 1),
         ];
         queueIndex.set(0);
         queue.set(newQueue);

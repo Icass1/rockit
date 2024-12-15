@@ -63,7 +63,7 @@ export default function SongPageCover({
             play();
 
             queueIndex.set(0);
-            queue.set([song]);
+            queue.set([{ song: song, list: undefined }]);
         }
     };
 

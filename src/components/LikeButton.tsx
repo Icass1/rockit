@@ -4,7 +4,7 @@ import { useStore } from "@nanostores/react";
 import { HandMetal } from "lucide-react";
 import type { MouseEvent } from "react";
 import { useState } from "react";
-import 'src/styles/LikeButton.css'
+import "src/styles/LikeButton.css";
 
 export default function LikeButton({ song }: { song: SongDB<"id"> }) {
     const $likedSongs = useStore(likedSongs);
@@ -31,6 +31,7 @@ export default function LikeButton({ song }: { song: SongDB<"id"> }) {
                 }
             );
         } else {
+            setShowFire(true);
             fetch(`/api/like/${song.id}`, { method: "POST" }).then(
                 (response) => {
                     if (response.ok) {
@@ -46,7 +47,6 @@ export default function LikeButton({ song }: { song: SongDB<"id"> }) {
 
         // Activar animaciones
         setAnimateHand(true);
-        setShowFire(true);
 
         // Restablecer después de las animaciones
         setTimeout(() => {
@@ -59,21 +59,31 @@ export default function LikeButton({ song }: { song: SongDB<"id"> }) {
         <div className="relative min-w-5 min-h-5 h-full aspect-square">
             {/* Llama de fuego */}
             {showFire && (
-                <div className="absolute inset-0 flex items-center justify-center z-[6]">
-                    <div className="fire-animation"></div>
+                <div className={`absolute -top-[0.3rem] left-[0.15rem] w-full h-full flex justify-center items-center transition-all duration-500 ${
+                    animateHand ? "opacity-100" : "opacity-0"
+                }`}
+                >
+                    <div className="red flame"></div>
+                    <div className="orange flame"></div>
+                    <div className="yellow flame"></div>
+                    <div className="white flame"></div>
+                    <div className="blue circle"></div>
+                    <div className="black circle"></div>
                 </div>
             )}
 
             {/* Mano */}
             <div
-                className={`w-[22px] h-[22px] cursor-pointer z-[7] ${
+                className={`w-[22px] h-[22px] cursor-pointer ${
                     animateHand ? "hand-rotate" : ""
                 }`}
                 onClick={handleToggleLiked}
             >
                 <HandMetal
                     className="transition-all text-gray-400 md:hover:text-white"
-                    fill={$likedSongs.includes(song.id) ? "white" : "transparent"}
+                    fill={
+                        $likedSongs.includes(song.id) ? "white" : "transparent"
+                    }
                 />
             </div>
         </div>

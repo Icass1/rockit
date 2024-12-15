@@ -67,8 +67,7 @@ export default function LikeButton({ song }: { song: SongDB<"id"> }) {
                     <div className="orange flame"></div>
                     <div className="yellow flame"></div>
                     <div className="white flame"></div>
-                    <div className="blue circle"></div>
-                    <div className="black circle"></div>
+                    {/* <div className="blue circle"></div> */}
                 </div>
             )}
 

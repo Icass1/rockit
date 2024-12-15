@@ -85,7 +85,10 @@ export const currentTime = atom<number | undefined>(undefined);
 export const totalTime = atom<number | undefined>(undefined);
 export const queue = atom<Queue>(_queue);
 export const queueIndex = atom<number | undefined>(_queueIndex);
-export const volume = atom<number>(userJson?.volume ?? 1);
+console.log(window.innerWidth < 768 ? 1 : (userJson?.volume ?? 1));
+export const volume = atom<number>(
+    window.innerWidth < 768 ? 1 : (userJson?.volume ?? 1)
+);
 
 const audio = new Audio(
     _currentSong?.id ? `/api/song/audio/${_currentSong?.id}` : undefined
@@ -161,6 +164,9 @@ queueIndex.subscribe((value) => {
 });
 
 volume.subscribe((value) => {
+    if (window.innerWidth < 768) {
+        return;
+    }
     audio.volume = value;
     send({ volume: value });
 });

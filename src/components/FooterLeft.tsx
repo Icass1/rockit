@@ -8,7 +8,7 @@ export default function FooterCenter() {
 
     return (
         // <!-- Para el Nicolás de mañana {$currentSong && <LikeButton song={$currentSong} />} -->
-        <div className="flex items-center md:w-1/3 w-[90%] gap-x-4">
+        <div className="flex items-center md:w-1/3 max-w-full min-w-0 gap-x-4">
             <img
                 id="footer-album-cover"
                 src={
@@ -57,10 +57,10 @@ export default function FooterCenter() {
                     </a>
                 </span>
             </div>
-            <div className="pr-4 flex flex-row items-left">
+            <div className="pr-4 flex-row items-left hidden md:flex">
                 {$currentSong && <LikeButton song={$currentSong} />}
-                <ListPlus className="ml-4 w-[22px] h-[22px] text-gray-400 md:hover:text-white md:hover:scale-105"/>
-                <EllipsisVertical className="ml-2 w-[22px] h-[22px] text-gray-400 md:hover:text-white md:hover:scale-105"/>
+                <ListPlus className="ml-4 w-[22px] h-[22px] text-gray-400 md:hover:text-white md:hover:scale-105" />
+                <EllipsisVertical className="ml-2 w-[22px] h-[22px] text-gray-400 md:hover:text-white md:hover:scale-105" />
             </div>
         </div>
     );

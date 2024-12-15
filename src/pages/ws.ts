@@ -7,6 +7,7 @@ interface Message {
     queue?: string[];
     queueIndex?: number;
     songEnded?: string;
+    volume?: number;
 }
 
 export async function ALL(context: APIContext): Promise<Response> {
@@ -38,6 +39,11 @@ export async function ALL(context: APIContext): Promise<Response> {
             } else if (messageJson.queue) {
                 db.prepare(`UPDATE user SET queue = ? WHERE id = ?`).run(
                     JSON.stringify(messageJson.queue),
+                    context.locals.user.id
+                );
+            } else if (messageJson.volume) {
+                db.prepare(`UPDATE user SET volume = ? WHERE id = ?`).run(
+                    messageJson.volume,
                     context.locals.user.id
                 );
             } else if (messageJson.queueIndex) {

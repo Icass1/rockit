@@ -5,7 +5,6 @@ import type { RockItAlbum } from "@/types/rockIt";
 import LikeButton from "./LikeButton";
 import { ListPlus } from "lucide-react";
 
-
 export default function AlbumSong({
     song,
     index,
@@ -74,7 +73,7 @@ export default function AlbumSong({
                 {song.name}{" "}
             </label>
             <LikeButton song={song} />
-            <ListPlus className="text-gray-400 md:hover:text-white md:hover:scale-105"/>
+            <ListPlus className="text-gray-400 md:hover:text-white md:hover:scale-105" />
             <label className="text-sm text-white/80 select-none min-w-7">
                 {getTime(song.duration)}
             </label>

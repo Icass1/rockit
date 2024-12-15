@@ -43,9 +43,9 @@ export default function LikeButton({ song }: { song: SongDB<"id"> }) {
 
     return (
         // Previous: Heart
-        <div className="min-w-5 min-h-5 md:h-5 h-full aspect-square">
+        <div className="min-w-5 min-h-5 h-full aspect-square">
             <HandMetal
-                className="cursor-pointer transition-all w-full h-full"
+                className="w-[22px] h-[22px] cursor-pointer transition-all text-gray-400 md:hover:text-white md:hover:scale-105"
                 onClick={handleToggleLiked}
                 fill={$likedSongs.includes(song.id) ? "white" : "transparent"}
             />

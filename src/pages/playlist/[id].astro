@@ -110,7 +110,7 @@ const songs = playlist.songs
             playlist={playlist}
             songs={songs}
             inDatabase={inDatabase}
-            className="hidden md:block"
+            className="hidden md:flex"
         />
         <div
             class="min-w-0 max-w-full w-full min-h-0 max-h-full h-full overflow-auto flex flex-col gap-y-1 pr-6"
@@ -120,7 +120,7 @@ const songs = playlist.songs
                 playlist={playlist}
                 songs={songs}
                 inDatabase={inDatabase}
-                className="md:hidden block"
+                className="md:hidden flex"
             />
             {
                 songs.map((song) => {

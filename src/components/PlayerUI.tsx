@@ -391,7 +391,7 @@ export default function PlayerUI() {
                             <ul className="flex flex-col">
                                 {$queue.map((queueSong, index) => (
                                     <li
-                                        key={queueSong.song.id}
+                                        key={queueSong.song.id + index}
                                         className={`flex items-center gap-x-2 p-2 group ${
                                             index === $queueIndex
                                                 ? "bg-[rgba(50,50,50,0.75)]"

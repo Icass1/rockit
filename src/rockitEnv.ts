@@ -10,4 +10,5 @@ export const ENV: {
     TEMP_PATH: string;
     LOGS_PATH: string;
     IMAGES_PATH: string;
+    INSECURE_DB_MODE: "true" | "false";
 } = loadEnv(".env", process.cwd(), "") as any;

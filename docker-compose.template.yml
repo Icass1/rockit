@@ -36,6 +36,7 @@ services:
       BACKEND_URL: "http://flask-backend:8000"
       SONGS_PATH: "/app/songs"
       IMAGES_PATH: "/app/images"
+      INSECURE_DB_MODE: "true"
     volumes:
       - <path to database dir>:/app/database
       - <path to songs dir>:/app/songs

@@ -1,3 +1,4 @@
+import { ENV } from "@/rockitEnv";
 import sqlite from "better-sqlite3";
 import * as fs from "fs";
 
@@ -13,9 +14,7 @@ interface Column {
     pk: number;
 }
 
-const insecureMode = false;
-
-if (insecureMode) {
+if (ENV.INSECURE_DB_MODE == "true") {
     console.log("***********************************************************");
     console.log("****              Insecure mode is on                 *****");
     console.log("**** Disable it to avoid accidental DROPs in database. ****");
@@ -133,7 +132,7 @@ function checkTable(
     if (removedColumns.length > 0) {
         console.warn("Detected removed column(s).", removedColumns);
         console.warn("Removing them...");
-        if (insecureMode) {
+        if (ENV.INSECURE_DB_MODE == "true") {
             removedColumns.map((column) =>
                 db.exec(`ALTER TABLE ${tableName} DROP COLUMN ${column}`)
             );

@@ -118,7 +118,11 @@ function getMinutes(seconds: number) {
 }
 ---
 
-<Layout title={playlist.name + " • Rock It!"} currentPage="">
+<Layout
+    title={playlist.name + " • Rock It!"}
+    currentPage=""
+    bgImage={`/api/image/${playlist.image}`}
+>
     <div
         class="pl-4 pr-2 g rid flex flex-row w-full h-full grid-cols-[min-content_1fr] relative"
     >

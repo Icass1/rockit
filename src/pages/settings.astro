@@ -1,6 +1,6 @@
 ---
 import Layout from "@/layouts/Layout.astro";
-import { Pencil } from "lucide-react";
+import { Pencil,LogOut } from "lucide-react";
 
 if (!Astro.locals.user) {
     return Astro.redirect("/login");
@@ -18,7 +18,7 @@ const user = {
     <section class="h-full flex items-center justify-center">
         <div class="flex gap-16 items-start">
             <!-- Columna izquierda -->
-            <div class="w-1/2 border-r border-gray-700 pr-8">
+            <div class="w-1/2 border-r border-gray-700 pr-8 flex flex-col items-center">
                 <div class="relative group">
                     <!-- Imagen de perfil -->
                     <img
@@ -34,12 +34,19 @@ const user = {
                     </div>
                 </div>
                 <!-- Display name -->
-                <h2 class="text-3xl font-bold text-white mt-4">
-                    {user.displayName}
-                </h2>
+                <h2 class="text-3xl font-bold text-white mt-4">{user.displayName}</h2>
                 <!-- Username -->
                 <p class="text-lg text-gray-500">@{user.username}</p>
-            </div>
+            
+                <!-- Botón de log out centrado -->
+                <a
+                    class="mt-8 w-32 py-2 bg-red-700 text-white rounded-lg font-bold shadow-md hover:bg-red-900 transition duration-300 flex items-center justify-center gap-2"
+                    href="/login"
+                >
+                    <LogOut className="w-5 h-5" />
+                    Log Out
+                </a>
+            </div>            
 
             <!-- Columna derecha -->
             <div class="w-1/2">

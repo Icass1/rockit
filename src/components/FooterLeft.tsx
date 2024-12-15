@@ -1,7 +1,7 @@
 import { currentSong } from "@/stores/audio";
 import { useStore } from "@nanostores/react";
 import LikeButton from "./LikeButton";
-import { ListPlus } from "lucide-react";
+import { ListPlus, EllipsisVertical } from "lucide-react";
 
 export default function FooterCenter() {
     const $currentSong = useStore(currentSong);
@@ -19,10 +19,10 @@ export default function FooterCenter() {
                 className="md:w-16 md:h-16 rounded-md select-none w-9 h-9"
             />
             <div className="flex flex-col min-w-0 max-w-full w-fit">
-                <span className="font-semibold truncate  flex flex-row gap-3 items-center">
+                <span className="font-semibold flex flex-row gap-3 items-center">
                     <a
                         href={`/song/${$currentSong?.id}`}
-                        className="md:hover:underline"
+                        className="md:hover:underline truncate"
                     >
                         {$currentSong?.name || "Canción desconocida :("}
                     </a>
@@ -57,9 +57,10 @@ export default function FooterCenter() {
                     </a>
                 </span>
             </div>
-            <div className="pl-3 flex flex-row gap-4 items-left">
+            <div className="pr-4 flex flex-row items-left">
                 {$currentSong && <LikeButton song={$currentSong} />}
-                <ListPlus className="text-gray-400 md:hover:text-white md:hover:scale-105"/>
+                <ListPlus className="ml-4 w-[22px] h-[22px] text-gray-400 md:hover:text-white md:hover:scale-105"/>
+                <EllipsisVertical className="ml-2 w-[22px] h-[22px] text-gray-400 md:hover:text-white md:hover:scale-105"/>
             </div>
         </div>
     );

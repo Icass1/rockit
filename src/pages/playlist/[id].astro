@@ -12,11 +12,7 @@ import {
     type RawUserDB,
 } from "@/lib/db";
 import PlaylistSong from "@/components/PlaylistSong";
-import PinList from "@/components/PinList";
-import AddToLibrary from "@/components/AddToLibrary";
-import { Download, ArrowLeft } from "lucide-react";
-import PlayList from "@/components/PlayList";
-import AddToQueue from "@/components/AddToQueue";
+import PlaylistHeader from "@/components/playlistHeader.astro";
 
 const { id } = Astro.params as { id: string };
 if (!Astro.locals.user) {
@@ -37,6 +33,7 @@ if (id == "liked") {
         songs: userDB.likedSongs.map((song) => song),
         image: "",
         images: [{ url: "/song-placeholder.png" }],
+        owner: "",
     };
 } else {
     playlist = parsePlaylist(
@@ -100,22 +97,6 @@ const songs = playlist.songs
             | "albumName"
         > => song !== undefined
     );
-
-function getMinutes(seconds: number) {
-    seconds = Math.round(seconds);
-
-    if (typeof seconds !== "number" || isNaN(seconds)) {
-        return "Invalid input";
-    }
-
-    // Calculate minutes and remaining seconds
-    const minutes = Math.floor(seconds / 60);
-
-    // Format the result with leading zeros
-    const formattedMinutes = String(minutes).padStart(2, "0");
-
-    return `${formattedMinutes}`;
-}
 ---
 
 <Layout
@@ -123,57 +104,24 @@ function getMinutes(seconds: number) {
     currentPage=""
     bgImage={`/api/image/${playlist.image}`}
 >
-    <div
-        class="pl-4 pr-2 g rid flex flex-row w-full h-full grid-cols-[min-content_1fr] relative"
-    >
-        <div
-            class="flex flex-col gap-1 relative top-1/2 -translate-y-1/2 w-1/3 max-w-96 h-fit mx-10"
-        >
-            <div class="flex flex-row gap-2 mb-2">
-                {
-                    !inDatabase && (
-                        <Download strokeWidth={0.9} className="h-10 w-10" />
-                    )
-                }
-                <PinList type="playlist" id={id} client:only="react" />
-                <AddToLibrary type="playlist" id={id} client:only="react" />
-                <PlayList
-                    client:only="react"
-                    songs={songs}
-                    type="playlist"
-                    id={id}
-                />
-                <AddToQueue
-                    client:only="react"
-                    songs={songs}
-                    type="playlist"
-                    id={id}
-                />
-            </div>
-            <img
-                src={playlist.image
-                    ? `/api/image/${playlist.image}`
-                    : playlist.images[0].url}
-                class="rounded-md"
-            />
-            <label class="pt-2 text-2xl font-semibold">{playlist.name}</label>
-            <label
-                class="text-xl font-semibold text-stone-400 md:hover:underline cursor-pointer"
-                >{playlist.owner}</label
-            >
-            <label class="text-sm text-stone-400"
-                >{playlist.songs.length} Songs | {
-                    getMinutes(
-                        songs.reduce((accumulator: number, song) => {
-                            return accumulator + (song?.duration || 0);
-                        }, 0)
-                    )
-                } Minutes</label
-            >
-        </div>
+    <div class="pl-4 pr-2 flex md:flex-row flex-col w-full h-full relative">
+        <PlaylistHeader
+            id={id}
+            playlist={playlist}
+            songs={songs}
+            inDatabase={inDatabase}
+            className="hidden md:block"
+        />
         <div
             class="min-w-0 max-w-full w-full min-h-0 max-h-full h-full overflow-auto flex flex-col gap-y-1 pr-6"
         >
+            <PlaylistHeader
+                id={id}
+                playlist={playlist}
+                songs={songs}
+                inDatabase={inDatabase}
+                className="md:hidden block"
+            />
             {
                 songs.map((song) => {
                     if (song) {
@@ -189,6 +137,7 @@ function getMinutes(seconds: number) {
                     }
                 })
             }
+            <div class="min-h-20 block"></div>
         </div>
     </div>
 </Layout>

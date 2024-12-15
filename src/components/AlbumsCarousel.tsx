@@ -179,7 +179,9 @@ export default function AlbumsCarousel({
             }
         };
 
-        divRef.current?.addEventListener("wheel", handleScroll, {passive: true});
+        divRef.current?.addEventListener("wheel", handleScroll, {
+            passive: true,
+        });
     }, [divRef]);
 
     useEffect(() => {

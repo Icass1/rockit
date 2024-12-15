@@ -55,7 +55,7 @@ const { bgImage } = Astro.props;
     </head>
     <body>
         <main
-            class="relative grid grid-rows-[min-content_1fr_min-content_min-content] md:grid-rows-[min-content_1fr_min-content] md:grid-cols-[min-content_1fr] max-w-full min-w-0 w-full"
+            class="relative grid grid-rows-[min-content_1fr_min-content] md:grid-rows-[min-content_1fr_min-content] md:grid-cols-[min-content_1fr] max-w-full min-w-0 w-full"
         >
             {
                 bgImage && (
@@ -68,7 +68,7 @@ const { bgImage } = Astro.props;
 
             <div
                 style={{ gridArea: "header" }}
-                class="min-w-0 max-w-full w-full z-40"
+                class="min-w-0 max-w-full w-full z-40 hidden md:block"
             >
                 <Header />
             </div>
@@ -89,13 +89,11 @@ const { bgImage } = Astro.props;
                 <div class="overflow-auto w-full h-full absolute px-3 mb:px-0">
                     <slot />
                 </div>
-                <!-- <div class="w-full h-4 top-0 bg-gradient-to-b absolute from-[#0b0b0b] to-transparent"></div> Este tapa algunmas cosas, en cuanto tengamos todo lo metemos como feature bien-->
-                <!-- <div class="w-full h-4 bottom-0 bg-gradient-to-t absolute from-[#1a1a1a] to-transparent"></div> El de arriba te lo puedo comprar este no me ha terminado de convencer -->
             </div>
 
             <!-- Footer -->
             <div
-                class="min-w-0 max-w-full min-h-0 max-h-full overflow-auto z-50"
+                class="min-w-0 max-w-full md:min-h-0 md:max-h-full  overflow-auto z-50 bottom-1 left-1 right-1 rounded md:bottom-0 md:left-0 md:right-0 md:rounded-none absolute md:relative"
                 style={{ gridArea: "footer" }}
             >
                 <Footer />

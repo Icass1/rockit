@@ -455,7 +455,7 @@ db.exec(songQuery);
 // ************** Playlist stuff **************
 // ********************************************
 export type PlaylistDB<
-    Keys extends keyof PlaylistDBFull = keyof PlaylistDBFull
+    Keys extends keyof PlaylistDBFull = keyof PlaylistDBFull,
 > = Pick<PlaylistDBFull, Keys>;
 
 export interface RawPlaylistDB {

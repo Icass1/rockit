@@ -389,9 +389,9 @@ export default function PlayerUI() {
                     <div className="flex-1 overflow-auto pt-3 pb-7">
                         {currentTab === "queue" ? (
                             <ul className="flex flex-col">
-                                {$queue.map((song, index) => (
+                                {$queue.map((queueSong, index) => (
                                     <li
-                                        key={song.id}
+                                        key={queueSong.song.id}
                                         className={`flex items-center gap-x-2 p-2 group ${
                                             index === $queueIndex
                                                 ? "bg-[rgba(50,50,50,0.75)]"
@@ -410,8 +410,10 @@ export default function PlayerUI() {
                                         <div className="relative">
                                             {/* Imagen de portada */}
                                             <img
-                                                src={song.images[0].url}
-                                                alt={song.name}
+                                                src={
+                                                    queueSong.song.images[0].url
+                                                }
+                                                alt={queueSong.song.name}
                                                 className={`w-12 h-12 rounded object-cover ${
                                                     index === $queueIndex
                                                         ? "brightness-50"
@@ -428,10 +430,10 @@ export default function PlayerUI() {
                                         {/* Song Info */}
                                         <div className="flex-1 min-w-0 max-w-full">
                                             <p className="text-white text-base font-semibold truncate">
-                                                {song.name}
+                                                {queueSong.song.name}
                                             </p>
                                             <p className="text-gray-300 text-sm truncate">
-                                                {song.artists
+                                                {queueSong.song.artists
                                                     .map(
                                                         (artist) => artist.name
                                                     )
@@ -440,7 +442,7 @@ export default function PlayerUI() {
                                         </div>
                                         {/* Duration */}
                                         <p className="text-gray-300 text-base pr-2">
-                                            {getTime(song.duration)}
+                                            {getTime(queueSong.song.duration)}
                                         </p>
                                     </li>
                                 ))}

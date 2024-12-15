@@ -140,8 +140,18 @@ function getMinutes(seconds: number) {
                 }
                 <PinList type="playlist" id={id} client:only="react" />
                 <AddToLibrary type="playlist" id={id} client:only="react" />
-                <PlayList client:only="react" songs={songs} />
-                <AddToQueue client:only="react" songs={songs} />
+                <PlayList
+                    client:only="react"
+                    songs={songs}
+                    type="playlist"
+                    id={id}
+                />
+                <AddToQueue
+                    client:only="react"
+                    songs={songs}
+                    type="playlist"
+                    id={id}
+                />
             </div>
             <img
                 src={playlist.image

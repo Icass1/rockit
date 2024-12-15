@@ -5,7 +5,11 @@ import { useEffect, useState } from "react";
 
 export default function AddToQueue({
     songs,
+    type,
+    id,
 }: {
+    type: string;
+    id: string;
     songs: SongDB<
         | "id"
         | "name"
@@ -34,11 +38,17 @@ export default function AddToQueue({
 
     const addListToBottomQueue = () => {
         setHover(false);
-        queue.set([...queue.get(), ...songs]);
+        const songsToAdd = songs.map((song) => {
+            return { song: song, list: { type, id } };
+        });
+        queue.set([...queue.get(), ...songsToAdd]);
     };
     const addListToTopQueue = () => {
         setHover(false);
-        queue.set([...songs, ...queue.get()]);
+        const songsToAdd = songs.map((song) => {
+            return { song: song, list: { type, id } };
+        });
+        queue.set([...songsToAdd, ...queue.get()]);
     };
 
     return (

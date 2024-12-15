@@ -32,18 +32,25 @@ export default function AlbumSong({
         fetch(`/api/album/${albumId}`)
             .then((response) => response.json())
             .then((data: RockItAlbum) => {
-                const firstSong = data.songs.find(
-                    (dataSong) => dataSong.id == song.id
+                const newData = data.songs.map((song) => {
+                    return {
+                        song: song,
+                        list: { type: "album", id: albumId },
+                    };
+                });
+
+                const firstSong = newData.find(
+                    (dataSong) => dataSong.song.id == song.id
                 );
                 if (!firstSong) {
                     console.error("song.id not in dataSong");
                     return;
                 }
-                const index = data.songs.indexOf(firstSong);
+                const index = newData.indexOf(firstSong);
                 const newQueue = [
                     firstSong,
-                    ...data.songs.slice(0, index),
-                    ...data.songs.slice(index + 1),
+                    ...newData.slice(0, index),
+                    ...newData.slice(index + 1),
                 ];
                 queueIndex.set(0);
                 queue.set(newQueue);

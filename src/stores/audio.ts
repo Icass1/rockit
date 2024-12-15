@@ -24,7 +24,12 @@ function startSocket() {
 
 startSocket();
 
-type Queue = SongDB<"id" | "name" | "artists" | "images" | "duration">[];
+type QueueSong = SongDB<"id" | "name" | "artists" | "images" | "duration">;
+
+type Queue = {
+    song: QueueSong;
+    list: { type: string; id: string } | undefined;
+}[];
 type CurrentSong =
     | SongDB<"images" | "id" | "name" | "artists" | "albumId" | "albumName">
     | undefined;
@@ -56,11 +61,26 @@ try {
 }
 
 if (userJson && userJson.queue.length > 0) {
-    _queue = (await (
-        await fetch(
-            `/api/songs?songs=${userJson.queue.join()}&p=id,name,artists,images,duration`
-        )
-    ).json()) as Queue;
+    const _queueResponse = await fetch(
+        `/api/songs?songs=${userJson.queue
+            .map((queueSong) => queueSong.song)
+            .join()}&p=id,name,artists,images,duration`
+    );
+    const _queueJson = (await _queueResponse.json()) as QueueSong[];
+
+    console.log();
+
+    _queue = _queueJson.map((song, index) => {
+        return { song: song, list: userJson.queue[index].list };
+    });
+
+    // _queue = (await (
+    //     await fetch(
+    //         `/api/songs?songs=${userJson.queue
+    //             .map((queueSong) => queueSong.song)
+    //             .join()}&p=id,name,artists,images,duration`
+    //     )
+    // ).json()) as Queue;
 }
 
 const send = (json: any) => {
@@ -68,6 +88,8 @@ const send = (json: any) => {
         websocket.send(JSON.stringify(json));
     }
 };
+
+console.log(_queue);
 
 export const currentSong = atom<CurrentSong>(_currentSong);
 export const playing = atom<boolean>(false);
@@ -135,7 +157,15 @@ currentSong.subscribe((value) => {
 });
 
 queue.subscribe((value) => {
-    send({ queue: value.map((value) => value.id) });
+    send({
+        queue: value
+            .map((value) => {
+                if (value?.song && value?.list) {
+                    return { song: value.song.id, list: value.list };
+                }
+            })
+            .filter((song) => song),
+    });
 });
 
 queueIndex.subscribe((value) => {
@@ -164,7 +194,7 @@ export async function next() {
         return;
     }
     queueIndex.set((queueIndex.get() as number) + 1);
-    await fetch(`/api/song/${queue.get()[queueIndex.get() as number].id}`)
+    await fetch(`/api/song/${queue.get()[queueIndex.get() as number].song.id}`)
         .then((response) => response.json())
         .then((data: SongDB) => {
             currentSong.set(data);

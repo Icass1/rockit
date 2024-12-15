@@ -34,7 +34,7 @@ const { meta } = Astro.props;
 
         <!--Fullscreen de Apple-->
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="theme-color" content="#0b0b0b">
+        <meta name="theme-color" content="#0b0b0b" />
 
         {
             meta &&
@@ -99,28 +99,6 @@ const { meta } = Astro.props;
         </main>
     </body>
 </html>
-
-<script>
-    const menuIcon = document.querySelector("#menu-icon") as HTMLDivElement;
-    const mobileNav = document.querySelector(
-        "#mobile-navigation"
-    ) as HTMLDivElement;
-    const menuOverlay = document.querySelector(
-        "#menu-overlay"
-    ) as HTMLDivElement;
-
-    menuIcon?.addEventListener("click", () => {
-        mobileNav.classList.toggle("hidden");
-        menuOverlay.classList.toggle("opacity-0");
-        menuOverlay.classList.toggle("pointer-events-none");
-    });
-
-    menuOverlay?.addEventListener("click", () => {
-        mobileNav.classList.add("hidden");
-        menuOverlay.classList.add("opacity-0");
-        menuOverlay.classList.add("pointer-events-none");
-    });
-</script>
 
 <style>
     main {

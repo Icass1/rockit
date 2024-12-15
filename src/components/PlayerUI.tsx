@@ -315,9 +315,10 @@ export default function PlayerUI() {
     return (
         <div
             ref={divRef}
-            className="absolute inset-0 bg-black/80 flex justify-center items-center transition-all overflow-hidden duration-300 z-40"
+            className="absolute inset-0 bg-black/80 flex justify-center items-center transition-all overflow-hidden duration-300 z-30 pt-20"
             style={{
                 top: $isPlayerUIVisible ? "0%" : "100%",
+                height: "calc(100% - 6rem)",
             }}
         >
             <div className="relative w-full  bg-black text-white grid grid-cols-[30%_40%_30%] h-full z-20">

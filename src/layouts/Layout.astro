@@ -68,7 +68,7 @@ const { bgImage } = Astro.props;
 
             <div
                 style={{ gridArea: "header" }}
-                class="min-w-0 max-w-full w-full"
+                class="min-w-0 max-w-full w-full z-40"
             >
                 <Header />
             </div>
@@ -81,11 +81,11 @@ const { bgImage } = Astro.props;
             </div>
 
             <!-- Main content -->
+            <PlayerUI client:only="react" />
             <div
                 class="block min-w-0 max-w-full w-full min-h-0 max-h-full overflow-hidden relative"
                 style={{ gridArea: "main" }}
             >
-                <PlayerUI client:only="react" />
                 <div class="overflow-auto w-full h-full absolute px-3 mb:px-0">
                     <slot />
                 </div>
@@ -95,7 +95,7 @@ const { bgImage } = Astro.props;
 
             <!-- Footer -->
             <div
-                class="min-w-0 max-w-full min-h-0 max-h-full overflow-auto z-10"
+                class="min-w-0 max-w-full min-h-0 max-h-full overflow-auto z-50"
                 style={{ gridArea: "footer" }}
             >
                 <Footer />

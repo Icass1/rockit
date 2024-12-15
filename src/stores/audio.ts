@@ -68,19 +68,9 @@ if (userJson && userJson.queue.length > 0) {
     );
     const _queueJson = (await _queueResponse.json()) as QueueSong[];
 
-    console.log();
-
     _queue = _queueJson.map((song, index) => {
         return { song: song, list: userJson.queue[index].list };
     });
-
-    // _queue = (await (
-    //     await fetch(
-    //         `/api/songs?songs=${userJson.queue
-    //             .map((queueSong) => queueSong.song)
-    //             .join()}&p=id,name,artists,images,duration`
-    //     )
-    // ).json()) as Queue;
 }
 
 const send = (json: any) => {
@@ -88,8 +78,6 @@ const send = (json: any) => {
         websocket.send(JSON.stringify(json));
     }
 };
-
-console.log(_queue);
 
 export const currentSong = atom<CurrentSong>(_currentSong);
 export const playing = atom<boolean>(false);

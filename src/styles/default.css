@@ -45,8 +45,15 @@ code {
 }
 
 *::-webkit-scrollbar {
-    width: 7px;
-    height: 7px;
+    width: 0px;
+    height: 0px;
+}
+
+@media (min-width: 768px) {
+    *::-webkit-scrollbar {
+        width: 7px;
+        height: 7px;
+    }
 }
 
 /* Track */

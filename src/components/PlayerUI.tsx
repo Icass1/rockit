@@ -348,15 +348,16 @@ export default function PlayerUI() {
                             className="object-cover mx-auto w-auto h-[100%] rounded-lg aspect-square"
                         />
                     </div>
-                    <div className="flex flex-col items-center justify-center text-center mt-4">
-                        <h1 className="text-4xl font-bold">
+                    <div className="w-full flex flex-col items-center justify-center text-center mt-4">
+                        <h1 className="text-4xl font-bold text-balance">
                             {$currentSong?.name}
                         </h1>
-                        <p className="text-gray-400 text-xl mt-2 font-medium flex items-center gap-2">
-                            <span className="md:hover:underline">
+                        <p className="text-gray-400 text-xl mt-2 font-medium flex items-center justify-center gap-2">
+                            <span className="max-w-[50%] md:hover:underline truncate text-center">
                                 {$currentSong?.albumName}
                             </span>
-                            •<span>No release date</span>
+                            <span>•</span>
+                            <span className="truncate">No date</span>
                         </p>
                     </div>
                 </div>

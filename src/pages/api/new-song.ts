@@ -1,8 +1,14 @@
 import type { APIContext } from "astro";
 import { db, type ImageDB } from "@/lib/db";
 import * as crypto from "node:crypto";
+import { ENV } from "@/rockitEnv";
 
 export async function POST(context: APIContext): Promise<Response> {
+    if (
+        context.request.headers.get("authorization") != `Bearer ${ENV.API_KEY}`
+    ) {
+        return new Response("Incorrect API key", { status: 401 });
+    }
     const data = await context.request.json();
 
     let name = data.name;

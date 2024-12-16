@@ -8,19 +8,17 @@ load_dotenv()
 import os
 from typing import Dict
 
-environ_variables = ["ENVIRONMENT", "CLIENT_ID", "CLIENT_SECRET", "FRONTEND_URL", "SONGS_PATH", "TEMP_PATH", "LOGS_PATH", "IMAGES_PATH"]
+environ_variables = ["ENVIRONMENT", "CLIENT_ID", "CLIENT_SECRET", "FRONTEND_URL", "SONGS_PATH", "TEMP_PATH", "LOGS_PATH", "IMAGES_PATH", "API_KEY"]
 
 for variable in environ_variables:
     if not os.getenv(variable):
-        print(f"{variable} is not set")
+        print(f"\033[91m{variable} is not set\033[0m")
         exit()
-
 
 from spotify import Spotify
 from downloader import Downloader, SongDownloader, ListDownloader
 from backendUtils import create_id
 from logger import getLogger
-
 
 app = Flask(__name__)
 sock = Sock(app)

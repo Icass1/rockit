@@ -103,7 +103,7 @@ class ListDownloader:
                 "description": self.list.description,
                 "owner": self.list.owner.display_name,
                 "followers": self.list.followers.total,
-            })
+            }, headers={"Authorization": f"Bearer {os.getenv('API_KEY')}"})
 
         logger.info(f"ListDownloader.download_manager Finished")
 
@@ -396,7 +396,7 @@ class Downloader:
             "lyrics": spotdl_song.lyrics,
             "popularity": spotdl_song.popularity,
             "album_id": spotdl_song.album_id,
-        })
+        }, headers={"Authorization": f"Bearer {os.getenv('API_KEY')}"})
 
     def add_task(
         self,

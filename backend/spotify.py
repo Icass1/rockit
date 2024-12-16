@@ -392,7 +392,7 @@ class Spotify:
             "genres": album.genres,
             "songs": [song.id for song in album.tracks.items],
             "disc_count": max([song.disc_number for song in album.tracks.items])
-        })
+        }, headers={"Authorization": f"Bearer {os.getenv('API_KEY')}"})
 
     def get_genres(self, artists: List[TrackArtists] | List[PlaylistArtists] | List[SpotifySearchResultsArtists1]):
         genres = []

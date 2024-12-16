@@ -80,10 +80,13 @@ export default function PlaylistSong({
             }
             onClick={handleClick}
         >
-            <img
-                src={`/api/image/${song.image}`}
-                className="h-14 w-auto rounded"
-            />
+            <div className="h-14 w-auto aspect-square rounded relative">
+                <img
+                    src={`/api/image/${song.image}`}
+                    className="rounded absolute top-0 bottom-0 left-0 right-0"
+                />
+            </div>
+
             <div className="w-full flex flex-col">
                 <label className="text-base font-semibold truncate w-full">
                     {song.name}

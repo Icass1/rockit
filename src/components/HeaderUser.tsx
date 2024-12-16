@@ -34,7 +34,7 @@ export default function HeaderUser({ userName }: { userName: string }) {
     return (
         <div
             ref={divRef}
-            className="flex items-center relative space-x-4 md:hover:bg-[#272727] p-3 md:hover:cursor-pointer rounded-lg"
+            className="flex items-center relative md:hover:bg-[#272727] p-3 md:hover:cursor-pointer rounded-lg"
             onClick={() => setOpen(true)}
         >
             <div
@@ -53,7 +53,7 @@ export default function HeaderUser({ userName }: { userName: string }) {
                         <span>Settings</span>
                     </a>
                     <a
-                        href="/logout"
+                        href="/login"
                         className="md:hover:bg-[#4f4f4f] flex items-center p-3 space-x-2 cursor-pointer rounded-b-lg"
                     >
                         <LogOut className="h-5 w-5" />
@@ -63,11 +63,11 @@ export default function HeaderUser({ userName }: { userName: string }) {
             </div>
 
             <span className="font-medium">{userName}</span>
-            <div className="w-10 h-10 bg-gray-400 rounded-full overflow-hidden flex items-center justify-center">
+            <div className="w-10 h-10 bg-gray-400 rounded-full overflow-hidden flex ml-4 items-center justify-center">
                 <img
                     src="/user-placeholder.png"
                     alt="User avatar"
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover select-none"
                 />
             </div>
         </div>

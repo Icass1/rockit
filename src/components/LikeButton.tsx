@@ -49,7 +49,7 @@ export default function LikeButton({ song }: { song: SongDB<"id"> }) {
         setTimeout(() => {
             setAnimateHand(false);
             setShowFire(false);
-        }, 750);
+        }, 500);
     };
 
     return (
@@ -90,8 +90,8 @@ export default function LikeButton({ song }: { song: SongDB<"id"> }) {
                     className={
                         " lucide lucide-hand-metal " +
                         ($likedSongs.includes(song.id)
-                            ? "transition-all text-gray-800 md:hover:text-black"
-                            : "transition-all text-gray-400 md:hover:text-white drop-shadow-md")
+                            ? "transition-all text-gray-800 md:hover:text-[#202020]"
+                            : "transition-all text-gray-400 md:hover:text-white")
                     }
                 >
                     <rect

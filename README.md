@@ -25,3 +25,6 @@ sudo apt install build-essential
 pnpm run dev
 pnpm prettier -w src/*
 ```
+
+## Paleta oficial:
+from-[#ee1086] to-[#fb6467]

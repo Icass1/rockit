@@ -26,24 +26,24 @@
     left: 5px; 
     width: 10px; 
     height: 10px; 
-    background: gold;
-    box-shadow: 0px 0px 3px 1.3px gold; 
+    background: #fb6467; /*gold;*/
+    box-shadow: 0px 0px 3px 1.3px #fb6467; /*gold;*/ 
 }
 
 .orange {
     left: 3.3px; 
     width: 13.3px; 
     height: 13.3px; 
-    background: orange;
-    box-shadow: 0px 0px 3px 1.3px orange; 
+    background: #f53a76; /*orange;*/ 
+    box-shadow: 0px 0px 3px 1.3px #f53a76; /*orange;*/ 
 }
 
 .red {
     left: 1.7px; 
     width: 16.7px; 
     height: 16.7px; 
-    background: OrangeRed;
-    box-shadow: 0px 0px 1.7px 1.3px OrangeRed; 
+    background: #ee1086; /*OrangeRed;*/
+    box-shadow: 0px 0px 1.7px 1.3px #ee1086; /*OrangeRed;*/ 
 }
 
 .white {
@@ -51,8 +51,8 @@
     bottom: -1.3px; 
     width: 10px; 
     height: 10px; 
-    background: white;
-    box-shadow: 0px 0px 3px 1.3px white; 
+    background: #fb6467; /*white; */
+    box-shadow: 0px 0px 3px 1.3px #fb6467; /*white; */
 }
 
 .circle {
@@ -65,8 +65,8 @@
     height: 3.3px; 
     left: 8.3px; 
     bottom: -8.3px; 
-    background: SlateBlue;
-    box-shadow: 0px 0px 5px 3.3px SlateBlue; 
+    background: white; /*SlateBlue;*/
+    box-shadow: 0px 0px 5px 3.3px white; /*SlateBlue;*/
 }
 
 /*.black {

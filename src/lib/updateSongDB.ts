@@ -1,37 +1,49 @@
-import type { APIContext } from "astro";
 import { db, type ImageDB } from "@/lib/db";
 import * as crypto from "node:crypto";
-import { ENV } from "@/rockitEnv";
 
-export async function POST(context: APIContext): Promise<Response> {
-    if (
-        context.request.headers.get("authorization") != `Bearer ${ENV.API_KEY}`
-    ) {
-        return new Response("Incorrect API key", { status: 401 });
-    }
-    const data = await context.request.json();
-
-    let name = data.name;
-    let artists = JSON.stringify(data.artists);
-    let genres = JSON.stringify(data.genres);
-    let discNumber = data.disc_number;
-    let albumName = data.album_name;
-    let albumArtists = JSON.stringify(data.album_artists);
-    let albumType = data.album_type;
-    let duration = data.duration;
-    let date = data.date;
-    let trackNumber = data.track_number;
-    let id = data.song_id;
-    let publisher = data.publisher;
-    let downloadUrl = data.download_url;
-    let lyrics = data.lyrics;
-    let popularity = data.popularity;
-    let albumId = data.album_id;
-    let path = data.path;
-    let images = JSON.stringify(data.images);
-    let image = data.image;
-    let copyright = data.copyright;
-
+export function updateSongDB({
+    name,
+    artists,
+    genres,
+    discNumber,
+    albumName,
+    albumArtists,
+    albumType,
+    duration,
+    date,
+    trackNumber,
+    id,
+    publisher,
+    downloadUrl,
+    lyrics,
+    popularity,
+    albumId,
+    path,
+    images,
+    image,
+    copyright,
+}: {
+    name: string;
+    artists: string;
+    genres: string;
+    discNumber: string;
+    albumName: string;
+    albumArtists: string;
+    albumType: string;
+    duration: string;
+    date: string;
+    trackNumber: string;
+    id: string;
+    publisher: string;
+    downloadUrl: string;
+    lyrics: string;
+    popularity: string;
+    albumId: string;
+    path: string;
+    images: string;
+    image: string;
+    copyright: string;
+}) {
     let imageId;
 
     const imageDB = db
@@ -112,9 +124,28 @@ export async function POST(context: APIContext): Promise<Response> {
             new Date().getTime()
         );
     } catch (err) {
-        console.log(data);
+        console.log({
+            id,
+            name,
+            artists,
+            genres,
+            discNumber,
+            albumName,
+            albumArtists,
+            albumType,
+            albumId,
+            duration,
+            date,
+            trackNumber,
+            publisher,
+            path,
+            imageId,
+            images,
+            copyright,
+            downloadUrl,
+            lyrics,
+            popularity,
+        });
         console.warn("Error in new-song", err?.toString());
     }
-
-    return new Response("OK");
 }

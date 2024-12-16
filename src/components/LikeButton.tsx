@@ -1,7 +1,6 @@
 import type { SongDB } from "@/lib/db";
 import { likedSongs } from "@/stores/likedList";
 import { useStore } from "@nanostores/react";
-import { HandMetal } from "lucide-react";
 import type { MouseEvent } from "react";
 import { useState } from "react";
 import "src/styles/LikeButton.css";
@@ -76,15 +75,38 @@ export default function LikeButton({ song }: { song: SongDB<"id"> }) {
                 }`}
                 onClick={handleToggleLiked}
             >
-                <HandMetal
-                    className={$likedSongs.includes(song.id) ? "transition-all text-gray-800 md:hover:text-black" : "transition-all text-gray-400 md:hover:text-white drop-shadow-md"} 
-                    fill={$likedSongs.includes(song.id) ? "white" : "transparent"}
-                    style={{
-                        filter: $likedSongs.includes(song.id)
-                            ? "drop-shadow(0px 0px 4px white)"
-                            : "none",
-                    }}
-                />
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill={
+                        $likedSongs.includes(song.id) ? "white" : "transparent"
+                    }
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className={
+                        " lucide lucide-hand-metal " +
+                        ($likedSongs.includes(song.id)
+                            ? "transition-all text-gray-800 md:hover:text-black"
+                            : "transition-all text-gray-400 md:hover:text-white drop-shadow-md")
+                    }
+                >
+                    <rect
+                        x="6"
+                        y="10"
+                        width="11"
+                        height="7"
+                        strokeLinejoin="miter"
+                        strokeWidth="0"
+                    />
+                    <path d="M18 12.5V10a2 2 0 0 0-2-2 2 2 0 0 0-2 2v1.4"></path>
+                    <path d="M14 11V9a2 2 0 1 0-4 0v2"></path>
+                    <path d="M10 11V5a2 2 2 1 0-4 0v9"></path>
+                    <path d="m7 15-1.76-1.76a2 2 0 0 0-2.83 2.82l3.6 3.6C7.5 21.14 9.2 22 12 22h2a8 8 0 0 0 8-8V7a2 2 0 1 0-4 0v5"></path>
+                </svg>
             </div>
         </div>
     );

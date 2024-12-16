@@ -19,6 +19,7 @@ services:
       TEMP_PATH: "/temp"
       LOGS_PATH: "/logs"
       IMAGES_PATH: "/images"
+      API_KEY: "qlLH16dEklu7GbkFLO0eAbTiuxe1fqMLGYzhZqTxtw1hdJGEjx4DYd0ASTSM7544"
     volumes:
       - <path to songs dir>:/songs
       - <path to temp dir>:/temp
@@ -37,6 +38,7 @@ services:
       SONGS_PATH: "/app/songs"
       IMAGES_PATH: "/app/images"
       INSECURE_DB_MODE: "true"
+      API_KEY: "qlLH16dEklu7GbkFLO0eAbTiuxe1fqMLGYzhZqTxtw1hdJGEjx4DYd0ASTSM7544"
     volumes:
       - <path to database dir>:/app/database
       - <path to songs dir>:/app/songs

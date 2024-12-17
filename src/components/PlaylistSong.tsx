@@ -2,6 +2,8 @@ import { currentSong, play, queue, queueIndex } from "@/stores/audio";
 import type { PlaylistDB, SongDB } from "@/lib/db";
 import { getTime } from "@/lib/getTime";
 import LikeButton from "./LikeButton";
+import { ListPlus,EllipsisVertical } from "lucide-react";
+import { useState } from "react";
 
 export default function PlaylistSong({
     song,
@@ -20,6 +22,8 @@ export default function PlaylistSong({
     >;
     playlistId: string;
 }) {
+    const [hovered, setHovered] = useState(false);
+
     const handleClick = () => {
         if (!song.path) {
             return;
@@ -75,48 +79,66 @@ export default function PlaylistSong({
     return (
         <div
             className={
-                "flex flex-row items-center gap-4  transition-colors px-2 py-1 rounded " +
+                "flex flex-row items-center gap-4 transition-colors px-2 py-[0.5rem] rounded " +
                 (!song.path ? "opacity-50" : "md:hover:bg-zinc-500/10")
             }
             onClick={handleClick}
+            onMouseEnter={() => setHovered(true)}
+            onMouseLeave={() => setHovered(false)}
         >
-            <div className="h-14 w-auto aspect-square rounded relative">
+            {/* Imagen */}
+            <div className="h-10 w-auto aspect-square rounded relative">
                 <img
-                    src={`/api/image/${song.image}`}
+                    src={(song?.images && song?.images[0]?.url) || "/song-placeholder.png"}
                     className="rounded absolute top-0 bottom-0 left-0 right-0"
                 />
             </div>
 
-            <div className="w-full flex flex-col">
-                <label className="text-base font-semibold truncate w-full">
+            {/* Contenedor principal */}
+            <div className="flex flex-row w-full items-center justify-between">
+                {/* Título (alineado a la izquierda) */}
+                <a className="text-base font-semibold hover:underline w-1/3 truncate" href={`/song/${song.id}`}>
                     {song.name}
-                </label>
-                <label className="text-sm truncate  w-full">
-                    {song.artists.map((artist, index) => (
-                        <a
-                            href={`/artist/${artist.id}`}
-                            className="md:hover:underline"
-                            key={index}
-                            onClick={(event) => event.stopPropagation()}
-                        >
-                            {artist.name}
-                            {index < song.artists.length - 1 ? ", " : ""}
-                        </a>
-                    ))}
-                </label>
-            </div>
-            <a
-                href={`/album/${song.albumId}`}
-                className="md:hover:underline text-nowrap w-full truncate"
-                onClick={(event) => event.stopPropagation()}
-            >
-                {song.albumName || "Artista desconocido"}
-            </a>
-            <LikeButton song={song} />
+                </a>
 
-            <label className="text-sm text-white/80">
-                {getTime(song.duration)}
-            </label>
+                {/* Artista y Álbum (centrados en la misma fila) */}
+                <div className="flex-1 flex flex-row gap-2 truncate">
+                    <label className="text-md truncate max-w-[50%]">
+                        {song.artists.map((artist, index) => (
+                            <a
+                                href={`/artist/${artist.id}`}
+                                className="md:hover:underline"
+                                key={index}
+                                onClick={(event) => event.stopPropagation()}
+                            >
+                                {artist.name}
+                                {index < song.artists.length - 1 ? ", " : ""}
+                            </a>
+                        ))}
+                    </label>
+                    <span className="mx-1">•</span> {/* Separador opcional entre artista y álbum */}
+                    <a
+                        href={`/album/${song.albumId}`}
+                        className="md:hover:underline text-md truncate"
+                        onClick={(event) => event.stopPropagation()}
+                    >
+                        {song.albumName || "Artista desconocido"}
+                    </a>
+                </div>
+
+                {/* Botones y tiempo (alineados a la derecha) */}
+                <div className="flex items-center gap-4 flex-shrink-0">
+                    <LikeButton song={song} />
+                    <ListPlus className="text-gray-400 md:hover:text-white md:hover:scale-105 w-6" />
+                    <label className="text-sm text-white/80 select-none flex justify-center items-center w-8">
+                        {hovered ? (
+                            <EllipsisVertical className="text-gray-400 md:hover:text-white md:hover:scale-105" />
+                        ) : (
+                            getTime(song.duration)
+                        )}
+                    </label>
+                </div>
+            </div>
         </div>
     );
 }

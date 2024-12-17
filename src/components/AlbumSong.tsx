@@ -78,7 +78,7 @@ export default function AlbumSong({
                 {song.name}{" "}
             </label>
             <LikeButton song={song} />
-            <ListPlus className="text-gray-400 md:hover:text-white md:hover:scale-105" />
+            <ListPlus className="text-gray-400 md:hover:text-white md:hover:scale-105 w-8" />
             <label className="text-sm text-white/80 select-none min-w-7 flex justify-center items-center">
                 {hovered ? (
                     <EllipsisVertical className="text-gray-400 md:hover:text-white md:hover:scale-105" />

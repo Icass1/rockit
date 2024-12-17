@@ -3,7 +3,8 @@ import type { SongDB } from "@/lib/db";
 import { getTime } from "@/lib/getTime";
 import type { RockItAlbum } from "@/types/rockIt";
 import LikeButton from "./LikeButton";
-import { ListPlus } from "lucide-react";
+import { ListPlus,EllipsisVertical } from "lucide-react";
+import { useState } from "react";
 
 export default function AlbumSong({
     song,
@@ -23,6 +24,8 @@ export default function AlbumSong({
     index: number;
     albumId: string;
 }) {
+    const [hovered, setHovered] = useState(false);
+
     const handleClick = () => {
         if (!song.path) {
             return;
@@ -65,6 +68,8 @@ export default function AlbumSong({
                 (!song.path ? "opacity-50" : "md:hover:bg-zinc-500/10")
             }
             onClick={handleClick}
+            onMouseEnter={(e)=>{setHovered(true)}}
+            onMouseLeave={(e)=>{setHovered(false)}}
         >
             <label className="text-md text-white/80 w-5 text-center">
                 {index + 1}
@@ -74,8 +79,12 @@ export default function AlbumSong({
             </label>
             <LikeButton song={song} />
             <ListPlus className="text-gray-400 md:hover:text-white md:hover:scale-105" />
-            <label className="text-sm text-white/80 select-none min-w-7">
-                {getTime(song.duration)}
+            <label className="text-sm text-white/80 select-none min-w-7 flex justify-center items-center">
+                {hovered ? (
+                    <EllipsisVertical className="text-gray-400 md:hover:text-white md:hover:scale-105" />
+                ) : (
+                    getTime(song.duration)
+                )}
             </label>
         </div>
     );

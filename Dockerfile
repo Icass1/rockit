@@ -27,7 +27,7 @@ RUN chown -R 1000:1000 /app
 
 EXPOSE 4321
 
-USER 1000:1000
+# USER 1000:1000
 
 RUN pnpm install
 RUN pnpm run build

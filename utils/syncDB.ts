@@ -9,12 +9,14 @@ import { ENV } from "@/rockitEnv";
 import * as fs from "fs/promises";
 import * as path from "path";
 
-const END_POINT = "http://12.12.12.9:4321";
+const END_POINT = "https://rockit.rockhosting.org";
 
 // Define the upload function
 async function uploadImages(images: ImageDB[]): Promise<void> {
     const formData = new FormData();
     console.log("Reading files");
+
+    console.log(images.length);
 
     await Promise.all(
         images.map(async (image, index) => {
@@ -56,6 +58,8 @@ async function syncSongs(songs: SongDB[], images: ImageDB[]) {
         method: "POST",
         body: JSON.stringify(
             songs.map((song) => {
+                console.log(song.name, song.albumArtist);
+
                 const image = images.find((image) => image.id == song.image);
                 if (!image) {
                     console.log("Image not found");
@@ -94,6 +98,7 @@ async function uploadSongs(songs: SongDB[]) {
     console.log("Reading files");
     await Promise.all(
         songs.map(async (song, index) => {
+            console.log(song.name, song.albumArtist);
             if (!song || !song.path) {
                 return;
             }
@@ -167,35 +172,37 @@ if (response.ok) {
     imagesInDestinationDB = await response.json();
 }
 
-// uploadSongs(
+// for (let i = 0; i < 10; i++) {
+//     await uploadSongs(
+//         songs
+//             .filter((song) => {
+//                 return typeof song != "undefined";
+//             })
+//             .filter((song) => {
+//                 return song.path && !songFilesInDestination.includes(song.path);
+//             })
+//             .slice(i * 30, (i + 1) * 30)
+//     );
+// }
+
+// syncSongs(
 //     songs
-//         .filter((song) => {
-//             return typeof song != "undefined";
-//         })
-//         .filter((song) => {
-//             return song.path && !songFilesInDestination.includes(song.path);
-//         })
-//         .slice(0, 30)
-// );
-
-syncSongs(
-    songs
-        .filter(
-            (song) =>
-                !songsInDestinationDB.includes(song.id) &&
-                song.path &&
-                songFilesInDestination.includes(song.path)
-        )
-        .slice(0, 50),
-    images
-);
-
-// uploadImages(
-//     images
 //         .filter(
-//             (image) =>
-//                 !imagesInDestinationDB.includes(image.path) &&
-//                 image.path.startsWith("album/")
+//             (song) =>
+//                 !songsInDestinationDB.includes(song.id) &&
+//                 song.path &&
+//                 songFilesInDestination.includes(song.path)
 //         )
-//         .slice(0, 50)
+//         .slice(0, 300),
+//     images
 // );
+
+uploadImages(
+    images
+        .filter(
+            (image) =>
+                !imagesInDestinationDB.includes(image.path) &&
+                image.path.startsWith("album/")
+        )
+        .slice(0, 100)
+);

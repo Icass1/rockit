@@ -381,36 +381,50 @@ function Downloads({ navOpen }: { navOpen: boolean }) {
                     <img
                         src="/youtube-music-logo.svg"
                         alt="YouTube Music Logo"
-                        className="h-9 object-contain"
+                        className="h-6 object-contain"
                     />
                     <img
                         src="/spotify-logo.png"
                         alt="Spotify Logo"
-                        className="h-10 object-contain"
+                        className="h-7 object-contain"
                     />
                 </div>
 
                 {/* Label */}
-                <label className="text-3xl font-extrabold text-center pt-8">
+                <label className="text-3xl font-extrabold text-center py-3">
                     Music Downloader
                 </label>
 
-                {/* Input */}
-                <input
-                    className="focus:outline-0 py-2 px-4 rounded-full mx-5 my-3"
-                    placeholder="Enter a Spotify or YT Music URL"
-                    value={url}
-                    onChange={(e) => {
+                <div className="flex flex-col items-center">
+                    {/* Input */}
+                    <input
+                        className="focus:outline-0 py-2 px-4 rounded-full mx-5 w-4/5"
+                        placeholder="Enter a Spotify or YT Music URL"
+                        value={url}
+                        onChange={(e) => {
                         setURL(e.target.value);
-                    }}
-                ></input>
-                <div className="flex justify-center items-center mb-3">
-                    <button
+                        }}
+                    />
+
+                    {/* Toggle switch */}
+                    <div className="flex items-center gap-2 my-5">
+                        <span className="text-white font-semibold">Auto-Like all the songs?</span>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" className="sr-only peer" />
+                            <div className="w-11 h-6 bg-gray-300 rounded-full peer peer-focus:ring-3 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 peer-checked:bg-green-600"></div>
+                            <span className="absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow peer-checked:translate-x-5 transition-transform"></span>
+                        </label>
+                    </div>
+
+                    {/* Button */}
+                    <div className="flex justify-center items-center mb-3">
+                        <button
                         className="bg-green-800 text-green-200 px-6 py-2 rounded-full shadow-md md:hover:bg-green-600 md:hover:text-white md:hover:shadow-lg transition duration-300 transform font-bold"
                         onClick={handleStartDownload}
-                    >
+                        >
                         Start Download
-                    </button>
+                        </button>
+                    </div>
                 </div>
                 <div className="flex items-center justify-between mb-4">
                     {Object.entries(status).length != 0 && (

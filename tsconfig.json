@@ -1,17 +1,18 @@
 {
-  "extends": "astro/tsconfigs/strict",
-  "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "@/*": [
-        "./src/*"
-      ],
-      "@/db/*": [
-        "./db/*"
-      ]
+    "extends": "astro/tsconfigs/strict",
+    "compilerOptions": {
+        "baseUrl": ".",
+        "paths": {
+            "@/*": ["./src/*"],
+            "@/db/*": ["./db/*"]
+        },
+        "jsx": "react-jsx",
+        "jsxImportSource": "react"
     },
-    "jsx": "react-jsx",
-    "jsxImportSource": "react"
-  },
-  "exclude": ["dist", "src/components/ui", "adapters--astrojs-node-8.3.4"]
+    "exclude": [
+        "dist",
+        "src/components/ui",
+        "adapters--astrojs-node-8.3.4",
+        "utils"
+    ]
 }

@@ -1,15 +1,15 @@
 import { currentSong, play, queue, queueIndex } from "@/stores/audio";
-import type { PlaylistDB, SongDB } from "@/lib/db";
+import type { PlaylistDBSongWithAddedAt } from "@/lib/db";
 import { getTime } from "@/lib/getTime";
 import LikeButton from "./LikeButton";
 import { ListPlus, EllipsisVertical } from "lucide-react";
 import { useState } from "react";
+import { currentList, currentListSongs } from "@/stores/currentList";
 
 export default function PlaylistSong({
     song,
-    playlistId,
 }: {
-    song: SongDB<
+    song: PlaylistDBSongWithAddedAt<
         | "name"
         | "albumId"
         | "duration"
@@ -20,62 +20,41 @@ export default function PlaylistSong({
         | "id"
         | "images"
     >;
-    playlistId: string;
 }) {
     const [hovered, setHovered] = useState(false);
 
     const handleClick = () => {
-        if (!song.path) {
+        const songs = currentListSongs.get();
+        const list = currentList.get();
+        if (!list) {
+            console.error("List is not defined");
             return;
         }
+
+        const songsToAdd = songs.map((song) => {
+            return { song: song, list: { type: list.type, id: list.id } };
+        });
+
         currentSong.set(song);
         play();
 
-        fetch(`/api/playlist/${playlistId}`)
-            .then((response) => response.json())
-            .then((data: PlaylistDB) => {
-                fetch(
-                    `/api/songs?songs=${data.songs
-                        .map((song) => song.id)
-                        .join(",")}&q=name,artists,id,images,duration`
-                )
-                    .then((response) => response.json())
-                    .then(
-                        (
-                            data: SongDB<
-                                | "name"
-                                | "artists"
-                                | "id"
-                                | "images"
-                                | "duration"
-                            >[]
-                        ) => {
-                            const newData = data.map((song) => {
-                                return {
-                                    song: song,
-                                    list: { type: "playlist", id: playlistId },
-                                };
-                            });
-
-                            const firstSong = newData.find(
-                                (dataSong) => dataSong.song.id == song.id
-                            );
-                            if (!firstSong) {
-                                console.error("song.id not in dataSong");
-                                return;
-                            }
-                            const index = newData.indexOf(firstSong);
-                            const newQueue = [
-                                firstSong,
-                                ...newData.slice(0, index),
-                                ...newData.slice(index + 1),
-                            ];
-                            queueIndex.set(0);
-                            queue.set(newQueue);
-                        }
-                    );
-            });
+        const firstSong = songsToAdd.find(
+            (dataSong) => dataSong.song.id == song.id
+        );
+        if (!firstSong) {
+            console.error("song.id not in dataSong");
+            return;
+        }
+        const index = songsToAdd.indexOf(firstSong);
+        const newQueue = [
+            ...songsToAdd.slice(0, index),
+            firstSong,
+            ...songsToAdd.slice(index + 1),
+        ];
+        queueIndex.set(index);
+        queue.set(newQueue);
     };
+
     return (
         <div
             className={
@@ -102,7 +81,7 @@ export default function PlaylistSong({
                 {/* Título (alineado a la izquierda) */}
                 <div className="w-1/3">
                     <a
-                        className="text-base font-semibold hover:underline  truncate"
+                        className="text-base font-semibold hover:underline block w-fit max-w-full truncate pr-1"
                         href={`/song/${song.id}`}
                     >
                         {song.name}

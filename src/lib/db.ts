@@ -200,11 +200,6 @@ export interface UserDBPinnedLists {
     id: string;
 }
 
-export interface UserDBLikedSong {
-    createdAt: number;
-    id: string;
-}
-
 export interface UserDBLists {
     type: string;
     createdAt: number;
@@ -229,7 +224,7 @@ export interface UserDBFull {
     queue: { song: string; list: { type: string; id: string } | undefined }[];
     queueIndex: number | undefined;
     randomQueue: string;
-    likedSongs: UserDBLikedSong[];
+    likedSongs: PlaylistDBSong[];
     pinnedLists: UserDBPinnedLists[];
     volume: number;
     admin: string;
@@ -483,6 +478,12 @@ export interface PlaylistDBSong {
     id: string;
     added_at: string;
 }
+
+export type PlaylistDBSongWithAddedAt<
+    Keys extends keyof SongDBFull = keyof SongDBFull,
+> = SongDB<Keys> & {
+    added_at: string;
+};
 
 export function parsePlaylist(
     playlist: RawPlaylistDB | undefined

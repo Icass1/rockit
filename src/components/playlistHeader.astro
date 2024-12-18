@@ -1,10 +1,10 @@
 ---
 import PinList from "@/components/PinList";
 import AddToLibrary from "@/components/AddToLibrary";
-import { Download, ArrowLeft, Heart } from "lucide-react";
+import { Download, Heart } from "lucide-react";
 import PlayList from "@/components/PlayList";
 import AddToQueue from "@/components/AddToQueue";
-import type { PlaylistDB, SongDB, UserDBLikedSong } from "@/lib/db";
+import type { PlaylistDB, PlaylistDBSong, SongDB } from "@/lib/db";
 
 function getMinutes(seconds: number) {
     seconds = Math.round(seconds);
@@ -41,7 +41,7 @@ export interface Props {
         | PlaylistDB
         | {
               name: string;
-              songs: UserDBLikedSong[];
+              songs: PlaylistDBSong[];
               image: string;
               images: {
                   url: string;
@@ -61,12 +61,12 @@ const { className = "" } = Astro.props;
     class={"flex flex-col gap-1 relative md:top-1/2 md:-translate-y-1/2 md:w-1/3 md:max-w-96 h-fit md:max-h-none md:mx-10 " +
         className}
 >
-    <div class="flex flex-row gap-2 mb-2">
+    <div class="flex flex-row gap-2 mb-2 z-10">
         {!inDatabase && <Download strokeWidth={0.9} className="h-10 w-10" />}
         <PinList type="playlist" id={id} client:only="react" />
         <AddToLibrary type="playlist" id={id} client:only="react" />
-        <PlayList client:only="react" songs={songs} type="playlist" id={id} />
-        <AddToQueue client:only="react" songs={songs} type="playlist" id={id} />
+        <PlayList type="playlist" id={id} client:only="react" />
+        <AddToQueue type="playlist" id={id} client:only="react" />
     </div>
     {
         id == "liked" ? (

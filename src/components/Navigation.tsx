@@ -497,7 +497,7 @@ export default function Navigation({ activePage }: { activePage: string }) {
         { name: "Stats & Friends", href: "/stats", icon: ChartLine },
     ];
 
-    const [innerWidth, innerHeight] = useWindowSize();
+    const [innerWidth] = useWindowSize();
 
     if (innerWidth < 768) {
         return (

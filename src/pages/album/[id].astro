@@ -1,7 +1,7 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import AlbumSong from "@/components/AlbumSong";
-import { ArrowLeft, Disc } from "lucide-react";
+import { Disc } from "lucide-react";
 
 import { getMinutes } from "@/lib/getTime";
 
@@ -72,18 +72,8 @@ const meta = {
                 }
                 <PinList type="album" id={id} client:only="react" />
                 <AddToLibrary type="album" id={id} client:only="react" />
-                <PlayList
-                    client:only="react"
-                    songs={songs}
-                    type="album"
-                    id={id}
-                />
-                <AddToQueue
-                    client:only="react"
-                    songs={songs}
-                    type="album"
-                    id={id}
-                />
+                <PlayList client:only="react" type="album" id={id} />
+                <AddToQueue client:only="react" type="album" id={id} />
             </div>
             <img
                 src={album.image

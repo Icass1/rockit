@@ -10,8 +10,9 @@ import {
     type UserDB,
     parseUser,
     type RawUserDB,
+    type PlaylistDBSongWithAddedAt,
 } from "@/lib/db";
-import PlaylistSong from "@/components/PlaylistSong";
+import PlaylistSongsView from "@/components/PlaylistSongsView";
 import PlaylistHeader from "@/components/playlistHeader.astro";
 
 const { id } = Astro.params as { id: string };
@@ -61,7 +62,7 @@ const songs = playlist.songs
         (
             song
         ):
-            | SongDB<
+            | PlaylistDBSongWithAddedAt<
                   | "name"
                   | "albumId"
                   | "duration"
@@ -73,19 +74,32 @@ const songs = playlist.songs
                   | "images"
               >
             | undefined => {
-            return parseSong(
-                db
-                    .prepare(
-                        "SELECT name, albumId, duration, artists, path, albumName, image, images, id FROM song WHERE id = ?"
-                    )
-                    .get(song.id) as RawSongDB
-            );
+            return {
+                added_at: song.added_at,
+                ...(parseSong(
+                    db
+                        .prepare(
+                            "SELECT name, albumId, duration, artists, path, albumName, image, images, id FROM song WHERE id = ?"
+                        )
+                        .get(song.id) as RawSongDB
+                ) as SongDB<
+                    | "name"
+                    | "albumId"
+                    | "duration"
+                    | "artists"
+                    | "path"
+                    | "albumName"
+                    | "image"
+                    | "id"
+                    | "images"
+                >),
+            };
         }
     )
     .filter(
         (
             song
-        ): song is SongDB<
+        ): song is PlaylistDBSongWithAddedAt<
             | "id"
             | "images"
             | "image"
@@ -115,18 +129,6 @@ const songs = playlist.songs
         <div
             class="min-w-0 max-w-full w-full min-h-0 max-h-full h-full overflow-auto flex flex-col gap-y-1 pr-6"
         >
-            <div
-                class="flex flex-row items-center gap-4 px-2 rounded text-stone-400 text-sm"
-            >
-                <div class="w-10"></div>
-                <div class="flex flex-row w-full items-center justify-between">
-                    <div class="w-1/3">Name</div>
-
-                    <div class="flex-1 flex flex-row gap-2 truncate">
-                        Artist • Album
-                    </div>
-                </div>
-            </div>
             <PlaylistHeader
                 id={id}
                 playlist={playlist}
@@ -134,21 +136,7 @@ const songs = playlist.songs
                 inDatabase={inDatabase}
                 className="md:hidden flex"
             />
-            {
-                songs.map((song) => {
-                    if (song) {
-                        return (
-                            <PlaylistSong
-                                song={song}
-                                playlistId={id}
-                                client:only="react"
-                            />
-                        );
-                    } else {
-                        return <div>Song is undefined</div>;
-                    }
-                })
-            }
+            <PlaylistSongsView id={id} songs={songs} client:only="react" />
             <div class="min-h-20"></div>
         </div>
     </div>

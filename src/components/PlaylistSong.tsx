@@ -2,7 +2,7 @@ import { currentSong, play, queue, queueIndex } from "@/stores/audio";
 import type { PlaylistDB, SongDB } from "@/lib/db";
 import { getTime } from "@/lib/getTime";
 import LikeButton from "./LikeButton";
-import { ListPlus,EllipsisVertical } from "lucide-react";
+import { ListPlus, EllipsisVertical } from "lucide-react";
 import { useState } from "react";
 
 export default function PlaylistSong({
@@ -89,7 +89,10 @@ export default function PlaylistSong({
             {/* Imagen */}
             <div className="h-10 w-auto aspect-square rounded relative">
                 <img
-                    src={(song?.images && song?.images[0]?.url) || "/song-placeholder.png"}
+                    src={
+                        (song?.images && song?.images[0]?.url) ||
+                        "/song-placeholder.png"
+                    }
                     className="rounded absolute top-0 bottom-0 left-0 right-0"
                 />
             </div>
@@ -97,10 +100,14 @@ export default function PlaylistSong({
             {/* Contenedor principal */}
             <div className="flex flex-row w-full items-center justify-between">
                 {/* Título (alineado a la izquierda) */}
-                <a className="text-base font-semibold hover:underline w-1/3 truncate" href={`/song/${song.id}`}>
-                    {song.name}
-                </a>
-
+                <div className="w-1/3">
+                    <a
+                        className="text-base font-semibold hover:underline  truncate"
+                        href={`/song/${song.id}`}
+                    >
+                        {song.name}
+                    </a>
+                </div>
                 {/* Artista y Álbum (centrados en la misma fila) */}
                 <div className="flex-1 flex flex-row gap-2 truncate">
                     <label className="text-md truncate max-w-[50%]">
@@ -116,7 +123,8 @@ export default function PlaylistSong({
                             </a>
                         ))}
                     </label>
-                    <span className="mx-1">•</span> {/* Separador opcional entre artista y álbum */}
+                    <span className="mx-1">•</span>{" "}
+                    {/* Separador opcional entre artista y álbum */}
                     <a
                         href={`/album/${song.albumId}`}
                         className="md:hover:underline text-md truncate"

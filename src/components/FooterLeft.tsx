@@ -59,8 +59,8 @@ export default function FooterCenter() {
             </div>
             <div className="pr-4 flex-row items-left hidden md:flex">
                 {$currentSong && <LikeButton song={$currentSong} />}
-                <ListPlus className="ml-4 w-[22px] h-[22px] text-gray-400 md:hover:text-white md:hover:scale-105" />
-                <EllipsisVertical className="ml-2 w-[22px] h-[22px] text-gray-400 md:hover:text-white md:hover:scale-105" />
+                <ListPlus className="ml-4 w-8 text-gray-400 md:hover:text-white md:hover:scale-105" />
+                <EllipsisVertical className="ml-[0.3rem] w-[22px] h-[24px] text-gray-400 md:hover:text-white md:hover:scale-105" />
             </div>
         </div>
     );

@@ -5,6 +5,7 @@ import LikeButton from "./LikeButton";
 import { ListPlus, EllipsisVertical } from "lucide-react";
 import { useState } from "react";
 import { currentList, currentListSongs } from "@/stores/currentList";
+import { useStore } from "@nanostores/react";
 
 export default function PlaylistSong({
     song,
@@ -22,6 +23,13 @@ export default function PlaylistSong({
     >;
 }) {
     const [hovered, setHovered] = useState(false);
+
+    const $queue = useStore(queue);
+    const $queueIndex = useStore(queueIndex);
+    const $currentList = useStore(currentList);
+
+    console.log($queue[$queueIndex ?? 0]);
+    console.log($currentList);
 
     const handleClick = () => {
         const songs = currentListSongs.get();
@@ -59,7 +67,12 @@ export default function PlaylistSong({
         <div
             className={
                 "flex flex-row items-center gap-4 transition-colors px-2 py-[0.5rem] rounded " +
-                (!song.path ? "opacity-50" : "md:hover:bg-zinc-500/10")
+                (!song.path ? "opacity-50" : "md:hover:bg-zinc-500/10") +
+                ($queue[$queueIndex ?? 0].list?.id == $currentList?.id &&
+                $queue[$queueIndex ?? 0].list?.type == $currentList?.type &&
+                $queue[$queueIndex ?? 0].song.id == song.id
+                    ? " text-green-500"
+                    : "")
             }
             onClick={handleClick}
             onMouseEnter={() => setHovered(true)}

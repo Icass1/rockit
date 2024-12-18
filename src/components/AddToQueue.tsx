@@ -1,25 +1,12 @@
-import type { SongDB } from "@/lib/db";
 import { queue } from "@/stores/audio";
+import { currentListSongs } from "@/stores/currentList";
+import { useStore } from "@nanostores/react";
 import { List, ListEnd, ListStart } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-export default function AddToQueue({
-    songs,
-    type,
-    id,
-}: {
-    type: string;
-    id: string;
-    songs: SongDB<
-        | "id"
-        | "name"
-        | "artists"
-        | "images"
-        | "duration"
-        | "albumId"
-        | "albumName"
-    >[];
-}) {
+export default function AddToQueue({ type, id }: { type: string; id: string }) {
+    const $songs = useStore(currentListSongs);
+
     const [open, setOpen] = useState(false);
     const [hidden, setHidden] = useState(false);
 
@@ -51,14 +38,14 @@ export default function AddToQueue({
 
     const addListToBottomQueue = () => {
         setOpen(false);
-        const songsToAdd = songs.map((song) => {
+        const songsToAdd = $songs.map((song) => {
             return { song: song, list: { type, id } };
         });
         queue.set([...queue.get(), ...songsToAdd]);
     };
     const addListToTopQueue = () => {
         setOpen(false);
-        const songsToAdd = songs.map((song) => {
+        const songsToAdd = $songs.map((song) => {
             return { song: song, list: { type, id } };
         });
         queue.set([...songsToAdd, ...queue.get()]);

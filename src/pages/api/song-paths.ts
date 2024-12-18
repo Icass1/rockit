@@ -1,4 +1,3 @@
-import { db } from "@/lib/db";
 import { ENV } from "@/rockitEnv";
 import type { APIContext } from "astro";
 

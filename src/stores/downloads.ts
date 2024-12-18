@@ -1,8 +1,6 @@
 import { atom } from "nanostores";
 let data: string[] = [];
 
-// try {data = await (await fetch("/api/downloads")).json();}
-
 export const downloads = atom<string[]>(data);
 
 fetch("/api/downloads").then((response) => {

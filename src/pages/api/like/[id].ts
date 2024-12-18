@@ -2,11 +2,11 @@ import {
     db,
     parseSong,
     parseUser,
+    type PlaylistDBSong,
     type RawSongDB,
     type RawUserDB,
     type SongDB,
     type UserDB,
-    type UserDBLikedSong,
 } from "@/lib/db";
 
 import type { APIContext } from "astro";
@@ -35,7 +35,7 @@ export async function POST(context: APIContext): Promise<Response> {
         db.prepare("SELECT id FROM song WHERE id = ?").get(id) as RawSongDB
     ) as SongDB<"id">;
 
-    if (!song) {
+    if (!song || !id) {
         return new Response("Song not found", { status: 404 });
     }
 
@@ -47,9 +47,9 @@ export async function POST(context: APIContext): Promise<Response> {
         JSON.stringify([
             ...user?.likedSongs,
             {
-                createdAt: new Date().getTime(),
+                added_at: new Date().toISOString().split(".")[0] + "Z",
                 id: id,
-            } as UserDBLikedSong,
+            } as PlaylistDBSong,
         ]),
         context.locals.user.id
     );

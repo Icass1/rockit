@@ -3,7 +3,7 @@ import type { SongDB } from "@/lib/db";
 import { getTime } from "@/lib/getTime";
 import type { RockItAlbum } from "@/types/rockIt";
 import LikeButton from "./LikeButton";
-import { ListPlus,EllipsisVertical } from "lucide-react";
+import { ListPlus, EllipsisVertical } from "lucide-react";
 import { useState } from "react";
 
 export default function AlbumSong({
@@ -68,8 +68,12 @@ export default function AlbumSong({
                 (!song.path ? "opacity-50" : "md:hover:bg-zinc-500/10")
             }
             onClick={handleClick}
-            onMouseEnter={(e)=>{setHovered(true)}}
-            onMouseLeave={(e)=>{setHovered(false)}}
+            onMouseEnter={() => {
+                setHovered(true);
+            }}
+            onMouseLeave={() => {
+                setHovered(false);
+            }}
         >
             <label className="text-md text-white/80 w-5 text-center">
                 {index + 1}

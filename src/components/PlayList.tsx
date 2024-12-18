@@ -1,29 +1,16 @@
-import type { SongDB } from "@/lib/db";
 import { PlayCircle } from "lucide-react";
 import { currentSong, play, queue, queueIndex } from "@/stores/audio";
+import { useStore } from "@nanostores/react";
+import { currentListSongs } from "@/stores/currentList";
 
-export default function PlayList({
-    songs,
-    id,
-    type,
-}: {
-    type: string;
-    id: string;
-    songs: SongDB<
-        | "id"
-        | "name"
-        | "artists"
-        | "images"
-        | "duration"
-        | "albumId"
-        | "albumName"
-    >[];
-}) {
+export default function PlayList({ id, type }: { type: string; id: string }) {
+    const $songs = useStore(currentListSongs);
+
     const handleClick = () => {
-        const songsToAdd = songs.map((song) => {
+        const songsToAdd = $songs.map((song) => {
             return { song: song, list: { type, id } };
         });
-        const song = songsToAdd[Math.floor(Math.random() * songs.length)];
+        const song = songsToAdd[Math.floor(Math.random() * $songs.length)];
 
         currentSong.set(song.song);
         play();

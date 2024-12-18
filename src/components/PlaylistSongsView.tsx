@@ -28,7 +28,7 @@ export default function PlaylistSongsView({
     const [filter, setFilter] = useState<{
         column: columnsType;
         ascending: boolean;
-    }>({ column: "name", ascending: true });
+    }>({ column: "addedAt", ascending: false });
 
     const [songsToRender, setSongsToRender] = useState<
         PlaylistDBSongWithAddedAt<

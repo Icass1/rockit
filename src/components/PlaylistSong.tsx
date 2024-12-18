@@ -105,13 +105,15 @@ export default function PlaylistSong({
                     ))}
                 </label>
             </div>
-            <a
-                href={`/album/${song.albumId}`}
-                className="md:hover:underline text-nowrap w-full truncate"
-                onClick={(event) => event.stopPropagation()}
-            >
-                {song.albumName || "Artista desconocido"}
-            </a>
+            <div className="w-full">
+                <a
+                    href={`/album/${song.albumId}`}
+                    className="md:hover:underline text-nowrap truncate"
+                    onClick={(event) => event.stopPropagation()}
+                >
+                    {song.albumName || "Artista desconocido"}
+                </a>
+            </div>
             <LikeButton song={song} />
 
             <label className="text-sm text-white/80">

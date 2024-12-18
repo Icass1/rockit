@@ -501,7 +501,7 @@ export default function Navigation({ activePage }: { activePage: string }) {
 
     if (innerWidth < 768) {
         return (
-            <div className="flex justify-center items-center md:py-2 w-full mx-auto min-w-0 max-w-full bg-[#1a1a1a]">
+            <div className="flex justify-center items-center py-2 w-full mx-auto min-w-0 max-w-full bg-[#1a1a1a]">
                 <div className="flex flex-row justify-center items-center md:pb-0 pb-8 w-full max-w-4xl">
                     {pages.map((page) => (
                         <a
@@ -515,7 +515,7 @@ export default function Navigation({ activePage }: { activePage: string }) {
                             }`}
                         >
                             <div className="w-8 h-8 flex justify-center items-center">
-                                <page.icon className="w-5 h-5" />
+                                <page.icon className="w-[1.35rem] h-[1.35rem]" />
                             </div>
                         </a>
                     ))}
@@ -529,7 +529,7 @@ export default function Navigation({ activePage }: { activePage: string }) {
                         }`}
                     >
                         <div className="w-8 h-8 flex justify-center items-center">
-                            <Settings className="w-5 h-5" />
+                            <Settings className="w-[1.35rem] h-[1.35rem]" />
                         </div>
                     </a>
                 </div>

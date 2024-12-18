@@ -1,6 +1,6 @@
 ---
 import Layout from "@/layouts/Layout.astro";
-import { Pencil,LogOut } from "lucide-react";
+import { Pencil,ImageUp,LogOut } from "lucide-react";
 
 if (!Astro.locals.user) {
     return Astro.redirect("/login");
@@ -15,60 +15,64 @@ const user = {
 ---
 
 <Layout title="Settings • Rock It!" currentPage="Settings">
-    <section class="h-full flex items-center justify-center">
-        <div class="flex gap-16 items-start">
-            <!-- Columna izquierda -->
-            <div class="w-1/2 border-r border-gray-700 pr-8 flex flex-col items-center">
-                <div class="relative group">
-                    <!-- Imagen de perfil -->
+    <section class="h-fit md:h-full flex items-center justify-center">
+        <div class="flex flex-col md:flex-row gap-8 md:gap-16 items-center md:items-start w-full px-4 md:px-0">
+            {/* Columna izquierda */}
+            <div class="md:w-1/2 w-4/5 border-b md:border-b-0 md:border-r border-gray-700 pb-8 md:pb-0 mt-20 md:mt-0 flex flex-col items-center justify-center">
+                <div class="relative group flex justify-center">
+                    {/* Imagen de perfil */}
                     <img
                         src={user.profilePicture}
                         alt="User Profile Picture"
-                        class="w-[100%] h-auto bg-gray-400 rounded-full object-cover shadow-md transition duration-300"
+                        class="h-48 md:h-2/3 bg-gray-400 rounded-full object-cover shadow-md transition duration-300"
                     />
-                    <!-- Overlay con ícono al hacer hover -->
+                    {/* Overlay con ícono al hacer hover */}
                     <div
-                        class="absolute inset-0 bg-black/20 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition duration-300 cursor-pointer"
+                        class="absolute inset-0 bg-black/20 md:h-full aspect-square flex items-center justify-center rounded-full md:opacity-0 md:group-hover:opacity-100 transition duration-300 cursor-pointer"
                     >
-                        <Pencil className="text-white w-10 h-10" />
+                        <ImageUp className="text-white w-16 h-16 md:w-24 md:h-24" />
                     </div>
                 </div>
-                <!-- Display name -->
-                <h2 class="text-3xl font-bold text-white mt-4">{user.displayName}</h2>
-                <!-- Username -->
-                <p class="text-lg text-gray-500">@{user.username}</p>
-            
-                <!-- Botón de log out centrado -->
+                {/* Display name */}
+                <h2 class="text-xl md:text-3xl font-bold text-white mt-4">
+                    {user.displayName}
+                </h2>
+                {/* Username */}
+                <p class="text-base md:text-lg text-gray-500">
+                    @{user.username}
+                </p>
+
+                {/* Botón de log out centrado */}
                 <a
-                    class="mt-8 w-32 py-2 bg-red-700 text-white rounded-lg font-bold shadow-md hover:bg-red-900 transition duration-300 flex items-center justify-center gap-2"
+                    class="mt-6 md:mt-8 w-28 md:w-32 py-2 bg-red-700 text-white rounded-lg font-bold shadow-md hover:bg-red-900 transition duration-300 flex items-center justify-center gap-2"
                     href="/login"
                 >
                     <LogOut className="w-5 h-5" />
                     Log Out
                 </a>
-            </div>            
+            </div>
 
-            <!-- Columna derecha -->
-            <div class="w-1/2">
-                <h2 class="text-2xl font-bold text-white mb-6">
+            {/* Columna derecha */}
+            <div class="md:w-1/4 w-full">
+                <h2 class="text-xl md:text-2xl font-bold text-white mb-6">
                     User Settings
                 </h2>
-                <!-- Cambiar nombre de usuario -->
+                {/* Cambiar nombre de usuario */}
                 <div class="mb-6">
-                    <label class="block text-gray-300 text-lg mb-2"
-                        >Display Name</label
-                    >
+                    <label class="block text-gray-300 text-sm md:text-lg mb-2">
+                        Display Name
+                    </label>
                     <input
                         type="text"
                         class="w-full p-3 rounded-lg bg-[#1e1e1e] text-white border border-[#333] focus:outline-none focus:ring-2 focus:ring-green-500"
                         value={user.displayName}
                     />
                 </div>
-                <!-- Cambiar contraseña -->
+                {/* Cambiar contraseña */}
                 <div class="mb-6">
-                    <label class="block text-gray-300 text-lg mb-2"
-                        >Change Password</label
-                    >
+                    <label class="block text-gray-300 text-sm md:text-lg mb-2">
+                        Change Password
+                    </label>
                     <input
                         type="password"
                         placeholder="Enter new password"
@@ -76,15 +80,16 @@ const user = {
                     />
                 </div>
                 <div class="mb-6">
-                    <label class="block text-gray-300 text-lg mb-2"
-                        >Repeat New Password</label
-                    >
+                    <label class="block text-gray-300 text-sm md:text-lg mb-2">
+                        Repeat New Password
+                    </label>
                     <input
                         type="password"
                         placeholder="Repeat password"
                         class="w-full p-3 rounded-lg bg-[#1e1e1e] text-white border border-[#333] focus:outline-none focus:ring-2 focus:ring-green-500"
                     />
                 </div>
+                <div class="h-20 md:h-0"></div>
             </div>
         </div>
     </section>

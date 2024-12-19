@@ -237,7 +237,7 @@ data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
                             <div class=" font-semibold text-sm text-center flex flex-row text-gray-400 mx-auto">
                                 {album.artists.map((artist, index) => (
                                     <label
-                                        class="md:hover:underline"
+                                        class="md:hover:underline truncate"
                                         onclick={`event.preventDefault(); event.stopPropagation(); location.href='/artist/${artist.id}' `}
                                     >
                                         {`${artist.name}${index < album.artists.length - 1 ? "," : ""}`}

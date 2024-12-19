@@ -1,29 +1,54 @@
-import { type ChangeEventHandler } from "react";
+import React, { useEffect, useRef } from 'react';
 
-export default function Slider({
-    value,
-    onChange,
-    min = 0,
-    max = 100,
-    step = 1,
-    className = "",
-    id,
-}: {
-    className?: string;
+type ChangeEventHandler<T = Element> = (event: React.ChangeEvent<T>) => void;
+
+interface SliderProps {
     value: number;
     onChange: ChangeEventHandler<HTMLInputElement> | undefined;
     max?: number;
     min?: number;
     step?: number;
     id: string;
-}) {
+    className?: string;
+}
+
+const Slider: React.FC<SliderProps> = ({
+    value,
+    onChange,
+    max = 100,
+    min = 0,
+    step,
+    id,
+    className = ''
+}) => {
     const m = 100 / (max - min);
     const n = -m * min;
+
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        const inputElement = inputRef.current;
+        if (inputElement) {
+            const handleTouchStart = (event: TouchEvent) => {
+                if (event.cancelable) {
+                    event.preventDefault();
+                }
+            };
+
+            inputElement.addEventListener('touchstart', handleTouchStart, { passive: false });
+
+            return () => {
+                inputElement.removeEventListener('touchstart', handleTouchStart);
+            };
+        }
+    }, []);
+
+    console.log(value, m, n);
 
     return (
         <div
             className={
-                className + " relative w-16 h-[4.5px] rounded-full bg-gray-700"
+                className + " relative w-16 h-[3px] md:h-[4.5px] rounded-full bg-gray-700"
             }
         >
             {/* Barra de progreso */}
@@ -34,6 +59,7 @@ export default function Slider({
 
             {/* Input tipo rango */}
             <input
+                ref={inputRef}
                 id={id}
                 value={value}
                 onChange={onChange}
@@ -45,4 +71,6 @@ export default function Slider({
             />
         </div>
     );
-}
+};
+
+export default Slider;

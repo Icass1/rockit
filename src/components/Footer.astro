@@ -4,10 +4,11 @@ import FooterLeft from "@/components/FooterLeft";
 import FooterRightMobile from "@/components/FooterMobile";
 import TogglePlayerUI from "@/components/TogglePlayerUI";
 import VolumeSlider from "./VolumeSlider";
+import FooterMobileBar from "./FooterMobileBar";
 ---
 
 <footer
-    class="md:bg-[#1a1a1a] bg-black/70 text-white md:py-4 md:px-5 px-2 py-2 w-full md:h-24 box-border"
+    class="md:bg-[#1a1a1a] bg-black/80 text-white md:py-4 md:px-5 px-2 pt-2 w-full md:h-24 box-border"
 >
     <div
         class="flex md:justify-center justify-between items-center w-full h-full"
@@ -28,5 +29,8 @@ import VolumeSlider from "./VolumeSlider";
 
         <!-- Sección Derecha: Solo visible en pantallas pequeñas -->
         <FooterRightMobile client:only="react" />
+    </div>
+    <div class="md:hidden flex w-full">
+        <FooterMobileBar client:only="react" />
     </div>
 </footer>

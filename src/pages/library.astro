@@ -73,10 +73,10 @@ data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
             </div>
         </section>
 
-        <section class="py-12 text-white">
+        <section class="pt-5 md:py-12 text-white">
             <h2 class="text-2xl font-bold text-left">Featured Albums</h2>
             <div
-                class="relative flex items-center gap-5 overflow-x-auto py-4 px-2"
+                class="relative flex items-center gap-5 overflow-x-auto py-4 md:px-2"
             >
                 <!-- Aquí creamos las canciones -->
 
@@ -183,9 +183,10 @@ data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
             </div>
         </section>
 
+        <h2 class="text-2xl font-bold text-left py-4">Your Albums and Playlists</h2>
         <div
             class="grid gap-5"
-            style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));"
+            style="grid-template-columns: repeat(auto-fill, minmax(40%, 1fr));"
         >
             {
                 playlists.map((playlist) => {
@@ -248,6 +249,6 @@ data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
                 })
             }
         </div>
-        <div class="min-h-10"></div>
+        <div class="md:min-h-10 min-h-20"></div>
     </div>
 </Layout>

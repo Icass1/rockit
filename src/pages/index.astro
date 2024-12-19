@@ -71,11 +71,11 @@ songsTimesPlayed.sort((a, b) => b.timesPlayed - a.timesPlayed);
 ---
 
 <Layout title="Rock It!" currentPage="Home">
+    
     <!-- Albums Carousel Section -->
-
     <AlbumsCarousel songsTimesPlayed={songsTimesPlayed} client:only="react" />
 
-    <section class="mt-12 text-center">
+    <section class="md:mt-12 text-center">
         <h2 class="text-3xl font-bold text-white mb-8">
             Explore by Category (🏗️ In Progess 🏗️)
         </h2>

@@ -186,8 +186,17 @@ data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
         <h2 class="text-2xl font-bold text-left py-4">Your Albums and Playlists</h2>
         <div
             class="grid gap-5"
-            style="grid-template-columns: repeat(auto-fill, minmax(40%, 1fr));"
         >
+            <style>
+                .grid {
+                    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                }
+                @media (max-width: 768px) {
+                    .grid {
+                        grid-template-columns: repeat(auto-fill, minmax(40%, 1fr));
+                    }
+                }
+            </style>
             {
                 playlists.map((playlist) => {
                     if (!playlist) return <label>Playlist is undefined</label>;

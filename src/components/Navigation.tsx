@@ -16,6 +16,7 @@ import {
     Pin,
     ChartLine,
     Settings,
+    ArrowDownToLine,
 } from "lucide-react";
 import { useEffect, useRef, useState, type Dispatch } from "react";
 
@@ -395,10 +396,10 @@ function Downloads({ navOpen }: { navOpen: boolean }) {
                     Music Downloader
                 </label>
 
-                <div className="flex flex-col items-center">
+                <div className="flex flex-row items-center mx-auto">
                     {/* Input */}
                     <input
-                        className="focus:outline-0 py-2 px-4 rounded-full mx-5 w-4/5"
+                        className="focus:outline-0 py-2 my-2 px-4 rounded-full mr-3 w-64"
                         placeholder="Enter a Spotify or YT Music URL"
                         value={url}
                         onChange={(e) => {
@@ -406,7 +407,15 @@ function Downloads({ navOpen }: { navOpen: boolean }) {
                         }}
                     />
 
-                    {/* Toggle switch */}
+                    {/* Download Button */}
+                    <div
+                        className="w-9 h-9 flex items-center justify-center rounded-full bg-pink-700 cursor-pointer"
+                        onClick={handleStartDownload}
+                    >
+                        <ArrowDownToLine className="w-5 h-5 text-white" />
+                    </div>
+
+                    {/* Toggle switch - Por si en un futuro lo implementamos
                     <div className="flex items-center gap-2 my-5">
                         <span className="text-white font-semibold">Auto-Like all the songs?</span>
                         <label className="relative inline-flex items-center cursor-pointer">
@@ -414,17 +423,8 @@ function Downloads({ navOpen }: { navOpen: boolean }) {
                             <div className="w-11 h-6 bg-gray-300 rounded-full peer peer-focus:ring-3 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 peer-checked:bg-green-600"></div>
                             <span className="absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow peer-checked:translate-x-5 transition-transform"></span>
                         </label>
-                    </div>
+                    </div>*/}
 
-                    {/* Button */}
-                    <div className="flex justify-center items-center mb-3">
-                        <button
-                        className="bg-green-800 text-green-200 px-6 py-2 rounded-full shadow-md md:hover:bg-green-600 md:hover:text-white md:hover:shadow-lg transition duration-300 transform font-bold"
-                        onClick={handleStartDownload}
-                        >
-                        Start Download
-                        </button>
-                    </div>
                 </div>
                 <div className="flex items-center justify-between mb-4">
                     {Object.entries(status).length != 0 && (

@@ -37,7 +37,7 @@ const { bgImage } = Astro.props;
         <!--Fullscreen de Apple-->
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="mobile-web-app-capable" content="yes">
-        <meta name="theme-color" content="#0b0b0b" />
+        <meta name="theme-color" content="#000" /> <!-- #0b0b0b0 -->
 
         {
             meta &&
@@ -83,6 +83,20 @@ const { bgImage } = Astro.props;
 
             <!-- Main content -->
             <PlayerUI client:only="react" />
+
+            <div class="md:hidden block absolute w-full h-fit bg-gradient-to-b from-black/90 to-black/0 z-40">
+                <div class="mx-auto flex items-center justify-center">
+                    <!-- Logo -->
+                    <a href="/" class="text-white text-2xl font-bold">
+                        <img
+                            src="logo-banner.png"
+                            alt="App Logo"
+                            class="mx-auto h-14 object-contain"
+                        />
+                    </a>
+                </div>
+            </div>
+            
             <div
                 class="block min-w-0 max-w-full w-full min-h-0 max-h-full overflow-hidden relative"
                 style={{ gridArea: "main" }}

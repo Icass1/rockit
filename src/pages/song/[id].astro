@@ -118,7 +118,12 @@ const meta = {
 };
 ---
 
-<Layout title={song.name + " • Rock It!"} currentPage="Song" meta={meta}>
+<Layout
+    title={song.name + " • Rock It!"}
+    currentPage="Song"
+    meta={meta}
+    bgImage={`/api/image/blur/${song.image}`}
+>
     <div class="w-full mx-auto p-6">
         <!-- Header con botones y carátula -->
         <div class="w-full mx-auto p-6 grid grid-cols-3 gap-4 items-center">

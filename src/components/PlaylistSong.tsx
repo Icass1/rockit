@@ -87,9 +87,9 @@ export default function PlaylistSong({
             </div>
 
             {/* Contenedor principal */}
-            <div className="flex flex-row w-full items-center justify-between">
+            <div className="grid grid-cols-[1fr_1fr_min-content] w-full items-center">
                 {/* Título (alineado a la izquierda) */}
-                <div className="w-1/3">
+                <div className="max-w-full min-w-0 w-full">
                     <a
                         className="text-base font-semibold hover:underline block w-fit max-w-full truncate pr-1"
                         href={`/song/${song.id}`}

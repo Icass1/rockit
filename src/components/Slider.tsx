@@ -1,6 +1,6 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef, type ChangeEvent, type FC } from "react";
 
-type ChangeEventHandler<T = Element> = (event: React.ChangeEvent<T>) => void;
+type ChangeEventHandler<T = Element> = (event: ChangeEvent<T>) => void;
 
 interface SliderProps {
     value: number;
@@ -12,14 +12,14 @@ interface SliderProps {
     className?: string;
 }
 
-const Slider: React.FC<SliderProps> = ({
+const Slider: FC<SliderProps> = ({
     value,
     onChange,
     max = 100,
     min = 0,
     step,
     id,
-    className = ''
+    className = "",
 }) => {
     const m = 100 / (max - min);
     const n = -m * min;
@@ -35,20 +35,24 @@ const Slider: React.FC<SliderProps> = ({
                 }
             };
 
-            inputElement.addEventListener('touchstart', handleTouchStart, { passive: false });
+            inputElement.addEventListener("touchstart", handleTouchStart, {
+                passive: false,
+            });
 
             return () => {
-                inputElement.removeEventListener('touchstart', handleTouchStart);
+                inputElement.removeEventListener(
+                    "touchstart",
+                    handleTouchStart
+                );
             };
         }
     }, []);
 
-    console.log(value, m, n);
-
     return (
         <div
             className={
-                className + " relative w-16 h-[3px] md:h-[4.5px] rounded-full bg-gray-700"
+                className +
+                " relative w-16 h-[3px] md:h-[4.5px] rounded-full bg-gray-700"
             }
         >
             {/* Barra de progreso */}

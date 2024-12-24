@@ -1,5 +1,11 @@
 import type { SongDB } from "@/lib/db";
-import { currentSong, currentTime, queue, queueIndex } from "@/stores/audio";
+import {
+    currentSong,
+    currentTime,
+    queue,
+    queueIndex,
+    type QueueSong,
+} from "@/stores/audio";
 import { isPlayerUIVisible } from "@/stores/isPlayerUIVisible";
 import { useStore } from "@nanostores/react";
 import { useEffect, useRef, useState } from "react";
@@ -278,6 +284,62 @@ function DynamicLyrics() {
     );
 }
 
+function QueueSong({
+    song,
+    index,
+}: {
+    song: SongDB<"duration" | "id" | "name" | "images" | "artists">;
+    index: number | undefined;
+}) {
+    const $queueIndex = useStore(queueIndex);
+    return (
+        <li
+            className={`flex items-center gap-x-2 p-2 group ${
+                index === $queueIndex
+                    ? "bg-[rgba(50,50,50,0.75)]"
+                    : "md:hover:bg-[rgba(75,75,75,0.75)]"
+            }`}
+        >
+            {/* Espacio para el ícono */}
+            <div className="h-10 flex items-center justify-center">
+                <div className={`opacity-0 group-hover:opacity-100`}>
+                    <EllipsisVertical className="text-white w-5 h-12 md:hover:cursor-move" />
+                </div>
+            </div>
+            {/* Cover */}
+            <div className="relative">
+                {/* Imagen de portada */}
+                <img
+                    src={song.images[0].url}
+                    alt={song.name}
+                    className={`w-12 h-12 rounded object-cover ${
+                        index === $queueIndex ? "brightness-50" : ""
+                    }`}
+                />
+                {/* Ícono Play */}
+                {index === $queueIndex && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <Play className="text-white w-5 h-5 fill-current" />
+                    </div>
+                )}
+            </div>
+            {/* Song Info */}
+            <div className="flex-1 min-w-0 max-w-full">
+                <p className="text-white text-base font-semibold truncate">
+                    {song.name}
+                </p>
+                <p className="text-gray-300 text-sm truncate">
+                    {song.artists.map((artist) => artist.name).join(", ")}
+                </p>
+            </div>
+            {/* Duration */}
+            <p className="text-gray-300 text-base pr-2">
+                {getTime(song.duration)}
+            </p>
+        </li>
+    );
+}
+
 export default function PlayerUI() {
     const $currentSong = useStore(currentSong);
 
@@ -285,7 +347,6 @@ export default function PlayerUI() {
 
     const $isPlayerUIVisible = useStore(isPlayerUIVisible);
     const $queue = useStore(queue);
-    const $queueIndex = useStore(queueIndex);
 
     const divRef = useRef<HTMLDivElement>(null);
 
@@ -311,6 +372,71 @@ export default function PlayerUI() {
             document.removeEventListener("click", handleDocumentClick);
         };
     }, [divRef]);
+
+    const [draggingSong, setDraggingSong] = useState<
+        | {
+              song: QueueSong;
+              list: { type: string; id: string } | undefined;
+          }
+        | undefined
+    >();
+    const [draggingPos, setDraggingPos] = useState<[number, number]>([0, 0]);
+    const queueDivRef = useRef<HTMLUListElement>(null);
+
+    useEffect(() => {
+        const handleMouseUp = (event: globalThis.MouseEvent) => {
+            if (!queueDivRef.current || !draggingSong) return;
+            let spacerIndex = undefined;
+            if (queueDivRef.current?.offsetTop) {
+                spacerIndex = Math.floor(
+                    (event.clientY -
+                        32 -
+                        queueDivRef.current.getBoundingClientRect().top +
+                        queueDivRef.current.scrollTop) /
+                        64
+                );
+            }
+
+            const prevSongs = queue.get();
+
+            let tempDraggingSong = prevSongs.find(
+                (song) => song.song.id == draggingSong.song.id
+            );
+            if (typeof tempDraggingSong == "undefined") return;
+            if (typeof spacerIndex == "undefined") return;
+
+            let draggingSongIndex = prevSongs.indexOf(tempDraggingSong);
+
+            if (spacerIndex > draggingSongIndex) {
+                queue.set([
+                    ...prevSongs.slice(0, draggingSongIndex),
+                    ...prevSongs.slice(draggingSongIndex + 1, spacerIndex + 2),
+                    tempDraggingSong,
+                    ...prevSongs.slice(spacerIndex + 2),
+                ]);
+            } else if (spacerIndex < draggingSongIndex) {
+                queue.set([
+                    ...prevSongs.slice(0, spacerIndex + 1),
+                    tempDraggingSong,
+                    ...prevSongs.slice(spacerIndex + 1, draggingSongIndex),
+                    ...prevSongs.slice(draggingSongIndex + 1),
+                ]);
+            }
+            setDraggingSong(undefined);
+        };
+        const handleMouseMove = (event: globalThis.MouseEvent) => {
+            if (!queueDivRef.current) return;
+            setDraggingPos([event.clientX - 10, event.clientY - 32]);
+        };
+
+        document.addEventListener("mouseup", handleMouseUp);
+        document.addEventListener("mousemove", handleMouseMove);
+
+        return () => {
+            document.removeEventListener("mouseup", handleMouseUp);
+            document.removeEventListener("mousemove", handleMouseMove);
+        };
+    }, [queueDivRef, draggingSong]);
 
     return (
         <div
@@ -390,64 +516,78 @@ export default function PlayerUI() {
                     {/* Contenido dinámico */}
                     <div className="flex-1 overflow-auto pt-3 pb-7">
                         {currentTab === "queue" ? (
-                            <ul className="flex flex-col">
-                                {$queue.map((queueSong, index) => (
-                                    <li
-                                        key={queueSong.song.id + index}
-                                        className={`flex items-center gap-x-2 p-2 group ${
-                                            index === $queueIndex
-                                                ? "bg-[rgba(50,50,50,0.75)]"
-                                                : "md:hover:bg-[rgba(75,75,75,0.75)]"
-                                        }`}
-                                    >
-                                        {/* Espacio para el ícono */}
-                                        <div className="h-10 flex items-center justify-center">
+                            <ul className="flex flex-col" ref={queueDivRef}>
+                                {$queue
+                                    .filter(
+                                        (song) =>
+                                            song.song.id !=
+                                            draggingSong?.song.id
+                                    )
+                                    .map((queueSong, index) => {
+                                        let spacerIndex = undefined;
+
+                                        if (queueDivRef.current?.offsetTop) {
+                                            spacerIndex = Math.floor(
+                                                (draggingPos[1] -
+                                                    queueDivRef.current.getBoundingClientRect()
+                                                        .top +
+                                                    queueDivRef.current
+                                                        .scrollTop) /
+                                                    64
+                                            );
+                                        }
+
+                                        return (
                                             <div
-                                                className={`opacity-0 group-hover:opacity-100`}
+                                                key={queueSong.song.id}
+                                                id={queueSong.song.id}
+                                                onMouseDown={() => {
+                                                    setDraggingSong(queueSong);
+                                                }}
                                             >
-                                                <EllipsisVertical className="text-white w-5 h-12 md:hover:cursor-move" />
+                                                {draggingSong &&
+                                                    spacerIndex == -1 &&
+                                                    index == 0 && (
+                                                        <div className="h-1 bg-gradient-to-r from-[#ee1086] to-[#fb6467] rounded-full"></div>
+                                                    )}
+                                                <QueueSong
+                                                    song={queueSong.song}
+                                                    index={index}
+                                                />
+                                                {/* <label>
+                                                    {
+                                                        queueDivRef.current
+                                                            ?.offsetTop
+                                                    }{" "}
+                                                    {
+                                                        queueDivRef.current
+                                                            ?.scrollTop
+                                                    }
+                                                </label> */}
+                                                {draggingSong &&
+                                                    typeof spacerIndex !=
+                                                        "undefined" &&
+                                                    spacerIndex == index && (
+                                                        <div className="h-1 bg-gradient-to-r from-[#ee1086] to-[#fb6467] rounded-full"></div>
+                                                    )}
                                             </div>
-                                        </div>
-                                        {/* Cover */}
-                                        <div className="relative">
-                                            {/* Imagen de portada */}
-                                            <img
-                                                src={
-                                                    queueSong.song.images[0].url
-                                                }
-                                                alt={queueSong.song.name}
-                                                className={`w-12 h-12 rounded object-cover ${
-                                                    index === $queueIndex
-                                                        ? "brightness-50"
-                                                        : ""
-                                                }`}
-                                            />
-                                            {/* Ícono Play */}
-                                            {index === $queueIndex && (
-                                                <div className="absolute inset-0 flex items-center justify-center">
-                                                    <Play className="text-white w-5 h-5 fill-current" />
-                                                </div>
-                                            )}
-                                        </div>
-                                        {/* Song Info */}
-                                        <div className="flex-1 min-w-0 max-w-full">
-                                            <p className="text-white text-base font-semibold truncate">
-                                                {queueSong.song.name}
-                                            </p>
-                                            <p className="text-gray-300 text-sm truncate">
-                                                {queueSong.song.artists
-                                                    .map(
-                                                        (artist) => artist.name
-                                                    )
-                                                    .join(", ")}
-                                            </p>
-                                        </div>
-                                        {/* Duration */}
-                                        <p className="text-gray-300 text-base pr-2">
-                                            {getTime(queueSong.song.duration)}
-                                        </p>
-                                    </li>
-                                ))}
+                                        );
+                                    })}
+
+                                {draggingSong && queueDivRef.current && (
+                                    <div
+                                        className="fixed"
+                                        style={{
+                                            top: `${draggingPos[1]}px`,
+                                            left: `${draggingPos[0]}px`,
+                                        }}
+                                    >
+                                        <QueueSong
+                                            song={draggingSong.song}
+                                            index={undefined}
+                                        />
+                                    </div>
+                                )}
                             </ul>
                         ) : (
                             <slot />

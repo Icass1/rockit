@@ -24,7 +24,7 @@ function startSocket() {
 
 startSocket();
 
-type QueueSong = SongDB<"id" | "name" | "artists" | "images" | "duration">;
+export type QueueSong = SongDB<"id" | "name" | "artists" | "images" | "duration">;
 
 type Queue = {
     song: QueueSong;

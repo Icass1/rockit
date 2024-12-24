@@ -28,9 +28,6 @@ export default function PlaylistSong({
     const $queueIndex = useStore(queueIndex);
     const $currentList = useStore(currentList);
 
-    console.log($queue[$queueIndex ?? 0]);
-    console.log($currentList);
-
     const handleClick = () => {
         const songs = currentListSongs.get();
         const list = currentList.get();
@@ -68,8 +65,8 @@ export default function PlaylistSong({
             className={
                 "flex flex-row items-center gap-4 transition-colors px-2 py-[0.5rem] rounded " +
                 (!song.path ? "opacity-50" : "md:hover:bg-zinc-500/10") +
-                ($queue[$queueIndex ?? 0].list?.id == $currentList?.id &&
-                $queue[$queueIndex ?? 0].list?.type == $currentList?.type &&
+                ($queue[$queueIndex ?? 0]?.list?.id == $currentList?.id &&
+                $queue[$queueIndex ?? 0]?.list?.type == $currentList?.type &&
                 $queue[$queueIndex ?? 0].song.id == song.id
                     ? " text-green-500"
                     : "")

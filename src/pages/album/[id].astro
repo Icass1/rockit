@@ -1,7 +1,7 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import AlbumSong from "@/components/AlbumSong";
-import { Disc } from "lucide-react";
+import { Disc,BadgeCheck } from "lucide-react";
 
 import { getMinutes } from "@/lib/getTime";
 
@@ -83,18 +83,22 @@ const meta = {
             />
             <label class="pt-2 text-2xl font-semibold">{album.name}</label>
 
-            <div class="text-xl font-semibold text-stone-400">
+            <div class="text-xl font-semibold text-stone-400 flex">
                 {
                     album.artists.map((artist, index) => (
-                        <label
-                            class="md:hover:underline"
-                            onclick={`event.preventDefault(); event.stopPropagation(); location.href='/artist/${artist.id}' `}
-                        >
-                            {`${artist.name}${index < album.artists.length - 1 ? "," : ""}`}
-                        </label>
+                        <span class="flex items-center space-x-1">
+                            <label
+                                class="md:hover:underline"
+                                onclick={`event.preventDefault(); event.stopPropagation(); location.href='/artist/${artist.id}' `}
+                            >
+                                {`${artist.name}${index < album.artists.length - 1 ? "," : ""}`}
+                            </label>
+                            <BadgeCheck className="mt-1"/>
+                        </span>
                     ))
                 }
             </div>
+            
 
             <!-- Meter arriba cuando esté: href={`/artist/${artist.id}`} -->
             <label class="text-sm text-stone-400"

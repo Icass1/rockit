@@ -128,17 +128,17 @@ songsTimesPlayed.sort((a, b) => b.timesPlayed - a.timesPlayed);
         </div>
     </section>
 
-    <section class="md:px-12 px-3 text-white">
+    <section class="group md:px-12 px-3 text-white">
         <h2 class="text-3xl font-bold text-left">Quick Selections</h2>
         <!-- Contenedor del slider -->
         <div class="flex gap-4 overflow-x-auto scrollbar-hide snap-x snap-mandatory py-4 px-2">
             <!-- Aquí creamos las columnas -->
             {Array.from({ length: 9 }).map((_, columnIndex) => (
-            <div class="flex flex-col gap-4 flex-none w-[calc(25%-10px)] snap-center">
+            <div class="flex flex-col gap-1 flex-none w-[calc(25%-10px)] max-w-[350px] snap-center">
                 {Array.from({ length: 4 }).map((_, songIndex) => (
                 <a
                     href="#"
-                    class="flex items-center gap-2 bg-zinc-800 rounded-lg p-2 hover:bg-zinc-700 transition h-fit"
+                    class="flex items-center gap-2 rounded-lg p-2 hover:bg-zinc-800 transition h-fit"
                 >
                     <!-- Imagen de la canción -->
                     <img

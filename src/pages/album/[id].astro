@@ -59,7 +59,16 @@ const meta = {
         class="pl-4 g rid flex flex-row w-full h-full grid-cols-[min-content_1fr] relative pr-2"
     >
         <div class="flex flex-col gap-1 relative top-1/2 -translate-y-1/2 w-full max-w-md h-fit mx-10">
-            <div class="flex flex-row gap-2 mb-2">
+            <!-- Contenedor de la imagen cuadrada -->
+            <div class="relative mx-auto overflow-hidden aspect-square rounded-md h-2/3">
+                <img
+                    src={album.image ? `/api/image/${album.image}` : album.images[0].url}
+                    class="w-full h-[40vh] object-fill"
+                />
+            </div>
+            
+            <!-- Div con los iconos -->
+            <div class="flex flex-row justify-center gap-3 text-sm pt-2">
                 {
                     !inDatabase && (
                         <DownloadList
@@ -73,17 +82,11 @@ const meta = {
                 <PlayList client:only="react" type="album" id={id} />
                 <AddToQueue client:only="react" type="album" id={id} />
             </div>
-            
-            <!-- Contenedor de la imagen cuadrada -->
-            <div class="relative mx-auto overflow-hidden aspect-square rounded-md">
-                <img
-                    src={album.image ? `/api/image/${album.image}` : album.images[0].url}
-                    class="w-full h-40 object-fill"
-                />
-            </div>
         
-            <label class="pt-2 text-2xl font-semibold line-clamp-2">{album.name}</label>
+            <!-- Nombre del álbum -->
+            <label class="text-2xl font-semibold line-clamp-2">{album.name}</label>
         
+            <!-- Artistas -->
             <div class="text-xl font-semibold text-stone-400 flex">
                 {
                     album.artists.map((artist, index) => (
@@ -98,18 +101,18 @@ const meta = {
                     ))
                 }
             </div>
-            <!-- Meter arriba cuando esté: href={`/artist/${artist.id}`} y hacer esto también: <BadgeCheck className="mt-1"/>-->
-
-            <label class="text-sm text-stone-400"
-                >{getDate(album.releaseDate)} | {album.songs.length} Songs | {
+            
+            <!-- Información adicional -->
+            <label class="text-sm text-stone-400">
+                {getDate(album.releaseDate)} | {album.songs.length} Songs | {
                     getMinutes(
                         songs.reduce((accumulator: number, song) => {
                             return accumulator + (song?.duration || 0);
                         }, 0)
                     )
-                } Minutes</label
-            >
-        </div>
+                } Minutes
+            </label>
+        </div>    
     
         <div
             class="min-w-0 max-w-full w-full min-h-0 max-h-full h-full overflow-auto flex flex-col pr-6"

@@ -548,7 +548,7 @@ export default function PlayerUI() {
                                                 {draggingSong &&
                                                     spacerIndex == -1 &&
                                                     index == 0 && (
-                                                        <div className="h-1 bg-gradient-to-r from-[#ee1086] to-[#fb6467] rounded-full"></div>
+                                                        <div className="h-16 bg-gradient-to-r from-[#ee108650] to-[#fb646750]"></div>
                                                     )}
                                                 <QueueSong
                                                     song={queueSong.song}
@@ -568,7 +568,7 @@ export default function PlayerUI() {
                                                     typeof spacerIndex !=
                                                         "undefined" &&
                                                     spacerIndex == index && (
-                                                        <div className="h-1 bg-gradient-to-r from-[#ee1086] to-[#fb6467] rounded-full"></div>
+                                                        <div className="h-16 bg-gradient-to-r from-[#ee108650] to-[#fb646750]"></div>
                                                     )}
                                             </div>
                                         );

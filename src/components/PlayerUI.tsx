@@ -333,7 +333,7 @@ function QueueSong({
                 </p>
             </div>
             {/* Duration */}
-            <p className="text-gray-300 text-base pr-2">
+            <p className="text-gray-300 text-base px-2">
                 {getTime(song.duration)}
             </p>
         </li>

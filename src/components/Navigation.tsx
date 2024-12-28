@@ -409,7 +409,7 @@ function Downloads({ navOpen }: { navOpen: boolean }) {
 
                     {/* Download Button */}
                     <div
-                        className="w-9 h-9 flex items-center justify-center rounded-full bg-pink-700 cursor-pointer"
+                        className="w-9 h-9 flex items-center justify-center rounded-full bg-pink-700 hover:bg-pink-800 cursor-pointer"
                         onClick={handleStartDownload}
                     >
                         <ArrowDownToLine className="w-5 h-5 text-white" />

@@ -27,8 +27,8 @@ export default function FooterCenter() {
                         {$currentSong?.name || "Canción desconocida :("}
                     </a>
                 </span>
-                <span className="text-sm text-gray-400 flex flex-row gap-x-1">
-                    <div className="flex flex-row gap-x-1 w-full md:w-fit truncate">
+                <span className="text-sm text-gray-400 flex flex-row gap-x-1 w-full">
+                    <div className="flex-0 max-w-[50%] truncate shrink-0">
                         {$currentSong?.artists ? (
                             $currentSong?.artists?.map((artist, index) => (
                                 <a
@@ -51,11 +51,12 @@ export default function FooterCenter() {
 
                     <a
                         href={`/album/${$currentSong?.albumId}`}
-                        className="hidden md:block hover:underline truncate"
+                        className="hidden md:inline-block hover:underline truncate"
                     >
                         {$currentSong?.albumName || "Album desconocido"}
                     </a>
                 </span>
+
             </div>
             <div className="pr-4 flex-row items-left hidden md:flex">
                 {$currentSong && <LikeButton song={$currentSong} />}

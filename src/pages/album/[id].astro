@@ -60,10 +60,10 @@ const meta = {
     >
         <div class="flex flex-col gap-1 relative top-1/2 -translate-y-1/2 w-full max-w-md h-fit mx-10">
             <!-- Contenedor de la imagen cuadrada -->
-            <div class="relative mx-auto overflow-hidden aspect-square rounded-md h-2/3">
+            <div class="relative mx-auto overflow-hidden aspect-square rounded-md h-[40vh]">
                 <img
                     src={album.image ? `/api/image/${album.image}` : album.images[0].url}
-                    class="w-full h-[40vh] object-fill"
+                    class="w-full h-full object-fill"
                 />
             </div>
             

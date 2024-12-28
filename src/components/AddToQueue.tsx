@@ -1,7 +1,7 @@
 import { queue } from "@/stores/audio";
 import { currentListSongs } from "@/stores/currentList";
 import { useStore } from "@nanostores/react";
-import { List, ListEnd, ListStart } from "lucide-react";
+import { Heart, ListEnd, ListStart, Ellipsis } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 export default function AddToQueue({ type, id }: { type: string; id: string }) {
@@ -79,6 +79,15 @@ export default function AddToQueue({ type, id }: { type: string; id: string }) {
                         <span>Add list to bottom of queue</span>
                     </div>
                 </ul>
+
+                <ul className="text-white text-sm">
+                    <div
+                        className="md:hover:bg-[#4f4f4f] flex items-center p-3 space-x-2 cursor-pointer rounded-t-lg"
+                    >
+                        <Heart className="h-5 w-5" />
+                        <span>Like all songs on the list</span>
+                    </div>
+                </ul>
             </div>
             <div
                 className="w-7 h-7 relative cursor-pointer whitespace-nowrap md:hover:scale-105"
@@ -86,7 +95,7 @@ export default function AddToQueue({ type, id }: { type: string; id: string }) {
                 ref={divRef}
             >
                 <div className="border-white absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 border-solid rounded-full border-[2px] w-7 h-7"></div>
-                <List
+                <Ellipsis
                     strokeWidth={1.3}
                     className="h-4 w-4 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 absolute transition-transform"
                 />

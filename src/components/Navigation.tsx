@@ -65,7 +65,7 @@ function RenderListDownload({
             songs: {
                 [key: string]: EventSourceStatus;
             };
-        },
+        }
     ];
 }) {
     const [showAllSongs, setShowAllSongs] = useState(false);
@@ -403,7 +403,7 @@ function Downloads({ navOpen }: { navOpen: boolean }) {
                         placeholder="Enter a Spotify or YT Music URL"
                         value={url}
                         onChange={(e) => {
-                        setURL(e.target.value);
+                            setURL(e.target.value);
                         }}
                     />
 
@@ -424,7 +424,6 @@ function Downloads({ navOpen }: { navOpen: boolean }) {
                             <span className="absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow peer-checked:translate-x-5 transition-transform"></span>
                         </label>
                     </div>*/}
-
                 </div>
                 <div className="flex items-center justify-between mb-4">
                     {Object.entries(status).length != 0 && (

@@ -35,7 +35,10 @@ export async function GET(context: APIContext): Promise<Response> {
             .png()
             .toBuffer();
 
-        const out = sharp(out1).blur(15).resize({ width: 160, height: 90 }).webp();
+        const out = sharp(out1)
+            .blur(15)
+            .resize({ width: 160, height: 90 })
+            .webp();
 
         return new Response(await out.toBuffer(), {
             headers: {

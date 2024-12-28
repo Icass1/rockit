@@ -129,6 +129,31 @@ songsTimesPlayed.sort((a, b) => b.timesPlayed - a.timesPlayed);
     </section>
 
     <section class="md:px-12 px-3 py-12 text-white">
+        <h2 class="text-3xl font-bold text-left">Quick Selections</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-9 gap-4 py-4 px-2">
+            <!-- Aquí creamos las canciones -->
+            {Array.from({ length: 36 }).map((_, index) => (
+                <a
+                href="#"
+                class="flex flex-col items-center gap-2 bg-zinc-800 rounded-lg p-3 hover:bg-zinc-700 transition"
+                >
+                    <img
+                        class="rounded-md w-full aspect-square object-cover"
+                        src="/song-placeholder.png"
+                        alt="Song Cover"
+                    />
+                    <label class="truncate font-semibold text-center text-white block mt-2">
+                        Canción {index + 1}
+                    </label>
+                    <span class="text-sm text-gray-400 text-center block truncate">
+                        Artista {index + 1} · Álbum {index + 1}
+                    </span>
+                </a>
+            ))}
+        </div>
+    </section>      
+
+    <section class="md:px-12 px-3 py-12 text-white">
         <h2 class="text-3xl font-bold text-left">You Might Also Like</h2>
         <div class="relative flex items-center gap-4 overflow-x-auto py-4 px-2">
             <!-- Aquí creamos las canciones -->

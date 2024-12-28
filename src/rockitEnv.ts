@@ -27,6 +27,8 @@ const missingVars = REQUIRED_ENV_VARS.filter((key) => !ENV[key]);
 
 if (missingVars.length > 0) {
     throw new Error(
-        `Missing required environment variables: ${missingVars.join(", ")}. Please ensure all required variables are set in your .env file.`
+        `Missing required environment variables: ${missingVars.join(
+            ", "
+        )}. Please ensure all required variables are set in your .env file.`
     );
 }

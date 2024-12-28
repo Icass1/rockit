@@ -128,27 +128,39 @@ songsTimesPlayed.sort((a, b) => b.timesPlayed - a.timesPlayed);
         </div>
     </section>
 
-    <section class="md:px-12 px-3 py-12 text-white">
+    <section class="md:px-12 px-3 text-white">
         <h2 class="text-3xl font-bold text-left">Quick Selections</h2>
-        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-9 gap-4 py-4 px-2">
-            <!-- Aquí creamos las canciones -->
-            {Array.from({ length: 36 }).map((_, index) => (
+        <!-- Contenedor del slider -->
+        <div class="flex gap-4 overflow-x-auto scrollbar-hide snap-x snap-mandatory py-4 px-2">
+            <!-- Aquí creamos las columnas -->
+            {Array.from({ length: 9 }).map((_, columnIndex) => (
+            <div class="flex flex-col gap-4 flex-none w-[24%] snap-center">
+                {Array.from({ length: 4 }).map((_, songIndex) => (
                 <a
-                href="#"
-                class="flex flex-col items-center gap-2 bg-zinc-800 rounded-lg p-3 hover:bg-zinc-700 transition"
+                    href="#"
+                    class="flex items-center gap-2 bg-zinc-800 rounded-lg p-2 hover:bg-zinc-700 transition h-fit"
                 >
+                    <!-- Imagen de la canción -->
                     <img
-                        class="rounded-md w-full aspect-square object-cover"
+                        class="rounded-sm w-12 h-12 object-cover"
                         src="/song-placeholder.png"
                         alt="Song Cover"
                     />
-                    <label class="truncate font-semibold text-center text-white block mt-2">
-                        Canción {index + 1}
-                    </label>
-                    <span class="text-sm text-gray-400 text-center block truncate">
-                        Artista {index + 1} · Álbum {index + 1}
-                    </span>
+                    <!-- Información de la canción -->
+                    <div class="flex flex-col justify-center min-w-0">
+                        <!-- Nombre de la canción -->
+                        <span class="text-md font-semibold text-white truncate">
+                        Canción {columnIndex * 4 + songIndex + 1}
+                        </span>
+                        <!-- Artista y álbum -->
+                        <span class="text-sm text-gray-400 truncate">
+                        Artista {columnIndex * 4 + songIndex + 1} · Álbum{" "}
+                        {columnIndex * 4 + songIndex + 1}
+                        </span>
+                    </div>
                 </a>
+                ))}
+            </div>
             ))}
         </div>
     </section>      

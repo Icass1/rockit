@@ -596,44 +596,47 @@ export default function PlayerUI() {
                                 )}
                             </ul>
                         ) : (
-                            <div className="flex gap-4 overflow-x-auto scrollbar-hide snap-x snap-mandatory py-4 px-2">
-                                {/* Aquí creamos las columnas */}
-                                {columns.map((_, columnIndex) => (
-                                <div
-                                    key={columnIndex}
-                                    className="flex flex-col gap-1 flex-none w-[calc(50%-10px)] max-w-[300px] snap-center"
-                                >
-                                    {Array.from({ length: songsPerColumn }).map((_, songIndex) => (
-                                    <a
-                                        href="#"
-                                        key={songIndex}
-                                        className="flex items-center gap-2 rounded-lg p-2 hover:bg-zinc-800 transition h-fit"
+                            <section>
+                                <h2 className="text-2xl font-bold text-left pt-4">Similar Songs</h2>
+                                <div className="flex gap-4 overflow-x-auto scrollbar-hide snap-x snap-mandatory px-2">
+                                    {/* Aquí creamos las columnas */}
+                                    {columns.map((_, columnIndex) => (
+                                    <div
+                                        key={columnIndex}
+                                        className="flex flex-col gap-1 flex-none w-[calc(50%-10px)] max-w-[300px] snap-center"
                                     >
-                                        {/* Imagen de la canción */}
-                                        <img
-                                            className="rounded-sm w-12 h-12 object-cover"
-                                            src="/song-placeholder.png"
-                                            alt={`Song ${columnIndex * songsPerColumn + songIndex + 1}`}
-                                        />
+                                        {Array.from({ length: songsPerColumn }).map((_, songIndex) => (
+                                        <a
+                                            href="#"
+                                            key={songIndex}
+                                            className="flex items-center gap-2 rounded-lg p-2 hover:bg-zinc-800 transition h-fit"
+                                        >
+                                            {/* Imagen de la canción */}
+                                            <img
+                                                className="rounded-sm w-12 h-12 object-cover"
+                                                src="/song-placeholder.png"
+                                                alt={`Song ${columnIndex * songsPerColumn + songIndex + 1}`}
+                                            />
 
-                                        {/* Información de la canción */}
-                                        <div className="flex flex-col justify-center min-w-0">
-                                            {/* Nombre de la canción */}
-                                            <span className="text-md font-semibold text-white truncate">
-                                                Canción {columnIndex * songsPerColumn + songIndex + 1}
-                                            </span>
-                                            
-                                            {/* Artista y álbum */}
-                                            <span className="text-sm text-gray-400 truncate">
-                                                Artista {columnIndex * songsPerColumn + songIndex + 1} • Álbum{" "}
-                                                {columnIndex * songsPerColumn + songIndex + 1}
-                                            </span>
-                                        </div>
-                                    </a>
+                                            {/* Información de la canción */}
+                                            <div className="flex flex-col justify-center min-w-0">
+                                                {/* Nombre de la canción */}
+                                                <span className="text-md font-semibold text-white truncate">
+                                                    Canción {columnIndex * songsPerColumn + songIndex + 1}
+                                                </span>
+                                                
+                                                {/* Artista y álbum */}
+                                                <span className="text-sm text-gray-400 truncate">
+                                                    Artista {columnIndex * songsPerColumn + songIndex + 1} • Álbum{" "}
+                                                    {columnIndex * songsPerColumn + songIndex + 1}
+                                                </span>
+                                            </div>
+                                        </a>
+                                        ))}
+                                    </div>
                                     ))}
                                 </div>
-                                ))}
-                            </div>
+                            </section>
                         )}
                     </div>
                 </div>

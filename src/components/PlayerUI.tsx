@@ -464,7 +464,7 @@ export default function PlayerUI() {
 
                 {/* Middle Column: Cover & Info */}
                 <div className="min-w-0 min-h-0 max-w-full max-h-full flex flex-col items-center justify-center z-40">
-                    <div className="max-h-[75%] aspect-square">
+                    <div className="max-h-[70%] aspect-square">
                         <img
                             src={
                                 $currentSong?.images[0]?.url ||
@@ -474,12 +474,12 @@ export default function PlayerUI() {
                             className="object-cover mx-auto w-auto h-[100%] rounded-lg aspect-square"
                         />
                     </div>
-                    <div className="w-full flex flex-col items-center justify-center text-center mt-4">
+                    <div className="w-full flex flex-col items-center justify-center text-center mt-2">
                         <h1 className="text-4xl font-bold text-balance">
                             {$currentSong?.name}
                         </h1>
                         <p className="text-gray-400 text-xl mt-2 font-medium flex items-center justify-center gap-2">
-                            <span className="max-w-[50%] md:hover:underline truncate text-center">
+                            <span className="max-w-[25%] md:hover:underline truncate text-center">
                                 {$currentSong?.albumName}
                             </span>
                             <span>•</span>

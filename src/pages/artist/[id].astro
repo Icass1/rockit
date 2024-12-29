@@ -1,5 +1,7 @@
 ---
 import Layout from "@/layouts/Layout.astro";
+import LikeButton from "@/components/LikeButton";
+import { ListPlus, Play } from "lucide-react";
 
 if (!Astro.locals.user) {
     return Astro.redirect("/login");
@@ -44,8 +46,8 @@ const artistImage =
                     </p>
                 </div>
 
-                <section class="bg-[#171717] h-full px-56">
-                    <div class="grid grid-cols-2 gap-56">
+                <section class="bg-[#171717] h-full px-52">
+                    <div class="grid grid-cols-2 gap-52">
                         <!-- Columna Izquierda: Top Songs -->
                         <div>
                             <h2 class="text-white text-2xl font-bold mb-4">
@@ -58,18 +60,23 @@ const artistImage =
                                         Array.from(
                                             { length: 5 },
                                             (_, index) => (
-                                                <div class="flex items-center space-x-4 rounded-md md:hover:bg-[#212121] p-2 transition">
+                                                <div class="group flex items-center space-x-4 rounded-md md:hover:bg-[#212121] p-2 transition">
                                                     {/* Número de posición */}
                                                     <div class="text-gray-400 text-lg font-semibold w-6 text-center">
                                                         {index + 1}
                                                     </div>
 
-                                                    {/* Cover de la canción */}
-                                                    <div class="relative">
+                                                    {/* Imagen de la canción */}
+                                                    <div class="relative group w-12 h-12">
                                                         <img
                                                             src="/song-placeholder.png"
                                                             alt={`Song ${index + 1}`}
-                                                            class="w-12 h-12 rounded object-cover"
+                                                            class="w-full h-full rounded object-cover transition duration-300 group-hover:brightness-50"
+                                                        />
+                                                        {/* Icono de Play */}
+                                                        <Play 
+                                                            className="absolute inset-0 m-auto w-5 h-5 text-white fill-current opacity-0 group-hover:opacity-100 transition duration-300"
+
                                                         />
                                                     </div>
 
@@ -81,14 +88,17 @@ const artistImage =
                                                         </p>
                                                     </div>
 
-                                                    {/* Número de reproducciones */}
+                                                    {/* Número de reproducciones - TODAVÍA NO SABEMOS CÓMO HACERLO
                                                     <div class="text-gray-400 text-base font-medium pr-5">
                                                         {Math.floor(
                                                             Math.random() *
                                                                 10000000
                                                         ).toLocaleString()}{" "}
                                                         plays
-                                                    </div>
+                                                    </div> */}
+
+                                                    <LikeButton song={"Mockup"} />
+                                                    <ListPlus className="text-gray-400 md:hover:text-white md:hover:scale-105 w-8" />
 
                                                     {/* Duración */}
                                                     <p class="text-gray-300 text-base pr-2">
@@ -113,18 +123,23 @@ const artistImage =
                                         Array.from(
                                             { length: 5 },
                                             (_, index) => (
-                                                <div class="flex items-center space-x-4 rounded-md md:hover:bg-[#212121] p-2 transition">
+                                                <div class="group flex items-center space-x-4 rounded-md md:hover:bg-[#212121] p-2 transition">
                                                     {/* Número de posición */}
                                                     <div class="text-gray-400 text-lg font-semibold w-6 text-center">
                                                         {index + 1}
                                                     </div>
 
-                                                    {/* Cover de la canción */}
-                                                    <div class="relative">
+                                                    {/* Cover del album */}
+                                                    <div class="relative group w-12 h-12">
                                                         <img
                                                             src="/song-placeholder.png"
                                                             alt={`Song ${index + 1}`}
-                                                            class="w-12 h-12 rounded object-cover"
+                                                            class="w-full h-full rounded object-cover transition duration-300 group-hover:brightness-50"
+                                                        />
+                                                        {/* Icono de Play */}
+                                                        <Play 
+                                                            className="absolute inset-0 m-auto w-5 h-5 text-white fill-current opacity-0 group-hover:opacity-100 transition duration-300"
+
                                                         />
                                                     </div>
 
@@ -157,7 +172,7 @@ const artistImage =
 
                 <section class="px-32 pt-12 pb-3 text-white bg-[#171717]">
                     <h2 class="text-2xl font-bold text-left">
-                        Featured Albums
+                        Albums & Singles
                     </h2>
                     <div
                         class="relative flex items-center gap-5 overflow-x-auto py-4 px-2"

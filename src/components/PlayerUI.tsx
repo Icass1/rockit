@@ -462,7 +462,7 @@ export default function PlayerUI() {
                 ></img>
 
                 <div className="z-40 w-full h-full">
-                    <h2 className="absolute w-[31%] text-center text-3xl font-bold mx-auto p-14 underline">
+                    <h2 className="absolute w-[31.5%] text-center text-3xl font-bold mx-auto p-14 underline">
                         Lyrics
                     </h2>
                     <DynamicLyrics />
@@ -596,47 +596,78 @@ export default function PlayerUI() {
                                 )}
                             </ul>
                         ) : (
-                            <section>
-                                <h2 className="text-2xl font-bold text-left pt-4">Similar Songs</h2>
-                                <div className="flex gap-4 overflow-x-auto scrollbar-hide snap-x snap-mandatory px-2">
-                                    {/* Aquí creamos las columnas */}
-                                    {columns.map((_, columnIndex) => (
-                                    <div
-                                        key={columnIndex}
-                                        className="flex flex-col gap-1 flex-none w-[calc(50%-10px)] max-w-[300px] snap-center"
-                                    >
-                                        {Array.from({ length: songsPerColumn }).map((_, songIndex) => (
-                                        <a
-                                            href="#"
-                                            key={songIndex}
-                                            className="flex items-center gap-2 rounded-lg p-2 hover:bg-zinc-800 transition h-fit"
+                            <>
+                                <section>
+                                    <h2 className="text-2xl font-bold text-left">Similar Songs</h2>
+                                    <div className="flex gap-4 overflow-x-auto scrollbar-hide snap-x snap-mandatory px-2 py-2">
+                                        {/* Aquí creamos las columnas */}
+                                        {columns.map((_, columnIndex) => (
+                                        <div
+                                            key={columnIndex}
+                                            className="flex flex-col gap-1 flex-none w-[calc(50%-10px)] max-w-[300px] snap-center"
                                         >
-                                            {/* Imagen de la canción */}
-                                            <img
-                                                className="rounded-sm w-12 h-12 object-cover"
-                                                src="/song-placeholder.png"
-                                                alt={`Song ${columnIndex * songsPerColumn + songIndex + 1}`}
-                                            />
+                                            {Array.from({ length: songsPerColumn }).map((_, songIndex) => (
+                                            <a
+                                                href="#"
+                                                key={songIndex}
+                                                className="flex items-center gap-2 rounded-lg p-2 hover:bg-zinc-800 transition h-fit"
+                                            >
+                                                {/* Imagen de la canción */}
+                                                <img
+                                                    className="rounded-sm w-12 h-12 object-cover"
+                                                    src="/song-placeholder.png"
+                                                    alt={`Song ${columnIndex * songsPerColumn + songIndex + 1}`}
+                                                />
 
-                                            {/* Información de la canción */}
-                                            <div className="flex flex-col justify-center min-w-0">
-                                                {/* Nombre de la canción */}
-                                                <span className="text-md font-semibold text-white truncate">
-                                                    Canción {columnIndex * songsPerColumn + songIndex + 1}
-                                                </span>
-                                                
-                                                {/* Artista y álbum */}
-                                                <span className="text-sm text-gray-400 truncate">
-                                                    Artista {columnIndex * songsPerColumn + songIndex + 1} • Álbum{" "}
-                                                    {columnIndex * songsPerColumn + songIndex + 1}
-                                                </span>
-                                            </div>
-                                        </a>
+                                                {/* Información de la canción */}
+                                                <div className="flex flex-col justify-center min-w-0">
+                                                    {/* Nombre de la canción */}
+                                                    <span className="text-md font-semibold text-white truncate">
+                                                        Song {columnIndex * songsPerColumn + songIndex + 1}
+                                                    </span>
+                                                    
+                                                    {/* Artista y álbum */}
+                                                    <span className="text-sm text-gray-400 truncate">
+                                                        Artist {columnIndex * songsPerColumn + songIndex + 1} • Album{" "}
+                                                        {columnIndex * songsPerColumn + songIndex + 1}
+                                                    </span>
+                                                </div>
+                                            </a>
+                                            ))}
+                                        </div>
                                         ))}
                                     </div>
-                                    ))}
-                                </div>
-                            </section>
+                                </section>
+                                <section>
+                                    <h2 className="text-2xl font-bold text-left pt-7">Artists you may like</h2>
+                                    <div className="flex gap-7 overflow-x-auto scrollbar-hide snap-x snap-mandatory py-4 px-2">
+                                        {/* Aquí creamos las columnas de artistas */}
+                                        {columns.map((_, artistIndex) => (
+                                            <div
+                                                key={artistIndex}
+                                                className="flex flex-col items-center gap-2 flex-none snap-center"
+                                            >
+                                                {/* Imagen del artista */}
+                                                <img
+                                                    className="rounded-full w-28 h-28 object-cover"
+                                                    src="/user-placeholder.png"
+                                                    alt={`Artist ${artistIndex + 1}`}
+                                                />
+                                                {/* Nombre del artista */}
+                                                <span className="text-md font-semibold text-white text-center truncate">
+                                                    Artist {artistIndex + 1}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </section>
+                                <section>
+                                    <h2 className="text-2xl font-bold text-left pt-7">Song / Artist Description</h2>
+                                    <a className="pt-2 px-5 text-justify line-clamp-4">
+                                        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+                                    </a>
+                                </section>
+                            </>
                         )}
                     </div>
                 </div>

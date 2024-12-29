@@ -146,7 +146,7 @@ function DynamicLyrics() {
     }
 
     const commonSyles =
-        "absolute px-4 text-center -translate-y-1/2 transition-all duration-500 text-balance";
+        "absolute pl-16 pr-4 text-center -translate-y-1/2 transition-all duration-500 text-balance";
 
     return (
         <div className="flex flex-col justify-center items-center px-4 overflow-hidden relative h-full">
@@ -341,7 +341,7 @@ function QueueSong({
 }
 
 export default function PlayerUI() {
-    
+
     // Estas dos cosas son para el mockup del related
     const columns = Array.from({ length: 5 });
     const songsPerColumn = 3;

@@ -13,7 +13,7 @@ import {
 } from "@/lib/db";
 import { getStats } from "@/lib/stats";
 import { Heart, Disc3, History } from "lucide-react";
-import { useState } from "react";
+import { ArrowDownAZ, ArrowUpZA, Clock } from "lucide-react";
 
 if (!Astro.locals.user) {
     return Astro.redirect("/login");
@@ -61,8 +61,10 @@ data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
             <div>
                 <label class="text-white text-4xl font-bold">Library</label>
             </div>
-            <div>
-
+            <div class="flex items-center">
+                <button id="filterButton" class="mr-2">
+                    <ArrowDownAZ id="filterIcon" className="w-6 h-6 text-white" />
+                </button>
                 <input
                     id="searchInput"
                     class="font-semibold bg-neutral-900 shadow mx-auto rounded-full text-1xl pl-10 pr-2 md:w-1/10 w-full h-8 focus:outline-0"
@@ -265,8 +267,31 @@ data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
         <div class="md:min-h-10 min-h-20"></div>
     </div>
     <script>
-        document.getElementById('searchInput')?.addEventListener('input', function(this: HTMLInputElement) {
-            const filter = this.value.toLowerCase();
+        const filterButton = document.getElementById('filterButton') as HTMLButtonElement | null;
+        const filterIcon = document.getElementById('filterIcon') as HTMLElement | null;
+        const searchInput = document.getElementById('searchInput') as HTMLInputElement | null;
+        let filterMode: 'default' | 'asc' | 'desc' = 'default';
+    
+        if (filterButton && filterIcon && searchInput) {
+            filterButton.addEventListener('click', () => {
+                if (filterMode === 'default') {
+                    filterMode = 'asc';
+                    filterIcon.classList.replace('ArrowDownAZ', 'ArrowUpZA');
+                } else if (filterMode === 'asc') {
+                    filterMode = 'desc';
+                    filterIcon.classList.replace('ArrowUpZA', 'Clock');
+                } else {
+                    filterMode = 'default';
+                    filterIcon.classList.replace('Clock', 'ArrowDownAZ');
+                }
+                sortItems();
+            });
+    
+            searchInput.addEventListener('input', filterItems);
+        }
+    
+        function filterItems() {
+            const filter = searchInput?.value.toLowerCase() || '';
             const items = document.querySelectorAll<HTMLElement>('.library-item');
             
             items.forEach(item => {
@@ -277,6 +302,38 @@ data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
                     item.style.display = 'none';
                 }
             });
-        });
+        }
+    
+        function sortItems() {
+            const itemsContainers = document.querySelectorAll('.relative.flex.items-center.gap-5.overflow-x-auto.py-4.md\\:px-2, .grid.gap-5') as NodeListOf<HTMLElement>;
+            if (!itemsContainers.length) return;
+    
+            itemsContainers.forEach((itemsContainer) => {
+                const items = Array.from(itemsContainer.children) as HTMLElement[];
+    
+                items.sort((a, b) => {
+                    const textA = a.textContent?.toLowerCase() || '';
+                    const textB = b.textContent?.toLowerCase() || '';
+    
+                    if (filterMode === 'asc') {
+                        return textA.localeCompare(textB);
+                    } else if (filterMode === 'desc') {
+                        return textB.localeCompare(textA);
+                    } else {
+                        const isRockitA = textA.includes('rockit');
+                        const isRockitB = textB.includes('rockit');
+                        if (isRockitA && !isRockitB) {
+                            return -1;
+                        } else if (!isRockitA && isRockitB) {
+                            return 1;
+                        } else {
+                            return textA.localeCompare(textB);
+                        }
+                    }
+                });
+
+                items.forEach((item) => itemsContainer.appendChild(item));
+            });
+        }
     </script>
 </Layout>

@@ -13,6 +13,7 @@ import {
 } from "@/lib/db";
 import { getStats } from "@/lib/stats";
 import { Heart, Disc3, History } from "lucide-react";
+import { useState } from "react";
 
 if (!Astro.locals.user) {
     return Astro.redirect("/login");
@@ -63,6 +64,7 @@ data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
             <div>
 
                 <input
+                    id="searchInput"
                     class="font-semibold bg-neutral-900 shadow mx-auto rounded-full text-1xl pl-10 pr-2 md:w-1/10 w-full h-8 focus:outline-0"
                     style="
                         background-image: url(/search-icon.png);
@@ -84,7 +86,7 @@ data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
 
                 <a
                     href={`/playlist/liked`}
-                    class="flex-none w-[calc(40%-10px)] md:w-48 md:hover:scale-105 transition"
+                    class="library-item flex-none w-[calc(40%-10px)] md:w-48 md:hover:scale-105 transition"
                 >
                     <div
                         class="relative rounded-lg w-full aspect-square object-cover"
@@ -109,7 +111,7 @@ data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
 
                 <a
                     href={`/playlist/liked`}
-                    class="flex-none w-[calc(40%-10px)] md:w-48 md:hover:scale-105 transition"
+                    class="library-item flex-none w-[calc(40%-10px)] md:w-48 md:hover:scale-105 transition"
                 >
                     <div
                         class="relative rounded-lg w-full aspect-square object-cover"
@@ -133,7 +135,7 @@ data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
 
                 <a
                     href={`/playlist/liked`}
-                    class="flex-none w-[calc(40%-10px)] md:w-48 md:hover:scale-105 transition"
+                    class="library-item flex-none w-[calc(40%-10px)] md:w-48 md:hover:scale-105 transition"
                 >
                     <div
                         class="relative rounded-lg w-full aspect-square object-cover"
@@ -159,7 +161,7 @@ data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
                     data.albums.slice(0, 4).map((album) => (
                         <a
                             href={`/album/${album.id}`}
-                            class="flex-none w-[calc(40%-10px)] md:w-48 md:hover:scale-105 transition"
+                            class="library-item flex-none w-[calc(40%-10px)] md:w-48 md:hover:scale-105 transition"
                         >
                             <img
                                 class="rounded-lg w-full aspect-square object-cover"
@@ -205,7 +207,7 @@ data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
                     return (
                         <a
                             href={`/playlist/${playlist.id}`}
-                            class="w-fit h-fit flex flex-col min-w-0 max-w-full md:hover:scale-110 transition-transform"
+                            class="w-fit h-fit flex flex-col min-w-0 max-w-full md:hover:scale-110 transition-transform library-item"
                         >
                             <img
                                 class="rounded-md"
@@ -232,7 +234,7 @@ data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
                     return (
                         <a
                             href={`/album/${album.id}`}
-                            class="w-fit h-fit flex flex-col min-w-0 max-w-full md:hover:scale-105 transition-transform"
+                            class="w-fit h-fit flex flex-col min-w-0 max-w-full md:hover:scale-105 transition-transform library-item"
                         >
                             <img
                                 class="rounded-md"
@@ -262,4 +264,19 @@ data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
         </div>
         <div class="md:min-h-10 min-h-20"></div>
     </div>
+    <script>
+        document.getElementById('searchInput')?.addEventListener('input', function(this: HTMLInputElement) {
+            const filter = this.value.toLowerCase();
+            const items = document.querySelectorAll<HTMLElement>('.library-item');
+            
+            items.forEach(item => {
+                const text = item.textContent?.toLowerCase() || '';
+                if (text.includes(filter)) {
+                    item.style.display = '';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+    </script>
 </Layout>

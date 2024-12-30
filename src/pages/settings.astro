@@ -1,6 +1,6 @@
 ---
 import Layout from "@/layouts/Layout.astro";
-import { Pencil,ImageUp,LogOut } from "lucide-react";
+import { ChartLine,ImageUp,LogOut } from "lucide-react";
 
 if (!Astro.locals.user) {
     return Astro.redirect("/login");
@@ -18,13 +18,13 @@ const user = {
     <section class="h-fit md:h-full flex items-center justify-center">
         <div class="flex flex-col md:flex-row gap-8 md:gap-16 items-center md:items-start w-full px-4 md:px-0">
             {/* Columna izquierda */}
-            <div class="md:w-1/2 w-4/5 border-b md:border-b-0 md:border-r border-gray-700 pb-8 md:pb-0 mt-10 md:mt-0 flex flex-col items-center justify-center">
+            <div class="md:w-1/2 w-full border-b md:border-b-0 md:border-r border-gray-700 pb-8 md:pb-0 mt-10 md:mt-0 flex flex-col items-center justify-center">
                 <div class="relative group flex justify-center">
                     {/* Imagen de perfil */}
                     <img
                         src={user.profilePicture}
                         alt="User Profile Picture"
-                        class="h-48 md:h-2/3 bg-gray-400 rounded-full object-cover shadow-md transition duration-300"
+                        class="h-48 md:h-72 bg-gray-400 rounded-full object-cover shadow-md transition duration-300"
                     />
                     {/* Overlay con ícono al hacer hover - CUANDO HAYA IMAGEN HAY QUE OCULTAR EL ICONO*/}
                     <div
@@ -42,23 +42,34 @@ const user = {
                     @{user.username}
                 </p>
 
-                {/* Botón de log out centrado */}
-                <a
-                    class="mt-6 md:mt-8 w-28 md:w-32 py-2 bg-red-700 text-white rounded-lg font-bold shadow-md hover:bg-red-900 transition duration-300 flex items-center justify-center gap-2"
-                    href="/login"
-                >
+                <div class="flex flex-wrap items-center justify-center gap-2 mt-2">
+                    {/* Botón de log out */}
+                    <a
+                        class="w-28 md:w-32 py-2 bg-red-700 text-white rounded-lg font-bold shadow-md hover:bg-red-900 transition duration-300 flex items-center justify-center gap-2"
+                        href="/login"
+                    >
                     <LogOut className="w-5 h-5" />
-                    Log Out
-                </a>
+                        Log Out
+                    </a>
+
+                    {/* Botón de estadísticas */}
+                    <a
+                        class="w-36 py-2 bg-blue-700 md:hidden text-white rounded-lg font-bold shadow-md hover:bg-blue-900 transition duration-300 flex items-center justify-center gap-2"
+                        href="/stats"
+                    >
+                    <ChartLine className="w-5 h-5" />
+                        See User Stats
+                    </a>
+                </div>                  
             </div>
 
             {/* Columna derecha */}
             <div class="md:w-1/4 w-full">
-                <h2 class="text-xl md:text-2xl font-bold text-white mb-6">
+                <h2 class="text-xl md:text-2xl font-bold text-white md:mb-6 mb-4">
                     User Settings
                 </h2>
                 {/* Cambiar nombre de usuario */}
-                <div class="mb-6">
+                <div class="md:mb-6 mb-4">
                     <label class="block text-gray-300 text-sm md:text-lg mb-2">
                         Display Name
                     </label>
@@ -69,7 +80,7 @@ const user = {
                     />
                 </div>
                 {/* Cambiar contraseña */}
-                <div class="mb-6">
+                <div class="md:mb-6 mb-4">
                     <label class="block text-gray-300 text-sm md:text-lg mb-2">
                         Change Password
                     </label>
@@ -79,7 +90,7 @@ const user = {
                         class="w-full p-3 rounded-lg bg-[#1e1e1e] text-white border border-[#333] focus:outline-none focus:ring-2 focus:ring-green-500"
                     />
                 </div>
-                <div class="mb-6">
+                <div class="md:mb-6 mb-4">
                     <label class="block text-gray-300 text-sm md:text-lg mb-2">
                         Repeat New Password
                     </label>
@@ -89,7 +100,7 @@ const user = {
                         class="w-full p-3 rounded-lg bg-[#1e1e1e] text-white border border-[#333] focus:outline-none focus:ring-2 focus:ring-green-500"
                     />
                 </div>
-                <div class="h-20 md:h-0"></div>
+                <div class="h-16 md:h-0"></div>
             </div>
         </div>
     </section>

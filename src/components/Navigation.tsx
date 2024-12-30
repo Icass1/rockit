@@ -493,7 +493,6 @@ export default function Navigation({ activePage }: { activePage: string }) {
         { name: "Home", href: "/", icon: Home },
         { name: "Library", href: "/library", icon: Library },
         { name: "Search", href: "/search", icon: Search },
-        { name: "Stats & Friends", href: "/stats", icon: ChartLine },
     ];
 
     const [innerWidth] = useWindowSize();
@@ -569,6 +568,22 @@ export default function Navigation({ activePage }: { activePage: string }) {
                         <label className="font-semibold">{page.name}</label>
                     </a>
                 ))}
+
+                <a
+                    key="/stats"
+                    href="/stats"
+                    title="Stats & Friends"
+                    className={`h-8 rounded-md items-center ml-2 mr-2 transition-all flex gap-2 ${
+                        activePage === "Stats & Friends"
+                            ? "bg-white text-black"
+                            : "text-white md:hover:bg-[#414141]"
+                    }`}
+                >
+                    <div className="w-8 h-8 flex items-center justify-center">
+                        <ChartLine className="w-5 h-5" />
+                    </div>
+                    <label className="font-semibold">Stats & Friends</label>
+                </a>
 
                 <div
                     className={`transition-all h-1 bg-neutral-600 ml-2 duration-[400ms] rounded-full ${

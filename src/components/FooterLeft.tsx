@@ -8,7 +8,7 @@ export default function FooterCenter() {
 
     return (
         // <!-- Para el Nicolás de mañana {$currentSong && <LikeButton song={$currentSong} />} -->
-        <div className="flex items-center md:w-1/3 max-w-full min-w-0 gap-x-4">
+        <div className="flex items-center w-full md:w-1/3 max-w-full min-w-0 gap-x-4">
         {/* Imagen al inicio */}
         <img
             id="footer-album-cover"
@@ -31,7 +31,7 @@ export default function FooterCenter() {
             </a>
             </span>
             <span className="text-sm text-gray-400 flex flex-row gap-x-1 w-full">
-            <div className="flex-0 max-w-[50%] truncate shrink-0">
+            <div className="flex-0 md:max-w-[50%] truncate shrink-0">
                 {$currentSong?.artists ? (
                 $currentSong?.artists?.map((artist, index) => (
                     <a

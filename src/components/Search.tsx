@@ -1,4 +1,5 @@
 import { searchResults } from "@/stores/searchResults";
+import SearchBar from "@/components/SearchBar";
 import { useStore } from "@nanostores/react";
 
 export default function Search() {
@@ -6,14 +7,17 @@ export default function Search() {
 
     return (
         <>
-            <section className="md:px-12 px-3 py-12 text-white">
-                <h2 className="text-3xl font-bold text-left">Songs</h2>
+            <section className="block md:hidden mt-12 h-12">
+                <SearchBar/>
+            </section>
+            <section className="md:px-12 px-3 md:py-12 py-2 text-white">
+                <h2 className="text-2xl md:text-3xl font-bold text-left">Songs</h2>
                 <div className="relative flex items-center gap-4 overflow-x-auto py-4 px-2">
                     {/* Aquí creamos las canciones */}
                     {$searchResults.songs?.map((song) => (
                         <a
                             href={`/song/${song.id}`}
-                            className="flex-none w-48 md:hover:scale-105 transition"
+                            className="flex-none w-36 md:w-48 md:hover:scale-105 transition"
                             key={"song" + song.id}
                         >
                             <img
@@ -52,14 +56,14 @@ export default function Search() {
                 </div>
             </section>
 
-            <section className="md:px-12 px-3 py-12 text-white">
-                <h2 className="text-3xl font-bold text-left">Albums</h2>
+            <section className="md:px-12 px-3 md:py-12 py-2 text-white">
+                <h2 className="text-2xl md:text-3xl font-bold text-left">Albums</h2>
                 <div className="relative flex items-center gap-4 overflow-x-auto py-4 px-2">
                     {/* Aquí creamos las canciones */}
                     {$searchResults.albums?.map((album) => (
                         <a
                             href={`/album/${album.id}`}
-                            className="flex-none w-48 md:hover:scale-105 transition"
+                            className="flex-none w-36 md:w-48 md:hover:scale-105 transition"
                             key={"album" + album.id}
                         >
                             <img
@@ -98,14 +102,14 @@ export default function Search() {
                 </div>
             </section>
 
-            <section className="md:px-12 px-3 py-12 text-white">
-                <h2 className="text-3xl font-bold text-left">Artists</h2>
+            <section className="md:px-12 px-3 md:py-12 py-2 text-white">
+                <h2 className="text-2xl md:text-3xl font-bold text-left">Artists</h2>
                 <div className="relative flex items-center gap-4 overflow-x-auto py-4 px-2">
                     {/* Aquí creamos las canciones */}
                     {$searchResults.artists?.map((artist) => (
                         <a
                             href={`/artist/${artist.id}`}
-                            className="flex-none w-48 md:hover:scale-105 transition"
+                            className="flex-none w-36 md:w-48 md:hover:scale-105 transition"
                             key={"artist" + artist.id}
                         >
                             <img
@@ -125,14 +129,14 @@ export default function Search() {
                 </div>
             </section>
 
-            <section className="md:px-12 px-3 py-12 text-white">
-                <h2 className="text-3xl font-bold text-left">Playlists</h2>
+            <section className="md:px-12 px-3 md:py-12 py-2 text-white">
+                <h2 className="text-2xl md:text-3xl font-bold text-left">Playlists</h2>
                 <div className="relative flex items-center gap-4 overflow-x-auto py-4 px-2">
                     {/* Aquí creamos las canciones  */}
                     {$searchResults.playlists?.map((playlist) => (
                         <a
                             href={`/playlist/${playlist.id}`}
-                            className="flex-none w-48 md:hover:scale-105 transition"
+                            className="flex-none w-36 md:w-48 md:hover:scale-105 transition"
                             key={"playlist" + playlist.id}
                         >
                             <img
@@ -154,6 +158,7 @@ export default function Search() {
                     ))}
                 </div>
             </section>
+            <div className="min-h-14"></div>
         </>
     );
 }

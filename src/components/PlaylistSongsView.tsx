@@ -135,8 +135,8 @@ export default function PlaylistSongsView({
         return (
             <label
                 className={
-                    "hover:underline cursor-pointer flex flex-row items-center " +
-                    (filter.column == column ? "text-green-600" : "")
+                    "hover:underline cursor-pointer flex flex-row items-center font-semibold select-none " +
+                    (filter.column == column ? "text-[#ec5588]" : "")
                 }
                 onClick={() => {
                     toggleFilter(column);

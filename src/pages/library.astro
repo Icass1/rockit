@@ -1,5 +1,6 @@
 ---
 import Layout from "@/layouts/Layout.astro";
+import LibraryFilters from "@/components/LibraryFilters.tsx";
 import {
     db,
     parseAlbum,
@@ -61,7 +62,8 @@ data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
             <div>
                 <label class="text-white text-4xl font-bold">Library</label>
             </div>
-            <div class="flex items-center">
+            <LibraryFilters />
+            <!--<div class="flex items-center">
                 <button id="filterButton" class="mr-2">
                     <ArrowDownAZ id="filterIcon" className="w-6 h-6 text-white" />
                 </button>
@@ -76,7 +78,7 @@ data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
                     "
                     placeholder="Search in Library"
                 />
-            </div>
+            </div> -->
         </section>
 
         <section class="pt-5 md:py-12 text-white">

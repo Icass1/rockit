@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Play, ChevronLeft, ChevronRight, Pause } from "lucide-react";
 import type { SongForStats } from "@/lib/stats";
+import useWindowSize from "@/hooks/useWindowSize";
 import {
     currentSong,
     pause,
@@ -24,20 +25,30 @@ function Song({
 }) {
     let distanceFromCenter = Math.abs(index - currentIndex);
     let neg = index > currentIndex ? -1 : 1;
+    const [innerWidth] = useWindowSize();
 
     if (distanceFromCenter > 4) {
         distanceFromCenter = songsLength - Math.abs(index - currentIndex);
         neg = neg = index > currentIndex ? 1 : -1;
     }
 
-    let scale = `${1 - distanceFromCenter * 0.1}`; // Escalado en función de la distancia al centro
+    let scale: string;
     const zIndex = 20 - distanceFromCenter; // Profundidad dinámica
-    let left = `${50 + distanceFromCenter * neg * -9}%`; // Separación horizontal
-    let brightness = 1 - distanceFromCenter * 0.2; // Brillo en función de la distancia al centro
+    let left: string;
+    let brightness: number;
 
-    if (distanceFromCenter > 4) {
-        scale = "0";
-        distanceFromCenter = 4;
+    if (innerWidth < 768) {
+        if (distanceFromCenter > 4) {
+            distanceFromCenter = 4;
+        }
+        scale = distanceFromCenter > 4 ? "0" : `${1 - distanceFromCenter * 0.1}`;
+        left = `${50 + distanceFromCenter * neg * -15}%`; // Separación horizontal
+        brightness = 1 - distanceFromCenter * 0.2; // Brillo en función de la distancia al centro
+    } else {
+        if (distanceFromCenter > 4) {
+            distanceFromCenter = 4;
+        }
+        scale = distanceFromCenter > 4 ? "0" : `${1 - distanceFromCenter * 0.1}`;
         left = `${50 + distanceFromCenter * neg * -9}%`; // Separación horizontal
         brightness = 1 - distanceFromCenter * 0.2; // Brillo en función de la distancia al centro
     }
@@ -141,7 +152,7 @@ function Version2({
     currentIndex: number;
 }) {
     return (
-        <div className="relative w-full h-full max-h-[300px]">
+        <div className="relative md:w-full md:h-full w-52 h-52 md:max-h-[300px]">
             {songs.map((song, index) => (
                 <Song
                     index={index}
@@ -154,6 +165,7 @@ function Version2({
         </div>
     );
 }
+
 export default function AlbumsCarousel({
     songsTimesPlayed,
 }: {
@@ -201,7 +213,7 @@ export default function AlbumsCarousel({
 
     return (
         <div
-            className="text-white h-1/2 flex items-center justify-center overflow-x-hidden relative select-none"
+            className="text-white h-52 md:h-1/2 flex items-center justify-center overflow-x-hidden relative select-none"
             ref={divRef}
         >
             <ChevronLeft

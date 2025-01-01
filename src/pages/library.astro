@@ -56,29 +56,13 @@ data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
 ---
 
 <Layout title="Library • Rock It!" currentPage="Library">
-    <div class="mt-4 md:mt-0"></div>
+    <div class="mt-14 md:mt-0"></div>
     <div class="p-2 md:p-8 h-full">
-        <section class="items-center justify-between md:flex hidden">
-            <div>
+        <section class="items-center justify-between flex">
+            <div class="hidden md:flex">
                 <label class="text-white text-4xl font-bold">Library</label>
             </div>
             <LibraryFilters />
-            <!--<div class="flex items-center">
-                <button id="filterButton" class="mr-2">
-                    <ArrowDownAZ id="filterIcon" className="w-6 h-6 text-white" />
-                </button>
-                <input
-                    id="searchInput"
-                    class="font-semibold bg-neutral-900 shadow mx-auto rounded-full text-1xl pl-10 pr-2 md:w-1/10 w-full h-8 focus:outline-0"
-                    style="
-                        background-image: url(/search-icon.png);
-                        background-position: 15px center;
-                        background-size: 14px;
-                        background-repeat: no-repeat;
-                    "
-                    placeholder="Search in Library"
-                />
-            </div> -->
         </section>
 
         <section class="pt-5 md:py-12 text-white">

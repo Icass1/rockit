@@ -36,8 +36,8 @@ const LibraryFilters = () => {
   }, [searchQuery, filterMode]);
 
   return (
-    <div className="flex items-center">
-        <button id="filterButton" className="mr-2">
+    <div className="flex items-center w-full md:w-fit">
+        <button id="filterButton" className="mr-0 md:mr-2 hidden md:flex">
             <ArrowDownAZ id="filterIcon" className="w-6 h-6 text-white" />
         </button>
         <input

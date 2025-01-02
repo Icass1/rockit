@@ -66,7 +66,7 @@ export default function AlbumSong({
     return (
         <div
             className={
-                "flex flex-row items-center gap-2 md:gap-4 transition-colors px-2 py-[0.65rem] rounded " +
+                "flex flex-row items-center gap-2 md:gap-4 transition-colors px-2 py-[0.5rem] md:py-[0.65rem] rounded " +
                 (!song.path ? "opacity-50" : "md:hover:bg-zinc-500/10")
             }
             onClick={handleClick}

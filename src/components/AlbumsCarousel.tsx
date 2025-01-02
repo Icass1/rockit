@@ -168,7 +168,11 @@ function Version2({
     );
 }
 
-function AlbumsCarousel({ songsTimesPlayed }: { songsTimesPlayed: SongForStats[] }) {
+function AlbumsCarousel({
+    songsTimesPlayed,
+}: {
+    songsTimesPlayed: SongForStats[];
+}) {
     const songs = songsTimesPlayed.slice(0, 20);
 
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -208,7 +212,9 @@ function AlbumsCarousel({ songsTimesPlayed }: { songsTimesPlayed: SongForStats[]
     const startAutoRotate = () => {
         stopAutoRotate();
         autoRotateRef.current = setInterval(() => {
-            setCurrentIndex((value) => (value < songs.length - 1 ? value + 1 : 0));
+            setCurrentIndex((value) =>
+                value < songs.length - 1 ? value + 1 : 0
+            );
         }, 3000);
     };
 

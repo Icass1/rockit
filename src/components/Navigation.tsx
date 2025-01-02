@@ -65,7 +65,7 @@ function RenderListDownload({
             songs: {
                 [key: string]: EventSourceStatus;
             };
-        }
+        },
     ];
 }) {
     const [showAllSongs, setShowAllSongs] = useState(false);

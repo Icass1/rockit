@@ -45,24 +45,24 @@ const LibraryFilters = () => {
         <div className="flex items-center w-full md:w-fit">
             <button id="filterButton" className="mr-0 md:mr-2 hidden md:flex">
                 {filterMode === "default" && (
-                    <ClockArrowDown 
-						id="filterIcon" 
-						className="w-6 h-6 text-white" 
-						onClick={() => setFilterMode("asc")}
-					/>
+                    <ClockArrowDown
+                        id="filterIcon"
+                        className="w-6 h-6 text-white"
+                        onClick={() => setFilterMode("asc")}
+                    />
                 )}
                 {filterMode === "asc" && (
                     <ArrowDownAZ
-						id="filterIcon" 
-						className="w-6 h-6 text-white"
-						onClick={() => setFilterMode("desc")}
-					/>
+                        id="filterIcon"
+                        className="w-6 h-6 text-white"
+                        onClick={() => setFilterMode("desc")}
+                    />
                 )}
                 {filterMode === "desc" && (
                     <ArrowUpAZ
                         id="filterIcon"
                         className="w-6 h-6 text-white"
-						onClick={() => setFilterMode("default")}
+                        onClick={() => setFilterMode("default")}
                     />
                 )}
             </button>
@@ -76,7 +76,7 @@ const LibraryFilters = () => {
                     backgroundRepeat: "no-repeat",
                 }}
                 placeholder="Search in Library"
-				onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => setSearchQuery(e.target.value)}
             />
         </div>
     );

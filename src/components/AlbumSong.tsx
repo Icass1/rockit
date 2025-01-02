@@ -5,6 +5,7 @@ import type { RockItAlbum } from "@/types/rockIt";
 import LikeButton from "./LikeButton";
 import { ListPlus, EllipsisVertical } from "lucide-react";
 import { useState } from "react";
+import useWindowSize from "@/hooks/useWindowSize";
 
 export default function AlbumSong({
     song,
@@ -25,6 +26,7 @@ export default function AlbumSong({
     albumId: string;
 }) {
     const [hovered, setHovered] = useState(false);
+    const [innerWidth] = useWindowSize();
 
     const handleClick = () => {
         if (!song.path) {
@@ -64,7 +66,7 @@ export default function AlbumSong({
     return (
         <div
             className={
-                "flex flex-row items-center gap-4 transition-colors px-2 py-[0.65rem] rounded " +
+                "flex flex-row items-center gap-2 md:gap-4 transition-colors px-2 py-[0.65rem] rounded " +
                 (!song.path ? "opacity-50" : "md:hover:bg-zinc-500/10")
             }
             onClick={handleClick}
@@ -78,13 +80,14 @@ export default function AlbumSong({
             <label className="text-md text-white/80 w-5 text-center">
                 {index + 1}
             </label>
-            <label className="text-base font-semibold w-full">
+            <label className="text-base font-semibold w-full truncate md:text-clip">
                 {song.name}{" "}
             </label>
             <LikeButton song={song} />
-            <ListPlus className="text-gray-400 md:hover:text-white md:hover:scale-105 w-8" />
+            <ListPlus className="text-gray-400 hidden md:flex md:hover:text-white md:hover:scale-105 w-8" />
+            <EllipsisVertical className="text-gray-400 flex md:hidden md:hover:text-white md:hover:scale-105 w-8" />
             <label className="text-sm text-white/80 select-none min-w-7 flex justify-center items-center">
-                {hovered ? (
+                {hovered && window.innerWidth > 768 ? (
                     <EllipsisVertical className="text-gray-400 md:hover:text-white md:hover:scale-105" />
                 ) : (
                     getTime(song.duration)

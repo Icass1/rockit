@@ -1,7 +1,7 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import AlbumSong from "@/components/AlbumSong";
-import { Disc,BadgeCheck } from "lucide-react";
+import { Disc, BadgeCheck } from "lucide-react";
 
 import { getMinutes } from "@/lib/getTime";
 
@@ -55,18 +55,21 @@ const meta = {
     meta={meta}
     bgImage={`/api/image/blur/${album.image}`}
 >
+    <div class="mt-12 md:mt-0"></div>
+
     <div
-        class="pl-4 g rid flex flex-row w-full h-full grid-cols-[min-content_1fr] relative pr-2"
+    class="flex flex-col md:grid md:grid-cols-[min-content_1fr] w-full h-full relative"
     >
-        <div class="flex flex-col gap-1 relative top-1/2 -translate-y-1/2 w-full max-w-md h-fit mx-10">
+        <!-- Columna izquierda: Portada, iconos y detalles -->
+        <div class="flex flex-col gap-1 items-center md:items-start md:max-w-md mx-4">
             <!-- Contenedor de la imagen cuadrada -->
-            <div class="relative mx-auto overflow-hidden aspect-square rounded-md h-[40vh]">
+            <div class="relative overflow-hidden aspect-square rounded-xl md:rounded-md h-72">
                 <img
                     src={album.image ? `/api/image/${album.image}` : album.images[0].url}
                     class="w-full h-full object-fill"
                 />
             </div>
-            
+
             <!-- Div con los iconos -->
             <div class="flex flex-row justify-center gap-3 text-sm pt-2">
                 {
@@ -82,18 +85,18 @@ const meta = {
                 <PlayList client:only="react" type="album" id={id} />
                 <AddToQueue client:only="react" type="album" id={id} />
             </div>
-        
+
             <!-- Nombre del álbum -->
-            <label class="text-2xl font-semibold line-clamp-2">{album.name}</label>
-        
+            <label class="text-2xl font-semibold text-center md:text-left">{album.name}</label>
+
             <!-- Artistas -->
-            <div class="text-xl font-semibold text-stone-400 flex">
+            <div class="text-xl font-semibold text-stone-400 flex flex-wrap justify-center md:justify-start">
                 {
                     album.artists.map((artist, index) => (
                         <span class="flex items-center space-x-1">
                             <label
-                                class="md:hover:underline line-clamp-2"
-                                onclick={`event.preventDefault(); event.stopPropagation(); location.href='/artist/${artist.id}' `}
+                                class="hover:underline line-clamp-2"
+                                onclick={`event.preventDefault(); event.stopPropagation(); location.href='/artist/${artist.id}'`}
                             >
                                 {`${artist.name}${index < album.artists.length - 1 ? ", " : ""}`}
                             </label>
@@ -101,9 +104,9 @@ const meta = {
                     ))
                 }
             </div>
-            
+
             <!-- Información adicional -->
-            <label class="text-sm text-stone-400">
+            <label class="text-sm text-stone-400 text-center md:text-left">
                 {getDate(album.releaseDate)} | {album.songs.length} Songs | {
                     getMinutes(
                         songs.reduce((accumulator: number, song) => {
@@ -112,10 +115,11 @@ const meta = {
                     )
                 } Minutes
             </label>
-        </div>    
-    
+        </div>
+
+        <!-- Columna derecha: Lista de canciones -->
         <div
-            class="min-w-0 max-w-full w-full min-h-0 max-h-full h-full overflow-auto flex flex-col pr-6"
+            class="w-full h-full md:overflow-auto flex flex-col px-2 md:px-6 mt-5 md:mt-0"
         >
             {
                 discs.map((discSongs, discIndex) => {
@@ -144,7 +148,7 @@ const meta = {
                     );
                 })
             }
-            <div class="min-h-10"></div>
+            <div class="min-h-24 md:min-h-10"></div>
         </div>
     </div>
 </Layout>

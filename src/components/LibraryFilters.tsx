@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ArrowDownAZ, ArrowUpZA, Clock } from "lucide-react";
+import { ArrowDownAZ, ArrowUpAZ, ClockArrowDown } from "lucide-react";
 
 const LibraryFilters = () => {
     const [filterMode, setFilterMode] = useState<"default" | "asc" | "desc">(
@@ -45,15 +45,24 @@ const LibraryFilters = () => {
         <div className="flex items-center w-full md:w-fit">
             <button id="filterButton" className="mr-0 md:mr-2 hidden md:flex">
                 {filterMode === "default" && (
-                    <Clock id="filterIcon" className="w-6 h-6 text-white" />
+                    <ClockArrowDown 
+						id="filterIcon" 
+						className="w-6 h-6 text-white" 
+						onClick={() => setFilterMode("asc")}
+					/>
                 )}
                 {filterMode === "asc" && (
-                    <ArrowUpZA id="filterIcon" className="w-6 h-6 text-white" />
+                    <ArrowDownAZ
+						id="filterIcon" 
+						className="w-6 h-6 text-white"
+						onClick={() => setFilterMode("desc")}
+					/>
                 )}
                 {filterMode === "desc" && (
-                    <ArrowDownAZ
+                    <ArrowUpAZ
                         id="filterIcon"
                         className="w-6 h-6 text-white"
+						onClick={() => setFilterMode("default")}
                     />
                 )}
             </button>
@@ -67,6 +76,7 @@ const LibraryFilters = () => {
                     backgroundRepeat: "no-repeat",
                 }}
                 placeholder="Search in Library"
+				onChange={(e) => setSearchQuery(e.target.value)}
             />
         </div>
     );

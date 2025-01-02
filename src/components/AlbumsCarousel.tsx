@@ -168,50 +168,100 @@ function Version2({
     );
 }
 
-export default function AlbumsCarousel({
-    songsTimesPlayed,
-}: {
-    songsTimesPlayed: SongForStats[];
-}) {
+function AlbumsCarousel({ songsTimesPlayed }: { songsTimesPlayed: SongForStats[] }) {
     const songs = songsTimesPlayed.slice(0, 20);
 
     const [currentIndex, setCurrentIndex] = useState(0);
-    const [scrollIndex, setScrollIndex] = useState(0);
-    const lastScrollIndex = useRef(0);
     const divRef = useRef<HTMLDivElement>(null);
+    const touchStartX = useRef<number | null>(null);
+    const touchEndX = useRef<number | null>(null);
+    const autoRotateRef = useRef<NodeJS.Timeout | null>(null);
+    const pauseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    const handleSwipe = () => {
+        if (!touchStartX.current || !touchEndX.current) return;
+
+        const distance = touchStartX.current - touchEndX.current;
+
+        if (Math.abs(distance) > 50) { // Umbral para considerar un deslizamiento válido
+            if (distance > 0) {
+                // Deslizar a la izquierda
+                setCurrentIndex((value) => (value < songs.length - 1 ? value + 1 : 0));
+            } else {
+                // Deslizar a la derecha
+                setCurrentIndex((value) => (value > 0 ? value - 1 : songs.length - 1));
+            }
+        }
+
+        // Reinicia los valores después del swipe
+        touchStartX.current = null;
+        touchEndX.current = null;
+    };
+
+    const nextSlide = () => {
+        setCurrentIndex((value) => (value < songs.length - 1 ? value + 1 : 0));
+    };
+
+    const startAutoRotate = () => {
+        stopAutoRotate();
+        autoRotateRef.current = setInterval(() => {
+            setCurrentIndex((value) => (value < songs.length - 1 ? value + 1 : 0));
+        }, 3000);
+    };
+
+    const stopAutoRotate = () => {
+        if (autoRotateRef.current) {
+            clearInterval(autoRotateRef.current);
+            autoRotateRef.current = null;
+        }
+    };
+
+    const pauseAndResetAutoRotate = () => {
+        stopAutoRotate();
+
+        // Reinicia el auto-rotar después de 5 segundos
+        if (pauseTimeoutRef.current) clearTimeout(pauseTimeoutRef.current);
+        pauseTimeoutRef.current = setTimeout(() => {
+            startAutoRotate();
+        }, 5000);
+    };
 
     useEffect(() => {
-        if (!divRef.current) {
-            return;
-        }
-        const handleScroll = (event: WheelEvent) => {
-            if (event.deltaX) {
-                event.stopPropagation();
-                event.preventDefault();
-                // console.log("1", event.deltaX);
-                setScrollIndex((value) => (value += event.deltaX));
-            }
+        const div = divRef.current;
+
+        if (!div) return;
+
+        const handleTouchStart = (e: TouchEvent) => {
+            touchStartX.current = e.touches[0].clientX;
         };
 
-        divRef.current?.addEventListener("wheel", handleScroll, {
-            passive: true,
-        });
-    }, [divRef]);
+        const handleTouchMove = (e: TouchEvent) => {
+            touchEndX.current = e.touches[0].clientX;
+        };
 
+        const handleTouchEnd = () => {
+            handleSwipe();
+        };
+
+        div.addEventListener("touchstart", handleTouchStart);
+        div.addEventListener("touchmove", handleTouchMove);
+        div.addEventListener("touchend", handleTouchEnd);
+
+        return () => {
+            div.removeEventListener("touchstart", handleTouchStart);
+            div.removeEventListener("touchmove", handleTouchMove);
+            div.removeEventListener("touchend", handleTouchEnd);
+        };
+    }, [songs.length]);
+
+    // Inicia el auto-rotar al montar el componente
     useEffect(() => {
-        if (Math.abs(lastScrollIndex.current - scrollIndex) > 500) {
-            if (lastScrollIndex.current - scrollIndex > 0) {
-                setCurrentIndex((value) =>
-                    value > 0 ? value - 1 : songs.length - 1
-                );
-            } else {
-                setCurrentIndex((value) =>
-                    value < songs.length - 1 ? value + 1 : 0
-                );
-            }
-            lastScrollIndex.current = scrollIndex;
-        }
-    }, [scrollIndex]);
+        startAutoRotate();
+        return () => {
+            stopAutoRotate();
+            if (pauseTimeoutRef.current) clearTimeout(pauseTimeoutRef.current);
+        };
+    }, []);
 
     return (
         <div
@@ -238,4 +288,6 @@ export default function AlbumsCarousel({
             />
         </div>
     );
-};
+}
+
+export default AlbumsCarousel;

@@ -183,17 +183,14 @@ function AlbumsCarousel({ songsTimesPlayed }: { songsTimesPlayed: SongForStats[]
 
         const distance = touchStartX.current - touchEndX.current;
 
-        if (Math.abs(distance) > 50) { // Umbral para considerar un deslizamiento válido
+        if (Math.abs(distance) > 50) {
             if (distance > 0) {
-                // Deslizar a la izquierda
-                setCurrentIndex((value) => (value < songs.length - 1 ? value + 1 : 0));
+                nextSlide();
             } else {
-                // Deslizar a la derecha
-                setCurrentIndex((value) => (value > 0 ? value - 1 : songs.length - 1));
+                prevSlide();
             }
         }
 
-        // Reinicia los valores después del swipe
         touchStartX.current = null;
         touchEndX.current = null;
     };

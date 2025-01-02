@@ -61,9 +61,9 @@ const meta = {
     class="flex flex-col md:grid md:grid-cols-[min-content_1fr] w-full h-full relative"
     >
         <!-- Columna izquierda: Portada, iconos y detalles -->
-        <div class="flex flex-col gap-1 items-center md:items-start md:max-w-md mx-4">
+        <div class="flex flex-col gap-1 items-center md:max-w-md mx-4">
             <!-- Contenedor de la imagen cuadrada -->
-            <div class="relative overflow-hidden aspect-square rounded-xl md:rounded-md h-72">
+            <div class="relative overflow-hidden aspect-square rounded-xl md:rounded-md h-72 md:h-[40vh]">
                 <img
                     src={album.image ? `/api/image/${album.image}` : album.images[0].url}
                     class="w-full h-full object-fill"
@@ -71,7 +71,7 @@ const meta = {
             </div>
 
             <!-- Div con los iconos -->
-            <div class="flex flex-row justify-center gap-3 text-sm pt-2">
+            <div class="flex flex-row justify-center gap-3 text-sm pt-2 items-center">
                 {
                     !inDatabase && (
                         <DownloadList

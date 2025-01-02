@@ -202,6 +202,11 @@ function AlbumsCarousel({ songsTimesPlayed }: { songsTimesPlayed: SongForStats[]
         setCurrentIndex((value) => (value < songs.length - 1 ? value + 1 : 0));
     };
 
+    const prevSlide = () => {
+        setCurrentIndex((value) => (value > 0 ? value - 1 : songs.length - 1));
+        pauseAndResetAutoRotate();
+    };
+
     const startAutoRotate = () => {
         stopAutoRotate();
         autoRotateRef.current = setInterval(() => {
@@ -219,11 +224,13 @@ function AlbumsCarousel({ songsTimesPlayed }: { songsTimesPlayed: SongForStats[]
     const pauseAndResetAutoRotate = () => {
         stopAutoRotate();
 
-        // Reinicia el auto-rotar después de 5 segundos
-        if (pauseTimeoutRef.current) clearTimeout(pauseTimeoutRef.current);
+        if (pauseTimeoutRef.current) {
+            clearTimeout(pauseTimeoutRef.current);
+        }
+
         pauseTimeoutRef.current = setTimeout(() => {
             startAutoRotate();
-        }, 5000);
+        }, 2000); // Mas los 3000 de auto-rotar
     };
 
     useEffect(() => {
@@ -270,21 +277,13 @@ function AlbumsCarousel({ songsTimesPlayed }: { songsTimesPlayed: SongForStats[]
         >
             <ChevronLeft
                 className="hidden md:flex z-30 absolute left-32 h-48 w-10 text-[#6d6d6d] md:hover:text-white p-2 rounded-full transition duration-300"
-                onClick={() =>
-                    setCurrentIndex((value) =>
-                        value > 0 ? value - 1 : songs.length - 1
-                    )
-                }
+                onClick={prevSlide}
             />
             <Version2 songs={songs} currentIndex={currentIndex} />
 
             <ChevronRight
                 className="hidden md:flex z-30 absolute right-32 h-48 w-10 text-[#6d6d6d] md:hover:text-white p-2 rounded-full transition duration-300"
-                onClick={() =>
-                    setCurrentIndex((value) =>
-                        value < songs.length - 1 ? value + 1 : 0
-                    )
-                }
+                onClick={nextSlide}
             />
         </div>
     );

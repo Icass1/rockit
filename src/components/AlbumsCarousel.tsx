@@ -41,14 +41,16 @@ function Song({
         if (distanceFromCenter > 4) {
             distanceFromCenter = 4;
         }
-        scale = distanceFromCenter > 4 ? "0" : `${1 - distanceFromCenter * 0.1}`;
+        scale =
+            distanceFromCenter > 4 ? "0" : `${1 - distanceFromCenter * 0.1}`;
         left = `${50 + distanceFromCenter * neg * -15}%`; // Separación horizontal
         brightness = 1 - distanceFromCenter * 0.2; // Brillo en función de la distancia al centro
     } else {
         if (distanceFromCenter > 4) {
             distanceFromCenter = 4;
         }
-        scale = distanceFromCenter > 4 ? "0" : `${1 - distanceFromCenter * 0.1}`;
+        scale =
+            distanceFromCenter > 4 ? "0" : `${1 - distanceFromCenter * 0.1}`;
         left = `${50 + distanceFromCenter * neg * -9}%`; // Separación horizontal
         brightness = 1 - distanceFromCenter * 0.2; // Brillo en función de la distancia al centro
     }

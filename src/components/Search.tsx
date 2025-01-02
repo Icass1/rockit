@@ -8,10 +8,12 @@ export default function Search() {
     return (
         <>
             <section className="block md:hidden mt-12 h-12">
-                <SearchBar/>
+                <SearchBar />
             </section>
             <section className="md:px-12 px-3 md:py-12 py-2 text-white">
-                <h2 className="text-2xl md:text-3xl font-bold text-left">Songs</h2>
+                <h2 className="text-2xl md:text-3xl font-bold text-left">
+                    Songs
+                </h2>
                 <div className="relative flex items-center gap-4 overflow-x-auto py-4 px-2">
                     {/* Aquí creamos las canciones */}
                     {$searchResults.songs?.map((song) => (
@@ -57,7 +59,9 @@ export default function Search() {
             </section>
 
             <section className="md:px-12 px-3 md:py-12 py-2 text-white">
-                <h2 className="text-2xl md:text-3xl font-bold text-left">Albums</h2>
+                <h2 className="text-2xl md:text-3xl font-bold text-left">
+                    Albums
+                </h2>
                 <div className="relative flex items-center gap-4 overflow-x-auto py-4 px-2">
                     {/* Aquí creamos las canciones */}
                     {$searchResults.albums?.map((album) => (
@@ -103,7 +107,9 @@ export default function Search() {
             </section>
 
             <section className="md:px-12 px-3 md:py-12 py-2 text-white">
-                <h2 className="text-2xl md:text-3xl font-bold text-left">Artists</h2>
+                <h2 className="text-2xl md:text-3xl font-bold text-left">
+                    Artists
+                </h2>
                 <div className="relative flex items-center gap-4 overflow-x-auto py-4 px-2">
                     {/* Aquí creamos las canciones */}
                     {$searchResults.artists?.map((artist) => (
@@ -130,7 +136,9 @@ export default function Search() {
             </section>
 
             <section className="md:px-12 px-3 md:py-12 py-2 text-white">
-                <h2 className="text-2xl md:text-3xl font-bold text-left">Playlists</h2>
+                <h2 className="text-2xl md:text-3xl font-bold text-left">
+                    Playlists
+                </h2>
                 <div className="relative flex items-center gap-4 overflow-x-auto py-4 px-2">
                     {/* Aquí creamos las canciones  */}
                     {$searchResults.playlists?.map((playlist) => (

@@ -21,6 +21,7 @@ sudo apt install build-essential
 ## Para Nico xd
 
 ```bash
+pnpm astro check
 ./backend/start-flask.sh
 pnpm run dev
 pnpm prettier -w src/*

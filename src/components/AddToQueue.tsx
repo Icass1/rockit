@@ -81,9 +81,7 @@ export default function AddToQueue({ type, id }: { type: string; id: string }) {
                 </ul>
 
                 <ul className="text-white text-sm">
-                    <div
-                        className="md:hover:bg-[#4f4f4f] flex items-center p-3 space-x-2 cursor-pointer rounded-t-lg"
-                    >
+                    <div className="md:hover:bg-[#4f4f4f] flex items-center p-3 space-x-2 cursor-pointer rounded-t-lg">
                         <Heart className="h-5 w-5" />
                         <span>Like all songs on the list</span>
                     </div>

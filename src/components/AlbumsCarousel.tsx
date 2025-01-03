@@ -280,12 +280,12 @@ function AlbumsCarousel({
             ref={divRef}
         >
             <ChevronLeft
-                className="hidden md:flex z-30 absolute left-24 h-10 w-10 bg-white text-[#6d6d6d] md:hover:text-black p-2 rounded-full shadow-md transition duration-300"
+                className="hidden md:flex z-[25] absolute left-24 h-10 w-10 bg-white text-[#6d6d6d] md:hover:text-black p-2 rounded-full shadow-md transition duration-300"
                 onClick={prevSlide}
             />
             <Version2 songs={songs} currentIndex={currentIndex} />
             <ChevronRight
-                className="hidden md:flex z-30 absolute right-24 h-10 w-10 bg-white text-[#6d6d6d] md:hover:text-black p-2 rounded-full shadow-md transition duration-300"
+                className="hidden md:flex z-[25] absolute right-24 h-10 w-10 bg-white text-[#6d6d6d] md:hover:text-black p-2 rounded-full shadow-md transition duration-300"
                 onClick={nextSlide}
             />
         </div>

@@ -479,16 +479,26 @@ export default function PlayerUI() {
                             className="object-cover mx-auto w-auto h-[100%] rounded-lg aspect-square"
                         />
                     </div>
-                    <div className="w-full flex flex-col items-center justify-center text-center mt-2">
+                    <div className="w-full flex flex-col items-center justify-center text-center mt-2 px-2">
                         <h1 className="text-4xl font-bold text-balance line-clamp-2">
                             {$currentSong?.name}
                         </h1>
-                        <p className="text-gray-400 text-xl mt-2 font-medium flex items-center justify-center gap-2">
-                            <span className="max-w-[25%] md:hover:underline truncate text-center">
+                        <p className="text-gray-400 w-full text-xl mt-2 font-medium flex items-center justify-center gap-1">
+                            <span className="max-w-[75%] md:hover:underline truncate text-center">
                                 {$currentSong?.albumName}
                             </span>
                             <span>•</span>
-                            <span className="truncate">No date</span>
+                            {$currentSong?.artists && $currentSong.artists.length > 0 ? (
+                                <a
+                                    href={`/artist/${$currentSong.artists[0].id}`}
+                                    className="md:hover:underline truncate"
+                                    key={$currentSong.artists[0].id}
+                                >
+                                    {$currentSong.artists[0].name}
+                                </a>
+                            ) : (
+                                <div>Artista desconocido</div>
+                            )}
                         </p>
                     </div>
                 </div>

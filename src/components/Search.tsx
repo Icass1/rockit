@@ -13,7 +13,7 @@ export default function Search() {
             </section>
             {$searchQuery ? (
                 <>
-                    <section className="md:px-12 px-3 md:py-12 py-2 text-white">
+                    <section className="md:px-12 px-3 md:py-6 py-2 text-white">
                         <h2 className="text-2xl md:text-3xl font-bold text-left">
                             Songs
                         </h2>
@@ -61,7 +61,7 @@ export default function Search() {
                         </div>
                     </section>
 
-                    <section className="md:px-12 px-3 md:py-12 py-2 text-white">
+                    <section className="md:px-12 px-3 md:py-6 py-2 text-white">
                         <h2 className="text-2xl md:text-3xl font-bold text-left">
                             Albums
                         </h2>
@@ -109,7 +109,7 @@ export default function Search() {
                         </div>
                     </section>
 
-                    <section className="md:px-12 px-3 md:py-12 py-2 text-white">
+                    <section className="md:px-12 px-3 md:py-6 py-2 text-white">
                         <h2 className="text-2xl md:text-3xl font-bold text-left">
                             Artists
                         </h2>
@@ -138,7 +138,7 @@ export default function Search() {
                         </div>
                     </section>
 
-                    <section className="md:px-12 px-3 md:py-12 py-2 text-white">
+                    <section className="md:px-12 px-3 md:py-6 py-2 text-white">
                         <h2 className="text-2xl md:text-3xl font-bold text-left">
                             Playlists
                         </h2>

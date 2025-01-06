@@ -3,6 +3,7 @@ import Layout from "@/layouts/Layout.astro";
 import { db, parseSong, type RawSongDB, type SongDB } from "@/lib/db";
 import getAlbum from "@/lib/getAlbum";
 import { getTime } from "@/lib/getTime";
+import LikeButton from "@/components/LikeButton";
 
 import type {
     SpotifyArtistTopTracks,
@@ -12,6 +13,7 @@ import type {
 
 import SongPageCover from "@/components/SongPageCover";
 import { ENV } from "@/rockitEnv";
+import { EllipsisVertical } from 'lucide-react';
 
 const { id } = Astro.params as { id: string };
 
@@ -189,11 +191,24 @@ const meta = {
                     inDatabase={inDatabase}
                     client:only="react"
                 />
-
+                
                 <!-- Nombre de la canción -->
                 <h1 class="text-center text-3xl font-bold mt-4 z-10">
                     {song?.name}
                 </h1>
+
+                <!-- Botones de Like y Add to playlist/queue -->
+                <div class="flex justify-center mt-4 space-x-4">
+                    <a class="flex items-center space-x-2 p-2 bg-[#212121] rounded hover:bg-[#313131] select-none">
+                        <LikeButton song={song} />
+                        <span>Like</span>
+                    </a>
+                    <button class="flex items-center space-x-2 p-2 bg-[#212121] rounded hover:bg-[#313131]">
+                        <EllipsisVertical className="w-5 h-5" />
+                        <span>More Options</span>
+                    </button>
+                </div>
+
             </div>
 
             <!-- Columna derecha: Álbum -->

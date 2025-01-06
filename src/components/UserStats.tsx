@@ -117,7 +117,7 @@ export default function UserStats() {
 
     return (
         <>
-            <label className="text-2xl font-semibold px-5">
+            <label className="text-lg font-semibold px-5">
                 Showing data from{" "}
                 <label
                     className="md:hover:underline"

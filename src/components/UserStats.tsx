@@ -117,58 +117,60 @@ export default function UserStats() {
 
     return (
         <>
-            <label className="text-lg font-semibold px-5">
-                Showing data from{" "}
-                <label
-                    className="md:hover:underline"
-                    onClick={() => {
-                        startDateInputRef.current &&
-                            startDateInputRef.current.showPicker();
-                    }}
-                >
-                    <input
-                        ref={startDateInputRef}
-                        max={endDate}
-                        type="date"
-                        className="absolute opacity-0"
-                        value={startDate}
-                        onChange={(e) => {
-                            if (e.target.value == "") {
-                                return;
-                            }
-                            setStartDate(e.target.value);
+            <label className="text-lg font-semibold md:px-5 flex flex-col md:flex-row md:gap-1 justify-center items-center">
+                <span className="block md:inline">
+                    Showing data from
+                </span>
+                <span className="block md:inline">
+                    <label
+                        className="md:hover:underline underline"
+                        onClick={() => {
+                            startDateInputRef.current && startDateInputRef.current.showPicker();
                         }}
-                        required={true}
-                    />
-                    {getDate(startDate)}
-                </label>{" "}
-                to{" "}
-                <label
-                    className="md:hover:underline"
-                    onClick={() => {
-                        endDateInputRef.current &&
-                            endDateInputRef.current.showPicker();
-                    }}
-                >
-                    <input
-                        min={startDate}
-                        max={getTodayDate()}
-                        ref={endDateInputRef}
-                        type="date"
-                        className="absolute opacity-0"
-                        value={endDate}
-                        onChange={(e) => {
-                            if (e.target.value == "") {
-                                return;
-                            }
-                            setEndDate(e.target.value);
+                    >
+                        <input
+                            ref={startDateInputRef}
+                            max={endDate}
+                            type="date"
+                            className="absolute opacity-0"
+                            value={startDate}
+                            onChange={(e) => {
+                                if (e.target.value === "") {
+                                    return;
+                                }
+                                setStartDate(e.target.value);
+                            }}
+                            required
+                        />
+                        {getDate(startDate)}
+                    </label>{" "}
+                    to{" "}
+                    <label
+                        className="md:hover:underline underline"
+                        onClick={() => {
+                            endDateInputRef.current && endDateInputRef.current.showPicker();
                         }}
-                    />
-
-                    {getDate(endDate)}
-                </label>
+                    >
+                        <input
+                            min={startDate}
+                            max={getTodayDate()}
+                            ref={endDateInputRef}
+                            type="date"
+                            className="absolute opacity-0"
+                            value={endDate}
+                            onChange={(e) => {
+                                if (e.target.value === "") {
+                                    return;
+                                }
+                                setEndDate(e.target.value);
+                            }}
+                        />
+                        {getDate(endDate)}
+                    </label>
+                </span>
             </label>
-            <div className="p-4 flex flex-row gap-4">
+
+            <div className="md:p-4 flex md:flex-row gap-4 flex-col py-4">
                 {data.songs.length == 0 ? (
                     <div>No registered data.</div>
                 ) : (

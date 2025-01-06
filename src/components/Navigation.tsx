@@ -17,6 +17,7 @@ import {
     ChartLine,
     Settings,
     ArrowDownToLine,
+    Users,
 } from "lucide-react";
 import { useEffect, useRef, useState, type Dispatch } from "react";
 
@@ -570,11 +571,27 @@ export default function Navigation({ activePage }: { activePage: string }) {
                 ))}
 
                 <a
+                    key="/friends"
+                    href="/friends"
+                    title="Friends"
+                    className={`h-8 rounded-md items-center ml-2 mr-2 transition-all flex gap-2 ${
+                        activePage === "Friends"
+                            ? "bg-white text-black"
+                            : "text-white md:hover:bg-[#414141]"
+                    }`}
+                >
+                    <div className="w-8 h-8 flex items-center justify-center">
+                        <Users className="w-5 h-5" />
+                    </div>
+                    <label className="font-semibold">Friends</label>
+                </a>
+
+                <a
                     key="/stats"
                     href="/stats"
-                    title="Stats & Friends"
+                    title="Stats"
                     className={`h-8 rounded-md items-center ml-2 mr-2 transition-all flex gap-2 ${
-                        activePage === "Stats & Friends"
+                        activePage === "Stats"
                             ? "bg-white text-black"
                             : "text-white md:hover:bg-[#414141]"
                     }`}
@@ -582,7 +599,7 @@ export default function Navigation({ activePage }: { activePage: string }) {
                     <div className="w-8 h-8 flex items-center justify-center">
                         <ChartLine className="w-5 h-5" />
                     </div>
-                    <label className="font-semibold">Stats & Friends</label>
+                    <label className="font-semibold">Stats</label>
                 </a>
 
                 <div

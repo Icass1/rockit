@@ -1,13 +1,14 @@
 ---
 import Layout from "@/layouts/Layout.astro";
-import UserStats from "@/components/UserStats.tsx";
+import StatsPage from "@/components/TripleButtonStats.tsx";
 
 if (!Astro.locals.user) {
     return Astro.redirect("/login");
 }
 ---
 
-<Layout title="Stats • Rock It!" currentPage="Stats & Friends">
-    <div class="mt-10 md:mt-0"></div>
-    <UserStats client:only="react" />
+<Layout title="Stats • Rock It!" currentPage="Stats">
+    <div class="mt-10 md:mt-0 px-4 md:px-12">
+        <StatsPage client:only="react" />
+    </div>
 </Layout>

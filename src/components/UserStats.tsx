@@ -175,14 +175,14 @@ export default function UserStats() {
                     <div>No registered data.</div>
                 ) : (
                     <>
-                        <div className="w-96 bg-gray-800 rounded-lg p-2 h-fit flex flex-col font-semibold">
+                        <div className="md:w-96 bg-gray-800 rounded-lg p-2 h-fit flex flex-col font-semibold">
                             <label>{totalTimesPlayedSong} songs listened</label>
                             <label>
                                 {getMinutes(totalMinutesListened)} minutes
                                 listened
                             </label>
                         </div>
-                        <div className="w-96 bg-gray-800 rounded-lg p-2 h-fit flex flex-col font-semibold">
+                        <div className="md:w-96 bg-gray-800 rounded-lg p-2 h-fit flex flex-col font-semibold">
                             <label className="mb-2">
                                 Minutes listened per day
                             </label>

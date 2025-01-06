@@ -1,0 +1,13 @@
+---
+import Layout from "@/layouts/Layout.astro";
+
+if (!Astro.locals.user) {
+    return Astro.redirect("/login");
+}
+---
+
+<Layout title="Friends • Rock It!" currentPage="Stats">
+    <div class="mt-10 md:mt-0 px-4 md:px-12">
+        <h1>Friends (Work In Progress)</h1>
+    </div>
+</Layout>

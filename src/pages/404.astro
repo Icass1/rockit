@@ -8,29 +8,25 @@ if (!Astro.locals.user) {
 
 <Layout title="404 • Rock It!" currentPage="404 - Page not Found">
     <div
-        class="h-full w-full flex flex-col items-center justify-center bg-gradient-to-r from-[#d185ca] to-[#ffbb9e] relative select-none"
+        class="h-full w-full flex flex-col items-center justify-center bg-gradient-to-r from-[#d185ca] to-[#ffbb9e] relative select-none px-5"
     >
         <!-- Contenedor de la página -->
-        <div class="flex items-center gap-10 h-auto">
+        <div class="flex flex-col md:flex-row items-center gap-8 h-auto">
             <!-- Sección de texto -->
-            <div class="text-black w-full">
-                <h1 class="text-9xl font-bold mb-4">404</h1>
-                <p class="text-3xl font-semibold mb-2">
+            <div class="text-black text-center w-full">
+                <h1 class="text-6xl md:text-9xl font-bold mb-4">404</h1>
+                <p class="text-xl md:text-3xl font-semibold mb-2 text-balance">
                     🎵 Whoops! Looks like this track is off-key :(
                 </p>
-                <p class="text-md font-medium">
-                    We couldn’t find the page you’re looking for, but don’t
-                    worry, the Rock It! still plays on.
+                <p class="text-sm md:text-md font-medium v">
+                    We couldn’t find the page you’re looking for, but don’t worry, the Rock It! still plays on.
                 </p>
             </div>
 
             <!-- Tocadiscos -->
-            <div
-                class="relative w-2/3 aspect-square flex items-center justify-center"
-            >
+            <div class="relative w-1/2 md:w-2/3 aspect-square flex items-center justify-center">
                 <!-- Plato del tocadiscos -->
-                <div class="absolute w-[92%] h-[92%] bg-white rounded-full">
-                </div>
+                <div class="absolute w-[92%] h-[92%] bg-white rounded-full"></div>
 
                 <!-- Disco giratorio -->
                 <img
@@ -40,19 +36,18 @@ if (!Astro.locals.user) {
                 />
 
                 <!-- Brazo del tocadiscos -->
-                <!-- <div class="absolute top-0 right-0 w-16 h-44 bg-blue-500 rotate-[15deg] z-20"></div> -->
-
                 <img
                     src="/brazovinilo.png"
-                    alt=""
-                    class="absolute top-0 right-0 w-[70%] h-[70%] rotate-[-20deg] z-20 translate-x-20 -translate-y-5"
+                    alt="Vinyl Arm"
+                    class="absolute top-0 right-0 w-[70%] h-[70%] rotate-[-20deg] z-20 translate-x-10 -translate-y-2"
                 />
             </div>
         </div>
+
         <!-- Botón de retorno -->
         <a
             href="/"
-            class="mt-20 px-5 py-2 bg-white text-black font-bold text-lg rounded-full shadow-md md:hover:shadow-lg md:hover:bg-gray-200 transition"
+            class="mt-10 md:mt-20 px-5 py-2 bg-white text-black font-bold text-lg rounded-full shadow-md md:hover:shadow-lg md:hover:bg-gray-200 transition"
         >
             Return Back to Home
         </a>

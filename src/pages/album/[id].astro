@@ -61,7 +61,7 @@ const meta = {
     class="flex flex-col md:grid md:grid-cols-[min-content_1fr] w-full h-full relative"
     >
         <!-- Columna izquierda: Portada, iconos y detalles -->
-        <div class="flex flex-col gap-1 items-center md:max-w-md mx-4">
+        <div class="flex flex-col gap-1 items-center md:max-w-md mx-4 justify-center h-full">
             <!-- Contenedor de la imagen cuadrada -->
             <div class="relative overflow-hidden aspect-square rounded-xl md:rounded-md h-72 md:h-[40vh]">
                 <img
@@ -87,7 +87,7 @@ const meta = {
             </div>
 
             <!-- Nombre del álbum -->
-            <label class="text-2xl font-semibold text-center md:text-left text-balance md:text-wrap">{album.name}</label>
+            <label class="text-2xl font-semibold text-center text-balance">{album.name}</label>
 
             <!-- Artistas -->
             <div class="text-xl font-semibold text-stone-400 flex flex-wrap justify-center md:justify-start">
@@ -106,7 +106,7 @@ const meta = {
             </div>
 
             <!-- Información adicional -->
-            <label class="text-sm text-stone-400 text-center md:text-left">
+            <label class="text-sm text-stone-400 text-center">
                 {getDate(album.releaseDate)} | {album.songs.length} Songs | {
                     getMinutes(
                         songs.reduce((accumulator: number, song) => {

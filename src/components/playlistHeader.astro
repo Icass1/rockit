@@ -59,7 +59,7 @@ const { className = "" } = Astro.props;
 
 <div
     class={
-        "flex flex-col gap-1 relative md:top-1/2 md:-translate-y-1/2 md:w-1/3 md:max-w-96 h-fit md:max-h-none md:mx-10 " +
+        "flex flex-col gap-1 relative md:top-1/2 md:-translate-y-1/2 md:w-1/3 md:max-w-md h-fit md:max-h-none md:mx-4 " +
         className
     }
 >
@@ -99,19 +99,19 @@ const { className = "" } = Astro.props;
     </div>
 
     <!-- Nombre de la playlist -->
-    <label class="text-2xl font-semibold text-center md:text-left text-balance md:text-wrap">
+    <label class="text-2xl font-semibold text-center text-balance">
         {playlist.name}
     </label>
 
     <!-- Propietario -->
     <label
-        class="text-xl font-semibold text-stone-400 flex flex-wrap justify-center md:justify-start"
+        class="text-xl font-semibold text-stone-400 flex flex-wrap justify-center"
     >
         {playlist.owner}
     </label>
 
     <!-- Información adicional -->
-    <label class="text-sm text-stone-400 text-center md:text-left">
+    <label class="text-sm text-stone-400 text-center">
         {playlist.songs.length} Songs | {
             getMinutes(
                 songs.reduce((accumulator: number, song) => {
@@ -121,54 +121,3 @@ const { className = "" } = Astro.props;
         } Minutes
     </label>
 </div>
-
-<!-- OLD PLAYLIST - POR SI NO FUNCIONA QUE NO LO HE PODIDO PROBAR
-
-<div
-    class={"flex flex-col gap-1 relative md:top-1/2 md:-translate-y-1/2 md:w-1/3 md:max-w-96 h-fit md:max-h-none md:mx-10 " +
-        className}
->
-    <div class="flex flex-row gap-2 mb-2 z-10">
-        {!inDatabase && <Download strokeWidth={0.9} className="h-10 w-10" />}
-        <PinList type="playlist" id={id} client:only="react" />
-        <AddToLibrary type="playlist" id={id} client:only="react" />
-        <PlayList type="playlist" id={id} client:only="react" />
-        <AddToQueue type="playlist" id={id} client:only="react" />
-    </div>
-    {
-        id == "liked" ? (
-            <div
-                class="relative rounded-md w-full aspect-square object-cover"
-                style="background-image:url(/RockitBackground.png); background-size: cover;"
-            >
-                <Heart
-                    className="w-1/2 h-1/2 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
-                    fill="white"
-                />
-            </div>
-        ) : (
-            <img
-                src={
-                    playlist.image
-                        ? `/api/image/${playlist.image}`
-                        : playlist.images[0].url
-                }
-                class="rounded-md"
-            />
-        )
-    }
-    <label class="pt-2 text-2xl font-semibold">{playlist.name}</label>
-    <label
-        class="text-xl font-semibold text-stone-400 md:hover:underline cursor-pointer"
-        >{playlist.owner}</label
-    >
-    <label class="text-sm text-stone-400"
-        >{playlist.songs.length} Songs | {
-            getMinutes(
-                songs.reduce((accumulator: number, song) => {
-                    return accumulator + (song?.duration || 0);
-                }, 0)
-            )
-        } Minutes</label
-    >
-</div>-->

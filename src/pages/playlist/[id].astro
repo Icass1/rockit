@@ -118,7 +118,8 @@ const songs = playlist.songs
     currentPage=""
     bgImage={`/api/image/blur/${playlist.image}`}
 >
-    <div class="pl-4 pr-2 flex md:flex-row flex-col w-full h-full relative">
+    <div class="mt-12 md:mt-0"></div>
+    <div class="px-3 md:pl-4 md:pr-2 flex md:flex-row flex-col w-full h-full relative">
         <PlaylistHeader
             id={id}
             playlist={playlist}
@@ -127,7 +128,7 @@ const songs = playlist.songs
             className="hidden md:flex"
         />
         <div
-            class="min-w-0 max-w-full w-full min-h-0 max-h-full h-full overflow-auto flex flex-col gap-y-1 pr-6"
+            class="min-w-0 max-w-full w-full min-h-0 max-h-full h-full overflow-auto flex flex-col gap-y-1 md:pr-6"
         >
             <PlaylistHeader
                 id={id}

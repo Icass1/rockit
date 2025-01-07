@@ -163,7 +163,7 @@ export default function PlaylistSongsView({
 
     return (
         <>
-            <div className="flex flex-row items-center gap-4 px-2 rounded text-stone-400 text-sm">
+            <div className="hidden md:flex flex-row items-center gap-4 px-2 rounded text-stone-400 text-sm">
                 <div className="w-10"></div>
                 <div className="flex flex-row w-full items-center justify-between">
                     <div className="w-1/3 ">{renderColumn("name")}</div>

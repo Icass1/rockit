@@ -488,7 +488,8 @@ export default function PlayerUI() {
                                 {$currentSong?.albumName}
                             </span>
                             <span>•</span>
-                            {$currentSong?.artists && $currentSong.artists.length > 0 ? (
+                            {$currentSong?.artists &&
+                            $currentSong.artists.length > 0 ? (
                                 <a
                                     href={`/artist/${$currentSong.artists[0].id}`}
                                     className="md:hover:underline truncate"

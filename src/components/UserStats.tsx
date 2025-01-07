@@ -118,14 +118,13 @@ export default function UserStats() {
     return (
         <>
             <label className="text-lg font-semibold md:px-5 flex flex-col md:flex-row md:gap-1 justify-center items-center">
-                <span className="block md:inline">
-                    Showing data from
-                </span>
+                <span className="block md:inline">Showing data from</span>
                 <span className="block md:inline">
                     <label
                         className="md:hover:underline underline"
                         onClick={() => {
-                            startDateInputRef.current && startDateInputRef.current.showPicker();
+                            startDateInputRef.current &&
+                                startDateInputRef.current.showPicker();
                         }}
                     >
                         <input
@@ -148,7 +147,8 @@ export default function UserStats() {
                     <label
                         className="md:hover:underline underline"
                         onClick={() => {
-                            endDateInputRef.current && endDateInputRef.current.showPicker();
+                            endDateInputRef.current &&
+                                endDateInputRef.current.showPicker();
                         }}
                     >
                         <input

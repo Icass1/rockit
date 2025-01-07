@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState } from "react";
 import UserStats from "@/components/UserStats.tsx";
 
 export default function StatsPage() {
-    const [selectedSection, setSelectedSection] = useState<string>('user');
+    const [selectedSection, setSelectedSection] = useState<string>("user");
 
     const updateSection = (section: string) => {
         setSelectedSection(section);
@@ -13,14 +13,14 @@ export default function StatsPage() {
             <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
                 {/* Encabezado dinámico */}
                 <h2 className="text-2xl font-bold text-center md:text-left">
-                    {selectedSection === 'user' && 'User Statistics'}
-                    {selectedSection === 'general' && 'General Statistics'}
-                    {selectedSection === 'friends' && 'Friends Statistics'}
+                    {selectedSection === "user" && "User Statistics"}
+                    {selectedSection === "general" && "General Statistics"}
+                    {selectedSection === "friends" && "Friends Statistics"}
                 </h2>
 
                 {/* Toggle Switch */}
                 <div className="flex space-x-1 bg-[#1a1a1a] px-1 py-1 rounded-lg">
-                    {['user', 'general', 'friends'].map((section) => (
+                    {["user", "general", "friends"].map((section) => (
                         <button
                             key={section}
                             className={`px-4 py-2 rounded-md text-sm font-bold transition ${
@@ -36,7 +36,6 @@ export default function StatsPage() {
                 </div>
             </div>
 
-
             <div className="my-4">
                 <div id="dynamic-content">
                     {selectedSection === "user" && (
@@ -47,17 +46,23 @@ export default function StatsPage() {
 
                     {selectedSection === "general" && (
                         <div className="text-center text-gray-400">
-                            <p>Aquí se mostrarán estadísticas generales de Rock It!</p>
+                            <p>
+                                Aquí se mostrarán estadísticas generales de Rock
+                                It!
+                            </p>
                         </div>
                     )}
 
                     {selectedSection === "friends" && (
                         <div className="text-center text-gray-400">
-                            <p>Aquí se mostrarán estadísticas y comparativas con tus amigos.</p>
+                            <p>
+                                Aquí se mostrarán estadísticas y comparativas
+                                con tus amigos.
+                            </p>
                         </div>
                     )}
                 </div>
             </div>
         </div>
     );
-};
+}

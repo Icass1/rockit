@@ -49,7 +49,8 @@ export default function Search() {
                                                 }}
                                             >
                                                 {`${artist.name}${
-                                                    index < song.artists.length - 1
+                                                    index <
+                                                    song.artists.length - 1
                                                         ? ","
                                                         : ""
                                                 }`}
@@ -97,7 +98,8 @@ export default function Search() {
                                                 }}
                                             >
                                                 {`${artist.name}${
-                                                    index < album.artists.length - 1
+                                                    index <
+                                                    album.artists.length - 1
                                                         ? ","
                                                         : ""
                                                 }`}

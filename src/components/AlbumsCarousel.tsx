@@ -276,7 +276,7 @@ function AlbumsCarousel({
 
     return (
         <div
-            className="text-white h-64 md:h-1/2 flex items-center justify-center overflow-x-hidden relative select-none"
+            className="text-white h-64 mx-3 md:mx-0 md:h-1/2 flex items-center justify-center overflow-x-hidden relative select-none"
             ref={divRef}
         >
             <ChevronLeft

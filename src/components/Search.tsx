@@ -8,16 +8,16 @@ export default function Search() {
 
     return (
         <>
-            <section className="block md:hidden mt-12 h-12">
+            <section className="block md:hidden mt-20 h-12">
                 <SearchBar />
             </section>
             {$searchQuery ? (
                 <>
-                    <section className="md:px-12 px-3 md:py-6 py-2 text-white">
-                        <h2 className="text-2xl md:text-3xl font-bold text-left">
+                    <section className="md:px-12 md:py-6 py-2 text-white">
+                        <h2 className="text-2xl md:text-3xl font-bold text-left px-5 md:px-0">
                             Songs
                         </h2>
-                        <div className="relative flex items-center gap-4 overflow-x-auto py-4 px-2">
+                        <div className="relative flex items-center gap-4 overflow-x-auto py-4 md:px-2 px-8">
                             {/* Aquí creamos las canciones */}
                             {$searchResults.songs?.map((song) => (
                                 <a
@@ -62,11 +62,11 @@ export default function Search() {
                         </div>
                     </section>
 
-                    <section className="md:px-12 px-3 md:py-6 py-2 text-white">
-                        <h2 className="text-2xl md:text-3xl font-bold text-left">
+                    <section className="md:px-12 md:py-6 py-2 text-white">
+                        <h2 className="text-2xl md:text-3xl font-bold text-left px-5 md:px-0">
                             Albums
                         </h2>
-                        <div className="relative flex items-center gap-4 overflow-x-auto py-4 px-2">
+                        <div className="relative flex items-center gap-4 overflow-x-auto py-4 px-8 md:px-2">
                             {/* Aquí creamos las canciones */}
                             {$searchResults.albums?.map((album) => (
                                 <a
@@ -111,11 +111,11 @@ export default function Search() {
                         </div>
                     </section>
 
-                    <section className="md:px-12 px-3 md:py-6 py-2 text-white">
-                        <h2 className="text-2xl md:text-3xl font-bold text-left">
+                    <section className="md:px-12 md:py-6 py-2 text-white">
+                        <h2 className="text-2xl md:text-3xl font-bold text-left px-5 md:px-0">
                             Artists
                         </h2>
-                        <div className="relative flex items-center gap-4 overflow-x-auto py-4 px-2">
+                        <div className="relative flex items-center gap-4 overflow-x-auto py-4 px-8 md:px-2">
                             {/* Aquí creamos las canciones */}
                             {$searchResults.artists?.map((artist) => (
                                 <a
@@ -140,11 +140,11 @@ export default function Search() {
                         </div>
                     </section>
 
-                    <section className="md:px-12 px-3 md:py-6 py-2 text-white">
-                        <h2 className="text-2xl md:text-3xl font-bold text-left">
+                    <section className="md:px-12 md:py-6 py-2 text-white">
+                        <h2 className="text-2xl md:text-3xl font-bold text-left px-5 md:px-0">
                             Playlists
                         </h2>
-                        <div className="relative flex items-center gap-4 overflow-x-auto py-4 px-2">
+                        <div className="relative flex items-center gap-4 overflow-x-auto py-4 px-8 md:px-2">
                             {/* Aquí creamos las canciones  */}
                             {$searchResults.playlists?.map((playlist) => (
                                 <a

@@ -113,7 +113,7 @@ function RenderListDownload({
                             ></div>
                             <div
                                 className={
-                                    "bg-green-500 absolute h-full rounded-full transition-all"
+                                    "bg-[#ec5588] absolute h-full rounded-full transition-all"
                                 }
                                 style={{ width: `${list[1].totalCompleted}%` }}
                             ></div>
@@ -159,7 +159,7 @@ function RenderListDownload({
                                         }
                                     >
                                         <div
-                                            className="bg-green-500 absolute h-full rounded-full transition-all"
+                                            className="bg-[#ec5588] absolute h-full rounded-full transition-all"
                                             style={{
                                                 width: `${songStatus[1].completed}%`,
                                             }}
@@ -217,7 +217,7 @@ function RenderSongDownload({
                                 "absolute h-full rounded-full transition-all " +
                                 (songStatus[1].message == "Error"
                                     ? "bg-red-400"
-                                    : "bg-green-500")
+                                    : "bg-[#ec5588]")
                             }
                             style={{ width: `${songStatus[1].completed}%` }}
                         ></div>

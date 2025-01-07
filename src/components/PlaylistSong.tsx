@@ -68,7 +68,7 @@ export default function PlaylistSong({
                 ($queue[$queueIndex ?? 0]?.list?.id == $currentList?.id &&
                 $queue[$queueIndex ?? 0]?.list?.type == $currentList?.type &&
                 $queue[$queueIndex ?? 0].song.id == song.id
-                    ? " text-green-500"
+                    ? " text-[#ec5588]"
                     : "")
             }
             onClick={handleClick}

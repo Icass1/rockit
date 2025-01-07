@@ -55,9 +55,9 @@ data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
 ---
 
 <Layout title="Library • Rock It!" currentPage="Library">
-    <div class="mt-14 md:mt-0"></div>
-    <div class="p-2 md:p-8 h-full">
-        <section class="items-center justify-between flex">
+    <div class="mt-20 md:mt-0"></div>
+    <div class="md:p-8 h-full">
+        <section class="items-center justify-between flex px-6 md:px-0">
             <div class="hidden md:flex">
                 <label class="text-white text-4xl font-bold">Library</label>
             </div>
@@ -65,7 +65,7 @@ data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
         </section>
 
         <section class="pt-5 md:py-12 text-white">
-            <h2 class="text-2xl font-bold text-left">Featured Albums</h2>
+            <h2 class="text-2xl font-bold text-left px-3 md:px-0">Featured Albums</h2>
             <div
                 class="relative flex items-center gap-5 overflow-x-auto py-4 md:px-2"
             >
@@ -73,7 +73,7 @@ data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
 
                 <a
                     href={`/playlist/liked`}
-                    class="library-item flex-none w-[calc(40%-10px)] md:w-48 md:hover:scale-105 transition"
+                    class="library-item flex-none w-[calc(40%-10px)] md:w-48 md:hover:scale-105 transition ml-5 md:ml-0"
                 >
                     <div
                         class="relative rounded-lg w-full aspect-square object-cover"
@@ -174,9 +174,9 @@ data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
             </div>
         </section>
 
-        <h2 class="text-2xl font-bold text-left py-4">Your Albums and Playlists</h2>
+        <h2 class="text-2xl font-bold text-left py-4 px-3 md:px-0">Your Albums and Playlists</h2>
         <div
-            class="grid gap-5"
+            class="grid gap-5 px-5"
         >
             <style>
                 .grid {

@@ -63,7 +63,7 @@ export default function PlaylistSong({
     return (
         <div
             className={
-                "flex flex-row items-center gap-4 transition-colors px-2 py-[0.5rem] rounded " +
+                "flex flex-row items-center gap-2 md:gap-4 transition-colors px-2 py-[0.5rem] rounded " +
                 (!song.path ? "opacity-50" : "md:hover:bg-zinc-500/10") +
                 ($queue[$queueIndex ?? 0]?.list?.id == $currentList?.id &&
                 $queue[$queueIndex ?? 0]?.list?.type == $currentList?.type &&
@@ -85,9 +85,9 @@ export default function PlaylistSong({
                     className="rounded absolute top-0 bottom-0 left-0 right-0"
                 />
             </div>
-
+        
             {/* Contenedor principal */}
-            <div className="grid grid-cols-[1fr_1fr_min-content] w-full items-center">
+            <div className="grid grid-cols-[1fr_min-content] md:grid-cols-[1fr_1fr_min-content] w-full items-center">
                 {/* Título (alineado a la izquierda) */}
                 <div className="max-w-full min-w-0 w-full">
                     <a
@@ -97,8 +97,9 @@ export default function PlaylistSong({
                         {song.name}
                     </a>
                 </div>
+                
                 {/* Artista y Álbum (centrados en la misma fila) */}
-                <div className="flex-1 flex flex-row gap-2 truncate">
+                <div className="hidden flex-1 md:flex flex-row gap-2 truncate">
                     <label className="text-md truncate max-w-[50%]">
                         {song.artists.map((artist, index) => (
                             <a
@@ -112,8 +113,7 @@ export default function PlaylistSong({
                             </a>
                         ))}
                     </label>
-                    <span className="mx-1">•</span>{" "}
-                    {/* Separador opcional entre artista y álbum */}
+                    <span className="mx-1">•</span>
                     <a
                         href={`/album/${song.albumId}`}
                         className="md:hover:underline text-md truncate"
@@ -122,13 +122,14 @@ export default function PlaylistSong({
                         {song.albumName || "Artista desconocido"}
                     </a>
                 </div>
-
+        
                 {/* Botones y tiempo (alineados a la derecha) */}
-                <div className="flex items-center gap-4 flex-shrink-0">
+                <div className="flex items-center md:gap-4 ml-auto w-fit">
                     <LikeButton song={song} />
-                    <ListPlus className="text-gray-400 md:hover:text-white md:hover:scale-105 w-6" />
-                    <label className="text-sm text-white/80 select-none flex justify-center items-center w-8">
-                        {hovered ? (
+                    <ListPlus className="text-gray-400 hidden md:flex md:hover:text-white md:hover:scale-105 w-8" />
+                    <EllipsisVertical className="text-gray-400 flex md:hidden md:hover:text-white md:hover:scale-105 w-8" />
+                    <label className="text-sm text-white/80 select-none min-w-7 flex justify-center items-center">
+                        {hovered && window.innerWidth > 768 ? (
                             <EllipsisVertical className="text-gray-400 md:hover:text-white md:hover:scale-105" />
                         ) : (
                             getTime(song.duration)

@@ -87,7 +87,7 @@ export const currentTime = atom<number | undefined>(undefined);
 export const totalTime = atom<number | undefined>(undefined);
 export const queue = atom<Queue>(_queue);
 export const queueIndex = atom<number | undefined>(_queueIndex);
-console.log(window.innerWidth < 768 ? 1 : (userJson?.volume ?? 1));
+// console.log(window.innerWidth < 768 ? 1 : (userJson?.volume ?? 1));
 export const volume = atom<number>(
     window.innerWidth < 768 ? 1 : (userJson?.volume ?? 1)
 );
@@ -198,7 +198,7 @@ export async function next() {
 }
 
 navigator.mediaSession.setActionHandler("play", async () => {
-    await play();
+    play();
 });
 
 navigator.mediaSession.setActionHandler("pause", async () => {
@@ -233,20 +233,43 @@ navigator.mediaSession.setActionHandler("seekto", async (event) => {
 //});
 
 audio.addEventListener("canplay", () => {
-    totalTime.set(audio.duration);
+    if ("mediaSession" in navigator && !isNaN(audio.duration)) {
+        navigator.mediaSession.setPositionState({
+            duration: audio.duration,
+            playbackRate: 1.0,
+            position: audio.currentTime
+        });
+    }
 });
 
 audio.addEventListener("timeupdate", () => {
     currentTime.set(audio.currentTime);
     send({ currentTime: audio.currentTime });
+
+    if ("mediaSession" in navigator) {
+        // Asegúrate de que audio.duration no sea NaN
+        if (!isNaN(audio.duration)) {
+            navigator.mediaSession.setPositionState({
+                duration: audio.duration,
+                playbackRate: 1.0,
+                position: audio.currentTime
+            });
+        }
+    }
 });
 
 audio.addEventListener("play", () => {
     playing.set(true);
+    if ("mediaSession" in navigator) {
+        navigator.mediaSession.playbackState = 'playing';
+    }
 });
 
 audio.addEventListener("pause", () => {
     playing.set(false);
+    if ("mediaSession" in navigator) {
+        navigator.mediaSession.playbackState = 'paused';
+    }
 });
 
 audio.addEventListener("ended", async () => {
@@ -256,4 +279,25 @@ audio.addEventListener("ended", async () => {
     }
     await next();
     play();
+
+    const nextSong = currentSong.get();  // La nueva canción que será reproducida
+    if ("mediaSession" in navigator && nextSong) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: nextSong.name,
+            artist: nextSong.artists.map((artist) => artist.name).join(", "),
+            album: nextSong.albumName,
+            artwork: [
+                {
+                    src: `${nextSong.images[0].url}`,  // Asegúrate de usar la URL correcta de la imagen
+                    sizes: "96x96",
+                    type: "image/png",
+                },
+                // Asegúrate de definir más tamaños de imagen si es necesario
+            ],
+        });
+    }
+});
+
+audio.addEventListener("error", (event) => {
+    console.error("Error loading audio", event);
 });

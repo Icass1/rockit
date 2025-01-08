@@ -197,12 +197,16 @@ const meta = {
                 <!-- Nombre del álbum y artista -->
                 <div class="flex flex-col items-center md:hidden">
                     <p class="text-center text-2xl font-semibold text-neutral-300 line-clamp-2 py-2">
-                        {album?.album.name}
+                        <a href={`/album/${album?.album.id}`}>
+                            {album?.album.name}
+                        </a>
                     </p>
                     <p class="text-center text-lg font-semibold text-neutral-400 line-clamp-2">
                         {song?.artists.map((artist, index) => (
                             <span>
-                                {artist.name}
+                                <a href={`/artist/${artist.id}`}>
+                                    {artist.name}
+                                </a>
                                 {index < song.artists.length - 1 && ", "}
                             </span>
                         ))}

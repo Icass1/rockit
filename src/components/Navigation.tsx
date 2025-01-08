@@ -18,6 +18,7 @@ import {
     Settings,
     ArrowDownToLine,
     Users,
+    RadioTower,
 } from "lucide-react";
 import { useEffect, useRef, useState, type Dispatch } from "react";
 
@@ -569,6 +570,22 @@ export default function Navigation({ activePage }: { activePage: string }) {
                         <label className="font-semibold">{page.name}</label>
                     </a>
                 ))}
+
+                <a
+                    key="/radio"
+                    href="/radio"
+                    title="Radio"
+                    className={`h-8 rounded-md items-center ml-2 mr-2 transition-all flex gap-2 ${
+                        activePage === "Radio"
+                            ? "bg-white text-black"
+                            : "text-white md:hover:bg-[#414141]"
+                    }`}
+                >
+                    <div className="w-8 h-8 flex items-center justify-center">
+                        <RadioTower className="w-5 h-5" />
+                    </div>
+                    <label className="font-semibold">Radio</label>
+                </a>
 
                 <a
                     key="/friends"

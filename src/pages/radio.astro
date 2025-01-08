@@ -1,0 +1,13 @@
+---
+import Layout from "@/layouts/Layout.astro";
+
+if (!Astro.locals.user) {
+    return Astro.redirect("/login");
+}
+---
+
+<Layout title="Radio • Rock It!" currentPage="Radio">
+    <div class="mt-10 md:mt-0 px-4 md:px-12">
+        <h1>Radio (Work In Progress)</h1>
+    </div>
+</Layout>

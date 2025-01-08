@@ -17,7 +17,7 @@ export default function Search() {
                         <h2 className="text-2xl md:text-3xl font-bold text-left px-5 md:px-0">
                             Songs
                         </h2>
-                        <div className="relative flex items-center gap-4 overflow-x-auto py-4 md:px-2 px-8">
+                        <div className="relative flex items-center gap-4 overflow-x-auto md:overflow-hidden md:hover:overflow-x-auto py-4 md:px-2 px-8">
                             {/* Aquí creamos las canciones */}
                             {$searchResults.songs?.map((song) => (
                                 <a
@@ -66,7 +66,7 @@ export default function Search() {
                         <h2 className="text-2xl md:text-3xl font-bold text-left px-5 md:px-0">
                             Albums
                         </h2>
-                        <div className="relative flex items-center gap-4 overflow-x-auto py-4 px-8 md:px-2">
+                        <div className="relative flex items-center gap-4 overflow-x-auto md:overflow-hidden md:hover:overflow-x-auto py-4 px-8 md:px-2">
                             {/* Aquí creamos las canciones */}
                             {$searchResults.albums?.map((album) => (
                                 <a
@@ -115,7 +115,7 @@ export default function Search() {
                         <h2 className="text-2xl md:text-3xl font-bold text-left px-5 md:px-0">
                             Artists
                         </h2>
-                        <div className="relative flex items-center gap-4 overflow-x-auto py-4 px-8 md:px-2">
+                        <div className="relative flex items-center gap-4 overflow-x-auto md:overflow-hidden md:hover:overflow-x-auto py-4 px-8 md:px-2">
                             {/* Aquí creamos las canciones */}
                             {$searchResults.artists?.map((artist) => (
                                 <a
@@ -144,7 +144,7 @@ export default function Search() {
                         <h2 className="text-2xl md:text-3xl font-bold text-left px-5 md:px-0">
                             Playlists
                         </h2>
-                        <div className="relative flex items-center gap-4 overflow-x-auto py-4 px-8 md:px-2">
+                        <div className="relative flex items-center gap-4 overflow-x-auto md:overflow-hidden md:hover:overflow-x-auto py-4 px-8 md:px-2">
                             {/* Aquí creamos las canciones  */}
                             {$searchResults.playlists?.map((playlist) => (
                                 <a

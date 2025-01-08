@@ -105,7 +105,7 @@ songsTimesPlayed.sort((a, b) => b.timesPlayed - a.timesPlayed);
 
     <section class="md:px-12 py-5 md:py-12 text-white">
         <h2 class="text-2xl md:text-3xl font-bold text-left px-5 md:px-0">Recently Played</h2>
-        <div class="relative flex items-center gap-4 overflow-x-auto py-4 px-8 md:px-2">
+        <div class="relative flex items-center gap-4 md:overflow-hidden md:hover:overflow-x-auto py-4 px-8 md:px-2">
             <!-- Aquí creamos las canciones -->
             {
                 Array.from({ length: 20 }).map((_, index) => (
@@ -133,7 +133,7 @@ songsTimesPlayed.sort((a, b) => b.timesPlayed - a.timesPlayed);
     <section class="group md:px-12 text-white">
         <h2 class="text-2xl md:text-3xl font-bold text-left px-5 md:px-0">Quick Selections</h2>
         <!-- Contenedor del slider -->
-        <div class="flex md:gap-4 overflow-x-auto scrollbar-hide snap-x snap-mandatory py-4 px-8 md:px-2">
+        <div class="flex md:gap-4 overflow-x-auto md:overflow-hidden md:hover:overflow-x-auto scrollbar-hide snap-x snap-mandatory py-4 px-8 md:px-2">
             <!-- Aquí creamos las columnas -->
             {Array.from({ length: 9 }).map((_, columnIndex) => (
             <div class="flex flex-col gap-1 flex-none w-[51%] max-w-[200px] md:w-[calc(25%-10px)] md:max-w-[350px] snap-center">
@@ -173,7 +173,7 @@ songsTimesPlayed.sort((a, b) => b.timesPlayed - a.timesPlayed);
 
     <section class="md:px-12 py-5 md:py-12 text-white">
         <h2 class="text-2xl md:text-3xl font-bold text-left px-5 md:px-0">You Might Also Like</h2>
-        <div class="relative flex items-center gap-4 overflow-x-auto py-4 px-8 md:px-2">
+        <div class="relative flex items-center gap-4 overflow-x-auto md:overflow-hidden md:hover:overflow-x-auto py-4 px-8 md:px-2">
             <!-- Aquí creamos las canciones -->
             {
                 Array.from({ length: 20 }).map((_, index) => (

@@ -480,7 +480,7 @@ export default function PlayerUI() {
                         />
                     </div>
                     <div className="w-full flex flex-col items-center justify-center text-center mt-2 px-2">
-                        <h1 className="text-4xl font-bold text-balance line-clamp-2">
+                        <h1 className="text-4xl font-bold text-balance line-clamp-2 leading-normal">
                             {$currentSong?.name}
                         </h1>
                         <p className="text-gray-400 w-full text-xl mt-2 font-medium flex items-center justify-center gap-1">

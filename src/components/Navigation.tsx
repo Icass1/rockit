@@ -543,6 +543,12 @@ export default function Navigation({ activePage }: { activePage: string }) {
                 "mx-auto pt-4 pb-4 min-h-0 max-h-full h-full transition-all duration-[400ms] bg-black overflow-hidden select-none" +
                 (open ? " w-56 " : " w-12 ")
             }
+            onMouseEnter={() => {
+                setOpen(true);
+            }}
+            onMouseLeave={() => {
+                setOpen(false);
+            }}
         >
             <div className="w-56 flex flex-col gap-4 h-full">
                 <div
@@ -567,7 +573,7 @@ export default function Navigation({ activePage }: { activePage: string }) {
                         <div className="w-8 h-8 flex items-center justify-center">
                             <page.icon className="w-5 h-5" />
                         </div>
-                        <label className="font-semibold">{page.name}</label>
+                        <label className="font-semibold cursor-pointer">{page.name}</label>
                     </a>
                 ))}
 
@@ -584,7 +590,7 @@ export default function Navigation({ activePage }: { activePage: string }) {
                     <div className="w-8 h-8 flex items-center justify-center">
                         <RadioTower className="w-5 h-5" />
                     </div>
-                    <label className="font-semibold">Radio</label>
+                    <label className="font-semibold cursor-pointer">Radio</label>
                 </a>
 
                 <a
@@ -600,7 +606,7 @@ export default function Navigation({ activePage }: { activePage: string }) {
                     <div className="w-8 h-8 flex items-center justify-center">
                         <Users className="w-5 h-5" />
                     </div>
-                    <label className="font-semibold">Friends</label>
+                    <label className="font-semibold cursor-pointer">Friends</label>
                 </a>
 
                 <a
@@ -616,7 +622,7 @@ export default function Navigation({ activePage }: { activePage: string }) {
                     <div className="w-8 h-8 flex items-center justify-center">
                         <ChartLine className="w-5 h-5" />
                     </div>
-                    <label className="font-semibold">Stats</label>
+                    <label className="font-semibold cursor-pointer">Stats</label>
                 </a>
 
                 <div
@@ -626,13 +632,13 @@ export default function Navigation({ activePage }: { activePage: string }) {
                 ></div>
 
                 <div
-                    className="h-4 rounded-md items-center ml-2 mr-2 transition-all flex gap-2 md:hover:opacity-65 cursor-pointer"
+                    className="h-4 rounded-md items-center ml-2 mr-2 transition-all flex gap-2 cursor-pointer"
                     style={{ fontSize: open ? "" : "0 px" }}
                 >
                     <div className="w-8 h-8 flex items-center justify-center">
                         <Pin className="w-5 h-5" />
                     </div>
-                    <label className="text-md font-semibold">
+                    <label className="text-md font-semibold cursor-pointer">
                         Pinned lists
                     </label>
                 </div>
@@ -643,7 +649,7 @@ export default function Navigation({ activePage }: { activePage: string }) {
                             key={list.id}
                             href={`/${list.type}/${list.id}`}
                             title={list.name}
-                            className={`h-8 rounded-md items-center ml-2 mr-2 transition-all flex gap-3 md:hover:opacity-65 cursor-pointer`}
+                            className={`h-8 rounded-md items-center ml-2 mr-2 transition-all flex gap-3 cursor-pointer md:hover:bg-[#414141]`}
                         >
                             <img
                                 className="w-8 h-8 flex items-center justify-center rounded-sm"
@@ -664,7 +670,7 @@ export default function Navigation({ activePage }: { activePage: string }) {
                 <a
                     href={`/artist/0`}
                     title={"Artist Mockup"}
-                    className={`h-8 rounded-md items-center ml-2 mr-2 transition-all flex gap-3 md:hover:opacity-65 cursor-pointer`}
+                    className={`h-8 rounded-full items-center ml-2 mr-2 transition-all flex gap-3 md:hover:bg-[#414141] cursor-pointer`}
                 >
                     <img
                         className="w-8 h-8 flex items-center justify-center rounded-full"

@@ -85,7 +85,7 @@ export default function PlaylistSong({
                     className="rounded absolute top-0 bottom-0 left-0 right-0"
                 />
             </div>
-        
+
             {/* Contenedor principal */}
             <div className="grid grid-cols-[1fr_min-content] md:grid-cols-[1fr_1fr_min-content] w-full items-center">
                 {/* Título (alineado a la izquierda) */}
@@ -97,7 +97,7 @@ export default function PlaylistSong({
                         {song.name}
                     </a>
                 </div>
-                
+
                 {/* Artista y Álbum (centrados en la misma fila) */}
                 <div className="hidden flex-1 md:flex flex-row gap-2 truncate">
                     <label className="text-md truncate max-w-[50%]">
@@ -122,7 +122,7 @@ export default function PlaylistSong({
                         {song.albumName || "Artista desconocido"}
                     </a>
                 </div>
-        
+
                 {/* Botones y tiempo (alineados a la derecha) */}
                 <div className="flex items-center md:gap-4 ml-auto w-fit">
                     <LikeButton song={song} />

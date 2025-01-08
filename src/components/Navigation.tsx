@@ -573,7 +573,9 @@ export default function Navigation({ activePage }: { activePage: string }) {
                         <div className="w-8 h-8 flex items-center justify-center">
                             <page.icon className="w-5 h-5" />
                         </div>
-                        <label className="font-semibold cursor-pointer">{page.name}</label>
+                        <label className="font-semibold cursor-pointer">
+                            {page.name}
+                        </label>
                     </a>
                 ))}
 
@@ -590,7 +592,9 @@ export default function Navigation({ activePage }: { activePage: string }) {
                     <div className="w-8 h-8 flex items-center justify-center">
                         <RadioTower className="w-5 h-5" />
                     </div>
-                    <label className="font-semibold cursor-pointer">Radio</label>
+                    <label className="font-semibold cursor-pointer">
+                        Radio
+                    </label>
                 </a>
 
                 <a
@@ -606,7 +610,9 @@ export default function Navigation({ activePage }: { activePage: string }) {
                     <div className="w-8 h-8 flex items-center justify-center">
                         <Users className="w-5 h-5" />
                     </div>
-                    <label className="font-semibold cursor-pointer">Friends</label>
+                    <label className="font-semibold cursor-pointer">
+                        Friends
+                    </label>
                 </a>
 
                 <a
@@ -622,7 +628,9 @@ export default function Navigation({ activePage }: { activePage: string }) {
                     <div className="w-8 h-8 flex items-center justify-center">
                         <ChartLine className="w-5 h-5" />
                     </div>
-                    <label className="font-semibold cursor-pointer">Stats</label>
+                    <label className="font-semibold cursor-pointer">
+                        Stats
+                    </label>
                 </a>
 
                 <div

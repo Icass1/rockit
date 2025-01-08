@@ -3,7 +3,7 @@ import { currentSong } from "@/stores/audio";
 import { useStore } from "@nanostores/react";
 import { PictureInPicture2 } from "lucide-react";
 
-export default function PictureInPictureImage () {
+export default function PictureInPictureImage() {
     const imageRef = useRef<HTMLImageElement>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
     const $currentSong = useStore(currentSong);
@@ -45,13 +45,15 @@ export default function PictureInPictureImage () {
                 console.error("Picture-in-Picture no es compatible.");
             }
         } catch (error) {
-            console.error("Error al iniciar el modo Picture-in-Picture:", error);
+            console.error(
+                "Error al iniciar el modo Picture-in-Picture:",
+                error
+            );
         }
     };
 
     return (
         <div>
-
             {/* Imagen visible */}
             <img
                 ref={imageRef}
@@ -81,4 +83,4 @@ export default function PictureInPictureImage () {
             </button>
         </div>
     );
-};
+}

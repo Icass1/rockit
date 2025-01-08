@@ -237,7 +237,7 @@ audio.addEventListener("canplay", () => {
         navigator.mediaSession.setPositionState({
             duration: audio.duration,
             playbackRate: 1.0,
-            position: audio.currentTime
+            position: audio.currentTime,
         });
     }
 });
@@ -252,7 +252,7 @@ audio.addEventListener("timeupdate", () => {
             navigator.mediaSession.setPositionState({
                 duration: audio.duration,
                 playbackRate: 1.0,
-                position: audio.currentTime
+                position: audio.currentTime,
             });
         }
     }
@@ -261,14 +261,14 @@ audio.addEventListener("timeupdate", () => {
 audio.addEventListener("play", () => {
     playing.set(true);
     if ("mediaSession" in navigator) {
-        navigator.mediaSession.playbackState = 'playing';
+        navigator.mediaSession.playbackState = "playing";
     }
 });
 
 audio.addEventListener("pause", () => {
     playing.set(false);
     if ("mediaSession" in navigator) {
-        navigator.mediaSession.playbackState = 'paused';
+        navigator.mediaSession.playbackState = "paused";
     }
 });
 
@@ -280,7 +280,7 @@ audio.addEventListener("ended", async () => {
     await next();
     play();
 
-    const nextSong = currentSong.get();  // La nueva canción que será reproducida
+    const nextSong = currentSong.get(); // La nueva canción que será reproducida
     if ("mediaSession" in navigator && nextSong) {
         navigator.mediaSession.metadata = new MediaMetadata({
             title: nextSong.name,
@@ -288,7 +288,7 @@ audio.addEventListener("ended", async () => {
             album: nextSong.albumName,
             artwork: [
                 {
-                    src: `${nextSong.images[0].url}`,  // Asegúrate de usar la URL correcta de la imagen
+                    src: `${nextSong.images[0].url}`, // Asegúrate de usar la URL correcta de la imagen
                     sizes: "96x96",
                     type: "image/png",
                 },

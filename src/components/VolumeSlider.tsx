@@ -10,21 +10,21 @@ export default function VolumeSlider() {
     if ($volume == 0) {
         volumeIcon = (
             <VolumeOff
-                className="w-5 h-5 text-gray-400 md:hover:text-white cursor-pointer"
+                className="w-[22px] h-[22px] text-gray-400 md:hover:text-white cursor-pointer"
                 onClick={() => {}}
             />
         );
     } else if ($volume < 0.5) {
         volumeIcon = (
             <Volume1
-                className="w-5 h-5 text-gray-400 md:hover:text-white cursor-pointer"
+                className="w-[22px] h-[22px] text-gray-400 md:hover:text-white cursor-pointer"
                 onClick={() => {}}
             />
         );
     } else {
         volumeIcon = (
             <Volume2
-                className="w-5 h-5 text-gray-400 md:hover:text-white cursor-pointer"
+                className="w-[22px] h-[22px] text-gray-400 md:hover:text-white cursor-pointer"
                 onClick={() => {}}
             />
         );

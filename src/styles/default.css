@@ -45,14 +45,18 @@ code {
 }
 
 *::-webkit-scrollbar {
-    width: 0px;
-    height: 0px;
+    width: 7px;
+    min-width: 7px;
+    height: 7px;
+    min-height: 7px;
 }
 
 @media (min-width: 768px) {
     *::-webkit-scrollbar {
         width: 7px;
+        min-width: 7px;
         height: 7px;
+        min-height: 7px;
     }
 }
 

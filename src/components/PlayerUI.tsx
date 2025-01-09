@@ -611,7 +611,7 @@ export default function PlayerUI() {
                                     <h2 className="text-2xl font-bold text-left">
                                         Similar Songs
                                     </h2>
-                                    <div className="flex gap-4 overflow-x-auto md:overflow-hidden md:hover:overflow-x-auto scrollbar-hide snap-x snap-mandatory px-2 py-2">
+                                    <div className="flex gap-4 overflow-x-auto md:overflow-hidden md:hover:overflow-x-auto scrollbar-hide snap-x snap-mandatory px-2 py-2 [scrollbar-gutter:stable]">
                                         {/* Aquí creamos las columnas */}
                                         {columns.map((_, columnIndex) => (
                                             <div

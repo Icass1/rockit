@@ -4,7 +4,7 @@ import { useStore } from "@nanostores/react";
 
 export default function Search() {
     const $searchResults = useStore(searchResults);
-    const $searchQuery = useStore(searchQuery);
+    const $searchQuery = useStore(searchQuery);   
 
     return (
         <>
@@ -166,6 +166,32 @@ export default function Search() {
                                     </label>
                                     <label className="truncate text-sm text-center text-gray-400 block">
                                         {playlist.owner.display_name}
+                                    </label>
+                                </a>
+                            ))}
+                        </div>
+                    </section>
+                    <section className="md:px-12 md:py-6 py-2 text-white">
+                        <h2 className="text-2xl md:text-3xl font-bold text-left px-5 md:px-0">
+                            Youtube Videos
+                        </h2>
+                        <div className="relative flex items-center gap-4 overflow-x-auto md:overflow-hidden md:hover:overflow-x-auto py-4 px-8 md:px-2">
+                            {/* Mockup de videos */}
+                            {Array.from({ length: 10 }).map((_, index) => (
+                                <a
+                                    className="flex-none w-64 md:w-80 md:hover:scale-105 transition"
+                                    key={"video" + index}
+                                >
+                                    <img
+                                        className="rounded-lg w-full aspect-video object-cover"
+                                        src="/video-placeholder.png"
+                                        alt="Video Thumbnail"
+                                    />
+                                    <label className="truncate font-semibold text-left block mt-2">
+                                        Video title mockup {index + 1}
+                                    </label>
+                                    <label className="truncate text-sm text-left text-gray-400 block">
+                                        Author mockup {index + 1}
                                     </label>
                                 </a>
                             ))}

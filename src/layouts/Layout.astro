@@ -103,8 +103,7 @@ const { bgImage } = Astro.props;
                 style={{ gridArea: "main" }}
             >
                 <div
-                    class="overflow-hidden hover:overflow-auto w-full h-full absolute"
-                    style="scrollbar-gutter: stable;"
+                    class="overflow-hidden hover:overflow-auto w-full h-full absolute md:[scrollbar-gutter:stable]"
                 >
                     <slot />
                 </div>

@@ -1,4 +1,5 @@
 import { downloads } from "@/stores/downloads";
+import useWindowSize from "@/hooks/useWindowSize";
 import { useStore } from "@nanostores/react";
 import { useEffect, useRef, useState, type Dispatch } from "react";
 import {
@@ -457,7 +458,7 @@ export default function Downloads({ navOpen }: { navOpen: boolean }) {
             </div>
             <div
                 title="Downloads"
-                className="h-8 rounded-md items-center ml-2 mr-2 transition-all flex gap-2 md:hover:bg-[#414141]"
+                className={`h-8 rounded-md items-center ml-2 mr-2 transition-all gap-2 md:hover:bg-[#414141] ${ window.innerWidth > 768 ? "flex" : "hidden"}`}
                 onClick={() => {
                     setOpen((value) => !value);
                 }}

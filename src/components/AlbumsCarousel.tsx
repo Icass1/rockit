@@ -71,7 +71,7 @@ function Song({
             play();
 
             queueIndex.set(0);
-            queue.set([{ song: song, list: undefined }]);
+            queue.set([{ song: song, list: undefined, index: 0 }]);
         }
     };
 

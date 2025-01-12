@@ -38,10 +38,11 @@ export default function AlbumSong({
         fetch(`/api/album/${albumId}`)
             .then((response) => response.json())
             .then((data: RockItAlbum) => {
-                const newData = data.songs.map((song) => {
+                const newData = data.songs.map((song, index) => {
                     return {
                         song: song,
                         list: { type: "album", id: albumId },
+                        index: index,
                     };
                 });
 

@@ -7,8 +7,8 @@ export default function PlayList({ id, type }: { type: string; id: string }) {
     const $songs = useStore(currentListSongs);
 
     const handleClick = () => {
-        const songsToAdd = $songs.map((song) => {
-            return { song: song, list: { type, id } };
+        const songsToAdd = $songs.map((song, index) => {
+            return { song: song, list: { type, id }, index: index };
         });
         const song = songsToAdd[Math.floor(Math.random() * $songs.length)];
 

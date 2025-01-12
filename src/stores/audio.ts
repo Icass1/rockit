@@ -28,10 +28,13 @@ export type QueueSong = SongDB<
     "id" | "name" | "artists" | "images" | "duration"
 >;
 
-type Queue = {
+export type QueueElement = {
     song: QueueSong;
     list: { type: string; id: string } | undefined;
-}[];
+    index: number;
+};
+
+type Queue = QueueElement[];
 type CurrentSong =
     | SongDB<"images" | "id" | "name" | "artists" | "albumId" | "albumName">
     | undefined;
@@ -71,7 +74,7 @@ if (userJson && userJson.queue.length > 0) {
     const _queueJson = (await _queueResponse.json()) as QueueSong[];
 
     _queue = _queueJson.map((song, index) => {
-        return { song: song, list: userJson.queue[index].list };
+        return { song: song, list: userJson.queue[index].list, index: index };
     });
 }
 
@@ -189,8 +192,20 @@ export async function next() {
     if (!queueIndex.get() && queueIndex.get() != 0) {
         return;
     }
-    queueIndex.set((queueIndex.get() as number) + 1);
-    await fetch(`/api/song/${queue.get()[queueIndex.get() as number].song.id}`)
+
+    const currentSongIndexInQueue = queue
+        .get()
+        .findIndex((song) => song.index == queueIndex.get());
+
+    queueIndex.set(queue.get()[currentSongIndexInQueue + 1].index);
+
+    const newSongId = queue.get().find((song) => song.index == queueIndex.get())
+        ?.song.id;
+    if (!newSongId) {
+        return;
+    }
+
+    await fetch(`/api/song/${newSongId}`)
         .then((response) => response.json())
         .then((data: SongDB) => {
             currentSong.set(data);

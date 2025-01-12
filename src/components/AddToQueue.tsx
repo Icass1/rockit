@@ -38,15 +38,23 @@ export default function AddToQueue({ type, id }: { type: string; id: string }) {
 
     const addListToBottomQueue = () => {
         setOpen(false);
-        const songsToAdd = $songs.map((song) => {
-            return { song: song, list: { type, id } };
+        const songsToAdd = $songs.map((song, index) => {
+            return {
+                song: song,
+                list: { type, id },
+                index: queue.get().length + index,
+            };
         });
         queue.set([...queue.get(), ...songsToAdd]);
     };
     const addListToTopQueue = () => {
         setOpen(false);
-        const songsToAdd = $songs.map((song) => {
-            return { song: song, list: { type, id } };
+        const songsToAdd = $songs.map((song, index) => {
+            return {
+                song: song,
+                list: { type, id },
+                index: queue.get().length + index,
+            };
         });
         queue.set([...songsToAdd, ...queue.get()]);
     };

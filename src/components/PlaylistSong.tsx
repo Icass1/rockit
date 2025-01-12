@@ -36,8 +36,12 @@ export default function PlaylistSong({
             return;
         }
 
-        const songsToAdd = songs.map((song) => {
-            return { song: song, list: { type: list.type, id: list.id } };
+        const songsToAdd = songs.map((song, index) => {
+            return {
+                song: song,
+                list: { type: list.type, id: list.id },
+                index: index,
+            };
         });
 
         currentSong.set(song);

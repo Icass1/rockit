@@ -4,6 +4,7 @@ import {
     currentTime,
     queue,
     queueIndex,
+    type QueueElement,
     type QueueSong,
 } from "@/stores/audio";
 import { isPlayerUIVisible } from "@/stores/isPlayerUIVisible";
@@ -284,18 +285,12 @@ function DynamicLyrics() {
     );
 }
 
-function QueueSong({
-    song,
-    index,
-}: {
-    song: SongDB<"duration" | "id" | "name" | "images" | "artists">;
-    index: number | undefined;
-}) {
+function QueueSong({ song }: { song: QueueElement }) {
     const $queueIndex = useStore(queueIndex);
     return (
         <li
             className={`flex items-center gap-x-2 p-2 group ${
-                index === $queueIndex
+                song.index === $queueIndex
                     ? "bg-[rgba(50,50,50,0.75)]"
                     : "md:hover:bg-[rgba(75,75,75,0.75)]"
             }`}
@@ -310,14 +305,14 @@ function QueueSong({
             <div className="relative">
                 {/* Imagen de portada */}
                 <img
-                    src={song.images[0].url}
-                    alt={song.name}
+                    src={song.song.images[0].url}
+                    alt={song.song.name}
                     className={`w-12 h-12 rounded object-cover ${
-                        index === $queueIndex ? "brightness-50" : ""
+                        song.index === $queueIndex ? "brightness-50" : ""
                     }`}
                 />
                 {/* Ícono Play */}
-                {index === $queueIndex && (
+                {song.index === $queueIndex && (
                     <div className="absolute inset-0 flex items-center justify-center">
                         <Play className="text-white w-5 h-5 fill-current" />
                     </div>
@@ -326,15 +321,15 @@ function QueueSong({
             {/* Song Info */}
             <div className="flex-1 min-w-0 max-w-full">
                 <p className="text-white text-base font-semibold truncate">
-                    {song.name}
+                    {song.song.name}
                 </p>
                 <p className="text-gray-300 text-sm truncate">
-                    {song.artists.map((artist) => artist.name).join(", ")}
+                    {song.song.artists.map((artist) => artist.name).join(", ")}
                 </p>
             </div>
             {/* Duration */}
             <p className="text-gray-300 text-base px-2">
-                {getTime(song.duration)}
+                {getTime(song.song.duration)}
             </p>
         </li>
     );
@@ -379,11 +374,7 @@ export default function PlayerUI() {
     }, [divRef]);
 
     const [draggingSong, setDraggingSong] = useState<
-        | {
-              song: QueueSong;
-              list: { type: string; id: string } | undefined;
-          }
-        | undefined
+        QueueElement | undefined
     >();
     const [draggingPos, setDraggingPos] = useState<[number, number]>([0, 0]);
     const queueDivRef = useRef<HTMLUListElement>(null);
@@ -397,7 +388,8 @@ export default function PlayerUI() {
                     (event.clientY -
                         32 -
                         queueDivRef.current.getBoundingClientRect().top +
-                        queueDivRef.current.scrollTop) /
+                        queueDivRef.current.scrollTop -
+                        30) /
                         64
                 );
             }
@@ -427,6 +419,7 @@ export default function PlayerUI() {
                     ...prevSongs.slice(draggingSongIndex + 1),
                 ]);
             }
+
             setDraggingSong(undefined);
         };
         const handleMouseMove = (event: globalThis.MouseEvent) => {
@@ -505,7 +498,7 @@ export default function PlayerUI() {
                 </div>
 
                 {/* Right Column: Queue */}
-                <div className="overflow-hidden flex flex-col h-full bg-gradient-to-r z-10 from-[rgba(0,0,0,0)] to-[rgba(0,0,0,0.5)]">
+                <div className="overflow-hidden flex flex-col h-full bg-gradient-to-r z-10 from-[rgba(0,0,0,0)] to-[rgba(0,0,0,0.5)] select-none">
                     {/* Selector */}
                     <div className="flex justify-center items-center gap-10 pt-6 pb-4 relative border-b border-white">
                         <button
@@ -540,6 +533,13 @@ export default function PlayerUI() {
                                             draggingSong?.song.id
                                     )
                                     .map((queueSong, index) => {
+                                        if (
+                                            queueSong.song.id ==
+                                            draggingSong?.song.id
+                                        ) {
+                                            return;
+                                        }
+
                                         let spacerIndex = undefined;
 
                                         if (queueDivRef.current?.offsetTop) {
@@ -548,7 +548,8 @@ export default function PlayerUI() {
                                                     queueDivRef.current.getBoundingClientRect()
                                                         .top +
                                                     queueDivRef.current
-                                                        .scrollTop) /
+                                                        .scrollTop -
+                                                    30) /
                                                     64
                                             );
                                         }
@@ -564,27 +565,14 @@ export default function PlayerUI() {
                                                 {draggingSong &&
                                                     spacerIndex == -1 &&
                                                     index == 0 && (
-                                                        <div className="h-16 bg-gradient-to-r from-[#ee108650] to-[#fb646750]"></div>
+                                                        <div className="h-16  bg-gradient-to-r from-[#ee108650] to-[#fb646750] bg-red-500"></div>
                                                     )}
-                                                <QueueSong
-                                                    song={queueSong.song}
-                                                    index={index}
-                                                />
-                                                {/* <label>
-                                                    {
-                                                        queueDivRef.current
-                                                            ?.offsetTop
-                                                    }{" "}
-                                                    {
-                                                        queueDivRef.current
-                                                            ?.scrollTop
-                                                    }
-                                                </label> */}
+                                                <QueueSong song={queueSong} />
                                                 {draggingSong &&
                                                     typeof spacerIndex !=
                                                         "undefined" &&
                                                     spacerIndex == index && (
-                                                        <div className="h-16 bg-gradient-to-r from-[#ee108650] to-[#fb646750]"></div>
+                                                        <div className="h-16  bg-black "></div>
                                                     )}
                                             </div>
                                         );
@@ -598,10 +586,7 @@ export default function PlayerUI() {
                                             left: `${draggingPos[0]}px`,
                                         }}
                                     >
-                                        <QueueSong
-                                            song={draggingSong.song}
-                                            index={undefined}
-                                        />
+                                        <QueueSong song={draggingSong} />
                                     </div>
                                 )}
                             </ul>

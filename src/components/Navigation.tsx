@@ -12,7 +12,6 @@ import {
     Settings,
     Users,
     RadioTower,
-    Music,
 } from "lucide-react";
 import { useState } from "react";
 

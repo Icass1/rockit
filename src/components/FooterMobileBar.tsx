@@ -3,10 +3,6 @@ import { useStore } from "@nanostores/react";
 import {
     currentSong,
     currentTime,
-    next,
-    pause,
-    play,
-    playing,
     setTime,
 } from "@/stores/audio";
 

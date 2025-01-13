@@ -1,5 +1,4 @@
 import { downloads } from "@/stores/downloads";
-import useWindowSize from "@/hooks/useWindowSize";
 import { useStore } from "@nanostores/react";
 import { useEffect, useRef, useState, type Dispatch } from "react";
 import {

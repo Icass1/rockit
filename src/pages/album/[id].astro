@@ -11,12 +11,9 @@ import DownloadList from "@/components/DownloadList";
 import getAlbum from "@/lib/getAlbum";
 import PlayList from "@/components/PlayList";
 import AddToQueue from "@/components/AddToQueue";
+import SetCurrentListInfo from "@/components/SetCurrentListInfo";
 
 const { id } = Astro.params as { id: string };
-
-// if (!Astro.locals.user) {
-//     return Astro.redirect("/login");
-// }
 
 let _album = await getAlbum(id);
 
@@ -58,20 +55,28 @@ const meta = {
     <div class="mt-20 md:mt-0"></div>
 
     <div
-    class="flex flex-col md:grid md:grid-cols-[min-content_1fr] w-full h-full relative px-2 md:px-0"
+        class="flex flex-col md:grid md:grid-cols-[min-content_1fr] w-full h-full relative px-2 md:px-0"
     >
         <!-- Columna izquierda: Portada, iconos y detalles -->
-        <div class="flex flex-col gap-1 items-center md:max-w-md mx-4 justify-center h-full">
+        <div
+            class="flex flex-col gap-1 items-center md:max-w-md mx-4 justify-center h-full"
+        >
             <!-- Contenedor de la imagen cuadrada -->
-            <div class="relative overflow-hidden aspect-square rounded-xl md:rounded-md h-72 md:h-[40vh]">
+            <div
+                class="relative overflow-hidden aspect-square rounded-xl md:rounded-md h-72 md:h-[40vh]"
+            >
                 <img
-                    src={album.image ? `/api/image/${album.image}` : album.images[0].url}
+                    src={album.image
+                        ? `/api/image/${album.image}`
+                        : album.images[0].url}
                     class="w-full h-full object-fill"
                 />
             </div>
 
             <!-- Div con los iconos -->
-            <div class="flex flex-row justify-center gap-3 text-sm pt-2 items-center">
+            <div
+                class="flex flex-row justify-center gap-3 text-sm pt-2 items-center"
+            >
                 {
                     !inDatabase && (
                         <DownloadList
@@ -84,13 +89,23 @@ const meta = {
                 <AddToLibrary type="album" id={id} client:only="react" />
                 <PlayList client:only="react" type="album" id={id} />
                 <AddToQueue client:only="react" type="album" id={id} />
+                <SetCurrentListInfo
+                    client:only="react"
+                    songs={songs}
+                    type="album"
+                    id={id}
+                />
             </div>
 
             <!-- Nombre del álbum -->
-            <label class="text-2xl font-semibold text-center text-balance">{album.name}</label>
+            <label class="text-2xl font-semibold text-center text-balance"
+                >{album.name}</label
+            >
 
             <!-- Artistas -->
-            <div class="text-xl font-semibold text-stone-400 flex flex-wrap justify-center md:justify-start">
+            <div
+                class="text-xl font-semibold text-stone-400 flex flex-wrap justify-center md:justify-start"
+            >
                 {
                     album.artists.map((artist, index) => (
                         <span class="flex items-center space-x-1">
@@ -137,7 +152,6 @@ const meta = {
                                             song={song}
                                             index={songIndex}
                                             client:only="react"
-                                            albumId={id}
                                         />
                                     );
                                 } else {

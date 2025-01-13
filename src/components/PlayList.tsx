@@ -1,35 +1,32 @@
 import { PlayCircle } from "lucide-react";
-import { currentSong, play, queue, queueIndex } from "@/stores/audio";
-import { useStore } from "@nanostores/react";
+import {
+    currentSong,
+    play,
+    queue,
+    queueIndex,
+    randomQueue,
+} from "@/stores/audio";
 import { currentListSongs } from "@/stores/currentList";
 
 export default function PlayList({ id, type }: { type: string; id: string }) {
-    const $songs = useStore(currentListSongs);
-
     const handleClick = () => {
-        const songsToAdd = $songs.map((song, index) => {
+        const songsToAdd = currentListSongs.get().map((song, index) => {
             return { song: song, list: { type, id }, index: index };
         });
-        const song = songsToAdd[Math.floor(Math.random() * $songs.length)];
 
-        currentSong.set(song.song);
-        play();
+        if (randomQueue.get()) {
+            const shuffled = [...songsToAdd].sort(() => Math.random() - 0.5);
 
-        const firstSong = songsToAdd.find(
-            (dataSong) => dataSong.song.id == song.song.id
-        );
-        if (!firstSong) {
-            console.error("song.id not in dataSong");
-            return;
+            currentSong.set(shuffled[0].song);
+            queueIndex.set(shuffled[0].index);
+            queue.set(shuffled);
+            play();
+        } else {
+            currentSong.set(songsToAdd[0].song);
+            queueIndex.set(0);
+            queue.set(songsToAdd);
+            play();
         }
-        const index = songsToAdd.indexOf(firstSong);
-        const newQueue = [
-            firstSong,
-            ...songsToAdd.slice(0, index),
-            ...songsToAdd.slice(index + 1),
-        ];
-        queueIndex.set(0);
-        queue.set(newQueue);
     };
 
     return (

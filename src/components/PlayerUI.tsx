@@ -321,6 +321,9 @@ function QueueSong({ song }: { song: QueueElement }) {
             {/* Song Info */}
             <div className="flex-1 min-w-0 max-w-full">
                 <p className="text-white text-base font-semibold truncate">
+                    <label className="text-xs text-yellow-400">
+                        {song.index} -{" "}
+                    </label>
                     {song.song.name}
                 </p>
                 <p className="text-gray-300 text-sm truncate">
@@ -565,7 +568,7 @@ export default function PlayerUI() {
                                                 {draggingSong &&
                                                     spacerIndex == -1 &&
                                                     index == 0 && (
-                                                        <div className="h-16  bg-gradient-to-r from-[#ee108650] to-[#fb646750]"></div>
+                                                        <div className="h-16 bg-gradient-to-r from-[#ee108650] to-[#fb646750]"></div>
                                                     )}
                                                 <QueueSong song={queueSong} />
                                                 {draggingSong &&

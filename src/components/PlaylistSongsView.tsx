@@ -177,11 +177,11 @@ export default function PlaylistSongsView({
                 </div>
             </div>
 
-            {songsToRender.map((song) => {
+            {songsToRender.map((song, index) => {
                 if (song) {
-                    return <PlaylistSong song={song} />;
+                    return <PlaylistSong key={song.id + index} song={song} />;
                 } else {
-                    return <div>Song is undefined</div>;
+                    return <div key={index} className="text-red-400">Song is undefined</div>;
                 }
             })}
         </>

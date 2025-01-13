@@ -1,4 +1,10 @@
-import { currentSong, play, queue, queueIndex } from "@/stores/audio";
+import {
+    currentSong,
+    play,
+    queue,
+    queueIndex,
+    randomQueue,
+} from "@/stores/audio";
 import type { PlaylistDBSongWithAddedAt } from "@/lib/db";
 import { getTime } from "@/lib/getTime";
 import LikeButton from "./LikeButton";
@@ -29,39 +35,54 @@ export default function PlaylistSong({
     const $currentList = useStore(currentList);
 
     const handleClick = () => {
-        const songs = currentListSongs.get();
-        const list = currentList.get();
-        if (!list) {
-            console.error("List is not defined");
+        if (!song.path) {
             return;
         }
 
-        const songsToAdd = songs.map((song, index) => {
+        if ($currentList?.type == undefined || $currentList.id == undefined) {
+            return;
+        }
+
+        const songsToAdd = currentListSongs.get().map((song, index) => {
             return {
                 song: song,
-                list: { type: list.type, id: list.id },
+                list: { type: $currentList.type, id: $currentList.id },
                 index: index,
             };
         });
 
-        currentSong.set(song);
-        play();
+        if (randomQueue.get()) {
+            const shuffled = [...songsToAdd].sort(() => Math.random() - 0.5);
 
-        const firstSong = songsToAdd.find(
-            (dataSong) => dataSong.song.id == song.id
-        );
-        if (!firstSong) {
-            console.error("song.id not in dataSong");
-            return;
+            const firstSong = songsToAdd.find(
+                (dataSong) => dataSong.song.id == song.id
+            );
+            if (!firstSong) {
+                console.error(
+                    "First song not found in songsToAdd in AlbumSong"
+                );
+                return;
+            }
+
+            currentSong.set(song);
+            queueIndex.set(firstSong.index);
+            queue.set(shuffled);
+            play();
+        } else {
+            const firstSong = songsToAdd.find(
+                (dataSong) => dataSong.song.id == song.id
+            );
+            if (!firstSong) {
+                console.error(
+                    "First song not found in songsToAdd in AlbumSong"
+                );
+                return;
+            }
+            currentSong.set(song);
+            queueIndex.set(firstSong.index);
+            queue.set(songsToAdd);
+            play();
         }
-        const index = songsToAdd.indexOf(firstSong);
-        const newQueue = [
-            ...songsToAdd.slice(0, index),
-            firstSong,
-            ...songsToAdd.slice(index + 1),
-        ];
-        queueIndex.set(index);
-        queue.set(newQueue);
     };
 
     return (

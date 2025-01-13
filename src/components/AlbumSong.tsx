@@ -1,16 +1,21 @@
-import { currentSong, play, queue, queueIndex } from "@/stores/audio";
+import {
+    currentSong,
+    play,
+    queue,
+    queueIndex,
+    randomQueue,
+} from "@/stores/audio";
 import type { SongDB } from "@/lib/db";
 import { getTime } from "@/lib/getTime";
-import type { RockItAlbum } from "@/types/rockIt";
 import LikeButton from "./LikeButton";
 import { ListPlus, EllipsisVertical } from "lucide-react";
 import { useState } from "react";
-import useWindowSize from "@/hooks/useWindowSize";
+import { useStore } from "@nanostores/react";
+import { currentList, currentListSongs } from "@/stores/currentList";
 
 export default function AlbumSong({
     song,
     index,
-    albumId,
 }: {
     song: SongDB<
         | "images"
@@ -23,45 +28,61 @@ export default function AlbumSong({
         | "duration"
     >;
     index: number;
-    albumId: string;
 }) {
     const [hovered, setHovered] = useState(false);
-    const [innerWidth] = useWindowSize();
+    const $queue = useStore(queue);
+    const $queueIndex = useStore(queueIndex);
+    const $currentList = useStore(currentList);
 
     const handleClick = () => {
         if (!song.path) {
             return;
         }
-        currentSong.set(song);
-        play();
 
-        fetch(`/api/album/${albumId}`)
-            .then((response) => response.json())
-            .then((data: RockItAlbum) => {
-                const newData = data.songs.map((song, index) => {
-                    return {
-                        song: song,
-                        list: { type: "album", id: albumId },
-                        index: index,
-                    };
-                });
+        if ($currentList?.type == undefined || $currentList.id == undefined) {
+            return;
+        }
 
-                const firstSong = newData.find(
-                    (dataSong) => dataSong.song.id == song.id
+        const songsToAdd = currentListSongs.get().map((song, index) => {
+            return {
+                song: song,
+                list: { type: $currentList.type, id: $currentList.id },
+                index: index,
+            };
+        });
+
+        if (randomQueue.get()) {
+            const shuffled = [...songsToAdd].sort(() => Math.random() - 0.5);
+
+            const firstSong = songsToAdd.find(
+                (dataSong) => dataSong.song.id == song.id
+            );
+            if (!firstSong) {
+                console.error(
+                    "First song not found in songsToAdd in AlbumSong"
                 );
-                if (!firstSong) {
-                    console.error("song.id not in dataSong");
-                    return;
-                }
-                const index = newData.indexOf(firstSong);
-                const newQueue = [
-                    firstSong,
-                    ...newData.slice(0, index),
-                    ...newData.slice(index + 1),
-                ];
-                queueIndex.set(0);
-                queue.set(newQueue);
-            });
+                return;
+            }
+
+            currentSong.set(song);
+            queueIndex.set(firstSong.index);
+            queue.set(shuffled);
+            play();
+        } else {
+            const firstSong = songsToAdd.find(
+                (dataSong) => dataSong.song.id == song.id
+            );
+            if (!firstSong) {
+                console.error(
+                    "First song not found in songsToAdd in AlbumSong"
+                );
+                return;
+            }
+            currentSong.set(song);
+            queueIndex.set(firstSong.index);
+            queue.set(songsToAdd);
+            play();
+        }
     };
 
     return (
@@ -81,7 +102,19 @@ export default function AlbumSong({
             <label className="text-md text-white/80 w-5 text-center">
                 {index + 1}
             </label>
-            <label className="text-base font-semibold w-full truncate md:text-clip">
+            <label
+                className={
+                    "text-base font-semibold w-full truncate md:text-clip" +
+                    ($queue.find((song) => song.index == $queueIndex)?.list
+                        ?.id == $currentList?.id &&
+                    $queue.find((song) => song.index == $queueIndex)?.list
+                        ?.type == $currentList?.type &&
+                    $queue.find((song) => song.index == $queueIndex)?.song.id ==
+                        song.id
+                        ? " text-[#ec5588]"
+                        : "")
+                }
+            >
                 {song.name}{" "}
             </label>
             <LikeButton song={song} />

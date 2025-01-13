@@ -36,7 +36,15 @@ export type QueueElement = {
 
 type Queue = QueueElement[];
 type CurrentSong =
-    | SongDB<"images" | "id" | "name" | "artists" | "albumId" | "albumName">
+    | SongDB<
+          | "images"
+          | "id"
+          | "name"
+          | "artists"
+          | "albumId"
+          | "albumName"
+          | "duration"
+      >
     | undefined;
 
 const userJsonResponse = await fetch(
@@ -57,7 +65,7 @@ try {
     if (userJson?.currentSong) {
         _currentSong = (await (
             await fetch(
-                `/api/song/${userJson.currentSong}?q=images,id,name,artists,albumId,albumName`
+                `/api/song/${userJson.currentSong}?q=images,id,name,artists,albumId,albumName,duration`
             )
         ).json()) as CurrentSong;
     }
@@ -73,9 +81,23 @@ if (userJson && userJson.queue.length > 0) {
     );
     const _queueJson = (await _queueResponse.json()) as QueueSong[];
 
-    _queue = _queueJson.map((song, index) => {
-        return { song: song, list: userJson.queue[index].list, index: index };
-    });
+    _queue = userJson.queue
+        .map((queueSong) => {
+            const songInfo = _queueJson.find(
+                (song) => song.id == queueSong.song
+            );
+
+            if (!songInfo) {
+                return undefined;
+            }
+
+            return {
+                song: songInfo,
+                list: queueSong.list,
+                index: queueSong.index,
+            };
+        })
+        .filter((song) => typeof song != "undefined");
 }
 
 const send = (json: any) => {
@@ -157,7 +179,11 @@ queue.subscribe((value) => {
         queue: value
             .map((value) => {
                 if (value?.song && value?.list) {
-                    return { song: value.song.id, list: value.list };
+                    return {
+                        song: value.song.id,
+                        index: value.index,
+                        list: value.list,
+                    };
                 }
             })
             .filter((song) => song),

@@ -565,14 +565,14 @@ export default function PlayerUI() {
                                                 {draggingSong &&
                                                     spacerIndex == -1 &&
                                                     index == 0 && (
-                                                        <div className="h-16  bg-gradient-to-r from-[#ee108650] to-[#fb646750] bg-red-500"></div>
+                                                        <div className="h-16  bg-gradient-to-r from-[#ee108650] to-[#fb646750]"></div>
                                                     )}
                                                 <QueueSong song={queueSong} />
                                                 {draggingSong &&
                                                     typeof spacerIndex !=
                                                         "undefined" &&
                                                     spacerIndex == index && (
-                                                        <div className="h-16  bg-black "></div>
+                                                        <div className="h-16 bg-gradient-to-r from-[#ee108650] to-[#fb646750]"></div>
                                                     )}
                                             </div>
                                         );

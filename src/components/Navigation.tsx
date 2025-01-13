@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
-
 export default function Navigation({ activePage }: { activePage: string }) {
     const [open, setOpen] = useState(false);
 
@@ -67,7 +66,7 @@ export default function Navigation({ activePage }: { activePage: string }) {
                     </div>
                 </div>
                 <Downloads navOpen={open} />
-            </> 
+            </>
         );
     }
 
@@ -184,29 +183,30 @@ export default function Navigation({ activePage }: { activePage: string }) {
                         Pinned lists
                     </label>
                 </div>
-
-                {$pinnedLists.map((list) => {
-                    return (
-                        <a
-                            key={list.id}
-                            href={`/${list.type}/${list.id}`}
-                            title={list.name}
-                            className={`h-8 rounded-md items-center ml-2 mr-2 transition-all flex gap-3 cursor-pointer md:hover:bg-[#414141]`}
-                        >
-                            <img
-                                className="w-8 h-8 flex items-center justify-center rounded-sm"
-                                src={
-                                    list?.image
-                                        ? `/api/image/${list.image}`
-                                        : "/song-placeholder.png"
-                                }
-                            />
-                            <label className="font-semibold text-sm truncate cursor-pointer">
-                                {list.name}
-                            </label>
-                        </a>
-                    );
-                })}
+                <div className="h-full overflow-y-scroll flex flex-col gap-4">
+                    {$pinnedLists.map((list) => {
+                        return (
+                            <a
+                                key={list.id}
+                                href={`/${list.type}/${list.id}`}
+                                title={list.name}
+                                className={`h-8 rounded-md items-center ml-2 mr-2 transition-all flex gap-3 cursor-pointer md:hover:bg-[#414141]`}
+                            >
+                                <img
+                                    className="w-8 h-8 flex items-center justify-center rounded-sm"
+                                    src={
+                                        list?.image
+                                            ? `/api/image/${list.image}`
+                                            : "/song-placeholder.png"
+                                    }
+                                />
+                                <label className="font-semibold text-sm truncate cursor-pointer">
+                                    {list.name}
+                                </label>
+                            </a>
+                        );
+                    })}
+                </div>
 
                 {/* Mockup de Pinned Artist */}
                 <a
@@ -223,7 +223,7 @@ export default function Navigation({ activePage }: { activePage: string }) {
                     </label>
                 </a>
 
-                <div className="h-full"></div>
+                {/* <div className="h-full"></div> */}
                 <Downloads navOpen={open} />
             </div>
         </div>

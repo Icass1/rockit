@@ -69,9 +69,12 @@ export default function PlaylistSong({
             className={
                 "flex flex-row items-center gap-2 md:gap-4 transition-colors px-2 py-[0.5rem] rounded " +
                 (!song.path ? "opacity-50" : "md:hover:bg-zinc-500/10") +
-                ($queue[$queueIndex ?? 0]?.list?.id == $currentList?.id &&
-                $queue[$queueIndex ?? 0]?.list?.type == $currentList?.type &&
-                $queue[$queueIndex ?? 0].song.id == song.id
+                ($queue.find((song) => song.index == $queueIndex)?.list?.id ==
+                    $currentList?.id &&
+                $queue.find((song) => song.index == $queueIndex)?.list?.type ==
+                    $currentList?.type &&
+                $queue.find((song) => song.index == $queueIndex)?.song.id ==
+                    song.id
                     ? " text-[#ec5588]"
                     : "")
             }

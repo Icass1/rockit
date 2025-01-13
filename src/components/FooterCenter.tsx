@@ -1,12 +1,12 @@
 import { getTime } from "@/lib/getTime";
 import {
+    currentSong,
     currentTime,
     next,
     pause,
     play,
     playing,
     setTime,
-    totalTime,
 } from "@/stores/audio";
 import { useStore } from "@nanostores/react";
 import {
@@ -21,8 +21,8 @@ import Slider from "./Slider";
 
 export default function FooterCenter() {
     const $playing = useStore(playing);
-    const $totalTime = useStore(totalTime);
     const $currentTime = useStore(currentTime);
+    const $currentSong = useStore(currentSong);
 
     return (
         <div
@@ -65,7 +65,7 @@ export default function FooterCenter() {
                     className="w-full relative min-w-0 max-w-full rounded h-1 bg-gray-700 group"
                     value={$currentTime ?? 0}
                     min={0}
-                    max={$totalTime}
+                    max={$currentSong?.duration}
                     step={0.001}
                     onChange={(event) => {
                         setTime(Number(event.target.value));
@@ -73,7 +73,7 @@ export default function FooterCenter() {
                 />
 
                 <span id="total-time" className="text-xs font-semibold min-w-6">
-                    {getTime($totalTime || 0)}
+                    {getTime($currentSong?.duration || 0)}
                 </span>
             </div>
         </div>

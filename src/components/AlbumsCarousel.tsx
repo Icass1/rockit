@@ -104,7 +104,7 @@ function Song({
                 />
                 <div
                     className={`absolute  left-0 right-0 bottom-0 bg-gradient-to-b from-transparent to-black rounded-none ${transition} ${
-                        index == currentIndex ? "h-20" : "h-0"
+                        index == currentIndex ? "h-52" : "h-0"
                     }`}
                 />
 

@@ -127,7 +127,7 @@ export default function PlaylistSong({
                 </div>
 
                 {/* Artista y Álbum (centrados en la misma fila) */}
-                <div className="hidden flex-1 md:flex flex-row gap-2 truncate">
+                <div className="hidden flex-1 md:flex flex-row gap-2 truncate pr-2">
                     <label className="text-md truncate max-w-[50%]">
                         {song.artists.map((artist, index) => (
                             <a

@@ -235,7 +235,11 @@ export async function next() {
         .get()
         .findIndex((song) => song.index == queueIndex.get());
 
-    queueIndex.set(queue.get()[currentSongIndexInQueue + 1].index);
+    if (currentSongIndexInQueue + 1 >= queue.get().length) {
+        queueIndex.set(queue.get()[0].index);
+    } else {
+        queueIndex.set(queue.get()[currentSongIndexInQueue + 1].index);
+    }
 
     const newSongId = queue.get().find((song) => song.index == queueIndex.get())
         ?.song.id;

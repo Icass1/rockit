@@ -226,6 +226,41 @@ export function setTime(time: number) {
     audio.currentTime = time;
 }
 
+export async function prev() {
+    if (!queueIndex.get() && queueIndex.get() != 0) {
+        return;
+    }
+
+    const _currentTime = currentTime.get();
+
+    if (_currentTime && _currentTime > 5) {
+        setTime(0);
+        return;
+    }
+
+    const currentSongIndexInQueue = queue
+        .get()
+        .findIndex((song) => song.index == queueIndex.get());
+
+    if (currentSongIndexInQueue - 1 < 0) {
+        queueIndex.set(queue.get()[queue.get().length - 1].index);
+    } else {
+        queueIndex.set(queue.get()[currentSongIndexInQueue - 1].index);
+    }
+
+    const newSongId = queue.get().find((song) => song.index == queueIndex.get())
+        ?.song.id;
+    if (!newSongId) {
+        return;
+    }
+
+    await fetch(`/api/song/${newSongId}`)
+        .then((response) => response.json())
+        .then((data: SongDB) => {
+            currentSong.set(data);
+        });
+}
+
 export async function next() {
     if (!queueIndex.get() && queueIndex.get() != 0) {
         return;
@@ -262,8 +297,9 @@ navigator.mediaSession.setActionHandler("pause", async () => {
     pause();
 });
 
-navigator.mediaSession.setActionHandler("previoustrack", () => {
-    // TODO
+navigator.mediaSession.setActionHandler("previoustrack", async () => {
+    await prev();
+    await play();
 });
 
 navigator.mediaSession.setActionHandler("nexttrack", async () => {

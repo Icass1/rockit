@@ -6,6 +6,7 @@ import {
     pause,
     play,
     playing,
+    prev,
     randomQueue,
     setTime,
 } from "@/stores/audio";
@@ -39,7 +40,13 @@ export default function FooterCenter() {
                     }
                     onClick={() => randomQueue.set(!randomQueue.get())}
                 />
-                <SkipBack className="w-[22px] h-[22px] fill-current text-gray-400 md:hover:text-white cursor-pointer md:hover:scale-105" />
+                <SkipBack
+                    className="w-[22px] h-[22px] fill-current text-gray-400 md:hover:text-white cursor-pointer md:hover:scale-105"
+                    onClick={async () => {
+                        await prev();
+                        play();
+                    }}
+                />
                 {$playing ? (
                     <CirclePause
                         className="w-8 h-8 text-gray-400 md:hover:text-white cursor-pointer md:hover:scale-105"

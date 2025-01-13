@@ -48,12 +48,17 @@ type CurrentSong =
     | undefined;
 
 const userJsonResponse = await fetch(
-    "/api/user?q=currentSong,currentTime,queue,queueIndex,volume"
+    "/api/user?q=currentSong,currentTime,queue,queueIndex,volume,randomQueue"
 );
 let userJson;
 if (userJsonResponse.ok) {
     userJson = (await userJsonResponse.json()) as UserDB<
-        "currentSong" | "currentTime" | "queue" | "queueIndex" | "volume"
+        | "currentSong"
+        | "currentTime"
+        | "queue"
+        | "queueIndex"
+        | "volume"
+        | "randomQueue"
     >;
 }
 
@@ -112,9 +117,12 @@ export const currentTime = atom<number | undefined>(undefined);
 export const totalTime = atom<number | undefined>(undefined);
 export const queue = atom<Queue>(_queue);
 export const queueIndex = atom<number | undefined>(_queueIndex);
-// console.log(window.innerWidth < 768 ? 1 : (userJson?.volume ?? 1));
 export const volume = atom<number>(
     window.innerWidth < 768 ? 1 : (userJson?.volume ?? 1)
+);
+
+export const randomQueue = atom<boolean>(
+    userJson?.randomQueue == "1" ? true : false
 );
 
 const audio = new Audio(
@@ -124,6 +132,10 @@ const audio = new Audio(
 if (userJson?.currentTime) {
     audio.currentTime = userJson.currentTime;
 }
+
+randomQueue.subscribe((value) => {
+    send({ randomQueue: value ? "1" : "0" });
+});
 
 currentSong.subscribe((value) => {
     send({ currentSong: value?.id });

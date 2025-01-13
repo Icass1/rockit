@@ -8,6 +8,7 @@ interface Message {
     queueIndex?: number;
     songEnded?: string;
     volume?: number;
+    randomQueue?: "1" | "0";
 }
 
 export async function ALL(context: APIContext): Promise<Response> {
@@ -49,6 +50,13 @@ export async function ALL(context: APIContext): Promise<Response> {
             } else if (messageJson.queueIndex != undefined) {
                 db.prepare(`UPDATE user SET queueIndex = ? WHERE id = ?`).run(
                     messageJson.queueIndex,
+                    context.locals.user.id
+                );
+            } else if (messageJson.randomQueue != undefined) {
+                db.prepare(
+                    `UPDATE user SET randomQueue = ? WHERE id = ?`
+                ).run(
+                    messageJson.randomQueue,
                     context.locals.user.id
                 );
             } else if (messageJson.songEnded) {

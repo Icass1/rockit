@@ -26,27 +26,27 @@ export async function ALL(context: APIContext): Promise<Response> {
                 console.log("Unable to parse socket message", event.data);
                 return;
             }
-            if (messageJson.currentSong) {
+            if (messageJson.currentSong != undefined) {
                 db.prepare(`UPDATE user SET currentSong = ? WHERE id = ?`).run(
                     messageJson.currentSong,
                     context.locals.user.id
                 );
-            } else if (messageJson.currentTime) {
+            } else if (messageJson.currentTime != undefined) {
                 db.prepare(`UPDATE user SET currentTime = ? WHERE id = ?`).run(
                     messageJson.currentTime,
                     context.locals.user.id
                 );
-            } else if (messageJson.queue) {
+            } else if (messageJson.queue != undefined) {
                 db.prepare(`UPDATE user SET queue = ? WHERE id = ?`).run(
                     JSON.stringify(messageJson.queue),
                     context.locals.user.id
                 );
-            } else if (messageJson.volume) {
+            } else if (messageJson.volume != undefined) {
                 db.prepare(`UPDATE user SET volume = ? WHERE id = ?`).run(
                     messageJson.volume,
                     context.locals.user.id
                 );
-            } else if (messageJson.queueIndex) {
+            } else if (messageJson.queueIndex != undefined) {
                 db.prepare(`UPDATE user SET queueIndex = ? WHERE id = ?`).run(
                     messageJson.queueIndex,
                     context.locals.user.id

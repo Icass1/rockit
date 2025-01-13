@@ -221,7 +221,7 @@ export interface UserDBFull {
     currentList: string | undefined;
     currentSong: string | undefined;
     currentTime: number | undefined;
-    queue: { song: string; list: { type: string; id: string } | undefined }[];
+    queue: { song: string; list: { type: string; id: string } | undefined, index: number }[];
     queueIndex: number | undefined;
     randomQueue: string;
     likedSongs: PlaylistDBSong[];

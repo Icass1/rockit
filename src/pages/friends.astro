@@ -1,5 +1,5 @@
----
-import Layout from "@/layouts/Layout.astro";
+--- 
+import Layout from "@/layouts/Layout.astro"; 
 
 if (!Astro.locals.user) {
     return Astro.redirect("/login");
@@ -7,7 +7,25 @@ if (!Astro.locals.user) {
 ---
 
 <Layout title="Friends • Rock It!" currentPage="Friends">
-    <div class="mt-10 md:mt-0 px-4 md:px-12">
-        <h1>Friends (Work In Progress)</h1>
+    <div class="mt-10 md:mt-0 px-4 md:px-12 flex flex-col">
+        <!-- Contenedor de las 3 columnas -->
+        <div class="flex flex-1 justify-between space-x-4 mt-8 max-h-[70vh]">
+            <!-- Columna izquierda vacía -->
+            <div class="flex-1"></div>
+
+            <!-- Columna central con scroll -->
+            <div class="flex-1 flex flex-col items-center space-y-4 overflow-y-auto p-4">
+                {Array.from({ length: 20 }).map((_, index) => (
+                    <div
+                        class="w-full bg-neutral-700 rounded-md"
+                    >
+                        <p class="text-center py-4 h-32"> {index + 1}</p>
+                    </div>
+                ))}
+            </div>
+
+            <!-- Columna derecha vacía -->
+            <div class="flex-1 bg-neutral-600 rounded-2xl"></div>
+        </div>
     </div>
 </Layout>

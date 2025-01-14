@@ -1,5 +1,6 @@
 ---
 import Layout from "@/layouts/Layout.astro";
+import RadioStations from "@/components/RadioList";
 
 if (!Astro.locals.user) {
     return Astro.redirect("/login");
@@ -7,7 +8,5 @@ if (!Astro.locals.user) {
 ---
 
 <Layout title="Radio • Rock It!" currentPage="Radio">
-    <div class="mt-10 md:mt-0 px-4 md:px-12">
-        <h1>Radio (Work In Progress)</h1>
-    </div>
+    <RadioStations client:only="react">
 </Layout>

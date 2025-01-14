@@ -1,10 +1,7 @@
 import { downloads } from "@/stores/downloads";
 import { useStore } from "@nanostores/react";
 import { useEffect, useRef, useState, type Dispatch } from "react";
-import {
-    Download,
-    ArrowDownToLine,
-} from "lucide-react";
+import { Download, ArrowDownToLine } from "lucide-react";
 
 import type {
     SpotifyAlbum,
@@ -30,7 +27,6 @@ type ListInfo = {
     name: string;
     type: "playlist" | "album";
 };
-
 
 type StatusType = {
     songs: { [key: string]: EventSourceStatus };
@@ -93,7 +89,7 @@ function RenderListDownload({
                     <div className="flex flex-row items-center gap-2">
                         <div
                             className={
-                                "bg-gray-500 h-2 w-full rounded-full relative overflow-hidden"
+                                "bg-neutral-500 h-2 w-full rounded-full relative overflow-hidden"
                             }
                         >
                             <div
@@ -145,7 +141,7 @@ function RenderListDownload({
                                 <div className="w-full grid grid-cols-[1fr_max-content] items-center gap-x-2 ">
                                     <div
                                         className={
-                                            "bg-gray-500 h-2 w-full rounded-full relative " +
+                                            "bg-neutral-500 h-2 w-full rounded-full relative " +
                                             (songStatus[1].message == "Error" &&
                                                 "bg-red-400")
                                         }
@@ -200,7 +196,7 @@ function RenderSongDownload({
                 <div className="w-full grid grid-cols-[1fr_max-content] items-center gap-x-2 ">
                     <div
                         className={
-                            "bg-gray-500 h-2 w-full rounded-full relative " +
+                            "bg-neutral-500 h-2 w-full rounded-full relative " +
                             (songStatus[1].message == "Error" && "bg-red-400")
                         }
                     >
@@ -413,7 +409,7 @@ export default function Downloads({ navOpen }: { navOpen: boolean }) {
                         <span className="text-white font-semibold">Auto-Like all the songs?</span>
                         <label className="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" className="sr-only peer" />
-                            <div className="w-11 h-6 bg-gray-300 rounded-full peer peer-focus:ring-3 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 peer-checked:bg-green-600"></div>
+                            <div className="w-11 h-6 bg-neutral-300 rounded-full peer peer-focus:ring-3 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 peer-checked:bg-green-600"></div>
                             <span className="absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow peer-checked:translate-x-5 transition-transform"></span>
                         </label>
                     </div>*/}
@@ -457,7 +453,7 @@ export default function Downloads({ navOpen }: { navOpen: boolean }) {
             </div>
             <div
                 title="Downloads"
-                className={`h-8 rounded-md items-center ml-2 mr-2 transition-all gap-2 md:hover:bg-[#414141] ${ window.innerWidth > 768 ? "flex" : "hidden"}`}
+                className={`h-8 rounded-md items-center ml-2 mr-2 transition-all gap-2 md:hover:bg-[#414141] ${window.innerWidth > 768 ? "flex" : "hidden"}`}
                 onClick={() => {
                     setOpen((value) => !value);
                 }}

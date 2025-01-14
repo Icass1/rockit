@@ -63,7 +63,7 @@ export default function HeaderUser({ userName }: { userName: string }) {
             </div>
 
             <span className="font-medium">{userName}</span>
-            <div className="w-10 h-10 bg-gray-400 rounded-full overflow-hidden flex ml-4 items-center justify-center">
+            <div className="w-10 h-10 bg-neutral-400 rounded-full overflow-hidden flex ml-4 items-center justify-center">
                 <img
                     src="/user-placeholder.png"
                     alt="User avatar"

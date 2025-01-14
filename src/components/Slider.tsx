@@ -52,7 +52,7 @@ const Slider: FC<SliderProps> = ({
         <div
             className={
                 className +
-                " relative w-16 h-[3px] md:h-[4.5px] rounded-full bg-gray-700"
+                " relative w-16 h-[3px] md:h-[4.5px] rounded-full bg-neutral-700"
             }
         >
             {/* Barra de progreso */}

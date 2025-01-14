@@ -175,14 +175,14 @@ export default function UserStats() {
                     <div>No registered data.</div>
                 ) : (
                     <>
-                        <div className="md:w-96 bg-gray-800 rounded-lg p-2 h-fit flex flex-col font-semibold">
+                        <div className="md:w-96 bg-neutral-800 rounded-lg p-2 h-fit flex flex-col font-semibold">
                             <label>{totalTimesPlayedSong} songs listened</label>
                             <label>
                                 {getMinutes(totalMinutesListened)} minutes
                                 listened
                             </label>
                         </div>
-                        <div className="md:w-96 bg-gray-800 rounded-lg p-2 h-fit flex flex-col font-semibold">
+                        <div className="md:w-96 bg-neutral-800 rounded-lg p-2 h-fit flex flex-col font-semibold">
                             <label className="mb-2">
                                 Minutes listened per day
                             </label>
@@ -214,7 +214,7 @@ export default function UserStats() {
                                     .fill(0)
                                     .map((_, index) => (
                                         <div
-                                            className="bg-gray-600/50 absolute w-[1px] h-full"
+                                            className="bg-neutral-600/50 absolute w-[1px] h-full"
                                             style={{ left: `${index * 10}%` }}
                                         />
                                     ))}
@@ -222,7 +222,7 @@ export default function UserStats() {
                                     .fill(0)
                                     .map((_, index) => (
                                         <div
-                                            className="bg-gray-600/50 absolute h-[1px] w-full"
+                                            className="bg-neutral-600/50 absolute h-[1px] w-full"
                                             style={{ top: `${index * 10}%` }}
                                         />
                                     ))}

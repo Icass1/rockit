@@ -18,7 +18,7 @@ export default function BarGraph({
     const maxValue = Math.max(...items.map((item) => item.value));
 
     return (
-        <div className="md:w-96 h-[450px] bg-gray-800 rounded-lg p-2 overflow-hidden">
+        <div className="md:w-96 h-[450px] bg-neutral-800 rounded-lg p-2 overflow-hidden">
             <label className="text-lg font-semibold">{name}</label>
 
             <div className="relative w-full">

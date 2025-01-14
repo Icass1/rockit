@@ -494,7 +494,7 @@ export default function PlayerUI() {
                                     {$currentSong.artists[0].name}
                                 </a>
                             ) : (
-                                <div>Artista desconocido</div>
+                                <span>Artista desconocido</span>
                             )}
                         </p>
                     </div>

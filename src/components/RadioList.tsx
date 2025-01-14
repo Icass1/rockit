@@ -1,33 +1,77 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { ArrowUp } from "lucide-react";
+import { currentStation, play, type Station } from "@/stores/audio";
+import pkg from "lodash";
+const { debounce } = pkg;
 
-type Station = {
-    stationuuid: string;
-    name: string;
-    country: string;
-    tags: string;
-};
+function StationCard({ station, index }: { station: Station; index: number }) {
+    const handleClick = () => {
+        currentStation.set(station);
+        play();
+    };
+
+    return (
+        <tr
+            className={
+                " transition " +
+                (index % 2 == 0
+                    ? " hover:bg-neutral-700/60 "
+                    : " bg-neutral-700/20 hover:bg-neutral-700 ")
+            }
+            onClick={handleClick}
+        >
+            <td>
+                <img
+                    src={station.favicon || "/song-placeholder.png"}
+                    alt={station.name}
+                    className="w-20 h-20"
+                ></img>
+            </td>
+            <td className="p-3">{station.name}</td>
+            <td className="p-3">{station.country}</td>
+            <td className="p-3">
+                {station.tags
+                    .split(",")
+                    .map(
+                        (tag) =>
+                            String(tag).charAt(0).toUpperCase() +
+                            String(tag).slice(1)
+                    )
+                    .join(", ")}
+            </td>
+        </tr>
+    );
+}
 
 const RadioStations = () => {
-    const [stations, setStations] = useState<Station[]>([]);
     const [filteredStations, setFilteredStations] = useState<Station[]>([]);
-    const [search, setSearch] = useState("");
+    const [searchQuery, setSearchQuery] = useState("");
     const [filter, setFilter] = useState({ column: "name", ascending: true });
     const [error, setError] = useState<string | null>(null);
 
+    const searchDebounce = useRef<pkg.DebouncedFunc<(query: string) => void>>();
+
     useEffect(() => {
-        fetchStations("pop"); // Cambia "pop" según el tag que quieras buscar
+        searchDebounce.current = debounce((query: string) => {
+            search(query);
+        }, 1000);
     }, []);
 
-    const fetchStations = async (tag: string) => {
+    // useEffect(() => {
+    //     // Cambia "pop" según el tag que quieras buscar
+    //     fetchStations("byname", "Rock FM España");
+    // }, []);
+
+    const fetchStations = async (by: string, searchTerm: string) => {
         try {
-            const response = await fetch(`/api/radioStations?tag=${tag}`);
-            console.log(response);
+            const response = await fetch(
+                `/api/radio/stations/${by}/${searchTerm}?limit=10&offset=0`
+            );
             if (!response.ok) {
                 throw new Error("Failed to fetch stations");
             }
             const data = await response.json();
-            setStations(data);
+            setFilteredStations(data);
         } catch (err) {
             if (err instanceof Error) {
                 setError(err.message);
@@ -41,16 +85,15 @@ const RadioStations = () => {
         return <div>Error: {error}</div>;
     }
 
+    const search = (query: string) => {
+        fetchStations("byname", query);
+    };
+
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearch(e.target.value);
-        const searchTerm = e.target.value.toLowerCase();
-        const filtered = stations.filter(
-            (station) =>
-                station.name.toLowerCase().includes(searchTerm) ||
-                station.country.toLowerCase().includes(searchTerm) ||
-                station.tags.toLowerCase().includes(searchTerm)
-        );
-        setFilteredStations(filtered);
+        setSearchQuery(e.target.value);
+        if (searchDebounce.current) {
+            searchDebounce.current(e.target.value);
+        }
     };
 
     const handleSort = (column: keyof Station) => {
@@ -73,7 +116,7 @@ const RadioStations = () => {
                 <input
                     type="text"
                     placeholder="Search for stations..."
-                    value={search}
+                    value={searchQuery}
                     onChange={handleSearch}
                     className="px-5 py-2 rounded-md w-full max-w-md border border-neutral-700 bg-neutral-800 text-white"
                 />
@@ -83,6 +126,12 @@ const RadioStations = () => {
                     <thead>
                         <tr className="bg-neutral-700">
                             <th
+                                className="p-3 cursor-pointer w-20"
+                                onClick={() => handleSort("name")}
+                            >
+                                Cover
+                            </th>
+                            <th
                                 className="p-3 cursor-pointer"
                                 onClick={() => handleSort("name")}
                             >
@@ -90,9 +139,7 @@ const RadioStations = () => {
                                 {filter.column === "name" && (
                                     <ArrowUp
                                         className={`w-5 h-5 inline ml-2 transition-transform ${
-                                            filter.ascending
-                                                ? ""
-                                                : "rotate-180"
+                                            filter.ascending ? "" : "rotate-180"
                                         }`}
                                     />
                                 )}
@@ -105,9 +152,7 @@ const RadioStations = () => {
                                 {filter.column === "country" && (
                                     <ArrowUp
                                         className={`w-5 h-5 inline ml-2 transition-transform ${
-                                            filter.ascending
-                                                ? ""
-                                                : "rotate-180"
+                                            filter.ascending ? "" : "rotate-180"
                                         }`}
                                     />
                                 )}
@@ -116,13 +161,11 @@ const RadioStations = () => {
                                 className="p-3 cursor-pointer"
                                 onClick={() => handleSort("tags")}
                             >
-                                Genre
+                                Tags
                                 {filter.column === "tags" && (
                                     <ArrowUp
                                         className={`w-5 h-5 inline ml-2 transition-transform ${
-                                            filter.ascending
-                                                ? ""
-                                                : "rotate-180"
+                                            filter.ascending ? "" : "rotate-180"
                                         }`}
                                     />
                                 )}
@@ -131,17 +174,12 @@ const RadioStations = () => {
                     </thead>
                     <tbody>
                         {filteredStations.length > 0 ? (
-                            filteredStations.map((station) => (
-                                <tr
+                            filteredStations.map((station, index) => (
+                                <StationCard
+                                    index={index}
+                                    station={station}
                                     key={station.stationuuid}
-                                    className="hover:bg-neutral-700 transition"
-                                >
-                                    <td className="p-3">{station.name}</td>
-                                    <td className="p-3">
-                                        {station.country}
-                                    </td>
-                                    <td className="p-3">{station.tags}</td>
-                                </tr>
+                                />
                             ))
                         ) : (
                             <tr>

@@ -1,5 +1,6 @@
 import { atom } from "nanostores";
 import type { SongDB, UserDB } from "@/lib/db";
+import Hls from "hls.js";
 
 let websocket: WebSocket;
 
@@ -35,7 +36,7 @@ export type QueueElement = {
 };
 
 type Queue = QueueElement[];
-type CurrentSong =
+export type CurrentSong =
     | SongDB<
           | "images"
           | "id"
@@ -46,6 +47,46 @@ type CurrentSong =
           | "duration"
       >
     | undefined;
+
+export type Station = {
+    changeuuid: string;
+    stationuuid: string;
+    serveruuid: string;
+    name: string;
+    url: string;
+    url_resolved: string;
+    homepage: string;
+    favicon: string;
+    tags: string;
+    country: string;
+    countrycode: string;
+    iso_3166_2: string;
+    state: string;
+    language: string;
+    languagecodes: string;
+    votes: number;
+    lastchangetime: string;
+    lastchangetime_iso8601: string;
+    codec: string;
+    bitrate: number;
+    hls: number;
+    lastcheckok: number;
+    lastchecktime: string;
+    lastchecktime_iso8601: string;
+    lastcheckoktime: string;
+    lastcheckoktime_iso8601: string;
+    lastlocalchecktime: string;
+    lastlocalchecktime_iso8601: string;
+    clicktimestamp: string;
+    clicktimestamp_iso8601: string;
+    clickcount: number;
+    clicktrend: number;
+    ssl_error: number;
+    geo_lat: any;
+    geo_long: any;
+    geo_distance: any;
+    has_extended_info: boolean;
+};
 
 const userJsonResponse = await fetch(
     "/api/user?q=currentSong,currentTime,queue,queueIndex,volume,randomQueue"
@@ -120,14 +161,16 @@ export const queueIndex = atom<number | undefined>(_queueIndex);
 export const volume = atom<number>(
     window.innerWidth < 768 ? 1 : (userJson?.volume ?? 1)
 );
-
 export const randomQueue = atom<boolean>(
     userJson?.randomQueue == "1" ? true : false
 );
 
+export const currentStation = atom<Station | undefined>(undefined);
+
 const audio = new Audio(
     _currentSong?.id ? `/api/song/audio/${_currentSong?.id}` : undefined
 );
+const hls = new Hls();
 
 if (userJson?.currentTime) {
     audio.currentTime = userJson.currentTime;
@@ -186,6 +229,41 @@ currentSong.subscribe((value) => {
     }
 });
 
+async function isHlsContent(url: string) {
+    try {
+        const response = await fetch(url, {
+            method: "GET",
+            headers: { Range: "bytes=0-512" },
+        });
+        const text = await response.text();
+        return text.includes("#EXTM3U") && text.includes("#EXT-X-");
+    } catch (error) {
+        console.error("Error fetching content:", error);
+        return false;
+    }
+}
+
+currentStation.subscribe(async (value) => {
+    clearCurrentSong();
+
+    send({ currentStation: value?.stationuuid });
+    if (value?.url_resolved) {
+        const isHls = await isHlsContent(value.url_resolved);
+
+        if (Hls.isSupported() && isHls) {
+            hls.loadSource(value.url_resolved);
+            hls.attachMedia(audio);
+            hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                audio
+                    .play()
+                    .catch((err) => console.error("Error playing audio:", err));
+            });
+        } else {
+            audio.src = value.url_resolved;
+        }
+    }
+});
+
 queue.subscribe((value) => {
     send({
         queue: value
@@ -224,6 +302,13 @@ export const pause = () => {
 
 export function setTime(time: number) {
     audio.currentTime = time;
+}
+
+export function clearCurrentSong() {
+    currentSong.set(undefined);
+    queue.set([]);
+    currentTime.set(0);
+    send({ currentTime: 0 });
 }
 
 export async function prev() {

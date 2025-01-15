@@ -66,6 +66,12 @@ const RadioStations = () => {
 
     const fetchStations = async (by: string, searchTerm: string) => {
         try {
+            if (!searchTerm.trim()) {
+                // Si el término de búsqueda está vacío, no hace la solicitud
+                setFilteredStations([]);
+                return;
+            }
+
             const response = await fetch(
                 `/api/radio/stations/${by}/${searchTerm}?limit=10&offset=0`
             );
@@ -112,7 +118,7 @@ const RadioStations = () => {
     if (innerWidth > 768) {
         return (
             <div className="p-6 text-white min-h-screen">
-                <h1 className="text-3xl font-bold mb-4 text-center">
+                <h1 className="text-3xl font-bold mb-4 text-center select-none">
                     Radio Stations 📻
                 </h1>
                 <div className="mb-4 flex justify-between items-center">
@@ -121,13 +127,13 @@ const RadioStations = () => {
                         placeholder="Search for stations..."
                         value={searchQuery}
                         onChange={handleSearch}
-                        className="px-5 py-2 rounded-md w-full max-w-md border border-neutral-700 bg-neutral-800 text-white"
+                        className="px-5 py-2 rounded-full w-full max-w-md border border-neutral-700 bg-neutral-800 text-white ml-auto"
                     />
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full table-auto bg-neutral-800 rounded-md overflow-hidden">
                         <thead>
-                            <tr className="bg-neutral-700">
+                            <tr className="bg-neutral-700 select-none">
                                 <th
                                     className="p-3 cursor-pointer w-20"
                                     onClick={() => handleSort("name")}
@@ -148,7 +154,7 @@ const RadioStations = () => {
                                     )}
                                 </th>
                                 <th
-                                    className="p-3 cursor-pointer"
+                                    className="p-3 cursor-pointer w-36"
                                     onClick={() => handleSort("country")}
                                 >
                                     Country

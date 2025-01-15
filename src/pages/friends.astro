@@ -1,6 +1,6 @@
 --- 
 import Layout from "@/layouts/Layout.astro"; 
-import { Forward, Play } from "lucide-react";
+import { Check, Forward, Play, Send, UserRoundPlus, UserRoundX, X } from "lucide-react";
 
 if (!Astro.locals.user) {
     return Astro.redirect("/login");
@@ -10,48 +10,54 @@ if (!Astro.locals.user) {
 <Layout title="Friends • Rock It!" currentPage="Friends">
     <div class="mt-10 md:mt-0 px-4 md:px-12 flex flex-col">
         <!-- Contenedor de las 3 columnas -->
-        <div class="flex flex-1 justify-between space-x-4 mt-8">
+        <div class="flex flex-1 justify-between space-x-14 mt-8">
             <!-- Columna izquierda vacía -->
             <div class="flex-1"></div>
 
             <!-- Columna central con scroll -->
-            <div class="relative flex-1 flex flex-col items-center space-y-6 overflow-auto p-4 max-h-[76vh]">
-                <!-- Lista de canciones -->
-                {Array.from({ length: 20 }).map((_, index) => (
-                    <div class="group w-full bg-neutral-700 rounded-md p-4 flex items-center space-x-4 relative">
+            <div class="relative flex-1 flex flex-col items-center max-h-[76vh]">
+                <h1 class="text-white text-2xl md:text-3xl font-bold pb-4">Shared Songs for You</h1>
+                <!-- Contenedor con scroll para la lista de canciones -->
+                <div class="overflow-auto w-full p-6 space-y-6">
+                    <!-- Lista de canciones -->
+                    {Array.from({ length: 20 }).map((_, index) => (
+                        <div class="group w-full bg-neutral-700 rounded-md p-4 flex items-center space-x-4 relative">
             
-                        {/* Imagen de la canción */}
-                        <div class="relative w-24 h-24 hover:cursor-pointer">
-                            <img 
-                                src="/song-placeholder.png" 
-                                alt="Imagen" 
-                                class="w-full h-full object-cover rounded-md group-hover:opacity-40 transition-opacity"
-                            />
+                            {/* Imagen de la canción */}
+                            <div class="relative w-24 h-24 hover:cursor-pointer">
+                                <img 
+                                    src="/song-placeholder.png" 
+                                    alt="Imagen" 
+                                    class="w-full h-full object-cover rounded-md group-hover:opacity-40 transition-opacity"
+                                />
 
-                            {/* Icono de play centrado */}
-                            <Play className="h-8 w-8 absolute inset-0 m-auto text-4xl opacity-0 group-hover:opacity-100 transition-opacity fill-current" />
-                        </div>
-                        
-                        {/* Contenedor de los textos - nombre de la canción, autor y álbum */}
-                        <div class="flex flex-col overflow-hidden">
-                            <a href="" class="text-left hover:underline truncate font-semibold text-lg">Nombre de la canción {index + 1}</a>
-                            <a href="" class="text-left hover:underline truncate text-md text-gray-400">Autor de la canción {index + 1}</a>
-                            <a href="" class="text-left hover:underline truncate text-sm text-gray-400">Álbum de la canción {index + 1}</a>
-                        </div>
+                                {/* Icono de play centrado */}
+                                <Play className="h-8 w-8 absolute inset-0 m-auto text-4xl opacity-0 group-hover:opacity-100 transition-opacity fill-current" />
+                            </div>
+                            
+                            {/* Contenedor de los textos - nombre de la canción, autor y álbum */}
+                            <div class="flex flex-col overflow-hidden">
+                                <a href="" class="text-left hover:underline truncate font-semibold text-lg">Nombre de la canción {index + 1}</a>
+                                <a href="" class="text-left hover:underline truncate text-md text-gray-400">Autor de la canción {index + 1}</a>
+                                <a href="" class="text-left hover:underline truncate text-sm text-gray-400">Álbum de la canción {index + 1}</a>
+                            </div>
 
-                        {/* Mensaje de "Compartido por Nicorebo18" dentro de cada canción */}
-                        <div class="absolute -top-3 -right-2 bg-gradient-to-r from-[#ee1086] to-[#ce5254] text-white text-sm px-2 rounded-md flex items-center space-x-2">
-                            <Forward className="h-7" />
-                            <span>Shared from user {index + 1}</span>
+                            {/* Mensaje de "Compartido por Nicorebo18" dentro de cada canción */}
+                            <div class="absolute -top-3 -right-2 bg-gradient-to-r from-[#ee1086] to-[#ce5254] text-white text-sm px-2 rounded-md flex items-center space-x-2">
+                                <Forward className="h-7" />
+                                <span>Shared from user {index + 1}</span>
+                            </div>
                         </div>
-                    </div>
-                ))}
+                    ))}
+                </div>
             </div>
 
             <!-- Columna derecha con barra de búsqueda y lista de usuarios -->
             <div class="flex-1 bg-neutral-800 rounded-2xl p-4 flex flex-col space-y-4">
 
-                <h1 class="text-2xl text-white font-semibold">Usuarios</h1>
+                <div class="flex justify-center items-center py-3">
+                    <h1 class="text-white text-2xl md:text-3xl font-bold text-center">Users and Friends</h1>
+                </div>
                 <!-- Barra de búsqueda -->
                 <div class="flex items-center bg-neutral-700 rounded-full p-2 my-4 mx-14">
                     <input 
@@ -62,24 +68,131 @@ if (!Astro.locals.user) {
                     <i class="fas fa-search text-gray-400"></i>
                 </div>
 
-                <!-- Lista de usuarios -->
-                <div class="flex flex-col space-y-4 overflow-y-auto">
-                    {Array.from({ length: 10 }).map((_, index) => (
-                        <div class="flex items-center bg-neutral-700 rounded-md p-4 space-x-4">
-                            <!-- Imagen de perfil del usuario -->
-                            <img 
-                                src="/user-placeholder.png" 
-                                alt="Usuario" 
-                                class="w-12 h-12 object-cover rounded-full"
-                            />
-                            
-                            <!-- Detalles del usuario -->
-                            <div class="flex flex-col">
-                                <p class="text-white font-semibold">Usuario {index + 1}</p>
-                                <p class="text-sm text-gray-400">Detalles del usuario</p>
+                <!-- Lista de solicitudes -->
+                <div class="flex flex-col space-y-4 overflow-y-auto pt-3">
+                    <h2 class="text-white font-semibold text-left">Lista de Solicitudes</h2>
+                    {Array.from({ length: 1 }).map((_, index) => {
+                        const isOnline = index % 2 === 0; // Ejemplo: alterna entre conectado y desconectado
+                        return (
+                            <div class="flex items-center bg-neutral-700 rounded-lg px-4 py-3 space-x-4">
+                                <!-- Contenedor para la imagen de perfil y el estado -->
+                                <div class="relative">
+                                    <!-- Imagen de perfil del usuario -->
+                                    <img 
+                                        src="/user-placeholder.png" 
+                                        alt="Usuario" 
+                                        class="w-14 h-14 object-cover rounded-full"
+                                    />
+                                    <!-- Círculo de estado -->
+                                    <span
+                                        class={`absolute bottom-0 right-0 w-4 h-4 rounded-full ${
+                                            isOnline ? "bg-blue-500" : "bg-gray-500"
+                                        } border-2 border-neutral-700`}
+                                    ></span>
+                                </div>
+
+                                <!-- Detalles del usuario -->
+                                <div class="flex flex-col flex-grow ml-4">
+                                    <p class="text-white font-semibold">Solicitante {index + 1}</p>
+                                    <p class="text-sm text-gray-400">Detalles del usuario</p>
+                                </div>
+
+                                <!-- Botones -->
+                                <div class="flex space-x-2 ml-auto">
+                                    <button class="transition flex items-center rounded-lg p-2 text-green-500 hover:bg-neutral-600">
+                                        <Check className="h-7 w-7" />
+                                    </button>
+                                    <button class="transition flex items-center rounded-lg p-2 text-red-500 hover:bg-neutral-600">
+                                        <X className="h-7 w-7" />
+                                    </button>
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
+                </div>
+
+                <!-- Lista de amigos -->
+                <div class="flex flex-col space-y-4 overflow-y-auto pt-3">
+                    <h2 class="text-white font-semibold text-left">Lista de Amigos</h2>
+                    {Array.from({ length: 3 }).map((_, index) => {
+                        const isOnline = index % 2 === 0; // Ejemplo: alterna entre conectado y desconectado
+                        return (
+                            <div class="flex items-center bg-neutral-700 rounded-lg px-4 py-3 space-x-4">
+                                <!-- Contenedor para la imagen de perfil y el estado -->
+                                <div class="relative">
+                                    <!-- Imagen de perfil del usuario -->
+                                    <img 
+                                        src="/user-placeholder.png" 
+                                        alt="Usuario" 
+                                        class="w-14 h-14 object-cover rounded-full"
+                                    />
+                                    <!-- Círculo de estado -->
+                                    <span
+                                        class={`absolute bottom-0 right-0 w-4 h-4 rounded-full ${
+                                            isOnline ? "bg-green-500" : "bg-gray-500"
+                                        } border-2 border-neutral-700`}
+                                    ></span>
+                                </div>
+
+                                <!-- Detalles del usuario -->
+                                <div class="flex flex-col flex-grow ml-4">
+                                    <p class="text-white font-semibold">Amigo {index + 1}</p>
+                                    <p class="text-sm text-gray-400">Detalles del usuario</p>
+                                </div>
+
+                                <!-- Botones -->
+                                <div class="flex space-x-4 ml-auto">
+                                    <button class="p-2 rounded-lg hover:bg-[#c13881] transition flex items-center space-x-2 truncate">
+                                        <Send className="h-5 w-5" />
+                                        <span>Send current song</span>
+                                    </button>
+                                    <button class="p-2 text-white rounded-lg hover:bg-red-600 transition">
+                                        <UserRoundX className="h-6 w-6" />
+                                    </button>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+
+                <!-- Lista de usuarios -->
+                <div class="flex flex-col space-y-4 overflow-y-auto pt-3">
+                    <h2 class="text-white font-semibold text-left">Lista de Usuarios</h2>
+                    {Array.from({ length: 10 }).map((_, index) => {
+                        const isOnline = index % 3 === 0; // Ejemplo: cada tercer usuario está conectado
+                        return (
+                            <div class="flex items-center bg-neutral-700 rounded-lg p-3 space-x-4">
+                                <!-- Contenedor para la imagen de perfil y el estado -->
+                                <div class="relative">
+                                    <!-- Imagen de perfil del usuario -->
+                                    <img 
+                                        src="/user-placeholder.png" 
+                                        alt="Usuario" 
+                                        class="w-14 h-14 object-cover rounded-full"
+                                    />
+                                    <!-- Círculo de estado -->
+                                    <span
+                                        class={`absolute bottom-0 right-0 w-4 h-4 rounded-full ${
+                                            isOnline ? "bg-green-500" : "bg-gray-500"
+                                        } border-2 border-neutral-700`}
+                                    ></span>
+                                </div>
+
+                                <!-- Detalles del usuario -->
+                                <div class="flex flex-col flex-grow ml-4">
+                                    <p class="text-white font-semibold">Usuario {index + 1}</p>
+                                    <p class="text-sm text-gray-400">Detalles del usuario</p>
+                                </div>
+
+                                <!-- Botones -->
+                                <div class="flex space-x-4 ml-auto">
+                                    <button class="p-2 text-white rounded-lg hover:bg-green-600 transition">
+                                        <UserRoundPlus className="h-6 w-6" />
+                                    </button>
+                                </div>
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
         </div>

@@ -25,7 +25,7 @@ function StationCard({ station, index }: { station: Station; index: number }) {
                 <img
                     src={station.favicon || "/song-placeholder.png"}
                     alt={station.name}
-                    className="w-20 h-20"
+                    className="w-20 h-20 object-contain"
                 ></img>
             </td>
             <td className="p-3">{station.name}</td>
@@ -124,7 +124,7 @@ const RadioStations = () => {
                 <div className="mb-4 flex justify-between items-center">
                     <input
                         type="text"
-                        placeholder="Search for stations..."
+                        placeholder="Search for stations, tags, countries..."
                         value={searchQuery}
                         onChange={handleSearch}
                         className="px-5 py-2 rounded-full w-full max-w-md border border-neutral-700 bg-neutral-800 text-white ml-auto"
@@ -211,7 +211,7 @@ const RadioStations = () => {
                 <div className="mb-4">
                     <input
                         type="text"
-                        placeholder="Search for stations..."
+                        placeholder="Search for stations, tags, countries..."
                         value={searchQuery}
                         onChange={handleSearch}
                         className="px-4 py-2 rounded-full w-full border border-neutral-700 bg-neutral-800 text-white"

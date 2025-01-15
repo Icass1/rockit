@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { ArrowUp } from "lucide-react";
+import { ArrowUp, Play } from "lucide-react";
 import { currentStation, play, type Station } from "@/stores/audio";
 import pkg from "lodash";
 import useWindowSize from "@/hooks/useWindowSize";
@@ -115,8 +115,8 @@ const RadioStations = () => {
         setFilter({ column, ascending: isAscending });
     };
 
-    if (innerWidth > 768) {
-        return (
+    /*
+    return (
             <div className="p-6 text-white min-h-screen">
                 <h1 className="text-3xl font-bold mb-4 text-center select-none">
                     Radio Stations 📻
@@ -147,9 +147,9 @@ const RadioStations = () => {
                                     Name
                                     {filter.column === "name" && (
                                         <ArrowUp
-                                            className={`w-5 h-5 inline ml-2 transition-transform ${
+                                            className={w-5 h-5 inline ml-2 transition-transform ${
                                                 filter.ascending ? "" : "rotate-180"
-                                            }`}
+                                            }}
                                         />
                                     )}
                                 </th>
@@ -160,9 +160,9 @@ const RadioStations = () => {
                                     Country
                                     {filter.column === "country" && (
                                         <ArrowUp
-                                            className={`w-5 h-5 inline ml-2 transition-transform ${
+                                            className={w-5 h-5 inline ml-2 transition-transform ${
                                                 filter.ascending ? "" : "rotate-180"
-                                            }`}
+                                            }}
                                         />
                                     )}
                                 </th>
@@ -173,9 +173,9 @@ const RadioStations = () => {
                                     Tags
                                     {filter.column === "tags" && (
                                         <ArrowUp
-                                            className={`w-5 h-5 inline ml-2 transition-transform ${
+                                            className={w-5 h-5 inline ml-2 transition-transform ${
                                                 filter.ascending ? "" : "rotate-180"
-                                            }`}
+                                            }}
                                         />
                                     )}
                                 </th>
@@ -202,6 +202,62 @@ const RadioStations = () => {
                 </div>
             </div>
         );
+    */
+
+    if (innerWidth > 768) {
+        return (
+            <div className="p-6 text-white min-h-screen">
+                <h1 className="text-3xl font-bold mb-4 text-center select-none">
+                    Radio Stations 📻
+                </h1>
+                <div className="mb-4 flex justify-between items-center">
+                    <input
+                        type="text"
+                        placeholder="Search for stations, tags, countries..."
+                        value={searchQuery}
+                        onChange={handleSearch}
+                        className="px-5 py-2 my-3 rounded-full w-full max-w-md border border-neutral-700 bg-neutral-800 text-white mx-auto"
+                    />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {filteredStations.length > 0 ? (
+                        filteredStations.map((station) => (
+                            <div
+                                key={station.stationuuid}
+                                className="flex items-center bg-neutral-800 rounded-md px-4 py-2 h-24"
+                            >
+                                {/* Imagen de la estación */}
+                                <img
+                                    src={station.favicon || "/logos/logo-sq-2.png"}
+                                    alt={`${station.name} cover`}
+                                    className="w-14 h-14 rounded-md mr-4"
+                                />
+                                {/* Información de la estación */}
+                                <div className="flex-1">
+                                    <h3 className="text-lg font-semibold line-clamp-2">
+                                        {station.name}
+                                    </h3>
+                                    <p className="text-sm text-neutral-400 mt-1 line-clamp-1">
+                                        {station.country || "Unknown Country"}
+                                    </p>
+                                </div>
+                                {/* Botón de reproducción */}
+                                <button
+                                    className="p-2 bg-green-500 hover:bg-green-600 rounded-full text-white ml-4"
+                                    onClick={() => handlePlay(station)}
+                                >
+                                    <Play className="h-6 w-6 fill-current" />
+                                </button>
+                            </div>
+                        ))
+                    ) : (
+                        <div className="col-span-full text-center p-4">
+                            No stations found.
+                        </div>
+                    )}
+                </div>
+            </div>
+        );        
     } else {
         return (
             <div className="p-4 text-white mt-20">

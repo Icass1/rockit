@@ -12,12 +12,12 @@ function StationCard({ station }: { station: Station }) {
     };
 
     return (
-        <div className="flex items-center bg-neutral-800 rounded-md px-4 py-2 h-32 shadow-md hover:bg-neutral-700 transition cursor-pointer">
+        <div className="flex items-center bg-neutral-800 rounded-md px-4 py-2 h-32 shadow-md hover:bg-neutral-700 transition cursor-pointer" onClick={handleClick}>
             {/* Imagen de la estación */}
             <img
                 src={station.favicon || "/logos/logo-sq-2.png"}
                 alt={`${station.name} cover`}
-                className="w-24 h-24 rounded-md mr-4 object-cover"
+                className="w-14 md:w-24 h-14 md:h-24 rounded-md mr-4 object-cover"
             />
             {/* Información de la estación */}
             <div className="flex-1">
@@ -40,14 +40,14 @@ function StationCard({ station }: { station: Station }) {
             </div>
             {/* Botón de añadir a Library*/}
             <button
-                className="p-[10px] bg-neutral-700 hover:bg-neutral-500 rounded-full text-white ml-4"
+                className="p-[10px] bg-neutral-700 hover:bg-neutral-500 rounded-full text-white ml-1 md:ml-4"
             >
                 <ListPlus className="h-6 w-6 fill-current" />
             </button>
 
             {/* Botón de reproducción */}
             <button
-                className="p-3 bg-pink-500 hover:bg-pink-600 rounded-full text-white ml-4"
+                className="hidden md:flex p-3 bg-pink-500 hover:bg-pink-600 rounded-full text-white ml-4"
                 onClick={handleClick}
             >
                 <Play className="h-5 w-5 fill-current" />
@@ -167,31 +167,21 @@ const RadioStations = () => {
                     />
                 </div>
                 <div className="space-y-4">
-                    {filteredStations.length > 0 ? (
+                {filteredStations.length > 0 ? (
                         filteredStations.map((station, index) => (
-                            <div
+                            <StationCard
+                                station={station}
                                 key={station.stationuuid}
-                                className="flex items-center bg-neutral-800 rounded-md px-4 py-2 h-24"
-                            >
-                                <img
-                                    src={station.favicon || "/logos/logo-sq-2.png"}
-                                    alt={`${station.name} cover`}
-                                    className="w-14 h-14 rounded-md mr-4"
-                                />
-                                <div className="flex-1">
-                                    <h3 className="text-lg font-semibold line-clamp-2">
-                                        {station.name}
-                                    </h3>
-                                    <p className="text-sm text-neutral-400 mt-1 line-clamp-1">
-                                        {station.country || "Unknown Country"}
-                                    </p>
-                                </div>
-                            </div>
+                            />
                         ))
                     ) : (
-                        <p className="text-center text-neutral-400">
-                            No stations found.
-                        </p>
+                        <div className="flex flex-col items-center justify-center col-span-full h-36">
+                            <SearchX className="w-16 h-16 mb-4" />
+                            <p className="text-white text-2xl font-semibold">No se han encontrado estaciones</p>
+                            <p className="text-neutral-400 text-lg mt-2">
+                                Desde samba brasileña hasta rock australiano, busca y sintoniza tu próximo ritmo favorito!
+                            </p>
+                        </div>
                     )}
                 </div>
                 <div className="min-h-10"></div>

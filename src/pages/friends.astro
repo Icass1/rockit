@@ -11,16 +11,46 @@ if (!Astro.locals.user) {
     <div class="mt-10 md:mt-0 px-4 md:px-12 flex flex-col">
         <!-- Contenedor de las 3 columnas -->
         <div class="flex flex-1 justify-between space-x-14 mt-8">
-            <!-- Columna izquierda vacía -->
-            <div class="flex-1"></div>
+            <!-- Columna izquierda con gráfico circular, nickname y descripción -->
+            <div class="flex-1 flex flex-col items-center space-y-6">
+                <!-- Gráfico circular -->
+                <div class="relative flex items-center justify-center">
+
+                    <svg class="w-full h-full transform -rotate-90" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+                        <!-- Definición del gradiente -->
+                        <defs>
+                            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#ee1086" />
+                                <stop offset="100%" stop-color="#fb6467" />
+                            </linearGradient>
+                        </defs>
+                    
+                        <!-- Círculo de fondo -->
+                        <circle cx="60" cy="60" r="50" class="text-gray-200" stroke-width="5" fill="none" />
+                        
+                        <!-- Círculo de progreso con el gradiente -->
+                        <circle cx="60" cy="60" r="50" class="text-pink-500" stroke-width="5" fill="none" stroke="url(#gradient)" stroke-dasharray="300" stroke-dashoffset="78.539" stroke-linecap="round" />
+                    </svg>
+                    
+                    <span class="absolute text-white font-semibold text-3xl">Niv. 72</span>
+                </div>
+
+                <!-- Nickname -->
+                <p class="text-white font-semibold text-4xl">Usuario123</p>
+
+                <!-- Descripción sobre el sistema de puntos -->
+                <p class="text-md text-center text-gray-400 px-6 text-balance">
+                    Gana puntos escuchando música, compartiendo canciones, escuchando música con amigos o añadiendo nuevos amigos. ¡Sigue participando y sube de nivel!
+                </p>
+            </div>
 
             <!-- Columna central con scroll -->
-            <div class="relative flex-1 flex flex-col items-center max-h-[76vh]">
+            <div class="relative flex-1 flex flex-col items-center">
                 <h1 class="text-white text-2xl md:text-3xl font-bold pb-4">Shared Songs for You</h1>
                 <!-- Contenedor con scroll para la lista de canciones -->
                 <div class="overflow-auto w-full p-6 space-y-6">
                     <!-- Lista de canciones -->
-                    {Array.from({ length: 20 }).map((_, index) => (
+                    {Array.from({ length: 10 }).map((_, index) => (
                         <div class="group w-full bg-neutral-700 rounded-md p-4 flex items-center space-x-4 relative">
             
                             {/* Imagen de la canción */}
@@ -53,7 +83,7 @@ if (!Astro.locals.user) {
             </div>
 
             <!-- Columna derecha con barra de búsqueda y lista de usuarios -->
-            <div class="flex-1 bg-neutral-800 rounded-2xl p-4 flex flex-col space-y-4">
+            <div class="flex-1 bg-neutral-800 rounded-2xl p-4 flex flex-col space-y-4 h-fit">
 
                 <div class="flex justify-center items-center py-3">
                     <h1 class="text-white text-2xl md:text-3xl font-bold text-center">Users and Friends</h1>
@@ -158,7 +188,7 @@ if (!Astro.locals.user) {
                 <!-- Lista de usuarios -->
                 <div class="flex flex-col space-y-4 overflow-y-auto pt-3">
                     <h2 class="text-white font-semibold text-left">Lista de Usuarios</h2>
-                    {Array.from({ length: 10 }).map((_, index) => {
+                    {Array.from({ length: 5 }).map((_, index) => {
                         const isOnline = index % 3 === 0; // Ejemplo: cada tercer usuario está conectado
                         return (
                             <div class="flex items-center bg-neutral-700 rounded-lg p-3 space-x-4">

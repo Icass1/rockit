@@ -8,7 +8,7 @@ export default function FooterRightMobile() {
     const $currentSong = useStore(currentSong);
 
     return (
-        <div className="flex md:hidden items-center w-fit h-full justify-end pr-3 md:pr-0 gap-x-5 group">
+        <div className="flex md:hidden items-center w-fit h-full justify-end px-3 md:px-0 gap-x-5 group">
             {$currentSong && <LikeButton song={$currentSong} />}
             {$playing ? (
                 <Pause

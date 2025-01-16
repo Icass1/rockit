@@ -1,53 +1,57 @@
 import React, { useState, useEffect, useRef } from "react";
-import { ArrowUp, Play } from "lucide-react";
+import { Play, SearchX } from "lucide-react";
 import { currentStation, play, type Station } from "@/stores/audio";
 import pkg from "lodash";
 import useWindowSize from "@/hooks/useWindowSize";
 const { debounce } = pkg;
 
-function StationCard({ station, index }: { station: Station; index: number }) {
+function StationCard({ station }: { station: Station }) {
     const handleClick = () => {
         currentStation.set(station);
         play();
     };
 
     return (
-        <tr
-            className={
-                " transition " +
-                (index % 2 == 0
-                    ? " hover:bg-neutral-700/60 "
-                    : " bg-neutral-700/20 hover:bg-neutral-700 ")
-            }
-            onClick={handleClick}
-        >
-            <td>
-                <img
-                    src={station.favicon || "/song-placeholder.png"}
-                    alt={station.name}
-                    className="w-20 h-20 object-contain"
-                ></img>
-            </td>
-            <td className="p-3">{station.name}</td>
-            <td className="p-3">{station.country}</td>
-            <td className="p-3">
-                {station.tags
-                    .split(",")
-                    .map(
-                        (tag) =>
-                            String(tag).charAt(0).toUpperCase() +
-                            String(tag).slice(1)
-                    )
-                    .join(", ")}
-            </td>
-        </tr>
+        <div className="flex items-center bg-neutral-800 rounded-md px-4 py-2 h-32 shadow-md hover:bg-neutral-700 transition cursor-pointer">
+            {/* Imagen de la estación */}
+            <img
+                src={station.favicon || "/logos/logo-sq-2.png"}
+                alt={`${station.name} cover`}
+                className="w-24 h-24 rounded-md mr-4 object-cover"
+            />
+            {/* Información de la estación */}
+            <div className="flex-1">
+                <h3 className="text-lg font-semibold text-white line-clamp-2">
+                    {station.name}
+                </h3>
+                <p className="text-sm text-neutral-400 mt-1 line-clamp-1">
+                    {station.country || "Unknown Country"}
+                </p>
+                <p className="text-xs text-neutral-500 mt-1 line-clamp-1">
+                    {station.tags
+                        .split(",")
+                        .map(
+                            (tag) =>
+                                String(tag).charAt(0).toUpperCase() +
+                                String(tag).slice(1)
+                        )
+                        .join(", ")}
+                </p>
+            </div>
+            {/* Botón de reproducción */}
+            <button
+                className="p-3 bg-pink-500 hover:bg-pink-600 rounded-full text-white ml-4"
+                onClick={handleClick}
+            >
+                <Play className="h-5 w-5 fill-current" />
+            </button>
+        </div>
     );
 }
 
 const RadioStations = () => {
     const [filteredStations, setFilteredStations] = useState<Station[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
-    const [filter, setFilter] = useState({ column: "name", ascending: true });
     const [error, setError] = useState<string | null>(null);
     const [innerWidth] = useWindowSize();
 
@@ -73,7 +77,7 @@ const RadioStations = () => {
             }
 
             const response = await fetch(
-                `/api/radio/stations/${by}/${searchTerm}?limit=10&offset=0`
+                `/api/radio/stations/${by}/${searchTerm}?limit=15&offset=0`
             );
             if (!response.ok) {
                 throw new Error("Failed to fetch stations");
@@ -104,110 +108,10 @@ const RadioStations = () => {
         }
     };
 
-    const handleSort = (column: keyof Station) => {
-        const isAscending = filter.column === column ? !filter.ascending : true;
-        const sorted = [...filteredStations].sort((a, b) => {
-            if (a[column] < b[column]) return isAscending ? -1 : 1;
-            if (a[column] > b[column]) return isAscending ? 1 : -1;
-            return 0;
-        });
-        setFilteredStations(sorted);
-        setFilter({ column, ascending: isAscending });
-    };
-
-    /*
-    return (
-            <div className="p-6 text-white min-h-screen">
-                <h1 className="text-3xl font-bold mb-4 text-center select-none">
-                    Radio Stations 📻
-                </h1>
-                <div className="mb-4 flex justify-between items-center">
-                    <input
-                        type="text"
-                        placeholder="Search for stations, tags, countries..."
-                        value={searchQuery}
-                        onChange={handleSearch}
-                        className="px-5 py-2 rounded-full w-full max-w-md border border-neutral-700 bg-neutral-800 text-white ml-auto"
-                    />
-                </div>
-                <div className="overflow-x-auto">
-                    <table className="w-full table-auto bg-neutral-800 rounded-md overflow-hidden">
-                        <thead>
-                            <tr className="bg-neutral-700 select-none">
-                                <th
-                                    className="p-3 cursor-pointer w-20"
-                                    onClick={() => handleSort("name")}
-                                >
-                                    Cover
-                                </th>
-                                <th
-                                    className="p-3 cursor-pointer"
-                                    onClick={() => handleSort("name")}
-                                >
-                                    Name
-                                    {filter.column === "name" && (
-                                        <ArrowUp
-                                            className={w-5 h-5 inline ml-2 transition-transform ${
-                                                filter.ascending ? "" : "rotate-180"
-                                            }}
-                                        />
-                                    )}
-                                </th>
-                                <th
-                                    className="p-3 cursor-pointer w-36"
-                                    onClick={() => handleSort("country")}
-                                >
-                                    Country
-                                    {filter.column === "country" && (
-                                        <ArrowUp
-                                            className={w-5 h-5 inline ml-2 transition-transform ${
-                                                filter.ascending ? "" : "rotate-180"
-                                            }}
-                                        />
-                                    )}
-                                </th>
-                                <th
-                                    className="p-3 cursor-pointer"
-                                    onClick={() => handleSort("tags")}
-                                >
-                                    Tags
-                                    {filter.column === "tags" && (
-                                        <ArrowUp
-                                            className={w-5 h-5 inline ml-2 transition-transform ${
-                                                filter.ascending ? "" : "rotate-180"
-                                            }}
-                                        />
-                                    )}
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredStations.length > 0 ? (
-                                filteredStations.map((station, index) => (
-                                    <StationCard
-                                        index={index}
-                                        station={station}
-                                        key={station.stationuuid}
-                                    />
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan={3} className="text-center p-4">
-                                        No stations found.
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        );
-    */
-
     if (innerWidth > 768) {
         return (
-            <div className="p-6 text-white min-h-screen">
-                <h1 className="text-3xl font-bold mb-4 text-center select-none">
+            <div className="px-6 text-white">
+                <h1 className="text-3xl font-bold my-6 text-center select-none">
                     Radio Stations 📻
                 </h1>
                 <div className="mb-4 flex justify-between items-center">
@@ -216,46 +120,28 @@ const RadioStations = () => {
                         placeholder="Search for stations, tags, countries..."
                         value={searchQuery}
                         onChange={handleSearch}
-                        className="px-5 py-2 my-3 rounded-full w-full max-w-md border border-neutral-700 bg-neutral-800 text-white mx-auto"
+                        className="px-5 py-2 my-3 rounded-full w-full max-w-md border border-neutral-700 bg-neutral-800 text-white mx-auto select-none"
                     />
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {filteredStations.length > 0 ? (
-                        filteredStations.map((station) => (
-                            <div
+                        filteredStations.map((station, index) => (
+                            <StationCard
+                                station={station}
                                 key={station.stationuuid}
-                                className="flex items-center bg-neutral-800 rounded-md px-4 py-2 h-24"
-                            >
-                                {/* Imagen de la estación */}
-                                <img
-                                    src={station.favicon || "/logos/logo-sq-2.png"}
-                                    alt={`${station.name} cover`}
-                                    className="w-14 h-14 rounded-md mr-4"
-                                />
-                                {/* Información de la estación */}
-                                <div className="flex-1">
-                                    <h3 className="text-lg font-semibold line-clamp-2">
-                                        {station.name}
-                                    </h3>
-                                    <p className="text-sm text-neutral-400 mt-1 line-clamp-1">
-                                        {station.country || "Unknown Country"}
-                                    </p>
-                                </div>
-                                {/* Botón de reproducción */}
-                                <button
-                                    className="p-2 bg-green-500 hover:bg-green-600 rounded-full text-white ml-4"
-                                    onClick={() => handlePlay(station)}
-                                >
-                                    <Play className="h-6 w-6 fill-current" />
-                                </button>
-                            </div>
+                            />
                         ))
                     ) : (
-                        <div className="col-span-full text-center p-4">
-                            No stations found.
+                        <div className="flex flex-col items-center justify-center col-span-full h-36">
+                            <SearchX className="w-16 h-16 mb-4" />
+                            <p className="text-white text-2xl font-semibold">No se han encontrado estaciones</p>
+                            <p className="text-neutral-400 text-lg mt-2">
+                                Desde samba brasileña hasta rock australiano, busca y sintoniza tu próximo ritmo favorito!
+                            </p>
                         </div>
                     )}
                 </div>
+                <div className="min-h-10"></div>
             </div>
         );        
     } else {

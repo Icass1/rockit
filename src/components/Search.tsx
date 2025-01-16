@@ -173,6 +173,33 @@ export default function Search() {
                     </section>
                     <section className="md:px-12 md:py-6 py-2 text-white">
                         <h2 className="text-2xl md:text-3xl font-bold text-left px-5 md:px-0">
+                            Radio Stations
+                        </h2>
+                        <div className="relative flex items-center gap-4 overflow-x-auto py-4 px-8 md:px-2">
+                        {
+                            Array.from({ length: 10 }).map((_, index) => (
+                                <a
+                                    href="#"
+                                    className="flex-none w-36 md:w-48 md:hover:scale-105 transition"
+                                >
+                                    <img
+                                        className="rounded-lg w-full aspect-square object-cover"
+                                        src="/song-placeholder.png"
+                                        alt="Song Cover"
+                                    />
+                                    <label className="truncate font-semibold text-center block mt-2">
+                                        Radio Station {index + 1}
+                                    </label>
+                                    <label className="truncate text-sm text-center text-gray-400 block">
+                                        Country
+                                    </label>
+                                </a>
+                            ))
+                        }
+                        </div>
+                    </section>
+                    <section className="md:px-12 md:py-6 py-2 text-white">
+                        <h2 className="text-2xl md:text-3xl font-bold text-left px-5 md:px-0">
                             Youtube Videos
                         </h2>
                         <div className="relative flex items-center gap-4 overflow-x-auto py-4 px-8 md:px-2">

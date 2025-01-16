@@ -8,14 +8,13 @@ if (!Astro.locals.user) {
 ---
 
 <Layout title="Friends • Rock It!" currentPage="Friends">
-    <div class="mt-10 md:mt-0 px-4 md:px-12 flex flex-col">
+    <div class="my-20 md:mt-0 px-2 md:px-12 flex flex-col md:flex-row">
         <!-- Contenedor de las 3 columnas -->
-        <div class="flex flex-1 justify-between space-x-14 mt-8">
+        <div class="flex flex-1 justify-between md:space-x-14 mt-8 flex-col md:flex-row">
             <!-- Columna izquierda con gráfico circular, nickname y descripción -->
             <div class="flex-1 flex flex-col items-center space-y-6">
                 <!-- Gráfico circular -->
                 <div class="relative flex items-center justify-center">
-
                     <svg class="w-full h-full transform -rotate-90" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
                         <!-- Definición del gradiente -->
                         <defs>
@@ -34,26 +33,26 @@ if (!Astro.locals.user) {
                     
                     <span class="absolute text-white font-semibold text-3xl">Niv. 72</span>
                 </div>
-
+    
                 <!-- Nickname -->
                 <p class="text-white font-semibold text-4xl">Usuario123</p>
-
+    
                 <!-- Descripción sobre el sistema de puntos -->
-                <p class="text-md text-center text-gray-400 px-6 text-balance">
+                <p class="text-md text-center text-gray-400 md:px-6 text-balance">
                     Gana puntos escuchando música, compartiendo canciones, escuchando música con amigos o añadiendo nuevos amigos. ¡Sigue participando y sube de nivel!
                 </p>
             </div>
 
             <!-- Columna central con scroll -->
-            <div class="relative flex-1 flex flex-col items-center">
+            <div class="relative flex-1 flex flex-col items-center my-14 md:my-0">
                 <h1 class="text-white text-2xl md:text-3xl font-bold pb-4">Shared Songs for You</h1>
                 <!-- Contenedor con scroll para la lista de canciones -->
-                <div class="overflow-auto w-full p-6 space-y-6">
+                <div class="overflow-y-scroll w-full p-6 space-y-6 md:h-auto h-[calc(100vh-30rem)]">
                     <!-- Lista de canciones -->
                     {Array.from({ length: 10 }).map((_, index) => (
                         <div class="group w-full bg-neutral-700 rounded-md p-4 flex items-center space-x-4 relative">
-            
-                            {/* Imagen de la canción */}
+                    
+                            <!-- Imagen de la canción -->
                             <div class="relative w-24 h-24 hover:cursor-pointer">
                                 <img 
                                     src="/song-placeholder.png" 
@@ -61,18 +60,18 @@ if (!Astro.locals.user) {
                                     class="w-full h-full object-cover rounded-md group-hover:opacity-40 transition-opacity"
                                 />
 
-                                {/* Icono de play centrado */}
+                                <!-- Icono de play centrado -->
                                 <Play className="h-8 w-8 absolute inset-0 m-auto text-4xl opacity-0 group-hover:opacity-100 transition-opacity fill-current" />
                             </div>
                             
-                            {/* Contenedor de los textos - nombre de la canción, autor y álbum */}
+                            <!-- Contenedor de los textos - nombre de la canción, autor y álbum -->
                             <div class="flex flex-col overflow-hidden">
                                 <a href="" class="text-left hover:underline truncate font-semibold text-lg">Nombre de la canción {index + 1}</a>
                                 <a href="" class="text-left hover:underline truncate text-md text-gray-400">Autor de la canción {index + 1}</a>
                                 <a href="" class="text-left hover:underline truncate text-sm text-gray-400">Álbum de la canción {index + 1}</a>
                             </div>
 
-                            {/* Mensaje de "Compartido por Nicorebo18" dentro de cada canción */}
+                            <!-- Mensaje de "Compartido por Nicorebo18" dentro de cada canción -->
                             <div class="absolute -top-3 -right-2 bg-gradient-to-r from-[#ee1086] to-[#ce5254] text-white text-sm px-2 rounded-md flex items-center space-x-2">
                                 <Forward className="h-7" />
                                 <span>Shared from user {index + 1}</span>
@@ -83,13 +82,13 @@ if (!Astro.locals.user) {
             </div>
 
             <!-- Columna derecha con barra de búsqueda y lista de usuarios -->
-            <div class="flex-1 bg-neutral-800 rounded-2xl p-4 flex flex-col space-y-4 h-fit">
+            <div class="flex-1 bg-neutral-900 md:bg-neutral-800 rounded-2xl p-4 flex flex-col space-y-4 h-fit">
 
                 <div class="flex justify-center items-center py-3">
                     <h1 class="text-white text-2xl md:text-3xl font-bold text-center">Users and Friends</h1>
                 </div>
                 <!-- Barra de búsqueda -->
-                <div class="flex items-center bg-neutral-700 rounded-full p-2 my-4 mx-14">
+                <div class="flex items-center bg-neutral-700 rounded-full p-2 my-4 md:mx-14">
                     <input 
                         type="text" 
                         placeholder="Buscar usuarios..." 
@@ -128,8 +127,8 @@ if (!Astro.locals.user) {
                                 </div>
 
                                 <!-- Botones -->
-                                <div class="flex space-x-2 ml-auto">
-                                    <button class="transition flex items-center rounded-lg p-2 text-green-500 hover:bg-neutral-600">
+                                <div class="flex md:space-x-2 ml-auto">
+                                    <button class="transition flex items-center rounded-lg p-1 md:p-2 text-green-500 hover:bg-neutral-600">
                                         <Check className="h-7 w-7" />
                                     </button>
                                     <button class="transition flex items-center rounded-lg p-2 text-red-500 hover:bg-neutral-600">
@@ -171,10 +170,10 @@ if (!Astro.locals.user) {
                                 </div>
 
                                 <!-- Botones -->
-                                <div class="flex space-x-4 ml-auto">
+                                <div class="flex md:space-x-4 ml-auto">
                                     <button class="p-2 rounded-lg hover:bg-[#c13881] transition flex items-center space-x-2 truncate">
                                         <Send className="h-5 w-5" />
-                                        <span>Send current song</span>
+                                        <span class="hidden md:flex">Send current song</span>
                                     </button>
                                     <button class="p-2 text-white rounded-lg hover:bg-red-600 transition">
                                         <UserRoundX className="h-6 w-6" />

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Play, SearchX } from "lucide-react";
+import { ListPlus, Play, SearchX } from "lucide-react";
 import { currentStation, play, type Station } from "@/stores/audio";
 import pkg from "lodash";
 import useWindowSize from "@/hooks/useWindowSize";
@@ -38,6 +38,13 @@ function StationCard({ station }: { station: Station }) {
                         .join(", ")}
                 </p>
             </div>
+            {/* Botón de añadir a Library*/}
+            <button
+                className="p-[10px] bg-neutral-700 hover:bg-neutral-500 rounded-full text-white ml-4"
+            >
+                <ListPlus className="h-6 w-6 fill-current" />
+            </button>
+
             {/* Botón de reproducción */}
             <button
                 className="p-3 bg-pink-500 hover:bg-pink-600 rounded-full text-white ml-4"

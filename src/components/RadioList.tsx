@@ -12,7 +12,10 @@ function StationCard({ station }: { station: Station }) {
     };
 
     return (
-        <div className="flex items-center bg-neutral-800 rounded-md px-4 py-2 h-32 shadow-md hover:bg-neutral-700 transition cursor-pointer" onClick={handleClick}>
+        <div
+            className="flex items-center bg-neutral-800 rounded-md px-4 py-2 h-32 shadow-md hover:bg-neutral-700 transition cursor-pointer"
+            onClick={handleClick}
+        >
             {/* Imagen de la estación */}
             <img
                 src={station.favicon || "/logos/logo-sq-2.png"}
@@ -39,9 +42,7 @@ function StationCard({ station }: { station: Station }) {
                 </p>
             </div>
             {/* Botón de añadir a Library*/}
-            <button
-                className="p-[10px] bg-neutral-700 hover:bg-neutral-500 rounded-full text-white ml-1 md:ml-4"
-            >
+            <button className="p-[10px] bg-neutral-700 hover:bg-neutral-500 rounded-full text-white ml-1 md:ml-4">
                 <ListPlus className="h-6 w-6 fill-current" />
             </button>
 
@@ -115,6 +116,10 @@ const RadioStations = () => {
         }
     };
 
+    if (!window.navigator.onLine) {
+        return <div>You are offline</div>;
+    }
+
     if (innerWidth > 768) {
         return (
             <div className="px-6 text-white">
@@ -141,16 +146,19 @@ const RadioStations = () => {
                     ) : (
                         <div className="flex flex-col items-center justify-center col-span-full h-36">
                             <SearchX className="w-16 h-16 mb-4" />
-                            <p className="text-white text-2xl font-semibold">No se han encontrado estaciones</p>
+                            <p className="text-white text-2xl font-semibold">
+                                No se han encontrado estaciones
+                            </p>
                             <p className="text-neutral-400 text-lg mt-2">
-                                Desde samba brasileña hasta rock australiano, busca y sintoniza tu próximo ritmo favorito!
+                                Desde samba brasileña hasta rock australiano,
+                                busca y sintoniza tu próximo ritmo favorito!
                             </p>
                         </div>
                     )}
                 </div>
                 <div className="min-h-10"></div>
             </div>
-        );        
+        );
     } else {
         return (
             <div className="p-4 text-white mt-20">
@@ -167,7 +175,7 @@ const RadioStations = () => {
                     />
                 </div>
                 <div className="space-y-4">
-                {filteredStations.length > 0 ? (
+                    {filteredStations.length > 0 ? (
                         filteredStations.map((station, index) => (
                             <StationCard
                                 station={station}
@@ -177,16 +185,19 @@ const RadioStations = () => {
                     ) : (
                         <div className="flex flex-col items-center justify-center col-span-full h-36">
                             <SearchX className="w-16 h-16 mb-4" />
-                            <p className="text-white text-2xl font-semibold">No se han encontrado estaciones</p>
+                            <p className="text-white text-2xl font-semibold">
+                                No se han encontrado estaciones
+                            </p>
                             <p className="text-neutral-400 text-lg mt-2">
-                                Desde samba brasileña hasta rock australiano, busca y sintoniza tu próximo ritmo favorito!
+                                Desde samba brasileña hasta rock australiano,
+                                busca y sintoniza tu próximo ritmo favorito!
                             </p>
                         </div>
                     )}
                 </div>
                 <div className="min-h-10"></div>
             </div>
-        );    
+        );
     }
 };
 

@@ -46,13 +46,19 @@ export default function AlbumSong({
             return;
         }
 
-        const songsToAdd = currentListSongs.get().map((song, index) => {
+        let songsToAdd = currentListSongs.get().map((song, index) => {
             return {
                 song: song,
                 list: { type: $currentList.type, id: $currentList.id },
                 index: index,
             };
         });
+
+        if (!window.navigator.onLine) {
+            songsToAdd = songsToAdd.filter((song) =>
+                $songsInIndexedDB.includes(song.song.id)
+            );
+        }
 
         if (randomQueue.get()) {
             const shuffled = [...songsToAdd].sort(() => Math.random() - 0.5);
@@ -104,7 +110,19 @@ export default function AlbumSong({
         <div
             className={
                 "flex flex-row items-center gap-2 md:gap-4 transition-colors px-2 py-[0.5rem] md:py-[0.65rem] rounded " +
-                (!song.path ? "opacity-50" : "md:hover:bg-zinc-500/10")
+                // If offline and the song is not saved to indexedDB or the song is not in the server database, disable that song
+                (((!window.navigator.onLine &&
+                    !songsInIndexedDB.get().includes(song.id)) ||
+                    !song.path) &&
+                    "opacity-40 pointer-events-none ") +
+                ($queue.find((song) => song.index == $queueIndex)?.list?.id ==
+                    $currentList?.id &&
+                $queue.find((song) => song.index == $queueIndex)?.list?.type ==
+                    $currentList?.type &&
+                $queue.find((song) => song.index == $queueIndex)?.song.id ==
+                    song.id
+                    ? " text-[#ec5588]"
+                    : "")
             }
             onClick={handleClick}
             onMouseEnter={() => {
@@ -133,10 +151,7 @@ export default function AlbumSong({
                 {song.name}{" "}
             </label>
             {$songsInIndexedDB.includes(song.id) && (
-                <CheckCircle2
-                    className="hidden md:flex md:hover:text-white md:hover:scale-105 w-8 text-[#ec5588]"
-                    onClick={handleAddToList}
-                />
+                <CheckCircle2 className="hidden md:flex md:hover:text-white md:hover:scale-105 w-8 text-[#ec5588]" />
             )}
             <LikeButton song={song} />
             <ListPlus

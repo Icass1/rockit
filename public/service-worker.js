@@ -39,16 +39,27 @@ const fromCache = (request) => {
     const url = new URL(request.url);
 
     return new Promise(async (resolve, reject) => {
-        if (!database) {
+        if (!database || database) {
             database = await openIndexedDB();
         }
 
         // _astro/TogglePlayerUI.C0fEwmnI.js
 
-        const getRequest = database
-            .transaction("files")
-            .objectStore("files")
-            .get(url.pathname);
+        let getRequest;
+
+        try {
+            getRequest = database
+                .transaction("files")
+                .objectStore("files")
+                .get(url.pathname);
+        } catch {
+            console.log("Error accessing database, opening it...")
+            database = await openIndexedDB();
+            getRequest = database
+                .transaction("files")
+                .objectStore("files")
+                .get(url.pathname);
+        }
 
         getRequest.onsuccess = function (event) {
             if (!event.target.result) {

@@ -4,7 +4,7 @@ import Hls from "hls.js";
 
 let websocket: WebSocket;
 
-const database = openIndexedDB();
+const database = await openIndexedDB();
 startSocket();
 registerServiceWorker();
 
@@ -138,7 +138,7 @@ if (userJson && userJson.queue.length > 0) {
 }
 
 const send = (json: any) => {
-    if (websocket.OPEN == websocket.readyState) {
+    if (websocket && websocket.OPEN == websocket.readyState) {
         websocket.send(JSON.stringify(json));
     }
 };
@@ -373,7 +373,9 @@ export async function prev() {
 }
 
 function startSocket() {
-    console.log(window.navigator.onLine)
+    console.log("window.navigator.onLine", window.navigator.onLine);
+    if (!window.navigator.onLine) return;
+
     if (location.protocol == "https:") {
         websocket = new WebSocket(`wss://${location.host}/ws`);
     } else {
@@ -420,7 +422,7 @@ export async function next() {
         });
 }
 
-function openIndexedDB() {
+function openIndexedDB(): Promise<IDBDatabase> {
     const dbOpenRequest = indexedDB.open("RockIt", 1);
 
     dbOpenRequest.onupgradeneeded = function () {
@@ -438,46 +440,59 @@ function openIndexedDB() {
         imageStore.createIndex("id", "id", { unique: true });
         imageStore.createIndex("blob", "blob", { unique: false });
     };
-    return dbOpenRequest;
+    return new Promise((resolve, reject) => {
+        dbOpenRequest.onsuccess = function () {
+            resolve(dbOpenRequest.result);
+        };
+        dbOpenRequest.onerror = function () {
+            reject(dbOpenRequest.error);
+        };
+    });
 }
 
 export async function saveSongToIndexedDB(
     song: SongDB<"id" | "name" | "artists" | "image" | "duration">
 ) {
-    const songBlob = await fetch(`/api/song/audio/${song.id}`).then(
-        (response) => response.blob()
-    );
+    fetch(`/api/song/audio/${song.id}`).then((response) => {
+        if (response.ok) {
+            response.blob().then(async (songBlob) => {
+                const songToSave = {
+                    id: song.id,
+                    name: song.name,
+                    artists: song.artists,
+                    image: song.image,
+                    duration: song.duration,
+                    blob: songBlob,
+                };
+                const songsTx = database.transaction("songs", "readwrite");
+                const songsStore = songsTx.objectStore("songs");
+                songsStore.put(songToSave);
+                songsInIndexedDB.set(await getSongIdsInIndexedDB());
+            });
+        }
+    });
 
-    const imageBlob = await fetch(`/api/image/${song.image}`).then((response) =>
-        response.blob()
-    );
+    // fetch(`/api/image/${song.image}`).then((response) => {
+    //     if (response.ok) {
+    //         response.blob().then()=>{}
 
-    const songToSave = {
-        id: song.id,
-        name: song.name,
-        artists: song.artists,
-        image: song.image,
-        duration: song.duration,
-        blob: songBlob,
-    };
+    //     }
+    // });
 
-    const imageToSave = {
-        id: song.image,
-        blob: imageBlob,
-    };
+    // const imageBlob = await fetch(`/api/image/${song.image}`).then((response) =>
+    //     response.blob()
+    // );
 
-    console.log("imageToSave", imageToSave);
+    // const imageToSave = {
+    //     id: song.image,
+    //     blob: imageBlob,
+    // };
 
-    const db = database.result;
-    const songsTx = db.transaction("songs", "readwrite");
-    const songsStore = songsTx.objectStore("songs");
-    songsStore.put(songToSave);
+    // console.log("imageToSave", imageToSave);
 
-    const imagesTx = db.transaction("images", "readwrite");
-    const imagesStore = imagesTx.objectStore("images");
-    imagesStore.put(imageToSave);
-
-    songsInIndexedDB.set(await getSongIdsInIndexedDB());
+    // const imagesTx = database.transaction("images", "readwrite");
+    // const imagesStore = imagesTx.objectStore("images");
+    // imagesStore.put(imageToSave);
 }
 
 export async function getSongInIndexedDB(
@@ -485,7 +500,7 @@ export async function getSongInIndexedDB(
 ): Promise<
     SongDBWithBlob<"id" | "name" | "blob" | "artists" | "images" | "duration">
 > {
-    const db = database.result;
+    const db = database;
     const tx = db.transaction("songs", "readonly");
     const store = tx.objectStore("songs");
 
@@ -502,7 +517,7 @@ export async function getSongInIndexedDB(
 }
 
 export async function getSongIdsInIndexedDB(): Promise<string[]> {
-    const db = database.result;
+    const db = database;
     const tx = db.transaction("songs", "readonly");
     const store = tx.objectStore("songs");
 
@@ -519,6 +534,7 @@ export async function getSongIdsInIndexedDB(): Promise<string[]> {
 }
 
 async function registerServiceWorker() {
+    return;
     if ("serviceWorker" in navigator) {
         try {
             const registration = await navigator.serviceWorker.register(

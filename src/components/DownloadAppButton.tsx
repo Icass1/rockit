@@ -14,10 +14,6 @@ function extractImports(jsFileContent: string) {
             resources.push(resourcePath);
         }
     }
-    // console.log("======== extractImports ========");
-    // console.log("extractImports", jsFileContent);
-    // console.log("extractImports", resources);
-    // console.log("======== extractImports ========");
 
     return resources;
 }
@@ -98,9 +94,9 @@ function fetchResource(url: string, database: IDBDatabase): Promise<string[]> {
                                 }
                             });
                             resources.push(...extractImports(text));
-                        });
 
-                        resolve(resources);
+                            resolve(resources);
+                        });
                     } else {
                         resolve([]);
                     }
@@ -110,7 +106,7 @@ function fetchResource(url: string, database: IDBDatabase): Promise<string[]> {
                         "readwrite"
                     );
                     const filesStore = transaction?.objectStore("files");
-                    filesStore?.add({
+                    filesStore?.put({
                         url: url,
                         fileContent,
                         contentType: response.headers.get("content-type"),
@@ -125,6 +121,7 @@ function fetchResource(url: string, database: IDBDatabase): Promise<string[]> {
 
 export default function DownloadAppButton() {
     const [database, setDatabase] = useState<IDBDatabase | null>(null);
+    const [resources, setResources] = useState<string[]>([]);
 
     useEffect(() => {
         openIndexedDB().then((db) => {
@@ -143,40 +140,62 @@ export default function DownloadAppButton() {
         ) {
             if (resources.length == 0) return;
 
-            console.log(resources);
             const tempResources: string[][] = await Promise.all(
-                resources.map((url) => fetchResource(url, database))
+                resources.map(async (url) => {
+                    setResources((value) => [...value, url]);
+                    const resources = await fetchResource(url, database);
+                    setResources((value) =>
+                        value.filter((value) => value != url)
+                    );
+
+                    return resources;
+                })
             );
             const newResources = [...new Set(tempResources.flat(1))];
             downloadResources(newResources, database);
         }
 
-        downloadResources(["/", "/settings", "/library"], database);
+        downloadResources(
+            [
+                "/",
+                "/settings",
+                "/library",
+                "/radio",
+                "/search",
+                "/friends",
+                "/stats",
+                "/search-icon.png",
+                "/user-placeholder.png",
+                "/song-placeholder.png",
+                "/song-placeholder.png",
+                "/youtube-music-logo.svg",
+                "/RockitBackground.png",
+                "/screenshot-1.png",
+                "/spotify-logo.png",
+                "/logos/logo-192.png",
 
-        // const tempResources: string[][] = await Promise.all(
-        //     ["/", "/settings", "/library"].map((url) =>
-        //         fetchResource(url, database)
-        //     )
-        // );
-
-        // // Remove repeated elements in resources
-        // const resources = [...new Set(tempResources.flat(1))];
-
-        // resources.map(async (resource) => {
-        //     const a = await fetchResource(resource, database);
-
-        //     console.log(a);
-        // });
-
-        // console.log(resources);
+                "/playlist/7h6r9ScqSjCHH3QozfBdIq",
+            ],
+            database
+        );
     };
     return (
-        <button
-            onClick={handleClick}
-            className="w-28 md:w-32 py-2 bg-[#1e1e1e] text-white rounded-lg font-bold shadow-md hover:bg-green-700 transition duration-300 flex items-center justify-center gap-2"
-        >
-            <Download className="w-5 h-5" />
-            Download
-        </button>
+        <>
+            <button
+                onClick={handleClick}
+                className="w-28 md:w-32 py-2 bg-[#1e1e1e] text-white rounded-lg font-bold shadow-md hover:bg-green-700 transition duration-300 flex items-center justify-center gap-2"
+            >
+                <Download className="w-5 h-5" />
+                Download
+            </button>
+
+            <div className="grid grid-cols-2 gap-x-2">
+                {resources.map((resource) => (
+                    <span className="text-xs max-w-full min-w-0 truncate w-full">
+                        {resource}
+                    </span>
+                ))}
+            </div>
+        </>
     );
 }

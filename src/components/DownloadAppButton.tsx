@@ -180,10 +180,13 @@ export default function DownloadAppButton() {
         );
     };
     return (
-        <>
+        <div>
+            <h2 className="text-xl md:text-2xl font-bold text-white mb-2">
+                Download app
+            </h2>
             <button
                 onClick={handleClick}
-                className="w-28 md:w-32 py-2 bg-[#1e1e1e] text-white rounded-lg font-bold shadow-md hover:bg-green-700 transition duration-300 flex items-center justify-center gap-2"
+                className="w-28 md:w-32 py-2 bg-[#1e1e1e] text-white rounded-lg shadow-md active:bg-green-700 md:hover:bg-green-700 transition duration-300 flex items-center justify-center gap-2"
             >
                 <Download className="w-5 h-5" />
                 Download
@@ -196,6 +199,6 @@ export default function DownloadAppButton() {
                     </span>
                 ))}
             </div>
-        </>
+        </div>
     );
 }

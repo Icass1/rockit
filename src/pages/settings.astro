@@ -1,7 +1,8 @@
 ---
 import Layout from "@/layouts/Layout.astro";
-import { ChartLine, Download, ImageUp, LogOut } from "lucide-react";
+import { ChartLine, ImageUp, LogOut } from "lucide-react";
 import DownloadAppButton from "@/components/DownloadAppButton.tsx";
+import ServiceWorkerInfo from "@/components/ServiceWorkerInfo.tsx";
 
 if (!Astro.locals.user) {
     return Astro.redirect("/login");
@@ -77,14 +78,12 @@ const user = {
             </div>
 
             {/* Columna derecha */}
-            <div class="md:w-1/4 w-full">
-                <h2
-                    class="text-xl md:text-2xl font-bold text-white md:mb-6 mb-4"
-                >
+            <div class="md:w-1/4 w-full flex flex-col md:gap-y-6 gap-y-4">
+                <h2 class="text-xl md:text-2xl font-bold text-white">
                     User Settings
                 </h2>
                 {/* Cambiar nombre de usuario */}
-                <div class="md:mb-6 mb-4">
+                <div>
                     <label class="block text-gray-300 text-sm md:text-lg mb-2">
                         Display Name
                     </label>
@@ -95,7 +94,7 @@ const user = {
                     />
                 </div>
                 {/* Cambiar contraseña */}
-                <div class="md:mb-6 mb-4">
+                <div>
                     <label class="block text-gray-300 text-sm md:text-lg mb-2">
                         Change Password
                     </label>
@@ -105,7 +104,7 @@ const user = {
                         class="w-full p-3 rounded-lg bg-[#1e1e1e] text-white border border-[#333] focus:outline-none focus:ring-2 focus:ring-[#ec5588]"
                     />
                 </div>
-                <div class="md:mb-6 mb-4">
+                <div>
                     <label class="block text-gray-300 text-sm md:text-lg mb-2">
                         Repeat New Password
                     </label>
@@ -115,12 +114,9 @@ const user = {
                         class="w-full p-3 rounded-lg bg-[#1e1e1e] text-white border border-[#333] focus:outline-none focus:ring-2 focus:ring-[#ec5588]"
                     />
                 </div>
-                <h2
-                    class="text-xl md:text-2xl font-bold text-white md:mb-6 mb-4"
-                >
-                    Download app
-                </h2>
+
                 <DownloadAppButton client:only="react" />
+                <ServiceWorkerInfo client:only="react" />
                 <div class="h-16 md:h-0"></div>
             </div>
         </div>

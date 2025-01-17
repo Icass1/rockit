@@ -1,6 +1,7 @@
 ---
 import Layout from "@/layouts/Layout.astro";
-import { ChartLine,ImageUp,LogOut } from "lucide-react";
+import { ChartLine, Download, ImageUp, LogOut } from "lucide-react";
+import DownloadAppButton from "@/components/DownloadAppButton.tsx";
 
 if (!Astro.locals.user) {
     return Astro.redirect("/login");
@@ -15,10 +16,16 @@ const user = {
 ---
 
 <Layout title="Settings • Rock It!" currentPage="Settings">
-    <section class="h-fit md:h-full flex items-center justify-center mt-10 px-3 md:px-0 md:mt-0">
-        <div class="flex flex-col md:flex-row gap-8 md:gap-16 items-center md:items-start w-full px-4 md:px-0">
+    <section
+        class="h-fit md:h-full flex items-center justify-center mt-10 px-3 md:px-0 md:mt-0"
+    >
+        <div
+            class="flex flex-col md:flex-row gap-8 md:gap-16 items-center md:items-start w-full px-4 md:px-0"
+        >
             {/* Columna izquierda */}
-            <div class="md:w-1/2 w-full border-b md:border-b-0 md:border-r border-gray-700 pb-8 md:pb-0 mt-10 md:mt-0 flex flex-col items-center justify-center">
+            <div
+                class="md:w-1/2 w-full border-b md:border-b-0 md:border-r border-gray-700 pb-8 md:pb-0 mt-10 md:mt-0 flex flex-col items-center justify-center"
+            >
                 <div class="relative group flex justify-center">
                     {/* Imagen de perfil */}
                     <img
@@ -26,11 +33,15 @@ const user = {
                         alt="User Profile Picture"
                         class="h-48 md:h-72 bg-neutral-400 rounded-full object-cover shadow-md transition duration-300"
                     />
-                    {/* Overlay con ícono al hacer hover - CUANDO HAYA IMAGEN HAY QUE OCULTAR EL ICONO*/}
+                    {
+                        /* Overlay con ícono al hacer hover - CUANDO HAYA IMAGEN HAY QUE OCULTAR EL ICONO*/
+                    }
                     <div
                         class="absolute inset-0 bg-black/20 md:h-full aspect-square flex items-center justify-center rounded-full md:opacity-0 md:group-hover:opacity-100 transition duration-300 cursor-pointer"
                     >
-                        <ImageUp className="text-white w-16 h-16 md:w-24 md:h-24" />
+                        <ImageUp
+                            className="text-white w-16 h-16 md:w-24 md:h-24"
+                        />
                     </div>
                 </div>
                 {/* Display name */}
@@ -42,13 +53,15 @@ const user = {
                     @{user.username}
                 </p>
 
-                <div class="flex flex-wrap items-center justify-center gap-2 mt-2">
+                <div
+                    class="flex flex-wrap items-center justify-center gap-2 mt-2"
+                >
                     {/* Botón de log out */}
                     <a
                         class="w-28 md:w-32 py-2 bg-red-700 text-white rounded-lg font-bold shadow-md hover:bg-red-900 transition duration-300 flex items-center justify-center gap-2"
                         href="/login"
                     >
-                    <LogOut className="w-5 h-5" />
+                        <LogOut className="w-5 h-5" />
                         Log Out
                     </a>
 
@@ -57,15 +70,17 @@ const user = {
                         class="w-40 py-2 bg-blue-700 md:hidden text-white rounded-lg font-bold shadow-md hover:bg-blue-900 transition duration-300 flex items-center justify-center gap-2"
                         href="/stats"
                     >
-                    <ChartLine className="w-5 h-5" />
+                        <ChartLine className="w-5 h-5" />
                         See User Stats
                     </a>
-                </div>                  
+                </div>
             </div>
 
             {/* Columna derecha */}
             <div class="md:w-1/4 w-full">
-                <h2 class="text-xl md:text-2xl font-bold text-white md:mb-6 mb-4">
+                <h2
+                    class="text-xl md:text-2xl font-bold text-white md:mb-6 mb-4"
+                >
                     User Settings
                 </h2>
                 {/* Cambiar nombre de usuario */}
@@ -100,6 +115,12 @@ const user = {
                         class="w-full p-3 rounded-lg bg-[#1e1e1e] text-white border border-[#333] focus:outline-none focus:ring-2 focus:ring-[#ec5588]"
                     />
                 </div>
+                <h2
+                    class="text-xl md:text-2xl font-bold text-white md:mb-6 mb-4"
+                >
+                    Download app
+                </h2>
+                <DownloadAppButton client:only="react" />
                 <div class="h-16 md:h-0"></div>
             </div>
         </div>

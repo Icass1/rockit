@@ -305,7 +305,7 @@ function QueueSong({ song }: { song: QueueElement }) {
             <div className="relative">
                 {/* Imagen de portada */}
                 <img
-                    src={song.song.images[0].url}
+                    src={song.song.image ? `/api/image/${song.song.image}` : "/song-placeholder.png"}
                     alt={song.song.name}
                     className={`w-12 h-12 rounded object-cover ${
                         song.index === $queueIndex ? "brightness-50" : ""
@@ -451,7 +451,9 @@ export default function PlayerUI() {
             <div className="relative w-full  bg-black text-white grid grid-cols-[30%_40%_30%] h-full z-20">
                 <img
                     src={
-                        $currentSong?.images[0]?.url || "/song-placeholder.png"
+                        $currentSong?.image
+                            ? `/api/image/${$currentSong?.image}`
+                            : "/song-placeholder.png"
                     }
                     className="absolute w-full h-auto top-1/2 -translate-y-1/2 blur-md brightness-50"
                 ></img>
@@ -468,8 +470,9 @@ export default function PlayerUI() {
                     <div className="max-h-[70%] aspect-square">
                         <img
                             src={
-                                $currentSong?.images[0]?.url ||
-                                "/song-placeholder.png"
+                                $currentSong?.image
+                                    ? `/api/image/${$currentSong?.image}`
+                                    : "/song-placeholder.png"
                             }
                             alt="Song Cover"
                             className="object-cover mx-auto w-auto h-[100%] rounded-lg aspect-square"

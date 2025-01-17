@@ -10,7 +10,7 @@ export default function SetCurrentListInfo({
         | "id"
         | "name"
         | "artists"
-        | "images"
+        | "image"
         | "duration"
         | "albumId"
         | "albumName"

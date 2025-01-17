@@ -18,6 +18,7 @@ import { ENV } from "@/rockitEnv";
 const BACKEND_URL = ENV.BACKEND_URL;
 
 type Song = SongDB<
+    | "image"
     | "images"
     | "id"
     | "name"
@@ -70,6 +71,7 @@ export default async function getAlbum(
                     songID: string
                 ):
                     | SongDB<
+                          | "image"
                           | "images"
                           | "id"
                           | "name"
@@ -85,7 +87,7 @@ export default async function getAlbum(
                     return parseSong(
                         db
                             .prepare(
-                                "SELECT images, id, name, artists, albumId, albumName, path, duration, discNumber, trackNumber FROM song WHERE id = ?"
+                                "SELECT image, images, id, name, artists, albumId, albumName, path, duration, discNumber, trackNumber FROM song WHERE id = ?"
                             )
                             .get(songID) as RawSongDB
                     );
@@ -151,7 +153,7 @@ export default async function getAlbum(
             const songDB = parseSong(
                 db
                     .prepare(
-                        "SELECT images, id, name, artists, albumId, albumName, path, duration, discNumber, trackNumber FROM song WHERE id = ?"
+                        "SELECT image, id, name, artists, albumId, albumName, path, duration, discNumber, trackNumber FROM song WHERE id = ?"
                     )
                     .get(item.id) as RawSongDB
             );
@@ -164,6 +166,7 @@ export default async function getAlbum(
                 id: item.id,
                 images: data.images,
                 name: item.name,
+                image: "",
                 artists: data.artists,
                 albumId: data.id,
                 albumName: data.name,

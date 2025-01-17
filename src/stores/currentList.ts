@@ -6,7 +6,7 @@ export const currentListSongs = atom<
         | "id"
         | "name"
         | "artists"
-        | "images"
+        | "image"
         | "duration"
         | "albumId"
         | "albumName"

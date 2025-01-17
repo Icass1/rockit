@@ -67,7 +67,7 @@ export default function PlaylistSong({
             currentSong.set(song);
             queueIndex.set(firstSong.index);
             queue.set(shuffled);
-            play();
+            // play();
         } else {
             const firstSong = songsToAdd.find(
                 (dataSong) => dataSong.song.id == song.id
@@ -81,7 +81,7 @@ export default function PlaylistSong({
             currentSong.set(song);
             queueIndex.set(firstSong.index);
             queue.set(songsToAdd);
-            play();
+            // play();
         }
     };
 

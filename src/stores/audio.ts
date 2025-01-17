@@ -1,32 +1,15 @@
 import { atom } from "nanostores";
-import type { SongDB, UserDB } from "@/lib/db";
+import type { SongDB, SongDBFull, UserDB } from "@/lib/db";
 import Hls from "hls.js";
 
 let websocket: WebSocket;
 
-function startSocket() {
-    if (location.protocol == "https:") {
-        websocket = new WebSocket(`wss://${location.host}/ws`);
-    } else {
-        websocket = new WebSocket(`ws://${location.host}/ws`);
-    }
-
-    websocket.onopen = () => {
-        // console.log("Web socket open");
-    };
-    websocket.onmessage = () => {
-        // console.log("Web socket message", event.data);
-    };
-    websocket.onclose = () => {
-        // console.log("Web socket close");
-        startSocket();
-    };
-}
-
+const database = openIndexedDB();
 startSocket();
+registerServiceWorker();
 
 export type QueueSong = SongDB<
-    "id" | "name" | "artists" | "images" | "duration"
+    "id" | "name" | "artists" | "image" | "duration"
 >;
 
 export type QueueElement = {
@@ -38,7 +21,7 @@ export type QueueElement = {
 type Queue = QueueElement[];
 export type CurrentSong =
     | SongDB<
-          | "images"
+          | "image"
           | "id"
           | "name"
           | "artists"
@@ -88,6 +71,14 @@ export type Station = {
     has_extended_info: boolean;
 };
 
+interface SongDBFullWithBlob extends SongDBFull {
+    blob: Blob;
+}
+
+export type SongDBWithBlob<
+    Keys extends keyof SongDBFullWithBlob = keyof SongDBFullWithBlob,
+> = Pick<SongDBFullWithBlob, Keys>;
+
 const userJsonResponse = await fetch(
     "/api/user?q=currentSong,currentTime,queue,queueIndex,volume,randomQueue"
 );
@@ -111,7 +102,7 @@ try {
     if (userJson?.currentSong) {
         _currentSong = (await (
             await fetch(
-                `/api/song/${userJson.currentSong}?q=images,id,name,artists,albumId,albumName,duration`
+                `/api/song/${userJson.currentSong}?q=image,id,name,artists,albumId,albumName,duration`
             )
         ).json()) as CurrentSong;
     }
@@ -167,6 +158,8 @@ export const randomQueue = atom<boolean>(
 
 export const currentStation = atom<Station | undefined>(undefined);
 
+export const songsInIndexedDB = atom<string[]>(await getSongIdsInIndexedDB());
+
 const audio = new Audio(
     _currentSong?.id ? `/api/song/audio/${_currentSong?.id}` : undefined
 );
@@ -176,12 +169,22 @@ if (userJson?.currentTime) {
     audio.currentTime = userJson.currentTime;
 }
 
+// *****************************
+// **** Store subscriptions ****
+// *****************************
+
 randomQueue.subscribe((value) => {
     send({ randomQueue: value ? "1" : "0" });
 });
 
-currentSong.subscribe((value) => {
+currentSong.subscribe(async (value) => {
     send({ currentSong: value?.id });
+
+    if (!value) {
+        return;
+    }
+
+    console.log(`/api/image/${value.image}`);
 
     if ("mediaSession" in navigator && value) {
         navigator.mediaSession.metadata = new MediaMetadata({
@@ -190,32 +193,32 @@ currentSong.subscribe((value) => {
             album: value.albumName,
             artwork: [
                 {
-                    src: `${value.images[0].url}`, // Repalce value.images[0].url for value.image
+                    src: `/api/image/${value.image}`, // Repalce value.image for value.image
                     sizes: "96x96",
                     type: "image/png",
                 },
                 {
-                    src: `${value.images[0].url}`,
+                    src: `/api/image/${value.image}`,
                     sizes: "128x128",
                     type: "image/png",
                 },
                 {
-                    src: `${value.images[0].url}`,
+                    src: `/api/image/${value.image}`,
                     sizes: "192x192",
                     type: "image/png",
                 },
                 {
-                    src: `${value.images[0].url}`,
+                    src: `/api/image/${value.image}`,
                     sizes: "256x256",
                     type: "image/png",
                 },
                 {
-                    src: `${value.images[0].url}`,
+                    src: `/api/image/${value.image}`,
                     sizes: "384x384",
                     type: "image/png",
                 },
                 {
-                    src: `${value.images[0].url}`,
+                    src: `/api/image/${value.image}`,
                     sizes: "512x512",
                     type: "image/png",
                 },
@@ -225,28 +228,33 @@ currentSong.subscribe((value) => {
 
     if (value) {
         playing.set(false);
-        audio.src = `/api/song/audio/${value.id}`;
+
+        if (songsInIndexedDB.get().includes(value.id)) {
+            console.log("getting song from indexedDB");
+            const song = await getSongInIndexedDB(value.id);
+            const audioURL = URL.createObjectURL(song.blob);
+            audio.src = audioURL;
+        } else {
+            audio.src = `/api/song/audio/${value.id}`;
+        }
+        audio.onloadeddata = () => {
+            console.log("Audio loaded, ready to play!");
+            audio.play().then(() => {
+                playing.set(true);
+            });
+        };
     }
 });
 
-async function isHlsContent(url: string) {
-    try {
-        const response = await fetch(url, {
-            method: "GET",
-            headers: { Range: "bytes=0-512" },
-        });
-        const text = await response.text();
-        return text.includes("#EXTM3U") && text.includes("#EXT-X-");
-    } catch (error) {
-        console.error("Error fetching content:", error);
-        return false;
-    }
-}
-
 currentStation.subscribe(async (value) => {
+    send({ currentStation: value?.stationuuid });
+
+    if (!value) {
+        return;
+    }
+
     clearCurrentSong();
 
-    send({ currentStation: value?.stationuuid });
     if (value?.url_resolved) {
         const isHls = await isHlsContent(value.url_resolved);
 
@@ -291,6 +299,24 @@ volume.subscribe((value) => {
     audio.volume = value;
     send({ volume: value });
 });
+
+// **************************
+// **** Helper functions ****
+// **************************
+
+async function isHlsContent(url: string) {
+    try {
+        const response = await fetch(url, {
+            method: "GET",
+            headers: { Range: "bytes=0-512" },
+        });
+        const text = await response.text();
+        return text.includes("#EXTM3U") && text.includes("#EXT-X-");
+    } catch (error) {
+        console.error("Error fetching content:", error);
+        return false;
+    }
+}
 
 export const play = async () => {
     await audio.play();
@@ -346,6 +372,26 @@ export async function prev() {
         });
 }
 
+function startSocket() {
+    console.log(window.navigator.onLine)
+    if (location.protocol == "https:") {
+        websocket = new WebSocket(`wss://${location.host}/ws`);
+    } else {
+        websocket = new WebSocket(`ws://${location.host}/ws`);
+    }
+
+    websocket.onopen = () => {
+        // console.log("Web socket open");
+    };
+    websocket.onmessage = () => {
+        // console.log("Web socket message", event.data);
+    };
+    websocket.onclose = () => {
+        // console.log("Web socket close");
+        startSocket();
+    };
+}
+
 export async function next() {
     if (!queueIndex.get() && queueIndex.get() != 0) {
         return;
@@ -373,6 +419,130 @@ export async function next() {
             currentSong.set(data);
         });
 }
+
+function openIndexedDB() {
+    const dbOpenRequest = indexedDB.open("RockIt", 1);
+
+    dbOpenRequest.onupgradeneeded = function () {
+        const db = dbOpenRequest.result;
+        const songsStore = db.createObjectStore("songs", { keyPath: "id" });
+        songsStore.createIndex("id", "id", { unique: true });
+        songsStore.createIndex("name", "name", { unique: false });
+        songsStore.createIndex("artists", "artists", { unique: false });
+        songsStore.createIndex("images", "images", { unique: false });
+        songsStore.createIndex("image", "image", { unique: false });
+        songsStore.createIndex("duration", "duration", { unique: false });
+        songsStore.createIndex("blob", "blob", { unique: false });
+
+        const imageStore = db.createObjectStore("images", { keyPath: "id" });
+        imageStore.createIndex("id", "id", { unique: true });
+        imageStore.createIndex("blob", "blob", { unique: false });
+    };
+    return dbOpenRequest;
+}
+
+export async function saveSongToIndexedDB(
+    song: SongDB<"id" | "name" | "artists" | "image" | "duration">
+) {
+    const songBlob = await fetch(`/api/song/audio/${song.id}`).then(
+        (response) => response.blob()
+    );
+
+    const imageBlob = await fetch(`/api/image/${song.image}`).then((response) =>
+        response.blob()
+    );
+
+    const songToSave = {
+        id: song.id,
+        name: song.name,
+        artists: song.artists,
+        image: song.image,
+        duration: song.duration,
+        blob: songBlob,
+    };
+
+    const imageToSave = {
+        id: song.image,
+        blob: imageBlob,
+    };
+
+    console.log("imageToSave", imageToSave);
+
+    const db = database.result;
+    const songsTx = db.transaction("songs", "readwrite");
+    const songsStore = songsTx.objectStore("songs");
+    songsStore.put(songToSave);
+
+    const imagesTx = db.transaction("images", "readwrite");
+    const imagesStore = imagesTx.objectStore("images");
+    imagesStore.put(imageToSave);
+
+    songsInIndexedDB.set(await getSongIdsInIndexedDB());
+}
+
+export async function getSongInIndexedDB(
+    id: string
+): Promise<
+    SongDBWithBlob<"id" | "name" | "blob" | "artists" | "images" | "duration">
+> {
+    const db = database.result;
+    const tx = db.transaction("songs", "readonly");
+    const store = tx.objectStore("songs");
+
+    return new Promise((resolve, reject) => {
+        const query = store.get(id);
+
+        query.onsuccess = function (event) {
+            resolve(query.result);
+        };
+        query.onerror = function (event) {
+            reject(event);
+        };
+    });
+}
+
+export async function getSongIdsInIndexedDB(): Promise<string[]> {
+    const db = database.result;
+    const tx = db.transaction("songs", "readonly");
+    const store = tx.objectStore("songs");
+
+    return new Promise((resolve, reject) => {
+        const query = store.getAll();
+
+        query.onsuccess = function (event) {
+            resolve(query.result.map((song) => song.id));
+        };
+        query.onerror = function (event) {
+            reject(event);
+        };
+    });
+}
+
+async function registerServiceWorker() {
+    if ("serviceWorker" in navigator) {
+        try {
+            const registration = await navigator.serviceWorker.register(
+                "/service-worker.js",
+                {
+                    scope: "/",
+                }
+            );
+            if (registration.installing) {
+                console.log("Service worker installing");
+            } else if (registration.waiting) {
+                console.log("Service worker installed");
+            } else if (registration.active) {
+                console.log("Service worker active");
+            }
+        } catch (error) {
+            console.error(`Registration failed with ${error}`);
+        }
+    }
+}
+
+// *************************
+// **** Event listeners ****
+// *************************
 
 navigator.mediaSession.setActionHandler("play", async () => {
     play();
@@ -466,7 +636,7 @@ audio.addEventListener("ended", async () => {
             album: nextSong.albumName,
             artwork: [
                 {
-                    src: `${nextSong.images[0].url}`, // Asegúrate de usar la URL correcta de la imagen
+                    src: `/api/image/${nextSong.image}`, // Asegúrate de usar la URL correcta de la imagen
                     sizes: "96x96",
                     type: "image/png",
                 },

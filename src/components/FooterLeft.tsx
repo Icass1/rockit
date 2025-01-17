@@ -16,8 +16,9 @@ function FooterLeftForSong({ currentSong }: { currentSong: CurrentSong }) {
             <img
                 id="footer-album-cover"
                 src={
-                    (currentSong?.images && currentSong?.images[0]?.url) ||
-                    "/song-placeholder.png"
+                    currentSong?.image
+                        ? `/api/image/${currentSong.image}`
+                        : "/song-placeholder.png"
                 }
                 alt="Album Cover"
                 className="md:w-16 md:h-16 rounded-md select-none w-9 h-9"

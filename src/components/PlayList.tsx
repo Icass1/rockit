@@ -20,12 +20,12 @@ export default function PlayList({ id, type }: { type: string; id: string }) {
             currentSong.set(shuffled[0].song);
             queueIndex.set(shuffled[0].index);
             queue.set(shuffled);
-            play();
+            // play();
         } else {
             currentSong.set(songsToAdd[0].song);
             queueIndex.set(0);
             queue.set(songsToAdd);
-            play();
+            // play();
         }
     };
 

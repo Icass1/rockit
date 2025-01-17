@@ -60,7 +60,7 @@ export default function SongPageCover({
         } else {
             currentSong.set(song);
 
-            play();
+            // play();
 
             queueIndex.set(0);
             queue.set([{ song: song, list: undefined, index: 0 }]);

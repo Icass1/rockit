@@ -4,11 +4,13 @@ import {
     queue,
     queueIndex,
     randomQueue,
+    saveSongToIndexedDB,
+    songsInIndexedDB,
 } from "@/stores/audio";
 import type { SongDB } from "@/lib/db";
 import { getTime } from "@/lib/getTime";
 import LikeButton from "./LikeButton";
-import { ListPlus, EllipsisVertical } from "lucide-react";
+import { ListPlus, EllipsisVertical, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
 import { useStore } from "@nanostores/react";
 import { currentList, currentListSongs } from "@/stores/currentList";
@@ -18,7 +20,7 @@ export default function AlbumSong({
     index,
 }: {
     song: SongDB<
-        | "images"
+        | "image"
         | "id"
         | "name"
         | "artists"
@@ -33,6 +35,7 @@ export default function AlbumSong({
     const $queue = useStore(queue);
     const $queueIndex = useStore(queueIndex);
     const $currentList = useStore(currentList);
+    const $songsInIndexedDB = useStore(songsInIndexedDB);
 
     const handleClick = () => {
         if (!song.path) {
@@ -67,7 +70,7 @@ export default function AlbumSong({
             currentSong.set(song);
             queueIndex.set(firstSong.index);
             queue.set(shuffled);
-            play();
+            // play();
         } else {
             const firstSong = songsToAdd.find(
                 (dataSong) => dataSong.song.id == song.id
@@ -81,8 +84,20 @@ export default function AlbumSong({
             currentSong.set(song);
             queueIndex.set(firstSong.index);
             queue.set(songsToAdd);
-            play();
+            // play();
         }
+    };
+
+    const handleAddToList = (
+        e: React.MouseEvent<SVGSVGElement, MouseEvent>
+    ) => {
+        e.stopPropagation();
+        saveSongToIndexedDB(song);
+    };
+    const handleOpenOptions = (
+        e: React.MouseEvent<SVGSVGElement, MouseEvent>
+    ) => {
+        e.stopPropagation();
     };
 
     return (
@@ -117,12 +132,24 @@ export default function AlbumSong({
             >
                 {song.name}{" "}
             </label>
+            {$songsInIndexedDB.includes(song.id) && (
+                <CheckCircle2
+                    className="hidden md:flex md:hover:text-white md:hover:scale-105 w-8 text-[#ec5588]"
+                    onClick={handleAddToList}
+                />
+            )}
             <LikeButton song={song} />
-            <ListPlus className="text-gray-400 hidden md:flex md:hover:text-white md:hover:scale-105 w-8" />
+            <ListPlus
+                className="text-gray-400 hidden md:flex md:hover:text-white md:hover:scale-105 w-8"
+                onClick={handleAddToList}
+            />
             <EllipsisVertical className="text-gray-400 flex md:hidden md:hover:text-white md:hover:scale-105 w-8" />
             <label className="text-sm text-white/80 select-none min-w-7 flex justify-center items-center">
                 {hovered && window.innerWidth > 768 ? (
-                    <EllipsisVertical className="text-gray-400 md:hover:text-white md:hover:scale-105" />
+                    <EllipsisVertical
+                        className="text-gray-400 md:hover:text-white md:hover:scale-105 h-5 w-5"
+                        onClick={handleOpenOptions}
+                    />
                 ) : (
                     getTime(song.duration)
                 )}

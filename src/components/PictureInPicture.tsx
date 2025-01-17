@@ -58,8 +58,9 @@ export default function PictureInPictureImage() {
             <img
                 ref={imageRef}
                 src={
-                    ($currentSong?.images && $currentSong?.images[0]?.url) ||
-                    "/song-placeholder.png"
+                    $currentSong?.image
+                        ? `/api/image/${$currentSong?.image}`
+                        : "/song-placeholder.png"
                 }
                 crossOrigin="anonymous"
                 alt="Demo"

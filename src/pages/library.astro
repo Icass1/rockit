@@ -1,6 +1,7 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import LibraryFilters from "@/components/LibraryFilters.tsx";
+import ButtonSection from "@/components/MobileLibraryButtons.tsx";
 import {
     db,
     parseAlbum,
@@ -13,7 +14,9 @@ import {
     type RawUserDB,
 } from "@/lib/db";
 import { getStats } from "@/lib/stats";
+import { useState } from "react";
 import { Heart, Disc3, History } from "lucide-react";
+import Downloads from '@/components/MusicDownloader.tsx';
 
 if (!Astro.locals.user) {
     return Astro.redirect("/login");
@@ -175,6 +178,8 @@ data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
             </div>
         </section>
 
+        <ButtonSection client:only="react" />
+
         <h2 class="text-2xl font-bold text-left py-4 px-5 md:px-0">Your Albums and Playlists</h2>
         <div
             class="grid gap-5 px-5"
@@ -251,5 +256,6 @@ data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
             }
         </div>
         <div class="md:min-h-10 min-h-20"></div>
+        <Downloads navOpen={true} client:only="react" />
     </div>
 </Layout>

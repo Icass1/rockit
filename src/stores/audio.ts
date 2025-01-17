@@ -534,7 +534,6 @@ export async function getSongIdsInIndexedDB(): Promise<string[]> {
 }
 
 async function registerServiceWorker() {
-    return;
     if ("serviceWorker" in navigator) {
         try {
             const registration = await navigator.serviceWorker.register(

@@ -29,7 +29,7 @@ function FooterLeftForSong({ currentSong }: { currentSong: CurrentSong }) {
                 <span className="font-semibold flex flex-row gap-3 items-center">
                     <a
                         href={`/song/${currentSong?.id}`}
-                        className="md:hover:underline truncate"
+                        className="md:hover:underline truncate line-clamp-1"
                     >
                         {currentSong?.name || "Canción desconocida :("}
                     </a>
@@ -86,7 +86,7 @@ function FooterLeftForStation({ currentStation }: { currentStation: Station }) {
 
             {/* Parte central que se estira */}
             <div className="flex flex-col min-w-0 flex-1">
-                <span className="font-semibold flex flex-row gap-3 items-center">
+                <span className="font-semibold flex flex-row gap-3 items-center truncate line-clamp-1">
                     {currentStation.name}
                 </span>
                 <span className="text-sm text-gray-400 flex flex-row gap-x-1 w-full">

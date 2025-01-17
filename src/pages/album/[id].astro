@@ -7,11 +7,12 @@ import { getMinutes } from "@/lib/getTime";
 
 import PinList from "@/components/PinList";
 import AddToLibrary from "@/components/AddToLibrary";
-import DownloadList from "@/components/DownloadList";
+import DownloadListDB from "@/components/DownloadListDBButton";
 import getAlbum from "@/lib/getAlbum";
 import PlayList from "@/components/PlayList";
 import AddToQueue from "@/components/AddToQueue";
 import SetCurrentListInfo from "@/components/SetCurrentListInfo";
+import DownloadListDevice from "@/components/DownloadListDeviceButton";
 
 const { id } = Astro.params as { id: string };
 
@@ -79,7 +80,7 @@ const meta = {
             >
                 {
                     !inDatabase && (
-                        <DownloadList
+                        <DownloadListDB
                             url={`https://open.spotify.com/album/${id}`}
                             client:only="react"
                         />
@@ -89,6 +90,12 @@ const meta = {
                 <AddToLibrary type="album" id={id} client:only="react" />
                 <PlayList client:only="react" type="album" id={id} />
                 <AddToQueue client:only="react" type="album" id={id} />
+                <DownloadListDevice
+                    type="playlist"
+                    id={id}
+                    client:only="react"
+                />
+
                 <SetCurrentListInfo
                     client:only="react"
                     songs={songs}

@@ -1,7 +1,7 @@
 import { downloads } from "@/stores/downloads";
 import { Download } from "lucide-react";
 
-export default function DownloadList({ url }: { url: string }) {
+export default function DownloadListDB({ url }: { url: string }) {
     const handleClick = () => {
         fetch(`/api/start-download?url=${url}`).then((response) => {
             response.json().then((data) => {

@@ -24,6 +24,7 @@ export default function Navigation({ activePage }: { activePage: string }) {
         { name: "Home", href: "/", icon: Home },
         { name: "Library", href: "/library", icon: Library },
         { name: "Search", href: "/search", icon: Search },
+        { name: "Friends", href: "/friends", icon: Users },
     ];
 
     const [innerWidth] = useWindowSize();
@@ -126,24 +127,6 @@ export default function Navigation({ activePage }: { activePage: string }) {
                     </div>
                     <label className="font-semibold cursor-pointer">
                         Radio
-                    </label>
-                </a>
-
-                <a
-                    key="/friends"
-                    href="/friends"
-                    title="Friends"
-                    className={`h-8 rounded-md items-center ml-2 mr-2 transition-all flex gap-2 ${
-                        activePage === "Friends"
-                            ? "bg-white text-black"
-                            : "text-white md:hover:bg-[#414141]"
-                    }`}
-                >
-                    <div className="w-8 h-8 flex items-center justify-center">
-                        <Users className="w-5 h-5" />
-                    </div>
-                    <label className="font-semibold cursor-pointer">
-                        Friends
                     </label>
                 </a>
 

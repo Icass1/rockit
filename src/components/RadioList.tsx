@@ -183,7 +183,7 @@ const RadioStations = () => {
                             />
                         ))
                     ) : (
-                        <div className="flex flex-col items-center justify-center col-span-full h-36">
+                        <div className="flex flex-col items-center justify-center text-center col-span-full h-fit mt-10">
                             <SearchX className="w-16 h-16 mb-4" />
                             <p className="text-white text-2xl font-semibold">
                                 No se han encontrado estaciones

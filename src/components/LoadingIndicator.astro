@@ -1,42 +1,54 @@
 <style>
     @keyframes pulse {
-    0% {
-        transform: scale(0.5);
-        opacity: 1;
-    }
-    100% {
-        transform: scale(3);
-        opacity: 0;
-    }
+        0% {
+            transform: scale(0.5);
+            opacity: 1;
+        }
+        100% {
+            transform: scale(3);
+            opacity: 0;
+        }
     }
 </style>
 
 <!-- PUESTO OCULTO (PONER FLEX CUANDO SE ARREGLE) -->
-<div id="loading-screen" class="hidden fixed inset-0 z-50 items-center justify-center bg-black select-none">
+<div
+    id="loading-screen"
+    class="hidden fixed inset-0 z-50 items-center justify-center bg-black select-none"
+>
     <!-- Fondo con círculos animados -->
     <div class="relative w-1/12 aspect-square opacity-35">
         <!-- Círculo rosa -->
-        <div class="absolute inset-0 rounded-full bg-[#ee1086] animate-[pulse_2s_ease-out_infinite]"></div>
+        <div
+            class="absolute inset-0 rounded-full bg-[#ee1086] animate-[pulse_2s_ease-out_infinite]"
+        >
+        </div>
         <!-- Círculo naranja con desfase -->
-        <div class="absolute inset-0 rounded-full bg-[#fb6467] animate-[pulse_2s_ease-out_infinite] animatio"></div>
+        <div
+            class="absolute inset-0 rounded-full bg-[#fb6467] animate-[pulse_2s_ease-out_infinite] animatio"
+        >
+        </div>
     </div>
 
     <!-- Logo en el centro -->
-    <img src="/logos/logo-sq-2.png" alt="Logo" class="absolute w-1/6 aspect-square" />
-</div>  
+    <img
+        src="/logos/logo-sq-2.png"
+        alt="Logo"
+        class="absolute w-1/6 aspect-square"
+    />
+</div>
 
 <script is:inline>
-    const loadingScreen = document.getElementById('loading-screen');
+    const loadingScreen = document.getElementById("loading-screen");
     //console.log(loadingScreen);
 
-    document.addEventListener('astro:before-preparation', () => {
-        console.log("Preparando")
+    document.addEventListener("astro:before-preparation", () => {
+        console.log("Preparando");
         //loadingScreen.className = 'show';
     });
 
-    document.addEventListener('astro:after-preparation', () => {
-        console.log("Listo")
+    document.addEventListener("astro:after-preparation", () => {
+        console.log("Listo");
         //loadingScreen.classList.add('show');
     });
-
 </script>

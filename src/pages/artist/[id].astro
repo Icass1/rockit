@@ -1,6 +1,6 @@
 ---
 import Layout from "@/layouts/Layout.astro";
-import {  Play } from "lucide-react";
+import { Play } from "lucide-react";
 
 if (!Astro.locals.user) {
     return Astro.redirect("/login");
@@ -37,18 +37,26 @@ const artistImage =
                     <h2 class="text-xl md:text-2xl font-semibold mb-2 md:mb-4">
                         Información del Artista
                     </h2>
-                    <p class="text-gray-400 mb-4 md:mb-6 text-sm md:text-base line-clamp-2">
-                        Placeholder para la descripción del artista o estadísticas. Necesitamos debatir qué poner aquí
-                        Ignacio, tipo nº de oyentes o descripción de Wikipedia o canciones y álbumes....
+                    <p
+                        class="text-gray-400 mb-4 md:mb-6 text-sm md:text-base line-clamp-2"
+                    >
+                        Placeholder para la descripción del artista o
+                        estadísticas. Necesitamos debatir qué poner aquí
+                        Ignacio, tipo nº de oyentes o descripción de Wikipedia o
+                        canciones y álbumes....
                     </p>
                 </div>
 
                 <!-- Sección principal -->
                 <section class="bg-[#171717] h-full px-5 md:px-52 py-4 md:py-0">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-52">
+                    <div
+                        class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-52"
+                    >
                         <!-- Columna Izquierda: Top Songs -->
                         <div>
-                            <h2 class="text-white text-xl md:text-2xl font-bold mb-2 md:mb-4">
+                            <h2
+                                class="text-white text-xl md:text-2xl font-bold mb-2 md:mb-4"
+                            >
                                 Top Songs
                             </h2>
                             <div class="space-y-2 md:space-y-4">
@@ -59,32 +67,31 @@ const artistImage =
                                             { length: 5 },
                                             (_, index) => (
                                                 <div class="group flex items-center space-x-4 rounded-md md:hover:bg-[#212121] p-2 transition">
-                                                    <!-- Número de posición -->
+                                                    {/* Número de posición */}
                                                     <div class="text-gray-400 text-sm md:text-lg font-semibold w-2 md:w-6 text-center">
                                                         {index + 1}
                                                     </div>
 
-                                                    <!-- Imagen de la canción -->
+                                                    {/* Imagen de la canción */}
                                                     <div class="relative group w-10 h-10 md:w-12 md:h-12">
                                                         <img
                                                             src="/song-placeholder.png"
                                                             alt={`Song ${index + 1}`}
                                                             class="w-full h-full rounded object-cover transition duration-300 group-hover:brightness-50"
                                                         />
-                                                        <!-- Icono de Play -->
-                                                        <Play 
-                                                            className="absolute inset-0 m-auto w-4 h-4 md:w-5 md:h-5 text-white fill-current opacity-0 group-hover:opacity-100 transition duration-300"
-                                                        />
+                                                        {/* Icono de Play */}
+                                                        <Play className="absolute inset-0 m-auto w-4 h-4 md:w-5 md:h-5 text-white fill-current opacity-0 group-hover:opacity-100 transition duration-300" />
                                                     </div>
 
-                                                    <!-- Información de la canción -->
+                                                    {/* Información de la canción */}
                                                     <div class="flex-1 min-w-0">
                                                         <p class="text-white text-sm md:text-base font-semibold truncate">
-                                                            Song {index + 1} • 2024
+                                                            Song {index + 1} •
+                                                            2024
                                                         </p>
                                                     </div>
 
-                                                    <!-- Duración -->
+                                                    {/* Duración */}
                                                     <p class="text-gray-300 text-sm md:text-base pr-2">
                                                         3:45
                                                     </p>
@@ -98,7 +105,9 @@ const artistImage =
 
                         <!-- Columna Derecha: Top Albums -->
                         <div>
-                            <h2 class="text-white text-xl md:text-2xl font-bold mb-2 md:mb-4">
+                            <h2
+                                class="text-white text-xl md:text-2xl font-bold mb-2 md:mb-4"
+                            >
                                 Top Albums
                             </h2>
                             <div class="space-y-2 md:space-y-4">
@@ -108,32 +117,31 @@ const artistImage =
                                             { length: 5 },
                                             (_, index) => (
                                                 <div class="group flex items-center space-x-4 rounded-md md:hover:bg-[#212121] p-2 transition">
-                                                    <!-- Número de posición -->
+                                                    {/* Número de posición */}
                                                     <div class="text-gray-400 text-sm md:text-lg font-semibold w-2 md:w-6 text-center">
                                                         {index + 1}
                                                     </div>
 
-                                                    <!-- Cover del álbum -->
+                                                    {/* Cover del álbum */}
                                                     <div class="relative group w-10 h-10 md:w-12 md:h-12">
                                                         <img
                                                             src="/song-placeholder.png"
                                                             alt={`Song ${index + 1}`}
                                                             class="w-full h-full rounded object-cover transition duration-300 group-hover:brightness-50"
                                                         />
-                                                        <!-- Icono de Play -->
-                                                        <Play 
-                                                            className="absolute inset-0 m-auto w-4 h-4 md:w-5 md:h-5 text-white fill-current opacity-0 group-hover:opacity-100 transition duration-300"
-                                                        />
+                                                        {/* Icono de Play */}
+                                                        <Play className="absolute inset-0 m-auto w-4 h-4 md:w-5 md:h-5 text-white fill-current opacity-0 group-hover:opacity-100 transition duration-300" />
                                                     </div>
 
-                                                    <!-- Información del álbum -->
+                                                    {/* Información del álbum */}
                                                     <div class="flex-1 min-w-0">
                                                         <p class="text-white text-sm md:text-base font-semibold truncate">
-                                                            Album {index + 1} • 2024
+                                                            Album {index + 1} •
+                                                            2024
                                                         </p>
                                                     </div>
 
-                                                    <!-- Duración -->
+                                                    {/* Duración */}
                                                     <p class="text-gray-300 text-sm md:text-base pr-2">
                                                         37 Minutes
                                                     </p>

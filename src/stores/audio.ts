@@ -166,6 +166,10 @@ const audio = new Audio(
 );
 const hls = new Hls();
 
+let songCounted = false;
+let lastTime: number | undefined = undefined;
+let timeSum = 0;
+
 if (userJson?.currentTime) {
     audio.currentTime = userJson.currentTime;
 }
@@ -184,6 +188,10 @@ currentSong.subscribe(async (value) => {
     if (!value) {
         return;
     }
+
+    songCounted = false;
+    lastTime = undefined;
+    timeSum = 0;
 
     if ("mediaSession" in navigator && value) {
         navigator.mediaSession.metadata = new MediaMetadata({
@@ -340,6 +348,10 @@ export async function prev() {
     if (!queueIndex.get() && queueIndex.get() != 0) {
         return;
     }
+
+    timeSum = 0;
+    songCounted = false;
+    lastTime = 0;
 
     const _currentTime = currentTime.get();
 
@@ -609,6 +621,24 @@ audio.addEventListener("timeupdate", () => {
     currentTime.set(audio.currentTime);
     send({ currentTime: audio.currentTime });
 
+    const songId = currentSong.get()?.id;
+
+    if (
+        lastTime &&
+        audio.currentTime - lastTime < 1 &&
+        audio.currentTime - lastTime > 0
+    )
+        timeSum += audio.currentTime - lastTime;
+    lastTime = audio.currentTime;
+
+    if (timeSum > audio.duration * 0.8 && !songCounted) {
+        if (songId) {
+            songCounted = true;
+
+            send({ songEnded: songId });
+        }
+    }
+
     if ("mediaSession" in navigator) {
         // Asegúrate de que audio.duration no sea NaN
         if (!isNaN(audio.duration)) {
@@ -637,9 +667,9 @@ audio.addEventListener("pause", () => {
 
 audio.addEventListener("ended", async () => {
     const currentSongId = currentSong?.get()?.id;
-    if (currentSongId) {
-        send({ songEnded: currentSongId });
-    }
+    // if (currentSongId) {
+    //     send({ songEnded: currentSongId });
+    // }
     await next();
     play();
 

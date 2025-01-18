@@ -11,7 +11,7 @@ import { currentListSongs } from "@/stores/currentList";
 
 export default function PlayList({ id, type }: { type: string; id: string }) {
     const handleClick = () => {
-        let songsToAdd = currentListSongs.get().map((song, index) => {
+        let songsToAdd = currentListSongs.get().filter(song => song?.path).map((song, index) => {
             return { song: song, list: { type, id }, index: index };
         });
 

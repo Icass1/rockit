@@ -14,6 +14,7 @@ export default function SetCurrentListInfo({
         | "duration"
         | "albumId"
         | "albumName"
+        | "path"
     >[];
     id: string;
     type: string;

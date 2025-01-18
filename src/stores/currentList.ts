@@ -10,6 +10,7 @@ export const currentListSongs = atom<
         | "duration"
         | "albumId"
         | "albumName"
+        | "path"
     >[]
 >([]);
 

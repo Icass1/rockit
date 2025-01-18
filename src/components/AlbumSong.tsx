@@ -47,13 +47,18 @@ export default function AlbumSong({
             return;
         }
 
-        let songsToAdd = currentListSongs.get().map((song, index) => {
-            return {
-                song: song,
-                list: { type: $currentList.type, id: $currentList.id },
-                index: index,
-            };
-        });
+        console.log(currentListSongs.get())
+
+        let songsToAdd = currentListSongs
+            .get()
+            .filter((song) => song?.path)
+            .map((song, index) => {
+                return {
+                    song: song,
+                    list: { type: $currentList.type, id: $currentList.id },
+                    index: index,
+                };
+            });
 
         if (!window.navigator.onLine) {
             songsToAdd = songsToAdd.filter((song) =>
@@ -73,7 +78,7 @@ export default function AlbumSong({
                 );
                 return;
             }
-            playWhenReady.set(true)
+            playWhenReady.set(true);
             currentSong.set(song);
             queueIndex.set(firstSong.index);
             queue.set(shuffled);
@@ -87,7 +92,7 @@ export default function AlbumSong({
                 );
                 return;
             }
-            playWhenReady.set(true)
+            playWhenReady.set(true);
             currentSong.set(song);
             queueIndex.set(firstSong.index);
             queue.set(songsToAdd);

@@ -70,13 +70,16 @@ export default function PlaylistSong({
             return;
         }
 
-        let songsToAdd = currentListSongs.get().map((song, index) => {
-            return {
-                song: song,
-                list: { type: $currentList.type, id: $currentList.id },
-                index: index,
-            };
-        });
+        let songsToAdd = currentListSongs
+            .get()
+            .filter((song) => song?.path)
+            .map((song, index) => {
+                return {
+                    song: song,
+                    list: { type: $currentList.type, id: $currentList.id },
+                    index: index,
+                };
+            });
 
         if (!window.navigator.onLine) {
             songsToAdd = songsToAdd.filter((song) =>

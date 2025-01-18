@@ -15,7 +15,11 @@ export async function GET(context: APIContext): Promise<Response> {
         });
     }
 
-    const data = await getStats(Number(start), Number(end));
+    const data = await getStats(
+        context.locals.user.id,
+        Number(start),
+        Number(end)
+    );
 
     return new Response(JSON.stringify(data), {
         headers: {

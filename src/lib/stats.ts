@@ -5,6 +5,8 @@ import {
     type SongDB,
     db,
     parseSong,
+    type RawUserDB,
+    parseUser,
 } from "./db";
 import { readFile } from "fs/promises";
 // import { writeFile } from "fs/promises";
@@ -54,15 +56,25 @@ export interface Stats {
 }
 
 export async function getStats(
+    userId: string,
     start?: number | undefined,
     end?: number | undefined
 ) {
     // **************************
     // Replace with SELECT lastPlayedSong FROM user WHERE id = ?     context.locals.user.id
-    const fileBuffer = await readFile("lastPlayedSongs.json", "utf-8");
-    const lastPlayedSongs: {
+    // const fileBuffer = await readFile("lastPlayedSongs.json", "utf-8");
+    // const lastPlayedSongs: {
+    //     [key: string]: number[];
+    // } = JSON.parse(fileBuffer);
+
+    const lastPlayedSongs = parseUser(
+        db
+            .prepare("SELECT lastPlayedSong FROM user WHERE id = ?")
+            .get(userId) as RawUserDB
+    )?.lastPlayedSong as {
         [key: string]: number[];
-    } = JSON.parse(fileBuffer);
+    };
+
     // **************************
 
     let songs: SongDB<

@@ -53,7 +53,7 @@ if (userLists?.filter((list) => list.type == "album").length > 0) {
     );
 }
 
-const data = await getStats();
+const data = await getStats(Astro.locals.user.id);
 data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
 ---
 

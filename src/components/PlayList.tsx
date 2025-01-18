@@ -1,6 +1,7 @@
 import { PlayCircle } from "lucide-react";
 import {
     currentSong,
+    playWhenReady,
     queue,
     queueIndex,
     randomQueue,
@@ -22,11 +23,14 @@ export default function PlayList({ id, type }: { type: string; id: string }) {
 
         if (randomQueue.get()) {
             const shuffled = [...songsToAdd].sort(() => Math.random() - 0.5);
+            playWhenReady.set(true);
 
             currentSong.set(shuffled[0].song);
             queueIndex.set(shuffled[0].index);
             queue.set(shuffled);
         } else {
+            playWhenReady.set(true);
+
             currentSong.set(songsToAdd[0].song);
             queueIndex.set(0);
             queue.set(songsToAdd);

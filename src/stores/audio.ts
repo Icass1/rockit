@@ -148,6 +148,7 @@ const send = (json: any) => {
 
 export const currentSong = atom<CurrentSong>(_currentSong);
 export const playing = atom<boolean>(false);
+export const playWhenReady = atom<boolean>(false);
 export const currentTime = atom<number | undefined>(undefined);
 export const totalTime = atom<number | undefined>(undefined);
 export const queue = atom<Queue>(_queue);
@@ -240,11 +241,17 @@ currentSong.subscribe(async (value) => {
         } else {
             audio.src = `/api/song/audio/${value.id}`;
         }
+        // console.log("audio.readyState 1", audio.readyState);
+
         audio.onloadeddata = () => {
-            console.log("Audio loaded, ready to play!");
-            audio.play().then(() => {
-                playing.set(true);
-            });
+            // console.log("audio.readyState 2", audio.readyState);
+            // audio.HAVE_ENOUGH_DATA
+            // console.log("Audio loaded, ready to play!");
+            if (playWhenReady.get()) {
+                audio.play().then(() => {
+                    playing.set(true);
+                });
+            }
         };
     }
 });
@@ -371,6 +378,7 @@ export async function prev() {
     await fetch(`/api/song/${newSongId}`)
         .then((response) => response.json())
         .then((data: SongDB) => {
+            playWhenReady.set(true);
             currentSong.set(data);
         });
 }
@@ -421,6 +429,7 @@ export async function next() {
     await fetch(`/api/song/${newSongId}`)
         .then((response) => response.json())
         .then((data: SongDB) => {
+            playWhenReady.set(true);
             currentSong.set(data);
         });
 }

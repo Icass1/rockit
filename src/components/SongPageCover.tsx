@@ -5,6 +5,7 @@ import {
     pause,
     play,
     playing,
+    playWhenReady,
     queue,
     queueIndex,
 } from "@/stores/audio";
@@ -58,9 +59,8 @@ export default function SongPageCover({
         } else if ($currentSong?.id == song.id) {
             play();
         } else {
+            playWhenReady.set(true)
             currentSong.set(song);
-
-            // play();
 
             queueIndex.set(0);
             queue.set([{ song: song, list: undefined, index: 0 }]);

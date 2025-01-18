@@ -1,6 +1,7 @@
 import {
     currentSong,
     play,
+    playWhenReady,
     queue,
     queueIndex,
     randomQueue,
@@ -72,11 +73,10 @@ export default function AlbumSong({
                 );
                 return;
             }
-
+            playWhenReady.set(true)
             currentSong.set(song);
             queueIndex.set(firstSong.index);
             queue.set(shuffled);
-            // play();
         } else {
             const firstSong = songsToAdd.find(
                 (dataSong) => dataSong.song.id == song.id
@@ -87,10 +87,10 @@ export default function AlbumSong({
                 );
                 return;
             }
+            playWhenReady.set(true)
             currentSong.set(song);
             queueIndex.set(firstSong.index);
             queue.set(songsToAdd);
-            // play();
         }
     };
 

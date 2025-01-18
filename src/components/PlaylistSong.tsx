@@ -243,8 +243,8 @@ export default function PlaylistSong({
                 </div>
             </ContextMenuTrigger>
             <ContextMenuContent>
-                <ContextMenuOption>
-                    <PlayCircle className="h-5 w-5" onClick={handleClick} />
+                <ContextMenuOption onClick={handleClick}>
+                    <PlayCircle className="h-5 w-5" />
                     Play song
                 </ContextMenuOption>
                 <ContextMenuOption>

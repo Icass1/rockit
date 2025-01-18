@@ -53,9 +53,7 @@ export async function ALL(context: APIContext): Promise<Response> {
                     context.locals.user.id
                 );
             } else if (messageJson.randomQueue != undefined) {
-                db.prepare(
-                    `UPDATE user SET randomQueue = ? WHERE id = ?`
-                ).run(
+                db.prepare(`UPDATE user SET randomQueue = ? WHERE id = ?`).run(
                     messageJson.randomQueue,
                     context.locals.user.id
                 );

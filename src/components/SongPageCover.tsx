@@ -59,7 +59,7 @@ export default function SongPageCover({
         } else if ($currentSong?.id == song.id) {
             play();
         } else {
-            playWhenReady.set(true)
+            playWhenReady.set(true);
             currentSong.set(song);
 
             queueIndex.set(0);

@@ -305,7 +305,11 @@ function QueueSong({ song }: { song: QueueElement }) {
             <div className="relative">
                 {/* Imagen de portada */}
                 <img
-                    src={song.song.image ? `/api/image/${song.song.image}` : "/song-placeholder.png"}
+                    src={
+                        song.song.image
+                            ? `/api/image/${song.song.image}`
+                            : "/song-placeholder.png"
+                    }
                     alt={song.song.name}
                     className={`w-12 h-12 rounded object-cover ${
                         song.index === $queueIndex ? "brightness-50" : ""

@@ -1,7 +1,6 @@
-import { useState } from 'react';
-import { Import, RadioTower } from 'lucide-react';
-import Downloads from './MusicDownloader';
-
+import { useState } from "react";
+import { Import, RadioTower } from "lucide-react";
+import Downloads from "./MusicDownloader";
 
 export default function ButtonSection() {
     const [open, setOpen] = useState(false);
@@ -16,7 +15,9 @@ export default function ButtonSection() {
                         onClick={() => setOpen(!open)}
                     >
                         <Import className="w-8 h-8" />
-                        <span className="text-sm font-semibold text-center">Import songs from YT Music/Spotify</span>
+                        <span className="text-sm font-semibold text-center">
+                            Import songs from YT Music/Spotify
+                        </span>
                     </button>
 
                     {/* Botón de Radio */}
@@ -25,7 +26,9 @@ export default function ButtonSection() {
                         className="flex flex-col items-center justify-center gap-2 w-1/2 px-3 py-2 bg-neutral-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-white"
                     >
                         <RadioTower className="w-8 h-8" />
-                        <span className="text-sm font-semibold text-center flex items-center">Search for radio stations</span>
+                        <span className="text-sm font-semibold text-center flex items-center">
+                            Search for radio stations
+                        </span>
                     </a>
                 </div>
             </section>

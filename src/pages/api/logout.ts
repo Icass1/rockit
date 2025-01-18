@@ -2,7 +2,6 @@ import { lucia } from "@/auth";
 import type { APIContext } from "astro";
 
 export async function ALL(context: APIContext): Promise<Response> {
-
     const sessionCookie = context.cookies.get(lucia.sessionCookieName);
 
     if (!sessionCookie) {

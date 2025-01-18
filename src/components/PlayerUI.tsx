@@ -566,8 +566,8 @@ export default function PlayerUI() {
 
                                         return (
                                             <div
-                                                key={queueSong.song.id}
-                                                id={queueSong.song.id}
+                                                key={queueSong.song.id + queueSong.index}
+                                                id={queueSong.song.id + queueSong.index}
                                                 onMouseDown={() => {
                                                     setDraggingSong(queueSong);
                                                 }}

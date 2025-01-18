@@ -47,8 +47,6 @@ export default function AlbumSong({
             return;
         }
 
-        console.log(currentListSongs.get());
-
         let songsToAdd = currentListSongs
             .get()
             .filter((song) => song?.path)

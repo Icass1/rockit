@@ -118,9 +118,6 @@ if (userJson && userJson.queue.length > 0) {
     );
     const _queueJson = (await _queueResponse.json()) as QueueSong[];
 
-    console.log(userJson.queue);
-    console.log(_queueJson);
-
     _queue = userJson.queue
         .map((queueSong) => {
             const songInfo = _queueJson
@@ -188,8 +185,6 @@ currentSong.subscribe(async (value) => {
         return;
     }
 
-    console.log(`/api/image/${value.image}`);
-
     if ("mediaSession" in navigator && value) {
         navigator.mediaSession.metadata = new MediaMetadata({
             title: value.name,
@@ -234,19 +229,13 @@ currentSong.subscribe(async (value) => {
         playing.set(false);
 
         if (songsInIndexedDB.get().includes(value.id)) {
-            console.log("getting song from indexedDB");
             const song = await getSongInIndexedDB(value.id);
             const audioURL = URL.createObjectURL(song.blob);
             audio.src = audioURL;
         } else {
             audio.src = `/api/song/audio/${value.id}`;
         }
-        // console.log("audio.readyState 1", audio.readyState);
-
         audio.onloadeddata = () => {
-            // console.log("audio.readyState 2", audio.readyState);
-            // audio.HAVE_ENOUGH_DATA
-            // console.log("Audio loaded, ready to play!");
             if (playWhenReady.get()) {
                 audio.play().then(() => {
                     playing.set(true);
@@ -384,7 +373,6 @@ export async function prev() {
 }
 
 function startSocket() {
-    console.log("window.navigator.onLine", window.navigator.onLine);
     if (!window.navigator.onLine) return;
 
     if (location.protocol == "https:") {

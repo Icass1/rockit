@@ -4,7 +4,6 @@ export default function ServiceWorkerInfo() {
     const [status, setStatus] = useState<string>("No data");
 
     const handleClick = async () => {
-        console.log("handleClick");
 
         if (!("serviceWorker" in navigator)) {
             setStatus("Your device doesn't support service worker");
@@ -12,7 +11,6 @@ export default function ServiceWorkerInfo() {
         }
 
         const data = await navigator.serviceWorker.getRegistration();
-        console.log("data", data);
 
         if (!data) {
             setStatus("No service worker.");

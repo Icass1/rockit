@@ -18,6 +18,7 @@ export default function SetCurrentListInfo({
     id: string;
     type: string;
 }) {
+    console.warn("currentListSongs.set", songs);
     currentListSongs.set(songs);
     currentList.set({ id, type: type });
 

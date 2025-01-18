@@ -118,11 +118,14 @@ if (userJson && userJson.queue.length > 0) {
     );
     const _queueJson = (await _queueResponse.json()) as QueueSong[];
 
+    console.log(userJson.queue);
+    console.log(_queueJson);
+
     _queue = userJson.queue
         .map((queueSong) => {
-            const songInfo = _queueJson.find(
-                (song) => song.id == queueSong.song
-            );
+            const songInfo = _queueJson
+                .filter((song) => song)
+                .find((song) => song.id == queueSong.song);
 
             if (!songInfo) {
                 return undefined;

@@ -16,7 +16,7 @@ import {
 import { getStats } from "@/lib/stats";
 import { useState } from "react";
 import { Heart, Disc3, History } from "lucide-react";
-import Downloads from '@/components/MusicDownloader.tsx';
+import Downloads from "@/components/MusicDownloader.tsx";
 
 if (!Astro.locals.user) {
     return Astro.redirect("/login");
@@ -64,11 +64,13 @@ data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
             <div class="hidden md:flex">
                 <label class="text-white text-4xl font-bold">Library</label>
             </div>
-            <LibraryFilters client:only="react"/>
+            <LibraryFilters client:only="react" />
         </section>
 
         <section class="pt-5 md:py-12 text-white">
-            <h2 class="text-2xl font-bold text-left px-5 md:px-0">Featured Albums</h2>
+            <h2 class="text-2xl font-bold text-left px-5 md:px-0">
+                Featured Albums
+            </h2>
             <div
                 class="relative flex items-center gap-5 overflow-y-auto md:overflow-x-hidden md:hover:overflow-x-auto py-4 md:px-2"
                 style="scrollbar-gutter: stable both-edges;"
@@ -180,17 +182,23 @@ data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
 
         <ButtonSection client:only="react" />
 
-        <h2 class="text-2xl font-bold text-left py-4 px-5 md:px-0">Your Albums and Playlists</h2>
-        <div
-            class="grid gap-5 px-5"
-        >
+        <h2 class="text-2xl font-bold text-left py-4 px-5 md:px-0">
+            Your Albums and Playlists
+        </h2>
+        <div class="grid gap-5 px-5">
             <style>
                 .grid {
-                    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                    grid-template-columns: repeat(
+                        auto-fill,
+                        minmax(200px, 1fr)
+                    );
                 }
                 @media (max-width: 768px) {
                     .grid {
-                        grid-template-columns: repeat(auto-fill, minmax(40%, 1fr));
+                        grid-template-columns: repeat(
+                            auto-fill,
+                            minmax(40%, 1fr)
+                        );
                     }
                 }
             </style>

@@ -19,11 +19,11 @@ export default function LikeButton({ song }: { song: SongDB<"id"> }) {
                 (response) => {
                     if (response.ok) {
                         // Remove song to liked songs store
-                        likedSongs.set([
-                            ...likedSongs
+                        likedSongs.set(
+                            likedSongs
                                 .get()
-                                .filter((likedSong) => likedSong != song.id),
-                        ]);
+                                .filter((likedSong) => likedSong != song.id)
+                        );
                     } else {
                         console.log("Error");
                         // Tell user like request was unsuccessful

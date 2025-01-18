@@ -55,6 +55,7 @@ export default function PlaylistSongsView({
     };
 
     useEffect(() => {
+        console.warn("songsToRender", songsToRender);
         currentListSongs.set(songsToRender);
     }, [songsToRender]);
 

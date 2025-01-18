@@ -43,9 +43,14 @@ if (!Astro.locals.user) {
 //     },
 // ];
 
-const stats = await getStats();
+const stats = await getStats(Astro.locals.user.id);
 
 let songsTimesPlayed: SongForStats[] = [];
+
+stats.songs[0].timePlayed;
+
+const songsByTimePlayed = [...stats.songs];
+songsByTimePlayed.sort((a, b) => b.timePlayed - a.timePlayed);
 
 stats.songs.map((song) => {
     let result = songsTimesPlayed.find((findSong) => findSong.id == song.id);
@@ -112,21 +117,25 @@ songsTimesPlayed.sort((a, b) => b.timesPlayed - a.timesPlayed);
         >
             <!-- Aquí creamos las canciones -->
             {
-                Array.from({ length: 20 }).map((_, index) => (
+                songsByTimePlayed.slice(0, 20).map((song, index) => (
                     <a
                         href="#"
                         class="flex-none w-40 md:w-48 md:hover:scale-105 transition"
                     >
                         <img
                             class="rounded-lg w-full aspect-square object-cover"
-                            src="/song-placeholder.png"
+                            src={
+                                song.image
+                                    ? `/api/image/${song.image}`
+                                    : "/song-placeholder.png"
+                            }
                             alt="Song Cover"
                         />
                         <label class="truncate font-semibold text-center block mt-2">
-                            Song Title {index + 1}
+                            {song.name}
                         </label>
                         <label class="truncate text-sm text-center text-gray-400 block">
-                            Artist Name
+                            {song.artists[0].name}
                         </label>
                     </a>
                 ))

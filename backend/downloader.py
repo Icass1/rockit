@@ -69,6 +69,7 @@ class ListDownloader:
                 self.downloader.queue.append({"raw_list": self.list, "spotdl_song": spotdl_song, "raw_song": self.raw_songs[index]})
     
     def setup_list_db(self):
+        print("setup_list_db", self.first_setup, self.list.type)
         if self.first_setup: return
         self.first_setup = True
 
@@ -136,33 +137,41 @@ class ListDownloader:
 
         for song in self.raw_songs:
             song = song if self.list.type == "album" else song.track
-            if song.id not in self.downloader.downloads_dict:
-                # logger.error(f"ListDownloader.status song.id: {song.id} is not in self.downloader.downloads_dict: {self.downloader.downloads_dict}")
-                logger.error(f"ListDownloader.status song.id: {song.id} is not in self.downloader.downloads_dict")
-
-            while song.id not in self.downloader.downloads_dict:
-                time.sleep(0.1)
-
-            if song.id not in self.downloader.downloads_dict:
-                logger.critical(f"ListDownloader.status song.id: {song.id} is not in self.downloader.downloads_dict: {self.downloader.downloads_dict}")
-
-            text = {"song": {"id": song.id, "name": song.name, "artists":  [artist._json for artist in song.artists]}}
-            yield f"data: {json.dumps(text)}\n\n"
-
-            last_messages_len[song.id] = max(len(self.downloader.downloads_dict[song.id]["messages"]) - 1, 0)
-            list_completed[song.id] = 0
-            list_error[song.id] = 0
             songs_completed[song.id] = 0
 
-        while sum(songs_completed.values()) < len(self.spotdl_songs):
+        while sum(songs_completed.values()) < len(songs_completed.values()):
+
             for song in self.raw_songs:
                 song = song if self.list.type == "album" else song.track
+
+                if song.id not in last_messages_len:
+                    if song.id not in self.downloader.downloads_dict:
+                        # logger.error(f"ListDownloader.status song.id: {song.id} is not in self.downloader.downloads_dict: {self.downloader.downloads_dict}")
+                        logger.warning(f"ListDownloader.status song.id: {song.id} is not in self.downloader.downloads_dict")
+
+                    while song.id not in self.downloader.downloads_dict:
+                        time.sleep(0.1)
+
+                    if song.id not in self.downloader.downloads_dict:
+                        logger.critical(f"ListDownloader.status song.id: {song.id} is not in self.downloader.downloads_dict: {self.downloader.downloads_dict}")
+
+                    text = {"song": {"id": song.id, "name": song.name, "artists":  [artist._json for artist in song.artists]}}
+                    yield f"data: {json.dumps(text)}\n\n"
+
+                    last_messages_len[song.id] = max(len(self.downloader.downloads_dict[song.id]["messages"]) - 1, 0)
+                    list_completed[song.id] = 0
+                    list_error[song.id] = 0
+
                 for k in self.downloader.downloads_dict[song.id]["messages"][last_messages_len[song.id]:]:
+                    if songs_completed[song.id] == 1:
+                        logger.warning(f"ListDownloader.status Received a new message after song {song.id} already reached 100 completed")
+                        continue
+
                     list_completed[song.id] = k["completed"]
                     list_error[song.id] = 100 if k["message"] == "Error" else 0
 
-                    k["list_completed"] = sum(list_completed.values())/len(self.spotdl_songs)
-                    k["list_error"] = sum(list_error.values())/len(self.spotdl_songs)
+                    k["list_completed"] = sum(list_completed.values())/len(songs_completed.values())
+                    k["list_error"] = sum(list_error.values())/len(songs_completed.values())
                     k["list_id"] = self.list.id
 
                     logger.debug(f"ListDownloader.status data: {json.dumps(k)}")
@@ -172,8 +181,9 @@ class ListDownloader:
                         songs_completed[song.id] = 1
                     
                 last_messages_len[song.id] = len(self.downloader.downloads_dict[song.id]["messages"])
-            time.sleep(0.2)
+            time.sleep(0.1)
         
+        logger.debug(str(list_completed))
 
         self.setup_list_db()
 
@@ -283,9 +293,9 @@ class Downloader:
         threads: List[threading.Thread] = []
         while self.running:
             time.sleep(0.1)
-            for index, song in enumerate(self.queue):
-                if self.downloads_dict[song["spotdl_song"].song_id]["messages"][-1]["message"] != f'In queue {index+1}/{len(self.queue)}':
-                    self.downloads_dict[song["spotdl_song"].song_id]["messages"].append({'id': song["spotdl_song"].song_id, 'completed': 0, 'total': 100, 'message': f'In queue {index+1}/{len(self.queue)}'})
+            # for index, song in enumerate(self.queue):
+            #     if self.downloads_dict[song["spotdl_song"].song_id]["messages"][-1]["message"] != f'In queue {index+1}/{len(self.queue)}':
+            #         self.downloads_dict[song["spotdl_song"].song_id]["messages"].append({'id': song["spotdl_song"].song_id, 'completed': 0, 'total': 100, 'message': f'In queue {index+1}/{len(self.queue)}'})
             
             if len(threads) >= THREADS:
                 for thread in threads:

@@ -131,7 +131,7 @@ packages:
     resolution: {integrity: sha512-r0Ikqr0e6ozPb5bvhup1qdWnSPUvQu6tub4ZLYaKyG50BXZ0ej6FhGz3GpChKpH7kglRFPObJd/bDyf2VM9pkg==}
 
   '@astrojs/node@file:astrojs-node-8.3.4.tgz':
-    resolution: {integrity: sha512-5Pt7XDFok6bG2shK4UplOYFeFCSAXs82+QyoC9FsRP5oKT3mTfdInkMM5GdyQwYD3BP5nZGF7Rt9622Hwo++uA==, tarball: file:astrojs-node-8.3.4.tgz}
+    resolution: {integrity: sha512-UUk65Gr9zbTmmoescCyYocTmk9mzSQyEv3aSzf2s589DRgbYG/NeHwUeSstBYbhBUSAdUKfzCFX1NUfjmS3LSw==, tarball: file:astrojs-node-8.3.4.tgz}
     version: 8.3.4
     peerDependencies:
       astro: ^4.2.0

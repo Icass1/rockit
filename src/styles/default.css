@@ -62,23 +62,35 @@ code {
 
 /* Track */
 *::-webkit-scrollbar-track {
-    background: rgba(20, 20, 20, 0.5);
+    background-color: rgba(20, 20, 20, 0);
+    border-radius: 100px;
+}
+*:hover::-webkit-scrollbar-track {
+    background-color: rgba(20, 20, 20, 0.5);
     border-radius: 100px;
 }
 
 /* Handle */
 *::-webkit-scrollbar-thumb {
-    background: rgb(100, 100, 100);
+    background-color: rgb(100, 100, 100);
+    border-radius: 10px;
+}
+
+*:hover::-webkit-scrollbar-thumb:horizontal {
+    background-color: rgb(100, 100, 100);
     border-radius: 10px;
 }
 
 *::-webkit-scrollbar-thumb:horizontal {
-    background: rgb(100, 100, 100);
+    background-color: rgba(100, 100, 100, 0);
     border-radius: 10px;
 }
 
 /* Handle on hover */
 *::-webkit-scrollbar-thumb:hover {
+    background: #aaa;
+}
+*::-webkit-scrollbar-thumb:horizontal:hover {
     background: #aaa;
 }
 

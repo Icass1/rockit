@@ -252,9 +252,9 @@ function AlbumsCarousel({
             handleSwipe();
         };
 
-        div.addEventListener("touchstart", handleTouchStart);
-        div.addEventListener("touchmove", handleTouchMove);
-        div.addEventListener("touchend", handleTouchEnd);
+        div.addEventListener("touchstart", handleTouchStart, { passive: true });
+        div.addEventListener("touchmove", handleTouchMove, { passive: true });
+        div.addEventListener("touchend", handleTouchEnd, { passive: true });
 
         return () => {
             div.removeEventListener("touchstart", handleTouchStart);

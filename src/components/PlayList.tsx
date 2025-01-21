@@ -9,7 +9,13 @@ import {
 } from "@/stores/audio";
 import { currentListSongs } from "@/stores/currentList";
 
-export const playListHandleClick = ({ type, id }: { type: string; id: string }) => {
+export const playListHandleClick = ({
+    type,
+    id,
+}: {
+    type: string;
+    id: string;
+}) => {
     let songsToAdd = currentListSongs
         .get()
         .filter((song) => song?.path)

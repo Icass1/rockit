@@ -59,7 +59,7 @@ export default function ContextMenuContent({
     return (
         <div
             ref={contextMenuDivRef}
-            className="fixed bg-neutral-900/90 backdrop-blur-3xl w-max rounded-md p-1 overflow-hidden shadow-[0px_0px_20px_3px_#0e0e0e] z-20"
+            className="fixed bg-neutral-800/90 backdrop-blur-3xl w-max rounded-md p-1 overflow-hidden shadow-[0px_0px_20px_3px_#0e0e0e] z-20"
             style={{
                 display: contextMenuOpen ? "block" : "none",
                 left: `${pos[0]}px`,

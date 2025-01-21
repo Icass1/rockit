@@ -19,7 +19,7 @@ export default function ContextMenuOption({
             }}
             className={
                 className +
-                " hover:bg-neutral-800 rounded-sm p-2 cursor-pointer font-semibold text-sm flex flex-row items-center gap-2 " +
+                " hover:bg-neutral-700 rounded-sm p-2 cursor-pointer font-semibold text-sm flex flex-row items-center gap-2 " +
                 className
             }
         >

@@ -145,6 +145,7 @@ const send = (json: any) => {
 
 export const currentSong = atom<CurrentSong>(_currentSong);
 export const playing = atom<boolean>(false);
+export const loading = atom<boolean>(false);
 export const playWhenReady = atom<boolean>(false);
 export const currentTime = atom<number | undefined>(undefined);
 export const totalTime = atom<number | undefined>(undefined);
@@ -234,6 +235,7 @@ currentSong.subscribe(async (value) => {
     }
 
     if (value) {
+        loading.set(true);
         playing.set(false);
 
         if (songsInIndexedDB.get().includes(value.id)) {
@@ -243,7 +245,12 @@ currentSong.subscribe(async (value) => {
         } else {
             audio.src = `/api/song/audio/${value.id}`;
         }
+        audio.onerror = () => {
+            loading.set(false);
+            // Notify the user that the song couldn't be loaded
+        };
         audio.onloadeddata = () => {
+            loading.set(false);
             if (playWhenReady.get()) {
                 audio.play().then(() => {
                     playing.set(true);

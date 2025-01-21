@@ -1,39 +1,16 @@
 import {
-    currentSong,
-    play,
-    playWhenReady,
     queue,
     queueIndex,
-    randomQueue,
     saveSongToIndexedDB,
     songsInIndexedDB,
 } from "@/stores/audio";
 import type { PlaylistDBSongWithAddedAt } from "@/lib/db";
 import { getTime } from "@/lib/getTime";
 import LikeButton from "../LikeButton";
-import {
-    ListPlus,
-    EllipsisVertical,
-    CheckCircle2,
-    Download,
-    HardDriveDownload,
-    PlayCircle,
-    ListPlusIcon,
-    Link,
-    ListStart,
-    ListEnd,
-    Share2,
-    Copy,
-    ListX,
-} from "lucide-react";
+import { ListPlus, EllipsisVertical, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
-import { currentList, currentListSongs } from "@/stores/currentList";
+import { currentList } from "@/stores/currentList";
 import { useStore } from "@nanostores/react";
-import ContextMenuTrigger from "../ContextMenu/Trigger";
-import ContextMenu from "../ContextMenu/ContextMenu";
-import ContextMenuContent from "../ContextMenu/Content";
-import ContextMenuOption from "../ContextMenu/Option";
-import ContextMenuSplitter from "../ContextMenu/Splitter";
 import { navigate } from "astro:transitions/client";
 import { likedSongs } from "@/stores/likedList";
 import { songHandleClick } from "./HandleClick";
@@ -60,7 +37,6 @@ export default function PlaylistSong({
     const $queueIndex = useStore(queueIndex);
     const $currentList = useStore(currentList);
     const $songsInIndexedDB = useStore(songsInIndexedDB);
-    const $likedSongs = useStore(likedSongs);
 
     const handleAddToList = (
         e: React.MouseEvent<SVGSVGElement, MouseEvent>

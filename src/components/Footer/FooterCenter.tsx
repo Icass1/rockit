@@ -2,6 +2,7 @@ import { getTime } from "@/lib/getTime";
 import {
     currentSong,
     currentTime,
+    loading,
     next,
     pause,
     play,
@@ -20,12 +21,14 @@ import {
     CirclePause,
 } from "lucide-react";
 import Slider from "../Slider";
+import Spinner from "../Spinner";
 
 export default function FooterCenter() {
     const $playing = useStore(playing);
     const $currentTime = useStore(currentTime);
     const $currentSong = useStore(currentSong);
     const $randomQueue = useStore(randomQueue);
+    const $loading = useStore(loading);
 
     return (
         <div
@@ -47,7 +50,10 @@ export default function FooterCenter() {
                         play();
                     }}
                 />
-                {$playing ? (
+
+                {$loading ? (
+                    <Spinner></Spinner>
+                ) : $playing ? (
                     <CirclePause
                         className="w-8 h-8 text-gray-400 md:hover:text-white cursor-pointer md:hover:scale-105"
                         onClick={pause}
@@ -58,6 +64,7 @@ export default function FooterCenter() {
                         onClick={play}
                     />
                 )}
+
                 <SkipForward
                     className="w-[22px] h-[22px] fill-current text-gray-400 md:hover:text-white cursor-pointer md:hover:scale-105"
                     onClick={async () => {

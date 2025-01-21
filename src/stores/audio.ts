@@ -526,7 +526,7 @@ export async function getSongInIndexedDB(
     return new Promise((resolve, reject) => {
         const query = store.get(id);
 
-        query.onsuccess = function (event) {
+        query.onsuccess = function () {
             resolve(query.result);
         };
         query.onerror = function (event) {
@@ -543,7 +543,7 @@ export async function getSongIdsInIndexedDB(): Promise<string[]> {
     return new Promise((resolve, reject) => {
         const query = store.getAll();
 
-        query.onsuccess = function (event) {
+        query.onsuccess = function () {
             resolve(query.result.map((song) => song.id));
         };
         query.onerror = function (event) {
@@ -673,10 +673,6 @@ audio.addEventListener("pause", () => {
 });
 
 audio.addEventListener("ended", async () => {
-    const currentSongId = currentSong?.get()?.id;
-    // if (currentSongId) {
-    //     send({ songEnded: currentSongId });
-    // }
     await next();
     play();
 

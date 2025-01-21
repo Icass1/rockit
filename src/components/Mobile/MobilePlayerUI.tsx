@@ -1,4 +1,4 @@
-import { Play, Pause, SkipBack, SkipForward, Shuffle, Repeat } from "lucide-react";
+import { Play, SkipBack, SkipForward, Shuffle, Repeat } from "lucide-react";
 
 export default function MobilePlayerUI() {
     return (
@@ -36,7 +36,6 @@ export default function MobilePlayerUI() {
                     <button className="w-16 h-16 flex items-center bg-white justify-center rounded-full p-3">
                         <Play className="w-14 h-14 stroke-black fill-none" />
                     </button>
-
 
                     <button className="w-12 h-12 flex items-center justify-center">
                         <SkipForward className="w-8 h-8 fill-current" />

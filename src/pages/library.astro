@@ -1,7 +1,7 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import LibraryFilters from "@/components/LibraryFilters.tsx";
-import ButtonSection from "@/components/MobileLibraryButtons.tsx";
+import ButtonSection from "@/components/Mobile/MobileLibraryButtons.tsx";
 import {
     db,
     parseAlbum,
@@ -14,7 +14,6 @@ import {
     type RawUserDB,
 } from "@/lib/db";
 import { getStats } from "@/lib/stats";
-import { useState } from "react";
 import { Heart, Disc3, History } from "lucide-react";
 import Downloads from "@/components/MusicDownloader.tsx";
 
@@ -72,7 +71,7 @@ data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
                 Featured Albums
             </h2>
             <div
-                class="relative flex items-center gap-5 overflow-y-auto md:overflow-x-auto py-4 md:px-2 "
+                class="relative flex items-center gap-5 overflow-y-auto md:overflow-x-auto py-4 md:px-2"
                 style="scrollbar-gutter: stable both-edges;"
             >
                 <!-- Aquí creamos las canciones -->

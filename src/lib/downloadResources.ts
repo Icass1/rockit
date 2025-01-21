@@ -40,7 +40,7 @@ function openIndexedDB(): Promise<IDBDatabase> {
 }
 
 function fetchResource(url: string, database: IDBDatabase): Promise<string[]> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve, _) => {
         // If a file is some thing like this, ./index.D5cSYS0A.js in an import statement, the route to that file is /_astro/index.D5cSYS0A.js
         if (/\.[A-Za-z0-9]{8}\./.test(url)) {
             url = url.replace("./", "/_astro/");

@@ -8,8 +8,6 @@ import {
     type RawUserDB,
     parseUser,
 } from "./db";
-import { readFile } from "fs/promises";
-// import { writeFile } from "fs/promises";
 
 interface AlbumForStats extends AlbumDB<"name" | "id" | "artists" | "image"> {
     timesPlayed: number;

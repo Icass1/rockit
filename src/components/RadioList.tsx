@@ -137,7 +137,7 @@ const RadioStations = () => {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {filteredStations.length > 0 ? (
-                        filteredStations.map((station, index) => (
+                        filteredStations.map((station) => (
                             <StationCard
                                 station={station}
                                 key={station.stationuuid}
@@ -176,7 +176,7 @@ const RadioStations = () => {
                 </div>
                 <div className="space-y-4">
                     {filteredStations.length > 0 ? (
-                        filteredStations.map((station, index) => (
+                        filteredStations.map((station) => (
                             <StationCard
                                 station={station}
                                 key={station.stationuuid}

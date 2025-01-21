@@ -34,7 +34,7 @@ const fromNetwork = (request, timeout) =>
 const fromCache = (request) => {
     const url = new URL(request.url);
 
-    return new Promise(async (resolve, reject) => {
+    return new Promise(async (resolve, _) => {
         if (!database || database) {
             database = await openIndexedDB();
         }
@@ -71,7 +71,7 @@ const fromCache = (request) => {
                 })
             );
         };
-        getRequest.onerror = function (event) {
+        getRequest.onerror = function () {
             resolve(new Response("You are offline", { status: 404 }));
         };
     });

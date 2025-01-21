@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Import, RadioTower } from "lucide-react";
-import Downloads from "./MusicDownloader";
 
 export default function ButtonSection() {
     const [open, setOpen] = useState(false);

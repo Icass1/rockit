@@ -7,6 +7,7 @@ import LoadingIndicator from "@/components/LoadingIndicator.astro";
 
 import { ViewTransitions } from "astro:transitions";
 import PlayerUI from "@/components/PlayerUI.tsx";
+import MobilePlayerUI from "@/components/Mobile/MobilePlayerUI.tsx";
 
 export interface Props {
     currentPage: string;
@@ -85,6 +86,7 @@ const { bgImage } = Astro.props;
 
             <!-- Main content -->
             <PlayerUI client:only="react" />
+            <MobilePlayerUI client:only="react" />
 
             <div
                 class="md:hidden block absolute w-full h-fit bg-gradient-to-b from-black to-black/0 z-40 items-center justify-center mx-auto"

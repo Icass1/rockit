@@ -1,4 +1,4 @@
-import Slider from "./Slider";
+import Slider from "../Slider";
 import { useStore } from "@nanostores/react";
 import { currentSong, currentTime, setTime } from "@/stores/audio";
 

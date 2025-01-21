@@ -10,7 +10,7 @@ import {
 } from "@/stores/audio";
 import type { PlaylistDBSongWithAddedAt } from "@/lib/db";
 import { getTime } from "@/lib/getTime";
-import LikeButton from "./LikeButton";
+import LikeButton from "../LikeButton";
 import {
     ListPlus,
     EllipsisVertical,
@@ -29,11 +29,11 @@ import {
 import { useState } from "react";
 import { currentList, currentListSongs } from "@/stores/currentList";
 import { useStore } from "@nanostores/react";
-import ContextMenuTrigger from "./ContextMenu/Trigger";
-import ContextMenu from "./ContextMenu/ContextMenu";
-import ContextMenuContent from "./ContextMenu/Content";
-import ContextMenuOption from "./ContextMenu/Option";
-import ContextMenuSplitter from "./ContextMenu/Splitter";
+import ContextMenuTrigger from "../ContextMenu/Trigger";
+import ContextMenu from "../ContextMenu/ContextMenu";
+import ContextMenuContent from "../ContextMenu/Content";
+import ContextMenuOption from "../ContextMenu/Option";
+import ContextMenuSplitter from "../ContextMenu/Splitter";
 import { navigate } from "astro:transitions/client";
 import { likedSongs } from "@/stores/likedList";
 

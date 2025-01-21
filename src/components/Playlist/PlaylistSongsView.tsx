@@ -1,5 +1,5 @@
 import type { PlaylistDBSongWithAddedAt } from "@/lib/db";
-import PlaylistSong from "./PlaylistSong";
+import PlaylistSong from "../ListSongs/PlaylistSong";
 import { useEffect, useState } from "react";
 import { ArrowUp } from "lucide-react";
 import { currentList, currentListSongs } from "@/stores/currentList";
@@ -163,12 +163,6 @@ export default function PlaylistSongsView({
     };
 
     return (
-
-
-
-
-
-        
         <>
             <div className="hidden md:flex flex-row items-center gap-4 px-2 rounded text-stone-400 text-sm">
                 <div className="w-10"></div>

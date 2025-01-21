@@ -5,7 +5,7 @@ import {
     type Station,
 } from "@/stores/audio";
 import { useStore } from "@nanostores/react";
-import LikeButton from "./LikeButton";
+import LikeButton from "../LikeButton";
 import { ListPlus, EllipsisVertical } from "lucide-react";
 
 function FooterLeftForSong({ currentSong }: { currentSong: CurrentSong }) {

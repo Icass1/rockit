@@ -4,7 +4,7 @@ import { db, parseSong, type RawSongDB, type SongDB } from "@/lib/db";
 import getAlbum from "@/lib/getAlbum";
 import { getTime } from "@/lib/getTime";
 import LikeButton from "@/components/LikeButton";
-import LyricsSection from "@/components/SongPageLyrics";
+import LyricsSection from "@/components/SongPage/SongPageLyrics";
 
 import type {
     SpotifyArtistTopTracks,
@@ -12,7 +12,7 @@ import type {
     SpotifyTrack,
 } from "@/types/spotify";
 
-import SongPageCover from "@/components/SongPageCover";
+import SongPageCover from "@/components/SongPage/SongPageCover";
 import { ENV } from "@/rockitEnv";
 import { EllipsisVertical } from "lucide-react";
 

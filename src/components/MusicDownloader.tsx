@@ -31,9 +31,9 @@ import { playListHandleClick } from "./PlayList";
 import { currentListSongs } from "@/stores/currentList";
 import type { SongDB } from "@/lib/db";
 import { navigate } from "astro:transitions/client";
-import { addToLibraryHandleClick } from "./AddToLibrary";
+import { addToLibraryHandleClick } from "./ListHeader/AddToLibrary";
 import { libraryLists } from "@/stores/libraryLists";
-import { pinListHandleClick } from "./PinList";
+import { pinListHandleClick } from "./ListHeader/PinList";
 import { pinnedLists } from "@/stores/pinnedLists";
 
 interface EventSourceStatus {

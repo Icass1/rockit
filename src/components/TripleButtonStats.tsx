@@ -1,5 +1,5 @@
 import { useState } from "react";
-import UserStats from "@/components/UserStats.tsx";
+import UserStats from "@/components/Stats/UserStats";
 
 export default function StatsPage() {
     const [selectedSection, setSelectedSection] = useState<string>("user");

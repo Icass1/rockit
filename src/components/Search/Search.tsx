@@ -1,5 +1,5 @@
 import { searchResults, searchQuery } from "@/stores/searchResults";
-import SearchBar from "@/components/SearchBar";
+import SearchBar from "@/components/Search/SearchBar";
 import { useStore } from "@nanostores/react";
 
 export default function Search() {

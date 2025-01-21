@@ -10,7 +10,7 @@ import {
 } from "@/stores/audio";
 import type { SongDB } from "@/lib/db";
 import { getTime } from "@/lib/getTime";
-import LikeButton from "./LikeButton";
+import LikeButton from "../LikeButton";
 import { ListPlus, EllipsisVertical, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
 import { useStore } from "@nanostores/react";

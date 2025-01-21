@@ -19,7 +19,7 @@ import {
     Repeat,
     CirclePause,
 } from "lucide-react";
-import Slider from "./Slider";
+import Slider from "../Slider";
 
 export default function FooterCenter() {
     const $playing = useStore(playing);

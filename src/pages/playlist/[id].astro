@@ -12,8 +12,8 @@ import {
     type RawUserDB,
     type PlaylistDBSongWithAddedAt,
 } from "@/lib/db";
-import PlaylistSongsView from "@/components/PlaylistSongsView";
-import PlaylistHeader from "@/components/playlistHeader.astro";
+import PlaylistSongsView from "@/components/Playlist/PlaylistSongsView";
+import PlaylistHeader from "@/components/Playlist/playlistHeader.astro";
 
 const { id } = Astro.params as { id: string };
 if (!Astro.locals.user) {

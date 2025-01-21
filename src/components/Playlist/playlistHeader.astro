@@ -1,10 +1,10 @@
 ---
-import PinList from "@/components/PinList";
-import AddToLibrary from "@/components/AddToLibrary";
+import PinList from "@/components/ListHeader/PinList";
+import AddToLibrary from "@/components/ListHeader/AddToLibrary";
 import { Download, Heart } from "lucide-react";
 import PlayList from "@/components/PlayList";
-import AddToQueue from "@/components/AddToQueue";
-import DownloadListDevice from "@/components/DownloadListDeviceButton";
+import AddToQueue from "@/components/ListHeader/AddToQueue";
+import DownloadListDevice from "@/components/ListHeader/DownloadListDeviceButton";
 import type { PlaylistDB, PlaylistDBSong, SongDB } from "@/lib/db";
 
 function getMinutes(seconds: number) {
@@ -59,7 +59,7 @@ const { className = "" } = Astro.props;
 ---
 
 <div
-    class={"flex flex-col gap-1 relative md:top-1/2 md:-translate-y-1/2 md:w-1/3 md:max-w-md h-fit md:max-h-none md:mx-4 " +
+    class={"flex flex-col gap-1 relative md:top-1/2 md:-translate-y-1/2 md:w-1/3 md:max-w-md h-fit md:max-h-none md:mx-4 z-10 " +
         className}
 >
     <!-- Imagen de la playlist -->

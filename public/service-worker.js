@@ -1,9 +1,5 @@
 let database;
 
-// self.addEventListener("activate", (evt) =>
-//     evt.waitUntil(openIndexedDB().then((db) => (database = db)))
-// );
-
 function openIndexedDB() {
     const dbOpenRequest = indexedDB.open("RockItApp", 1);
 
@@ -84,6 +80,9 @@ const fromCache = (request) => {
 // general strategy when making a request (eg if online try to fetch it
 // from the network with a timeout, if something fails serve from cache)
 self.addEventListener("fetch", (evt) => {
+
+    if (evt.request.url.includes("/download-status/")) return
+
     evt.respondWith(
         fromNetwork(evt.request, 10000).catch(() => fromCache(evt.request))
     );

@@ -1,16 +1,24 @@
-import type { PlaylistDBSongWithAddedAt } from "@/lib/db";
+import type {
+    PlaylistDB,
+    PlaylistDBSong,
+    PlaylistDBSongWithAddedAt,
+} from "@/lib/db";
 import PlaylistSong from "../ListSongs/PlaylistSong";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowUp } from "lucide-react";
 import { currentList, currentListSongs } from "@/stores/currentList";
+import PlaylistHeader from "./PlaylistHeader";
 
-type columnsType = "name" | "album" | "artist" | "addedAt";
+type columnsType = "name" | "album" | "artist" | "addedAt" | "duration";
 
 export default function PlaylistSongsView({
     songs,
     id,
+    playlist,
+    inDatabase,
 }: {
     id: string;
+    inDatabase: boolean;
     songs: PlaylistDBSongWithAddedAt<
         | "id"
         | "images"
@@ -22,6 +30,17 @@ export default function PlaylistSongsView({
         | "path"
         | "albumName"
     >[];
+    playlist:
+        | PlaylistDB
+        | {
+              name: string;
+              songs: PlaylistDBSong[];
+              image: string;
+              images: {
+                  url: string;
+              }[];
+              owner: string;
+          };
 }) {
     currentList.set({ id, type: "playlist" });
 
@@ -44,12 +63,15 @@ export default function PlaylistSongsView({
         >[]
     >([]);
 
+    const divRef = useRef<HTMLDivElement>(null);
+    const [scroll, setScroll] = useState(0);
+
     const toggleFilter = (column: columnsType) => {
         setFilter((value) => {
             if (value.column == column) {
                 return { column: column, ascending: !value.ascending };
             } else {
-                return { column: column, ascending: true };
+                return { column: column, ascending: false };
             }
         });
     };
@@ -122,6 +144,20 @@ export default function PlaylistSongsView({
                     })
                 );
                 return;
+            case "duration":
+                setSongsToRender(
+                    songs.toSorted((a, b) => {
+                        if (a.duration < b.duration) {
+                            return filter.ascending ? 1 : -1;
+                        }
+                        if (a.duration > b.duration) {
+                            return filter.ascending ? -1 : 1;
+                        }
+                        return 0;
+                    })
+                );
+
+                return;
         }
     }, [filter]);
 
@@ -130,7 +166,8 @@ export default function PlaylistSongsView({
             name: "Name",
             album: "Album",
             artist: "Artist",
-            addedAt: "Recently added",
+            addedAt: "Date added",
+            duration: "Duration",
         };
 
         return (
@@ -163,24 +200,57 @@ export default function PlaylistSongsView({
     };
 
     return (
-        <>
+        <div
+            ref={divRef}
+            onScroll={(event) => setScroll(event.currentTarget.scrollTop)}
+            className="min-w-0 max-w-full w-full min-h-0 max-h-full h-full overflow-auto relative md:pr-6"
+        >
+            <PlaylistHeader
+                id={id}
+                playlist={playlist}
+                songs={songs}
+                inDatabase={inDatabase}
+                className="md:hidden flex"
+            />
             <div className="hidden md:flex flex-row items-center gap-4 px-2 rounded text-stone-400 text-sm">
                 <div className="w-10"></div>
                 <div className="flex flex-row w-full items-center justify-between">
                     <div className="w-1/3 ">{renderColumn("name")}</div>
-                    <div className="flex-1 gap-x-1 flex flex-row">
+                    <div className="flex-1 gap-x-1 flex flex-row w-1/2">
                         {renderColumn("artist")}
                         <label>•</label>
                         {renderColumn("album")}
                         <label>•</label>
                         {renderColumn("addedAt")}
                     </div>
+                    <div className="">{renderColumn("duration")}</div>
                 </div>
             </div>
-
+            {/* 4px between songs */}
+            {/* 56px height of songs */}
             {songsToRender.map((song, index) => {
                 if (song) {
-                    return <PlaylistSong key={song.id + index} song={song} />;
+                    let top = index * (56 + 4) + 25;
+
+                    if (divRef.current) {
+                        const boundaries =
+                            divRef.current.getBoundingClientRect();
+                        if (
+                            top > boundaries.height + scroll ||
+                            top < scroll - (56 + 4)
+                        )
+                            return;
+                    }
+
+                    return (
+                        <div
+                            key={song.id + index}
+                            className="absolute h-[56px] left-0 right-0"
+                            style={{ top: `${top}px` }}
+                        >
+                            <PlaylistSong song={song} />
+                        </div>
+                    );
                 } else {
                     return (
                         <div key={index} className="text-red-400">
@@ -189,6 +259,12 @@ export default function PlaylistSongsView({
                     );
                 }
             })}
-        </>
+            {/* 84px at the bottom*/}
+            <div
+                style={{
+                    minHeight: `${songsToRender.length * (4 + 56) + 100}px`,
+                }}
+            />
+        </div>
     );
 }

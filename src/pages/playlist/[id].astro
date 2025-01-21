@@ -13,7 +13,7 @@ import {
     type PlaylistDBSongWithAddedAt,
 } from "@/lib/db";
 import PlaylistSongsView from "@/components/Playlist/PlaylistSongsView";
-import PlaylistHeader from "@/components/Playlist/playlistHeader.astro";
+import PlaylistHeader from "@/components/Playlist/PlaylistHeader";
 
 const { id } = Astro.params as { id: string };
 if (!Astro.locals.user) {
@@ -128,19 +128,15 @@ const songs = playlist.songs
             songs={songs}
             inDatabase={inDatabase}
             className="hidden md:flex"
+            client:only="react"
         />
-        <div
-            class="min-w-0 max-w-full w-full min-h-0 max-h-full h-full overflow-auto flex flex-col gap-y-1 md:pr-6"
-        >
-            <PlaylistHeader
-                id={id}
-                playlist={playlist}
-                songs={songs}
-                inDatabase={inDatabase}
-                className="md:hidden flex"
-            />
-            <PlaylistSongsView id={id} songs={songs} client:only="react" />
-            <div class="min-h-20"></div>
-        </div>
+
+        <PlaylistSongsView
+            id={id}
+            songs={songs}
+            inDatabase={inDatabase}
+            playlist={playlist}
+            client:only="react"
+        />
     </div>
 </Layout>

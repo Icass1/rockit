@@ -1,13 +1,40 @@
 import { downloads } from "@/stores/downloads";
 import { useStore } from "@nanostores/react";
-import { useEffect, useRef, useState, type Dispatch } from "react";
-import { Download, ArrowDownToLine } from "lucide-react";
+import {
+    useEffect,
+    useRef,
+    useState,
+    type Dispatch,
+    type ReactNode,
+} from "react";
+import {
+    Download,
+    ArrowDownToLine,
+    Copy,
+    Pin,
+    ListPlus,
+    PlayCircle,
+    ExternalLink,
+    ListEnd,
+} from "lucide-react";
 
 import type {
     SpotifyAlbum,
     SpotifyAlbumImage,
     SpotifyArtist,
 } from "@/types/spotify";
+import ContextMenu from "./ContextMenu/ContextMenu";
+import ContextMenuTrigger from "./ContextMenu/Trigger";
+import ContextMenuContent from "./ContextMenu/Content";
+import ContextMenuOption from "./ContextMenu/Option";
+import { playListHandleClick } from "./PlayList";
+import { currentListSongs } from "@/stores/currentList";
+import type { SongDB } from "@/lib/db";
+import { navigate } from "astro:transitions/client";
+import { addToLibraryHandleClick } from "./AddToLibrary";
+import { libraryLists } from "@/stores/libraryLists";
+import { pinListHandleClick } from "./PinList";
+import { pinnedLists } from "@/stores/pinnedLists";
 
 interface EventSourceStatus {
     message: string;
@@ -217,6 +244,170 @@ function RenderSongDownload({
                 </div>
             </div>
         </a>
+    );
+}
+
+function AddContextMenu({
+    children,
+    song,
+    list,
+}: {
+    children: ReactNode;
+    song?: [string, EventSourceStatus] | undefined;
+    list?:
+        | [
+              string,
+              {
+                  listInfo: ListInfo;
+                  listError: number;
+                  totalCompleted: number;
+                  songs: {
+                      [key: string]: EventSourceStatus;
+                  };
+              },
+          ]
+        | undefined;
+}) {
+    if (!song && !list) {
+        return <>{children}</>;
+    }
+
+    let isInLibrary;
+    let isPinned;
+
+    if (list) {
+        const $libraryLists = useStore(libraryLists);
+
+        isInLibrary = $libraryLists.some(
+            (_list) => _list.id === list[1].listInfo.id
+        );
+
+        const $pinnedLists = useStore(pinnedLists);
+
+        // Determina si el elemento ya está en la lista
+        isPinned = $pinnedLists.some(
+            (_list) => _list.id === list[1].listInfo.id
+        );
+    }
+
+    return (
+        <ContextMenu>
+            <ContextMenuTrigger>{children}</ContextMenuTrigger>
+            <ContextMenuContent>
+                <ContextMenuOption
+                    onClick={async () => {
+                        if (list) {
+                            if (list[1].totalCompleted) {
+                                const response = await fetch(
+                                    `/api/songs?songs=${Object.entries(
+                                        list[1].songs
+                                    )
+                                        .map(
+                                            (songStatus) =>
+                                                songStatus[1].song.id
+                                        )
+                                        .join()}&q=id,name,artists,duration,albumName,albumId,path,image`
+                                );
+
+                                if (response.ok) {
+                                    const songs =
+                                        (await response.json()) as SongDB<
+                                            | "id"
+                                            | "name"
+                                            | "artists"
+                                            | "duration"
+                                            | "albumName"
+                                            | "albumId"
+                                            | "path"
+                                            | "image"
+                                        >[];
+
+                                    currentListSongs.set(songs);
+
+                                    playListHandleClick({
+                                        type: list[1].listInfo.type,
+                                        id: list[1].listInfo.id,
+                                    });
+                                }
+                            } else {
+                                // Notify that the list is still downloading
+                            }
+                        }
+                    }}
+                >
+                    <PlayCircle className="h-5 w-5" />
+                    Play {list && "list"} {song && "list"}
+                </ContextMenuOption>
+                <ContextMenuOption
+                    onClick={() => {
+                        if (list) {
+                            navigate(
+                                `/${list[1].listInfo.type}/${list[1].listInfo.id}`
+                            );
+                        } else if (song) {
+                            navigate(`/song/${song[1].song.id}`);
+                        }
+                    }}
+                >
+                    <ExternalLink className="w-5 h-5" />
+                    Open {list && "list"} {song && "list"}
+                </ContextMenuOption>
+
+                <ContextMenuOption className="pointer-events-none opacity-50">
+                    <ListEnd className="h-5 w-5" />
+                    Add {list && "list"} {song && "list"} to queue
+                </ContextMenuOption>
+                {list && (
+                    <ContextMenuOption
+                        onClick={() => {
+                            addToLibraryHandleClick({
+                                id: list[1].listInfo.id,
+                                type: list[1].listInfo.type,
+                            });
+                        }}
+                    >
+                        <ListPlus className="h-5 w-5" />
+                        {isInLibrary ? "Remove from library" : "Add to library"}
+                    </ContextMenuOption>
+                )}
+                {list && (
+                    <ContextMenuOption
+                        onClick={() => {
+                            pinListHandleClick({
+                                id: list[1].listInfo.id,
+                                type: list[1].listInfo.type,
+                            });
+                        }}
+                    >
+                        <Pin className="h-5 w-5" />
+                        {isPinned ? "Unpin" : "Pin"}
+                    </ContextMenuOption>
+                )}
+                {song && (
+                    <ContextMenuOption className="pointer-events-none opacity-50">
+                        <Download className="h-5 w-5" />
+                        Download MP3
+                    </ContextMenuOption>
+                )}
+                <ContextMenuOption
+                    onClick={() => {
+                        if (song) {
+                            navigator.clipboard.writeText(
+                                location.origin + `/song/${song[1].song.id}`
+                            );
+                        } else if (list) {
+                            navigator.clipboard.writeText(
+                                location.origin +
+                                    `/${list[1].listInfo.type}/${list[1].listInfo.id}`
+                            );
+                        }
+                    }}
+                >
+                    <Copy className="h-5 w-5" />
+                    Copy {list && "list"} {song && "list"} URL
+                </ContextMenuOption>
+            </ContextMenuContent>
+        </ContextMenu>
     );
 }
 
@@ -435,20 +626,19 @@ export default function Downloads({ navOpen }: { navOpen: boolean }) {
                 {Object.entries(status.songs)
                     .toReversed()
                     .map((songStatus) => (
-                        <RenderSongDownload
-                            key={songStatus[0]}
-                            songStatus={songStatus}
-                            setOpen={setOpen}
-                        />
+                        <AddContextMenu key={songStatus[0]} song={songStatus}>
+                            <RenderSongDownload
+                                songStatus={songStatus}
+                                setOpen={setOpen}
+                            />
+                        </AddContextMenu>
                     ))}
                 {Object.entries(status.lists)
                     .toReversed()
                     .map((list) => (
-                        <RenderListDownload
-                            key={list[0]}
-                            list={list}
-                            setOpen={setOpen}
-                        />
+                        <AddContextMenu key={list[0]} list={list}>
+                            <RenderListDownload list={list} setOpen={setOpen} />
+                        </AddContextMenu>
                     ))}
             </div>
             <div

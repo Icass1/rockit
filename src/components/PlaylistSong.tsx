@@ -18,7 +18,6 @@ import {
     Download,
     HardDriveDownload,
     PlayCircle,
-    List,
     ListPlusIcon,
     Link,
     ListStart,
@@ -247,11 +246,11 @@ export default function PlaylistSong({
                     <PlayCircle className="h-5 w-5" />
                     Play song
                 </ContextMenuOption>
-                <ContextMenuOption>
+                <ContextMenuOption className="pointer-events-none opacity-50">
                     <ListStart className="h-5 w-5" />
                     Play next
                 </ContextMenuOption>
-                <ContextMenuOption>
+                <ContextMenuOption className="pointer-events-none opacity-50">
                     <ListPlusIcon className="w-5 h-5" />
                     Add song to playlist
                 </ContextMenuOption>
@@ -347,7 +346,7 @@ export default function PlaylistSong({
                     Add to queue
                 </ContextMenuOption>
                 <ContextMenuSplitter />
-                <ContextMenuOption>
+                <ContextMenuOption className="pointer-events-none opacity-50">
                     <Share2 className="h-5 w-5" />
                     Share song
                 </ContextMenuOption>
@@ -362,16 +361,16 @@ export default function PlaylistSong({
                     Copy song URL
                 </ContextMenuOption>
                 <ContextMenuSplitter />
-                <ContextMenuOption className="hover:bg-red-700">
+                <ContextMenuOption className="hover:bg-red-700 pointer-events-none opacity-50">
                     <ListX className="h-5 w-5" />
                     Remove from queue
                 </ContextMenuOption>
-                <ContextMenuOption className="hover:bg-red-700">
+                <ContextMenuOption className="hover:bg-red-700 pointer-events-none opacity-50">
                     <ListX className="h-5 w-5" />
                     Remove from playlist
                 </ContextMenuOption>
                 <ContextMenuSplitter />
-                <ContextMenuOption>
+                <ContextMenuOption className="pointer-events-none opacity-50">
                     <Download className="h-5 w-5" />
                     Download MP3
                 </ContextMenuOption>

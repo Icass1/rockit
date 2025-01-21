@@ -188,22 +188,21 @@ export default function Navigation({ activePage }: { activePage: string }) {
                             </a>
                         );
                     })}
+                    {/* Mockup de Pinned Artist */}
+                    <a
+                        href={`/artist/0`}
+                        title={"Artist Mockup"}
+                        className={`h-8 rounded-full items-center ml-2 mr-2 transition-all flex gap-3 md:hover:bg-[#414141] cursor-pointer`}
+                    >
+                        <img
+                            className="w-8 h-8 flex items-center justify-center rounded-full"
+                            src={"/user-placeholder.png"}
+                        />
+                        <label className="font-semibold text-sm truncate cursor-pointer">
+                            Artist Mockup
+                        </label>
+                    </a>
                 </div>
-
-                {/* Mockup de Pinned Artist */}
-                <a
-                    href={`/artist/0`}
-                    title={"Artist Mockup"}
-                    className={`h-8 rounded-full items-center ml-2 mr-2 transition-all flex gap-3 md:hover:bg-[#414141] cursor-pointer`}
-                >
-                    <img
-                        className="w-8 h-8 flex items-center justify-center rounded-full"
-                        src={"/user-placeholder.png"}
-                    />
-                    <label className="font-semibold text-sm truncate cursor-pointer">
-                        Artist Mockup
-                    </label>
-                </a>
 
                 {/* <div className="h-full"></div> */}
                 <Downloads navOpen={open} />

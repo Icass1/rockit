@@ -1,5 +1,5 @@
 import { useStore } from "@nanostores/react";
-import { Play, Pause, SkipBack, SkipForward, Repeat, Shuffle } from "lucide-react";
+import { Play, Pause, SkipBack, SkipForward, Repeat, Shuffle, ChevronDown, Ellipsis } from "lucide-react";
 import { getTime } from "@/lib/getTime";
 import {
     currentSong,
@@ -11,30 +11,41 @@ import {
     prev,
     randomQueue,
     setTime,
-    type CurrentSong,
 } from "@/stores/audio";
+import LikeButton from "../LikeButton.tsx";
+import { isMobilePlayerUIVisible } from "@/stores/isPlayerUIVisible.ts";
 
 export default function MusicPlayer() {
     const $playing = useStore(playing);
     const $currentTime = useStore(currentTime);
-    const $currentSong = useStore(currentSong) as CurrentSong | null;
+    const $currentSong = useStore(currentSong);
     const $randomQueue = useStore(randomQueue);
+    const $isMobilePlayerUIVisible = useStore(isMobilePlayerUIVisible);
 
     return (
-        <div className="relative w-screen h-screen overflow-hidden md:hidden z-40">
+        <div className={"relative w-screen h-screen overflow-hidden md:hidden z-40 " + ($isMobilePlayerUIVisible ? "flex" : "hidden")}>
             {/* Fondo blurreado */}
             <div
                 className="absolute inset-0 bg-center bg-cover"
                 style={{
                     backgroundImage: `url(${$currentSong?.image ? `/api/image/${$currentSong.image}` : `/song-placeholder.png`})`,
-                    filter: "blur(20px) brightness(0.5)",
+                    filter: "blur(10px) brightness(0.5)",
                 }}
             ></div>
+
+            {/* Iconos en la parte superior */}
+            <div className="absolute top-14 left-0 right-0 flex justify-between p-5 z-50">
+                <ChevronDown 
+                    className="text-neutral-300 h-8 w-8" 
+                    onClick={() => isMobilePlayerUIVisible.set(false)}
+                />
+                <Ellipsis className="text-neutral-300 h-6 w-8" />
+            </div>
 
             {/* Contenido principal */}
             <div className="relative z-30 flex flex-col items-center justify-center h-full text-white px-4">
                 {/* Imagen de la canción */}
-                <div className="mb-6 w-full aspect-square bg-gray-900 rounded-md shadow-md overflow-hidden">
+                <div className="mb-4 w-full aspect-square bg-gray-900 rounded-md shadow-md overflow-hidden">
                     <img
                         src={
                             $currentSong?.image
@@ -46,17 +57,26 @@ export default function MusicPlayer() {
                     />
                 </div>
 
+                {/* Título, artista y LikeButton */}
+                <div className="flex justify-between items-center w-full max-w-md pl-5 pr-7">
+                    <div className="text-left">
+                        <h2 className="text-xl font-[650]">{$currentSong?.name}</h2>
+                        <p className="text-gray-300 font-semibold">{$currentSong?.artists[0].name}</p>
+                    </div>
+                    {$currentSong && <LikeButton song={$currentSong} />}
+                </div>
+
                 {/* Slider de duración */}
-                <div className="w-full max-w-md px-4">
+                <div className="w-full max-w-md px-4 py-3">
                     <input
                         type="range"
                         min="0"
                         max={$currentSong?.duration || 1}
                         value={$currentTime || 0}
                         onChange={(e) => setTime(Number(e.target.value))}
-                        className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                        className="w-full h-[0.4rem] bg-neutral-700 rounded-lg appearance-none cursor-pointer"
                     />
-                    <div className="flex justify-between text-sm text-gray-300 mt-1">
+                    <div className="flex justify-between text-sm text-neutral-100">
                         <span>{getTime($currentTime || 0)}</span>
                         <span>{getTime($currentSong?.duration || 0)}</span>
                     </div>
@@ -112,6 +132,13 @@ export default function MusicPlayer() {
                     <button className="w-12 h-12 flex items-center justify-center">
                         <Repeat className="w-6 h-6" />
                     </button>
+                </div>
+
+                {/* Otros Botones */}
+                <div className="absolute bottom-0 left-0 right-0 flex justify-around items-center px-4 py-7 text-white font-bold bg-gradient-to-t from-black to-black/0">
+                    <button className="text-lg">Queue</button>
+                    <button className="text-lg">Lyrics</button>
+                    <button className="text-lg">Related</button>
                 </div>
             </div>
         </div>

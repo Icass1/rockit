@@ -1,10 +1,6 @@
 import {
-    currentSong,
-    play,
-    playWhenReady,
     queue,
     queueIndex,
-    randomQueue,
     saveSongToIndexedDB,
     songsInIndexedDB,
 } from "@/stores/audio";
@@ -14,7 +10,7 @@ import LikeButton from "../LikeButton";
 import { ListPlus, EllipsisVertical, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
 import { useStore } from "@nanostores/react";
-import { currentList, currentListSongs } from "@/stores/currentList";
+import { currentList } from "@/stores/currentList";
 import { songHandleClick } from "./HandleClick";
 import SongContextMenu from "./SongContextMenu";
 

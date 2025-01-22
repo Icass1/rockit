@@ -52,7 +52,9 @@ export default function VolumeSlider() {
                 min={0}
                 max={1}
                 step={0.001}
-                onChange={(event) => volume.set(Number(event.target.value) ** 2)}
+                onChange={(event) =>
+                    volume.set(Number(event.target.value) ** 2)
+                }
             />
         </div>
     );

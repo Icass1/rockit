@@ -12,7 +12,6 @@ import { useState } from "react";
 import { currentList } from "@/stores/currentList";
 import { useStore } from "@nanostores/react";
 import { navigate } from "astro:transitions/client";
-import { likedSongs } from "@/stores/likedList";
 import { songHandleClick } from "./HandleClick";
 import SongContextMenu from "./SongContextMenu";
 

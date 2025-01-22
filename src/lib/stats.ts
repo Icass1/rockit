@@ -8,8 +8,6 @@ import {
     type RawUserDB,
     parseUser,
 } from "./db";
-import { readFile } from "fs/promises";
-// import { writeFile } from "fs/promises";
 
 interface AlbumForStats extends AlbumDB<"name" | "id" | "artists" | "image"> {
     timesPlayed: number;
@@ -87,6 +85,11 @@ export async function getStats(
         | "image"
         | "images"
     >[] = [];
+
+
+    if (!lastPlayedSongs) {
+        return { songs: [], artists: [], albums: [] };
+    }
 
     Array(Math.round(Object.keys(lastPlayedSongs).length / 900) + 1)
         .fill(0)

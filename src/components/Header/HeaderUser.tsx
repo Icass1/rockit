@@ -57,7 +57,7 @@ export default function HeaderUser({ userName }: { userName: string }) {
                         className="md:hover:bg-[#4f4f4f] flex items-center p-3 space-x-2 cursor-pointer rounded-b-lg"
                     >
                         <LogOut className="h-5 w-5" />
-                        <span>Sign Out</span>
+                        <span>Log Out</span>
                     </a>
                 </ul>
             </div>

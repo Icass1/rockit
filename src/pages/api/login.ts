@@ -3,6 +3,7 @@ import { verify } from "@node-rs/argon2";
 import { db, type UserDB } from "@/lib/db";
 
 import type { APIContext } from "astro";
+import { ENV } from "@/rockitEnv";
 
 export async function POST(context: APIContext): Promise<Response> {
     const formData = await context.request.formData();
@@ -35,7 +36,9 @@ export async function POST(context: APIContext): Promise<Response> {
     if (!existingUser) {
         return new Response(
             JSON.stringify({
-                error: "Incorrect username or password (User doesn't exist)",
+                error:
+                    "Incorrect username or password" +
+                    (ENV.ENVIRONMENT == "DEV" ? " (user not found)" : ""),
             }),
             {
                 status: 400,

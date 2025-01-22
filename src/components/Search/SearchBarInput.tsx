@@ -2,6 +2,7 @@ import { useEffect, useRef, type Dispatch, type RefObject } from "react";
 import pkg from "lodash";
 import { searchQuery, searchResults } from "@/stores/searchResults";
 import { useStore } from "@nanostores/react";
+import { langData } from "@/stores/lang";
 const { debounce } = pkg;
 
 export default function SearchBarInput({
@@ -12,7 +13,7 @@ export default function SearchBarInput({
     setOpen: Dispatch<React.SetStateAction<boolean>>;
 }) {
     const value = useStore(searchQuery);
-
+    const lang = langData.get();
     const searchDebounce = useRef<pkg.DebouncedFunc<(query: string) => void>>();
 
     useEffect(() => {
@@ -66,7 +67,7 @@ export default function SearchBarInput({
                 backgroundSize: "14px",
                 backgroundRepeat: "no-repeat",
             }}
-            placeholder="Search a song or artist..."
+            placeholder={lang.search_bar}
         />
     );
 }

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import UserStats from "@/components/Stats/UserStats";
+import { langData } from "@/stores/lang";
 
 export default function StatsPage() {
     const [selectedSection, setSelectedSection] = useState<string>("user");
@@ -8,14 +9,22 @@ export default function StatsPage() {
         setSelectedSection(section);
     };
 
+    const lang = langData.get();
+
+    const pages: { [key: string]: string } = {
+        user: lang.user,
+        general: lang.general,
+        friends: lang.friends,
+    };
+
     return (
         <div>
             <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
                 {/* Encabezado dinámico */}
                 <h2 className="text-2xl font-bold text-center md:text-left">
-                    {selectedSection === "user" && "User Statistics"}
-                    {selectedSection === "general" && "General Statistics"}
-                    {selectedSection === "friends" && "Friends Statistics"}
+                    {selectedSection === "user" && lang.user_stats}
+                    {selectedSection === "general" && lang.general_stats}
+                    {selectedSection === "friends" && lang.friends_stats}
                 </h2>
 
                 {/* Toggle Switch */}
@@ -30,7 +39,8 @@ export default function StatsPage() {
                             }`}
                             onClick={() => updateSection(section)}
                         >
-                            {section.charAt(0).toUpperCase() + section.slice(1)}
+                            {pages[section].charAt(0).toUpperCase() +
+                                pages[section].slice(1)}
                         </button>
                     ))}
                 </div>

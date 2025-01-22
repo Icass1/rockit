@@ -86,7 +86,6 @@ export async function getStats(
         | "images"
     >[] = [];
 
-
     if (!lastPlayedSongs) {
         return { songs: [], artists: [], albums: [] };
     }

@@ -1,5 +1,14 @@
 import { useStore } from "@nanostores/react";
-import { Play, Pause, SkipBack, SkipForward, Repeat, Shuffle, ChevronDown, Ellipsis } from "lucide-react";
+import {
+    Play,
+    Pause,
+    SkipBack,
+    SkipForward,
+    Repeat,
+    Shuffle,
+    ChevronDown,
+    Ellipsis,
+} from "lucide-react";
 import { getTime } from "@/lib/getTime";
 import {
     currentSong,
@@ -23,7 +32,12 @@ export default function MusicPlayer() {
     const $isMobilePlayerUIVisible = useStore(isMobilePlayerUIVisible);
 
     return (
-        <div className={"relative w-screen h-screen overflow-hidden md:hidden z-40 " + ($isMobilePlayerUIVisible ? "flex" : "hidden")}>
+        <div
+            className={
+                "relative w-screen h-screen overflow-hidden md:hidden z-40 " +
+                ($isMobilePlayerUIVisible ? "flex" : "hidden")
+            }
+        >
             {/* Fondo blurreado */}
             <div
                 className="absolute inset-0 bg-center bg-cover"
@@ -35,8 +49,8 @@ export default function MusicPlayer() {
 
             {/* Iconos en la parte superior */}
             <div className="absolute top-14 left-0 right-0 flex justify-between p-5 z-50">
-                <ChevronDown 
-                    className="text-neutral-300 h-8 w-8" 
+                <ChevronDown
+                    className="text-neutral-300 h-8 w-8"
                     onClick={() => isMobilePlayerUIVisible.set(false)}
                 />
                 <Ellipsis className="text-neutral-300 h-6 w-8" />
@@ -60,8 +74,12 @@ export default function MusicPlayer() {
                 {/* Título, artista y LikeButton */}
                 <div className="flex justify-between items-center w-full max-w-md pl-5 pr-7">
                     <div className="text-left">
-                        <h2 className="text-xl font-[650]">{$currentSong?.name}</h2>
-                        <p className="text-gray-300 font-semibold">{$currentSong?.artists[0].name}</p>
+                        <h2 className="text-xl font-[650]">
+                            {$currentSong?.name}
+                        </h2>
+                        <p className="text-gray-300 font-semibold">
+                            {$currentSong?.artists[0].name}
+                        </p>
                     </div>
                     {$currentSong && <LikeButton song={$currentSong} />}
                 </div>
@@ -84,16 +102,21 @@ export default function MusicPlayer() {
 
                 {/* Controles */}
                 <div className="flex items-center gap-3">
-
-                    <button 
+                    <button
                         className="w-12 h-12 flex items-center justify-center"
                         onClick={() => randomQueue.set(!randomQueue.get())}
                     >
-                        <Shuffle className={"w-6 h-6 " + ($randomQueue ? " text-[#ee1086] " : " text-white ")} />
+                        <Shuffle
+                            className={
+                                "w-6 h-6 " +
+                                ($randomQueue
+                                    ? " text-[#ee1086] "
+                                    : " text-white ")
+                            }
+                        />
                     </button>
 
-
-                    <button 
+                    <button
                         className="w-12 h-12 flex items-center justify-center"
                         onClick={async () => {
                             await prev();
@@ -103,23 +126,21 @@ export default function MusicPlayer() {
                         <SkipBack className="w-8 h-8 fill-current" />
                     </button>
 
-                    <button
-                        className="w-16 h-16 flex items-center justify-center rounded-full"
-                    >
+                    <button className="w-16 h-16 flex items-center justify-center rounded-full">
                         {$playing ? (
-                            <Pause 
+                            <Pause
                                 className="w-14 h-14 fill-current"
                                 onClick={pause}
                             />
                         ) : (
-                            <Play 
-                                className="w-14 h-14 fill-current" 
+                            <Play
+                                className="w-14 h-14 fill-current"
                                 onClick={play}
                             />
                         )}
                     </button>
 
-                    <button 
+                    <button
                         className="w-12 h-12 flex items-center justify-center"
                         onClick={async () => {
                             await next();

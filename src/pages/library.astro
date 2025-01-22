@@ -15,11 +15,13 @@ import {
 } from "@/lib/db";
 import { getStats } from "@/lib/stats";
 import { Heart, Disc3, History } from "lucide-react";
-import Downloads from "@/components/MusicDownloader.tsx";
+import { getLang } from "@/lib/getLang";
 
 if (!Astro.locals.user) {
     return Astro.redirect("/login");
 }
+
+const lang = getLang(Astro.locals.user.lang);
 
 const userLists = parseUser(
     db
@@ -61,14 +63,16 @@ data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
     <div class="md:p-8 h-full">
         <section class="items-center justify-between flex px-10 md:px-0">
             <div class="hidden md:flex">
-                <label class="text-white text-4xl font-bold">Library</label>
+                <label class="text-white text-4xl font-bold"
+                    >{lang.library}</label
+                >
             </div>
             <LibraryFilters client:only="react" />
         </section>
 
         <section class="pt-5 md:py-12 text-white">
             <h2 class="text-2xl font-bold text-left px-5 md:px-0">
-                Featured Albums
+                {lang.featured_albums}
             </h2>
             <div
                 class="relative flex items-center gap-5 overflow-y-auto md:overflow-x-auto py-4 md:px-2"
@@ -82,7 +86,7 @@ data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
                 >
                     <div
                         class="relative rounded-lg w-full aspect-square object-cover"
-                        style="background-image:url(/RockitBackground.png); background-size: cover;"
+                        style="background-image:url(/rockit-background.png); background-size: cover;"
                     >
                         <Heart
                             className="w-1/2 h-1/2 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
@@ -92,12 +96,12 @@ data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
                     <label
                         class="truncate font-semibold text-center block mt-2"
                     >
-                        Liked Songs
+                        {lang.liked_songs}
                     </label>
                     <label
                         class="truncate text-sm text-center text-gray-400 block"
                     >
-                        by Rock It!
+                        {lang.by} Rock It!
                     </label>
                 </a>
 
@@ -107,7 +111,7 @@ data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
                 >
                     <div
                         class="relative rounded-lg w-full aspect-square object-cover"
-                        style="background-image:url(/RockitBackground.png); background-size: cover;"
+                        style="background-image:url(/rockit-background.png); background-size: cover;"
                     >
                         <Disc3
                             className="w-1/2 h-1/2 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
@@ -116,12 +120,12 @@ data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
                     <label
                         class="truncate font-semibold text-center block mt-2"
                     >
-                        Most Listened
+                        {lang.most_listened}
                     </label>
                     <label
                         class="truncate text-sm text-center text-gray-400 block"
                     >
-                        by Rock It!
+                        {lang.by} Rock It!
                     </label>
                 </a>
 
@@ -131,7 +135,7 @@ data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
                 >
                     <div
                         class="relative rounded-lg w-full aspect-square object-cover"
-                        style="background-image:url(/RockitBackground.png); background-size: cover;"
+                        style="background-image:url(/rockit-background.png); background-size: cover;"
                     >
                         <History
                             className="w-1/2 h-1/2 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
@@ -140,12 +144,12 @@ data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
                     <label
                         class="truncate font-semibold text-center block mt-2"
                     >
-                        Recent Mix
+                        {lang.recent_mix}
                     </label>
                     <label
                         class="truncate text-sm text-center text-gray-400 block"
                     >
-                        by Rock It!
+                        {lang.by} Rock It!
                     </label>
                 </a>
 
@@ -183,7 +187,7 @@ data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
         <ButtonSection client:only="react" />
 
         <h2 class="text-2xl font-bold text-left py-4 px-5 md:px-0">
-            Your Albums and Playlists
+            {lang.your_albums_playlists}
         </h2>
         <div class="grid gap-5 px-5">
             <style>

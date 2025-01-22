@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 import { ArrowDownAZ, ArrowUpAZ, ClockArrowDown } from "lucide-react";
+import { langData } from "@/stores/lang";
 
 const LibraryFilters = () => {
     const [filterMode, setFilterMode] = useState<"default" | "asc" | "desc">(
         "default"
     );
     const [searchQuery, setSearchQuery] = useState("");
+
+    const lang = langData.get();
 
     useEffect(() => {
         // Inicializar filtrado y ordenación
@@ -75,7 +78,7 @@ const LibraryFilters = () => {
                     backgroundSize: "14px",
                     backgroundRepeat: "no-repeat",
                 }}
-                placeholder="Search in Library"
+                placeholder={lang.search_library}
                 onChange={(e) => setSearchQuery(e.target.value)}
             />
         </div>

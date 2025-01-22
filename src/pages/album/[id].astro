@@ -13,6 +13,7 @@ import PlayList from "@/components/PlayList";
 import AddToQueue from "@/components/ListHeader/AddToQueue";
 import SetCurrentListInfo from "@/components/SetCurrentListInfo";
 import DownloadListDevice from "@/components/ListHeader/DownloadListDeviceButton";
+import { getLang } from "@/lib/getLang";
 
 const { id } = Astro.params as { id: string };
 
@@ -25,6 +26,7 @@ if (_album == "error connecting to backend") {
 }
 
 const { album, discs, songs, inDatabase } = _album;
+const lang = getLang(Astro.locals.user?.lang ?? "en")
 
 function getDate(date: string) {
     const dateSplit = date.split("-");
@@ -145,7 +147,7 @@ const meta = {
                         <>
                             <label class="text-neutral-400 font-semibold flex flex-row gap-2 items-center text-lg mb-2">
                                 <Disc className="h-6 w-6" />
-                                Disc {discIndex + 1}
+                                {lang.disc} {discIndex + 1}
                             </label>
 
                             {discSongs.map((song, songIndex) => {

@@ -2,10 +2,20 @@ import { getDate, getMinutes } from "@/lib/getTime";
 import BarGraph from "./BarGraph.tsx";
 import { useEffect, useRef, useState } from "react";
 import type { SongForStats, Stats } from "@/lib/stats";
+import { lang, langData } from "@/stores/lang.ts";
 
 export default function UserStats() {
-    const [startDate, setStartDate] = useState("2024-06-01");
-    const [endDate, setEndDate] = useState("2024-07-01");
+    let today = new Date();
+    const offset = today.getTimezoneOffset();
+    const _start = new Date(
+        today.getTime() - offset * 60 * 1000 - 7 * 24 * 60 * 60 * 1000
+    );
+    const _end = new Date(today.getTime() - offset * 60 * 1000);
+
+    const [startDate, setStartDate] = useState(
+        _start.toISOString().split("T")[0]
+    );
+    const [endDate, setEndDate] = useState(_end.toISOString().split("T")[0]);
 
     const startDateInputRef = useRef<HTMLInputElement>(null);
     const endDateInputRef = useRef<HTMLInputElement>(null);
@@ -20,6 +30,8 @@ export default function UserStats() {
         albums: [],
         artists: [],
     });
+
+    const lang = langData.get();
 
     useEffect(() => {
         let songsBarGraph: SongForStats[] = [];
@@ -118,7 +130,7 @@ export default function UserStats() {
     return (
         <>
             <label className="text-lg font-semibold md:px-5 flex flex-col md:flex-row md:gap-1 justify-center items-center">
-                <span className="block md:inline">Showing data from</span>
+                <span className="block md:inline">{lang.showing_data}</span>
                 <span className="block md:inline">
                     <label
                         className="md:hover:underline underline"
@@ -143,7 +155,7 @@ export default function UserStats() {
                         />
                         {getDate(startDate)}
                     </label>{" "}
-                    to{" "}
+                    {lang.to}{" "}
                     <label
                         className="md:hover:underline underline"
                         onClick={() => {
@@ -176,15 +188,17 @@ export default function UserStats() {
                 ) : (
                     <>
                         <div className="md:w-96 bg-neutral-800 rounded-lg p-2 h-fit flex flex-col font-semibold">
-                            <label>{totalTimesPlayedSong} songs listened</label>
                             <label>
-                                {getMinutes(totalMinutesListened)} minutes
-                                listened
+                                {totalTimesPlayedSong} {lang.songs_listened}
+                            </label>
+                            <label>
+                                {getMinutes(totalMinutesListened)}{" "}
+                                {lang.minutes_listend}
                             </label>
                         </div>
                         <div className="md:w-96 bg-neutral-800 rounded-lg p-2 h-fit flex flex-col font-semibold">
                             <label className="mb-2">
-                                Minutes listened per day
+                                {lang.minutes_listened_per_day}
                             </label>
                             <div className="relative h-56">
                                 <div
@@ -214,6 +228,7 @@ export default function UserStats() {
                                     .fill(0)
                                     .map((_, index) => (
                                         <div
+                                            key={"vertical" + index}
                                             className="bg-neutral-600/50 absolute w-[1px] h-full"
                                             style={{ left: `${index * 10}%` }}
                                         />
@@ -222,6 +237,7 @@ export default function UserStats() {
                                     .fill(0)
                                     .map((_, index) => (
                                         <div
+                                            key={"horizontal" + index}
                                             className="bg-neutral-600/50 absolute h-[1px] w-full"
                                             style={{ top: `${index * 10}%` }}
                                         />
@@ -230,7 +246,7 @@ export default function UserStats() {
                         </div>
 
                         <BarGraph
-                            name="Most listened albums"
+                            name={lang.most_listened_albums}
                             items={data.albums.map((album) => {
                                 return {
                                     index: album.index,
@@ -242,7 +258,7 @@ export default function UserStats() {
                             })}
                         />
                         <BarGraph
-                            name="Most listened artists"
+                            name={lang.most_listened_artists}
                             items={data.artists.map((artist) => {
                                 return {
                                     index: artist.index,
@@ -254,7 +270,7 @@ export default function UserStats() {
                             })}
                         />
                         <BarGraph
-                            name="Most listened songs"
+                            name={lang.most_listened_songs}
                             type="value"
                             items={songsBarGraph.map((song) => {
                                 return {

@@ -1,9 +1,11 @@
 import { downloadResources } from "@/lib/downloadResources";
+import { langData } from "@/stores/lang";
 import { Download } from "lucide-react";
 import { useState } from "react";
 
 export default function DownloadAppButton() {
     const [resources, setResources] = useState<string[]>([]);
+    const lang = langData.get();
 
     const handleClick = async () => {
         downloadResources({
@@ -20,7 +22,7 @@ export default function DownloadAppButton() {
                 "/song-placeholder.png",
                 "/song-placeholder.png",
                 "/youtube-music-logo.svg",
-                "/RockitBackground.png",
+                "/rockit-background.png",
                 "/screenshot-1.png",
                 "/spotify-logo.png",
                 "/logos/logo-192.png",
@@ -28,17 +30,18 @@ export default function DownloadAppButton() {
             setResources: setResources,
         });
     };
+
     return (
         <div>
             <h2 className="text-xl md:text-2xl font-bold text-white mb-2">
-                Download app
+                {lang.download_app}
             </h2>
             <button
                 onClick={handleClick}
                 className="w-28 md:w-32 py-2 bg-[#1e1e1e] text-white rounded-lg shadow-md active:bg-green-700 md:hover:bg-green-700 transition duration-300 flex items-center justify-center gap-2"
             >
                 <Download className="w-5 h-5" />
-                Download
+                {lang.download}
             </button>
 
             <div className="grid grid-cols-2 gap-x-2">

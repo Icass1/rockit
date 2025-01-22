@@ -35,6 +35,7 @@ import { addToLibraryHandleClick } from "./ListHeader/AddToLibrary";
 import { libraryLists } from "@/stores/libraryLists";
 import { pinListHandleClick } from "./ListHeader/PinList";
 import { pinnedLists } from "@/stores/pinnedLists";
+import { langData } from "@/stores/lang";
 
 interface EventSourceStatus {
     message: string;
@@ -290,6 +291,8 @@ function AddContextMenu({
         );
     }
 
+    const lang = langData.get();
+
     return (
         <ContextMenu>
             <ContextMenuTrigger>{children}</ContextMenuTrigger>
@@ -336,7 +339,7 @@ function AddContextMenu({
                     }}
                 >
                     <PlayCircle className="h-5 w-5" />
-                    Play {list && "list"} {song && "list"}
+                    {list && lang.play_list} {song && lang.play_song}
                 </ContextMenuOption>
                 <ContextMenuOption
                     onClick={() => {
@@ -350,12 +353,13 @@ function AddContextMenu({
                     }}
                 >
                     <ExternalLink className="w-5 h-5" />
-                    Open {list && "list"} {song && "list"}
+                    {list && lang.open_list} {song && lang.open_song}
                 </ContextMenuOption>
 
                 <ContextMenuOption className="pointer-events-none opacity-50">
                     <ListEnd className="h-5 w-5" />
-                    Add {list && "list"} {song && "list"} to queue
+                    {list && lang.add_list_to_queue}
+                    {song && lang.add_song_to_queue}
                 </ContextMenuOption>
                 {list && (
                     <ContextMenuOption
@@ -367,7 +371,9 @@ function AddContextMenu({
                         }}
                     >
                         <ListPlus className="h-5 w-5" />
-                        {isInLibrary ? "Remove from library" : "Add to library"}
+                        {isInLibrary
+                            ? lang.remove_from_library
+                            : lang.add_to_library}
                     </ContextMenuOption>
                 )}
                 {list && (
@@ -380,13 +386,13 @@ function AddContextMenu({
                         }}
                     >
                         <Pin className="h-5 w-5" />
-                        {isPinned ? "Unpin" : "Pin"}
+                        {isPinned ? lang.unpin : lang.pin}
                     </ContextMenuOption>
                 )}
                 {song && (
                     <ContextMenuOption className="pointer-events-none opacity-50">
                         <Download className="h-5 w-5" />
-                        Download MP3
+                        {lang.download_mp3}
                     </ContextMenuOption>
                 )}
                 <ContextMenuOption
@@ -404,7 +410,7 @@ function AddContextMenu({
                     }}
                 >
                     <Copy className="h-5 w-5" />
-                    Copy {list && "list"} {song && "list"} URL
+                    {list && lang.copy_list_url} {song && lang.copy_song_url}
                 </ContextMenuOption>
             </ContextMenuContent>
         </ContextMenu>
@@ -416,6 +422,7 @@ export default function Downloads({ navOpen }: { navOpen: boolean }) {
     const divRef = useRef<HTMLDivElement>(null);
     const downloadsButton = useRef<HTMLDivElement>(null);
     const [status, setStatus] = useState<StatusType>({ songs: {}, lists: {} });
+    const lang = langData.get();
 
     const $downloads = useStore(downloads);
 
@@ -580,7 +587,7 @@ export default function Downloads({ navOpen }: { navOpen: boolean }) {
                     {/* Input */}
                     <input
                         className="focus:outline-0 py-2 my-2 px-4 rounded-full mr-3 w-64"
-                        placeholder="Enter a Spotify or YT Music URL"
+                        placeholder={lang.download_input_placeholder}
                         value={url}
                         onChange={(e) => {
                             setURL(e.target.value);
@@ -608,7 +615,7 @@ export default function Downloads({ navOpen }: { navOpen: boolean }) {
                 <div className="flex items-center justify-between mb-4">
                     {Object.entries(status).length != 0 && (
                         <label className="font-bold text-lg text-white">
-                            Lastest Downloads
+                            {lang.latest_downloads}
                         </label>
                     )}
 
@@ -619,7 +626,7 @@ export default function Downloads({ navOpen }: { navOpen: boolean }) {
                             console.log("Clear downloads clicked");
                         }}
                     >
-                        Clear downloads
+                        {lang.clear_downloads}
                     </button>
                 </div>
 
@@ -657,7 +664,7 @@ export default function Downloads({ navOpen }: { navOpen: boolean }) {
                         </label>
                     )}
                 </div>
-                <label className="font-semibold">Downloads </label>
+                <label className="font-semibold">{lang.downloads} </label>
             </div>
         </>
     );

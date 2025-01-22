@@ -2,10 +2,13 @@
 import Layout from "@/layouts/Layout.astro";
 import AlbumsCarousel from "@/components/AlbumsCarousel.tsx";
 import { getStats, type SongForStats } from "@/lib/stats";
+import { getLang } from "@/lib/getLang";
 
 if (!Astro.locals.user) {
     return Astro.redirect("/login");
 }
+
+const lang = getLang(Astro.locals.user.lang);
 
 // Definimos la lista de categorías
 // const categories = [
@@ -107,7 +110,7 @@ songsTimesPlayed.sort((a, b) => b.timesPlayed - a.timesPlayed);
 
     <section class="md:px-12 py-5 md:py-12 text-white">
         <h2 class="text-2xl md:text-3xl font-bold text-left px-5 md:px-0">
-            Recently Played
+            {lang.recent_played}
         </h2>
         <div
             class="relative flex items-center gap-4 overflow-x-auto py-4 px-8 md:px-2"
@@ -143,7 +146,7 @@ songsTimesPlayed.sort((a, b) => b.timesPlayed - a.timesPlayed);
 
     <section class="group md:px-12 text-white">
         <h2 class="text-2xl md:text-3xl font-bold text-left px-5 md:px-0">
-            Quick Selections
+            {lang.quick_selections}
         </h2>
         <!-- Contenedor del slider -->
         <div
@@ -193,7 +196,7 @@ songsTimesPlayed.sort((a, b) => b.timesPlayed - a.timesPlayed);
 
     <section class="md:px-12 py-5 md:py-12 text-white">
         <h2 class="text-2xl md:text-3xl font-bold text-left px-5 md:px-0">
-            You Might Also Like
+            {lang.you_might_like}
         </h2>
         <div
             class="relative flex items-center gap-4 overflow-x-auto py-4 px-8 md:px-2 md:[scrollbar-gutter:stable]"

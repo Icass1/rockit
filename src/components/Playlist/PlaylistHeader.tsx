@@ -5,6 +5,7 @@ import PlayList from "@/components/PlayList";
 import AddToQueue from "@/components/ListHeader/AddToQueue";
 import DownloadListDevice from "@/components/ListHeader/DownloadListDeviceButton";
 import type { PlaylistDB, PlaylistDBSong, SongDB } from "@/lib/db";
+import { langData } from "@/stores/lang";
 
 function getMinutes(seconds: number) {
     seconds = Math.round(seconds);
@@ -55,6 +56,8 @@ export default function PlaylistHeader({
               owner: string;
           };
 }) {
+    const lang = langData.get();
+
     return (
         <div
             className={
@@ -69,7 +72,7 @@ export default function PlaylistHeader({
                         <div
                             className="relative rounded-md w-full h-full object-cover"
                             style={{
-                                backgroundImage: "url(/RockitBackground.png)",
+                                backgroundImage: "url(/rockit-background.png)",
                                 backgroundSize: "cover",
                             }}
                         >
@@ -115,13 +118,13 @@ export default function PlaylistHeader({
 
             {/* Información adicional */}
             <label className="text-sm text-stone-400 text-center">
-                {playlist.songs.length} Songs |{" "}
+                {playlist.songs.length} {lang.songs} |{" "}
                 {getMinutes(
                     songs.reduce((accumulator: number, song) => {
                         return accumulator + (song?.duration || 0);
                     }, 0)
                 )}{" "}
-                Minutes
+                {lang.minutes}
             </label>
         </div>
     );

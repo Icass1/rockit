@@ -1,6 +1,7 @@
 import { searchResults, searchQuery } from "@/stores/searchResults";
 import SearchBar from "@/components/Search/SearchBar";
 import { useStore } from "@nanostores/react";
+import { langData } from "@/stores/lang";
 
 export default function Search() {
     const $searchResults = useStore(searchResults);
@@ -9,6 +10,8 @@ export default function Search() {
     if (!window.navigator.onLine) {
         return <div>You are offline</div>;
     }
+
+    const lang = langData.get();
 
     return (
         <>
@@ -19,7 +22,7 @@ export default function Search() {
                 <>
                     <section className="md:px-12 md:py-6 py-2 text-white">
                         <h2 className="text-2xl md:text-3xl font-bold text-left px-5 md:px-0">
-                            Songs
+                            {lang.songs}
                         </h2>
                         <div className="relative flex items-center gap-4 overflow-x-auto py-4 md:px-2 px-8">
                             {/* Aquí creamos las canciones */}
@@ -68,7 +71,7 @@ export default function Search() {
 
                     <section className="md:px-12 md:py-6 py-2 text-white">
                         <h2 className="text-2xl md:text-3xl font-bold text-left px-5 md:px-0">
-                            Albums
+                            {lang.albums}
                         </h2>
                         <div className="relative flex items-center gap-4 overflow-x-auto py-4 px-8 md:px-2">
                             {/* Aquí creamos las canciones */}
@@ -117,7 +120,7 @@ export default function Search() {
 
                     <section className="md:px-12 md:py-6 py-2 text-white">
                         <h2 className="text-2xl md:text-3xl font-bold text-left px-5 md:px-0">
-                            Artists
+                            {lang.artists}
                         </h2>
                         <div className="relative flex items-center gap-4 overflow-x-auto py-4 px-8 md:px-2">
                             {/* Aquí creamos las canciones */}
@@ -146,7 +149,7 @@ export default function Search() {
 
                     <section className="md:px-12 md:py-6 py-2 text-white">
                         <h2 className="text-2xl md:text-3xl font-bold text-left px-5 md:px-0">
-                            Playlists
+                            {lang.playlists}
                         </h2>
                         <div className="relative flex items-center gap-4 overflow-x-auto py-4 px-8 md:px-2">
                             {/* Aquí creamos las canciones  */}
@@ -177,7 +180,7 @@ export default function Search() {
                     </section>
                     <section className="md:px-12 md:py-6 py-2 text-white">
                         <h2 className="text-2xl md:text-3xl font-bold text-left px-5 md:px-0">
-                            Radio Stations
+                            {lang.radio_stations}
                         </h2>
                         <div className="relative flex items-center gap-4 overflow-x-auto py-4 px-8 md:px-2">
                             {Array.from({ length: 10 }).map((_, index) => (
@@ -231,10 +234,10 @@ export default function Search() {
             ) : (
                 <section className="flex flex-col items-center justify-center md:px-12 px-7 py-36 text-white text-center">
                     <h2 className="text-2xl md:text-3xl font-bold">
-                        Parece que el silencio también es música...
+                        {lang.search_empty1}
                     </h2>
                     <p className="text-lg md:text-xl md:mt-2 mt-10">
-                        Pero no es nada entretenido, ¡Busca algo para escuchar!
+                        {lang.search_empty2}
                     </p>
                     <img
                         className="w-36 mt-10"

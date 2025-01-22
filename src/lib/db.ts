@@ -131,8 +131,8 @@ function checkTable(
 
     if (removedColumns.length > 0) {
         console.warn("Detected removed column(s).", removedColumns);
-        console.warn("Removing them...");
         if (ENV.INSECURE_DB_MODE == "true") {
+            console.warn("Removing them...");
             removedColumns.map((column) =>
                 db.exec(`ALTER TABLE ${tableName} DROP COLUMN ${column}`)
             );
@@ -186,10 +186,10 @@ export interface RawUserDB {
     likedSongs: string;
     pinnedLists: string;
     volume: number;
+    lang: string;
     admin: string;
     superAdmin: string;
     devUser: string;
-    showLyrics: string;
     updatedAt: number;
     createdAt: number;
 }
@@ -231,10 +231,10 @@ export interface UserDBFull {
     likedSongs: PlaylistDBSong[];
     pinnedLists: UserDBPinnedLists[];
     volume: number;
+    lang: string;
     admin: string;
     superAdmin: string;
     devUser: string;
-    showLyrics: string;
     updatedAt: number;
     createdAt: number;
 }
@@ -254,10 +254,10 @@ const userQuery = `CREATE TABLE IF NOT EXISTS user (
     likedSongs TEXT DEFAULT "[]" NOT NULL,
     pinnedLists TEXT DEFAULT "[]" NOT NULL,
     volume INTEGER DEFAULT 1 NOT NULL,
+    lang TEXT DEFAULT "en" NOT NULL,
     admin BOOLEAN DEFAULT 0 NOT NULL,
     superAdmin BOOLEAN DEFAULT 0 NOT NULL,
     devUser BOOLEAN DEFAULT 0 NOT NULL,
-    showLyrics BOOLEAN DEFAULT 0 NOT NULL,
     updatedAt INTEGER NOT NULL,
     createdAt INTEGER NOT NULL
 )`;
@@ -284,10 +284,10 @@ export function parseUser(user: RawUserDB | undefined): UserDB | undefined {
         likedSongs: JSON.parse(user.likedSongs || "[]"),
         pinnedLists: JSON.parse(user.pinnedLists || "[]"),
         volume: user.volume,
+        lang: user.lang,
         admin: user.admin,
         superAdmin: user.superAdmin,
         devUser: user.devUser,
-        showLyrics: user.showLyrics,
         updatedAt: user.updatedAt,
         createdAt: user.createdAt,
     };

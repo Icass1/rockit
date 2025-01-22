@@ -1,13 +1,20 @@
-import { searchResults, searchQuery } from "@/stores/searchResults";
+import { searchResults, searchQuery, filteredStations} from "@/stores/searchResults";
 import SearchBar from "@/components/Search/SearchBar";
 import { useStore } from "@nanostores/react";
+import { currentStation, play, type Station } from "@/stores/audio";
 
 export default function Search() {
     const $searchResults = useStore(searchResults);
     const $searchQuery = useStore(searchQuery);
+    let $filteredStations = useStore(filteredStations);
 
     if (!window.navigator.onLine) {
         return <div>You are offline</div>;
+    }
+
+    function handleClick(station: Station) {
+        currentStation.set(station);
+        play();
     }
 
     return (
@@ -180,24 +187,26 @@ export default function Search() {
                             Radio Stations
                         </h2>
                         <div className="relative flex items-center gap-4 overflow-x-auto py-4 px-8 md:px-2">
-                            {Array.from({ length: 10 }).map((_, index) => (
-                                <a
-                                    href="#"
+                            {$filteredStations.map((station) => (
+                                    <a
                                     className="flex-none w-36 md:w-48 md:hover:scale-105 transition"
+                                    key={station.stationuuid}
+                                    onClick={() => handleClick(station)}
                                 >
                                     <img
                                         className="rounded-lg w-full aspect-square object-cover"
-                                        src="/song-placeholder.png"
+                                        src={station.favicon || "/logos/logo-sq-2.png"}
                                         alt="Song Cover"
                                     />
                                     <label className="truncate font-semibold text-center block mt-2">
-                                        Radio Station {index + 1}
+                                        {station.name}
                                     </label>
                                     <label className="truncate text-sm text-center text-gray-400 block">
-                                        Country
+                                        {station.country}
                                     </label>
                                 </a>
-                            ))}
+                                ))
+                            }
                         </div>
                     </section>
                     <section className="md:px-12 md:py-6 py-2 text-white">

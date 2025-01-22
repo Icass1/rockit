@@ -1,7 +1,8 @@
 import { useEffect, useRef, type Dispatch, type RefObject } from "react";
 import pkg from "lodash";
-import { searchQuery, searchResults } from "@/stores/searchResults";
+import { searchQuery, searchResults, filteredStations } from "@/stores/searchResults";
 import { useStore } from "@nanostores/react";
+import { useState } from "react";
 const { debounce } = pkg;
 
 export default function SearchBarInput({
@@ -12,6 +13,7 @@ export default function SearchBarInput({
     setOpen: Dispatch<React.SetStateAction<boolean>>;
 }) {
     const value = useStore(searchQuery);
+    const [error, setError] = useState<string | null>(null);
 
     const searchDebounce = useRef<pkg.DebouncedFunc<(query: string) => void>>();
 
@@ -35,6 +37,30 @@ export default function SearchBarInput({
         }, 1000);
     }, []);
 
+    const fetchStations = async (by: string, searchTerm: string) => {
+        try {
+            if (!searchTerm.trim()) {
+                // Si el término de búsqueda está vacío, no hace la solicitud
+                return;
+            }
+
+            const response = await fetch(
+                `/api/radio/stations/${by}/${searchTerm}?limit=10&offset=0`
+            );
+            if (!response.ok) {
+                throw new Error("Failed to fetch stations");
+            }
+            const data = await response.json();
+            filteredStations.set(data);
+        } catch (err) {
+            if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError("An unknown error occurred");
+            }
+        }
+    };
+
     const search = (query: string) => {
         if (query == "") {
             return;
@@ -56,6 +82,7 @@ export default function SearchBarInput({
             value={value}
             onChange={(e) => {
                 searchQuery.set(e.target.value);
+                fetchStations("byname", e.target.value);
                 setOpen(true);
             }}
             onFocus={() => setOpen(true)}

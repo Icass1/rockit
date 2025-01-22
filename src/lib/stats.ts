@@ -86,6 +86,11 @@ export async function getStats(
         | "images"
     >[] = [];
 
+
+    if (!lastPlayedSongs) {
+        return { songs: [], artists: [], albums: [] };
+    }
+
     Array(Math.round(Object.keys(lastPlayedSongs).length / 900) + 1)
         .fill(0)
         .map((_, index) => {

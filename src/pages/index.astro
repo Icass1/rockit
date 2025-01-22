@@ -47,8 +47,6 @@ const stats = await getStats(Astro.locals.user.id);
 
 let songsTimesPlayed: SongForStats[] = [];
 
-stats.songs[0].timePlayed;
-
 const songsByTimePlayed = [...stats.songs];
 songsByTimePlayed.sort((a, b) => b.timePlayed - a.timePlayed);
 

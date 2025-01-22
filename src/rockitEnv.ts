@@ -1,14 +1,15 @@
-import { loadEnv } from "vite";
+import * as fs from "fs";
+import * as path from "path";
 
 const REQUIRED_ENV_VARS = [
-    // "ENVIRONMENT",
-    // "CLIENT_ID",
-    // "CLIENT_SECRET",
+    "ENVIRONMENT",
+    "CLIENT_ID",
+    "CLIENT_SECRET",
     "BACKEND_URL",
-    // "FRONTEND_URL",
+    "FRONTEND_URL",
     "SONGS_PATH",
-    // "TEMP_PATH",
-    // "LOGS_PATH",
+    "TEMP_PATH",
+    "LOGS_PATH",
     "IMAGES_PATH",
     "INSECURE_DB_MODE",
     "API_KEY",
@@ -16,10 +17,23 @@ const REQUIRED_ENV_VARS = [
 
 type EnvKeys = (typeof REQUIRED_ENV_VARS)[number];
 
+function loadEnv(envPath: string) {
+    const envFile = fs.readFileSync(path.join(envPath, ".env"), "utf-8");
+
+    const envVars = envFile.split("\n").reduce(
+        (acc, line) => {
+            const [key, value] = line.split("=");
+            acc[key] = value;
+            return acc;
+        },
+        {} as Record<string, string>
+    );
+
+    return envVars;
+}
+
 export const ENV: Record<EnvKeys, string | "true" | "false"> = loadEnv(
-    "",
-    process.cwd(),
-    ""
+    process.cwd()
 ) as any;
 
 // Check for missing environment variables

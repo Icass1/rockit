@@ -30,11 +30,36 @@ export default function Navigation({ activePage }: { activePage: string }) {
             title: lang.library,
             href: "/library",
             icon: Library,
+            mobile: true,
         },
-        { name: "Search", title: lang.search, href: "/search", icon: Search },
-        { name: "Friends", title: lang.friends, href: "/friends", icon: Users },
-        { name: "Radio", title: lang.radio, href: "/radio", icon: RadioTower },
-        { name: "Stats", title: lang.stats, href: "/stats", icon: ChartLine },
+        {
+            name: "Search",
+            title: lang.search,
+            href: "/search",
+            icon: Search,
+            mobile: true,
+        },
+        {
+            name: "Friends",
+            title: lang.friends,
+            href: "/friends",
+            icon: Users,
+            mobile: true,
+        },
+        {
+            name: "Radio",
+            title: lang.radio,
+            href: "/radio",
+            icon: RadioTower,
+            mobile: false,
+        },
+        {
+            name: "Stats",
+            title: lang.stats,
+            href: "/stats",
+            icon: ChartLine,
+            mobile: false,
+        },
     ];
 
     const [innerWidth] = useWindowSize();
@@ -44,7 +69,7 @@ export default function Navigation({ activePage }: { activePage: string }) {
             <>
                 <div className="flex justify-center items-center py-2 w-full mx-auto min-w-0 max-w-full bg-[#1a1a1a]">
                     <div className="flex flex-row justify-center items-center md:pb-0 pb-8 w-full max-w-4xl">
-                        {pages.map((page) => (
+                        {pages.filter(page => page.mobile).map((page) => (
                             <a
                                 key={page.href}
                                 href={page.href}

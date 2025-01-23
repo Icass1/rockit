@@ -140,7 +140,7 @@ function DynamicLyrics() {
 
     if (typeof lyrics == "string" || typeof lyrics == "undefined") {
         return (
-            <div className="flex flex-col justify-center items-center px-4 overflow-hidden relative h-full">
+            <div className="flex flex-col justify-center items-center px-4 overflow-hidden relative h-full min-w-[31.5%]">
                 No lyrics found
             </div>
         );
@@ -150,7 +150,7 @@ function DynamicLyrics() {
         "absolute pl-16 pr-4 text-center -translate-y-1/2 transition-all duration-500 text-balance";
 
     return (
-        <div className="flex flex-col justify-center items-center px-4 overflow-hidden relative h-full">
+        <div className="flex flex-col justify-center items-center px-4 overflow-hidden relative h-full min-w-[31.5%]">
             {lyrics.map((line, index) => {
                 switch (index - lyricsIndex) {
                     case -2:

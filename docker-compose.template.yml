@@ -34,6 +34,7 @@ services:
     networks:
       - app-network
     environment:
+      ENVIRONMENT: "PROD"
       BACKEND_URL: "http://flask-backend:8000"
       SONGS_PATH: "/app/songs"
       IMAGES_PATH: "/app/images"

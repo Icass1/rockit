@@ -2,7 +2,7 @@
 import { loadEnv } from "vite";
 
 const REQUIRED_ENV_VARS = [
-    // "ENVIRONMENT",
+    "ENVIRONMENT",
     // "CLIENT_ID",
     // "CLIENT_SECRET",
     "BACKEND_URL",

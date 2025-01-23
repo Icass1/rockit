@@ -1,5 +1,5 @@
-import * as fs from "fs";
-import * as path from "path";
+
+import { loadEnv } from "vite";
 
 const REQUIRED_ENV_VARS = [
     "ENVIRONMENT",
@@ -17,23 +17,34 @@ const REQUIRED_ENV_VARS = [
 
 type EnvKeys = (typeof REQUIRED_ENV_VARS)[number];
 
-function loadEnv(envPath: string) {
-    const envFile = fs.readFileSync(path.join(envPath, ".env"), "utf-8");
 
-    const envVars = envFile.split("\n").reduce(
-        (acc, line) => {
-            const [key, value] = line.split("=");
-            acc[key] = value;
-            return acc;
-        },
-        {} as Record<string, string>
-    );
 
-    return envVars;
-}
+
+// import * as fs from "fs";
+// import * as path from "path";
+
+// function loadEnv(envPath: string) {
+//     const envFile = fs.readFileSync(path.join(envPath, ".env"), "utf-8");
+
+//     const envVars = envFile.split("\n").reduce(
+//         (acc, line) => {
+//             const [key, value] = line.split("=");
+//             acc[key] = value;
+//             return acc;
+//         },
+//         {} as Record<string, string>
+//     );
+//     return envVars;
+// }
+
+// export const ENV: Record<EnvKeys, string | "true" | "false"> = loadEnv(
+//     process.cwd()
+// ) as any;
 
 export const ENV: Record<EnvKeys, string | "true" | "false"> = loadEnv(
-    process.cwd()
+    "",
+    process.cwd(),
+    ""
 ) as any;
 
 // Check for missing environment variables

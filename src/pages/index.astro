@@ -97,54 +97,55 @@ stats.songs.map((song) => {
     }
 });
 
-
 // Filter songs for last week
-stats.songs.filter((song) => {
-    return song.timePlayed >= sevenDaysAgo;
-}).map((song) => {
-    let result = songsLast7Days.find((findSong) => findSong.id == song.id);
-    if (result) {
-        result.timesPlayed += 1;
-    } else {
-        songsLast7Days.push({
-            artists: song.artists,
-            image: song.image,
-            index: 0,
-            name: song.name,
-            id: song.id,
-            timesPlayed: 1,
-            duration: song.duration,
-            images: song.images,
-            albumId: song.albumId,
-            albumName: song.albumName,
-        });
-    }
-});
-
+stats.songs
+    .filter((song) => {
+        return song.timePlayed >= sevenDaysAgo;
+    })
+    .map((song) => {
+        let result = songsLast7Days.find((findSong) => findSong.id == song.id);
+        if (result) {
+            result.timesPlayed += 1;
+        } else {
+            songsLast7Days.push({
+                artists: song.artists,
+                image: song.image,
+                index: 0,
+                name: song.name,
+                id: song.id,
+                timesPlayed: 1,
+                duration: song.duration,
+                images: song.images,
+                albumId: song.albumId,
+                albumName: song.albumName,
+            });
+        }
+    });
 
 // Filter songs for last month
-stats.songs.filter((song) => {
-    return song.timePlayed >= lastMonth;
-}).map((song) => {
-    let result = songsLastMonth.find((findSong) => findSong.id == song.id);
-    if (result) {
-        result.timesPlayed += 1;
-    } else {
-        songsLastMonth.push({
-            artists: song.artists,
-            image: song.image,
-            index: 0,
-            name: song.name,
-            id: song.id,
-            timesPlayed: 1,
-            duration: song.duration,
-            images: song.images,
-            albumId: song.albumId,
-            albumName: song.albumName,
-        });
-    }
-});
-
+stats.songs
+    .filter((song) => {
+        return song.timePlayed >= lastMonth;
+    })
+    .map((song) => {
+        let result = songsLastMonth.find((findSong) => findSong.id == song.id);
+        if (result) {
+            result.timesPlayed += 1;
+        } else {
+            songsLastMonth.push({
+                artists: song.artists,
+                image: song.image,
+                index: 0,
+                name: song.name,
+                id: song.id,
+                timesPlayed: 1,
+                duration: song.duration,
+                images: song.images,
+                albumId: song.albumId,
+                albumName: song.albumName,
+            });
+        }
+    });
 
 // Get User Library Items
 const userLists = parseUser(
@@ -181,7 +182,6 @@ if (userLists?.filter((list) => list.type == "album").length > 0) {
     combinedLists = combinedLists.concat(albums);
 }
 
-
 // Mix the songs
 const shuffleArray = (array: SongForStats[]): SongForStats[] => {
     for (let i = array.length - 1; i > 0; i--) {
@@ -202,7 +202,10 @@ const shuffledLists = combinedLists.sort(() => Math.random() - 0.5);
     <div class="mt-20 md:mt-0"></div>
 
     <!-- Albums Carousel Section -->
-    <AlbumsCarousel songsTimesPlayed={randomSongsLast7Days} client:only="react" />
+    <AlbumsCarousel
+        songsTimesPlayed={randomSongsLast7Days}
+        client:only="react"
+    />
 
     <!-- <section class="md:mt-12 text-center">
         <h2 class="text-3xl font-bold text-white mb-8">
@@ -281,45 +284,47 @@ const shuffledLists = combinedLists.sort(() => Math.random() - 0.5);
                     <div class="flex flex-col gap-1 flex-none w-[51%] max-w-[200px] md:w-[calc(25%-10px)] md:max-w-[350px] snap-center">
                         {
                             // Asignar las canciones a cada columna
-                            randomSongsLastMonth.slice(columnIndex * 4, columnIndex * 4 + 4).map((song, songIndex) => (
-                                <a
-                                    class="flex items-center gap-2 rounded-lg p-2 hover:bg-zinc-800 transition h-fit"
-                                    onclick="songHandleClick(song)"
-                                >
-                                    {/* Imagen de la canción */}
-                                    <img
-                                        class="rounded-sm w-12 h-12 object-cover"
-                                        src={
-                                            song.image
-                                                ? `/api/image/${song.image}`
-                                                : "/song-placeholder.png"
-                                        }
-                                        alt={`Song Cover for ${song.name}`}
-                                    />
-                                    {/* Información de la canción */}
-                                    <div class="flex flex-col justify-center min-w-0">
-                                        {/* Nombre de la canción */}
-                                        <span class="text-md font-semibold text-white truncate">
-                                            {song.name}
-                                        </span>
-                                        {/* Artista y álbum */}
-                                        <div class="flex items-center gap-1 min-w-0">
-                                            <span class="text-sm text-gray-400 flex-0 md:max-w-[50%] truncate shrink-0">
-                                                {song.artists[0].name}
+                            randomSongsLastMonth
+                                .slice(columnIndex * 4, columnIndex * 4 + 4)
+                                .map((song, songIndex) => (
+                                    <a
+                                        class="flex items-center gap-2 rounded-lg p-2 hover:bg-zinc-800 transition h-fit"
+                                        onclick="songHandleClick(song)"
+                                    >
+                                        {/* Imagen de la canción */}
+                                        <img
+                                            class="rounded-sm w-12 h-12 object-cover"
+                                            src={
+                                                song.image
+                                                    ? `/api/image/${song.image}`
+                                                    : "/song-placeholder.png"
+                                            }
+                                            alt={`Song Cover for ${song.name}`}
+                                        />
+                                        {/* Información de la canción */}
+                                        <div class="flex flex-col justify-center min-w-0">
+                                            {/* Nombre de la canción */}
+                                            <span class="text-md font-semibold text-white truncate">
+                                                {song.name}
                                             </span>
-                                            <span class="hidden md:flex text-sm text-gray-400 truncate">
-                                                {" • "} {song.albumName}
-                                            </span>
+                                            {/* Artista y álbum */}
+                                            <div class="flex items-center gap-1 min-w-0">
+                                                <span class="text-sm text-gray-400 flex-0 md:max-w-[50%] truncate shrink-0">
+                                                    {song.artists[0].name}
+                                                </span>
+                                                <span class="hidden md:flex text-sm text-gray-400 truncate">
+                                                    {" • "} {song.albumName}
+                                                </span>
+                                            </div>
                                         </div>
-                                    </div>
-                                </a>
-                            ))
+                                    </a>
+                                ))
                         }
                     </div>
                 ))
             }
         </div>
-    </section>    
+    </section>
 
     <section class="md:px-12 py-5 md:py-12 text-white">
         <h2 class="text-2xl md:text-3xl font-bold text-left px-5 md:px-0">
@@ -332,7 +337,11 @@ const shuffledLists = combinedLists.sort(() => Math.random() - 0.5);
             {
                 shuffledLists.slice(0, 20).map((list, index) => (
                     <a
-                        href={isAlbum(list) ? `/album/${list.id}` : `/playlist/${list.id}`}
+                        href={
+                            isAlbum(list)
+                                ? `/album/${list.id}`
+                                : `/playlist/${list.id}`
+                        }
                         class="flex-none w-40 md:w-48 md:hover:scale-105 transition"
                     >
                         <img

@@ -2,14 +2,14 @@
 import { loadEnv } from "vite";
 
 const REQUIRED_ENV_VARS = [
-    "ENVIRONMENT",
-    "CLIENT_ID",
-    "CLIENT_SECRET",
+    // "ENVIRONMENT",
+    // "CLIENT_ID",
+    // "CLIENT_SECRET",
     "BACKEND_URL",
-    "FRONTEND_URL",
+    // "FRONTEND_URL",
     "SONGS_PATH",
-    "TEMP_PATH",
-    "LOGS_PATH",
+    // "TEMP_PATH",
+    // "LOGS_PATH",
     "IMAGES_PATH",
     "INSECURE_DB_MODE",
     "API_KEY",

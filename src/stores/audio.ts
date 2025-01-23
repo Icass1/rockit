@@ -638,7 +638,7 @@ audio.addEventListener("timeupdate", () => {
         timeSum += audio.currentTime - lastTime;
     lastTime = audio.currentTime;
 
-    if (timeSum > audio.duration * 0.8 && !songCounted) {
+    if (timeSum > audio.duration * 0.5 && !songCounted) {
         if (songId) {
             songCounted = true;
 

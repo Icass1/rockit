@@ -3,12 +3,29 @@ import Layout from "@/layouts/Layout.astro";
 import AlbumsCarousel from "@/components/AlbumsCarousel.tsx";
 import { getStats, type SongForStats } from "@/lib/stats";
 import { getLang } from "@/lib/getLang";
+import SongItem from "@/components/SongItem";
+import {
+    db,
+    parseAlbum,
+    parsePlaylist,
+    parseUser,
+    type AlbumDB,
+    type PlaylistDB,
+    type RawAlbumDB,
+    type RawPlaylistDB,
+    type RawUserDB,
+} from "@/lib/db";
 
 if (!Astro.locals.user) {
     return Astro.redirect("/login");
 }
 
 const lang = getLang(Astro.locals.user.lang);
+
+// Type guard para verificar si es un AlbumDB
+function isAlbum(list: PlaylistDB | AlbumDB): list is AlbumDB {
+    return (list as AlbumDB).artists !== undefined;
+}
 
 // Definimos la lista de categorías
 // const categories = [
@@ -48,7 +65,14 @@ const lang = getLang(Astro.locals.user.lang);
 
 const stats = await getStats(Astro.locals.user.id);
 
-let songsTimesPlayed: SongForStats[] = [];
+const songsLast7Days: SongForStats[] = [];
+const songsLastMonth: SongForStats[] = [];
+const songsTimesPlayed: SongForStats[] = [];
+let combinedLists: (PlaylistDB | AlbumDB)[] = [];
+
+const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+const lastMonth = Date.now() - 30 * 24 * 60 * 60 * 1000;
+stats.songs[0].timePlayed;
 
 const songsByTimePlayed = [...stats.songs];
 songsByTimePlayed.sort((a, b) => b.timePlayed - a.timePlayed);
@@ -73,14 +97,112 @@ stats.songs.map((song) => {
     }
 });
 
+
+// Filter songs for last week
+stats.songs.filter((song) => {
+    return song.timePlayed >= sevenDaysAgo;
+}).map((song) => {
+    let result = songsLast7Days.find((findSong) => findSong.id == song.id);
+    if (result) {
+        result.timesPlayed += 1;
+    } else {
+        songsLast7Days.push({
+            artists: song.artists,
+            image: song.image,
+            index: 0,
+            name: song.name,
+            id: song.id,
+            timesPlayed: 1,
+            duration: song.duration,
+            images: song.images,
+            albumId: song.albumId,
+            albumName: song.albumName,
+        });
+    }
+});
+
+
+// Filter songs for last month
+stats.songs.filter((song) => {
+    return song.timePlayed >= lastMonth;
+}).map((song) => {
+    let result = songsLastMonth.find((findSong) => findSong.id == song.id);
+    if (result) {
+        result.timesPlayed += 1;
+    } else {
+        songsLastMonth.push({
+            artists: song.artists,
+            image: song.image,
+            index: 0,
+            name: song.name,
+            id: song.id,
+            timesPlayed: 1,
+            duration: song.duration,
+            images: song.images,
+            albumId: song.albumId,
+            albumName: song.albumName,
+        });
+    }
+});
+
+
+// Get User Library Items
+const userLists = parseUser(
+    db
+        .prepare("SELECT lists FROM user WHERE id = ?")
+        .get(Astro.locals.user.id) as RawUserDB
+)?.lists;
+
+if (!userLists) {
+    return new Response("Fatal error, userLists is undefined");
+}
+
+// Get playlists
+if (userLists?.filter((list) => list.type == "playlist").length > 0) {
+    const playlistsQuery = `SELECT * FROM playlist WHERE id = ${userLists
+        ?.filter((list) => list.type == "playlist")
+        .map((list) => `'${list.id}'`)
+        .join(" OR id = ")}`;
+    const playlists = (db.prepare(playlistsQuery).all() as RawPlaylistDB[]).map(
+        (playlist: RawPlaylistDB) => parsePlaylist(playlist) as PlaylistDB
+    );
+    combinedLists = combinedLists.concat(playlists);
+}
+
+// Get albums
+if (userLists?.filter((list) => list.type == "album").length > 0) {
+    const albumsQuery = `SELECT * FROM album WHERE id = ${userLists
+        ?.filter((list) => list.type == "album")
+        .map((list) => `'${list.id}'`)
+        .join(" OR id = ")}`;
+    const albums = (db.prepare(albumsQuery).all() as RawAlbumDB[]).map(
+        (album) => parseAlbum(album) as AlbumDB
+    );
+    combinedLists = combinedLists.concat(albums);
+}
+
+
+// Mix the songs
+const shuffleArray = (array: SongForStats[]): SongForStats[] => {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+};
+
+// Get the final Lists
 songsTimesPlayed.sort((a, b) => b.timesPlayed - a.timesPlayed);
+const randomSongsLast7Days = shuffleArray([...songsLast7Days]);
+const randomSongsLastMonth = shuffleArray([...songsLastMonth]);
+const shuffledLists = combinedLists.sort(() => Math.random() - 0.5);
 ---
 
 <Layout title="Rock It!" currentPage="Home">
     <div class="mt-20 md:mt-0"></div>
 
     <!-- Albums Carousel Section -->
-    <AlbumsCarousel songsTimesPlayed={songsTimesPlayed} client:only="react" />
+    <AlbumsCarousel songsTimesPlayed={randomSongsLast7Days} client:only="react" />
 
     <!-- <section class="md:mt-12 text-center">
         <h2 class="text-3xl font-bold text-white mb-8">
@@ -118,7 +240,7 @@ songsTimesPlayed.sort((a, b) => b.timesPlayed - a.timesPlayed);
         >
             <!-- Aquí creamos las canciones -->
             {
-                songsByTimePlayed.slice(0, 20).map((song) => (
+                songsByTimePlayed.slice(0, 20).map((song, index) => (
                     <a
                         href="#"
                         class="flex-none w-40 md:w-48 md:hover:scale-105 transition"
@@ -152,43 +274,83 @@ songsTimesPlayed.sort((a, b) => b.timesPlayed - a.timesPlayed);
         <div
             class="flex md:gap-4 overflow-x-auto scrollbar-hide snap-x snap-mandatory py-4 px-8 md:px-2 md:[scrollbar-gutter:stable]"
         >
-            <!-- Aquí creamos las columnas -->
+            {/* Aquí creamos las columnas dinámicamente */}
             {
+                // Dividir las canciones en columnas de 4 canciones por columna
                 Array.from({ length: 9 }).map((_, columnIndex) => (
                     <div class="flex flex-col gap-1 flex-none w-[51%] max-w-[200px] md:w-[calc(25%-10px)] md:max-w-[350px] snap-center">
-                        {Array.from({ length: 4 }).map((_, songIndex) => (
-                            <a
-                                href="#"
-                                class="flex items-center gap-2 rounded-lg p-2 hover:bg-zinc-800 transition h-fit"
-                            >
-                                {/* Imagen de la canción */}
-                                <img
-                                    class="rounded-sm w-12 h-12 object-cover"
-                                    src="/song-placeholder.png"
-                                    alt="Song Cover"
-                                />
-                                {/* Información de la canción  */}
-                                <div class="flex flex-col justify-center min-w-0">
-                                    {/* <!-- Nombre de la canción */}
-                                    <span class="text-md font-semibold text-white truncate">
-                                        Canción{" "}
-                                        {columnIndex * 4 + songIndex + 1}
-                                    </span>
-                                    {/* Artista y álbum */}
-                                    <div class="flex items-center gap-1 min-w-0">
-                                        <span class="text-sm text-gray-400 truncate">
-                                            Artista{" "}
-                                            {columnIndex * 4 + songIndex + 1}
+                        {
+                            // Asignar las canciones a cada columna
+                            randomSongsLastMonth.slice(columnIndex * 4, columnIndex * 4 + 4).map((song, songIndex) => (
+                                <a
+                                    class="flex items-center gap-2 rounded-lg p-2 hover:bg-zinc-800 transition h-fit"
+                                    onclick="songHandleClick(song)"
+                                >
+                                    {/* Imagen de la canción */}
+                                    <img
+                                        class="rounded-sm w-12 h-12 object-cover"
+                                        src={
+                                            song.image
+                                                ? `/api/image/${song.image}`
+                                                : "/song-placeholder.png"
+                                        }
+                                        alt={`Song Cover for ${song.name}`}
+                                    />
+                                    {/* Información de la canción */}
+                                    <div class="flex flex-col justify-center min-w-0">
+                                        {/* Nombre de la canción */}
+                                        <span class="text-md font-semibold text-white truncate">
+                                            {song.name}
                                         </span>
-                                        <span class="hidden md:flex text-sm text-gray-400 truncate">
-                                            {" • Álbum "}{" "}
-                                            {columnIndex * 4 + songIndex + 1}
-                                        </span>
+                                        {/* Artista y álbum */}
+                                        <div class="flex items-center gap-1 min-w-0">
+                                            <span class="text-sm text-gray-400 flex-0 md:max-w-[50%] truncate shrink-0">
+                                                {song.artists[0].name}
+                                            </span>
+                                            <span class="hidden md:flex text-sm text-gray-400 truncate">
+                                                {" • "} {song.albumName}
+                                            </span>
+                                        </div>
                                     </div>
-                                </div>
-                            </a>
-                        ))}
+                                </a>
+                            ))
+                        }
                     </div>
+                ))
+            }
+        </div>
+    </section>    
+
+    <section class="md:px-12 py-5 md:py-12 text-white">
+        <h2 class="text-2xl md:text-3xl font-bold text-left px-5 md:px-0">
+            Lists from your Library
+        </h2>
+        <div
+            class="relative flex items-center gap-4 overflow-x-auto py-4 px-8 md:px-2 md:[scrollbar-gutter:stable]"
+        >
+            <!-- Aquí creamos las canciones -->
+            {
+                shuffledLists.slice(0, 20).map((list, index) => (
+                    <a
+                        href={isAlbum(list) ? `/album/${list.id}` : `/playlist/${list.id}`}
+                        class="flex-none w-40 md:w-48 md:hover:scale-105 transition"
+                    >
+                        <img
+                            class="rounded-lg w-full aspect-square object-cover"
+                            src={
+                                list.image
+                                    ? `/api/image/${list.image}`
+                                    : "/song-placeholder.png"
+                            }
+                            alt="Song Cover"
+                        />
+                        <label class="truncate font-semibold text-center block mt-2">
+                            {list.name}
+                        </label>
+                        <label class="truncate text-sm text-center text-gray-400 block">
+                            {isAlbum(list) ? list.artists[0]?.name : list.owner}
+                        </label>
+                    </a>
                 ))
             }
         </div>
@@ -196,7 +358,38 @@ songsTimesPlayed.sort((a, b) => b.timesPlayed - a.timesPlayed);
 
     <section class="md:px-12 py-5 md:py-12 text-white">
         <h2 class="text-2xl md:text-3xl font-bold text-left px-5 md:px-0">
-            {lang.you_might_like}
+            Other Users Also Listen to
+        </h2>
+        <div
+            class="relative flex items-center gap-4 overflow-x-auto py-4 px-8 md:px-2 md:[scrollbar-gutter:stable]"
+        >
+            <!-- Aquí creamos las canciones -->
+            {
+                Array.from({ length: 20 }).map((_, index) => (
+                    <a
+                        href="#"
+                        class="flex-none w-40 md:w-48 md:hover:scale-105 transition"
+                    >
+                        <img
+                            class="rounded-lg w-full aspect-square object-cover"
+                            src="/song-placeholder.png"
+                            alt="Song Cover"
+                        />
+                        <label class="truncate font-semibold text-center block mt-2">
+                            Song Title {index + 1}
+                        </label>
+                        <label class="truncate text-sm text-center text-gray-400 block">
+                            Artist Name
+                        </label>
+                    </a>
+                ))
+            }
+        </div>
+    </section>
+
+    <section class="md:px-12 py-5 md:py-12 text-white">
+        <h2 class="text-2xl md:text-3xl font-bold text-left px-5 md:px-0">
+            You Might Also Like (Recommendations In Progress)
         </h2>
         <div
             class="relative flex items-center gap-4 overflow-x-auto py-4 px-8 md:px-2 md:[scrollbar-gutter:stable]"

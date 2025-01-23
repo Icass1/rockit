@@ -235,7 +235,7 @@ data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
 
             {
                 albums.map((album) => {
-                    if (!album) return <label>Playlist is undefined</label>;
+                    if (!album) return <label>Album is undefined</label>;
                     return (
                         <a
                             href={`/album/${album.id}`}

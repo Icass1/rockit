@@ -5,8 +5,11 @@ import type {
     SpotifyTrack,
 } from "@/types/spotify";
 import { atom, map } from "nanostores";
+import { type Station } from "@/stores/audio";
 
 export const searchQuery = atom<string>("");
+
+export const filteredStations = atom<Station[]>([]);
 
 export const searchResults = map<{
     albums: SpotifyAlbum[] | undefined;

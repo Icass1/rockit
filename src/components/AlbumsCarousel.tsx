@@ -115,7 +115,7 @@ function Song({
                 </label>
 
                 <label
-                    className={`absolute bottom-2 left-2 text-md md:text-xl font-semibold line-clamp-2 w-[75%] ${
+                    className={`absolute bottom-2 left-2 text-md md:text-xl font-semibold line-clamp-1 w-[75%] ${
                         index == currentIndex ? "opacity-100" : "opacity-0"
                     } ${transition}`}
                 >

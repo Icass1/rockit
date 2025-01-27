@@ -81,7 +81,15 @@ const { bgImage } = Astro.props;
                     activePage={currentPage}
                     client:only="react"
                     transition:persist
-                />
+                    server:defer
+                >
+                    <!-- Temporary div while loading Navigation -->
+                    <div
+                        slot="fallback"
+                        class="min-h-0 max-h-full h-full bg-black w-12"
+                    >
+                    </div>
+                </Navigation>
             </div>
 
             <!-- Main content -->

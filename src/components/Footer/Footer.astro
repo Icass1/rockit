@@ -6,6 +6,8 @@ import TogglePlayerUI from "@/components/TogglePlayerUI";
 import VolumeSlider from "@/components/VolumeSlider";
 import FooterMobileBar from "./FooterMobileBar";
 import PictureInPictureImage from "@/components/PictureInPicture";
+
+import "@/styles/Skeleton.css";
 ---
 
 <footer
@@ -15,10 +17,28 @@ import PictureInPictureImage from "@/components/PictureInPicture";
         class="flex md:justify-center justify-between items-center w-full h-full"
     >
         <!-- Sección Izquierda -->
-        <FooterLeft client:only="react" />
+        <FooterLeft client:only="react" server:defer>
+            <!-- Temporary div while loading FooterCenter -->
+            <div
+                slot="fallback"
+                class="relative w-full md:w-1/3 max-w-full min-w-0 h-full"
+            >
+                <div class="w-full skeleton min-h-0 h-full absolute rounded-lg">
+                </div>
+            </div>
+        </FooterLeft>
 
         <!-- Sección Central (solo visible en pantallas medianas y más grandes) -->
-        <FooterCenter client:only="react" />
+        <FooterCenter client:only="react" server:defer>
+            <!-- Temporary div while loading FooterCenter -->
+            <div
+                slot="fallback"
+                class="relative flex items-center w-full md:w-1/3 max-w-full min-w-0 gap-x-4 h-full rounded-lg"
+            >
+                <div class="w-full skeleton min-h-0 h-full absolute rounded-lg">
+                </div>
+            </div>
+        </FooterCenter>
 
         <!-- Sección Derecha (Dispositivos grandes): Volumen -->
         <div
@@ -33,6 +53,8 @@ import PictureInPictureImage from "@/components/PictureInPicture";
         <FooterRightMobile client:only="react" />
     </div>
     <div class="md:hidden flex w-full">
-        <FooterMobileBar client:only="react" />
+        <FooterMobileBar client:only="react" server:defer>
+            <label slot="fallback">test</label>
+        </FooterMobileBar>
     </div>
 </footer>

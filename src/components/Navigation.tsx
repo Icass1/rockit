@@ -24,7 +24,7 @@ export default function Navigation({ activePage }: { activePage: string }) {
     const lang = langData.get();
 
     const pages = [
-        { name: "Home", title: lang.home, href: "/", icon: Home },
+        { name: "Home", title: lang.home, href: "/", icon: Home, mobile: true },
         {
             name: "Library",
             title: lang.library,
@@ -68,23 +68,25 @@ export default function Navigation({ activePage }: { activePage: string }) {
         return (
             <>
                 <div className="flex justify-center items-center py-2 w-full mx-auto min-w-0 max-w-full bg-[#1a1a1a]">
-                    <div className="flex flex-row justify-center items-center md:pb-0 pb-8 w-full max-w-4xl">
-                        {pages.filter(page => page.mobile).map((page) => (
-                            <a
-                                key={page.href}
-                                href={page.href}
-                                title={page.title}
-                                className={`h-full w-full flex justify-center items-center md:h-8 rounded-md ml-2 mr-2 transition-all gap-2 ${
-                                    activePage === page.name
-                                        ? "bg-white text-black"
-                                        : "text-white md:hover:bg-[#414141]"
-                                }`}
-                            >
-                                <div className="w-8 h-8 flex justify-center items-center">
-                                    <page.icon className="w-[1.35rem] h-[1.35rem]" />
-                                </div>
-                            </a>
-                        ))}
+                    <div className="flex flex-row justify-center items-center md:pb-0 pb-4 w-full max-w-4xl">
+                        {pages
+                            .filter((page) => page.mobile)
+                            .map((page) => (
+                                <a
+                                    key={page.href}
+                                    href={page.href}
+                                    title={page.title}
+                                    className={`h-full w-full flex justify-center items-center md:h-8 rounded-md ml-2 mr-2 transition-all gap-2 ${
+                                        activePage === page.name
+                                            ? "bg-white text-black"
+                                            : "text-white md:hover:bg-[#414141]"
+                                    }`}
+                                >
+                                    <div className="w-8 h-8 flex justify-center items-center">
+                                        <page.icon className="w-[1.35rem] h-[1.35rem]" />
+                                    </div>
+                                </a>
+                            ))}
                         <a
                             href="/settings"
                             title="Settings"
@@ -208,5 +210,4 @@ export default function Navigation({ activePage }: { activePage: string }) {
             </div>
         </div>
     );
-    //Aqui ignacio revisa lo de la cancion y el placeholder que no va bien (Lineas 526-530)
 }

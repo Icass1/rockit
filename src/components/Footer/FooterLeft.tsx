@@ -14,7 +14,6 @@ function FooterLeftForSong({ currentSong }: { currentSong: CurrentSong }) {
         <div className="flex items-center w-full md:w-1/3 max-w-full min-w-0 gap-x-4">
             {/* Imagen al inicio */}
             <img
-                id="footer-album-cover"
                 src={
                     currentSong?.image
                         ? `/api/image/${currentSong.image}`
@@ -78,7 +77,6 @@ function FooterLeftForStation({ currentStation }: { currentStation: Station }) {
         <div className="flex items-center w-full md:w-1/3 max-w-full min-w-0 gap-x-4">
             {/* Imagen al inicio */}
             <img
-                id="footer-album-cover"
                 src={currentStation.favicon || "/song-placeholder.png"}
                 alt="Album Cover"
                 className="md:w-16 md:h-16 rounded-md select-none w-9 h-9"

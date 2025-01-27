@@ -4,7 +4,7 @@ type ChangeEventHandler<T = Element> = (event: ChangeEvent<T>) => void;
 
 interface SliderProps {
     value: number;
-    onChange: ChangeEventHandler<HTMLInputElement> | undefined;
+    onChange?: ChangeEventHandler<HTMLInputElement> | undefined;
     max?: number;
     min?: number;
     step?: number;
@@ -26,34 +26,31 @@ const Slider: FC<SliderProps> = ({
 
     const inputRef = useRef<HTMLInputElement>(null);
 
-    useEffect(() => {
-        const inputElement = inputRef.current;
-        if (inputElement) {
-            const handleTouchStart = (event: TouchEvent) => {
-                if (event.cancelable) {
-                    event.preventDefault();
-                }
-            };
+    // useEffect(() => {
+    //     const inputElement = inputRef.current;
+    //     if (inputElement) {
+    //         const handleTouchStart = (event: TouchEvent) => {
+    //             if (event.cancelable) {
+    //                 event.preventDefault();
+    //             }
+    //         };
 
-            inputElement.addEventListener("touchstart", handleTouchStart, {
-                passive: false,
-            });
+    //         inputElement.addEventListener("touchstart", handleTouchStart, {
+    //             passive: false,
+    //         });
 
-            return () => {
-                inputElement.removeEventListener(
-                    "touchstart",
-                    handleTouchStart
-                );
-            };
-        }
-    }, []);
+    //         return () => {
+    //             inputElement.removeEventListener(
+    //                 "touchstart",
+    //                 handleTouchStart
+    //             );
+    //         };
+    //     }
+    // }, []);
 
     return (
         <div
-            className={
-                className +
-                " relative w-16 h-[3px] md:h-[4.5px] rounded-full bg-neutral-700"
-            }
+            className={className + " relative w-16 rounded-full bg-neutral-700"}
         >
             {/* Barra de progreso */}
             <div
@@ -71,7 +68,7 @@ const Slider: FC<SliderProps> = ({
                 min={min}
                 max={max}
                 step={step}
-                className="absolute top-[-6px] left-0 w-full h-full cursor-pointer"
+                className="absolute left-0 w-full h-full cursor-pointer"
             />
         </div>
     );

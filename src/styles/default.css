@@ -45,10 +45,10 @@ code {
 }
 
 *::-webkit-scrollbar {
-    width: 7px;
-    min-width: 7px;
-    height: 7px;
-    min-height: 7px;
+    width: 0px;
+    min-width: 0px;
+    height: 0px;
+    min-height: 0px;
 }
 
 @media (min-width: 768px) {
@@ -114,10 +114,8 @@ code {
 
 #default-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
+    height: 10px;
+    width: 10px;
     background-color: transparent;
     border-radius: 100%;
 }
-/*
-#default-slider::-webkit-slider-runnable-track {
-}
-*/

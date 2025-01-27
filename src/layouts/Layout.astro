@@ -8,6 +8,7 @@ import LoadingIndicator from "@/components/LoadingIndicator.astro";
 import { ViewTransitions } from "astro:transitions";
 import PlayerUI from "@/components/PlayerUI.tsx";
 import MobilePlayerUI from "@/components/Mobile/MobilePlayerUI.tsx";
+import FooterMobile from "@/components/Footer/FooterMobile";
 
 export interface Props {
     currentPage: string;
@@ -59,7 +60,7 @@ const { bgImage } = Astro.props;
     </head>
     <body>
         <main
-            class="relative grid grid-rows-[min-content_1fr_min-content] md:grid-rows-[min-content_1fr_min-content] md:grid-cols-[min-content_1fr] max-w-full min-w-0 w-full"
+            class="relative grid grid-rows-[1fr_min-content] md:grid-rows-[min-content_1fr_min-content] md:grid-cols-[min-content_1fr] max-w-full min-w-0 w-full"
         >
             {
                 bgImage && (
@@ -93,8 +94,12 @@ const { bgImage } = Astro.props;
             </div>
 
             <!-- Main content -->
-            <PlayerUI client:only="react" />
-            <MobilePlayerUI client:only="react" />
+            <div class="hidden md:block">
+                <PlayerUI client:only="react" />
+            </div>
+            <div class="block md:hidden">
+                <MobilePlayerUI client:only="react" />
+            </div>
 
             <div
                 class="md:hidden block absolute w-full h-fit bg-gradient-to-b from-black to-black/0 z-40 items-center justify-center mx-auto"
@@ -121,12 +126,19 @@ const { bgImage } = Astro.props;
 
             <!-- Footer -->
             <div
-                class="min-w-0 max-w-full md:min-h-0 md:max-h-full overflow-auto z-50 bottom-0 left-1 right-1 rounded md:bottom-0 md:left-0 md:right-0 md:rounded-none absolute md:relative"
+                class="hidden md:block min-w-0 max-w-full md:min-h-0 md:max-h-full overflow-auto z-50 bottom-0 left-1 right-1 rounded md:bottom-0 md:left-0 md:right-0 md:rounded-none absolute md:relative"
                 style={{ gridArea: "footer" }}
             >
-                <Footer />
+                <Footer transition:persist />
             </div>
 
+            <div
+                class="md:hidden min-w-0 max-w-full w-full h-16 fixed bottom-16 left-0 right-0 pb-1 px-1"
+                style={{ gridArea: "footer" }}
+                id="grid-area-footer-mobile"
+            >
+                <FooterMobile client:only="react" transition:persist />
+            </div>
             <!-- Overlay Menu -->
             <div
                 id="menu-overlay"
@@ -141,9 +153,7 @@ const { bgImage } = Astro.props;
 <style>
     main {
         grid-template-areas:
-            "header"
             "main"
-            "footer"
             "nav";
     }
 

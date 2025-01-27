@@ -23,6 +23,8 @@ import {
 } from "@/stores/audio";
 import LikeButton from "../LikeButton.tsx";
 import { isMobilePlayerUIVisible } from "@/stores/isPlayerUIVisible.ts";
+import Slider from "../Slider.tsx";
+import { useEffect, useRef } from "react";
 
 export default function MusicPlayer() {
     const $playing = useStore(playing);
@@ -31,16 +33,39 @@ export default function MusicPlayer() {
     const $randomQueue = useStore(randomQueue);
     const $isMobilePlayerUIVisible = useStore(isMobilePlayerUIVisible);
 
+    const divRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (!divRef.current) {
+            return;
+        }
+        const handleDocumentClick = (event: MouseEvent) => {
+            if (
+                !divRef.current?.contains(event?.target as Node) &&
+                !document
+                    .querySelector("#grid-area-footer-mobile")
+                    ?.contains(event?.target as Node)
+            ) {
+                isMobilePlayerUIVisible.set(false);
+            }
+        };
+        document.addEventListener("click", handleDocumentClick);
+        return () => {
+            document.removeEventListener("click", handleDocumentClick);
+        };
+    }, [divRef]);
+
     return (
         <div
+            ref={divRef}
             className={
-                "relative w-screen h-screen overflow-hidden md:hidden z-40 " +
+                "fixed top-0 left-0 right-0 bottom-16 w-screen overflow-hidden md:hidden z-40 " +
                 ($isMobilePlayerUIVisible ? "flex" : "hidden")
             }
         >
             {/* Fondo blurreado */}
             <div
-                className="absolute inset-0 bg-center bg-cover"
+                className="absolute -left-5 -right-5 -bottom-5 -top-5 inset-0 bg-center bg-cover"
                 style={{
                     backgroundImage: `url(${$currentSong?.image ? `/api/image/${$currentSong.image}` : `/song-placeholder.png`})`,
                     filter: "blur(10px) brightness(0.5)",
@@ -86,14 +111,24 @@ export default function MusicPlayer() {
 
                 {/* Slider de duración */}
                 <div className="w-full max-w-md px-4 py-3">
-                    <input
+                    <Slider
+                        id="default-slider"
+                        value={$currentTime || 0}
+                        className="h-2 w-full appearance-none cursor-pointer"
+                        min={0}
+                        max={$currentSong?.duration}
+                        step={0.001}
+                        onChange={(e) => setTime(Number(e.target.value))}
+                    ></Slider>
+
+                    {/* <input
                         type="range"
                         min="0"
                         max={$currentSong?.duration || 1}
                         value={$currentTime || 0}
                         onChange={(e) => setTime(Number(e.target.value))}
                         className="w-full h-[0.4rem] bg-neutral-700 rounded-lg appearance-none cursor-pointer"
-                    />
+                    /> */}
                     <div className="flex justify-between text-sm text-neutral-100">
                         <span>{getTime($currentTime || 0)}</span>
                         <span>{getTime($currentSong?.duration || 0)}</span>

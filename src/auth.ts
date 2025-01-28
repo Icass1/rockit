@@ -18,6 +18,7 @@ export const lucia = new Lucia(adapter, {
             username: attributes.username,
             id: attributes.id,
             lang: attributes.lang,
+            admin: attributes.admin
         };
     },
 });

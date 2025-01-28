@@ -1,0 +1,108 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { db } from "@/lib/db";
+import { navigate } from "astro:transitions/client";
+import { Link, RotateCw } from "lucide-react";
+if (!Astro.locals.user?.admin) {
+    return new Response("Page not found", { status: 404 });
+}
+
+const users = db.prepare("SELECT id FROM user").all();
+const albums = db.prepare("SELECT id FROM album").all();
+const playlists = db.prepare("SELECT id FROM playlist").all();
+const songs = db.prepare("SELECT id FROM song").all();
+const songsWithoutLyrics = db
+    .prepare("SELECT id FROM song WHERE lyrics IS NULL")
+    .all();
+const errors = db.prepare("SELECT id FROM error").all();
+
+const gradientTextClass =
+    "text-xl [background:-webkit-linear-gradient(0deg,#fb6467,#ee1086)] [-webkit-text-fill-color:transparent] font-bold";
+---
+
+<Layout currentPage="Admin">
+    <div class="mt-16 mb-16 md:mt-0 md:mb-0 p-2 flex flex-col gap-y-3">
+        <label class="text-2xl font-semibold">Admin panel</label>
+        <!-- Refresh page -->
+        <!-- <a href=""><RotateCw /> </a> -->
+        <div class="bg-neutral-700 p-2 rounded flex flex-col items-center">
+            <label class="text-lg font-semibold w-full">Users</label>
+
+            <div>
+                <label class={gradientTextClass} style="background-clip: text;"
+                    >{users.length}
+                </label>
+                <label>Users</label>
+            </div>
+            <a href="/admin/users" class="w-full relative"
+                ><Link className="right-0 relative ml-auto" /></a
+            >
+        </div>
+        <div class="bg-neutral-700 p-2 rounded flex flex-col items-center">
+            <label class="text-lg font-semibold w-full">Songs</label>
+
+            <div>
+                <label class={gradientTextClass} style="background-clip: text;"
+                    >{songs.length}
+                </label>
+                <label>Songs</label>
+            </div>
+            <div>
+                <label class={gradientTextClass} style="background-clip: text;"
+                    >{songs.length - songsWithoutLyrics.length}
+                </label>
+                <label>Songs with lyrics</label>
+            </div>
+            <a href="/admin/songs" class="w-full relative"
+                ><Link className="right-0 relative ml-auto" /></a
+            >
+        </div>
+
+        <div class="bg-neutral-700 p-2 rounded flex flex-col items-center">
+            <label class="text-lg font-semibold w-full">Lists</label>
+
+            <div>
+                <label class={gradientTextClass} style="background-clip: text;"
+                    >{albums.length + playlists.length}
+                </label>
+                <label>Lists</label>
+            </div>
+            <div>
+                <label class={gradientTextClass} style="background-clip: text;"
+                    >{albums.length}
+                </label>
+                <label>Albums</label>
+            </div>
+            <div>
+                <label class={gradientTextClass} style="background-clip: text;"
+                    >{playlists.length}
+                </label>
+                <label>Playlists</label>
+            </div>
+            <a href="/admin/lists" class="w-full relative"
+                ><Link className="right-0 relative ml-auto" /></a
+            >
+        </div>
+
+        <div class="bg-neutral-700 p-2 rounded flex flex-col items-center">
+            <label class="text-lg font-semibold w-full">Error log</label>
+
+            <div>
+                <label class={gradientTextClass} style="background-clip: text;"
+                    >{errors.length}
+                </label>
+                <label>Errors</label>
+            </div>
+            <div>
+                <label class={gradientTextClass} style="background-clip: text;"
+                    >4
+                </label>
+                <label>Erros since last release</label>
+            </div>
+
+            <a href="/admin/error" class="w-full relative"
+                ><Link className="right-0 relative ml-auto" /></a
+            >
+        </div>
+    </div>
+</Layout>

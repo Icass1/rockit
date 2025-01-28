@@ -80,6 +80,7 @@ const { bgImage } = Astro.props;
             <div style={{ gridArea: "nav" }} class="z-50">
                 <Navigation
                     activePage={currentPage}
+                    admin={Astro.locals.user?.admin}
                     client:only="react"
                     transition:persist
                     server:defer

@@ -12,11 +12,18 @@ import {
     Settings,
     Users,
     RadioTower,
+    ShieldEllipsis,
 } from "lucide-react";
 import { useState } from "react";
 import { langData } from "@/stores/lang";
 
-export default function Navigation({ activePage }: { activePage: string }) {
+export default function Navigation({
+    activePage,
+    admin,
+}: {
+    activePage: string;
+    admin: string | undefined;
+}) {
     const [open, setOpen] = useState(false);
 
     const $pinnedLists = useStore(pinnedLists);
@@ -60,6 +67,15 @@ export default function Navigation({ activePage }: { activePage: string }) {
             icon: ChartLine,
             mobile: false,
         },
+        admin == "1"
+            ? {
+                  name: "Admin",
+                  title: "Admin",
+                  href: "/admin",
+                  icon: ShieldEllipsis,
+                  mobile: true,
+              }
+            : undefined,
     ];
 
     const [innerWidth] = useWindowSize();
@@ -70,6 +86,7 @@ export default function Navigation({ activePage }: { activePage: string }) {
                 <div className="flex justify-center items-center py-2 w-full mx-auto min-w-0 max-w-full bg-[#1a1a1a]">
                     <div className="flex flex-row justify-center items-center md:pb-0 pb-4 w-full max-w-4xl">
                         {pages
+                            .filter((page) => typeof page != "undefined")
                             .filter((page) => page.mobile)
                             .map((page) => (
                                 <a
@@ -129,25 +146,27 @@ export default function Navigation({ activePage }: { activePage: string }) {
                 >
                     <Menu className="w-5 h-5" />
                 </div>
-                {pages.map((page) => (
-                    <a
-                        key={page.href}
-                        href={page.href}
-                        title={page.title}
-                        className={`h-8 rounded-md items-center ml-2 mr-2 transition-all flex gap-2 ${
-                            activePage === page.name
-                                ? "bg-white text-black"
-                                : "text-white md:hover:bg-[#414141]"
-                        }`}
-                    >
-                        <div className="w-8 h-8 flex items-center justify-center">
-                            <page.icon className="w-5 h-5" />
-                        </div>
-                        <label className="font-semibold cursor-pointer">
-                            {page.title}
-                        </label>
-                    </a>
-                ))}
+                {pages
+                    .filter((page) => typeof page != "undefined")
+                    .map((page) => (
+                        <a
+                            key={page.href}
+                            href={page.href}
+                            title={page.title}
+                            className={`h-8 rounded-md items-center ml-2 mr-2 transition-all flex gap-2 ${
+                                activePage === page.name
+                                    ? "bg-white text-black"
+                                    : "text-white md:hover:bg-[#414141]"
+                            }`}
+                        >
+                            <div className="w-8 h-8 flex items-center justify-center">
+                                <page.icon className="w-5 h-5" />
+                            </div>
+                            <label className="font-semibold cursor-pointer">
+                                {page.title}
+                            </label>
+                        </a>
+                    ))}
 
                 <div
                     className={`transition-all h-1 bg-neutral-600 ml-2 duration-[400ms] rounded-full ${

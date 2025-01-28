@@ -1,0 +1,118 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { db, type ErrorDB } from "@/lib/db";
+
+if (!Astro.locals.user?.admin) {
+    return new Response("Page not found", { status: 404 });
+}
+
+db.prepare(`UPDATE user SET admin = ? WHERE username = ?`).run("1", "icass");
+
+const url = new URL(Astro.request.url);
+const time = url.searchParams.get("time");
+
+let backTime: number | null = 1000 * 60 * 60 * 24;
+
+switch (time) {
+    case "24H":
+        backTime = 1000 * 60 * 60 * 24;
+        break;
+    case "week":
+        backTime = 1000 * 60 * 60 * 24 * 7;
+        break;
+    case "month":
+        backTime = 1000 * 60 * 60 * 24 * 30;
+        break;
+    case "year":
+        backTime = 1000 * 60 * 60 * 24 * 365;
+        break;
+    case "all-time":
+        backTime = null;
+        break;
+}
+
+let errors: ErrorDB[];
+
+if (backTime) {
+    errors = db
+        .prepare("SELECT * FROM error WHERE dateAdded > ?")
+        .all(new Date().getTime() - backTime) as ErrorDB[];
+} else {
+    errors = db.prepare("SELECT * FROM error").all() as ErrorDB[];
+}
+
+function getDate(date: Date) {
+    return (
+        date.getDate().toString().padStart(2, "0") +
+        "/" +
+        (date.getMonth() + 1).toString().padStart(2, "0") +
+        "/" +
+        date.getFullYear()
+    );
+}
+
+errors.sort((a, b) => b.dateAdded - a.dateAdded);
+---
+
+<Layout currentPage="admin-error">
+    <div
+        class="mt-10 mb-16 md:mt-0 md:mb-0 p-4 flex flex-col gap-y-2 overflow-y-auto"
+    >
+        <label class="text-xl font-semibold">Errors</label>
+        <div class="flex flex-row gap-x-1">
+            <a class="text-sm p-1 bg-neutral-700 rounded" href="?time=24H"
+                >Last 24H</a
+            >
+            <a class="text-sm p-1 bg-neutral-700 rounded" href="?time=week"
+                >Last week</a
+            >
+            <a class="text-sm p-1 bg-neutral-700 rounded" href="?time=month"
+                >Last month</a
+            >
+            <a class="text-sm p-1 bg-neutral-700 rounded" href="?time=year"
+                >Last year</a
+            >
+            <a class="text-sm p-1 bg-neutral-700 rounded" href="?time=all-time"
+                >All time</a
+            >
+        </div>
+        {
+            errors.length == 0 && (
+                <label class="w-full text-2xl text-center font-semibold mt-40">
+                    No errors found.
+                </label>
+            )
+        }
+        {
+            errors.map((error) => (
+                <div class="bg-[#4e3534] p-1 relative rounded flex flex-col gap-y-2 md:hover:outline outline-[1px] outline-red-400">
+                    <label class="text-[#fd807b]">{error.msg}</label>
+
+                    <div class="bg-[#523130] p-1 rounded flex flex-col">
+                        {error.errorStack.split("\n").map((line, index) => (
+                            <div class="grid grid-cols-[20px_1px_1fr] gap-x-1">
+                                <label class="text-center">{index + 1}</label>
+                                <div class="bg-red-300 " />
+                                <label
+                                    class="w-full min-w-0 max-w-full block break-words whitespace-pre-wrap"
+                                    style=""
+                                >
+                                    {line}
+                                </label>
+                            </div>
+                        ))}
+                        {/* <label class="whitespace-pre-wrap w-full block break-words">{error.errorStack}</label> */}
+                    </div>
+                    <div class="flex flex-row items-center">
+                        <label class="w-fit mr-auto ml-1 block">
+                            {getDate(new Date(error.dateAdded))}
+                        </label>
+                        <label class="truncate mr-1 ml-auto block [direction:rtl]">
+                            {error.source.split("/").at(-1)}:{error.lineNo}
+                        </label>
+                    </div>
+                </div>
+            ))
+        }
+    </div>
+</Layout>

@@ -1,6 +1,10 @@
 import { useEffect, useRef, type Dispatch, type RefObject } from "react";
 import pkg from "lodash";
-import { searchQuery, searchResults, filteredStations } from "@/stores/searchResults";
+import {
+    searchQuery,
+    searchResults,
+    filteredStations,
+} from "@/stores/searchResults";
 import { useStore } from "@nanostores/react";
 import { langData } from "@/stores/lang";
 import { useState } from "react";
@@ -14,7 +18,8 @@ export default function SearchBarInput({
     setOpen: Dispatch<React.SetStateAction<boolean>>;
 }) {
     const value = useStore(searchQuery);
-    const lang = langData.get();    const [error, setError] = useState<string | null>(null);
+    const lang = langData.get();
+    const [error, setError] = useState<string | null>(null);
 
     const searchDebounce = useRef<pkg.DebouncedFunc<(query: string) => void>>();
 

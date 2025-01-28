@@ -4,7 +4,6 @@ import {
     playing,
     currentSong,
     currentTime,
-    setTime,
 } from "@/stores/audio";
 import { useStore } from "@nanostores/react";
 import { Play, Pause } from "lucide-react";

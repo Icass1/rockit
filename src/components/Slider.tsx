@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ChangeEvent, type FC } from "react";
+import { useRef, type ChangeEvent, type FC } from "react";
 
 type ChangeEventHandler<T = Element> = (event: ChangeEvent<T>) => void;
 

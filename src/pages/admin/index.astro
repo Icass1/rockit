@@ -1,8 +1,7 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import { db } from "@/lib/db";
-import { navigate } from "astro:transitions/client";
-import { Link, RotateCw } from "lucide-react";
+import { Link } from "lucide-react";
 if (!Astro.locals.user?.admin) {
     return new Response("Page not found", { status: 404 });
 }

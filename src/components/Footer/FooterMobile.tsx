@@ -68,6 +68,7 @@ export default function FooterMobile() {
             </div>
             <div className="">
                 <Slider
+                    readOnly
                     id="default-slider"
                     className="relative rounded h-1 ml-1 mr-1 w-auto bg-neutral-700 group"
                     value={$currentTime ?? 0}

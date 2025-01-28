@@ -10,6 +10,7 @@ interface SliderProps {
     step?: number;
     id: string;
     className?: string;
+    readOnly?: boolean;
 }
 
 const Slider: FC<SliderProps> = ({
@@ -20,6 +21,7 @@ const Slider: FC<SliderProps> = ({
     step,
     id,
     className = "",
+    readOnly = false,
 }) => {
     const m = 100 / (max - min);
     const n = -m * min;
@@ -60,6 +62,7 @@ const Slider: FC<SliderProps> = ({
 
             {/* Input tipo rango */}
             <input
+                readOnly={readOnly}
                 ref={inputRef}
                 id={id}
                 value={value}

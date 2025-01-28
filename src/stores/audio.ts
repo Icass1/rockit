@@ -1,12 +1,30 @@
 import { atom } from "nanostores";
 import type { SongDB, SongDBFull, UserDB } from "@/lib/db";
 import Hls from "hls.js";
+import type { Message } from "@/pages/ws";
 
 let websocket: WebSocket;
 
 const database = await openIndexedDB();
 startSocket();
 registerServiceWorker();
+
+window.onerror = function (msg, source, lineNo, columnNo, error) {
+
+    fetch("/api/error/new", {
+        method: "POST",
+        body: JSON.stringify({
+            msg,
+            source,
+            lineNo,
+            columnNo,
+            errorMessage: error?.message,
+            errorCause: error?.cause,
+            errorName: error?.name,
+            errorStack: error?.stack,
+        }),
+    });
+};
 
 export type QueueSong = SongDB<
     "id" | "name" | "artists" | "image" | "duration"
@@ -391,6 +409,29 @@ export async function prev() {
         });
 }
 
+const getUA = () => {
+    let device = "Unknown";
+    const ua: { [key: string]: RegExp } = {
+        "Generic Linux": /Linux/i,
+        Android: /Android/i,
+        BlackBerry: /BlackBerry/i,
+        Bluebird: /EF500/i,
+        "Chrome OS": /CrOS/i,
+        Datalogic: /DL-AXIS/i,
+        Honeywell: /CT50/i,
+        iPad: /iPad/i,
+        iPhone: /iPhone/i,
+        iPod: /iPod/i,
+        macOS: /Macintosh/i,
+        Windows: /IEMobile|Windows/i,
+        Zebra: /TC70|TC55/i,
+    };
+    Object.keys(ua).map(
+        (v: string) => navigator.userAgent.match(ua[v]) && (device = v)
+    );
+    return device;
+};
+
 function startSocket() {
     if (!window.navigator.onLine) return;
 
@@ -402,9 +443,16 @@ function startSocket() {
 
     websocket.onopen = () => {
         // console.log("Web socket open");
+        send({ deviceName: getUA() });
     };
-    websocket.onmessage = () => {
-        // console.log("Web socket message", event.data);
+
+    websocket.onmessage = (event) => {
+        console.log("Web socket message", event.data);
+        const data: Message = JSON.parse(event.data);
+
+        if (data.currentTime) {
+            setTime(data.currentTime);
+        }
     };
     websocket.onclose = () => {
         // console.log("Web socket close");

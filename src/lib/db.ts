@@ -612,3 +612,63 @@ checkTable(
     db.prepare("PRAGMA table_info(album)").all() as Column[]
 );
 db.exec(albumQuery);
+
+// *********************************************
+// ************** Error log stuff **************
+// *********************************************
+
+export type ErrorDB<Keys extends keyof RawErrorDB = keyof RawErrorDB> = Pick<
+    RawErrorDB,
+    Keys
+>;
+
+export interface RawErrorDB {
+    id: string;
+    msg: string;
+    source: string;
+    lineNo: number;
+    columnNo: number;
+    errorMessage: string;
+    errorCause: string;
+    errorName: string;
+    errorStack: string;
+    dateAdded: number;
+}
+
+export function parseError(error: RawErrorDB | undefined): ErrorDB | undefined {
+    if (!error) {
+        return undefined;
+    }
+    return {
+        id: error.id,
+        msg: error.msg,
+        source: error.source,
+        lineNo: error.lineNo,
+        columnNo: error.columnNo,
+        errorMessage: error.errorMessage,
+        errorCause: error.errorCause,
+        errorName: error.errorName,
+        errorStack: error.errorStack,
+        dateAdded: error.dateAdded,
+    };
+}
+
+const errorQuery = `CREATE TABLE IF NOT EXISTS error (
+    id TEXT NOT NULL PRIMARY KEY UNIQUE,
+    msg TEXT,
+    source TEXT,
+    lineNo INTEGER,
+    columnNo INTEGER,
+    errorMessage TEXT,
+    errorCause TEXT,
+    errorName TEXT,
+    errorStack TEXT,
+    dateAdded INTEGER
+)`;
+
+checkTable(
+    "error",
+    errorQuery,
+    db.prepare("PRAGMA table_info(error)").all() as Column[]
+);
+db.exec(errorQuery);

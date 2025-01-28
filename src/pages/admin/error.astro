@@ -2,11 +2,11 @@
 import Layout from "@/layouts/Layout.astro";
 import { db, type ErrorDB } from "@/lib/db";
 
+// db.exec(`UPDATE user SET admin = '1' WHERE username = 'icass'`);
+
 if (!Astro.locals.user?.admin) {
     return new Response("Page not found", { status: 404 });
 }
-
-db.prepare(`UPDATE user SET admin = ? WHERE username = ?`).run("1", "icass");
 
 const url = new URL(Astro.request.url);
 const time = url.searchParams.get("time");

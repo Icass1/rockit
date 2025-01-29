@@ -9,6 +9,7 @@ import {
     playing,
     prev,
     randomQueue,
+    repeatSong,
     setTime,
 } from "@/stores/audio";
 import { useStore } from "@nanostores/react";
@@ -28,6 +29,7 @@ export default function FooterCenter() {
     const $currentTime = useStore(currentTime);
     const $currentSong = useStore(currentSong);
     const $randomQueue = useStore(randomQueue);
+    const $repeatSong = useStore(repeatSong);
     const $loading = useStore(loading);
 
     return (
@@ -38,7 +40,7 @@ export default function FooterCenter() {
             <div className="grid grid-cols-5 justify-items-center items-center gap-2">
                 <Shuffle
                     className={
-                        "w-[18px] h-[18px]  cursor-pointer md:hover:scale-105 transition-colors" +
+                        "w-[18px] h-[18px] cursor-pointer md:hover:scale-105 transition-colors" +
                         ($randomQueue ? " text-[#ee1086] " : " text-gray-400 ")
                     }
                     onClick={() => randomQueue.set(!randomQueue.get())}
@@ -72,7 +74,13 @@ export default function FooterCenter() {
                         play();
                     }}
                 />
-                <Repeat className="w-5 h-5 text-gray-400 md:hover:text-white cursor-pointer md:hover:scale-105" />
+                <Repeat
+                    className={
+                        "w-[18px] h-[18px] cursor-pointer md:hover:scale-105 transition-colors" +
+                        ($repeatSong ? " text-[#ee1086] " : " text-gray-400 ")
+                    }
+                    onClick={() => repeatSong.set(!repeatSong.get())}
+                />
             </div>
             <div className="flex items-center space-x-2 h-7 w-full group">
                 <span

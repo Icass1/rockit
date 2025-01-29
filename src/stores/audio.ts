@@ -10,7 +10,6 @@ startSocket();
 registerServiceWorker();
 
 window.onerror = function (msg, source, lineNo, columnNo, error) {
-
     fetch("/api/error/new", {
         method: "POST",
         body: JSON.stringify({
@@ -98,7 +97,7 @@ export type SongDBWithBlob<
 > = Pick<SongDBFullWithBlob, Keys>;
 
 const userJsonResponse = await fetch(
-    "/api/user?q=currentSong,currentTime,queue,queueIndex,volume,randomQueue"
+    "/api/user?q=currentSong,currentTime,queue,queueIndex,volume,randomQueue,repeatSong"
 );
 let userJson;
 if (userJsonResponse.ok) {
@@ -109,6 +108,7 @@ if (userJsonResponse.ok) {
         | "queueIndex"
         | "volume"
         | "randomQueue"
+        | "repeatSong"
     >;
 }
 
@@ -176,6 +176,10 @@ export const randomQueue = atom<boolean>(
     userJson?.randomQueue == "1" ? true : false
 );
 
+export const repeatSong = atom<boolean>(
+    userJson?.repeatSong == "1" ? true : false
+);
+
 export const currentStation = atom<Station | undefined>(undefined);
 
 export const songsInIndexedDB = atom<string[]>(await getSongIdsInIndexedDB());
@@ -199,6 +203,10 @@ if (userJson?.currentTime) {
 
 randomQueue.subscribe((value) => {
     send({ randomQueue: value ? "1" : "0" });
+});
+
+repeatSong.subscribe((value) => {
+    send({ repeatSong: value ? "1" : "0" });
 });
 
 currentSong.subscribe(async (value) => {
@@ -721,6 +729,12 @@ audio.addEventListener("pause", () => {
 });
 
 audio.addEventListener("ended", async () => {
+    if (repeatSong.get()) {
+        setTime(0);
+        play();
+        return;
+    }
+
     await next();
     play();
 

@@ -1,0 +1,31 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { db, type UserDB } from "@/lib/db";
+import { ArrowRight } from "lucide-react";
+
+const users = db
+    .prepare("SELECT username FROM user")
+    .all() as UserDB<"username">[];
+---
+
+<Layout currentPage="AdminUser">
+    <div class="mt-10 mb-16 md:mt-0 md:mb-0 w-full h-full">
+        <div
+            class="max-w-[700px] mx-auto flex flex-col md:bg-white/5 p-2 rounded"
+        >
+            <label class="text-xl font-semibold">Users</label>
+
+            {
+                users.map((user, index) => (
+                    <div class="grid grid-cols-[1fr_20px]">
+                        <label>
+                            {index + 1}
+                            {user.username}
+                        </label>
+                        <ArrowRight />
+                    </div>
+                ))
+            }
+        </div>
+    </div>
+</Layout>

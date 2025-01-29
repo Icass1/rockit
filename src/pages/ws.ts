@@ -10,6 +10,7 @@ export interface Message {
     volume?: number;
     randomQueue?: "1" | "0";
     deviceName?: string;
+    repeatSong?: "1" | "0";
 }
 
 let allConections: {
@@ -95,7 +96,12 @@ export async function ALL(context: APIContext): Promise<Response> {
                     messageJson.randomQueue,
                     userId
                 );
-            } else if (messageJson.songEnded) {
+            } else if (messageJson.repeatSong != undefined) {
+                db.prepare(`UPDATE user SET repeatSong = ? WHERE id = ?`).run(
+                    messageJson.repeatSong,
+                    userId
+                );
+            } else if (messageJson.songEnded != undefined) {
                 let userLastPlayedSong = (
                     parseUser(
                         db

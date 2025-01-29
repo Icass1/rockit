@@ -2,11 +2,11 @@
 import Layout from "@/layouts/Layout.astro";
 import { db, type ErrorDB } from "@/lib/db";
 
+// db.exec(`UPDATE user SET admin = '1' WHERE username = 'icass'`);
+
 if (!Astro.locals.user?.admin) {
     return new Response("Page not found", { status: 404 });
 }
-
-db.prepare(`UPDATE user SET admin = ? WHERE username = ?`).run("1", "icass");
 
 const url = new URL(Astro.request.url);
 const time = url.searchParams.get("time");
@@ -47,7 +47,13 @@ function getDate(date: Date) {
         "/" +
         (date.getMonth() + 1).toString().padStart(2, "0") +
         "/" +
-        date.getFullYear()
+        date.getFullYear() +
+        " " +
+        date.getHours().toString().padStart(2, "0") +
+        ":" +
+        date.getMinutes().toString().padStart(2, "0") +
+        ":" +
+        date.getSeconds().toString().padStart(2, "0")
     );
 }
 
@@ -89,7 +95,7 @@ errors.sort((a, b) => b.dateAdded - a.dateAdded);
                     <label class="text-[#fd807b]">{error.msg}</label>
 
                     <div class="bg-[#523130] p-1 rounded flex flex-col">
-                        {error.errorStack.split("\n").map((line, index) => (
+                        {error.errorStack?.split("\n").map((line, index) => (
                             <div class="grid grid-cols-[20px_1px_1fr] gap-x-1">
                                 <label class="text-center">{index + 1}</label>
                                 <div class="bg-red-300 " />
@@ -101,6 +107,7 @@ errors.sort((a, b) => b.dateAdded - a.dateAdded);
                                 </label>
                             </div>
                         ))}
+                        {!error.errorStack && <label>No error stack</label>}
                         {/* <label class="whitespace-pre-wrap w-full block break-words">{error.errorStack}</label> */}
                     </div>
                     <div class="flex flex-row items-center">
@@ -108,9 +115,11 @@ errors.sort((a, b) => b.dateAdded - a.dateAdded);
                             {getDate(new Date(error.dateAdded))}
                         </label>
                         <label class="truncate mr-1 ml-auto block [direction:rtl]">
-                            {error.source.split("/").at(-1)}:{error.lineNo}
+                            {error.source?.split("/").at(-1)}:{error.lineNo}
+                            {!error.source && <label>No error source</label>}
                         </label>
                     </div>
+                    <label >User ID: <label class="md:hover:underline">{error.userId}</label></label>
                 </div>
             ))
         }

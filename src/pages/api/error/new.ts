@@ -26,7 +26,7 @@ export async function POST(context: APIContext): Promise<Response> {
     } = data;
 
     db.prepare(
-        "INSERT INTO error (id, msg, source, lineNo, columnNo, errorMessage, errorCause, errorName, errorStack, dateAdded) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        "INSERT INTO error (id, msg, source, lineNo, columnNo, errorMessage, errorCause, errorName, errorStack, dateAdded, userId) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
     ).run(
         generateId(16),
         msg,
@@ -37,7 +37,8 @@ export async function POST(context: APIContext): Promise<Response> {
         errorCause,
         errorName,
         errorStack,
-        new Date().getTime()
+        new Date().getTime(),
+        context.locals.user?.id
     );
 
     return new Response("OK", { status: 200 });

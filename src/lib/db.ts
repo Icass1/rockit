@@ -628,15 +628,16 @@ export type ErrorDB<Keys extends keyof RawErrorDB = keyof RawErrorDB> = Pick<
 
 export interface RawErrorDB {
     id: string;
-    msg: string;
-    source: string;
-    lineNo: number;
-    columnNo: number;
-    errorMessage: string;
-    errorCause: string;
-    errorName: string;
-    errorStack: string;
+    msg: string | undefined;
+    source: string | undefined;
+    lineNo: number | undefined;
+    columnNo: number | undefined;
+    errorMessage: string | undefined;
+    errorCause: string | undefined;
+    errorName: string | undefined;
+    errorStack: string | undefined;
     dateAdded: number;
+    userId: string | undefined;
 }
 
 export function parseError(error: RawErrorDB | undefined): ErrorDB | undefined {
@@ -654,6 +655,7 @@ export function parseError(error: RawErrorDB | undefined): ErrorDB | undefined {
         errorName: error.errorName,
         errorStack: error.errorStack,
         dateAdded: error.dateAdded,
+        userId: error.userId,
     };
 }
 
@@ -667,7 +669,8 @@ const errorQuery = `CREATE TABLE IF NOT EXISTS error (
     errorCause TEXT,
     errorName TEXT,
     errorStack TEXT,
-    dateAdded INTEGER
+    dateAdded INTEGER,
+    userId TEXT
 )`;
 
 checkTable(

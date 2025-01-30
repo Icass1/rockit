@@ -1,0 +1,11 @@
+---
+import Layout from "@/layouts/Layout.astro";
+
+if (!Astro.locals.user?.admin) {
+    return new Response("Page not found", { status: 404 });
+}
+---
+
+<Layout currentPage="AdminUser">
+    <div>asdf</div>
+</Layout>

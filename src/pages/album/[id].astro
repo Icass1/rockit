@@ -26,7 +26,7 @@ if (_album == "error connecting to backend") {
 }
 
 const { album, discs, songs, inDatabase } = _album;
-const lang = getLang(Astro.locals.user?.lang ?? "en")
+const lang = getLang(Astro.locals.user?.lang ?? "en");
 
 function getDate(date: string) {
     const dateSplit = date.split("-");
@@ -92,7 +92,15 @@ const meta = {
                 <AddToLibrary type="album" id={id} client:only="react" />
                 <PlayList client:only="react" type="album" id={id} />
                 <AddToQueue client:only="react" type="album" id={id} />
-                <DownloadListDevice type="album" id={id} client:only="react" />
+                {
+                    inDatabase && (
+                        <DownloadListDevice
+                            type="album"
+                            id={id}
+                            client:only="react"
+                        />
+                    )
+                }
 
                 <SetCurrentListInfo
                     client:only="react"

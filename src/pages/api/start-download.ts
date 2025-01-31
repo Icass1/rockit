@@ -3,8 +3,6 @@ import type { APIContext } from "astro";
 
 const BACKEND_URL = ENV.BACKEND_URL;
 
-console.log({ BACKEND_URL });
-
 export async function GET(context: APIContext): Promise<Response> {
     if (!context.locals.user) {
         return new Response("Unauthenticated", { status: 401 });

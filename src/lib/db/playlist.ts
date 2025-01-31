@@ -2,7 +2,17 @@
 // ************** Playlist stuff **************
 // ********************************************
 
-import { checkTable, db, type Column, type OldImageDB } from "@/db/db";
+export type OldImageDB = {
+    url: string;
+    width: number;
+    height: number;
+};
+
+export type ArtistDB = {
+    name: string;
+    id: string;
+};
+
 import type { SongDB, SongDBFull } from "./song";
 
 export type PlaylistDB<
@@ -59,7 +69,7 @@ export function parsePlaylist(
     };
 }
 
-const playlistQuery = `CREATE TABLE IF NOT EXISTS playlist (
+export const playlistQuery = `CREATE TABLE IF NOT EXISTS playlist (
     id TEXT NOT NULL PRIMARY KEY UNIQUE,
     images TEXT NOT NULL,
     image TEXT NOT NULL  DEFAULT "",
@@ -69,10 +79,3 @@ const playlistQuery = `CREATE TABLE IF NOT EXISTS playlist (
     followers INTEGER NOT NULL,
     songs TEXT NOT NULL 
 )`;
-
-checkTable(
-    "playlist",
-    playlistQuery,
-    db.prepare("PRAGMA table_info(playlist)").all() as Column[]
-);
-db.exec(playlistQuery);

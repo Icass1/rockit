@@ -2,18 +2,23 @@
 // ************** Album stuff **************
 // *****************************************
 
-import {
-    checkTable,
-    db,
-    type ArtistDB,
-    type Column,
-    type OldImageDB,
-} from "@/db/db";
+console.log("ASDFASFDASFASFD");
 
 export type AlbumDB<Keys extends keyof AlbumDBFull = keyof AlbumDBFull> = Pick<
     AlbumDBFull,
     Keys
 >;
+
+export type OldImageDB = {
+    url: string;
+    width: number;
+    height: number;
+};
+
+export type ArtistDB = {
+    name: string;
+    id: string;
+};
 
 export interface RawAlbumDB {
     id: string;
@@ -72,7 +77,7 @@ export function parseAlbum(album: RawAlbumDB | undefined): AlbumDB | undefined {
     };
 }
 
-const albumQuery = `CREATE TABLE IF NOT EXISTS album (
+export const albumQuery2 = `CREATE TABLE IF NOT EXISTS album (
     id TEXT NOT NULL PRIMARY KEY UNIQUE,
     type TEXT NOT NULL,
     images TEXT NOT NULL,
@@ -88,9 +93,4 @@ const albumQuery = `CREATE TABLE IF NOT EXISTS album (
     dateAdded INTEGER NOT NULL
 )`;
 
-checkTable(
-    "album",
-    albumQuery,
-    db.prepare("PRAGMA table_info(album)").all() as Column[]
-);
-db.exec(albumQuery);
+console.log({ albumQuery2 });

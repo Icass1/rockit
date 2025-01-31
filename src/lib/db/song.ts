@@ -2,13 +2,7 @@
 // ************** Song stuff **************
 // ****************************************
 
-import {
-    checkTable,
-    db,
-    type ArtistDB,
-    type Column,
-    type OldImageDB,
-} from "@/db/db";
+import { type ArtistDB, type OldImageDB } from "@/db/db";
 
 export interface RawSongDB {
     id: string;
@@ -92,7 +86,7 @@ export function parseSong(rawSong: RawSongDB | undefined): SongDB | undefined {
     };
 }
 
-const songQuery = `CREATE TABLE IF NOT EXISTS song (
+export const songQuery = `CREATE TABLE IF NOT EXISTS song (
     id TEXT NOT NULL PRIMARY KEY UNIQUE,
     name TEXT NOT NULL,
     artists TEXT NOT NULL,
@@ -115,10 +109,3 @@ const songQuery = `CREATE TABLE IF NOT EXISTS song (
     popularity INTEGER,
     dateAdded TEXT
 )`;
-
-checkTable(
-    "song",
-    songQuery,
-    db.prepare("PRAGMA table_info(song)").all() as Column[]
-);
-db.exec(songQuery);

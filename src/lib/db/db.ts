@@ -1,6 +1,13 @@
 import { ENV } from "@/rockitEnv";
 import sqlite from "better-sqlite3";
 import * as fs from "fs";
+import { downloadQuery } from "./download";
+import { errorQuery } from "./error";
+import { albumQuery2 } from "./album";
+import { imageQuery } from "./image";
+import { playlistQuery } from "./playlist";
+import { songQuery } from "./song";
+import { userQuery } from "./user";
 
 fs.mkdir("database", { recursive: false }, () => {});
 export const db = sqlite("database/database.db");
@@ -16,7 +23,7 @@ export interface Column {
 
 if (ENV.INSECURE_DB_MODE == "true") {
     console.log("***********************************************************");
-    console.log("****              Insecure mode is on                 *****");
+    console.log("****              Insecure mode is on                  ****");
     console.log("**** Disable it to avoid accidental DROPs in database. ****");
     console.log("***********************************************************");
 }
@@ -169,14 +176,52 @@ db.exec(`CREATE TABLE IF NOT EXISTS session (
 
 
 
-export type OldImageDB = {
-    url: string;
-    width: number;
-    height: number;
-};
+checkTable(
+    "download",
+    downloadQuery,
+    db.prepare("PRAGMA table_info(download)").all() as Column[]
+);
+db.exec(downloadQuery);
 
-export type ArtistDB = {
-    name: string;
-    id: string;
-};
+console.log({albumQuery2, downloadQuery, errorQuery})
+checkTable(
+    "album",
+    albumQuery2,
+    db.prepare("PRAGMA table_info(album)").all() as Column[]
+);
+db.exec(albumQuery2);
 
+checkTable(
+    "error",
+    errorQuery,
+    db.prepare("PRAGMA table_info(error)").all() as Column[]
+);
+db.exec(errorQuery);
+
+checkTable(
+    "image",
+    imageQuery,
+    db.prepare("PRAGMA table_info(image)").all() as Column[]
+);
+db.exec(imageQuery);
+
+checkTable(
+    "playlist",
+    playlistQuery,
+    db.prepare("PRAGMA table_info(playlist)").all() as Column[]
+);
+db.exec(playlistQuery);
+
+checkTable(
+    "song",
+    songQuery,
+    db.prepare("PRAGMA table_info(song)").all() as Column[]
+);
+db.exec(songQuery);
+
+checkTable(
+    "user",
+    userQuery,
+    db.prepare("PRAGMA table_info(user)").all() as Column[]
+);
+db.exec(userQuery);

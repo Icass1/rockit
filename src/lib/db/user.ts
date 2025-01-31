@@ -2,7 +2,6 @@
 // ************** User stuff **************
 // ****************************************
 
-import { checkTable, db, type Column } from "@/db/db";
 import type { PlaylistDBSong } from "./playlist";
 
 export interface RawUserDB {
@@ -24,7 +23,7 @@ export interface RawUserDB {
     lang: string;
     admin: string;
     superAdmin: string;
-    impersonateId: string;
+    impersonateId: string | undefined;
     devUser: string;
     updatedAt: number;
     createdAt: number;
@@ -71,13 +70,13 @@ export interface UserDBFull {
     lang: string;
     admin: string;
     superAdmin: string;
-    impersonateId: string;
+    impersonateId: string | undefined;
     devUser: string;
     updatedAt: number;
     createdAt: number;
 }
 
-const userQuery = `CREATE TABLE IF NOT EXISTS user (
+export const userQuery = `CREATE TABLE IF NOT EXISTS user (
     id TEXT NOT NULL PRIMARY KEY,
     username TEXT NOT NULL UNIQUE,
     passwordHash TEXT NOT NULL UNIQUE,
@@ -134,10 +133,3 @@ export function parseUser(user: RawUserDB | undefined): UserDB | undefined {
         createdAt: user.createdAt,
     };
 }
-
-checkTable(
-    "user",
-    userQuery,
-    db.prepare("PRAGMA table_info(user)").all() as Column[]
-);
-db.exec(userQuery);

@@ -1,4 +1,5 @@
 ---
+import ToggleButtons from "@/components/Admin/ToggleButtons";
 import Layout from "@/layouts/Layout.astro";
 import { db, parseUser, type RawUserDB, type UserDB } from "@/lib/db";
 
@@ -24,7 +25,6 @@ const user = parseUser(
             </div>
             <div class="bg-white/10 w-full p-2 rounded flex flex-col">
                 <label class="text-xl font-semibold">Queue</label>
-
                 {
                     user.queue.length > 0 ? (
                         <>
@@ -46,39 +46,23 @@ const user = parseUser(
                     )
                 }
             </div>
-            <div class="bg-white/10 w-full p-2 rounded">
-                <label class="text-xl font-semibold">Toggles</label>
-                <div class="grid md:grid-cols-2 grid-cols-1 gap-2 mt-2">
-                    <div class="flex flex-row justify-between pr-5">
-                        <label>Random Queue</label>
-                        <input type="checkbox" />
-                    </div>
-                    <div class="flex flex-row justify-between pr-5">
-                        <label>Repeat Song</label>
-                        <input type="checkbox" />
-                    </div>
-                    <div class="flex flex-row justify-between pr-5">
-                        <label class="">Admin</label>
-                        <input type="checkbox" />
-                    </div>
-                    <div class="flex flex-row justify-between pr-5">
-                        <label class="">Super Admin</label>
-                        <input type="checkbox" />
-                    </div>
-                    <div class="flex flex-row justify-between pr-5">
-                        <label class="">Dev User</label>
-                        <input type="checkbox" />
-                    </div>
-                </div>
+            <ToggleButtons />
+            <div class="flex flex-row justify-between">
+                <button
+                    disabled={user.id == Astro.locals.user.id}
+                    class="disabled:opacity-50 bg-blue-500 p-2 w-fit rounded"
+                    >Impersonate</button
+                >
+                <button
+                    class="disabled:opacity-50 bg-blue-500 p-2 w-fit rounded"
+                    >See stats</button
+                >
+                <button
+                    class="disabled:opacity-50 bg-blue-500 p-2 w-fit rounded"
+                >
+                    See more info</button
+                >
             </div>
-            <button
-                disabled={user.id == Astro.locals.user.id}
-                class="disabled:opacity-50 bg-blue-500 p-2 w-fit rounded"
-                >Impersonate</button
-            >
-            <button class="disabled:opacity-50 bg-blue-500 p-2 w-fit rounded"
-                >See stats</button
-            >
         </div>
     </div>
 </Layout>

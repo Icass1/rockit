@@ -190,6 +190,7 @@ export interface RawUserDB {
     lang: string;
     admin: string;
     superAdmin: string;
+    impersonateId: string;
     devUser: string;
     updatedAt: number;
     createdAt: number;
@@ -236,6 +237,7 @@ export interface UserDBFull {
     lang: string;
     admin: string;
     superAdmin: string;
+    impersonateId: string;
     devUser: string;
     updatedAt: number;
     createdAt: number;
@@ -260,6 +262,7 @@ const userQuery = `CREATE TABLE IF NOT EXISTS user (
     lang TEXT DEFAULT "en" NOT NULL,
     admin BOOLEAN DEFAULT 0 NOT NULL,
     superAdmin BOOLEAN DEFAULT 0 NOT NULL,
+    impersonateId TEXT,
     devUser BOOLEAN DEFAULT 0 NOT NULL,
     updatedAt INTEGER NOT NULL,
     createdAt INTEGER NOT NULL
@@ -291,6 +294,7 @@ export function parseUser(user: RawUserDB | undefined): UserDB | undefined {
         lang: user.lang,
         admin: user.admin,
         superAdmin: user.superAdmin,
+        impersonateId: user.impersonateId,
         devUser: user.devUser,
         updatedAt: user.updatedAt,
         createdAt: user.createdAt,

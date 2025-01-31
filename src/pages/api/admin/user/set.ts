@@ -1,6 +1,5 @@
 import { lucia } from "@/auth";
 import { verify } from "@node-rs/argon2";
-import { db, type UserDB } from "@/lib/db";
 
 import type { APIContext } from "astro";
 

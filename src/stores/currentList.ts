@@ -1,4 +1,4 @@
-import type { SongDB } from "@/lib/db";
+import type { SongDB } from "@/db/song";
 import { atom } from "nanostores";
 
 export const currentListSongs = atom<

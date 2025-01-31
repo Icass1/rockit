@@ -1,6 +1,6 @@
+import { db } from "@/lib/db/db";
+import { parseUser, type RawUserDB } from "@/lib/db/user";
 import type { APIContext } from "astro";
-
-import { db, parseUser, type RawUserDB } from "@/lib/db";
 
 export async function GET(context: APIContext): Promise<Response> {
     if (!context.locals.user) {

@@ -1,5 +1,6 @@
+import { db } from "@/lib/db/db";
+import { parseUser, type RawUserDB, type UserDB } from "@/lib/db/user";
 import type { APIContext } from "astro";
-import { db, parseUser, type RawUserDB, type UserDB } from "@/lib/db";
 
 export interface Message {
     currentSong?: string;

@@ -1,13 +1,7 @@
-import {
-    type RawSongDB,
-    type AlbumDB,
-    type ArtistDB,
-    type SongDB,
-    db,
-    parseSong,
-    type RawUserDB,
-    parseUser,
-} from "./db";
+import type { AlbumDB } from "@/db/album";
+import { db, type ArtistDB } from "@/db/db";
+import { parseSong, type RawSongDB, type SongDB } from "@/db/song";
+import { parseUser, type RawUserDB } from "@/db/user";
 
 interface AlbumForStats extends AlbumDB<"name" | "id" | "artists" | "image"> {
     timesPlayed: number;

@@ -1,16 +1,10 @@
 import type { APIContext } from "astro";
 
-import {
-    db,
-    parseAlbum,
-    parseSong,
-    type AlbumDB,
-    type RawAlbumDB,
-    type RawSongDB,
-    type SongDB,
-} from "@/lib/db";
-import type { SpotifyAlbum, SpotifyTrack } from "@/types/spotify";
 import { ENV } from "@/rockitEnv";
+import type { SpotifyAlbum, SpotifyTrack } from "@/types/spotify";
+import { type AlbumDB, parseAlbum, type RawAlbumDB } from "@/lib/db/album";
+import { db } from "@/lib/db/db";
+import { type SongDB, type RawSongDB, parseSong } from "@/lib/db/song";
 
 const BACKEND_URL = ENV.BACKEND_URL;
 

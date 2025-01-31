@@ -29,7 +29,7 @@ import ContextMenuContent from "./ContextMenu/Content";
 import ContextMenuOption from "./ContextMenu/Option";
 import { playListHandleClick } from "./PlayList";
 import { currentListSongs } from "@/stores/currentList";
-import type { SongDB } from "@/lib/db";
+import type { SongDB } from "@/db/song";
 import { navigate } from "astro:transitions/client";
 import { addToLibraryHandleClick } from "./ListHeader/AddToLibrary";
 import { libraryLists } from "@/stores/libraryLists";

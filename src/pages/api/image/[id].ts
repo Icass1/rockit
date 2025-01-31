@@ -1,8 +1,9 @@
+import { db } from "@/lib/db/db";
+import type { ImageDB } from "@/lib/db/image";
+import { ENV } from "@/rockitEnv";
 import type { APIContext } from "astro";
-import { db, type ImageDB } from "@/lib/db";
 import { readFile } from "fs/promises";
 import { extname, join } from "path";
-import { ENV } from "@/rockitEnv";
 
 const IMAGES_PATH = ENV.IMAGES_PATH;
 

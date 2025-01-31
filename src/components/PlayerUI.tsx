@@ -1,4 +1,4 @@
-import type { SongDB } from "@/lib/db";
+import type { SongDB } from "@/db/song";
 import {
     currentSong,
     currentTime,

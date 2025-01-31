@@ -1,8 +1,9 @@
+import { db } from "@/lib/db/db";
+import type { SongDB } from "@/lib/db/song";
+import { ENV } from "@/rockitEnv";
+import type { APIContext } from "astro";
 import fs from "fs";
 import path from "path";
-import type { APIContext } from "astro";
-import { db, type SongDB } from "@/lib/db";
-import { ENV } from "@/rockitEnv";
 
 const SONGS_PATH = ENV.SONGS_PATH;
 

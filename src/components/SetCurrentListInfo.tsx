@@ -1,4 +1,4 @@
-import type { SongDB } from "@/lib/db";
+import type { SongDB } from "@/db/song";
 import { currentList, currentListSongs } from "@/stores/currentList";
 
 export default function SetCurrentListInfo({

@@ -1,19 +1,16 @@
 ---
 import Layout from "@/layouts/Layout.astro";
-import {
-    db,
-    type SongDB,
-    type RawSongDB,
-    parsePlaylist,
-    parseSong,
-    type RawPlaylistDB,
-    type UserDB,
-    parseUser,
-    type RawUserDB,
-    type PlaylistDBSongWithAddedAt,
-} from "@/lib/db";
-import PlaylistSongsView from "@/components/Playlist/PlaylistSongsView";
+
 import PlaylistHeader from "@/components/Playlist/PlaylistHeader";
+import PlaylistSongsView from "@/components/Playlist/PlaylistSongsView";
+import { db } from "@/lib/db/db";
+import {
+    parsePlaylist,
+    type PlaylistDBSongWithAddedAt,
+    type RawPlaylistDB,
+} from "@/lib/db/playlist";
+import { parseSong, type RawSongDB, type SongDB } from "@/lib/db/song";
+import { parseUser, type RawUserDB, type UserDB } from "@/lib/db/user";
 
 const { id } = Astro.params as { id: string };
 if (!Astro.locals.user) {

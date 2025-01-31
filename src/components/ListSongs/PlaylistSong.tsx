@@ -4,7 +4,7 @@ import {
     saveSongToIndexedDB,
     songsInIndexedDB,
 } from "@/stores/audio";
-import type { PlaylistDBSongWithAddedAt } from "@/lib/db";
+import type { PlaylistDBSongWithAddedAt } from "@/db/playlist";
 import { getTime } from "@/lib/getTime";
 import LikeButton from "../LikeButton";
 import { ListPlus, EllipsisVertical, CheckCircle2 } from "lucide-react";

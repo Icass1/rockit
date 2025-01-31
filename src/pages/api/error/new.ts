@@ -1,4 +1,4 @@
-import { db } from "@/lib/db";
+import { db } from "@/db/db";
 import type { APIContext } from "astro";
 import { generateId } from "lucia";
 

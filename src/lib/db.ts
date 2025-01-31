@@ -683,3 +683,4 @@ checkTable(
     db.prepare("PRAGMA table_info(error)").all() as Column[]
 );
 db.exec(errorQuery);
+

@@ -1,6 +1,7 @@
 ---
 import Layout from "@/layouts/Layout.astro";
-import { db, type ErrorDB } from "@/lib/db";
+import { db } from "@/lib/db/db";
+import type { ErrorDB } from "@/lib/db/error";
 
 // db.exec(`UPDATE user SET admin = '1' WHERE username = 'icass'`);
 
@@ -119,7 +120,10 @@ errors.sort((a, b) => b.dateAdded - a.dateAdded);
                             {!error.source && <label>No error source</label>}
                         </label>
                     </div>
-                    <label >User ID: <label class="md:hover:underline">{error.userId}</label></label>
+                    <label>
+                        User ID:{" "}
+                        <label class="md:hover:underline">{error.userId}</label>
+                    </label>
                 </div>
             ))
         }

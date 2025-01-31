@@ -1,9 +1,10 @@
 import { lucia } from "@/auth";
 import { verify } from "@node-rs/argon2";
-import { db, type UserDB } from "@/lib/db";
 
-import type { APIContext } from "astro";
+import { db } from "@/lib/db/db";
+import type { UserDB } from "@/lib/db/user";
 import { ENV } from "@/rockitEnv";
+import type { APIContext } from "astro";
 
 export async function POST(context: APIContext): Promise<Response> {
     const formData = await context.request.formData();

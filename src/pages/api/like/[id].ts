@@ -1,14 +1,7 @@
-import {
-    db,
-    parseSong,
-    parseUser,
-    type PlaylistDBSong,
-    type RawSongDB,
-    type RawUserDB,
-    type SongDB,
-    type UserDB,
-} from "@/lib/db";
-
+import { db } from "@/lib/db/db";
+import type { PlaylistDBSong } from "@/lib/db/playlist";
+import { parseSong, type RawSongDB, type SongDB } from "@/lib/db/song";
+import { parseUser, type RawUserDB, type UserDB } from "@/lib/db/user";
 import type { APIContext } from "astro";
 
 export async function POST(context: APIContext): Promise<Response> {

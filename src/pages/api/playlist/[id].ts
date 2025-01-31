@@ -1,6 +1,6 @@
+import { db } from "@/lib/db/db";
+import { parsePlaylist, type RawPlaylistDB } from "@/lib/db/playlist";
 import type { APIContext } from "astro";
-
-import { db, parsePlaylist, type RawPlaylistDB } from "@/lib/db";
 
 export async function GET(context: APIContext): Promise<Response> {
     const id = context.params.id as string;

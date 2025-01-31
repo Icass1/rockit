@@ -1,7 +1,8 @@
 ---
 import ToggleButtons from "@/components/Admin/ToggleButtons";
 import Layout from "@/layouts/Layout.astro";
-import { db, parseUser, type RawUserDB, type UserDB } from "@/lib/db";
+import { db } from "@/lib/db/db";
+import { parseUser, type RawUserDB, type UserDB } from "@/lib/db/user";
 
 if (!Astro.locals.user?.admin) {
     return new Response("Page not found", { status: 404 });

@@ -1,4 +1,5 @@
-import type { AlbumDB, PlaylistDB } from "@/lib/db";
+import type { AlbumDB } from "@/lib/db/album";
+import type { PlaylistDB } from "@/lib/db/playlist";
 import { atom } from "nanostores";
 
 interface LibraryList {

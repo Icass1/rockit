@@ -1,7 +1,8 @@
-import { atom } from "nanostores";
-import type { SongDB, SongDBFull, UserDB } from "@/lib/db";
-import Hls from "hls.js";
+import type { SongDB, SongDBFull } from "@/lib/db/song";
+import type { UserDB } from "@/lib/db/user";
 import type { Message } from "@/pages/ws";
+import Hls from "hls.js";
+import { atom } from "nanostores";
 
 let websocket: WebSocket;
 

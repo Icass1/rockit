@@ -109,7 +109,7 @@ export default function RenderSearchBarResults({
                         .map((artist) => artist.name)
                         .join(","),
                     url: album.external_urls.spotify,
-                    image: album.images[0].url,
+                    image: album.images[0]?.url,
                     inDatabase: album.inDatabase,
                     type: "album",
                 };
@@ -123,7 +123,7 @@ export default function RenderSearchBarResults({
                     name: playlist.name,
                     artistsOrOwner: playlist.owner.display_name,
                     url: playlist.external_urls.spotify,
-                    image: playlist.images[0].url,
+                    image: playlist.images[0]?.url,
                     inDatabase: playlist.inDatabase,
                     type: "playlist",
                 };
@@ -139,7 +139,7 @@ export default function RenderSearchBarResults({
                         .map((artist) => artist.name)
                         .join(","),
                     url: song.external_urls.spotify,
-                    image: song.album.images[0].url,
+                    image: song.album.images[0]?.url,
                     inDatabase: song.inDatabase,
                     type: "song",
                 };
@@ -154,7 +154,7 @@ export default function RenderSearchBarResults({
                     name: artist.name,
                     artistsOrOwner: "",
                     url: artist.external_urls.spotify,
-                    image: artist.images[0].url,
+                    image: artist.images[0]?.url,
                     inDatabase: true,
                     type: "artist",
                 };
@@ -179,7 +179,7 @@ export default function RenderSearchBarResults({
                                     artistsOrOwner={bestResult.artistsOrOwner}
                                     inDatabase={bestResult.inDatabase}
                                     image={bestResult.image}
-                                    url={bestResult.url}
+                                    url={bestResult?.url}
                                 />
                             </div>
                         </>
@@ -207,7 +207,9 @@ export default function RenderSearchBarResults({
                                                         .join(", ")
                                                 }
                                                 inDatabase={song.inDatabase}
-                                                image={song.album.images[0].url}
+                                                image={
+                                                    song.album.images[0]?.url
+                                                }
                                                 url={song.external_urls.spotify}
                                             />
                                         </div>
@@ -238,7 +240,7 @@ export default function RenderSearchBarResults({
                                                         .join(", ")
                                                 }
                                                 inDatabase={album.inDatabase}
-                                                image={album.images[0].url}
+                                                image={album.images[0]?.url}
                                                 url={
                                                     album.external_urls.spotify
                                                 }
@@ -265,7 +267,7 @@ export default function RenderSearchBarResults({
                                                     playlist.owner.display_name
                                                 }
                                                 inDatabase={playlist.inDatabase}
-                                                image={playlist.images[0].url}
+                                                image={playlist.images[0]?.url}
                                                 url={
                                                     playlist.external_urls
                                                         .spotify
@@ -291,7 +293,7 @@ export default function RenderSearchBarResults({
                                                 name={artist.name}
                                                 artistsOrOwner=""
                                                 inDatabase={true}
-                                                image={artist.images[0].url}
+                                                image={artist.images[0]?.url}
                                                 url={
                                                     artist.external_urls.spotify
                                                 }

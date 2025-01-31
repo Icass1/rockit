@@ -1,4 +1,5 @@
-import { db, type RawSongDB } from "@/lib/db";
+import { db } from "@/lib/db/db";
+import type { RawSongDB } from "@/lib/db/song";
 import { ENV } from "@/rockitEnv";
 import type { APIContext } from "astro";
 

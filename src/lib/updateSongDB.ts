@@ -1,4 +1,5 @@
-import { db, type ImageDB } from "@/lib/db";
+import { type ImageDB } from "@/db/image";
+import { db } from "@/db/db";
 import * as crypto from "node:crypto";
 
 export function updateSongDB({

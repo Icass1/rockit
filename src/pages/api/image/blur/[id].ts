@@ -1,9 +1,10 @@
+import { db } from "@/lib/db/db";
+import type { ImageDB } from "@/lib/db/image";
+import { ENV } from "@/rockitEnv";
 import type { APIContext } from "astro";
-import sharp from "sharp";
 import { readFile } from "fs/promises";
 import { join } from "path";
-import { ENV } from "@/rockitEnv";
-import { db, type ImageDB } from "@/lib/db";
+import sharp from "sharp";
 
 export async function GET(context: APIContext): Promise<Response> {
     const imageDB = db

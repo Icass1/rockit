@@ -2,7 +2,7 @@ import type {
     PlaylistDB,
     PlaylistDBSong,
     PlaylistDBSongWithAddedAt,
-} from "@/lib/db";
+} from "@/db/playlist";
 import PlaylistSong from "../ListSongs/PlaylistSong";
 import { useEffect, useRef, useState } from "react";
 import { ArrowUp } from "lucide-react";

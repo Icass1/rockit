@@ -1,21 +1,19 @@
 ---
-import Layout from "@/layouts/Layout.astro";
 import LibraryFilters from "@/components/LibraryFilters.tsx";
 import ButtonSection from "@/components/Mobile/MobileLibraryButtons";
+import Layout from "@/layouts/Layout.astro";
+import { type AlbumDB, parseAlbum, type RawAlbumDB } from "@/lib/db/album";
+import { db } from "@/lib/db/db";
 import {
-    db,
-    parseAlbum,
-    parsePlaylist,
-    parseUser,
-    type AlbumDB,
     type PlaylistDB,
-    type RawAlbumDB,
     type RawPlaylistDB,
-    type RawUserDB,
-} from "@/lib/db";
-import { getStats } from "@/lib/stats";
-import { Heart, Disc3, History } from "lucide-react";
+    parsePlaylist,
+} from "@/lib/db/playlist";
+import { parseUser, type RawUserDB } from "@/lib/db/user";
+
 import { getLang } from "@/lib/getLang";
+import { getStats } from "@/lib/stats";
+import { Disc3, Heart, History } from "lucide-react";
 
 if (!Astro.locals.user) {
     return Astro.redirect("/login");

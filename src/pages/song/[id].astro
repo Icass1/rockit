@@ -1,18 +1,19 @@
 ---
-import Layout from "@/layouts/Layout.astro";
-import { db, parseSong, type RawSongDB, type SongDB } from "@/lib/db";
-import getAlbum from "@/lib/getAlbum";
-import { getTime } from "@/lib/getTime";
 import LikeButton from "@/components/LikeButton";
 import LyricsSection from "@/components/SongPage/SongPageLyrics";
+import Layout from "@/layouts/Layout.astro";
+import getAlbum from "@/lib/getAlbum";
+import { getTime } from "@/lib/getTime";
 
 import type {
-    SpotifyArtistTopTracks,
     SpotifyArtist,
+    SpotifyArtistTopTracks,
     SpotifyTrack,
 } from "@/types/spotify";
 
 import SongPageCover from "@/components/SongPage/SongPageCover";
+import { db } from "@/lib/db/db";
+import { parseSong, type RawSongDB, type SongDB } from "@/lib/db/song";
 import { ENV } from "@/rockitEnv";
 import { EllipsisVertical } from "lucide-react";
 

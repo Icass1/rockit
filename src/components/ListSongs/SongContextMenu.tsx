@@ -15,7 +15,7 @@ import ContextMenu from "../ContextMenu/ContextMenu";
 import ContextMenuOption from "../ContextMenu/Option";
 import ContextMenuTrigger from "../ContextMenu/Trigger";
 import { likedSongs } from "@/stores/likedList";
-import type { SongDB } from "@/lib/db";
+import type { SongDB } from "@/db/song";
 import type { ReactNode } from "react";
 import { useStore } from "@nanostores/react";
 import { queue, saveSongToIndexedDB } from "@/stores/audio";

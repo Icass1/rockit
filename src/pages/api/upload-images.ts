@@ -1,9 +1,10 @@
-import { db, type ImageDB } from "@/lib/db";
+import { db } from "@/lib/db/db";
+import type { ImageDB } from "@/lib/db/image";
 import { ENV } from "@/rockitEnv";
 import type { APIContext } from "astro";
-import { writeFile, mkdir } from "fs/promises";
+import { mkdir, writeFile } from "fs/promises";
 import * as crypto from "node:crypto";
-import { join, dirname } from "path";
+import { dirname, join } from "path";
 
 export async function POST(context: APIContext): Promise<Response> {
     if (

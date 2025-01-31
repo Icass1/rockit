@@ -1,4 +1,5 @@
-import { db, type ImageDB } from "@/lib/db";
+import { db } from "@/lib/db/db";
+import type { ImageDB } from "@/lib/db/image";
 import { ENV } from "@/rockitEnv";
 import type { APIContext } from "astro";
 

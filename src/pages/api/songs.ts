@@ -1,6 +1,6 @@
+import { db } from "@/lib/db/db";
+import { parseSong, type RawSongDB } from "@/lib/db/song";
 import type { APIContext } from "astro";
-
-import { db, parseSong, type RawSongDB } from "@/lib/db";
 
 export async function GET(context: APIContext): Promise<Response> {
     let songs;

@@ -176,32 +176,36 @@ class Spotify:
             song_dict["artists"] = [artist.name for artist in song.artists]
             song_dict["artist"] = song.artists[0].name
             song_dict["artist_id"] = song.artists[0].id
-            song_dict["album_id"] = song.album.id
-            song_dict["album_name"] = song.album.name
-            song_dict["album_artist"] = song.album.artists[0].name
-            song_dict["album_type"] = song.album.type
             song_dict["copyright_text"]  = ""
             song_dict["genres"] = genres
             song_dict["disc_number"] = song.disc_number
             song_dict["disc_count"] = 1
             song_dict["duration"] = song.duration_ms/1000
-            song_dict["year"] = int(song.album.release_date[:4])
-            song_dict["date"] = song.album.release_date
             song_dict["track_number"] = song.track_number
-            song_dict["tracks_count"] = song.album.total_tracks
             song_dict["isrc"] = song.external_ids.isrc
             song_dict["song_id"] = song.id
             song_dict["explicit"] = song.explicit
             song_dict["publisher"] = ""
             song_dict["url"] = song.external_urls.spotify
             song_dict["popularity"] = song.popularity
-            song_dict["cover_url"] = (
-                        max(song.album.images, key=lambda i: i.width * i.height)[
-                            "url"
-                        ]
-                        if song.album.images
-                        else None
-                    ),
+            if song.album == None:
+                logger.error(f"get_spotify_playlist No album found in song. {song=}")
+            else:
+                song_dict["album_type"] = song.album.type
+                song_dict["album_id"] = song.album.id
+                song_dict["album_name"] = song.album.name
+                song_dict["album_artist"] = song.album.artists[0].name
+                if song.album.release_date: song_dict["year"] = int(song.album.release_date[:4])
+                else: logger.error(f"get_spotify_playlist No release_date found in song album. {song.album=}")
+                song_dict["date"] = song.album.release_date
+                song_dict["tracks_count"] = song.album.total_tracks
+                song_dict["cover_url"] = (
+                            max(song.album.images, key=lambda i: i.width * i.height)[
+                                "url"
+                            ]
+                            if song.album.images
+                            else None
+                        ),
             
             spotdl_song = Song.from_dict(song_dict)
             spotdl_songs.append(spotdl_song)

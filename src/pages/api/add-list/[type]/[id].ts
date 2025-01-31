@@ -1,18 +1,15 @@
+import { parseAlbum, type RawAlbumDB } from "@/lib/db/album";
+import { db } from "@/lib/db/db";
+import { parsePlaylist, type RawPlaylistDB } from "@/lib/db/playlist";
 import {
-    db,
-    parseAlbum,
-    parsePlaylist,
     parseUser,
-    type RawAlbumDB,
-    type RawPlaylistDB,
     type RawUserDB,
     type UserDB,
     type UserDBLists,
-} from "@/lib/db";
+} from "@/lib/db/user";
+import type * as astro from "astro";
 
-import type { APIContext } from "astro";
-
-export async function ALL(context: APIContext): Promise<Response> {
+export async function ALL(context: astro.APIContext): Promise<Response> {
     if (!context.locals.user) {
         return new Response("Unauthenticated", { status: 401 });
     }

@@ -1,15 +1,12 @@
+import { parseAlbum, type RawAlbumDB } from "@/lib/db/album";
+import { db } from "@/lib/db/db";
+import { parsePlaylist, type RawPlaylistDB } from "@/lib/db/playlist";
 import {
-    db,
-    parseAlbum,
-    parsePlaylist,
     parseUser,
-    type RawAlbumDB,
-    type RawPlaylistDB,
     type RawUserDB,
     type UserDB,
     type UserDBPinnedLists,
-} from "@/lib/db";
-
+} from "@/lib/db/user";
 import type { APIContext } from "astro";
 
 export async function ALL(context: APIContext): Promise<Response> {

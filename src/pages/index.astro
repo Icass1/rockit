@@ -3,17 +3,10 @@ import Layout from "@/layouts/Layout.astro";
 import AlbumsCarousel from "@/components/AlbumsCarousel.tsx";
 import { getStats, type SongForStats } from "@/lib/stats";
 import { getLang } from "@/lib/getLang";
-import {
-    db,
-    parseAlbum,
-    parsePlaylist,
-    parseUser,
-    type AlbumDB,
-    type PlaylistDB,
-    type RawAlbumDB,
-    type RawPlaylistDB,
-    type RawUserDB,
-} from "@/lib/db";
+import { parsePlaylist, type PlaylistDB, type RawPlaylistDB } from "@/lib/db/playlist";
+import { parseAlbum, type AlbumDB, type RawAlbumDB } from "@/lib/db/album";
+import { parseUser, type RawUserDB } from "@/lib/db/user";
+import { db } from "@/lib/db/db";
 
 if (!Astro.locals.user) {
     return Astro.redirect("/login");

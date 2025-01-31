@@ -1,6 +1,6 @@
 import type { SearchResults } from "@/types/spotify";
 import type { APIContext } from "astro";
-import { db } from "@/lib/db";
+import { db } from "@/db/db";
 import { ENV } from "@/rockitEnv";
 
 const BACKEND_URL = ENV.BACKEND_URL;

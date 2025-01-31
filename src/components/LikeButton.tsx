@@ -1,4 +1,4 @@
-import type { SongDB } from "@/lib/db";
+import type { SongDB } from "@/db/song";
 import { likedSongs } from "@/stores/likedList";
 import { useStore } from "@nanostores/react";
 import type { MouseEvent } from "react";

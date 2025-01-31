@@ -1,6 +1,7 @@
-import { Lucia } from "lucia";
 import { BetterSqlite3Adapter } from "@lucia-auth/adapter-sqlite";
-import { db, type UserDB } from "./lib/db";
+import { Lucia } from "lucia";
+import { db } from "@/db/db";
+import type { UserDB } from "@/db/user";
 
 const adapter = new BetterSqlite3Adapter(db, {
     user: "user",
@@ -18,7 +19,7 @@ export const lucia = new Lucia(adapter, {
             username: attributes.username,
             id: attributes.id,
             lang: attributes.lang,
-            admin: attributes.admin
+            admin: attributes.admin,
         };
     },
 });

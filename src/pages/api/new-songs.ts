@@ -1,8 +1,9 @@
-import type { APIContext } from "astro";
-import { db, type ImageDB } from "@/lib/db";
-import * as crypto from "node:crypto";
+import { db } from "@/lib/db/db";
+import type { ImageDB } from "@/lib/db/image";
 import { ENV } from "@/rockitEnv";
+import type { APIContext } from "astro";
 import * as fs from "fs/promises";
+import * as crypto from "node:crypto";
 import { join } from "path";
 
 export async function POST(context: APIContext): Promise<Response> {

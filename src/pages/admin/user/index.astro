@@ -1,6 +1,7 @@
 ---
 import Layout from "@/layouts/Layout.astro";
-import { db, type UserDB } from "@/lib/db";
+import { db } from "@/lib/db/db";
+import type { UserDB } from "@/lib/db/user";
 import { ArrowRight } from "lucide-react";
 if (!Astro.locals.user?.admin) {
     return new Response("Page not found", { status: 404 });

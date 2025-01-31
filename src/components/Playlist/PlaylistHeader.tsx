@@ -4,8 +4,9 @@ import { Download, Heart } from "lucide-react";
 import PlayList from "@/components/PlayList";
 import AddToQueue from "@/components/ListHeader/AddToQueue";
 import DownloadListDevice from "@/components/ListHeader/DownloadListDeviceButton";
-import type { PlaylistDB, PlaylistDBSong, SongDB } from "@/lib/db";
 import { langData } from "@/stores/lang";
+import type { PlaylistDB, PlaylistDBSong } from "@/lib/db/playlist";
+import type { SongDB } from "@/lib/db/song";
 
 function getMinutes(seconds: number) {
     seconds = Math.round(seconds);

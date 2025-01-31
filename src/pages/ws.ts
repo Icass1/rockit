@@ -24,127 +24,129 @@ let allConections: {
 } = {};
 
 export async function ALL(context: APIContext): Promise<Response> {
-    if (context.request.headers.has("Upgrade")) {
-        const { socket, response } = await context.locals.upgradeWebSocket();
-        if (!context.locals.user) {
-            console.log("User is not logged in");
-            return new Response("User is not logged in", { status: 401 });
-        }
-
-        const userId = context.locals.user.id;
-
-        if (allConections[userId]) {
-            allConections[userId]?.connections?.push({ socket });
-        } else {
-            allConections[userId] = {
-                connections: [{ socket }],
-                playing: socket,
-            };
-        }
-
-        console.log("New client", {
-            userName: context.locals.user.username,
-            connections: allConections[userId].connections.length,
-        });
-
-        socket.addEventListener("message", (event) => {
+    try {
+        if (context.request.headers.has("Upgrade")) {
+            const { socket, response } =
+                await context.locals.upgradeWebSocket();
             if (!context.locals.user) {
-                console.error("User is not logged in");
-                return;
+                console.log("User is not logged in");
+                return new Response("User is not logged in", { status: 401 });
             }
-            let messageJson: Message;
-            try {
-                messageJson = JSON.parse(event.data);
-            } catch {
-                console.log("Unable to parse socket message", event.data);
-                return;
+
+            const userId = context.locals.user.id;
+
+            if (allConections[userId]) {
+                allConections[userId]?.connections?.push({ socket });
+            } else {
+                allConections[userId] = {
+                    connections: [{ socket }],
+                    playing: socket,
+                };
             }
-            if (messageJson.currentSong != undefined) {
-                db.prepare(`UPDATE user SET currentSong = ? WHERE id = ?`).run(
-                    messageJson.currentSong,
-                    userId
-                );
-            } else if (messageJson.currentTime != undefined) {
-                if (allConections[userId].playing == socket) {
-                    allConections[userId].connections
-                        ?.filter((conn) => conn.socket != socket)
-                        .map((conn) =>
-                            conn?.socket?.send(JSON.stringify(messageJson))
+
+            console.log("New client", {
+                userName: context.locals.user.username,
+                connections: allConections[userId].connections.length,
+            });
+
+            socket.addEventListener("message", (event) => {
+                if (!context.locals.user) {
+                    console.error("User is not logged in");
+                    return;
+                }
+                let messageJson: Message;
+                try {
+                    messageJson = JSON.parse(event.data);
+                } catch {
+                    console.log("Unable to parse socket message", event.data);
+                    return;
+                }
+                if (messageJson.currentSong != undefined) {
+                    db.prepare(
+                        `UPDATE user SET currentSong = ? WHERE id = ?`
+                    ).run(messageJson.currentSong, userId);
+                } else if (messageJson.currentTime != undefined) {
+                    if (allConections[userId].playing == socket) {
+                        allConections[userId].connections
+                            ?.filter((conn) => conn.socket != socket)
+                            .map((conn) =>
+                                conn?.socket?.send(JSON.stringify(messageJson))
+                            );
+
+                        db.prepare(
+                            `UPDATE user SET currentTime = ? WHERE id = ?`
+                        ).run(messageJson.currentTime, userId);
+                    }
+                } else if (messageJson.queue != undefined) {
+                    db.prepare(`UPDATE user SET queue = ? WHERE id = ?`).run(
+                        JSON.stringify(messageJson.queue),
+                        userId
+                    );
+                } else if (messageJson.volume != undefined) {
+                    db.prepare(`UPDATE user SET volume = ? WHERE id = ?`).run(
+                        messageJson.volume,
+                        userId
+                    );
+                } else if (messageJson.queueIndex != undefined) {
+                    db.prepare(
+                        `UPDATE user SET queueIndex = ? WHERE id = ?`
+                    ).run(messageJson.queueIndex, userId);
+                } else if (messageJson.randomQueue != undefined) {
+                    db.prepare(
+                        `UPDATE user SET randomQueue = ? WHERE id = ?`
+                    ).run(messageJson.randomQueue, userId);
+                } else if (messageJson.repeatSong != undefined) {
+                    db.prepare(
+                        `UPDATE user SET repeatSong = ? WHERE id = ?`
+                    ).run(messageJson.repeatSong, userId);
+                } else if (messageJson.songEnded != undefined) {
+                    let userLastPlayedSong = (
+                        parseUser(
+                            db
+                                .prepare(
+                                    "SELECT lastPlayedSong FROM user WHERE id = ?"
+                                )
+                                .get(userId) as RawUserDB
+                        ) as UserDB<"lastPlayedSong">
+                    ).lastPlayedSong;
+
+                    if (!userLastPlayedSong) {
+                        userLastPlayedSong = {};
+                    }
+
+                    if (userLastPlayedSong[messageJson.songEnded]) {
+                        userLastPlayedSong[messageJson.songEnded].push(
+                            new Date().getTime()
                         );
+                    } else {
+                        userLastPlayedSong[messageJson.songEnded] = [
+                            new Date().getTime(),
+                        ];
+                    }
 
                     db.prepare(
-                        `UPDATE user SET currentTime = ? WHERE id = ?`
-                    ).run(messageJson.currentTime, userId);
-                }
-            } else if (messageJson.queue != undefined) {
-                db.prepare(`UPDATE user SET queue = ? WHERE id = ?`).run(
-                    JSON.stringify(messageJson.queue),
-                    userId
-                );
-            } else if (messageJson.volume != undefined) {
-                db.prepare(`UPDATE user SET volume = ? WHERE id = ?`).run(
-                    messageJson.volume,
-                    userId
-                );
-            } else if (messageJson.queueIndex != undefined) {
-                db.prepare(`UPDATE user SET queueIndex = ? WHERE id = ?`).run(
-                    messageJson.queueIndex,
-                    userId
-                );
-            } else if (messageJson.randomQueue != undefined) {
-                db.prepare(`UPDATE user SET randomQueue = ? WHERE id = ?`).run(
-                    messageJson.randomQueue,
-                    userId
-                );
-            } else if (messageJson.repeatSong != undefined) {
-                db.prepare(`UPDATE user SET repeatSong = ? WHERE id = ?`).run(
-                    messageJson.repeatSong,
-                    userId
-                );
-            } else if (messageJson.songEnded != undefined) {
-                let userLastPlayedSong = (
-                    parseUser(
-                        db
-                            .prepare(
-                                "SELECT lastPlayedSong FROM user WHERE id = ?"
-                            )
-                            .get(userId) as RawUserDB
-                    ) as UserDB<"lastPlayedSong">
-                ).lastPlayedSong;
-
-                if (!userLastPlayedSong) {
-                    userLastPlayedSong = {};
-                }
-
-                if (userLastPlayedSong[messageJson.songEnded]) {
-                    userLastPlayedSong[messageJson.songEnded].push(
-                        new Date().getTime()
-                    );
+                        `UPDATE user SET lastPlayedSong = ? WHERE id = ?`
+                    ).run(JSON.stringify(userLastPlayedSong), userId);
                 } else {
-                    userLastPlayedSong[messageJson.songEnded] = [
-                        new Date().getTime(),
-                    ];
+                    console.log("Unknow parameter from socket", messageJson);
+                }
+            });
+            socket.addEventListener("close", () => {
+                if (!context.locals.user) {
+                    console.error("User is not logged in");
+                    return;
                 }
 
-                db.prepare(
-                    `UPDATE user SET lastPlayedSong = ? WHERE id = ?`
-                ).run(JSON.stringify(userLastPlayedSong), userId);
-            } else {
-                console.log("Unknow parameter from socket", messageJson);
-            }
-        });
-        socket.addEventListener("close", () => {
-            if (!context.locals.user) {
-                console.error("User is not logged in");
-                return;
-            }
-
-            allConections[userId].connections = allConections[
-                userId
-            ].connections?.filter((conn) => conn.socket != socket);
-        });
-        // console.log("Web socket", context.locals.user);
-        return response;
+                allConections[userId].connections = allConections[
+                    userId
+                ].connections?.filter((conn) => conn.socket != socket);
+            });
+            // console.log("Web socket", context.locals.user);
+            return response;
+        }
+        return new Response("New");
+    } catch (error) {
+        console.error("Error in ws.ts", error?.toString());
+        return new Response("Error in web socket");
     }
-    return new Response("New");
 }

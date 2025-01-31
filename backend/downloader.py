@@ -7,7 +7,7 @@ from spotifyApiTypes.RawSpotifyApiPlaylist import RawSpotifyApiPlaylist, Playlis
 from ytMusicApiTypes.RawYTMusicApiAlbum import RawYTMusicApiAlbum
 from ytMusicApiTypes.RawYTMusicApiPlaylist import RawYTMusicApiPlaylist
 
-from backendUtils import get_song_name, sanitize_folder_name, get_output_file, download_image, create_playlist_collage
+from backendUtils import get_song_name, sanitize_folder_name, get_output_file, download_image, create_playlist_collage, create_id
 from constants import DOWNLOADER_OPTIONS
 
 import requests
@@ -27,8 +27,11 @@ import patches # Needed to execute the code in patches.py and apply them
 THREADS = 16
 
 class ListDownloader:
-    def __init__(self, url, downloader: "Downloader"):
+    def __init__(self, url, downloader: "Downloader", user_id, download_id):
         """Must be executed instantly"""
+
+        self.user_id = user_id
+        self.download_id = download_id
 
         self.downloader = downloader
 
@@ -40,6 +43,24 @@ class ListDownloader:
         threading.Thread(target=lambda : self.fetch_list(), name=f"List downloader {url}").start()
 
         self.first_setup = False
+
+        self.update_db_start()
+
+    def update_db_start(self):
+        requests.post(f"{os.getenv('FRONTEND_URL')}/api/update-download", json={
+            "id": self.download_id,
+            "userId": self.user_id,
+            "downloadURL": self.url,
+            "status": "starting"
+        }, headers={"Authorization": f"Bearer {os.getenv('API_KEY')}"})
+
+    def update_db_end(self):
+        requests.post(f"{os.getenv('FRONTEND_URL')}/api/update-download", json={
+            "id": self.download_id,
+            "userId": self.user_id,
+            "downloadURL": self.url,
+            "status": "ended"
+        }, headers={"Authorization": f"Bearer {os.getenv('API_KEY')}"})
 
     def fetch_list(self):
         logger.info("ListDownloader.fetch_list Fetching list")
@@ -107,6 +128,9 @@ class ListDownloader:
             }, headers={"Authorization": f"Bearer {os.getenv('API_KEY')}"})
 
         logger.info(f"ListDownloader.download_manager Finished")
+
+        self.update_db_end()
+
 
     def status(self):
         
@@ -191,7 +215,7 @@ class ListDownloader:
         return f"ListDownloader(url={self.url})"
 
 class SongDownloader:
-    def __init__(self, url, downloader: "Downloader"):
+    def __init__(self, url, downloader: "Downloader", user_id, download_id):
         """Must be executed instantly"""
 
         self.url = url
@@ -278,11 +302,11 @@ class Downloader:
         self.download_manager_thread = threading.Thread(target=self.download_manager, name="Download.download_manager")
         self.download_manager_thread.start()
 
-    def download_url(self, url):
+    def download_url(self, url, user_id, download_id):
         if "/track/" in url or "https://music.youtube.com/watch?v=" in url:
-            return SongDownloader(url, self)
+            return SongDownloader(url, self, user_id, download_id)
         elif "/playlist/" in url or "/album/" in url or "https://music.youtube.com/playlist?list=" in url:
-            return ListDownloader(url, self)
+            return ListDownloader(url, self, user_id, download_id)
         else:
             logger.error(f"Unable to get a download hanlder for '{url}'")
 

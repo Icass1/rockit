@@ -104,7 +104,7 @@ def start_download():
     if USER_ID not in downloads:
         downloads[USER_ID] = {}
 
-    download_handler = downloader.download_url(url)
+    download_handler = downloader.download_url(url, user_id=USER_ID, download_id=download_id)
     if download_handler:
         downloads[USER_ID][download_id] = download_handler
         return jsonify({"download_id": download_id})

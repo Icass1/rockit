@@ -148,25 +148,27 @@ export default function Navigation({
                 </div>
                 {pages
                     .filter((page) => typeof page != "undefined")
-                    .map((page) => (
-                        <a
-                            key={page.href}
-                            href={page.href}
-                            title={page.title}
-                            className={`h-8 rounded-md items-center ml-2 mr-2 transition-all flex gap-2 ${
-                                activePage === page.name
-                                    ? "bg-white text-black"
-                                    : "text-white md:hover:bg-[#414141]"
-                            }`}
-                        >
-                            <div className="w-8 h-8 flex items-center justify-center">
-                                <page.icon className="w-5 h-5" />
-                            </div>
-                            <label className="font-semibold cursor-pointer">
-                                {page.title}
-                            </label>
-                        </a>
-                    ))}
+                    .map((page) => {
+                        return (
+                            <a
+                                key={page.href}
+                                href={page.href}
+                                title={page.title}
+                                className={`h-8 rounded-md items-center ml-2 mr-2 transition-all flex gap-2 ${
+                                    activePage === page.name
+                                        ? "bg-white text-black"
+                                        : "text-white md:hover:bg-[#414141]"
+                                }`}
+                            >
+                                <div className="w-8 h-8 flex items-center justify-center">
+                                    <page.icon className="w-5 h-5" />
+                                </div>
+                                <label className="font-semibold cursor-pointer">
+                                    {page.title}
+                                </label>
+                            </a>
+                        );
+                    })}
 
                 <div
                     className={`transition-all h-1 bg-neutral-600 ml-2 duration-[400ms] rounded-full ${

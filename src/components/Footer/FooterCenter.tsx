@@ -1,4 +1,17 @@
 import { getTime } from "@/lib/getTime";
+
+import { useStore } from "@nanostores/react";
+import {
+    Shuffle,
+    SkipBack,
+    SkipForward,
+    CirclePlay,
+    Repeat,
+    CirclePause,
+} from "lucide-react";
+import Slider from "../Slider";
+import Spinner from "../Spinner";
+
 import {
     currentSong,
     currentTime,
@@ -12,18 +25,6 @@ import {
     repeatSong,
     setTime,
 } from "@/stores/audio";
-import { useStore } from "@nanostores/react";
-import {
-    Shuffle,
-    SkipBack,
-    SkipForward,
-    CirclePlay,
-    Repeat,
-    CirclePause,
-} from "lucide-react";
-import Slider from "../Slider";
-import Spinner from "../Spinner";
-
 export default function FooterCenter() {
     const $playing = useStore(playing);
     const $currentTime = useStore(currentTime);
@@ -43,7 +44,11 @@ export default function FooterCenter() {
                         "w-[18px] h-[18px] cursor-pointer md:hover:scale-105 transition-colors" +
                         ($randomQueue ? " text-[#ee1086] " : " text-gray-400 ")
                     }
-                    onClick={() => randomQueue.set(!randomQueue.get())}
+                    onClick={() =>
+                        randomQueue.set(
+                            !randomQueue.get()
+                        )
+                    }
                 />
                 <SkipBack
                     className="w-[22px] h-[22px] fill-current text-gray-400 md:hover:text-white cursor-pointer md:hover:scale-105"
@@ -79,7 +84,9 @@ export default function FooterCenter() {
                         "w-[18px] h-[18px] cursor-pointer md:hover:scale-105 transition-colors" +
                         ($repeatSong ? " text-[#ee1086] " : " text-gray-400 ")
                     }
-                    onClick={() => repeatSong.set(!repeatSong.get())}
+                    onClick={() =>
+                        repeatSong.set(!repeatSong.get())
+                    }
                 />
             </div>
             <div className="flex items-center space-x-2 h-7 w-full group">

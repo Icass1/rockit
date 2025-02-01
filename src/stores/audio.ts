@@ -6,7 +6,15 @@ import { atom } from "nanostores";
 
 let websocket: WebSocket;
 
-const database = await openIndexedDB();
+let database: IDBDatabase;
+
+openIndexedDB().then((_database) => {
+    database = _database;
+    getSongIdsInIndexedDB().then((data) => {
+        songsInIndexedDB.set(data);
+    });
+});
+
 startSocket();
 registerServiceWorker();
 
@@ -97,64 +105,7 @@ export type SongDBWithBlob<
     Keys extends keyof SongDBFullWithBlob = keyof SongDBFullWithBlob,
 > = Pick<SongDBFullWithBlob, Keys>;
 
-const userJsonResponse = await fetch(
-    "/api/user?q=currentSong,currentTime,queue,queueIndex,volume,randomQueue,repeatSong"
-);
-let userJson;
-if (userJsonResponse.ok) {
-    userJson = (await userJsonResponse.json()) as UserDB<
-        | "currentSong"
-        | "currentTime"
-        | "queue"
-        | "queueIndex"
-        | "volume"
-        | "randomQueue"
-        | "repeatSong"
-    >;
-}
-
-let _currentSong = undefined;
 let _queue: Queue = [];
-let _queueIndex = userJson?.queueIndex ?? 0;
-
-try {
-    if (userJson?.currentSong) {
-        _currentSong = (await (
-            await fetch(
-                `/api/song/${userJson.currentSong}?q=image,id,name,artists,albumId,albumName,duration`
-            )
-        ).json()) as CurrentSong;
-    }
-} catch {
-    _currentSong = undefined;
-}
-
-if (userJson && userJson.queue.length > 0) {
-    const _queueResponse = await fetch(
-        `/api/songs?songs=${userJson.queue
-            .map((queueSong) => queueSong.song)
-            .join()}&p=id,name,artists,images,duration`
-    );
-    const _queueJson = (await _queueResponse.json()) as QueueSong[];
-
-    _queue = userJson.queue
-        .map((queueSong) => {
-            const songInfo = _queueJson
-                .filter((song) => song)
-                .find((song) => song.id == queueSong.song);
-
-            if (!songInfo) {
-                return undefined;
-            }
-
-            return {
-                song: songInfo,
-                list: queueSong.list,
-                index: queueSong.index,
-            };
-        })
-        .filter((song) => typeof song != "undefined");
-}
 
 const send = (json: any) => {
     if (websocket && websocket.OPEN == websocket.readyState) {
@@ -162,41 +113,104 @@ const send = (json: any) => {
     }
 };
 
-export const currentSong = atom<CurrentSong>(_currentSong);
+export const currentSong = atom<CurrentSong | undefined>(undefined);
 export const playing = atom<boolean>(false);
 export const loading = atom<boolean>(false);
 export const playWhenReady = atom<boolean>(false);
 export const currentTime = atom<number | undefined>(undefined);
 export const totalTime = atom<number | undefined>(undefined);
 export const queue = atom<Queue>(_queue);
-export const queueIndex = atom<number | undefined>(_queueIndex);
-export const volume = atom<number>(
-    window.innerWidth < 768 ? 1 : (userJson?.volume ?? 1)
-);
-export const randomQueue = atom<boolean>(
-    userJson?.randomQueue == "1" ? true : false
-);
-
-export const repeatSong = atom<boolean>(
-    userJson?.repeatSong == "1" ? true : false
-);
-
+export const queueIndex = atom<number | undefined>(undefined);
+export const volume = atom<number | undefined>();
+export const randomQueue = atom<boolean | undefined>(undefined);
+export const repeatSong = atom<boolean | undefined>(undefined);
 export const currentStation = atom<Station | undefined>(undefined);
+export const songsInIndexedDB = atom<string[] | undefined>(undefined);
 
-export const songsInIndexedDB = atom<string[]>(await getSongIdsInIndexedDB());
-
-const audio = new Audio(
-    _currentSong?.id ? `/api/song/audio/${_currentSong?.id}` : undefined
-);
+const audio = new Audio();
 const hls = new Hls();
 
 let songCounted = false;
 let lastTime: number | undefined = undefined;
 let timeSum = 0;
 
-if (userJson?.currentTime) {
-    audio.currentTime = userJson.currentTime;
-}
+fetch(
+    "/api/user?q=currentSong,currentTime,queue,queueIndex,volume,randomQueue,repeatSong"
+).then((userJsonResponse) => {
+    if (userJsonResponse.ok) {
+        userJsonResponse
+            .json()
+            .then(
+                (
+                    userJson: UserDB<
+                        | "currentSong"
+                        | "currentTime"
+                        | "queue"
+                        | "queueIndex"
+                        | "volume"
+                        | "randomQueue"
+                        | "repeatSong"
+                    >
+                ) => {
+                    queueIndex.set(userJson.queueIndex);
+                    if (userJson?.currentTime) {
+                        audio.currentTime = userJson.currentTime;
+                    }
+
+                    repeatSong.set(userJson.repeatSong == "1" ? true : false);
+                    randomQueue.set(userJson.randomQueue == "1" ? true : false);
+
+                    volume.set(
+                        window.innerWidth < 768 ? 1 : (userJson?.volume ?? 1)
+                    );
+
+                    fetch(
+                        `/api/song/${userJson.currentSong}?q=image,id,name,artists,albumId,albumName,duration`
+                    ).then((response) =>
+                        response.json().then((data: CurrentSong) => {
+                            currentSong.set(data);
+                        })
+                    );
+
+                    if (userJson && userJson.queue.length > 0) {
+                        fetch(
+                            `/api/songs?songs=${userJson.queue
+                                .map((queueSong) => queueSong.song)
+                                .join()}&p=id,name,artists,images,duration`
+                        ).then((response) =>
+                            response.json().then((queueSongs: QueueSong[]) => {
+                                queue.set(
+                                    userJson.queue
+                                        .map((queueSong) => {
+                                            const songInfo = queueSongs
+                                                .filter((song) => song)
+                                                .find(
+                                                    (song) =>
+                                                        song.id ==
+                                                        queueSong.song
+                                                );
+
+                                            if (!songInfo) {
+                                                return undefined;
+                                            }
+
+                                            return {
+                                                song: songInfo,
+                                                list: queueSong.list,
+                                                index: queueSong.index,
+                                            };
+                                        })
+                                        .filter(
+                                            (song) => typeof song != "undefined"
+                                        )
+                                );
+                            })
+                        );
+                    }
+                }
+            );
+    }
+});
 
 // *****************************
 // **** Store subscriptions ****
@@ -265,7 +279,7 @@ currentSong.subscribe(async (value) => {
         loading.set(true);
         playing.set(false);
 
-        if (songsInIndexedDB.get().includes(value.id)) {
+        if (songsInIndexedDB.get()?.includes(value.id)) {
             const song = await getSongInIndexedDB(value.id);
             const audioURL = URL.createObjectURL(song.blob);
             audio.src = audioURL;
@@ -334,9 +348,8 @@ queueIndex.subscribe((value) => {
 });
 
 volume.subscribe((value) => {
-    if (window.innerWidth < 768) {
-        return;
-    }
+    if (window.innerWidth < 768) return;
+    if (!value) return;
     audio.volume = value;
     send({ volume: value });
 });
@@ -359,13 +372,13 @@ async function isHlsContent(url: string) {
     }
 }
 
-export const play = async () => {
+export async function play() {
     await audio.play();
-};
+}
 
-export const pause = () => {
+export function pause() {
     audio.pause();
-};
+}
 
 export function setTime(time: number) {
     audio.currentTime = time;

@@ -9,7 +9,7 @@ export default function VolumeSlider() {
     const [previousVolume, setPreviousVolume] = useState($volume);
 
     const handleMuteToggle = () => {
-        if ($volume > 0) {
+        if ($volume && $volume > 0) {
             setPreviousVolume($volume); // Guarda el volumen actual
             volume.set(0); // Silencia
         } else {
@@ -25,7 +25,7 @@ export default function VolumeSlider() {
                 onClick={handleMuteToggle}
             />
         );
-    } else if ($volume < 0.5) {
+    } else if ($volume && $volume < 0.5) {
         volumeIcon = (
             <Volume1
                 className="w-[22px] h-[22px] text-gray-400 md:hover:text-white cursor-pointer"
@@ -48,7 +48,7 @@ export default function VolumeSlider() {
             <Slider
                 id="default-slider"
                 className="w-16 h-1"
-                value={Math.sqrt($volume)}
+                value={Math.sqrt($volume || 0)}
                 min={0}
                 max={1}
                 step={0.001}

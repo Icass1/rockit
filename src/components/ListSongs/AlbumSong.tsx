@@ -55,7 +55,7 @@ export default function AlbumSong({
                     "flex flex-row items-center gap-2 md:gap-4 transition-colors px-2 py-[0.5rem] md:py-[0.65rem] rounded " +
                     // If offline and the song is not saved to indexedDB or the song is not in the server database, disable that song
                     (((!window.navigator.onLine &&
-                        !songsInIndexedDB.get().includes(song.id)) ||
+                        !songsInIndexedDB.get()?.includes(song.id)) ||
                         !song.path) &&
                         "opacity-40 pointer-events-none ") +
                     ($queue.find((song) => song.index == $queueIndex)?.list
@@ -93,7 +93,7 @@ export default function AlbumSong({
                 >
                     {song.name}{" "}
                 </label>
-                {$songsInIndexedDB.includes(song.id) && (
+                {$songsInIndexedDB?.includes(song.id) && (
                     <CheckCircle2 className="hidden md:flex md:hover:text-white md:hover:scale-105 w-8 text-[#ec5588]" />
                 )}
                 <LikeButton song={song} />

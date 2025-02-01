@@ -43,7 +43,7 @@ export function songHandleClick(
 
     if (!window.navigator.onLine) {
         songsToAdd = songsToAdd.filter((song) =>
-            songsInIndexedDB.get().includes(song.song.id)
+            songsInIndexedDB.get()?.includes(song.song.id)
         );
     }
 

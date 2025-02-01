@@ -27,42 +27,50 @@ export default function Navigation({
     const [open, setOpen] = useState(false);
 
     const $pinnedLists = useStore(pinnedLists);
+    const [innerWidth] = useWindowSize();
 
-    const lang = langData.get();
-
+    const $lang = useStore(langData);
+    if (!$lang) return;
+    
     const pages = [
-        { name: "Home", title: lang.home, href: "/", icon: Home, mobile: true },
+        {
+            name: "Home",
+            title: $lang.home,
+            href: "/",
+            icon: Home,
+            mobile: true,
+        },
         {
             name: "Library",
-            title: lang.library,
+            title: $lang.library,
             href: "/library",
             icon: Library,
             mobile: true,
         },
         {
             name: "Search",
-            title: lang.search,
+            title: $lang.search,
             href: "/search",
             icon: Search,
             mobile: true,
         },
         {
             name: "Friends",
-            title: lang.friends,
+            title: $lang.friends,
             href: "/friends",
             icon: Users,
             mobile: true,
         },
         {
             name: "Radio",
-            title: lang.radio,
+            title: $lang.radio,
             href: "/radio",
             icon: RadioTower,
             mobile: false,
         },
         {
             name: "Stats",
-            title: lang.stats,
+            title: $lang.stats,
             href: "/stats",
             icon: ChartLine,
             mobile: false,
@@ -78,7 +86,7 @@ export default function Navigation({
             : undefined,
     ];
 
-    const [innerWidth] = useWindowSize();
+
 
     if (innerWidth < 768) {
         return (
@@ -184,7 +192,7 @@ export default function Navigation({
                         <Pin className="w-5 h-5" />
                     </div>
                     <label className="text-md font-semibold cursor-pointer">
-                        {lang.pinned_lists}
+                        {$lang.pinned_lists}
                     </label>
                 </div>
                 <div className="h-full overflow-y-scroll flex flex-col gap-4">

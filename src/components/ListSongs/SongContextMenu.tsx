@@ -43,7 +43,8 @@ export default function SongContextMenu({
 }) {
     const $likedSongs = useStore(likedSongs);
 
-    const lang = langData.get();
+    const $lang = useStore(langData);
+    if (!$lang) return;
 
     return (
         <ContextMenu>
@@ -51,15 +52,15 @@ export default function SongContextMenu({
             <ContextMenuContent>
                 <ContextMenuOption onClick={() => songHandleClick(song)}>
                     <PlayCircle className="h-5 w-5" />
-                    {lang.play_song}
+                    {$lang.play_song}
                 </ContextMenuOption>
                 <ContextMenuOption className="pointer-events-none opacity-50">
                     <ListStart className="h-5 w-5" />
-                    {lang.play_next}
+                    {$lang.play_next}
                 </ContextMenuOption>
                 <ContextMenuOption className="pointer-events-none opacity-50">
                     <ListPlusIcon className="w-5 h-5" />
-                    {lang.add_song_to_playlist}
+                    {$lang.add_song_to_playlist}
                 </ContextMenuOption>
 
                 <ContextMenuOption
@@ -129,8 +130,8 @@ export default function SongContextMenu({
                         <path d="m7 15-1.76-1.76a2 2 0 0 0-2.83 2.82l3.6 3.6C7.5 21.14 9.2 22 12 22h2a8 8 0 0 0 8-8V7a2 2 0 1 0-4 0v5"></path>
                     </svg>
                     {$likedSongs.includes(song.id)
-                        ? lang.remove_from_liked
-                        : lang.add_to_liked}
+                        ? $lang.remove_from_liked
+                        : $lang.add_to_liked}
                 </ContextMenuOption>
                 <ContextMenuOption
                     onClick={() => {
@@ -150,12 +151,12 @@ export default function SongContextMenu({
                     }}
                 >
                     <ListEnd className="h-5 w-5" />
-                    {lang.add_to_queue}
+                    {$lang.add_to_queue}
                 </ContextMenuOption>
                 <ContextMenuSplitter />
                 <ContextMenuOption className="pointer-events-none opacity-50">
                     <Share2 className="h-5 w-5" />
-                    {lang.share_song}
+                    {$lang.share_song}
                 </ContextMenuOption>
                 <ContextMenuOption
                     onClick={() => {
@@ -165,21 +166,21 @@ export default function SongContextMenu({
                     }}
                 >
                     <Copy className="h-5 w-5" />
-                    {lang.copy_song_url}
+                    {$lang.copy_song_url}
                 </ContextMenuOption>
                 <ContextMenuSplitter />
                 <ContextMenuOption className="hover:bg-red-700 pointer-events-none opacity-50">
                     <ListX className="h-5 w-5" />
-                    {lang.remove_from_queue}
+                    {$lang.remove_from_queue}
                 </ContextMenuOption>
                 <ContextMenuOption className="hover:bg-red-700 pointer-events-none opacity-50">
                     <ListX className="h-5 w-5" />
-                    {lang.remove_from_playlist}
+                    {$lang.remove_from_playlist}
                 </ContextMenuOption>
                 <ContextMenuSplitter />
                 <ContextMenuOption className="pointer-events-none opacity-50">
                     <Download className="h-5 w-5" />
-                    {lang.download_mp3}
+                    {$lang.download_mp3}
                 </ContextMenuOption>
                 <ContextMenuOption
                     onClick={() => {
@@ -187,7 +188,7 @@ export default function SongContextMenu({
                     }}
                 >
                     <HardDriveDownload className="h-5 w-5" />
-                    {lang.download_song_to_device}
+                    {$lang.download_song_to_device}
                 </ContextMenuOption>
                 <ContextMenuSplitter />
                 <ContextMenuOption
@@ -196,7 +197,7 @@ export default function SongContextMenu({
                     }}
                 >
                     <Link className="h-5 w-5" />
-                    {lang.go_to_artist}
+                    {$lang.go_to_artist}
                 </ContextMenuOption>
                 <ContextMenuOption
                     onClick={() => {
@@ -204,7 +205,7 @@ export default function SongContextMenu({
                     }}
                 >
                     <Link className="h-5 w-5" />
-                    {lang.go_to_album}
+                    {$lang.go_to_album}
                 </ContextMenuOption>
             </ContextMenuContent>
         </ContextMenu>

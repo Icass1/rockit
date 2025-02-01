@@ -1,6 +1,7 @@
 import { useState } from "react";
 import UserStats from "@/components/Stats/UserStats";
 import { langData } from "@/stores/lang";
+import { useStore } from "@nanostores/react";
 
 export default function StatsPage() {
     const [selectedSection, setSelectedSection] = useState<string>("user");
@@ -9,12 +10,13 @@ export default function StatsPage() {
         setSelectedSection(section);
     };
 
-    const lang = langData.get();
+    const $lang = useStore(langData);
+    if (!$lang) return;
 
     const pages: { [key: string]: string } = {
-        user: lang.user,
-        general: lang.general,
-        friends: lang.friends,
+        user: $lang.user,
+        general: $lang.general,
+        friends: $lang.friends,
     };
 
     return (
@@ -22,9 +24,9 @@ export default function StatsPage() {
             <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
                 {/* Encabezado dinámico */}
                 <h2 className="text-2xl font-bold text-center md:text-left">
-                    {selectedSection === "user" && lang.user_stats}
-                    {selectedSection === "general" && lang.general_stats}
-                    {selectedSection === "friends" && lang.friends_stats}
+                    {selectedSection === "user" && $lang.user_stats}
+                    {selectedSection === "general" && $lang.general_stats}
+                    {selectedSection === "friends" && $lang.friends_stats}
                 </h2>
 
                 {/* Toggle Switch */}

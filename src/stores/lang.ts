@@ -1,25 +1,22 @@
 import type { Lang } from "@/types/lang";
 import { atom } from "nanostores";
 
-const userLang = (await (await fetch("/api/user?q=lang")).json())
-    .lang as string;
+export const langData = atom<Lang | undefined>(undefined);
+export const lang = atom<string | undefined>(undefined);
 
-const langJson = (await (await fetch(`/lang/${userLang}.json`)).json()) as Lang;
-
-export const langData = atom<Lang>(langJson);
-export const lang = atom<string>(userLang);
+fetch("/api/lang")
+    .then((response) => response.json())
+    .then((data) => {
+        console.log(data);
+        langData.set(data.langFile);
+        lang.set(data.lang);
+    });
 
 lang.subscribe(async (value) => {
-    console.log(value);
-
-    const langJson = (await (
-        await fetch(`/lang/${value}.json`)
-    ).json()) as Lang;
+    if (!value) return;
 
     fetch("/api/user/set-lang", {
         body: JSON.stringify({ lang: value }),
         method: "POST",
     });
-
-    langData.set(langJson);
 });

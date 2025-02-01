@@ -3,6 +3,7 @@ import BarGraph from "./BarGraph.tsx";
 import { useEffect, useRef, useState } from "react";
 import type { SongForStats, Stats } from "@/lib/stats";
 import { langData } from "@/stores/lang.ts";
+import { useStore } from "@nanostores/react";
 
 export default function UserStats() {
     let today = new Date();
@@ -31,7 +32,7 @@ export default function UserStats() {
         artists: [],
     });
 
-    const lang = langData.get();
+
 
     useEffect(() => {
         let songsBarGraph: SongForStats[] = [];
@@ -127,10 +128,13 @@ export default function UserStats() {
         ...Object.values(minutesListenedPerDay)
     );
 
+    const $lang = useStore(langData);
+    if (!$lang) return;
+
     return (
         <>
             <label className="text-lg font-semibold md:px-5 flex flex-col md:flex-row md:gap-1 justify-center items-center">
-                <span className="block md:inline">{lang.showing_data}</span>
+                <span className="block md:inline">{$lang.showing_data}</span>
                 <span className="block md:inline">
                     <label
                         className="md:hover:underline underline"
@@ -155,7 +159,7 @@ export default function UserStats() {
                         />
                         {getDate(startDate)}
                     </label>{" "}
-                    {lang.to}{" "}
+                    {$lang.to}{" "}
                     <label
                         className="md:hover:underline underline"
                         onClick={() => {
@@ -189,16 +193,16 @@ export default function UserStats() {
                     <>
                         <div className="md:w-96 bg-neutral-800 rounded-lg p-2 h-fit flex flex-col font-semibold">
                             <label>
-                                {totalTimesPlayedSong} {lang.songs_listened}
+                                {totalTimesPlayedSong} {$lang.songs_listened}
                             </label>
                             <label>
                                 {getMinutes(totalMinutesListened)}{" "}
-                                {lang.minutes_listend}
+                                {$lang.minutes_listend}
                             </label>
                         </div>
                         <div className="md:w-96 bg-neutral-800 rounded-lg p-2 h-fit flex flex-col font-semibold">
                             <label className="mb-2">
-                                {lang.minutes_listened_per_day}
+                                {$lang.minutes_listened_per_day}
                             </label>
                             <div className="relative h-56">
                                 <div
@@ -246,7 +250,7 @@ export default function UserStats() {
                         </div>
 
                         <BarGraph
-                            name={lang.most_listened_albums}
+                            name={$lang.most_listened_albums}
                             items={data.albums.map((album) => {
                                 return {
                                     index: album.index,
@@ -258,7 +262,7 @@ export default function UserStats() {
                             })}
                         />
                         <BarGraph
-                            name={lang.most_listened_artists}
+                            name={$lang.most_listened_artists}
                             items={data.artists.map((artist) => {
                                 return {
                                     index: artist.index,
@@ -270,7 +274,7 @@ export default function UserStats() {
                             })}
                         />
                         <BarGraph
-                            name={lang.most_listened_songs}
+                            name={$lang.most_listened_songs}
                             type="value"
                             items={songsBarGraph.map((song) => {
                                 return {

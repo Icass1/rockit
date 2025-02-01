@@ -4,12 +4,13 @@ import { useStore } from "@nanostores/react";
 export default function ChangeLang() {
     const $currentLang = useStore(currentLang);
 
-    const lang = langData.get();
+    const $lang = useStore(langData);
+    if (!$lang) return;
 
     return (
         <div>
             <label className="block text-gray-300 text-sm md:text-lg mb-2">
-                {lang.language}
+                {$lang.language}
             </label>
             <select
                 value={$currentLang}

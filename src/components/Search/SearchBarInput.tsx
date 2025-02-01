@@ -18,7 +18,7 @@ export default function SearchBarInput({
     setOpen: Dispatch<React.SetStateAction<boolean>>;
 }) {
     const value = useStore(searchQuery);
-    const lang = langData.get();
+
     const [error, setError] = useState<string | null>(null);
 
     const searchDebounce = useRef<pkg.DebouncedFunc<(query: string) => void>>();
@@ -82,6 +82,9 @@ export default function SearchBarInput({
             });
     };
 
+    const $lang = useStore(langData);
+    if (!$lang) return;
+
     return (
         <input
             ref={searchBarRef}
@@ -99,7 +102,7 @@ export default function SearchBarInput({
                 backgroundSize: "14px",
                 backgroundRepeat: "no-repeat",
             }}
-            placeholder={lang.search_bar}
+            placeholder={$lang.search_bar}
         />
     );
 }

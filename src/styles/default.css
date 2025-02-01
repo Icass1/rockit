@@ -119,3 +119,21 @@ code {
     background-color: transparent;
     border-radius: 100%;
 }
+
+.progress-bar {
+    background: linear-gradient(45deg, rgb(115 115 115), #fb64667a, rgb(115 115 115), #ee108680);
+    background-size: 200% 200%;
+    animation: progress-bg 5s linear infinite;
+}
+
+@keyframes progress-bg {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}

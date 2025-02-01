@@ -1,4 +1,8 @@
-import { searchResults, searchQuery, filteredStations} from "@/stores/searchResults";
+import {
+    searchResults,
+    searchQuery,
+    filteredStations,
+} from "@/stores/searchResults";
 import SearchBar from "@/components/Search/SearchBar";
 import { useStore } from "@nanostores/react";
 import { langData } from "@/stores/lang";
@@ -13,13 +17,16 @@ export default function Search() {
         return <div>You are offline</div>;
     }
 
-    const lang = langData.get();
+
 
     function handleClick(station: Station) {
         currentStation.set(station);
         play();
     }
 
+    const $lang = useStore(langData);
+    if (!$lang) return;
+    
     return (
         <>
             <section className="block md:hidden mt-20 h-12">
@@ -29,7 +36,7 @@ export default function Search() {
                 <>
                     <section className="md:px-12 md:py-6 py-2 text-white">
                         <h2 className="text-2xl md:text-3xl font-bold text-left px-5 md:px-0">
-                            {lang.songs}
+                            {$lang.songs}
                         </h2>
                         <div className="relative flex items-center gap-4 overflow-x-auto py-4 md:px-2 px-8">
                             {/* Aquí creamos las canciones */}
@@ -78,7 +85,7 @@ export default function Search() {
 
                     <section className="md:px-12 md:py-6 py-2 text-white">
                         <h2 className="text-2xl md:text-3xl font-bold text-left px-5 md:px-0">
-                            {lang.albums}
+                            {$lang.albums}
                         </h2>
                         <div className="relative flex items-center gap-4 overflow-x-auto py-4 px-8 md:px-2">
                             {/* Aquí creamos las canciones */}
@@ -127,7 +134,7 @@ export default function Search() {
 
                     <section className="md:px-12 md:py-6 py-2 text-white">
                         <h2 className="text-2xl md:text-3xl font-bold text-left px-5 md:px-0">
-                            {lang.artists}
+                            {$lang.artists}
                         </h2>
                         <div className="relative flex items-center gap-4 overflow-x-auto py-4 px-8 md:px-2">
                             {/* Aquí creamos las canciones */}
@@ -156,7 +163,7 @@ export default function Search() {
 
                     <section className="md:px-12 md:py-6 py-2 text-white">
                         <h2 className="text-2xl md:text-3xl font-bold text-left px-5 md:px-0">
-                            {lang.playlists}
+                            {$lang.playlists}
                         </h2>
                         <div className="relative flex items-center gap-4 overflow-x-auto py-4 px-8 md:px-2">
                             {/* Aquí creamos las canciones  */}
@@ -187,18 +194,21 @@ export default function Search() {
                     </section>
                     <section className="md:px-12 md:py-6 py-2 text-white">
                         <h2 className="text-2xl md:text-3xl font-bold text-left px-5 md:px-0">
-                            {lang.radio_stations}
+                            {$lang.radio_stations}
                         </h2>
                         <div className="relative flex items-center gap-4 overflow-x-auto py-4 px-8 md:px-2">
                             {$filteredStations.map((station) => (
-                                    <a
+                                <a
                                     className="flex-none w-36 md:w-48 md:hover:scale-105 transition"
                                     key={station.stationuuid}
                                     onClick={() => handleClick(station)}
                                 >
                                     <img
                                         className="rounded-lg w-full aspect-square object-cover"
-                                        src={station.favicon || "/logos/logo-sq-2.png"}
+                                        src={
+                                            station.favicon ||
+                                            "/logos/logo-sq-2.png"
+                                        }
                                         alt="Song Cover"
                                     />
                                     <label className="truncate font-semibold text-center block mt-2">
@@ -208,8 +218,7 @@ export default function Search() {
                                         {station.country}
                                     </label>
                                 </a>
-                                ))
-                            }
+                            ))}
                         </div>
                     </section>
                     <section className="md:px-12 md:py-6 py-2 text-white">
@@ -243,10 +252,10 @@ export default function Search() {
             ) : (
                 <section className="flex flex-col items-center justify-center md:px-12 px-7 py-36 text-white text-center">
                     <h2 className="text-2xl md:text-3xl font-bold">
-                        {lang.search_empty1}
+                        {$lang.search_empty1}
                     </h2>
                     <p className="text-lg md:text-xl md:mt-2 mt-10">
-                        {lang.search_empty2}
+                        {$lang.search_empty2}
                     </p>
                     <img
                         className="w-36 mt-10"

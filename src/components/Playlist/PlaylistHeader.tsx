@@ -7,6 +7,7 @@ import DownloadListDevice from "@/components/ListHeader/DownloadListDeviceButton
 import { langData } from "@/stores/lang";
 import type { PlaylistDB, PlaylistDBSong } from "@/lib/db/playlist";
 import type { SongDB } from "@/lib/db/song";
+import { useStore } from "@nanostores/react";
 
 function getMinutes(seconds: number) {
     seconds = Math.round(seconds);
@@ -57,7 +58,8 @@ export default function PlaylistHeader({
               owner: string;
           };
 }) {
-    const lang = langData.get();
+    const $lang = useStore(langData);
+    if (!$lang) return;
 
     return (
         <div
@@ -119,13 +121,13 @@ export default function PlaylistHeader({
 
             {/* Información adicional */}
             <label className="text-sm text-stone-400 text-center">
-                {playlist.songs.length} {lang.songs} |{" "}
+                {playlist.songs.length} {$lang.songs} |{" "}
                 {getMinutes(
                     songs.reduce((accumulator: number, song) => {
                         return accumulator + (song?.duration || 0);
                     }, 0)
                 )}{" "}
-                {lang.minutes}
+                {$lang.minutes}
             </label>
         </div>
     );

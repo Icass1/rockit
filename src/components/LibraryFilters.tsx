@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ArrowDownAZ, ArrowUpAZ, ClockArrowDown } from "lucide-react";
 import { langData } from "@/stores/lang";
+import { useStore } from "@nanostores/react";
 
 const LibraryFilters = () => {
     const [filterMode, setFilterMode] = useState<"default" | "asc" | "desc">(
@@ -8,7 +9,7 @@ const LibraryFilters = () => {
     );
     const [searchQuery, setSearchQuery] = useState("");
 
-    const lang = langData.get();
+
 
     useEffect(() => {
         // Inicializar filtrado y ordenación
@@ -44,6 +45,9 @@ const LibraryFilters = () => {
         sortItems();
     }, [searchQuery, filterMode]);
 
+    const $lang = useStore(langData);
+    if (!$lang) return;
+
     return (
         <div className="flex items-center w-full md:w-fit">
             <button id="filterButton" className="mr-0 md:mr-2 hidden md:flex">
@@ -78,7 +82,7 @@ const LibraryFilters = () => {
                     backgroundSize: "14px",
                     backgroundRepeat: "no-repeat",
                 }}
-                placeholder={lang.search_library}
+                placeholder={$lang.search_library}
                 onChange={(e) => setSearchQuery(e.target.value)}
             />
         </div>

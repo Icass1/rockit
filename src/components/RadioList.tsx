@@ -4,6 +4,7 @@ import { currentStation, play, type Station } from "@/stores/audio";
 import pkg from "lodash";
 import useWindowSize from "@/hooks/useWindowSize";
 import { langData } from "@/stores/lang";
+import { useStore } from "@nanostores/react";
 const { debounce } = pkg;
 
 function StationCard({ station }: { station: Station }) {
@@ -66,7 +67,7 @@ const RadioStations = () => {
 
     const searchDebounce = useRef<pkg.DebouncedFunc<(query: string) => void>>();
 
-    const lang = langData.get();
+
 
     useEffect(() => {
         searchDebounce.current = debounce((query: string) => {
@@ -74,10 +75,8 @@ const RadioStations = () => {
         }, 1000);
     }, []);
 
-    // useEffect(() => {
-    //     // Cambia "pop" según el tag que quieras buscar
-    //     fetchStations("byname", "Rock FM España");
-    // }, []);
+    const $lang = useStore(langData);
+    if (!$lang) return;
 
     const fetchStations = async (by: string, searchTerm: string) => {
         try {
@@ -127,12 +126,12 @@ const RadioStations = () => {
         return (
             <div className="px-6 text-white">
                 <h1 className="text-3xl font-bold my-6 text-center select-none">
-                    {lang.radio_stations} 📻
+                    {$lang.radio_stations} 📻
                 </h1>
                 <div className="mb-4 flex justify-between items-center">
                     <input
                         type="text"
-                        placeholder={lang.radio_search}
+                        placeholder={$lang.radio_search}
                         value={searchQuery}
                         onChange={handleSearch}
                         className="px-5 py-2 my-3 rounded-full w-full max-w-md border border-neutral-700 bg-neutral-800 text-white mx-auto select-none"
@@ -150,10 +149,10 @@ const RadioStations = () => {
                         <div className="flex flex-col items-center justify-center col-span-full h-36">
                             <SearchX className="w-16 h-16 mb-4" />
                             <p className="text-white text-2xl font-semibold">
-                                {lang.radio_empty1}
+                                {$lang.radio_empty1}
                             </p>
                             <p className="text-neutral-400 text-lg mt-2">
-                                {lang.radio_empty2}
+                                {$lang.radio_empty2}
                             </p>
                         </div>
                     )}
@@ -165,7 +164,7 @@ const RadioStations = () => {
         return (
             <div className="p-4 text-white mt-20">
                 <h1 className="text-2xl font-bold mb-4 text-center">
-                    {lang.radio_stations} 📻
+                    {$lang.radio_stations} 📻
                 </h1>
                 <div className="mb-4">
                     <input
@@ -188,10 +187,10 @@ const RadioStations = () => {
                         <div className="flex flex-col items-center justify-center text-center col-span-full h-fit mt-10">
                             <SearchX className="w-16 h-16 mb-4" />
                             <p className="text-white text-2xl font-semibold">
-                                {lang.radio_empty1}
+                                {$lang.radio_empty1}
                             </p>
                             <p className="text-neutral-400 text-lg mt-2">
-                                {lang.radio_empty2}
+                                {$lang.radio_empty2}
                             </p>
                         </div>
                     )}

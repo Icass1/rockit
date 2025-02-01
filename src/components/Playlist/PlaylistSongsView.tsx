@@ -9,6 +9,7 @@ import { ArrowUp } from "lucide-react";
 import { currentList, currentListSongs } from "@/stores/currentList";
 import PlaylistHeader from "./PlaylistHeader";
 import { langData } from "@/stores/lang";
+import { useStore } from "@nanostores/react";
 
 type columnsType = "name" | "album" | "artist" | "addedAt" | "duration";
 
@@ -49,8 +50,6 @@ export default function PlaylistSongsView({
         column: columnsType;
         ascending: boolean;
     }>({ column: "addedAt", ascending: false });
-
-    const lang = langData.get();
 
     const [songsToRender, setSongsToRender] = useState<
         PlaylistDBSongWithAddedAt<
@@ -164,13 +163,16 @@ export default function PlaylistSongsView({
         }
     }, [filter]);
 
+    const $lang = useStore(langData);
+    if (!$lang) return;
+
     const renderColumn = (column: columnsType) => {
         const columnNames = {
-            name: lang.name,
-            album: lang.album,
-            artist: lang.artist,
-            addedAt: lang.date_added,
-            duration: lang.duration,
+            name: $lang.name,
+            album: $lang.album,
+            artist: $lang.artist,
+            addedAt: $lang.date_added,
+            duration: $lang.duration,
         };
 
         return (

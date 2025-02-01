@@ -117,7 +117,7 @@ function RenderListDownload({
                     <div className="flex flex-row items-center gap-2">
                         <div
                             className={
-                                "bg-neutral-500 h-2 w-full rounded-full relative overflow-hidden"
+                                "progress-bar  h-2 w-full rounded-full relative overflow-hidden"
                             }
                         >
                             <div
@@ -129,7 +129,7 @@ function RenderListDownload({
                             ></div>
                             <div
                                 className={
-                                    "bg-[#ec5588] absolute h-full rounded-full transition-all"
+                                    "from-[#ee1086] to-[#fb6467] bg-gradient-to-r absolute h-full rounded-full transition-all"
                                 }
                                 style={{ width: `${list[1].totalCompleted}%` }}
                             ></div>
@@ -189,13 +189,13 @@ function RenderListDownload({
                                     <div className="w-full grid grid-cols-[1fr_max-content] items-center gap-x-2 ">
                                         <div
                                             className={
-                                                "bg-neutral-500 h-2 w-full rounded-full relative " +
+                                                "progress-bar h-2 w-full rounded-full relative " +
                                                 (songStatus[1].message ==
                                                     "Error" && "bg-red-400")
                                             }
                                         >
                                             <div
-                                                className="bg-[#ec5588] absolute h-full rounded-full transition-all"
+                                                className="from-[#ee1086] to-[#fb6467] bg-gradient-to-r absolute h-full rounded-full transition-all"
                                                 style={{
                                                     width: `${songStatus[1].completed}%`,
                                                 }}
@@ -311,7 +311,8 @@ function AddContextMenu({
         );
     }
 
-    const lang = langData.get();
+    const $lang = useStore(langData);
+    if (!$lang) return;
 
     return (
         <ContextMenu>
@@ -359,7 +360,7 @@ function AddContextMenu({
                     }}
                 >
                     <PlayCircle className="h-5 w-5" />
-                    {list && lang.play_list} {song && lang.play_song}
+                    {list && $lang.play_list} {song && $lang.play_song}
                 </ContextMenuOption>
                 <ContextMenuOption
                     onClick={() => {
@@ -373,13 +374,13 @@ function AddContextMenu({
                     }}
                 >
                     <ExternalLink className="w-5 h-5" />
-                    {list && lang.open_list} {song && lang.open_song}
+                    {list && $lang.open_list} {song && $lang.open_song}
                 </ContextMenuOption>
 
                 <ContextMenuOption className="pointer-events-none opacity-50">
                     <ListEnd className="h-5 w-5" />
-                    {list && lang.add_list_to_queue}
-                    {song && lang.add_song_to_queue}
+                    {list && $lang.add_list_to_queue}
+                    {song && $lang.add_song_to_queue}
                 </ContextMenuOption>
                 {list && (
                     <ContextMenuOption
@@ -392,8 +393,8 @@ function AddContextMenu({
                     >
                         <ListPlus className="h-5 w-5" />
                         {isInLibrary
-                            ? lang.remove_from_library
-                            : lang.add_to_library}
+                            ? $lang.remove_from_library
+                            : $lang.add_to_library}
                     </ContextMenuOption>
                 )}
                 {list && (
@@ -406,13 +407,13 @@ function AddContextMenu({
                         }}
                     >
                         <Pin className="h-5 w-5" />
-                        {isPinned ? lang.unpin : lang.pin}
+                        {isPinned ? $lang.unpin : $lang.pin}
                     </ContextMenuOption>
                 )}
                 {song && (
                     <ContextMenuOption className="pointer-events-none opacity-50">
                         <Download className="h-5 w-5" />
-                        {lang.download_mp3}
+                        {$lang.download_mp3}
                     </ContextMenuOption>
                 )}
                 <ContextMenuOption
@@ -430,7 +431,7 @@ function AddContextMenu({
                     }}
                 >
                     <Copy className="h-5 w-5" />
-                    {list && lang.copy_list_url} {song && lang.copy_song_url}
+                    {list && $lang.copy_list_url} {song && $lang.copy_song_url}
                 </ContextMenuOption>
             </ContextMenuContent>
         </ContextMenu>
@@ -442,7 +443,8 @@ export default function Downloads({ navOpen }: { navOpen: boolean }) {
     const divRef = useRef<HTMLDivElement>(null);
     const downloadsButton = useRef<HTMLDivElement>(null);
     const [status, setStatus] = useState<StatusType>({ songs: {}, lists: {} });
-    const lang = langData.get();
+    const $lang = useStore(langData);
+    if (!$lang) return;
 
     const $downloads = useStore(downloads);
 
@@ -607,7 +609,7 @@ export default function Downloads({ navOpen }: { navOpen: boolean }) {
                     {/* Input */}
                     <input
                         className="focus:outline-0 py-2 my-2 px-4 rounded-full mr-3 w-64"
-                        placeholder={lang.download_input_placeholder}
+                        placeholder={$lang.download_input_placeholder}
                         value={url}
                         onChange={(e) => {
                             setURL(e.target.value);
@@ -635,7 +637,7 @@ export default function Downloads({ navOpen }: { navOpen: boolean }) {
                 <div className="flex items-center justify-between mb-4">
                     {Object.entries(status).length != 0 && (
                         <label className="font-bold text-lg text-white">
-                            {lang.latest_downloads}
+                            {$lang.latest_downloads}
                         </label>
                     )}
 
@@ -646,7 +648,7 @@ export default function Downloads({ navOpen }: { navOpen: boolean }) {
                             console.log("Clear downloads clicked");
                         }}
                     >
-                        {lang.clear_downloads}
+                        {$lang.clear_downloads}
                     </button>
                 </div>
 
@@ -684,7 +686,7 @@ export default function Downloads({ navOpen }: { navOpen: boolean }) {
                         </label>
                     )}
                 </div>
-                <label className="font-semibold">{lang.downloads} </label>
+                <label className="font-semibold">{$lang.downloads} </label>
             </div>
         </>
     );

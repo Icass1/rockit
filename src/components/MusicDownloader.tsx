@@ -156,39 +156,59 @@ function RenderListDownload({
                 className="overflow-auto transition-all "
                 style={{ maxHeight: `${showAllSongs ? 400 : 0}px` }}
             >
-                <div className="flex flex-col gap-2 p-1">
-                    {Object.entries(list[1].songs).map((songStatus) => (
-                        <div
-                            key={songStatus[0]}
-                            className="bg-zinc-400/10 rounded h-14 flex flex-row gap-x-2 overflow-hidden"
-                        >
-                            <div className="flex flex-col w-full p-1 px-2 min-w-0 max-w-full">
-                                <label className="truncate min-w-0 max-w-full">
-                                    {songStatus[1].song?.name}
-                                </label>
-                                <div className="w-full grid grid-cols-[1fr_max-content] items-center gap-x-2 ">
-                                    <div
-                                        className={
-                                            "bg-neutral-500 h-2 w-full rounded-full relative " +
-                                            (songStatus[1].message == "Error" &&
-                                                "bg-red-400")
-                                        }
-                                    >
-                                        <div
-                                            className="bg-[#ec5588] absolute h-full rounded-full transition-all"
-                                            style={{
-                                                width: `${songStatus[1].completed}%`,
-                                            }}
-                                        ></div>
-                                    </div>
-                                    <label className="w-auto flex-nowrap text-sm">
-                                        {" "}
-                                        {songStatus[1].message}
+                <div
+                    className="flex flex-col gap-2 p-1 relative"
+                    style={{
+                        height: `${Object.entries(list[1].songs).length * 60}px`,
+                    }}
+                >
+                    {Object.entries(list[1].songs)
+                        .toSorted((a, b) => {
+                            if (
+                                a[1].completed === 100 &&
+                                b[1].completed !== 100
+                            )
+                                return 1; // Move completed to the end
+                            if (
+                                a[1].completed !== 100 &&
+                                b[1].completed === 100
+                            )
+                                return -1;
+                            return b[1].completed - a[1].completed; // Otherwise, sort normally
+                        })
+                        .map((songStatus, index) => (
+                            <div
+                                key={songStatus[0]}
+                                className="bg-zinc-400/10 absolute w-[calc(100%_-_10px)] transition-[top] duration-500 rounded h-14 flex flex-row gap-x-2 overflow-hidden"
+                                style={{ top: `${index * 60}px` }}
+                            >
+                                <div className="flex flex-col w-full p-1 px-2 min-w-0 max-w-full">
+                                    <label className="truncate min-w-0 max-w-full">
+                                        {songStatus[1].song?.name}
                                     </label>
+                                    <div className="w-full grid grid-cols-[1fr_max-content] items-center gap-x-2 ">
+                                        <div
+                                            className={
+                                                "bg-neutral-500 h-2 w-full rounded-full relative " +
+                                                (songStatus[1].message ==
+                                                    "Error" && "bg-red-400")
+                                            }
+                                        >
+                                            <div
+                                                className="bg-[#ec5588] absolute h-full rounded-full transition-all"
+                                                style={{
+                                                    width: `${songStatus[1].completed}%`,
+                                                }}
+                                            ></div>
+                                        </div>
+                                        <label className="w-auto flex-nowrap text-sm">
+                                            {" "}
+                                            {songStatus[1].message}
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    ))}
+                        ))}
                 </div>
             </div>
         </div>

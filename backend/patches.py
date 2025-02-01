@@ -628,7 +628,7 @@ def search_and_download(  # pylint: disable=R0911
         output_file.parent.mkdir(parents=True, exist_ok=True)
         if song.download_url is None:
             display_progress_tracker.update("Getting download URL")
-            download_url = self.search(song)
+            download_url = self.search(song, display_progress_tracker)
         else:
             download_url = song.download_url
 
@@ -845,9 +845,31 @@ def search_and_download(  # pylint: disable=R0911
         )
         return song, None
 
+def search(self, song: Song, display_progress_tracker) -> str:
+    """
+    Search for a song using all available providers.
+
+    ### Arguments
+    - song: The song to search for.
+
+    ### Returns
+    - tuple with download url and audio provider if successful.
+    """
+
+    for audio_provider in self.audio_providers:
+        display_progress_tracker.update(f"Searching in {audio_provider.name}")
+
+        url = audio_provider.search(song, self.settings["only_verified_results"])
+        if url:
+            return url
+
+        logger.debug("%s failed to find %s", audio_provider.name, song.display_name)
+
+    raise LookupError(f"No results found for song: {song.display_name}")
 
 
 spotdl.download.downloader.Downloader.search_and_download = search_and_download
+spotdl.download.downloader.Downloader.search = search
 
 
 

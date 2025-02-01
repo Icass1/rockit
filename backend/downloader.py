@@ -127,6 +127,9 @@ class ListDownloader:
                 "followers": self.list.followers.total,
             }, headers={"Authorization": f"Bearer {os.getenv('API_KEY')}"})
 
+
+
+
         logger.info(f"ListDownloader.download_manager Finished")
 
         self.update_db_end()
@@ -292,8 +295,6 @@ class Downloader:
         self.downloads_ids_dict: Dict = {}
         self.downloads_dict = {}
         self.spotify = spotify
-
-        self.list_downloads = {}
 
         # Define the queue type
         self.queue: List[QueueItem] = []

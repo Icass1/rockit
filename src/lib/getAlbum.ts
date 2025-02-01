@@ -4,8 +4,13 @@ import {
     type SpotifyError,
 } from "@/types/spotify";
 
-import { type AlbumDB, parseAlbum, type RawAlbumDB } from "@/db/album";
-import { db, type ArtistDB } from "@/db/db";
+import {
+    type AlbumDB,
+    type ArtistDB,
+    parseAlbum,
+    type RawAlbumDB,
+} from "@/db/album";
+import { db } from "@/db/db";
 import { parseSong, type RawSongDB, type SongDB } from "@/db/song";
 import { ENV } from "@/rockitEnv";
 

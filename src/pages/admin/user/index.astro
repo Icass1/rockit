@@ -18,7 +18,7 @@ const users = db.prepare("SELECT username,admin,id FROM user").all() as UserDB<
             <label class="text-xl font-semibold">Users</label>
 
             {
-                users.map((user, index) => (
+                users.map((user) => (
                     <a
                         class="grid gap-x-2 grid-cols-[30px_1fr_20px] items-center md:bg-white/5 md:hover:bg-white/10 px-3 py-2 rounded"
                         href={`/admin/user/${user.id}`}

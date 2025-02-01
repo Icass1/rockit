@@ -2,7 +2,7 @@ import { getDate, getMinutes } from "@/lib/getTime";
 import BarGraph from "./BarGraph.tsx";
 import { useEffect, useRef, useState } from "react";
 import type { SongForStats, Stats } from "@/lib/stats";
-import { lang, langData } from "@/stores/lang.ts";
+import { langData } from "@/stores/lang.ts";
 
 export default function UserStats() {
     let today = new Date();

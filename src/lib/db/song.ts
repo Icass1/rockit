@@ -2,8 +2,16 @@
 // ************** Song stuff **************
 // ****************************************
 
-import { type ArtistDB, type OldImageDB } from "@/db/db";
+export type OldImageDB = {
+    url: string;
+    width: number;
+    height: number;
+};
 
+export type ArtistDB = {
+    name: string;
+    id: string;
+};
 export interface RawSongDB {
     id: string;
     name: string;

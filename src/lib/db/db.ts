@@ -1,9 +1,9 @@
 import { ENV } from "@/rockitEnv";
 import sqlite from "better-sqlite3";
 import * as fs from "fs";
+import { albumQuery } from "./album";
 import { downloadQuery } from "./download";
 import { errorQuery } from "./error";
-import { albumQuery2 } from "./album";
 import { imageQuery } from "./image";
 import { playlistQuery } from "./playlist";
 import { songQuery } from "./song";
@@ -174,8 +174,6 @@ db.exec(`CREATE TABLE IF NOT EXISTS session (
     FOREIGN KEY (user_id) REFERENCES user(id)
 )`);
 
-
-
 checkTable(
     "download",
     downloadQuery,
@@ -183,13 +181,13 @@ checkTable(
 );
 db.exec(downloadQuery);
 
-console.log({albumQuery2, downloadQuery, errorQuery})
+console.log({ albumQuery, downloadQuery, errorQuery });
 checkTable(
     "album",
-    albumQuery2,
+    albumQuery,
     db.prepare("PRAGMA table_info(album)").all() as Column[]
 );
-db.exec(albumQuery2);
+db.exec(albumQuery);
 
 checkTable(
     "error",

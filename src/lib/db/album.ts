@@ -2,8 +2,6 @@
 // ************** Album stuff **************
 // *****************************************
 
-console.log("ASDFASFDASFASFD");
-
 export type AlbumDB<Keys extends keyof AlbumDBFull = keyof AlbumDBFull> = Pick<
     AlbumDBFull,
     Keys
@@ -77,7 +75,7 @@ export function parseAlbum(album: RawAlbumDB | undefined): AlbumDB | undefined {
     };
 }
 
-export const albumQuery2 = `CREATE TABLE IF NOT EXISTS album (
+export const albumQuery = `CREATE TABLE IF NOT EXISTS album (
     id TEXT NOT NULL PRIMARY KEY UNIQUE,
     type TEXT NOT NULL,
     images TEXT NOT NULL,
@@ -92,5 +90,3 @@ export const albumQuery2 = `CREATE TABLE IF NOT EXISTS album (
     discCount INTEGER NOT NULL,
     dateAdded INTEGER NOT NULL
 )`;
-
-console.log({ albumQuery2 });

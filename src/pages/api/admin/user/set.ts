@@ -1,5 +1,3 @@
-import { lucia } from "@/auth";
-import { verify } from "@node-rs/argon2";
 
 import type { APIContext } from "astro";
 

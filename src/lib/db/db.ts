@@ -181,7 +181,6 @@ checkTable(
 );
 db.exec(downloadQuery);
 
-console.log({ albumQuery, downloadQuery, errorQuery });
 checkTable(
     "album",
     albumQuery,

@@ -12,6 +12,7 @@ export interface Message {
     randomQueue?: "1" | "0";
     deviceName?: string;
     repeatSong?: "1" | "0";
+    currentStation?: string;
 }
 
 let allConections: {
@@ -65,7 +66,22 @@ export async function ALL(context: APIContext): Promise<Response> {
                 if (messageJson.currentSong != undefined) {
                     db.prepare(
                         `UPDATE user SET currentSong = ? WHERE id = ?`
-                    ).run(messageJson.currentSong, userId);
+                    ).run(
+                        messageJson.currentSong == ""
+                            ? undefined
+                            : messageJson.currentSong,
+                        userId
+                    );
+                    db.prepare(
+                        `UPDATE user SET currentStation = ? WHERE id = ?`
+                    ).run(undefined, userId);
+                } else if (messageJson.currentStation != undefined) {
+                    db.prepare(
+                        `UPDATE user SET currentStation = ? WHERE id = ?`
+                    ).run(messageJson.currentStation, userId);
+                    db.prepare(
+                        `UPDATE user SET currentSong = ? WHERE id = ?`
+                    ).run(undefined, userId);
                 } else if (messageJson.currentTime != undefined) {
                     if (allConections[userId].playing == socket) {
                         allConections[userId].connections

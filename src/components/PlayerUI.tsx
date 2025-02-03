@@ -12,6 +12,7 @@ import { useStore } from "@nanostores/react";
 import { useEffect, useRef, useState } from "react";
 import { EllipsisVertical, Play } from "lucide-react";
 import { getTime } from "@/lib/getTime";
+import useWindowSize from "@/hooks/useWindowSize";
 
 const lyricsTimeStamp = {
     "3jnoftwNCmIuTNVkxakisg": [
@@ -357,6 +358,7 @@ export default function PlayerUI() {
     const $queue = useStore(queue);
 
     const divRef = useRef<HTMLDivElement>(null);
+    const [innerWidth] = useWindowSize();
 
     useEffect(() => {
         if (!divRef.current) {
@@ -443,6 +445,8 @@ export default function PlayerUI() {
             document.removeEventListener("mousemove", handleMouseMove);
         };
     }, [queueDivRef, draggingSong]);
+
+    if (innerWidth < 768) return;
 
     return (
         <div

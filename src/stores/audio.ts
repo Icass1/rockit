@@ -135,7 +135,7 @@ let lastTime: number | undefined = undefined;
 let timeSum = 0;
 
 fetch(
-    "/api/user?q=currentSong,currentTime,queue,queueIndex,volume,randomQueue,repeatSong"
+    "/api/user?q=currentSong,currentTime,queue,queueIndex,volume,randomQueue,repeatSong,currentStation"
 ).then((userJsonResponse) => {
     if (userJsonResponse.ok) {
         userJsonResponse
@@ -144,6 +144,7 @@ fetch(
                 (
                     userJson: UserDB<
                         | "currentSong"
+                        | "currentStation"
                         | "currentTime"
                         | "queue"
                         | "queueIndex"
@@ -164,13 +165,26 @@ fetch(
                         window.innerWidth < 768 ? 1 : (userJson?.volume ?? 1)
                     );
 
-                    fetch(
-                        `/api/song/${userJson.currentSong}?q=image,id,name,artists,albumId,albumName,duration`
-                    ).then((response) =>
-                        response.json().then((data: CurrentSong) => {
-                            currentSong.set(data);
-                        })
-                    );
+                    if (userJson.currentSong) {
+                        fetch(
+                            `/api/song/${userJson.currentSong}?q=image,id,name,artists,albumId,albumName,duration`
+                        ).then((response) =>
+                            response.json().then((data: CurrentSong) => {
+                                currentSong.set(data);
+                            })
+                        );
+                    }
+
+                    if (userJson.currentStation) {
+                        fetch(
+                            `/api/radio/stations/byuuid/${userJson.currentStation}`
+                        ).then((response) =>
+                            response.json().then((data) => {
+                                if (data && data[0])
+                                    currentStation.set(data[0]);
+                            })
+                        );
+                    }
 
                     if (userJson && userJson.queue.length > 0) {
                         fetch(
@@ -225,7 +239,8 @@ repeatSong.subscribe((value) => {
 });
 
 currentSong.subscribe(async (value) => {
-    send({ currentSong: value?.id });
+    console.log(value);
+    send({ currentSong: value?.id || "" });
 
     if (!value) {
         return;
@@ -310,10 +325,12 @@ currentStation.subscribe(async (value) => {
 
     clearCurrentSong();
 
-    if (value?.url_resolved) {
-        const isHls = await isHlsContent(value.url_resolved);
+    console.log(value.url_resolved);
 
+    if (value.url_resolved) {
+        const isHls = await isHlsContent(value.url_resolved);
         if (Hls.isSupported() && isHls) {
+            console.log("Hls");
             hls.loadSource(value.url_resolved);
             hls.attachMedia(audio);
             hls.on(Hls.Events.MANIFEST_PARSED, () => {
@@ -322,7 +339,17 @@ currentStation.subscribe(async (value) => {
                     .catch((err) => console.error("Error playing audio:", err));
             });
         } else {
+            console.log("not Hls");
             audio.src = value.url_resolved;
+            // audio.play();
+            audio.onloadeddata = () => {
+                console.log("onloadeddata");
+                audio.play();
+            };
+            audio.oncanplay = () => {
+                console.log("oncanplay");
+                audio.play();
+            };
         }
     }
 });
@@ -358,18 +385,43 @@ volume.subscribe((value) => {
 // **** Helper functions ****
 // **************************
 
-async function isHlsContent(url: string) {
+async function isHlsContent(url: string): Promise<boolean> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 seconds timeout
+
     try {
+        console.log("1111111111111111111111");
         const response = await fetch(url, {
             method: "GET",
             headers: { Range: "bytes=0-512" },
+            signal: controller.signal,
         });
-        const text = await response.text();
-        return text.includes("#EXTM3U") && text.includes("#EXT-X-");
+        console.log("222222222222222");
+
+        const reader = response.body?.getReader();
+        if (!reader) return false;
+
+        let text = "";
+        let receivedLength = 0;
+        const maxLength = 512;
+
+        while (receivedLength < maxLength) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            text += new TextDecoder().decode(value, { stream: true });
+            receivedLength += value.length;
+
+            if (text.includes("#EXTM3U") && text.includes("#EXT-X-")) {
+                return true; // Early exit
+            }
+        }
     } catch (error) {
         console.error("Error fetching content:", error);
-        return false;
+    } finally {
+        clearTimeout(timeoutId);
     }
+    return false;
 }
 
 export async function play() {

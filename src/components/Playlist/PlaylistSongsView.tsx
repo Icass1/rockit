@@ -209,7 +209,9 @@ export default function PlaylistSongsView({
     return (
         <div
             ref={divRef}
-            onScroll={(event) => {console.log(scroll);setScroll(event.currentTarget.scrollTop)}}
+            onScroll={(event) => {
+                setScroll(event.currentTarget.scrollTop);
+            }}
             className="min-w-0 max-w-full w-full min-h-0 max-h-full h-full overflow-auto relative md:pr-6"
         >
             <PlaylistHeader
@@ -240,13 +242,9 @@ export default function PlaylistSongsView({
                     let top = index * (56 + 4) + 25;
                     if (innerWidth < 768) top += 400;
 
-                    console.log(divRef.current)
-
-
                     if (divRef.current) {
                         const boundaries =
                             divRef.current.getBoundingClientRect();
-                        console.log(boundaries.height + scroll, top);
                         if (
                             top > boundaries.height + scroll ||
                             top < scroll - (56 + 4)

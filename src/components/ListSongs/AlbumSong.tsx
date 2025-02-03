@@ -7,12 +7,13 @@ import {
 import { getTime } from "@/lib/getTime";
 import LikeButton from "../LikeButton";
 import { ListPlus, EllipsisVertical, CheckCircle2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useStore } from "@nanostores/react";
-import { currentList } from "@/stores/currentList";
+import { currentList, currentListSongs } from "@/stores/currentList";
 import { songHandleClick } from "./HandleClick";
 import SongContextMenu from "./SongContextMenu";
 import type { SongDB } from "@/db/song";
+import { downloadedSongs } from "@/stores/downloadedSongs";
 
 export default function AlbumSong({
     song,
@@ -36,11 +37,28 @@ export default function AlbumSong({
     const $currentList = useStore(currentList);
     const $songsInIndexedDB = useStore(songsInIndexedDB);
 
+    const $downloadedSongs = useStore(downloadedSongs);
+    const $currentListSongs = useStore(currentListSongs);
+
+    const [_song, setSong] =
+        useState<
+            SongDB<
+                | "image"
+                | "id"
+                | "name"
+                | "artists"
+                | "albumId"
+                | "albumName"
+                | "path"
+                | "duration"
+            >
+        >(song);
+
     const handleAddToList = (
         e: React.MouseEvent<SVGSVGElement, MouseEvent>
     ) => {
         e.stopPropagation();
-        saveSongToIndexedDB(song);
+        saveSongToIndexedDB(_song);
     };
     const handleOpenOptions = (
         e: React.MouseEvent<SVGSVGElement, MouseEvent>
@@ -48,15 +66,32 @@ export default function AlbumSong({
         e.stopPropagation();
     };
 
+    useEffect(() => {
+        if ($downloadedSongs.includes(_song.id)) {
+            fetch(`/api/song/${_song.id}`)
+                .then((response) => response.json())
+                .then((data) => {
+                    setSong(data);
+                    if (
+                        !currentListSongs
+                            .get()
+                            .find((song) => song.id == data.id)
+                    ) {
+                        currentListSongs.set([...currentListSongs.get(), data]);
+                    }
+                });
+        }
+    }, [$downloadedSongs]);
+
     return (
-        <SongContextMenu song={song}>
+        <SongContextMenu song={_song}>
             <div
                 className={
                     "flex flex-row items-center gap-2 md:gap-4 transition-colors px-2 py-[0.5rem] md:py-[0.65rem] rounded " +
                     // If offline and the song is not saved to indexedDB or the song is not in the server database, disable that song
                     (((!window.navigator.onLine &&
                         !songsInIndexedDB.get()?.includes(song.id)) ||
-                        !song.path) &&
+                        !_song.path) &&
                         "opacity-40 pointer-events-none ") +
                     ($queue.find((song) => song.index == $queueIndex)?.list
                         ?.id == $currentList?.id &&
@@ -67,7 +102,7 @@ export default function AlbumSong({
                         ? " text-[#ec5588]"
                         : "")
                 }
-                onClick={() => songHandleClick(song)}
+                onClick={() => songHandleClick(_song, $currentListSongs)}
                 onMouseEnter={() => {
                     setHovered(true);
                 }}
@@ -91,12 +126,12 @@ export default function AlbumSong({
                             : "")
                     }
                 >
-                    {song.name}{" "}
+                    {_song.name}{" "}
                 </label>
-                {$songsInIndexedDB?.includes(song.id) && (
+                {$songsInIndexedDB?.includes(_song.id) && (
                     <CheckCircle2 className="hidden md:flex md:hover:text-white md:hover:scale-105 w-8 text-[#ec5588]" />
                 )}
-                <LikeButton song={song} />
+                <LikeButton song={_song} />
                 <ListPlus
                     className="text-gray-400 hidden md:flex md:hover:text-white md:hover:scale-105 w-8"
                     onClick={handleAddToList}
@@ -109,7 +144,7 @@ export default function AlbumSong({
                             onClick={handleOpenOptions}
                         />
                     ) : (
-                        getTime(song.duration)
+                        getTime(_song.duration)
                     )}
                 </label>
             </div>

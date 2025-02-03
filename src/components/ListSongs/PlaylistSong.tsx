@@ -8,12 +8,13 @@ import type { PlaylistDBSongWithAddedAt } from "@/db/playlist";
 import { getTime } from "@/lib/getTime";
 import LikeButton from "../LikeButton";
 import { ListPlus, EllipsisVertical, CheckCircle2 } from "lucide-react";
-import { useState } from "react";
-import { currentList } from "@/stores/currentList";
+import { useEffect, useState } from "react";
+import { currentList, currentListSongs } from "@/stores/currentList";
 import { useStore } from "@nanostores/react";
 import { navigate } from "astro:transitions/client";
 import { songHandleClick } from "./HandleClick";
 import SongContextMenu from "./SongContextMenu";
+import { downloadedSongs } from "@/stores/downloadedSongs";
 
 export default function PlaylistSong({
     song,
@@ -36,12 +37,29 @@ export default function PlaylistSong({
     const $queueIndex = useStore(queueIndex);
     const $currentList = useStore(currentList);
     const $songsInIndexedDB = useStore(songsInIndexedDB);
+    const $currentListSongs = useStore(currentListSongs);
+    const $downloadedSongs = useStore(downloadedSongs);
+
+    const [_song, setSong] =
+        useState<
+            PlaylistDBSongWithAddedAt<
+                | "name"
+                | "albumId"
+                | "duration"
+                | "artists"
+                | "path"
+                | "albumName"
+                | "image"
+                | "id"
+                | "images"
+            >
+        >(song);
 
     const handleAddToList = (
         e: React.MouseEvent<SVGSVGElement, MouseEvent>
     ) => {
         e.stopPropagation();
-        saveSongToIndexedDB(song);
+        saveSongToIndexedDB(_song);
     };
     const handleOpenOptions = (
         e: React.MouseEvent<SVGSVGElement, MouseEvent>
@@ -49,15 +67,32 @@ export default function PlaylistSong({
         e.stopPropagation();
     };
 
+    useEffect(() => {
+        if ($downloadedSongs.includes(_song.id)) {
+            fetch(`/api/song/${_song.id}`)
+                .then((response) => response.json())
+                .then((data) => {
+                    setSong(data);
+                    if (
+                        !currentListSongs
+                            .get()
+                            .find((song) => song.id == data.id)
+                    ) {
+                        currentListSongs.set([...currentListSongs.get(), data]);
+                    }
+                });
+        }
+    }, [$downloadedSongs]);
+
     return (
-        <SongContextMenu song={song}>
+        <SongContextMenu song={_song}>
             <div
                 className={
                     "flex flex-row items-center gap-2 md:gap-4 transition-colors px-2 py-[0.5rem] rounded " +
                     // If offline and the song is not saved to indexedDB or the song is not in the server database, disable that song
                     (((!window.navigator.onLine &&
-                        !songsInIndexedDB.get()?.includes(song.id)) ||
-                        !song.path) &&
+                        !songsInIndexedDB.get()?.includes(_song.id)) ||
+                        !_song.path) &&
                         "opacity-40 pointer-events-none ") +
                     // If the song is playing and is from this playlist, change color, if the song has been added to the queue clicking the album, it won't show the color
                     ($queue.find((song) => song.index == $queueIndex)?.list
@@ -65,11 +100,11 @@ export default function PlaylistSong({
                     $queue.find((song) => song.index == $queueIndex)?.list
                         ?.type == $currentList?.type &&
                     $queue.find((song) => song.index == $queueIndex)?.song.id ==
-                        song.id
+                        _song.id
                         ? " text-[#ec5588]"
                         : "")
                 }
-                onClick={() => songHandleClick(song)}
+                onClick={() => songHandleClick(song, $currentListSongs)}
                 onMouseEnter={() => setHovered(true)}
                 onMouseLeave={() => setHovered(false)}
             >
@@ -77,7 +112,7 @@ export default function PlaylistSong({
                 <div className="h-10 w-auto aspect-square rounded relative">
                     <img
                         src={
-                            (song?.images && song?.images[0]?.url) ||
+                            (_song?.images && _song?.images[0]?.url) ||
                             "/song-placeholder.png"
                         }
                         className="rounded absolute top-0 bottom-0 left-0 right-0"
@@ -91,17 +126,17 @@ export default function PlaylistSong({
                         <span
                             className="text-base font-semibold hover:underline block w-fit max-w-full truncate pr-1 cursor-pointer"
                             onClick={(event) => {
-                                navigate(`/song/${song.id}`);
+                                navigate(`/song/${_song.id}`);
                                 event.stopPropagation();
                             }}
                         >
-                            {song.name}
+                            {_song.name}
                         </span>
                     </div>
                     <div className="w-full h-full max-w-full min-w-0 flex flex-row items-center">
                         <div className="hidden flex-1 md:flex flex-row gap-2 truncate pr-2">
                             <label className="text-md truncate max-w-[50%]">
-                                {song.artists.map((artist, index) => (
+                                {_song.artists.map((artist, index) => (
                                     <span
                                         className="md:hover:underline cursor-pointer"
                                         key={index}
@@ -111,7 +146,7 @@ export default function PlaylistSong({
                                         }}
                                     >
                                         {artist.name}
-                                        {index < song.artists.length - 1
+                                        {index < _song.artists.length - 1
                                             ? ", "
                                             : ""}
                                     </span>
@@ -122,20 +157,20 @@ export default function PlaylistSong({
                             <span
                                 className="md:hover:underline text-md truncate cursor-pointer"
                                 onClick={(event) => {
-                                    navigate(`/album/${song.albumId}`);
+                                    navigate(`/album/${_song.albumId}`);
                                     event.stopPropagation();
                                 }}
                             >
-                                {song.albumName || "Ablum desconocido"}
+                                {_song.albumName || "Ablum desconocido"}
                             </span>
                         </div>
 
                         {/* Botones y tiempo (alineados a la derecha) */}
                         <div className="flex items-center md:gap-4 ml-auto w-fit">
-                            {$songsInIndexedDB?.includes(song.id) && (
+                            {$songsInIndexedDB?.includes(_song.id) && (
                                 <CheckCircle2 className="hidden md:flex md:hover:text-white md:hover:scale-105 w-8 text-[#ec5588]" />
                             )}
-                            <LikeButton song={song} />
+                            <LikeButton song={_song} />
                             <ListPlus
                                 className="text-gray-400 hidden md:flex md:hover:text-white md:hover:scale-105 w-8"
                                 onClick={handleAddToList}
@@ -148,7 +183,7 @@ export default function PlaylistSong({
                                         onClick={handleOpenOptions}
                                     />
                                 ) : (
-                                    getTime(song.duration)
+                                    getTime(_song.duration)
                                 )}
                             </label>
                         </div>

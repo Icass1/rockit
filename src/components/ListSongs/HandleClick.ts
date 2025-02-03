@@ -7,7 +7,7 @@ import {
     randomQueue,
     songsInIndexedDB,
 } from "@/stores/audio";
-import { currentList, currentListSongs } from "@/stores/currentList";
+import { currentList } from "@/stores/currentList";
 
 export function songHandleClick(
     song: SongDB<
@@ -19,7 +19,17 @@ export function songHandleClick(
         | "duration"
         | "image"
         | "path"
-    >
+    >,
+    currentListSongs: SongDB<
+        | "id"
+        | "name"
+        | "artists"
+        | "image"
+        | "duration"
+        | "albumId"
+        | "albumName"
+        | "path"
+    >[]
 ) {
     const _currentList = currentList.get();
     if (!song.path || !_currentList) {
@@ -31,7 +41,6 @@ export function songHandleClick(
     }
 
     let songsToAdd = currentListSongs
-        .get()
         .filter((song) => song?.path)
         .map((song, index) => {
             return {
@@ -49,6 +58,8 @@ export function songHandleClick(
 
     if (randomQueue.get()) {
         const shuffled = [...songsToAdd].sort(() => Math.random() - 0.5);
+
+        console.log({ songsToAdd, song });
 
         const firstSong = songsToAdd.find(
             (dataSong) => dataSong.song.id == song.id

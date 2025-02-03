@@ -19,7 +19,7 @@ import type { SongDB } from "@/db/song";
 import type { ReactNode } from "react";
 import { useStore } from "@nanostores/react";
 import { queue, saveSongToIndexedDB } from "@/stores/audio";
-import { currentList } from "@/stores/currentList";
+import { currentList, currentListSongs } from "@/stores/currentList";
 import ContextMenuSplitter from "../ContextMenu/Splitter";
 import { navigate } from "astro:transitions/client";
 import { songHandleClick } from "./HandleClick";
@@ -42,6 +42,7 @@ export default function SongContextMenu({
     >;
 }) {
     const $likedSongs = useStore(likedSongs);
+    const $currentListSongs = useStore(currentListSongs);
 
     const $lang = useStore(langData);
     if (!$lang) return;
@@ -50,7 +51,9 @@ export default function SongContextMenu({
         <ContextMenu>
             <ContextMenuTrigger>{children}</ContextMenuTrigger>
             <ContextMenuContent>
-                <ContextMenuOption onClick={() => songHandleClick(song)}>
+                <ContextMenuOption
+                    onClick={() => songHandleClick(song, $currentListSongs)}
+                >
                     <PlayCircle className="h-5 w-5" />
                     {$lang.play_song}
                 </ContextMenuOption>

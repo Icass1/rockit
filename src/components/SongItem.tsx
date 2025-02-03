@@ -1,5 +1,7 @@
 import { songHandleClick } from "@/components/ListSongs/HandleClick";
 import type { SongDB } from "@/db/song";
+import { currentListSongs } from "@/stores/currentList";
+import { useStore } from "@nanostores/react";
 
 export default function SongItem({
     song,
@@ -16,10 +18,12 @@ export default function SongItem({
     >;
     index: number;
 }) {
+    const $currentListSongs = useStore(currentListSongs);
+
     return (
         <a
             className="flex items-center gap-2 rounded-lg p-2 hover:bg-zinc-800 transition h-fit"
-            onClick={() => songHandleClick(song)}
+            onClick={() => songHandleClick(song, $currentListSongs)}
         >
             {/* Imagen de la canción */}
             <img

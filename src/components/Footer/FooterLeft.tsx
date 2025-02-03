@@ -121,7 +121,7 @@ export default function FooterLeft() {
     } else {
         return (
             <div className="flex items-center w-full md:w-1/3 max-w-full min-w-0 gap-x-4">
-                a
+                You are not playing anything
             </div>
         );
     }

@@ -124,11 +124,11 @@ export default function PlaylistSong({
                     {/* Título (alineado a la izquierda) */}
                     <div className="max-w-full min-w-0 w-full">
                         <span
-                            className="text-base font-semibold hover:underline block w-fit max-w-full truncate pr-1 cursor-pointer"
-                            onClick={(event) => {
-                                navigate(`/song/${_song.id}`);
-                                event.stopPropagation();
-                            }}
+                            className="text-base font-semibold block w-fit max-w-full truncate pr-1 cursor-pointer"
+                            // onClick={(event) => {
+                            //     navigate(`/song/${_song.id}`);
+                            //     event.stopPropagation();
+                            // }}
                         >
                             {_song.name}
                         </span>

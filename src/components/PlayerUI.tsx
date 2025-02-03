@@ -346,7 +346,8 @@ export default function PlayerUI() {
     // Estas dos cosas son para el mockup del related
     const columns = Array.from({ length: 5 });
     const songsPerColumn = 3;
-    //
+
+    const [queueScroll, setQueueScroll] = useState(0);
 
     const $currentSong = useStore(currentSong);
 
@@ -384,7 +385,7 @@ export default function PlayerUI() {
         QueueElement | undefined
     >();
     const [draggingPos, setDraggingPos] = useState<[number, number]>([0, 0]);
-    const queueDivRef = useRef<HTMLUListElement>(null);
+    const queueDivRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const handleMouseUp = (event: globalThis.MouseEvent) => {
@@ -533,9 +534,18 @@ export default function PlayerUI() {
                         </button>
                     </div>
                     {/* Contenido dinámico */}
-                    <div className="flex-1 overflow-auto pt-3 pb-7">
+                    <div
+                        className="flex-1 overflow-auto pt-3 pb-7 relative"
+                        ref={queueDivRef}
+                        onScroll={(e) =>
+                            setQueueScroll(e.currentTarget.scrollTop)
+                        }
+                    >
                         {currentTab === "queue" ? (
-                            <ul className="flex flex-col" ref={queueDivRef}>
+                            <>
+                                <div
+                                    style={{ height: $queue.length * 64 }}
+                                ></div>
                                 {$queue
                                     .filter(
                                         (song) =>
@@ -564,6 +574,19 @@ export default function PlayerUI() {
                                             );
                                         }
 
+                                        const top = index * 64;
+
+                                        if (
+                                            (queueDivRef.current
+                                                ?.offsetHeight &&
+                                                top >
+                                                    queueDivRef.current
+                                                        ?.offsetHeight +
+                                                        queueScroll) ||
+                                            top < queueScroll - 64
+                                        ) {
+                                            return;
+                                        }
                                         return (
                                             <div
                                                 key={
@@ -576,6 +599,10 @@ export default function PlayerUI() {
                                                 }
                                                 onMouseDown={() => {
                                                     setDraggingSong(queueSong);
+                                                }}
+                                                className="absolute w-full"
+                                                style={{
+                                                    top: `${top}px`,
                                                 }}
                                             >
                                                 {draggingSong &&
@@ -605,7 +632,7 @@ export default function PlayerUI() {
                                         <QueueSong song={draggingSong} />
                                     </div>
                                 )}
-                            </ul>
+                            </>
                         ) : (
                             <>
                                 <section>

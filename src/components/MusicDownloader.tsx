@@ -36,6 +36,7 @@ import { libraryLists } from "@/stores/libraryLists";
 import { pinListHandleClick } from "./ListHeader/PinList";
 import { pinnedLists } from "@/stores/pinnedLists";
 import { langData } from "@/stores/lang";
+import { downloadedSongs } from "@/stores/downloadedSongs";
 
 interface EventSourceStatus {
     message: string;
@@ -252,7 +253,7 @@ function RenderSongDownload({
                 <div className="w-full grid grid-cols-[1fr_max-content] items-center gap-x-2 ">
                     <div
                         className={
-                            "bg-neutral-500 h-2 w-full rounded-full relative " +
+                            "progress-bar h-2 w-full rounded-full relative " +
                             (songStatus[1].message == "Error" && "bg-red-400")
                         }
                     >
@@ -260,8 +261,8 @@ function RenderSongDownload({
                             className={
                                 "absolute h-full rounded-full transition-all " +
                                 (songStatus[1].message == "Error"
-                                    ? "bg-red-400"
-                                    : "bg-[#ec5588]")
+                                    ? " bg-red-400 "
+                                    : " from-[#ee1086] to-[#fb6467] bg-gradient-to-r ")
                             }
                             style={{ width: `${songStatus[1].completed}%` }}
                         ></div>
@@ -511,8 +512,10 @@ export default function Downloads({ navOpen }: { navOpen: boolean }) {
                 return newValue;
             });
             if (message.completed == 100) {
+                downloadedSongs.set([...downloadedSongs.get(), message.id]);
                 eventSource.close();
             }
+            // {"id": "0vlCOzte4bru0gK74lfUIJ", "completed": 63, "message": "Converting", "list_completed": 79.55555555555556, "list_error": 0.0, "list_id": "2xQBCPq2gQ7l8thLUUZSKu"}
         } else {
             setStatus((value: StatusType) => {
                 let newValue = { ...value };
@@ -536,6 +539,10 @@ export default function Downloads({ navOpen }: { navOpen: boolean }) {
                     message: message.message,
                     song: songs[message.id],
                 };
+                if (message.completed == 100) {
+                    downloadedSongs.set([...downloadedSongs.get(), message.id]);
+                }
+
                 return newValue;
             });
             if (

@@ -74,7 +74,6 @@ const RadioStations = () => {
     }, []);
 
     const $lang = useStore(langData);
-    if (!$lang) return;
 
     const fetchStations = async (by: string, searchTerm: string) => {
         try {
@@ -115,6 +114,8 @@ const RadioStations = () => {
             searchDebounce.current(e.target.value);
         }
     };
+
+    if (!$lang) return;
 
     if (!window.navigator.onLine) {
         return <div>You are offline</div>;

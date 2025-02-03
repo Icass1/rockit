@@ -46,6 +46,7 @@ interface EventSourceStatus {
         album: SpotifyAlbum;
         id: string;
     };
+    index?: number;
 }
 
 type ListInfo = {
@@ -87,6 +88,18 @@ function RenderListDownload({
 }) {
     const [showAllSongs, setShowAllSongs] = useState(false);
 
+    let songs = Object.entries(list[1].songs);
+
+    let sortedSongs = songs.toSorted((a, b) => {
+        if (a[1].completed === 100 && b[1].completed !== 100) return 1; // Move completed to the end
+        if (a[1].completed !== 100 && b[1].completed === 100) return -1;
+        return b[1].completed - a[1].completed; // Otherwise, sort normally
+    });
+
+    songs.map((song) => {
+        song[1].index = sortedSongs.indexOf(song);
+    });
+
     return (
         <div className="bg-zinc-400/10 min-w-0 max-w-full flex flex-col rounded">
             <div className="flex flex-row h-16 min-w-0 max-w-full gap-2">
@@ -121,7 +134,7 @@ function RenderListDownload({
                             }
                         >
                             <div
-                                className="bg-red-400 absolute h-full rounded-full transition-all"
+                                className="bg-red-700 absolute h-full rounded-full transition-all"
                                 style={{
                                     width: `calc(${list[1].listError}% + 20px)`,
                                     left: `calc(${list[1].totalCompleted}% - 20px)`,
@@ -163,24 +176,14 @@ function RenderListDownload({
                     }}
                 >
                     {Object.entries(list[1].songs)
-                        .toSorted((a, b) => {
-                            if (
-                                a[1].completed === 100 &&
-                                b[1].completed !== 100
-                            )
-                                return 1; // Move completed to the end
-                            if (
-                                a[1].completed !== 100 &&
-                                b[1].completed === 100
-                            )
-                                return -1;
-                            return b[1].completed - a[1].completed; // Otherwise, sort normally
-                        })
-                        .map((songStatus, index) => (
+
+                        .map((songStatus) => (
                             <div
                                 key={songStatus[0]}
                                 className="bg-zinc-400/10 absolute w-[calc(100%_-_10px)] transition-[top] duration-500 rounded h-14 flex flex-row gap-x-2 overflow-hidden"
-                                style={{ top: `${index * 60}px` }}
+                                style={{
+                                    top: `${(songStatus[1].index || 0) * 60}px`,
+                                }}
                             >
                                 <div className="flex flex-col w-full p-1 px-2 min-w-0 max-w-full">
                                     <label className="truncate min-w-0 max-w-full">
@@ -189,17 +192,22 @@ function RenderListDownload({
                                     <div className="w-full grid grid-cols-[1fr_max-content] items-center gap-x-2 ">
                                         <div
                                             className={
-                                                "progress-bar h-2 w-full rounded-full relative " +
+                                                " h-2 w-full rounded-full relative " +
                                                 (songStatus[1].message ==
-                                                    "Error" && "bg-red-400")
+                                                "Error"
+                                                    ? " bg-red-700 "
+                                                    : " progress-bar ")
                                             }
                                         >
-                                            <div
-                                                className="from-[#ee1086] to-[#fb6467] bg-gradient-to-r absolute h-full rounded-full transition-all"
-                                                style={{
-                                                    width: `${songStatus[1].completed}%`,
-                                                }}
-                                            ></div>
+                                            {songStatus[1].message !=
+                                                "Error" && (
+                                                <div
+                                                    className="from-[#ee1086] to-[#fb6467] bg-gradient-to-r absolute h-full rounded-full transition-all"
+                                                    style={{
+                                                        width: `${songStatus[1].completed}%`,
+                                                    }}
+                                                />
+                                            )}
                                         </div>
                                         <label className="w-auto flex-nowrap text-sm">
                                             {" "}

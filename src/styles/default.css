@@ -121,19 +121,18 @@ code {
 }
 
 .progress-bar {
-    background: linear-gradient(45deg, rgb(115 115 115), #fb64667a, rgb(115 115 115), #ee108680);
-    background-size: 200% 200%;
-    animation: progress-bg 5s linear infinite;
+    background: repeating-linear-gradient(45deg, rgb(115 115 115) 0%, #fb64663e 30% , #ee10864f 40%, rgb(115 115 115) 50%);
+    background-size: 200% 100%;
+    animation: progress-move 5s linear infinite;
 }
 
-@keyframes progress-bg {
+
+
+@keyframes progress-move {
     0% {
-        background-position: 0% 50%;
-    }
-    50% {
-        background-position: 100% 50%;
+        background-position: 0 0;
     }
     100% {
-        background-position: 0% 50%;
+        background-position: 100% 0;
     }
 }

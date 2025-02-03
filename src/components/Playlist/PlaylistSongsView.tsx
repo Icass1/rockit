@@ -10,6 +10,7 @@ import { currentList, currentListSongs } from "@/stores/currentList";
 import PlaylistHeader from "./PlaylistHeader";
 import { langData } from "@/stores/lang";
 import { useStore } from "@nanostores/react";
+import useWindowSize from "@/hooks/useWindowSize";
 
 type columnsType = "name" | "album" | "artist" | "addedAt" | "duration";
 
@@ -67,6 +68,7 @@ export default function PlaylistSongsView({
 
     const divRef = useRef<HTMLDivElement>(null);
     const [scroll, setScroll] = useState(0);
+    const [innerWidth] = useWindowSize();
 
     const toggleFilter = (column: columnsType) => {
         setFilter((value) => {
@@ -207,7 +209,7 @@ export default function PlaylistSongsView({
     return (
         <div
             ref={divRef}
-            onScroll={(event) => setScroll(event.currentTarget.scrollTop)}
+            onScroll={(event) => {console.log(scroll);setScroll(event.currentTarget.scrollTop)}}
             className="min-w-0 max-w-full w-full min-h-0 max-h-full h-full overflow-auto relative md:pr-6"
         >
             <PlaylistHeader
@@ -236,10 +238,15 @@ export default function PlaylistSongsView({
             {songsToRender.map((song, index) => {
                 if (song) {
                     let top = index * (56 + 4) + 25;
+                    if (innerWidth < 768) top += 400;
+
+                    console.log(divRef.current)
+
 
                     if (divRef.current) {
                         const boundaries =
                             divRef.current.getBoundingClientRect();
+                        console.log(boundaries.height + scroll, top);
                         if (
                             top > boundaries.height + scroll ||
                             top < scroll - (56 + 4)

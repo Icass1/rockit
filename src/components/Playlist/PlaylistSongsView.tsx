@@ -206,6 +206,8 @@ export default function PlaylistSongsView({
         }
     };
 
+    console.log("ASDF", divRef);
+
     return (
         <div
             ref={divRef}
@@ -245,6 +247,7 @@ export default function PlaylistSongsView({
                     if (divRef.current) {
                         const boundaries =
                             divRef.current.getBoundingClientRect();
+
                         if (
                             top > boundaries.height + scroll ||
                             top < scroll - (56 + 4)

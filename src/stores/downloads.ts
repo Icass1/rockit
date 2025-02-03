@@ -1,5 +1,5 @@
 import { atom } from "nanostores";
-let data: string[] = [];
+export let data: string[] = [];
 
 export const downloads = atom<string[]>(data);
 

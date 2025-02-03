@@ -32,8 +32,6 @@ export default function UserStats() {
         artists: [],
     });
 
-
-
     useEffect(() => {
         let songsBarGraph: SongForStats[] = [];
 

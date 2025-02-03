@@ -19,5 +19,3 @@ export const downloadQuery = `CREATE TABLE IF NOT EXISTS download (
     downloadURL TEXT NOT NULL,
     status TEXT NOT NULL
 )`;
-
-

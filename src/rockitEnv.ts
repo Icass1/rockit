@@ -1,4 +1,3 @@
-
 import { loadEnv } from "vite";
 
 const REQUIRED_ENV_VARS = [
@@ -16,9 +15,6 @@ const REQUIRED_ENV_VARS = [
 ] as const;
 
 type EnvKeys = (typeof REQUIRED_ENV_VARS)[number];
-
-
-
 
 // import * as fs from "fs";
 // import * as path from "path";

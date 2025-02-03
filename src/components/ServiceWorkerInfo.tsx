@@ -5,7 +5,6 @@ import { useState } from "react";
 export default function ServiceWorkerInfo() {
     const [status, setStatus] = useState<string>("No data");
 
-
     const handleClick = async () => {
         if (!("serviceWorker" in navigator)) {
             setStatus("Your device doesn't support service worker");
@@ -20,7 +19,7 @@ export default function ServiceWorkerInfo() {
             setStatus(data.active?.state ?? "No state");
         }
     };
-    
+
     const $lang = useStore(langData);
     if (!$lang) return;
 

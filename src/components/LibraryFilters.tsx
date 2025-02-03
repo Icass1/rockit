@@ -9,8 +9,6 @@ const LibraryFilters = () => {
     );
     const [searchQuery, setSearchQuery] = useState("");
 
-
-
     useEffect(() => {
         // Inicializar filtrado y ordenación
         function filterItems() {

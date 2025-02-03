@@ -31,7 +31,7 @@ export default function Navigation({
 
     const $lang = useStore(langData);
     if (!$lang) return;
-    
+
     const pages = [
         {
             name: "Home",
@@ -85,8 +85,6 @@ export default function Navigation({
               }
             : undefined,
     ];
-
-
 
     if (innerWidth < 768) {
         return (

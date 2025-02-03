@@ -67,8 +67,6 @@ const RadioStations = () => {
 
     const searchDebounce = useRef<pkg.DebouncedFunc<(query: string) => void>>();
 
-
-
     useEffect(() => {
         searchDebounce.current = debounce((query: string) => {
             search(query);

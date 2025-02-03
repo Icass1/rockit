@@ -17,8 +17,6 @@ export default function Search() {
         return <div>You are offline</div>;
     }
 
-
-
     function handleClick(station: Station) {
         currentStation.set(station);
         play();
@@ -26,7 +24,7 @@ export default function Search() {
 
     const $lang = useStore(langData);
     if (!$lang) return;
-    
+
     return (
         <>
             <section className="block md:hidden mt-20 h-12">

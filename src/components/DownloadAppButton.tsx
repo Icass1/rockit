@@ -33,7 +33,7 @@ export default function DownloadAppButton() {
 
     const $lang = useStore(langData);
     if (!$lang) return;
-    
+
     return (
         <div>
             <h2 className="text-xl md:text-2xl font-bold text-white mb-2">

@@ -82,6 +82,8 @@ const fromCache = (request) => {
 self.addEventListener("fetch", (evt) => {
 
     if (evt.request.url.includes("/download-status/")) return
+    if (!evt.request.url.includes("rockit.rockhosting.org")) return
+    if (!evt.request.url.includes("localhost")) return
 
     evt.respondWith(
         fromNetwork(evt.request, 10000).catch(() => fromCache(evt.request))

@@ -40,6 +40,7 @@ export default function SearchBarInput({
     useEffect(() => {
         searchDebounce.current = debounce((query: string) => {
             search(query);
+            fetchStations("byname", query);
         }, 1000);
     }, []);
 
@@ -91,7 +92,7 @@ export default function SearchBarInput({
             value={value}
             onChange={(e) => {
                 searchQuery.set(e.target.value);
-                fetchStations("byname", e.target.value);
+
                 setOpen(true);
             }}
             onFocus={() => setOpen(true)}

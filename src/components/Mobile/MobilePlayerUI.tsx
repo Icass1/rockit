@@ -25,6 +25,7 @@ import LikeButton from "../LikeButton.tsx";
 import { isMobilePlayerUIVisible } from "@/stores/isPlayerUIVisible.ts";
 import Slider from "../Slider.tsx";
 import { useEffect, useRef } from "react";
+import useWindowSize from "@/hooks/useWindowSize.ts";
 
 export default function MusicPlayer() {
     const $playing = useStore(playing);
@@ -32,6 +33,7 @@ export default function MusicPlayer() {
     const $currentSong = useStore(currentSong);
     const $randomQueue = useStore(randomQueue);
     const $isMobilePlayerUIVisible = useStore(isMobilePlayerUIVisible);
+    const [innerWidth] = useWindowSize();
 
     const divRef = useRef<HTMLDivElement>(null);
 
@@ -54,6 +56,8 @@ export default function MusicPlayer() {
             document.removeEventListener("click", handleDocumentClick);
         };
     }, [divRef]);
+
+    if (innerWidth > 768) return;
 
     return (
         <div

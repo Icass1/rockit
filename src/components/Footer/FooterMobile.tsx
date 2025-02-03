@@ -35,8 +35,8 @@ export default function FooterMobile() {
                     />
                 </div>
 
-                <div className="flex flex-col">
-                    <label className="font-semibold">
+                <div className="flex flex-col min-w-0">
+                    <label className="font-semibold truncate">
                         {$currentSong?.name}
                     </label>
                     <label className="text-sm">

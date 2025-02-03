@@ -70,7 +70,7 @@ export default function LikeButton({ song }: { song: SongDB<"id"> }) {
 
             {/* Mano de metal */}
             <div
-                className={`w-[22px] h-[22px] cursor-pointer z-10 ${
+                className={`w-[22px] h-[22px] cursor-pointer ${
                     animateHand ? "hand-rotate" : ""
                 }`}
                 onClick={handleToggleLiked}

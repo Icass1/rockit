@@ -7,6 +7,7 @@ import {
 import { useStore } from "@nanostores/react";
 import LikeButton from "../LikeButton";
 import { ListPlus, EllipsisVertical } from "lucide-react";
+import { isPlayerUIVisible } from "@/stores/isPlayerUIVisible";
 
 function FooterLeftForSong({ currentSong }: { currentSong: CurrentSong }) {
     return (
@@ -28,12 +29,20 @@ function FooterLeftForSong({ currentSong }: { currentSong: CurrentSong }) {
                 <span className="font-semibold flex flex-row gap-3 items-center">
                     <a
                         href={`/song/${currentSong?.id}`}
+                        onClick={() => {
+                            isPlayerUIVisible.set(false);
+                        }}
                         className="md:hover:underline truncate line-clamp-1"
                     >
                         {currentSong?.name || "Canción desconocida :("}
                     </a>
                 </span>
-                <span className="text-sm text-gray-400 flex flex-row gap-x-1 w-full">
+                <span
+                    className="text-sm text-gray-400 flex flex-row gap-x-1 w-full"
+                    onClick={() => {
+                        isPlayerUIVisible.set(false);
+                    }}
+                >
                     <div className="flex-0 md:max-w-[50%] truncate shrink-0">
                         {currentSong?.artists ? (
                             currentSong?.artists?.map((artist, index) => (

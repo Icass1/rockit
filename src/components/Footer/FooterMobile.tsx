@@ -1,10 +1,4 @@
-import {
-    pause,
-    play,
-    playing,
-    currentSong,
-    currentTime,
-} from "@/stores/audio";
+import { pause, play, playing, currentSong, currentTime } from "@/stores/audio";
 import { useStore } from "@nanostores/react";
 import { Play, Pause } from "lucide-react";
 import LikeButton from "../LikeButton";

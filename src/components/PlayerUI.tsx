@@ -368,10 +368,7 @@ export default function PlayerUI() {
             if (
                 !divRef.current?.contains(event?.target as Node) &&
                 !document
-                    .querySelector("#toggle-player-ui")
-                    ?.contains(event?.target as Node) &&
-                !document
-                    .querySelector("#footer-center")
+                    .querySelector("#footer")
                     ?.contains(event?.target as Node)
             ) {
                 isPlayerUIVisible.set(false);

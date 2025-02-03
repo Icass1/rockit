@@ -34,21 +34,14 @@ export default function FooterCenter() {
     const $loading = useStore(loading);
 
     return (
-        <div
-            className="hidden flex-col items-center justify-center w-1/3 space-y-1 md:flex"
-            id="footer-center"
-        >
+        <div className="hidden flex-col items-center justify-center w-1/3 space-y-1 md:flex">
             <div className="grid grid-cols-5 justify-items-center items-center gap-2">
                 <Shuffle
                     className={
                         "w-[18px] h-[18px] cursor-pointer md:hover:scale-105 transition-colors" +
                         ($randomQueue ? " text-[#ee1086] " : " text-gray-400 ")
                     }
-                    onClick={() =>
-                        randomQueue.set(
-                            !randomQueue.get()
-                        )
-                    }
+                    onClick={() => randomQueue.set(!randomQueue.get())}
                 />
                 <SkipBack
                     className="w-[22px] h-[22px] fill-current text-gray-400 md:hover:text-white cursor-pointer md:hover:scale-105"
@@ -84,9 +77,7 @@ export default function FooterCenter() {
                         "w-[18px] h-[18px] cursor-pointer md:hover:scale-105 transition-colors" +
                         ($repeatSong ? " text-[#ee1086] " : " text-gray-400 ")
                     }
-                    onClick={() =>
-                        repeatSong.set(!repeatSong.get())
-                    }
+                    onClick={() => repeatSong.set(!repeatSong.get())}
                 />
             </div>
             <div className="flex items-center space-x-2 h-7 w-full group">

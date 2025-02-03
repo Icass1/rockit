@@ -2,6 +2,7 @@ import {
     isSpotifyError,
     type SpotifyAlbum,
     type SpotifyError,
+    type SpotifyTrack,
 } from "@/types/spotify";
 
 import {
@@ -64,41 +65,65 @@ export default async function getAlbum(
     if (album) {
         inDatabase = true;
 
-        songs = album.songs
-            .map(
-                (
-                    songID: string
-                ):
-                    | SongDB<
-                          | "image"
-                          | "images"
-                          | "id"
-                          | "name"
-                          | "artists"
-                          | "albumId"
-                          | "albumName"
-                          | "path"
-                          | "duration"
-                          | "discNumber"
-                          | "trackNumber"
-                      >
-                    | undefined => {
-                    return parseSong(
-                        db
+        songs = (
+            await Promise.all(
+                album.songs.map(
+                    async (
+                        songID: string
+                    ): Promise<
+                        | SongDB<
+                              | "image"
+                              | "images"
+                              | "id"
+                              | "name"
+                              | "artists"
+                              | "albumId"
+                              | "albumName"
+                              | "path"
+                              | "duration"
+                              | "discNumber"
+                              | "trackNumber"
+                          >
+                        | undefined
+                    > => {
+                        console.log(songID);
+
+                        const rawSong = db
                             .prepare(
                                 "SELECT image, images, id, name, artists, albumId, albumName, path, duration, discNumber, trackNumber FROM song WHERE id = ?"
                             )
-                            .get(songID) as RawSongDB
-                    );
-                }
+                            .get(songID) as RawSongDB | undefined;
+
+                        if (rawSong) return parseSong(rawSong);
+                        inDatabase = false;
+
+                        const response = await fetch(
+                            `${BACKEND_URL}/song/${songID}`,
+                            {
+                                signal: AbortSignal.timeout(2000),
+                            }
+                        );
+
+                        const responseJson =
+                            (await response.json()) as SpotifyTrack;
+
+                        return {
+                            image: undefined,
+                            images: responseJson.album.images,
+                            id: songID,
+                            name: responseJson.name,
+                            artists: responseJson.artists,
+                            albumId: responseJson.album.id,
+                            albumName: responseJson.album.name,
+                            path: undefined,
+                            duration: responseJson.duration_ms / 1000,
+                            discNumber: responseJson.disc_number,
+                            trackNumber: responseJson.track_number,
+                        };
+                    }
+                )
             )
-            .map((song) => {
-                if (song == undefined) {
-                    inDatabase = false;
-                }
-                return song;
-            })
-            .filter((a) => typeof a !== "undefined");
+        ).filter((a) => typeof a !== "undefined");
 
         songs.sort((a, b) => {
             if (

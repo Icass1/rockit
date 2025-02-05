@@ -33,6 +33,7 @@ services:
       - "<Port to access RockIt>:4321"
     networks:
       - app-network
+    restart: unless-stopped
     environment:
       ENVIRONMENT: "PROD"
       BACKEND_URL: "http://flask-backend:8000"

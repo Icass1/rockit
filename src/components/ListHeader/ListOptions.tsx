@@ -1,10 +1,17 @@
 import { queue } from "@/stores/audio";
 import { currentListSongs } from "@/stores/currentList";
+import { likedSongs } from "@/stores/likedList";
 import { useStore } from "@nanostores/react";
-import { Heart, ListEnd, ListStart, Ellipsis } from "lucide-react";
+import { Ellipsis, Heart, ListEnd, ListStart } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-export default function AddToQueue({ type, id }: { type: string; id: string }) {
+export default function ListOptions({
+    type,
+    id,
+}: {
+    type: string;
+    id: string;
+}) {
     const $songs = useStore(currentListSongs);
 
     const [open, setOpen] = useState(false);
@@ -59,10 +66,26 @@ export default function AddToQueue({ type, id }: { type: string; id: string }) {
         queue.set([...songsToAdd, ...queue.get()]);
     };
 
+    const likeAllSongs = () => {
+        $songs.map((song) => {
+            fetch(`/api/like/${song.id}`, { method: "POST" }).then(
+                (response) => {
+                    if (response.ok) {
+                        // Add song to liked songs store
+                        likedSongs.set([...likedSongs.get(), song.id]);
+                    } else {
+                        console.log("Error");
+                        // Tell user like request was unsuccessful
+                    }
+                }
+            );
+        });
+    };
+
     return (
         <div className="relative">
             <div
-                className="absolute left-2 top-10 bg-[#2f2f2f] rounded overflow-hidden whitespace-nowrap transition-[opacity] duration-300"
+                className="absolute left-2 top-10 p-1 bg-neutral-800/90 backdrop-blur-3xl shadow-[0px_0px_20px_3px_#0e0e0e] rounded overflow-hidden whitespace-nowrap transition-[opacity] duration-300"
                 style={{
                     opacity: open ? 1 : 0,
                     display: hidden ? "none" : "block",
@@ -70,7 +93,7 @@ export default function AddToQueue({ type, id }: { type: string; id: string }) {
             >
                 <ul className="text-white text-sm">
                     <div
-                        className="md:hover:bg-[#4f4f4f] flex items-center p-3 space-x-2 cursor-pointer rounded-t-lg"
+                        className="hover:bg-neutral-700 rounded-sm p-2 cursor-pointer font-semibold text-sm flex flex-row items-center gap-2"
                         onClick={addListToTopQueue}
                     >
                         <ListStart className="h-5 w-5" />
@@ -80,7 +103,7 @@ export default function AddToQueue({ type, id }: { type: string; id: string }) {
 
                 <ul className="text-white text-sm">
                     <div
-                        className="md:hover:bg-[#4f4f4f] flex items-center p-3 space-x-2 cursor-pointer rounded-t-lg"
+                        className="hover:bg-neutral-700 rounded-sm p-2 cursor-pointer font-semibold text-sm flex flex-row items-center gap-2"
                         onClick={addListToBottomQueue}
                     >
                         <ListEnd className="h-5 w-5" />
@@ -89,7 +112,10 @@ export default function AddToQueue({ type, id }: { type: string; id: string }) {
                 </ul>
 
                 <ul className="text-white text-sm">
-                    <div className="md:hover:bg-[#4f4f4f] flex items-center p-3 space-x-2 cursor-pointer rounded-t-lg">
+                    <div
+                        className="hover:bg-neutral-700 rounded-sm p-2 cursor-pointer font-semibold text-sm flex flex-row items-center gap-2"
+                        onClick={likeAllSongs}
+                    >
                         <Heart className="h-5 w-5" />
                         <span>Like all songs on the list</span>
                     </div>

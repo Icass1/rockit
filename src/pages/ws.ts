@@ -37,7 +37,11 @@ export async function ALL(context: APIContext): Promise<Response> {
             const userId = context.locals.user.id;
 
             if (allConections[userId]) {
-                allConections[userId]?.connections?.push({ socket });
+                allConections[userId].connections?.push({ socket });
+                if (allConections[userId].connections.length == 1) {
+                    allConections[userId].playing = socket;
+                    console.log("allConections[userId].playing = socket");
+                }
             } else {
                 allConections[userId] = {
                     connections: [{ socket }],

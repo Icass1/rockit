@@ -5,6 +5,7 @@ import PinList from "@/components/ListHeader/PinList";
 import PlayList from "@/components/PlayList";
 import type { PlaylistDB, PlaylistDBSong } from "@/lib/db/playlist";
 import type { SongDB } from "@/lib/db/song";
+import { getImageUrl } from "@/lib/getImageUrl";
 import { langData } from "@/stores/lang";
 import { useStore } from "@nanostores/react";
 import { Download, Heart } from "lucide-react";
@@ -86,11 +87,17 @@ export default function PlaylistHeader({
                         </div>
                     ) : (
                         <img
-                            src={
-                                playlist.image
-                                    ? `/api/image/${playlist.image}`
-                                    : playlist.images[0].url
-                            }
+                            // src={
+                            //     playlist.image
+                            //         ? `/api/image/${playlist.image}`
+                            //         : playlist.images[0].url
+                            // }
+                            src={getImageUrl({
+                                imageId: playlist.image,
+                                fallback: playlist.images[0].url,
+                                height: 370,
+                                width: 370,
+                            })}
                             className="w-full h-full object-cover"
                         />
                     )}

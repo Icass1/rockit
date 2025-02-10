@@ -12,6 +12,7 @@ import {
     queueIndex,
 } from "@/stores/audio";
 import { useStore } from "@nanostores/react";
+import { getImageUrl } from "@/lib/getImageUrl";
 
 function Song({
     index,
@@ -92,11 +93,13 @@ function Song({
                 }}
             >
                 <img
-                    src={
-                        song.image
-                            ? `/api/image/${song.image}`
-                            : song.images[0].url
-                    }
+                    src={getImageUrl({
+                        imageId: song.image,
+                        width: 300,
+                        height: 300,
+                        fallback: song.images[0]?.url,
+                        placeHolder: "/song-placeholder.png",
+                    })}
                     className={`${transition} top-1/2 relative -translate-y-1/2`}
                     style={{ filter: `brightness(${brightness})` }}
                 />

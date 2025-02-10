@@ -13,6 +13,7 @@ import { useEffect, useRef, useState } from "react";
 import { EllipsisVertical, Play } from "lucide-react";
 import { getTime } from "@/lib/getTime";
 import useWindowSize from "@/hooks/useWindowSize";
+import { getImageUrl } from "@/lib/getImageUrl";
 
 const lyricsTimeStamp = {
     "3jnoftwNCmIuTNVkxakisg": [
@@ -306,11 +307,12 @@ function QueueSong({ song }: { song: QueueElement }) {
             <div className="relative">
                 {/* Imagen de portada */}
                 <img
-                    src={
-                        song.song.image
-                            ? `/api/image/${song.song.image}`
-                            : "/song-placeholder.png"
-                    }
+                    src={getImageUrl({
+                        imageId: song.song.image,
+                        width: 48,
+                        height: 48,
+                        placeHolder: "/song-placeholder.png",
+                    })}
                     alt={song.song.name}
                     className={`w-12 h-12 rounded object-cover ${
                         song.index === $queueIndex ? "brightness-50" : ""
@@ -454,18 +456,19 @@ export default function PlayerUI() {
                 height: "calc(100% - 6rem)",
             }}
         >
-            <div className="relative w-full  bg-black text-white grid grid-cols-[30%_40%_30%] h-full z-20">
+            <div className="relative w-full bg-black text-white grid grid-cols-[30%_40%_30%] h-full z-20">
                 <img
-                    src={
-                        $currentSong?.image
-                            ? `/api/image/${$currentSong?.image}`
-                            : "/song-placeholder.png"
-                    }
+                    src={getImageUrl({
+                        imageId: $currentSong?.image,
+                        width: 200,
+                        height: 200,
+                        placeHolder: "/song-placeholder.png",
+                    })}
                     className="absolute w-full h-auto top-1/2 -translate-y-1/2 blur-md brightness-50"
                 ></img>
 
                 <div className="z-40 w-full h-full">
-                    <h2 className="absolute w-[31.5%] text-center text-3xl font-bold mx-auto p-14 underline">
+                    <h2 className="absolute w-[31.5%] text-center text-3xl font-bold mx-auto p-14">
                         Lyrics
                     </h2>
                     <DynamicLyrics />
@@ -475,11 +478,10 @@ export default function PlayerUI() {
                 <div className="min-w-0 min-h-0 max-w-full max-h-full flex flex-col items-center justify-center z-40">
                     <div className="max-h-[70%] aspect-square">
                         <img
-                            src={
-                                $currentSong?.image
-                                    ? `/api/image/${$currentSong?.image}`
-                                    : "/song-placeholder.png"
-                            }
+                            src={getImageUrl({
+                                imageId: $currentSong?.image,
+                                placeHolder: "/song-placeholder.png",
+                            })}
                             alt="Song Cover"
                             className="object-cover mx-auto w-auto h-[100%] rounded-lg aspect-square"
                         />

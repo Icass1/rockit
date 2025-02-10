@@ -4,6 +4,7 @@ import { Play, Pause } from "lucide-react";
 import LikeButton from "../LikeButton";
 import { isMobilePlayerUIVisible } from "@/stores/isPlayerUIVisible";
 import Slider from "../Slider";
+import { getImageUrl } from "@/lib/getImageUrl";
 
 export default function FooterMobile() {
     const $playing = useStore(playing);
@@ -19,11 +20,12 @@ export default function FooterMobile() {
             >
                 <div className="aspect-square h-full w-auto ">
                     <img
-                        src={
-                            $currentSong?.image
-                                ? `/api/image/${$currentSong.image}`
-                                : "/song-placeholder.png"
-                        }
+                        src={getImageUrl({
+                            imageId: $currentSong?.image,
+                            width: 42,
+                            height: 42,
+                            placeHolder: "/song-placeholder.png",
+                        })}
                         alt="Album Cover"
                         className="w-full h-full p-1 rounded-md"
                     />

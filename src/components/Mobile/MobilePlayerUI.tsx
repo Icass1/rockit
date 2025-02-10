@@ -26,6 +26,7 @@ import { isMobilePlayerUIVisible } from "@/stores/isPlayerUIVisible.ts";
 import Slider from "../Slider.tsx";
 import { useEffect, useRef } from "react";
 import useWindowSize from "@/hooks/useWindowSize.ts";
+import { getImageUrl } from "@/lib/getImageUrl.ts";
 
 export default function MusicPlayer() {
     const $playing = useStore(playing);
@@ -71,7 +72,7 @@ export default function MusicPlayer() {
             <div
                 className="absolute -left-5 -right-5 -bottom-5 -top-5 inset-0 bg-center bg-cover"
                 style={{
-                    backgroundImage: `url(${$currentSong?.image ? `/api/image/${$currentSong.image}` : `/song-placeholder.png`})`,
+                    backgroundImage: `url(${getImageUrl({ imageId: $currentSong?.image, placeHolder: "/song-placeholder.png", height: 100, width: 100 })})`,
                     filter: "blur(10px) brightness(0.5)",
                 }}
             ></div>
@@ -90,11 +91,12 @@ export default function MusicPlayer() {
                 {/* Imagen de la canción */}
                 <div className="mb-4 w-full aspect-square bg-gray-900 rounded-md shadow-md overflow-hidden">
                     <img
-                        src={
-                            $currentSong?.image
-                                ? `/api/image/${$currentSong.image}`
-                                : "/song-placeholder.png"
-                        }
+                        src={getImageUrl({
+                            imageId: $currentSong?.image,
+                            placeHolder: "/song-placeholder.png",
+                            height: 350,
+                            width: 350,
+                        })}
                         alt="Current song artwork"
                         className="w-full h-full object-cover"
                     />

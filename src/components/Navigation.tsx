@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { langData } from "@/stores/lang";
+import { getImageUrl } from "@/lib/getImageUrl";
 
 export default function Navigation({
     activePage,
@@ -204,11 +205,12 @@ export default function Navigation({
                             >
                                 <img
                                     className="w-8 h-8 flex items-center justify-center rounded-sm"
-                                    src={
-                                        list?.image
-                                            ? `/api/image/${list.image}`
-                                            : "/song-placeholder.png"
-                                    }
+                                    src={getImageUrl({
+                                        imageId: list.image,
+                                        width: 32,
+                                        height: 32,
+                                        placeHolder: "/song-placeholder.png",
+                                    })}
                                 />
                                 <label className="font-semibold text-sm truncate cursor-pointer">
                                     {list.name}

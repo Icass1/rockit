@@ -3,10 +3,15 @@ import Layout from "@/layouts/Layout.astro";
 import AlbumsCarousel from "@/components/AlbumsCarousel.tsx";
 import { getStats, type SongForStats } from "@/lib/stats";
 import { getLang } from "@/lib/getLang";
-import { parsePlaylist, type PlaylistDB, type RawPlaylistDB } from "@/lib/db/playlist";
+import {
+    parsePlaylist,
+    type PlaylistDB,
+    type RawPlaylistDB,
+} from "@/lib/db/playlist";
 import { parseAlbum, type AlbumDB, type RawAlbumDB } from "@/lib/db/album";
 import { parseUser, type RawUserDB } from "@/lib/db/user";
 import { db } from "@/lib/db/db";
+import { getImageUrl } from "@/lib/getImageUrl";
 
 if (!Astro.locals.user) {
     return Astro.redirect("/login");
@@ -62,7 +67,7 @@ const songsLastMonth: SongForStats[] = [];
 const songsTimesPlayed: SongForStats[] = [];
 let combinedLists: (PlaylistDB | AlbumDB)[] = [];
 
-const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+const sevenDaysAgo = Date.now() - 365 * 24 * 60 * 60 * 1000;
 const lastMonth = Date.now() - 30 * 24 * 60 * 60 * 1000;
 
 const songsByTimePlayed = [...stats.songs];
@@ -241,11 +246,12 @@ const shuffledLists = combinedLists.sort(() => Math.random() - 0.5);
                     >
                         <img
                             class="rounded-lg w-full aspect-square object-cover"
-                            src={
-                                song.image
-                                    ? `/api/image/${song.image}`
-                                    : "/song-placeholder.png"
-                            }
+                            src={getImageUrl({
+                                imageId: song.image,
+                                height: 400,
+                                width: 400,
+                                placeHolder: "/song-placeholder.png",
+                            })}
                             alt="Song Cover"
                         />
                         <label class="truncate font-semibold text-center block mt-2">
@@ -285,11 +291,13 @@ const shuffledLists = combinedLists.sort(() => Math.random() - 0.5);
                                         {/* Imagen de la canción */}
                                         <img
                                             class="rounded-sm w-12 h-12 object-cover"
-                                            src={
-                                                song.image
-                                                    ? `/api/image/${song.image}`
-                                                    : "/song-placeholder.png"
-                                            }
+                                            src={getImageUrl({
+                                                imageId: song.image,
+                                                height: 100,
+                                                width: 100,
+                                                placeHolder:
+                                                    "/song-placeholder.png",
+                                            })}
                                             alt={`Song Cover for ${song.name}`}
                                         />
                                         {/* Información de la canción */}
@@ -337,11 +345,12 @@ const shuffledLists = combinedLists.sort(() => Math.random() - 0.5);
                     >
                         <img
                             class="rounded-lg w-full aspect-square object-cover"
-                            src={
-                                list.image
-                                    ? `/api/image/${list.image}`
-                                    : "/song-placeholder.png"
-                            }
+                            src={getImageUrl({
+                                imageId: list.image,
+                                height: 400,
+                                width: 400,
+                                placeHolder: "/song-placeholder.png",
+                            })}
                             alt="Song Cover"
                         />
                         <label class="truncate font-semibold text-center block mt-2">

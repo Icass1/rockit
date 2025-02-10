@@ -15,6 +15,7 @@ import { navigate } from "astro:transitions/client";
 import { songHandleClick } from "./HandleClick";
 import SongContextMenu from "./SongContextMenu";
 import { downloadedSongs } from "@/stores/downloadedSongs";
+import { getImageUrl } from "@/lib/getImageUrl";
 
 export default function PlaylistSong({
     song,
@@ -111,10 +112,13 @@ export default function PlaylistSong({
                 {/* Imagen */}
                 <div className="h-10 w-auto aspect-square rounded relative">
                     <img
-                        src={
-                            (_song?.images && _song?.images[0]?.url) ||
-                            "/song-placeholder.png"
-                        }
+                        src={getImageUrl({
+                            imageId: _song.image,
+                            width: 40,
+                            height: 40,
+                            fallback: _song?.images[0]?.url,
+                            placeHolder: "/song-placeholder.png",
+                        })}
                         className="rounded absolute top-0 bottom-0 left-0 right-0"
                     />
                 </div>

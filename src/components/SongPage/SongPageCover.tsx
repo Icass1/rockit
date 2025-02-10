@@ -73,17 +73,6 @@ export default function SongPageCover({
 
     return (
         <div className="relative w-full h-full max-w-md">
-            {/* Imagen con blur como fondo */}
-            {/* <img
-                src={
-                    (song?.image
-                        ? `/api/image/${song.image}`
-                        : album?.album.images[0].url) || "/song-placeholder.png"
-                }
-                alt="Carátula desenfocada de la canción"
-                className="absolute z-10 w-full max-w-md h-auto blur-3xl brightness-105 scale-110"
-            /> */}
-
             {/* Contenedor principal */}
             <div
                 className="w-full max-w-md h-auto object-cover aspect-square rounded-lg overflow-hidden relative cursor-pointer select-none"

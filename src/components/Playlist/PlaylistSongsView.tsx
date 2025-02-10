@@ -206,8 +206,6 @@ export default function PlaylistSongsView({
         }
     };
 
-    console.log("ASDF", divRef);
-
     return (
         <div
             ref={divRef}

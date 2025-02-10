@@ -112,5 +112,6 @@
     "add_to_library": "Agregar a la biblioteca",
     "unpin": "Desanclar",
     "pin": "Anclar",
-    "copy_list_url": "Copiar URL de la lista"
+    "copy_list_url": "Copiar URL de la lista",
+    "get_info": "Get info"
 }

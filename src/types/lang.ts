@@ -113,4 +113,5 @@ export interface Lang {
     unpin: string;
     pin: string;
     copy_list_url: string;
+    get_info: string;
 }

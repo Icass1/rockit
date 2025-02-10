@@ -127,6 +127,10 @@ export const repeatSong = atom<boolean | undefined>(undefined);
 export const currentStation = atom<Station | undefined>(undefined);
 export const songsInIndexedDB = atom<string[] | undefined>(undefined);
 
+export const serviceWorkerRegistration = atom<
+    ServiceWorkerRegistration | undefined
+>(undefined);
+
 const audio = new Audio();
 const hls = new Hls();
 
@@ -681,8 +685,11 @@ async function registerServiceWorker() {
                 "/service-worker.js",
                 {
                     scope: "/",
+                    
                 }
             );
+            serviceWorkerRegistration.set(registration);
+
             if (registration.installing) {
                 console.log("Service worker installing");
             } else if (registration.waiting) {

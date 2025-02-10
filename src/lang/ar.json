@@ -112,5 +112,6 @@
     "add_to_library": "Add to library",
     "unpin": "Unpin",
     "pin": "Pin",
-    "copy_list_url": "Copy list URL"
+    "copy_list_url": "Copy list URL",
+    "get_info": "Get info"
 }

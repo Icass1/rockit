@@ -16,7 +16,10 @@ const { title } = Astro.props;
             name="description"
             content="Rock It! - A music player by Icass & Nicorebo18"
         />
-        <meta name="viewport" content="width=device-width" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content"
+        />
         <link rel="icon" type="image/svg+xml" href="/rockit-logo.ico" />
         <meta name="generator" content={Astro.generator} />
         <title>{title || "RockIt"}</title>

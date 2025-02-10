@@ -129,7 +129,9 @@ export default function AlbumSong({
                     {_song.name}{" "}
                 </label>
                 {$songsInIndexedDB?.includes(_song.id) && (
-                    <CheckCircle2 className="hidden md:flex md:hover:text-white md:hover:scale-105 w-8 text-[#ec5588]" />
+                    <div className="min-h-6 min-w-6">
+                        <CheckCircle2 className="flex h-full w-full text-[#ec5588]" />
+                    </div>
                 )}
                 <LikeButton song={_song} />
                 <ListPlus

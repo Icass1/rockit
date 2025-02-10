@@ -33,7 +33,7 @@ export default function FooterMobile() {
                     <label className="font-semibold truncate">
                         {$currentSong?.name}
                     </label>
-                    <label className="text-sm">
+                    <label className="text-sm truncate">
                         {$currentSong?.artists
                             .map((artist) => artist.name)
                             .join(", ")}

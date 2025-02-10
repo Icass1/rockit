@@ -1,13 +1,13 @@
-import PinList from "@/components/ListHeader/PinList";
 import AddToLibrary from "@/components/ListHeader/AddToLibrary";
-import { Download, Heart } from "lucide-react";
-import PlayList from "@/components/PlayList";
-import AddToQueue from "@/components/ListHeader/AddToQueue";
 import DownloadListDevice from "@/components/ListHeader/DownloadListDeviceButton";
-import { langData } from "@/stores/lang";
+import ListOptions from "@/components/ListHeader/ListOptions";
+import PinList from "@/components/ListHeader/PinList";
+import PlayList from "@/components/PlayList";
 import type { PlaylistDB, PlaylistDBSong } from "@/lib/db/playlist";
 import type { SongDB } from "@/lib/db/song";
+import { langData } from "@/stores/lang";
 import { useStore } from "@nanostores/react";
+import { Download, Heart } from "lucide-react";
 
 function getMinutes(seconds: number) {
     seconds = Math.round(seconds);
@@ -105,7 +105,7 @@ export default function PlaylistHeader({
                 <PinList type="playlist" id={id} />
                 <AddToLibrary type="playlist" id={id} />
                 <PlayList type="playlist" id={id} />
-                <AddToQueue type="playlist" id={id} />
+                <ListOptions type="playlist" id={id} />
                 <DownloadListDevice type="playlist" id={id} />
             </div>
 

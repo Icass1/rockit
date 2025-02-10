@@ -123,7 +123,7 @@ function RenderListDownload({
                     >
                         {list[1].listInfo.name}
                     </a>
-                    <label className="text-sm">
+                    <label className="text-sm truncate">
                         {list[1].listInfo.artists
                             .map((artist) => artist.name || artist)
                             .join(", ")}

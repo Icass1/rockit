@@ -1,13 +1,23 @@
 import {
     currentSong,
     currentStation,
+    pause,
+    play,
+    playing,
     type CurrentSong,
     type Station,
 } from "@/stores/audio";
 import { useStore } from "@nanostores/react";
 import LikeButton from "../LikeButton";
-import { ListPlus, EllipsisVertical } from "lucide-react";
+import {
+    ListPlus,
+    EllipsisVertical,
+    PlayCircleIcon,
+    PlayIcon,
+    PauseIcon,
+} from "lucide-react";
 import { isPlayerUIVisible } from "@/stores/isPlayerUIVisible";
+import { useState } from "react";
 
 function FooterLeftForSong({ currentSong }: { currentSong: CurrentSong }) {
     return (
@@ -82,15 +92,44 @@ function FooterLeftForSong({ currentSong }: { currentSong: CurrentSong }) {
 }
 
 function FooterLeftForStation({ currentStation }: { currentStation: Station }) {
+    const [hover, setHover] = useState(false);
+    const $playing = useStore(playing);
+
     return (
         <div className="flex items-center w-full md:w-1/3 max-w-full min-w-0 gap-x-4">
             {/* Imagen al inicio */}
-            <img
-                src={currentStation.favicon || "/song-placeholder.png"}
-                alt="Album Cover"
-                className="md:w-16 md:h-16 rounded-md select-none w-9 h-9"
-            />
-
+            <div
+                className="md:w-16 md:h-16 w-9 h-9 relative rounded-md overflow-hidden"
+                onMouseEnter={() => setHover(true)}
+                onMouseLeave={() => setHover(false)}
+            >
+                <img
+                    src={currentStation.favicon || "/song-placeholder.png"}
+                    alt="Album Cover"
+                    className="absolute w-full h-full select-none "
+                />
+                {$playing ? (
+                    <PauseIcon
+                        onClick={() => pause()}
+                        className="absolute p-4 bg-neutral-500/70 transition-all"
+                        style={{
+                            display: hover ? "" : "none",
+                            width: hover ? "100%" : "0%",
+                            height: hover ? "100%" : "0%",
+                        }}
+                    />
+                ) : (
+                    <PlayIcon
+                        onClick={() => play()}
+                        className="absolute p-4 bg-neutral-500/70 transition-all"
+                        style={{
+                            display: hover ? "" : "none",
+                            width: hover ? "100%" : "0%",
+                            height: hover ? "100%" : "0%",
+                        }}
+                    />
+                )}
+            </div>
             {/* Parte central que se estira */}
             <div className="flex flex-col min-w-0 flex-1">
                 <span className="font-semibold flex flex-row gap-3 items-center truncate line-clamp-1">

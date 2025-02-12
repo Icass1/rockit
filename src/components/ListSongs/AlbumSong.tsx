@@ -38,7 +38,6 @@ export default function AlbumSong({
     const $songsInIndexedDB = useStore(songsInIndexedDB);
 
     const $downloadedSongs = useStore(downloadedSongs);
-    const $currentListSongs = useStore(currentListSongs);
 
     const [_song, setSong] =
         useState<
@@ -72,13 +71,15 @@ export default function AlbumSong({
                 .then((response) => response.json())
                 .then((data) => {
                     setSong(data);
-                    if (
-                        !currentListSongs
-                            .get()
-                            .find((song) => song.id == data.id)
-                    ) {
-                        currentListSongs.set([...currentListSongs.get(), data]);
-                    }
+                    currentListSongs.set(
+                        currentListSongs.get().map((song) => {
+                            if (song.id == data.id) {
+                                return data;
+                            } else {
+                                return song;
+                            }
+                        })
+                    );
                 });
         }
     }, [$downloadedSongs]);
@@ -102,7 +103,7 @@ export default function AlbumSong({
                         ? " text-[#ec5588]"
                         : "")
                 }
-                onClick={() => songHandleClick(_song, $currentListSongs)}
+                onClick={() => songHandleClick(_song, currentListSongs.get())}
                 onMouseEnter={() => {
                     setHovered(true);
                 }}

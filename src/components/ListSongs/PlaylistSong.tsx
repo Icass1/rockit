@@ -69,18 +69,26 @@ export default function PlaylistSong({
     };
 
     useEffect(() => {
+        // console.log("useEffect $downloadedSongs", $downloadedSongs);
+        // console.log("useEffect _song", _song);
         if ($downloadedSongs.includes(_song.id)) {
+            // console.log(`/api/song/${_song.id}`);
             fetch(`/api/song/${_song.id}`)
                 .then((response) => response.json())
                 .then((data) => {
                     setSong(data);
-                    if (
-                        !currentListSongs
-                            .get()
-                            .find((song) => song.id == data.id)
-                    ) {
-                        currentListSongs.set([...currentListSongs.get(), data]);
-                    }
+                    // console.log(data, currentListSongs.get());
+
+                    currentListSongs.set(
+                        currentListSongs.get().map((song) => {
+                            // console.log(song, data);
+                            if (song.id == data.id) {
+                                return data;
+                            } else {
+                                return song;
+                            }
+                        })
+                    );
                 });
         }
     }, [$downloadedSongs]);

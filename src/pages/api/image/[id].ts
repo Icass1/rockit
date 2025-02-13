@@ -64,7 +64,7 @@ export async function GET(context: APIContext): Promise<Response> {
         return new Response(resizedBuffer, {
             headers: {
                 "Content-Type": "image/png",
-                "Cache-Control": "public, max-age=604800", // Optional: Caching header
+                "Cache-Control": "public, max-age=2592000", // 60*60*24*30
             },
         });
     } catch (error) {

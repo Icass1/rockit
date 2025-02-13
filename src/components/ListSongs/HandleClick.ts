@@ -32,10 +32,15 @@ export function songHandleClick(
     >[]
 ) {
     const _currentList = currentList.get();
-    if (!song.path || !_currentList) {
+    if (!song.path) {
+        console.warn("song.path is undefined. ( Song:", song, ")");
         return;
     }
 
+    if (!_currentList) {
+        console.warn("Current list is undefined");
+        return;
+    }
     if (_currentList.type == undefined || _currentList.id == undefined) {
         return;
     }

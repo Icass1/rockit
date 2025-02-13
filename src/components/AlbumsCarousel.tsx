@@ -2,28 +2,24 @@ import { useEffect, useRef, useState } from "react";
 import { Play, ChevronLeft, ChevronRight, Pause } from "lucide-react";
 import type { SongForStats } from "@/lib/stats";
 import useWindowSize from "@/hooks/useWindowSize";
-import {
-    currentSong,
-    pause,
-    play,
-    playing,
-    playWhenReady,
-    queue,
-    queueIndex,
-} from "@/stores/audio";
+import { currentSong, playing } from "@/stores/audio";
 import { useStore } from "@nanostores/react";
 import { getImageUrl } from "@/lib/getImageUrl";
+import { songHandleClick } from "./ListSongs/HandleClick";
+import { currentList } from "@/stores/currentList";
 
 function Song({
     index,
     currentIndex,
     song,
     songsLength,
+    songs,
 }: {
     index: number;
     currentIndex: number;
     song: SongForStats;
     songsLength: number;
+    songs: SongForStats[];
 }) {
     let distanceFromCenter = Math.abs(index - currentIndex);
     let neg = index > currentIndex ? -1 : 1;
@@ -61,17 +57,28 @@ function Song({
     const $playing = useStore(playing);
 
     const handleClick = () => {
-        if ($currentSong?.id == song.id && $playing) {
-            pause();
-        } else if ($currentSong?.id == song.id) {
-            play();
-        } else {
-            playWhenReady.set(true);
-            currentSong.set(song);
+        currentList.set({ type: "carousel", id: "carousel" });
+        songHandleClick(
+            { ...song, path: "this path is not needed but cannot be empty" },
+            songs.map((song) => {
+                return {
+                    ...song,
+                    path: "this path is not needed but cannot be empty",
+                };
+            })
+        );
 
-            queueIndex.set(0);
-            queue.set([{ song: song, list: undefined, index: 0 }]);
-        }
+        // if ($currentSong?.id == song.id && $playing) {
+        //     pause();
+        // } else if ($currentSong?.id == song.id) {
+        //     play();
+        // } else {
+        //     playWhenReady.set(true);
+        //     currentSong.set(song);
+
+        //     queueIndex.set(0);
+        //     queue.set([{ song: song, list: undefined, index: 0 }]);
+        // }
     };
 
     return (
@@ -162,6 +169,7 @@ function Version2({
                     currentIndex={currentIndex}
                     songsLength={songs.length}
                     song={song}
+                    songs={songs}
                     key={"song" + index}
                 />
             ))}

@@ -243,8 +243,13 @@ repeatSong.subscribe((value) => {
 });
 
 currentSong.subscribe(async (value) => {
-    console.log(value);
     send({ currentSong: value?.id || "" });
+
+    // if (value?.id) {
+    //     // Just to fill quickly last listened songs for developing propourses
+    //     console.log("song ended");
+    //     send({ songEnded: value.id });
+    // }
 
     if (!value) {
         return;
@@ -685,7 +690,6 @@ async function registerServiceWorker() {
                 "/service-worker.js",
                 {
                     scope: "/",
-                    
                 }
             );
             serviceWorkerRegistration.set(registration);

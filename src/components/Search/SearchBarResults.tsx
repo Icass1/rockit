@@ -42,7 +42,7 @@ function Result({
         >
             <img
                 className={
-                    "aspect-square w-auto h-full " +
+                    "aspect-square w-auto h-full object-cover object-center " +
                     (artistsOrOwner == "" ? " rounded-full " : " ")
                 }
                 src={image}

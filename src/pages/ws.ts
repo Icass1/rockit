@@ -41,7 +41,7 @@ export async function ALL(context: APIContext): Promise<Response> {
                 allConections[userId].connections?.push({ socket });
                 if (allConections[userId].connections.length == 1) {
                     allConections[userId].playing = socket;
-                    console.log("allConections[userId].playing = socket");
+                    // console.log("allConections[userId].playing = socket");
                 }
             } else {
                 allConections[userId] = {
@@ -50,10 +50,10 @@ export async function ALL(context: APIContext): Promise<Response> {
                 };
             }
 
-            console.log("New client", {
-                userName: context.locals.user.username,
-                connections: allConections[userId].connections.length,
-            });
+            // console.log("New client", {
+            //     userName: context.locals.user.username,
+            //     connections: allConections[userId].connections.length,
+            // });
 
             socket.addEventListener("message", (event) => {
                 if (!context.locals.user) {
@@ -98,6 +98,8 @@ export async function ALL(context: APIContext): Promise<Response> {
                             `UPDATE user SET currentTime = ? WHERE id = ?`
                         ).run(messageJson.currentTime, userId);
                     }
+                } else if (messageJson.deviceName != undefined) {
+                    // Handle device name
                 } else if (messageJson.queue != undefined) {
                     db.prepare(`UPDATE user SET queue = ? WHERE id = ?`).run(
                         JSON.stringify(messageJson.queue),

@@ -1,6 +1,10 @@
 ---
 import "@/styles/default.css";
 import BaseLayout from "@/layouts/BaseLayout.astro";
+
+if (Astro.locals.user) {
+    return Astro.redirect("/");
+}
 ---
 
 <BaseLayout>

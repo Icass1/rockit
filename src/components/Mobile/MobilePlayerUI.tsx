@@ -24,9 +24,10 @@ import {
 import LikeButton from "../LikeButton.tsx";
 import { isMobilePlayerUIVisible } from "@/stores/isPlayerUIVisible.ts";
 import Slider from "../Slider.tsx";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import useWindowSize from "@/hooks/useWindowSize.ts";
 import { getImageUrl } from "@/lib/getImageUrl.ts";
+import MobilePlayerUIQueue from "./MobilePlayerUIQueue.tsx";
 
 export default function MusicPlayer() {
     const $playing = useStore(playing);
@@ -34,9 +35,21 @@ export default function MusicPlayer() {
     const $currentSong = useStore(currentSong);
     const $randomQueue = useStore(randomQueue);
     const $isMobilePlayerUIVisible = useStore(isMobilePlayerUIVisible);
-    const [innerWidth] = useWindowSize();
+    const innerWidth = useWindowSize().width;
+    const [playerUIhidden, setPlayerUIHidden] = useState(
+        !$isMobilePlayerUIVisible
+    );
+    const [playerUITop0, setPlayerUITop0] = useState($isMobilePlayerUIVisible);
+    const [enableTransition, setEnableTransition] = useState(false);
+
+    const [touchStart, setTouchStart] = useState([0, 0]);
+    const [touchStartTime, setTouchStartTime] = useState(0);
+    const [topOffset, setTopOffset] = useState(0);
+    const [cancelHide, setCancelHide] = useState(false);
 
     const divRef = useRef<HTMLDivElement>(null);
+
+    const [queueOpen, setQueueOpen] = useState(false);
 
     useEffect(() => {
         if (!divRef.current) {
@@ -58,15 +71,124 @@ export default function MusicPlayer() {
         };
     }, [divRef]);
 
+    useEffect(() => {
+        setEnableTransition(true);
+        if ($isMobilePlayerUIVisible) {
+            setPlayerUIHidden(false);
+            setTimeout(() => {
+                setPlayerUITop0(true);
+            }, 10);
+        } else {
+            setTimeout(() => {
+                setPlayerUITop0(false);
+                setTimeout(() => {
+                    setPlayerUIHidden(!$isMobilePlayerUIVisible);
+                }, 300);
+            }, 10);
+        }
+        setTimeout(() => {
+            setEnableTransition(false);
+        }, 310);
+    }, [$isMobilePlayerUIVisible]);
+
+    useEffect(() => {
+        const el = divRef.current;
+        if (!el) return;
+
+        const handleTouchStart = (e: TouchEvent) => {
+            if (
+                document
+                    .querySelector("#MobilePlayerUIQueue")
+                    ?.contains(e.target as Node)
+            )
+                return;
+
+            const touch = e.targetTouches[0];
+            setTouchStart([touch.pageX, touch.pageY]);
+            setTouchStartTime(new Date().getTime());
+        };
+
+        const handleTouchMove = (e: TouchEvent) => {
+            if (
+                document
+                    .querySelector("#MobilePlayerUIQueue")
+                    ?.contains(e.target as Node)
+            )
+                return;
+            if (cancelHide) {
+                setTopOffset(0);
+                return;
+            }
+            const touch = e.targetTouches[0];
+
+            const offsetY = touch.pageY - touchStart[1];
+            const offsetX = touch.pageX - touchStart[0];
+
+            if (Math.abs(offsetY / offsetX) < 3) {
+                setCancelHide(true);
+                setTopOffset(0);
+                return;
+            }
+            if (offsetY < 0) return;
+            setTopOffset(offsetY);
+        };
+
+        const handleTouchEnd = (e: TouchEvent) => {
+            if (
+                document
+                    .querySelector("#MobilePlayerUIQueue")
+                    ?.contains(e.target as Node)
+            )
+                return;
+            if (cancelHide) {
+                setCancelHide(false);
+                return;
+            }
+            setCancelHide(false);
+
+            const time = new Date().getTime() - touchStartTime;
+
+            if (topOffset / time > 1.5 || topOffset > window.innerHeight / 3) {
+                setEnableTransition(true);
+                setTimeout(() => {
+                    setEnableTransition(false);
+                    setTopOffset(0);
+                    isMobilePlayerUIVisible.set(false);
+                }, 300);
+
+                setTopOffset(window.innerHeight);
+            } else {
+                setEnableTransition(true);
+                setTimeout(() => {
+                    setEnableTransition(false);
+                }, 300);
+
+                setTopOffset(0);
+            }
+        };
+
+        el.addEventListener("touchmove", handleTouchMove, { passive: true });
+        el.addEventListener("touchstart", handleTouchStart, { passive: true });
+        el.addEventListener("touchend", handleTouchEnd, { passive: true });
+        return () => {
+            el.removeEventListener("touchmove", handleTouchMove);
+            el.removeEventListener("touchstart", handleTouchStart);
+            el.removeEventListener("touchend", handleTouchEnd);
+        };
+    }, [divRef, touchStart, touchStartTime, topOffset]);
+
     if (innerWidth > 768) return;
 
     return (
         <div
             ref={divRef}
             className={
-                "fixed top-0 left-0 right-0 bottom-16 w-screen overflow-hidden md:hidden z-40 " +
-                ($isMobilePlayerUIVisible ? "flex" : "hidden")
+                "fixed top-0 left-0 right-0  h-[calc(100%_-_4rem)] w-screen overflow-hidden md:hidden z-40 flex  " +
+                (playerUITop0 ? " top-0 " : " top-full ") +
+                (playerUIhidden ? " hidden " : "") +
+                (enableTransition ? " transition-[top] duration-300 " : "  ")
             }
+            style={{ top: topOffset ? `${topOffset}px` : undefined }}
         >
             {/* Fondo blurreado */}
             <div
@@ -197,12 +319,23 @@ export default function MusicPlayer() {
                 </div>
 
                 {/* Otros Botones */}
-                <div className="absolute bottom-0 left-0 right-0 flex justify-around items-center px-4 py-7 text-white font-bold bg-gradient-to-t from-black to-black/0">
-                    <button className="text-lg">Queue</button>
+                <div className="absolute bottom-0 left-0 right-0 flex justify-around items-center px-4 py-7 text-white font-bold bg-gradient-to-t from-black/50 to-black/0">
+                    <button
+                        className="text-lg"
+                        onClick={() => {
+                            setQueueOpen(true);
+                        }}
+                    >
+                        Queue
+                    </button>
                     <button className="text-lg">Lyrics</button>
                     <button className="text-lg">Related</button>
                 </div>
             </div>
+            <MobilePlayerUIQueue
+                open={queueOpen}
+                setOpen={setQueueOpen}
+            ></MobilePlayerUIQueue>
         </div>
     );
 }

@@ -86,7 +86,6 @@ export default async function getAlbum(
                           >
                         | undefined
                     > => {
-                        console.log(songID);
 
                         const rawSong = db
                             .prepare(

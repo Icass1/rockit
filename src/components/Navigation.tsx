@@ -28,7 +28,7 @@ export default function Navigation({
     const [open, setOpen] = useState(false);
 
     const $pinnedLists = useStore(pinnedLists);
-    const [innerWidth] = useWindowSize();
+    const innerWidth = useWindowSize().width;
 
     const $lang = useStore(langData);
     if (!$lang) return;

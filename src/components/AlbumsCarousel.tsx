@@ -23,7 +23,7 @@ function Song({
 }) {
     let distanceFromCenter = Math.abs(index - currentIndex);
     let neg = index > currentIndex ? -1 : 1;
-    const [innerWidth] = useWindowSize();
+    const innerWidth = useWindowSize().width;
 
     if (distanceFromCenter > 4) {
         distanceFromCenter = songsLength - Math.abs(index - currentIndex);

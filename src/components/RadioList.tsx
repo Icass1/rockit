@@ -63,7 +63,7 @@ const RadioStations = () => {
     const [filteredStations, setFilteredStations] = useState<Station[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [error, setError] = useState<string | null>(null);
-    const [innerWidth] = useWindowSize();
+    const innerWidth = useWindowSize().width;
 
     const searchDebounce = useRef<pkg.DebouncedFunc<(query: string) => void>>();
 

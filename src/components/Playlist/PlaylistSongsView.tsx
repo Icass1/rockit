@@ -68,7 +68,7 @@ export default function PlaylistSongsView({
 
     const divRef = useRef<HTMLDivElement>(null);
     const [scroll, setScroll] = useState(0);
-    const [innerWidth] = useWindowSize();
+    const innerWidth = useWindowSize().width;
 
     const toggleFilter = (column: columnsType) => {
         setFilter((value) => {

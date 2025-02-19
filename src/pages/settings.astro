@@ -6,6 +6,7 @@ import ServiceWorkerInfo from "@/components/ServiceWorkerInfo.tsx";
 import ChangeLang from "@/components/Settings/ChangeLang";
 
 import { getLang } from "@/lib/getLang";
+import LogOutButton from "@/components/Settings/LogOutButton";
 
 if (!Astro.locals.user) {
     return Astro.redirect("/login");
@@ -63,14 +64,8 @@ const lang = getLang(Astro.locals.user.lang);
                     class="flex flex-wrap items-center justify-center gap-2 mt-2"
                 >
                     {/* Botón de log out */}
-                    <a
-                        class="px-3 py-2 bg-red-700 text-white rounded-lg font-bold shadow-md hover:bg-red-900 transition duration-300 flex items-center justify-center gap-2"
-                        href="/login"
-                    >
-                        <LogOut className="w-5 h-5" />
-                        {lang.log_out}
-                    </a>
-
+                    <LogOutButton client:only="react"></LogOutButton>
+                  
                     {/* Botón de estadísticas */}
                     <a
                         class="w-40 py-2 bg-blue-700 md:hidden text-white rounded-lg font-bold shadow-md hover:bg-blue-900 transition duration-300 flex items-center justify-center gap-2"
@@ -130,6 +125,30 @@ const lang = getLang(Astro.locals.user.lang);
                     />
                 </div>
 
+                <div>
+                    <h2 class="text-xl md:text-2xl font-bold text-white mb-2">
+                        Cross Fade
+                    </h2>
+                    <input
+                        id="cross-fade-input"
+                        type="number"
+                        value="0"
+                        max="40"
+                        min="0"
+                        class="p-2 w-16 rounded"
+                        oninput="localStorage.setItem('crossFade', this.value)"
+                    />
+                </div>
+                <script>
+                    // Temporary solution, a react component should be created to update value in database, not in localStorage
+                    document.addEventListener("DOMContentLoaded", () => {
+                        const $crossFadeInput = document.getElementById(
+                            "cross-fade-input"
+                        ) as HTMLInputElement;
+                        $crossFadeInput.value =
+                            localStorage.getItem("crossFade") ?? "0";
+                    });
+                </script>
                 <DownloadAppButton client:only="react" />
                 <ServiceWorkerInfo client:only="react" />
                 <div class="min-h-16 block"></div>

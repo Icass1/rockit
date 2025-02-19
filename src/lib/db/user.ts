@@ -21,6 +21,7 @@ export interface RawUserDB {
     likedSongs: string;
     pinnedLists: string;
     volume: number;
+    crossFade: number;
     lang: string;
     admin: string;
     superAdmin: string;
@@ -69,6 +70,7 @@ export interface UserDBFull {
     likedSongs: PlaylistDBSong[];
     pinnedLists: UserDBPinnedLists[];
     volume: number;
+    crossFade: number;
     lang: string;
     admin: string;
     superAdmin: string;
@@ -95,6 +97,7 @@ export const userQuery = `CREATE TABLE IF NOT EXISTS user (
     likedSongs TEXT DEFAULT "[]" NOT NULL,
     pinnedLists TEXT DEFAULT "[]" NOT NULL,
     volume INTEGER DEFAULT 1 NOT NULL,
+    crossFade INTEGER DEFAULT 0 NOT NULL,
     lang TEXT DEFAULT "en" NOT NULL,
     admin BOOLEAN DEFAULT 0 NOT NULL,
     superAdmin BOOLEAN DEFAULT 0 NOT NULL,
@@ -128,6 +131,7 @@ export function parseUser(user: RawUserDB | undefined): UserDB | undefined {
         likedSongs: JSON.parse(user.likedSongs || "[]"),
         pinnedLists: JSON.parse(user.pinnedLists || "[]"),
         volume: user.volume,
+        crossFade: user.crossFade,
         lang: user.lang,
         admin: user.admin,
         superAdmin: user.superAdmin,

@@ -7,6 +7,7 @@ import ChangeLang from "@/components/Settings/ChangeLang";
 
 import { getLang } from "@/lib/getLang";
 import LogOutButton from "@/components/Settings/LogOutButton";
+import CrossFadeInput from "@/components/Settings/CrossFadeInput";
 
 if (!Astro.locals.user) {
     return Astro.redirect("/login");
@@ -64,8 +65,8 @@ const lang = getLang(Astro.locals.user.lang);
                     class="flex flex-wrap items-center justify-center gap-2 mt-2"
                 >
                     {/* Botón de log out */}
-                    <LogOutButton client:only="react"></LogOutButton>
-                  
+                    <LogOutButton client:only="react" />
+
                     {/* Botón de estadísticas */}
                     <a
                         class="w-40 py-2 bg-blue-700 md:hidden text-white rounded-lg font-bold shadow-md hover:bg-blue-900 transition duration-300 flex items-center justify-center gap-2"
@@ -129,7 +130,9 @@ const lang = getLang(Astro.locals.user.lang);
                     <h2 class="text-xl md:text-2xl font-bold text-white mb-2">
                         Cross Fade
                     </h2>
-                    <input
+                    <CrossFadeInput client:only="react" />
+
+                    <!-- <input
                         id="cross-fade-input"
                         type="number"
                         value="0"
@@ -137,10 +140,19 @@ const lang = getLang(Astro.locals.user.lang);
                         min="0"
                         class="p-2 w-16 rounded"
                         oninput="localStorage.setItem('crossFade', this.value)"
-                    />
+                    /> -->
                 </div>
-                <script>
+                <!-- <script>
                     // Temporary solution, a react component should be created to update value in database, not in localStorage
+
+                    const $crossFadeInput = document.getElementById(
+                        "cross-fade-input"
+                    ) as HTMLInputElement;
+                    console.log("ASDF", $crossFadeInput)
+                    if ($crossFadeInput) {
+                        $crossFadeInput.value =
+                            localStorage.getItem("crossFade") ?? "0";
+                    }
                     document.addEventListener("DOMContentLoaded", () => {
                         const $crossFadeInput = document.getElementById(
                             "cross-fade-input"
@@ -148,7 +160,7 @@ const lang = getLang(Astro.locals.user.lang);
                         $crossFadeInput.value =
                             localStorage.getItem("crossFade") ?? "0";
                     });
-                </script>
+                </script> -->
                 <DownloadAppButton client:only="react" />
                 <ServiceWorkerInfo client:only="react" />
                 <div class="min-h-16 block"></div>

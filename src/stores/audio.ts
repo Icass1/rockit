@@ -301,7 +301,8 @@ currentSong.subscribe(async (value) => {
         });
     }
     console.log("inCrossFade", inCrossFade);
-    if (inCrossFade) {
+    console.log("audio2.paused", audio2.paused);
+    if (inCrossFade && !audio2.paused) {
         console.log("audio", audio);
         console.log("audio2", audio2);
         [audio, audio2] = [audio2, audio];

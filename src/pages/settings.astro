@@ -131,36 +131,8 @@ const lang = getLang(Astro.locals.user.lang);
                         Cross Fade
                     </h2>
                     <CrossFadeInput client:only="react" />
-
-                    <!-- <input
-                        id="cross-fade-input"
-                        type="number"
-                        value="0"
-                        max="40"
-                        min="0"
-                        class="p-2 w-16 rounded"
-                        oninput="localStorage.setItem('crossFade', this.value)"
-                    /> -->
                 </div>
-                <!-- <script>
-                    // Temporary solution, a react component should be created to update value in database, not in localStorage
 
-                    const $crossFadeInput = document.getElementById(
-                        "cross-fade-input"
-                    ) as HTMLInputElement;
-                    console.log("ASDF", $crossFadeInput)
-                    if ($crossFadeInput) {
-                        $crossFadeInput.value =
-                            localStorage.getItem("crossFade") ?? "0";
-                    }
-                    document.addEventListener("DOMContentLoaded", () => {
-                        const $crossFadeInput = document.getElementById(
-                            "cross-fade-input"
-                        ) as HTMLInputElement;
-                        $crossFadeInput.value =
-                            localStorage.getItem("crossFade") ?? "0";
-                    });
-                </script> -->
                 <DownloadAppButton client:only="react" />
                 <ServiceWorkerInfo client:only="react" />
                 <div class="min-h-16 block"></div>

@@ -140,6 +140,9 @@ let timeSum = 0;
 let inCrossFade = false;
 const crossFade = Number(localStorage.getItem("crossFade")) ?? 0;
 
+console.log("crossFade", crossFade);
+// console.log("localStorage.getItem('crossFade')", localStorage.getItem("crossFade"))
+
 fetch(
     "/api/user?q=currentSong,currentTime,queue,queueIndex,volume,randomQueue,repeatSong,currentStation"
 ).then((userJsonResponse) => {
@@ -302,7 +305,8 @@ currentSong.subscribe(async (value) => {
     }
     console.log("inCrossFade", inCrossFade);
     console.log("audio2.paused", audio2.paused);
-    if (inCrossFade && !audio2.paused) {
+    console.log("audio2.src", audio2.src);
+    if (inCrossFade && !audio2.paused && audio2.src) {
         console.log("audio", audio);
         console.log("audio2", audio2);
         [audio, audio2] = [audio2, audio];
@@ -311,17 +315,25 @@ currentSong.subscribe(async (value) => {
         inCrossFade = false;
     } else if (value) {
         loading.set(true);
+        console.log("1");
         playing.set(false);
+        console.log("2");
         audio2.pause();
         audio2 = new Audio();
+        console.log("3");
         audio.src = await getSongSrc(value.id);
+        console.log("4");
         audio.onerror = () => {
             loading.set(false);
         };
+        console.log("5");
         audio.onloadeddata = () => {
+            console.log("6");
             loading.set(false);
             if (playWhenReady.get()) {
+                console.log("7");
                 audio.play().then(() => {
+                    console.log("8");
                     playing.set(true);
                 });
             }
@@ -560,7 +572,7 @@ export async function next(songEnded = false) {
     await fetch(`/api/song/${newSongId}`)
         .then((response) => response.json())
         .then((data) => {
-            if (songEnded) {
+            if (songEnded && crossFade > 0) {
                 inCrossFade = true;
                 playWhenReady.set(false);
             } else {
@@ -791,10 +803,19 @@ const addAudioEventListeners = (audio: HTMLAudioElement) => {
                         "currentSongIndexInQueue",
                         currentSongIndexInQueue
                     );
+
+                    if (currentSongIndexInQueue + 1 >= queue.get().length) {
+                        queue.get()[0].song.id;
+                    } else {
+                        queue.get()[currentSongIndexInQueue + 1].song.id;
+                    }
                     audio2.src = await getSongSrc(
                         queue.get()[currentSongIndexInQueue + 1].song.id
                     );
-                    audio2.play();
+                    audio2.onloadeddata = () => {
+                        console.log("onloadeddata");
+                        audio2.play();
+                    };
                 }
                 audio2.volume =
                     (userVolume / crossFade) *

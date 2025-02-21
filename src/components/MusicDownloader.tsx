@@ -427,6 +427,10 @@ function AddContextMenu({
                 )}
                 <ContextMenuOption
                     onClick={() => {
+                        if (!navigator.clipboard) {
+                            // Alert user clipboard isn't available.
+                            return;
+                        }
                         if (song) {
                             navigator.clipboard.writeText(
                                 location.origin + `/song/${song[1].song.id}`

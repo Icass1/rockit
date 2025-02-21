@@ -1,4 +1,4 @@
-import { queue } from "@/stores/audio";
+import { queue, queueIndex } from "@/stores/audio";
 import { currentListSongs } from "@/stores/currentList";
 import { likedSongs } from "@/stores/likedList";
 import { useStore } from "@nanostores/react";
@@ -49,7 +49,10 @@ export default function ListOptions({
             return {
                 song: song,
                 list: { type, id },
-                index: queue.get().length + index,
+                index:
+                    Math.max(...queue.get().map((_song) => _song.index)) +
+                    index +
+                    1,
             };
         });
         queue.set([...queue.get(), ...songsToAdd]);
@@ -60,10 +63,23 @@ export default function ListOptions({
             return {
                 song: song,
                 list: { type, id },
-                index: queue.get().length + index,
+                index:
+                    Math.max(...queue.get().map((_song) => _song.index)) +
+                    index +
+                    1,
             };
         });
-        queue.set([...songsToAdd, ...queue.get()]);
+        const index = queue
+            .get()
+            .findIndex((_song) => _song.index == queueIndex.get());
+
+        console.log(index);
+
+        queue.set([
+            ...queue.get().slice(0, index + 1),
+            ...songsToAdd,
+            ...queue.get().slice(index + 1),
+        ]);
     };
 
     const likeAllSongs = () => {
@@ -85,7 +101,7 @@ export default function ListOptions({
     return (
         <div className="relative">
             <div
-                className="absolute left-2 top-10 p-1 bg-neutral-800/90 backdrop-blur-3xl shadow-[0px_0px_20px_3px_#0e0e0e] rounded overflow-hidden whitespace-nowrap transition-[opacity] duration-300"
+                className="absolute md:left-2 -left-20 top-10 p-1 bg-neutral-800/90 backdrop-blur-3xl shadow-[0px_0px_20px_3px_#0e0e0e] rounded overflow-hidden whitespace-nowrap transition-[opacity] duration-300"
                 style={{
                     opacity: open ? 1 : 0,
                     display: hidden ? "none" : "block",

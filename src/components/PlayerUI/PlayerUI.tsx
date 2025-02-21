@@ -1,8 +1,7 @@
-import type { SongDB } from "@/db/song";
 import {
     currentSong,
-    currentTime,
     queue,
+    queueIndex,
     type QueueElement,
 } from "@/stores/audio";
 import { isPlayerUIVisible } from "@/stores/isPlayerUIVisible";
@@ -113,6 +112,18 @@ export default function PlayerUI() {
         };
     }, [queueDivRef, draggingSong]);
 
+    useEffect(() => {
+        if (!$isPlayerUIVisible) return;
+
+        const index = queue
+            .get()
+            .findIndex((_song) => _song.index == queueIndex.get());
+
+        if (queueDivRef.current) {
+            queueDivRef.current.scrollTop = index * 64;
+        }
+    }, [$isPlayerUIVisible, queueDivRef]);
+
     if (innerWidth < 768) return;
 
     return (
@@ -206,7 +217,7 @@ export default function PlayerUI() {
                     </div>
                     {/* Contenido dinámico */}
                     <div
-                        className="flex-1 overflow-auto pt-3 pb-7 relative"
+                        className="flex-1 overflow-auto pt-3 pb-7 relative scroll-smooth"
                         ref={queueDivRef}
                         onScroll={(e) =>
                             setQueueScroll(e.currentTarget.scrollTop)
@@ -268,10 +279,7 @@ export default function PlayerUI() {
                                                     queueSong.song.id +
                                                     queueSong.index
                                                 }
-                                                onMouseDown={() => {
-                                                    setDraggingSong(queueSong);
-                                                }}
-                                                className="absolute w-full"
+                                                className="absolute w-full transition-[top]"
                                                 style={{
                                                     top: `${top}px`,
                                                 }}
@@ -281,7 +289,14 @@ export default function PlayerUI() {
                                                     index == 0 && (
                                                         <div className="h-16 bg-gradient-to-r from-[#ee108650] to-[#fb646750]"></div>
                                                     )}
-                                                <QueueSong song={queueSong} />
+                                                <QueueSong
+                                                    song={queueSong}
+                                                    onDrag={() => {
+                                                        setDraggingSong(
+                                                            queueSong
+                                                        );
+                                                    }}
+                                                />
                                                 {draggingSong &&
                                                     typeof spacerIndex !=
                                                         "undefined" &&

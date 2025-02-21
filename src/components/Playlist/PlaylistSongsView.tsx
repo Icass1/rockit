@@ -45,7 +45,9 @@ export default function PlaylistSongsView({
               owner: string;
           };
 }) {
-    currentList.set({ id, type: "playlist" });
+    useEffect(() => {
+        currentList.set({ id, type: "playlist" });
+    }, []);
 
     const [filter, setFilter] = useState<{
         column: columnsType;
@@ -81,7 +83,7 @@ export default function PlaylistSongsView({
     };
 
     useEffect(() => {
-        console.warn("songsToRender", songsToRender);
+        // console.warn("songsToRender", songsToRender);
         currentListSongs.set(songsToRender);
     }, [songsToRender]);
 
@@ -165,10 +167,8 @@ export default function PlaylistSongsView({
         }
     }, [filter]);
 
-    const $lang = useStore(langData);
-    if (!$lang) return;
-
     const renderColumn = (column: columnsType) => {
+        if (!$lang) return;
         const columnNames = {
             name: $lang.name,
             album: $lang.album,
@@ -205,7 +205,8 @@ export default function PlaylistSongsView({
             );
         }
     };
-
+    const $lang = useStore(langData);
+    if (!$lang) return;
     return (
         <div
             ref={divRef}

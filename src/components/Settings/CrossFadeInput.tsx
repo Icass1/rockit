@@ -1,29 +1,33 @@
-import { useEffect, useState } from "react";
+import { crossFade } from "@/stores/audio";
+import { useStore } from "@nanostores/react";
+import { useEffect } from "react";
 
 export default function CorssFadeInput() {
-    const [value, setValue] = useState<number>(0);
+    const $crossFade = useStore(crossFade);
 
     useEffect(() => {
         const crossFadeLocalStorage = localStorage.getItem("crossFade");
 
-        setValue(crossFadeLocalStorage ? Number(crossFadeLocalStorage) : 0);
+        crossFade.set(
+            crossFadeLocalStorage ? Number(crossFadeLocalStorage) : 0
+        );
     }, []);
 
     useEffect(() => {
-        if (!value) {
+        if (!$crossFade) {
             localStorage.setItem("crossFade", "0");
             return;
         }
-        localStorage.setItem("crossFade", value?.toString());
-    }, [value]);
+        localStorage.setItem("crossFade", $crossFade?.toString());
+    }, [$crossFade]);
 
     return (
         <input
             id="cross-fade-input"
             type="number"
-            value={value}
+            value={$crossFade}
             onChange={(e) => {
-                setValue(Number(e.currentTarget.value));
+                crossFade.set(Number(e.currentTarget.value));
             }}
             max="40"
             min="0"

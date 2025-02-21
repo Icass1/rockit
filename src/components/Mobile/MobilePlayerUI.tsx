@@ -62,6 +62,11 @@ export default function MusicPlayer() {
                     .querySelector("#grid-area-footer-mobile")
                     ?.contains(event?.target as Node)
             ) {
+                if (event.target instanceof HTMLDivElement) {
+                    event.target.className.includes("context-menu-option");
+                    return;
+                }
+
                 isMobilePlayerUIVisible.set(false);
             }
         };
@@ -148,11 +153,12 @@ export default function MusicPlayer() {
 
             const time = new Date().getTime() - touchStartTime;
 
-            if (topOffset / time > 1.5 || topOffset > window.innerHeight / 3) {
+            if (topOffset / time > 1 || topOffset > window.innerHeight / 3) {
                 setEnableTransition(true);
                 setTimeout(() => {
                     setEnableTransition(false);
                     setTopOffset(0);
+                    // console.log("AAAAAAAAAAAAAAAAAAA");
                     isMobilePlayerUIVisible.set(false);
                 }, 300);
 

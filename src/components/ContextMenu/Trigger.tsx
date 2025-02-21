@@ -36,7 +36,6 @@ export default function ContextMenuTrigger({
         ) => {
             if (contextMenuDivRef?.current?.contains(event.target as Node))
                 return;
-
             setContextMenuOpen(false);
         };
 

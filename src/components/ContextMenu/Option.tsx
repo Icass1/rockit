@@ -5,12 +5,16 @@ export default function ContextMenuOption({
     onClick,
     setContextMenuOpen,
     className,
+    disable = false,
 }: {
     children: ReactNode;
     onClick?: MouseEventHandler;
     setContextMenuOpen?: React.Dispatch<React.SetStateAction<boolean>>;
     className?: string;
+    disable?: boolean;
 }) {
+    // console.log(onClick);
+
     return (
         <div
             onClick={(e) => {
@@ -19,8 +23,9 @@ export default function ContextMenuOption({
             }}
             className={
                 className +
-                " hover:bg-neutral-700 rounded-sm p-2 cursor-pointer font-semibold text-sm flex flex-row items-center gap-2 " +
-                className
+                " context-menu-option md:hover:bg-neutral-700 rounded-sm p-2 cursor-pointer font-semibold text-sm flex flex-row items-center gap-2 " +
+                className +
+                (disable || !onClick ? " pointer-events-none opacity-50 " : "")
             }
         >
             {children}

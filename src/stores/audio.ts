@@ -1,6 +1,5 @@
 import type { SongDB, SongDBFull } from "@/lib/db/song";
 import type { UserDB } from "@/lib/db/user";
-import type { Message } from "@/pages/ws";
 import Hls from "hls.js";
 import { atom } from "nanostores";
 
@@ -35,7 +34,7 @@ window.onerror = function (msg, source, lineNo, columnNo, error) {
 };
 
 export type QueueSong = SongDB<
-    "id" | "name" | "artists" | "image" | "duration"
+    "id" | "name" | "artists" | "image" | "duration" | "albumName"
 >;
 
 export type QueueElement = {
@@ -138,10 +137,11 @@ let songCounted = false;
 let lastTime: number | undefined = undefined;
 let timeSum = 0;
 let inCrossFade = false;
-const crossFade = Number(localStorage.getItem("crossFade")) ?? 0;
+export const crossFade = atom<number | undefined>(
+    Number(localStorage.getItem("crossFade")) ?? 0
+);
 
-console.log("crossFade", crossFade);
-// console.log("localStorage.getItem('crossFade')", localStorage.getItem("crossFade"))
+export const currentCrossFade = atom<number | undefined>(crossFade.get());
 
 fetch(
     "/api/user?q=currentSong,currentTime,queue,queueIndex,volume,randomQueue,repeatSong,currentStation"
@@ -247,6 +247,21 @@ repeatSong.subscribe((value) => {
     send({ repeatSong: value ? "1" : "0" });
 });
 
+const playWhenLoaded = () => {
+    console.log("playWhenLoaded");
+    console.log("playWhenReady.get()", playWhenReady.get());
+    console.log("6");
+    loading.set(false);
+    if (playWhenReady.get()) {
+        console.log("7");
+        audio.play().then(() => {
+            console.log("8");
+            playing.set(true);
+        });
+    }
+    audio.removeEventListener("loadeddata", playWhenLoaded);
+};
+
 currentSong.subscribe(async (value) => {
     send({ currentSong: value?.id || "" });
 
@@ -327,17 +342,18 @@ currentSong.subscribe(async (value) => {
             loading.set(false);
         };
         console.log("5");
-        audio.onloadeddata = () => {
-            console.log("6");
-            loading.set(false);
-            if (playWhenReady.get()) {
-                console.log("7");
-                audio.play().then(() => {
-                    console.log("8");
-                    playing.set(true);
-                });
-            }
-        };
+        audio.addEventListener("loadeddata", playWhenLoaded);
+        // audio.onloadeddata = () => {
+        //     console.log("6");
+        //     loading.set(false);
+        //     if (playWhenReady.get()) {
+        //         console.log("7");
+        //         audio.play().then(() => {
+        //             console.log("8");
+        //             playing.set(true);
+        //         });
+        //     }
+        // };
     }
 });
 
@@ -503,6 +519,7 @@ export async function prev() {
     await fetch(`/api/song/${newSongId}`)
         .then((response) => response.json())
         .then((data: SongDB) => {
+            console.log("Playwhenready 1");
             playWhenReady.set(true);
             currentSong.set(data);
         });
@@ -572,10 +589,15 @@ export async function next(songEnded = false) {
     await fetch(`/api/song/${newSongId}`)
         .then((response) => response.json())
         .then((data) => {
-            if (songEnded && crossFade > 0) {
+            const _crossFade = currentCrossFade.get();
+            if (_crossFade && songEnded && _crossFade > 0) {
                 inCrossFade = true;
+                console.log("Playwhenready 2");
+
                 playWhenReady.set(false);
             } else {
+                console.log("Playwhenready 3");
+
                 inCrossFade = false;
                 playWhenReady.set(true);
             }
@@ -612,6 +634,11 @@ function openIndexedDB(): Promise<IDBDatabase> {
 export async function saveSongToIndexedDB(
     song: SongDB<"id" | "name" | "artists" | "image" | "duration">
 ) {
+    const currentSongsInIndexedDB = await getSongIdsInIndexedDB();
+
+    if (currentSongsInIndexedDB.includes(song.id)) return;
+
+    console.log(song);
     fetch(`/api/song/audio/${song.id}`).then((response) => {
         if (response.ok) {
             response.blob().then(async (songBlob) => {
@@ -756,6 +783,25 @@ const addAudioEventListeners = (audio: HTMLAudioElement) => {
     if (!audio.paused) {
         playing.set(true);
     }
+
+    console.log(
+        "Updating crossFade from",
+        currentCrossFade.get(),
+        "to",
+        crossFade.get()
+    );
+    currentCrossFade.set(crossFade.get());
+
+    audio.addEventListener("loadeddata", () => {
+        console.log(
+            "Updating crossFade from",
+            currentCrossFade.get(),
+            "to",
+            crossFade.get()
+        );
+        currentCrossFade.set(crossFade.get());
+    });
+
     audio.addEventListener("canplay", () => {
         if ("mediaSession" in navigator && !isNaN(audio.duration)) {
             navigator.mediaSession.setPositionState({
@@ -767,20 +813,26 @@ const addAudioEventListeners = (audio: HTMLAudioElement) => {
     });
     let initAudio = false;
     audio.addEventListener("timeupdate", async () => {
+        let _crossFade = currentCrossFade.get();
+
+        // console.log(_crossFade);
+
         currentTime.set(audio.currentTime);
         send({
             currentTime: audio.currentTime,
         });
         const userVolume = volume.get();
-        if (userVolume) {
-            if (audio.duration - audio.currentTime < crossFade) {
+        // console.log("1", userVolume && _crossFade && _crossFade > 0);
+        if (userVolume && _crossFade && _crossFade > 0) {
+            // console.log("2", audio.duration - audio.currentTime < _crossFade);
+            if (audio.duration - audio.currentTime < _crossFade) {
                 audio.volume =
-                    (-userVolume / crossFade) *
+                    (-userVolume / _crossFade) *
                     (audio.currentTime - audio.duration);
                 if (
                     Math.abs(
                         audio.currentTime -
-                            (audio.duration - crossFade) -
+                            (audio.duration - _crossFade) -
                             audio2.currentTime
                     ) > 1 &&
                     initAudio &&
@@ -791,7 +843,7 @@ const addAudioEventListeners = (audio: HTMLAudioElement) => {
                     console.log("audio2.currentTime", audio2.currentTime);
                     console.log("audio.currentTime", audio.currentTime);
                     audio2.currentTime =
-                        audio.currentTime - (audio.duration - crossFade);
+                        audio.currentTime - (audio.duration - _crossFade);
                 }
                 if (!initAudio && !audio.paused) {
                     initAudio = true;
@@ -818,12 +870,14 @@ const addAudioEventListeners = (audio: HTMLAudioElement) => {
                     };
                 }
                 audio2.volume =
-                    (userVolume / crossFade) *
+                    (userVolume / _crossFade) *
                         (audio.currentTime - audio.duration) +
                     userVolume;
             } else {
                 audio.volume = userVolume;
             }
+        } else {
+            if (userVolume) audio.volume = userVolume;
         }
         const songId = currentSong.get()?.id;
         if (

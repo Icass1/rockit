@@ -97,7 +97,7 @@ export default function PlaylistSong({
         <SongContextMenu song={_song}>
             <div
                 className={
-                    "flex flex-row items-center gap-2 md:gap-4 transition-colors px-2 py-[0.5rem] rounded " +
+                    "flex flex-row items-center gap-2 md:gap-4 transition-colors px-2 py-[0.5rem] rounded select-none md:select-text " +
                     // If offline and the song is not saved to indexedDB or the song is not in the server database, disable that song
                     (((!window.navigator.onLine &&
                         !songsInIndexedDB.get()?.includes(_song.id)) ||

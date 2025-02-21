@@ -18,12 +18,13 @@ import { likedSongs } from "@/stores/likedList";
 import type { SongDB } from "@/db/song";
 import type { ReactNode } from "react";
 import { useStore } from "@nanostores/react";
-import { queue, saveSongToIndexedDB } from "@/stores/audio";
+import { queue, queueIndex, saveSongToIndexedDB } from "@/stores/audio";
 import { currentList, currentListSongs } from "@/stores/currentList";
 import ContextMenuSplitter from "../ContextMenu/Splitter";
 import { navigate } from "astro:transitions/client";
 import { songHandleClick } from "./HandleClick";
 import { langData } from "@/stores/lang";
+import { getImageUrl } from "@/lib/getImageUrl";
 
 export default function SongContextMenu({
     children,
@@ -43,29 +44,27 @@ export default function SongContextMenu({
 }) {
     const $likedSongs = useStore(likedSongs);
     const $currentListSongs = useStore(currentListSongs);
-
     const $lang = useStore(langData);
     if (!$lang) return;
 
     return (
         <ContextMenu>
             <ContextMenuTrigger>{children}</ContextMenuTrigger>
-            <ContextMenuContent>
+            <ContextMenuContent
+                cover={getImageUrl({ imageId: song.image })}
+                title={song.name}
+                description={
+                    song.albumName +
+                    " • " +
+                    song.artists.map((artist) => artist.name).join(", ")
+                }
+            >
                 <ContextMenuOption
                     onClick={() => songHandleClick(song, $currentListSongs)}
                 >
                     <PlayCircle className="h-5 w-5" />
                     {$lang.play_song}
                 </ContextMenuOption>
-                <ContextMenuOption className="pointer-events-none opacity-50">
-                    <ListStart className="h-5 w-5" />
-                    {$lang.play_next}
-                </ContextMenuOption>
-                <ContextMenuOption className="pointer-events-none opacity-50">
-                    <ListPlusIcon className="w-5 h-5" />
-                    {$lang.add_song_to_playlist}
-                </ContextMenuOption>
-
                 <ContextMenuOption
                     onClick={() => {
                         if (likedSongs.get().includes(song.id)) {
@@ -138,6 +137,34 @@ export default function SongContextMenu({
                 </ContextMenuOption>
                 <ContextMenuOption
                     onClick={() => {
+                        const index = queue
+                            .get()
+                            .findIndex(
+                                (_song) => _song.index == queueIndex.get()
+                            );
+
+                        queue.set([
+                            ...queue.get().slice(0, index + 1),
+                            {
+                                list: currentList.get(),
+                                index:
+                                    Math.max(
+                                        ...queue
+                                            .get()
+                                            .map((_song) => _song.index)
+                                    ) + 1,
+                                song: song,
+                            },
+                            ...queue.get().slice(index + 1),
+                        ]);
+                    }}
+                >
+                    <ListStart className="h-5 w-5" />
+                    {$lang.play_next}
+                </ContextMenuOption>
+
+                <ContextMenuOption
+                    onClick={() => {
                         queue.set([
                             ...queue.get(),
                             {
@@ -156,8 +183,12 @@ export default function SongContextMenu({
                     <ListEnd className="h-5 w-5" />
                     {$lang.add_to_queue}
                 </ContextMenuOption>
+                <ContextMenuOption disable>
+                    <ListPlusIcon className="w-5 h-5" />
+                    {$lang.add_song_to_playlist}
+                </ContextMenuOption>
                 <ContextMenuSplitter />
-                <ContextMenuOption className="pointer-events-none opacity-50">
+                <ContextMenuOption disable>
                     <Share2 className="h-5 w-5" />
                     {$lang.share_song}
                 </ContextMenuOption>
@@ -172,16 +203,16 @@ export default function SongContextMenu({
                     {$lang.copy_song_url}
                 </ContextMenuOption>
                 <ContextMenuSplitter />
-                <ContextMenuOption className="hover:bg-red-700 pointer-events-none opacity-50">
+                <ContextMenuOption className="hover:bg-red-700" disable>
                     <ListX className="h-5 w-5" />
                     {$lang.remove_from_queue}
                 </ContextMenuOption>
-                <ContextMenuOption className="hover:bg-red-700 pointer-events-none opacity-50">
+                <ContextMenuOption className="hover:bg-red-700" disable>
                     <ListX className="h-5 w-5" />
                     {$lang.remove_from_playlist}
                 </ContextMenuOption>
                 <ContextMenuSplitter />
-                <ContextMenuOption className="pointer-events-none opacity-50">
+                <ContextMenuOption disable>
                     <Download className="h-5 w-5" />
                     {$lang.download_mp3}
                 </ContextMenuOption>

@@ -10,35 +10,58 @@ import {
 } from "@/stores/audio";
 import { useStore } from "@nanostores/react";
 import { EllipsisVertical, Play } from "lucide-react";
+import { useRef, useState } from "react";
 
-export function QueueSong({ song }: { song: QueueElement }) {
+export function QueueSong({
+    song,
+    onDrag,
+}: {
+    song: QueueElement;
+    onDrag?: () => void;
+}) {
     const $queueIndex = useStore(queueIndex);
 
-    const handleClick = async () => {
-        const currentSongIndexInQueue = queue
-            .get()
-            .findIndex((_song) => _song.index == song.index);
+    const startTimeMouseDownRef = useRef(100);
+    const [mouseDown, setMouseDown] = useState(false);
 
-        queueIndex.set(queue.get()[currentSongIndexInQueue].index);
+    const handleMouseDown = () => {
+        startTimeMouseDownRef.current = new Date().getTime();
+        setMouseDown(true);
+    };
+    const handleMouseMove = () => {
+        if (onDrag) onDrag();
+    };
+    const handleMouseUp = async () => {
+        setMouseDown(false);
+        if (new Date().getTime() - startTimeMouseDownRef.current < 200) {
+            const currentSongIndexInQueue = queue
+                .get()
+                .findIndex((_song) => _song.index == song.index);
 
-        const newSongId = queue
-            .get()
-            .find((song) => song.index == queueIndex.get())?.song.id;
-        if (!newSongId) {
-            return;
+            queueIndex.set(queue.get()[currentSongIndexInQueue].index);
+
+            const newSongId = queue
+                .get()
+                .find((song) => song.index == queueIndex.get())?.song.id;
+            if (!newSongId) {
+                return;
+            }
+
+            await fetch(`/api/song/${newSongId}`)
+                .then((response) => response.json())
+                .then((data: SongDB) => {
+                    playWhenReady.set(true);
+                    currentSong.set(data);
+                });
         }
-
-        await fetch(`/api/song/${newSongId}`)
-            .then((response) => response.json())
-            .then((data: SongDB) => {
-                playWhenReady.set(true);
-                currentSong.set(data);
-            });
     };
 
     return (
         <li
-            onClick={handleClick}
+            // onClick={handleClick}
+            onMouseDown={handleMouseDown}
+            onMouseUp={handleMouseUp}
+            onMouseMove={mouseDown ? handleMouseMove : undefined}
             className={`flex items-center gap-x-2 p-2 group ${
                 song.index === $queueIndex
                     ? "bg-[rgba(50,50,50,0.75)]"
@@ -86,7 +109,7 @@ export function QueueSong({ song }: { song: QueueElement }) {
                 </p>
             </div>
             {/* Duration */}
-            <p className="text-gray-300 text-base px-2">
+            <p className="text-gray-300 text-sm px-2">
                 {getTime(song.song.duration)}
             </p>
         </li>

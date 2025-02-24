@@ -30,13 +30,14 @@ export default function MobilePlayerUIQueue({
 
     useEffect(() => {
         if (!scrollRef.current) return;
+        if (!open) return;
 
         const currentSongIndexInQueue = queue
             .get()
             .findIndex((song) => song.index == queueIndex.get());
 
         scrollRef.current.scrollTo(0, currentSongIndexInQueue * 64 - 100);
-    }, [scrollRef]);
+    }, [scrollRef, open]);
 
     const handleRemoveSong = (song: QueueElement) => {
         if (song.index == queueIndex.get()) {

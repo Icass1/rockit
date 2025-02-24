@@ -1,6 +1,6 @@
 import { downloads } from "@/stores/downloads";
 import { useStore } from "@nanostores/react";
-import {
+import React, {
     useEffect,
     useRef,
     useState,
@@ -37,6 +37,7 @@ import { pinListHandleClick } from "./ListHeader/PinList";
 import { pinnedLists } from "@/stores/pinnedLists";
 import { langData } from "@/stores/lang";
 import { downloadedSongs } from "@/stores/downloadedSongs";
+import useWindowSize from "@/hooks/useWindowSize";
 
 interface EventSourceStatus {
     message: string;
@@ -184,6 +185,8 @@ function RenderListDownload({
                                 className="bg-zinc-400/10 absolute w-[calc(100%_-_10px)] transition-[top] duration-500 rounded h-14 flex flex-row gap-x-2 overflow-hidden"
                                 style={{
                                     top: `${(songStatus[1].index || 0) * 60}px`,
+                                    transitionTimingFunction:
+                                        "cubic-bezier(1,-0.53, 0.09, 1.58)",
                                 }}
                             >
                                 <div className="flex flex-col w-full p-1 px-2 min-w-0 max-w-full">
@@ -451,13 +454,54 @@ function AddContextMenu({
     );
 }
 
-export default function Downloads({ navOpen }: { navOpen: boolean }) {
+export function DownloadIcon({
+    setOpen,
+    downloadsButton,
+}: {
+    downloadsButton?: React.RefObject<HTMLDivElement>;
+    setOpen?: Dispatch<React.SetStateAction<boolean>>;
+}) {
+    const $downloads = useStore(downloads);
+
+    const $lang = useStore(langData);
+    if (!$lang) return;
+    return (
+        <div
+            title="Downloads"
+            className={`h-8 rounded-md items-center ml-2 mr-2 transition-all gap-2 md:hover:bg-[#414141] md:flex flex`}
+            onClick={() => {
+                if (innerWidth > 768) {
+                    if (setOpen) {
+                        setOpen((value) => !value);
+                    } else {
+                        console.error("setopen if false but innerWidth > 768");
+                    }
+                } else {
+                    navigate("/downloads");
+                }
+            }}
+            ref={downloadsButton}
+        >
+            <div className="w-8 h-8 flex items-center justify-center relative">
+                <Download className="w-5 h-5" />
+                {$downloads.length > 0 && (
+                    <label className="absolute text-xs bg-red-500 rounded-full top-0 right-0 aspect-square w-auto h-4 text-center ">
+                        {$downloads.length}
+                    </label>
+                )}
+            </div>
+            <label className="font-semibold hidden md:block">
+                {$lang.downloads}{" "}
+            </label>
+        </div>
+    );
+}
+
+export function Downloads({ navOpen = false }: { navOpen?: boolean }) {
     const [open, setOpen] = useState(false);
     const divRef = useRef<HTMLDivElement>(null);
     const downloadsButton = useRef<HTMLDivElement>(null);
     const [status, setStatus] = useState<StatusType>({ songs: {}, lists: {} });
-    const $lang = useStore(langData);
-    if (!$lang) return;
 
     const $downloads = useStore(downloads);
 
@@ -475,6 +519,8 @@ export default function Downloads({ navOpen }: { navOpen: boolean }) {
     } = {};
 
     const lists: { [key: string]: ListInfo } = {};
+
+    const innerWidth = useWindowSize().width;
 
     useEffect(() => {
         if (!divRef.current || !downloadsButton.current) {
@@ -592,6 +638,37 @@ export default function Downloads({ navOpen }: { navOpen: boolean }) {
         });
     };
 
+    const $lang = useStore(langData);
+    if (!$lang) return;
+
+    if (innerWidth < 768) {
+        return (
+            <div className="w-full  pt-20 mb-20 px-2 flex flex-col gap-1">
+                <label className="text-3xl font-bold text-center px-2">
+                    Music Downloader
+                </label>
+
+                {Object.entries(status.songs)
+                    .toReversed()
+                    .map((songStatus) => (
+                        <AddContextMenu key={songStatus[0]} song={songStatus}>
+                            <RenderSongDownload
+                                songStatus={songStatus}
+                                setOpen={setOpen}
+                            />
+                        </AddContextMenu>
+                    ))}
+                {Object.entries(status.lists)
+                    .toReversed()
+                    .map((list) => (
+                        <AddContextMenu key={list[0]} list={list}>
+                            <RenderListDownload list={list} setOpen={setOpen} />
+                        </AddContextMenu>
+                    ))}
+            </div>
+        );
+    }
+
     return (
         <>
             <div
@@ -689,23 +766,11 @@ export default function Downloads({ navOpen }: { navOpen: boolean }) {
                         </AddContextMenu>
                     ))}
             </div>
-            <div
-                title="Downloads"
-                className={`h-8 rounded-md items-center ml-2 mr-2 transition-all gap-2 md:hover:bg-[#414141] ${window.innerWidth > 768 ? "flex" : "hidden"}`}
-                onClick={() => {
-                    setOpen((value) => !value);
-                }}
-                ref={downloadsButton}
-            >
-                <div className="w-8 h-8 flex items-center justify-center relative">
-                    <Download className="w-5 h-5" />
-                    {downloads.get().length > 0 && (
-                        <label className="absolute text-xs bg-red-500 rounded-full top-0 right-0 aspect-square w-auto h-4 text-center">
-                            {downloads.get().length}
-                        </label>
-                    )}
-                </div>
-                <label className="font-semibold">{$lang.downloads} </label>
+            <div className="hidden md:block">
+                <DownloadIcon
+                    setOpen={setOpen}
+                    downloadsButton={downloadsButton}
+                ></DownloadIcon>
             </div>
         </>
     );

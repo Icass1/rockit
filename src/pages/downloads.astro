@@ -1,9 +1,13 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 
+import { Downloads as MusicDownloader } from "@/components/MusicDownloader";
+
 if (!Astro.locals.user) {
     return Astro.redirect("/login");
 }
 ---
 
-<Layout title="Rock It!" currentPage="Downloads" />
+<Layout title="Rock It!" currentPage="Downloads">
+    <MusicDownloader client:only="react" />
+</Layout>

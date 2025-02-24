@@ -1,5 +1,5 @@
 import useWindowSize from "@/hooks/useWindowSize";
-import Downloads from "./MusicDownloader";
+import { DownloadIcon, Downloads } from "./MusicDownloader";
 import { pinnedLists } from "@/stores/pinnedLists";
 import { useStore } from "@nanostores/react";
 import {
@@ -124,9 +124,9 @@ export default function Navigation({
                                 <Settings className="w-[1.35rem] h-[1.35rem]" />
                             </div>
                         </a>
+                        <DownloadIcon />
                     </div>
                 </div>
-                <Downloads navOpen={open} />
             </>
         );
     }

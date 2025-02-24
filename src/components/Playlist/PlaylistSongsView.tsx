@@ -215,6 +215,8 @@ export default function PlaylistSongsView({
             }}
             className="min-w-0 max-w-full w-full min-h-0 max-h-full h-full overflow-auto relative md:pr-6"
         >
+            <div className="md:hidden min-h-20"></div>
+
             <PlaylistHeader
                 id={id}
                 playlist={playlist}
@@ -240,7 +242,7 @@ export default function PlaylistSongsView({
             {/* 56px height of songs */}
             {songsToRender.map((song, index) => {
                 if (song) {
-                    let top = index * (56 + 4) + 25;
+                    let top = index * (56 + 4) + (innerWidth < 768 ? 100 : 25);
                     if (innerWidth < 768) top += 400;
 
                     if (divRef.current) {

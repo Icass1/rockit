@@ -13,9 +13,9 @@ export default function FooterMobile() {
     // const $isMobilePlayerUIVisible = useStore(isMobilePlayerUIVisible);
 
     return (
-        <div className="h-full w-full pb-1">
+        <div className="h-full w-full pb-1 ">
             <div
-                className="items-center h-full w-full group grid grid-cols-[min-content_1fr_min-content_min-content] gap-x-2 pr-2 bg-black/80"
+                className="items-center h-full w-full group grid grid-cols-[min-content_1fr_min-content_min-content] gap-x-2 pr-2 bg-black/80 rounded-md"
                 onClick={() => isMobilePlayerUIVisible.set(true)}
             >
                 <div className="aspect-square h-full w-auto ">
@@ -65,7 +65,7 @@ export default function FooterMobile() {
                 <Slider
                     readOnly
                     id="default-slider"
-                    className="relative rounded h-1 ml-1 mr-1 w-auto bg-neutral-700 group"
+                    className="relative bottom-[0.15rem] rounded h-[0.15rem] ml-1 mr-1 w-auto bg-neutral-700 group"
                     value={$currentTime ?? 0}
                     min={0}
                     max={$currentSong?.duration}

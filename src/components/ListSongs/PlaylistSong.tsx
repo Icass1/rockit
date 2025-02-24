@@ -60,7 +60,8 @@ export default function PlaylistSong({
         e: React.MouseEvent<SVGSVGElement, MouseEvent>
     ) => {
         e.stopPropagation();
-        saveSongToIndexedDB(_song);
+        console.warn("To do")
+        // saveSongToIndexedDB(_song);
     };
     const handleOpenOptions = (
         e: React.MouseEvent<SVGSVGElement, MouseEvent>

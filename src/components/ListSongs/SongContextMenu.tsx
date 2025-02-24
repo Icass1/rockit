@@ -218,7 +218,7 @@ export default function SongContextMenu({
                 </ContextMenuOption>
                 <ContextMenuOption
                     onClick={() => {
-                        saveSongToIndexedDB(song);
+                        saveSongToIndexedDB(song, true);
                     }}
                 >
                     <HardDriveDownload className="h-5 w-5" />

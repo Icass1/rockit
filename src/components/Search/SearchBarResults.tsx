@@ -99,67 +99,70 @@ export default function RenderSearchBarResults({
         let bestResult = undefined;
         let searchQuery = $searchQuery;
 
-        $searchResults.albums?.map((album) => {
-            const similarity = stringSimilarity(album.name, searchQuery);
-            if (similarity > highestSimilarity) {
-                highestSimilarity = similarity;
-                bestResult = {
-                    name: album.name,
-                    artistsOrOwner: album.artists
-                        .map((artist) => artist.name)
-                        .join(","),
-                    url: album.external_urls.spotify,
-                    image: album.images[0]?.url,
-                    inDatabase: album.inDatabase,
-                    type: "album",
-                };
-            }
-        });
-        $searchResults.playlists?.map((playlist) => {
-            const similarity = stringSimilarity(playlist.name, searchQuery);
-            if (similarity > highestSimilarity) {
-                highestSimilarity = similarity;
-                bestResult = {
-                    name: playlist.name,
-                    artistsOrOwner: playlist.owner.display_name,
-                    url: playlist.external_urls.spotify,
-                    image: playlist.images[0]?.url,
-                    inDatabase: playlist.inDatabase,
-                    type: "playlist",
-                };
-            }
-        });
-        $searchResults.songs?.map((song) => {
-            const similarity = stringSimilarity(song.name, searchQuery);
-            if (similarity > highestSimilarity) {
-                highestSimilarity = similarity;
-                bestResult = {
-                    name: song.name,
-                    artistsOrOwner: song.album.artists
-                        .map((artist) => artist.name)
-                        .join(","),
-                    url: song.external_urls.spotify,
-                    image: song.album.images[0]?.url,
-                    inDatabase: song.inDatabase,
-                    type: "song",
-                };
-            }
-        });
-
-        $searchResults.artists?.map((artist) => {
-            const similarity = stringSimilarity(artist.name, searchQuery);
-            if (similarity > highestSimilarity) {
-                highestSimilarity = similarity;
-                bestResult = {
-                    name: artist.name,
-                    artistsOrOwner: "",
-                    url: artist.external_urls.spotify,
-                    image: artist.images[0]?.url,
-                    inDatabase: true,
-                    type: "artist",
-                };
-            }
-        });
+        if ($searchResults.albums != "error")
+            $searchResults.albums?.map((album) => {
+                const similarity = stringSimilarity(album.name, searchQuery);
+                if (similarity > highestSimilarity) {
+                    highestSimilarity = similarity;
+                    bestResult = {
+                        name: album.name,
+                        artistsOrOwner: album.artists
+                            .map((artist) => artist.name)
+                            .join(","),
+                        url: album.external_urls.spotify,
+                        image: album.images[0]?.url,
+                        inDatabase: album.inDatabase,
+                        type: "album",
+                    };
+                }
+            });
+        if ($searchResults.playlists != "error")
+            $searchResults.playlists?.map((playlist) => {
+                const similarity = stringSimilarity(playlist.name, searchQuery);
+                if (similarity > highestSimilarity) {
+                    highestSimilarity = similarity;
+                    bestResult = {
+                        name: playlist.name,
+                        artistsOrOwner: playlist.owner.display_name,
+                        url: playlist.external_urls.spotify,
+                        image: playlist.images[0]?.url,
+                        inDatabase: playlist.inDatabase,
+                        type: "playlist",
+                    };
+                }
+            });
+        if ($searchResults.songs != "error")
+            $searchResults.songs?.map((song) => {
+                const similarity = stringSimilarity(song.name, searchQuery);
+                if (similarity > highestSimilarity) {
+                    highestSimilarity = similarity;
+                    bestResult = {
+                        name: song.name,
+                        artistsOrOwner: song.album.artists
+                            .map((artist) => artist.name)
+                            .join(","),
+                        url: song.external_urls.spotify,
+                        image: song.album.images[0]?.url,
+                        inDatabase: song.inDatabase,
+                        type: "song",
+                    };
+                }
+            });
+        if ($searchResults.artists != "error")
+            $searchResults.artists?.map((artist) => {
+                const similarity = stringSimilarity(artist.name, searchQuery);
+                if (similarity > highestSimilarity) {
+                    highestSimilarity = similarity;
+                    bestResult = {
+                        name: artist.name,
+                        artistsOrOwner: "",
+                        url: artist.external_urls.spotify,
+                        image: artist.images[0]?.url,
+                        inDatabase: true,
+                        type: "artist",
+                    };
+                }
+            });
 
         setBestResult(bestResult);
     }, [$searchResults]);
@@ -184,125 +187,144 @@ export default function RenderSearchBarResults({
                             </div>
                         </>
                     )}
-                    {$searchResults.songs && (
-                        <>
-                            <label className="font-bold text-xl text-white ">
-                                Songs
-                            </label>
-                            <ResultsWrapper>
-                                {$searchResults.songs
-                                    .slice(0, 2)
-                                    .map((song, index) => (
-                                        <div className="h-12" key={index}>
-                                            <Result
-                                                key={"song" + index}
-                                                name={song.name}
-                                                artistsOrOwner={
-                                                    song.artists &&
-                                                    song.artists
-                                                        .map(
-                                                            (artist) =>
-                                                                artist.name
-                                                        )
-                                                        .join(", ")
-                                                }
-                                                inDatabase={song.inDatabase}
-                                                image={
-                                                    song.album.images[0]?.url
-                                                }
-                                                url={song.external_urls.spotify}
-                                            />
-                                        </div>
-                                    ))}
-                            </ResultsWrapper>
-                        </>
-                    )}
-                    {$searchResults.albums && (
-                        <>
-                            <label className="font-bold text-xl text-white ">
-                                Albums
-                            </label>
-                            <ResultsWrapper>
-                                {$searchResults.albums
-                                    .slice(0, 2)
-                                    .map((album, index) => (
-                                        <div className="h-12" key={index}>
-                                            <Result
-                                                key={"album" + index}
-                                                name={album.name}
-                                                artistsOrOwner={
-                                                    album.artists &&
-                                                    album.artists
-                                                        .map(
-                                                            (artist) =>
-                                                                artist.name
-                                                        )
-                                                        .join(", ")
-                                                }
-                                                inDatabase={album.inDatabase}
-                                                image={album.images[0]?.url}
-                                                url={
-                                                    album.external_urls.spotify
-                                                }
-                                            />
-                                        </div>
-                                    ))}
-                            </ResultsWrapper>
-                        </>
-                    )}
-                    {$searchResults.playlists && (
-                        <>
-                            <label className="font-bold text-xl text-white ">
-                                Playlists
-                            </label>
-                            <ResultsWrapper>
-                                {$searchResults.playlists
-                                    .slice(0, 2)
-                                    .map((playlist, index) => (
-                                        <div className="h-12" key={index}>
-                                            <Result
-                                                key={"playlist" + index}
-                                                name={playlist.name}
-                                                artistsOrOwner={
-                                                    playlist.owner.display_name
-                                                }
-                                                inDatabase={playlist.inDatabase}
-                                                image={playlist.images[0]?.url}
-                                                url={
-                                                    playlist.external_urls
-                                                        .spotify
-                                                }
-                                            />
-                                        </div>
-                                    ))}
-                            </ResultsWrapper>
-                        </>
-                    )}
-                    {$searchResults.artists && (
-                        <>
-                            <label className="font-bold text-xl text-white ">
-                                Artists
-                            </label>
-                            <ResultsWrapper>
-                                {$searchResults.artists
-                                    .slice(0, 2)
-                                    .map((artist, index) => (
-                                        <div className="h-12" key={index}>
-                                            <Result
-                                                key={"playlist" + index}
-                                                name={artist.name}
-                                                artistsOrOwner=""
-                                                inDatabase={true}
-                                                image={artist.images[0]?.url}
-                                                url={
-                                                    artist.external_urls.spotify
-                                                }
-                                            />
-                                        </div>
-                                    ))}
-                            </ResultsWrapper>
-                        </>
-                    )}
+                    {$searchResults.songs &&
+                        $searchResults.songs != "error" && (
+                            <>
+                                <label className="font-bold text-xl text-white ">
+                                    Songs
+                                </label>
+                                <ResultsWrapper>
+                                    {$searchResults.songs
+                                        .slice(0, 2)
+                                        .map((song, index) => (
+                                            <div className="h-12" key={index}>
+                                                <Result
+                                                    key={"song" + index}
+                                                    name={song.name}
+                                                    artistsOrOwner={
+                                                        song.artists &&
+                                                        song.artists
+                                                            .map(
+                                                                (artist) =>
+                                                                    artist.name
+                                                            )
+                                                            .join(", ")
+                                                    }
+                                                    inDatabase={song.inDatabase}
+                                                    image={
+                                                        song.album.images[0]
+                                                            ?.url
+                                                    }
+                                                    url={
+                                                        song.external_urls
+                                                            .spotify
+                                                    }
+                                                />
+                                            </div>
+                                        ))}
+                                </ResultsWrapper>
+                            </>
+                        )}
+                    {$searchResults.albums &&
+                        $searchResults.albums != "error" && (
+                            <>
+                                <label className="font-bold text-xl text-white ">
+                                    Albums
+                                </label>
+                                <ResultsWrapper>
+                                    {$searchResults.albums
+                                        .slice(0, 2)
+                                        .map((album, index) => (
+                                            <div className="h-12" key={index}>
+                                                <Result
+                                                    key={"album" + index}
+                                                    name={album.name}
+                                                    artistsOrOwner={
+                                                        album.artists &&
+                                                        album.artists
+                                                            .map(
+                                                                (artist) =>
+                                                                    artist.name
+                                                            )
+                                                            .join(", ")
+                                                    }
+                                                    inDatabase={
+                                                        album.inDatabase
+                                                    }
+                                                    image={album.images[0]?.url}
+                                                    url={
+                                                        album.external_urls
+                                                            .spotify
+                                                    }
+                                                />
+                                            </div>
+                                        ))}
+                                </ResultsWrapper>
+                            </>
+                        )}
+                    {$searchResults.playlists &&
+                        $searchResults.playlists != "error" && (
+                            <>
+                                <label className="font-bold text-xl text-white ">
+                                    Playlists
+                                </label>
+                                <ResultsWrapper>
+                                    {$searchResults.playlists
+                                        .slice(0, 2)
+                                        .map((playlist, index) => (
+                                            <div className="h-12" key={index}>
+                                                <Result
+                                                    key={"playlist" + index}
+                                                    name={playlist.name}
+                                                    artistsOrOwner={
+                                                        playlist.owner
+                                                            .display_name
+                                                    }
+                                                    inDatabase={
+                                                        playlist.inDatabase
+                                                    }
+                                                    image={
+                                                        playlist.images[0]?.url
+                                                    }
+                                                    url={
+                                                        playlist.external_urls
+                                                            .spotify
+                                                    }
+                                                />
+                                            </div>
+                                        ))}
+                                </ResultsWrapper>
+                            </>
+                        )}
+                    {$searchResults.artists &&
+                        $searchResults.artists != "error" && (
+                            <>
+                                <label className="font-bold text-xl text-white ">
+                                    Artists
+                                </label>
+                                <ResultsWrapper>
+                                    {$searchResults.artists
+                                        .slice(0, 2)
+                                        .map((artist, index) => (
+                                            <div className="h-12" key={index}>
+                                                <Result
+                                                    key={"playlist" + index}
+                                                    name={artist.name}
+                                                    artistsOrOwner=""
+                                                    inDatabase={true}
+                                                    image={
+                                                        artist.images[0]?.url
+                                                    }
+                                                    url={
+                                                        artist.external_urls
+                                                            .spotify
+                                                    }
+                                                />
+                                            </div>
+                                        ))}
+                                </ResultsWrapper>
+                            </>
+                        )}
                 </div>
             ) : (
                 <></>

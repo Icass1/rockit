@@ -158,7 +158,6 @@ export default function MusicPlayer() {
                 setTimeout(() => {
                     setEnableTransition(false);
                     setTopOffset(0);
-                    // console.log("AAAAAAAAAAAAAAAAAAA");
                     isMobilePlayerUIVisible.set(false);
                 }, 300);
 
@@ -215,20 +214,20 @@ export default function MusicPlayer() {
             </div>
 
             {/* Contenido principal */}
-            <div className="relative z-30 flex flex-col items-center justify-center h-full text-white px-4">
+            <div className="relative z-30 grid grid-rows-[1fr_min-content_min-content_min-content] gap-y-2 pt-32 pb-20 items-center justify-center h-full text-white px-4">
                 {/* Imagen de la canción */}
-                <div className="mb-4 w-full aspect-square bg-gray-900 rounded-md shadow-md overflow-hidden">
-                    <img
-                        src={getImageUrl({
-                            imageId: $currentSong?.image,
-                            placeHolder: "/song-placeholder.png",
-                            height: 350,
-                            width: 350,
-                        })}
-                        alt="Current song artwork"
-                        className="w-full h-full object-cover"
-                    />
-                </div>
+                {/* <div className="max-w-full min-w-0 w-auto max-h-full min-h-0 h-auto aspect-square left-1/2 relative -translate-x-1/2 bg-blue-400"> */}
+                <img
+                    src={getImageUrl({
+                        imageId: $currentSong?.image,
+                        placeHolder: "/song-placeholder.png",
+                        height: 350,
+                        width: 350,
+                    })}
+                    alt="Current song artwork"
+                    className="max-w-full min-w-0 w-auto max-h-full min-h-0 h-auto aspect-square left-1/2 relative -translate-x-1/2 bg-blue-400"
+                />
+                {/* </div> */}
 
                 {/* Título, artista y LikeButton */}
                 <div className="flex justify-between items-center w-full max-w-md pl-5 pr-7">
@@ -270,7 +269,7 @@ export default function MusicPlayer() {
                 </div>
 
                 {/* Controles */}
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 left-1/2 relative -translate-x-1/2 w-fit">
                     <button
                         className="w-12 h-12 flex items-center justify-center"
                         onClick={() => randomQueue.set(!randomQueue.get())}

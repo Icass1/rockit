@@ -256,7 +256,22 @@ export default function PlayerUI() {
                                             );
                                         }
 
-                                        const top = index * 64;
+                                        let top = index * 64;
+
+                                        if (
+                                            draggingSong &&
+                                            typeof spacerIndex != "undefined" &&
+                                            spacerIndex < index
+                                        ) {
+                                            top += 64;
+                                        }
+                                        if (
+                                            draggingSong &&
+                                            index == 0 &&
+                                            spacerIndex == -1
+                                        ) {
+                                            top -= 64;
+                                        }
 
                                         if (
                                             (queueDivRef.current
@@ -279,15 +294,17 @@ export default function PlayerUI() {
                                                     queueSong.song.id +
                                                     queueSong.index
                                                 }
-                                                className="absolute w-full transition-[top]"
+                                                className="absolute w-full transition-[top] duration-500"
                                                 style={{
                                                     top: `${top}px`,
+                                                    transitionTimingFunction:
+                                                        "cubic-bezier(1,-0.53, 0.09, 1.58)",
                                                 }}
                                             >
                                                 {draggingSong &&
                                                     spacerIndex == -1 &&
                                                     index == 0 && (
-                                                        <div className="h-16 bg-gradient-to-r from-[#ee108650] to-[#fb646750]"></div>
+                                                        <div className="h-16 bg-transparent"></div>
                                                     )}
                                                 <QueueSong
                                                     song={queueSong}
@@ -301,7 +318,7 @@ export default function PlayerUI() {
                                                     typeof spacerIndex !=
                                                         "undefined" &&
                                                     spacerIndex == index && (
-                                                        <div className="h-16 bg-gradient-to-r from-[#ee108650] to-[#fb646750]"></div>
+                                                        <div className="h-16 bg-transparent"></div>
                                                     )}
                                             </div>
                                         );
@@ -309,10 +326,10 @@ export default function PlayerUI() {
 
                                 {draggingSong && queueDivRef.current && (
                                     <div
-                                        className="fixed"
+                                        className="absolute w-full"
                                         style={{
-                                            top: `${draggingPos[1]}px`,
-                                            left: `${draggingPos[0]}px`,
+                                            top: `${draggingPos[1] + queueScroll - queueDivRef.current.getBoundingClientRect().y}px`,
+                                            // left: `${draggingPos[0]}px`,
                                         }}
                                     >
                                         <QueueSong song={draggingSong} />

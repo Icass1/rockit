@@ -256,11 +256,20 @@ const playWhenLoaded = () => {
         console.log("7");
         audio.play().then(() => {
             console.log("8");
+
             playing.set(true);
         });
     }
     audio.removeEventListener("loadeddata", playWhenLoaded);
 };
+
+playing.subscribe((value) => {
+    if (value) {
+        document.title = currentSong.get()?.name ?? "Rock It!";
+    } else {
+        document.title = "Rock It!";
+    }
+});
 
 currentSong.subscribe(async (value) => {
     send({ currentSong: value?.id || "" });
@@ -856,14 +865,13 @@ const addAudioEventListeners = (audio: HTMLAudioElement) => {
                         currentSongIndexInQueue
                     );
 
+                    let id;
                     if (currentSongIndexInQueue + 1 >= queue.get().length) {
-                        queue.get()[0].song.id;
+                        id = queue.get()[0].song.id;
                     } else {
-                        queue.get()[currentSongIndexInQueue + 1].song.id;
+                        id = queue.get()[currentSongIndexInQueue + 1].song.id;
                     }
-                    audio2.src = await getSongSrc(
-                        queue.get()[currentSongIndexInQueue + 1].song.id
-                    );
+                    audio2.src = await getSongSrc(id);
                     audio2.onloadeddata = () => {
                         console.log("onloadeddata");
                         audio2.play();

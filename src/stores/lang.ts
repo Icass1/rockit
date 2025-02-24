@@ -7,7 +7,6 @@ export const lang = atom<string | undefined>(undefined);
 fetch("/api/lang")
     .then((response) => response.json())
     .then((data) => {
-        console.log(data);
         langData.set(data.langFile);
         lang.set(data.lang);
     });

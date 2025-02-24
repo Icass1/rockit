@@ -73,14 +73,21 @@ export default function SearchBarInput({
             return;
         }
 
-        fetch(`/api/search?q=${query}`)
-            .then((data) => data.json())
-            .then((json) => {
-                searchResults.setKey("albums", json.albums);
-                searchResults.setKey("songs", json.songs);
-                searchResults.setKey("playlists", json.playlists);
-                searchResults.setKey("artists", json.artists);
-            });
+        fetch(`/api/search?q=${query}`).then((response) => {
+            if (response.ok) {
+                return response.json().then((json) => {
+                    searchResults.setKey("albums", json.albums);
+                    searchResults.setKey("songs", json.songs);
+                    searchResults.setKey("playlists", json.playlists);
+                    searchResults.setKey("artists", json.artists);
+                });
+            } else {
+                searchResults.setKey("albums", "error");
+                searchResults.setKey("songs", "error");
+                searchResults.setKey("playlists", "error");
+                searchResults.setKey("artists", "error");
+            }
+        });
     };
 
     const $lang = useStore(langData);

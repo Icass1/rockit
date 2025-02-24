@@ -32,164 +32,199 @@ export default function Search() {
             </section>
             {$searchQuery ? (
                 <>
-                    <section className="md:px-12 md:py-6 py-2 text-white">
-                        <h2 className="text-2xl md:text-3xl font-bold text-left px-5 md:px-0">
-                            {$lang.songs}
-                        </h2>
-                        <div className="relative flex items-center gap-4 overflow-x-auto py-4 md:px-2 px-8">
-                            {/* Aquí creamos las canciones */}
-                            {$searchResults.songs?.map((song) => (
-                                <a
-                                    href={`/song/${song.id}`}
-                                    className="flex-none w-36 md:w-48 md:hover:scale-105 transition"
-                                    key={"song" + song.id}
-                                >
-                                    <img
-                                        className="rounded-lg w-full aspect-square object-cover"
-                                        src={
-                                            song.album.images[0].url ||
-                                            "/song-placeholder.png"
-                                        }
-                                        alt="Song Cover"
-                                    />
-                                    <label className="truncate font-semibold text-center block mt-2">
-                                        {song.name}
-                                    </label>
-                                    <label className="truncate text-sm text-center text-gray-400 block">
-                                        {song.artists.map((artist, index) => (
-                                            <label
-                                                key={song.id + artist.id}
-                                                className="md:hover:underline"
-                                                onClick={(event) => {
-                                                    event.preventDefault();
-                                                    event.stopPropagation();
-                                                    location.href =
-                                                        "/artist/${artist.id}";
-                                                }}
-                                            >
-                                                {`${artist.name}${
-                                                    index <
-                                                    song.artists.length - 1
-                                                        ? ","
-                                                        : ""
-                                                }`}
+                    {$searchResults.albums == "error" ||
+                    $searchResults.songs == "error" ||
+                    $searchResults.artists == "error" ||
+                    $searchResults.playlists == "error" ? (
+                        <label className="text-center text-red-500 block text-sm font-bold mx-10 text-wrap">
+                            It seems to be an error searching your music
+                        </label>
+                    ) : (
+                        <>
+                            <section className="md:px-12 md:py-6 py-2 text-white">
+                                <h2 className="text-2xl md:text-3xl font-bold text-left px-5 md:px-0">
+                                    {$lang.songs}
+                                </h2>
+                                <div className="relative flex items-center gap-4 overflow-x-auto py-4 md:px-2 px-8">
+                                    {/* Aquí creamos las canciones */}
+                                    {$searchResults.songs?.map((song) => (
+                                        <a
+                                            href={`/song/${song.id}`}
+                                            className="flex-none w-36 md:w-48 md:hover:scale-105 transition"
+                                            key={"song" + song.id}
+                                        >
+                                            <img
+                                                className="rounded-lg w-full aspect-square object-cover"
+                                                src={
+                                                    song.album.images[0].url ||
+                                                    "/song-placeholder.png"
+                                                }
+                                                alt="Song Cover"
+                                            />
+                                            <label className="truncate font-semibold text-center block mt-2">
+                                                {song.name}
                                             </label>
-                                        ))}{" "}
-                                    </label>
-                                </a>
-                            ))}
-                        </div>
-                    </section>
-
-                    <section className="md:px-12 md:py-6 py-2 text-white">
-                        <h2 className="text-2xl md:text-3xl font-bold text-left px-5 md:px-0">
-                            {$lang.albums}
-                        </h2>
-                        <div className="relative flex items-center gap-4 overflow-x-auto py-4 px-8 md:px-2">
-                            {/* Aquí creamos las canciones */}
-                            {$searchResults.albums?.map((album) => (
-                                <a
-                                    href={`/album/${album.id}`}
-                                    className="flex-none w-36 md:w-48 md:hover:scale-105 transition"
-                                    key={"album" + album.id}
-                                >
-                                    <img
-                                        className="rounded-lg w-full aspect-square object-cover"
-                                        src={
-                                            album.images[0].url ||
-                                            "/song-placeholder.png"
-                                        }
-                                        alt="Song Cover"
-                                    />
-                                    <label className="truncate font-semibold text-center block mt-2">
-                                        {album.name}
-                                    </label>
-                                    <label className="truncate text-sm text-center text-gray-400 block">
-                                        {album.artists.map((artist, index) => (
-                                            <label
-                                                key={album.id + artist.id}
-                                                className="md:hover:underline"
-                                                onClick={(event) => {
-                                                    event.preventDefault();
-                                                    event.stopPropagation();
-                                                    location.href =
-                                                        "/artist/${artist.id}";
-                                                }}
-                                            >
-                                                {`${artist.name}${
-                                                    index <
-                                                    album.artists.length - 1
-                                                        ? ","
-                                                        : ""
-                                                }`}
+                                            <label className="truncate text-sm text-center text-gray-400 block">
+                                                {song.artists.map(
+                                                    (artist, index) => (
+                                                        <label
+                                                            key={
+                                                                song.id +
+                                                                artist.id
+                                                            }
+                                                            className="md:hover:underline"
+                                                            onClick={(
+                                                                event
+                                                            ) => {
+                                                                event.preventDefault();
+                                                                event.stopPropagation();
+                                                                location.href =
+                                                                    "/artist/${artist.id}";
+                                                            }}
+                                                        >
+                                                            {`${artist.name}${
+                                                                index <
+                                                                song.artists
+                                                                    .length -
+                                                                    1
+                                                                    ? ","
+                                                                    : ""
+                                                            }`}
+                                                        </label>
+                                                    )
+                                                )}{" "}
                                             </label>
-                                        ))}{" "}
-                                    </label>
-                                </a>
-                            ))}
-                        </div>
-                    </section>
+                                        </a>
+                                    ))}
+                                </div>
+                            </section>
 
-                    <section className="md:px-12 md:py-6 py-2 text-white">
-                        <h2 className="text-2xl md:text-3xl font-bold text-left px-5 md:px-0">
-                            {$lang.artists}
-                        </h2>
-                        <div className="relative flex items-center gap-4 overflow-x-auto py-4 px-8 md:px-2">
-                            {/* Aquí creamos las canciones */}
-                            {$searchResults.artists?.map((artist) => (
-                                <a
-                                    href={`/artist/${artist.id}`}
-                                    className="flex-none w-36 md:w-48 md:hover:scale-105 transition"
-                                    key={"artist" + artist.id}
-                                >
-                                    <img
-                                        className="rounded-full w-full aspect-square object-cover"
-                                        src={
-                                            (artist.images[0] &&
-                                                artist.images[0].url) ||
-                                            "/user-placeholder.png"
-                                        }
-                                        alt="Song Cover"
-                                    />
-                                    <label className="truncate font-semibold text-center block mt-2">
-                                        {artist.name}
-                                    </label>
-                                </a>
-                            ))}
-                        </div>
-                    </section>
+                            <section className="md:px-12 md:py-6 py-2 text-white">
+                                <h2 className="text-2xl md:text-3xl font-bold text-left px-5 md:px-0">
+                                    {$lang.albums}
+                                </h2>
+                                <div className="relative flex items-center gap-4 overflow-x-auto py-4 px-8 md:px-2">
+                                    {/* Aquí creamos las canciones */}
+                                    {$searchResults.albums?.map((album) => (
+                                        <a
+                                            href={`/album/${album.id}`}
+                                            className="flex-none w-36 md:w-48 md:hover:scale-105 transition"
+                                            key={"album" + album.id}
+                                        >
+                                            <img
+                                                className="rounded-lg w-full aspect-square object-cover"
+                                                src={
+                                                    album.images[0].url ||
+                                                    "/song-placeholder.png"
+                                                }
+                                                alt="Song Cover"
+                                            />
+                                            <label className="truncate font-semibold text-center block mt-2">
+                                                {album.name}
+                                            </label>
+                                            <label className="truncate text-sm text-center text-gray-400 block">
+                                                {album.artists.map(
+                                                    (artist, index) => (
+                                                        <label
+                                                            key={
+                                                                album.id +
+                                                                artist.id
+                                                            }
+                                                            className="md:hover:underline"
+                                                            onClick={(
+                                                                event
+                                                            ) => {
+                                                                event.preventDefault();
+                                                                event.stopPropagation();
+                                                                location.href =
+                                                                    "/artist/${artist.id}";
+                                                            }}
+                                                        >
+                                                            {`${artist.name}${
+                                                                index <
+                                                                album.artists
+                                                                    .length -
+                                                                    1
+                                                                    ? ","
+                                                                    : ""
+                                                            }`}
+                                                        </label>
+                                                    )
+                                                )}{" "}
+                                            </label>
+                                        </a>
+                                    ))}
+                                </div>
+                            </section>
 
-                    <section className="md:px-12 md:py-6 py-2 text-white">
-                        <h2 className="text-2xl md:text-3xl font-bold text-left px-5 md:px-0">
-                            {$lang.playlists}
-                        </h2>
-                        <div className="relative flex items-center gap-4 overflow-x-auto py-4 px-8 md:px-2">
-                            {/* Aquí creamos las canciones  */}
-                            {$searchResults.playlists?.map((playlist) => (
-                                <a
-                                    href={`/playlist/${playlist.id}`}
-                                    className="flex-none w-36 md:w-48 md:hover:scale-105 transition"
-                                    key={"playlist" + playlist.id}
-                                >
-                                    <img
-                                        className="rounded-lg w-full aspect-square object-cover"
-                                        src={
-                                            (playlist.images[0] &&
-                                                playlist.images[0].url) ||
-                                            "/song-placeholder.png"
-                                        }
-                                        alt="Song Cover"
-                                    />
-                                    <label className="truncate font-semibold text-center block mt-2">
-                                        {playlist.name}
-                                    </label>
-                                    <label className="truncate text-sm text-center text-gray-400 block">
-                                        {playlist.owner.display_name}
-                                    </label>
-                                </a>
-                            ))}
-                        </div>
-                    </section>
+                            <section className="md:px-12 md:py-6 py-2 text-white">
+                                <h2 className="text-2xl md:text-3xl font-bold text-left px-5 md:px-0">
+                                    {$lang.artists}
+                                </h2>
+                                <div className="relative flex items-center gap-4 overflow-x-auto py-4 px-8 md:px-2">
+                                    {/* Aquí creamos las canciones */}
+                                    {$searchResults.artists?.map((artist) => (
+                                        <a
+                                            href={`/artist/${artist.id}`}
+                                            className="flex-none w-36 md:w-48 md:hover:scale-105 transition"
+                                            key={"artist" + artist.id}
+                                        >
+                                            <img
+                                                className="rounded-full w-full aspect-square object-cover"
+                                                src={
+                                                    (artist.images[0] &&
+                                                        artist.images[0].url) ||
+                                                    "/user-placeholder.png"
+                                                }
+                                                alt="Song Cover"
+                                            />
+                                            <label className="truncate font-semibold text-center block mt-2">
+                                                {artist.name}
+                                            </label>
+                                        </a>
+                                    ))}
+                                </div>
+                            </section>
+
+                            <section className="md:px-12 md:py-6 py-2 text-white">
+                                <h2 className="text-2xl md:text-3xl font-bold text-left px-5 md:px-0">
+                                    {$lang.playlists}
+                                </h2>
+                                <div className="relative flex items-center gap-4 overflow-x-auto py-4 px-8 md:px-2">
+                                    {/* Aquí creamos las canciones  */}
+                                    {$searchResults.playlists?.map(
+                                        (playlist) => (
+                                            <a
+                                                href={`/playlist/${playlist.id}`}
+                                                className="flex-none w-36 md:w-48 md:hover:scale-105 transition"
+                                                key={"playlist" + playlist.id}
+                                            >
+                                                <img
+                                                    className="rounded-lg w-full aspect-square object-cover"
+                                                    src={
+                                                        (playlist.images[0] &&
+                                                            playlist.images[0]
+                                                                .url) ||
+                                                        "/song-placeholder.png"
+                                                    }
+                                                    alt="Song Cover"
+                                                />
+                                                <label className="truncate font-semibold text-center block mt-2">
+                                                    {playlist.name}
+                                                </label>
+                                                <label className="truncate text-sm text-center text-gray-400 block">
+                                                    {
+                                                        playlist.owner
+                                                            .display_name
+                                                    }
+                                                </label>
+                                            </a>
+                                        )
+                                    )}
+                                </div>
+                            </section>
+                        </>
+                    )}
                     <section className="md:px-12 md:py-6 py-2 text-white">
                         <h2 className="text-2xl md:text-3xl font-bold text-left px-5 md:px-0">
                             {$lang.radio_stations}

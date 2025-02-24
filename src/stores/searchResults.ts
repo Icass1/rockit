@@ -12,10 +12,10 @@ export const searchQuery = atom<string>("");
 export const filteredStations = atom<Station[]>([]);
 
 export const searchResults = map<{
-    albums: SpotifyAlbum[] | undefined;
-    playlists: SpotifyPlaylist[] | undefined;
-    songs: SpotifyTrack[] | undefined;
-    artists: SpotifyArtist[] | undefined;
+    albums: SpotifyAlbum[] | undefined | "error";
+    playlists: SpotifyPlaylist[] | undefined | "error";
+    songs: SpotifyTrack[] | undefined | "error";
+    artists: SpotifyArtist[] | undefined | "error";
 }>({
     albums: undefined,
     playlists: undefined,

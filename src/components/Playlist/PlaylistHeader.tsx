@@ -65,13 +65,13 @@ export default function PlaylistHeader({
     return (
         <div
             className={
-                "flex flex-col gap-1 relative md:top-1/2 md:-translate-y-1/2 md:w-1/3 md:max-w-md h-fit md:max-h-none md:mx-4 z-10 " +
+                "md:top-1/2 md:-translate-y-1/2 md:w-full md:max-w-96 px-10 md:px-0 flex flex-col gap-1 relative h-[26rem] md:max-h-none z-10 md:h-fit " +
                 className
             }
         >
             {/* Imagen de la playlist */}
-            <div className="relative flex justify-center items-center">
-                <div className="relative overflow-hidden aspect-square rounded-xl md:rounded-md h-72 md:h-[40vh] md:bg-none bg-[rgb(15,15,15)]">
+            <div className="relative flex justify-center items-center h-full min-h-0 max-h-full md:h-auto">
+                <div className="relative overflow-hidden aspect-square rounded-xl md:rounded-md md:w-full md:h-auto h-full w-auto md:bg-none bg-[rgb(15,15,15)]">
                     {id === "liked" ? (
                         <div
                             className="relative rounded-md w-full h-full object-cover"

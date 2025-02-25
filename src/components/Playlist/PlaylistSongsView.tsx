@@ -213,7 +213,7 @@ export default function PlaylistSongsView({
             onScroll={(event) => {
                 setScroll(event.currentTarget.scrollTop);
             }}
-            className="min-w-0 max-w-full w-full min-h-0 max-h-full h-full overflow-auto relative md:pr-6"
+            className="md:w-full min-h-0 max-h-full h-full overflow-auto relative md:pr-6"
         >
             <div className="md:hidden min-h-20"></div>
 

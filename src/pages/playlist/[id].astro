@@ -116,13 +116,13 @@ const songs = playlist.songs
     bgImage={`/api/image/blur/${playlist.image}`}
 >
     <div class="md:mt-0"></div>
-    <div class="px-3 md:px-0 flex md:flex-row flex-col w-full h-full relative">
+    <div class="px-3 md:px-2 flex flex-col md:flex-row gap-2 w-full h-full relative">
         <PlaylistHeader
             id={id}
             playlist={playlist}
             songs={songs}
             inDatabase={inDatabase}
-            className="hidden md:flex"
+            className="hidden md:flex w-full"
             client:only="react"
         />
 

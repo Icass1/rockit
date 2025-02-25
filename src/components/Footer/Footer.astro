@@ -43,7 +43,7 @@ import "@/styles/Skeleton.css";
         <div
             class="hidden md:flex items-center w-1/3 h-full justify-end gap-x-5 group"
         >
-            <PictureInPictureImage client:only="react" />
+            <PictureInPictureImage client:only="react" transition:persist />
             <VolumeSlider client:only="react" />
             <TogglePlayerUI client:only="react" />
         </div>

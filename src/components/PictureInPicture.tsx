@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { currentSong } from "@/stores/audio";
 import { useStore } from "@nanostores/react";
 import { PictureInPicture2 } from "lucide-react";
@@ -7,6 +7,27 @@ export default function PictureInPictureImage() {
     const imageRef = useRef<HTMLImageElement>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
     const $currentSong = useStore(currentSong);
+
+    const [canvas, setCanvas] = useState<HTMLCanvasElement>();
+
+    useEffect(() => {
+        const image = imageRef.current;
+        if (!canvas || !$currentSong || !image) return;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+
+        const handleLoad = () => {
+            const imageElement = imageRef.current;
+            if (!imageElement) return;
+            ctx.drawImage(imageElement, 0, 0, canvas.width, canvas.height);
+        };
+
+        image.addEventListener("load", handleLoad);
+
+        return () => {
+            image.removeEventListener("load", handleLoad);
+        };
+    }, [canvas, imageRef]);
 
     const handlePictureInPicture = async () => {
         try {
@@ -21,9 +42,11 @@ export default function PictureInPictureImage() {
 
             // Crear un canvas para renderizar la imagen
             const canvas = document.createElement("canvas");
+            canvas.id = "canvas-picture-in-picture";
             canvas.width = imageElement.naturalWidth;
             canvas.height = imageElement.naturalHeight;
             const ctx = canvas.getContext("2d");
+            setCanvas(canvas);
 
             if (!ctx) {
                 console.error("No se pudo obtener el contexto del canvas.");
@@ -40,7 +63,8 @@ export default function PictureInPictureImage() {
 
             // Iniciar el modo PiP
             if (videoElement.requestPictureInPicture) {
-                await videoElement.requestPictureInPicture();
+                const a = await videoElement.requestPictureInPicture();
+                console.log(a);
             } else {
                 console.error("Picture-in-Picture no es compatible.");
             }

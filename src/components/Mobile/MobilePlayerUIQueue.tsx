@@ -13,7 +13,12 @@ import ContextMenuTrigger from "../ContextMenu/Trigger";
 import ContextMenuContent from "../ContextMenu/Content";
 import ContextMenuOption from "../ContextMenu/Option";
 import { getImageUrl } from "@/lib/getImageUrl";
-import { HardDriveDownload, ListX, PlayCircle } from "lucide-react";
+import {
+    GripVertical,
+    HardDriveDownload,
+    ListX,
+    PlayCircle,
+} from "lucide-react";
 import { langData } from "@/stores/lang";
 
 export default function MobilePlayerUIQueue({
@@ -111,10 +116,17 @@ export default function MobilePlayerUIQueue({
                             >
                                 <ContextMenu>
                                     <ContextMenuTrigger>
-                                        <QueueSong
-                                            key={song.index}
-                                            song={song}
-                                        />
+                                        <div className="grid grid-cols-[1fr_20px] items-center">
+                                            <div className="min-w-0 max-w-full w-full">
+                                                <QueueSong
+                                                    key={song.index}
+                                                    song={song}
+                                                />
+                                            </div>
+                                            <div>
+                                                <GripVertical />
+                                            </div>
+                                        </div>
                                     </ContextMenuTrigger>
                                     <ContextMenuContent
                                         cover={getImageUrl({

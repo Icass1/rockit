@@ -15,8 +15,10 @@ import { useRef, useState } from "react";
 export function QueueSong({
     song,
     onDrag,
+    dragging = false,
 }: {
     song: QueueElement;
+    dragging?: boolean;
     onDrag?: () => void;
 }) {
     const $queueIndex = useStore(queueIndex);
@@ -62,7 +64,7 @@ export function QueueSong({
             onMouseDown={handleMouseDown}
             onMouseUp={handleMouseUp}
             onMouseMove={mouseDown ? handleMouseMove : undefined}
-            className={`flex items-center gap-x-2 p-2 group ${
+            className={`flex items-center gap-x-2 p-2 group ${dragging && "bg-[rgba(75,75,75,0.75)]"} ${
                 song.index === $queueIndex
                     ? "bg-[rgba(50,50,50,0.75)]"
                     : "md:hover:bg-[rgba(75,75,75,0.75)]"

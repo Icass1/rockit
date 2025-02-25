@@ -641,11 +641,12 @@ function openIndexedDB(): Promise<IDBDatabase> {
     });
 }
 export async function saveSongToIndexedDB(
-    song: SongDB<"id" | "name" | "artists" | "image" | "duration">
+    song: SongDB<"id" | "name" | "artists" | "image" | "duration">,
+    force = false
 ) {
     const currentSongsInIndexedDB = await getSongIdsInIndexedDB();
 
-    if (currentSongsInIndexedDB.includes(song.id)) return;
+    if (currentSongsInIndexedDB.includes(song.id) && !force) return;
 
     console.log(song);
     fetch(`/api/song/audio/${song.id}`).then((response) => {

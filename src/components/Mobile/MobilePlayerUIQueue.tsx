@@ -157,7 +157,7 @@ export default function MobilePlayerUIQueue({
                                         </ContextMenuOption>
                                         <ContextMenuOption
                                             onClick={() => {
-                                                saveSongToIndexedDB(song.song);
+                                                saveSongToIndexedDB(song.song, true);
                                             }}
                                         >
                                             <HardDriveDownload className="h-5 w-5" />

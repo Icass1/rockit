@@ -129,13 +129,13 @@ export default function PlayerUI() {
     return (
         <div
             ref={divRef}
-            className="absolute inset-0 bg-black/80 flex justify-center items-center transition-all overflow-hidden duration-300 z-30 pt-20"
+            className="absolute inset-0 bg-black/80 flex justify-center pl-12 items-center transition-all overflow-hidden duration-300 z-30 pt-20"
             style={{
                 top: $isPlayerUIVisible ? "0%" : "100%",
                 height: "calc(100% - 6rem)",
             }}
         >
-            <div className="relative w-full bg-black text-white grid grid-cols-[30%_40%_30%] h-full z-20">
+            <div className="relative w-full bg-black text-white grid grid-cols-[1fr_1fr] lg:grid-cols-[30%_40%_30%] gap-x-2 px-2 h-full z-20">
                 <img
                     src={getImageUrl({
                         imageId: $currentSong?.image,
@@ -146,7 +146,7 @@ export default function PlayerUI() {
                     className="absolute w-full h-auto top-1/2 -translate-y-1/2 blur-md brightness-50"
                 ></img>
 
-                <div className="z-40 w-full h-full">
+                <div className="z-40 w-full h-full hidden lg:block">
                     <h2 className="absolute w-[31.5%] text-center text-3xl font-bold mx-auto p-14">
                         Lyrics
                     </h2>
@@ -154,7 +154,7 @@ export default function PlayerUI() {
                 </div>
 
                 {/* Middle Column: Cover & Info */}
-                <div className="min-w-0 min-h-0 max-w-full max-h-full flex flex-col items-center justify-center z-40">
+                <div className="min-w-0 w-full min-h-0 max-w-full max-h-full flex flex-col items-center justify-center z-40">
                     <div className="max-h-[70%] aspect-square">
                         <img
                             src={getImageUrl({
@@ -332,7 +332,7 @@ export default function PlayerUI() {
                                             // left: `${draggingPos[0]}px`,
                                         }}
                                     >
-                                        <QueueSong song={draggingSong} />
+                                        <QueueSong song={draggingSong} dragging/>
                                     </div>
                                 )}
                             </>

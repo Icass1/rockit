@@ -188,7 +188,16 @@ export default function SongContextMenu({
                     {$lang.add_song_to_playlist}
                 </ContextMenuOption>
                 <ContextMenuSplitter />
-                <ContextMenuOption disable>
+                <ContextMenuOption
+                    disable={typeof navigator.share == "undefined"}
+                    onClick={() => {
+                        navigator.share({
+                            title: "RockIt!",
+                            text: `${song.name} ${song.albumName} ${song.artists.map((artist) => artist.name).join(", ")}`,
+                            url: `/song/${song.id}`,
+                        });
+                    }}
+                >
                     <Share2 className="h-5 w-5" />
                     {$lang.share_song}
                 </ContextMenuOption>

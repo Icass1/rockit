@@ -89,11 +89,23 @@ function getDifference(listA: Column[], listB: Column[]) {
     return { modifiedColumns, removedColumns, addedColumns };
 }
 
-export function checkTable(
-    tableName: string,
-    query: string,
-    existingColumns: Column[]
-) {
+export function checkTable(query: string) {
+    const tableNameMatch = query.match(
+        /(?<=CREATE\sTABLE\sIF\sNOT\sEXISTS\s+).*?(?=\s\()/g
+    );
+    if (!tableNameMatch) {
+        console.error(
+            "Table name not found, make sure the query starts with CREATE TABLE IF NOT EXISTS <table name> ("
+        );
+        return;
+    }
+
+    const tableName = tableNameMatch[0].toString();
+
+    const existingColumns = db
+        .prepare(`PRAGMA table_info(${tableName})`)
+        .all() as Column[];
+
     if (existingColumns.length == 0) {
         console.log(
             "existingColumns.length is 0. This probably means the table doesn't exist"
@@ -174,51 +186,23 @@ db.exec(`CREATE TABLE IF NOT EXISTS session (
     FOREIGN KEY (user_id) REFERENCES user(id)
 )`);
 
-checkTable(
-    "download",
-    downloadQuery,
-    db.prepare("PRAGMA table_info(download)").all() as Column[]
-);
+checkTable(downloadQuery);
 db.exec(downloadQuery);
 
-checkTable(
-    "album",
-    albumQuery,
-    db.prepare("PRAGMA table_info(album)").all() as Column[]
-);
+checkTable(albumQuery);
 db.exec(albumQuery);
 
-checkTable(
-    "error",
-    errorQuery,
-    db.prepare("PRAGMA table_info(error)").all() as Column[]
-);
+checkTable(errorQuery);
 db.exec(errorQuery);
 
-checkTable(
-    "image",
-    imageQuery,
-    db.prepare("PRAGMA table_info(image)").all() as Column[]
-);
+checkTable(imageQuery);
 db.exec(imageQuery);
 
-checkTable(
-    "playlist",
-    playlistQuery,
-    db.prepare("PRAGMA table_info(playlist)").all() as Column[]
-);
+checkTable(playlistQuery);
 db.exec(playlistQuery);
 
-checkTable(
-    "song",
-    songQuery,
-    db.prepare("PRAGMA table_info(song)").all() as Column[]
-);
+checkTable(songQuery);
 db.exec(songQuery);
 
-checkTable(
-    "user",
-    userQuery,
-    db.prepare("PRAGMA table_info(user)").all() as Column[]
-);
+checkTable(userQuery);
 db.exec(userQuery);

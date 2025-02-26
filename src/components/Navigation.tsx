@@ -124,7 +124,6 @@ export default function Navigation({
                                 <Settings className="w-[1.35rem] h-[1.35rem]" />
                             </div>
                         </a>
-                        <DownloadIcon />
                     </div>
                 </div>
             </>

@@ -10,6 +10,7 @@ const LibraryFilters = () => {
     const [searchQuery, setSearchQuery] = useState("");
 
     useEffect(() => {
+        return
         // Inicializar filtrado y ordenación
         function filterItems() {
             const filter = searchQuery.toLowerCase();

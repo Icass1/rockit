@@ -55,6 +55,14 @@ if (userLists?.filter((list) => list.type == "album").length > 0) {
 
 const data = await getStats(Astro.locals.user.id);
 data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
+
+const date = new Date();
+date.setMonth(date.getMonth() - 1);
+let lastMonthName = new Intl.DateTimeFormat(Astro.locals.user.lang, {
+    month: "long",
+}).format(date);
+
+lastMonthName = lastMonthName[0].toLocaleUpperCase() + lastMonthName.slice(1);
 ---
 
 <Layout title="Library • Rock It!" currentPage="Library">
@@ -81,7 +89,7 @@ data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
 
                 <a
                     href={`/playlist/liked`}
-                    class="library-item flex-none w-[calc(40%-10px)] md:w-48 md:hover:scale-105 transition ml-8 md:ml-0"
+                    class="flex-none w-[calc(40%-10px)] md:w-48 md:hover:scale-105 transition ml-8 md:ml-0"
                 >
                     <div
                         class="relative rounded-lg w-full aspect-square object-cover"
@@ -105,8 +113,8 @@ data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
                 </a>
 
                 <a
-                    href={`/playlist/liked`}
-                    class="library-item flex-none w-[calc(40%-10px)] md:w-48 md:hover:scale-105 transition"
+                    href={`/playlist/most-listened`}
+                    class="flex-none w-[calc(40%-10px)] md:w-48 md:hover:scale-105 transition"
                 >
                     <div
                         class="relative rounded-lg w-full aspect-square object-cover"
@@ -129,8 +137,8 @@ data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
                 </a>
 
                 <a
-                    href={`/playlist/liked`}
-                    class="library-item flex-none w-[calc(40%-10px)] md:w-48 md:hover:scale-105 transition"
+                    href={`/playlist/recent-mix`}
+                    class="flex-none w-[calc(40%-10px)] md:w-48 md:hover:scale-105 transition"
                 >
                     <div
                         class="relative rounded-lg w-full aspect-square object-cover"
@@ -151,7 +159,30 @@ data.albums.sort((a, b) => b.timesPlayed - a.timesPlayed);
                         {lang.by} Rock It!
                     </label>
                 </a>
-
+                <a
+                    href={`/playlist/last-month`}
+                    class="flex-none w-[calc(40%-10px)] md:w-48 md:hover:scale-105 transition"
+                >
+                    <div
+                        class="relative rounded-lg w-full aspect-square object-cover"
+                        style="background-image:url(/rockit-background.png); background-size: cover;"
+                    >
+                        <div
+                            class="w-1/2 h-1/2 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+                        >
+                        </div>
+                    </div>
+                    <label
+                        class="truncate font-semibold text-center block mt-2"
+                    >
+                        {lastMonthName} ReCap
+                    </label>
+                    <label
+                        class="truncate text-sm text-center text-gray-400 block"
+                    >
+                        {lang.by} Rock It!
+                    </label>
+                </a>
                 {
                     data.albums.slice(0, 4).map((album) => (
                         <a

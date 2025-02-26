@@ -35,7 +35,7 @@ export default function UserStats() {
     useEffect(() => {
         let songsBarGraph: SongForStats[] = [];
 
-        data.songs.map((song) => {
+        data.songs.forEach((song) => {
             let result = songsBarGraph.find(
                 (findSong) => findSong.id == song.id
             );
@@ -60,7 +60,7 @@ export default function UserStats() {
         const sortedSongsBarGraph = songsBarGraph.toSorted(
             (a, b) => b.timesPlayed - a.timesPlayed
         );
-        songsBarGraph.map((song) => {
+        songsBarGraph.forEach((song) => {
             song.index = sortedSongsBarGraph.indexOf(song);
         });
         setSongsBarGraph(songsBarGraph);

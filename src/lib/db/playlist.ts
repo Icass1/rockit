@@ -43,13 +43,13 @@ export interface PlaylistDBFull {
 
 export interface PlaylistDBSong {
     id: string;
-    added_at: string;
+    added_at?: string;
 }
 
 export type PlaylistDBSongWithAddedAt<
     Keys extends keyof SongDBFull = keyof SongDBFull,
 > = SongDB<Keys> & {
-    added_at: string;
+    added_at?: string;
 };
 
 export function parsePlaylist(

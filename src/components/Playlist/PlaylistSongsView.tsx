@@ -240,6 +240,11 @@ export default function PlaylistSongsView({
             </div>
             {/* 4px between songs */}
             {/* 56px height of songs */}
+            {songsToRender.length == 0 && (
+                <label className="md:text-3xl text-xl font-bold block mt-10 relative md:top-1/2 md:-translate-y-1/2 w-full text-center text-neutral-400">
+                    There is nothing to show here
+                </label>
+            )}
             {songsToRender.map((song, index) => {
                 if (song) {
                     let top = index * (56 + 4) + (innerWidth < 768 ? 100 : 25);

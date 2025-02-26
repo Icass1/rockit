@@ -6,17 +6,28 @@ import PlaylistSongsView from "@/components/Playlist/PlaylistSongsView";
 import { db } from "@/lib/db/db";
 import {
     parsePlaylist,
+    type PlaylistDBSong,
     type PlaylistDBSongWithAddedAt,
     type RawPlaylistDB,
 } from "@/lib/db/playlist";
 import { parseSong, type RawSongDB, type SongDB } from "@/lib/db/song";
 import { parseUser, type RawUserDB, type UserDB } from "@/lib/db/user";
+import { getStats, type SongForStats } from "@/lib/stats";
+import type { SpotifyPlaylistImage } from "@/types/spotify";
 
 const { id } = Astro.params as { id: string };
 if (!Astro.locals.user) {
     return Astro.redirect("/login");
 }
-let playlist;
+
+interface Playlist {
+    name: string;
+    songs: PlaylistDBSong[];
+    image: string;
+    images: SpotifyPlaylistImage[];
+    owner: string;
+}
+let playlist: Playlist | undefined;
 let inDatabase;
 
 if (id == "liked") {
@@ -28,9 +39,134 @@ if (id == "liked") {
 
     playlist = {
         name: "Liked",
-        songs: userDB.likedSongs.map((song) => song),
+        songs: userDB.likedSongs,
         image: "",
-        images: [{ url: "/song-placeholder.png" }],
+        images: [{ url: "/song-placeholder.png", height: 1, width: 1 }],
+        owner: "",
+    };
+} else if (id == "most-listened") {
+    const stats = await getStats(Astro.locals.user.id);
+    let songs: SongForStats[] = [];
+
+    stats.songs.forEach((song) => {
+        let result = songs.find((findSong) => findSong.id == song.id);
+        if (result) {
+            result.timesPlayed += 1;
+        } else {
+            songs.push({
+                index: 0,
+                name: song.name,
+                id: song.id,
+                timesPlayed: 1,
+                albumId: song.albumId,
+                albumName: song.albumName,
+                duration: song.duration,
+                images: song.images,
+                artists: song.artists,
+                image: song.image,
+            });
+        }
+    });
+    songs = songs
+        .toSorted((a, b) => b.timesPlayed - a.timesPlayed)
+        .slice(0, 50);
+
+    playlist = {
+        name: "Most listened",
+        songs: songs,
+        image: "",
+        images: [{ url: "/song-placeholder.png", height: 1, width: 1 }],
+        owner: "",
+    };
+} else if (id == "last-month") {
+    const date = new Date();
+    const month = date.getMonth() - 1;
+    date.setMonth(month);
+    date.setDate(1);
+    date.setHours(0);
+    date.setMinutes(0);
+    date.setSeconds(0);
+    date.setMilliseconds(0);
+
+    const start = date.getTime();
+
+    date.setMonth(month);
+    date.setDate(0);
+    date.setMonth(month);
+    date.setHours(23);
+    date.setMinutes(59);
+    date.setSeconds(59);
+    date.setMilliseconds(0);
+    const end = date.getTime();
+
+    const stats = await getStats(Astro.locals.user.id, start, end);
+    let songs: SongForStats[] = [];
+
+    stats.songs.forEach((song) => {
+        let result = songs.find((findSong) => findSong.id == song.id);
+        if (result) {
+            result.timesPlayed += 1;
+        } else {
+            songs.push({
+                index: 0,
+                name: song.name,
+                id: song.id,
+                timesPlayed: 1,
+                albumId: song.albumId,
+                albumName: song.albumName,
+                duration: song.duration,
+                images: song.images,
+                artists: song.artists,
+                image: song.image,
+            });
+        }
+    });
+    songs = songs
+        .toSorted((a, b) => b.timesPlayed - a.timesPlayed)
+        .slice(0, 50);
+
+    playlist = {
+        name: "Most listened",
+        songs: songs,
+        image: "",
+        images: [{ url: "/song-placeholder.png", height: 1, width: 1 }],
+        owner: "",
+    };
+} else if (id == "recent-mix") {
+    const stats = await getStats(
+        Astro.locals.user.id,
+        new Date().getTime() - 3 * 7 * 24 * 60 * 60 * 1000
+    );
+    let songs: SongForStats[] = [];
+
+    stats.songs.forEach((song) => {
+        let result = songs.find((findSong) => findSong.id == song.id);
+        if (result) {
+            result.timesPlayed += 1;
+        } else {
+            songs.push({
+                index: 0,
+                name: song.name,
+                id: song.id,
+                timesPlayed: 1,
+                albumId: song.albumId,
+                albumName: song.albumName,
+                duration: song.duration,
+                images: song.images,
+                artists: song.artists,
+                image: song.image,
+            });
+        }
+    });
+    songs = songs
+        .toSorted((a, b) => b.timesPlayed - a.timesPlayed)
+        .slice(0, 50);
+
+    playlist = {
+        name: "Most listened",
+        songs: songs,
+        image: "",
+        images: [{ url: "/song-placeholder.png", height: 1, width: 1 }],
         owner: "",
     };
 } else {
@@ -116,7 +252,9 @@ const songs = playlist.songs
     bgImage={`/api/image/blur/${playlist.image}`}
 >
     <div class="md:mt-0"></div>
-    <div class="px-3 md:px-2 flex flex-col md:flex-row gap-2 w-full h-full relative">
+    <div
+        class="px-3 md:px-2 flex flex-col md:flex-row gap-2 w-full h-full relative"
+    >
         <PlaylistHeader
             id={id}
             playlist={playlist}

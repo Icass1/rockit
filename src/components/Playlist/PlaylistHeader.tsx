@@ -8,7 +8,7 @@ import type { SongDB } from "@/lib/db/song";
 import { getImageUrl } from "@/lib/getImageUrl";
 import { langData } from "@/stores/lang";
 import { useStore } from "@nanostores/react";
-import { Download, Heart } from "lucide-react";
+import { Disc3, Download, Heart, History } from "lucide-react";
 
 function getMinutes(seconds: number) {
     seconds = Math.round(seconds);
@@ -34,7 +34,7 @@ export default function PlaylistHeader({
     playlist,
 }: {
     inDatabase: boolean;
-    id: string;
+    id: string | "liked" | "most-listened" | "recent-mix";
     songs: SongDB<
         | "id"
         | "images"
@@ -62,6 +62,28 @@ export default function PlaylistHeader({
     const $lang = useStore(langData);
     if (!$lang) return;
 
+    let coverIcon;
+
+    if (id == "liked") {
+        coverIcon = (
+            <Heart
+                className="w-1/2 h-1/2 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+                fill="white"
+            />
+        );
+    } else if (id == "most-listened") {
+        coverIcon = (
+            <Disc3 className="w-1/2 h-1/2 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" />
+        );
+    } else if (id == "recent-mix") {
+        coverIcon = (
+            <History className="w-1/2 h-1/2 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" />
+        );
+    }
+    const specialPlaylist = ["liked", "most-listened", "recent-mix"].includes(
+        id
+    );
+
     return (
         <div
             className={
@@ -72,7 +94,7 @@ export default function PlaylistHeader({
             {/* Imagen de la playlist */}
             <div className="relative flex justify-center items-center h-full min-h-0 max-h-full md:h-auto">
                 <div className="relative overflow-hidden aspect-square rounded-xl md:rounded-md md:w-full md:h-auto h-full w-auto md:bg-none bg-[rgb(15,15,15)]">
-                    {id === "liked" ? (
+                    {specialPlaylist ? (
                         <div
                             className="relative rounded-md w-full h-full object-cover"
                             style={{
@@ -80,18 +102,10 @@ export default function PlaylistHeader({
                                 backgroundSize: "cover",
                             }}
                         >
-                            <Heart
-                                className="w-1/2 h-1/2 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
-                                fill="white"
-                            />
+                            {coverIcon}
                         </div>
                     ) : (
                         <img
-                            // src={
-                            //     playlist.image
-                            //         ? `/api/image/${playlist.image}`
-                            //         : playlist.images[0].url
-                            // }
                             src={getImageUrl({
                                 imageId: playlist.image,
                                 fallback: playlist.images[0].url,
@@ -109,8 +123,8 @@ export default function PlaylistHeader({
                 {!inDatabase && (
                     <Download strokeWidth={0.9} className="h-10 w-10" />
                 )}
-                <PinList type="playlist" id={id} />
-                <AddToLibrary type="playlist" id={id} />
+                {!specialPlaylist && <PinList type="playlist" id={id} />}
+                {!specialPlaylist && <AddToLibrary type="playlist" id={id} />}
                 <PlayList type="playlist" id={id} />
                 <ListOptions type="playlist" id={id} />
                 <DownloadListDevice type="playlist" id={id} />

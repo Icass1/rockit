@@ -106,12 +106,16 @@ export default function PlaylistSongsView({
                 return;
             case "addedAt":
                 setSongsToRender(
-                    songs.toSorted(
-                        (a, b) =>
-                            (new Date(a.added_at).getTime() -
-                                new Date(b.added_at).getTime()) *
+                    songs.toSorted((a, b) => {
+                        if (!a.added_at || !b.added_at) {
+                            return 0;
+                        }
+                        return (
+                            (new Date(a?.added_at).getTime() -
+                                new Date(b?.added_at).getTime()) *
                             (filter.ascending ? 1 : -1)
-                    )
+                        );
+                    })
                 );
                 return;
             case "album":

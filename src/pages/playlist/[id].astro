@@ -81,6 +81,7 @@ if (id == "liked") {
 } else if (id == "last-month") {
     const date = new Date();
     const month = date.getMonth() - 1;
+    const year = date.getFullYear();
     date.setMonth(month);
     date.setDate(1);
     date.setHours(0);
@@ -90,14 +91,16 @@ if (id == "liked") {
 
     const start = date.getTime();
 
-    date.setMonth(month);
     date.setDate(0);
     date.setMonth(month);
+    date.setFullYear(year);
     date.setHours(23);
     date.setMinutes(59);
     date.setSeconds(59);
     date.setMilliseconds(0);
     const end = date.getTime();
+
+    // console.log(start, end);
 
     const stats = await getStats(Astro.locals.user.id, start, end);
     let songs: SongForStats[] = [];

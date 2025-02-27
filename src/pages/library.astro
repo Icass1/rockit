@@ -291,13 +291,13 @@ lastMonthName = lastMonthName[0].toLocaleUpperCase() + lastMonthName.slice(1);
                             <label class="truncate font-semibold text-center mt-1">
                                 {album.name}
                             </label>
-                            <div class="text-sm text-center flex flex-row text-gray-400 mx-auto">
+                            <div class="text-sm text-center flex flex-row text-gray-400 mx-auto truncate max-w-full">
                                 {album.artists.map((artist, index) => (
                                     <label
                                         class="md:hover:underline truncate"
                                         onclick={`event.preventDefault(); event.stopPropagation(); location.href='/artist/${artist.id}' `}
                                     >
-                                        {`${artist.name}${index < album.artists.length - 1 ? "," : ""}`}
+                                        {`${artist.name}${index < album.artists.length - 1 ? ", " : ""}`}
                                     </label>
                                 ))}
                             </div>

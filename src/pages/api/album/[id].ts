@@ -99,6 +99,7 @@ export async function GET(context: APIContext): Promise<Response> {
                         copyright: "",
                         genres: [],
                         lyrics: "",
+                        dynamicLyrics: [],
                         path: "",
                         popularity: song.popularity,
                         publisher: "",

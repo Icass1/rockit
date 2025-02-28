@@ -12,6 +12,12 @@ export type ArtistDB = {
     name: string;
     id: string;
 };
+
+export type DynamicLyrics = {
+    lyrics: string;
+    seconds: number;
+};
+
 export interface RawSongDB {
     id: string;
     name: string;
@@ -32,6 +38,7 @@ export interface RawSongDB {
     copyright: string | undefined;
     downloadUrl: string | undefined;
     lyrics: string | undefined;
+    dynamicLyrics: string | undefined;
     popularity: number | undefined;
     dateAdded: string | undefined;
 }
@@ -60,6 +67,7 @@ export type SongDBFull = {
     copyright: string | undefined;
     downloadUrl: string | undefined;
     lyrics: string | undefined;
+    dynamicLyrics: DynamicLyrics[];
     popularity: number | undefined;
     dateAdded: string | undefined;
 };
@@ -89,6 +97,7 @@ export function parseSong(rawSong: RawSongDB | undefined): SongDB | undefined {
         copyright: rawSong.copyright,
         downloadUrl: rawSong.downloadUrl,
         lyrics: rawSong.lyrics,
+        dynamicLyrics: JSON.parse(rawSong.dynamicLyrics || "[]"),
         popularity: rawSong.popularity,
         dateAdded: rawSong.dateAdded,
     };
@@ -114,6 +123,7 @@ export const songQuery = `CREATE TABLE IF NOT EXISTS song (
     copyright TEXT,
     downloadUrl TEXT,
     lyrics TEXT,
+    dynamicLyrics TEXT,
     popularity INTEGER,
     dateAdded TEXT
 )`;

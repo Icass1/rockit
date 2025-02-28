@@ -1,6 +1,12 @@
 ---
 import SearchBar from "@/components/Search/SearchBar";
 import HeaderUser from "./HeaderUser";
+
+export interface Props {
+    searchBar?: boolean;
+}
+
+const { searchBar = true } = Astro.props;
 ---
 
 <header
@@ -11,7 +17,7 @@ import HeaderUser from "./HeaderUser";
         <img src="/logo-banner.png" alt="Logo" class="h-14" />
     </a>
 
-    <SearchBar client:only="react" />
+    {searchBar ? <SearchBar client:only="react" /> : <label />}
 
     <!-- User Settings -->
     <div class="relative ml-auto">

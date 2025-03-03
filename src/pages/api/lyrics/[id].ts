@@ -50,7 +50,19 @@ export async function GET(context: APIContext): Promise<Response> {
 
     setGlobalDispatcher(agent);
 
-    const response = await fetch(url);
+    let response;
+    try {
+        response = await fetch(url);
+    } catch {
+        return new Response(
+            JSON.stringify({ dynamicLyrics: false, lyrics: song.lyrics }),
+            {
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+    }
     if (response.ok) {
         const json = (await response.json()) as DynamicLyrics[];
 

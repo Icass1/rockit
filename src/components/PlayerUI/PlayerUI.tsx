@@ -332,7 +332,10 @@ export default function PlayerUI() {
                                             // left: `${draggingPos[0]}px`,
                                         }}
                                     >
-                                        <QueueSong song={draggingSong} dragging/>
+                                        <QueueSong
+                                            song={draggingSong}
+                                            dragging
+                                        />
                                     </div>
                                 )}
                             </>

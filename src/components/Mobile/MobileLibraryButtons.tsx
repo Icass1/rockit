@@ -14,7 +14,10 @@ export default function ButtonSection() {
                         onClick={() => setOpen(!open)}
                     >
                         <Import className="w-8 h-8" />
-                        <a className="text-sm font-semibold text-center" href="/downloads">
+                        <a
+                            className="text-sm font-semibold text-center"
+                            href="/downloads"
+                        >
                             Import songs from YT Music/Spotify
                         </a>
                     </button>

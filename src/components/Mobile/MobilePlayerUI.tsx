@@ -236,7 +236,9 @@ export default function MusicPlayer() {
                             {$currentSong?.name}
                         </h2>
                         <p className="text-gray-300 font-semibold">
-                            {$currentSong?.artists.map(artist => artist.name).join(", ")}
+                            {$currentSong?.artists
+                                .map((artist) => artist.name)
+                                .join(", ")}
                         </p>
                     </div>
                     {$currentSong && <LikeButton song={$currentSong} />}

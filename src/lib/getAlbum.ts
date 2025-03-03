@@ -86,7 +86,6 @@ export default async function getAlbum(
                           >
                         | undefined
                     > => {
-
                         const rawSong = db
                             .prepare(
                                 "SELECT image, images, id, name, artists, albumId, albumName, path, duration, discNumber, trackNumber FROM song WHERE id = ?"

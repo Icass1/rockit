@@ -1,3 +1,4 @@
+import { navigate } from "astro:transitions/client";
 import { LogOut, Settings } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
@@ -31,6 +32,12 @@ export default function HeaderUser({ userName }: { userName: string }) {
         };
     }, []);
 
+    const handleLogOut = () => {
+        fetch("/api/logout").then(() => {
+            navigate("/login");
+        });
+    };
+
     return (
         <div
             ref={divRef}
@@ -52,13 +59,13 @@ export default function HeaderUser({ userName }: { userName: string }) {
                         <Settings className="h-5 w-5" />
                         <span>Settings</span>
                     </a>
-                    <a
-                        href="/login"
-                        className="md:hover:bg-[#4f4f4f] flex items-center p-3 space-x-2 cursor-pointer rounded-b-lg"
+                    <span
+                        className="md:hover:bg-[#4f4f4f] flex items-center gap-x-2 p-3 space-x-2 cursor-pointer rounded-b-lg"
+                        onClick={handleLogOut}
                     >
                         <LogOut className="h-5 w-5" />
-                        <span>Log Out</span>
-                    </a>
+                        Log Out
+                    </span>
                 </ul>
             </div>
 

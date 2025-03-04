@@ -8,10 +8,8 @@ export default function LogOutButton() {
     if (!$lang) return;
 
     const handleLogOut = () => {
-        fetch("/api/logout").then((response) => {
-            if (response.ok) {
-                navigate("/login");
-            }
+        fetch("/api/logout").then(() => {
+            navigate("/login");
         });
     };
 

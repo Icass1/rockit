@@ -25,9 +25,10 @@ venv/
 .idea/
 
 site-packages
-temp
-songs
-images
+/temp
+/backend/temp
+/songs
+/images
 __pycache__
 rest
 *.db

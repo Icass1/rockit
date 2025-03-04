@@ -1,0 +1,26 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import DBTablePage from "@/components/Admin/DBTablePage";
+import { db } from "@/lib/db/db";
+
+if (!Astro.locals.user?.admin) {
+    return new Response("Page not found", { status: 404 });
+}
+if (!Astro.params.id) {
+    return new Response("Page not found", { status: 404 });
+}
+
+const tables = (
+    db.prepare("SELECT name FROM sqlite_schema WHERE type='table'").all() as {
+        name: string;
+    }[]
+).map((table) => table.name);
+
+if (!tables.includes(Astro.params.id)) {
+    return new Response("Page not found", { status: 404 });
+}
+---
+
+<Layout currentPage="AdminDB">
+    <DBTablePage client:only="react" table={Astro.params.id} />
+</Layout>

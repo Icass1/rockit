@@ -67,20 +67,40 @@ errors.sort((a, b) => b.dateAdded - a.dateAdded);
     >
         <label class="text-xl font-semibold">Errors</label>
         <div class="flex flex-row gap-x-1">
-            <a class="text-sm p-1 bg-neutral-700 rounded" href="?time=24H"
-                >Last 24H</a
+            <a
+                class={"text-sm p-1  rounded" +
+                    (backTime == 1000 * 60 * 60 * 24
+                        ? " bg-neutral-500 "
+                        : " bg-neutral-700 ")}
+                href="?time=24H">Last 24H</a
             >
-            <a class="text-sm p-1 bg-neutral-700 rounded" href="?time=week"
-                >Last week</a
+            <a
+                class={"text-sm p-1  rounded" +
+                    (backTime == 1000 * 60 * 60 * 24 * 7
+                        ? " bg-neutral-500 "
+                        : " bg-neutral-700 ")}
+                href="?time=week">Last week</a
             >
-            <a class="text-sm p-1 bg-neutral-700 rounded" href="?time=month"
-                >Last month</a
+            <a
+                class={"text-sm p-1  rounded" +
+                    (backTime == 1000 * 60 * 60 * 24 * 30
+                        ? " bg-neutral-500 "
+                        : " bg-neutral-700 ")}
+                href="?time=month">Last month</a
             >
-            <a class="text-sm p-1 bg-neutral-700 rounded" href="?time=year"
-                >Last year</a
+            <a
+                class={"text-sm p-1  rounded" +
+                    (backTime == 1000 * 60 * 60 * 24 * 365
+                        ? " bg-neutral-500 "
+                        : " bg-neutral-700 ")}
+                href="?time=year">Last year</a
             >
-            <a class="text-sm p-1 bg-neutral-700 rounded" href="?time=all-time"
-                >All time</a
+            <a
+                class={"text-sm p-1  rounded" +
+                    (backTime == null
+                        ? " bg-neutral-500 "
+                        : " bg-neutral-700 ")}
+                href="?time=all-time">All time</a
             >
         </div>
         {

@@ -1,6 +1,7 @@
 ---
 import "@/styles/default.css";
 import BaseLayout from "@/layouts/BaseLayout.astro";
+import UsernameInput from "@/components/Login/UsernameInput";
 
 if (Astro.locals.user) {
     return Astro.redirect("/");
@@ -35,16 +36,7 @@ if (Astro.locals.user) {
                 </p>
                 <form class="mt-5 space-y-6" method="post" action="/api/login">
                     <div class="space-y-4">
-                        <div>
-                            <input
-                                id="username"
-                                name="username"
-                                autocomplete="username"
-                                required
-                                class="mt-1 w-4/5 rounded-full text-1xl px-5 py-1 bg-[#202020] text-white"
-                                placeholder="Username"
-                            />
-                        </div>
+                        <UsernameInput client:only="react" />
                         <div>
                             <input
                                 id="password"
@@ -91,15 +83,8 @@ if (Astro.locals.user) {
                 </p>
                 <form class="mt-5 space-y-6" method="post" action="/api/signup">
                     <div class="space-y-4">
-                        <div>
-                            <input
-                                id="username"
-                                name="username"
-                                required
-                                class="mt-1 w-4/5 rounded-full text-1xl px-5 py-1 bg-[#202020] text-white"
-                                placeholder="Username"
-                            />
-                        </div>
+                        <UsernameInput client:only="react" />
+
                         <div>
                             <input
                                 id="password"

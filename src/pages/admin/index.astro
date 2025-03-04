@@ -145,16 +145,30 @@ const gradientTextClass =
                     </label>
                     <label>Tables</label>
                 </div>
-                <div class="grid grid-cols-3 gap-1">
+                <div class="grid grid-cols-3 gap-x-3">
                     {
-                        tables.map((table) => (
-                            <a
-                                href={`/admin/db/${table.name}`}
-                                class="text-sm md:hover:underline"
-                            >
-                                {table.name}
-                            </a>
-                        ))
+                        tables.map((table) => {
+                            const count = db
+                                .prepare(`SELECT id FROM ${table.name}`)
+                                .all().length;
+
+                            return (
+                                <a
+                                    href={`/admin/db/${table.name}`}
+                                    class="text-sm flex flex-row justify-between items-baseline gap-x-1"
+                                >
+                                    <label class="md:hover:underline">
+                                        {table.name}
+                                    </label>
+                                    <label
+                                        class={gradientTextClass}
+                                        style="background-clip: text;"
+                                    >
+                                        {count}
+                                    </label>
+                                </a>
+                            );
+                        })
                     }
                 </div>
 

@@ -1,32 +1,55 @@
 import { db, type Column } from "@/lib/db/db";
 import type { APIContext } from "astro";
+
 export async function PUT(context: APIContext): Promise<Response> {
     if (!context.locals.user?.admin) {
         return new Response("Not found", { status: 404 });
     }
-    const data = await context.request.json();
-    console.log(data);
+    const data = (await context.request.json()) as
+        | {
+              type: "UPDATE";
+              table: string;
+              data: {
+                  primaryKey: { column: string; value: string };
+                  editedColumns: { column: string; newValue: string }[];
+              };
+          }
+        | { type: "INSERT"; table: string; fields: { [key: string]: string } }
+        | undefined;
 
-    console.log(
-        `INSERT INTO ${data.table} (${Object.keys(data.fields).join(",")}) VALUES(${Array(
-            Object.keys(data.fields).length
-        )
-            .fill(0)
-            .map(() => "?")
-            .join(",")})`
-    );
-    try {
-        db.prepare(
-            `INSERT INTO ${data.table} (${Object.keys(data.fields).join(",")}) VALUES(${Array(
-                Object.keys(data.fields).length
-            )
-                .fill(0)
-                .map(() => "?")
-                .join(",")})`
-        ).run(...Object.values(data.fields));
-        return new Response("OK");
-    } catch (error) {
-        return new Response(error?.toString(), { status: 500 });
+    if (data?.type == "INSERT") {
+        try {
+            db.prepare(
+                `INSERT INTO ${data.table} (${Object.keys(data.fields).join(",")}) VALUES(${Array(
+                    Object.keys(data.fields).length
+                )
+                    .fill(0)
+                    .map(() => "?")
+                    .join(",")})`
+            ).run(...Object.values(data.fields));
+            return new Response("OK");
+        } catch (error) {
+            return new Response(error?.toString(), { status: 500 });
+        }
+    } else if (data?.type == "UPDATE") {
+        try {
+            db.prepare(
+                `UPDATE ${data.table} SET ${data.data.editedColumns.map((column) => `${column.column} = ? `)} WHERE ${data.data.primaryKey.column} = ?`
+            ).run(
+                ...data.data.editedColumns.map((column) => column.newValue),
+                data.data.primaryKey.value
+            );
+            return new Response("OK");
+        } catch (error) {
+            return new Response(error?.toString(), { status: 500 });
+        }
+    } else {
+        return new Response(
+            `Request type '${JSON.stringify(data)}' not implmented`,
+            {
+                status: 400,
+            }
+        );
     }
 }
 
@@ -54,19 +77,28 @@ export async function POST(context: APIContext): Promise<Response> {
     if (data.filter && data.filter?.length > 0) {
         whereString += "WHERE";
         data.filter.forEach((filter, index) => {
-            if (filter.exact) {
+            if (filter.text == "NULL") {
                 if (filter.invert) {
-                    whereString += ` ${filter.column} != '${filter.text}'`;
+                    whereString += ` ${filter.column} IS NOT NULL`;
                 } else {
-                    whereString += ` ${filter.column} = '${filter.text}'`;
+                    whereString += ` ${filter.column} IS NULL`;
                 }
             } else {
-                if (filter.invert) {
-                    whereString += ` ${filter.column} NOT LIKE '%${filter.text}%'`;
+                if (filter.exact) {
+                    if (filter.invert) {
+                        whereString += ` ${filter.column} != '${filter.text}'`;
+                    } else {
+                        whereString += ` ${filter.column} = '${filter.text}'`;
+                    }
                 } else {
-                    whereString += ` ${filter.column} LIKE '%${filter.text}%'`;
+                    if (filter.invert) {
+                        whereString += ` ${filter.column} NOT LIKE '%${filter.text}%'`;
+                    } else {
+                        whereString += ` ${filter.column} LIKE '%${filter.text}%'`;
+                    }
                 }
             }
+
             if (data.filter && index < data.filter?.length - 1) {
                 whereString += " AND";
             }

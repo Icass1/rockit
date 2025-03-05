@@ -1,14 +1,18 @@
 import type { Column } from "@/lib/db/db";
-import { debounce } from "lodash";
+import { debounce, initial } from "lodash";
 import pkg from "lodash";
 import {
+    ArrowDown,
     ArrowDownAZ,
+    ArrowUp,
     ArrowUpAZ,
     ChevronLeft,
     ChevronRight,
     ChevronsLeft,
     ChevronsRight,
     CircleAlert,
+    Copy,
+    Edit,
     Hash,
     KeySquare,
     Plus,
@@ -16,6 +20,7 @@ import {
     SlidersHorizontal,
     Text,
     ToggleLeft,
+    Trash2,
 } from "lucide-react";
 import {
     useEffect,
@@ -25,6 +30,7 @@ import {
     type SetStateAction,
     useContext,
     useRef,
+    type ReactElement,
 } from "react";
 
 type ColumnFiltersType = {
@@ -47,6 +53,9 @@ type TableContextType = {
     setInsertPopOpen: Dispatch<SetStateAction<boolean>>;
     fetchDebounce: React.MutableRefObject<DebounceFetchType | undefined>;
     maxRows: number;
+    totalRows: number;
+    data: any[] | undefined;
+    setEditPopup: Dispatch<SetStateAction<number | undefined>>;
     offset: number;
     columnFilters:
         | {
@@ -80,6 +89,20 @@ type DebounceFetchType = pkg.DebouncedFunc<
         sortAscending: boolean
     ) => void
 >;
+type RequestType = {
+    table: string;
+    maxRows: number;
+    offset?: number;
+    sortColumn?: string;
+    ascending?: boolean;
+    columns?: string[];
+    filter?: {
+        column: string;
+        text: string;
+        invert: boolean;
+        exact: boolean;
+    }[];
+};
 
 const TableContext = createContext<TableContextType | undefined>(undefined);
 
@@ -228,6 +251,62 @@ function Header() {
         </div>
     );
 }
+
+function BasePopup({
+    title,
+    handleInsert,
+    handleCancel,
+    handleUpdate,
+    handlePrevious,
+    handleNext,
+    children,
+}: {
+    title: string;
+    handleInsert?: () => void;
+    handleUpdate?: () => void;
+    handleCancel?: () => void;
+    handlePrevious?: () => void;
+    handleNext?: () => void;
+    children?: ReactElement | boolean | (ReactElement | boolean | undefined)[];
+}) {
+    return (
+        <div
+            id="base-popup"
+            style={{ boxShadow: "0px 0px 20px 4px #08080890" }}
+            className="grid grid-rows-[min-content_1fr_min-content] aspect-[1.618/1] h-auto w-1/2 absolute bg-[#28282b] z-20 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-lg overflow-hidden"
+        >
+            <div className="bg-[#212225] w-full px-5 font-semibold flex flex-row items-center gap-x-1 select-none">
+                <label>{title}</label>
+                {handlePrevious && (
+                    <ArrowUp
+                        onClick={handlePrevious}
+                        className="w-4 h-4 cursor-pointer"
+                    />
+                )}
+                {handleNext && (
+                    <ArrowDown
+                        onClick={handleNext}
+                        className="w-4 h-4 cursor-pointer"
+                    />
+                )}
+            </div>
+            <div className="h-full min-h-0 max-h-full">{children}</div>
+            <div
+                className="bg-[#212225] w-full px-5 py-1 font-semibold flex flex-row items-center justify-between"
+                style={{ boxShadow: "rgb(8 8 8 / 48%) 0px 0px 10px 4px" }}
+            >
+                {handleCancel && (
+                    <button className="text-red-400" onClick={handleCancel}>
+                        Cancel
+                    </button>
+                )}
+                {handleInsert && <button onClick={handleInsert}>Insert</button>}
+                {handleUpdate && <button onClick={handleUpdate}>Update</button>}
+            </div>
+        </div>
+    );
+}
+
 function InsertPopup() {
     const {
         columns,
@@ -258,7 +337,11 @@ function InsertPopup() {
     const handleInsert = () => {
         fetch("/api/db", {
             method: "PUT",
-            body: JSON.stringify({ table: table, fields: fields }),
+            body: JSON.stringify({
+                table: table,
+                fields: fields,
+                type: "INSERT",
+            }),
         }).then((response) => {
             if (response.ok) {
                 setInsertPopOpen(false);
@@ -272,7 +355,6 @@ function InsertPopup() {
                     );
             } else {
                 response.text().then((data) => {
-                    console.log(data);
                     if (
                         data.includes(
                             "SqliteError: NOT NULL constraint failed: "
@@ -292,15 +374,14 @@ function InsertPopup() {
     };
 
     return (
-        <div
-            id="insert-popup"
-            style={{ boxShadow: "0px 0px 20px 4px #08080890" }}
-            className="flex flex-col aspect-[1.618/1] w-1/2 absolute bg-[#28282b] z-20 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-lg overflow-hidden"
+        <BasePopup
+            title="Insert new row"
+            handleInsert={handleInsert}
+            handleCancel={() => {
+                setInsertPopOpen(false);
+            }}
         >
-            <div className="bg-[#212225] w-full px-5 font-semibold">
-                <label>Insert new row</label>
-            </div>
-            <div className="overflow-y-auto">
+            <div className="overflow-y-auto grid grid-cols-1 xl:grid-cols-2 h-full">
                 {columns?.map((column) => (
                     <div
                         key={column.name}
@@ -352,13 +433,274 @@ function InsertPopup() {
                     </div>
                 ))}
             </div>
-            <div
-                className="bg-[#212225] w-full px-5 py-1 font-semibold flex flex-row items-center justify-between"
-                style={{ boxShadow: "rgb(8 8 8 / 48%) 0px 0px 10px 4px" }}
-            >
-                <button className="text-red-400">Cancel</button>
-                <button onClick={handleInsert}>Insert</button>
-            </div>
+        </BasePopup>
+    );
+}
+
+function EditPopup({ index }: { index: number }) {
+    const {
+        columns,
+        data,
+        offset,
+        table,
+        totalRows,
+        maxRows,
+        columnFilters,
+        fetchDebounce,
+        sortBy,
+        sortAscending,
+        setEditPopup,
+    } = useContext(TableContext) as TableContextType;
+
+    const [currentIndex, setCurrentIndex] = useState(index);
+
+    const [fields, setFields] = useState<
+        { [key: string]: string | undefined } | undefined | "Loading"
+    >("Loading");
+
+    const [initialFields, setInitialFields] = useState<
+        { [key: string]: string | undefined } | undefined
+    >();
+
+    const [badVariable, setBadVariable] = useState<string>();
+    const [badVariableMessage, setBadVariableMessage] = useState<string>();
+
+    useEffect(() => {
+        if (!data) return;
+
+        const tempFields: { [key: string]: string | undefined } = {};
+
+        let row = data[currentIndex - offset];
+
+        if (!row) {
+            const request: RequestType = {
+                table: table,
+                maxRows: 1,
+                offset: currentIndex,
+            };
+            setFields("Loading");
+
+            fetch("/api/db", {
+                method: "POST",
+                body: JSON.stringify(request),
+            }).then((response) => {
+                if (response.ok) {
+                    response.json().then((data) => {
+                        columns?.forEach(
+                            (column) =>
+                                (tempFields[column.name] =
+                                    data.data[0][column.name])
+                        );
+                        setFields({ ...tempFields });
+                        setInitialFields({ ...tempFields });
+                    });
+                } else {
+                    setFields(undefined);
+                }
+            });
+        } else {
+            columns?.forEach(
+                (column) => (tempFields[column.name] = row.row[column.name])
+            );
+            setFields({ ...tempFields });
+            setInitialFields({ ...tempFields });
+        }
+    }, [currentIndex]);
+
+    const handleUpdate = () => {
+        const primaryKey = columns?.find((column) => column.key);
+        if (!primaryKey) {
+            // Tell user primaryKey couldn't be found.
+            return;
+        }
+
+        if (!fields || fields == "Loading") return;
+        if (!initialFields) return;
+
+        const primaryKeyValue = fields[primaryKey.name];
+
+        if (typeof primaryKeyValue != "string") return;
+
+        const editedColumns: {
+            column: string;
+            newValue: string | undefined;
+        }[] = [];
+
+        columns?.forEach((column) => {
+            if (fields[column.name] != initialFields[column.name]) {
+                editedColumns.push({
+                    column: column.name,
+                    newValue: fields[column.name],
+                });
+            }
+        });
+
+        const updateRequest = {
+            primaryKey: {
+                column: primaryKey.name,
+                value: primaryKeyValue,
+            },
+            editedColumns: editedColumns,
+        };
+
+        fetch("/api/db", {
+            method: "PUT",
+            body: JSON.stringify({
+                table: table,
+                data: updateRequest,
+                type: "UPDATE",
+            }),
+        }).then((response) => {
+            if (response.ok) {
+                setEditPopup(undefined);
+                if (fetchDebounce.current)
+                    fetchDebounce.current(
+                        maxRows,
+                        columnFilters,
+                        offset,
+                        sortBy,
+                        sortAscending
+                    );
+            } else {
+                response.text().then((data) => {
+                    if (
+                        data.includes(
+                            "SqliteError: NOT NULL constraint failed: "
+                        )
+                    ) {
+                        setBadVariableMessage("NOT NULL constraint failed");
+                        setBadVariable(data.split(`${table}.`)[1]);
+                    } else if (
+                        data.includes("SqliteError: UNIQUE constraint failed: ")
+                    ) {
+                        setBadVariableMessage("UNIQUE constraint failed");
+                        setBadVariable(data.split(`${table}.`)[1]);
+                    }
+                });
+            }
+        });
+    };
+
+    if (!data) return;
+
+    return (
+        <BasePopup
+            title={`Edit ${table} ${currentIndex + 1}`}
+            handlePrevious={() => {
+                setCurrentIndex((value) => Math.max(value - 1, 0));
+            }}
+            handleNext={() => {
+                setCurrentIndex((value) => Math.min(value + 1, totalRows));
+            }}
+            handleCancel={() => {}}
+            handleUpdate={handleUpdate}
+        >
+            {fields == "Loading" && <label>Loading</label>}
+            {fields == undefined && <label>Error Loading</label>}
+            {fields && fields != "Loading" && (
+                <div className="overflow-y-auto grid grid-cols-1 xl:grid-cols-2 h-full">
+                    {columns?.map((column) => (
+                        <div
+                            key={column.name}
+                            className={
+                                "p-3 flex flex-col " +
+                                (column.name == badVariable
+                                    ? " bg-red-400/20 md:hover:bg-red-400/30 "
+                                    : " md:hover:bg-[#2a2a2e] ")
+                            }
+                        >
+                            <div className="flex flex-row items-center gap-x-2">
+                                <label className="font-bold">
+                                    {column.name}
+                                </label>
+                                {column.key && (
+                                    <KeySquare className="w-4 h-4 text-orange-400" />
+                                )}
+                                {column.type == "TEXT" && (
+                                    <div title="TEXT">
+                                        <Text className="w-4 h-4" />
+                                    </div>
+                                )}
+                                {column.type == "INTEGER" && (
+                                    <div title="INTEGER">
+                                        <Hash className="w-4 h-4" />
+                                    </div>
+                                )}
+                                {column.type == "BOOLEAN" && (
+                                    <div title="BOOLEAN">
+                                        <ToggleLeft className="w-4 h-4" />
+                                    </div>
+                                )}
+                                {column.name == badVariable && (
+                                    <label className="text-sm text-red-400">
+                                        {badVariableMessage}
+                                    </label>
+                                )}
+
+                                {fields?.[column.name] !=
+                                    initialFields?.[column.name] && (
+                                    <label
+                                        className="text-yellow-700 font-bold"
+                                        title="Modified"
+                                    >
+                                        M
+                                    </label>
+                                )}
+                            </div>
+                            <textarea
+                                className="bg-[#2e2f34] outline-none p-1"
+                                value={fields?.[column.name] ?? ""}
+                                onChange={(e) => {
+                                    setFields((value) => {
+                                        if (!value || value == "Loading")
+                                            return {};
+                                        value[column.name] = e.target.value;
+
+                                        return { ...value };
+                                    });
+                                }}
+                            ></textarea>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </BasePopup>
+    );
+}
+
+function Cell({ text }: { text: unknown }) {
+    const [hover, setHover] = useState(false);
+
+    return (
+        <div
+            className="min-w-0 max-w-full w-full grid grid-cols-[1fr_min-content] items-center"
+            onMouseEnter={() => setHover(true)}
+            onMouseLeave={() => {
+                setHover(false);
+            }}
+        >
+            {typeof text == "string" ||
+            typeof text == "number" ||
+            typeof text == "undefined" ? (
+                <label className="min-w-0 max-w-full w-full block truncate px-1 text-sm text-neutral-300">
+                    {text}
+                </label>
+            ) : (
+                <label className="min-w-0 max-w-full w-full block truncate px-1 text-sm text-neutral-500">
+                    NULL
+                </label>
+            )}
+
+            {hover && (
+                <Copy
+                    className="w-4 h-4 cursor-pointer"
+                    onClick={() => {
+                        navigator.clipboard.writeText(
+                            text?.toString() ?? "Unable to copy data"
+                        );
+                    }}
+                />
+            )}
         </div>
     );
 }
@@ -383,8 +725,11 @@ export default function DBTablePage({ table }: { table: string }) {
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersType>();
 
     const [insertPopupOpen, setInsertPopOpen] = useState(false);
+    const [editPopup, setEditPopup] = useState<number | undefined>(undefined);
 
     const fetchDebounce = useRef<DebounceFetchType>();
+
+    const [rowHover, setRowHover] = useState();
 
     useEffect(() => {
         fetchDebounce.current = debounce(
@@ -395,20 +740,7 @@ export default function DBTablePage({ table }: { table: string }) {
                 sortBy: string,
                 sortAscending: boolean
             ) => {
-                const request: {
-                    table: string;
-                    maxRows: number;
-                    offset?: number;
-                    sortColumn?: string;
-                    ascending?: boolean;
-                    columns?: string[];
-                    filter?: {
-                        column: string;
-                        text: string;
-                        invert: boolean;
-                        exact: boolean;
-                    }[];
-                } = {
+                const request: RequestType = {
                     table: table,
                     maxRows: maxRows,
                     filter: columnFilters
@@ -511,6 +843,9 @@ export default function DBTablePage({ table }: { table: string }) {
     return (
         <TableContext.Provider
             value={{
+                setEditPopup,
+                totalRows,
+                data,
                 maxRows,
                 offset,
                 fetchDebounce,
@@ -530,19 +865,22 @@ export default function DBTablePage({ table }: { table: string }) {
                 onClick={(e) => {
                     if (
                         document
-                            .querySelector("#insert-popup")
+                            .querySelector("#base-popup")
                             ?.contains(e.target as Node)
                     )
                         return;
                     if (insertPopupOpen) setInsertPopOpen(false);
+                    if (editPopup) setEditPopup(undefined);
                 }}
             >
                 {insertPopupOpen && <InsertPopup />}
+                {editPopup && <EditPopup index={editPopup} />}
                 <div
                     className={
                         "w-full h-full grid grid-rows-[min-content_1fr_min-content] " +
-                        (insertPopupOpen &&
-                            "opacity-50 pointer-events-none select-none")
+                        (insertPopupOpen ||
+                            (editPopup &&
+                                "opacity-50 pointer-events-none select-none"))
                     }
                 >
                     <div className="h-6 w-full bg-[#212225] px-1 text-sm items-center flex flex-row gap-x-2">
@@ -586,15 +924,36 @@ export default function DBTablePage({ table }: { table: string }) {
                                     return (
                                         <div
                                             key={row.index}
-                                            className="text-right px-1 text-sm text-neutral-300 absolute w-full "
+                                            className="text-right px-1 text-sm text-neutral-300 absolute w-full grid grid-cols-[1fr_min-content]"
                                             style={{
                                                 height: rowHeight + "px",
                                                 top:
                                                     row.index * rowHeight +
                                                     "px",
                                             }}
+                                            onMouseEnter={() => {
+                                                setRowHover(row.index);
+                                            }}
+                                            onMouseLeave={() => {
+                                                setRowHover(undefined);
+                                            }}
                                         >
-                                            {row.index + 1}
+                                            <div className=" flex flex-row gap-x-1">
+                                                {row.index == rowHover && (
+                                                    <Trash2 className="h-4 w-4" />
+                                                )}
+                                                {row.index == rowHover && (
+                                                    <Edit
+                                                        onClick={() => {
+                                                            setEditPopup(
+                                                                row.index
+                                                            );
+                                                        }}
+                                                        className="h-4 w-4"
+                                                    />
+                                                )}
+                                            </div>
+                                            <label>{row.index + 1}</label>
                                         </div>
                                     );
                                 })}
@@ -629,8 +988,14 @@ export default function DBTablePage({ table }: { table: string }) {
                                     return (
                                         <div
                                             key={row.index}
+                                            onMouseEnter={() => {
+                                                setRowHover(row.index);
+                                            }}
+                                            onMouseLeave={() => {
+                                                setRowHover(undefined);
+                                            }}
                                             className={
-                                                "w-fit grid py-[2px] hover:bg-[#2e2f34] absolute " +
+                                                "w-fit grid hover:bg-[#2e2f34] absolute " +
                                                 (row.index % 2 == 0
                                                     ? "bg-[#2e2e31]"
                                                     : "bg-[#28282b]")
@@ -649,26 +1014,14 @@ export default function DBTablePage({ table }: { table: string }) {
                                             }}
                                         >
                                             {Object.entries(row.row).map(
-                                                (entry) => {
-                                                    return (
-                                                        <label
-                                                            key={
-                                                                row.index +
-                                                                entry[0]
-                                                            }
-                                                            className="min-w-0 max-w-full w-full truncate px-1 text-sm text-neutral-300"
-                                                        >
-                                                            {typeof entry[1] ==
-                                                                "string" ||
-                                                            typeof entry[1] ==
-                                                                "number" ||
-                                                            typeof entry[1] ==
-                                                                "undefined"
-                                                                ? entry[1]
-                                                                : "NULL"}
-                                                        </label>
-                                                    );
-                                                }
+                                                (entry) => (
+                                                    <Cell
+                                                        key={
+                                                            row.index + entry[0]
+                                                        }
+                                                        text={entry[1]}
+                                                    />
+                                                )
                                             )}
                                         </div>
                                     );

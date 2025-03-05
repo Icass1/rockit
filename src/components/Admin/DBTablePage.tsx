@@ -881,7 +881,7 @@ export default function DBTablePage({ table }: { table: string }) {
                     className={
                         "w-full h-full grid grid-rows-[min-content_1fr_min-content] " +
                         (insertPopupOpen ||
-                            (editPopup &&
+                            (typeof editPopup == "number" &&
                                 "opacity-50 pointer-events-none select-none"))
                     }
                 >

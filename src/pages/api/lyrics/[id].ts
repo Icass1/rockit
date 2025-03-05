@@ -54,14 +54,25 @@ export async function GET(context: APIContext): Promise<Response> {
     try {
         response = await fetch(url);
     } catch {
-        return new Response(
-            JSON.stringify({ dynamicLyrics: false, lyrics: song.lyrics }),
-            {
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            }
-        );
+        if (song.dynamicLyrics.length > 0) {
+            return new Response(
+                JSON.stringify({ dynamicLyrics: true, lyrics: song.dynamicLyrics }),
+                {
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                }
+            );
+        } else {
+            return new Response(
+                JSON.stringify({ dynamicLyrics: false, lyrics: song.lyrics }),
+                {
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                }
+            );
+        }
     }
     if (response.ok) {
         const json = (await response.json()) as DynamicLyrics[];

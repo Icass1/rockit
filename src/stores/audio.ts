@@ -476,10 +476,12 @@ async function isHlsContent(url: string): Promise<boolean> {
 
 export async function play() {
     await audio.play();
+    await audio2.play();
 }
 
 export function pause() {
     audio.pause();
+    audio2.pause();
 }
 
 export function setTime(time: number) {
@@ -825,16 +827,12 @@ const addAudioEventListeners = (audio: HTMLAudioElement) => {
     audio.addEventListener("timeupdate", async () => {
         let _crossFade = currentCrossFade.get();
 
-        // console.log(_crossFade);
-
         currentTime.set(audio.currentTime);
         send({
             currentTime: audio.currentTime,
         });
         const userVolume = volume.get();
-        // console.log("1", userVolume && _crossFade && _crossFade > 0);
-        if (userVolume && _crossFade && _crossFade > 0) {
-            // console.log("2", audio.duration - audio.currentTime < _crossFade);
+        if (userVolume && _crossFade && _crossFade > 0 && !repeatSong.get()) {
             if (audio.duration - audio.currentTime < _crossFade) {
                 audio.volume =
                     (-userVolume / _crossFade) *
@@ -884,9 +882,13 @@ const addAudioEventListeners = (audio: HTMLAudioElement) => {
                     userVolume;
             } else {
                 audio.volume = userVolume;
+                initAudio = false;
+                audio2.pause();
             }
         } else {
             if (userVolume) audio.volume = userVolume;
+            initAudio = false;
+            audio2.pause();
         }
         const songId = currentSong.get()?.id;
         if (

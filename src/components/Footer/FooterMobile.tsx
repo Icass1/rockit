@@ -10,10 +10,9 @@ export default function FooterMobile() {
     const $playing = useStore(playing);
     const $currentSong = useStore(currentSong);
     const $currentTime = useStore(currentTime);
-    // const $isMobilePlayerUIVisible = useStore(isMobilePlayerUIVisible);
 
     return (
-        <div className="h-full w-full pb-1 ">
+        <div className="h-full w-full pb-1">
             <div
                 className="items-center h-full w-full group grid grid-cols-[min-content_1fr_min-content_min-content] gap-x-2 pr-2 bg-black/80 rounded-md"
                 onClick={() => isMobilePlayerUIVisible.set(true)}

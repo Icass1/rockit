@@ -22,7 +22,7 @@ export function BasePopup({
         <div
             id="base-popup"
             style={{ boxShadow: "0px 0px 20px 4px #08080890" }}
-            className="grid grid-rows-[min-content_1fr_min-content] aspect-[1.618/1] h-auto w-1/2 absolute bg-[#28282b] z-20 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-lg overflow-hidden"
+            className="grid grid-rows-[min-content_1fr_min-content] md:aspect-[1.618/1] md:h-auto md:w-1/2 w-4/5 h-2/3 absolute bg-[#28282b] z-30 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-lg overflow-hidden"
         >
             <div className="bg-[#212225] w-full px-5 font-semibold flex flex-row items-center gap-x-1 select-none">
                 <label>{title}</label>

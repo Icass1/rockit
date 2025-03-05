@@ -220,7 +220,7 @@ export default function DBTablePage({ table }: { table: string }) {
             }}
         >
             <div
-                className="w-full h-full relative"
+                className="w-full h-full relative pt-16 pb-16 md:pt-0 md:pb-0"
                 onClick={(e) => {
                     if (
                         document
@@ -403,13 +403,16 @@ export default function DBTablePage({ table }: { table: string }) {
                     <div className="w-full bg-[#212225] px-1 text-sm items-center flex">
                         <ChevronsLeft
                             onClick={() => {
-                                scrollRef.current?.scrollTo(0, 0);
+                                scrollRef.current?.scrollTo(
+                                    scrollRef.current?.scrollLeft,
+                                    0
+                                );
                             }}
                         />
                         <ChevronLeft
                             onClick={() => {
                                 scrollRef.current?.scrollTo(
-                                    0,
+                                    scrollRef.current?.scrollLeft,
                                     (Math.floor(scroll / rowHeight / pageSize) -
                                         1) *
                                         rowHeight *
@@ -424,7 +427,7 @@ export default function DBTablePage({ table }: { table: string }) {
                             type="number"
                             onChange={(event) => {
                                 scrollRef.current?.scrollTo(
-                                    0,
+                                    scrollRef.current?.scrollLeft,
                                     (Number(event.target.value) - 1) *
                                         rowHeight *
                                         pageSize
@@ -435,7 +438,7 @@ export default function DBTablePage({ table }: { table: string }) {
                         <ChevronRight
                             onClick={() => {
                                 scrollRef.current?.scrollTo(
-                                    0,
+                                    scrollRef.current?.scrollLeft,
                                     (Math.floor(scroll / rowHeight / pageSize) +
                                         1) *
                                         rowHeight *
@@ -446,7 +449,7 @@ export default function DBTablePage({ table }: { table: string }) {
                         <ChevronsRight
                             onClick={() => {
                                 scrollRef.current?.scrollTo(
-                                    0,
+                                    scrollRef.current?.scrollLeft,
                                     totalRows * rowHeight
                                 );
                             }}

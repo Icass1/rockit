@@ -146,8 +146,8 @@ export default function PlayerUI() {
                     className="absolute w-full h-auto top-1/2 -translate-y-1/2 blur-md brightness-50"
                 ></img>
 
-                <div className="z-40 w-full h-full hidden lg:block">
-                    <h2 className="absolute w-[31.5%] text-center text-3xl font-bold mx-auto p-14">
+                <div className="z-40 w-full h-full hidden lg:block relative">
+                    <h2 className="absolute w-full block text-center text-3xl font-bold mx-auto p-14">
                         Lyrics
                     </h2>
                     <DynamicLyrics />

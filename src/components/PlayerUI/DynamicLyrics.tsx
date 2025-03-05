@@ -57,12 +57,12 @@ export function DynamicLyrics() {
         }
 
         const handleKey = (event: KeyboardEvent) => {
-            if (event.code == "ArrowRight") {
+            if (event.code == "ArrowDown") {
                 setLyricsIndex((value) =>
                     Math.min(value + 1, lyrics.length - 1)
                 );
                 console.log(currentTime.get(), lyricsIndex);
-            } else if (event.code == "ArrowLeft") {
+            } else if (event.code == "ArrowUp") {
                 setLyricsIndex((value) => Math.max(value - 1, 0));
             }
         };
@@ -91,24 +91,24 @@ export function DynamicLyrics() {
 
     if (typeof lyrics == "string" || typeof lyrics == "undefined") {
         return (
-            <div className="flex flex-col justify-center items-center px-4 overflow-hidden relative h-full min-w-[31.5%]">
+            <div className="flex flex-col justify-center items-center px-4 overflow-hidden relative h-full w-full">
                 No lyrics found
             </div>
         );
     }
 
     const commonSyles =
-        "absolute pl-16 pr-4 text-center -translate-y-1/2 transition-all duration-500 text-balance";
+        "absolute text-center left-1/2 -translate-x-1/2 w-full -translate-y-1/2 transition-all duration-500 text-balance origin-center";
 
     return (
-        <div className="flex flex-col justify-center items-center px-4 overflow-hidden relative h-full min-w-[31.5%] ">
+        <div className="flex flex-col justify-center items-center px-4 overflow-hidden relative h-full w-full">
             {lyrics.map((line, index) => {
                 switch (index - lyricsIndex) {
                     case -2:
                         return (
                             <div
                                 key={index}
-                                className={commonSyles}
+                                className={commonSyles + " scale-[.4]"}
                                 style={{
                                     top: "25%",
                                     fontSize: "4vh",
@@ -116,7 +116,6 @@ export function DynamicLyrics() {
                                     lineHeight: "4vh",
                                     maxWidth: "100%",
                                     color: "rgb(200, 200, 200)",
-                                    scale: "0.4",
                                 }}
                             >
                                 {line}
@@ -126,7 +125,7 @@ export function DynamicLyrics() {
                         return (
                             <div
                                 key={index}
-                                className={commonSyles}
+                                className={commonSyles + " scale-[.6]"}
                                 style={{
                                     top: "35%",
                                     fontSize: "4vh",
@@ -134,7 +133,7 @@ export function DynamicLyrics() {
                                     lineHeight: "4vh",
                                     maxWidth: "100%",
                                     color: "rgb(200, 200, 200)",
-                                    scale: "0.6",
+                                    // scale: "0.6",
                                 }}
                             >
                                 {line}
@@ -160,7 +159,7 @@ export function DynamicLyrics() {
                         return (
                             <div
                                 key={index}
-                                className={commonSyles}
+                                className={commonSyles + " scale-[.6]"}
                                 style={{
                                     top: "63%",
                                     fontSize: "4vh",
@@ -168,7 +167,7 @@ export function DynamicLyrics() {
                                     lineHeight: "4vh",
                                     maxWidth: "100%",
                                     color: "rgb(200, 200, 200)",
-                                    scale: "0.6",
+                                    // scale: "0.6",
                                 }}
                             >
                                 {line}
@@ -178,7 +177,7 @@ export function DynamicLyrics() {
                         return (
                             <div
                                 key={index}
-                                className={commonSyles}
+                                className={commonSyles + " scale-[.4]"}
                                 style={{
                                     top: "75%",
                                     fontSize: "4vh",
@@ -186,7 +185,7 @@ export function DynamicLyrics() {
                                     lineHeight: "4vh",
                                     maxWidth: "100%",
                                     color: "rgb(200, 200, 200)",
-                                    scale: "0.4",
+                                    // scale: "0.4",
                                 }}
                             >
                                 {line}
@@ -198,7 +197,7 @@ export function DynamicLyrics() {
                     return (
                         <div
                             key={index}
-                            className={commonSyles}
+                            className={commonSyles + " scale-[0]"}
                             style={{
                                 top: "75%",
                                 fontSize: "4vh",
@@ -206,7 +205,6 @@ export function DynamicLyrics() {
                                 lineHeight: "4vh",
                                 maxWidth: "100%",
                                 color: "rgb(200, 200, 200)",
-                                scale: 0,
                             }}
                         >
                             {line}
@@ -216,7 +214,7 @@ export function DynamicLyrics() {
                     return (
                         <div
                             key={index}
-                            className={commonSyles}
+                            className={commonSyles + " scale-[0]"}
                             style={{
                                 top: "25%",
                                 fontSize: "4vh",
@@ -224,7 +222,6 @@ export function DynamicLyrics() {
                                 lineHeight: "4vh",
                                 maxWidth: "100%",
                                 color: "rgb(200, 200, 200)",
-                                scale: 0,
                             }}
                         >
                             {line}

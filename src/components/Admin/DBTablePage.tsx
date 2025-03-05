@@ -335,7 +335,7 @@ function InsertPopup() {
     }, []);
 
     const handleInsert = () => {
-        fetch("/api/db", {
+        fetch("/api/admin/db", {
             method: "PUT",
             body: JSON.stringify({
                 table: table,
@@ -480,7 +480,7 @@ function EditPopup({ index }: { index: number }) {
             };
             setFields("Loading");
 
-            fetch("/api/db", {
+            fetch("/api/admin/db", {
                 method: "POST",
                 body: JSON.stringify(request),
             }).then((response) => {
@@ -543,7 +543,7 @@ function EditPopup({ index }: { index: number }) {
             editedColumns: editedColumns,
         };
 
-        fetch("/api/db", {
+        fetch("/api/admin/db", {
             method: "PUT",
             body: JSON.stringify({
                 table: table,
@@ -760,7 +760,7 @@ export default function DBTablePage({ table }: { table: string }) {
                     ascending: sortAscending,
                 };
 
-                fetch("/api/db", {
+                fetch("/api/admin/db", {
                     method: "POST",
                     body: JSON.stringify(request),
                 }).then((response) => {

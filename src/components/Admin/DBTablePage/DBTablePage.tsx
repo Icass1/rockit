@@ -158,6 +158,47 @@ export default function DBTablePage({ table }: { table: string }) {
         );
     }, [fetchDebounce, maxRows, sortBy, sortAscending, columnFilters, offset]);
 
+    const handleDelete = (index: number) => {
+        if (!data) {
+            console.error("data is not defined");
+            return;
+        }
+
+        const primaryKey = columns?.find((column) => column.key);
+        if (!primaryKey) {
+            // Tell user primaryKey couldn't be found.
+            return;
+        }
+
+        const primaryKeyValue = data[index - offset].row[primaryKey.name];
+
+        if (!primaryKeyValue) {
+            console.error("primaryKeyValue is not defined");
+            return;
+        }
+
+        fetch("/api/admin/db", {
+            method: "DELETE",
+            body: JSON.stringify({
+                table: table,
+                primaryKey: { column: primaryKey.name, value: primaryKeyValue },
+            }),
+        }).then((response) => {
+            if (response.ok) {
+                if (fetchDebounce.current)
+                    fetchDebounce.current(
+                        maxRows,
+                        columnFilters,
+                        offset,
+                        sortBy,
+                        sortAscending
+                    );
+            } else {
+                // Notify user there has been an error.
+            }
+        });
+    };
+
     return (
         <TableContext.Provider
             value={{
@@ -260,7 +301,14 @@ export default function DBTablePage({ table }: { table: string }) {
                                         >
                                             <div className=" flex flex-row gap-x-1">
                                                 {row.index == rowHover && (
-                                                    <Trash2 className="h-4 w-4" />
+                                                    <Trash2
+                                                        onClick={() => {
+                                                            handleDelete(
+                                                                row.index
+                                                            );
+                                                        }}
+                                                        className="h-4 w-4 cursor-pointer"
+                                                    />
                                                 )}
                                                 {row.index == rowHover && (
                                                     <Edit
@@ -269,11 +317,15 @@ export default function DBTablePage({ table }: { table: string }) {
                                                                 row.index
                                                             );
                                                         }}
-                                                        className="h-4 w-4"
+                                                        className="h-4 w-4 cursor-pointer"
                                                     />
                                                 )}
                                             </div>
-                                            <label>{row.index + 1}</label>
+                                            <label>
+                                                {row.index == rowHover
+                                                    ? ""
+                                                    : row.index + 1}
+                                            </label>
                                         </div>
                                     );
                                 })}

@@ -1,6 +1,26 @@
 import { db, type Column } from "@/lib/db/db";
 import type { APIContext } from "astro";
 
+export async function DELETE(context: APIContext): Promise<Response> {
+    if (!context.locals.user?.admin) {
+        return new Response("Not found", { status: 404 });
+    }
+
+    const data = (await context.request.json()) as {
+        table: string;
+        primaryKey: { column: string; value: string };
+    };
+
+    try {
+        db.prepare(
+            `DELETE FROM ${data.table} WHERE ${data.primaryKey.column} = ?`
+        ).run(data.primaryKey.value);
+        return new Response("OK");
+    } catch (error) {
+        return new Response(error?.toString(), { status: 500 });
+    }
+}
+
 export async function PUT(context: APIContext): Promise<Response> {
     if (!context.locals.user?.admin) {
         return new Response("Not found", { status: 404 });

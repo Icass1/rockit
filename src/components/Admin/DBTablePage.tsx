@@ -874,7 +874,9 @@ export default function DBTablePage({ table }: { table: string }) {
                 }}
             >
                 {insertPopupOpen && <InsertPopup />}
-                {editPopup && <EditPopup index={editPopup} />}
+                {typeof editPopup == "number" && (
+                    <EditPopup index={editPopup} />
+                )}
                 <div
                     className={
                         "w-full h-full grid grid-rows-[min-content_1fr_min-content] " +

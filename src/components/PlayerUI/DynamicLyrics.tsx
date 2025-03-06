@@ -29,8 +29,6 @@ export function DynamicLyrics() {
                               lyrics: { seconds: number; lyrics: string }[];
                           }
                 ) => {
-                    console.log(data);
-
                     if (!data.lyrics) {
                         setLyrics("");
                         setLyricsTimeStamp([]);

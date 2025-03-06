@@ -248,14 +248,14 @@ repeatSong.subscribe((value) => {
 });
 
 const playWhenLoaded = () => {
-    console.log("playWhenLoaded");
-    console.log("playWhenReady.get()", playWhenReady.get());
-    console.log("6");
+    // console.log("playWhenLoaded");
+    // console.log("playWhenReady.get()", playWhenReady.get());
+    // console.log("6");
     loading.set(false);
     if (playWhenReady.get()) {
-        console.log("7");
+        // console.log("7");
         audio.play().then(() => {
-            console.log("8");
+            // console.log("8");
 
             playing.set(true);
         });
@@ -327,42 +327,34 @@ currentSong.subscribe(async (value) => {
             ],
         });
     }
-    console.log("inCrossFade", inCrossFade);
-    console.log("audio2.paused", audio2.paused);
-    console.log("audio2.src", audio2.src);
+    // console.log("inCrossFade", inCrossFade);
+    // console.log("audio2.paused", audio2.paused);
+    // console.log("audio2.src", audio2.src);
     if (inCrossFade && !audio2.paused && audio2.src) {
-        console.log("audio", audio);
-        console.log("audio2", audio2);
+        // console.log("audio", audio);
+        // console.log("audio2", audio2);
         [audio, audio2] = [audio2, audio];
-        addAudioEventListeners(audio);
+        audio2.pause();
+        removeEventListeners(audio2);
         audio2 = new Audio();
+        addAudioEventListeners(audio);
         inCrossFade = false;
     } else if (value) {
         loading.set(true);
-        console.log("1");
+        // console.log("1");
         playing.set(false);
-        console.log("2");
+        // console.log("2");
         audio2.pause();
+        removeEventListeners(audio2);
         audio2 = new Audio();
-        console.log("3");
+        // console.log("3");
         audio.src = await getSongSrc(value.id);
-        console.log("4");
+        // console.log("4");
         audio.onerror = () => {
             loading.set(false);
         };
-        console.log("5");
+        // console.log("5");
         audio.addEventListener("loadeddata", playWhenLoaded);
-        // audio.onloadeddata = () => {
-        //     console.log("6");
-        //     loading.set(false);
-        //     if (playWhenReady.get()) {
-        //         console.log("7");
-        //         audio.play().then(() => {
-        //             console.log("8");
-        //             playing.set(true);
-        //         });
-        //     }
-        // };
     }
 });
 
@@ -375,12 +367,12 @@ currentStation.subscribe(async (value) => {
 
     clearCurrentSong();
 
-    console.log(value.url_resolved);
+    // console.log(value.url_resolved);
 
     if (value.url_resolved) {
         const isHls = await isHlsContent(value.url_resolved);
         if (Hls.isSupported() && isHls) {
-            console.log("Hls");
+            // console.log("Hls");
             hls.loadSource(value.url_resolved);
             hls.attachMedia(audio);
             hls.on(Hls.Events.MANIFEST_PARSED, () => {
@@ -389,15 +381,15 @@ currentStation.subscribe(async (value) => {
                     .catch((err) => console.error("Error playing audio:", err));
             });
         } else {
-            console.log("not Hls");
+            // console.log("not Hls");
             audio.src = value.url_resolved;
             // audio.play();
             audio.onloadeddata = () => {
-                console.log("onloadeddata");
+                // console.log("onloadeddata");
                 audio.play();
             };
             audio.oncanplay = () => {
-                console.log("oncanplay");
+                // console.log("oncanplay");
                 audio.play();
             };
         }
@@ -440,13 +432,13 @@ async function isHlsContent(url: string): Promise<boolean> {
     const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 seconds timeout
 
     try {
-        console.log("1111111111111111111111");
+        // console.log("1111111111111111111111");
         const response = await fetch(url, {
             method: "GET",
             headers: { Range: "bytes=0-512" },
             signal: controller.signal,
         });
-        console.log("222222222222222");
+        // console.log("222222222222222");
 
         const reader = response.body?.getReader();
         if (!reader) return false;
@@ -530,7 +522,7 @@ export async function prev() {
     await fetch(`/api/song/${newSongId}`)
         .then((response) => response.json())
         .then((data: SongDB) => {
-            console.log("Playwhenready 1");
+            // console.log("Playwhenready 1");
             playWhenReady.set(true);
             currentSong.set(data);
         });
@@ -570,7 +562,7 @@ function startSocket() {
         });
     };
     websocket.onmessage = (event) => {
-        console.log("Web socket message", event.data);
+        // console.log("Web socket message", event.data);
         const data = JSON.parse(event.data);
         if (data.currentTime) {
             setTime(data.currentTime);
@@ -601,13 +593,13 @@ export async function next(songEnded = false) {
         .then((response) => response.json())
         .then((data) => {
             const _crossFade = currentCrossFade.get();
-            if (_crossFade && songEnded && _crossFade > 0) {
+            if (_crossFade && _crossFade > 0) {
                 inCrossFade = true;
-                console.log("Playwhenready 2");
+                // console.log("Playwhenready 2");
 
                 playWhenReady.set(false);
             } else {
-                console.log("Playwhenready 3");
+                // console.log("Playwhenready 3");
 
                 inCrossFade = false;
                 playWhenReady.set(true);
@@ -650,7 +642,7 @@ export async function saveSongToIndexedDB(
 
     if (currentSongsInIndexedDB.includes(song.id) && !force) return;
 
-    console.log(song);
+    // console.log(song);
     fetch(`/api/song/audio/${song.id}`).then((response) => {
         if (response.ok) {
             response.blob().then(async (songBlob) => {
@@ -686,7 +678,7 @@ export async function saveSongToIndexedDB(
     //     blob: imageBlob,
     // };
 
-    // console.log("imageToSave", imageToSave);
+    // // console.log("imageToSave", imageToSave);
 
     // const imagesTx = database.transaction("images", "readwrite");
     // const imagesStore = imagesTx.objectStore("images");
@@ -743,11 +735,11 @@ async function registerServiceWorker() {
             serviceWorkerRegistration.set(registration);
 
             if (registration.installing) {
-                console.log("Service worker installing");
+                // console.log("Service worker installing");
             } else if (registration.waiting) {
-                console.log("Service worker installed");
+                // console.log("Service worker installed");
             } else if (registration.active) {
-                console.log("Service worker active");
+                // console.log("Service worker active");
             }
         } catch (error) {
             console.error(`Registration failed with ${error}`);
@@ -791,171 +783,191 @@ navigator.mediaSession.setActionHandler("seekto", async (event) => {
     if (event.seekTime) setTime(event.seekTime);
 });
 
-const addAudioEventListeners = (audio: HTMLAudioElement) => {
-    if (!audio.paused) {
-        playing.set(true);
-    }
-
-    console.log(
-        "Updating crossFade from",
-        currentCrossFade.get(),
-        "to",
-        crossFade.get()
-    );
+const onLoadedData = () => {
+    // console.log(
+    //     "Updating crossFade from",
+    //     currentCrossFade.get(),
+    //     "to",
+    //     crossFade.get()
+    // );
     currentCrossFade.set(crossFade.get());
+};
 
-    audio.addEventListener("loadeddata", () => {
-        console.log(
-            "Updating crossFade from",
-            currentCrossFade.get(),
-            "to",
-            crossFade.get()
-        );
-        currentCrossFade.set(crossFade.get());
+const onCanplay = () => {
+    if ("mediaSession" in navigator && !isNaN(audio.duration)) {
+        navigator.mediaSession.setPositionState({
+            duration: audio.duration,
+            playbackRate: 1,
+            position: audio.currentTime,
+        });
+    }
+};
+
+let initAudio = false;
+const onTimeupdate = async () => {
+    let _crossFade = currentCrossFade.get();
+
+    currentTime.set(audio.currentTime);
+    send({
+        currentTime: audio.currentTime,
     });
+    const userVolume = volume.get();
+    if (userVolume && _crossFade && _crossFade > 0 && !repeatSong.get()) {
+        if (audio.duration - audio.currentTime < _crossFade) {
+            audio.volume =
+                (-userVolume / _crossFade) *
+                (audio.currentTime - audio.duration);
+            if (
+                Math.abs(
+                    audio.currentTime -
+                        (audio.duration - _crossFade) -
+                        audio2.currentTime
+                ) > 1 &&
+                initAudio &&
+                !audio2.paused &&
+                !audio2.paused
+            ) {
+                // console.log("audio2.currentTime = audio.currentTime");
+                // console.log("audio2.currentTime", audio2.currentTime);
+                // console.log("audio.currentTime", audio.currentTime);
+                audio2.currentTime =
+                    audio.currentTime - (audio.duration - _crossFade);
+            }
+            if (!initAudio && !audio.paused) {
+                initAudio = true;
+                // console.log("Init audio 2");
+                const currentSongIndexInQueue = queue
+                    .get()
+                    .findIndex((song) => song.index == queueIndex.get());
+                // console.log("currentSongIndexInQueue", currentSongIndexInQueue);
 
-    audio.addEventListener("canplay", () => {
-        if ("mediaSession" in navigator && !isNaN(audio.duration)) {
+                let id;
+                if (currentSongIndexInQueue + 1 >= queue.get().length) {
+                    id = queue.get()[0].song.id;
+                } else {
+                    id = queue.get()[currentSongIndexInQueue + 1].song.id;
+                }
+                audio2.src = await getSongSrc(id);
+                audio2.onloadeddata = () => {
+                    // console.log("onloadeddata");
+                    audio2.play();
+                };
+            }
+            audio2.volume =
+                (userVolume / _crossFade) *
+                    (audio.currentTime - audio.duration) +
+                userVolume;
+        } else {
+            audio.volume = userVolume;
+            initAudio = false;
+            audio2.pause();
+        }
+    } else {
+        if (userVolume) audio.volume = userVolume;
+        initAudio = false;
+        audio2.pause();
+    }
+    const songId = currentSong.get()?.id;
+    if (
+        lastTime &&
+        audio.currentTime - lastTime < 1 &&
+        audio.currentTime - lastTime > 0
+    )
+        timeSum += audio.currentTime - lastTime;
+    lastTime = audio.currentTime;
+    if (timeSum > audio.duration * 0.5 && !songCounted) {
+        if (songId) {
+            songCounted = true;
+            send({
+                songEnded: songId,
+            });
+        }
+    }
+    if ("mediaSession" in navigator) {
+        if (!isNaN(audio.duration)) {
             navigator.mediaSession.setPositionState({
                 duration: audio.duration,
                 playbackRate: 1,
                 position: audio.currentTime,
             });
         }
-    });
-    let initAudio = false;
-    audio.addEventListener("timeupdate", async () => {
-        let _crossFade = currentCrossFade.get();
+    }
+};
 
-        currentTime.set(audio.currentTime);
-        send({
-            currentTime: audio.currentTime,
+const onPlay = () => {
+    playing.set(true);
+    if ("mediaSession" in navigator) {
+        navigator.mediaSession.playbackState = "playing";
+    }
+};
+
+const onPause = () => {
+    // console.log("audio pause", audio);
+    playing.set(false);
+    if ("mediaSession" in navigator) {
+        navigator.mediaSession.playbackState = "paused";
+    }
+};
+
+const onEnded = async () => {
+    if (repeatSong.get()) {
+        setTime(0);
+        play();
+        return;
+    }
+    await next(true);
+    const nextSong = currentSong.get();
+    if ("mediaSession" in navigator && nextSong) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: nextSong.name,
+            artist: nextSong.artists.map((artist) => artist.name).join(", "),
+            album: nextSong.albumName,
+            artwork: [
+                {
+                    src: `/api/image/${nextSong.image}`,
+                    // Asegúrate de usar la URL correcta de la imagen
+                    sizes: "96x96",
+                    type: "image/png",
+                }, // Asegúrate de definir más tamaños de imagen si es necesario
+            ],
         });
-        const userVolume = volume.get();
-        if (userVolume && _crossFade && _crossFade > 0 && !repeatSong.get()) {
-            if (audio.duration - audio.currentTime < _crossFade) {
-                audio.volume =
-                    (-userVolume / _crossFade) *
-                    (audio.currentTime - audio.duration);
-                if (
-                    Math.abs(
-                        audio.currentTime -
-                            (audio.duration - _crossFade) -
-                            audio2.currentTime
-                    ) > 1 &&
-                    initAudio &&
-                    !audio2.paused &&
-                    !audio2.paused
-                ) {
-                    console.log("audio2.currentTime = audio.currentTime");
-                    console.log("audio2.currentTime", audio2.currentTime);
-                    console.log("audio.currentTime", audio.currentTime);
-                    audio2.currentTime =
-                        audio.currentTime - (audio.duration - _crossFade);
-                }
-                if (!initAudio && !audio.paused) {
-                    initAudio = true;
-                    console.log("Init audio 2");
-                    const currentSongIndexInQueue = queue
-                        .get()
-                        .findIndex((song) => song.index == queueIndex.get());
-                    console.log(
-                        "currentSongIndexInQueue",
-                        currentSongIndexInQueue
-                    );
+    }
+};
 
-                    let id;
-                    if (currentSongIndexInQueue + 1 >= queue.get().length) {
-                        id = queue.get()[0].song.id;
-                    } else {
-                        id = queue.get()[currentSongIndexInQueue + 1].song.id;
-                    }
-                    audio2.src = await getSongSrc(id);
-                    audio2.onloadeddata = () => {
-                        console.log("onloadeddata");
-                        audio2.play();
-                    };
-                }
-                audio2.volume =
-                    (userVolume / _crossFade) *
-                        (audio.currentTime - audio.duration) +
-                    userVolume;
-            } else {
-                audio.volume = userVolume;
-                initAudio = false;
-                audio2.pause();
-            }
-        } else {
-            if (userVolume) audio.volume = userVolume;
-            initAudio = false;
-            audio2.pause();
-        }
-        const songId = currentSong.get()?.id;
-        if (
-            lastTime &&
-            audio.currentTime - lastTime < 1 &&
-            audio.currentTime - lastTime > 0
-        )
-            timeSum += audio.currentTime - lastTime;
-        lastTime = audio.currentTime;
-        if (timeSum > audio.duration * 0.5 && !songCounted) {
-            if (songId) {
-                songCounted = true;
-                send({
-                    songEnded: songId,
-                });
-            }
-        }
-        if ("mediaSession" in navigator) {
-            if (!isNaN(audio.duration)) {
-                navigator.mediaSession.setPositionState({
-                    duration: audio.duration,
-                    playbackRate: 1,
-                    position: audio.currentTime,
-                });
-            }
-        }
-    });
-    audio.addEventListener("play", () => {
+const onError = (event: ErrorEvent) => {
+    console.error("Error loading audio", event);
+};
+
+const addAudioEventListeners = (audio: HTMLAudioElement) => {
+    // console.log("AAAAAAAAAAAAAAA", audio.paused);
+    if (!audio.paused) {
         playing.set(true);
-        if ("mediaSession" in navigator) {
-            navigator.mediaSession.playbackState = "playing";
-        }
-    });
-    audio.addEventListener("pause", () => {
-        playing.set(false);
-        if ("mediaSession" in navigator) {
-            navigator.mediaSession.playbackState = "paused";
-        }
-    });
-    audio.addEventListener("ended", async () => {
-        if (repeatSong.get()) {
-            setTime(0);
-            play();
-            return;
-        }
-        await next(true);
-        const nextSong = currentSong.get();
-        if ("mediaSession" in navigator && nextSong) {
-            navigator.mediaSession.metadata = new MediaMetadata({
-                title: nextSong.name,
-                artist: nextSong.artists
-                    .map((artist) => artist.name)
-                    .join(", "),
-                album: nextSong.albumName,
-                artwork: [
-                    {
-                        src: `/api/image/${nextSong.image}`,
-                        // Asegúrate de usar la URL correcta de la imagen
-                        sizes: "96x96",
-                        type: "image/png",
-                    }, // Asegúrate de definir más tamaños de imagen si es necesario
-                ],
-            });
-        }
-    });
-    audio.addEventListener("error", (event) => {
-        console.error("Error loading audio", event);
-    });
+    }
+
+    // console.log(
+    //     "Updating crossFade from",
+    //     currentCrossFade.get(),
+    //     "to",
+    //     crossFade.get()
+    // );
+    currentCrossFade.set(crossFade.get());
+
+    audio.addEventListener("loadeddata", onLoadedData);
+    audio.addEventListener("canplay", onCanplay);
+    audio.addEventListener("timeupdate", onTimeupdate);
+    audio.addEventListener("play", onPlay);
+    audio.addEventListener("pause", onPause);
+    audio.addEventListener("ended", onEnded);
+    audio.addEventListener("error", onError);
+};
+
+const removeEventListeners = (audio: HTMLAudioElement) => {
+    audio.removeEventListener("loadeddata", onLoadedData);
+    audio.removeEventListener("canplay", onCanplay);
+    audio.removeEventListener("timeupdate", onTimeupdate);
+    audio.removeEventListener("play", onPlay);
+    audio.removeEventListener("pause", onPause);
+    audio.removeEventListener("ended", onEnded);
+    audio.removeEventListener("error", onError);
 };
 addAudioEventListeners(audio);

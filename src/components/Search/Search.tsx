@@ -56,7 +56,7 @@ export default function Search() {
                                             <img
                                                 className="rounded-lg w-full aspect-square object-cover"
                                                 src={
-                                                    song.album.images[0].url ||
+                                                    song.album.images[0]?.url ||
                                                     "/song-placeholder.png"
                                                 }
                                                 alt="Song Cover"
@@ -114,7 +114,7 @@ export default function Search() {
                                             <img
                                                 className="rounded-lg w-full aspect-square object-cover"
                                                 src={
-                                                    album.images[0].url ||
+                                                    album.images[0]?.url ||
                                                     "/song-placeholder.png"
                                                 }
                                                 alt="Song Cover"
@@ -173,7 +173,8 @@ export default function Search() {
                                                 className="rounded-full w-full aspect-square object-cover"
                                                 src={
                                                     (artist.images[0] &&
-                                                        artist.images[0].url) ||
+                                                        artist.images[0]
+                                                            ?.url) ||
                                                     "/user-placeholder.png"
                                                 }
                                                 alt="Song Cover"
@@ -204,7 +205,7 @@ export default function Search() {
                                                     src={
                                                         (playlist.images[0] &&
                                                             playlist.images[0]
-                                                                .url) ||
+                                                                ?.url) ||
                                                         "/song-placeholder.png"
                                                     }
                                                     alt="Song Cover"

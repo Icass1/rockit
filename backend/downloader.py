@@ -24,7 +24,11 @@ logger = getLogger(__name__)
 
 import patches # Needed to execute the code in patches.py and apply them
 
-THREADS = 16
+try: 
+    THREADS = int(os.getenv('DOWNLOAD_THREADS'))
+except:
+    print("DOWNLOAD_THREADS is not defined or is not and int")
+print(THREADS)
 
 class ListDownloader:
     def __init__(self, url, downloader: "Downloader", user_id, download_id):

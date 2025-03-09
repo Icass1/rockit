@@ -15,6 +15,7 @@ services:
       CLIENT_ID: "<CLIENT_ID for Spotify API>"
       CLIENT_SECRET: "<CLIENT_SECRET for Spotify API>"
       FRONTEND_URL: "http://astro-frontend:4321"
+      DOWNLOAD_THREADS: "2"
       SONGS_PATH: "/songs"
       TEMP_PATH: "/temp"
       LOGS_PATH: "/logs"

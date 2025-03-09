@@ -28,7 +28,8 @@ function parseLyrics(text: string): { seconds: number; lyrics: string }[] {
                 item !== null &&
                 typeof item.lyrics === "string" &&
                 item.lyrics !== "" &&
-                !item.lyrics.startsWith("作曲")
+                !item.lyrics.startsWith("作曲") &&
+                !item.lyrics.startsWith("作词")
         );
 }
 
@@ -71,17 +72,17 @@ export async function GET(context: APIContext): Promise<Response> {
         return new Response("Song not found", { status: 404 });
     }
 
-    // if (song.dynamicLyrics && song.dynamicLyrics.length > 0) {
-    //     console.log("Getting dynamicLyrics from database");
-    //     return new Response(
-    //         JSON.stringify({ dynamicLyrics: true, lyrics: song.dynamicLyrics }),
-    //         {
-    //             headers: {
-    //                 "Content-Type": "application/json",
-    //             },
-    //         }
-    //     );
-    // }
+    if (song.dynamicLyrics && song.dynamicLyrics.length > 0) {
+        console.log("Getting dynamicLyrics from database");
+        return new Response(
+            JSON.stringify({ dynamicLyrics: true, lyrics: song.dynamicLyrics }),
+            {
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+    }
 
     const agent = new Agent({
         connect: {
@@ -165,7 +166,7 @@ export async function GET(context: APIContext): Promise<Response> {
 
         if (lyricsSimilarity) {
             if (lyricsSimilarity > 50) {
-                console.log("Adding dynamicLyrics to database");
+                console.log("Adding dynamicLyrics to database", parsedLyrics);
                 db.prepare(
                     `UPDATE song SET dynamicLyrics = ? WHERE id = ?`
                 ).run(JSON.stringify(parsedLyrics), id);

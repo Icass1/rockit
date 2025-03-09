@@ -18,6 +18,9 @@ export function DynamicLyrics() {
             return;
         }
 
+        setLyrics("");
+        setLyricsTimeStamp([]);
+
         fetch(`/api/lyrics/${$currentSong?.id}`)
             .then((response) => response.json())
             .then(

@@ -1,4 +1,4 @@
-import { currentSong, currentTime } from "@/stores/audio";
+import { currentSong, currentTime, setTime } from "@/stores/audio";
 import { useStore } from "@nanostores/react";
 import { useEffect, useState } from "react";
 
@@ -20,6 +20,7 @@ export function DynamicLyrics() {
 
         setLyrics("");
         setLyricsTimeStamp([]);
+        setLyricsIndex(0);
 
         fetch(`/api/lyrics/${$currentSong?.id}`)
             .then((response) => response.json())
@@ -59,12 +60,18 @@ export function DynamicLyrics() {
 
         const handleKey = (event: KeyboardEvent) => {
             if (event.code == "ArrowDown") {
-                setLyricsIndex((value) =>
-                    Math.min(value + 1, lyrics.length - 1)
-                );
+                setLyricsIndex((value) => {
+                    const index = Math.min(value + 1, lyrics.length - 1);
+                    setTime(lyricsTimeStamp[index].time + 0.01);
+                    return index;
+                });
                 console.log(currentTime.get(), lyricsIndex);
             } else if (event.code == "ArrowUp") {
-                setLyricsIndex((value) => Math.max(value - 1, 0));
+                setLyricsIndex((value) => {
+                    const index = Math.max(value - 1, 0);
+                    setTime(lyricsTimeStamp[index].time + 0.01);
+                    return index;
+                });
             }
         };
 
@@ -109,7 +116,19 @@ export function DynamicLyrics() {
                         return (
                             <div
                                 key={index}
-                                className={commonSyles + " scale-[.4]"}
+                                className={
+                                    commonSyles +
+                                    " scale-[.4] " +
+                                    (lyricsTimeStamp.length > 0
+                                        ? " hover:brightness-150 cursor-pointer "
+                                        : "")
+                                }
+                                onClick={() => {
+                                    if (lyricsTimeStamp.length > 0)
+                                        setTime(
+                                            lyricsTimeStamp[index].time + 0.01
+                                        );
+                                }}
                                 style={{
                                     top: "25%",
                                     fontSize: "4vh",
@@ -126,7 +145,19 @@ export function DynamicLyrics() {
                         return (
                             <div
                                 key={index}
-                                className={commonSyles + " scale-[.6]"}
+                                className={
+                                    commonSyles +
+                                    " scale-[.6] " +
+                                    (lyricsTimeStamp.length > 0
+                                        ? " hover:brightness-150 cursor-pointer "
+                                        : "")
+                                }
+                                onClick={() => {
+                                    if (lyricsTimeStamp.length > 0)
+                                        setTime(
+                                            lyricsTimeStamp[index].time + 0.01
+                                        );
+                                }}
                                 style={{
                                     top: "35%",
                                     fontSize: "4vh",
@@ -144,13 +175,19 @@ export function DynamicLyrics() {
                         return (
                             <div
                                 key={index}
-                                className={commonSyles}
+                                className={
+                                    commonSyles +
+                                    (lyricsTimeStamp.length > 0
+                                        ? " hover:brightness-150 cursor-pointer "
+                                        : "")
+                                }
                                 style={{
                                     top: "50%",
                                     fontSize: "4vh",
                                     fontWeight: 600,
                                     lineHeight: "4vh",
                                     maxWidth: "100%",
+                                    color: "rgb(230, 230, 230)",
                                 }}
                             >
                                 {line}
@@ -160,7 +197,19 @@ export function DynamicLyrics() {
                         return (
                             <div
                                 key={index}
-                                className={commonSyles + " scale-[.6]"}
+                                className={
+                                    commonSyles +
+                                    " scale-[.6] " +
+                                    (lyricsTimeStamp.length > 0
+                                        ? " hover:brightness-150 cursor-pointer "
+                                        : "")
+                                }
+                                onClick={() => {
+                                    if (lyricsTimeStamp.length > 0)
+                                        setTime(
+                                            lyricsTimeStamp[index].time + 0.01
+                                        );
+                                }}
                                 style={{
                                     top: "63%",
                                     fontSize: "4vh",
@@ -178,7 +227,19 @@ export function DynamicLyrics() {
                         return (
                             <div
                                 key={index}
-                                className={commonSyles + " scale-[.4]"}
+                                className={
+                                    commonSyles +
+                                    " scale-[.4] " +
+                                    (lyricsTimeStamp.length > 0
+                                        ? " hover:brightness-150 cursor-pointer "
+                                        : "")
+                                }
+                                onClick={() => {
+                                    if (lyricsTimeStamp.length > 0)
+                                        setTime(
+                                            lyricsTimeStamp[index].time + 0.01
+                                        );
+                                }}
                                 style={{
                                     top: "75%",
                                     fontSize: "4vh",

@@ -36,7 +36,7 @@ export interface UserDBPinnedLists {
     id: string;
 }
 
-export interface UserDBLists {
+export interface UserDBList {
     type: string;
     createdAt: number;
     id: string;
@@ -50,7 +50,7 @@ export interface UserDBFull {
     id: string;
     username: string;
     passwordHash: string;
-    lists: UserDBLists[];
+    lists: UserDBList[];
     lastPlayedSong: {
         [key: string]: number[];
     };

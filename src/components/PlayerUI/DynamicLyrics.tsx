@@ -63,14 +63,17 @@ export function DynamicLyrics() {
             if (event.code == "ArrowDown") {
                 setLyricsIndex((value) => {
                     const index = Math.min(value + 1, lyrics.length - 1);
-                    setTime(lyricsTimeStamp[index].time + 0.01);
+
+                    if (lyricsTimeStamp.length > 0)
+                        setTime(lyricsTimeStamp[index].time + 0.01);
                     return index;
                 });
                 console.log(currentTime.get(), lyricsIndex);
             } else if (event.code == "ArrowUp") {
                 setLyricsIndex((value) => {
                     const index = Math.max(value - 1, 0);
-                    setTime(lyricsTimeStamp[index].time + 0.01);
+                    if (lyricsTimeStamp.length > 0)
+                        setTime(lyricsTimeStamp[index].time + 0.01);
                     return index;
                 });
             }

@@ -11,51 +11,29 @@ import { Agent, setGlobalDispatcher } from "undici";
 function parseLyrics(text: string): { seconds: number; lyrics: string }[] {
     return text
         .split("\n")
-        .map((line) => {
-            const match = line.match(/\[(\d{2}):(\d{2}\.\d{2})\](.*)/);
-            if (match) {
-                const minutes = parseInt(match[1], 10);
-                const seconds = parseFloat(match[2]);
-                return {
-                    seconds: minutes * 60 + seconds,
-                    lyrics: match[3].trim(),
-                };
-            }
-            return null;
-        })
-        .filter(
-            (item): item is { seconds: number; lyrics: string } =>
-                item !== null &&
-                typeof item.lyrics === "string" &&
-                item.lyrics !== "" &&
-                !item.lyrics.startsWith("作曲") &&
-                !item.lyrics.startsWith("作词")
-        );
-}
+        .flatMap((line) => {
+            const match = [...line.matchAll(/\[(\d{2}):(\d{2}\.\d{2,3})\]/g)];
+            const lyrics = line.replace(/\[\d{2}:\d{2}\.\d{2,3}\]/g, "").trim();
 
-// const parseLyrics = (text: string): { seconds: number; lyrics: string }[] => {
-//     return text
-//         .split("\n")
-//         .map((line) => {
-//             const match = line.match(/\[(\d{2}):(\d{2}\.\d{2})\](.*)/);
-//             if (match) {
-//                 const minutes = parseInt(match[1], 10);
-//                 const seconds = parseFloat(match[2]);
-//                 return {
-//                     seconds: minutes * 60 + seconds,
-//                     lyrics: match[3].trim(),
-//                 };
-//             }
-//             return null;
-//         })
-//         .filter(
-//             (item): item is { seconds: number; lyrics: string } =>
-//                 item !== null &&
-//                 typeof item.lyrics === "string" &&
-//                 item.lyrics !== "" &&
-//                 !item.lyrics.startsWith("作曲")
-//         );
-// };
+            if (
+                match.length > 0 &&
+                lyrics !== "" &&
+                !lyrics.startsWith("作曲") &&
+                !lyrics.startsWith("作词")
+            ) {
+                return match.map((time) => {
+                    const minutes = parseInt(time[1], 10);
+                    const seconds = parseFloat(time[2]);
+                    return {
+                        seconds: minutes * 60 + seconds,
+                        lyrics,
+                    };
+                });
+            }
+            return [];
+        })
+        .sort((a, b) => a.seconds - b.seconds);
+}
 
 export async function GET(context: APIContext): Promise<Response> {
     const id = context.params.id as string;
@@ -95,7 +73,7 @@ export async function GET(context: APIContext): Promise<Response> {
     let response;
     try {
         response = await fetch(
-            `http://openapi.music.163.com/api/search/get/?s=${song.artists[0].name} ${song.name}&type=1&limit=10`,
+            `http://openapi.music.163.com/api/search/get/?s=${song?.artists[0]?.name} ${song?.name}&type=1&limit=10`,
             {
                 method: "GET",
                 headers: {
@@ -133,13 +111,20 @@ export async function GET(context: APIContext): Promise<Response> {
         requestJson.result.songs.sort(
             (a, b) =>
                 stringSimilarity(
-                    b.name + b.artists[0].name + b.album.name,
-                    song.name + song.artists[0].name + song.albumName
+                    b?.name + b?.artists[0]?.name + b?.album?.name,
+                    song?.name + song?.artists[0]?.name + song?.albumName
                 ) -
                 stringSimilarity(
-                    a.name + a.artists[0].name + a.album.name,
-                    song.name + song.artists[0].name + song.albumName
+                    a?.name + a?.artists[0]?.name + a?.album?.name,
+                    song?.name + song?.artists[0]?.name + song?.albumName
                 )
+        );
+
+        let songNameSimilarity = stringSimilarity(
+            requestJson.result.songs[0]?.name +
+                requestJson.result.songs[0]?.artists[0]?.name +
+                requestJson.result.songs[0]?.album?.name,
+            song?.name + song?.artists[0]?.name + song?.albumName
         );
 
         if (!requestJson.result.songs[0]) {
@@ -162,11 +147,9 @@ export async function GET(context: APIContext): Promise<Response> {
 
         const parsedLyrics = parseLyrics(lyricsJson.lrc.lyric);
 
-        let lyricsSimilarity = 100;
-
-        if (lyricsSimilarity) {
-            if (lyricsSimilarity > 50) {
-                console.log("Adding dynamicLyrics to database", parsedLyrics);
+        if (songNameSimilarity) {
+            if (songNameSimilarity > 75) {
+                console.log("Adding dynamicLyrics to database");
                 db.prepare(
                     `UPDATE song SET dynamicLyrics = ? WHERE id = ?`
                 ).run(JSON.stringify(parsedLyrics), id);

@@ -132,7 +132,7 @@ function RenderListDownload({
                     <div className="flex flex-row items-center gap-2">
                         <div
                             className={
-                                "progress-bar  h-2 w-full rounded-full relative overflow-hidden"
+                                "progress-bar h-2 w-full rounded-full relative overflow-hidden"
                             }
                         >
                             <div
@@ -190,9 +190,16 @@ function RenderListDownload({
                                 }}
                             >
                                 <div className="flex flex-col w-full p-1 px-2 min-w-0 max-w-full">
-                                    <label className="truncate min-w-0 max-w-full">
+                                    <a
+                                        className="truncate min-w-0 max-w-full"
+                                        href={
+                                            songStatus[1].song?.id
+                                                ? `/song/${songStatus[1].song.id}`
+                                                : ""
+                                        }
+                                    >
                                         {songStatus[1].song?.name}
-                                    </label>
+                                    </a>
                                     <div className="w-full grid grid-cols-[1fr_max-content] items-center gap-x-2 ">
                                         <div
                                             className={
@@ -238,6 +245,9 @@ function RenderSongDownload({
         <a
             className="bg-zinc-400/10 rounded h-14 min-h-14 flex flex-row gap-x-2 overflow-hidden md:hover:bg-zinc-400/30 cursor-pointer"
             href={`/song/${songStatus[1].song.id}`}
+            onClick={() => {
+                setOpen(false);
+            }}
         >
             <img
                 src={
@@ -434,9 +444,9 @@ function AddContextMenu({
                             // Alert user clipboard isn't available.
                             return;
                         }
-                        if (song) {
+                        if (song?.[1].song?.id) {
                             navigator.clipboard.writeText(
-                                location.origin + `/song/${song[1].song.id}`
+                                location.origin + `/song/${song[1].song?.id}`
                             );
                         } else if (list) {
                             navigator.clipboard.writeText(
@@ -647,7 +657,23 @@ export function Downloads({ navOpen = false }: { navOpen?: boolean }) {
                 <label className="text-3xl font-bold text-center px-2">
                     Music Downloader
                 </label>
-
+                <div className="flex flex-row w-4/5 mx-auto items-center gap-x-1">
+                    <input
+                        type="search"
+                        className="focus:outline-0 py-2 my-2 px-4 w-full rounded-full"
+                        placeholder={$lang.download_input_placeholder}
+                        value={url}
+                        onChange={(e) => {
+                            setURL(e.target.value);
+                        }}
+                    />
+                    <div
+                        className="min-w-9 min-h-9 flex items-center justify-center rounded-full bg-pink-700 hover:bg-pink-800 cursor-pointer"
+                        onClick={handleStartDownload}
+                    >
+                        <ArrowDownToLine className="w-5 h-5 text-white" />
+                    </div>
+                </div>
                 {Object.entries(status.songs)
                     .toReversed()
                     .map((songStatus) => (

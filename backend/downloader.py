@@ -27,8 +27,8 @@ import patches # Needed to execute the code in patches.py and apply them
 try: 
     THREADS = int(os.getenv('DOWNLOAD_THREADS'))
 except:
-    print("DOWNLOAD_THREADS is not defined or is not and int")
-print(THREADS)
+    logger.error("DOWNLOAD_THREADS is not defined or is not and int")
+    exit()
 
 class ListDownloader:
     def __init__(self, url, downloader: "Downloader", user_id, download_id):
@@ -193,6 +193,10 @@ class ListDownloader:
                     list_completed[song.id] = 0
                     list_error[song.id] = 0
 
+                if song.id not in self.downloader.downloads_dict: 
+                    logger.warning(f"ListDownloader.status {song.id} is not in self.downloader.downloads_dict")
+                    continue
+
                 for k in self.downloader.downloads_dict[song.id]["messages"][last_messages_len[song.id]:]:
                     if songs_completed[song.id] == 1:
                         logger.warning(f"ListDownloader.status Received a new message after song {song.id} already reached 100 completed")
@@ -274,6 +278,7 @@ class SongDownloader:
                 yield f"data: {json.dumps(k)}\n\n"
                 if k["completed"] == 100:
                     finish = True
+                    break
                 
             last_messages_len = len(self.downloader.downloads_dict[self.spotdl_song.song_id]["messages"])
             time.sleep(0.5)
@@ -370,6 +375,9 @@ class Downloader:
             else: 
                 self.downloads_dict[spotdl_song.song_id]["messages"].append({'id': spotdl_song.song_id, 'completed': 100, 'message': 'Done'})
                 logger.info(f"Downloader.download_song Downloaded {get_song_name(spotdl_song)}")
+
+                del self.downloads_dict[spotdl_song.song_id]
+                del self.downloads_ids_dict[get_song_name(spotdl_song)]
 
                 shutil.move(path, song_path)
                 path = relative_song_path

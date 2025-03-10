@@ -5,7 +5,7 @@ import {
     parseUser,
     type RawUserDB,
     type UserDB,
-    type UserDBLists,
+    type UserDBList,
 } from "@/lib/db/user";
 import type * as astro from "astro";
 
@@ -59,7 +59,7 @@ export async function ALL(context: astro.APIContext): Promise<Response> {
                 createdAt: new Date().getTime(),
                 type: type,
                 id: id,
-            } as UserDBLists,
+            } as UserDBList,
         ]),
         context.locals.user.id
     );

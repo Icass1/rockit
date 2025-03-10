@@ -50,7 +50,8 @@ export function DynamicLyrics() {
                         setLyrics(data.lyrics.split("\n") || "");
                     }
                 }
-            );
+            )
+            .catch((error) => console.log("Error loading lyrics", error));
     }, [$currentSong]);
 
     useEffect(() => {

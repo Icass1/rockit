@@ -1,5 +1,5 @@
 import useWindowSize from "@/hooks/useWindowSize";
-import { DownloadIcon, Downloads } from "./MusicDownloader";
+import { Downloads } from "./MusicDownloader";
 import { pinnedLists } from "@/stores/pinnedLists";
 import { useStore } from "@nanostores/react";
 import {

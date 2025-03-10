@@ -24,7 +24,7 @@ interface Playlist {
     name: string;
     songs: PlaylistDBSong[];
     image: string;
-    images: SpotifyPlaylistImage[];
+    images: SpotifyPlaylistImage[] | undefined;
     owner: string;
 }
 let playlist: Playlist | undefined;

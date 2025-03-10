@@ -23,6 +23,8 @@ export function playListHandleClick({
             return { song: song, list: { type, id }, index: index };
         });
 
+    if (songsToAdd.length == 0) return;
+
     if (!window.navigator.onLine) {
         songsToAdd = songsToAdd.filter((song) =>
             songsInIndexedDB.get()?.includes(song.song.id)

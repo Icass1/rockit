@@ -53,9 +53,11 @@ export default function PlaylistHeader({
               name: string;
               songs: PlaylistDBSong[];
               image: string;
-              images: {
-                  url: string;
-              }[];
+              images:
+                  | {
+                        url: string;
+                    }[]
+                  | undefined;
               owner: string;
           };
 }) {
@@ -87,7 +89,7 @@ export default function PlaylistHeader({
     return (
         <div
             className={
-                "md:top-1/2 md:-translate-y-1/2 md:w-full md:max-w-96 px-10 md:px-0 flex flex-col gap-1 relative h-[26rem] md:max-h-none z-10 md:h-fit " +
+                "md:top-1/2 md:-translate-y-1/2 md:w-full md:max-w-96 px-10 md:px-0 flex flex-col gap-1 relative h-[26rem] md:max-h-none md:h-fit " +
                 className
             }
         >
@@ -108,7 +110,9 @@ export default function PlaylistHeader({
                         <img
                             src={getImageUrl({
                                 imageId: playlist.image,
-                                fallback: playlist.images[0].url,
+                                fallback:
+                                    playlist?.images?.[0]?.url ??
+                                    "/rockit-background.png",
                                 height: 370,
                                 width: 370,
                             })}
@@ -119,7 +123,7 @@ export default function PlaylistHeader({
             </div>
 
             {/* Div con los iconos */}
-            <div className="flex flex-row justify-center gap-3 text-sm pt-2 items-center z-10">
+            <div className="flex flex-row justify-center gap-3 text-sm pt-2 items-center">
                 {!inDatabase && (
                     <Download strokeWidth={0.9} className="h-10 w-10" />
                 )}

@@ -12,19 +12,21 @@ export default function UserStats() {
         today.getTime() - offset * 60 * 1000 - 7 * 24 * 60 * 60 * 1000
     );
     const _end = new Date(today.getTime() - offset * 60 * 1000);
+    _start.setHours(0);
+    _start.setMinutes(0);
+    _start.setSeconds(0);
 
-    const [startDate, setStartDate] = useState(
-        _start.toISOString().split("T")[0]
-    );
-    const [endDate, setEndDate] = useState(_end.toISOString().split("T")[0]);
+    _end.setHours(23);
+    _end.setMinutes(59);
+    _end.setSeconds(59);
+
+    const [startDate, setStartDate] = useState(_start.getTime());
+    const [endDate, setEndDate] = useState(_end.getTime());
 
     const startDateInputRef = useRef<HTMLInputElement>(null);
     const endDateInputRef = useRef<HTMLInputElement>(null);
 
     const [songsBarGraph, setSongsBarGraph] = useState<SongForStats[]>([]);
-
-    const start = new Date(startDate).getTime();
-    const end = new Date(endDate).getTime();
 
     const [data, setData] = useState<Stats>({
         songs: [],
@@ -68,9 +70,7 @@ export default function UserStats() {
 
     useEffect(() => {
         fetch(
-            `/api/stats?start=${new Date(startDate).getTime()}&end=${new Date(
-                endDate
-            ).getTime()}`
+            `/api/stats?start=${new Date(startDate)}&end=${new Date(endDate)}`
         ).then((response) => {
             if (response.ok) {
                 response.json().then((data) => {
@@ -103,10 +103,10 @@ export default function UserStats() {
 
     const minutesListenedPerDay: { [key: string]: number } = {};
 
-    Array(Math.floor((end - start) / (3600 * 1000 * 24)) + 1)
+    Array(Math.floor((endDate - startDate) / (3600 * 1000 * 24)) + 1)
         .fill(0)
         .map((_, index) => {
-            const timeStamp = start + index * 3600 * 1000 * 24;
+            const timeStamp = startDate + index * 3600 * 1000 * 24;
             const date = new Date(timeStamp);
             const datePlayed = `${date.getFullYear()}-${String(
                 date.getMonth() + 1
@@ -146,12 +146,19 @@ export default function UserStats() {
                             max={endDate}
                             type="date"
                             className="absolute opacity-0"
-                            value={startDate}
+                            value={
+                                new Date(startDate).toISOString().split("T")[0]
+                            }
                             onChange={(e) => {
                                 if (e.target.value === "") {
                                     return;
                                 }
-                                setStartDate(e.target.value);
+                                const newDate = new Date(e.target.value);
+                                newDate.setHours(0);
+                                newDate.setMinutes(0);
+                                newDate.setSeconds(0);
+
+                                setStartDate(newDate.getTime());
                             }}
                             required
                         />
@@ -171,12 +178,20 @@ export default function UserStats() {
                             ref={endDateInputRef}
                             type="date"
                             className="absolute opacity-0"
-                            value={endDate}
+                            value={
+                                new Date(endDate).toISOString().split("T")[0]
+                            }
                             onChange={(e) => {
                                 if (e.target.value === "") {
                                     return;
                                 }
-                                setEndDate(e.target.value);
+
+                                const newDate = new Date(e.target.value);
+                                newDate.setHours(23);
+                                newDate.setMinutes(59);
+                                newDate.setSeconds(59);
+
+                                setEndDate(newDate.getTime());
                             }}
                         />
                         {getDate(endDate)}
@@ -214,8 +229,8 @@ export default function UserStats() {
                                                     ((new Date(
                                                         song[0]
                                                     ).getTime() -
-                                                        start) /
-                                                        (end - start)) *
+                                                        startDate) /
+                                                        (endDate - startDate)) *
                                                     100
                                                 }% ${
                                                     100 -

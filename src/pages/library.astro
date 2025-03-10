@@ -1,6 +1,8 @@
 ---
 import LibraryFilters from "@/components/LibraryFilters.tsx";
 import ButtonSection from "@/components/Mobile/MobileLibraryButtons";
+import NewPlaylistButton from "@/components/NewPlaylistButton";
+
 import Layout from "@/layouts/Layout.astro";
 import { type AlbumDB, parseAlbum, type RawAlbumDB } from "@/lib/db/album";
 import { db } from "@/lib/db/db";
@@ -224,7 +226,7 @@ lastMonthName = lastMonthName[0].toLocaleUpperCase() + lastMonthName.slice(1);
         <h2 class="text-2xl font-bold text-left py-4 px-5 md:px-0">
             {lang.your_albums_playlists}
         </h2>
-        <div class="grid gap-5 px-5">
+        <div class="grid gap-x-5 gap-y-3 px-5">
             <style>
                 .grid {
                     grid-template-columns: repeat(
@@ -241,13 +243,14 @@ lastMonthName = lastMonthName[0].toLocaleUpperCase() + lastMonthName.slice(1);
                     }
                 }
             </style>
+            <NewPlaylistButton client:only="react" />
             {
                 playlists.map((playlist) => {
                     if (!playlist) return <label>Playlist is undefined</label>;
                     return (
                         <a
                             href={`/playlist/${playlist.id}`}
-                            class="w-full h-full flex flex-col min-w-0 max-w-full md:hover:scale-110 transition-transform library-item"
+                            class="w-full h-auto flex flex-col min-w-0 max-w-full md:hover:scale-110 transition-transform library-item"
                         >
                             <img
                                 class="rounded-md w-full h-full cover"
@@ -255,14 +258,14 @@ lastMonthName = lastMonthName[0].toLocaleUpperCase() + lastMonthName.slice(1);
                                     imageId: playlist.image,
                                     height: 300,
                                     width: 300,
-                                    fallback: playlist.images[0]?.url,
-                                    placeHolder: "/song-placeholder.png",
+                                    fallback: playlist.images?.[0]?.url,
+                                    placeHolder: "/rockit-background.png",
                                 })}
                             />
-                            <label class="truncate font-semibold text-center">
+                            <label class="truncate font-semibold text-center min-h-6">
                                 {playlist.name}
                             </label>
-                            <label class="truncate text-sm text-center text-gray-400">
+                            <label class="truncate text-sm text-center text-gray-400 min-h-5">
                                 {playlist.owner}
                             </label>
                         </a>

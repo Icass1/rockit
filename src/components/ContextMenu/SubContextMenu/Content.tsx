@@ -65,7 +65,7 @@ export default function SubContextMenuContent({
 
     return (
         <ContextMenuContentDiv
-            className="fixed bg-neutral-800/90 top-0 left-0 w-full h-[calc(100%_-_4rem)] px-10 md:shadow-[0px_0px_20px_3px_#0e0e0e] rounded-md md:p-1 md:w-max"
+            className="fixed bg-neutral-800/90 top-0 left-0 w-full h-[calc(100%_-_4rem)] md:h-fit px-10 md:shadow-[0px_0px_20px_3px_#0e0e0e] rounded-md md:p-1 md:w-max"
             onDimensionsCalculated={
                 innerWidth > 768
                     ? (width, height) => updatePos(width, height)
@@ -84,7 +84,7 @@ export default function SubContextMenuContent({
                 }
             }}
         >
-            <div className="overflow-y-auto h-full flex flex-col gap-y-1 py-20 md:py-0">
+            <div className="overflow-y-auto md:h-fit flex flex-col gap-y-1 py-20 md:py-0">
                 {childrenWithProps}
             </div>
         </ContextMenuContentDiv>

@@ -1,5 +1,5 @@
 import type { SongDB, SongDBFull } from "@/lib/db/song";
-import type { UserDB } from "@/lib/db/user";
+import { type UserDB } from "@/lib/db/user";
 import Hls from "hls.js";
 import { atom } from "nanostores";
 
@@ -110,7 +110,8 @@ const send = (json: any) => {
     if (websocket && websocket.OPEN == websocket.readyState) {
         websocket.send(JSON.stringify(json));
     } else {
-        console.warn("Socket is not ready to send message", json);
+        if (admin.get())
+            console.warn("Socket is not ready to send message", json);
     }
 };
 
@@ -131,6 +132,8 @@ export const serviceWorkerRegistration = atom<
     ServiceWorkerRegistration | undefined
 >(undefined);
 
+export const admin = atom<boolean | undefined>(undefined);
+
 let audio = new Audio();
 let audio2 = new Audio();
 const hls = new Hls();
@@ -146,7 +149,7 @@ export const crossFade = atom<number | undefined>(
 export const currentCrossFade = atom<number | undefined>(crossFade.get());
 
 fetch(
-    "/api/user?q=currentSong,currentTime,queue,queueIndex,volume,randomQueue,repeatSong,currentStation"
+    "/api/user?q=currentSong,currentTime,queue,queueIndex,volume,randomQueue,repeatSong,currentStation,admin"
 ).then((userJsonResponse) => {
     if (userJsonResponse.ok) {
         userJsonResponse
@@ -162,12 +165,15 @@ fetch(
                         | "volume"
                         | "randomQueue"
                         | "repeatSong"
+                        | "admin"
                     >
                 ) => {
                     queueIndex.set(userJson.queueIndex);
                     if (userJson?.currentTime) {
                         audio.currentTime = userJson.currentTime;
                     }
+
+                    admin.set(userJson.admin == "1" ? true : false);
 
                     repeatSong.set(userJson.repeatSong == "1" ? true : false);
                     randomQueue.set(userJson.randomQueue == "1" ? true : false);
@@ -250,14 +256,14 @@ repeatSong.subscribe((value) => {
 });
 
 const playWhenLoaded = () => {
-    // console.log("playWhenLoaded");
-    // console.log("playWhenReady.get()", playWhenReady.get());
-    // console.log("6");
+    if (admin.get()) console.log("playWhenLoaded");
+    if (admin.get()) console.log("playWhenReady.get()", playWhenReady.get());
+    if (admin.get()) console.log("6");
     loading.set(false);
     if (playWhenReady.get()) {
-        // console.log("7");
+        if (admin.get()) console.log("7");
         audio.play().then(() => {
-            // console.log("8");
+            if (admin.get()) console.log("8");
 
             playing.set(true);
         });
@@ -278,7 +284,7 @@ currentSong.subscribe(async (value) => {
 
     // if (value?.id) {
     //     // Just to fill quickly last listened songs for developing propourses
-    //     console.log("song ended");
+    //     if (admin.get()) console.log("song ended");
     //     send({ songEnded: value.id });
     // }
 
@@ -329,12 +335,12 @@ currentSong.subscribe(async (value) => {
             ],
         });
     }
-    // console.log("inCrossFade", inCrossFade);
-    // console.log("audio2.paused", audio2.paused);
-    // console.log("audio2.src", audio2.src);
+    if (admin.get()) console.log("inCrossFade", inCrossFade);
+    if (admin.get()) console.log("audio2.paused", audio2.paused);
+    if (admin.get()) console.log("audio2.src", audio2.src);
     if (inCrossFade && !audio2.paused && audio2.src) {
-        // console.log("audio", audio);
-        // console.log("audio2", audio2);
+        if (admin.get()) console.log("audio", audio);
+        if (admin.get()) console.log("audio2", audio2);
         [audio, audio2] = [audio2, audio];
         audio2.pause();
         removeEventListeners(audio2);
@@ -343,19 +349,19 @@ currentSong.subscribe(async (value) => {
         inCrossFade = false;
     } else if (value) {
         loading.set(true);
-        // console.log("1");
+        if (admin.get()) console.log("1");
         playing.set(false);
-        // console.log("2");
+        if (admin.get()) console.log("2");
         audio2.pause();
         removeEventListeners(audio2);
         audio2 = new Audio();
-        // console.log("3");
+        if (admin.get()) console.log("3");
         audio.src = await getSongSrc(value.id);
-        // console.log("4");
+        if (admin.get()) console.log("4");
         audio.onerror = () => {
             loading.set(false);
         };
-        // console.log("5");
+        if (admin.get()) console.log("5");
         audio.addEventListener("loadeddata", playWhenLoaded);
     }
 });
@@ -369,12 +375,12 @@ currentStation.subscribe(async (value) => {
 
     clearCurrentSong();
 
-    // console.log(value.url_resolved);
+    // if (admin.get()) console.log(value.url_resolved);
 
     if (value.url_resolved) {
         const isHls = await isHlsContent(value.url_resolved);
         if (Hls.isSupported() && isHls) {
-            // console.log("Hls");
+            // if (admin.get()) console.log("Hls");
             hls.loadSource(value.url_resolved);
             hls.attachMedia(audio);
             hls.on(Hls.Events.MANIFEST_PARSED, () => {
@@ -383,15 +389,15 @@ currentStation.subscribe(async (value) => {
                     .catch((err) => console.error("Error playing audio:", err));
             });
         } else {
-            // console.log("not Hls");
+            // if (admin.get()) console.log("not Hls");
             audio.src = value.url_resolved;
             // audio.play();
             audio.onloadeddata = () => {
-                // console.log("onloadeddata");
+                // if (admin.get()) console.log("onloadeddata");
                 audio.play();
             };
             audio.oncanplay = () => {
-                // console.log("oncanplay");
+                // if (admin.get()) console.log("oncanplay");
                 audio.play();
             };
         }
@@ -434,13 +440,13 @@ async function isHlsContent(url: string): Promise<boolean> {
     const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 seconds timeout
 
     try {
-        // console.log("1111111111111111111111");
+        // if (admin.get()) console.log("1111111111111111111111");
         const response = await fetch(url, {
             method: "GET",
             headers: { Range: "bytes=0-512" },
             signal: controller.signal,
         });
-        // console.log("222222222222222");
+        // if (admin.get()) console.log("222222222222222");
 
         const reader = response.body?.getReader();
         if (!reader) return false;
@@ -469,11 +475,13 @@ async function isHlsContent(url: string): Promise<boolean> {
 }
 
 export async function play() {
+    if (admin.get()) console.log("play");
     await audio.play();
     await audio2.play();
 }
 
 export function pause() {
+    if (admin.get()) console.log("pause");
     audio.pause();
     audio2.pause();
 }
@@ -524,7 +532,7 @@ export async function prev() {
     await fetch(`/api/song/${newSongId}`)
         .then((response) => response.json())
         .then((data: SongDB) => {
-            // console.log("Playwhenready 1");
+            // if (admin.get()) console.log("Playwhenready 1");
             playWhenReady.set(true);
             currentSong.set(data);
         });
@@ -564,7 +572,7 @@ function startSocket() {
         });
     };
     websocket.onmessage = (event) => {
-        // console.log("Web socket message", event.data);
+        // if (admin.get()) console.log("Web socket message", event.data);
         const data = JSON.parse(event.data);
         if (data.currentTime) {
             setTime(data.currentTime);
@@ -591,17 +599,20 @@ export async function next(songEnded = false) {
     if (!newSongId) {
         return;
     }
+
+    if (admin.get()) console.log({ newSongId, songEnded });
+
     await fetch(`/api/song/${newSongId}`)
         .then((response) => response.json())
         .then((data) => {
             const _crossFade = currentCrossFade.get();
-            if (_crossFade && _crossFade > 0) {
+            if (_crossFade && _crossFade > 0 && songEnded) {
                 inCrossFade = true;
-                // console.log("Playwhenready 2");
+                if (admin.get()) console.log("Playwhenready 2");
 
                 playWhenReady.set(false);
             } else {
-                // console.log("Playwhenready 3");
+                if (admin.get()) console.log("Playwhenready 3");
 
                 inCrossFade = false;
                 playWhenReady.set(true);
@@ -644,7 +655,7 @@ export async function saveSongToIndexedDB(
 
     if (currentSongsInIndexedDB.includes(song.id) && !force) return;
 
-    // console.log(song);
+    // if (admin.get()) console.log(song);
     fetch(`/api/song/audio/${song.id}`).then((response) => {
         if (response.ok) {
             response.blob().then(async (songBlob) => {
@@ -680,7 +691,7 @@ export async function saveSongToIndexedDB(
     //     blob: imageBlob,
     // };
 
-    // // console.log("imageToSave", imageToSave);
+    // // if (admin.get()) console.log("imageToSave", imageToSave);
 
     // const imagesTx = database.transaction("images", "readwrite");
     // const imagesStore = imagesTx.objectStore("images");
@@ -737,11 +748,11 @@ async function registerServiceWorker() {
             serviceWorkerRegistration.set(registration);
 
             if (registration.installing) {
-                // console.log("Service worker installing");
+                // if (admin.get()) console.log("Service worker installing");
             } else if (registration.waiting) {
-                // console.log("Service worker installed");
+                // if (admin.get()) console.log("Service worker installed");
             } else if (registration.active) {
-                // console.log("Service worker active");
+                // if (admin.get()) console.log("Service worker active");
             }
         } catch (error) {
             console.error(`Registration failed with ${error}`);
@@ -786,7 +797,7 @@ navigator.mediaSession.setActionHandler("seekto", async (event) => {
 });
 
 const onLoadedData = () => {
-    // console.log(
+    // if (admin.get()) console.log(
     //     "Updating crossFade from",
     //     currentCrossFade.get(),
     //     "to",
@@ -817,8 +828,9 @@ const onTimeupdate = async () => {
     if (userVolume && _crossFade && _crossFade > 0 && !repeatSong.get()) {
         if (audio.duration - audio.currentTime < _crossFade) {
             audio.volume =
-                (-userVolume / _crossFade) *
-                (audio.currentTime - audio.duration);
+                ((-userVolume / _crossFade) *
+                    (audio.currentTime - audio.duration)) **
+                2;
             if (
                 Math.abs(
                     audio.currentTime -
@@ -829,19 +841,19 @@ const onTimeupdate = async () => {
                 !audio2.paused &&
                 !audio2.paused
             ) {
-                // console.log("audio2.currentTime = audio.currentTime");
-                // console.log("audio2.currentTime", audio2.currentTime);
-                // console.log("audio.currentTime", audio.currentTime);
+                // if (admin.get()) console.log("audio2.currentTime = audio.currentTime");
+                // if (admin.get()) console.log("audio2.currentTime", audio2.currentTime);
+                // if (admin.get()) console.log("audio.currentTime", audio.currentTime);
                 audio2.currentTime =
                     audio.currentTime - (audio.duration - _crossFade);
             }
             if (!initAudio && !audio.paused) {
                 initAudio = true;
-                // console.log("Init audio 2");
+                // if (admin.get()) console.log("Init audio 2");
                 const currentSongIndexInQueue = queue
                     .get()
                     .findIndex((song) => song.index == queueIndex.get());
-                // console.log("currentSongIndexInQueue", currentSongIndexInQueue);
+                // if (admin.get()) console.log("currentSongIndexInQueue", currentSongIndexInQueue);
 
                 let id;
                 if (currentSongIndexInQueue + 1 >= queue.get().length) {
@@ -851,23 +863,30 @@ const onTimeupdate = async () => {
                 }
                 audio2.src = await getSongSrc(id);
                 audio2.onloadeddata = () => {
-                    // console.log("onloadeddata");
+                    if (admin.get()) console.log("onloadeddata");
                     audio2.play();
                 };
             }
             audio2.volume =
-                (userVolume / _crossFade) *
+                ((userVolume / _crossFade) *
                     (audio.currentTime - audio.duration) +
-                userVolume;
+                    userVolume) **
+                2;
         } else {
             audio.volume = userVolume;
             initAudio = false;
-            audio2.pause();
+            if (!audio2.paused) {
+                if (admin.get()) console.log("audio2.pause()");
+                audio2.pause();
+            }
         }
     } else {
         if (userVolume) audio.volume = userVolume;
         initAudio = false;
-        audio2.pause();
+        if (!audio2.paused) {
+            if (admin.get()) console.log("audio2.pause()");
+            audio2.pause();
+        }
     }
     const songId = currentSong.get()?.id;
     if (
@@ -904,7 +923,7 @@ const onPlay = () => {
 };
 
 const onPause = () => {
-    // console.log("audio pause", audio);
+    // if (admin.get()) console.log("audio pause", audio);
     playing.set(false);
     if ("mediaSession" in navigator) {
         navigator.mediaSession.playbackState = "paused";
@@ -941,12 +960,12 @@ const onError = (event: ErrorEvent) => {
 };
 
 const addAudioEventListeners = (audio: HTMLAudioElement) => {
-    // console.log("AAAAAAAAAAAAAAA", audio.paused);
+    // if (admin.get()) console.log("AAAAAAAAAAAAAAA", audio.paused);
     if (!audio.paused) {
         playing.set(true);
     }
 
-    // console.log(
+    // if (admin.get()) console.log(
     //     "Updating crossFade from",
     //     currentCrossFade.get(),
     //     "to",

@@ -81,6 +81,7 @@ const LibraryFilters = () => {
                     backgroundSize: "14px",
                     backgroundRepeat: "no-repeat",
                 }}
+                type="search"
                 placeholder={$lang.search_library}
                 onChange={(e) => setSearchQuery(e.target.value)}
             />

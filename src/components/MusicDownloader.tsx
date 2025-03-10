@@ -704,6 +704,7 @@ export function Downloads({ navOpen = false }: { navOpen?: boolean }) {
                 <div className="flex flex-row items-center mx-auto">
                     {/* Input */}
                     <input
+                        type="search"
                         className="focus:outline-0 py-2 my-2 px-4 rounded-full mr-3 w-64"
                         placeholder={$lang.download_input_placeholder}
                         value={url}

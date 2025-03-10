@@ -233,6 +233,8 @@ export default function SongContextMenu({
                                     src={getImageUrl({
                                         imageId: list.image,
                                         placeHolder: "/rockit-background.png",
+                                        width: 24,
+                                        height: 24,
                                     })}
                                 />
                                 {list.name}

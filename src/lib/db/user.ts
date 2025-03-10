@@ -10,7 +10,6 @@ export interface RawUserDB {
     passwordHash: string;
     lists: string;
     lastPlayedSong: string | undefined;
-    currentList: string | undefined;
     currentSong: string | undefined;
     currentStation: string | undefined;
     currentTime: number | undefined;
@@ -55,7 +54,6 @@ export interface UserDBFull {
     lastPlayedSong: {
         [key: string]: number[];
     };
-    currentList: string | undefined;
     currentSong: string | undefined;
     currentStation: string | undefined;
     currentTime: number | undefined;
@@ -86,7 +84,6 @@ export const userQuery = `CREATE TABLE IF NOT EXISTS user (
     passwordHash TEXT NOT NULL UNIQUE,
     lists TEXT DEFAULT "[]" NOT NULL,
     lastPlayedSong TEXT,
-    currentList TEXT,
     currentSong TEXT,
     currentStation TEXT,
     currentTime INTEGER,
@@ -120,7 +117,6 @@ export function parseUser(user: RawUserDB | undefined): UserDB | undefined {
         lastPlayedSong: user.lastPlayedSong
             ? JSON.parse(user.lastPlayedSong || "[]")
             : undefined,
-        currentList: user.currentList,
         currentSong: user.currentSong,
         currentStation: user.currentStation,
         currentTime: user.currentTime,

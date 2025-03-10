@@ -9,13 +9,13 @@ import {
 } from "@/stores/audio";
 import { currentListSongs } from "@/stores/currentList";
 
-export const playListHandleClick = ({
+export function playListHandleClick({
     type,
     id,
 }: {
     type: string;
     id: string;
-}) => {
+}) {
     let songsToAdd = currentListSongs
         .get()
         .filter((song) => song?.path)
@@ -43,7 +43,7 @@ export const playListHandleClick = ({
         queueIndex.set(0);
         queue.set(songsToAdd);
     }
-};
+}
 export default function PlayList({ id, type }: { type: string; id: string }) {
     return (
         <PlayCircle

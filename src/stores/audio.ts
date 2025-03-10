@@ -109,6 +109,8 @@ let _queue: Queue = [];
 const send = (json: any) => {
     if (websocket && websocket.OPEN == websocket.readyState) {
         websocket.send(JSON.stringify(json));
+    } else {
+        console.warn("Socket is not ready to send message", json);
     }
 };
 

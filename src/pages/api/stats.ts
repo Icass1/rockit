@@ -17,8 +17,8 @@ export async function GET(context: APIContext): Promise<Response> {
 
     const data = await getStats(
         context.locals.user.id,
-        Number(start),
-        Number(end)
+        new Date(start).getTime(),
+        new Date(end).getTime()
     );
 
     return new Response(JSON.stringify(data), {

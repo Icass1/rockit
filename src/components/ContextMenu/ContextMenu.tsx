@@ -1,10 +1,21 @@
 import React, { useRef, useState, type ReactNode } from "react";
 
-export default function ContextMenu({ children }: { children: ReactNode[] }) {
+export default function ContextMenu({
+    children,
+    closeRef,
+}: {
+    children: ReactNode[];
+    closeRef?: { current?: () => void };
+}) {
     const [contextMenuOpen, setContextMenuOpen] = useState<boolean>(false);
     const [contextMenuPos, setContextMenuPos] = useState<[number, number]>([
         0, 0,
     ]);
+
+    if (closeRef)
+        closeRef.current = () => {
+            setContextMenuOpen(false);
+        };
 
     const contextMenuDivRef = useRef<HTMLDivElement>(null);
 

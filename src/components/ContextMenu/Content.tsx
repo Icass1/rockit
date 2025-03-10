@@ -9,6 +9,7 @@ export default function ContextMenuContent({
     contextMenuPos,
     contextMenuDivRef,
     setContextMenuOpen,
+    setContextMenuPos,
     cover,
     title,
     description,
@@ -18,6 +19,7 @@ export default function ContextMenuContent({
     contextMenuPos?: [number, number];
     contextMenuDivRef?: RefObject<HTMLDivElement>;
     setContextMenuOpen?: React.Dispatch<React.SetStateAction<boolean>>;
+    setContextMenuPos?: React.Dispatch<React.SetStateAction<[number, number]>>;
     cover?: string | undefined;
     title?: string | undefined;
     description?: string | undefined;
@@ -49,7 +51,11 @@ export default function ContextMenuContent({
         if (React.isValidElement(child)) {
             return React.cloneElement(child, {
                 // @ts-ignore
+                contextMenuOpen: contextMenuOpen,
                 setContextMenuOpen: setContextMenuOpen,
+                contextMenuPos: contextMenuPos,
+                setContextMenuPos: setContextMenuPos,
+                contextMenuDivRef: contextMenuDivRef,
             });
         }
         return child;
@@ -69,12 +75,12 @@ export default function ContextMenuContent({
                     : undefined
             }
             onClick={() => setContextMenuOpen && setContextMenuOpen(false)}
-            className="fixed bg-neutral-800/90 top-0 left-0 w-full h-[calc(100%_-_4rem)] px-10 pt-20 md:backdrop-blur-3xl md:w-max md:h-auto rounded-md md:p-1 overflow-hidden md:shadow-[0px_0px_20px_3px_#0e0e0e] z-20"
+            className="fixed bg-neutral-800/90 top-0 left-0 w-full h-[calc(100%_-_4rem)] px-10 md:w-max md:h-auto rounded-md md:p-1 overflow-auto md:shadow-[0px_0px_20px_3px_#0e0e0e] z-20"
             style={{
                 display: contextMenuOpen ? "block" : "none",
             }}
         >
-            <div className="overflow-y-auto h-full flex flex-col gap-y-1">
+            <div className="overflow-y-auto h-full flex flex-col gap-y-1 py-20 md:py-0">
                 {cover && (
                     <img
                         src={cover}

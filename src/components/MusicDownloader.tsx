@@ -107,7 +107,7 @@ function RenderListDownload({
             <div className="flex flex-row h-16 min-w-0 max-w-full gap-2">
                 <img
                     src={list[1].listInfo.images[0].url}
-                    className="h-full w-auto rounded"
+                    className="h-full w-auto rounded aspect-square object-cover"
                 />
                 <div className="flex flex-col min-w-0 max-w-full w-full pr-1">
                     <a
@@ -254,7 +254,7 @@ function RenderSongDownload({
                     songStatus[1].song?.album?.images[0]?.url ||
                     "/song-placeholder.png"
                 }
-                className="h-full w-auto"
+                className="h-full w-auto aspect-square object-cover"
             />
             <div className="flex flex-col w-full p-1 pr-2 min-w-0 max-w-full">
                 <label className="truncate min-w-0 max-w-full">

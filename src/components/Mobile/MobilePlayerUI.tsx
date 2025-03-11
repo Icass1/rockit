@@ -28,6 +28,7 @@ import { useEffect, useRef, useState } from "react";
 import useWindowSize from "@/hooks/useWindowSize.ts";
 import { getImageUrl } from "@/lib/getImageUrl.ts";
 import MobilePlayerUIQueue from "./MobilePlayerUIQueue.tsx";
+import MobilePlayerUILyrics from "./MobilePlayerUILyrics.tsx";
 
 export default function MusicPlayer() {
     const $playing = useStore(playing);
@@ -50,6 +51,7 @@ export default function MusicPlayer() {
     const divRef = useRef<HTMLDivElement>(null);
 
     const [queueOpen, setQueueOpen] = useState(false);
+    const [lyricsOpen, setLyricsOpen] = useState(false);
 
     useEffect(() => {
         if (!divRef.current) {
@@ -104,6 +106,9 @@ export default function MusicPlayer() {
             if (
                 document
                     .querySelector("#MobilePlayerUIQueue")
+                    ?.contains(e.target as Node) ||
+                document
+                    .querySelector("#MobilePlayerUILyrics")
                     ?.contains(e.target as Node)
             )
                 return;
@@ -117,6 +122,9 @@ export default function MusicPlayer() {
             if (
                 document
                     .querySelector("#MobilePlayerUIQueue")
+                    ?.contains(e.target as Node) ||
+                document
+                    .querySelector("#MobilePlayerUILyrics")
                     ?.contains(e.target as Node)
             )
                 return;
@@ -142,6 +150,9 @@ export default function MusicPlayer() {
             if (
                 document
                     .querySelector("#MobilePlayerUIQueue")
+                    ?.contains(e.target as Node) ||
+                document
+                    .querySelector("#MobilePlayerUILyrics")
                     ?.contains(e.target as Node)
             )
                 return;
@@ -335,14 +346,19 @@ export default function MusicPlayer() {
                     >
                         Queue
                     </button>
-                    <button className="text-lg">Lyrics</button>
+                    <button
+                        className="text-lg"
+                        onClick={() => {
+                            setLyricsOpen(true);
+                        }}
+                    >
+                        Lyrics
+                    </button>
                     <button className="text-lg">Related</button>
                 </div>
             </div>
-            <MobilePlayerUIQueue
-                open={queueOpen}
-                setOpen={setQueueOpen}
-            ></MobilePlayerUIQueue>
+            <MobilePlayerUIQueue open={queueOpen} setOpen={setQueueOpen} />
+            <MobilePlayerUILyrics open={lyricsOpen} setOpen={setLyricsOpen} />
         </div>
     );
 }

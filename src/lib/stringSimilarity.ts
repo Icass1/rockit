@@ -2,7 +2,7 @@ export default function stringSimilarity(
     s1: string | undefined,
     s2: string | undefined
 ): number {
-    if (typeof s1 == "undefined" || typeof s2 == "undefined") return 0;
+    if (typeof s1 != "string" || typeof s2 != "string") return 0;
 
     // Helper function to calculate the Levenshtein distance
     function levenshteinDistance(a: string, b: string): number {

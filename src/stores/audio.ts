@@ -240,6 +240,17 @@ fetch(
                     }
                 }
             );
+    } else {
+        console.log("User is not logged in");
+
+        admin.set(false);
+
+        repeatSong.set(false);
+        randomQueue.set(false);
+
+        volume.set(1);
+        queue.set([])
+
     }
 });
 

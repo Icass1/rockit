@@ -31,6 +31,8 @@ export default function Navigation({
     const innerWidth = useWindowSize().width;
 
     const $lang = useStore(langData);
+    console.log($lang   , "langData");
+
     if (!$lang) return;
 
     const pages = [

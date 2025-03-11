@@ -9,7 +9,15 @@ fetch("/api/lang")
     .then((data) => {
         langData.set(data.langFile);
         lang.set(data.lang);
-    });
+    })
+    .catch(() =>
+        fetch("/api/lang?lang=en")
+            .then((response) => response.json())
+            .then((data) => {
+                langData.set(data.langFile);
+                lang.set(data.lang);
+            })
+    );
 
 lang.subscribe(async (value) => {
     if (!value) return;

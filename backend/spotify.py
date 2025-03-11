@@ -40,11 +40,6 @@ class Spotify:
 
         if self.client_id == None or self.client_secret == None:
             logger.critical("Missing .env file")
-            logger.critical("Creating a template, please fill the variables and try again")
-            with open(".env", "w") as f:
-                f.write("\n")
-                f.write("CLIENT_ID=\n")
-                f.write("CLIENT_SECRET=\n")
             exit()
 
         self.token: str = None
@@ -69,7 +64,7 @@ class Spotify:
         json_response = json.loads(result.content)
 
         self.token = json_response["access_token"]
-        logger.info("New token")
+        logger.info("Spotify.get_token New token")
 
     def get_auth_header(self):
         return {"Authorization": "Bearer " + self.token}
@@ -118,8 +113,8 @@ class Spotify:
             spotdl_songs.append(spotdl_song)
             raw_songs.append(song)
 
-            logger.debug(f"get_spotify_album Album Spotdl song: {spotdl_song}")
-            logger.debug(f"get_spotify_album Album Raw song: {song}")
+            logger.debug(f"Spotify.get_spotify_album Album Spotdl song: {spotdl_song}")
+            logger.debug(f"Spotify.get_spotify_album Album Raw song: {song}")
 
         return album, spotdl_songs, raw_songs
 
@@ -147,9 +142,12 @@ class Spotify:
         playlist = RawSpotifyApiPlaylist.from_dict(raw_playlist)
         playlist.tracks.items = tracks
 
-
         artist_ids = []
         for song in playlist.tracks.items:
+            if song.track == None: 
+                logger.warning(f"Spotify.get_spotify_playlist Removing song from items beacuse is None {song}")
+                playlist.tracks.items.remove(song)
+                continue
             for artist in song.track.artists:
                 artist_ids.append(artist.id)
 
@@ -189,14 +187,14 @@ class Spotify:
             song_dict["url"] = song.external_urls.spotify
             song_dict["popularity"] = song.popularity
             if song.album == None:
-                logger.error(f"get_spotify_playlist No album found in song. {song=}")
+                logger.error(f"Spotify.get_spotify_playlist No album found in song. {song=}")
             else:
                 song_dict["album_type"] = song.album.type
                 song_dict["album_id"] = song.album.id
                 song_dict["album_name"] = song.album.name
                 song_dict["album_artist"] = song.album.artists[0].name
                 if song.album.release_date: song_dict["year"] = int(song.album.release_date[:4])
-                else: logger.error(f"get_spotify_playlist No release_date found in song album. {song.album=}")
+                else: logger.error(f"Spotify.get_spotify_playlist No release_date found in song album. {song.album=}")
                 song_dict["date"] = song.album.release_date
                 song_dict["tracks_count"] = song.album.total_tracks
                 song_dict["cover_url"] = (
@@ -211,8 +209,8 @@ class Spotify:
             spotdl_songs.append(spotdl_song)
             raw_songs.append(item)
 
-            logger.debug(f"get_spotify_playlist Playlist Spotdl song: {spotdl_song}")
-            logger.debug(f"get_spotify_playlist Playlist Raw song: {song}")
+            logger.debug(f"Spotify.get_spotify_playlist Playlist Spotdl song: {spotdl_song}")
+            logger.debug(f"Spotify.get_spotify_playlist Playlist Raw song: {song}")
 
         return playlist, spotdl_songs, raw_songs
 
@@ -471,8 +469,8 @@ class Spotify:
     
         spotdl_song = Song.from_dict(song_dict)
 
-        logger.debug(f"spotdl_song_from_url Spotdl song: {spotdl_song}")
-        logger.debug(f"spotdl_song_from_url Raw song: {song}")
+        logger.debug(f"Spotify.get_spotify_song Spotdl song: {spotdl_song}")
+        logger.debug(f"Spotify.get_spotify_song Raw song: {song}")
 
         return Song.from_dict(song_dict), song
 
@@ -623,8 +621,8 @@ class Spotify:
     
         spotdl_song = Song.from_dict(song_dict)
 
-        logger.debug(f"spotdl_song_from_url Spotdl song: {spotdl_song}")
-        logger.debug(f"spotdl_song_from_url Raw song: {song}")
+        logger.debug(f"Spotify.get_youtube_song Spotdl song: {spotdl_song}")
+        logger.debug(f"Spotify.get_youtube_song Raw song: {song}")
 
         return Song.from_dict(song_dict), song
 

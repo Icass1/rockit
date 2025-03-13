@@ -93,7 +93,7 @@ export function DynamicLyrics() {
 
         let index = lyricsTimeStamp
             .toSorted((a, b) => b.time - a.time)
-            .find((timeStamp) => timeStamp.time < $currentTime)?.index;
+            .find((timeStamp) => timeStamp.time < $currentTime + 0.5)?.index;
         if (typeof index != "number") {
             index = 0;
         }
@@ -297,23 +297,25 @@ export function DynamicLyrics() {
             })}
             {lyricsTimeStamp.length == 0 && (
                 <div
-                    className="absolute overflow-auto block h-full min-w-0 max-w-full w-full"
+                    className="dynamic-lyrics-scroll hide-scroll-track hide-scroll-thumb absolute overflow-auto block h-full min-w-0 max-w-full w-full"
                     onScroll={(e) => {
                         setLyricsIndex(
-                            Math.floor(
-                                (e.currentTarget.scrollTop +
-                                    (e.currentTarget.scrollTop /
-                                        (e.currentTarget.scrollHeight -
-                                            e.currentTarget.offsetHeight)) *
-                                        e.currentTarget.offsetHeight) /
-                                    100
-                            )
+                            Math.floor(e.currentTarget.scrollTop / 100)
                         );
                     }}
                 >
                     <div
                         className="w-full"
-                        style={{ height: lyrics.length * 100 + "px" }}
+                        style={{
+                            height:
+                                (lyrics.length - 1) * 100 +
+                                ((
+                                    document.querySelector(
+                                        ".dynamic-lyrics-scroll"
+                                    ) as HTMLDivElement | undefined
+                                )?.offsetHeight ?? 0) +
+                                "px",
+                        }}
                     ></div>
                 </div>
             )}

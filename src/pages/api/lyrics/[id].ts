@@ -19,7 +19,8 @@ function parseLyrics(text: string): { seconds: number; lyrics: string }[] {
                 match.length > 0 &&
                 lyrics !== "" &&
                 !lyrics.startsWith("作曲") &&
-                !lyrics.startsWith("作词")
+                !lyrics.startsWith("作词") &&
+                !lyrics.startsWith("制作人")
             ) {
                 return match.map((time) => {
                     const minutes = parseInt(time[1], 10);

@@ -1,6 +1,7 @@
 import { db } from "@/lib/db/db";
 import { parseSong, type RawSongDB, type SongDB } from "@/lib/db/song";
 import stringSimilarity from "@/lib/stringSimilarity";
+import { ENV } from "@/rockitEnv";
 import type {
     OpenApiMusicLyrics,
     OpenApiMusicSongs,
@@ -51,7 +52,11 @@ export async function GET(context: APIContext): Promise<Response> {
         return new Response("Song not found", { status: 404 });
     }
 
-    if (song.dynamicLyrics && song.dynamicLyrics.length > 0) {
+    if (
+        !(ENV.FORCE_REQUEST_LYRICS == "true") &&
+        song.dynamicLyrics &&
+        song.dynamicLyrics.length > 0
+    ) {
         console.log("Getting dynamicLyrics from database");
         return new Response(
             JSON.stringify({ dynamicLyrics: true, lyrics: song.dynamicLyrics }),

@@ -14,7 +14,7 @@ const REQUIRED_ENV_VARS = [
     "API_KEY",
 ] as const;
 
-const OPTIONAL_ENV_VARS = ["FORCE_REQUEST_LYRICS", "A"] as const;
+const OPTIONAL_ENV_VARS = ["FORCE_REQUEST_LYRICS"] as const;
 
 type RequiredEnvKeys = (typeof REQUIRED_ENV_VARS)[number];
 type OptionalEnvKeys = (typeof OPTIONAL_ENV_VARS)[number];
@@ -45,7 +45,6 @@ export const ENV: {
 } & {
     [K in OptionalEnvKeys]?: string | "true" | "false";
 } = loadEnv("", process.cwd(), "") as any;
-
 
 // Check for missing environment variables
 const missingVars = REQUIRED_ENV_VARS.filter((key) => !ENV[key]);

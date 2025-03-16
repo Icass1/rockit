@@ -443,6 +443,9 @@ class PlaylistTrack:
     is_local: bool
     _json: dict
     def from_dict(obj: Any) -> 'PlaylistTrack':
+        if obj == None:
+            print("PlaylistTrack.obj is None")
+            return None
         _album = PlaylistAlbum.from_dict(obj.get('album'))
         _artists = [PlaylistArtists.from_dict(k) for k in obj.get('artists')]
         _available_markets = obj.get('available_markets') if obj and 'available_markets' in obj else None

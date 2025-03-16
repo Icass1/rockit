@@ -5,7 +5,7 @@ import useWindowSize from "@/hooks/useWindowSize";
 import { currentSong, playing } from "@/stores/audio";
 import { useStore } from "@nanostores/react";
 import { getImageUrl } from "@/lib/getImageUrl";
-import { songHandleClick } from "./ListSongs/HandleClick";
+import { songHandleClick } from "../ListSongs/HandleClick";
 import { currentList } from "@/stores/currentList";
 
 function Song({
@@ -67,18 +67,6 @@ function Song({
                 };
             })
         );
-
-        // if ($currentSong?.id == song.id && $playing) {
-        //     pause();
-        // } else if ($currentSong?.id == song.id) {
-        //     play();
-        // } else {
-        //     playWhenReady.set(true);
-        //     currentSong.set(song);
-
-        //     queueIndex.set(0);
-        //     queue.set([{ song: song, list: undefined, index: 0 }]);
-        // }
     };
 
     return (
@@ -177,7 +165,7 @@ function Version2({
     );
 }
 
-function AlbumsCarousel({
+function SongsCarousel({
     songsTimesPlayed,
 }: {
     songsTimesPlayed: SongForStats[];
@@ -301,4 +289,4 @@ function AlbumsCarousel({
     );
 }
 
-export default AlbumsCarousel;
+export default SongsCarousel;

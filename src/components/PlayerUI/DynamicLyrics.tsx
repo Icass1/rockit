@@ -50,7 +50,8 @@ export function DynamicLyrics() {
                         setLyrics(data.lyrics.split("\n") || "");
                     }
                 }
-            );
+            )
+            .catch((error) => console.log("Error loading lyrics", error));
     }, [$currentSong]);
 
     useEffect(() => {
@@ -62,14 +63,17 @@ export function DynamicLyrics() {
             if (event.code == "ArrowDown") {
                 setLyricsIndex((value) => {
                     const index = Math.min(value + 1, lyrics.length - 1);
-                    setTime(lyricsTimeStamp[index].time + 0.01);
+
+                    if (lyricsTimeStamp.length > 0)
+                        setTime(lyricsTimeStamp[index].time + 0.01);
                     return index;
                 });
                 console.log(currentTime.get(), lyricsIndex);
             } else if (event.code == "ArrowUp") {
                 setLyricsIndex((value) => {
                     const index = Math.max(value - 1, 0);
-                    setTime(lyricsTimeStamp[index].time + 0.01);
+                    if (lyricsTimeStamp.length > 0)
+                        setTime(lyricsTimeStamp[index].time + 0.01);
                     return index;
                 });
             }
@@ -89,7 +93,7 @@ export function DynamicLyrics() {
 
         let index = lyricsTimeStamp
             .toSorted((a, b) => b.time - a.time)
-            .find((timeStamp) => timeStamp.time < $currentTime)?.index;
+            .find((timeStamp) => timeStamp.time < $currentTime + 0.5)?.index;
         if (typeof index != "number") {
             index = 0;
         }
@@ -291,6 +295,30 @@ export function DynamicLyrics() {
                     );
                 }
             })}
+            {lyricsTimeStamp.length == 0 && (
+                <div
+                    className="dynamic-lyrics-scroll hide-scroll-track hide-scroll-thumb absolute overflow-auto block h-full min-w-0 max-w-full w-full"
+                    onScroll={(e) => {
+                        setLyricsIndex(
+                            Math.floor(e.currentTarget.scrollTop / 100)
+                        );
+                    }}
+                >
+                    <div
+                        className="w-full"
+                        style={{
+                            height:
+                                (lyrics.length - 1) * 100 +
+                                ((
+                                    document.querySelector(
+                                        ".dynamic-lyrics-scroll"
+                                    ) as HTMLDivElement | undefined
+                                )?.offsetHeight ?? 0) +
+                                "px",
+                        }}
+                    ></div>
+                </div>
+            )}
         </div>
     );
 }

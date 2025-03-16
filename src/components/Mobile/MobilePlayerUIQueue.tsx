@@ -1,4 +1,6 @@
 import {
+    currentSong,
+    playWhenReady,
     queue,
     queueIndex,
     saveSongToIndexedDB,
@@ -20,6 +22,7 @@ import {
     PlayCircle,
 } from "lucide-react";
 import { langData } from "@/stores/lang";
+import type { SongDB } from "@/lib/db/song";
 
 export default function MobilePlayerUIQueue({
     open,
@@ -67,9 +70,26 @@ export default function MobilePlayerUIQueue({
             ...queue.get().slice(index + 1),
         ]);
     };
-    const handlePlaySong = (song: QueueElement) => {
-        console.log("handlePlaySong");
-        // console.log(queue.get(), song, queueIndex.get());
+    const handlePlaySong = async (song: QueueElement) => {
+        const currentSongIndexInQueue = queue
+            .get()
+            .findIndex((_song) => _song.index == song.index);
+
+        queueIndex.set(queue.get()[currentSongIndexInQueue].index);
+
+        const newSongId = queue
+            .get()
+            .find((song) => song.index == queueIndex.get())?.song.id;
+        if (!newSongId) {
+            return;
+        }
+
+        await fetch(`/api/song/${newSongId}`)
+            .then((response) => response.json())
+            .then((data: SongDB) => {
+                playWhenReady.set(true);
+                currentSong.set(data);
+            });
     };
 
     const touchStart = (
@@ -94,7 +114,7 @@ export default function MobilePlayerUIQueue({
                 Math.round(event.touches[0].clientY * 100) / 100;
         };
 
-        const handleTouchEnd = (event: TouchEvent) => {
+        const handleTouchEnd = () => {
             setDraggingSong(undefined);
 
             if (typeof scrollRef.current?.scrollTop != "number") return;

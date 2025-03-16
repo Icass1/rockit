@@ -1,7 +1,9 @@
 ---
 import Layout from "@/layouts/Layout.astro";
-import AlbumsCarousel from "@/components/AlbumsCarousel.tsx";
-import { getStats, type SongForStats } from "@/lib/stats";
+import SongsCarousel from "@/components/Home/SongsCarousel";
+import RecentlyPlayedSong from "@/components/Home/RecentlyPlayedSong";
+import QuickSelectionsSong from "@/components/Home/QuickSelectionsSong";
+import { getStats, type SongForStats, type Stats } from "@/lib/stats";
 import { getLang } from "@/lib/getLang";
 import {
     parsePlaylist,
@@ -9,58 +11,21 @@ import {
     type RawPlaylistDB,
 } from "@/lib/db/playlist";
 import { parseAlbum, type AlbumDB, type RawAlbumDB } from "@/lib/db/album";
-import { parseUser, type RawUserDB } from "@/lib/db/user";
+import { parseUser, type RawUserDB, type UserDBList } from "@/lib/db/user";
 import { db } from "@/lib/db/db";
 import { getImageUrl } from "@/lib/getImageUrl";
 
-if (!Astro.locals.user) {
-    return Astro.redirect("/login");
-}
-
-const lang = getLang(Astro.locals.user.lang);
+const lang = getLang(Astro.locals.user?.lang ?? "en");
 
 // Type guard para verificar si es un AlbumDB
 function isAlbum(list: PlaylistDB | AlbumDB): list is AlbumDB {
     return (list as AlbumDB).artists !== undefined;
 }
 
-// Definimos la lista de categorías
-// const categories = [
-//     {
-//         label: "Relax",
-//         image: "/home/relax.avif",
-//     },
-//     {
-//         label: "Energetic",
-//         image: "/home/energetic.webp",
-//     },
-//     {
-//         label: "Romance",
-//         image: "/home/romance.jpg",
-//     },
-//     {
-//         label: "Party",
-//         image: "/home/party.jpg",
-//     },
-//     {
-//         label: "Sad",
-//         image: "/home/sad.jpg",
-//     },
-//     {
-//         label: "Chill",
-//         image: "/home/chill.webp",
-//     },
-//     {
-//         label: "Happy",
-//         image: "/home/happy.jpg",
-//     },
-//     {
-//         label: "Mellow",
-//         image: "/home/mellow.avif",
-//     },
-// ];
+let stats: Stats;
 
-const stats = await getStats(Astro.locals.user.id);
+if (Astro.locals.user?.id) stats = await getStats(Astro.locals.user.id);
+else stats = { albums: [], songs: [], artists: [] };
 
 const songsLast7Days: SongForStats[] = [];
 const songsLastMonth: SongForStats[] = [];
@@ -144,12 +109,14 @@ stats.songs
     });
 
 // Get User Library Items
-const userLists = parseUser(
-    db
-        .prepare("SELECT lists FROM user WHERE id = ?")
-        .get(Astro.locals.user.id) as RawUserDB
-)?.lists;
-
+let userLists: UserDBList[] | undefined = [];
+if (Astro.locals.user?.id) {
+    userLists = parseUser(
+        db
+            .prepare("SELECT lists FROM user WHERE id = ?")
+            .get(Astro.locals.user.id) as RawUserDB
+    )?.lists;
+}
 if (!userLists) {
     return new Response("Fatal error, userLists is undefined");
 }
@@ -198,7 +165,7 @@ const shuffledLists = combinedLists.sort(() => Math.random() - 0.5);
     <div class="mt-20 md:mt-0"></div>
 
     <!-- Albums Carousel Section -->
-    <AlbumsCarousel
+    <SongsCarousel
         songsTimesPlayed={randomSongsLast7Days}
         client:only="react"
     />
@@ -239,29 +206,15 @@ const shuffledLists = combinedLists.sort(() => Math.random() - 0.5);
         >
             <!-- Aquí creamos las canciones -->
             {
-                songsByTimePlayed.slice(0, 20).map((song) => (
-                    <a
-                        href="#"
-                        class="flex-none w-40 md:w-48 md:hover:scale-105 transition"
-                    >
-                        <img
-                            class="rounded-lg w-full aspect-square object-cover"
-                            src={getImageUrl({
-                                imageId: song.image,
-                                height: 400,
-                                width: 400,
-                                placeHolder: "/song-placeholder.png",
-                            })}
-                            alt="Song Cover"
+                songsByTimePlayed
+                    .slice(0, 20)
+                    .map((song) => (
+                        <RecentlyPlayedSong
+                            client:only="react"
+                            song={song}
+                            songs={songsByTimePlayed.slice(0, 20)}
                         />
-                        <label class="truncate font-semibold text-center block mt-2">
-                            {song.name}
-                        </label>
-                        <label class="truncate text-sm text-center text-gray-400 block">
-                            {song.artists[0].name}
-                        </label>
-                    </a>
-                ))
+                    ))
             }
         </div>
     </section>
@@ -284,39 +237,14 @@ const shuffledLists = combinedLists.sort(() => Math.random() - 0.5);
                             randomSongsLastMonth
                                 .slice(columnIndex * 4, columnIndex * 4 + 4)
                                 .map((song) => (
-                                    <a
-                                        class="flex items-center gap-2 rounded-lg p-2 hover:bg-zinc-800 transition h-fit"
-                                        onclick="songHandleClick(song)"
-                                    >
-                                        {/* Imagen de la canción */}
-                                        <img
-                                            class="rounded-sm w-12 h-12 object-cover"
-                                            src={getImageUrl({
-                                                imageId: song.image,
-                                                height: 100,
-                                                width: 100,
-                                                placeHolder:
-                                                    "/song-placeholder.png",
-                                            })}
-                                            alt={`Song Cover for ${song.name}`}
-                                        />
-                                        {/* Información de la canción */}
-                                        <div class="flex flex-col justify-center min-w-0">
-                                            {/* Nombre de la canción */}
-                                            <span class="text-md font-semibold text-white truncate">
-                                                {song.name}
-                                            </span>
-                                            {/* Artista y álbum */}
-                                            <div class="flex items-center gap-1 min-w-0">
-                                                <span class="text-sm text-gray-400 flex-0 md:max-w-[50%] truncate shrink-0">
-                                                    {song.artists[0].name}
-                                                </span>
-                                                <span class="hidden md:flex text-sm text-gray-400 truncate">
-                                                    {" • "} {song.albumName}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </a>
+                                    <QuickSelectionsSong
+                                        client:only="react"
+                                        song={song}
+                                        songs={randomSongsLastMonth.slice(
+                                            0,
+                                            8 * 4 + 4
+                                        )}
+                                    />
                                 ))
                         }
                     </div>

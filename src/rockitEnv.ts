@@ -14,7 +14,10 @@ const REQUIRED_ENV_VARS = [
     "API_KEY",
 ] as const;
 
-type EnvKeys = (typeof REQUIRED_ENV_VARS)[number];
+const OPTIONAL_ENV_VARS = ["FORCE_REQUEST_LYRICS"] as const;
+
+type RequiredEnvKeys = (typeof REQUIRED_ENV_VARS)[number];
+type OptionalEnvKeys = (typeof OPTIONAL_ENV_VARS)[number];
 
 // import * as fs from "fs";
 // import * as path from "path";
@@ -37,11 +40,11 @@ type EnvKeys = (typeof REQUIRED_ENV_VARS)[number];
 //     process.cwd()
 // ) as any;
 
-export const ENV: Record<EnvKeys, string | "true" | "false"> = loadEnv(
-    "",
-    process.cwd(),
-    ""
-) as any;
+export const ENV: {
+    [K in RequiredEnvKeys]: string | "true" | "false";
+} & {
+    [K in OptionalEnvKeys]?: string | "true" | "false";
+} = loadEnv("", process.cwd(), "") as any;
 
 // Check for missing environment variables
 const missingVars = REQUIRED_ENV_VARS.filter((key) => !ENV[key]);

@@ -146,6 +146,35 @@ export function checkTable(query: string) {
 
     if (modifiedColumns.length > 0) {
         console.warn("Detected column change(s).", modifiedColumns);
+
+        if (ENV.INSECURE_DB_MODE == "true") {
+            console.warn("Changing columns");
+
+            const columnNames = columns
+                .map((column) => column.split(" ")[0])
+                .join(",");
+
+            try {
+                db.exec(`
+                    CREATE TABLE IF NOT EXISTS temp_${tableName} (
+                    ${query.split("\n").slice(1).join(" ")}
+                `);
+
+                db.exec(`
+                    INSERT INTO temp_${tableName} (${columnNames})
+                    SELECT ${columnNames} FROM ${tableName};
+                `);
+                db.exec(`DROP TABLE ${tableName};`);
+                db.exec(
+                    `ALTER TABLE temp_${tableName} RENAME TO ${tableName};`
+                );
+            } catch (error) {
+                console.error(error?.toString());
+            }
+            console.log("Done!");
+        } else {
+            console.log("insecureMode is off, enable it to remove columns.");
+        }
     }
 
     if (removedColumns.length > 0) {

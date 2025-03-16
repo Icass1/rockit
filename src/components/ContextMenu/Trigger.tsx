@@ -27,7 +27,7 @@ export default function ContextMenuTrigger({
     };
 
     useEffect(() => {
-        if (!setContextMenuOpen) return;
+        if (!setContextMenuOpen || innerWidth < 768) return;
 
         const closeContextMenu = (
             event:

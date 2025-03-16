@@ -86,6 +86,7 @@ export function Header() {
                     </div>
                     <div className="flex flex-row bg-[#2e2f34] items-center px-1 gap-x-1">
                         <input
+                            type="search"
                             placeholder="Filter..."
                             className="text-sm py-[1px] bg-transparent rounded outline-0 w-full"
                             value={

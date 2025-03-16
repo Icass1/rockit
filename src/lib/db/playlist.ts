@@ -21,29 +21,34 @@ export type PlaylistDB<
 
 export interface RawPlaylistDB {
     id: string;
-    images: string;
+    images: string | undefined;
     image: string;
     name: string;
     description: string;
     owner: string;
     followers: number;
     songs: string;
+    updatedAt: string | undefined;
+    createdAt: string | undefined;
 }
 
 export interface PlaylistDBFull {
     id: string;
-    images: OldImageDB[];
+    images: OldImageDB[] | undefined;
     image: string;
     name: string;
     description: string;
     owner: string;
     followers: number;
     songs: PlaylistDBSong[];
+    updatedAt: string | undefined;
+    createdAt: string | undefined;
 }
 
 export interface PlaylistDBSong {
     id: string;
     added_at?: string;
+    addedInRockit?: boolean | undefined;
 }
 
 export type PlaylistDBSongWithAddedAt<
@@ -66,16 +71,20 @@ export function parsePlaylist(
         owner: playlist.owner,
         followers: playlist.followers,
         songs: JSON.parse(playlist.songs || "[]"),
+        updatedAt: playlist.updatedAt,
+        createdAt: playlist.createdAt,
     };
 }
 
 export const playlistQuery = `CREATE TABLE IF NOT EXISTS playlist (
     id TEXT NOT NULL PRIMARY KEY UNIQUE,
-    images TEXT NOT NULL,
-    image TEXT NOT NULL  DEFAULT "",
+    images TEXT,
+    image TEXT NOT NULL DEFAULT "",
     name TEXT NOT NULL,
     description TEXT NOT NULL,
     owner TEXT NOT NULL,
     followers INTEGER NOT NULL,
-    songs TEXT NOT NULL 
+    songs TEXT NOT NULL,
+    updatedAt TEXT,
+    createdAt TEXT
 )`;

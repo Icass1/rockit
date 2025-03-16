@@ -64,19 +64,25 @@ export function songHandleClick(
     if (randomQueue.get()) {
         const shuffled = [...songsToAdd].sort(() => Math.random() - 0.5);
 
-        console.log({ songsToAdd, song });
-
         const firstSong = songsToAdd.find(
             (dataSong) => dataSong.song.id == song.id
         );
+
         if (!firstSong) {
             console.error("First song not found in songsToAdd in AlbumSong");
             return;
         }
+
+        // Move firstSong to the first position
+        const updatedQueue = [
+            firstSong,
+            ...shuffled.filter((s) => s.index !== firstSong.index),
+        ];
+
         playWhenReady.set(true);
         currentSong.set(song);
-        queueIndex.set(firstSong.index);
-        queue.set(shuffled);
+        queueIndex.set(firstSong.index); // Since firstSong is now at index 0
+        queue.set(updatedQueue);
     } else {
         const firstSong = songsToAdd.find(
             (dataSong) => dataSong.song.id == song.id

@@ -39,9 +39,11 @@ export default function PlaylistSongsView({
               name: string;
               songs: PlaylistDBSong[];
               image: string;
-              images: {
-                  url: string;
-              }[];
+              images:
+                  | {
+                        url: string;
+                    }[]
+                  | undefined;
               owner: string;
           };
 }) {

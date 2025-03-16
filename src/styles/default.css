@@ -60,6 +60,39 @@ code {
     }
 }
 
+.hide-scroll-track::-webkit-scrollbar-track {
+    background-color: rgba(0, 0, 0, 0);
+    border-radius: 100px;
+}
+.hide-scroll-track:hover::-webkit-scrollbar-track {
+    background-color: rgba(0, 0, 0, 0);
+    border-radius: 100px;
+}
+
+/* Handle */
+.hide-scroll-thumb::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0);
+    border-radius: 10px;
+}
+
+.hide-scroll-thumb:hover::-webkit-scrollbar-thumb:horizontal {
+    background-color: rgb(0, 0, 0);
+    border-radius: 10px;
+}
+
+.hide-scroll-thumb::-webkit-scrollbar-thumb:horizontal {
+    background-color: rgba(0, 0, 0, 0);
+    border-radius: 10px;
+}
+
+/* Handle on hover */
+.hide-scroll-thumb::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0);
+}
+.hide-scroll-thumb::-webkit-scrollbar-thumb:horizontal:hover {
+    background: #00000000;
+}
+
 /* Track */
 *::-webkit-scrollbar-track {
     background-color: rgba(20, 20, 20, 0);

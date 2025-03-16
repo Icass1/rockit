@@ -19,6 +19,7 @@ import time
 import os
 from logger import getLogger
 import shutil
+import ctypes
 
 logger = getLogger(__name__)
 
@@ -27,8 +28,8 @@ import patches # Needed to execute the code in patches.py and apply them
 try: 
     THREADS = int(os.getenv('DOWNLOAD_THREADS'))
 except:
-    print("DOWNLOAD_THREADS is not defined or is not and int")
-print(THREADS)
+    logger.error("DOWNLOAD_THREADS is not defined or is not and int")
+    exit()
 
 class ListDownloader:
     def __init__(self, url, downloader: "Downloader", user_id, download_id):
@@ -132,13 +133,13 @@ class ListDownloader:
             }, headers={"Authorization": f"Bearer {os.getenv('API_KEY')}"})
 
 
-
-
         logger.info(f"ListDownloader.download_manager Finished")
 
         self.update_db_end()
-
-
+        
+        del self.downloader.downloads_dict[self.spotdl_song.song_id]
+        del self.downloader.downloads_ids_dict[get_song_name(self.spotdl_song)]
+        
     def status(self):
         
         songs_completed = {}
@@ -151,7 +152,9 @@ class ListDownloader:
             yield f"data: {json.dumps(text)}\n\n"
 
             while not self.spotdl_songs:
-                time.sleep(0.2)
+                time.sleep(0.5)
+
+
 
         if self.list.type == "album":
             threading.current_thread().name = f"status - {self.list.name} - {self.list.artists[0].name}"
@@ -181,7 +184,7 @@ class ListDownloader:
                         logger.warning(f"ListDownloader.status song.id: {song.id} is not in self.downloader.downloads_dict")
 
                     while song.id not in self.downloader.downloads_dict:
-                        time.sleep(0.1)
+                        continue
 
                     if song.id not in self.downloader.downloads_dict:
                         logger.critical(f"ListDownloader.status song.id: {song.id} is not in self.downloader.downloads_dict: {self.downloader.downloads_dict}")
@@ -192,6 +195,10 @@ class ListDownloader:
                     last_messages_len[song.id] = max(len(self.downloader.downloads_dict[song.id]["messages"]) - 1, 0)
                     list_completed[song.id] = 0
                     list_error[song.id] = 0
+
+                if song.id not in self.downloader.downloads_dict: 
+                    logger.warning(f"ListDownloader.status {song.id} is not in self.downloader.downloads_dict")
+                    continue
 
                 for k in self.downloader.downloads_dict[song.id]["messages"][last_messages_len[song.id]:]:
                     if songs_completed[song.id] == 1:
@@ -212,19 +219,25 @@ class ListDownloader:
                         songs_completed[song.id] = 1
                     
                 last_messages_len[song.id] = len(self.downloader.downloads_dict[song.id]["messages"])
-            time.sleep(0.1)
+            time.sleep(0.01)
         
         logger.debug(str(list_completed))
-
         self.setup_list_db()
-
+        
+        for spotdl_song in self.spotdl_songs:
+            if spotdl_song in self.downloader.downloads_dict: del self.downloader.downloads_dict[spotdl_song]
+            if spotdl_song in self.downloader.downloads_ids_dict: del self.downloader.downloads_ids_dict[get_song_name(spotdl_song)]
+        
     def __str__(self) -> str:
         return f"ListDownloader(url={self.url})"
 
 class SongDownloader:
     def __init__(self, url, downloader: "Downloader", user_id, download_id):
         """Must be executed instantly"""
-
+        
+        self.user_id = user_id
+        self.download_id = download_id
+        
         self.url = url
         self.spotdl_song: Song = None
         self.raw_song: RawSpotifyApiTrack = None
@@ -232,6 +245,24 @@ class SongDownloader:
         self.downloader = downloader
         self.thread = threading.Thread(target=lambda : self.fetch_song(), name=f"Song downloader {url}")
         self.thread.start()
+
+        self.update_db_start()
+
+    def update_db_start(self):
+        requests.post(f"{os.getenv('FRONTEND_URL')}/api/update-download", json={
+            "id": self.download_id,
+            "userId": self.user_id,
+            "downloadURL": self.url,
+            "status": "starting"
+        }, headers={"Authorization": f"Bearer {os.getenv('API_KEY')}"})
+
+    def update_db_end(self):
+        requests.post(f"{os.getenv('FRONTEND_URL')}/api/update-download", json={
+            "id": self.download_id,
+            "userId": self.user_id,
+            "downloadURL": self.url,
+            "status": "ended"
+        }, headers={"Authorization": f"Bearer {os.getenv('API_KEY')}"})
 
     def fetch_song(self):
         self.spotdl_song, self.raw_song = self.downloader.spotify.spotdl_song_from_url(self.url)
@@ -274,9 +305,15 @@ class SongDownloader:
                 yield f"data: {json.dumps(k)}\n\n"
                 if k["completed"] == 100:
                     finish = True
+                    break
                 
             last_messages_len = len(self.downloader.downloads_dict[self.spotdl_song.song_id]["messages"])
-            time.sleep(0.5)
+            time.sleep(0.01)
+            
+        self.update_db_end()
+        
+        del self.downloader.downloads_dict[self.spotdl_song.song_id]
+        del self.downloader.downloads_ids_dict[get_song_name(self.spotdl_song)]
 
 class QueueItem(TypedDict):
     spotdl_song: Song
@@ -299,6 +336,7 @@ class Downloader:
         self.downloads_ids_dict: Dict = {}
         self.downloads_dict = {}
         self.spotify = spotify
+        
 
         # Define the queue type
         self.queue: List[QueueItem] = []
@@ -308,6 +346,7 @@ class Downloader:
         self.download_manager_thread.start()
 
     def download_url(self, url, user_id, download_id):
+        
         if "/track/" in url or "https://music.youtube.com/watch?v=" in url:
             return SongDownloader(url, self, user_id, download_id)
         elif "/playlist/" in url or "/album/" in url or "https://music.youtube.com/playlist?list=" in url:
@@ -370,6 +409,8 @@ class Downloader:
             else: 
                 self.downloads_dict[spotdl_song.song_id]["messages"].append({'id': spotdl_song.song_id, 'completed': 100, 'message': 'Done'})
                 logger.info(f"Downloader.download_song Downloaded {get_song_name(spotdl_song)}")
+
+              
 
                 shutil.move(path, song_path)
                 path = relative_song_path

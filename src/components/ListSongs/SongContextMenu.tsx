@@ -16,7 +16,7 @@ import ContextMenuOption from "../ContextMenu/Option";
 import ContextMenuTrigger from "../ContextMenu/Trigger";
 import { likedSongs } from "@/stores/likedList";
 import type { SongDB } from "@/db/song";
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useStore } from "@nanostores/react";
 import { queue, queueIndex, saveSongToIndexedDB } from "@/stores/audio";
 import { currentList, currentListSongs } from "@/stores/currentList";
@@ -25,6 +25,10 @@ import { navigate } from "astro:transitions/client";
 import { songHandleClick } from "./HandleClick";
 import { langData } from "@/stores/lang";
 import { getImageUrl } from "@/lib/getImageUrl";
+import type { UserDB } from "@/lib/db/user";
+import SubContextMenu from "../ContextMenu/SubContextMenu/ContextMenu";
+import SubContextMenuTrigger from "../ContextMenu/SubContextMenu/Trigger";
+import SubContextMenuContent from "../ContextMenu/SubContextMenu/Content";
 
 export default function SongContextMenu({
     children,
@@ -45,6 +49,28 @@ export default function SongContextMenu({
     const $likedSongs = useStore(likedSongs);
     const $currentListSongs = useStore(currentListSongs);
     const $lang = useStore(langData);
+
+    const [userLists, setUserLists] = useState<
+        { id: string; name: string; image: string }[]
+    >([]);
+
+    useEffect(() => {
+        fetch("/api/user?q=lists")
+            .then((response) => response.json())
+            .then((data: UserDB<"lists">) =>
+                fetch(
+                    `/api/playlists?playlists=${data.lists
+                        .filter((list) => list.type == "playlist")
+                        .map((list) => list.id)
+                        .join()}&p=id,name,image`
+                )
+            )
+            .then((response) => response.json())
+            .then((data: { id: string; name: string; image: string }[]) => {
+                setUserLists(data);
+            });
+    }, []);
+
     if (!$lang) return;
 
     return (
@@ -183,10 +209,39 @@ export default function SongContextMenu({
                     <ListEnd className="h-5 w-5" />
                     {$lang.add_to_queue}
                 </ContextMenuOption>
-                <ContextMenuOption disable>
-                    <ListPlusIcon className="w-5 h-5" />
-                    {$lang.add_song_to_playlist}
-                </ContextMenuOption>
+                <SubContextMenu>
+                    <SubContextMenuTrigger>
+                        <ListPlusIcon className="w-5 h-5" />
+                        {$lang.add_song_to_playlist}
+                    </SubContextMenuTrigger>
+                    <SubContextMenuContent>
+                        {userLists.map((list) => (
+                            <ContextMenuOption
+                                key={list.id}
+                                onClick={() => {
+                                    fetch("/api/playlist/add-song", {
+                                        method: "POST",
+                                        body: JSON.stringify({
+                                            songId: song.id,
+                                            playlistId: list.id,
+                                        }),
+                                    });
+                                }}
+                            >
+                                <img
+                                    className="h-6 w-6"
+                                    src={getImageUrl({
+                                        imageId: list.image,
+                                        placeHolder: "/rockit-background.png",
+                                        width: 24,
+                                        height: 24,
+                                    })}
+                                />
+                                {list.name}
+                            </ContextMenuOption>
+                        ))}
+                    </SubContextMenuContent>
+                </SubContextMenu>
                 <ContextMenuSplitter />
                 <ContextMenuOption
                     disable={typeof navigator.share == "undefined"}

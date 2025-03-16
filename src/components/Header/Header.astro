@@ -23,11 +23,13 @@ const { searchBar = true } = Astro.props;
     <div class="relative ml-auto">
         <!-- Botón para abrir/cerrar el menú -->
         {
-            Astro.locals.user?.username && (
+            Astro.locals.user ? (
                 <HeaderUser
                     userName={Astro.locals.user.username}
                     client:only="react"
                 />
+            ) : (
+                <a class="p-1 bg-green-600 rounded px-4" href="/login">Login</a>
             )
         }
     </div>

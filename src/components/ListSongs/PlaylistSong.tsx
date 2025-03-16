@@ -1,7 +1,6 @@
 import {
     queue,
     queueIndex,
-    saveSongToIndexedDB,
     songsInIndexedDB,
 } from "@/stores/audio";
 import type { PlaylistDBSongWithAddedAt } from "@/db/playlist";

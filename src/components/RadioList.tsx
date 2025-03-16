@@ -129,7 +129,7 @@ const RadioStations = () => {
                 </h1>
                 <div className="mb-4 flex justify-between items-center">
                     <input
-                        type="text"
+                        type="search"
                         placeholder={$lang.radio_search}
                         value={searchQuery}
                         onChange={handleSearch}
@@ -167,7 +167,7 @@ const RadioStations = () => {
                 </h1>
                 <div className="mb-4">
                     <input
-                        type="text"
+                        type="search"
                         placeholder="Search for stations, tags, countries..."
                         value={searchQuery}
                         onChange={handleSearch}

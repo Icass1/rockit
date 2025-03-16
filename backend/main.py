@@ -8,7 +8,7 @@ load_dotenv()
 import os
 from typing import Dict
 
-environ_variables = ["ENVIRONMENT", "CLIENT_ID", "CLIENT_SECRET", "FRONTEND_URL", "SONGS_PATH", "TEMP_PATH", "LOGS_PATH", "IMAGES_PATH", "API_KEY"]
+environ_variables = ["ENVIRONMENT", "CLIENT_ID", "CLIENT_SECRET", "FRONTEND_URL", "SONGS_PATH", "TEMP_PATH", "LOGS_PATH", "IMAGES_PATH", "API_KEY", "DOWNLOAD_THREADS"]
 
 for variable in environ_variables:
     if not os.getenv(variable):
@@ -35,11 +35,8 @@ CORS(app, supports_credentials=True, resources={
 spotify = Spotify()
 downloader = Downloader(spotify)
 
-
-# USER_ID = "randomtestuserid"
-
-# downloads: Dict[str, SongDownloader | ListDownloader | None] = {}
-downloads: Dict[str, Dict[str, SongDownloader | ListDownloader | None]] = {}
+downloads = {}
+user_downloads: Dict[str, Dict[str, SongDownloader | ListDownloader | None]] = {}
 
 logger = getLogger(__name__)
 
@@ -98,15 +95,29 @@ def start_download():
     USER_ID = request.args.get('user')
     if USER_ID == None: return Response("User is not logged in"), 401
     
-    url = request.args.get('url')
+    url = spotify.parse_url(request.args.get('url'))
     download_id = create_id(length=16)
 
-    if USER_ID not in downloads:
-        downloads[USER_ID] = {}
+    if USER_ID not in user_downloads:
+        user_downloads[USER_ID] = {}
 
-    download_handler = downloader.download_url(url, user_id=USER_ID, download_id=download_id)
+    if url in downloads:
+        logger.debug("main.start_download Handler already started")
+        download_handler = downloads[url]
+    else:
+        logger.debug("main.start_download Starting new handler")
+        download_handler = downloader.download_url(url, user_id=USER_ID, download_id=download_id)
+        downloads[url] = download_handler
+        
+    print("USER_ID", USER_ID)
+    print("download_id", download_id)
+    print("url", url)
+    print("user_downloads", user_downloads)
+    print("downloads", downloads)
+    print("download_handler", download_handler)
+    
     if download_handler:
-        downloads[USER_ID][download_id] = download_handler
+        user_downloads[USER_ID][download_id] = download_handler
         return jsonify({"download_id": download_id})
     else:
         return Response("Error starting download")
@@ -116,31 +127,31 @@ def download_status(id: str):
     USER_ID = request.args.get('user')
     if USER_ID == None: return Response("User is not logged in"), 401
     
-    if USER_ID not in downloads or id not in downloads[USER_ID]:
+    if USER_ID not in user_downloads or id not in user_downloads[USER_ID]:
         return Response("Download not found"), 404
 
-    if downloads[USER_ID][id] == None:
+    if user_downloads[USER_ID][id] == None:
         return Response("Error in download"), 500
 
-    return Response(downloads[USER_ID][id].status(), mimetype='text/event-stream')
+    return Response(user_downloads[USER_ID][id].status(), mimetype='text/event-stream')
 
 @app.route('/downloads')
 def check_downloads():
     USER_ID = request.args.get('user')
     if USER_ID == None: return Response("User is not logged in"), 401
 
-    if USER_ID not in downloads:
+    if USER_ID not in user_downloads:
         return jsonify([])
     
-    return jsonify(list(downloads[USER_ID].keys()))
+    return jsonify(list(user_downloads[USER_ID].keys()))
 
 @app.route('/global-downloads')
 def global_downloads():
     out = {}
-    for k in downloads.keys():
+    for k in user_downloads.keys():
         out[k] = {}
-        for i in downloads[k].keys():
-            out[k][i] = str(downloads[k][i])
+        for i in user_downloads[k].keys():
+            out[k][i] = str(user_downloads[k][i])
     return jsonify(out)
 
 @app.route('/downloads-dict')

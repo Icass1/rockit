@@ -12,7 +12,6 @@ import LikeButton from "../LikeButton";
 import {
     ListPlus,
     EllipsisVertical,
-    PlayCircleIcon,
     PlayIcon,
     PauseIcon,
 } from "lucide-react";

@@ -11,20 +11,24 @@ fetch("/api/lang")
         langData.set(data.langFile);
         lang.set(data.lang);
 
-        if (!database) return;
+        setTimeout(() => {
+            if (!database) return;
 
-        updateUserIndexedDB();
+            updateUserIndexedDB();
 
-        const db = database;
-        const langTransaction = db.transaction("lang", "readwrite");
-        const langStore = langTransaction.objectStore("lang");
+            const db = database;
+            const langTransaction = db.transaction("lang", "readwrite");
+            const langStore = langTransaction.objectStore("lang");
 
-        const langValue = {
-            lang: data.lang,
-            langData: data.langFile,
-        };
+            const langValue = {
+                lang: data.lang,
+                langData: data.langFile,
+            };
 
-        langStore.put(langValue);
+            console.log(langValue);
+
+            langStore.put(langValue);
+        }, 1000);
     })
     .catch(() =>
         fetch("/api/lang?lang=en")

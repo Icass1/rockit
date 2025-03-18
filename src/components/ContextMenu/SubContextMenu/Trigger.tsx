@@ -14,30 +14,28 @@ export default function SubContextMenuTrigger({
     disable?: boolean;
     setHover?: (value: boolean) => void;
 }) {
-
-
-
-
     return (
         <div
             ref={triggerRef}
             onClick={(e) => {
                 e.stopPropagation();
+                if (disable) return;
             }}
             onMouseEnter={() => {
+                if (disable) return;
                 if (setHover) setHover(true);
             }}
             onMouseLeave={() => {
                 if (setHover) {
+                    if (disable) return;
                     setHover(false);
                 }
             }}
             className={
-                className ??
-                "" +
-                    " context-menu-option md:hover:bg-neutral-700 rounded-sm p-2 cursor-pointer font-semibold text-sm  " +
-                    className ??
-                "" + (disable ? " pointer-events-none opacity-50 " : "")
+                (className ?? "") +
+                " context-menu-option md:hover:bg-neutral-700 rounded-sm p-2 cursor-pointer font-semibold text-sm  " +
+                (className ?? "") +
+                (disable ? " pointer-events-none opacity-50 " : "")
             }
         >
             <div className="grid grid-cols-[1fr_20px] items-center">

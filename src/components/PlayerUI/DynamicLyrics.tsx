@@ -142,7 +142,7 @@ export function DynamicLyrics() {
                                     color: "rgb(200, 200, 200)",
                                 }}
                             >
-                                {line}
+                                {line.replace(/ /g, " ")}
                             </div>
                         );
                     case -1:
@@ -172,7 +172,7 @@ export function DynamicLyrics() {
                                     // scale: "0.6",
                                 }}
                             >
-                                {line}
+                                {line.replace(/ /g, " ")}
                             </div>
                         );
                     case 0:
@@ -194,7 +194,7 @@ export function DynamicLyrics() {
                                     color: "rgb(230, 230, 230)",
                                 }}
                             >
-                                {line}
+                                {line.replace(/ /g, " ")}
                             </div>
                         );
                     case 1:
@@ -224,7 +224,7 @@ export function DynamicLyrics() {
                                     // scale: "0.6",
                                 }}
                             >
-                                {line}
+                                {line.replace(/ /g, " ")}
                             </div>
                         );
                     case 2:
@@ -254,7 +254,7 @@ export function DynamicLyrics() {
                                     // scale: "0.4",
                                 }}
                             >
-                                {line}
+                                {line.replace(/ /g, " ")}
                             </div>
                         );
                 }
@@ -273,7 +273,7 @@ export function DynamicLyrics() {
                                 color: "rgb(200, 200, 200)",
                             }}
                         >
-                            {line}
+                            {line.replace(/ /g, " ")}
                         </div>
                     );
                 } else {
@@ -290,7 +290,7 @@ export function DynamicLyrics() {
                                 color: "rgb(200, 200, 200)",
                             }}
                         >
-                            {line}
+                            {line.replace(/ /g, " ")}
                         </div>
                     );
                 }

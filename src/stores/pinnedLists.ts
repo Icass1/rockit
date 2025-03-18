@@ -10,11 +10,9 @@ interface PinnedList {
 export const pinnedLists = atom<PinnedList[]>([]);
 
 fetch("/api/user/pinned-lists")
-    .then((response) => {
-        if (response.ok) {
-            response.json().then((data) => {
-                pinnedLists.set(data);
-            });
-        }
-    })
+    .then((response) =>
+        response.json().then((data) => {
+            pinnedLists.set(data);
+        })
+    )
     .catch(() => pinnedLists.set([]));

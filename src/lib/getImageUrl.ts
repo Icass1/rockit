@@ -25,7 +25,11 @@ export function getImageUrl({
         return `/api/image/blur/${imageId}`;
     }
 
-    if (!width || !height) {
+    if (
+        !width ||
+        !height ||
+        (typeof window != "undefined" && !window.navigator.onLine)
+    ) {
         return `/api/image/${imageId}`;
     }
 

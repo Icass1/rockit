@@ -29,6 +29,7 @@ import type { UserDB } from "@/lib/db/user";
 import SubContextMenu from "../ContextMenu/SubContextMenu/ContextMenu";
 import SubContextMenuTrigger from "../ContextMenu/SubContextMenu/Trigger";
 import SubContextMenuContent from "../ContextMenu/SubContextMenu/Content";
+import { networkStatus } from "@/stores/networkStatus";
 
 export default function SongContextMenu({
     children,
@@ -49,12 +50,17 @@ export default function SongContextMenu({
     const $likedSongs = useStore(likedSongs);
     const $currentListSongs = useStore(currentListSongs);
     const $lang = useStore(langData);
+    const $networkStatus = useStore(networkStatus);
+
+    const offline = $networkStatus == "offline";
 
     const [userLists, setUserLists] = useState<
         { id: string; name: string; image: string }[]
     >([]);
 
     useEffect(() => {
+        if (!navigator.onLine) return;
+
         fetch("/api/user?q=lists")
             .then((response) => response.json())
             .then((data: UserDB<"lists">) =>
@@ -92,6 +98,7 @@ export default function SongContextMenu({
                     {$lang.play_song}
                 </ContextMenuOption>
                 <ContextMenuOption
+                    disable={offline}
                     onClick={() => {
                         if (likedSongs.get().includes(song.id)) {
                             fetch(`/api/like/${song.id}`, {
@@ -163,25 +170,24 @@ export default function SongContextMenu({
                 </ContextMenuOption>
                 <ContextMenuOption
                     onClick={() => {
-                        const index = queue
-                            .get()
-                            .findIndex(
-                                (_song) => _song.index == queueIndex.get()
-                            );
+                        const tempQueue = queue.get();
+                        if (!tempQueue) return;
+
+                        const index = tempQueue.findIndex(
+                            (_song) => _song.index == queueIndex.get()
+                        );
 
                         queue.set([
-                            ...queue.get().slice(0, index + 1),
+                            ...tempQueue.slice(0, index + 1),
                             {
                                 list: currentList.get(),
                                 index:
                                     Math.max(
-                                        ...queue
-                                            .get()
-                                            .map((_song) => _song.index)
+                                        ...tempQueue.map((_song) => _song.index)
                                     ) + 1,
                                 song: song,
                             },
-                            ...queue.get().slice(index + 1),
+                            ...tempQueue.slice(index + 1),
                         ]);
                     }}
                 >
@@ -191,15 +197,17 @@ export default function SongContextMenu({
 
                 <ContextMenuOption
                     onClick={() => {
+                        const tempQueue = queue.get();
+                        if (!tempQueue) return;
                         queue.set([
-                            ...queue.get(),
+                            ...tempQueue,
                             {
                                 song: song,
                                 index:
                                     Math.max(
-                                        ...queue
-                                            .get()
-                                            .map((queueSong) => queueSong.index)
+                                        ...tempQueue.map(
+                                            (queueSong) => queueSong.index
+                                        )
                                     ) + 1,
                                 list: currentList.get(),
                             },
@@ -210,7 +218,7 @@ export default function SongContextMenu({
                     {$lang.add_to_queue}
                 </ContextMenuOption>
                 <SubContextMenu>
-                    <SubContextMenuTrigger>
+                    <SubContextMenuTrigger disable={offline}>
                         <ListPlusIcon className="w-5 h-5" />
                         {$lang.add_song_to_playlist}
                     </SubContextMenuTrigger>
@@ -244,7 +252,7 @@ export default function SongContextMenu({
                 </SubContextMenu>
                 <ContextMenuSplitter />
                 <ContextMenuOption
-                    disable={typeof navigator.share == "undefined"}
+                    disable={typeof navigator.share == "undefined" || offline}
                     onClick={() => {
                         navigator.share({
                             title: "RockIt!",
@@ -281,6 +289,7 @@ export default function SongContextMenu({
                     {$lang.download_mp3}
                 </ContextMenuOption>
                 <ContextMenuOption
+                    disable={offline}
                     onClick={() => {
                         saveSongToIndexedDB(song, true);
                     }}

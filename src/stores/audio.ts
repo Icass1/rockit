@@ -2,10 +2,11 @@ import type { SongDB, SongDBFull } from "@/lib/db/song";
 import { type UserDB } from "@/lib/db/user";
 import Hls from "hls.js";
 import { atom } from "nanostores";
+import { lang, langData } from "./lang";
 
 let websocket: WebSocket;
 
-let database: IDBDatabase;
+export let database: IDBDatabase | undefined;
 
 openIndexedDB().then((_database) => {
     database = _database;
@@ -34,7 +35,7 @@ window.onerror = function (msg, source, lineNo, columnNo, error) {
 };
 
 export type QueueSong = SongDB<
-    "id" | "name" | "artists" | "image" | "duration" | "albumName"
+    "id" | "name" | "artists" | "image" | "duration" | "albumName" | "albumId"
 >;
 
 export type QueueElement = {
@@ -104,7 +105,7 @@ export type SongDBWithBlob<
     Keys extends keyof SongDBFullWithBlob = keyof SongDBFullWithBlob,
 > = Pick<SongDBFullWithBlob, Keys>;
 
-let _queue: Queue = [];
+let _queue: Queue | undefined = undefined;
 
 const send = (json: any) => {
     if (websocket && websocket.OPEN == websocket.readyState) {
@@ -121,7 +122,7 @@ export const loading = atom<boolean>(false);
 export const playWhenReady = atom<boolean>(false);
 export const currentTime = atom<number | undefined>(undefined);
 export const totalTime = atom<number | undefined>(undefined);
-export const queue = atom<Queue>(_queue);
+export const queue = atom<Queue | undefined>(_queue);
 export const queueIndex = atom<number | undefined>(undefined);
 export const volume = atom<number | undefined>();
 export const randomQueue = atom<boolean | undefined>(undefined);
@@ -150,119 +151,144 @@ export const currentCrossFade = atom<number | undefined>(crossFade.get());
 
 fetch(
     "/api/user?q=currentSong,currentTime,queue,queueIndex,volume,randomQueue,repeatSong,currentStation,admin"
-).then((userJsonResponse) => {
-    if (userJsonResponse.ok) {
-        userJsonResponse
-            .json()
-            .then(
-                (
-                    userJson: UserDB<
-                        | "currentSong"
-                        | "currentStation"
-                        | "currentTime"
-                        | "queue"
-                        | "queueIndex"
-                        | "volume"
-                        | "randomQueue"
-                        | "repeatSong"
-                        | "admin"
-                    >
-                ) => {
-                    queueIndex.set(userJson.queueIndex);
-                    if (userJson?.currentTime) {
-                        audio.currentTime = userJson.currentTime;
-                    }
+)
+    .then((userJsonResponse) => userJsonResponse.json())
+    .then(
+        (
+            userJson: UserDB<
+                | "currentSong"
+                | "currentStation"
+                | "currentTime"
+                | "queue"
+                | "queueIndex"
+                | "volume"
+                | "randomQueue"
+                | "repeatSong"
+                | "admin"
+            >
+        ) => {
+            queueIndex.set(userJson.queueIndex);
+            if (userJson?.currentTime) {
+                audio.currentTime = userJson.currentTime;
+            }
 
-                    admin.set(userJson.admin == "1" ? true : false);
+            admin.set(userJson.admin == "1" ? true : false);
 
-                    repeatSong.set(userJson.repeatSong == "1" ? true : false);
-                    randomQueue.set(userJson.randomQueue == "1" ? true : false);
+            repeatSong.set(userJson.repeatSong == "1" ? true : false);
+            randomQueue.set(userJson.randomQueue == "1" ? true : false);
 
-                    volume.set(
-                        window.innerWidth < 768 ? 1 : (userJson?.volume ?? 1)
-                    );
+            volume.set(window.innerWidth < 768 ? 1 : (userJson?.volume ?? 1));
 
-                    if (userJson.currentSong) {
-                        fetch(
-                            `/api/song/${userJson.currentSong}?q=image,id,name,artists,albumId,albumName,duration`
-                        ).then((response) =>
-                            response.json().then((data: CurrentSong) => {
-                                currentSong.set(data);
-                            })
+            if (userJson.currentSong) {
+                fetch(
+                    `/api/song/${userJson.currentSong}?q=image,id,name,artists,albumId,albumName,duration`
+                ).then((response) =>
+                    response.json().then((data: CurrentSong) => {
+                        currentSong.set(data);
+                    })
+                );
+            }
+
+            if (userJson.currentStation) {
+                fetch(
+                    `/api/radio/stations/byuuid/${userJson.currentStation}`
+                ).then((response) =>
+                    response.json().then((data) => {
+                        if (data && data[0]) currentStation.set(data[0]);
+                    })
+                );
+            }
+
+            if (userJson && userJson.queue.length > 0) {
+                fetch(
+                    `/api/songs?songs=${userJson.queue
+                        .map((queueSong) => queueSong.song)
+                        .join()}&p=id,name,artists,images,duration`
+                ).then((response) =>
+                    response.json().then((queueSongs: QueueSong[]) => {
+                        queue.set(
+                            userJson.queue
+                                .map((queueSong) => {
+                                    const songInfo = queueSongs
+                                        .filter((song) => song)
+                                        .find(
+                                            (song) => song.id == queueSong.song
+                                        );
+
+                                    if (!songInfo) {
+                                        return undefined;
+                                    }
+
+                                    return {
+                                        song: songInfo,
+                                        list: queueSong.list,
+                                        index: queueSong.index,
+                                    };
+                                })
+                                .filter((song) => typeof song != "undefined")
                         );
-                    }
+                    })
+                );
+            } else {
+                queue.set([]);
+            }
+        }
+    )
+    .catch(() => {
+        if (!database) return;
 
-                    if (userJson.currentStation) {
-                        fetch(
-                            `/api/radio/stations/byuuid/${userJson.currentStation}`
-                        ).then((response) =>
-                            response.json().then((data) => {
-                                if (data && data[0])
-                                    currentStation.set(data[0]);
-                            })
-                        );
-                    }
+        const db = database;
 
-                    if (userJson && userJson.queue.length > 0) {
-                        fetch(
-                            `/api/songs?songs=${userJson.queue
-                                .map((queueSong) => queueSong.song)
-                                .join()}&p=id,name,artists,images,duration`
-                        ).then((response) =>
-                            response.json().then((queueSongs: QueueSong[]) => {
-                                queue.set(
-                                    userJson.queue
-                                        .map((queueSong) => {
-                                            const songInfo = queueSongs
-                                                .filter((song) => song)
-                                                .find(
-                                                    (song) =>
-                                                        song.id ==
-                                                        queueSong.song
-                                                );
+        const userTransaction = db.transaction("user", "readonly");
+        const userStore = userTransaction.objectStore("user");
+        const userQuery = userStore.get("user");
 
-                                            if (!songInfo) {
-                                                return undefined;
-                                            }
+        userQuery.onsuccess = async function () {
+            if (!userQuery.result) {
+                repeatSong.set(false);
+                randomQueue.set(false);
+                volume.set(1);
 
-                                            return {
-                                                song: songInfo,
-                                                list: queueSong.list,
-                                                index: queueSong.index,
-                                            };
-                                        })
-                                        .filter(
-                                            (song) => typeof song != "undefined"
-                                        )
-                                );
-                            })
-                        );
-                    }
-                }
+                queue.set([]);
+            }
+
+            currentSong.set(
+                await getSongInIndexedDB(userQuery.result.currentSong)
             );
-    } else {
-        console.log("User is not logged in");
+
+            repeatSong.set(userQuery.result.repeatSong ?? false);
+            randomQueue.set(userQuery.result.randomQueue ?? false);
+            volume.set(userQuery.result.volume ?? 1);
+
+            queue.set(
+                userQuery.result.queue
+                    .map((songId: string) => getSongInIndexedDB(songId))
+                    .filter((song: SongDB) => typeof song != "undefined")
+            );
+        };
+
+        userQuery.onerror = () => {
+            repeatSong.set(false);
+            randomQueue.set(false);
+            volume.set(1);
+
+            queue.set([]);
+        };
 
         admin.set(false);
-
-        repeatSong.set(false);
-        randomQueue.set(false);
-
-        volume.set(1);
-        queue.set([])
-
-    }
-});
+    });
 
 // *****************************
 // **** Store subscriptions ****
 // *****************************
 
 randomQueue.subscribe((value) => {
+    updateUserIndexedDB();
     send({ randomQueue: value ? "1" : "0" });
 });
 
 repeatSong.subscribe((value) => {
+    updateUserIndexedDB();
     send({ repeatSong: value ? "1" : "0" });
 });
 
@@ -291,6 +317,8 @@ playing.subscribe((value) => {
 });
 
 currentSong.subscribe(async (value) => {
+    updateUserIndexedDB();
+
     send({ currentSong: value?.id || "" });
 
     // if (value?.id) {
@@ -367,7 +395,13 @@ currentSong.subscribe(async (value) => {
         removeEventListeners(audio2);
         audio2 = new Audio();
         if (admin.get()) console.log("3");
-        audio.src = await getSongSrc(value.id);
+
+        const src = await getSongSrc(value.id);
+        if (src) {
+            audio.src = src;
+        } else {
+            console.error("getSongSrc is undefined");
+        }
         if (admin.get()) console.log("4");
         audio.onerror = () => {
             loading.set(false);
@@ -378,6 +412,7 @@ currentSong.subscribe(async (value) => {
 });
 
 currentStation.subscribe(async (value) => {
+    updateUserIndexedDB();
     send({ currentStation: value?.stationuuid });
 
     if (!value) {
@@ -416,6 +451,9 @@ currentStation.subscribe(async (value) => {
 });
 
 queue.subscribe((value) => {
+    if (!value) return;
+
+    updateUserIndexedDB();
     send({
         queue: value
             .map((value) => {
@@ -432,10 +470,12 @@ queue.subscribe((value) => {
 });
 
 queueIndex.subscribe((value) => {
+    updateUserIndexedDB();
     send({ queueIndex: value });
 });
 
 volume.subscribe((value) => {
+    updateUserIndexedDB();
     if (window.innerWidth < 768) return;
     if (!value) return;
     audio.volume = value;
@@ -445,6 +485,44 @@ volume.subscribe((value) => {
 // **************************
 // **** Helper functions ****
 // **************************
+
+export function updateUserIndexedDB() {
+    if (!database) return;
+
+    const db = database;
+    const userTransaction = db.transaction("user", "readwrite");
+    const userStore = userTransaction.objectStore("user");
+
+    const userQuery = userStore.get("user");
+
+    userQuery.onsuccess = function () {
+        const user = {
+            id: "user",
+            username: "testuser",
+            currentSong: currentSong.get()?.id ?? userQuery.result?.currentSong,
+            currentTime: currentTime.get() ?? userQuery.result?.currentTime,
+            lang: lang.get() ?? userQuery.result?.lang,
+            queue:
+                queue.get()?.map((value) => {
+                    if (value?.song && value?.list) {
+                        return {
+                            song: value.song.id,
+                            index: value.index,
+                            list: value.list,
+                        };
+                    }
+                }) ?? userQuery.result?.queue,
+            queueIndex: queueIndex.get() ?? userQuery.result?.queueIndex,
+            randomQueue: randomQueue.get() ?? userQuery.result?.randomQueue,
+            volume: volume.get() ?? userQuery.result?.volume,
+            repeatSong: repeatSong.get() ?? userQuery.result?.repeatSong,
+            currentStation:
+                currentStation.get() ?? userQuery.result?.currentStation,
+        };
+
+        userStore.put(user);
+    };
+}
 
 async function isHlsContent(url: string): Promise<boolean> {
     const controller = new AbortController();
@@ -509,7 +587,8 @@ export function clearCurrentSong() {
 }
 
 export async function prev() {
-    if (!queueIndex.get() && queueIndex.get() != 0) {
+    const tempQueue = queue.get();
+    if (typeof queueIndex.get() == "undefined" || tempQueue == undefined) {
         return;
     }
 
@@ -524,17 +603,17 @@ export async function prev() {
         return;
     }
 
-    const currentSongIndexInQueue = queue
-        .get()
-        .findIndex((song) => song.index == queueIndex.get());
+    const currentSongIndexInQueue = tempQueue.findIndex(
+        (song) => song.index == queueIndex.get()
+    );
 
     if (currentSongIndexInQueue - 1 < 0) {
-        queueIndex.set(queue.get()[queue.get().length - 1].index);
+        queueIndex.set(tempQueue[tempQueue.length - 1].index);
     } else {
-        queueIndex.set(queue.get()[currentSongIndexInQueue - 1].index);
+        queueIndex.set(tempQueue[currentSongIndexInQueue - 1].index);
     }
 
-    const newSongId = queue.get().find((song) => song.index == queueIndex.get())
+    const newSongId = tempQueue.find((song) => song.index == queueIndex.get())
         ?.song.id;
     if (!newSongId) {
         return;
@@ -544,6 +623,11 @@ export async function prev() {
         .then((response) => response.json())
         .then((data: SongDB) => {
             // if (admin.get()) console.log("Playwhenready 1");
+            playWhenReady.set(true);
+            currentSong.set(data);
+        })
+        .catch(async () => {
+            const data = await getSongInIndexedDB(newSongId);
             playWhenReady.set(true);
             currentSong.set(data);
         });
@@ -594,18 +678,20 @@ function startSocket() {
     };
 }
 export async function next(songEnded = false) {
-    if (!queueIndex.get() && queueIndex.get() != 0) {
+    const tempQueue = queue.get();
+    if (typeof queueIndex.get() == "undefined" || tempQueue == undefined) {
         return;
     }
-    const currentSongIndexInQueue = queue
-        .get()
-        .findIndex((song) => song.index == queueIndex.get());
-    if (currentSongIndexInQueue + 1 >= queue.get().length) {
-        queueIndex.set(queue.get()[0].index);
+
+    const currentSongIndexInQueue = tempQueue.findIndex(
+        (song) => song.index == queueIndex.get()
+    );
+    if (currentSongIndexInQueue + 1 >= tempQueue.length) {
+        queueIndex.set(tempQueue[0].index);
     } else {
-        queueIndex.set(queue.get()[currentSongIndexInQueue + 1].index);
+        queueIndex.set(tempQueue[currentSongIndexInQueue + 1].index);
     }
-    const newSongId = queue.get().find((song) => song.index == queueIndex.get())
+    const newSongId = tempQueue.find((song) => song.index == queueIndex.get())
         ?.song.id;
     if (!newSongId) {
         return;
@@ -629,10 +715,26 @@ export async function next(songEnded = false) {
                 playWhenReady.set(true);
             }
             currentSong.set(data);
+        })
+        .catch(async () => {
+            const data = await getSongInIndexedDB(newSongId);
+            const _crossFade = currentCrossFade.get();
+            if (_crossFade && _crossFade > 0 && songEnded) {
+                inCrossFade = true;
+                if (admin.get()) console.log("Playwhenready 2");
+
+                playWhenReady.set(false);
+            } else {
+                if (admin.get()) console.log("Playwhenready 3");
+
+                inCrossFade = false;
+                playWhenReady.set(true);
+            }
+            currentSong.set(data);
         });
 }
 function openIndexedDB(): Promise<IDBDatabase> {
-    const dbOpenRequest = indexedDB.open("RockIt", 1);
+    const dbOpenRequest = indexedDB.open("RockIt", 3);
 
     dbOpenRequest.onupgradeneeded = function () {
         const db = dbOpenRequest.result;
@@ -644,10 +746,36 @@ function openIndexedDB(): Promise<IDBDatabase> {
         songsStore.createIndex("image", "image", { unique: false });
         songsStore.createIndex("duration", "duration", { unique: false });
         songsStore.createIndex("blob", "blob", { unique: false });
+        songsStore.createIndex("albumId", "albumId", { unique: false });
+        songsStore.createIndex("albumName", "albumName", { unique: false });
+        songsStore.createIndex("lyrics", "lyrics", { unique: false });
+        songsStore.createIndex("dynamicLyrics", "dynamicLyrics", {
+            unique: false,
+        });
 
         const imageStore = db.createObjectStore("images", { keyPath: "id" });
         imageStore.createIndex("id", "id", { unique: true });
         imageStore.createIndex("blob", "blob", { unique: false });
+
+        const userStore = db.createObjectStore("user", { keyPath: "id" });
+        userStore.createIndex("id", "id", { unique: true });
+        userStore.createIndex("username", "username", { unique: false });
+        userStore.createIndex("currentSong", "currentSong", { unique: false });
+        userStore.createIndex("lang", "lang", { unique: false });
+        userStore.createIndex("currentTime", "currentTime", { unique: false });
+        userStore.createIndex("queue", "queue", { unique: false });
+        userStore.createIndex("queueIndex", "queueIndex", { unique: false });
+        userStore.createIndex("volume", "volume", { unique: false });
+        userStore.createIndex("randomQueue", "randomQueue", { unique: false });
+        userStore.createIndex("repeatSong", "repeatSong", { unique: false });
+        userStore.createIndex("currentStation", "currentStation", {
+            unique: false,
+        });
+        userStore.createIndex("admin", "admin", { unique: false });
+
+        const langStore = db.createObjectStore("lang", { keyPath: "lang" });
+        langStore.createIndex("lang", "lang", { unique: true });
+        langStore.createIndex("langData", "langData", { unique: false });
     };
     return new Promise((resolve, reject) => {
         dbOpenRequest.onsuccess = function () {
@@ -659,9 +787,19 @@ function openIndexedDB(): Promise<IDBDatabase> {
     });
 }
 export async function saveSongToIndexedDB(
-    song: SongDB<"id" | "name" | "artists" | "image" | "duration">,
+    song: SongDB<
+        | "id"
+        | "name"
+        | "artists"
+        | "image"
+        | "duration"
+        | "albumName"
+        | "albumId"
+    >,
     force = false
 ) {
+    if (!database) return;
+
     const currentSongsInIndexedDB = await getSongIdsInIndexedDB();
 
     if (currentSongsInIndexedDB.includes(song.id) && !force) return;
@@ -670,6 +808,7 @@ export async function saveSongToIndexedDB(
     fetch(`/api/song/audio/${song.id}`).then((response) => {
         if (response.ok) {
             response.blob().then(async (songBlob) => {
+                if (!database) return;
                 const songToSave = {
                     id: song.id,
                     name: song.name,
@@ -677,6 +816,8 @@ export async function saveSongToIndexedDB(
                     image: song.image,
                     duration: song.duration,
                     blob: songBlob,
+                    albumName: song.albumName,
+                    albumId: song.albumId,
                 };
                 const songsTx = database.transaction("songs", "readwrite");
                 const songsStore = songsTx.objectStore("songs");
@@ -686,34 +827,40 @@ export async function saveSongToIndexedDB(
         }
     });
 
-    // fetch(`/api/image/${song.image}`).then((response) => {
-    //     if (response.ok) {
-    //         response.blob().then()=>{}
+    const imageBlob = await fetch(`/api/image/${song.image}`).then((response) =>
+        response.blob()
+    );
 
-    //     }
-    // });
+    const imageToSave = {
+        id: song.image,
+        blob: imageBlob,
+    };
 
-    // const imageBlob = await fetch(`/api/image/${song.image}`).then((response) =>
-    //     response.blob()
-    // );
+    if (admin.get()) console.log("imageToSave", imageToSave);
 
-    // const imageToSave = {
-    //     id: song.image,
-    //     blob: imageBlob,
-    // };
-
-    // // if (admin.get()) console.log("imageToSave", imageToSave);
-
-    // const imagesTx = database.transaction("images", "readwrite");
-    // const imagesStore = imagesTx.objectStore("images");
-    // imagesStore.put(imageToSave);
+    const imagesTx = database.transaction("images", "readwrite");
+    const imagesStore = imagesTx.objectStore("images");
+    imagesStore.put(imageToSave);
 }
 
 export async function getSongInIndexedDB(
     id: string
 ): Promise<
-    SongDBWithBlob<"id" | "name" | "blob" | "artists" | "images" | "duration">
+    | SongDBWithBlob<
+          | "id"
+          | "name"
+          | "blob"
+          | "artists"
+          | "images"
+          | "duration"
+          | "image"
+          | "albumName"
+          | "albumId"
+      >
+    | undefined
 > {
+    if (!database) return;
+
     const db = database;
     const tx = db.transaction("songs", "readonly");
     const store = tx.objectStore("songs");
@@ -731,6 +878,8 @@ export async function getSongInIndexedDB(
 }
 
 export async function getSongIdsInIndexedDB(): Promise<string[]> {
+    if (!database) return [];
+
     const db = database;
     const tx = db.transaction("songs", "readonly");
     const store = tx.objectStore("songs");
@@ -748,6 +897,7 @@ export async function getSongIdsInIndexedDB(): Promise<string[]> {
 }
 
 async function registerServiceWorker() {
+    // return
     if ("serviceWorker" in navigator) {
         try {
             const registration = await navigator.serviceWorker.register(
@@ -774,6 +924,7 @@ async function registerServiceWorker() {
 async function getSongSrc(songID: string) {
     if (songsInIndexedDB.get()?.includes(songID)) {
         const song = await getSongInIndexedDB(songID);
+        if (!song) return;
         const audioURL = URL.createObjectURL(song.blob);
         return audioURL;
     } else {
@@ -832,6 +983,8 @@ const onTimeupdate = async () => {
     let _crossFade = currentCrossFade.get();
 
     currentTime.set(audio.currentTime);
+
+    updateUserIndexedDB();
     send({
         currentTime: audio.currentTime,
     });
@@ -858,25 +1011,33 @@ const onTimeupdate = async () => {
                 audio2.currentTime =
                     audio.currentTime - (audio.duration - _crossFade);
             }
-            if (!initAudio && !audio.paused) {
+            const tempQueue = queue.get();
+
+            if (!initAudio && !audio.paused && tempQueue) {
                 initAudio = true;
                 // if (admin.get()) console.log("Init audio 2");
-                const currentSongIndexInQueue = queue
-                    .get()
-                    .findIndex((song) => song.index == queueIndex.get());
+                const currentSongIndexInQueue = tempQueue.findIndex(
+                    (song) => song.index == queueIndex.get()
+                );
                 // if (admin.get()) console.log("currentSongIndexInQueue", currentSongIndexInQueue);
 
                 let id;
-                if (currentSongIndexInQueue + 1 >= queue.get().length) {
-                    id = queue.get()[0].song.id;
+                if (currentSongIndexInQueue + 1 >= tempQueue.length) {
+                    id = tempQueue[0].song.id;
                 } else {
-                    id = queue.get()[currentSongIndexInQueue + 1].song.id;
+                    id = tempQueue[currentSongIndexInQueue + 1].song.id;
                 }
-                audio2.src = await getSongSrc(id);
-                audio2.onloadeddata = () => {
-                    if (admin.get()) console.log("onloadeddata");
-                    audio2.play();
-                };
+                const src = await getSongSrc(id);
+
+                if (src) {
+                    audio2.src = src;
+                    audio2.onloadeddata = () => {
+                        if (admin.get()) console.log("onloadeddata");
+                        audio2.play();
+                    };
+                } else {
+                    console.error("getSongSrc is undefined");
+                }
             }
             audio2.volume =
                 ((userVolume / _crossFade) *

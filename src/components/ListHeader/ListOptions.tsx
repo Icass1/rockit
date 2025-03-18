@@ -44,41 +44,48 @@ export default function ListOptions({
     }, []);
 
     const addListToBottomQueue = () => {
+        const tempQueue = queue.get();
+        if (!tempQueue) return;
+
         setOpen(false);
         const songsToAdd = $songs.map((song, index) => {
             return {
                 song: song,
                 list: { type, id },
                 index:
-                    Math.max(...queue.get().map((_song) => _song.index)) +
+                    Math.max(...tempQueue.map((_song) => _song.index)) +
                     index +
                     1,
             };
         });
-        queue.set([...queue.get(), ...songsToAdd]);
+        queue.set([...tempQueue, ...songsToAdd]);
     };
     const addListToTopQueue = () => {
         setOpen(false);
+
+        const tempQueue = queue.get();
+        if (!tempQueue) return;
+
         const songsToAdd = $songs.map((song, index) => {
             return {
                 song: song,
                 list: { type, id },
                 index:
-                    Math.max(...queue.get().map((_song) => _song.index)) +
+                    Math.max(...tempQueue.map((_song) => _song.index)) +
                     index +
                     1,
             };
         });
-        const index = queue
-            .get()
-            .findIndex((_song) => _song.index == queueIndex.get());
+        const index = tempQueue.findIndex(
+            (_song) => _song.index == queueIndex.get()
+        );
 
         console.log(index);
 
         queue.set([
-            ...queue.get().slice(0, index + 1),
+            ...tempQueue.slice(0, index + 1),
             ...songsToAdd,
-            ...queue.get().slice(index + 1),
+            ...tempQueue.slice(index + 1),
         ]);
     };
 

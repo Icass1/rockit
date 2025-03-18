@@ -51,7 +51,9 @@ export default function MobilePlayerUIQueue({
 
         const currentSongIndexInQueue = queue
             .get()
-            .findIndex((song) => song.index == queueIndex.get());
+            ?.findIndex((song) => song.index == queueIndex.get());
+
+        if (!currentSongIndexInQueue) return;
 
         scrollRef.current.scrollTo(0, currentSongIndexInQueue * 64 - 100);
     }, [scrollRef, open]);
@@ -61,25 +63,32 @@ export default function MobilePlayerUIQueue({
             // Alert the user that the song is currently playing cannot be removed.
             return;
         }
-        const index = queue
-            .get()
-            .findIndex((_song) => _song.index == song.index);
+
+        const tempQueue = queue.get();
+        if (!tempQueue) return;
+
+        const index = tempQueue.findIndex((_song) => _song.index == song.index);
+
+        if (!index) return;
 
         queue.set([
-            ...queue.get().slice(0, index),
-            ...queue.get().slice(index + 1),
+            ...tempQueue?.slice(0, index),
+            ...tempQueue?.slice(index + 1),
         ]);
     };
     const handlePlaySong = async (song: QueueElement) => {
-        const currentSongIndexInQueue = queue
-            .get()
-            .findIndex((_song) => _song.index == song.index);
+        const tempQueue = queue.get();
+        if (!tempQueue) return;
 
-        queueIndex.set(queue.get()[currentSongIndexInQueue].index);
+        const currentSongIndexInQueue = tempQueue.findIndex(
+            (_song) => _song.index == song.index
+        );
 
-        const newSongId = queue
-            .get()
-            .find((song) => song.index == queueIndex.get())?.song.id;
+        queueIndex.set(tempQueue[currentSongIndexInQueue].index);
+
+        const newSongId = tempQueue.find(
+            (song) => song.index == queueIndex.get()
+        )?.song.id;
         if (!newSongId) {
             return;
         }
@@ -117,6 +126,9 @@ export default function MobilePlayerUIQueue({
         const handleTouchEnd = () => {
             setDraggingSong(undefined);
 
+            const tempQueue = queue.get();
+            if (!tempQueue) return;
+
             if (typeof scrollRef.current?.scrollTop != "number") return;
             const indexInQueue = Math.floor(
                 (draggingPosYRef.current -
@@ -129,19 +141,20 @@ export default function MobilePlayerUIQueue({
             if (draggingSong.index == indexInQueue) return;
             else if (draggingSong.index < indexInQueue) {
                 queue.set([
-                    ...queue.get().slice(0, draggingSong.index),
-                    ...queue
-                        .get()
-                        .slice(draggingSong.index + 1, indexInQueue + 1),
+                    ...tempQueue.slice(0, draggingSong.index),
+                    ...tempQueue.slice(
+                        draggingSong.index + 1,
+                        indexInQueue + 1
+                    ),
                     draggingSong.song,
-                    ...queue.get().slice(indexInQueue + 1),
+                    ...tempQueue.slice(indexInQueue + 1),
                 ]);
             } else {
                 queue.set([
-                    ...queue.get().slice(0, indexInQueue),
+                    ...tempQueue.slice(0, indexInQueue),
                     draggingSong.song,
-                    ...queue.get().slice(indexInQueue, draggingSong.index),
-                    ...queue.get().slice(draggingSong.index + 1),
+                    ...tempQueue.slice(indexInQueue, draggingSong.index),
+                    ...tempQueue.slice(draggingSong.index + 1),
                 ]);
             }
         };
@@ -156,6 +169,8 @@ export default function MobilePlayerUIQueue({
 
     const $lang = useStore(langData);
     if (!$lang) return;
+
+    if (!$queue) return <div>Queue is not defined</div>;
 
     return (
         <div

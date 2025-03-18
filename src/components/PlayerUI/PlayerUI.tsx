@@ -71,6 +71,7 @@ export default function PlayerUI() {
             }
 
             const prevSongs = queue.get();
+            if (!prevSongs) return;
 
             let tempDraggingSong = prevSongs.find(
                 (song) => song.song.id == draggingSong.song.id
@@ -117,7 +118,9 @@ export default function PlayerUI() {
 
         const index = queue
             .get()
-            .findIndex((_song) => _song.index == queueIndex.get());
+            ?.findIndex((_song) => _song.index == queueIndex.get());
+
+        if (!index) return;
 
         if (queueDivRef.current) {
             queueDivRef.current.scrollTop = index * 64;
@@ -223,7 +226,7 @@ export default function PlayerUI() {
                             setQueueScroll(e.currentTarget.scrollTop)
                         }
                     >
-                        {currentTab === "queue" ? (
+                        {currentTab === "queue" && $queue ? (
                             <>
                                 <div
                                     style={{ height: $queue.length * 64 }}

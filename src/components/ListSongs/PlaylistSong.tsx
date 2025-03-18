@@ -1,8 +1,4 @@
-import {
-    queue,
-    queueIndex,
-    songsInIndexedDB,
-} from "@/stores/audio";
+import { queue, queueIndex, songsInIndexedDB } from "@/stores/audio";
 import type { PlaylistDBSongWithAddedAt } from "@/db/playlist";
 import { getTime } from "@/lib/getTime";
 import LikeButton from "../LikeButton";
@@ -15,6 +11,7 @@ import { songHandleClick } from "./HandleClick";
 import SongContextMenu from "./SongContextMenu";
 import { downloadedSongs } from "@/stores/downloadedSongs";
 import { getImageUrl } from "@/lib/getImageUrl";
+import { networkStatus } from "@/stores/networkStatus";
 
 export default function PlaylistSong({
     song,
@@ -36,6 +33,7 @@ export default function PlaylistSong({
     const $queue = useStore(queue);
     const $queueIndex = useStore(queueIndex);
     const $currentList = useStore(currentList);
+    const $networkStatus = useStore(networkStatus);
     const $songsInIndexedDB = useStore(songsInIndexedDB);
     const $currentListSongs = useStore(currentListSongs);
     const $downloadedSongs = useStore(downloadedSongs);
@@ -93,13 +91,15 @@ export default function PlaylistSong({
         }
     }, [$downloadedSongs]);
 
+    if (!$queue) return <div>Queue is not defined</div>;
+
     return (
         <SongContextMenu song={_song}>
             <div
                 className={
                     "flex flex-row items-center gap-2 md:gap-4 transition-colors px-2 py-[0.5rem] rounded select-none md:select-text " +
                     // If offline and the song is not saved to indexedDB or the song is not in the server database, disable that song
-                    (((!window.navigator.onLine &&
+                    ((($networkStatus == "offline" &&
                         !songsInIndexedDB.get()?.includes(_song.id)) ||
                         !_song.path) &&
                         "opacity-40 pointer-events-none ") +

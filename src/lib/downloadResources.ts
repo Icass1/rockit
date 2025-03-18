@@ -18,7 +18,7 @@ function extractImports(jsFileContent: string) {
 }
 
 function openIndexedDB(): Promise<IDBDatabase> {
-    const dbOpenRequest = indexedDB.open("RockItApp", 1);
+    const dbOpenRequest = indexedDB.open("RockItApp", 3);
 
     dbOpenRequest.onupgradeneeded = function () {
         const db = dbOpenRequest.result;

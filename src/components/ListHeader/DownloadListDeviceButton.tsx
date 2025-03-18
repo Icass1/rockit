@@ -1,21 +1,38 @@
 import { downloadResources } from "@/lib/downloadResources";
-import { saveSongToIndexedDB } from "@/stores/audio";
+import { database, saveSongToIndexedDB } from "@/stores/audio";
 import { currentListSongs } from "@/stores/currentList";
 import { ArrowDown } from "lucide-react";
 
 export default function DownloadListDevice({
     type,
     id,
+    image,
 }: {
     type: string;
     id: string;
+    image?: string;
 }) {
-    const handleClick = () => {
+    const handleClick = async () => {
         downloadResources({ resources: [`/${type}/${id}`] });
 
         currentListSongs.get().map((song) => {
             saveSongToIndexedDB(song);
         });
+
+        if (!database) return;
+
+        const imageBlob = await fetch(`/api/image/${image}`).then((response) =>
+            response.blob()
+        );
+
+        const imageToSave = {
+            id: image,
+            blob: imageBlob,
+        };
+
+        const imagesTx = database.transaction("images", "readwrite");
+        const imagesStore = imagesTx.objectStore("images");
+        imagesStore.put(imageToSave);
     };
 
     return (

@@ -18,6 +18,8 @@ export default function DownloadAppButton() {
                 "/friends",
                 "/stats",
                 "/search-icon.png",
+                "/rockit-logo.ico",
+                "/manifest.json",
                 "/user-placeholder.png",
                 "/song-placeholder.png",
                 "/song-placeholder.png",

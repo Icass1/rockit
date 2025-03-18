@@ -11,26 +11,27 @@ interface LibraryList {
 
 export const libraryLists = atom<LibraryList[]>([]);
 
-fetch("/api/user?q=lists").then((response) => {
-    if (response.ok) {
-        response.json().then((data) => {
-            data.lists.map((list: { type: string; id: string }) => {
-                fetch(`/api/${list.type}/${list.id}`).then((response) => {
-                    if (response.ok) {
-                        response.json().then((data: AlbumDB | PlaylistDB) => {
-                            libraryLists.set([
-                                ...libraryLists.get(),
-                                {
-                                    name: data.name,
-                                    id: data.id,
-                                    image: data.image,
-                                    type: list.type,
-                                },
-                            ]);
-                        });
-                    }
-                });
+fetch("/api/user?q=lists")
+    .then((response) => response.json())
+    .then((data) => {
+        data.lists.map((list: { type: string; id: string }) => {
+            fetch(`/api/${list.type}/${list.id}`).then((response) => {
+                if (response.ok) {
+                    response.json().then((data: AlbumDB | PlaylistDB) => {
+                        libraryLists.set([
+                            ...libraryLists.get(),
+                            {
+                                name: data.name,
+                                id: data.id,
+                                image: data.image,
+                                type: list.type,
+                            },
+                        ]);
+                    });
+                }
             });
         });
-    }
-});
+    })
+    .catch(() => {
+        libraryLists.set([]);
+    });

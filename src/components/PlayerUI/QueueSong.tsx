@@ -34,17 +34,20 @@ export function QueueSong({
         if (onDrag) onDrag();
     };
     const handleMouseUp = async () => {
+        const tempQueue = queue.get();
+        if (!tempQueue) return;
+
         setMouseDown(false);
         if (new Date().getTime() - startTimeMouseDownRef.current < 200) {
-            const currentSongIndexInQueue = queue
-                .get()
-                .findIndex((_song) => _song.index == song.index);
+            const currentSongIndexInQueue = tempQueue.findIndex(
+                (_song) => _song.index == song.index
+            );
 
-            queueIndex.set(queue.get()[currentSongIndexInQueue].index);
+            queueIndex.set(tempQueue[currentSongIndexInQueue].index);
 
-            const newSongId = queue
-                .get()
-                .find((song) => song.index == queueIndex.get())?.song.id;
+            const newSongId = tempQueue.find(
+                (song) => song.index == queueIndex.get()
+            )?.song.id;
             if (!newSongId) {
                 return;
             }

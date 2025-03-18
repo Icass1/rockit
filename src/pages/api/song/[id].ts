@@ -24,7 +24,7 @@ export async function GET(context: APIContext): Promise<Response> {
         return new Response("Song not found", { status: 404 });
     }
 
-    return new Response(JSON.stringify(song), {
+    return new Response(JSON.stringify({ ...song, inDatabase: true }), {
         headers: {
             "Content-Type": "application/json",
         },

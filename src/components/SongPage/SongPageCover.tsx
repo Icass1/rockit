@@ -9,10 +9,11 @@ import {
     queue,
     queueIndex,
 } from "@/stores/audio";
+import { downloadedSongs } from "@/stores/downloadedSongs";
 import { downloads } from "@/stores/downloads";
 import { useStore } from "@nanostores/react";
 import { Download, Pause, Play } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function SongPageCover({
     song,
@@ -37,11 +38,27 @@ export default function SongPageCover({
 
     const $currentSong = useStore(currentSong);
     const $playing = useStore(playing);
+    const $downloadedSongs = useStore(downloadedSongs);
+
+    const [_song, setSong] =
+        useState<
+            SongDB<
+                | "image"
+                | "path"
+                | "id"
+                | "albumName"
+                | "albumId"
+                | "artists"
+                | "name"
+                | "images"
+                | "duration"
+            >
+        >(song);
 
     const handleClick = () => {
-        if (!inDatabase || song.path == undefined) {
+        if (_song.path == undefined || _song.path == "") {
             fetch(
-                `/api/start-download?url=https://open.spotify.com/track/${song.id}`
+                `/api/start-download?url=https://open.spotify.com/track/${_song.id}`
             ).then((response) => {
                 response.json().then((data) => {
                     downloads.set([data.download_id, ...downloads.get()]);
@@ -50,22 +67,45 @@ export default function SongPageCover({
             return;
         }
 
-        if (!song.path) {
+        if (!_song.path) {
             return;
         }
 
-        if ($currentSong?.id == song.id && $playing) {
+        if ($currentSong?.id == _song.id && $playing) {
             pause();
-        } else if ($currentSong?.id == song.id) {
+        } else if ($currentSong?.id == _song.id) {
             play();
         } else {
             playWhenReady.set(true);
-            currentSong.set(song);
+            currentSong.set(_song);
 
             queueIndex.set(0);
-            queue.set([{ song: song, list: undefined, index: 0 }]);
+            queue.set([{ song: _song, list: undefined, index: 0 }]);
         }
     };
+
+    useEffect(() => {
+        if ($downloadedSongs.includes(_song.id)) {
+            let retries = 0;
+
+            const fetchNewSong = () => {
+                fetch(`/api/song/${_song.id}`)
+                    .then((response) => response.json())
+                    .then((data) => {
+                        setSong(data);
+                    })
+                    .catch(() => {
+                        retries += 1;
+
+                        if (retries > 5) return;
+                        setTimeout(() => {
+                            fetchNewSong();
+                        }, 1000);
+                    });
+            };
+            fetchNewSong();
+        }
+    }, [$downloadedSongs]);
 
     const iconClassName =
         "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition-all z-20" +
@@ -83,8 +123,8 @@ export default function SongPageCover({
                 {/* Imagen principal */}
                 <img
                     src={
-                        (song?.image
-                            ? `/api/image/${song.image}`
+                        (_song?.image
+                            ? `/api/image/${_song.image}`
                             : album?.album.images[0].url) ||
                         "/song-placeholder.png"
                     }
@@ -95,9 +135,9 @@ export default function SongPageCover({
                     }
                 />
 
-                {!inDatabase || song.path == undefined ? (
+                {_song.path == undefined || _song.path == "" ? (
                     <Download className={iconClassName} />
-                ) : $currentSong?.id == song.id && $playing ? (
+                ) : $currentSong?.id == _song.id && $playing ? (
                     <Pause className={iconClassName} fill="white" />
                 ) : (
                     <Play className={iconClassName} fill="white" />

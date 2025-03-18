@@ -63,17 +63,30 @@ export default function SongContextMenu({
 
         fetch("/api/user?q=lists")
             .then((response) => response.json())
-            .then((data: UserDB<"lists">) =>
-                fetch(
-                    `/api/playlists?playlists=${data.lists
+            .then((data: UserDB<"lists">) => {
+                if (
+                    data.lists
                         .filter((list) => list.type == "playlist")
-                        .map((list) => list.id)
-                        .join()}&p=id,name,image`
+                        .map((list) => list.id).length > 0
                 )
-            )
-            .then((response) => response.json())
-            .then((data: { id: string; name: string; image: string }[]) => {
-                setUserLists(data);
+                    fetch(
+                        `/api/playlists?playlists=${data.lists
+                            .filter((list) => list.type == "playlist")
+                            .map((list) => list.id)
+                            .join()}&p=id,name,image`
+                    )
+                        .then((response) => response.json())
+                        .then(
+                            (
+                                data: {
+                                    id: string;
+                                    name: string;
+                                    image: string;
+                                }[]
+                            ) => {
+                                if (data) setUserLists(data);
+                            }
+                        );
             });
     }, []);
 
@@ -83,7 +96,7 @@ export default function SongContextMenu({
         <ContextMenu>
             <ContextMenuTrigger>{children}</ContextMenuTrigger>
             <ContextMenuContent
-                cover={getImageUrl({ imageId: song.image })}
+                cover={getImageUrl({ imageId: song?.image })}
                 title={song.name}
                 description={
                     song.albumName +
@@ -239,7 +252,7 @@ export default function SongContextMenu({
                                 <img
                                     className="h-6 w-6"
                                     src={getImageUrl({
-                                        imageId: list.image,
+                                        imageId: list?.image,
                                         placeHolder: "/rockit-background.png",
                                         width: 24,
                                         height: 24,

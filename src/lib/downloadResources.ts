@@ -42,11 +42,10 @@ function openIndexedDB(): Promise<IDBDatabase> {
 function fetchResource(url: string, database: IDBDatabase): Promise<string[]> {
     return new Promise((resolve, _) => {
         // If a file is some thing like this, ./index.D5cSYS0A.js in an import statement, the route to that file is /_astro/index.D5cSYS0A.js
-        if (/\.[A-Za-z0-9]{8}\./.test(url)) {
+        if (/\.[A-Za-z0-9\-_]{8}\./.test(url)) {
             url = url.replace("./", "/_astro/");
         }
 
-        console.log("fetchResource", url);
         fetch(url).then((response) => {
             if (response.ok) {
                 response.blob().then((fileContent) => {
@@ -127,6 +126,8 @@ export async function downloadResources({
     database?: IDBDatabase;
     setResources?: Dispatch<SetStateAction<string[]>> | undefined;
 }) {
+    console.log("Downloading resources:", resources);
+
     if (resources.length == 0) return;
 
     if (!database) {

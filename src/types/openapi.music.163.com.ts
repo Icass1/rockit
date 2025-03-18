@@ -65,31 +65,25 @@ export interface Artist2 {
     trans: any;
 }
 
-
-
-
 export interface OpenApiMusicLyrics {
-    sgc: boolean
-    sfy: boolean
-    qfy: boolean
-    transUser: TransUser
-    lrc: Lrc
-    code: number
-  }
-  
-  export interface TransUser {
-    id: number
-    status: number
-    demand: number
-    userid: number
-    nickname: string
-    uptime: number
-  }
-  
-  export interface Lrc {
-    version: number
-    lyric: string
-  }
-  
+    sgc: boolean;
+    sfy: boolean;
+    qfy: boolean;
+    transUser: TransUser;
+    lrc: Lrc;
+    code: number;
+}
 
+export interface TransUser {
+    id: number;
+    status: number;
+    demand: number;
+    userid: number;
+    nickname: string;
+    uptime: number;
+}
 
+export interface Lrc {
+    version: number;
+    lyric: string;
+}

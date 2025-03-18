@@ -160,7 +160,7 @@ export async function GET(context: APIContext): Promise<Response> {
                     `UPDATE song SET dynamicLyrics = ? WHERE id = ?`
                 ).run(JSON.stringify(parsedLyrics), id);
             } else {
-                console.log("Removing dynamicLyrics to database");
+                console.log("Removing dynamicLyrics from database");
                 db.prepare(
                     `UPDATE song SET dynamicLyrics = ? WHERE id = ?`
                 ).run(undefined, id);

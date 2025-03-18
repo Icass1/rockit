@@ -31,7 +31,6 @@ export default function Navigation({
     const innerWidth = useWindowSize().width;
 
     const $lang = useStore(langData);
-    console.log($lang   , "langData");
 
     if (!$lang) return;
 
@@ -205,7 +204,7 @@ export default function Navigation({
                                 className={`h-8 rounded-md items-center ml-2 mr-2 transition-all flex gap-3 cursor-pointer md:hover:bg-[#414141]`}
                             >
                                 <img
-                                    className="w-8 h-8 flex items-center justify-center rounded-sm"
+                                    className="w-8 h-8 min-w-8 min-h-8 flex items-center justify-center rounded-sm"
                                     src={getImageUrl({
                                         imageId: list.image,
                                         width: 32,

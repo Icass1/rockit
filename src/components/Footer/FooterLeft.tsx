@@ -9,12 +9,7 @@ import {
 } from "@/stores/audio";
 import { useStore } from "@nanostores/react";
 import LikeButton from "../LikeButton";
-import {
-    ListPlus,
-    EllipsisVertical,
-    PlayIcon,
-    PauseIcon,
-} from "lucide-react";
+import { ListPlus, EllipsisVertical, PlayIcon, PauseIcon } from "lucide-react";
 import { isPlayerUIVisible } from "@/stores/isPlayerUIVisible";
 import { useState } from "react";
 import { getImageUrl } from "@/lib/getImageUrl";

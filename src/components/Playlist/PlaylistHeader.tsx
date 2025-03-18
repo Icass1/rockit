@@ -131,7 +131,11 @@ export default function PlaylistHeader({
                 {!specialPlaylist && <AddToLibrary type="playlist" id={id} />}
                 <PlayList type="playlist" id={id} />
                 <ListOptions type="playlist" id={id} />
-                <DownloadListDevice type="playlist" id={id} />
+                <DownloadListDevice
+                    type="playlist"
+                    id={id}
+                    image={playlist.image}
+                />
             </div>
 
             {/* Nombre de la playlist */}

@@ -15,11 +15,10 @@ export default function ContextMenuOption({
     className?: string;
     disable?: boolean;
 }) {
-
     return (
         <div
             onClick={(e) => {
-                if (disable) return
+                if (disable) return;
                 e.stopPropagation();
                 onClick && onClick(e);
                 closeOnClick && setContextMenuOpen && setContextMenuOpen(false);

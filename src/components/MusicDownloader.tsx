@@ -552,6 +552,7 @@ export function Downloads({ navOpen = false }: { navOpen?: boolean }) {
 
     const onMessage = (event: MessageEvent<any>, eventSource: EventSource) => {
         const message = JSON.parse(event.data);
+
         if (message.song && !songs[message.song.id]) {
             songs[message.song.id] = message.song;
         }
@@ -562,6 +563,7 @@ export function Downloads({ navOpen = false }: { navOpen?: boolean }) {
             setStatus((value: StatusType) => {
                 let newValue = { ...value };
                 if (message.id == undefined) {
+                    console.warn("message.id is undefined");
                 } else {
                     newValue.songs[message.id] = {
                         completed: message.completed,
@@ -569,13 +571,13 @@ export function Downloads({ navOpen = false }: { navOpen?: boolean }) {
                         song: songs[message.id],
                     };
                 }
+
                 return newValue;
             });
             if (message.completed == 100) {
                 downloadedSongs.set([...downloadedSongs.get(), message.id]);
                 eventSource.close();
             }
-            // {"id": "0vlCOzte4bru0gK74lfUIJ", "completed": 63, "message": "Converting", "list_completed": 79.55555555555556, "list_error": 0.0, "list_id": "2xQBCPq2gQ7l8thLUUZSKu"}
         } else {
             setStatus((value: StatusType) => {
                 let newValue = { ...value };
@@ -594,6 +596,7 @@ export function Downloads({ navOpen = false }: { navOpen?: boolean }) {
                     newValue.lists[message.list_id].listError =
                         message.list_error;
                 }
+
                 newValue.lists[message.list_id].songs[message.id] = {
                     completed: message.completed,
                     message: message.message,

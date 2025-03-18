@@ -48,6 +48,8 @@ class ListDownloader:
         threading.Thread(target=lambda : self.fetch_list(), name=f"List downloader {url}").start()
 
         self.first_setup = False
+        
+        self.last_message = None
 
         self.update_db_start()
 
@@ -137,10 +139,28 @@ class ListDownloader:
 
         self.update_db_end()
         
-        del self.downloader.downloads_dict[self.spotdl_song.song_id]
-        del self.downloader.downloads_ids_dict[get_song_name(self.spotdl_song)]
+        for spotdl_song in self.spotdl_songs:
+            if spotdl_song.song_id in self.downloader.downloads_dict: del self.downloader.downloads_dict[spotdl_song.song_id]
+            if get_song_name(spotdl_song) in self.downloader.downloads_ids_dict: del self.downloader.downloads_ids_dict[get_song_name(spotdl_song)]
         
     def status(self):
+            
+        if self.first_setup:
+            logger.debug("ListDownloader.status self.first_setup = True")
+            logger.debug(f"ListDownloader.status data: {json.dumps(self.last_message)}")
+            text = {
+                "list": {
+                    "type": self.list.type, 
+                    "id": self.list.id, 
+                    "name": self.list.name, 
+                    "artists": [artist._json for artist in self.list.artists] if self.list.type == "album" else [self.list.owner.display_name], 
+                    "images": [image._json for image in self.list.images]
+                    }
+                }
+            yield f"data: {json.dumps(text)}\n\n"
+            yield f"data: {json.dumps(self.last_message)}\n\n"     
+    
+            return
         
         songs_completed = {}
         list_completed = {}
@@ -153,8 +173,6 @@ class ListDownloader:
 
             while not self.spotdl_songs:
                 time.sleep(0.5)
-
-
 
         if self.list.type == "album":
             threading.current_thread().name = f"status - {self.list.name} - {self.list.artists[0].name}"
@@ -180,7 +198,6 @@ class ListDownloader:
 
                 if song.id not in last_messages_len:
                     if song.id not in self.downloader.downloads_dict:
-                        # logger.error(f"ListDownloader.status song.id: {song.id} is not in self.downloader.downloads_dict: {self.downloader.downloads_dict}")
                         logger.warning(f"ListDownloader.status song.id: {song.id} is not in self.downloader.downloads_dict")
 
                     while song.id not in self.downloader.downloads_dict:
@@ -221,12 +238,14 @@ class ListDownloader:
                 last_messages_len[song.id] = len(self.downloader.downloads_dict[song.id]["messages"])
             time.sleep(0.01)
         
-        logger.debug(str(list_completed))
+        
+        self.last_message = k
+        
         self.setup_list_db()
         
-        for spotdl_song in self.spotdl_songs:
-            if spotdl_song in self.downloader.downloads_dict: del self.downloader.downloads_dict[spotdl_song]
-            if spotdl_song in self.downloader.downloads_ids_dict: del self.downloader.downloads_ids_dict[get_song_name(spotdl_song)]
+        logger.debug("Cleaning downloads_dict and downloads_ids_dict")
+        
+
         
     def __str__(self) -> str:
         return f"ListDownloader(url={self.url})"
@@ -245,6 +264,8 @@ class SongDownloader:
         self.downloader = downloader
         self.thread = threading.Thread(target=lambda : self.fetch_song(), name=f"Song downloader {url}")
         self.thread.start()
+        
+        self.done = False
 
         self.update_db_start()
 
@@ -283,7 +304,28 @@ class SongDownloader:
 
     def status(self):
 
-        threading.current_thread().name = f"Test"
+
+        if self.done:
+            text = {
+                "id": self.raw_song.id, 
+                "completed": 100, 
+                "message": "Done", 
+                "song": {
+                    "id": self.raw_song.id, 
+                    "name":  self.raw_song.name, 
+                    "artists":  [artist._json for artist in self.raw_song.artists], 
+                    "album": {
+                        "images": [images._json for images in self.raw_song.album.images]
+                        }
+                    }
+                }
+            logger.debug(f"SongDownloader.status self.done == True    {text}")
+            yield f"data: {json.dumps(text)}\n\n"
+            return
+
+        threading.current_thread().name = f"status 1 {self.url}"
+
+        logger.debug(f"SongDownloader.status Started {self.url}")
 
         if not self.spotdl_song or self.spotdl_song.song_id not in self.downloader.downloads_dict:
             text = {'completed': 0, 'total': 100, 'message': 'Fetching'}
@@ -291,14 +333,19 @@ class SongDownloader:
 
             while not self.spotdl_song or self.spotdl_song.song_id not in self.downloader.downloads_dict:
                 time.sleep(0.5)
+                
+        threading.current_thread().name = f"status 2 {self.url}"
 
         text = {"song": {"id": self.raw_song.id, "name":  self.raw_song.name, "artists":  [artist._json for artist in self.raw_song.artists], "album":  {"images": [images._json for images in self.raw_song.album.images]}}}
         yield f"data: {json.dumps(text)}\n\n"
+        
+        threading.current_thread().name = f"status 3 {self.url}"
                 
         threading.current_thread().name = f"Status - {self.spotdl_song.name} - {self.spotdl_song.artist}"
 
         last_messages_len = 0
         finish = False
+        print(self.downloader.downloads_dict)
         while not finish:
             for k in self.downloader.downloads_dict[self.spotdl_song.song_id]["messages"][last_messages_len:]:
                 logger.debug(f"SongDownloader.status data: {json.dumps(k)}")
@@ -309,11 +356,18 @@ class SongDownloader:
                 
             last_messages_len = len(self.downloader.downloads_dict[self.spotdl_song.song_id]["messages"])
             time.sleep(0.01)
-            
+        
+        threading.current_thread().name = f"status 4 {self.url}"
+        
         self.update_db_end()
         
         del self.downloader.downloads_dict[self.spotdl_song.song_id]
         del self.downloader.downloads_ids_dict[get_song_name(self.spotdl_song)]
+        
+        
+        self.done = True
+        
+        logger.debug(f"SongDownloader.status Finished {self.url}")
 
 class QueueItem(TypedDict):
     spotdl_song: Song

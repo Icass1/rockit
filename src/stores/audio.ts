@@ -833,10 +833,6 @@ function openRockItIndexedDB(): Promise<IDBDatabase> {
             const db = dbOpenRequest.result;
             console.error("dbOpenRequest.onupgradeneeded 1");
 
-            console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAA");
-            console.log(event?.target);
-            console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAA");
-
             const transaction = (event?.target as IDBOpenDBRequest)
                 ?.transaction as IDBTransaction;
 
@@ -1013,8 +1009,41 @@ export async function getSongIdsInIndexedDB(): Promise<string[]> {
 }
 
 async function registerServiceWorker() {
-    // return
     if ("serviceWorker" in navigator) {
+        const version = 1;
+
+        try {
+            const updatedServiceWorker = localStorage.getItem(
+                "updatedServiceWorker"
+            );
+
+            if (
+                updatedServiceWorker &&
+                Number(updatedServiceWorker) != version
+            ) {
+                console.log("Unregistering service worker");
+
+                await Promise.all(
+                    (await navigator.serviceWorker.getRegistrations()).map(
+                        (worker) => worker.unregister()
+                    )
+                );
+
+                localStorage.setItem(
+                    "updatedServiceWorker",
+                    version.toString()
+                );
+            }
+        } catch (error) {
+            console.error("Unregistering service worker", error);
+            await Promise.all(
+                (await navigator.serviceWorker.getRegistrations()).map(
+                    (worker) => worker.unregister()
+                )
+            );
+            localStorage.setItem("updatedServiceWorker", version.toString());
+        }
+
         try {
             const registration = await navigator.serviceWorker.register(
                 "/service-worker.js",

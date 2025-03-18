@@ -125,10 +125,6 @@ function openRockItIndexedDB() {
             const db = dbOpenRequest.result;
             console.error("dbOpenRequest.onupgradeneeded 1");
 
-            console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAA");
-            console.log(event?.target);
-            console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAA");
-
             const transaction = event?.target?.transaction;
 
             ////////////////

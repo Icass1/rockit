@@ -1,24 +1,40 @@
 let database;
 
+function fillFilesIndexedDB(filesStore) {
+    console.warn("fillFilesIndexedDB");
+
+    if (!filesStore.indexNames.contains("url"))
+        filesStore.createIndex("url", "url", { unique: true });
+    if (!filesStore.indexNames.contains("fileContent"))
+        filesStore.createIndex("fileContent", "fileContent", {
+            unique: false,
+        });
+    if (!filesStore.indexNames.contains("contentType"))
+        filesStore.createIndex("contentType", "contentType", {
+            unique: false,
+        });
+}
+
 function openRockItAppIndexedDB() {
     const dbOpenRequest = indexedDB.open("RockItApp", 5);
+
+    dbOpenRequest.onupgradeneeded = function (event) {
+        const db = dbOpenRequest.result;
+        const transaction = event?.target?.transaction;
+
+        if (!db.objectStoreNames.contains("files")) {
+            const filesStore = db.createObjectStore("files", {
+                keyPath: "url",
+            });
+            fillFilesIndexedDB(filesStore);
+        } else {
+            fillFilesIndexedDB(transaction.objectStore("files"));
+        }
+    };
 
     return new Promise((resolve, reject) => {
         dbOpenRequest.onsuccess = function () {
             resolve(dbOpenRequest.result);
-        };
-        dbOpenRequest.onupgradeneeded = function () {
-            const db = dbOpenRequest.result;
-            const filesStore = db.createObjectStore("files", {
-                keyPath: "url",
-            });
-            filesStore.createIndex("url", "url", { unique: true });
-            filesStore.createIndex("fileContent", "fileContent", {
-                unique: false,
-            });
-            filesStore.createIndex("contentType", "contentType", {
-                unique: false,
-            });
         };
 
         dbOpenRequest.onerror = function () {
@@ -26,6 +42,7 @@ function openRockItAppIndexedDB() {
         };
     });
 }
+
 function fillImagesIndexedDB(imageStore) {
     console.warn("fillImagesIndexedDB");
     if (!imageStore.indexNames.contains("id"))

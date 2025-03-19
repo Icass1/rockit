@@ -17,22 +17,45 @@ function extractImports(jsFileContent: string) {
     return resources;
 }
 
-function openIndexedDB(): Promise<IDBDatabase> {
+function fillFilesIndexedDB(filesStore: IDBObjectStore) {
+    console.warn("fillFilesIndexedDB");
+
+    if (!filesStore.indexNames.contains("url"))
+        filesStore.createIndex("url", "url", { unique: true });
+    if (!filesStore.indexNames.contains("fileContent"))
+        filesStore.createIndex("fileContent", "fileContent", {
+            unique: false,
+        });
+    if (!filesStore.indexNames.contains("contentType"))
+        filesStore.createIndex("contentType", "contentType", {
+            unique: false,
+        });
+}
+
+function openRockItAppIndexedDB(): Promise<IDBDatabase> {
     const dbOpenRequest = indexedDB.open("RockItApp", 5);
 
-    dbOpenRequest.onupgradeneeded = function () {
+    dbOpenRequest.onupgradeneeded = function (event) {
         const db = dbOpenRequest.result;
-        const songsStore = db.createObjectStore("files", {
-            keyPath: "url",
-        });
-        songsStore.createIndex("url", "url", { unique: true });
-        songsStore.createIndex("fileContent", "fileContent", { unique: false });
-        songsStore.createIndex("contentType", "contentType", { unique: false });
+
+        const transaction = (event?.target as IDBOpenDBRequest)
+            ?.transaction as IDBTransaction;
+
+        if (!db.objectStoreNames.contains("files")) {
+            const filesStore = db.createObjectStore("files", {
+                keyPath: "url",
+            });
+            fillFilesIndexedDB(filesStore);
+        } else {
+            fillFilesIndexedDB(transaction.objectStore("files"));
+        }
     };
+
     return new Promise((resolve, reject) => {
         dbOpenRequest.onsuccess = function () {
             resolve(dbOpenRequest.result);
         };
+
         dbOpenRequest.onerror = function () {
             reject(dbOpenRequest.error);
         };
@@ -131,7 +154,7 @@ export async function downloadResources({
     if (resources.length == 0) return;
 
     if (!database) {
-        database = await openIndexedDB();
+        database = await openRockItAppIndexedDB();
     }
 
     const tempResources: string[][] = await Promise.all(

@@ -916,7 +916,6 @@ export async function saveSongToIndexedDB(
 
     if (currentSongsInIndexedDB.includes(song.id) && !force) return;
 
-    // if (admin.get()) console.log(song);
     fetch(`/api/song/audio/${song.id}`).then((response) => {
         if (response.ok) {
             response.blob().then(async (songBlob) => {
@@ -939,9 +938,13 @@ export async function saveSongToIndexedDB(
         }
     });
 
-    const imageBlob = await fetch(`/api/image/${song.image}`).then((response) =>
-        response.blob()
-    );
+    const imageRequest = await fetch(`/api/image/${song.image}`);
+    if (!imageRequest.ok) {
+        console.warn("Error requesting image");
+        return;
+    }
+
+    const imageBlob = await imageRequest.blob();
 
     const imageToSave = {
         id: song.image,

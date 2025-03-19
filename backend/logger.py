@@ -77,8 +77,21 @@ def getLogger(name):
     logger = logging.getLogger(name)
 
     console_level = logging.INFO
-    file_level = logging.DEBUG
 
+    log_dump_level = os.getenv("LOG_DUMP_LEVEL")
+
+    try: 
+        file_level = {
+            "debug": logging.DEBUG, 
+            "info": logging.INFO,
+            "warning": logging.WARNING,
+            "error": logging.ERROR,
+            "critical": logging.CRITICAL
+        }[log_dump_level]
+    except:
+        print(f"LOG_DUMP_LEVEL can only be 'debug', 'info', 'warning', 'error' or 'critical' found '{log_dump_level}'")
+        exit()
+    
     # Avoid adding duplicate handlers
     if logger.hasHandlers():
         return logger
@@ -89,7 +102,7 @@ def getLogger(name):
     ensure_dir_exists(log_dir)
 
     # Set logging level
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(min(console_level, file_level))
 
     # Define formatters
     plain_formatter = logging.Formatter(

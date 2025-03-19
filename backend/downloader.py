@@ -228,6 +228,11 @@ class ListDownloader:
                     k["list_completed"] = sum(list_completed.values())/len(songs_completed.values())
                     k["list_error"] = sum(list_error.values())/len(songs_completed.values())
                     k["list_id"] = self.list.id
+                    
+                    try: self.last_message = k.copy()
+                    except:
+                        logger.error("ListDownloader.status Error copying k to self.last_message")
+
 
                     logger.debug(f"ListDownloader.status data: {json.dumps(k)}")
                     yield f"data: {json.dumps(k)}\n\n"
@@ -239,14 +244,10 @@ class ListDownloader:
             time.sleep(0.01)
         
         
-        self.last_message = k
-        
         self.setup_list_db()
         
         logger.debug("Cleaning downloads_dict and downloads_ids_dict")
-        
-
-        
+                
     def __str__(self) -> str:
         return f"ListDownloader(url={self.url})"
 

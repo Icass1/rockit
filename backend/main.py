@@ -8,11 +8,11 @@ load_dotenv()
 import os
 from typing import Dict
 
-environ_variables = ["ENVIRONMENT", "CLIENT_ID", "CLIENT_SECRET", "FRONTEND_URL", "SONGS_PATH", "TEMP_PATH", "LOGS_PATH", "IMAGES_PATH", "API_KEY", "DOWNLOAD_THREADS"]
+environ_variables = ["ENVIRONMENT", "CLIENT_ID", "CLIENT_SECRET", "FRONTEND_URL", "SONGS_PATH", "TEMP_PATH", "LOGS_PATH", "IMAGES_PATH", "API_KEY", "DOWNLOAD_THREADS", "LOG_DUMP_LEVEL"]
 
 for variable in environ_variables:
     if not os.getenv(variable):
-        print(f"\033[91m{variable} is not set\033[0m")
+        print(f"\033[91m{variable} is not set, make sure all variables in example.env are set in .env file.\033[0m")
         exit()
 
 from spotify import Spotify

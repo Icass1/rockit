@@ -19,6 +19,7 @@ services:
       SONGS_PATH: "/songs"
       TEMP_PATH: "/temp"
       LOGS_PATH: "/logs"
+      LOG_DUMP_LEVEL: "info" # debug/info/warning/error/critical
       IMAGES_PATH: "/images"
       API_KEY: "qlLH16dEklu7GbkFLO0eAbTiuxe1fqMLGYzhZqTxtw1hdJGEjx4DYd0ASTSM7544"
     volumes:

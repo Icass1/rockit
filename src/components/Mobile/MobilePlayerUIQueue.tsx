@@ -170,7 +170,7 @@ export default function MobilePlayerUIQueue({
     const $lang = useStore(langData);
     if (!$lang) return;
 
-    if (!$queue) return <div>Queue is not defined</div>;
+    if (!$queue) return <div></div>;
 
     return (
         <div

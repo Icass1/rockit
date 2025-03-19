@@ -82,7 +82,7 @@ export default function AlbumSong({
         }
     }, [$downloadedSongs]);
 
-    if (!$queue) return <div>Queue is not defined</div>;
+    if (!$queue) return <div></div>;
 
     return (
         <SongContextMenu song={_song}>

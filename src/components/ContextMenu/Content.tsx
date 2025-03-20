@@ -1,25 +1,21 @@
 import type { ReactNode, RefObject } from "react";
 import React from "react";
-import ContextMenuContentDiv from "./ContextMenuContentDiv";
+import PosAfterRenderDiv from "@/components/PosAfterRenderDiv";
 import useWindowSize from "@/hooks/useWindowSize";
+import type ContextMenuProps from "./Props";
 
 export default function ContextMenuContent({
     children,
-    contextMenuOpen,
-    contextMenuPos,
-    contextMenuDivRef,
-    setContextMenuOpen,
-    setContextMenuPos,
+    _contextMenuOpen,
+    _contextMenuPos,
+    _contextMenuDivRef,
+    _setContextMenuOpen,
+    _setContextMenuPos,
     cover,
     title,
     description,
-}: {
+}: ContextMenuProps & {
     children?: ReactNode;
-    contextMenuOpen?: boolean;
-    contextMenuPos?: [number, number];
-    contextMenuDivRef?: RefObject<HTMLDivElement>;
-    setContextMenuOpen?: React.Dispatch<React.SetStateAction<boolean>>;
-    setContextMenuPos?: React.Dispatch<React.SetStateAction<[number, number]>>;
     cover?: string | undefined;
     title?: string | undefined;
     description?: string | undefined;
@@ -49,35 +45,36 @@ export default function ContextMenuContent({
 
     const childrenWithProps = React.Children.map(children, (child) => {
         if (React.isValidElement(child)) {
-            return React.cloneElement(child, {
-                // @ts-ignore
-                contextMenuOpen: contextMenuOpen,
-                setContextMenuOpen: setContextMenuOpen,
-                contextMenuPos: contextMenuPos,
-                setContextMenuPos: setContextMenuPos,
-                contextMenuDivRef: contextMenuDivRef,
-            });
+            const props: ContextMenuProps = {
+                _contextMenuOpen,
+                _setContextMenuOpen,
+                _contextMenuPos,
+                _setContextMenuPos,
+                _contextMenuDivRef,
+            };
+
+            return React.cloneElement(child, props);
         }
         return child;
     });
 
-    if (!contextMenuPos) return;
-    if (!contextMenuOpen) return;
-    if (contextMenuPos[0] == 0 && contextMenuPos[1] == 0) return;
+    if (!_contextMenuPos) return;
+    if (!_contextMenuOpen) return;
+    if (_contextMenuPos[0] == 0 && _contextMenuPos[1] == 0) return;
 
     return (
-        <ContextMenuContentDiv
-            divRef={contextMenuDivRef}
+        <PosAfterRenderDiv
+            divRef={_contextMenuDivRef}
             onDimensionsCalculated={
                 innerWidth > 768
                     ? (width, height) =>
-                          updatePos(contextMenuPos, width, height)
+                          updatePos(_contextMenuPos, width, height)
                     : undefined
             }
-            onClick={() => setContextMenuOpen && setContextMenuOpen(false)}
+            onClick={() => _setContextMenuOpen && _setContextMenuOpen(false)}
             className="fixed bg-neutral-800/90 top-0 left-0 w-full h-[calc(100%_-_4rem)] px-10 md:w-max md:h-auto rounded-md md:p-1 overflow-auto md:shadow-[0px_0px_20px_3px_#0e0e0e] z-20"
             style={{
-                display: contextMenuOpen ? "block" : "none",
+                display: _contextMenuOpen ? "block" : "none",
             }}
         >
             <div className="overflow-y-auto h-full flex flex-col gap-y-1 py-20 md:py-0">
@@ -101,6 +98,6 @@ export default function ContextMenuContent({
                 {childrenWithProps}
                 <div className="md:hidden min-h-2"></div>
             </div>
-        </ContextMenuContentDiv>
+        </PosAfterRenderDiv>
     );
 }

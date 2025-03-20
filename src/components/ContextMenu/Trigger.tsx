@@ -1,45 +1,42 @@
 import { useEffect, useRef, type ReactNode, type RefObject } from "react";
+import type ContextMenuProps from "./Props";
 
 export default function ContextMenuTrigger({
     children,
-    setContextMenuOpen,
-    setContextMenuPos,
-    contextMenuOpen,
-    contextMenuDivRef,
+    _setContextMenuOpen,
+    _setContextMenuPos,
+    _contextMenuOpen,
+    _contextMenuDivRef,
 }: {
     children: ReactNode;
-    setContextMenuOpen?: React.Dispatch<React.SetStateAction<boolean>>;
-    setContextMenuPos?: React.Dispatch<React.SetStateAction<[number, number]>>;
-    contextMenuOpen?: boolean;
-    contextMenuDivRef?: RefObject<HTMLDivElement>;
-}) {
+} & ContextMenuProps) {
     const divRef = useRef<HTMLDivElement>(null);
 
     const handleContextMenu = (
         event: React.MouseEvent<HTMLDivElement, globalThis.MouseEvent>
     ) => {
-        if (!setContextMenuOpen || !setContextMenuPos) return;
+        if (!_setContextMenuOpen || !_setContextMenuPos) return;
 
         event.preventDefault();
 
-        setContextMenuPos([event.clientX, event.clientY]);
-        setContextMenuOpen((value) => !value);
+        _setContextMenuPos([event.clientX, event.clientY]);
+        _setContextMenuOpen((value) => !value);
     };
 
     useEffect(() => {
-        if (!setContextMenuOpen || innerWidth < 768) return;
+        if (!_setContextMenuOpen || innerWidth < 768) return;
 
         const closeContextMenu = (
             event:
                 | MouseEvent
                 | React.MouseEvent<HTMLDivElement, globalThis.MouseEvent>
         ) => {
-            if (contextMenuDivRef?.current?.contains(event.target as Node))
+            if (_contextMenuDivRef?.current?.contains(event.target as Node))
                 return;
-            setContextMenuOpen(false);
+            _setContextMenuOpen(false);
         };
 
-        if (contextMenuOpen) {
+        if (_contextMenuOpen) {
             document.addEventListener("mouseup", closeContextMenu);
             document.addEventListener("wheel", closeContextMenu);
         }
@@ -47,7 +44,7 @@ export default function ContextMenuTrigger({
             document.removeEventListener("mouseup", closeContextMenu);
             document.removeEventListener("wheel", closeContextMenu);
         };
-    }, [contextMenuOpen]);
+    }, [_contextMenuOpen]);
 
     return (
         <div ref={divRef} onContextMenu={handleContextMenu}>

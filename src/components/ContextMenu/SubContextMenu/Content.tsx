@@ -1,48 +1,43 @@
 import type { ReactNode, RefObject } from "react";
 import React from "react";
-import ContextMenuContentDiv from "@/components/ContextMenu/ContextMenuContentDiv";
+import ContextMenuContentDiv from "@/components/PosAfterRenderDiv";
+import type ContextMenuProps from "../Props";
+import type SubContextMenuProps from "./Props";
 
 export default function SubContextMenuContent({
     children,
-    contextMenuPos,
-    contextMenuDivRef,
-    setContextMenuOpen,
-    setContextMenuPos,
-    contextMenuOpen,
-    triggerRef,
-    hover,
-    setHover,
-}: {
-    children: ReactNode[] | ReactNode;
-    hover?: boolean;
-    setHover?: (value: boolean) => void;
-    contextMenuOpen?: boolean;
-    contextMenuPos?: [number, number];
-    contextMenuDivRef?: RefObject<HTMLDivElement>;
-    setContextMenuOpen?: React.Dispatch<React.SetStateAction<boolean>>;
-    setContextMenuPos?: React.Dispatch<React.SetStateAction<[number, number]>>;
-
-    triggerRef?: RefObject<HTMLDivElement>;
-}) {
+    _contextMenuPos,
+    _contextMenuDivRef,
+    _setContextMenuOpen,
+    _setContextMenuPos,
+    _contextMenuOpen,
+    _triggerRef,
+    _hover,
+    _setHover,
+}: ContextMenuProps &
+    SubContextMenuProps & {
+        children: ReactNode[] | ReactNode;
+    }) {
     const childrenWithProps = React.Children.map(children, (child) => {
         if (React.isValidElement(child)) {
-            return React.cloneElement(child, {
-                // @ts-ignore
-                contextMenuOpen,
-                setContextMenuOpen,
-                contextMenuPos,
-                setContextMenuPos,
-                contextMenuDivRef,
-            });
+            const props: ContextMenuProps = {
+                _contextMenuOpen,
+                _setContextMenuOpen,
+                _contextMenuPos,
+                _setContextMenuPos,
+                _contextMenuDivRef,
+            };
+
+            return React.cloneElement(child, props);
         }
         return child;
     });
 
-    const triggerBoundaries = triggerRef?.current?.getBoundingClientRect();
+    const triggerBoundaries = _triggerRef?.current?.getBoundingClientRect();
     const contextMenuBoundaries =
-        contextMenuDivRef?.current?.getBoundingClientRect();
+        _contextMenuDivRef?.current?.getBoundingClientRect();
 
-    if (!contextMenuBoundaries || !triggerBoundaries || !triggerRef?.current)
+    if (!contextMenuBoundaries || !triggerBoundaries || !_triggerRef?.current)
         return;
 
     const updatePos: (width: number, height: number) => [number, number] = (
@@ -61,7 +56,7 @@ export default function SubContextMenuContent({
         return [x, y];
     };
 
-    if (!hover) return;
+    if (!_hover) return;
 
     return (
         <ContextMenuContentDiv
@@ -73,14 +68,14 @@ export default function SubContextMenuContent({
             }
             onClick={(event) => {
                 event.stopPropagation();
-                if (setHover) setHover(false);
+                if (_setHover) _setHover(false);
             }}
             onMouseEnter={() => {
-                if (setHover) setHover(true);
+                if (_setHover) _setHover(true);
             }}
             onMouseLeave={() => {
-                if (setHover) {
-                    setHover(false);
+                if (_setHover) {
+                    _setHover(false);
                 }
             }}
         >

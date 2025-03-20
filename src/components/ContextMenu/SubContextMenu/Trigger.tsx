@@ -1,34 +1,33 @@
 import { ChevronRight } from "lucide-react";
 import type { ReactNode, RefObject } from "react";
+import type SubContextMenuProps from "./Props";
 
 export default function SubContextMenuTrigger({
     children,
     className,
     disable,
-    triggerRef,
-    setHover,
-}: {
+    _triggerRef,
+    _setHover,
+}: SubContextMenuProps & {
     children: ReactNode[];
-    triggerRef?: RefObject<HTMLDivElement>;
     className?: string;
     disable?: boolean;
-    setHover?: (value: boolean) => void;
 }) {
     return (
         <div
-            ref={triggerRef}
+            ref={_triggerRef}
             onClick={(e) => {
                 e.stopPropagation();
                 if (disable) return;
             }}
             onMouseEnter={() => {
                 if (disable) return;
-                if (setHover) setHover(true);
+                if (_setHover) _setHover(true);
             }}
             onMouseLeave={() => {
-                if (setHover) {
+                if (_setHover) {
                     if (disable) return;
-                    setHover(false);
+                    _setHover(false);
                 }
             }}
             className={

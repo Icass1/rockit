@@ -18,13 +18,16 @@ export default function PopupMenuContent({
     );
 
     useEffect(() => {
-        const portalDiv = document.createElement("div");
-        document.body.appendChild(portalDiv);
-        setPortalContainer(portalDiv);
+        let portalDiv = document.querySelector("#popup-menu-portal");
+        if (portalDiv) {
+            setPortalContainer(portalDiv as HTMLElement);
+            return;
+        }
 
-        return () => {
-            document.body.removeChild(portalDiv);
-        };
+        portalDiv = document.createElement("div");
+        portalDiv.id = "popup-menu-portal";
+        document.body.appendChild(portalDiv);
+        setPortalContainer(portalDiv as HTMLElement);
     }, []);
 
     if (!portalContainer) return null;

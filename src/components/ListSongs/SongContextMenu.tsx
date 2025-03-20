@@ -30,6 +30,7 @@ import SubContextMenu from "../ContextMenu/SubContextMenu/ContextMenu";
 import SubContextMenuTrigger from "../ContextMenu/SubContextMenu/Trigger";
 import SubContextMenuContent from "../ContextMenu/SubContextMenu/Content";
 import { networkStatus } from "@/stores/networkStatus";
+import { userLists } from "@/stores/userLists";
 
 export default function SongContextMenu({
     children,
@@ -54,41 +55,7 @@ export default function SongContextMenu({
 
     const offline = $networkStatus == "offline";
 
-    const [userLists, setUserLists] = useState<
-        { id: string; name: string; image: string }[]
-    >([]);
-
-    useEffect(() => {
-        if (!navigator.onLine) return;
-
-        fetch("/api/user?q=lists")
-            .then((response) => response.json())
-            .then((data: UserDB<"lists">) => {
-                if (
-                    data.lists
-                        .filter((list) => list.type == "playlist")
-                        .map((list) => list.id).length > 0
-                )
-                    fetch(
-                        `/api/playlists?playlists=${data.lists
-                            .filter((list) => list.type == "playlist")
-                            .map((list) => list.id)
-                            .join()}&p=id,name,image`
-                    )
-                        .then((response) => response.json())
-                        .then(
-                            (
-                                data: {
-                                    id: string;
-                                    name: string;
-                                    image: string;
-                                }[]
-                            ) => {
-                                if (data) setUserLists(data);
-                            }
-                        );
-            });
-    }, []);
+    const $userLists = useStore(userLists);
 
     if (!$lang) return;
 
@@ -236,7 +203,7 @@ export default function SongContextMenu({
                         {$lang.add_song_to_playlist}
                     </SubContextMenuTrigger>
                     <SubContextMenuContent>
-                        {userLists.map((list) => (
+                        {$userLists.map((list) => (
                             <ContextMenuOption
                                 key={list.id}
                                 onClick={() => {

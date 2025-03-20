@@ -31,13 +31,15 @@ import { playListHandleClick } from "./PlayList";
 import { currentListSongs } from "@/stores/currentList";
 import type { SongDB } from "@/db/song";
 import { navigate } from "astro:transitions/client";
-import { addToLibraryHandleClick } from "./ListHeader/AddToLibrary";
 import { libraryLists } from "@/stores/libraryLists";
-import { pinListHandleClick } from "./ListHeader/PinList";
 import { pinnedLists } from "@/stores/pinnedLists";
 import { langData } from "@/stores/lang";
 import { downloadedSongs } from "@/stores/downloadedSongs";
 import useWindowSize from "@/hooks/useWindowSize";
+import {
+    addToLibraryHandleClick,
+    pinListHandleClick,
+} from "./ListHeader/ListOptions";
 
 interface EventSourceStatus {
     message: string;

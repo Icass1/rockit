@@ -5,15 +5,11 @@ import { Disc } from "lucide-react";
 
 import { getMinutes } from "@/lib/getTime";
 
-import AddToLibrary from "@/components/ListHeader/AddToLibrary";
-import DownloadListDB from "@/components/ListHeader/DownloadListDBButton";
-import DownloadListDevice from "@/components/ListHeader/DownloadListDeviceButton";
 import ListOptions from "@/components/ListHeader/ListOptions";
-import PinList from "@/components/ListHeader/PinList";
-import PlayList from "@/components/PlayList";
 import SetCurrentListInfo from "@/components/SetCurrentListInfo";
 import getAlbum from "@/lib/getAlbum";
 import { getLang } from "@/lib/getLang";
+import PlayListButton from "@/components/ListHeader/PlayListButton";
 
 const { id } = Astro.params as { id: string };
 
@@ -72,36 +68,15 @@ const meta = {
                     src={album.image
                         ? `/api/image/${album.image}`
                         : album.images[0].url}
-                    class="w-full h-full object-fill"
+                    class="w-full h-full object-fill absolute"
                 />
+                <PlayListButton type="album" id={id} client:only="react" />
             </div>
 
             <!-- Div con los iconos -->
             <div
                 class="flex flex-row justify-center gap-3 text-sm pt-2 items-center"
             >
-                {
-                    !inDatabase && (
-                        <DownloadListDB
-                            url={`https://open.spotify.com/album/${id}`}
-                            client:only="react"
-                        />
-                    )
-                }
-                <PinList type="album" id={id} client:only="react" />
-                <AddToLibrary type="album" id={id} client:only="react" />
-                <PlayList client:only="react" type="album" id={id} />
-                <ListOptions client:only="react" type="album" id={id} />
-                {
-                    inDatabase && (
-                        <DownloadListDevice
-                            type="album"
-                            id={id}
-                            client:only="react"
-                        />
-                    )
-                }
-
                 <SetCurrentListInfo
                     client:only="react"
                     songs={songs}
@@ -111,9 +86,19 @@ const meta = {
             </div>
 
             <!-- Nombre del álbum -->
-            <label class="text-2xl font-semibold text-center text-balance"
-                >{album.name}</label
-            >
+            <div class="flex flex-row w-fit mx-auto items-center gap-2">
+                <label class="text-2xl font-semibold text-center text-balance"
+                    >{album.name}</label
+                >
+
+                <ListOptions
+                    client:only="react"
+                    type="album"
+                    id={id}
+                    url={`https://open.spotify.com/album/${id}`}
+                    inDatabase={inDatabase}
+                />
+            </div>
 
             <!-- Artistas -->
             <div

@@ -1,14 +1,11 @@
-import AddToLibrary from "@/components/ListHeader/AddToLibrary";
-import DownloadListDevice from "@/components/ListHeader/DownloadListDeviceButton";
 import ListOptions from "@/components/ListHeader/ListOptions";
-import PinList from "@/components/ListHeader/PinList";
-import PlayList from "@/components/PlayList";
 import type { PlaylistDB, PlaylistDBSong } from "@/lib/db/playlist";
 import type { SongDB } from "@/lib/db/song";
 import { getImageUrl } from "@/lib/getImageUrl";
 import { langData } from "@/stores/lang";
 import { useStore } from "@nanostores/react";
-import { Disc3, Download, Heart, History } from "lucide-react";
+import { Disc3, Heart, History, Pause, Play } from "lucide-react";
+import PlayListButton from "../ListHeader/PlayListButton";
 
 function getMinutes(seconds: number) {
     seconds = Math.round(seconds);
@@ -107,41 +104,37 @@ export default function PlaylistHeader({
                             {coverIcon}
                         </div>
                     ) : (
-                        <img
-                            src={getImageUrl({
-                                imageId: playlist.image,
-                                fallback:
-                                    playlist?.images?.[0]?.url ??
-                                    "/rockit-background.png",
-                                height: 370,
-                                width: 370,
-                            })}
-                            className="w-full h-full object-cover"
-                        />
+                        <div className="w-full h-full object-cover">
+                            <img
+                                src={getImageUrl({
+                                    imageId: playlist.image,
+                                    fallback:
+                                        playlist?.images?.[0]?.url ??
+                                        "/rockit-background.png",
+                                    height: 370,
+                                    width: 370,
+                                })}
+                                className="absolute w-full h-full object-cover"
+                            />
+                            <PlayListButton id={id} type="playlist"/>
+                        </div>
                     )}
                 </div>
             </div>
 
-            {/* Div con los iconos */}
-            <div className="flex flex-row justify-center gap-3 text-sm pt-2 items-center">
-                {!inDatabase && (
-                    <Download strokeWidth={0.9} className="h-10 w-10" />
-                )}
-                {!specialPlaylist && <PinList type="playlist" id={id} />}
-                {!specialPlaylist && <AddToLibrary type="playlist" id={id} />}
-                <PlayList type="playlist" id={id} />
-                <ListOptions type="playlist" id={id} />
-                <DownloadListDevice
+            {/* Nombre de la playlist */}
+            <div className="flex flex-row w-fit mx-auto items-center gap-3">
+                <label className="text-2xl font-semibold text-balance">
+                    {playlist.name}
+                </label>
+                <ListOptions
+                    url={`https://open.spotify.com/playlist/${id}`}
                     type="playlist"
                     id={id}
                     image={playlist.image}
+                    inDatabase={inDatabase}
                 />
             </div>
-
-            {/* Nombre de la playlist */}
-            <label className="text-2xl font-semibold text-center text-balance">
-                {playlist.name}
-            </label>
 
             {/* Propietario */}
             <label className="text-xl font-semibold text-stone-400 flex flex-wrap justify-center">

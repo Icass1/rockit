@@ -12,7 +12,7 @@ export default function PopupMenuContent({
     _setPopupMenuPos,
     _popupMenuContentRef,
     _popupMenuTriggerRef,
-}: PopupMenuProps & { children: ReactNode }) {
+}: PopupMenuProps & { children?: ReactNode }) {
     const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(
         null
     );
@@ -28,6 +28,8 @@ export default function PopupMenuContent({
     }, []);
 
     if (!portalContainer) return null;
+
+    if (!children) return;
 
     const updatePos = (
         _popupMenuPos: [number, number],
@@ -63,6 +65,9 @@ export default function PopupMenuContent({
                 tempPos[0] = triggerBoundaries.x;
                 tempPos[1] =
                     triggerBoundaries.y + triggerBoundaries.height + 10;
+            } else if (n == 2) {
+                tempPos[0] = triggerBoundaries.x - width - 10;
+                tempPos[1] = triggerBoundaries.y;
             } else {
                 console.warn("Could not find a suitable position for the menu");
                 return tempPos;

@@ -12,6 +12,11 @@ import SongContextMenu from "./SongContextMenu";
 import { downloadedSongs } from "@/stores/downloadedSongs";
 import { getImageUrl } from "@/lib/getImageUrl";
 import { networkStatus } from "@/stores/networkStatus";
+import {
+    PopupMenu,
+    PopupMenuContent,
+    PopupMenuTrigger,
+} from "../PopupMenu/PopupMenu";
 
 export default function PlaylistSong({
     song,
@@ -52,19 +57,6 @@ export default function PlaylistSong({
                 | "images"
             >
         >(song);
-
-    const handleAddToList = (
-        e: React.MouseEvent<SVGSVGElement, MouseEvent>
-    ) => {
-        e.stopPropagation();
-        console.warn("To do");
-        // saveSongToIndexedDB(_song);
-    };
-    const handleOpenOptions = (
-        e: React.MouseEvent<SVGSVGElement, MouseEvent>
-    ) => {
-        e.stopPropagation();
-    };
 
     useEffect(() => {
         // console.log("useEffect $downloadedSongs", $downloadedSongs);
@@ -185,17 +177,16 @@ export default function PlaylistSong({
                                 </div>
                             )}
                             <LikeButton song={_song} />
-                            <ListPlus
-                                className="text-gray-400 hidden md:flex md:hover:text-white md:hover:scale-105 w-8"
-                                onClick={handleAddToList}
-                            />
                             <EllipsisVertical className="text-gray-400 flex md:hidden md:hover:text-white md:hover:scale-105 w-8" />
+
                             <label className="text-sm text-white/80 select-none min-w-7 flex justify-center items-center">
                                 {hovered && window.innerWidth > 768 ? (
-                                    <EllipsisVertical
-                                        className="text-gray-400 md:hover:text-white md:hover:scale-105"
-                                        onClick={handleOpenOptions}
-                                    />
+                                    <PopupMenu>
+                                        <PopupMenuTrigger>
+                                            <EllipsisVertical className="text-gray-400 md:hover:text-white md:hover:scale-105" />
+                                        </PopupMenuTrigger>
+                                        <PopupMenuContent></PopupMenuContent>
+                                    </PopupMenu>
                                 ) : (
                                     getTime(_song.duration)
                                 )}

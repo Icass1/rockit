@@ -3,13 +3,14 @@ import type PopupMenuProps from "./Props";
 
 export default function PopupMenuTrigger({
     children,
+    className,
     _popupMenuOpen,
     _setPopupMenuOpen,
     _popupMenuPos,
     _setPopupMenuPos,
     _popupMenuContentRef,
     _popupMenuTriggerRef,
-}: PopupMenuProps & { children: ReactNode }) {
+}: PopupMenuProps & { children: ReactNode; className?: string }) {
     const handleClick = () => {
         if (!_setPopupMenuOpen || !_setPopupMenuPos) return;
 
@@ -45,7 +46,11 @@ export default function PopupMenuTrigger({
     }, [_popupMenuOpen]);
 
     return (
-        <div onClick={handleClick} ref={_popupMenuTriggerRef}>
+        <div
+            className={className}
+            onClick={handleClick}
+            ref={_popupMenuTriggerRef}
+        >
             {children}
         </div>
     );

@@ -1,4 +1,4 @@
-import { downloads } from "@/stores/downloads";
+import { downloads, status } from "@/stores/downloads";
 import { useStore } from "@nanostores/react";
 import React, {
     useEffect,
@@ -34,7 +34,6 @@ import { navigate } from "astro:transitions/client";
 import { libraryLists } from "@/stores/libraryLists";
 import { pinnedLists } from "@/stores/pinnedLists";
 import { langData } from "@/stores/lang";
-import { downloadedSongs } from "@/stores/downloadedSongs";
 import useWindowSize from "@/hooks/useWindowSize";
 import {
     addToLibraryHandleClick,
@@ -513,24 +512,10 @@ export function Downloads({ navOpen = false }: { navOpen?: boolean }) {
     const [open, setOpen] = useState(false);
     const divRef = useRef<HTMLDivElement>(null);
     const downloadsButton = useRef<HTMLDivElement>(null);
-    const [status, setStatus] = useState<StatusType>({ songs: {}, lists: {} });
 
-    const $downloads = useStore(downloads);
+    const $status = useStore(status);
 
     const [url, setURL] = useState("");
-
-    const eventSources = useRef<string[]>([]);
-
-    const songs: {
-        [key: string]: {
-            name: string;
-            artists: SpotifyArtist[];
-            album: SpotifyAlbum;
-            id: string;
-        };
-    } = {};
-
-    const lists: { [key: string]: ListInfo } = {};
 
     const innerWidth = useWindowSize().width;
 
@@ -551,99 +536,6 @@ export function Downloads({ navOpen = false }: { navOpen?: boolean }) {
             document.removeEventListener("click", handleDocumentClick);
         };
     }, [divRef, downloadsButton]);
-
-    const onMessage = (event: MessageEvent<any>, eventSource: EventSource) => {
-        const message = JSON.parse(event.data);
-
-        if (message.song && !songs[message.song.id]) {
-            songs[message.song.id] = message.song;
-        }
-        if (message.list) {
-            lists[message.list.id] = message.list;
-        }
-        if (message.list_id == undefined) {
-            setStatus((value: StatusType) => {
-                let newValue = { ...value };
-                if (message.id == undefined) {
-                    console.warn("message.id is undefined");
-                } else {
-                    newValue.songs[message.id] = {
-                        completed: message.completed,
-                        message: message.message,
-                        song: songs[message.id],
-                    };
-                }
-
-                return newValue;
-            });
-            if (message.completed == 100) {
-                downloadedSongs.set([...downloadedSongs.get(), message.id]);
-                eventSource.close();
-            }
-        } else {
-            setStatus((value: StatusType) => {
-                let newValue = { ...value };
-                if (newValue.lists[message.list_id] == undefined) {
-                    newValue.lists[message.list_id] = {
-                        listInfo: lists[message.list_id],
-                        totalCompleted: message.list_completed,
-                        songs: {},
-                        listError: message.list_error,
-                    };
-                } else {
-                    newValue.lists[message.list_id].listInfo =
-                        lists[message.list_id];
-                    newValue.lists[message.list_id].totalCompleted =
-                        message.list_completed;
-                    newValue.lists[message.list_id].listError =
-                        message.list_error;
-                }
-
-                newValue.lists[message.list_id].songs[message.id] = {
-                    completed: message.completed,
-                    message: message.message,
-                    song: songs[message.id],
-                };
-                if (message.completed == 100) {
-                    downloadedSongs.set([...downloadedSongs.get(), message.id]);
-                }
-
-                return newValue;
-            });
-            if (
-                Math.round(
-                    (message.list_completed + message.list_error) * 100
-                ) /
-                    100 ==
-                100
-            ) {
-                eventSource.close();
-            }
-        }
-    };
-
-    useEffect(() => {
-        for (let downloadId of $downloads) {
-            if (eventSources.current.includes(downloadId)) {
-                console.log("Skipping id", downloadId);
-                continue;
-            }
-            eventSources?.current?.push(downloadId);
-            const eventSource = new EventSource(
-                `/api/download-status/${downloadId}`
-            );
-            eventSource.onmessage = (event) => {
-                onMessage(event, eventSource);
-            };
-            eventSource.onerror = (error) => {
-                eventSources.current = eventSources.current?.filter(
-                    (id) => id != downloadId
-                );
-                console.error("EventSource failed:", error);
-                eventSource.close();
-            };
-        }
-    }, [$downloads]);
 
     const handleStartDownload = () => {
         fetch(`/api/start-download?url=${url}`).then((response) => {
@@ -679,7 +571,7 @@ export function Downloads({ navOpen = false }: { navOpen?: boolean }) {
                         <ArrowDownToLine className="w-5 h-5 text-white" />
                     </div>
                 </div>
-                {Object.entries(status.songs)
+                {Object.entries($status.songs)
                     .toReversed()
                     .map((songStatus) => (
                         <AddContextMenu key={songStatus[0]} song={songStatus}>
@@ -689,7 +581,7 @@ export function Downloads({ navOpen = false }: { navOpen?: boolean }) {
                             />
                         </AddContextMenu>
                     ))}
-                {Object.entries(status.lists)
+                {Object.entries($status.lists)
                     .toReversed()
                     .map((list) => (
                         <AddContextMenu key={list[0]} list={list}>
@@ -780,7 +672,7 @@ export function Downloads({ navOpen = false }: { navOpen?: boolean }) {
                     </button>
                 </div>
 
-                {Object.entries(status.songs)
+                {Object.entries($status.songs)
                     .toReversed()
                     .map((songStatus) => (
                         <AddContextMenu key={songStatus[0]} song={songStatus}>
@@ -790,7 +682,7 @@ export function Downloads({ navOpen = false }: { navOpen?: boolean }) {
                             />
                         </AddContextMenu>
                     ))}
-                {Object.entries(status.lists)
+                {Object.entries($status.lists)
                     .toReversed()
                     .map((list) => (
                         <AddContextMenu key={list[0]} list={list}>

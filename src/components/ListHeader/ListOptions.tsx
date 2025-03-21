@@ -28,7 +28,7 @@ import {
     PopupMenuTrigger,
 } from "@/components/PopupMenu/PopupMenu";
 import { downloadResources } from "@/lib/downloadResources";
-import { downloads } from "@/stores/downloads";
+import { downloadedLists, downloads } from "@/stores/downloads";
 import { libraryLists } from "@/stores/libraryLists";
 import { pinnedLists } from "@/stores/pinnedLists";
 import { playListHandleClick } from "../PlayList";
@@ -108,13 +108,13 @@ export default function ListOptions({
     const $songs = useStore(currentListSongs);
 
     const $libraryLists = useStore(libraryLists);
-
     const isInLibrary = $libraryLists.some((list) => list.id === id);
 
-    const $pinnedLists = useStore(pinnedLists);
-
     // Determina si el elemento ya está en la lista
+    const $pinnedLists = useStore(pinnedLists);
     const isPinned = $pinnedLists.some((list) => list.id === id);
+
+    const $downloadedLists = useStore(downloadedLists);
 
     const addListToBottomQueue = () => {
         const tempQueue = queue.get();
@@ -211,34 +211,49 @@ export default function ListOptions({
             </PopupMenuTrigger>
             <PopupMenuContent>
                 <PopupMenuOption
+                    disable={!inDatabase && !$downloadedLists.includes(id)}
                     onClick={() => playListHandleClick({ type, id })}
                 >
                     <Play className="h-5 w-5" />
                     Play list
                 </PopupMenuOption>
-                <PopupMenuOption onClick={likeAllSongs}>
+                <PopupMenuOption
+                    disable={!inDatabase && !$downloadedLists.includes(id)}
+                    onClick={likeAllSongs}
+                >
                     <Heart className="h-5 w-5" />
                     Like all songs on the list
                 </PopupMenuOption>
-                <PopupMenuOption onClick={addListToTopQueue}>
+                <PopupMenuOption
+                    disable={!inDatabase && !$downloadedLists.includes(id)}
+                    onClick={addListToTopQueue}
+                >
                     <ListStart className="h-5 w-5" />
                     Add list to top of queue
                 </PopupMenuOption>
-                <PopupMenuOption onClick={addListToBottomQueue}>
+                <PopupMenuOption
+                    disable={!inDatabase && !$downloadedLists.includes(id)}
+                    onClick={addListToBottomQueue}
+                >
                     <ListEnd className="h-5 w-5" />
                     Add list to bottom of queue
                 </PopupMenuOption>
-                <PopupMenuOption onClick={downloadListToDevice}>
+                <PopupMenuOption
+                    disable={!inDatabase && !$downloadedLists.includes(id)}
+                    onClick={downloadListToDevice}
+                >
                     <HardDriveDownload className="h-5 w-5" />
                     Download list to device
                 </PopupMenuOption>
                 <PopupMenuOption
+                    disable={!inDatabase && !$downloadedLists.includes(id)}
                     onClick={() => addToLibraryHandleClick({ id, type })}
                 >
                     <Library className="h-5 w-5" />
                     {isInLibrary ? "Remove from library" : "Add to library"}
                 </PopupMenuOption>
                 <PopupMenuOption
+                    disable={!inDatabase && !$downloadedLists.includes(id)}
                     onClick={() => pinListHandleClick({ id, type })}
                 >
                     {isPinned ? (
@@ -248,7 +263,7 @@ export default function ListOptions({
                     )}
                     {isPinned ? "Unpin from left panel" : "Pin to left panel"}
                 </PopupMenuOption>
-                {!inDatabase && (
+                {!inDatabase && !$downloadedLists.includes(id) && (
                     <PopupMenuOption onClick={downloadListToDB}>
                         <Download className="h-5 w-5" />
                         Download to server

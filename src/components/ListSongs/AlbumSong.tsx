@@ -8,7 +8,7 @@ import { currentList, currentListSongs } from "@/stores/currentList";
 import { songHandleClick } from "./HandleClick";
 import SongContextMenu from "./SongContextMenu";
 import type { SongDB } from "@/db/song";
-import { downloadedSongs } from "@/stores/downloadedSongs";
+import { downloadedSongs, status } from "@/stores/downloads";
 import { networkStatus } from "@/stores/networkStatus";
 
 export default function AlbumSong({
@@ -35,6 +35,7 @@ export default function AlbumSong({
     const $networkStatus = useStore(networkStatus);
 
     const $downloadedSongs = useStore(downloadedSongs);
+    const $status = useStore(status);
 
     const [_song, setSong] =
         useState<
@@ -77,11 +78,13 @@ export default function AlbumSong({
 
     if (!$queue) return <div></div>;
 
+    const songStatus = $status.lists[song.albumId]?.songs[song.id];
+
     return (
         <SongContextMenu song={_song}>
             <div
                 className={
-                    "flex flex-row items-center gap-2 md:gap-4 transition-colors px-2 py-[0.5rem] md:py-[0.65rem] rounded select-none md:select-text " +
+                    "grid grid-cols-[min-content_1fr_min-content_min-content_40px] items-center gap-2 md:gap-4 transition-colors md:px-2 py-[0.5rem] md:py-[0.65rem] rounded select-none md:select-text " +
                     // If offline and the song is not saved to indexedDB or the song is not in the server database, disable that song
                     ((($networkStatus == "offline" &&
                         !songsInIndexedDB.get()?.includes(_song.id)) ||
@@ -104,32 +107,56 @@ export default function AlbumSong({
                     setHovered(false);
                 }}
             >
-                <label className="text-md text-white/80 w-5 text-center">
+                <label className="text-md text-white/80 w-6 text-center">
                     {index + 1}
                 </label>
-                <label
+                <div
                     className={
-                        "text-base font-semibold w-full truncate md:text-clip" +
+                        "text-base font-semibold w-full min-w-0 max-w-full truncate md:text-clip grid grid-cols-[1fr_max-content] items-center gap-1" +
                         ($queue.find((song) => song.index == $queueIndex)?.list
                             ?.id == $currentList?.id &&
                         $queue.find((song) => song.index == $queueIndex)?.list
                             ?.type == $currentList?.type &&
                         $queue.find((song) => song.index == $queueIndex)?.song
                             .id == song.id
-                            ? " text-[#ec5588]"
+                            ? " text-[#ec5588] "
                             : "")
                     }
                 >
-                    {_song.name}{" "}
-                </label>
-                {$songsInIndexedDB?.includes(_song.id) && (
+                    <label className="w-auto min-w-0 max-w-full truncate">
+                        {_song.name}
+                    </label>
+                    {songStatus && songStatus.completed != 100 && (
+                        <div
+                            className={
+                                "progress-bar h-2 w-32 rounded-full relative " +
+                                (songStatus.message == "Error" && "bg-red-400")
+                            }
+                        >
+                            <div
+                                className={
+                                    "absolute h-full rounded-full transition-all " +
+                                    (songStatus.message == "Error"
+                                        ? " bg-red-400 "
+                                        : " from-[#ee1086] to-[#fb6467] bg-gradient-to-r ")
+                                }
+                                style={{
+                                    width: `${songStatus.completed}%`,
+                                }}
+                            ></div>
+                        </div>
+                    )}
+                </div>
+                {$songsInIndexedDB?.includes(_song.id) ? (
                     <div className="min-h-6 min-w-6">
                         <CheckCircle2 className="flex h-full w-full text-[#ec5588]" />
                     </div>
+                ) : (
+                    <div></div>
                 )}
                 <LikeButton song={_song} />
 
-                <EllipsisVertical className="text-gray-400 flex md:hidden md:hover:text-white md:hover:scale-105 w-8" />
+                {/* <EllipsisVertical className="text-gray-400 flex md:hidden md:hover:text-white md:hover:scale-105" /> */}
                 <label className="text-sm text-white/80 select-none min-w-7 flex justify-center items-center">
                     {hovered && window.innerWidth > 768 ? (
                         <EllipsisVertical

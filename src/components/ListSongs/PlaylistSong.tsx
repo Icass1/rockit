@@ -9,7 +9,7 @@ import { useStore } from "@nanostores/react";
 import { navigate } from "astro:transitions/client";
 import { songHandleClick } from "./HandleClick";
 import SongContextMenu from "./SongContextMenu";
-import { downloadedSongs } from "@/stores/downloadedSongs";
+import { downloadedSongs } from "@/stores/downloads";
 import { getImageUrl } from "@/lib/getImageUrl";
 import { networkStatus } from "@/stores/networkStatus";
 import {
@@ -170,14 +170,14 @@ export default function PlaylistSong({
                         </div>
 
                         {/* Botones y tiempo (alineados a la derecha) */}
-                        <div className="flex items-center gap-x-1 md:gap-4 ml-auto w-fit">
+                        <div className="flex items-center gap-x-2 md:gap-4 ml-auto w-fit">
                             {$songsInIndexedDB?.includes(_song.id) && (
                                 <div className="min-h-6 min-w-6">
                                     <CheckCircle2 className="flex h-full w-full text-[#ec5588]" />
                                 </div>
                             )}
                             <LikeButton song={_song} />
-                            <EllipsisVertical className="text-gray-400 flex md:hidden md:hover:text-white md:hover:scale-105 w-8" />
+                            {/* <EllipsisVertical className="text-gray-400 flex md:hidden md:hover:text-white md:hover:scale-105" /> */}
 
                             <label className="text-sm text-white/80 select-none min-w-7 flex justify-center items-center">
                                 {hovered && window.innerWidth > 768 ? (

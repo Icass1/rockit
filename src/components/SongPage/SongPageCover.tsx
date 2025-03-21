@@ -9,7 +9,7 @@ import {
     queue,
     queueIndex,
 } from "@/stores/audio";
-import { downloadedSongs } from "@/stores/downloadedSongs";
+import { downloadedSongs } from "@/stores/downloads";
 import { downloads } from "@/stores/downloads";
 import { useStore } from "@nanostores/react";
 import { Download, Pause, Play } from "lucide-react";

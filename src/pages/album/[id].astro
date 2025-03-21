@@ -70,7 +70,13 @@ const meta = {
                         : album.images[0].url}
                     class="w-full h-full object-fill absolute"
                 />
-                <PlayListButton type="album" id={id} client:only="react" />
+                <PlayListButton
+                    type="album"
+                    id={id}
+                    client:only="react"
+                    inDatabase={inDatabase}
+                    url={`https://open.spotify.com/album/${id}`}
+                />
             </div>
 
             <!-- Div con los iconos -->

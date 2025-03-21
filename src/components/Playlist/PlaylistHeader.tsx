@@ -91,35 +91,38 @@ export default function PlaylistHeader({
             }
         >
             {/* Imagen de la playlist */}
-            <div className="relative flex justify-center items-center h-full min-h-0 max-h-full md:h-auto">
-                <div className="relative overflow-hidden aspect-square rounded-xl md:rounded-md md:w-full md:h-auto h-full w-auto md:bg-none bg-[rgb(15,15,15)]">
-                    {specialPlaylist ? (
-                        <div
-                            className="relative rounded-md w-full h-full object-cover"
-                            style={{
-                                backgroundImage: "url(/rockit-background.png)",
-                                backgroundSize: "cover",
-                            }}
-                        >
-                            {coverIcon}
-                        </div>
-                    ) : (
-                        <div className="w-full h-full object-cover">
-                            <img
-                                src={getImageUrl({
-                                    imageId: playlist.image,
-                                    fallback:
-                                        playlist?.images?.[0]?.url ??
-                                        "/rockit-background.png",
-                                    height: 370,
-                                    width: 370,
-                                })}
-                                className="absolute w-full h-full object-cover"
-                            />
-                            <PlayListButton id={id} type="playlist"/>
-                        </div>
-                    )}
-                </div>
+            <div className="relative overflow-hidden aspect-square rounded-xl md:rounded-md w-full h-auto md:bg-none bg-[rgb(15,15,15)]">
+                {specialPlaylist ? (
+                    <div
+                        className="relative rounded-md w-full h-full object-cover"
+                        style={{
+                            backgroundImage: "url(/rockit-background.png)",
+                            backgroundSize: "cover",
+                        }}
+                    >
+                        {coverIcon}
+                    </div>
+                ) : (
+                    <div className="w-full h-full">
+                        <img
+                            src={getImageUrl({
+                                imageId: playlist.image,
+                                fallback:
+                                    playlist?.images?.[0]?.url ??
+                                    "/rockit-background.png",
+                                height: 370,
+                                width: 370,
+                            })}
+                            className="absolute w-full h-full"
+                        />
+                        <PlayListButton
+                            id={id}
+                            type="playlist"
+                            inDatabase={inDatabase}
+                            url={`https://open.spotify.com/playlist/${id}`}
+                        />
+                    </div>
+                )}
             </div>
 
             {/* Nombre de la playlist */}

@@ -1,5 +1,5 @@
 
-from flask import Flask, Response, request, jsonify
+from flask import Flask, Response, request, jsonify, render_template
 from flask_sock import Sock
 from flask_cors import CORS
 
@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 import os
 from typing import Dict
+import json
 
 environ_variables = ["ENVIRONMENT", "CLIENT_ID", "CLIENT_SECRET", "FRONTEND_URL", "SONGS_PATH", "TEMP_PATH", "LOGS_PATH", "IMAGES_PATH", "API_KEY", "DOWNLOAD_THREADS", "LOG_DUMP_LEVEL"]
 
@@ -46,6 +47,23 @@ import os
 
 @app.route('/')
 def home():
+
+    queue = []
+    for k in downloader.queue:
+        
+        queue.append({
+            "spotdl_song": k.get("spotdl_song").json,
+            "raw_list": k.get("raw_list")._json,   
+            "raw_song": k.get("raw_song")._json
+        })
+
+
+    return render_template(
+        "index.html",
+        queue=json.dumps(queue, indent=4), 
+        downloads_ids_dict=json.dumps(downloader.downloads_ids_dict, indent=4)
+    )
+
     return Response("OK")
 
 @app.route('/search')

@@ -1,0 +1,24 @@
+Make get_song function
+    Check if song is in front database
+        If it is, return that
+        If not, request spotify for song, update it in front database (path = None) and return it
+
+Make get_album function
+    Check if album is front database
+        If it is, call get_song for each song and return all info
+        If not, request spotify for album, update album info in database, call get_song for each song and return it
+
+Make get_playlist function
+    Request spotify for playlist, cal get_song for each song and return data.
+
+
+Downloads -> dict key: id, value: dict (type, status: listen of song status in list)
+
+
+
+Start list download
+    Fetch list songs
+    Start song download for each song
+
+
+Start song download

@@ -158,6 +158,8 @@ export default function UserStats() {
                                 newDate.setMinutes(0);
                                 newDate.setSeconds(0);
 
+                                if (newDate.getTime() > endDate) return;
+
                                 setStartDate(newDate.getTime());
                             }}
                             required
@@ -190,6 +192,7 @@ export default function UserStats() {
                                 newDate.setHours(23);
                                 newDate.setMinutes(59);
                                 newDate.setSeconds(59);
+                                if (newDate.getTime() < startDate) return;
 
                                 setEndDate(newDate.getTime());
                             }}

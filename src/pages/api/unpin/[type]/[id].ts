@@ -1,5 +1,5 @@
 import { db } from "@/lib/db/db";
-import { parseUser, type RawUserDB, type UserDB } from "@/lib/db/user";
+import { type UserDB } from "@/lib/db/user";
 import type { APIContext } from "astro";
 
 export async function ALL(context: APIContext): Promise<Response> {
@@ -7,11 +7,9 @@ export async function ALL(context: APIContext): Promise<Response> {
         return new Response("Unauthenticated", { status: 401 });
     }
 
-    const user = parseUser(
-        db
-            .prepare("SELECT pinnedLists FROM user WHERE id = ?")
-            .get(context.locals.user.id) as RawUserDB
-    ) as UserDB<"pinnedLists">;
+    const user = (await db
+        .prepare("SELECT pinnedLists FROM user WHERE id = ?")
+        .get(context.locals.user.id)) as UserDB as UserDB<"pinnedLists">;
 
     const type = context.params.type;
     const id = context.params.id;

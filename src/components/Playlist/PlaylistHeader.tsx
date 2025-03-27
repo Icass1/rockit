@@ -91,10 +91,10 @@ export default function PlaylistHeader({
             }
         >
             {/* Imagen de la playlist */}
-            <div className="relative overflow-hidden aspect-square rounded-xl md:rounded-md w-full h-auto md:bg-none bg-[rgb(15,15,15)]">
+            <div className="relative overflow-hidden aspect-square rounded-xl max-w-full max-h-full">
                 {specialPlaylist ? (
                     <div
-                        className="relative rounded-md w-full h-full object-cover"
+                        className="max-w-full max-h-full aspect-square relative mx-auto rounded-md"
                         style={{
                             backgroundImage: "url(/rockit-background.png)",
                             backgroundSize: "cover",
@@ -103,7 +103,7 @@ export default function PlaylistHeader({
                         {coverIcon}
                     </div>
                 ) : (
-                    <div className="w-full h-full">
+                    <div className="max-w-full max-h-full aspect-square relative mx-auto ">
                         <img
                             src={getImageUrl({
                                 imageId: playlist.image,
@@ -113,7 +113,7 @@ export default function PlaylistHeader({
                                 height: 370,
                                 width: 370,
                             })}
-                            className="absolute w-full h-full"
+                            className="absolute w-full h-full rounded-md"
                         />
                         <PlayListButton
                             id={id}
@@ -127,7 +127,7 @@ export default function PlaylistHeader({
 
             {/* Nombre de la playlist */}
             <div className="flex flex-row w-fit mx-auto items-center gap-3">
-                <label className="text-2xl font-semibold text-balance">
+                <label className="text-2xl font-semibold text-center">
                     {playlist.name}
                 </label>
                 <ListOptions

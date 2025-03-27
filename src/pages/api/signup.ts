@@ -1,4 +1,4 @@
-import { lucia } from "@/auth";
+// import { lucia } from "@/auth";
 import { generateId } from "lucia";
 import { hash } from "@node-rs/argon2";
 
@@ -43,6 +43,7 @@ export async function POST(context: APIContext): Promise<Response> {
         );
     }
 
+    console.log(`password: '${password}'`)
     const passwordHash = await hash(password, {
         // recommended minimum parameters
         memoryCost: 19456,
@@ -50,6 +51,8 @@ export async function POST(context: APIContext): Promise<Response> {
         outputLen: 32,
         parallelism: 1,
     });
+    console.log(`passwordHash: '${passwordHash}'`)
+
     const userId = generateId(16);
 
     try {

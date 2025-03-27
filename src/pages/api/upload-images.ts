@@ -27,9 +27,9 @@ export async function POST(context: APIContext): Promise<Response> {
                     );
                 }
 
-                const imageDB = db
+                const imageDB = (await db
                     .prepare("SELECT * FROM image WHERE path = ?")
-                    .get(path) as ImageDB;
+                    .get(path)) as ImageDB;
 
                 if (imageDB) {
                     // return new Response(

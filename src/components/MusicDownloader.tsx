@@ -672,7 +672,7 @@ export function Downloads({ navOpen = false }: { navOpen?: boolean }) {
                     </button>
                 </div>
 
-                {Object.entries($status.songs)
+                {/* {Object.entries($status.songs)
                     .toReversed()
                     .map((songStatus) => (
                         <AddContextMenu key={songStatus[0]} song={songStatus}>
@@ -688,7 +688,7 @@ export function Downloads({ navOpen = false }: { navOpen?: boolean }) {
                         <AddContextMenu key={list[0]} list={list}>
                             <RenderListDownload list={list} setOpen={setOpen} />
                         </AddContextMenu>
-                    ))}
+                    ))} */}
             </div>
             <div className="hidden md:block">
                 <DownloadIcon

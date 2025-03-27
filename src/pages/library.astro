@@ -4,14 +4,10 @@ import ButtonSection from "@/components/Mobile/MobileLibraryButtons";
 import NewPlaylistButton from "@/components/NewPlaylistButton";
 
 import Layout from "@/layouts/Layout.astro";
-import { type AlbumDB, parseAlbum, type RawAlbumDB } from "@/lib/db/album";
+import { type AlbumDB } from "@/lib/db/album";
 import { db } from "@/lib/db/db";
-import {
-    type PlaylistDB,
-    type RawPlaylistDB,
-    parsePlaylist,
-} from "@/lib/db/playlist";
-import { parseUser, type RawUserDB } from "@/lib/db/user";
+import { type PlaylistDB } from "@/lib/db/playlist";
+import { type UserDB } from "@/lib/db/user";
 import { getImageUrl } from "@/lib/getImageUrl";
 
 import { getLang } from "@/lib/getLang";
@@ -24,10 +20,10 @@ if (!Astro.locals.user) {
 
 const lang = getLang(Astro.locals.user.lang);
 
-const userLists = parseUser(
-    db
+const userLists = (
+    (await db
         .prepare("SELECT lists FROM user WHERE id = ?")
-        .get(Astro.locals.user.id) as RawUserDB
+        .get(Astro.locals.user.id)) as UserDB
 )?.lists;
 
 if (!userLists) {
@@ -41,18 +37,14 @@ if (userLists?.filter((list) => list.type == "playlist").length > 0) {
         ?.filter((list) => list.type == "playlist")
         .map((list) => `'${list.id}'`)
         .join(" OR id = ")}`;
-    playlists = (db.prepare(playlistsQuery).all() as RawPlaylistDB[]).map(
-        (playlist: RawPlaylistDB) => parsePlaylist(playlist) as PlaylistDB
-    );
+    playlists = (await db.prepare(playlistsQuery).all()) as PlaylistDB[];
 }
 if (userLists?.filter((list) => list.type == "album").length > 0) {
     const albumsQuery = `SELECT * FROM album WHERE id = ${userLists
         ?.filter((list) => list.type == "album")
         .map((list) => `'${list.id}'`)
         .join(" OR id = ")}`;
-    albums = (db.prepare(albumsQuery).all() as RawAlbumDB[]).map(
-        (album) => parseAlbum(album) as AlbumDB
-    );
+    albums = (await db.prepare(albumsQuery).all()) as AlbumDB[];
 }
 
 const data = await getStats(Astro.locals.user.id);

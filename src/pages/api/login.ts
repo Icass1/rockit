@@ -1,10 +1,11 @@
-import { lucia } from "@/auth";
+// import { lucia } from "@/auth";
 import { verify } from "@node-rs/argon2";
-
 import { db } from "@/lib/db/db";
 import type { UserDB } from "@/lib/db/user";
 import { ENV } from "@/rockitEnv";
 import type { APIContext } from "astro";
+
+const BACKEND_URL = ENV.BACKEND_URL;
 
 export async function POST(context: APIContext): Promise<Response> {
     const formData = await context.request.formData();
@@ -31,46 +32,49 @@ export async function POST(context: APIContext): Promise<Response> {
         });
     }
 
-    const existingUser = db
-        .prepare("SELECT * FROM user WHERE username = ?")
-        .get(username) as UserDB | undefined;
-    if (!existingUser) {
-        return new Response(
-            JSON.stringify({
-                error:
-                    "Incorrect username or password" +
-                    (ENV.ENVIRONMENT == "DEV" ? " (user not found)" : ""),
-            }),
-            {
-                status: 400,
-            }
-        );
-    }
-
-    const validPassword = await verify(existingUser.passwordHash, password, {
-        memoryCost: 19456,
-        timeCost: 2,
-        outputLen: 32,
-        parallelism: 1,
+    console.log("fetching ", `${BACKEND_URL}/auth/login`);
+    const response = await fetch(`${BACKEND_URL}/auth/login`, {
+        method: "POST",
+        body: JSON.stringify({ username: username, password: password }),
+        signal: AbortSignal.timeout(2000),
+        headers: {
+            "Content-Type": "application/json",
+        },
     });
-    if (!validPassword) {
+
+    if (response.status == 401) {
         return new Response(
             JSON.stringify({
-                error: "Incorrect username or password",
+                error: "Invalid credentials",
             }),
             {
-                status: 400,
+                status: 401,
             }
         );
     }
 
-    const session = await lucia.createSession(existingUser.id, {});
-    const sessionCookie = lucia.createSessionCookie(session.id);
-    context.cookies.set(
-        sessionCookie.name,
-        sessionCookie.value,
-        sessionCookie.attributes
-    );
+    console.log(response.ok);
+
+    if (!response.ok) {
+        return new Response(
+            JSON.stringify({
+                error: "Internal server error",
+            }),
+            {
+                status: 500,
+            }
+        );
+    }
+
+    const responseData = await response.json();
+
+    console.log("responseData", responseData);
+
+    context.cookies.set("auth_session2", responseData.session_id, {
+        httpOnly: true,
+        path: "/",
+        expires: new Date(new Date().getTime() + 1000 * 60 * 60 * 30),
+    });
 
     return new Response();
 }

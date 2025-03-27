@@ -72,7 +72,7 @@ export type SongDBFull = {
     dateAdded: string | undefined;
 };
 
-export function parseSong(rawSong: RawSongDB | undefined): SongDB | undefined {
+export function parse1Song(rawSong: RawSongDB | undefined): SongDB | undefined {
     if (!rawSong) {
         return undefined;
     }

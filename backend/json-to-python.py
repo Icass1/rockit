@@ -115,8 +115,8 @@ def main():
 
     classes = []
     dir_name = "rockItApiTypes"
-    base_name = "RockItAlbum"
-    root_name = "RawRockItApiAlbum"
+    base_name = "RockItSong"
+    root_name = "RawRockItApiSong"
     generate_classes(name=root_name, json_data=json_data, classes=classes, base_name=base_name)
 
     if not os.path.exists(f"backend/{dir_name}"):

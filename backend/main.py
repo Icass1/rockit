@@ -4,10 +4,12 @@ from flask_sock import Sock
 from flask_cors import CORS
 
 from dotenv import load_dotenv
-load_dotenv()
 import os
 from typing import Dict
 import json
+from functools import wraps
+
+load_dotenv(override=True)
 
 environ_variables = ["ENVIRONMENT", "CLIENT_ID", "CLIENT_SECRET", "FRONTEND_URL", "SONGS_PATH", "TEMP_PATH", "LOGS_PATH", "IMAGES_PATH", "API_KEY", "DOWNLOAD_THREADS", "LOG_DUMP_LEVEL"]
 
@@ -21,6 +23,10 @@ from downloader import Downloader, SongDownloader, ListDownloader
 from backendUtils import create_id
 from logger import getLogger
 
+from db.db import DB
+
+import auth
+
 app = Flask(__name__)
 sock = Sock(app)
 
@@ -33,7 +39,9 @@ CORS(app, supports_credentials=True, resources={
     }
 })
 
-spotify = Spotify()
+db = DB()
+
+spotify = Spotify(db)
 downloader = Downloader(spotify)
 
 downloads = {}
@@ -41,9 +49,20 @@ user_downloads: Dict[str, Dict[str, SongDownloader | ListDownloader | None]] = {
 
 logger = getLogger(__name__)
 
-app.logger = logger
-
-import os
+def require_api_key(func):
+    return func
+    API_KEY = os.getenv("API_KEY")
+    
+    @wraps(func)
+    def decorated(*args, **kwargs):
+        if request.headers.get("Authorization").replace("Bearer ", "") == API_KEY:
+            print("A")
+            return func(*args, **kwargs)
+        else:
+            print("B")
+            return Response("Authorization missing", status=401)
+            
+    return decorated
 
 @app.route('/')
 def home():
@@ -51,18 +70,113 @@ def home():
     queue = []
     for k in downloader.queue:
         
+        raw_list = k.get("raw_list")
+        raw_song = k.get("raw_song")
+        
+        if not raw_list or not raw_song: continue
+        
         queue.append({
             "spotdl_song": k.get("spotdl_song").json,
-            "raw_list": k.get("raw_list")._json,   
-            "raw_song": k.get("raw_song")._json
+            "raw_list": raw_list._json,   
+            "raw_song": raw_song._json
         })
-
 
     return render_template(
         "index.html",
         queue=json.dumps(queue, indent=4), 
         downloads_ids_dict=json.dumps(downloader.downloads_ids_dict, indent=4)
     )
+
+# Route to handle login (with session management)
+@app.route('/auth/login', methods=['POST'])
+@require_api_key
+def login():
+    if not request.json: return Response("JSON not defined")
+    
+    username = request.json.get('username')
+    password = request.json.get('password')
+
+    # Assuming you have a function to check user credentials
+    user = auth.check_user_credentials(db=db, username=username, password=password)
+    if user:
+        user_id = user['id']
+        # Create session and return session id
+        session_id = auth.create_session(db=db, user_id=user_id)
+        return jsonify({'message': 'Login successful', 'session_id': session_id})
+    else:
+        return jsonify({'message': 'Invalid credentials'}), 401
+
+# Route to handle logout (delete session)
+@app.route('/auth/logout', methods=['POST'])
+@require_api_key
+def logout():
+    if not request.json: return Response("JSON not defined")
+    
+    session_id = request.json.get('session_id')
+    auth.delete_session(db, session_id)
+    return jsonify({'message': 'Logged out successfully'})
+
+@app.route('/auth/get-user', methods=['POST'])
+@require_api_key
+def get_user():
+    if not request.json: return Response("JSON not defined")
+    
+    session_id = request.json.get('session_id')
+    params = request.json.get('params')
+    
+    if params:
+        params = ",".join(params)
+    else:
+        params = "*"
+        
+    session = db.get(query="SELECT user_id FROM session WHERE id = ?", parameters=(session_id,))
+    
+    if not session:
+        return Response("Session not found"), 401
+    
+    user = db.get(query=f"SELECT {params} FROM user WHERE id = ?", parameters=(session["user_id"],))
+    if not user:
+        return Response("User not found"), 401
+    
+    return jsonify(user)
+
+@app.route('/db/get', methods=["POST"])
+@require_api_key
+def db_get_request():# -> dict[str, Any]:
+    if not request.json: return Response("JSON not defined")
+    
+    query = request.json.get('query')
+    params = request.json.get('params')
+    
+    result = db.get(query=query, parameters=params)
+
+    # print(result)
+
+    return jsonify(result)
+
+@app.route('/db/all', methods=["POST"])
+@require_api_key
+def db_all_request():# -> dict[str, Any]:
+    if not request.json: return Response("JSON not defined")
+    
+    query = request.json.get('query')
+    params = request.json.get('params')
+    
+    result = db.get_all(query=query, parameters=params)
+
+    # print(result)
+
+    return jsonify(result)
+
+@app.route('/db/run', methods=["POST"])
+@require_api_key
+def db_run_request():# -> dict[str, Any]:
+    if not request.json: return Response("JSON not defined")
+    
+    query = request.json.get('query')
+    params = request.json.get('params')
+        
+    db.execute(query=query, parameters=params)
 
     return Response("OK")
 
@@ -82,10 +196,7 @@ def search():
 
 @app.route('/album/<string:id>')
 def album(id: str):
-
-    album = spotify.api_call(path=f"albums/{id}")
-
-    return jsonify(album)
+    return jsonify(spotify.get_album(id, force_spotify_request=True))
 
 @app.route('/artist-top-songs/<string:id>')
 def artist_top_songs(id: str):
@@ -103,10 +214,8 @@ def artist(id: str):
 
 @app.route('/song/<string:id>')
 def song(id: str):
-
-    song = spotify.api_call(path=f"tracks/{id}")
     
-    return jsonify(song)
+    return jsonify(spotify.get_song(id, force_spotify_request=True))
 
 @app.route('/start-download')
 def start_download():    
@@ -151,7 +260,11 @@ def download_status(id: str):
     if user_downloads[USER_ID][id] == None:
         return Response("Error in download"), 500
 
-    return Response(user_downloads[USER_ID][id].status(), mimetype='text/event-stream')
+    download_handler = user_downloads[USER_ID][id]
+
+    if not download_handler: return Response("Download handler not found"), 401
+
+    return Response(download_handler.status(), mimetype='text/event-stream')
 
 @app.route('/downloads')
 def check_downloads():

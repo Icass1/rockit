@@ -2,9 +2,9 @@ import type { APIContext } from "astro";
 
 import { ENV } from "@/rockitEnv";
 import type { SpotifyAlbum, SpotifyTrack } from "@/types/spotify";
-import { type AlbumDB, parseAlbum, type RawAlbumDB } from "@/lib/db/album";
+import { type AlbumDB } from "@/lib/db/album";
 import { db } from "@/lib/db/db";
-import { type SongDB, type RawSongDB, parseSong } from "@/lib/db/song";
+import { type SongDB } from "@/lib/db/song";
 
 const BACKEND_URL = ENV.BACKEND_URL;
 
@@ -12,9 +12,9 @@ export async function GET(context: APIContext): Promise<Response> {
     const id = context.params.id as string;
 
     let album: AlbumDB | undefined;
-    album = parseAlbum(
-        db.prepare("SELECT * FROM album WHERE id = ?").get(id) as RawAlbumDB
-    );
+    album = (await db
+        .prepare("SELECT * FROM album WHERE id = ?")
+        .get(id)) as AlbumDB;
 
     if (!album) {
         try {
@@ -60,11 +60,11 @@ export async function GET(context: APIContext): Promise<Response> {
         album.songs.map(async (songId): Promise<SongDB | string> => {
             let song;
             try {
-                const rawSong = db
+                const rawSong = (await db
                     .prepare("SELECT * FROM song WHERE id = ?")
-                    .get(songId) as RawSongDB;
+                    .get(songId)) as SongDB;
                 if (rawSong) {
-                    song = parseSong(rawSong);
+                    song = rawSong;
                     if (song) {
                         return song;
                     }

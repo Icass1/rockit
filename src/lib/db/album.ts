@@ -54,7 +54,7 @@ export interface AlbumDBCopyright {
     type: string;
 }
 
-export function parseAlbum(album: RawAlbumDB | undefined): AlbumDB | undefined {
+export function parse1Album(album: RawAlbumDB | undefined): AlbumDB | undefined {
     if (!album) {
         return undefined;
     }

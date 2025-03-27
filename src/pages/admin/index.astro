@@ -3,22 +3,32 @@ import Layout from "@/layouts/Layout.astro";
 import { db } from "@/db/db";
 import { Link } from "lucide-react";
 import type { ErrorDB } from "@/lib/db/error";
+import type { UserDB } from "@/lib/db/user";
+import type { AlbumDB } from "@/lib/db/album";
+import type { PlaylistDB } from "@/lib/db/playlist";
+import type { SongDB } from "@/lib/db/song";
 if (!Astro.locals.user?.admin) {
     return new Response("Page not found", { status: 404 });
 }
 
-const users = db.prepare("SELECT id FROM user").all();
-const albums = db.prepare("SELECT id FROM album").all();
-const playlists = db.prepare("SELECT id FROM playlist").all();
-const songs = db.prepare("SELECT id FROM song").all();
-const songsWithoutLyrics = db
+const users = (await db.prepare("SELECT id FROM user").all()) as UserDB<"id">[];
+const albums = (await db
+    .prepare("SELECT id FROM album")
+    .all()) as AlbumDB<"id">[];
+const playlists = (await db
+    .prepare("SELECT id FROM playlist")
+    .all()) as PlaylistDB<"id">[];
+const songs = (await db.prepare("SELECT id FROM song").all()) as SongDB<"id">[];
+const songsWithoutLyrics = (await db
     .prepare("SELECT id FROM song WHERE lyrics IS NULL")
-    .all();
-const errors = db.prepare("SELECT id, dateAdded FROM error").all() as ErrorDB[];
+    .all()) as SongDB<"id">[];
+const errors = (await db
+    .prepare("SELECT id, dateAdded FROM error")
+    .all()) as ErrorDB[];
 
-const tables = db
+const tables = (await db
     .prepare("SELECT name FROM sqlite_schema WHERE type='table'")
-    .all() as { name: string }[];
+    .all()) as { name: string }[];
 
 const gradientTextClass =
     "text-xl [background:-webkit-linear-gradient(0deg,#fb6467,#ee1086)] [-webkit-text-fill-color:transparent] font-bold";
@@ -147,10 +157,12 @@ const gradientTextClass =
                 </div>
                 <div class="grid grid-cols-3 gap-x-3">
                     {
-                        tables.map((table) => {
-                            const count = db
-                                .prepare(`SELECT id FROM ${table.name}`)
-                                .all().length;
+                        tables.map(async (table) => {
+                            const count = (
+                                await db
+                                    .prepare(`SELECT id FROM ${table.name}`)
+                                    .all()
+                            )?.length;
 
                             return (
                                 <a

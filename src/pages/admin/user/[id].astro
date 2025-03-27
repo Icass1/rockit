@@ -2,19 +2,19 @@
 import ToggleButtons from "@/components/Admin/ToggleButtons";
 import Layout from "@/layouts/Layout.astro";
 import { db } from "@/lib/db/db";
-import { parseUser, type RawUserDB, type UserDB } from "@/lib/db/user";
+import { type UserDB } from "@/lib/db/user";
 
 if (!Astro.locals.user?.admin) {
     return new Response("Page not found", { status: 404 });
 }
 
-const user = parseUser(
-    db
-        .prepare(
-            "SELECT id, username, admin, queue, randomQueue FROM user WHERE id = ?"
-        )
-        .get(Astro.params.id) as RawUserDB
-) as UserDB<"id" | "username" | "admin" | "randomQueue" | "queue">;
+const user = (await db
+    .prepare(
+        "SELECT id, username, admin, queue, randomQueue FROM user WHERE id = ?"
+    )
+    .get(Astro.params.id)) as UserDB as UserDB<
+    "id" | "username" | "admin" | "randomQueue" | "queue"
+>;
 ---
 
 <Layout currentPage="AdminUser">

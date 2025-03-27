@@ -1,5 +1,5 @@
 import { db } from "@/lib/db/db";
-import { parseSong, type RawSongDB, type SongDB } from "@/lib/db/song";
+import { type SongDB } from "@/lib/db/song";
 import stringSimilarity from "@/lib/stringSimilarity";
 import { ENV } from "@/rockitEnv";
 import type {
@@ -40,13 +40,13 @@ function parseLyrics(text: string): { seconds: number; lyrics: string }[] {
 export async function GET(context: APIContext): Promise<Response> {
     const id = context.params.id as string;
 
-    const song = parseSong(
-        db
-            .prepare(
-                `SELECT artists,name,lyrics,dynamicLyrics,albumName FROM song WHERE id = ?`
-            )
-            .get(id) as RawSongDB
-    ) as SongDB<"artists" | "name" | "lyrics" | "dynamicLyrics" | "albumName">;
+    const song = (await db
+        .prepare(
+            `SELECT artists,name,lyrics,dynamicLyrics,albumName FROM song WHERE id = ?`
+        )
+        .get(id)) as SongDB as SongDB<
+        "artists" | "name" | "lyrics" | "dynamicLyrics" | "albumName"
+    >;
 
     if (!song) {
         return new Response("Song not found", { status: 404 });

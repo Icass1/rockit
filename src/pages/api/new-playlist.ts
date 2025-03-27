@@ -22,13 +22,15 @@ export async function POST(context: APIContext): Promise<Response> {
     let owner = data.owner;
     let songs = JSON.stringify(data.songs);
 
-    const playlist = db.prepare("SELECT * FROM playlist WHERE id = ?").get(id);
+    const playlist = await db
+        .prepare("SELECT * FROM playlist WHERE id = ?")
+        .get(id);
 
     let imageId;
 
-    const imageDB = db
+    const imageDB = (await db
         .prepare("SELECT * FROM image WHERE path = ?")
-        .get(image) as ImageDB;
+        .get(image)) as ImageDB;
     if (imageDB) {
         imageId = imageDB.id;
     } else {

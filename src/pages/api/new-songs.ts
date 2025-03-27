@@ -48,9 +48,9 @@ export async function POST(context: APIContext): Promise<Response> {
 
             let imageId;
 
-            const imageDB = db
+            const imageDB = (await db
                 .prepare("SELECT * FROM image WHERE path = ?")
-                .get(image) as ImageDB;
+                .get(image)) as ImageDB;
             if (imageDB) {
                 imageId = imageDB.id;
             } else {
@@ -64,7 +64,9 @@ export async function POST(context: APIContext): Promise<Response> {
                 );
             }
 
-            const song = db.prepare("SELECT * FROM song WHERE id = ?").get(id);
+            const song = await db
+                .prepare("SELECT * FROM song WHERE id = ?")
+                .get(id);
 
             if (song) {
                 if (lyrics != null) {
@@ -131,7 +133,7 @@ export async function POST(context: APIContext): Promise<Response> {
                 );
             } catch (err) {
                 console.log(data);
-                console.warn("Error in new-song", err?.toString());
+                console.warn("Error in new-songs", err?.toString());
             }
         })
     );

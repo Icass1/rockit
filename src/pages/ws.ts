@@ -1,5 +1,5 @@
 import { db } from "@/lib/db/db";
-import { parseUser, type RawUserDB, type UserDB } from "@/lib/db/user";
+import { type UserDB } from "@/lib/db/user";
 import type { APIContext } from "astro";
 
 export interface Message {
@@ -55,7 +55,7 @@ export async function ALL(context: APIContext): Promise<Response> {
             //     connections: allConections[userId].connections.length,
             // });
 
-            socket.addEventListener("message", (event) => {
+            socket.addEventListener("message", async (event) => {
                 if (!context.locals.user) {
                     console.error("User is not logged in");
                     return;
@@ -68,24 +68,28 @@ export async function ALL(context: APIContext): Promise<Response> {
                     return;
                 }
                 if (messageJson.currentSong != undefined) {
-                    db.prepare(
-                        `UPDATE user SET currentSong = ? WHERE id = ?`
-                    ).run(
-                        messageJson.currentSong == ""
-                            ? undefined
-                            : messageJson.currentSong,
-                        userId
-                    );
-                    db.prepare(
-                        `UPDATE user SET currentStation = ? WHERE id = ?`
-                    ).run(undefined, userId);
+                    await db
+                        .prepare(`UPDATE user SET currentSong = ? WHERE id = ?`)
+                        .run(
+                            messageJson.currentSong == ""
+                                ? undefined
+                                : messageJson.currentSong,
+                            userId
+                        );
+                    await db
+                        .prepare(
+                            `UPDATE user SET currentStation = ? WHERE id = ?`
+                        )
+                        .run(undefined, userId);
                 } else if (messageJson.currentStation != undefined) {
-                    db.prepare(
-                        `UPDATE user SET currentStation = ? WHERE id = ?`
-                    ).run(messageJson.currentStation, userId);
-                    db.prepare(
-                        `UPDATE user SET currentSong = ? WHERE id = ?`
-                    ).run(undefined, userId);
+                    await db
+                        .prepare(
+                            `UPDATE user SET currentStation = ? WHERE id = ?`
+                        )
+                        .run(messageJson.currentStation, userId);
+                    await db
+                        .prepare(`UPDATE user SET currentSong = ? WHERE id = ?`)
+                        .run(undefined, userId);
                 } else if (messageJson.currentTime != undefined) {
                     if (allConections[userId].playing == socket) {
                         allConections[userId].connections
@@ -94,43 +98,41 @@ export async function ALL(context: APIContext): Promise<Response> {
                                 conn?.socket?.send(JSON.stringify(messageJson))
                             );
 
-                        db.prepare(
-                            `UPDATE user SET currentTime = ? WHERE id = ?`
-                        ).run(messageJson.currentTime, userId);
+                        await db
+                            .prepare(
+                                `UPDATE user SET currentTime = ? WHERE id = ?`
+                            )
+                            .run(messageJson.currentTime, userId);
                     }
                 } else if (messageJson.deviceName != undefined) {
                     // Handle device name
                 } else if (messageJson.queue != undefined) {
-                    db.prepare(`UPDATE user SET queue = ? WHERE id = ?`).run(
-                        JSON.stringify(messageJson.queue),
-                        userId
-                    );
+                    await db
+                        .prepare(`UPDATE user SET queue = ? WHERE id = ?`)
+                        .run(JSON.stringify(messageJson.queue), userId);
                 } else if (messageJson.volume != undefined) {
-                    db.prepare(`UPDATE user SET volume = ? WHERE id = ?`).run(
-                        messageJson.volume,
-                        userId
-                    );
+                    await db
+                        .prepare(`UPDATE user SET volume = ? WHERE id = ?`)
+                        .run(messageJson.volume, userId);
                 } else if (messageJson.queueIndex != undefined) {
-                    db.prepare(
-                        `UPDATE user SET queueIndex = ? WHERE id = ?`
-                    ).run(messageJson.queueIndex, userId);
+                    await db
+                        .prepare(`UPDATE user SET queueIndex = ? WHERE id = ?`)
+                        .run(messageJson.queueIndex, userId);
                 } else if (messageJson.randomQueue != undefined) {
-                    db.prepare(
-                        `UPDATE user SET randomQueue = ? WHERE id = ?`
-                    ).run(messageJson.randomQueue, userId);
+                    await db
+                        .prepare(`UPDATE user SET randomQueue = ? WHERE id = ?`)
+                        .run(messageJson.randomQueue, userId);
                 } else if (messageJson.repeatSong != undefined) {
-                    db.prepare(
-                        `UPDATE user SET repeatSong = ? WHERE id = ?`
-                    ).run(messageJson.repeatSong, userId);
+                    await db
+                        .prepare(`UPDATE user SET repeatSong = ? WHERE id = ?`)
+                        .run(messageJson.repeatSong, userId);
                 } else if (messageJson.songEnded != undefined) {
                     let userLastPlayedSong = (
-                        parseUser(
-                            db
-                                .prepare(
-                                    "SELECT lastPlayedSong FROM user WHERE id = ?"
-                                )
-                                .get(userId) as RawUserDB
-                        ) as UserDB<"lastPlayedSong">
+                        (await db
+                            .prepare(
+                                "SELECT lastPlayedSong FROM user WHERE id = ?"
+                            )
+                            .get(userId)) as UserDB<"lastPlayedSong">
                     ).lastPlayedSong;
 
                     if (!userLastPlayedSong) {

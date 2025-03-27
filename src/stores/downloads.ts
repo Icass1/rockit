@@ -61,9 +61,18 @@ const lists: { [key: string]: ListInfo } = {};
 
 let eventSources: string[] = [];
 
+interface SongMessageStatus {
+    id: string;
+    type: "song";
+    completed: number;
+}
+
 const onMessage = (event: MessageEvent<any>, eventSource: EventSource) => {
     const message = JSON.parse(event.data);
-    // console.log("EventSource message:", message);
+
+    console.log("EventSource message:", message);
+
+    return;
 
     if (message.song && !songs[message.song.id]) {
         songs[message.song.id] = message.song;

@@ -25,9 +25,9 @@ export async function GET(context: APIContext): Promise<Response> {
         ? (Number(_imageHeight) as number)
         : (_imageHeight as undefined);
 
-    const imageDB = db
+    const imageDB = (await db
         .prepare("SELECT path FROM image WHERE id = ?")
-        .get(imageID) as ImageDB;
+        .get(imageID)) as ImageDB;
 
     if (!imageDB) {
         return new Response("Image not found", { status: 404 });

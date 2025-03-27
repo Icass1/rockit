@@ -1,6 +1,6 @@
 import type { AlbumDB, ArtistDB } from "@/db/album";
-import { parseSong, type RawSongDB, type SongDB } from "@/db/song";
-import { parseUser, type RawUserDB } from "@/db/user";
+import { type SongDB } from "@/db/song";
+import { type UserDB } from "@/db/user";
 import { db } from "./db/db";
 
 interface AlbumForStats extends AlbumDB<"name" | "id" | "artists" | "image"> {
@@ -59,10 +59,10 @@ export async function getStats(
     //     [key: string]: number[];
     // } = JSON.parse(fileBuffer);
 
-    const lastPlayedSongs = parseUser(
-        db
+    const lastPlayedSongs = (
+        (await db
             .prepare("SELECT lastPlayedSong FROM user WHERE id = ?")
-            .get(userId) as RawUserDB
+            .get(userId)) as UserDB
     )?.lastPlayedSong as {
         [key: string]: number[];
     };
@@ -84,31 +84,30 @@ export async function getStats(
         return { songs: [], artists: [], albums: [] };
     }
 
-    Array(Math.floor(Object.keys(lastPlayedSongs).length / 900) + 1)
-        .fill(0)
-        .map((_, index) => {
-            const query =
-                "SELECT id,artists,duration,name,albumId,albumName,image,images FROM song WHERE id = " +
-                Object.keys(lastPlayedSongs)
-                    .splice(index * 900, (index + 1) * 900)
-                    .map((key) => `'${key}'`)
-                    .join(" OR id = ");
+    await Promise.all(
+        Array(Math.floor(Object.keys(lastPlayedSongs).length / 900) + 1)
+            .fill(0)
+            .map(async (_, index) => {
+                const query =
+                    "SELECT id,artists,duration,name,albumId,albumName,image,images FROM song WHERE id = " +
+                    Object.keys(lastPlayedSongs)
+                        .splice(index * 900, (index + 1) * 900)
+                        .map((key) => `'${key}'`)
+                        .join(" OR id = ");
 
-            const tempSongs = (db.prepare(query).all() as RawSongDB[]).map(
-                (song) =>
-                    parseSong(song) as SongDB<
-                        | "artists"
-                        | "id"
-                        | "name"
-                        | "duration"
-                        | "albumId"
-                        | "albumName"
-                        | "image"
-                        | "images"
-                    >
-            );
-            songs = [...songs, ...tempSongs];
-        });
+                const tempSongs = (await db.prepare(query).all()) as SongDB<
+                    | "artists"
+                    | "id"
+                    | "name"
+                    | "duration"
+                    | "albumId"
+                    | "albumName"
+                    | "image"
+                    | "images"
+                >[];
+                songs = [...songs, ...tempSongs];
+            })
+    );
 
     let out: Stats = { songs: [], artists: [], albums: [] };
 

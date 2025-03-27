@@ -254,7 +254,7 @@ export default function PlaylistSongsView({
             {songsToRender.map((song, index) => {
                 if (song) {
                     let top = index * (56 + 4) + (innerWidth < 768 ? 100 : 25);
-                    if (innerWidth < 768) top += 370;
+                    if (innerWidth < 768) top += 400;
 
                     if (divRef.current) {
                         const boundaries =

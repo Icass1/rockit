@@ -1,12 +1,7 @@
-import { parseAlbum, type RawAlbumDB } from "@/lib/db/album";
+import { type AlbumDB } from "@/lib/db/album";
 import { db } from "@/lib/db/db";
-import { parsePlaylist, type RawPlaylistDB } from "@/lib/db/playlist";
-import {
-    parseUser,
-    type RawUserDB,
-    type UserDB,
-    type UserDBPinnedLists,
-} from "@/lib/db/user";
+import { type PlaylistDB } from "@/lib/db/playlist";
+import { type UserDB, type UserDBPinnedLists } from "@/lib/db/user";
 import type { APIContext } from "astro";
 
 export async function ALL(context: APIContext): Promise<Response> {
@@ -14,11 +9,9 @@ export async function ALL(context: APIContext): Promise<Response> {
         return new Response("Unauthenticated", { status: 401 });
     }
 
-    const user = parseUser(
-        db
-            .prepare("SELECT pinnedLists FROM user WHERE id = ?")
-            .get(context.locals.user.id) as RawUserDB
-    ) as UserDB<"pinnedLists">;
+    const user = (await db
+        .prepare("SELECT pinnedLists FROM user WHERE id = ?")
+        .get(context.locals.user.id)) as UserDB as UserDB<"pinnedLists">;
 
     const type = context.params.type;
     const id = context.params.id;
@@ -26,17 +19,13 @@ export async function ALL(context: APIContext): Promise<Response> {
     let list;
 
     if (type == "album") {
-        list = parseAlbum(
-            db
-                .prepare("SELECT id,image,name FROM album WHERE id = ?")
-                .get(id) as RawAlbumDB
-        );
+        list = (await db
+            .prepare("SELECT id,image,name FROM album WHERE id = ?")
+            .get(id)) as AlbumDB;
     } else if (type == "playlist") {
-        list = parsePlaylist(
-            db
-                .prepare("SELECT id,image,name FROM playlist WHERE id = ?")
-                .get(id) as RawPlaylistDB
-        );
+        list = (await db
+            .prepare("SELECT id,image,name FROM playlist WHERE id = ?")
+            .get(id)) as PlaylistDB;
     }
 
     if (!list) {

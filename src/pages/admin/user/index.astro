@@ -7,9 +7,9 @@ if (!Astro.locals.user?.admin) {
     return new Response("Page not found", { status: 404 });
 }
 
-const users = db.prepare("SELECT username,admin,id FROM user").all() as UserDB<
-    "username" | "admin" | "id"
->[];
+const users = (await db
+    .prepare("SELECT username,admin,id FROM user")
+    .all()) as UserDB<"username" | "admin" | "id">[];
 ---
 
 <Layout currentPage="AdminUser">

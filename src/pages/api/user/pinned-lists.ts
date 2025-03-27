@@ -1,12 +1,7 @@
-import { parseAlbum, type RawAlbumDB } from "@/lib/db/album";
+import { type AlbumDB } from "@/lib/db/album";
 import { db } from "@/lib/db/db";
-import { parsePlaylist, type RawPlaylistDB } from "@/lib/db/playlist";
-import {
-    parseUser,
-    type RawUserDB,
-    type UserDB,
-    type UserDBPinnedLists,
-} from "@/lib/db/user";
+import { type PlaylistDB } from "@/lib/db/playlist";
+import { type UserDB, type UserDBPinnedLists } from "@/lib/db/user";
 import type { APIContext } from "astro";
 
 export async function GET(context: APIContext): Promise<Response> {
@@ -14,32 +9,28 @@ export async function GET(context: APIContext): Promise<Response> {
         return new Response("Unauthenticated", { status: 401 });
     }
     const DBPinnedLists = (
-        parseUser(
-            db
-                .prepare("SELECT pinnedLists FROM user WHERE id = ?")
-                .get(context.locals.user.id) as RawUserDB
-        ) as UserDB<"pinnedLists">
+        (await db
+            .prepare("SELECT pinnedLists FROM user WHERE id = ?")
+            .get(context.locals.user.id)) as UserDB as UserDB<"pinnedLists">
     ).pinnedLists;
 
-    const getList = (list: UserDBPinnedLists) => {
+    const getList = async (list: UserDBPinnedLists) => {
         if (list.type == "album") {
-            return parseAlbum(
-                db
-                    .prepare("SELECT id,image,name FROM album WHERE id = ?")
-                    .get(list.id) as RawAlbumDB
-            );
+            return (await db
+                .prepare("SELECT id,image,name FROM album WHERE id = ?")
+                .get(list.id)) as AlbumDB;
         } else if (list.type == "playlist") {
-            return parsePlaylist(
-                db
-                    .prepare("SELECT id,image,name FROM playlist WHERE id = ?")
-                    .get(list.id) as RawPlaylistDB
-            );
+            return (await db
+                .prepare("SELECT id,image,name FROM playlist WHERE id = ?")
+                .get(list.id)) as PlaylistDB;
         }
     };
 
-    const pinnedLists = DBPinnedLists.map((list) => {
-        return { ...getList(list), type: list.type };
-    });
+    const pinnedLists = await Promise.all(
+        DBPinnedLists.map(async (list) => {
+            return { ...(await getList(list)), type: list.type };
+        })
+    );
 
     return new Response(JSON.stringify(pinnedLists), {
         headers: {

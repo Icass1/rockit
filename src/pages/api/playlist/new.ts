@@ -1,10 +1,5 @@
 import { db } from "@/lib/db/db";
-import {
-    parseUser,
-    type RawUserDB,
-    type UserDB,
-    type UserDBList,
-} from "@/lib/db/user";
+import { type UserDB, type UserDBList } from "@/lib/db/user";
 import type { APIContext } from "astro";
 import { generateId } from "lucia";
 
@@ -43,11 +38,9 @@ export async function POST(context: APIContext): Promise<Response> {
         createdAt: new Date().getTime(),
     };
 
-    const user = parseUser(
-        db
-            .prepare("SELECT lists FROM user WHERE id = ?")
-            .get(context.locals.user.id) as RawUserDB
-    ) as UserDB<"lists">;
+    const user = (await db
+        .prepare("SELECT lists FROM user WHERE id = ?")
+        .get(context.locals.user.id)) as UserDB<"lists">;
 
     db.prepare(`UPDATE user SET lists = ? WHERE id = ?`).run(
         JSON.stringify([...user?.lists, newList]),

@@ -7,7 +7,7 @@ from spotifyApiTypes.RawSpotifyApiPlaylist import RawSpotifyApiPlaylist, Playlis
 from ytMusicApiTypes.RawYTMusicApiAlbum import RawYTMusicApiAlbum
 from ytMusicApiTypes.RawYTMusicApiPlaylist import RawYTMusicApiPlaylist
 
-from backendUtils import get_song_name, sanitize_folder_name, get_output_file, download_image, create_playlist_collage, create_id
+from backendUtils import get_song_name, sanitize_folder_name, get_output_file, download_image, create_playlist_collage
 from constants import DOWNLOADER_OPTIONS
 
 import requests
@@ -19,7 +19,8 @@ import time
 import os
 from logger import getLogger
 import shutil
-import ctypes
+import queue
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 logger = getLogger(__name__)
 
@@ -30,6 +31,10 @@ try:
 except:
     logger.error("DOWNLOAD_THREADS is not defined or is not and int")
     exit()
+
+executor = ThreadPoolExecutor(max_workers=THREADS)
+task_queue = queue.Queue(maxsize=THREADS)
+tasks = {}  # Store task details and statuses
 
 class ListDownloader:
     def __init__(self, url, downloader: "Downloader", user_id, download_id):
@@ -52,6 +57,9 @@ class ListDownloader:
         self.last_message = None
 
         self.update_db_start()
+
+    def start_download():
+        pass
 
     def update_db_start(self):
         requests.post(f"{os.getenv('FRONTEND_URL')}/api/update-download", json={
@@ -305,43 +313,26 @@ class SongDownloader:
 
     def status(self):
 
-
         if self.done:
             text = {
                 "id": self.raw_song.id, 
                 "completed": 100, 
-                "message": "Done", 
-                "song": {
-                    "id": self.raw_song.id, 
-                    "name":  self.raw_song.name, 
-                    "artists":  [artist._json for artist in self.raw_song.artists], 
-                    "album": {
-                        "images": [images._json for images in self.raw_song.album.images]
-                        }
-                    }
-                }
+                "message": "Done",
+                "type": "song"
+            }
             logger.debug(f"SongDownloader.status self.done == True    {text}")
             yield f"data: {json.dumps(text)}\n\n"
             return
 
-        threading.current_thread().name = f"status 1 {self.url}"
-
         logger.debug(f"SongDownloader.status Started {self.url}")
 
         if not self.spotdl_song or self.spotdl_song.song_id not in self.downloader.downloads_dict:
-            text = {'completed': 0, 'total': 100, 'message': 'Fetching'}
+            text = {'completed': 0, 'total': 100, 'message': 'Fetching', "type": "song"}
             yield f"data: {json.dumps(text)}\n\n"
 
             while not self.spotdl_song or self.spotdl_song.song_id not in self.downloader.downloads_dict:
                 time.sleep(0.5)
-                
-        threading.current_thread().name = f"status 2 {self.url}"
-
-        text = {"song": {"id": self.raw_song.id, "name":  self.raw_song.name, "artists":  [artist._json for artist in self.raw_song.artists], "album":  {"images": [images._json for images in self.raw_song.album.images]}}}
-        yield f"data: {json.dumps(text)}\n\n"
-        
-        threading.current_thread().name = f"status 3 {self.url}"
-                
+                    
         threading.current_thread().name = f"Status - {self.spotdl_song.name} - {self.spotdl_song.artist}"
 
         last_messages_len = 0
@@ -349,8 +340,8 @@ class SongDownloader:
         print(self.downloader.downloads_dict)
         while not finish:
             for k in self.downloader.downloads_dict[self.spotdl_song.song_id]["messages"][last_messages_len:]:
-                logger.debug(f"SongDownloader.status data: {json.dumps(k)}")
-                yield f"data: {json.dumps(k)}\n\n"
+                logger.debug(f"SongDownloader.status data: {json.dumps(k | {'type': 'song'})}")
+                yield f"data: {json.dumps(obj=k)}\n\n"
                 if k["completed"] == 100:
                     finish = True
                     break
@@ -358,13 +349,10 @@ class SongDownloader:
             last_messages_len = len(self.downloader.downloads_dict[self.spotdl_song.song_id]["messages"])
             time.sleep(0.01)
         
-        threading.current_thread().name = f"status 4 {self.url}"
-        
         self.update_db_end()
         
-        del self.downloader.downloads_dict[self.spotdl_song.song_id]
-        del self.downloader.downloads_ids_dict[get_song_name(self.spotdl_song)]
-        
+        if self.spotdl_song.song_id in self.downloader.downloads_ids_dict: del self.downloader.downloads_dict[self.spotdl_song.song_id]
+        if get_song_name(self.spotdl_song) in self.downloader.downloads_ids_dict: del self.downloader.downloads_ids_dict[get_song_name(self.spotdl_song)]
         
         self.done = True
         
@@ -436,17 +424,20 @@ class Downloader:
             threads.append(thread)
             self.queue.remove(song)
 
+    def get_relative_album_path(self, spotdl_song: Song):
+        return os.path.join(sanitize_folder_name(spotdl_song.artist), sanitize_folder_name(spotdl_song.album_name))
+
     def download_song(self, spotdl_song: Song, raw_song: RawSpotifyApiTrack | AlbumItems | PlaylistItems, raw_list: RawSpotifyApiAlbum | RawSpotifyApiPlaylist | RawYTMusicApiAlbum | RawYTMusicApiPlaylist | None=None):
 
         logger.info(f"Downloader.download_song Downloading {get_song_name(spotdl_song)}")
 
-        relative_album_path = os.path.join(sanitize_folder_name(spotdl_song.artist), sanitize_folder_name(spotdl_song.album_name))
+        relative_album_path = self.get_relative_album_path(spotdl_song=spotdl_song)
         album_path = os.path.join(os.getenv("SONGS_PATH"), relative_album_path)
 
         relative_song_path = os.path.join(relative_album_path, get_output_file(spotdl_song).replace(f"{os.getenv('TEMP_PATH')}/", ""))
         song_path = os.path.join(album_path, get_output_file(spotdl_song).replace(f"{os.getenv('TEMP_PATH')}/", ""))
 
-        image_path = os.path.join(os.getenv("IMAGES_PATH"), "album", sanitize_folder_name(spotdl_song.artist), sanitize_folder_name(spotdl_song.album_name))
+        image_path = os.path.join(os.getenv("IMAGES_PATH"), "album", self.get_relative_album_path(spotdl_song=spotdl_song))
 
         if os.path.exists(song_path):
             logger.info(f"Downloader.download_song Skipped {get_song_name(spotdl_song)}")
@@ -464,8 +455,6 @@ class Downloader:
             else: 
                 self.downloads_dict[spotdl_song.song_id]["messages"].append({'id': spotdl_song.song_id, 'completed': 100, 'message': 'Done'})
                 logger.info(f"Downloader.download_song Downloaded {get_song_name(spotdl_song)}")
-
-              
 
                 shutil.move(path, song_path)
                 path = relative_song_path
@@ -508,7 +497,7 @@ class Downloader:
             logger.error("Downloader.update_song_db Unable to find a match")
             return
 
-        requests.post(f"{os.getenv('FRONTEND_URL')}/api/new-song", json={
+        requests.post(f"{os.getenv('FRONTEND_URL')}/api/song/new", json={
             "name": spotdl_song.name,
             "artists": artists,
             "genres": spotdl_song.genres,

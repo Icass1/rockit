@@ -26,13 +26,13 @@ export async function POST(context: APIContext): Promise<Response> {
     let songs = JSON.stringify(data.songs);
     let discCount = data.disc_count;
 
-    const album = db.prepare("SELECT * FROM album WHERE id = ?").get(id);
+    const album = await db.prepare("SELECT * FROM album WHERE id = ?").get(id);
 
     let imageId;
 
-    const imageDB = db
+    const imageDB = (await db
         .prepare("SELECT * FROM image WHERE path = ?")
-        .get(image) as ImageDB;
+        .get(image)) as ImageDB;
     if (imageDB) {
         imageId = imageDB.id;
     } else {

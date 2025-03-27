@@ -92,6 +92,7 @@ def getLogger(name):
         print(f"LOG_DUMP_LEVEL can only be 'debug', 'info', 'warning', 'error' or 'critical' found '{log_dump_level}'")
         exit()
     
+    
     # Avoid adding duplicate handlers
     if logger.hasHandlers():
         return logger
@@ -132,6 +133,8 @@ def getLogger(name):
     # Add handlers to logger
     logger.addHandler(console_handler)
     logger.addHandler(file_handler)
+
+    logger.info(f"Using log dump level {log_dump_level}")
 
     return logger
 

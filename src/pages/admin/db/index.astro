@@ -5,9 +5,9 @@ if (!Astro.locals.user?.admin) {
     return new Response("Page not found", { status: 404 });
 }
 
-const tables = db
+const tables = (await db
     .prepare("SELECT name FROM sqlite_schema WHERE type='table'")
-    .all() as { name: string }[];
+    .all()) as { name: string }[];
 ---
 
 <Layout currentPage="AdminDB">

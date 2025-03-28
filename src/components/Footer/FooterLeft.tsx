@@ -13,8 +13,10 @@ import { ListPlus, EllipsisVertical, PlayIcon, PauseIcon } from "lucide-react";
 import { isPlayerUIVisible } from "@/stores/isPlayerUIVisible";
 import { useState } from "react";
 import { getImageUrl } from "@/lib/getImageUrl";
+import SongPopupMenu from "../ListSongs/SongPopupMenu";
 
 function FooterLeftForSong({ currentSong }: { currentSong: CurrentSong }) {
+
     return (
         // <!-- Para el Nicolás de mañana {currentSong && <LikeButton song={currentSong} />} -->
         <div className="flex items-center w-full md:w-1/3 max-w-full min-w-0 gap-x-4">
@@ -80,8 +82,9 @@ function FooterLeftForSong({ currentSong }: { currentSong: CurrentSong }) {
             {/* Opciones al final */}
             <div className="pr-4 flex-row items-left hidden md:flex">
                 {currentSong && <LikeButton song={currentSong} />}
-                <ListPlus className="w-8 text-gray-400 md:hover:text-white md:hover:scale-105 ml-3" />
-                <EllipsisVertical className="w-[22px] h-[24px] text-gray-400 md:hover:text-white md:hover:scale-105" />
+                {currentSong && <SongPopupMenu song={currentSong}>
+                    <EllipsisVertical className="w-[22px] h-[24px] text-gray-400 md:hover:text-white md:hover:scale-105" />
+                </SongPopupMenu>}
             </div>
         </div>
     );
@@ -138,7 +141,6 @@ function FooterLeftForStation({ currentStation }: { currentStation: Station }) {
 
             {/* Opciones al final */}
             <div className="pr-4 flex-row items-left hidden md:flex">
-                <ListPlus className="w-8 text-gray-400 md:hover:text-white md:hover:scale-105 ml-3" />
                 <EllipsisVertical className="w-[22px] h-[24px] text-gray-400 md:hover:text-white md:hover:scale-105" />
             </div>
         </div>

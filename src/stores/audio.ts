@@ -54,6 +54,7 @@ export type CurrentSong =
           | "albumId"
           | "albumName"
           | "duration"
+          | "path"
       >
     | undefined;
 
@@ -181,7 +182,7 @@ fetch(
 
             if (userJson.currentSong) {
                 fetch(
-                    `/api/song/${userJson.currentSong}?q=image,id,name,artists,albumId,albumName,duration`
+                    `/api/song/${userJson.currentSong}?q=image,id,name,artists,albumId,albumName,duration,path`
                 ).then((response) =>
                     response.json().then((data: CurrentSong) => {
                         currentSong.set(data);
@@ -252,9 +253,15 @@ fetch(
                 queue.set([]);
             }
 
-            currentSong.set(
-                await getSongInIndexedDB(userQuery.result.currentSong)
-            );
+            const song = await getSongInIndexedDB(userQuery.result.currentSong);
+            if (song) {
+                currentSong.set({
+                    ...song,
+                    path: `/api/song/audio/${song.id}`,
+                });
+            } else {
+                currentSong.set(undefined);
+            }
 
             repeatSong.set(userQuery.result.repeatSong ?? false);
             randomQueue.set(userQuery.result.randomQueue ?? false);
@@ -627,9 +634,17 @@ export async function prev() {
             currentSong.set(data);
         })
         .catch(async () => {
-            const data = await getSongInIndexedDB(newSongId);
+            const song = await getSongInIndexedDB(newSongId);
+            if (song) {
+                currentSong.set({
+                    ...song,
+                    path: `/api/song/audio/${song.id}`,
+                });
+            } else {
+                currentSong.set(undefined);
+            }
+
             playWhenReady.set(true);
-            currentSong.set(data);
         });
 }
 const getUA = () => {
@@ -717,7 +732,16 @@ export async function next(songEnded = false) {
             currentSong.set(data);
         })
         .catch(async () => {
-            const data = await getSongInIndexedDB(newSongId);
+            const song = await getSongInIndexedDB(newSongId);
+            if (song) {
+                currentSong.set({
+                    ...song,
+                    path: `/api/song/audio/${song.id}`,
+                });
+            } else {
+                currentSong.set(undefined);
+            }
+
             const _crossFade = currentCrossFade.get();
             if (_crossFade && _crossFade > 0 && songEnded) {
                 inCrossFade = true;
@@ -730,7 +754,6 @@ export async function next(songEnded = false) {
                 inCrossFade = false;
                 playWhenReady.set(true);
             }
-            currentSong.set(data);
         });
 }
 

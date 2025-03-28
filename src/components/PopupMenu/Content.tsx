@@ -111,7 +111,7 @@ export default function PopupMenuContent({
                     : undefined
             }
             onClick={() => _setPopupMenuOpen && _setPopupMenuOpen(false)}
-            className="fixed bg-neutral-800/90 top-0 left-0 w-full h-[calc(100%_-_4rem)] px-10 md:w-max md:h-auto rounded-md md:p-1 overflow-auto md:shadow-[0px_0px_20px_3px_#0e0e0e] z-20"
+            className="fixed bg-neutral-800/90 top-0 left-0 w-full h-[calc(100%_-_4rem)] px-10 md:w-max md:h-auto rounded-md md:p-1 overflow-auto md:shadow-[0px_0px_20px_3px_#0e0e0e] z-50"
             style={{
                 display: _popupMenuOpen ? "block" : "none",
             }}

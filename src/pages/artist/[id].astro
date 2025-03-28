@@ -1,15 +1,26 @@
 ---
 import Layout from "@/layouts/Layout.astro";
+import { ENV } from "@/rockitEnv";
+import type { SpotifyArtist } from "@/types/spotify";
 import { Play } from "lucide-react";
 
 if (!Astro.locals.user) {
     return Astro.redirect("/login");
 }
 
+const { id } = Astro.params as { id: string };
+console.log("Requesting backend artist")
+const response = await fetch(`${ENV.BACKEND_URL}/artist/${id}`)
+const artistData = await response.json() as SpotifyArtist
+
+
+console.log(artistData)
+
+artistData.images.sort((b,a) => (a.width + a.height) - (b.width + b.height))
+
 // Mockup de la página para un artista.
-const artistName = "Twenty One Pilots";
-const artistImage =
-    "https://store.warnermusic.ca/cdn/shop/collections/twenty.webp?v=1709215383";
+const artistName = artistData.name;
+const artistImage = artistData.images[0].url;
 ---
 
 <Layout title="Rock It!" currentPage="Search">

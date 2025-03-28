@@ -16,6 +16,7 @@ import { db } from "@/lib/db/db";
 import { parseSong, type RawSongDB, type SongDB } from "@/lib/db/song";
 import { ENV } from "@/rockitEnv";
 import { EllipsisVertical } from "lucide-react";
+import SongPopupMenu from "@/components/ListSongs/SongPopupMenu";
 
 const { id } = Astro.params as { id: string };
 
@@ -229,19 +230,21 @@ const meta = {
                 </div>
 
                 <!-- Botones de Like y Add to playlist/queue -->
-                <div class="flex justify-center mt-4 space-x-4">
+                <div class="flex justify-center mt-4 space-x-4 gap-x-4">
                     <a
-                        class="flex items-center space-x-2 p-2 bg-[#3030306f] rounded hover:bg-[#313131] select-none"
+                        class="flex items-center p-2 bg-[#3030306f] rounded hover:bg-[#313131] select-none"
                     >
                         <LikeButton song={song} client:only="react" />
                         <span>Like</span>
                     </a>
-                    <button
-                        class="flex items-center space-x-2 p-2 bg-[#3030306f] rounded hover:bg-[#313131]"
-                    >
-                        <EllipsisVertical className="w-5 h-5" />
-                        <span>More Options</span>
-                    </button>
+                    <SongPopupMenu song={song} client:only="react">
+                        <div
+                            class="flex items-center p-2 bg-[#3030306f] rounded hover:bg-[#313131]"
+                        >
+                            <EllipsisVertical className="w-5 h-5" />
+                            <span>More Options</span>
+                        </div>
+                    </SongPopupMenu>
                 </div>
             </div>
 
@@ -331,27 +334,29 @@ const meta = {
                 class="relative flex items-center gap-5 overflow-x-auto py-4 px-10 md:[scrollbar-gutter:stable]"
             >
                 {
-                    artistSongs?.tracks.filter(song => song.id != id).map((song) => (
-                        <a
-                            href={`/song/${song.id}`}
-                            class="flex-none w-40 md:w-48 md:hover:scale-105 transition"
-                        >
-                            <img
-                                class="rounded-lg w-full aspect-square object-cover"
-                                src={
-                                    song.album.images[0].url ||
-                                    "/song-placeholder.png"
-                                }
-                                alt="Song Cover"
-                            />
-                            <label class="truncate font-semibold text-center block mt-2">
-                                {song.name}
-                            </label>
-                            <label class="truncate text-sm text-center text-gray-400 block">
-                                {song.album.name}
-                            </label>
-                        </a>
-                    ))
+                    artistSongs?.tracks
+                        .filter((song) => song.id != id)
+                        .map((song) => (
+                            <a
+                                href={`/song/${song.id}`}
+                                class="flex-none w-40 md:w-48 md:hover:scale-105 transition"
+                            >
+                                <img
+                                    class="rounded-lg w-full aspect-square object-cover"
+                                    src={
+                                        song.album.images[0].url ||
+                                        "/song-placeholder.png"
+                                    }
+                                    alt="Song Cover"
+                                />
+                                <label class="truncate font-semibold text-center block mt-2">
+                                    {song.name}
+                                </label>
+                                <label class="truncate text-sm text-center text-gray-400 block">
+                                    {song.album.name}
+                                </label>
+                            </a>
+                        ))
                 }
             </div>
         </section>

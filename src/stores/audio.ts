@@ -484,7 +484,7 @@ queueIndex.subscribe((value) => {
 volume.subscribe((value) => {
     updateUserIndexedDB();
     if (window.innerWidth < 768) return;
-    if (!value) return;
+    if (typeof value == "undefined") return;
     audio.volume = value;
     send({ volume: value });
 });

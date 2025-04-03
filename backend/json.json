@@ -1,259 +1,620 @@
 {
-    "id": "6o8nZVzweaEOLDLOgaogX5",
-    "name": "Just Another Nervous Wreck - 2010 Remastered",
-    "artists": [
-      {
-        "name": "Supertramp",
-        "id": "3JsMj0DEzyWc0VDlHuy9Bx"
-      }
-    ],
-    "genres": [
-      "album rock",
-      "art rock",
-      "classic rock",
-      "glam rock",
-      "mellow gold",
-      "piano rock",
-      "progressive rock",
-      "rock",
-      "soft rock",
-      "symphonic rock"
-    ],
-    "discNumber": 1,
-    "albumName": "Breakfast In America (Deluxe Edition)",
-    "albumArtist": [
-      {
-        "name": "Supertramp",
-        "id": "3JsMj0DEzyWc0VDlHuy9Bx"
-      }
-    ],
-    "albumType": "album",
-    "albumId": "1zcm3UvHNHpseYOUfd0pna",
-    "duration": 265.68,
-    "date": "1979-03-29",
-    "trackNumber": 8,
-    "publisher": "A&M",
-    "path": "Supertramp/Breakfast In America (Deluxe Edition)/Supertramp - Just Another Nervous Wreck - 2010 Remastered.mp3",
+    "id": "3R3x4zIabsvpD3yxqLaUpc",
+    "type": "album",
     "images": [
-      {
-        "url": "https://i.scdn.co/image/ab67616d0000b2735405ef9e393f5f1e53b4b42e",
-        "height": 640,
-        "width": 640
-      },
-      {
-        "url": "https://i.scdn.co/image/ab67616d00001e025405ef9e393f5f1e53b4b42e",
-        "height": 300,
-        "width": 300
-      },
-      {
-        "url": "https://i.scdn.co/image/ab67616d000048515405ef9e393f5f1e53b4b42e",
-        "height": 64,
-        "width": 64
-      }
+        {
+            "url": "https://i.scdn.co/image/ab67616d0000b273814cbc4746358a25c84c62e7",
+            "height": 640,
+            "width": 640
+        },
+        {
+            "url": "https://i.scdn.co/image/ab67616d00001e02814cbc4746358a25c84c62e7",
+            "height": 300,
+            "width": 300
+        },
+        {
+            "url": "https://i.scdn.co/image/ab67616d00004851814cbc4746358a25c84c62e7",
+            "height": 64,
+            "width": 64
+        }
     ],
-    "image": "8665d99838afc7a71111fd0755069f5ac2e054f9",
-    "copyright": "© 2010 A&M Records",
-    "downloadUrl": "https://music.youtube.com/watch?v=jiTf6iJjwxg",
-    "lyrics": "I'm feeling so alone now\nThey cut the telephone uh huh\nYeah my life is just a mess\n\nI threw it all away now\nI could have made a fortune\nI lost the craving for success\n\nAnd as the acrobats they tumble\nSo the corn begins to crumble\nWhile in the mirror\nShe admires a brand new dress\n\nLive on the second floor now\nThey're trying to bust the door down\nSoon Ill have a new address\n\nSo much for liberation\nThey'll have a celebration\nYeah I've been under too much stress\n\nAnd as the cloud begin to rumble\nSo the juggler makes his fumble\nAnd the sun upon my wall is getting less\n\nDon't, give a damn\nFight, while you can\nKill, shoot em up\nThey'll run amuck\nShout, Judas\nLoud, they'll hear us\nSoldier, sailor\nThey'll run for cover when they discover\nEveryone's a nervous wreck now\n\nI used to think she was so nimble\nWould have bought her as symbol\nBut now I can't afford the pen to sign her checks\n\nDon't, give a damn\nFight, while you can\nKill, shoot em up\nThey'll run amuck\nShout, Judas\nLoud, they'll hear us\nSoldier, sailor\nThey'll run for cover when they discover\nEveryone's a nervous wreck now\n\nLife's just a bummer they got your number\nWell give as good as we get now\nRise from the gutter, stick with each other\nWell drive em over the edge now\nThey're gonna bleed, that's what they need\nWell get together and blow their cover\nWere ready\nYeah we're ready\nYeah we're ready",
-    "dynamicLyrics": [
-      {
-        "seconds": 13.97,
-        "lyrics": "I'm feeling so alone now"
-      },
-      {
-        "seconds": 16.88,
-        "lyrics": "They cut the telephone uh huh"
-      },
-      {
-        "seconds": 19.54,
-        "lyrics": "Yeah my life is just a mess"
-      },
-      {
-        "seconds": 25.7,
-        "lyrics": "I threw it all away now"
-      },
-      {
-        "seconds": 28.9,
-        "lyrics": "I could have made a fortune"
-      },
-      {
-        "seconds": 32.04,
-        "lyrics": "I lost the craving for success"
-      },
-      {
-        "seconds": 37.35,
-        "lyrics": "And as the acrobats they tumble"
-      },
-      {
-        "seconds": 40.42,
-        "lyrics": "So the corn begins to crumble"
-      },
-      {
-        "seconds": 43.96,
-        "lyrics": "While in the mirror"
-      },
-      {
-        "seconds": 44.97,
-        "lyrics": "She admires a brand new dress"
-      },
-      {
-        "seconds": 50.46,
-        "lyrics": "Live on the second floor now"
-      },
-      {
-        "seconds": 54.86,
-        "lyrics": "They're trying to bust the door down"
-      },
-      {
-        "seconds": 58.22,
-        "lyrics": "Soon I'll have a new address"
-      },
-      {
-        "seconds": 63.42,
-        "lyrics": "So much for liberation"
-      },
-      {
-        "seconds": 67.97,
-        "lyrics": "They'll have a celebration"
-      },
-      {
-        "seconds": 71.28,
-        "lyrics": "Yeah I've been under too much stress"
-      },
-      {
-        "seconds": 76.43,
-        "lyrics": "And as the cloud begin to rumble"
-      },
-      {
-        "seconds": 79.96,
-        "lyrics": "So the juggler makes his fumble"
-      },
-      {
-        "seconds": 83.12,
-        "lyrics": "And the sun upon my wall is getting less"
-      },
-      {
-        "seconds": 88.43,
-        "lyrics": "Don't, give a damn"
-      },
-      {
-        "seconds": 93.24,
-        "lyrics": "Fight, while you can"
-      },
-      {
-        "seconds": 95.65,
-        "lyrics": "Kill, shoot 'em up"
-      },
-      {
-        "seconds": 98.91,
-        "lyrics": "They'll run amuck"
-      },
-      {
-        "seconds": 102.17,
-        "lyrics": "Shout, Judas"
-      },
-      {
-        "seconds": 104.92,
-        "lyrics": "Loud, they'll hear us"
-      },
-      {
-        "seconds": 108.3,
-        "lyrics": "Soldier, sailor"
-      },
-      {
-        "seconds": 115.12,
-        "lyrics": "They'll run for cover when they discover"
-      },
-      {
-        "seconds": 118.38,
-        "lyrics": "Everyone's a nervous wreck now"
-      },
-      {
-        "seconds": 148.21,
-        "lyrics": "I used to think she was so nimble"
-      },
-      {
-        "seconds": 151.27,
-        "lyrics": "Would have bought her as symbol"
-      },
-      {
-        "seconds": 154.67,
-        "lyrics": "But now I can't afford the pen to sign her checks"
-      },
-      {
-        "seconds": 160.59,
-        "lyrics": "Don't, give a damn"
-      },
-      {
-        "seconds": 164.64,
-        "lyrics": "Fight, while you can"
-      },
-      {
-        "seconds": 167.59,
-        "lyrics": "Kill, shoot em up"
-      },
-      {
-        "seconds": 170.69,
-        "lyrics": "They'll run amuck"
-      },
-      {
-        "seconds": 174.24,
-        "lyrics": "Shout, Judas"
-      },
-      {
-        "seconds": 177.03,
-        "lyrics": "Loud, they'll hear us"
-      },
-      {
-        "seconds": 180.21,
-        "lyrics": "Soldier, sailor"
-      },
-      {
-        "seconds": 186.56,
-        "lyrics": "They'll run for cover when they discover"
-      },
-      {
-        "seconds": 189.71,
-        "lyrics": "Everyone's a nervous wreck now"
-      },
-      {
-        "seconds": 192.9,
-        "lyrics": "Life's just a bummer they got your number"
-      },
-      {
-        "seconds": 195.65,
-        "lyrics": "Well give as good as we get now"
-      },
-      {
-        "seconds": 198.91,
-        "lyrics": "Rise from the gutter, stick with each other"
-      },
-      {
-        "seconds": 201.92,
-        "lyrics": "We'll drive 'em over the edge now"
-      },
-      {
-        "seconds": 204.42,
-        "lyrics": "They're gonna bleed, that's what they need"
-      },
-      {
-        "seconds": 208.13,
-        "lyrics": "Well get together and blow their cover"
-      },
-      {
-        "seconds": 211.23,
-        "lyrics": "We're ready"
-      },
-      {
-        "seconds": 213.23,
-        "lyrics": "Yeah we're ready"
-      },
-      {
-        "seconds": 214.83,
-        "lyrics": "Yeah we're ready"
-      }
+    "image": "dcfa362ebfffb3f5ddab1e51f1afc0e5d43bae70",
+    "name": "An Innocent Man",
+    "releaseDate": "1983-08-08",
+    "artists": [
+        {
+            "name": "Billy Joel",
+            "id": "6zFYqv1mOsgBRQbae3JJ9e"
+        }
     ],
-    "popularity": 73,
-    "dateAdded": "1733687937266.0",
-    "inDatabase": true
-  }
+    "copyrights": [
+        {
+            "text": "(P) 1983 Columbia Records, a division of Sony Music Entertainment",
+            "type": "P"
+        }
+    ],
+    "popularity": 77,
+    "genres": [],
+    "songs": [
+        {
+            "albumArtist": [
+                {
+                    "external_urls": {
+                        "spotify": "https://open.spotify.com/artist/6zFYqv1mOsgBRQbae3JJ9e"
+                    },
+                    "href": "https://api.spotify.com/v1/artists/6zFYqv1mOsgBRQbae3JJ9e",
+                    "id": "6zFYqv1mOsgBRQbae3JJ9e",
+                    "name": "Billy Joel",
+                    "type": "artist",
+                    "uri": "spotify:artist:6zFYqv1mOsgBRQbae3JJ9e"
+                }
+            ],
+            "albumId": "3R3x4zIabsvpD3yxqLaUpc",
+            "albumName": "An Innocent Man",
+            "albumType": "album",
+            "name": "Easy Money",
+            "artists": [
+                {
+                    "external_urls": {
+                        "spotify": "https://open.spotify.com/artist/6zFYqv1mOsgBRQbae3JJ9e"
+                    },
+                    "href": "https://api.spotify.com/v1/artists/6zFYqv1mOsgBRQbae3JJ9e",
+                    "id": "6zFYqv1mOsgBRQbae3JJ9e",
+                    "name": "Billy Joel",
+                    "type": "artist",
+                    "uri": "spotify:artist:6zFYqv1mOsgBRQbae3JJ9e"
+                }
+            ],
+            "date": "1983-08-08",
+            "discNumber": 1,
+            "duration": 244.693,
+            "trackNumber": 1,
+            "id": "4Wv7aG6kbHLbo2h218dChl",
+            "images": [
+                {
+                    "height": 640,
+                    "url": "https://i.scdn.co/image/ab67616d0000b273814cbc4746358a25c84c62e7",
+                    "width": 640
+                },
+                {
+                    "height": 300,
+                    "url": "https://i.scdn.co/image/ab67616d00001e02814cbc4746358a25c84c62e7",
+                    "width": 300
+                },
+                {
+                    "height": 64,
+                    "url": "https://i.scdn.co/image/ab67616d00004851814cbc4746358a25c84c62e7",
+                    "width": 64
+                }
+            ],
+            "copyright": "",
+            "genres": [],
+            "lyrics": "",
+            "path": "",
+            "popularity": 36,
+            "publisher": ""
+        },
+        {
+            "albumArtist": [
+                {
+                    "external_urls": {
+                        "spotify": "https://open.spotify.com/artist/6zFYqv1mOsgBRQbae3JJ9e"
+                    },
+                    "href": "https://api.spotify.com/v1/artists/6zFYqv1mOsgBRQbae3JJ9e",
+                    "id": "6zFYqv1mOsgBRQbae3JJ9e",
+                    "name": "Billy Joel",
+                    "type": "artist",
+                    "uri": "spotify:artist:6zFYqv1mOsgBRQbae3JJ9e"
+                }
+            ],
+            "albumId": "3R3x4zIabsvpD3yxqLaUpc",
+            "albumName": "An Innocent Man",
+            "albumType": "album",
+            "name": "An Innocent Man",
+            "artists": [
+                {
+                    "external_urls": {
+                        "spotify": "https://open.spotify.com/artist/6zFYqv1mOsgBRQbae3JJ9e"
+                    },
+                    "href": "https://api.spotify.com/v1/artists/6zFYqv1mOsgBRQbae3JJ9e",
+                    "id": "6zFYqv1mOsgBRQbae3JJ9e",
+                    "name": "Billy Joel",
+                    "type": "artist",
+                    "uri": "spotify:artist:6zFYqv1mOsgBRQbae3JJ9e"
+                }
+            ],
+            "date": "1983-08-08",
+            "discNumber": 1,
+            "duration": 318,
+            "trackNumber": 2,
+            "id": "1Gg14U26oq94uWcG7khccX",
+            "images": [
+                {
+                    "height": 640,
+                    "url": "https://i.scdn.co/image/ab67616d0000b273814cbc4746358a25c84c62e7",
+                    "width": 640
+                },
+                {
+                    "height": 300,
+                    "url": "https://i.scdn.co/image/ab67616d00001e02814cbc4746358a25c84c62e7",
+                    "width": 300
+                },
+                {
+                    "height": 64,
+                    "url": "https://i.scdn.co/image/ab67616d00004851814cbc4746358a25c84c62e7",
+                    "width": 64
+                }
+            ],
+            "copyright": "",
+            "genres": [],
+            "lyrics": "",
+            "path": "",
+            "popularity": 51,
+            "publisher": ""
+        },
+        {
+            "albumArtist": [
+                {
+                    "external_urls": {
+                        "spotify": "https://open.spotify.com/artist/6zFYqv1mOsgBRQbae3JJ9e"
+                    },
+                    "href": "https://api.spotify.com/v1/artists/6zFYqv1mOsgBRQbae3JJ9e",
+                    "id": "6zFYqv1mOsgBRQbae3JJ9e",
+                    "name": "Billy Joel",
+                    "type": "artist",
+                    "uri": "spotify:artist:6zFYqv1mOsgBRQbae3JJ9e"
+                }
+            ],
+            "albumId": "3R3x4zIabsvpD3yxqLaUpc",
+            "albumName": "An Innocent Man",
+            "albumType": "album",
+            "name": "The Longest Time",
+            "artists": [
+                {
+                    "external_urls": {
+                        "spotify": "https://open.spotify.com/artist/6zFYqv1mOsgBRQbae3JJ9e"
+                    },
+                    "href": "https://api.spotify.com/v1/artists/6zFYqv1mOsgBRQbae3JJ9e",
+                    "id": "6zFYqv1mOsgBRQbae3JJ9e",
+                    "name": "Billy Joel",
+                    "type": "artist",
+                    "uri": "spotify:artist:6zFYqv1mOsgBRQbae3JJ9e"
+                }
+            ],
+            "date": "1983-08-08",
+            "discNumber": 1,
+            "duration": 217.906,
+            "trackNumber": 3,
+            "id": "5DH7nDryMhpixm4G4B7RP9",
+            "images": [
+                {
+                    "height": 640,
+                    "url": "https://i.scdn.co/image/ab67616d0000b273814cbc4746358a25c84c62e7",
+                    "width": 640
+                },
+                {
+                    "height": 300,
+                    "url": "https://i.scdn.co/image/ab67616d00001e02814cbc4746358a25c84c62e7",
+                    "width": 300
+                },
+                {
+                    "height": 64,
+                    "url": "https://i.scdn.co/image/ab67616d00004851814cbc4746358a25c84c62e7",
+                    "width": 64
+                }
+            ],
+            "copyright": "",
+            "genres": [],
+            "lyrics": "",
+            "path": "",
+            "popularity": 62,
+            "publisher": ""
+        },
+        {
+            "albumArtist": [
+                {
+                    "external_urls": {
+                        "spotify": "https://open.spotify.com/artist/6zFYqv1mOsgBRQbae3JJ9e"
+                    },
+                    "href": "https://api.spotify.com/v1/artists/6zFYqv1mOsgBRQbae3JJ9e",
+                    "id": "6zFYqv1mOsgBRQbae3JJ9e",
+                    "name": "Billy Joel",
+                    "type": "artist",
+                    "uri": "spotify:artist:6zFYqv1mOsgBRQbae3JJ9e"
+                }
+            ],
+            "albumId": "3R3x4zIabsvpD3yxqLaUpc",
+            "albumName": "An Innocent Man",
+            "albumType": "album",
+            "name": "This Night",
+            "artists": [
+                {
+                    "external_urls": {
+                        "spotify": "https://open.spotify.com/artist/6zFYqv1mOsgBRQbae3JJ9e"
+                    },
+                    "href": "https://api.spotify.com/v1/artists/6zFYqv1mOsgBRQbae3JJ9e",
+                    "id": "6zFYqv1mOsgBRQbae3JJ9e",
+                    "name": "Billy Joel",
+                    "type": "artist",
+                    "uri": "spotify:artist:6zFYqv1mOsgBRQbae3JJ9e"
+                }
+            ],
+            "date": "1983-08-08",
+            "discNumber": 1,
+            "duration": 255.333,
+            "trackNumber": 4,
+            "id": "6ZTRRn6pGCt2qxkiUKgqqk",
+            "images": [
+                {
+                    "height": 640,
+                    "url": "https://i.scdn.co/image/ab67616d0000b273814cbc4746358a25c84c62e7",
+                    "width": 640
+                },
+                {
+                    "height": 300,
+                    "url": "https://i.scdn.co/image/ab67616d00001e02814cbc4746358a25c84c62e7",
+                    "width": 300
+                },
+                {
+                    "height": 64,
+                    "url": "https://i.scdn.co/image/ab67616d00004851814cbc4746358a25c84c62e7",
+                    "width": 64
+                }
+            ],
+            "copyright": "",
+            "genres": [],
+            "lyrics": "",
+            "path": "",
+            "popularity": 39,
+            "publisher": ""
+        },
+        {
+            "albumArtist": [
+                {
+                    "external_urls": {
+                        "spotify": "https://open.spotify.com/artist/6zFYqv1mOsgBRQbae3JJ9e"
+                    },
+                    "href": "https://api.spotify.com/v1/artists/6zFYqv1mOsgBRQbae3JJ9e",
+                    "id": "6zFYqv1mOsgBRQbae3JJ9e",
+                    "name": "Billy Joel",
+                    "type": "artist",
+                    "uri": "spotify:artist:6zFYqv1mOsgBRQbae3JJ9e"
+                }
+            ],
+            "albumId": "3R3x4zIabsvpD3yxqLaUpc",
+            "albumName": "An Innocent Man",
+            "albumType": "album",
+            "name": "Tell Her About It",
+            "artists": [
+                {
+                    "external_urls": {
+                        "spotify": "https://open.spotify.com/artist/6zFYqv1mOsgBRQbae3JJ9e"
+                    },
+                    "href": "https://api.spotify.com/v1/artists/6zFYqv1mOsgBRQbae3JJ9e",
+                    "id": "6zFYqv1mOsgBRQbae3JJ9e",
+                    "name": "Billy Joel",
+                    "type": "artist",
+                    "uri": "spotify:artist:6zFYqv1mOsgBRQbae3JJ9e"
+                }
+            ],
+            "date": "1983-08-08",
+            "discNumber": 1,
+            "duration": 229.2,
+            "trackNumber": 5,
+            "id": "6kCJMxv445L2okuTiou1fR",
+            "images": [
+                {
+                    "height": 640,
+                    "url": "https://i.scdn.co/image/ab67616d0000b273814cbc4746358a25c84c62e7",
+                    "width": 640
+                },
+                {
+                    "height": 300,
+                    "url": "https://i.scdn.co/image/ab67616d00001e02814cbc4746358a25c84c62e7",
+                    "width": 300
+                },
+                {
+                    "height": 64,
+                    "url": "https://i.scdn.co/image/ab67616d00004851814cbc4746358a25c84c62e7",
+                    "width": 64
+                }
+            ],
+            "copyright": "",
+            "genres": [],
+            "lyrics": "",
+            "path": "",
+            "popularity": 55,
+            "publisher": ""
+        },
+        {
+            "id": "5zA8vzDGqPl2AzZkEYQGKh",
+            "name": "Uptown Girl",
+            "artists": [
+                {
+                    "name": "Billy Joel",
+                    "id": "6zFYqv1mOsgBRQbae3JJ9e"
+                }
+            ],
+            "genres": [
+                "album rock",
+                "classic rock",
+                "mellow gold",
+                "piano rock",
+                "rock",
+                "singer-songwriter",
+                "soft rock"
+            ],
+            "discNumber": 1,
+            "albumName": "An Innocent Man",
+            "albumArtist": [
+                {
+                    "name": "Billy Joel",
+                    "id": "6zFYqv1mOsgBRQbae3JJ9e"
+                }
+            ],
+            "albumType": "album",
+            "albumId": "3R3x4zIabsvpD3yxqLaUpc",
+            "duration": 197.706,
+            "date": "1983-08-08",
+            "trackNumber": 6,
+            "publisher": "",
+            "path": "Billy Joel/An Innocent Man/Billy Joel - Uptown Girl.mp3",
+            "images": [
+                {
+                    "height": 640,
+                    "url": "https://i.scdn.co/image/ab67616d0000b273814cbc4746358a25c84c62e7",
+                    "width": 640
+                },
+                {
+                    "height": 300,
+                    "url": "https://i.scdn.co/image/ab67616d00001e02814cbc4746358a25c84c62e7",
+                    "width": 300
+                },
+                {
+                    "height": 64,
+                    "url": "https://i.scdn.co/image/ab67616d00004851814cbc4746358a25c84c62e7",
+                    "width": 64
+                }
+            ],
+            "image": "dcfa362ebfffb3f5ddab1e51f1afc0e5d43bae70",
+            "copyright": "",
+            "downloadUrl": "https://music.youtube.com/watch?v=H6M0EulApMM",
+            "lyrics": "[Verse 1]\nUptown girl\nShe's been living in her uptown world\nI bet she's never had a backstreet guy\nI bet her momma never told her why\nI'm gonna try for an\n\n[Chorus]\nUptown girl\nShe's been living in her white-bred world\nAs long as anyone with hot blood can\nAnd now, she's looking for a downtown man\nThat's what I am\n\n[Bridge]\nAnd when she knows what she wants from her time\nAnd when she wakes up and makes up her mind\n\n[Pre-Chorus]\nShe'll see I'm not so tough\nJust because I'm in love with an\n\n[Verse 2]\nUptown girl\nYou know I've seen her in her uptown world\nShe's getting tired of her high class toys\nAnd all the presents from her uptown boys\nShe's got a choice\n\n[Verse 3]\nUptown girl\nYou know I can't afford to buy her pearls\nBut maybe, someday, when my ship comes in\nShe'll understand what kind of guy I've been\nAnd then I'll win\n\n[Bridge]\nAnd when she's walking, she's looking so fine\nAnd when she's talking, she'll say that she's mine\n\n[Pre-Chorus]\nShe'll say I'm not so tough\nJust because I'm in love with an\n\n[Chorus]\nUptown girl\nShe's been living in her white-bred world\nAs long as anyone with hot blood can\nAnd now, she's looking for a downtown man\nThat's what I am\n\n[Outro]\nUptown girl, she's my uptown girl\nYou know I'm in love with an uptown girl, my uptown girl\nYou know I'm in love with an uptown girl, my uptown girl\nYou know I'm in love with an uptown girl, my uptown girl\nYou know I'm in love with an uptown girl",
+            "popularity": 82,
+            "dateAdded": "1733597154858.0"
+        },
+        {
+            "albumArtist": [
+                {
+                    "external_urls": {
+                        "spotify": "https://open.spotify.com/artist/6zFYqv1mOsgBRQbae3JJ9e"
+                    },
+                    "href": "https://api.spotify.com/v1/artists/6zFYqv1mOsgBRQbae3JJ9e",
+                    "id": "6zFYqv1mOsgBRQbae3JJ9e",
+                    "name": "Billy Joel",
+                    "type": "artist",
+                    "uri": "spotify:artist:6zFYqv1mOsgBRQbae3JJ9e"
+                }
+            ],
+            "albumId": "3R3x4zIabsvpD3yxqLaUpc",
+            "albumName": "An Innocent Man",
+            "albumType": "album",
+            "name": "Careless Talk",
+            "artists": [
+                {
+                    "external_urls": {
+                        "spotify": "https://open.spotify.com/artist/6zFYqv1mOsgBRQbae3JJ9e"
+                    },
+                    "href": "https://api.spotify.com/v1/artists/6zFYqv1mOsgBRQbae3JJ9e",
+                    "id": "6zFYqv1mOsgBRQbae3JJ9e",
+                    "name": "Billy Joel",
+                    "type": "artist",
+                    "uri": "spotify:artist:6zFYqv1mOsgBRQbae3JJ9e"
+                }
+            ],
+            "date": "1983-08-08",
+            "discNumber": 1,
+            "duration": 228.426,
+            "trackNumber": 7,
+            "id": "1ESWiMfAZJCZH3YC9Mu5CB",
+            "images": [
+                {
+                    "height": 640,
+                    "url": "https://i.scdn.co/image/ab67616d0000b273814cbc4746358a25c84c62e7",
+                    "width": 640
+                },
+                {
+                    "height": 300,
+                    "url": "https://i.scdn.co/image/ab67616d00001e02814cbc4746358a25c84c62e7",
+                    "width": 300
+                },
+                {
+                    "height": 64,
+                    "url": "https://i.scdn.co/image/ab67616d00004851814cbc4746358a25c84c62e7",
+                    "width": 64
+                }
+            ],
+            "copyright": "",
+            "genres": [],
+            "lyrics": "",
+            "path": "",
+            "popularity": 33,
+            "publisher": ""
+        },
+        {
+            "id": "0wXtJFhGYMkccpJK0jhaQr",
+            "name": "Christie Lee",
+            "artists": [
+                {
+                    "name": "Billy Joel",
+                    "id": "6zFYqv1mOsgBRQbae3JJ9e"
+                }
+            ],
+            "genres": [
+                "album rock",
+                "classic rock",
+                "mellow gold",
+                "piano rock",
+                "rock",
+                "singer-songwriter",
+                "soft rock"
+            ],
+            "discNumber": 1,
+            "albumName": "An Innocent Man",
+            "albumArtist": [
+                {
+                    "name": "Billy Joel",
+                    "id": "6zFYqv1mOsgBRQbae3JJ9e"
+                }
+            ],
+            "albumType": "album",
+            "albumId": "3R3x4zIabsvpD3yxqLaUpc",
+            "duration": 211.133,
+            "date": "1983-08-08",
+            "trackNumber": 8,
+            "publisher": "Columbia",
+            "path": "Billy Joel/An Innocent Man/Billy Joel - Christie Lee.mp3",
+            "images": [
+                {
+                    "url": "https://i.scdn.co/image/ab67616d0000b273814cbc4746358a25c84c62e7",
+                    "width": 640,
+                    "height": 640
+                },
+                {
+                    "url": "https://i.scdn.co/image/ab67616d00001e02814cbc4746358a25c84c62e7",
+                    "width": 300,
+                    "height": 300
+                },
+                {
+                    "url": "https://i.scdn.co/image/ab67616d00004851814cbc4746358a25c84c62e7",
+                    "width": 64,
+                    "height": 64
+                }
+            ],
+            "image": "dcfa362ebfffb3f5ddab1e51f1afc0e5d43bae70",
+            "copyright": "(P) 1983 Columbia Records, a division of Sony Music Entertainment",
+            "downloadUrl": "https://music.youtube.com/watch?v=6gr_fbGYzfU",
+            "lyrics": "Let me tell you a story\nAbout a woman and a man\nMaybe you will find familiar\nMaybe you won't understand\nThe man's name I don't remember\nHe was always Joe to me\nBut I can't forget the woman\nShe was always Christie Lee\n\nWell, he was working in a nightclub\nThat's where he played the saxophone\nHe used to fake the stock arrangements\nHe left the customers alone\nBut one night before the last song\nAbout a quarter after three\nHe saw her standing at the coat check\nAnd made his move on Christie Lee\n\nChristie Lee, Christie Lee\nChristie Lee, Christie Lee\nWoo-hoo, woo-hoo\n\nShe was a nice piece of music\nShe had a rhythm all her own\nHe blew a solo like a blind man\nShe really dug his saxophone\nShe wanted more than just an encore\nAnd he could play in every key\nHe left the stage and packed his alto\nAnd took it home with Christie Lee\n\nOh, I heard the man knew 'the bird' like the Bible\nYou know the man could blow an educated axe\nHe couldn't see that Christie Lee was a woman\nWho didn't need another lover\nAll she wanted was the sax\n\nIt took a while for him to notice\nIt took a while for him to see\nHe was never in control here\nIt was always Christie Lee\n\nChristie Lee, Christie Lee\nChristie Lee, Christie Lee\nWoo-hoo, woo-hoo\n\nOh, the man took a calculated gamble\nYes, the man had the power to perform\nBut Christie Lee was more than he knew how to handle\nShe didn't need him as a man\nAll she wanted was the horn\n\nThey say that Joe became a wino\nThey say he always drinks alone\nThey say he stumbles like a blind man\nThey say he sold his saxophone\nEven the band must face the music\nThat's what the moral is to me\nThe only time you hit the high notes\nIs when you play for Christie Lee\n\nChristie Lee, Christie Lee\nChristie Lee, Christie Lee\nWoo-hoo\nChristie Lee, Christie Lee\nChristie Lee, Christie Lee\nChristie Lee, Christie Lee\nAh, Christie Lee, Christie Lee",
+            "popularity": 33,
+            "dateAdded": "1733738970563.0"
+        },
+        {
+            "albumArtist": [
+                {
+                    "external_urls": {
+                        "spotify": "https://open.spotify.com/artist/6zFYqv1mOsgBRQbae3JJ9e"
+                    },
+                    "href": "https://api.spotify.com/v1/artists/6zFYqv1mOsgBRQbae3JJ9e",
+                    "id": "6zFYqv1mOsgBRQbae3JJ9e",
+                    "name": "Billy Joel",
+                    "type": "artist",
+                    "uri": "spotify:artist:6zFYqv1mOsgBRQbae3JJ9e"
+                }
+            ],
+            "albumId": "3R3x4zIabsvpD3yxqLaUpc",
+            "albumName": "An Innocent Man",
+            "albumType": "album",
+            "name": "Leave a Tender Moment Alone",
+            "artists": [
+                {
+                    "external_urls": {
+                        "spotify": "https://open.spotify.com/artist/6zFYqv1mOsgBRQbae3JJ9e"
+                    },
+                    "href": "https://api.spotify.com/v1/artists/6zFYqv1mOsgBRQbae3JJ9e",
+                    "id": "6zFYqv1mOsgBRQbae3JJ9e",
+                    "name": "Billy Joel",
+                    "type": "artist",
+                    "uri": "spotify:artist:6zFYqv1mOsgBRQbae3JJ9e"
+                }
+            ],
+            "date": "1983-08-08",
+            "discNumber": 1,
+            "duration": 236.706,
+            "trackNumber": 9,
+            "id": "4Qw41GUmS4rF7GR3am9Rt6",
+            "images": [
+                {
+                    "height": 640,
+                    "url": "https://i.scdn.co/image/ab67616d0000b273814cbc4746358a25c84c62e7",
+                    "width": 640
+                },
+                {
+                    "height": 300,
+                    "url": "https://i.scdn.co/image/ab67616d00001e02814cbc4746358a25c84c62e7",
+                    "width": 300
+                },
+                {
+                    "height": 64,
+                    "url": "https://i.scdn.co/image/ab67616d00004851814cbc4746358a25c84c62e7",
+                    "width": 64
+                }
+            ],
+            "copyright": "",
+            "genres": [],
+            "lyrics": "",
+            "path": "",
+            "popularity": 47,
+            "publisher": ""
+        },
+        {
+            "albumArtist": [
+                {
+                    "external_urls": {
+                        "spotify": "https://open.spotify.com/artist/6zFYqv1mOsgBRQbae3JJ9e"
+                    },
+                    "href": "https://api.spotify.com/v1/artists/6zFYqv1mOsgBRQbae3JJ9e",
+                    "id": "6zFYqv1mOsgBRQbae3JJ9e",
+                    "name": "Billy Joel",
+                    "type": "artist",
+                    "uri": "spotify:artist:6zFYqv1mOsgBRQbae3JJ9e"
+                }
+            ],
+            "albumId": "3R3x4zIabsvpD3yxqLaUpc",
+            "albumName": "An Innocent Man",
+            "albumType": "album",
+            "name": "Keeping the Faith",
+            "artists": [
+                {
+                    "external_urls": {
+                        "spotify": "https://open.spotify.com/artist/6zFYqv1mOsgBRQbae3JJ9e"
+                    },
+                    "href": "https://api.spotify.com/v1/artists/6zFYqv1mOsgBRQbae3JJ9e",
+                    "id": "6zFYqv1mOsgBRQbae3JJ9e",
+                    "name": "Billy Joel",
+                    "type": "artist",
+                    "uri": "spotify:artist:6zFYqv1mOsgBRQbae3JJ9e"
+                }
+            ],
+            "date": "1983-08-08",
+            "discNumber": 1,
+            "duration": 279,
+            "trackNumber": 10,
+            "id": "3nulzAA8PNw1nZcUbrNxcf",
+            "images": [
+                {
+                    "height": 640,
+                    "url": "https://i.scdn.co/image/ab67616d0000b273814cbc4746358a25c84c62e7",
+                    "width": 640
+                },
+                {
+                    "height": 300,
+                    "url": "https://i.scdn.co/image/ab67616d00001e02814cbc4746358a25c84c62e7",
+                    "width": 300
+                },
+                {
+                    "height": 64,
+                    "url": "https://i.scdn.co/image/ab67616d00004851814cbc4746358a25c84c62e7",
+                    "width": 64
+                }
+            ],
+            "copyright": "",
+            "genres": [],
+            "lyrics": "",
+            "path": "",
+            "popularity": 47,
+            "publisher": ""
+        }
+    ],
+    "discCount": 1,
+    "dateAdded": 1733702293019
+}

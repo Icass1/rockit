@@ -5,12 +5,13 @@ import PlaylistHeader from "@/components/Playlist/PlaylistHeader";
 import PlaylistSongsView from "@/components/Playlist/PlaylistSongsView";
 import { db } from "@/lib/db/db";
 import {
+    parsePlaylist,
     type PlaylistDBSong,
-    type PlaylistDB,
     type PlaylistDBSongWithAddedAt,
+    type RawPlaylistDB,
 } from "@/lib/db/playlist";
-import { type SongDB } from "@/lib/db/song";
-import { type UserDB } from "@/lib/db/user";
+import { parseSong, type RawSongDB, type SongDB } from "@/lib/db/song";
+import { parseUser, type RawUserDB, type UserDB } from "@/lib/db/user";
 import { getStats, type SongForStats } from "@/lib/stats";
 import type { SpotifyPlaylistImage } from "@/types/spotify";
 
@@ -30,9 +31,11 @@ let playlist: Playlist | undefined;
 let inDatabase;
 
 if (id == "liked") {
-    const userDB = (await db
-        .prepare("SELECT likedSongs FROM user WHERE id = ?")
-        .get(Astro.locals.user.id)) as UserDB as UserDB<"likedSongs">;
+    const userDB = parseUser(
+        db
+            .prepare("SELECT likedSongs FROM user WHERE id = ?")
+            .get(Astro.locals.user.id) as RawUserDB
+    ) as UserDB<"likedSongs">;
 
     playlist = {
         name: "Liked",
@@ -170,9 +173,11 @@ if (id == "liked") {
         owner: "",
     };
 } else {
-    playlist = (await db
-        .prepare("SELECT * FROM playlist WHERE id = ?")
-        .get(id)) as PlaylistDB;
+    playlist = parsePlaylist(
+        db
+            .prepare("SELECT * FROM playlist WHERE id = ?")
+            .get(id) as RawPlaylistDB
+    );
 }
 
 if (playlist) {
@@ -188,11 +193,11 @@ if (playlist) {
     );
 }
 
-let songs = await Promise.all(
-    playlist.songs.map(
-        async (
+const songs = playlist.songs
+    .map(
+        (
             song
-        ): Promise<
+        ):
             | PlaylistDBSongWithAddedAt<
                   | "name"
                   | "albumId"
@@ -204,15 +209,16 @@ let songs = await Promise.all(
                   | "id"
                   | "images"
               >
-            | undefined
-        > => {
+            | undefined => {
             return {
                 added_at: song.added_at,
-                ...((await db
-                    .prepare(
-                        "SELECT name, albumId, duration, artists, path, albumName, image, images, id FROM song WHERE id = ?"
-                    )
-                    .get(song.id)) as SongDB as SongDB<
+                ...(parseSong(
+                    db
+                        .prepare(
+                            "SELECT name, albumId, duration, artists, path, albumName, image, images, id FROM song WHERE id = ?"
+                        )
+                        .get(song.id) as RawSongDB
+                ) as SongDB<
                     | "name"
                     | "albumId"
                     | "duration"
@@ -226,22 +232,21 @@ let songs = await Promise.all(
             };
         }
     )
-);
-songs = songs.filter(
-    (
-        song
-    ): song is PlaylistDBSongWithAddedAt<
-        | "id"
-        | "images"
-        | "image"
-        | "name"
-        | "albumId"
-        | "duration"
-        | "artists"
-        | "path"
-        | "albumName"
-    > => song !== undefined
-);
+    .filter(
+        (
+            song
+        ): song is PlaylistDBSongWithAddedAt<
+            | "id"
+            | "images"
+            | "image"
+            | "name"
+            | "albumId"
+            | "duration"
+            | "artists"
+            | "path"
+            | "albumName"
+        > => song !== undefined
+    );
 ---
 
 <Layout
@@ -256,17 +261,7 @@ songs = songs.filter(
         <PlaylistHeader
             id={id}
             playlist={playlist}
-            songs={songs as PlaylistDBSongWithAddedAt<
-                | "name"
-                | "albumId"
-                | "duration"
-                | "artists"
-                | "path"
-                | "albumName"
-                | "image"
-                | "id"
-                | "images"
-            >[]}
+            songs={songs}
             inDatabase={inDatabase}
             className="hidden md:flex w-full"
             client:only="react"
@@ -274,17 +269,7 @@ songs = songs.filter(
 
         <PlaylistSongsView
             id={id}
-            songs={songs as PlaylistDBSongWithAddedAt<
-                | "name"
-                | "albumId"
-                | "duration"
-                | "artists"
-                | "path"
-                | "albumName"
-                | "image"
-                | "id"
-                | "images"
-            >[]}
+            songs={songs}
             inDatabase={inDatabase}
             playlist={playlist}
             client:only="react"

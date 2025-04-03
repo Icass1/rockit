@@ -22,7 +22,7 @@ export async function GET(context: APIContext): Promise<Response> {
         if (!json.songs[index]) {
             continue;
         }
-        const song = await db
+        const song = db
             .prepare("SELECT * FROM song WHERE id = ?")
             .get(json.songs[index].id);
         json.songs[index].inDatabase = song ? true : false;
@@ -32,7 +32,7 @@ export async function GET(context: APIContext): Promise<Response> {
         if (!json.albums[index]) {
             continue;
         }
-        const album = await db
+        const album = db
             .prepare("SELECT * FROM album WHERE id = ?")
             .get(json.albums[index].id);
         json.albums[index].inDatabase = album ? true : false;
@@ -41,7 +41,7 @@ export async function GET(context: APIContext): Promise<Response> {
         if (!json.playlists[index]) {
             continue;
         }
-        const playlist = await db
+        const playlist = db
             .prepare("SELECT * FROM playlist WHERE id = ?")
             .get(json.playlists[index].id);
         json.playlists[index].inDatabase = playlist ? true : false;

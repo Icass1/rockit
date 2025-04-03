@@ -5,9 +5,14 @@ import {
     type SpotifyTrack,
 } from "@/types/spotify";
 
-import { type AlbumDB, type ArtistDB } from "@/db/album";
+import {
+    type AlbumDB,
+    type ArtistDB,
+    parseAlbum,
+    type RawAlbumDB,
+} from "@/db/album";
 import { db } from "@/db/db";
-import { type SongDB } from "@/db/song";
+import { parseSong, type RawSongDB, type SongDB } from "@/db/song";
 import { ENV } from "@/rockitEnv";
 
 const BACKEND_URL = ENV.BACKEND_URL;
@@ -53,9 +58,9 @@ export default async function getAlbum(
     let songs: Song[];
     let discs: Song[][];
 
-    album = (await db
-        .prepare("SELECT * FROM album WHERE id = ?")
-        .get(id)) as AlbumDB;
+    album = parseAlbum(
+        db.prepare("SELECT * FROM album WHERE id = ?").get(id) as RawAlbumDB
+    );
 
     if (album) {
         inDatabase = true;
@@ -81,13 +86,13 @@ export default async function getAlbum(
                           >
                         | undefined
                     > => {
-                        const song = (await db
+                        const rawSong = db
                             .prepare(
                                 "SELECT image, images, id, name, artists, albumId, albumName, path, duration, discNumber, trackNumber FROM song WHERE id = ?"
                             )
-                            .get(songID)) as SongDB | undefined;
+                            .get(songID) as RawSongDB | undefined;
 
-                        if (song) return song;
+                        if (rawSong) return parseSong(rawSong);
                         inDatabase = false;
 
                         const response = await fetch(
@@ -166,33 +171,33 @@ export default async function getAlbum(
             image: "",
         };
 
-        songs = await Promise.all(
-            data.tracks.items.map(async (item) => {
-                const songDB = (await db
+        songs = data.tracks.items.map((item) => {
+            const songDB = parseSong(
+                db
                     .prepare(
                         "SELECT image, id, name, artists, albumId, albumName, path, duration, discNumber, trackNumber FROM song WHERE id = ?"
                     )
-                    .get(item.id)) as SongDB;
+                    .get(item.id) as RawSongDB
+            );
 
-                if (songDB) {
-                    return songDB;
-                }
+            if (songDB) {
+                return songDB;
+            }
 
-                return {
-                    id: item.id,
-                    images: data.images,
-                    name: item.name,
-                    image: "",
-                    artists: data.artists,
-                    albumId: data.id,
-                    albumName: data.name,
-                    path: "",
-                    duration: item.duration_ms / 1000,
-                    discNumber: item.disc_number,
-                    trackNumber: item.track_number,
-                };
-            })
-        );
+            return {
+                id: item.id,
+                images: data.images,
+                name: item.name,
+                image: "",
+                artists: data.artists,
+                albumId: data.id,
+                albumName: data.name,
+                path: "",
+                duration: item.duration_ms / 1000,
+                discNumber: item.disc_number,
+                trackNumber: item.track_number,
+            };
+        });
 
         songs.sort((a, b) => {
             if (

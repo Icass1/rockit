@@ -11,9 +11,7 @@ if (!Astro.params.id) {
 }
 
 const tables = (
-    (await db
-        .prepare("SELECT name FROM sqlite_schema WHERE type='table'")
-        .all()) as {
+    db.prepare("SELECT name FROM sqlite_schema WHERE type='table'").all() as {
         name: string;
     }[]
 ).map((table) => table.name);

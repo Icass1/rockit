@@ -13,7 +13,7 @@ import type {
 
 import SongPageCover from "@/components/SongPage/SongPageCover";
 import { db } from "@/lib/db/db";
-import { type RawSongDB, type SongDB } from "@/lib/db/song";
+import { parseSong, type RawSongDB, type SongDB } from "@/lib/db/song";
 import { ENV } from "@/rockitEnv";
 import { EllipsisVertical } from "lucide-react";
 import SongPopupMenu from "@/components/ListSongs/SongPopupMenu";
@@ -38,7 +38,9 @@ let song:
 let artistSongs;
 let album;
 let artist: SpotifyArtist | undefined;
-song = (await db.prepare("SELECT * FROM song WHERE id = ?").get(id)) as SongDB;
+song = parseSong(
+    db.prepare("SELECT * FROM song WHERE id = ?").get(id) as RawSongDB
+);
 
 const BACKEND_URL = ENV.BACKEND_URL;
 

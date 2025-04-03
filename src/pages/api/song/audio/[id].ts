@@ -10,9 +10,9 @@ const SONGS_PATH = ENV.SONGS_PATH;
 export async function GET(context: APIContext) {
     const { id } = context.params as { id: string };
 
-    const song = (await db
+    const song = db
         .prepare("SELECT * FROM song WHERE id = ?")
-        .get(id)) as SongDB;
+        .get(id) as SongDB;
     if (!song) {
         return new Response("Song not found", { status: 404 });
     }

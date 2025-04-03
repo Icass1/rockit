@@ -1,5 +1,5 @@
 import { db } from "@/lib/db/db";
-import { type UserDB } from "@/lib/db/user";
+import { parseUser, type RawUserDB } from "@/lib/db/user";
 import type { APIContext } from "astro";
 
 export async function GET(context: APIContext): Promise<Response> {
@@ -9,13 +9,15 @@ export async function GET(context: APIContext): Promise<Response> {
 
     let user;
     try {
-        user = (await db
-            .prepare(
-                `SELECT ${
-                    context.url.searchParams.get("q") || "*"
-                } FROM user WHERE id = ?`
-            )
-            .get(context.locals.user.id)) as UserDB;
+        user = parseUser(
+            db
+                .prepare(
+                    `SELECT ${
+                        context.url.searchParams.get("q") || "*"
+                    } FROM user WHERE id = ?`
+                )
+                .get(context.locals.user.id) as RawUserDB
+        );
     } catch (err) {
         return new Response(err?.toString(), { status: 404 });
     }

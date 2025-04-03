@@ -5,9 +5,13 @@ import RecentlyPlayedSong from "@/components/Home/RecentlyPlayedSong";
 import QuickSelectionsSong from "@/components/Home/QuickSelectionsSong";
 import { getStats, type SongForStats, type Stats } from "@/lib/stats";
 import { getLang } from "@/lib/getLang";
-import { type PlaylistDB } from "@/lib/db/playlist";
-import { type AlbumDB } from "@/lib/db/album";
-import { type UserDB, type UserDBList } from "@/lib/db/user";
+import {
+    parsePlaylist,
+    type PlaylistDB,
+    type RawPlaylistDB,
+} from "@/lib/db/playlist";
+import { parseAlbum, type AlbumDB, type RawAlbumDB } from "@/lib/db/album";
+import { parseUser, type RawUserDB, type UserDBList } from "@/lib/db/user";
 import { db } from "@/lib/db/db";
 import { getImageUrl } from "@/lib/getImageUrl";
 
@@ -30,8 +34,6 @@ let combinedLists: (PlaylistDB | AlbumDB)[] = [];
 
 const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
 const lastMonth = Date.now() - 30 * 24 * 60 * 60 * 1000;
-
-console.log(stats);
 
 const songsByTimePlayed = [...stats.songs];
 songsByTimePlayed.sort((a, b) => b.timePlayed - a.timePlayed);
@@ -109,10 +111,10 @@ stats.songs
 // Get User Library Items
 let userLists: UserDBList[] | undefined = [];
 if (Astro.locals.user?.id) {
-    userLists = (
-        (await db
+    userLists = parseUser(
+        db
             .prepare("SELECT lists FROM user WHERE id = ?")
-            .get(Astro.locals.user.id)) as UserDB<"lists">
+            .get(Astro.locals.user.id) as RawUserDB
     )?.lists;
 }
 if (!userLists) {
@@ -125,9 +127,9 @@ if (userLists?.filter((list) => list.type == "playlist").length > 0) {
         ?.filter((list) => list.type == "playlist")
         .map((list) => `'${list.id}'`)
         .join(" OR id = ")}`;
-    const playlists = (
-        (await db.prepare(playlistsQuery).all()) as PlaylistDB[]
-    ).map((playlist: PlaylistDB) => playlist);
+    const playlists = (db.prepare(playlistsQuery).all() as RawPlaylistDB[]).map(
+        (playlist: RawPlaylistDB) => parsePlaylist(playlist) as PlaylistDB
+    );
     combinedLists = combinedLists.concat(playlists);
 }
 
@@ -137,8 +139,8 @@ if (userLists?.filter((list) => list.type == "album").length > 0) {
         ?.filter((list) => list.type == "album")
         .map((list) => `'${list.id}'`)
         .join(" OR id = ")}`;
-    const albums = ((await db.prepare(albumsQuery).all()) as AlbumDB[]).map(
-        (album) => album as AlbumDB
+    const albums = (db.prepare(albumsQuery).all() as RawAlbumDB[]).map(
+        (album) => parseAlbum(album) as AlbumDB
     );
     combinedLists = combinedLists.concat(albums);
 }

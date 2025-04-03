@@ -1,5 +1,5 @@
 import { db } from "@/lib/db/db";
-import { type SongDB } from "@/lib/db/song";
+import { parseSong, type RawSongDB } from "@/lib/db/song";
 import type { APIContext } from "astro";
 
 export async function GET(context: APIContext): Promise<Response> {
@@ -7,13 +7,15 @@ export async function GET(context: APIContext): Promise<Response> {
 
     let song;
     try {
-        song = (await db
-            .prepare(
-                `SELECT ${
-                    context.url.searchParams.get("q") || "*"
-                } FROM song WHERE id = ?`
-            )
-            .get(id)) as SongDB;
+        song = parseSong(
+            db
+                .prepare(
+                    `SELECT ${
+                        context.url.searchParams.get("q") || "*"
+                    } FROM song WHERE id = ?`
+                )
+                .get(id) as RawSongDB
+        );
     } catch (err) {
         return new Response(err?.toString(), { status: 404 });
     }

@@ -1,12 +1,9 @@
 annotated-types==0.7.0
 anyio==3.7.1
-argon2-cffi==23.1.0
-argon2-cffi-bindings==21.2.0
 async-timeout==5.0.1
 beautifulsoup4==4.12.3
 blinker==1.9.0
 certifi==2024.8.30
-cffi==1.17.1
 charset-normalizer==3.4.0
 click==8.1.7
 colorama==0.4.6
@@ -35,7 +32,6 @@ opencv-python==4.10.0.84
 packaging==24.2
 pillow==11.0.0
 platformdirs==4.3.6
-pycparser==2.22
 pydantic==2.10.3
 pydantic_core==2.27.1
 Pygments==2.18.0

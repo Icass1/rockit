@@ -31,7 +31,6 @@ import SubContextMenuTrigger from "../ContextMenu/SubContextMenu/Trigger";
 import SubContextMenuContent from "../ContextMenu/SubContextMenu/Content";
 import { networkStatus } from "@/stores/networkStatus";
 import { userLists } from "@/stores/userLists";
-import { downloads } from "@/stores/downloads";
 
 export default function SongContextMenu({
     children,
@@ -58,8 +57,6 @@ export default function SongContextMenu({
 
     const $userLists = useStore(userLists);
 
-    const disable = song.path ? false : true;
-
     if (!$lang) return;
 
     return (
@@ -75,14 +72,13 @@ export default function SongContextMenu({
                 }
             >
                 <ContextMenuOption
-                    disable={disable}
                     onClick={() => songHandleClick(song, $currentListSongs)}
                 >
                     <PlayCircle className="h-5 w-5" />
                     {$lang.play_song}
                 </ContextMenuOption>
                 <ContextMenuOption
-                    disable={offline || disable}
+                    disable={offline}
                     onClick={() => {
                         if (likedSongs.get().includes(song.id)) {
                             fetch(`/api/like/${song.id}`, {
@@ -153,7 +149,6 @@ export default function SongContextMenu({
                         : $lang.add_to_liked}
                 </ContextMenuOption>
                 <ContextMenuOption
-                    disable={disable}
                     onClick={() => {
                         const tempQueue = queue.get();
                         if (!tempQueue) return;
@@ -181,7 +176,6 @@ export default function SongContextMenu({
                 </ContextMenuOption>
 
                 <ContextMenuOption
-                    disable={disable}
                     onClick={() => {
                         const tempQueue = queue.get();
                         if (!tempQueue) return;
@@ -204,7 +198,7 @@ export default function SongContextMenu({
                     {$lang.add_to_queue}
                 </ContextMenuOption>
                 <SubContextMenu>
-                    <SubContextMenuTrigger disable={offline || disable}>
+                    <SubContextMenuTrigger disable={offline}>
                         <ListPlusIcon className="w-5 h-5" />
                         {$lang.add_song_to_playlist}
                     </SubContextMenuTrigger>
@@ -261,27 +255,21 @@ export default function SongContextMenu({
                     {$lang.copy_song_url}
                 </ContextMenuOption>
                 <ContextMenuSplitter />
-                <ContextMenuOption
-                    className="hover:bg-red-700"
-                    disable={disable || true}
-                >
+                <ContextMenuOption className="hover:bg-red-700" disable>
                     <ListX className="h-5 w-5" />
                     {$lang.remove_from_queue}
                 </ContextMenuOption>
-                <ContextMenuOption
-                    className="hover:bg-red-700"
-                    disable={disable || true}
-                >
+                <ContextMenuOption className="hover:bg-red-700" disable>
                     <ListX className="h-5 w-5" />
                     {$lang.remove_from_playlist}
                 </ContextMenuOption>
                 <ContextMenuSplitter />
-                <ContextMenuOption disable={disable || true}>
+                <ContextMenuOption disable>
                     <Download className="h-5 w-5" />
                     {$lang.download_mp3}
                 </ContextMenuOption>
                 <ContextMenuOption
-                    disable={offline || disable}
+                    disable={offline}
                     onClick={() => {
                         saveSongToIndexedDB(song, true);
                     }}
@@ -289,28 +277,6 @@ export default function SongContextMenu({
                     <HardDriveDownload className="h-5 w-5" />
                     {$lang.download_song_to_device}
                 </ContextMenuOption>
-                {disable && (
-                    <ContextMenuOption
-                        disable={offline}
-                        onClick={() => {
-                            const url = `https://open.spotify.com/track/${song.id}`;
-
-                            fetch(`/api/start-download?url=${url}`).then(
-                                (response) => {
-                                    response.json().then((data) => {
-                                        downloads.set([
-                                            data.download_id,
-                                            ...downloads.get(),
-                                        ]);
-                                    });
-                                }
-                            );
-                        }}
-                    >
-                        <HardDriveDownload className="h-5 w-5" />
-                        Download to server
-                    </ContextMenuOption>
-                )}
                 <ContextMenuSplitter />
                 <ContextMenuOption
                     onClick={() => {

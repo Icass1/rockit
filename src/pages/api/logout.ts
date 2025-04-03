@@ -1,4 +1,4 @@
-// import { lucia } from "@/auth";
+import { lucia } from "@/auth";
 import type { APIContext } from "astro";
 
 export async function ALL(context: APIContext): Promise<Response> {

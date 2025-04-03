@@ -7,9 +7,9 @@ import { join } from "path";
 import sharp from "sharp";
 
 export async function GET(context: APIContext): Promise<Response> {
-    const imageDB = (await db
+    const imageDB = db
         .prepare("SELECT path FROM image WHERE id = ?")
-        .get(context.params.id)) as ImageDB;
+        .get(context.params.id) as ImageDB;
 
     if (!imageDB) {
         return new Response("Image not found", { status: 404 });

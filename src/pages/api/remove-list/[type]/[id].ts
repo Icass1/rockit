@@ -1,5 +1,5 @@
 import { db } from "@/lib/db/db";
-import { type UserDB } from "@/lib/db/user";
+import { parseUser, type RawUserDB, type UserDB } from "@/lib/db/user";
 import type { APIContext } from "astro";
 
 export async function ALL(context: APIContext): Promise<Response> {
@@ -7,9 +7,11 @@ export async function ALL(context: APIContext): Promise<Response> {
         return new Response("Unauthenticated", { status: 401 });
     }
 
-    const user = (await db
-        .prepare("SELECT lists FROM user WHERE id = ?")
-        .get(context.locals.user.id)) as UserDB as UserDB<"lists">;
+    const user = parseUser(
+        db
+            .prepare("SELECT lists FROM user WHERE id = ?")
+            .get(context.locals.user.id) as RawUserDB
+    ) as UserDB<"lists">;
 
     const lists = user.lists;
     const type = context.params.type;
@@ -24,7 +26,7 @@ export async function ALL(context: APIContext): Promise<Response> {
         return new Response("List not found in user library", { status: 404 });
     }
 
-    // Filtra para eliminar la lista especificada
+    // Filtrar para eliminar la lista especificada
     const updatedLists = lists.filter(
         (list) => !(list.type === type && list.id === id)
     );

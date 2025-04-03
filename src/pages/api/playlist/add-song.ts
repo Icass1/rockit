@@ -1,5 +1,10 @@
 import { db } from "@/lib/db/db";
-import { type PlaylistDB, type PlaylistDBSong } from "@/lib/db/playlist";
+import {
+    parsePlaylist,
+    type PlaylistDB,
+    type PlaylistDBSong,
+    type RawPlaylistDB,
+} from "@/lib/db/playlist";
 import type { APIContext } from "astro";
 
 export async function POST(context: APIContext): Promise<Response> {
@@ -11,9 +16,11 @@ export async function POST(context: APIContext): Promise<Response> {
         songId: string;
         playlistId: string;
     };
-    const list = (await db
-        .prepare(`SELECT songs FROM playlist WHERE id = ?`)
-        .get(data.playlistId)) as PlaylistDB<"songs">;
+    const list = parsePlaylist(
+        db
+            .prepare(`SELECT songs FROM playlist WHERE id = ?`)
+            .get(data.playlistId) as RawPlaylistDB
+    ) as PlaylistDB<"songs">;
 
     const song = db
         .prepare("SELECT id FROM song WHERE id = ?")

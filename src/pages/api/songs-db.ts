@@ -1,5 +1,5 @@
 import { db } from "@/lib/db/db";
-import type { SongDB } from "@/lib/db/song";
+import type { RawSongDB } from "@/lib/db/song";
 import { ENV } from "@/rockitEnv";
 import type { APIContext } from "astro";
 
@@ -10,7 +10,7 @@ export async function GET(context: APIContext): Promise<Response> {
         return new Response("Incorrect API key", { status: 401 });
     }
 
-    const json = (await db.prepare("SELECT id FROM song").all()) as SongDB[];
+    const json = db.prepare("SELECT id FROM song").all() as RawSongDB[];
 
     return new Response(JSON.stringify(json.map((song) => song.id)), {
         headers: {

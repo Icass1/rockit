@@ -104,7 +104,7 @@ export const userQuery = `CREATE TABLE IF NOT EXISTS user (
     createdAt INTEGER NOT NULL
 )`;
 
-export function parse1User(user: RawUserDB | undefined): UserDB | undefined {
+export function parseUser(user: RawUserDB | undefined): UserDB | undefined {
     if (!user) {
         return undefined;
     }

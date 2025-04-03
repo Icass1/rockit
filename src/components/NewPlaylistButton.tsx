@@ -20,7 +20,7 @@ export default function NewPlaylistButton() {
                         className="absolute top-0 left-0 rounded-md w-full h-auto cover aspect-square"
                         src="/rockit-background.png"
                     />
-                    <Plus strokeWidth={3} className="absolute top-0 left-0 rounded-md w-full h-auto cover aspect-square p-6" />
+                    <Plus className="absolute top-0 left-0 rounded-md w-full h-auto cover aspect-square p-6" />
                 </div>
                 <label className="truncate font-semibold text-center min-h-6">
                     New playlist

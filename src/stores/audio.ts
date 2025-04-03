@@ -199,8 +199,6 @@ fetch(
                     })
                 );
             }
-            console.log("userjson", userJson)
-
 
             if (userJson && userJson.queue.length > 0) {
                 fetch(
@@ -209,8 +207,6 @@ fetch(
                         .join()}&p=id,name,artists,images,duration`
                 ).then((response) =>
                     response.json().then((queueSongs: QueueSong[]) => {
-
-                        console.log(queueSongs)
                         queue.set(
                             userJson.queue
                                 .map((queueSong) => {

@@ -1,25 +1,22 @@
 import { db } from "@/lib/db/db";
-import { type PlaylistDB } from "@/lib/db/playlist";
+import { parsePlaylist, type RawPlaylistDB } from "@/lib/db/playlist";
 import type { APIContext } from "astro";
 
 export async function GET(context: APIContext): Promise<Response> {
     let playlists;
     try {
-        const playlistIds = context.url.searchParams
+        playlists = context.url.searchParams
             .get("playlists")
-            ?.split(",");
-
-        if (playlistIds)
-            playlists = await Promise.all(
-                playlistIds.map(
-                    async (playlistID) =>
-                        (await db
-                            .prepare(
-                                `SELECT ${
-                                    context.url.searchParams.get("q") || "*"
-                                } FROM playlist WHERE id = ?`
-                            )
-                            .get(playlistID)) as PlaylistDB
+            ?.split(",")
+            .map((playlistID) =>
+                parsePlaylist(
+                    db
+                        .prepare(
+                            `SELECT ${
+                                context.url.searchParams.get("q") || "*"
+                            } FROM playlist WHERE id = ?`
+                        )
+                        .get(playlistID) as RawPlaylistDB
                 )
             );
     } catch (err) {

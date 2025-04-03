@@ -1,7 +1,7 @@
 import { db } from "@/lib/db/db";
 import type { PlaylistDBSong } from "@/lib/db/playlist";
-import { type SongDB } from "@/lib/db/song";
-import { type UserDB } from "@/lib/db/user";
+import { parseSong, type RawSongDB, type SongDB } from "@/lib/db/song";
+import { parseUser, type RawUserDB, type UserDB } from "@/lib/db/user";
 import type { APIContext } from "astro";
 
 export async function POST(context: APIContext): Promise<Response> {
@@ -9,9 +9,11 @@ export async function POST(context: APIContext): Promise<Response> {
         return new Response("Unauthenticated", { status: 401 });
     }
 
-    const user = (await db
-        .prepare("SELECT likedSongs FROM user WHERE id = ?")
-        .get(context.locals.user.id)) as UserDB as UserDB<"likedSongs">;
+    const user = parseUser(
+        db
+            .prepare("SELECT likedSongs FROM user WHERE id = ?")
+            .get(context.locals.user.id) as RawUserDB
+    ) as UserDB<"likedSongs">;
 
     if (!user) {
         return new Response(
@@ -22,9 +24,9 @@ export async function POST(context: APIContext): Promise<Response> {
 
     const id = context.params.id;
 
-    const song = (await db
-        .prepare("SELECT id FROM song WHERE id = ?")
-        .get(id)) as SongDB as SongDB<"id">;
+    const song = parseSong(
+        db.prepare("SELECT id FROM song WHERE id = ?").get(id) as RawSongDB
+    ) as SongDB<"id">;
 
     if (!song || !id) {
         return new Response("Song not found", { status: 404 });
@@ -53,9 +55,11 @@ export async function DELETE(context: APIContext): Promise<Response> {
         return new Response("Unauthenticated", { status: 401 });
     }
 
-    const user = (await db
-        .prepare("SELECT likedSongs FROM user WHERE id = ?")
-        .get(context.locals.user.id)) as UserDB as UserDB<"likedSongs">;
+    const user = parseUser(
+        db
+            .prepare("SELECT likedSongs FROM user WHERE id = ?")
+            .get(context.locals.user.id) as RawUserDB
+    ) as UserDB<"likedSongs">;
 
     if (!user) {
         return new Response(

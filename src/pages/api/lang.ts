@@ -18,18 +18,14 @@ export async function GET(context: APIContext): Promise<Response> {
         }
     } else {
         lang = (
-            (await db
+            db
                 .prepare("SELECT lang FROM user WHERE id = ?")
-                .get(context.locals.user.id)) as UserDB<"lang">
+                .get(context.locals.user.id) as UserDB<"lang">
         ).lang;
     }
-    let fileBuffer;
 
-    try {
-        fileBuffer = await readFile(`src/lang/${lang}.json`, "utf-8");
-    } catch {
-        return new Response("Not found", { status: 404 });
-    }
+    const fileBuffer = await readFile(`src/lang/${lang}.json`, "utf-8");
+
     return new Response(
         JSON.stringify({ lang: lang, langFile: JSON.parse(fileBuffer) }),
         {

@@ -57,7 +57,7 @@ export type PlaylistDBSongWithAddedAt<
     added_at?: string;
 };
 
-export function parse1Playlist(
+export function parsePlaylist(
     playlist: RawPlaylistDB | undefined
 ): PlaylistDB | undefined {
     if (!playlist) return undefined;

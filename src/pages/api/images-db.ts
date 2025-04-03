@@ -10,9 +10,7 @@ export async function GET(context: APIContext): Promise<Response> {
         return new Response("Incorrect API key", { status: 401 });
     }
 
-    const json = (await db
-        .prepare("SELECT path FROM image")
-        .all()) as ImageDB[];
+    const json = db.prepare("SELECT path FROM image").all() as ImageDB[];
 
     return new Response(JSON.stringify(json.map((image) => image.path)), {
         headers: {

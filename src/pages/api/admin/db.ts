@@ -131,17 +131,15 @@ export async function POST(context: APIContext): Promise<Response> {
         )
         .all();
 
-    const totalRows = (
-        await db
-            .prepare(
-                `SELECT id FROM ${data.table} ${whereString} ${data.sortColumn ? `ORDER BY ${data.sortColumn} ${data.ascending ? "ASC" : "DESC"}` : ""}`
-            )
-            .all()
-    )?.length;
+    const totalRows = db
+        .prepare(
+            `SELECT id FROM ${data.table} ${whereString} ${data.sortColumn ? `ORDER BY ${data.sortColumn} ${data.ascending ? "ASC" : "DESC"}` : ""}`
+        )
+        .all().length;
 
-    const columns = (await db
+    const columns = db
         .prepare(`PRAGMA table_info(${data.table})`)
-        .all()) as Column[];
+        .all() as Column[];
 
     return new Response(
         JSON.stringify({

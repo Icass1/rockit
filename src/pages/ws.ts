@@ -1,5 +1,5 @@
 import { db } from "@/lib/db/db";
-import { type UserDB } from "@/lib/db/user";
+import { parseUser, type RawUserDB, type UserDB } from "@/lib/db/user";
 import type { APIContext } from "astro";
 
 export interface Message {
@@ -50,7 +50,7 @@ export async function ALL(context: APIContext): Promise<Response> {
             //     };
             // }
 
-            socket.addEventListener("message", async (event) => {
+            socket.addEventListener("message", (event) => {
                 if (!context.locals.user) {
                     console.error("User is not logged in");
                     return;
@@ -63,28 +63,24 @@ export async function ALL(context: APIContext): Promise<Response> {
                     return;
                 }
                 if (messageJson.currentSong != undefined) {
-                    await db
-                        .prepare(`UPDATE user SET currentSong = ? WHERE id = ?`)
-                        .run(
-                            messageJson.currentSong == ""
-                                ? undefined
-                                : messageJson.currentSong,
-                            userId
-                        );
-                    await db
-                        .prepare(
-                            `UPDATE user SET currentStation = ? WHERE id = ?`
-                        )
-                        .run(undefined, userId);
+                    db.prepare(
+                        `UPDATE user SET currentSong = ? WHERE id = ?`
+                    ).run(
+                        messageJson.currentSong == ""
+                            ? undefined
+                            : messageJson.currentSong,
+                        userId
+                    );
+                    db.prepare(
+                        `UPDATE user SET currentStation = ? WHERE id = ?`
+                    ).run(undefined, userId);
                 } else if (messageJson.currentStation != undefined) {
-                    await db
-                        .prepare(
-                            `UPDATE user SET currentStation = ? WHERE id = ?`
-                        )
-                        .run(messageJson.currentStation, userId);
-                    await db
-                        .prepare(`UPDATE user SET currentSong = ? WHERE id = ?`)
-                        .run(undefined, userId);
+                    db.prepare(
+                        `UPDATE user SET currentStation = ? WHERE id = ?`
+                    ).run(messageJson.currentStation, userId);
+                    db.prepare(
+                        `UPDATE user SET currentSong = ? WHERE id = ?`
+                    ).run(undefined, userId);
                 } else if (messageJson.currentTime != undefined) {
                     // if (allConections[userId].playing == socket) {
                     //     allConections[userId].connections
@@ -103,32 +99,36 @@ export async function ALL(context: APIContext): Promise<Response> {
                 } else if (messageJson.deviceName != undefined) {
                     // Handle device name
                 } else if (messageJson.queue != undefined) {
-                    await db
-                        .prepare(`UPDATE user SET queue = ? WHERE id = ?`)
-                        .run(JSON.stringify(messageJson.queue), userId);
+                    db.prepare(`UPDATE user SET queue = ? WHERE id = ?`).run(
+                        JSON.stringify(messageJson.queue),
+                        userId
+                    );
                 } else if (messageJson.volume != undefined) {
-                    await db
-                        .prepare(`UPDATE user SET volume = ? WHERE id = ?`)
-                        .run(messageJson.volume, userId);
+                    db.prepare(`UPDATE user SET volume = ? WHERE id = ?`).run(
+                        messageJson.volume,
+                        userId
+                    );
                 } else if (messageJson.queueIndex != undefined) {
-                    await db
-                        .prepare(`UPDATE user SET queueIndex = ? WHERE id = ?`)
-                        .run(messageJson.queueIndex, userId);
+                    db.prepare(
+                        `UPDATE user SET queueIndex = ? WHERE id = ?`
+                    ).run(messageJson.queueIndex, userId);
                 } else if (messageJson.randomQueue != undefined) {
-                    await db
-                        .prepare(`UPDATE user SET randomQueue = ? WHERE id = ?`)
-                        .run(messageJson.randomQueue, userId);
+                    db.prepare(
+                        `UPDATE user SET randomQueue = ? WHERE id = ?`
+                    ).run(messageJson.randomQueue, userId);
                 } else if (messageJson.repeatSong != undefined) {
-                    await db
-                        .prepare(`UPDATE user SET repeatSong = ? WHERE id = ?`)
-                        .run(messageJson.repeatSong, userId);
+                    db.prepare(
+                        `UPDATE user SET repeatSong = ? WHERE id = ?`
+                    ).run(messageJson.repeatSong, userId);
                 } else if (messageJson.songEnded != undefined) {
                     let userLastPlayedSong = (
-                        (await db
-                            .prepare(
-                                "SELECT lastPlayedSong FROM user WHERE id = ?"
-                            )
-                            .get(userId)) as UserDB<"lastPlayedSong">
+                        parseUser(
+                            db
+                                .prepare(
+                                    "SELECT lastPlayedSong FROM user WHERE id = ?"
+                                )
+                                .get(userId) as RawUserDB
+                        ) as UserDB<"lastPlayedSong">
                     ).lastPlayedSong;
 
                     if (!userLastPlayedSong) {

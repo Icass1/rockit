@@ -1,6 +1,6 @@
 import { ENV } from "@/rockitEnv";
 import sqlite from "better-sqlite3";
-import * as fs from "fs";
+// import * as fs from "fs";
 import { albumQuery } from "./album";
 import { downloadQuery } from "./download";
 import { errorQuery } from "./error";
@@ -9,7 +9,7 @@ import { playlistQuery } from "./playlist";
 import { songQuery } from "./song";
 import { userQuery } from "./user";
 
-fs.mkdir("database", { recursive: false }, () => {});
+// fs.mkdir("database", { recursive: false }, () => {});
 export const db = sqlite("database/database.db");
 
 export interface Column {
@@ -29,9 +29,9 @@ if (ENV.INSECURE_DB_MODE == "true") {
 }
 
 function getDifference(listA: Column[], listB: Column[]) {
-    let addedColumns: string[] = [];
-    let removedColumns: string[] = [];
-    let modifiedColumns: {
+    const addedColumns: string[] = [];
+    const removedColumns: string[] = [];
+    const modifiedColumns: {
         name: string;
         param: string;
         previous: string | null | number;
@@ -39,7 +39,7 @@ function getDifference(listA: Column[], listB: Column[]) {
     }[] = [];
 
     listA.map((columnA) => {
-        let columnB = listB.find((columnB) => columnA.name == columnB.name);
+        const columnB = listB.find((columnB) => columnA.name == columnB.name);
         if (columnB == undefined) {
             removedColumns.push(columnA.name);
             return;
@@ -79,7 +79,7 @@ function getDifference(listA: Column[], listB: Column[]) {
     });
 
     listB.map((columnB) => {
-        let columnA = listA.find((columnA) => columnA.name == columnB.name);
+        const columnA = listA.find((columnA) => columnA.name == columnB.name);
         if (columnA == undefined) {
             addedColumns.push(columnB.name);
             return;

@@ -30,6 +30,9 @@ html {
     height: 100dvh;
     width: 100%;
     overflow: hidden;
+    position: fixed;
+    top: 0px;
+    left: 0px;
 }
 
 code {

@@ -4,6 +4,7 @@ from flask_sock import Sock
 from flask_cors import CORS
 
 from dotenv import load_dotenv
+
 load_dotenv()
 import os
 from typing import Dict
@@ -21,6 +22,8 @@ from downloader import Downloader, SongDownloader, ListDownloader
 from backendUtils import create_id
 from logger import getLogger
 
+from db.db import DB
+
 app = Flask(__name__)
 sock = Sock(app)
 
@@ -33,24 +36,25 @@ CORS(app, supports_credentials=True, resources={
     }
 })
 
-spotify = Spotify()
-downloader = Downloader(spotify)
+db = DB()
+
+spotify = Spotify(db)
+downloader = Downloader(spotify, db)
 
 downloads = {}
 user_downloads: Dict[str, Dict[str, SongDownloader | ListDownloader | None]] = {}
 
 logger = getLogger(__name__)
 
-app.logger = logger
-
 import os
+
+logger.error("TESTasdf")
 
 @app.route('/')
 def home():
 
     queue = []
     for k in downloader.queue:
-        
         queue.append({
             "spotdl_song": k.get("spotdl_song").json,
             "raw_list": k.get("raw_list")._json,   
@@ -73,12 +77,14 @@ def search():
     
     search_results = spotify.api_call(path="search", params={"q": query, "type": "track,album,playlist,artist", "limit": "6"})
 
-    return {
+    if not search_results: return Response("Error", status=500)
+
+    return jsonify({
         "songs": search_results["tracks"]["items"],
         "albums": search_results["albums"]["items"],
         "playlists": search_results["playlists"]["items"],
         "artists": search_results["artists"]["items"],
-    }
+    })
 
 @app.route('/album/<string:id>')
 def album(id: str):
@@ -148,10 +154,12 @@ def download_status(id: str):
     if USER_ID not in user_downloads or id not in user_downloads[USER_ID]:
         return Response("Download not found"), 404
 
-    if user_downloads[USER_ID][id] == None:
+    hanlder: SongDownloader | ListDownloader | None = user_downloads[USER_ID][id]
+
+    if not hanlder:
         return Response("Error in download"), 500
 
-    return Response(user_downloads[USER_ID][id].status(), mimetype='text/event-stream')
+    return Response(hanlder.status(), mimetype='text/event-stream')
 
 @app.route('/downloads')
 def check_downloads():

@@ -5,10 +5,10 @@ import base64
 import os
 from typing import List
 import re
-from ytmusicapi import YTMusic
 import math
 
 from spotdl.types.song import Song
+from ytmusicapi import YTMusic
 
 from backendUtils import sanitize_folder_name, download_image
 
@@ -17,38 +17,48 @@ from spotifyApiTypes.RawSpotifyApiAlbum import RawSpotifyApiAlbum, AlbumItems
 from spotifyApiTypes.RawSpotifyApiPlaylist import RawSpotifyApiPlaylist, PlaylistItems, PlaylistAlbum, PlaylistArtists, PlaylistTracks
 from spotifyApiTypes.RawSpotifyApiArtist import RawSpotifyApiArtist
 from spotifyApiTypes.RawSpotifyApiSearchResults import RawSpotifyApiSearchResults, SpotifySearchResultsArtists1, SpotifySearchResultsItems2
+
 from ytMusicApiTypes.RawYTMusicApiPlaylist import RawYTMusicApiPlaylist
 from ytMusicApiTypes.RawYTMusicApiAlbum import RawYTMusicApiAlbum
 from ytMusicApiTypes.RawYTMusicApiSong import RawYTMusicApiSong
+
 from rockItApiTypes.RawRockItApiAlbum import RawRockItApiAlbum
+from rockItApiTypes.RawRockItApiSong import RawRockItApiSong, RockItSongArtists
+
+from db.db import DB
+from db.album import AlbumDBCopyright, AlbumDBFull
 
 from logger import getLogger
 
-logger = getLogger(__name__)
+IMAGES_PATH = os.getenv("IMAGES_PATH")
 
-from spotdl.types.song import Song
 
 class Spotify:
-    def __init__(self):
-        self.client_id = os.getenv('CLIENT_ID')
+
+    def __init__(self, db: DB):
+        
+        self.logger = getLogger(__name__, class_name="Spotify")
+        
+        self.db = db
+        
+        self.client_id: str | None = os.getenv('CLIENT_ID')
         self.client_secret = os.getenv('CLIENT_SECRET')
 
         self.ytmusic = YTMusic()
 
-        logger.info(f"CLIENT_ID: {self.client_id}")
-        logger.info(f"CLIENT_SECRET: {self.client_secret}")
-
         if self.client_id == None or self.client_secret == None:
-            logger.critical("Missing .env file")
+            self.logger.critical("Missing .env file")
             exit()
 
-        self.token: str = None
+        self.token: str | None = None
         self.get_token()
-
 
         self.artists_cache = {}
 
     def get_token(self):
+        
+        if not self.client_id or not self.client_secret: return
+        
         auth_string = self.client_id + ':' + self.client_secret
         auth_bytes = auth_string.encode('utf-8')
         auth_base64 = str(base64.b64encode(auth_bytes), "utf-8")
@@ -64,18 +74,85 @@ class Spotify:
         json_response = json.loads(result.content)
 
         self.token = json_response["access_token"]
-        logger.info("Spotify.get_token New token")
+        self.logger.info("New token")
 
     def get_auth_header(self):
+        if not self.token: return
         return {"Authorization": "Bearer " + self.token}
 
-    def get_spotify_album(self, url: str):
+    def get_spotify_album(self, id: str):
+        
+        raw_db_album = self.db.get("SELECT * FROM album WHERE id = ?", (id,))
+
+        if raw_db_album:
+            album = RawRockItApiAlbum.from_dict(raw_db_album)
+            album_dict = {
+                "album_type": "compilation",
+                "total_tracks": len(album.songs),
+                "available_markets": [],
+                "external_urls": {
+                    "spotify": f"https://open.spotify.com/album/{album.id}"
+                },
+                "href": "",
+                "id": album.id,
+                "images": [image._json for image in album.images],
+                "name": album.name,
+                "release_date": album.releaseDate,
+                "release_date_precision": "year",
+                "restrictions": {},
+                "type": album.type,
+                "uri": "",
+                "artists": [artist._json for artist in album.artists],
+                "tracks": {
+                    "href": "",
+                    "limit": 0,
+                    "next": "",
+                    "offset": 0,
+                    "previous": "",
+                    "total": len(album.songs),
+                    "items": [{
+                        "disc_number": album.discCount,
+                    }]
+                },
+                "copyrights": [_copyright._json for _copyright in album.copyrights],
+                "external_ids": {
+                    "isrc": "",
+                    "ean": "",
+                    "upc": ""
+                },
+                "genres": [],
+                "label": "",
+                "popularity": album.popularity
+            }
+
+            album = RawSpotifyApiAlbum.from_dict(album_dict)
+
+        else:
+            album = RawSpotifyApiAlbum.from_dict(self.api_call(f"albums/{id}")) 
+            release_date = album.release_date
+            songs = [song.id for song in album.tracks.items]
+    
+        album_songs = [self.get_spotify_song(id, album=album) for id in songs]
+
+        genres = []
+
+        for song in album_songs:
+            if not song: continue
+            if not song[0].genres: continue
+            for genre in song[0].genres:
+                genres.append(genre)
+
+        genres = list(set(genres))
+
+        return album, spotdl_songs, raw_songs
+        
+        return
+        
         spotdl_songs: List[Song] = []
         raw_songs: List[AlbumItems] | List[PlaylistItems] = []
 
         album = self.get_album(id=url.replace('https://open.spotify.com/album/', ''))
 
-        self.update_album_db(album=album)
         raw_album_tracks = [RawSpotifyApiTrack.from_dict(song) for song in self.api_call(path="tracks", params={"ids": ",".join([item.id for item in album.tracks.items])})["tracks"]]
 
         for song in raw_album_tracks:
@@ -113,8 +190,8 @@ class Spotify:
             spotdl_songs.append(spotdl_song)
             raw_songs.append(song)
 
-            logger.debug(f"Spotify.get_spotify_album Album Spotdl song: {spotdl_song}")
-            logger.debug(f"Spotify.get_spotify_album Album Raw song: {song}")
+            self.logger.debug(f"Album Spotdl song: {spotdl_song}")
+            self.logger.debug(f"Album Raw song: {song}")
 
         return album, spotdl_songs, raw_songs
 
@@ -145,7 +222,7 @@ class Spotify:
         artist_ids = []
         for song in playlist.tracks.items:
             if song.track == None: 
-                logger.warning(f"Spotify.get_spotify_playlist Removing song from items beacuse is None {song}")
+                self.logger.warning(f"Removing song from items beacuse is None {song}")
                 playlist.tracks.items.remove(song)
                 continue
             for artist in song.track.artists:
@@ -187,14 +264,14 @@ class Spotify:
             song_dict["url"] = song.external_urls.spotify
             song_dict["popularity"] = song.popularity
             if song.album == None:
-                logger.error(f"Spotify.get_spotify_playlist No album found in song. {song=}")
+                self.logger.error(f"No album found in song. {song=}")
             else:
                 song_dict["album_type"] = song.album.type
                 song_dict["album_id"] = song.album.id
                 song_dict["album_name"] = song.album.name
                 song_dict["album_artist"] = song.album.artists[0].name
                 if song.album.release_date: song_dict["year"] = int(song.album.release_date[:4])
-                else: logger.error(f"Spotify.get_spotify_playlist No release_date found in song album. {song.album=}")
+                else: self.logger.error(f"No release_date found in song album. {song.album=}")
                 song_dict["date"] = song.album.release_date
                 song_dict["tracks_count"] = song.album.total_tracks
                 song_dict["cover_url"] = (
@@ -209,8 +286,8 @@ class Spotify:
             spotdl_songs.append(spotdl_song)
             raw_songs.append(item)
 
-            logger.debug(f"Spotify.get_spotify_playlist Playlist Spotdl song: {spotdl_song}")
-            logger.debug(f"Spotify.get_spotify_playlist Playlist Raw song: {song}")
+            self.logger.debug(f"Playlist Spotdl song: {spotdl_song}")
+            self.logger.debug(f"Playlist Raw song: {song}")
 
         return playlist, spotdl_songs, raw_songs
 
@@ -285,12 +362,9 @@ class Spotify:
             spotdl_song = Song.from_dict(song_dict)
             spotdl_songs.append(spotdl_song)
             raw_songs.append(song)
-            
-            
-            
+
             tracks.append(song._json)
             
-
         raw_spotify_playlist = {
             "collaborative": False,
             "description": playlist.description,
@@ -358,79 +432,101 @@ class Spotify:
             except:
                 try:
                     yt_album_id = self.ytmusic.get_album_browse_id(list_id)
+                    if not yt_album_id:
+                        self.logger.error("yt_album_id is undefined")
+                        return
                     raw_album = self.ytmusic.get_album(yt_album_id)
                 except:
                     raise Exception("Error getting album")
                 return self.get_youtube_album(raw_album=raw_album)
         raise Exception("Invalid URL")
 
-    def update_album_db(self, album: RawSpotifyApiAlbum | PlaylistAlbum):
+    # def update_album_db(self, album: RawSpotifyApiAlbum | PlaylistAlbum):
 
-        if len(album.images) > 1:
-            image_url = max(album.images, key=lambda i: i.width * i.height)["url"] if album.images else None
-        else:
-            image_url = album.images[0].url
+    #     if len(album.images) > 1:
+    #         image_url = max(album.images, key=lambda i: i.width * i.height)["url"] if album.images else None
+    #     else:
+    #         image_url = album.images[0].url
 
-        image_path_dir = os.path.join("album", sanitize_folder_name(album.artists[0].name), sanitize_folder_name(album.name))
-        image_path = os.path.join(image_path_dir, "image.png")
+    #     image_path_dir = os.path.join("album", sanitize_folder_name(album.artists[0].name), sanitize_folder_name(album.name))
+    #     image_path = os.path.join(image_path_dir, "image.png")
 
-        if not os.path.exists(os.path.join(os.getenv("IMAGES_PATH"), image_path_dir)):
-            os.makedirs(os.path.join(os.getenv("IMAGES_PATH"), image_path_dir))
-        if not os.path.exists(os.path.join(os.getenv("IMAGES_PATH"), image_path)):
-            download_image(url=image_url, path=os.path.join(os.getenv("IMAGES_PATH"), image_path))
+    #     if not IMAGES_PATH: 
+    #         self.logger.critical("IMAGES_PATH is not defined ")
+    #         return
 
-        logger.info(f"Spotfy.update_album_db image_path={image_path}")
+    #     if not os.path.exists(os.path.join(IMAGES_PATH, image_path_dir)):
+    #         os.makedirs(os.path.join(IMAGES_PATH, image_path_dir))
+    #     if not os.path.exists(os.path.join(IMAGES_PATH, image_path)):
+    #         download_image(url=image_url, path=os.path.join(IMAGES_PATH, image_path))
 
-        requests.post(f"{os.getenv('FRONTEND_URL')}/api/new-album", json={
-            "id": album.id,
-            "images": [image._json for image in album.images],
-            "image": image_path,
-            "name": album.name,
-            "release_date": album.release_date,
-            "type": album.type,
-            "artists": [{"name": artist.name, "id": artist.id} for artist in album.artists],
-            "copyrights": [_copyright._json for _copyright in album.copyrights],
-            "popularity": album.popularity,
-            "genres": album.genres,
-            "songs": [song.id for song in album.tracks.items],
-            "disc_count": max([song.disc_number for song in album.tracks.items])
-        }, headers={"Authorization": f"Bearer {os.getenv('API_KEY')}"})
+    #     self.logger.info(f"image_path={image_path}")
 
-    def get_genres(self, artists: List[TrackArtists] | List[PlaylistArtists] | List[SpotifySearchResultsArtists1]):
+    #     requests.post(f"{os.getenv('FRONTEND_URL')}/api/new-album", json={
+    #         "id": album.id,
+    #         "images": [image._json for image in album.images],
+    #         "image": image_path,
+    #         "name": album.name,
+    #         "release_date": album.release_date,
+    #         "type": album.type,
+    #         "artists": [{"name": artist.name, "id": artist.id} for artist in album.artists],
+    #         "copyrights": [_copyright._json for _copyright in album.copyrights],
+    #         "popularity": album.popularity,
+    #         "genres": album.genres,
+    #         "songs": [song.id for song in album.tracks.items],
+    #         "disc_count": max([song.disc_number for song in album.tracks.items])
+    #     }, headers={"Authorization": f"Bearer {os.getenv('API_KEY')}"})
+
+    def get_genres(self, artists: List[TrackArtists] | List[PlaylistArtists] | List[SpotifySearchResultsArtists1] | List[RockItSongArtists]):
         genres = []
 
         for track_artist in artists:
             if track_artist.id in self.artists_cache:
-                logger.debug(f"Spotify.get_genres Artist from cache {track_artist.id}")
+                self.logger.debug(f"Artist from cache {track_artist.id}")
                 if self.artists_cache[track_artist.id].genres:
                     genres += self.artists_cache[track_artist.id].genres
                 else:
-                    logger.error(f"Spotify.get_genres artist {track_artist.id} doesn't have genres.")
+                    self.logger.error(f"Artist {track_artist.id} doesn't have genres.")
             else:
-                logger.debug(f"Spotify.get_genres Getting artist from API cache {track_artist.id}" )
+                self.logger.debug(f"Getting artist from API cache {track_artist.id}" )
                 raw_artist = self.api_call(path=f"artists/{track_artist.id}")
                 artist = RawSpotifyApiArtist.from_dict(raw_artist)
                 self.artists_cache[track_artist.id] = artist
                 if artist.genres:
                     genres += artist.genres
                 else:
-                    logger.error(f"Spotify.get_genres artist {artist.id} doesn't have genres.")
+                    self.logger.error(f"artist {artist.id} doesn't have genres.")
         return genres
 
-    def get_spotify_song(self, url):
+    def get_spotify_song(self, id, album: RawSpotifyApiAlbum | None = None):
 
-        if "/track/" not in url:
-            raise Exception("Invalid URL")
+        raw_db_song = self.db.get("SELECT * FROM song WHERE id = ?", (id,))
 
-        raw_song = self.api_call(path=f"tracks/{url.replace('https://open.spotify.com/track/', '')}")
-        song = RawSpotifyApiTrack.from_dict(raw_song)
+        if raw_db_song:
+            song = RawRockItApiSong.from_dict(raw_db_song)
+            album_id = song.albumId
+            disc_number = song.discNumber
+            duration = song.duration
+            track_number = song.trackNumber
+            
+            isrc = ""
+            
+        else:
+            raw_song = self.api_call(path=f"tracks/{id}")
+            if not raw_song:
+                return
+            song = RawSpotifyApiTrack.from_dict(raw_song)
+            album_id = song.album.id
+            
+            disc_number = song.disc_number
+            duration = song.duration_ms/1000
+            track_number = song.track_number
+            
+            isrc = song.external_ids.isrc
 
-        if "album" not in raw_song or "id" not in raw_song["album"]:
-            raise Exception("Album not in song", raw_song)
 
-        album = self.get_album(song.album.id)
-
-        self.update_album_db(album=album)
+        if not album:
+            album = self.get_spotify_album(album_id)[0]
 
         genres = self.get_genres(artists=song.artists)
 
@@ -446,18 +542,18 @@ class Spotify:
         song_dict["album_type"] = album.type
         song_dict["copyright_text"]  = album.copyrights[0].text
         song_dict["genres"] = genres
-        song_dict["disc_number"] = song.disc_number
+        song_dict["disc_number"] = disc_number
         song_dict["disc_count"] = album.tracks.items[-1].disc_number
-        song_dict["duration"] = song.duration_ms/1000
+        song_dict["duration"] = duration
         song_dict["year"] = int(album.release_date[:4])
         song_dict["date"] = album.release_date
-        song_dict["track_number"] = song.track_number
+        song_dict["track_number"] = track_number
         song_dict["tracks_count"] = album.total_tracks
-        song_dict["isrc"] = song.external_ids.isrc
+        song_dict["isrc"] = isrc
         song_dict["song_id"] = song.id
-        song_dict["explicit"] = song.explicit
+        song_dict["explicit"] = False
         song_dict["publisher"] = album.label
-        song_dict["url"] = song.external_urls.spotify
+        song_dict["url"] = f"https://open.spotify.com/track/{song.id}"
         song_dict["popularity"] = song.popularity
         song_dict["cover_url"] = (
                     max(album.images, key=lambda i: i.width * i.height)[
@@ -469,103 +565,11 @@ class Spotify:
     
         spotdl_song = Song.from_dict(song_dict)
 
-        logger.debug(f"Spotify.get_spotify_song Spotdl song: {spotdl_song}")
-        logger.debug(f"Spotify.get_spotify_song Raw song: {song}")
+        self.logger.debug(f"Spotdl song: {spotdl_song}")
+        self.logger.debug(f"Raw song: {song}")
 
         return Song.from_dict(song_dict), song
 
-    def get_album(self, id: str) -> RawSpotifyApiAlbum:
-
-        raw_rockit_ablum = requests.get(f"{os.getenv('FRONTEND_URL')}/api/album/{id}")
-
-        if raw_rockit_ablum.status_code != 200:
-            logger.error(f"Spotify.get_album GET {os.getenv('FRONTEND_URL')}/api/album/{id} resulted in {raw_rockit_ablum.status_code} {raw_rockit_ablum.content}")
-            return
-
-        logger.debug(f"Spotify.get_album raw_rockit_ablum.content {raw_rockit_ablum.content}")
-        rockit_album = RawRockItApiAlbum.from_dict(json.loads(raw_rockit_ablum.content))
-
-        genres = []
-
-        for song in rockit_album.songs:
-            if not song.genres: continue
-            for genre in song.genres:
-                genres.append(genre)
-
-        genres = list(set(genres))
-
-        raw_album = {
-            "album_type": "compilation",
-            "total_tracks": len(rockit_album.songs),
-            "available_markets": [],
-            "external_urls": {
-                "spotify": f"https://open.spotify.com/album/{rockit_album.id}"
-            },
-            "href": "",
-            "id": rockit_album.id,
-            "images": [image._json for image in rockit_album.images],
-            "name": rockit_album.name,
-            "release_date": rockit_album.releaseDate,
-            "release_date_precision": "year",
-            "restrictions": {},
-            "type": rockit_album.type,
-            "uri": "",
-            "artists": [artist._json for artist in rockit_album.artists],
-            "tracks": {
-                "href": "",
-                "limit": 0,
-                "next": "",
-                "offset": 0,
-                "previous": "",
-                "total": len(rockit_album.songs),
-                "items": [{
-                    "artists": [artist._json for artist in song.artists],
-                    "available_markets": [],
-                    "disc_number": song.discNumber,
-                    "duration_ms": song.duration*1000,
-                    "explicit": False,
-                    "external_urls": {
-                        "spotify": f"https://open.spotfiy.com/track/{song.id}"
-                    },
-                    "href": "",
-                    "id": song.id,
-                    "is_playable": True,
-                    "linked_from": {
-                        "external_urls": {
-                            "spotify": ""
-                        },
-                        "href": "",
-                        "id": "",
-                        "type": "",
-                        "uri": ""
-                    },
-                    "restrictions": {
-                        "reason": ""
-                    },
-                    "name": song.name,
-                    "preview_url": "",
-                    "track_number": song.trackNumber,
-                    "type": "track",
-                    "uri": f"spotify:track:{song.id}",
-                    "is_local": False
-                } for song in rockit_album.songs]
-            },
-            "copyrights": [_copyright._json for _copyright in rockit_album.copyrights],
-            "external_ids": {
-                "isrc": "",
-                "ean": "",
-                "upc": ""
-            },
-            "genres": genres,
-            "label": "",
-            "popularity": rockit_album.popularity
-        }
-
-
-
-        # raw_album = self.api_call(path=f"albums/{id}")
-        album = RawSpotifyApiAlbum.from_dict(raw_album)
-        return album
 
     def get_youtube_song(self, yt_song_id: str):
         raw_yt_song = self.ytmusic.get_song(videoId=yt_song_id)
@@ -581,8 +585,7 @@ class Spotify:
         raw_spotify_song = RawSpotifyApiSearchResults.from_dict(search_results)
         song = raw_spotify_song.tracks.items[0]
 
-        album = self.get_album(song.album.id)
-        self.update_album_db(album=album)
+        album = self.get_spotify_album(song.album.id)
 
         genres = self.get_genres(artists=song.artists)
 
@@ -621,20 +624,19 @@ class Spotify:
     
         spotdl_song = Song.from_dict(song_dict)
 
-        logger.debug(f"Spotify.get_youtube_song Spotdl song: {spotdl_song}")
-        logger.debug(f"Spotify.get_youtube_song Raw song: {song}")
+        self.logger.debug(f"Spotdl song: {spotdl_song}")
+        self.logger.debug(f"Raw song: {song}")
 
         return Song.from_dict(song_dict), song
 
     def spotdl_song_from_url(self, url):
         if "open.spotify.com" in url and "/track/" in url:
-            return self.get_spotify_song(url=self.parse_url(url))
+            return self.get_spotify_song(self.parse_url(url).replace('https://open.spotify.com/track/', ''))
         if "music.youtube.com" in url and "/watch?v=" in url:
             yt_song_id = url.split("watch?v=")[1].split("&")[0]
-
             return self.get_youtube_song(yt_song_id=yt_song_id)
 
-    def api_call(self, path: str, params: dict = {}) -> dict:
+    def api_call(self, path: str, params: dict = {}) -> dict | None:
 
         parsed_params = ""
         
@@ -648,21 +650,36 @@ class Spotify:
 
         query_url = url + ("?" + parsed_params if len(parsed_params) > 0 else "")
 
-
-        logger.debug(f"Spotify.api_call query_url {query_url}")
-
+        self.logger.debug(f"Query_url {query_url}")
 
         result = requests.get(query_url, headers=headers)
         if result.status_code == 401:
-            logger.info("Token espired")
+            self.logger.info("Token espired")
             self.get_token()
             headers = self.get_auth_header()
             result = requests.get(query_url, headers=headers)
 
         try: return json.loads(result.content)
         except: 
-            logger.critical(f"Spotify.api_call unable to load json. content: {result.content}, text: {result.text}")
-
+            self.logger.critical(f"unable to load json. content: {result.content}, text: {result.text}")
 
     def parse_url(self, url):
         return re.sub(r"\/intl-\w+\/", "/", url).split("?")[0]
+
+def main():
+    
+    db = DB()
+    
+    spotify = Spotify(db)
+    
+    raw_yt_song = spotify.ytmusic.get_song(videoId="KDXOzr0GoA4")
+
+    yt_song = RawYTMusicApiSong.from_dict(raw_yt_song)    
+
+    print(json.dumps(raw_yt_song))
+    
+    # print(yt_song)
+
+
+if __name__ == "__main__":
+    main()

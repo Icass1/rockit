@@ -29,6 +29,7 @@ import useWindowSize from "@/hooks/useWindowSize.ts";
 import { getImageUrl } from "@/lib/getImageUrl.ts";
 import MobilePlayerUIQueue from "./MobilePlayerUIQueue.tsx";
 import MobilePlayerUILyrics from "./MobilePlayerUILyrics.tsx";
+import SongPopupMenu from "@/components/ListSongs/SongPopupMenu.tsx";
 
 export default function MusicPlayer() {
     const $playing = useStore(playing);
@@ -221,11 +222,17 @@ export default function MusicPlayer() {
                     className="text-neutral-300 h-8 w-8"
                     onClick={() => isMobilePlayerUIVisible.set(false)}
                 />
-                <Ellipsis className="text-neutral-300 h-6 w-8" />
+                {$currentSong ? (
+                    <SongPopupMenu song={$currentSong}>
+                        <Ellipsis className="text-neutral-300 h-6 w-8" />
+                    </SongPopupMenu>
+                ) : (
+                    <Ellipsis className="text-neutral-300 h-6 w-8" />
+                )}
             </div>
 
             {/* Contenido principal */}
-            <div className="relative z-30 grid grid-rows-[1fr_min-content_min-content_min-content] gap-y-2 pt-32 pb-20 items-center justify-center h-full text-white px-4">
+            <div className="relative z-30 w-full grid grid-rows-[1fr_min-content_min-content_min-content] gap-y-2 pt-32 pb-20 items-center justify-center h-full text-white px-4">
                 {/* Imagen de la canción */}
                 {/* <div className="max-w-full min-w-0 w-auto max-h-full min-h-0 h-auto aspect-square left-1/2 relative -translate-x-1/2 bg-blue-400"> */}
                 <img

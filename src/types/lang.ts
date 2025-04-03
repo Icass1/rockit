@@ -90,6 +90,7 @@ export interface Lang {
     general_stats: string;
     friends_stats: string;
     play_song: string;
+    pause_song: string;
     play_next: string;
     add_song_to_playlist: string;
     add_to_liked: string;

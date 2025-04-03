@@ -9,11 +9,11 @@ import {
 } from "@/stores/audio";
 import { useStore } from "@nanostores/react";
 import LikeButton from "../LikeButton";
-import { ListPlus, EllipsisVertical, PlayIcon, PauseIcon } from "lucide-react";
+import { EllipsisVertical, PlayIcon, PauseIcon } from "lucide-react";
 import { isPlayerUIVisible } from "@/stores/isPlayerUIVisible";
 import { useState } from "react";
 import { getImageUrl } from "@/lib/getImageUrl";
-import SongPopupMenu from "../ListSongs/SongPopupMenu";
+import SongPopupMenu from "@/components/ListSongs/SongPopupMenu";
 
 function FooterLeftForSong({ currentSong }: { currentSong: CurrentSong }) {
 
@@ -150,6 +150,9 @@ function FooterLeftForStation({ currentStation }: { currentStation: Station }) {
 export default function FooterLeft() {
     const $currentSong = useStore(currentSong);
     const $currentStation = useStore(currentStation);
+
+    console.log($currentSong)
+
 
     if ($currentSong) {
         return <FooterLeftForSong currentSong={$currentSong} />;

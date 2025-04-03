@@ -7,6 +7,7 @@ import re
 
 import atexit
 from threading import Lock
+import inspect
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -27,12 +28,12 @@ INSECURE_DB_MODE = os.getenv("INSECURE_DB_MODE", "false") == "true"
 
 os.makedirs("database", exist_ok=True)
 
-logger = getLogger(__name__)
 
 lock = Lock()
 
 class Table:
     def __init__(self, db: "DB", query, parser: Callable | None=None):
+        self.logger = getLogger(__name__, class_name="Table")
         
         self.db = db
         self.query = query
@@ -41,10 +42,10 @@ class Table:
         self.table_name = self.db.get_table_name(query)
         
         if not self.table_name: 
-            logger.critical(f"Table.__init__ Unable to get table_name. query: {query}")
+            self.logger.critical(f"Unable to get table_name. query: {query}")
             return
         
-        logger.info(f"Table.__init__ Checking {self.table_name} table...")
+        self.logger.info(f"Checking {self.table_name} table...")
         
         self.db.check_table(query)
         self.db.execute(query)
@@ -126,7 +127,10 @@ class DB:
         self.cur = self.conn.cursor()
         self.conn.execute('PRAGMA foreign_keys = ON')  # Enable foreign key support
 
-        logger.info("Checking database tables...")
+        self.logger = getLogger(__name__, class_name="DB")
+
+
+        self.logger.info("Checking database tables...")
         self.tables = [
             Table(self, song_query, parser=parse_song),
             Table(self, album_query, parser=parse_album),
@@ -141,9 +145,9 @@ class DB:
         atexit.register(self.close)
 
     def close(self):
-        logger.info("Closing database connection...")
+        self.logger.info("Closing database connection...")
         self.conn.close()
-        logger.info("Done")
+        self.logger.info("Done")
 
     def get_table_difference(self, list_a: List[Dict], list_b: List[Dict]):
         added_columns = []
@@ -215,7 +219,7 @@ class DB:
         existing_columns = self.get_existing_columns(table_name)
         
         if not existing_columns:
-            logger.warning(f"DB.check_table Table {table_name} does not exist.")
+            self.logger.warning(f"Table {table_name} does not exist.")
             return
         
         new_columns = self.get_table_columns(query=query)
@@ -223,9 +227,9 @@ class DB:
         modified_columns, removed_columns, added_columns = self.get_table_difference(existing_columns, new_columns)
         
         if modified_columns:
-            logger.warning(f"DB.check_table Detected column modifications: {modified_columns}")
+            self.logger.warning(f"Detected column modifications: {modified_columns}")
             if INSECURE_DB_MODE:
-                logger.warning("Applying column changes...")
+                self.logger.warning("Applying column changes...")
                 column_names = ", ".join(col['name'] for col in new_columns)
                 self.cur.execute(f"CREATE TABLE temp_{table_name} AS SELECT {column_names} FROM {table_name}")
                 self.cur.execute(f"DROP TABLE {table_name}")
@@ -233,13 +237,13 @@ class DB:
                 self.conn.commit()
         
         if removed_columns and INSECURE_DB_MODE:
-            logger.warning(f"DB.check_table Removing columns: {removed_columns}")
+            self.logger.warning(f"Removing columns: {removed_columns}")
             for column in removed_columns:
                 self.cur.execute(f"ALTER TABLE {table_name} DROP COLUMN {column}")
             self.conn.commit()
         
         if added_columns:
-            logger.warning(f"DB.check_table Adding new columns: {added_columns}")
+            self.logger.warning(f"Adding new columns: {added_columns}")
             for column in added_columns:
                 new_col = next((c for c in new_columns if c['name'] == column), None)
                 if new_col:
@@ -267,7 +271,7 @@ class DB:
         table = self.get_table(table_name)
                 
         if not table:
-            logger.error(f"DB.get_all Table '{table_name}' not found")
+            self.logger.error(f"Table '{table_name}' not found")
             return
         
         return table.get_all(query, parameters)
@@ -277,7 +281,7 @@ class DB:
         table = self.get_table(table_name=table_name)
                 
         if not table:
-            logger.error(f"DB.get Table '{table_name}' not found")
+            self.logger.error(f"Table '{table_name}' not found")
             return
         
         return table.get(query, parameters)
@@ -286,7 +290,7 @@ def main():
     
     db = DB()
         
-    image = db.get("SELECT * FROM image LIMIT 1")
+    image = db.get("SELECT * FROM song WHERE id = '5gLJZBGkpvRXWbEbTcLIz8'")
     print(json.dumps(image, indent=4))
         
     return

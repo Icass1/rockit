@@ -182,7 +182,7 @@ fetch(
 
             if (userJson.currentSong) {
                 fetch(
-                    `/api/song/${userJson.currentSong}?q=image,id,name,artists,albumId,albumName,duration`
+                    `/api/song/${userJson.currentSong}?q=image,id,name,artists,albumId,albumName,duration,path`
                 ).then((response) =>
                     response.json().then((data: CurrentSong) => {
                         currentSong.set(data);
@@ -488,7 +488,7 @@ queueIndex.subscribe((value) => {
 volume.subscribe((value) => {
     updateUserIndexedDB();
     if (window.innerWidth < 768) return;
-    if (!value) return;
+    if (typeof value == "undefined") return;
     audio.volume = value;
     send({ volume: value });
 });
@@ -638,7 +638,6 @@ export async function prev() {
             currentSong.set(data);
         })
         .catch(async () => {
-
             const song = await getSongInIndexedDB(newSongId);
             if (song) {
                 currentSong.set({
@@ -737,7 +736,6 @@ export async function next(songEnded = false) {
             currentSong.set(data);
         })
         .catch(async () => {
-
             const song = await getSongInIndexedDB(newSongId);
             if (song) {
                 currentSong.set({
@@ -747,7 +745,7 @@ export async function next(songEnded = false) {
             } else {
                 currentSong.set(undefined);
             }
-            
+
             const _crossFade = currentCrossFade.get();
             if (_crossFade && _crossFade > 0 && songEnded) {
                 inCrossFade = true;

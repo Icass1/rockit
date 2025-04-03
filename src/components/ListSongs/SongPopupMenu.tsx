@@ -21,10 +21,19 @@ import {
     ListEnd,
     ListStart,
     ListX,
+    Pause,
     PlayCircle,
     Share2,
 } from "lucide-react";
-import { queue, queueIndex, saveSongToIndexedDB } from "@/stores/audio";
+import {
+    currentSong,
+    pause,
+    play,
+    playing,
+    queue,
+    queueIndex,
+    saveSongToIndexedDB,
+} from "@/stores/audio";
 import { songHandleClick } from "./HandleClick";
 import { downloads } from "@/stores/downloads";
 
@@ -48,13 +57,11 @@ export default function SongPopupMenu({
     const $currentListSongs = useStore(currentListSongs);
     const $lang = useStore(langData);
     const $networkStatus = useStore(networkStatus);
+    const $playing = useStore(playing);
 
     const offline = $networkStatus == "offline";
 
-
     const disable = song.path ? false : true;
-
-    console.log(disable, offline)
 
     if (!$lang) return;
 
@@ -64,10 +71,29 @@ export default function SongPopupMenu({
             <PopupMenuContent>
                 <PopupMenuOption
                     disable={disable}
-                    onClick={() => songHandleClick(song, $currentListSongs)}
+                    onClick={() => {
+                        if (currentSong.get()?.id == song.id) {
+                            if ($playing) {
+                                pause();
+                            } else {
+                                play();
+                            }
+                        } else {
+                            songHandleClick(song, $currentListSongs);
+                        }
+                    }}
                 >
-                    <PlayCircle className="h-5 w-5" />
-                    {$lang.play_song}
+                    {currentSong.get()?.id == song.id && $playing ? (
+                        <>
+                            <Pause fill="white" className="h-5 w-5" />
+                            {$lang.pause_song ?? "Pause song"}
+                        </>
+                    ) : (
+                        <>
+                            <PlayCircle className="h-5 w-5" />
+                            {$lang.play_song}
+                        </>
+                    )}
                 </PopupMenuOption>
                 <PopupMenuOption
                     disable={offline || disable}

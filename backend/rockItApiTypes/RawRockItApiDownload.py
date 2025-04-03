@@ -2,16 +2,16 @@ from typing import List, Any
 from dataclasses import dataclass
 
 @dataclass
-class RockItAlbumImages:
+class RockItDownloadImages:
     url: str
     height: int
     width: int
     _json: dict
-    def from_dict(obj: Any) -> 'RockItAlbumImages':
+    def from_dict(obj: Any) -> 'RockItDownloadImages':
         _url = obj.get('url') if obj and 'url' in obj else None
         _height = obj.get('height') if obj and 'height' in obj else None
         _width = obj.get('width') if obj and 'width' in obj else None
-        return RockItAlbumImages(_url, _height, _width, obj)
+        return RockItDownloadImages(_url, _height, _width, obj)
     def __getitem__(self, item):
         if item == 'url':
             return self.url
@@ -22,14 +22,14 @@ class RockItAlbumImages:
         return None
 
 @dataclass
-class RockItAlbumArtists:
+class RockItDownloadArtists:
     name: str
     id: str
     _json: dict
-    def from_dict(obj: Any) -> 'RockItAlbumArtists':
+    def from_dict(obj: Any) -> 'RockItDownloadArtists':
         _name = obj.get('name') if obj and 'name' in obj else None
         _id = obj.get('id') if obj and 'id' in obj else None
-        return RockItAlbumArtists(_name, _id, obj)
+        return RockItDownloadArtists(_name, _id, obj)
     def __getitem__(self, item):
         if item == 'name':
             return self.name
@@ -38,14 +38,14 @@ class RockItAlbumArtists:
         return None
 
 @dataclass
-class RockItAlbumCopyrights:
+class RockItDownloadCopyrights:
     text: str
     type: str
     _json: dict
-    def from_dict(obj: Any) -> 'RockItAlbumCopyrights':
+    def from_dict(obj: Any) -> 'RockItDownloadCopyrights':
         _text = obj.get('text') if obj and 'text' in obj else None
         _type = obj.get('type') if obj and 'type' in obj else None
-        return RockItAlbumCopyrights(_text, _type, obj)
+        return RockItDownloadCopyrights(_text, _type, obj)
     def __getitem__(self, item):
         if item == 'text':
             return self.text
@@ -54,36 +54,36 @@ class RockItAlbumCopyrights:
         return None
 
 @dataclass
-class RawRockItApiAlbum:
+class RawRockItApiDownload:
     id: str
     type: str
-    images: List[RockItAlbumImages]
+    images: List[RockItDownloadImages]
     image: str
     name: str
     releaseDate: str
-    artists: List[RockItAlbumArtists]
-    copyrights: List[RockItAlbumCopyrights]
+    artists: List[RockItDownloadArtists]
+    copyrights: List[RockItDownloadCopyrights]
     popularity: int
     genres: List[Any]
     songs: List[str]
     discCount: int
     dateAdded: int
     _json: dict
-    def from_dict(obj: Any) -> 'RawRockItApiAlbum':
+    def from_dict(obj: Any) -> 'RawRockItApiDownload':
         _id = obj.get('id') if obj and 'id' in obj else None
         _type = obj.get('type') if obj and 'type' in obj else None
-        _images = [RockItAlbumImages.from_dict(k) for k in obj.get('images')] if obj and 'images' in obj else None
+        _images = [RockItDownloadImages.from_dict(k) for k in obj.get('images')] if obj and 'images' in obj else None
         _image = obj.get('image') if obj and 'image' in obj else None
         _name = obj.get('name') if obj and 'name' in obj else None
         _releaseDate = obj.get('releaseDate') if obj and 'releaseDate' in obj else None
-        _artists = [RockItAlbumArtists.from_dict(k) for k in obj.get('artists')] if obj and 'artists' in obj else None
-        _copyrights = [RockItAlbumCopyrights.from_dict(k) for k in obj.get('copyrights')] if obj and 'copyrights' in obj else None
+        _artists = [RockItDownloadArtists.from_dict(k) for k in obj.get('artists')] if obj and 'artists' in obj else None
+        _copyrights = [RockItDownloadCopyrights.from_dict(k) for k in obj.get('copyrights')] if obj and 'copyrights' in obj else None
         _popularity = obj.get('popularity') if obj and 'popularity' in obj else None
         _genres = obj.get('genres') if obj and 'genres' in obj else None
         _songs = obj.get('songs') if obj and 'songs' in obj else None
         _discCount = obj.get('discCount') if obj and 'discCount' in obj else None
         _dateAdded = obj.get('dateAdded') if obj and 'dateAdded' in obj else None
-        return RawRockItApiAlbum(_id, _type, _images, _image, _name, _releaseDate, _artists, _copyrights, _popularity, _genres, _songs, _discCount, _dateAdded, obj)
+        return RawRockItApiDownload(_id, _type, _images, _image, _name, _releaseDate, _artists, _copyrights, _popularity, _genres, _songs, _discCount, _dateAdded, obj)
     def __getitem__(self, item):
         if item == 'id':
             return self.id

@@ -40,32 +40,73 @@ def generate_class(name, json_data, nested_classes_dict):
 
     items = json_data.items()
 
+    last_key_value = ""
+    last_value_value = ""
+
+    same_keys = True
+    same_values = True
+
     for key, value in items:
-        var_name = key
-        var_type = parse_type(key, value, nested_classes_dict)
-        class_def.append(f"    {var_name}: {var_type}")
+        
+        key_value = parse_type(None, key, nested_classes_dict)
+        value_value = parse_type(key, value, nested_classes_dict)
+        
+        print(f"{key_value=:<10}{last_key_value=:<10}{value_value=:<10}{last_value_value=:<10}")
+        
+        if last_key_value == "":
+            last_key_value = key_value
+        else:
+            if last_key_value != key_value:
+                same_keys = False
+                break
+        
+        if last_value_value == "":
+            last_value_value = value_value
+        else:
+            if last_value_value != value_value:
+                same_values  = False
+                break
+
+    a: bool = same_keys and same_values and len(items) > 10
+
+    if a:
+        print(name, "is A")
+    else:
+        print(name, "is not A")
+        for key, value in items:
+            var_name = key
+            var_type = parse_type(key, value, nested_classes_dict)
+            class_def.append(f"    {var_name}: {var_type}")
     class_def.append(f"    _json: dict")
 
     class_def.append(f"    def from_dict(obj: Any) -> '{name}':")
-    for key, value in items:
-        var_name = key
-        var_type = parse_type(key, value, nested_classes_dict)
-        if "List" in var_type and var_name in nested_classes_dict:
-            class_def.append(f"        _{var_name} = [{nested_classes_dict[var_name]}.from_dict(k) for k in obj.get('{key}')] if obj and '{key}' in obj else None")
-        elif var_name in nested_classes_dict:
-            class_def.append(f"        _{var_name} = {nested_classes_dict[var_name]}.from_dict(obj.get('{key}')) if obj and '{key}' in obj else None")
-        else: class_def.append(f"        _{var_name} = obj.get('{key}') if obj and '{key}' in obj else None")
+    if a:
+        class_def.append(f"        return {name}(obj)")
+    else:
+        for key, value in items:
+            var_name = key
+            var_type = parse_type(key, value, nested_classes_dict)
+            if "List" in var_type and var_name in nested_classes_dict:
+                class_def.append(f"        _{var_name} = [{nested_classes_dict[var_name]}.from_dict(k) for k in obj.get('{key}')] if obj and '{key}' in obj else None")
+            elif var_name in nested_classes_dict:
+                class_def.append(f"        _{var_name} = {nested_classes_dict[var_name]}.from_dict(obj.get('{key}')) if obj and '{key}' in obj else None")
+            else: class_def.append(f"        _{var_name} = obj.get('{key}') if obj and '{key}' in obj else None")
 
-    class_def.append(f"        return {name}({', '.join([f'_{var_name}' for var_name in json_data.keys()] + ['obj'])})")
+        class_def.append(f"        return {name}({', '.join([f'_{var_name}' for var_name in json_data.keys()] + ['obj'])})")
 
     if len(items) > 0:
-        class_def.append(f"    def __getitem__(self, item):")
-        first = True
-        for key, value in list(items):
-            class_def.append(f"        {'' if first else 'el'}if item == '{key}':")
-            class_def.append(f"            return self.{key}")
-            first = False
-        class_def.append(f"        return None")
+        if a:
+            class_def.append(f"    def __getitem__(self, item) -> {last_value_value}:")
+            class_def.append(f"        return self._json[item]")
+
+        else:
+            class_def.append(f"    def __getitem__(self, item):")
+            first = True
+            for key, value in list(items):
+                class_def.append(f"        {'' if first else 'el'}if item == '{key}':")
+                class_def.append(f"            return self.{key}")
+                first = False
+            class_def.append(f"        return None")
 
     return "\n".join(class_def)
 
@@ -115,8 +156,8 @@ def main():
 
     classes = []
     dir_name = "rockItApiTypes"
-    base_name = "RockItAlbum"
-    root_name = "RawRockItApiAlbum"
+    base_name = "RockItSong"
+    root_name = "RawRockItApiSong"
     generate_classes(name=root_name, json_data=json_data, classes=classes, base_name=base_name)
 
     if not os.path.exists(f"backend/{dir_name}"):

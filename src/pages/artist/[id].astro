@@ -1,7 +1,7 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import { ENV } from "@/rockitEnv";
-import type { SpotifyArtist } from "@/types/spotify";
+import type { SpotifyArtist, SpotifyArtistTopTracks } from "@/types/spotify";
 import { Play } from "lucide-react";
 
 if (!Astro.locals.user) {
@@ -9,14 +9,20 @@ if (!Astro.locals.user) {
 }
 
 const { id } = Astro.params as { id: string };
-console.log("Requesting backend artist")
-const response = await fetch(`${ENV.BACKEND_URL}/artist/${id}`)
-const artistData = await response.json() as SpotifyArtist
+let response = await fetch(`${ENV.BACKEND_URL}/artist/${id}`);
+const artistData = (await response.json()) as SpotifyArtist;
 
+artistData.images.sort((b, a) => a.width + a.height - (b.width + b.height));
 
-console.log(artistData)
+response = await fetch(`${ENV.BACKEND_URL}/artist-top-songs/${id}`, {
+    signal: AbortSignal.timeout(2000),
+});
 
-artistData.images.sort((b,a) => (a.width + a.height) - (b.width + b.height))
+let artistSongs: SpotifyArtistTopTracks | undefined;
+
+if (response.ok) {
+    artistSongs = (await response.json()) as SpotifyArtistTopTracks;
+}
 
 // Mockup de la página para un artista.
 const artistName = artistData.name;
@@ -74,41 +80,45 @@ const artistImage = artistData.images[0].url;
                                 <!-- Canción 1 -->
                                 <div class="space-y-2">
                                     {
-                                        Array.from(
-                                            { length: 5 },
-                                            (_, index) => (
-                                                <div class="group flex items-center space-x-4 rounded-md md:hover:bg-[#212121] p-2 transition">
-                                                    {/* Número de posición */}
-                                                    <div class="text-gray-400 text-sm md:text-lg font-semibold w-2 md:w-6 text-center">
-                                                        {index + 1}
-                                                    </div>
+                                        artistSongs &&
+                                            artistSongs.tracks.map(
+                                                (song, index) => (
+                                                    <div class="group flex items-center space-x-4 rounded-md md:hover:bg-[#212121] p-2 transition">
+                                                        {/* Número de posición */}
+                                                        <div class="text-gray-400 text-sm md:text-lg font-semibold w-2 md:w-6 text-center">
+                                                            {index + 1}
+                                                        </div>
 
-                                                    {/* Imagen de la canción */}
-                                                    <div class="relative group w-10 h-10 md:w-12 md:h-12">
-                                                        <img
-                                                            src="/song-placeholder.png"
-                                                            alt={`Song ${index + 1}`}
-                                                            class="w-full h-full rounded object-cover transition duration-300 group-hover:brightness-50"
-                                                        />
-                                                        {/* Icono de Play */}
-                                                        <Play className="absolute inset-0 m-auto w-4 h-4 md:w-5 md:h-5 text-white fill-current opacity-0 group-hover:opacity-100 transition duration-300" />
-                                                    </div>
+                                                        {/* Imagen de la canción */}
+                                                        <div class="relative group w-10 h-10 md:w-12 md:h-12">
+                                                            <img
+                                                                src={
+                                                                    song.album
+                                                                        .images[0]
+                                                                        .url ??
+                                                                    "/song-placeholder.png"
+                                                                }
+                                                                alt={`Song ${index + 1}`}
+                                                                class="w-full h-full rounded object-cover transition duration-300 group-hover:brightness-50"
+                                                            />
+                                                            {/* Icono de Play */}
+                                                            <Play className="absolute inset-0 m-auto w-4 h-4 md:w-5 md:h-5 text-white fill-current opacity-0 group-hover:opacity-100 transition duration-300" />
+                                                        </div>
 
-                                                    {/* Información de la canción */}
-                                                    <div class="flex-1 min-w-0">
-                                                        <p class="text-white text-sm md:text-base font-semibold truncate">
-                                                            Song {index + 1} •
-                                                            2024
+                                                        {/* Información de la canción */}
+                                                        <div class="flex-1 min-w-0">
+                                                            <p class="text-white text-sm md:text-base font-semibold truncate">
+                                                                {song.name}
+                                                            </p>
+                                                        </div>
+
+                                                        {/* Duración */}
+                                                        <p class="text-gray-300 text-sm md:text-base pr-2">
+                                                            3:45
                                                         </p>
                                                     </div>
-
-                                                    {/* Duración */}
-                                                    <p class="text-gray-300 text-sm md:text-base pr-2">
-                                                        3:45
-                                                    </p>
-                                                </div>
+                                                )
                                             )
-                                        )
                                     }
                                 </div>
                             </div>

@@ -3,7 +3,7 @@ import {
     NextApiRequest,
     NextApiResponse,
 } from "next";
-import { getServerSession } from "next-auth";
+import { getServerSession, User } from "next-auth";
 import { nextAuthOptions } from "./options";
 
 export function getSession(
@@ -12,5 +12,7 @@ export function getSession(
         | [NextApiRequest, NextApiResponse]
         | []
 ) {
-    return getServerSession(...args, nextAuthOptions);
+    return getServerSession(...args, nextAuthOptions) as Promise<{
+        user: User;
+    }>;
 }

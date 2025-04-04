@@ -9,8 +9,12 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@nanostores/react": "^0.8.4",
     "@node-rs/argon2": "^2.0.2",
     "argon2": "^0.41.1",
+    "hls.js": "^1.6.0",
+    "lucide-react": "^0.487.0",
+    "nanostores": "^0.11.4",
     "next": "15.2.3",
     "next-auth": "^4.24.11",
     "react": "^19.0.0",

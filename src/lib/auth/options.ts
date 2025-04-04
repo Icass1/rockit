@@ -5,8 +5,9 @@ import { verify } from "@node-rs/argon2";
 import { JWT } from "next-auth/jwt";
 import { AdapterUser } from "next-auth/adapters";
 import { Session, User } from "next-auth";
+import { AuthOptions } from "next-auth";
 
-export const nextAuthOptions = {
+export const nextAuthOptions: AuthOptions = {
     session: {
         strategy: "jwt",
     },
@@ -75,10 +76,10 @@ export const nextAuthOptions = {
             // Send properties to the client
             if (token) {
                 if (session.user) {
-                    session.user.id = token.id as string;
-                    session.user.username = token.username as string;
-                    session.user.lang = token.lang as string;
-                    session.user.admin = token.admin as string;
+                    session.user.id = token.id;
+                    session.user.username = token.username;
+                    session.user.lang = token.lang;
+                    session.user.admin = token.admin;
                 } else {
                     session.user = {
                         id: token.id,

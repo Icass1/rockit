@@ -1,10 +1,6 @@
-import {
-    db,
-    parseSong,
-    type ImageDB,
-    type RawSongDB,
-    type SongDB,
-} from "@/lib/db";
+import { db } from "@/db/db";
+import { ImageDB } from "@/db/image";
+import { parseSong, RawSongDB, SongDB } from "@/db/song";
 import { ENV } from "@/rockitEnv";
 import * as fs from "fs/promises";
 import * as path from "path";
@@ -52,7 +48,6 @@ async function uploadImages(images: ImageDB[]): Promise<void> {
         console.error("Error uploading files:", error);
     }
 }
-
 async function syncSongs(songs: SongDB[], images: ImageDB[]) {
     fetch(`${END_POINT}/api/new-songs`, {
         method: "POST",
@@ -140,7 +135,7 @@ let songs = (db.prepare("SELECT * FROM song").all() as RawSongDB[])
     .filter((song) => typeof song != "undefined");
 
 songs = songs.map((song) => {
-    let path = song.path?.startsWith("/")
+    const path = song.path?.startsWith("/")
         ? song.path.replace("/", "")
         : song.path;
 
@@ -172,30 +167,30 @@ if (response.ok) {
     imagesInDestinationDB = await response.json();
 }
 
-// for (let i = 0; i < 10; i++) {
-//     await uploadSongs(
-//         songs
-//             .filter((song) => {
-//                 return typeof song != "undefined";
-//             })
-//             .filter((song) => {
-//                 return song.path && !songFilesInDestination.includes(song.path);
-//             })
-//             .slice(i * 30, (i + 1) * 30)
-//     );
-// }
+for (let i = 0; i < 10; i++) {
+    await uploadSongs(
+        songs
+            .filter((song) => {
+                return typeof song != "undefined";
+            })
+            .filter((song) => {
+                return song.path && !songFilesInDestination.includes(song.path);
+            })
+            .slice(i * 30, (i + 1) * 30)
+    );
+}
 
-// syncSongs(
-//     songs
-//         .filter(
-//             (song) =>
-//                 !songsInDestinationDB.includes(song.id) &&
-//                 song.path &&
-//                 songFilesInDestination.includes(song.path)
-//         )
-//         .slice(0, 300),
-//     images
-// );
+syncSongs(
+    songs
+        .filter(
+            (song) =>
+                !songsInDestinationDB.includes(song.id) &&
+                song.path &&
+                songFilesInDestination.includes(song.path)
+        )
+        .slice(0, 300),
+    images
+);
 
 uploadImages(
     images

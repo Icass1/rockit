@@ -63,17 +63,17 @@ export interface UserDBFull {
         index: number;
     }[];
     queueIndex: number | undefined;
-    randomQueue: string;
-    repeatSong: string;
+    randomQueue: boolean;
+    repeatSong: boolean;
     likedSongs: PlaylistDBSong[];
     pinnedLists: UserDBPinnedLists[];
     volume: number;
     crossFade: number;
     lang: string;
-    admin: string;
-    superAdmin: string;
+    admin: boolean;
+    superAdmin: boolean;
     impersonateId: string | undefined;
-    devUser: string;
+    devUser: boolean;
     updatedAt: number;
     createdAt: number;
 }
@@ -122,17 +122,17 @@ export function parseUser(user: RawUserDB | undefined): UserDB | undefined {
         currentTime: user.currentTime,
         queue: JSON.parse(user.queue || "[]"),
         queueIndex: user.queueIndex,
-        randomQueue: user.randomQueue,
-        repeatSong: user.repeatSong,
+        randomQueue: user.randomQueue == "1" ? true : false,
+        repeatSong: user.repeatSong == "1" ? true : false,
         likedSongs: JSON.parse(user.likedSongs || "[]"),
         pinnedLists: JSON.parse(user.pinnedLists || "[]"),
         volume: user.volume,
         crossFade: user.crossFade,
         lang: user.lang,
-        admin: user.admin,
-        superAdmin: user.superAdmin,
+        admin: user.admin == "1" ? true : false,
+        superAdmin: user.superAdmin == "1" ? true : false,
         impersonateId: user.impersonateId,
-        devUser: user.devUser,
+        devUser: user.devUser == "1" ? true : false,
         updatedAt: user.updatedAt,
         createdAt: user.createdAt,
     };

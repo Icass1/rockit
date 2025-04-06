@@ -9,6 +9,15 @@ export default function SearchBar() {
     const divRef = useRef<HTMLDivElement>(null);
     const [open, setOpen] = useState(false);
 
+    const [shouldRenderResults, setShouldRenderResults] = useState(false);
+
+    useEffect(() => {
+        // Only run this on client
+        if (window.location.pathname !== "/search") {
+            setShouldRenderResults(true);
+        }
+    }, []);
+
     useEffect(() => {
         if (!divRef.current || !searchBarRef.current) {
             return;
@@ -29,10 +38,9 @@ export default function SearchBar() {
 
     return (
         <div className="w-full h-full relative">
-            {typeof window !== "undefined" &&
-                window.location.pathname != "/search" && (
-                    <RenderSearchBarResults open={open} divRef={divRef} />
-                )}
+            {shouldRenderResults && (
+                <RenderSearchBarResults open={open} divRef={divRef} />
+            )}
             <SearchBarInput searchBarRef={searchBarRef} setOpen={setOpen} />
         </div>
     );

@@ -1,49 +1,49 @@
-let database;
+let RockItDatabase;
 
-function fillFilesIndexedDB(filesStore) {
-    console.warn("fillFilesIndexedDB");
+// function fillFilesIndexedDB(filesStore) {
+//     console.warn("fillFilesIndexedDB");
 
-    if (!filesStore.indexNames.contains("url"))
-        filesStore.createIndex("url", "url", { unique: true });
-    if (!filesStore.indexNames.contains("fileContent"))
-        filesStore.createIndex("fileContent", "fileContent", {
-            unique: false,
-        });
-    if (!filesStore.indexNames.contains("contentType"))
-        filesStore.createIndex("contentType", "contentType", {
-            unique: false,
-        });
-}
+//     if (!filesStore.indexNames.contains("url"))
+//         filesStore.createIndex("url", "url", { unique: true });
+//     if (!filesStore.indexNames.contains("fileContent"))
+//         filesStore.createIndex("fileContent", "fileContent", {
+//             unique: false,
+//         });
+//     if (!filesStore.indexNames.contains("contentType"))
+//         filesStore.createIndex("contentType", "contentType", {
+//             unique: false,
+//         });
+// }
 
-function openRockItAppIndexedDB() {
-    const dbOpenRequest = indexedDB.open("RockItApp", 5);
+// function openRockItAppIndexedDB() {
+//     const dbOpenRequest = indexedDB.open("RockItApp", 5);
 
-    dbOpenRequest.onupgradeneeded = function (event) {
-        const db = dbOpenRequest.result;
-        const transaction = event?.target?.transaction;
+//     dbOpenRequest.onupgradeneeded = function (event) {
+//         const db = dbOpenRequest.result;
+//         const transaction = event?.target?.transaction;
 
-        if (!db.objectStoreNames.contains("files")) {
-            const filesStore = db.createObjectStore("files", {
-                keyPath: "url",
-            });
-            fillFilesIndexedDB(filesStore);
-        } else {
-            fillFilesIndexedDB(transaction.objectStore("files"));
-        }
-    };
+//         if (!db.objectStoreNames.contains("files")) {
+//             const filesStore = db.createObjectStore("files", {
+//                 keyPath: "url",
+//             });
+//             fillFilesIndexedDB(filesStore);
+//         } else {
+//             fillFilesIndexedDB(transaction.objectStore("files"));
+//         }
+//     };
 
-    return new Promise((resolve, reject) => {
-        dbOpenRequest.onsuccess = function () {
-            resolve(dbOpenRequest.result);
-        };
+//     return new Promise((resolve, reject) => {
+//         dbOpenRequest.onsuccess = function () {
+//             resolve(dbOpenRequest.result);
+//         };
 
-        dbOpenRequest.onerror = function () {
-            reject(dbOpenRequest.error);
-        };
-    });
-}
+//         dbOpenRequest.onerror = function () {
+//             reject(dbOpenRequest.error);
+//         };
+//     });
+// }
 
-function fillImagesIndexedDB(imageStore) {
+function fillImageIndexedDB(imageStore) {
     console.warn("fillImagesIndexedDB");
     if (!imageStore.indexNames.contains("id"))
         imageStore.createIndex("id", "id", { unique: true });
@@ -51,36 +51,12 @@ function fillImagesIndexedDB(imageStore) {
         imageStore.createIndex("blob", "blob", { unique: false });
 }
 
-function fillSongsIndexedDB(songsStore) {
+function fillSongIndexedDB(songsStore) {
     console.warn("fillSongsIndexedDB");
     if (!songsStore.indexNames.contains("id"))
         songsStore.createIndex("id", "id", { unique: true });
-    if (!songsStore.indexNames.contains("name"))
-        songsStore.createIndex("name", "name", { unique: false });
-    if (!songsStore.indexNames.contains("artists"))
-        songsStore.createIndex("artists", "artists", { unique: false });
-    if (!songsStore.indexNames.contains("images"))
-        songsStore.createIndex("images", "images", { unique: false });
-    if (!songsStore.indexNames.contains("image"))
-        songsStore.createIndex("image", "image", { unique: false });
-    if (!songsStore.indexNames.contains("duration"))
-        songsStore.createIndex("duration", "duration", {
-            unique: false,
-        });
-    if (!songsStore.indexNames.contains("blob"))
-        songsStore.createIndex("blob", "blob", { unique: false });
-    if (!songsStore.indexNames.contains("albumId"))
-        songsStore.createIndex("albumId", "albumId", { unique: false });
-    if (!songsStore.indexNames.contains("albumName"))
-        songsStore.createIndex("albumName", "albumName", {
-            unique: false,
-        });
-    if (!songsStore.indexNames.contains("lyrics"))
-        songsStore.createIndex("lyrics", "lyrics", { unique: false });
-    if (!songsStore.indexNames.contains("dynamicLyrics"))
-        songsStore.createIndex("dynamicLyrics", "dynamicLyrics", {
-            unique: false,
-        });
+    if (!songsStore.indexNames.contains("value"))
+        songsStore.createIndex("value", "value", { unique: false });
 }
 
 function fillLangIndexedDB(langStore) {
@@ -97,43 +73,35 @@ function fillUserIndexedDB(userStore) {
     console.warn("fillUserIndexedDB");
     if (!userStore.indexNames.contains("id"))
         userStore.createIndex("id", "id", { unique: true });
-    if (!userStore.indexNames.contains("username"))
-        userStore.createIndex("username", "username", {
+    if (!userStore.indexNames.contains("value"))
+        userStore.createIndex("value", "value", {
             unique: false,
         });
-    if (!userStore.indexNames.contains("currentSong"))
-        userStore.createIndex("currentSong", "currentSong", {
-            unique: false,
-        });
-    if (!userStore.indexNames.contains("lang"))
-        userStore.createIndex("lang", "lang", { unique: false });
-    if (!userStore.indexNames.contains("currentTime"))
-        userStore.createIndex("currentTime", "currentTime", {
-            unique: false,
-        });
-    if (!userStore.indexNames.contains("queue"))
-        userStore.createIndex("queue", "queue", { unique: false });
-    if (!userStore.indexNames.contains("queueIndex"))
-        userStore.createIndex("queueIndex", "queueIndex", {
-            unique: false,
-        });
-    if (!userStore.indexNames.contains("volume"))
-        userStore.createIndex("volume", "volume", { unique: false });
-    if (!userStore.indexNames.contains("randomQueue"))
-        userStore.createIndex("randomQueue", "randomQueue", {
-            unique: false,
-        });
-    if (!userStore.indexNames.contains("repeatSong"))
-        userStore.createIndex("repeatSong", "repeatSong", {
-            unique: false,
-        });
-    if (!userStore.indexNames.contains("currentStation"))
-        userStore.createIndex("currentStation", "currentStation", {
-            unique: false,
-        });
-    if (!userStore.indexNames.contains("admin"))
-        userStore.createIndex("admin", "admin", { unique: false });
 }
+function fillApiRequestsIndexedDB(apiStore) {
+    console.warn("fillApiRequestsIndexedDB");
+    if (!apiStore.indexNames.contains("id"))
+        apiStore.createIndex("url", "url", { unique: true });
+    if (!apiStore.indexNames.contains("value"))
+        apiStore.createIndex("value", "value", {
+            unique: false,
+        });
+}
+
+function fillFileIndexedDB(fileStore) {
+    console.warn("fillFileIndexedDB");
+    if (!fileStore.indexNames.contains("url"))
+        fileStore.createIndex("url", "url", { unique: true });
+    if (!fileStore.indexNames.contains("fileContent"))
+        fileStore.createIndex("fileContent", "fileContent", {
+            unique: false,
+        });
+    if (!fileStore.indexNames.contains("contentType"))
+        fileStore.createIndex("contentType", "contentType", {
+            unique: false,
+        });
+}
+
 function openRockItIndexedDB() {
     const dbOpenRequest = indexedDB.open("RockIt", 14);
 
@@ -151,9 +119,9 @@ function openRockItIndexedDB() {
                 const songsStore = db.createObjectStore("songs", {
                     keyPath: "id",
                 });
-                fillSongsIndexedDB(songsStore);
+                fillSongIndexedDB(songsStore);
             } else {
-                fillSongsIndexedDB(transaction.objectStore("songs"));
+                fillSongIndexedDB(transaction.objectStore("songs"));
             }
 
             ////////////////
@@ -163,9 +131,9 @@ function openRockItIndexedDB() {
                 const imageStore = db.createObjectStore("images", {
                     keyPath: "id",
                 });
-                fillImagesIndexedDB(imageStore);
+                fillImageIndexedDB(imageStore);
             } else {
-                fillImagesIndexedDB(transaction.objectStore("images"));
+                fillImageIndexedDB(transaction.objectStore("images"));
             }
 
             ///////////////
@@ -178,6 +146,30 @@ function openRockItIndexedDB() {
                 fillUserIndexedDB(userStore);
             } else {
                 fillUserIndexedDB(transaction.objectStore("user"));
+            }
+
+            ///////////////
+            // apiStore //
+            ///////////////
+            if (!db.objectStoreNames.contains("api")) {
+                const apiStore = db.createObjectStore("api", {
+                    keyPath: "url",
+                });
+                fillApiRequestsIndexedDB(apiStore);
+            } else {
+                fillApiRequestsIndexedDB(transaction.objectStore("api"));
+            }
+
+            ///////////////
+            // fileStore //
+            ///////////////
+            if (!db.objectStoreNames.contains("file")) {
+                const apiStore = db.createObjectStore("file", {
+                    keyPath: "url",
+                });
+                fillFileIndexedDB(apiStore);
+            } else {
+                fillFileIndexedDB(transaction.objectStore("file"));
             }
 
             ///////////////
@@ -205,8 +197,107 @@ function openRockItIndexedDB() {
         };
     });
 }
-const fromNetwork = (request, timeout) => {
+
+// Helper functions for API caching
+async function cacheApiResponse(url, data) {
+    if (!RockItDatabase) {
+        RockItDatabase = await openRockItIndexedDB();
+    }
+
+    return new Promise((resolve, reject) => {
+        const transaction = RockItDatabase.transaction("api", "readwrite");
+        const store = transaction.objectStore("api");
+
+        const apiEntry = {
+            url: url.pathname + url.search,
+            data: data,
+            timestamp: Date.now(),
+        };
+
+        const request = store.put(apiEntry);
+
+        request.onsuccess = () => resolve();
+        request.onerror = (e) => {
+            console.error("Failed to cache API response:", e);
+            reject(e);
+        };
+    });
+}
+
+async function getCachedApiResponse(url) {
+    if (!RockItDatabase) {
+        RockItDatabase = await openRockItIndexedDB();
+    }
+
+    return new Promise((resolve) => {
+        const transaction = RockItDatabase.transaction("api");
+        const store = transaction.objectStore("api");
+        const request = store.get(url.pathname + url.search);
+
+        request.onsuccess = (e) => {
+            const result = e.target.result;
+            if (!result) {
+                resolve(null);
+                return;
+            }
+
+            // You might want to add cache expiration logic here
+            // if (Date.now() - result.timestamp > CACHE_TTL) {
+            //     resolve(null);
+            //     return;
+            // }
+
+            resolve(
+                new Response(JSON.stringify(result.data), {
+                    headers: { "Content-Type": "application/json" },
+                })
+            );
+        };
+
+        request.onerror = () => resolve(null);
+    });
+}
+
+const fromNetwork = async (request, timeout) => {
     const url = new URL(request.url);
+
+    if (
+        url.pathname.startsWith("/api") &&
+        !url.pathname.startsWith("/api/error/new") &&
+        !url.pathname.startsWith("/api/song/audio") &&
+        !url.pathname.startsWith("/api/user/set-lang")
+    ) {
+        console.log("API request:", url.pathname + url.search);
+
+        try {
+            // First try to get from network
+            const networkResponse = await fetch(request);
+
+            if (networkResponse.ok) {
+                // Clone the response to store it (responses can only be read once)
+                const responseClone = networkResponse.clone();
+
+                // Cache the API response in IndexedDB
+                await cacheApiResponse(url, await responseClone.json());
+            }
+
+            return networkResponse;
+        } catch (networkError) {
+            console.log(
+                "Network failed, trying cache...",
+                url.pathname + url.search,
+                networkError
+            );
+
+            // If network fails, try to get from cache
+            const cachedResponse = await getCachedApiResponse(url);
+            if (cachedResponse) {
+                return cachedResponse;
+            }
+
+            throw networkError; // No cache available
+        }
+    }
 
     if (url.pathname.startsWith("/api/image/")) {
         const imageId = url.pathname.replace("/api/image/", "").split("_")[0];
@@ -214,33 +305,34 @@ const fromNetwork = (request, timeout) => {
         // console.debug("Getting image from indexeddb", imageId);
 
         return new Promise(async (resolve, reject) => {
-            // Fix 1: Correct database existence check
-            if (!database) {
-                // console.debug("Opening RockIt database");
+            // Fix 1: Correct RockItDatabase existence check
+            if (!RockItDatabase) {
+                // console.debug("Opening RockIt RockItDatabase");
                 try {
-                    database = await openRockItIndexedDB();
+                    RockItDatabase = await openRockItIndexedDB();
                 } catch (error) {
-                    console.error("Failed to open database:", error);
+                    console.error("Failed to open RockItDatabase:", error);
                     return reject(error);
                 }
             }
 
             let getRequest;
             try {
-                getRequest = database
-                    .transaction("images")
+                getRequest = RockItDatabase.transaction("images")
                     .objectStore("images")
                     .get(imageId);
             } catch (error) {
-                console.log("Database error, reopening...", error);
+                console.log("RockItDatabase error, reopening...", error);
                 try {
-                    database = await openRockItIndexedDB();
-                    getRequest = database
-                        .transaction("images")
+                    RockItDatabase = await openRockItIndexedDB();
+                    getRequest = RockItDatabase.transaction("images")
                         .objectStore("images")
                         .get(imageId);
                 } catch (retryError) {
-                    console.error("Failed to reopen database:", retryError);
+                    console.error(
+                        "Failed to reopen RockItDatabase:",
+                        retryError
+                    );
                     return fetch(request).then(resolve).catch(reject);
                 }
             }
@@ -268,14 +360,16 @@ const fromNetwork = (request, timeout) => {
 const fromCache = (request) => {
     const url = new URL(request.url);
 
+    console.log("fromCache", url);
+
     return new Promise(async (resolve) => {
-        // Fix 2: Correct database existence check
-        if (!database) {
-            // console.debug("Opening RockItApp database");
+        // Fix 2: Correct RockItDatabase existence check
+        if (!RockItDatabase) {
+            // console.debug("Opening RockItApp RockItDatabase");
             try {
-                database = await openRockItAppIndexedDB();
+                RockItDatabase = await openRockItIndexedDB();
             } catch (error) {
-                console.error("Failed to open database:", error);
+                console.error("Failed to open RockItDatabase:", error);
                 return resolve(
                     new Response("You are offline", { status: 404 })
                 );
@@ -284,17 +378,15 @@ const fromCache = (request) => {
 
         let getRequest;
         try {
-            getRequest = database
-                .transaction("files")
-                .objectStore("files")
+            getRequest = RockItDatabase.transaction("file")
+                .objectStore("file")
                 .get(url.pathname);
         } catch (error) {
-            console.log("Database error, reopening...", error);
+            console.log("RockItDatabase error, reopening...", error);
             try {
-                database = await openRockItAppIndexedDB();
-                getRequest = database
-                    .transaction("files")
-                    .objectStore("files")
+                RockItDatabase = await openRockItIndexedDB();
+                getRequest = RockItDatabase.transaction("file")
+                    .objectStore("file")
                     .get(url.pathname);
             } catch (retryError) {
                 return resolve(

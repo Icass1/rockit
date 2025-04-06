@@ -28,7 +28,7 @@ export default function HeaderUser() {
                     <span className="font-medium">
                         {session.data?.user.username} - {session.status}
                     </span>
-                    <div className="w-10 h-10 bg-neutral-400 rounded-full overflow-hidden flex ml-4 items-center justify-center">
+                    <div className="min-w-10 min-h-10 bg-neutral-400 rounded-full overflow-hidden flex ml-4 items-center justify-center">
                         <Image
                             width={50}
                             height={50}

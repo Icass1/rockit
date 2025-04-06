@@ -14,7 +14,7 @@ export async function GET(request: Request) {
 
     let lang: string;
 
-    if (!session.user) {
+    if (!session?.user) {
         if (requestLang) {
             lang = requestLang;
         } else {

@@ -2,6 +2,7 @@
 
 import { signIn } from "next-auth/react";
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 
 export default function LoginModal() {
@@ -30,12 +31,12 @@ export default function LoginModal() {
                 </div>
                 <p className="mt-2 text-sm text-fo">
                     Or{" "}
-                    <button
-                        onClick={() => {}}
+                    <Link
+                        href="/signup"
                         className="font-bold text-primary md:hover:text-primary/80"
                     >
                         create a new account
-                    </button>
+                    </Link>
                 </p>
                 <div className="mt-5 space-y-6">
                     <div className="space-y-4">

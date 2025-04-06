@@ -38,7 +38,7 @@ export async function GET(
                 "Content-Type": "image/png",
                 "Content-Disposition": "inline",
                 "Content-Length": stat.size.toString(),
-                "Cache-Control": "public, max-age=0, immutable",
+                "Cache-Control": "public, max-age=2592000, immutable",
             },
         });
     } catch (error) {

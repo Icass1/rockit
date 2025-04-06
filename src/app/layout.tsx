@@ -19,7 +19,7 @@ export default async function RootLayout({
     const headerList = await headers();
     const pathname = headerList.get("x-current-path");
 
-    if (pathname == "/login") {
+    if (pathname == "/login" || pathname == "/signup") {
         return (
             <html lang="en">
                 <head>

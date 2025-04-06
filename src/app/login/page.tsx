@@ -11,7 +11,15 @@ export default async function LoginPage() {
     }
 
     return (
-        <div className="h-full w-full relative">
+        <div
+            className="h-full w-full relative"
+            style={{
+                backgroundImage: "url(/background.jpg)",
+                backgroundRepeat: "no-repeat",
+                backgroundSize: "cover",
+                backgroundPositionY: "bottom",
+            }}
+        >
             <LoginModal />
         </div>
     );

@@ -93,13 +93,13 @@ export function openRockItIndexedDB(): Promise<IDBDatabase> {
             ////////////////
             // imageStore //
             ////////////////
-            if (!db.objectStoreNames.contains("images")) {
-                const imageStore = db.createObjectStore("images", {
+            if (!db.objectStoreNames.contains("image")) {
+                const imageStore = db.createObjectStore("image", {
                     keyPath: "id",
                 });
                 fillImageIndexedDB(imageStore);
             } else {
-                fillImageIndexedDB(transaction.objectStore("images"));
+                fillImageIndexedDB(transaction.objectStore("image"));
             }
 
             ///////////////

@@ -52,6 +52,13 @@ export async function GET(request: Request) {
         );
     }
 
+    if (type == "albums" && sortBy == "timePlayed") {
+        return NextResponse.json(
+            { error: "Invalid type parameter" },
+            { status: 400 }
+        );
+    }
+
     const noRepeat: boolean | undefined =
         url.searchParams.get("noRepeat") === "true" ? true : undefined;
 
@@ -74,6 +81,21 @@ export async function GET(request: Request) {
         if (sortBy === "timePlayed") {
             return b.timePlayed - a.timePlayed;
         } else if (sortBy === "random") {
+            return Math.random() - 0.5;
+        } else if (sortBy === "timesPlayed") {
+            if (a.timesPlayed === undefined) {
+                a.timesPlayed = 0;
+            }
+            if (b.timesPlayed === undefined) {
+                b.timesPlayed = 0;
+            }
+            return b.timesPlayed - a.timesPlayed;
+        }
+        return 0;
+    });
+
+    stats.albums.sort((a, b) => {
+        if (sortBy === "random") {
             return Math.random() - 0.5;
         } else if (sortBy === "timesPlayed") {
             if (a.timesPlayed === undefined) {

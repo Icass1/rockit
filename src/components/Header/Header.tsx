@@ -26,7 +26,7 @@ export default async function Header() {
             <SearchBar />
 
             <div className="relative ml-auto">
-                {session.user ? (
+                {session?.user ? (
                     <AddSessionProvider>
                         <HeaderUser />
                     </AddSessionProvider>

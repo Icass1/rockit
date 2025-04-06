@@ -3,6 +3,7 @@ import { type UserDB } from "@/lib/db/user";
 import Hls from "hls.js";
 import { atom } from "nanostores";
 import { lang } from "./lang";
+import { openRockItIndexedDB } from "@/lib/indexedDB";
 
 let websocket: WebSocket;
 
@@ -18,6 +19,7 @@ openRockItIndexedDB().then((_database) => {
 
 startSocket();
 registerServiceWorker();
+
 if (typeof window !== "undefined") {
     window.onerror = function (msg, source, lineNo, columnNo, error) {
         fetch("/api/error/new", {
@@ -798,172 +800,172 @@ export async function next(songEnded = false) {
         });
 }
 
-function fillImagesIndexedDB(imageStore: IDBObjectStore) {
-    console.warn("fillImagesIndexedDB");
-    if (!imageStore.indexNames.contains("id"))
-        imageStore.createIndex("id", "id", { unique: true });
-    if (!imageStore.indexNames.contains("blob"))
-        imageStore.createIndex("blob", "blob", { unique: false });
-}
+// function fillImagesIndexedDB(imageStore: IDBObjectStore) {
+//     console.warn("fillImagesIndexedDB");
+//     if (!imageStore.indexNames.contains("id"))
+//         imageStore.createIndex("id", "id", { unique: true });
+//     if (!imageStore.indexNames.contains("blob"))
+//         imageStore.createIndex("blob", "blob", { unique: false });
+// }
 
-function fillSongsIndexedDB(songsStore: IDBObjectStore) {
-    console.warn("fillSongsIndexedDB");
-    if (!songsStore.indexNames.contains("id"))
-        songsStore.createIndex("id", "id", { unique: true });
-    if (!songsStore.indexNames.contains("name"))
-        songsStore.createIndex("name", "name", { unique: false });
-    if (!songsStore.indexNames.contains("artists"))
-        songsStore.createIndex("artists", "artists", { unique: false });
-    if (!songsStore.indexNames.contains("images"))
-        songsStore.createIndex("images", "images", { unique: false });
-    if (!songsStore.indexNames.contains("image"))
-        songsStore.createIndex("image", "image", { unique: false });
-    if (!songsStore.indexNames.contains("duration"))
-        songsStore.createIndex("duration", "duration", {
-            unique: false,
-        });
-    if (!songsStore.indexNames.contains("blob"))
-        songsStore.createIndex("blob", "blob", { unique: false });
-    if (!songsStore.indexNames.contains("albumId"))
-        songsStore.createIndex("albumId", "albumId", { unique: false });
-    if (!songsStore.indexNames.contains("albumName"))
-        songsStore.createIndex("albumName", "albumName", {
-            unique: false,
-        });
-    if (!songsStore.indexNames.contains("lyrics"))
-        songsStore.createIndex("lyrics", "lyrics", { unique: false });
-    if (!songsStore.indexNames.contains("dynamicLyrics"))
-        songsStore.createIndex("dynamicLyrics", "dynamicLyrics", {
-            unique: false,
-        });
-}
+// function fillSongsIndexedDB(songsStore: IDBObjectStore) {
+//     console.warn("fillSongsIndexedDB");
+//     if (!songsStore.indexNames.contains("id"))
+//         songsStore.createIndex("id", "id", { unique: true });
+//     if (!songsStore.indexNames.contains("name"))
+//         songsStore.createIndex("name", "name", { unique: false });
+//     if (!songsStore.indexNames.contains("artists"))
+//         songsStore.createIndex("artists", "artists", { unique: false });
+//     if (!songsStore.indexNames.contains("images"))
+//         songsStore.createIndex("images", "images", { unique: false });
+//     if (!songsStore.indexNames.contains("image"))
+//         songsStore.createIndex("image", "image", { unique: false });
+//     if (!songsStore.indexNames.contains("duration"))
+//         songsStore.createIndex("duration", "duration", {
+//             unique: false,
+//         });
+//     if (!songsStore.indexNames.contains("blob"))
+//         songsStore.createIndex("blob", "blob", { unique: false });
+//     if (!songsStore.indexNames.contains("albumId"))
+//         songsStore.createIndex("albumId", "albumId", { unique: false });
+//     if (!songsStore.indexNames.contains("albumName"))
+//         songsStore.createIndex("albumName", "albumName", {
+//             unique: false,
+//         });
+//     if (!songsStore.indexNames.contains("lyrics"))
+//         songsStore.createIndex("lyrics", "lyrics", { unique: false });
+//     if (!songsStore.indexNames.contains("dynamicLyrics"))
+//         songsStore.createIndex("dynamicLyrics", "dynamicLyrics", {
+//             unique: false,
+//         });
+// }
 
-function fillLangIndexedDB(langStore: IDBObjectStore) {
-    console.warn("fillLangIndexedDB");
-    if (!langStore.indexNames.contains("lang"))
-        langStore.createIndex("lang", "lang", { unique: true });
-    if (!langStore.indexNames.contains("langData"))
-        langStore.createIndex("langData", "langData", {
-            unique: false,
-        });
-}
+// function fillLangIndexedDB(langStore: IDBObjectStore) {
+//     console.warn("fillLangIndexedDB");
+//     if (!langStore.indexNames.contains("lang"))
+//         langStore.createIndex("lang", "lang", { unique: true });
+//     if (!langStore.indexNames.contains("langData"))
+//         langStore.createIndex("langData", "langData", {
+//             unique: false,
+//         });
+// }
 
-function fillUserIndexedDB(userStore: IDBObjectStore) {
-    console.warn("fillUserIndexedDB");
-    if (!userStore.indexNames.contains("id"))
-        userStore.createIndex("id", "id", { unique: true });
-    if (!userStore.indexNames.contains("username"))
-        userStore.createIndex("username", "username", {
-            unique: false,
-        });
-    if (!userStore.indexNames.contains("currentSong"))
-        userStore.createIndex("currentSong", "currentSong", {
-            unique: false,
-        });
-    if (!userStore.indexNames.contains("lang"))
-        userStore.createIndex("lang", "lang", { unique: false });
-    if (!userStore.indexNames.contains("currentTime"))
-        userStore.createIndex("currentTime", "currentTime", {
-            unique: false,
-        });
-    if (!userStore.indexNames.contains("queue"))
-        userStore.createIndex("queue", "queue", { unique: false });
-    if (!userStore.indexNames.contains("queueIndex"))
-        userStore.createIndex("queueIndex", "queueIndex", {
-            unique: false,
-        });
-    if (!userStore.indexNames.contains("volume"))
-        userStore.createIndex("volume", "volume", { unique: false });
-    if (!userStore.indexNames.contains("randomQueue"))
-        userStore.createIndex("randomQueue", "randomQueue", {
-            unique: false,
-        });
-    if (!userStore.indexNames.contains("repeatSong"))
-        userStore.createIndex("repeatSong", "repeatSong", {
-            unique: false,
-        });
-    if (!userStore.indexNames.contains("currentStation"))
-        userStore.createIndex("currentStation", "currentStation", {
-            unique: false,
-        });
-    if (!userStore.indexNames.contains("admin"))
-        userStore.createIndex("admin", "admin", { unique: false });
-}
-function openRockItIndexedDB(): Promise<IDBDatabase | null> {
-    if (typeof window === "undefined")
-        return new Promise((resolve) => resolve(null));
+// function fillUserIndexedDB(userStore: IDBObjectStore) {
+//     console.warn("fillUserIndexedDB");
+//     if (!userStore.indexNames.contains("id"))
+//         userStore.createIndex("id", "id", { unique: true });
+//     if (!userStore.indexNames.contains("username"))
+//         userStore.createIndex("username", "username", {
+//             unique: false,
+//         });
+//     if (!userStore.indexNames.contains("currentSong"))
+//         userStore.createIndex("currentSong", "currentSong", {
+//             unique: false,
+//         });
+//     if (!userStore.indexNames.contains("lang"))
+//         userStore.createIndex("lang", "lang", { unique: false });
+//     if (!userStore.indexNames.contains("currentTime"))
+//         userStore.createIndex("currentTime", "currentTime", {
+//             unique: false,
+//         });
+//     if (!userStore.indexNames.contains("queue"))
+//         userStore.createIndex("queue", "queue", { unique: false });
+//     if (!userStore.indexNames.contains("queueIndex"))
+//         userStore.createIndex("queueIndex", "queueIndex", {
+//             unique: false,
+//         });
+//     if (!userStore.indexNames.contains("volume"))
+//         userStore.createIndex("volume", "volume", { unique: false });
+//     if (!userStore.indexNames.contains("randomQueue"))
+//         userStore.createIndex("randomQueue", "randomQueue", {
+//             unique: false,
+//         });
+//     if (!userStore.indexNames.contains("repeatSong"))
+//         userStore.createIndex("repeatSong", "repeatSong", {
+//             unique: false,
+//         });
+//     if (!userStore.indexNames.contains("currentStation"))
+//         userStore.createIndex("currentStation", "currentStation", {
+//             unique: false,
+//         });
+//     if (!userStore.indexNames.contains("admin"))
+//         userStore.createIndex("admin", "admin", { unique: false });
+// }
+// function openRockItIndexedDB(): Promise<IDBDatabase | null> {
+//     if (typeof window === "undefined")
+//         return new Promise((resolve) => resolve(null));
 
-    const dbOpenRequest = indexedDB.open("RockIt", 14);
+//     const dbOpenRequest = indexedDB.open("RockIt", 14);
 
-    return new Promise((resolve, reject) => {
-        dbOpenRequest.onupgradeneeded = function (event) {
-            const db = dbOpenRequest.result;
-            console.error("dbOpenRequest.onupgradeneeded 1");
+//     return new Promise((resolve, reject) => {
+//         dbOpenRequest.onupgradeneeded = function (event) {
+//             const db = dbOpenRequest.result;
+//             console.error("dbOpenRequest.onupgradeneeded 1");
 
-            const transaction = (event?.target as IDBOpenDBRequest)
-                ?.transaction as IDBTransaction;
+//             const transaction = (event?.target as IDBOpenDBRequest)
+//                 ?.transaction as IDBTransaction;
 
-            ////////////////
-            // songsStore //
-            ////////////////
-            if (!db.objectStoreNames.contains("songs")) {
-                const songsStore = db.createObjectStore("songs", {
-                    keyPath: "id",
-                });
-                fillSongsIndexedDB(songsStore);
-            } else {
-                fillSongsIndexedDB(transaction.objectStore("songs"));
-            }
+//             ////////////////
+//             // songsStore //
+//             ////////////////
+//             if (!db.objectStoreNames.contains("songs")) {
+//                 const songsStore = db.createObjectStore("songs", {
+//                     keyPath: "id",
+//                 });
+//                 fillSongsIndexedDB(songsStore);
+//             } else {
+//                 fillSongsIndexedDB(transaction.objectStore("songs"));
+//             }
 
-            ////////////////
-            // imageStore //
-            ////////////////
-            if (!db.objectStoreNames.contains("images")) {
-                const imageStore = db.createObjectStore("images", {
-                    keyPath: "id",
-                });
-                fillImagesIndexedDB(imageStore);
-            } else {
-                fillImagesIndexedDB(transaction.objectStore("images"));
-            }
+//             ////////////////
+//             // imageStore //
+//             ////////////////
+//             if (!db.objectStoreNames.contains("images")) {
+//                 const imageStore = db.createObjectStore("images", {
+//                     keyPath: "id",
+//                 });
+//                 fillImagesIndexedDB(imageStore);
+//             } else {
+//                 fillImagesIndexedDB(transaction.objectStore("images"));
+//             }
 
-            ///////////////
-            // userStore //
-            ///////////////
-            if (!db.objectStoreNames.contains("user")) {
-                const userStore = db.createObjectStore("user", {
-                    keyPath: "id",
-                });
-                fillUserIndexedDB(userStore);
-            } else {
-                fillUserIndexedDB(transaction.objectStore("user"));
-            }
+//             ///////////////
+//             // userStore //
+//             ///////////////
+//             if (!db.objectStoreNames.contains("user")) {
+//                 const userStore = db.createObjectStore("user", {
+//                     keyPath: "id",
+//                 });
+//                 fillUserIndexedDB(userStore);
+//             } else {
+//                 fillUserIndexedDB(transaction.objectStore("user"));
+//             }
 
-            ///////////////
-            // langStore //
-            ///////////////
-            if (!db.objectStoreNames.contains("lang")) {
-                const langStore = db.createObjectStore("lang", {
-                    keyPath: "lang",
-                });
-                fillLangIndexedDB(langStore);
-            } else {
-                fillLangIndexedDB(transaction.objectStore("lang"));
-            }
-            // No manual transaction.commit() needed
-            transaction.oncomplete = () => {
-                console.log("Upgrade transaction completed.");
-            };
-        };
+//             ///////////////
+//             // langStore //
+//             ///////////////
+//             if (!db.objectStoreNames.contains("lang")) {
+//                 const langStore = db.createObjectStore("lang", {
+//                     keyPath: "lang",
+//                 });
+//                 fillLangIndexedDB(langStore);
+//             } else {
+//                 fillLangIndexedDB(transaction.objectStore("lang"));
+//             }
+//             // No manual transaction.commit() needed
+//             transaction.oncomplete = () => {
+//                 console.log("Upgrade transaction completed.");
+//             };
+//         };
 
-        dbOpenRequest.onsuccess = function () {
-            resolve(dbOpenRequest.result);
-        };
-        dbOpenRequest.onerror = function () {
-            reject(dbOpenRequest.error);
-        };
-    });
-}
+//         dbOpenRequest.onsuccess = function () {
+//             resolve(dbOpenRequest.result);
+//         };
+//         dbOpenRequest.onerror = function () {
+//             reject(dbOpenRequest.error);
+//         };
+//     });
+// }
 
 export async function saveSongToIndexedDB(
     song: SongDB<
@@ -1079,7 +1081,7 @@ export async function getSongIdsInIndexedDB(): Promise<string[]> {
 }
 
 async function registerServiceWorker() {
-    return;
+    if (typeof window === "undefined") return;
 
     if ("serviceWorker" in navigator) {
         const version = 1;

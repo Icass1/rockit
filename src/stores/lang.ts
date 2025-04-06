@@ -25,7 +25,7 @@ fetch("/api/lang")
                 langData: data.langFile,
             };
 
-            console.log(langValue);
+            console.log("langValue", langValue);
 
             langStore.put(langValue);
         }, 1000);
@@ -65,7 +65,8 @@ fetch("/api/lang")
         const userQuery = userStore.get("user");
 
         userQuery.onsuccess = function () {
-            console.log();
+            console.log("userQuery.result", userQuery.result);
+            if (!userQuery.result.lang) return;
             const langTransaction = db.transaction("lang", "readonly");
             const langStore = langTransaction.objectStore("lang");
             const langQuery = langStore.get(userQuery.result.lang);

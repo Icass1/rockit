@@ -4,7 +4,7 @@ import LoginModal from "@/components/Auth/LoginModal";
 
 export default async function LoginPage() {
     const session = await getServerSession();
-    console.log({ session });
+    console.log("LoginPage session", { session });
 
     if (session) {
         redirect("/");

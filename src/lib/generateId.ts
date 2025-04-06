@@ -1,5 +1,5 @@
 export function generateId(length: number) {
-    var chars =
+    const chars =
         "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz".split(
             ""
         );
@@ -8,8 +8,8 @@ export function generateId(length: number) {
         length = Math.floor(Math.random() * chars.length);
     }
 
-    var str = "";
-    for (var i = 0; i < length; i++) {
+    let str = "";
+    for (let i = 0; i < length; i++) {
         str += chars[Math.floor(Math.random() * chars.length)];
     }
     return str;

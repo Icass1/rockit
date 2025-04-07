@@ -1048,7 +1048,6 @@ export async function getSongInIndexedDB(
     const db = database;
     const tx = db.transaction("songs", "readonly");
     const store = tx.objectStore("songs");
-    return;
     return new Promise((resolve, reject) => {
         const query = store.get(id);
 

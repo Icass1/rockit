@@ -1,3 +1,5 @@
+"use client";
+
 import { getImageUrl } from "@/lib/getImageUrl";
 import Link from "next/link";
 import Image from "../Image";
@@ -7,10 +9,13 @@ import { AlbumDB } from "@/lib/db/album";
 import { useStore } from "@nanostores/react";
 import { langData } from "@/stores/lang";
 import NewPlaylistButton from "@/components/Library/NewPlaylistButton";
+import useWindowSize from "@/hooks/useWindowSize";
 
 export function LibraryLists() {
     const [playlists, setPlaylists] = useState<PlaylistDB[]>([]);
     const [albums, setAlbums] = useState<AlbumDB[]>([]);
+
+    const { width } = useWindowSize();
 
     useEffect(() => {
         fetch("/api/library/lists").then((response) => {
@@ -36,7 +41,9 @@ export function LibraryLists() {
                 className="grid gap-x-5 gap-y-3 px-5"
                 style={{
                     gridTemplateColumns:
-                        "repeat(auto-fill, minmax(200px, 1fr))",
+                        width < 768
+                            ? "repeat(auto-fill, minmax(40%, 1fr))"
+                            : "repeat(auto-fill, minmax(200px, 1fr))",
                 }}
             >
                 <NewPlaylistButton />

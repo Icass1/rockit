@@ -25,11 +25,11 @@ import {
     PopupMenuOption,
     PopupMenuTrigger,
 } from "@/components/PopupMenu/PopupMenu";
-import { downloadResources } from "@/lib/downloadResources";
 import { downloadedLists, downloads } from "@/stores/downloads";
 import { libraryLists } from "@/stores/libraryLists";
 import { pinnedLists } from "@/stores/pinnedLists";
 import { playListHandleClick } from "../PlayList";
+import { downloadFile, downloadRsc } from "@/lib/downloadResources";
 
 export const pinListHandleClick = ({
     id,
@@ -172,7 +172,7 @@ export default function ListOptions({
     };
 
     const downloadListToDevice = async () => {
-        downloadResources({ resources: [`/${type}/${id}`] });
+        console.warn("to do");
 
         currentListSongs.get().map((song) => {
             saveSongToIndexedDB(song);
@@ -189,9 +189,15 @@ export default function ListOptions({
             blob: imageBlob,
         };
 
+        await downloadFile(`/${type}/${id}`, database);
+        await downloadRsc(`/${type}/${id}`, database);
+
         const imagesTx = database.transaction("images", "readwrite");
         const imagesStore = imagesTx.objectStore("images");
         imagesStore.put(imageToSave);
+
+        console.log("List downloaded!")
+
     };
 
     const downloadListToDB = () => {

@@ -81,7 +81,7 @@ export default function PlaylistSong({
         }
     }, [$downloadedSongs, _song.id]);
 
-    if (!$queue) return <div>!queue</div>;
+    if (!$queue) return <div className="skeleton w-full h-10 rounded"></div>;
 
     return (
         <SongContextMenu song={_song}>

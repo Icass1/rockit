@@ -49,7 +49,7 @@ export default function QuickSelectionsSong({
             <Image
                 width={100}
                 height={100}
-                className="rounded-sm w-12 h-12 object-cover"
+                className="rounded-sm min-w-12 min-h-12 w-12 h-12 object-cover aspect-square"
                 src={getImageUrl({
                     imageId: song.image,
                     height: 100,
@@ -65,14 +65,10 @@ export default function QuickSelectionsSong({
                     {song.name}
                 </span>
                 {/* Artista y álbum */}
-                <div className="flex items-center gap-1 min-w-0">
-                    <span className="text-sm text-gray-400 flex-0 md:max-w-[50%] truncate shrink-0">
-                        {song.artists[0].name}
-                    </span>
-                    <span className="hidden md:flex text-sm text-gray-400 truncate">
-                        {" • "} {song.albumName}
-                    </span>
-                </div>
+                <span className="text-sm text-gray-400 flex-0 md:max-w-[50%] truncate shrink-0">
+                    {song.artists[0].name}
+                    {" • "} {song.albumName}
+                </span>
             </div>
         </div>
     );

@@ -332,7 +332,10 @@ const fromNetwork = async (request, timeout) => {
             throw networkError; // No cache available
         }
     }
-    if (url.pathname.startsWith("/api/image/")) {
+    if (
+        url.pathname.startsWith("/api/image/") &&
+        !url.pathname.startsWith("/api/image/blur/")
+    ) {
         const imageId = url.pathname.replace("/api/image/", "").split("_")[0];
 
         // console.log("/api/image/", imageId);

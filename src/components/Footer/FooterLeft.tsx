@@ -13,8 +13,8 @@ import { EllipsisVertical, PlayIcon, PauseIcon } from "lucide-react";
 import { isPlayerUIVisible } from "@/stores/isPlayerUIVisible";
 import { useState } from "react";
 import { getImageUrl } from "@/lib/getImageUrl";
-import Image from "next/image";
-// import SongPopupMenu from "@/components/ListSongs/SongPopupMenu";
+import Image from "@/components/Image";
+import SongPopupMenu from "@/components/ListSongs/SongPopupMenu";
 
 function FooterLeftForSong({ currentSong }: { currentSong: CurrentSong }) {
     return (
@@ -85,9 +85,9 @@ function FooterLeftForSong({ currentSong }: { currentSong: CurrentSong }) {
             <div className="pr-4 flex-row items-left hidden md:flex">
                 {currentSong && <LikeButton song={currentSong} />}
                 {currentSong && (
-                    // <SongPopupMenu song={currentSong}>
-                    <EllipsisVertical className="w-[22px] h-[24px] text-gray-400 md:hover:text-white md:hover:scale-105" />
-                    // </SongPopupMenu>
+                    <SongPopupMenu song={currentSong}>
+                        <EllipsisVertical className="w-[22px] h-[24px] text-gray-400 md:hover:text-white md:hover:scale-105" />
+                    </SongPopupMenu>
                 )}
             </div>
         </div>

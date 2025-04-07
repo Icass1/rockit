@@ -4,7 +4,6 @@ import SignupModal from "@/components/Auth/SignupModal";
 
 export default async function SignupPage() {
     const session = await getServerSession();
-    console.log("SignupPage session", { session });
 
     if (session) {
         redirect("/");

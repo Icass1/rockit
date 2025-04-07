@@ -1,3 +1,5 @@
+"use client";
+
 import { queue, queueIndex, songsInIndexedDB } from "@/stores/audio";
 import type { PlaylistDBSongWithAddedAt } from "@/db/playlist";
 import { getTime } from "@/lib/getTime";

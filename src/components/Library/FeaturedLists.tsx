@@ -1,3 +1,5 @@
+"use client";
+
 import { getImageUrl } from "@/lib/getImageUrl";
 import { Stats } from "@/lib/stats";
 import { lang, langData } from "@/stores/lang";

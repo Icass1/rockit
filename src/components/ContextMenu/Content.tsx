@@ -1,3 +1,5 @@
+"use client";
+
 import type { ReactNode } from "react";
 import React from "react";
 import PosAfterRenderDiv from "@/components/PosAfterRenderDiv";

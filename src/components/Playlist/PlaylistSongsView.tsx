@@ -214,7 +214,7 @@ export default function PlaylistSongsView({
         }
     };
 
-    const marginTop = 96;
+    const marginTop = innerWidth < 768 ? 20 : 96;
 
     const $lang = useStore(langData);
     if (!$lang) return;
@@ -297,7 +297,9 @@ export default function PlaylistSongsView({
             {/* 84px at the bottom*/}
             <div
                 style={{
-                    minHeight: `${songsToRender.length * (4 + 56) + 100}px`,
+                    minHeight: `${
+                        songsToRender.length * (4 + 56) + 100 + marginTop
+                    }px`,
                 }}
             />
         </div>

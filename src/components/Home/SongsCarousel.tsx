@@ -295,7 +295,7 @@ function SongsCarousel() {
 
     return (
         <div
-            className="text-white h-64 md:min-h-92 flex items-center justify-center overflow-x-hidden relative select-none"
+            className="text-white h-64 md:min-h-92 min-h-64 flex items-center justify-center overflow-x-hidden relative select-none"
             ref={divRef}
         >
             <ChevronLeft

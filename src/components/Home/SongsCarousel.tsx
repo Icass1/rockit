@@ -9,7 +9,7 @@ import { useStore } from "@nanostores/react";
 import { getImageUrl } from "@/lib/getImageUrl";
 import { songHandleClick } from "@/components/ListSongs/HandleClick";
 import { currentList } from "@/stores/currentList";
-import Image from "next/image";
+import Image from "@/components/Image";
 
 function Song({
     index,

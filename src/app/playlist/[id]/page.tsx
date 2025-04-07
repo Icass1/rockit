@@ -1,3 +1,4 @@
+import Image from "@/components/Image";
 import PlaylistHeader from "@/components/Playlist/PlaylistHeader";
 import PlaylistSongsView from "@/components/Playlist/PlaylistSongsView";
 import { getSession } from "@/lib/auth/getSession";
@@ -309,6 +310,11 @@ export default async function PlaylistPage({
 
     return (
         <div className="px-3 md:px-2 flex flex-col md:flex-row gap-2 w-full h-full relative">
+            <Image
+                src={`/api/image/blur/${playlist.image}`}
+                alt=""
+                className="fixed top-0 left-0 w-full h-full object-cover opacity-35"
+            />
             <PlaylistHeader
                 id={id}
                 playlist={playlist}

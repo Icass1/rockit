@@ -201,7 +201,9 @@ export async function generateMetadata({
             url: `https://rockit.rockhosting.org/playlist/${id}`,
             images: [
                 {
-                    url: getImageUrl({ imageId: playlist.image }),
+                    url:
+                        "https://rockit.rockhosting.org" +
+                        getImageUrl({ imageId: playlist.image }),
                     width: 600,
                     height: 600,
                     alt: playlist.name,
@@ -214,7 +216,9 @@ export async function generateMetadata({
             description: `Listen to ${playlist.name} by ${playlist.owner}`,
             images: [
                 {
-                    url: getImageUrl({ imageId: playlist.image }),
+                    url:
+                        "https://rockit.rockhosting.org" +
+                        getImageUrl({ imageId: playlist.image }),
                     width: 600,
                     height: 600,
                     alt: playlist.name,

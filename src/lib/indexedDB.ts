@@ -72,14 +72,11 @@ function fillRSCIndexedDB(rscStore: IDBObjectStore) {
 }
 
 export function openRockItIndexedDB(): Promise<IDBDatabase> {
-    console.log("openRockItIndexedDB");
-
     if (typeof indexedDB === "undefined") {
         return new Promise(() => undefined);
     }
 
     const dbOpenRequest = indexedDB.open("RockIt", 16);
-    console.log("dbOpenRequest", dbOpenRequest);
 
     return new Promise((resolve, reject) => {
         dbOpenRequest.onupgradeneeded = function (event) {
@@ -185,11 +182,9 @@ export function openRockItIndexedDB(): Promise<IDBDatabase> {
         };
 
         dbOpenRequest.onsuccess = function () {
-            console.log("dbOpenRequest.onsuccess");
             resolve(dbOpenRequest.result);
         };
         dbOpenRequest.onerror = function () {
-            console.log("dbOpenRequest.onerror");
             reject(dbOpenRequest.error);
         };
     });

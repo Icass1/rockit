@@ -5,6 +5,7 @@ import { useStore } from "@nanostores/react";
 import { Disc3, Heart, History } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import Image from "@/components/Image";
 
 export function FeaturedLists() {
     const $lang = useStore(langData);
@@ -131,20 +132,18 @@ export function FeaturedLists() {
                         href={`/album/${album.id}`}
                         className="library-item flex-none w-[calc(40%-10px)] md:w-48 md:hover:scale-105 transition"
                     >
-                        <picture>
-                            <img
-                                width={300}
-                                height={300}
-                                className="rounded-lg w-full aspect-square object-cover"
-                                src={getImageUrl({
-                                    imageId: album.image,
-                                    height: 300,
-                                    width: 300,
-                                    placeHolder: "/song-placeholder.png",
-                                })}
-                                alt="Song Cover"
-                            />
-                        </picture>
+                        <Image
+                            width={300}
+                            height={300}
+                            className="rounded-lg w-full aspect-square object-cover"
+                            src={getImageUrl({
+                                imageId: album.image,
+                                height: 300,
+                                width: 300,
+                                placeHolder: "/song-placeholder.png",
+                            })}
+                            alt="Song Cover"
+                        />
                         <label className="truncate font-semibold text-center block mt-2">
                             {album.name}
                         </label>

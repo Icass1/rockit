@@ -197,7 +197,6 @@ export default function Navigation() {
                     </Link> */}
                 </div>
 
-                {/* <div className="h-full"></div> */}
                 <Downloads navOpen={open} />
             </div>
         </div>

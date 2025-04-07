@@ -77,7 +77,7 @@ function RenderListDownload({
             songs: {
                 [key: string]: EventSourceStatus;
             };
-        }
+        },
     ];
 }) {
     const [showAllSongs, setShowAllSongs] = useState(false);
@@ -301,7 +301,7 @@ function AddContextMenu({
                   songs: {
                       [key: string]: EventSourceStatus;
                   };
-              }
+              },
           ]
         | undefined;
 }) {

@@ -4,8 +4,8 @@ export const networkStatus = atom<"online" | "offline">(
     typeof window == "undefined"
         ? "offline"
         : navigator.onLine
-        ? "online"
-        : "offline"
+          ? "online"
+          : "offline"
 );
 
 if (typeof window !== "undefined") {

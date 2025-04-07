@@ -7,8 +7,8 @@ export default function Image(
     >
 ) {
     return (
-        <picture>
-            <img {...props} alt={props.alt} />
-        </picture>
+        // <picture {...props}>
+        <img {...props} alt={props.alt} src={props.src} />
+        // </picture>
     );
 }

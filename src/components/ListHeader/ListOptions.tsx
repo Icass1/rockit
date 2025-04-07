@@ -196,8 +196,7 @@ export default function ListOptions({
         const imagesStore = imagesTx.objectStore("images");
         imagesStore.put(imageToSave);
 
-        console.log("List downloaded!")
-
+        console.log("List downloaded!");
     };
 
     const downloadListToDB = () => {

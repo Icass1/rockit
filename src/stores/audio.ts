@@ -106,7 +106,7 @@ interface SongDBFullWithBlob extends SongDBFull {
 }
 
 export type SongDBWithBlob<
-    Keys extends keyof SongDBFullWithBlob = keyof SongDBFullWithBlob
+    Keys extends keyof SongDBFullWithBlob = keyof SongDBFullWithBlob,
 > = Pick<SongDBFullWithBlob, Keys>;
 
 const _queue: Queue | undefined = undefined;
@@ -183,7 +183,7 @@ fetch(
             repeatSong.set(userJson.repeatSong);
             randomQueue.set(userJson.randomQueue);
 
-            volume.set(window.innerWidth < 768 ? 1 : userJson?.volume ?? 1);
+            volume.set(window.innerWidth < 768 ? 1 : (userJson?.volume ?? 1));
 
             if (userJson.currentSong) {
                 fetch(
@@ -1097,9 +1097,9 @@ async function registerServiceWorker() {
                 console.log("Unregistering service worker");
 
                 await Promise.all(
-                    (
-                        await navigator.serviceWorker.getRegistrations()
-                    ).map((worker) => worker.unregister())
+                    (await navigator.serviceWorker.getRegistrations()).map(
+                        (worker) => worker.unregister()
+                    )
                 );
 
                 localStorage.setItem(
@@ -1110,9 +1110,9 @@ async function registerServiceWorker() {
         } catch (error) {
             console.error("Unregistering service worker", error);
             await Promise.all(
-                (
-                    await navigator.serviceWorker.getRegistrations()
-                ).map((worker) => worker.unregister())
+                (await navigator.serviceWorker.getRegistrations()).map(
+                    (worker) => worker.unregister()
+                )
             );
             localStorage.setItem("updatedServiceWorker", version.toString());
         }

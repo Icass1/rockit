@@ -28,28 +28,6 @@ const Slider: FC<SliderProps> = ({
 
     const inputRef = useRef<HTMLInputElement>(null);
 
-    // useEffect(() => {
-    //     const inputElement = inputRef.current;
-    //     if (inputElement) {
-    //         const handleTouchStart = (event: TouchEvent) => {
-    //             if (event.cancelable) {
-    //                 event.preventDefault();
-    //             }
-    //         };
-
-    //         inputElement.addEventListener("touchstart", handleTouchStart, {
-    //             passive: false,
-    //         });
-
-    //         return () => {
-    //             inputElement.removeEventListener(
-    //                 "touchstart",
-    //                 handleTouchStart
-    //             );
-    //         };
-    //     }
-    // }, []);
-
     return (
         <div
             className={className + " relative w-16 rounded-full bg-neutral-700"}

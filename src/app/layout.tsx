@@ -2,9 +2,12 @@ import type { Metadata } from "next";
 import "@/styles/default.css";
 import Footer from "@/components/Footer/Footer";
 import { headers } from "next/headers";
-import Navigation from "@/components/Navigation";
+import Navigation from "@/components/Navigation/Navigation";
 import AddSessionProvider from "@/components/AddSessionProvider";
 import Header from "@/components/Header/Header";
+import NavigationMobile from "@/components/Navigation/NavigationMobile";
+import Link from "next/link";
+import Image from "@/components/Image";
 
 export const metadata: Metadata = {
     title: "RockIt",
@@ -46,20 +49,36 @@ export default async function RootLayout({
                 <link rel="manifest" href="/manifest.json" />
             </head>
             <body className="bg-black">
-                <div className="fixed top-0 left-12 right-0 bottom-0 bg-[#0b0b0b]">
+                <div className="fixed md:top-0 md:left-12 md:right-0 md:bottom-0 bg-[#0b0b0b] top-0 left-0 bottom-0 right-0">
                     {children}
                 </div>
 
-                <div className="fixed left-12 right-0 top-0 h-24 w-auto">
+                <div className="hidden md:block fixed left-12 right-0 top-0 h-24 w-auto">
                     <Header></Header>
                 </div>
-                <div className="fixed left-0 right-0 bottom-0 h-24 ">
+                <div className="hidden md:block fixed left-0 right-0 bottom-0 h-24">
                     <Footer></Footer>
                 </div>
-                <div className="fixed top-0 left-0 bottom-24">
+                <div className="hidden md:block fixed md:top-0 md:left-0 md:bottom-24">
                     <AddSessionProvider>
                         <Navigation></Navigation>
                     </AddSessionProvider>
+                </div>
+
+                <div className="fixed block md:hidden bottom-0 left-0 right-0 h-12">
+                    <AddSessionProvider>
+                        <NavigationMobile></NavigationMobile>
+                    </AddSessionProvider>
+                </div>
+
+                <div className="md:hidden block fixed w-full h-fit bg-gradient-to-b from-black to-black/0 z-40 items-center justify-center mx-auto">
+                    <Link href="/" className="text-white text-2xl font-bold">
+                        <Image
+                            src="/logo-banner.png"
+                            alt="App Logo"
+                            className="mx-auto h-14 object-contain my-2"
+                        />
+                    </Link>
                 </div>
             </body>
         </html>

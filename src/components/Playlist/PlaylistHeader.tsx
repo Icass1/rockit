@@ -92,7 +92,7 @@ export default function PlaylistHeader({
     return (
         <div
             className={
-                "md:top-1/2 md:-translate-y-1/2 md:w-full md:max-w-96 px-10 md:px-0 flex flex-col gap-1 relative h-[26rem] md:max-h-none md:h-fit " +
+                "md:top-1/2 md:-translate-y-1/2 top-24 md:w-full md:max-w-96 px-10 md:px-0 flex flex-col gap-1 relative h-[26rem] md:max-h-none md:h-fit " +
                 className
             }
             style={style}

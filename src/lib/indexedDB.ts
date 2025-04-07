@@ -35,7 +35,7 @@ function fillUserIndexedDB(userStore: IDBObjectStore) {
 }
 function fillApiRequestsIndexedDB(apiStore: IDBObjectStore) {
     console.warn("fillApiRequestsIndexedDB");
-    if (!apiStore.indexNames.contains("id"))
+    if (!apiStore.indexNames.contains("url"))
         apiStore.createIndex("url", "url", { unique: true });
     if (!apiStore.indexNames.contains("value"))
         apiStore.createIndex("value", "value", {
@@ -57,12 +57,29 @@ function fillFileIndexedDB(fileStore: IDBObjectStore) {
         });
 }
 
+function fillRSCIndexedDB(rscStore: IDBObjectStore) {
+    console.warn("fillRSCIndexedDB");
+    if (!rscStore.indexNames.contains("url"))
+        rscStore.createIndex("url", "url", { unique: true });
+    if (!rscStore.indexNames.contains("fileContent"))
+        rscStore.createIndex("fileContent", "fileContent", {
+            unique: false,
+        });
+    if (!rscStore.indexNames.contains("headers"))
+        rscStore.createIndex("headers", "headers", {
+            unique: false,
+        });
+}
+
 export function openRockItIndexedDB(): Promise<IDBDatabase> {
+    console.log("openRockItIndexedDB");
+
     if (typeof indexedDB === "undefined") {
         return new Promise(() => undefined);
     }
 
-    const dbOpenRequest = indexedDB.open("RockIt", 14);
+    const dbOpenRequest = indexedDB.open("RockIt", 16);
+    console.log("dbOpenRequest", dbOpenRequest);
 
     return new Promise((resolve, reject) => {
         dbOpenRequest.onupgradeneeded = function (event) {
@@ -127,6 +144,18 @@ export function openRockItIndexedDB(): Promise<IDBDatabase> {
             }
 
             ///////////////
+            // rscStore //
+            ///////////////
+            if (!db.objectStoreNames.contains("rsc")) {
+                const rscStore = db.createObjectStore("rsc", {
+                    keyPath: "url",
+                });
+                fillRSCIndexedDB(rscStore);
+            } else {
+                fillRSCIndexedDB(transaction.objectStore("rsc"));
+            }
+
+            ///////////////
             // fileStore //
             ///////////////
             if (!db.objectStoreNames.contains("file")) {
@@ -156,9 +185,11 @@ export function openRockItIndexedDB(): Promise<IDBDatabase> {
         };
 
         dbOpenRequest.onsuccess = function () {
+            console.log("dbOpenRequest.onsuccess");
             resolve(dbOpenRequest.result);
         };
         dbOpenRequest.onerror = function () {
+            console.log("dbOpenRequest.onerror");
             reject(dbOpenRequest.error);
         };
     });

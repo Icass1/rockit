@@ -10,6 +10,7 @@ import {
 } from "@/lib/db/playlist";
 import { parseSong, RawSongDB, SongDB } from "@/lib/db/song";
 import { parseUser, RawUserDB, UserDB } from "@/lib/db/user";
+import { getImageUrl } from "@/lib/getImageUrl";
 import { getStats, SongForStats } from "@/lib/stats";
 import { SpotifyPlaylistImage } from "@/types/spotify";
 
@@ -21,58 +22,10 @@ interface Playlist {
     owner: string;
 }
 
-export async function generateMetadata({
-    params,
-}: {
-    params: Promise<{ id: string }>;
-}) {
-    const { id } = await params; // No need for await here
-
-    const song = {
-        title: `title ${id}`,
-        artist: "artist",
-        image_url: "https://reactnative.dev/img/homepage/devices-dark.png",
-        id: "id_test",
-    };
-
-    return {
-        title: song.title,
-        description: `Escucha ${song.title} de ${song.artist}`,
-        openGraph: {
-            title: song.title,
-            description: `Escucha ${song.title} de ${song.artist}`,
-            type: "music.song",
-            url: `https://tuweb.com/song/${song.id}`,
-            images: [
-                {
-                    url:
-                        song.image_url || "https://tuweb.com/default-image.jpg",
-                    width: 1200,
-                    height: 630,
-                    alt: song.title,
-                },
-            ],
-        },
-        twitter: {
-            card: "summary_large_image",
-            title: song.title,
-            description: `Escucha ${song.title} de ${song.artist}`,
-            images: [song.image_url || "https://tuweb.com/default-image.jpg"],
-        },
-    };
-}
-
-export default async function PlaylistPage({
-    params,
-}: {
-    params: Promise<{ id: string }>;
-}) {
-    const { id } = await params; // No need for await here
-
+async function getPlaylist(id: string) {
     const session = await getSession();
 
     let playlist: Playlist | undefined;
-    let inDatabase;
 
     if (id == "liked") {
         const userDB = parseUser(
@@ -224,6 +177,64 @@ export default async function PlaylistPage({
         );
     }
 
+    return playlist;
+}
+export async function generateMetadata({
+    params,
+}: {
+    params: Promise<{ id: string }>;
+}) {
+    const { id } = await params; // No need for await here
+    const playlist = await getPlaylist(id);
+
+    if (!playlist) {
+        return {};
+    }
+
+    return {
+        title: `${playlist.name} by ${playlist.owner}`,
+        description: `Listen to ${playlist.name} by ${playlist.owner}`,
+        openGraph: {
+            title: `${playlist.name} by ${playlist.owner}`,
+            description: `Listen to ${playlist.name} by ${playlist.owner}`,
+            type: "music.playlist",
+            url: `https://rockit.rockhosting.org/playlist/${id}`,
+            images: [
+                {
+                    url: getImageUrl({ imageId: playlist.image }),
+                    width: 600,
+                    height: 600,
+                    alt: playlist.name,
+                },
+            ],
+        },
+        twitter: {
+            card: "",
+            title: `${playlist.name} by ${playlist.owner}`,
+            description: `Listen to ${playlist.name} by ${playlist.owner}`,
+            images: [
+                {
+                    url: getImageUrl({ imageId: playlist.image }),
+                    width: 600,
+                    height: 600,
+                    alt: playlist.name,
+                },
+            ],
+        },
+    };
+}
+
+export default async function PlaylistPage({
+    params,
+}: {
+    params: Promise<{ id: string }>;
+}) {
+    const { id } = await params; // No need for await here
+
+    const playlist = await getPlaylist(id);
+
+    let inDatabase: boolean;
+
     if (playlist) {
         inDatabase = true;
     } else {
@@ -291,8 +302,6 @@ export default async function PlaylistPage({
                 | "albumName"
             > => song !== undefined
         );
-
-    console.log(id);
 
     return (
         <div className="px-3 md:px-2 flex flex-col md:flex-row gap-2 w-full h-full relative">

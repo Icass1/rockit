@@ -1,48 +1,3 @@
-let RockItDatabase;
-
-// function fillFilesIndexedDB(filesStore) {
-//     console.warn("fillFilesIndexedDB");
-
-//     if (!filesStore.indexNames.contains("url"))
-//         filesStore.createIndex("url", "url", { unique: true });
-//     if (!filesStore.indexNames.contains("fileContent"))
-//         filesStore.createIndex("fileContent", "fileContent", {
-//             unique: false,
-//         });
-//     if (!filesStore.indexNames.contains("contentType"))
-//         filesStore.createIndex("contentType", "contentType", {
-//             unique: false,
-//         });
-// }
-
-// function openRockItAppIndexedDB() {
-//     const dbOpenRequest = indexedDB.open("RockItApp", 5);
-
-//     dbOpenRequest.onupgradeneeded = function (event) {
-//         const db = dbOpenRequest.result;
-//         const transaction = event?.target?.transaction;
-
-//         if (!db.objectStoreNames.contains("files")) {
-//             const filesStore = db.createObjectStore("files", {
-//                 keyPath: "url",
-//             });
-//             fillFilesIndexedDB(filesStore);
-//         } else {
-//             fillFilesIndexedDB(transaction.objectStore("files"));
-//         }
-//     };
-
-//     return new Promise((resolve, reject) => {
-//         dbOpenRequest.onsuccess = function () {
-//             resolve(dbOpenRequest.result);
-//         };
-
-//         dbOpenRequest.onerror = function () {
-//             reject(dbOpenRequest.error);
-//         };
-//     });
-// }
-
 function fillImageIndexedDB(imageStore) {
     console.warn("fillImagesIndexedDB");
     if (!imageStore.indexNames.contains("id"))
@@ -80,7 +35,7 @@ function fillUserIndexedDB(userStore) {
 }
 function fillApiRequestsIndexedDB(apiStore) {
     console.warn("fillApiRequestsIndexedDB");
-    if (!apiStore.indexNames.contains("id"))
+    if (!apiStore.indexNames.contains("url"))
         apiStore.createIndex("url", "url", { unique: true });
     if (!apiStore.indexNames.contains("value"))
         apiStore.createIndex("value", "value", {
@@ -102,8 +57,29 @@ function fillFileIndexedDB(fileStore) {
         });
 }
 
-function openRockItIndexedDB() {
-    const dbOpenRequest = indexedDB.open("RockIt", 14);
+function fillRSCIndexedDB(rscStore) {
+    console.warn("fillRSCIndexedDB");
+    if (!rscStore.indexNames.contains("url"))
+        rscStore.createIndex("url", "url", { unique: true });
+    if (!rscStore.indexNames.contains("fileContent"))
+        rscStore.createIndex("fileContent", "fileContent", {
+            unique: false,
+        });
+    if (!rscStore.indexNames.contains("headers"))
+        rscStore.createIndex("headers", "headers", {
+            unique: false,
+        });
+}
+
+export function openRockItIndexedDB() {
+    console.log("openRockItIndexedDB");
+
+    if (typeof indexedDB === "undefined") {
+        return new Promise(() => undefined);
+    }
+
+    const dbOpenRequest = indexedDB.open("RockIt", 16);
+    console.log("dbOpenRequest", dbOpenRequest);
 
     return new Promise((resolve, reject) => {
         dbOpenRequest.onupgradeneeded = function (event) {
@@ -111,6 +87,12 @@ function openRockItIndexedDB() {
             console.error("dbOpenRequest.onupgradeneeded 1");
 
             const transaction = event?.target?.transaction;
+
+            if (!transaction) {
+                console.error("Transaction is not defined");
+                reject("Transaction is not defined");
+                return;
+            }
 
             ////////////////
             // songsStore //
@@ -127,13 +109,13 @@ function openRockItIndexedDB() {
             ////////////////
             // imageStore //
             ////////////////
-            if (!db.objectStoreNames.contains("images")) {
-                const imageStore = db.createObjectStore("images", {
+            if (!db.objectStoreNames.contains("image")) {
+                const imageStore = db.createObjectStore("image", {
                     keyPath: "id",
                 });
                 fillImageIndexedDB(imageStore);
             } else {
-                fillImageIndexedDB(transaction.objectStore("images"));
+                fillImageIndexedDB(transaction.objectStore("image"));
             }
 
             ///////////////
@@ -158,6 +140,18 @@ function openRockItIndexedDB() {
                 fillApiRequestsIndexedDB(apiStore);
             } else {
                 fillApiRequestsIndexedDB(transaction.objectStore("api"));
+            }
+
+            ///////////////
+            // rscStore //
+            ///////////////
+            if (!db.objectStoreNames.contains("rsc")) {
+                const rscStore = db.createObjectStore("rsc", {
+                    keyPath: "url",
+                });
+                fillRSCIndexedDB(rscStore);
+            } else {
+                fillRSCIndexedDB(transaction.objectStore("rsc"));
             }
 
             ///////////////
@@ -190,13 +184,17 @@ function openRockItIndexedDB() {
         };
 
         dbOpenRequest.onsuccess = function () {
+            console.log("dbOpenRequest.onsuccess");
             resolve(dbOpenRequest.result);
         };
         dbOpenRequest.onerror = function () {
+            console.log("dbOpenRequest.onerror");
             reject(dbOpenRequest.error);
         };
     });
 }
+
+let RockItDatabase;
 
 // Helper functions for API caching
 async function cacheApiResponse(url, data) {
@@ -258,6 +256,41 @@ async function getCachedApiResponse(url) {
     });
 }
 
+// Helper function to handle the fallback logic
+async function tryFetchWithPlaceholder(request, resolve, reject) {
+    try {
+        // First try network
+        const networkResponse = await fetch(request);
+        if (networkResponse.ok) return resolve(networkResponse);
+
+        // Then try placeholder if network fails
+        if (!RockItDatabase) {
+            RockItDatabase = await openRockItIndexedDB();
+        }
+
+        const placeholderRequest = RockItDatabase.transaction("images")
+            .objectStore("images")
+            .get("/song-placeholder.png");
+
+        placeholderRequest.onsuccess = (event) => {
+            if (event.target.result) {
+                return resolve(
+                    new Response(event.target.result.blob, {
+                        headers: { "Content-Type": "image/png" },
+                    })
+                );
+            }
+            reject(new Error("No image available and placeholder not found"));
+        };
+
+        placeholderRequest.onerror = () => {
+            reject(new Error("Failed to load placeholder"));
+        };
+    } catch (finalError) {
+        reject(finalError);
+    }
+}
+
 const fromNetwork = async (request, timeout) => {
     const url = new URL(request.url);
 
@@ -265,9 +298,10 @@ const fromNetwork = async (request, timeout) => {
         url.pathname.startsWith("/api") &&
         !url.pathname.startsWith("/api/error/new") &&
         !url.pathname.startsWith("/api/song/audio") &&
+        !url.pathname.startsWith("/api/image/") &&
         !url.pathname.startsWith("/api/user/set-lang")
     ) {
-        console.log("API request:", url.pathname + url.search);
+        // console.log("API request:", url.pathname + url.search);
 
         try {
             // First try to get from network
@@ -298,60 +332,98 @@ const fromNetwork = async (request, timeout) => {
             throw networkError; // No cache available
         }
     }
-
     if (url.pathname.startsWith("/api/image/")) {
         const imageId = url.pathname.replace("/api/image/", "").split("_")[0];
 
-        // console.debug("Getting image from indexeddb", imageId);
+        // console.log("/api/image/", imageId);
 
         return new Promise(async (resolve, reject) => {
-            // Fix 1: Correct RockItDatabase existence check
             if (!RockItDatabase) {
-                // console.debug("Opening RockIt RockItDatabase");
                 try {
                     RockItDatabase = await openRockItIndexedDB();
                 } catch (error) {
                     console.error("Failed to open RockItDatabase:", error);
-                    return reject(error);
+                    return tryFetchWithPlaceholder(request, resolve, reject);
                 }
             }
 
-            let getRequest;
             try {
-                getRequest = RockItDatabase.transaction("images")
+                // First try to get the requested image
+                const getRequest = RockItDatabase.transaction("images")
                     .objectStore("images")
                     .get(imageId);
+
+                getRequest.onsuccess = async (event) => {
+                    // console.log("getRequest.onsuccess");
+                    if (event.target.result) {
+                        // console.log("getRequest.onsuccess 1");
+
+                        return resolve(
+                            new Response(event.target.result.blob, {
+                                headers: { "Content-Type": "image/png" },
+                            })
+                        );
+                    }
+
+                    // If image not found, try to fetch from network
+                    try {
+                        // console.log("getRequest.onsuccess 2");
+
+                        const networkResponse = await fetch(request);
+                        // console.log("getRequest.onsuccess 3");
+
+                        if (networkResponse.ok) return resolve(networkResponse);
+                        throw new Error("Network response not OK");
+                    } catch (networkError) {
+                        console.log(
+                            "Network failed, trying placeholder...",
+                            networkError
+                        );
+                        // console.log("getRequest.onsuccess 4");
+
+                        // If network fails, try to get placeholder
+                        const placeholderRequest = RockItDatabase.transaction(
+                            "file"
+                        )
+                            .objectStore("file")
+                            .get("/song-placeholder.png");
+
+                        placeholderRequest.onsuccess = (placeholderEvent) => {
+                            // console.log("getRequest.onsuccess 5");
+
+                            if (placeholderEvent.target.result) {
+                                return resolve(
+                                    new Response(
+                                        placeholderEvent.target.result.fileContent,
+                                        {
+                                            headers: {
+                                                "Content-Type": "image/png",
+                                            },
+                                        }
+                                    )
+                                );
+                            }
+                            // If no placeholder available, reject
+                            reject(
+                                new Error(
+                                    "No image available and placeholder not found"
+                                )
+                            );
+                        };
+
+                        placeholderRequest.onerror = () => {
+                            reject(new Error("Failed to load placeholder"));
+                        };
+                    }
+                };
+
+                getRequest.onerror = () => {
+                    tryFetchWithPlaceholder(request, resolve, reject);
+                };
             } catch (error) {
-                console.log("RockItDatabase error, reopening...", error);
-                try {
-                    RockItDatabase = await openRockItIndexedDB();
-                    getRequest = RockItDatabase.transaction("images")
-                        .objectStore("images")
-                        .get(imageId);
-                } catch (retryError) {
-                    console.error(
-                        "Failed to reopen RockItDatabase:",
-                        retryError
-                    );
-                    return fetch(request).then(resolve).catch(reject);
-                }
+                console.log("Database error, trying fallback...", error);
+                tryFetchWithPlaceholder(request, resolve, reject);
             }
-            // console.debug("getRequest", getRequest);
-
-            getRequest.onsuccess = function (event) {
-                if (!event.target.result) {
-                    return fetch(request).then(resolve).catch(reject);
-                }
-                resolve(
-                    new Response(event.target.result.blob, {
-                        headers: { "Content-Type": "image/png" },
-                    })
-                );
-            };
-
-            getRequest.onerror = () => {
-                fetch(request).then(resolve).catch(reject);
-            };
         });
     }
     return fetch(request);
@@ -376,40 +448,83 @@ const fromCache = (request) => {
             }
         }
 
-        let getRequest;
-        try {
-            getRequest = RockItDatabase.transaction("file")
-                .objectStore("file")
-                .get(url.pathname);
-        } catch (error) {
-            console.log("RockItDatabase error, reopening...", error);
+        if (url.searchParams.get("_rsc")) {
+            console.log(url.pathname, url.searchParams.get("_rsc"));
+
+            let getRequest;
+
+            if (request.headers.get("next-router-prefetch") == "1") {
+                console.log("next-router-prefetch");
+                getRequest = RockItDatabase.transaction("rsc")
+                    .objectStore("rsc")
+                    .get(url.pathname + "next-router-prefetch");
+            } else {
+                console.log("no next-router-prefetch");
+
+                getRequest = RockItDatabase.transaction("rsc")
+                    .objectStore("rsc")
+                    .get(url.pathname);
+            }
+
+            console.log(getRequest);
+
+            getRequest.onsuccess = (event) => {
+                console.log("getrequest.onsuccess", event.target.result);
+                resolve(
+                    event.target.result
+                        ? new Response(event.target.result.fileContent, {
+                              headers: {
+                                  "Content-Type":
+                                      event.target.result.headers[
+                                          "content-type"
+                                      ],
+                                  vary: event.target.result.headers["vary"],
+                              },
+                          })
+                        : new Response("Not found", { status: 404 })
+                );
+            };
+
+            getRequest.onerror = () => {
+                resolve(new Response("Cache error", { status: 500 }));
+            };
+        } else {
+            let getRequest;
             try {
-                RockItDatabase = await openRockItIndexedDB();
                 getRequest = RockItDatabase.transaction("file")
                     .objectStore("file")
                     .get(url.pathname);
-            } catch (retryError) {
-                return resolve(
-                    new Response("You are offline", { status: 404 })
-                );
+            } catch (error) {
+                console.log("RockItDatabase error, reopening...", error);
+                try {
+                    RockItDatabase = await openRockItIndexedDB();
+                    getRequest = RockItDatabase.transaction("file")
+                        .objectStore("file")
+                        .get(url.pathname);
+                } catch (retryError) {
+                    return resolve(
+                        new Response("You are offline", { status: 404 })
+                    );
+                }
             }
+
+            getRequest.onsuccess = (event) => {
+                resolve(
+                    event.target.result
+                        ? new Response(event.target.result.fileContent, {
+                              headers: {
+                                  "Content-Type":
+                                      event.target.result.contentType,
+                              },
+                          })
+                        : new Response("Not found", { status: 404 })
+                );
+            };
+
+            getRequest.onerror = () => {
+                resolve(new Response("Cache error", { status: 500 }));
+            };
         }
-
-        getRequest.onsuccess = (event) => {
-            resolve(
-                event.target.result
-                    ? new Response(event.target.result.fileContent, {
-                          headers: {
-                              "Content-Type": event.target.result.contentType,
-                          },
-                      })
-                    : new Response("Not found", { status: 404 })
-            );
-        };
-
-        getRequest.onerror = () => {
-            resolve(new Response("Cache error", { status: 500 }));
-        };
     });
 };
 

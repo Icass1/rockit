@@ -2,7 +2,7 @@ import type { SongDB } from "@/lib/db/song";
 import { getImageUrl } from "@/lib/getImageUrl";
 import { currentList } from "@/stores/currentList";
 import { songHandleClick } from "../ListSongs/HandleClick";
-import Image from "next/image";
+import Image from "@/components/Image";
 
 export default function QuickSelectionsSong({
     song,

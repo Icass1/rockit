@@ -40,7 +40,7 @@ import {
     addToLibraryHandleClick,
     pinListHandleClick,
 } from "@/components/ListHeader/ListOptions";
-import Image from "next/image";
+import Image from "@/components/Image";
 import { useRouter } from "next/navigation";
 
 interface EventSourceStatus {

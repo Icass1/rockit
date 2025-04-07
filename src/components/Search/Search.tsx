@@ -7,7 +7,7 @@ import SearchBar from "@/components/Search/SearchBar";
 import { useStore } from "@nanostores/react";
 import { langData } from "@/stores/lang";
 import { currentStation, play, type Station } from "@/stores/audio";
-import Image from "next/image";
+import Image from "@/components/Image";
 import Link from "next/link";
 
 export default function Search() {

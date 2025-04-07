@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from "@/components/Image";
 
 export async function generateMetadata({
     params,
@@ -53,7 +53,6 @@ export default function Home() {
                     alt="Next.js logo"
                     width={180}
                     height={38}
-                    priority
                 />
                 <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
                     <li className="mb-2 tracking-[-.01em]">

@@ -10,7 +10,7 @@ import {
     type RefObject,
 } from "react";
 import stringSimilarity from "@/lib/stringSimilarity";
-import Image from "next/image";
+import Image from "@/components/Image";
 
 function Result({
     image,

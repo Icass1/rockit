@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { currentSong } from "@/stores/audio";
 import { useStore } from "@nanostores/react";
 import { PictureInPicture2 } from "lucide-react";
-import Image from "next/image";
+import Image from "@/components/Image";
 
 export default function PictureInPictureImage() {
     const imageRef = useRef<HTMLImageElement>(null);

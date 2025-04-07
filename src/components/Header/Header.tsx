@@ -1,6 +1,6 @@
 import Link from "next/link";
 import SearchBar from "@/components/Search/SearchBar";
-import Image from "next/image";
+import Image from "@/components/Image";
 import HeaderUser from "@/components/Header/HeaderUser";
 import { getSession } from "@/lib/auth/getSession";
 import AddSessionProvider from "../AddSessionProvider";

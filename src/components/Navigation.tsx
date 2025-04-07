@@ -17,7 +17,7 @@ import {
 import { useState } from "react";
 import { langData } from "@/stores/lang";
 import { getImageUrl } from "@/lib/getImageUrl";
-import Image from "next/image";
+import Image from "@/components/Image";
 import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";

@@ -3,7 +3,7 @@ import { getImageUrl } from "@/lib/getImageUrl";
 import { currentList } from "@/stores/currentList";
 import { songHandleClick } from "../ListSongs/HandleClick";
 import { redirect } from "next/navigation";
-import Image from "next/image";
+import Image from "@/components/Image";
 
 export default function RecentlyPlayedSong({
     song,

@@ -1,10 +1,10 @@
 "use client";
 
 import { signIn } from "next-auth/react";
-import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import UsernameInput from "./UsernameInput";
+import Image from "../Image";
 
 export default function SignupModal() {
     const [password, setPassword] = useState("");
@@ -41,7 +41,7 @@ export default function SignupModal() {
 
     return (
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 max-w-lg w-[90%] md:w-full p-8 bg-black bg-opacity-[.92] rounded-xl shadow-lg text-center">
-            <img src="/logo-banner.png" className="w-1/3" alt="Rock It!" />
+            <Image src="/logo-banner.png" className="w-1/3" alt="Rock It!" />
             <h2 className="text-3xl mt-4 font-extrabold text-foreground">
                 Create an Account
             </h2>

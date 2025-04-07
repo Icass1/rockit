@@ -3,7 +3,7 @@ import React from "react";
 import PosAfterRenderDiv from "@/components/PosAfterRenderDiv";
 import useWindowSize from "@/hooks/useWindowSize";
 import type ContextMenuProps from "./Props";
-import Image from "next/image";
+import Image from "@/components/Image";
 
 export default function ContextMenuContent({
     children,

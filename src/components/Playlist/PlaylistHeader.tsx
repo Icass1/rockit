@@ -8,7 +8,7 @@ import { langData } from "@/stores/lang";
 import { useStore } from "@nanostores/react";
 import { Disc3, Heart, History } from "lucide-react";
 import PlayListButton from "../ListHeader/PlayListButton";
-import Image from "next/image";
+import Image from "@/components/Image";
 import { CSSProperties } from "react";
 
 function getMinutes(seconds: number) {

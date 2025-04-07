@@ -16,7 +16,7 @@ import {
     PopupMenuContent,
     PopupMenuTrigger,
 } from "../PopupMenu/PopupMenu";
-import Image from "next/image";
+import Image from "@/components/Image";
 import { useRouter } from "next/navigation";
 
 export default function PlaylistSong({

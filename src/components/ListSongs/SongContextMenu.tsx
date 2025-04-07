@@ -31,7 +31,7 @@ import SubContextMenuTrigger from "../ContextMenu/SubContextMenu/Trigger";
 import SubContextMenuContent from "../ContextMenu/SubContextMenu/Content";
 import { networkStatus } from "@/stores/networkStatus";
 import { userLists } from "@/stores/userLists";
-import Image from "next/image";
+import Image from "@/components/Image";
 import { useRouter } from "next/navigation";
 
 export default function SongContextMenu({

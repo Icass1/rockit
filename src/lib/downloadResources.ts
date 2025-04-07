@@ -1,7 +1,7 @@
 import type { Dispatch, SetStateAction } from "react";
 import { openRockItIndexedDB } from "./indexedDB";
 
-async function downloadFile(
+export async function downloadFile(
     url: string,
     database: IDBDatabase,
     setResources?: Dispatch<SetStateAction<string[]>> | undefined
@@ -29,10 +29,8 @@ async function downloadFile(
         setResources((value) => value.filter((value) => value != url));
 }
 
-export async function clearResources({ database }: { database?: IDBDatabase }) {
-    if (!database) {
-        database = await openRockItIndexedDB();
-    }
+export async function clearResources() {
+    const database = await openRockItIndexedDB();
 
     return new Promise<void>((resolve, reject) => {
         const transaction = database?.transaction("file", "readwrite");
@@ -48,25 +46,64 @@ export async function clearResources({ database }: { database?: IDBDatabase }) {
     });
 }
 
-export async function downloadResources({
-    resources,
-    database,
-    setResources,
-}: {
-    resources: string[];
-    database?: IDBDatabase;
-    setResources?: Dispatch<SetStateAction<string[]>> | undefined;
-}) {
-    console.log("Downloading resources:", resources);
+export async function downloadRsc(url: string, database: IDBDatabase) {
+    const responsePreFetch = await fetch(url, {
+        headers: { rsc: "1", "next-router-prefetch": "1" },
+    });
 
-    if (resources.length == 0) return;
+    if (responsePreFetch.ok) {
+        const fileContent = await responsePreFetch.blob();
 
-    if (!database) {
-        database = await openRockItIndexedDB();
+        const transaction = database?.transaction("rsc", "readwrite");
+        const fileStore = transaction?.objectStore("rsc");
+        fileStore?.put({
+            url: url + "next-router-prefetch",
+            fileContent,
+            headers: {
+                "content-type": responsePreFetch.headers.get("content-type"),
+                vary: responsePreFetch.headers.get("vary"),
+            },
+        });
+    } else {
+        console.warn("responsePreFetch failed");
     }
 
+    const response = await fetch(url, { headers: { rsc: "1" } });
+    if (response.ok) {
+        const fileContent = await response.blob();
+
+        const transaction = database?.transaction("rsc", "readwrite");
+        const fileStore = transaction?.objectStore("rsc");
+        fileStore?.put({
+            url: url,
+            fileContent,
+            headers: {
+                "content-type": responsePreFetch.headers.get("content-type"),
+                vary: responsePreFetch.headers.get("vary"),
+            },
+        });
+    } else {
+        console.warn("response failed");
+    }
+}
+
+export async function downloadResources({
+    setResources,
+}: {
+    setResources?: Dispatch<SetStateAction<string[]>> | undefined;
+}) {
+    const database = await openRockItIndexedDB();
+    console.log("DAtabase opened");
+
     downloadFile("/", database, setResources);
+    downloadFile("/library", database, setResources);
     downloadFile("/song-placeholder.png", database, setResources);
+    downloadFile("/rockit-background.png", database, setResources);
+    downloadFile("/logo-banner.png", database, setResources);
+    downloadFile("/user-placeholder.png", database, setResources);
+
+    downloadRsc("/", database);
+    downloadRsc("/library", database);
 
     const responseStaticTree = await fetch("/api/get-static-tree");
     const staticTree: string[] = await responseStaticTree.json();

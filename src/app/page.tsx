@@ -3,7 +3,6 @@
 import QuickSelectionsSong from "@/components/Home/QuickSelectionsSong";
 import RecentlyPlayedSong from "@/components/Home/RecentlyPlayedSong";
 import SongsCarousel from "@/components/Home/SongsCarousel";
-import { clearResources, downloadResources } from "@/lib/downloadResources";
 import { SongForStats, SongWithTimePlayed } from "@/lib/stats";
 import { langData } from "@/stores/lang";
 import { useStore } from "@nanostores/react";
@@ -50,18 +49,6 @@ export default function Home() {
 
     return (
         <div className="relative h-full flex flex-col pb-24 pt-24 overflow-y-auto">
-            <button
-                className="p-2 bg-green-300 text-green-700 rounded text-3xl font-bold w-fit mt-4 mx-auto"
-                onClick={async () => {
-                    console.log("Clearing resources");
-                    await clearResources();
-                    console.log("Done");
-                    await downloadResources({});
-                }}
-            >
-                Download
-            </button>
-
             <SongsCarousel></SongsCarousel>
 
             <section className="md:px-12 py-5 md:py-12 text-white">

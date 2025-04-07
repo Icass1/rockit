@@ -4,7 +4,7 @@ import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useState } from "react";
 import UsernameInput from "./UsernameInput";
-import Image from "../Image";
+import Image from "@/components/Image";
 
 export default function SignupModal() {
     const [password, setPassword] = useState("");

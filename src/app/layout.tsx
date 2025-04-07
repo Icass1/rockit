@@ -8,6 +8,8 @@ import Header from "@/components/Header/Header";
 import NavigationMobile from "@/components/Navigation/NavigationMobile";
 import Link from "next/link";
 import Image from "@/components/Image";
+import PlayerUI from "@/components/PlayerUI/PlayerUI";
+import MobilePlayerUI from "@/components/PlayerUI/MobilePlayerUI";
 
 export const metadata: Metadata = {
     title: "RockIt",
@@ -53,25 +55,34 @@ export default async function RootLayout({
                     {children}
                 </div>
 
-                <div className="hidden md:block fixed left-12 right-0 top-0 h-24 w-auto">
-                    <Header></Header>
+                <div className="hidden md:block">
+                    <PlayerUI />
                 </div>
-                <div className="hidden md:block fixed left-0 right-0 bottom-0 h-24">
+
+                <div className="hidden md:block fixed left-0 right-0 bottom-0 h-24 z-40">
                     <Footer></Footer>
                 </div>
-                <div className="hidden md:block fixed md:top-0 md:left-0 md:bottom-24">
+
+                <div className="block md:hidden z-40">
+                    <MobilePlayerUI />
+                </div>
+                <div className="hidden md:block fixed left-12 right-0 top-0 h-24 w-auto z-40">
+                    <Header></Header>
+                </div>
+
+                <div className="hidden md:block fixed md:top-0 md:left-0 md:bottom-24 z-40">
                     <AddSessionProvider>
                         <Navigation></Navigation>
                     </AddSessionProvider>
                 </div>
 
-                <div className="fixed block md:hidden bottom-0 left-0 right-0 h-12">
+                <div className="fixed block md:hidden bottom-0 left-0 right-0 h-12 z-40">
                     <AddSessionProvider>
                         <NavigationMobile></NavigationMobile>
                     </AddSessionProvider>
                 </div>
 
-                <div className="md:hidden block fixed w-full h-fit bg-gradient-to-b from-black to-black/0 z-40 items-center justify-center mx-auto">
+                <div className="md:hidden block fixed w-full h-fit bg-gradient-to-b from-black to-black/0 z-40 items-center justify-center mx-auto z-40">
                     <Link href="/" className="text-white text-2xl font-bold">
                         <Image
                             src="/logo-banner.png"

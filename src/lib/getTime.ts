@@ -29,6 +29,12 @@ export function getDate(timeStamp: number | string) {
     return `${day}${daySuffix} of ${month} of ${year}`;
 }
 
+export function getYear(date: string) {
+    const dateSplit = date.split("-");
+
+    return dateSplit[0];
+}
+
 function getDaySuffix(day: number) {
     if (day >= 11 && day <= 13) return "th"; // Special case for 11, 12, 13
     switch (day % 10) {

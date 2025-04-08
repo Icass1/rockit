@@ -21,11 +21,11 @@ export async function GET(
                 .get(id) as RawSongDB
         );
     } catch (err) {
-        return new Response(err?.toString(), { status: 404 });
+        return new NextResponse(err?.toString(), { status: 404 });
     }
 
     if (!song) {
-        return new Response("Song not found", { status: 404 });
+        return new NextResponse("Song not found", { status: 404 });
     }
 
     return NextResponse.json({ ...song, inDatabase: true });

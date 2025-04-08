@@ -32,6 +32,7 @@ import { getImageUrl } from "@/lib/getImageUrl";
 import MobilePlayerUIQueue from "@/components/PlayerUI/MobilePlayerUIQueue";
 import MobilePlayerUILyrics from "@/components/PlayerUI/MobilePlayerUILyrics";
 import SongPopupMenu from "@/components/ListSongs/SongPopupMenu";
+import Image from "../Image";
 
 export default function MobilePlayerUI() {
     const $playing = useStore(playing);
@@ -209,7 +210,7 @@ export default function MobilePlayerUI() {
         <div
             ref={divRef}
             className={
-                "fixed top-0 right-0 left-0 z-40 flex h-[calc(100%_-_4rem)] w-screen overflow-hidden md:hidden " +
+                "fixed top-0 right-0 left-0 z-40 flex h-[calc(100%_-_3rem)] w-screen overflow-hidden md:hidden " +
                 (playerUITop0 ? " top-0" : " top-full") +
                 (playerUIhidden ? " hidden" : "") +
                 (enableTransition ? " transition-[top] duration-300" : " ")
@@ -249,7 +250,7 @@ export default function MobilePlayerUI() {
             <div className="relative z-30 grid h-full w-full grid-rows-[1fr_min-content_min-content_min-content] items-center justify-center gap-y-2 px-4 pt-32 pb-20 text-white">
                 {/* Imagen de la canción */}
                 {/* <div className="max-w-full min-w-0 w-auto max-h-full min-h-0 h-auto aspect-square left-1/2 relative -translate-x-1/2 bg-blue-400"> */}
-                <img
+                <Image
                     src={getImageUrl({
                         imageId: $currentSong?.image,
                         placeHolder: "/song-placeholder.png",

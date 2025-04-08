@@ -380,7 +380,7 @@ export default function PlayerUI() {
                                                         className="flex h-fit items-center gap-2 rounded-lg p-2 transition hover:bg-zinc-800"
                                                     >
                                                         {/* Imagen de la canción */}
-                                                        <img
+                                                        <Image
                                                             className="h-12 w-12 rounded-sm object-cover"
                                                             src="/song-placeholder.png"
                                                             alt={`Song ${
@@ -434,7 +434,7 @@ export default function PlayerUI() {
                                                 className="flex flex-none snap-center flex-col items-center gap-2"
                                             >
                                                 {/* Imagen del artista */}
-                                                <img
+                                                <Image
                                                     className="h-28 w-28 rounded-full object-cover"
                                                     src="/user-placeholder.png"
                                                     alt={`Artist ${

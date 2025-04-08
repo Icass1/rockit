@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import React from "react";
 import PosAfterRenderDiv from "@/components/PosAfterRenderDiv";
-import type ContextMenuProps from "../Props";
+import type ContextMenuProps from "@/components/ContextMenu/Props";
 import type SubContextMenuProps from "./Props";
 
 export default function SubContextMenuContent({

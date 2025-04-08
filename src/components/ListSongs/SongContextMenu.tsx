@@ -12,23 +12,23 @@ import {
     PlayCircle,
     Share2,
 } from "lucide-react";
-import ContextMenuContent from "../ContextMenu/Content";
-import ContextMenu from "../ContextMenu/ContextMenu";
-import ContextMenuOption from "../ContextMenu/Option";
-import ContextMenuTrigger from "../ContextMenu/Trigger";
+import ContextMenuContent from "@/components/ContextMenu/Content";
+import ContextMenu from "@/components/ContextMenu/ContextMenu";
+import ContextMenuOption from "@/components/ContextMenu/Option";
+import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
 import { likedSongs } from "@/stores/likedList";
 import type { SongDB } from "@/db/song";
 import { type ReactNode } from "react";
 import { useStore } from "@nanostores/react";
 import { queue, queueIndex, saveSongToIndexedDB } from "@/stores/audio";
 import { currentList, currentListSongs } from "@/stores/currentList";
-import ContextMenuSplitter from "../ContextMenu/Splitter";
+import ContextMenuSplitter from "@/components/ContextMenu/Splitter";
 import { songHandleClick } from "./HandleClick";
 import { langData } from "@/stores/lang";
 import { getImageUrl } from "@/lib/getImageUrl";
-import SubContextMenu from "../ContextMenu/SubContextMenu/ContextMenu";
-import SubContextMenuTrigger from "../ContextMenu/SubContextMenu/Trigger";
-import SubContextMenuContent from "../ContextMenu/SubContextMenu/Content";
+import SubContextMenu from "@/components/ContextMenu/SubContextMenu/ContextMenu";
+import SubContextMenuTrigger from "@/components/ContextMenu/SubContextMenu/Trigger";
+import SubContextMenuContent from "@/components/ContextMenu/SubContextMenu/Content";
 import { networkStatus } from "@/stores/networkStatus";
 import { userLists } from "@/stores/userLists";
 import Image from "@/components/Image";

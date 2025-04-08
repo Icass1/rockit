@@ -1,4 +1,4 @@
-import { playListHandleClick } from "../PlayList";
+import { playListHandleClick } from "@/components/PlayList";
 import { pause, play, playing, queue, queueIndex } from "@/stores/audio";
 import { currentList } from "@/stores/currentList";
 import { downloadedLists, downloads } from "@/stores/downloads";

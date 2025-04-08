@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import React, { useRef, useState } from "react";
-import type ContextMenuProps from "../Props";
+import type ContextMenuProps from "@/components/ContextMenu/Props";
 import type SubContextMenuProps from "./Props";
 
 export default function SubContextMenu({

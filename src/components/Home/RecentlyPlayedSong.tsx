@@ -1,7 +1,7 @@
 import type { SongDB } from "@/lib/db/song";
 import { getImageUrl } from "@/lib/getImageUrl";
 import { currentList } from "@/stores/currentList";
-import { songHandleClick } from "../ListSongs/HandleClick";
+import { songHandleClick } from "@/components/ListSongs/HandleClick";
 import { redirect } from "next/navigation";
 import Image from "@/components/Image";
 

@@ -12,7 +12,7 @@ import {
     PopupMenuContent,
     PopupMenuOption,
     PopupMenuTrigger,
-} from "../PopupMenu/PopupMenu";
+} from "@/components/PopupMenu/PopupMenu";
 import {
     Copy,
     Download,

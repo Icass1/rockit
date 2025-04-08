@@ -12,10 +12,10 @@ import { useStore } from "@nanostores/react";
 import { QueueSong } from "@/components/PlayerUI/QueueSong";
 import useWindowSize from "@/hooks/useWindowSize";
 import React, { useEffect, useRef, useState } from "react";
-import ContextMenu from "../ContextMenu/ContextMenu";
-import ContextMenuTrigger from "../ContextMenu/Trigger";
-import ContextMenuContent from "../ContextMenu/Content";
-import ContextMenuOption from "../ContextMenu/Option";
+import ContextMenu from "@/components/ContextMenu/ContextMenu";
+import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
+import ContextMenuContent from "@/components/ContextMenu/Content";
+import ContextMenuOption from "@/components/ContextMenu/Option";
 import { getImageUrl } from "@/lib/getImageUrl";
 import {
     GripVertical,

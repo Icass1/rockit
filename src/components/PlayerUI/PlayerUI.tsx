@@ -13,7 +13,7 @@ import useWindowSize from "@/hooks/useWindowSize";
 import { getImageUrl } from "@/lib/getImageUrl";
 import { QueueSong } from "./QueueSong";
 import { DynamicLyrics } from "./DynamicLyrics";
-import Image from "../Image";
+import Image from "@/components/Image";
 
 export default function PlayerUI() {
     // Estas dos cosas son para el mockup del related

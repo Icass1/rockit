@@ -7,7 +7,7 @@ import { getImageUrl } from "@/lib/getImageUrl";
 import { langData } from "@/stores/lang";
 import { useStore } from "@nanostores/react";
 import { Disc3, Heart, History } from "lucide-react";
-import PlayListButton from "../ListHeader/PlayListButton";
+import PlayListButton from "@/components/ListHeader/PlayListButton";
 import Image from "@/components/Image";
 import { CSSProperties } from "react";
 

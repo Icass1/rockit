@@ -1,15 +1,15 @@
 "use client";
 
 import { GetAlbum } from "@/lib/getAlbum";
-import Image from "../Image";
-import PlayListButton from "../ListHeader/PlayListButton";
-import ListOptions from "../ListHeader/ListOptions";
+import Image from "@/components/Image";
+import PlayListButton from "@/components/ListHeader/PlayListButton";
+import ListOptions from "@/components/ListHeader/ListOptions";
 import { useRouter } from "next/navigation";
 import { getMinutes, getYear } from "@/lib/getTime";
 import { Disc } from "lucide-react";
 import { useStore } from "@nanostores/react";
 import { langData } from "@/stores/lang";
-import AlbumSong from "../ListSongs/AlbumSong";
+import AlbumSong from "@/components/ListSongs/AlbumSong";
 import { currentList, currentListSongs } from "@/stores/currentList";
 
 export default function RenderAlbum({ _album }: { _album: GetAlbum }) {

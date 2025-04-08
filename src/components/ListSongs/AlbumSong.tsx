@@ -2,7 +2,7 @@
 
 import { queue, queueIndex, songsInIndexedDB } from "@/stores/audio";
 import { getTime } from "@/lib/getTime";
-import LikeButton from "../LikeButton";
+import LikeButton from "@/components/LikeButton";
 import { EllipsisVertical, CheckCircle2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useStore } from "@nanostores/react";

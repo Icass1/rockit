@@ -3,7 +3,7 @@
 import { queue, queueIndex, songsInIndexedDB } from "@/stores/audio";
 import type { PlaylistDBSongWithAddedAt } from "@/db/playlist";
 import { getTime } from "@/lib/getTime";
-import LikeButton from "../LikeButton";
+import LikeButton from "@/components/LikeButton";
 import { EllipsisVertical, CheckCircle2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { currentList, currentListSongs } from "@/stores/currentList";
@@ -17,7 +17,7 @@ import {
     PopupMenu,
     PopupMenuContent,
     PopupMenuTrigger,
-} from "../PopupMenu/PopupMenu";
+} from "@/components/PopupMenu/PopupMenu";
 import Image from "@/components/Image";
 import { useRouter } from "next/navigation";
 

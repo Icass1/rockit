@@ -2,7 +2,7 @@
 
 import { getImageUrl } from "@/lib/getImageUrl";
 import Link from "next/link";
-import Image from "../Image";
+import Image from "@/components/Image";
 import { useEffect, useState } from "react";
 import { PlaylistDB } from "@/lib/db/playlist";
 import { AlbumDB } from "@/lib/db/album";

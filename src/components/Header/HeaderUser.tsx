@@ -6,7 +6,7 @@ import {
     PopupMenuContent,
     PopupMenuOption,
     PopupMenuTrigger,
-} from "../PopupMenu/PopupMenu";
+} from "@/components/PopupMenu/PopupMenu";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Image from "@/components/Image";

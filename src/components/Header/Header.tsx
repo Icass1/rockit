@@ -3,7 +3,7 @@ import SearchBar from "@/components/Search/SearchBar";
 import Image from "@/components/Image";
 import HeaderUser from "@/components/Header/HeaderUser";
 import { getSession } from "@/lib/auth/getSession";
-import AddSessionProvider from "../AddSessionProvider";
+import AddSessionProvider from "@/components/AddSessionProvider";
 
 export default async function Header() {
     const session = await getSession();

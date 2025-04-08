@@ -28,7 +28,7 @@ import {
 import { downloadedLists, downloads } from "@/stores/downloads";
 import { libraryLists } from "@/stores/libraryLists";
 import { pinnedLists } from "@/stores/pinnedLists";
-import { playListHandleClick } from "../PlayList";
+import { playListHandleClick } from "@/components/PlayList";
 import { downloadFile, downloadRsc } from "@/lib/downloadResources";
 
 export const pinListHandleClick = ({

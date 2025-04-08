@@ -11,10 +11,10 @@ export default function Library() {
 
     if (!$lang) return;
     return (
-        <div className="md:px-8 w-full h-full pb-24 pt-24 overflow-y-auto">
-            <section className="items-center justify-between flex px-10 md:px-0">
+        <div className="h-full w-full overflow-y-auto pt-24 pb-24 md:px-8">
+            <section className="flex items-center justify-between px-10 md:px-0">
                 <div className="hidden md:flex">
-                    <label className="text-white text-4xl font-bold">
+                    <label className="text-4xl font-bold text-white">
                         {$lang.library}
                     </label>
                 </div>

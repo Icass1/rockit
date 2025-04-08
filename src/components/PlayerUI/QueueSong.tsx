@@ -69,7 +69,7 @@ export function QueueSong({
             onMouseDown={handleMouseDown}
             onMouseUp={handleMouseUp}
             onMouseMove={mouseDown ? handleMouseMove : undefined}
-            className={`flex items-center gap-x-2 p-2 group ${
+            className={`group flex items-center gap-x-2 p-2 ${
                 dragging && "bg-[rgba(75,75,75,0.75)]"
             } ${
                 song.index === $queueIndex
@@ -78,9 +78,9 @@ export function QueueSong({
             }`}
         >
             {/* Espacio para el ícono */}
-            <div className="h-10 items-center justify-center md:flex hidden">
+            <div className="hidden h-10 items-center justify-center md:flex">
                 <div className={`opacity-0 group-hover:opacity-100`}>
-                    <EllipsisVertical className="text-white w-5 h-12 md:hover:cursor-move" />
+                    <EllipsisVertical className="h-12 w-5 text-white md:hover:cursor-move" />
                 </div>
             </div>
             {/* Cover */}
@@ -94,31 +94,31 @@ export function QueueSong({
                         placeHolder: "/song-placeholder.png",
                     })}
                     alt={song.song.name}
-                    className={`w-12 h-12 rounded object-cover ${
+                    className={`h-12 w-12 rounded object-cover ${
                         song.index === $queueIndex ? "brightness-50" : ""
                     }`}
                 />
                 {/* Ícono Play */}
                 {song.index === $queueIndex && (
                     <div className="absolute inset-0 flex items-center justify-center">
-                        <Play className="text-white w-5 h-5 fill-current" />
+                        <Play className="h-5 w-5 fill-current text-white" />
                     </div>
                 )}
             </div>
             {/* Song Info */}
-            <div className="flex-1 min-w-0 max-w-full">
-                <p className="text-white text-base font-semibold truncate">
+            <div className="max-w-full min-w-0 flex-1">
+                <p className="truncate text-base font-semibold text-white">
                     <label className="text-xs text-yellow-400">
                         {song.index} -{" "}
                     </label>
                     {song.song.name}
                 </p>
-                <p className="text-gray-300 text-sm truncate">
+                <p className="truncate text-sm text-gray-300">
                     {song.song.artists.map((artist) => artist.name).join(", ")}
                 </p>
             </div>
             {/* Duration */}
-            <p className="text-gray-300 text-sm px-2">
+            <p className="px-2 text-sm text-gray-300">
                 {getTime(song.song.duration)}
             </p>
         </li>

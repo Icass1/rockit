@@ -92,8 +92,8 @@ export default function Navigation() {
     return (
         <div
             className={
-                "mx-auto pt-4 pb-4 min-h-0 max-h-full h-full transition-all duration-[400ms] bg-black/50 overflow-hidden select-none" +
-                (open ? " w-56 " : " w-12 ")
+                "mx-auto h-full max-h-full min-h-0 overflow-hidden bg-black/50 pt-4 pb-4 transition-all duration-[400ms] select-none" +
+                (open ? " w-56" : " w-12")
             }
             onMouseEnter={() => {
                 setOpen(true);
@@ -103,14 +103,14 @@ export default function Navigation() {
             }}
             style={{ backdropFilter: "blur(10px)" }}
         >
-            <div className="w-56 flex flex-col gap-4 h-full">
+            <div className="flex h-full w-56 flex-col gap-4">
                 <div
-                    className="w-8 h-8 rounded-md items-center justify-center mx-2 transition-all flex"
+                    className="mx-2 flex h-8 w-8 items-center justify-center rounded-md transition-all"
                     onClick={() => {
                         setOpen((value) => !value);
                     }}
                 >
-                    <Menu className="w-5 h-5" />
+                    <Menu className="h-5 w-5" />
                 </div>
                 {pages
                     .filter((page) => typeof page != "undefined")
@@ -120,16 +120,16 @@ export default function Navigation() {
                                 key={page.href}
                                 href={page.href}
                                 title={page.title}
-                                className={`h-8 rounded-md items-center ml-2 mr-2 transition-all flex gap-2 ${
+                                className={`mr-2 ml-2 flex h-8 items-center gap-2 rounded-md transition-all ${
                                     activePage === page.href
                                         ? "bg-white text-black"
                                         : "text-white md:hover:bg-[#414141]"
                                 }`}
                             >
-                                <div className="w-8 h-8 flex items-center justify-center">
-                                    <page.icon className="w-5 h-5" />
+                                <div className="flex h-8 w-8 items-center justify-center">
+                                    <page.icon className="h-5 w-5" />
                                 </div>
-                                <label className="font-semibold cursor-pointer">
+                                <label className="cursor-pointer font-semibold">
                                     {page.title}
                                 </label>
                             </Link>
@@ -137,36 +137,36 @@ export default function Navigation() {
                     })}
 
                 <div
-                    className={`transition-all h-1 bg-neutral-600 ml-2 duration-[400ms] rounded-full ${
+                    className={`ml-2 h-1 rounded-full bg-neutral-600 transition-all duration-[400ms] ${
                         open ? "w-52" : "w-8"
                     }`}
                 ></div>
 
                 <div
-                    className="h-4 rounded-md items-center ml-2 mr-2 transition-all flex gap-2 cursor-pointer"
+                    className="mr-2 ml-2 flex h-4 cursor-pointer items-center gap-2 rounded-md transition-all"
                     style={{ fontSize: open ? "" : "0 px" }}
                 >
-                    <div className="w-8 h-8 flex items-center justify-center">
-                        <Pin className="w-5 h-5" />
+                    <div className="flex h-8 w-8 items-center justify-center">
+                        <Pin className="h-5 w-5" />
                     </div>
-                    <label className="text-md font-semibold cursor-pointer">
+                    <label className="text-md cursor-pointer font-semibold">
                         {$lang.pinned_lists}
                     </label>
                 </div>
-                <div className="h-full overflow-y-scroll flex flex-col gap-4">
+                <div className="flex h-full flex-col gap-4 overflow-y-scroll">
                     {$pinnedLists.map((list) => {
                         return (
                             <Link
                                 key={list.id}
                                 href={`/${list.type}/${list.id}`}
                                 title={list.name}
-                                className={`h-8 rounded-md items-center ml-2 mr-2 transition-all flex gap-3 cursor-pointer md:hover:bg-[#414141]`}
+                                className={`mr-2 ml-2 flex h-8 cursor-pointer items-center gap-3 rounded-md transition-all md:hover:bg-[#414141]`}
                             >
                                 <Image
                                     alt={list.name}
                                     width={32}
                                     height={32}
-                                    className="w-8 h-8 min-w-8 min-h-8 flex items-center justify-center rounded-sm"
+                                    className="flex h-8 min-h-8 w-8 min-w-8 items-center justify-center rounded-sm"
                                     src={getImageUrl({
                                         imageId: list.image,
                                         width: 32,
@@ -174,7 +174,7 @@ export default function Navigation() {
                                         placeHolder: "/song-placeholder.png",
                                     })}
                                 />
-                                <label className="font-semibold text-sm truncate cursor-pointer">
+                                <label className="cursor-pointer truncate text-sm font-semibold">
                                     {list.name}
                                 </label>
                             </Link>

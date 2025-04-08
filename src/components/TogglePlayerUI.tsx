@@ -7,14 +7,14 @@ export default function TogglePlayerUI() {
 
     return (
         <div
-            className="border-solid w-6 h-6 border-gray-400 border-[2.4px] rounded relative md:hover:border-white text-gray-400 md:hover:text-white transition-all"
+            className="relative h-6 w-6 rounded border-[2.4px] border-solid border-gray-400 text-gray-400 transition-all md:hover:border-white md:hover:text-white"
             onClick={() => {
                 isPlayerUIVisible.set(!$isPlayerUIVisible);
             }}
         >
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
                 <ChevronUp
-                    className="w-5 h-6 transition-all cursor-pointer duration-500 ease-in-out"
+                    className="h-6 w-5 cursor-pointer transition-all duration-500 ease-in-out"
                     style={{ rotate: $isPlayerUIVisible ? "-180deg" : "0deg" }}
                 />
             </div>

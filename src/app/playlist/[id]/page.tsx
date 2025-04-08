@@ -309,18 +309,18 @@ export default async function PlaylistPage({
         );
 
     return (
-        <div className="px-3 md:px-2 flex flex-col md:flex-row gap-2 w-full h-full relative">
+        <div className="relative flex h-full w-full flex-col gap-2 px-3 md:flex-row md:px-2">
             <Image
                 src={`/api/image/blur/${playlist.image}`}
                 alt=""
-                className="fixed top-0 left-0 w-full h-full object-cover opacity-35"
+                className="fixed top-0 left-0 h-full w-full object-cover opacity-35"
             />
             <PlaylistHeader
                 id={id}
                 playlist={playlist}
                 songs={songs}
                 inDatabase={inDatabase}
-                className="hidden md:flex w-full"
+                className="hidden w-full md:flex"
             />
 
             <PlaylistSongsView

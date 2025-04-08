@@ -1,3 +1,3 @@
 export default function ContextMenuSplitter() {
-    return <div className="w-full h-[2px] rounded-lg bg-neutral-700"></div>;
+    return <div className="h-[2px] w-full rounded-lg bg-neutral-700"></div>;
 }

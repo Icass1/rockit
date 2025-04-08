@@ -132,7 +132,7 @@ export default function SongContextMenu({
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         className={
-                            "lucide lucide-hand-metal text-white h-5 w-5"
+                            "lucide lucide-hand-metal h-5 w-5 text-white"
                         }
                     >
                         <rect
@@ -203,7 +203,7 @@ export default function SongContextMenu({
                 </ContextMenuOption>
                 <SubContextMenu>
                     <SubContextMenuTrigger disable={offline}>
-                        <ListPlusIcon className="w-5 h-5" />
+                        <ListPlusIcon className="h-5 w-5" />
                         {$lang.add_song_to_playlist}
                     </SubContextMenuTrigger>
                     <SubContextMenuContent>

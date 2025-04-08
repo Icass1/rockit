@@ -76,14 +76,14 @@ function Song({
         <div
             key={song.id}
             className={
-                "h-full w-auto aspect-square absolute -translate-x-1/2 origin-center" +
+                "absolute aspect-square h-full w-auto origin-center -translate-x-1/2" +
                 transition
             }
             style={{ left: left, zIndex: zIndex }}
         >
             <div
                 className={
-                    "h-full w-auto rounded-lg overflow-hidden bg-black relative" +
+                    "relative h-full w-auto overflow-hidden rounded-lg bg-black" +
                     transition
                 }
                 style={{
@@ -101,17 +101,17 @@ function Song({
                         fallback: song.images[0]?.url,
                         placeHolder: "/song-placeholder.png",
                     })}
-                    className={`${transition} top-1/2 relative -translate-y-1/2`}
+                    className={`${transition} relative top-1/2 -translate-y-1/2`}
                     style={{ filter: `brightness(${brightness})` }}
                 />
                 <div
-                    className={`absolute  left-0 right-0 bottom-0 bg-gradient-to-b from-transparent to-black rounded-none ${transition} ${
+                    className={`absolute right-0 bottom-0 left-0 rounded-none bg-gradient-to-b from-transparent to-black ${transition} ${
                         index == currentIndex ? "h-52" : "h-0"
                     }`}
                 />
 
                 <label
-                    className={`absolute bottom-9 text-lg md:text-2xl left-2 font-bold line-clamp-2 w-[75%] ${
+                    className={`absolute bottom-9 left-2 line-clamp-2 w-[75%] text-lg font-bold md:text-2xl ${
                         index == currentIndex ? "opacity-100" : "opacity-0"
                     } ${transition}`}
                 >
@@ -119,14 +119,14 @@ function Song({
                 </label>
 
                 <label
-                    className={`absolute bottom-2 left-2 text-md md:text-xl font-semibold line-clamp-1 w-[75%] ${
+                    className={`text-md absolute bottom-2 left-2 line-clamp-1 w-[75%] font-semibold md:text-xl ${
                         index == currentIndex ? "opacity-100" : "opacity-0"
                     } ${transition}`}
                 >
                     {song.artists[0].name}
                 </label>
                 <button
-                    className="absolute bottom-4 backdrop-blur-sm right-4 bg-transparent text-white p-3 rounded-full md:hover:bg-black/40 transition duration-300"
+                    className="absolute right-4 bottom-4 rounded-full bg-transparent p-3 text-white backdrop-blur-sm transition duration-300 md:hover:bg-black/40"
                     onClick={handleClick}
                 >
                     {$currentSong?.id == song.id && $playing ? (
@@ -156,7 +156,7 @@ function Version2({
     currentIndex: number;
 }) {
     return (
-        <div className="relative md:w-full md:h-full w-64 h-64 md:max-h-[300px]">
+        <div className="relative h-64 w-64 md:h-full md:max-h-[300px] md:w-full">
             {songs.map((song, index) => (
                 <Song
                     index={index}
@@ -295,16 +295,16 @@ function SongsCarousel() {
 
     return (
         <div
-            className="text-white h-64 md:min-h-92 min-h-64 flex items-center justify-center overflow-x-hidden relative select-none"
+            className="relative flex h-64 min-h-64 items-center justify-center overflow-x-hidden text-white select-none md:min-h-92"
             ref={divRef}
         >
             <ChevronLeft
-                className="hidden md:flex z-[25] absolute left-24 h-10 w-10 bg-white text-[#6d6d6d] md:hover:text-black p-2 rounded-full shadow-md transition duration-300"
+                className="absolute left-24 z-[25] hidden h-10 w-10 rounded-full bg-white p-2 text-[#6d6d6d] shadow-md transition duration-300 md:flex md:hover:text-black"
                 onClick={prevSlide}
             />
             <Version2 songs={songs} currentIndex={currentIndex} />
             <ChevronRight
-                className="hidden md:flex z-[25] absolute right-24 h-10 w-10 bg-white text-[#6d6d6d] md:hover:text-black p-2 rounded-full shadow-md transition duration-300"
+                className="absolute right-24 z-[25] hidden h-10 w-10 rounded-full bg-white p-2 text-[#6d6d6d] shadow-md transition duration-300 md:flex md:hover:text-black"
                 onClick={nextSlide}
             />
         </div>

@@ -36,7 +36,7 @@ export default async function RootLayout({
                     <link rel="manifest" href="/manifest.json" />
                 </head>
                 <body className="bg-black">
-                    <div className="fixed top-0 left-0 right-0 bottom-0 bg-[#0b0b0b]">
+                    <div className="fixed top-0 right-0 bottom-0 left-0 bg-[#0b0b0b]">
                         {children}
                     </div>
                 </body>
@@ -51,7 +51,7 @@ export default async function RootLayout({
                 <link rel="manifest" href="/manifest.json" />
             </head>
             <body className="bg-black">
-                <div className="fixed md:top-0 md:left-12 md:right-0 md:bottom-0 bg-[#0b0b0b] top-0 left-0 bottom-0 right-0">
+                <div className="fixed top-0 right-0 bottom-0 left-0 bg-[#0b0b0b] md:top-0 md:right-0 md:bottom-0 md:left-12">
                     {children}
                 </div>
 
@@ -59,35 +59,35 @@ export default async function RootLayout({
                     <PlayerUI />
                 </div>
 
-                <div className="hidden md:block fixed left-0 right-0 bottom-0 h-24 z-40">
+                <div className="fixed right-0 bottom-0 left-0 z-40 hidden h-24 md:block">
                     <Footer></Footer>
                 </div>
 
-                <div className="block md:hidden z-40">
+                <div className="z-40 block md:hidden">
                     <MobilePlayerUI />
                 </div>
-                <div className="hidden md:block fixed left-12 right-0 top-0 h-24 w-auto z-40">
+                <div className="fixed top-0 right-0 left-12 z-40 hidden h-24 w-auto md:block">
                     <Header></Header>
                 </div>
 
-                <div className="hidden md:block fixed md:top-0 md:left-0 md:bottom-24 z-40">
+                <div className="fixed z-40 hidden md:top-0 md:bottom-24 md:left-0 md:block">
                     <AddSessionProvider>
                         <Navigation></Navigation>
                     </AddSessionProvider>
                 </div>
 
-                <div className="fixed block md:hidden bottom-0 left-0 right-0 h-12 z-40">
+                <div className="fixed right-0 bottom-0 left-0 z-40 block h-12 md:hidden">
                     <AddSessionProvider>
                         <NavigationMobile></NavigationMobile>
                     </AddSessionProvider>
                 </div>
 
-                <div className="md:hidden block fixed w-full h-fit bg-gradient-to-b from-black to-black/0 z-40 items-center justify-center mx-auto z-40">
-                    <Link href="/" className="text-white text-2xl font-bold">
+                <div className="fixed z-40 mx-auto block h-fit w-full items-center justify-center bg-gradient-to-b from-black to-black/0 md:hidden">
+                    <Link href="/" className="text-2xl font-bold text-white">
                         <Image
                             src="/logo-banner.png"
                             alt="App Logo"
-                            className="mx-auto h-14 object-contain my-2"
+                            className="mx-auto my-2 h-14 object-contain"
                         />
                     </Link>
                 </div>

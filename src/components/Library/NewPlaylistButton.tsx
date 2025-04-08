@@ -13,26 +13,26 @@ export default function NewPlaylistButton() {
     return (
         <>
             <div
-                className="w-full h-full flex flex-col min-w-0 max-w-full md:hover:scale-110 transition-transform library-item"
+                className="library-item flex h-full w-full max-w-full min-w-0 flex-col transition-transform md:hover:scale-110"
                 onClick={() => {
                     setShowCreatePlaylistMenu(true);
                 }}
             >
-                <div className="w-full h-auto cover aspect-square relative">
+                <div className="cover relative aspect-square h-auto w-full">
                     <Image
                         alt=""
-                        className="absolute top-0 left-0 rounded-md w-full h-auto cover aspect-square"
+                        className="cover absolute top-0 left-0 aspect-square h-auto w-full rounded-md"
                         src="/rockit-background.png"
                     />
-                    <Plus className="absolute top-0 left-0 rounded-md w-full h-auto cover aspect-square p-6" />
+                    <Plus className="cover absolute top-0 left-0 aspect-square h-auto w-full rounded-md p-6" />
                 </div>
-                <label className="truncate font-semibold text-center min-h-6">
+                <label className="min-h-6 truncate text-center font-semibold">
                     New playlist
                 </label>
             </div>
             {showCreatePlaylistMenu && (
-                <div className="fixed bg-gray-400 top-0 left-0 right-0 bottom-0">
-                    <div className="flex flex-col gap-y-4 relative w-2/3 h-fit left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+                <div className="fixed top-0 right-0 bottom-0 left-0 bg-gray-400">
+                    <div className="relative top-1/2 left-1/2 flex h-fit w-2/3 -translate-x-1/2 -translate-y-1/2 flex-col gap-y-4">
                         <label className="font-semibold">
                             New playlist name
                         </label>
@@ -42,14 +42,14 @@ export default function NewPlaylistButton() {
                             </label>
                         )}
                         <input
-                            className="bg-transparent border-b border-solid outline-none w-full text-2xl font-bold"
+                            className="w-full border-b border-solid bg-transparent text-2xl font-bold outline-none"
                             value={name}
                             type="search"
                             onChange={(e) => {
                                 setName(e.target.value);
                             }}
                         />
-                        <div className="w-fit gap-x-4 flex flex-row mx-auto">
+                        <div className="mx-auto flex w-fit flex-row gap-x-4">
                             <button
                                 onClick={() => {
                                     setShowCreatePlaylistMenu(false);

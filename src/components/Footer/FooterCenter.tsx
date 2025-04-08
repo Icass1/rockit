@@ -37,26 +37,26 @@ export default function FooterCenter() {
     const $currentStation = useStore(currentStation);
 
     return (
-        <div className="hidden flex-col items-center justify-center w-1/3 space-y-1 md:flex">
+        <div className="hidden w-1/3 flex-col items-center justify-center space-y-1 md:flex">
             {!$currentStation && (
                 <>
                     <div
                         className={
-                            "grid justify-items-center items-center gap-2 grid-cols-5"
+                            "grid grid-cols-5 items-center justify-items-center gap-2"
                         }
                     >
                         <Shuffle
                             className={
-                                "w-[18px] h-[18px] cursor-pointer md:hover:scale-105 transition-colors" +
+                                "h-[18px] w-[18px] cursor-pointer transition-colors md:hover:scale-105" +
                                 ($randomQueue
-                                    ? " text-[#ee1086] "
-                                    : " text-gray-400 ")
+                                    ? " text-[#ee1086]"
+                                    : " text-gray-400")
                             }
                             onClick={() => randomQueue.set(!randomQueue.get())}
                         />
                         <SkipBack
                             className={
-                                "w-[22px] h-[22px] fill-current text-gray-400 md:hover:text-white cursor-pointer md:hover:scale-105 "
+                                "h-[22px] w-[22px] cursor-pointer fill-current text-gray-400 md:hover:scale-105 md:hover:text-white"
                             }
                             onClick={async () => {
                                 await prev();
@@ -68,19 +68,19 @@ export default function FooterCenter() {
                             <Spinner></Spinner>
                         ) : $playing ? (
                             <CirclePause
-                                className="w-8 h-8 text-gray-400 md:hover:text-white cursor-pointer md:hover:scale-105"
+                                className="h-8 w-8 cursor-pointer text-gray-400 md:hover:scale-105 md:hover:text-white"
                                 onClick={pause}
                             />
                         ) : (
                             <CirclePlay
-                                className="w-8 h-8 text-gray-400 md:hover:text-white cursor-pointer md:hover:scale-105"
+                                className="h-8 w-8 cursor-pointer text-gray-400 md:hover:scale-105 md:hover:text-white"
                                 onClick={play}
                             />
                         )}
 
                         <SkipForward
                             className={
-                                "w-[22px] h-[22px] fill-current text-gray-400 md:hover:text-white cursor-pointer md:hover:scale-105 "
+                                "h-[22px] w-[22px] cursor-pointer fill-current text-gray-400 md:hover:scale-105 md:hover:text-white"
                             }
                             onClick={async () => {
                                 await next();
@@ -89,25 +89,25 @@ export default function FooterCenter() {
                         />
                         <Repeat
                             className={
-                                "w-[18px] h-[18px] cursor-pointer md:hover:scale-105 transition-colors " +
+                                "h-[18px] w-[18px] cursor-pointer transition-colors md:hover:scale-105 " +
                                 ($repeatSong
-                                    ? " text-[#ee1086] "
-                                    : " text-gray-400 ")
+                                    ? " text-[#ee1086]"
+                                    : " text-gray-400")
                             }
                             onClick={() => repeatSong.set(!repeatSong.get())}
                         />
                     </div>
-                    <div className="flex items-center space-x-2 h-7 w-full group">
+                    <div className="group flex h-7 w-full items-center space-x-2">
                         <span
                             id="current-time"
-                            className="text-xs font-semibold min-w-6"
+                            className="min-w-6 text-xs font-semibold"
                         >
                             {getTime($currentTime || 0)}
                         </span>
 
                         <Slider
                             id="default-slider"
-                            className="w-full relative min-w-0 max-w-full rounded h-1 bg-neutral-700 group"
+                            className="group relative h-1 w-full max-w-full min-w-0 rounded bg-neutral-700"
                             value={$currentTime ?? 0}
                             min={0}
                             max={$currentSong?.duration}
@@ -119,7 +119,7 @@ export default function FooterCenter() {
 
                         <span
                             id="total-time"
-                            className="text-xs font-semibold min-w-6"
+                            className="min-w-6 text-xs font-semibold"
                         >
                             {getTime($currentSong?.duration || 0)}
                         </span>

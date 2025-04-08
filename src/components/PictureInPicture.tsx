@@ -93,7 +93,7 @@ export default function PictureInPictureImage() {
                 }
                 crossOrigin="anonymous"
                 alt="Demo"
-                className="hidden mx-auto mb-4 w-full max-w-md rounded-lg shadow-md"
+                className="mx-auto mb-4 hidden w-full max-w-md rounded-lg shadow-md"
             />
 
             {/* Video oculto */}
@@ -106,10 +106,10 @@ export default function PictureInPictureImage() {
             {/* Botón con Icono de Lucide */}
             <button
                 onClick={handlePictureInPicture}
-                className="flex items-center justify-center text-gray-400 md:hover:text-white rounded-full transition"
+                className="flex items-center justify-center rounded-full text-gray-400 transition md:hover:text-white"
                 aria-label="Activar Picture-in-Picture"
             >
-                <PictureInPicture2 className="w-6 h-6" />
+                <PictureInPicture2 className="h-6 w-6" />
             </button>
         </div>
     );

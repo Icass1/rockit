@@ -9,15 +9,15 @@ import TogglePlayerUI from "@/components//TogglePlayerUI";
 export default function Footer() {
     return (
         <footer
-            className="md:bg-[#1a1a1a]/80 text-white md:py-4 md:px-5 px-2 pt-2 w-full h-full box-border"
+            className="box-border h-full w-full px-2 pt-2 text-white md:bg-[#1a1a1a]/80 md:px-5 md:py-4"
             style={{ backdropFilter: "blur(10px)" }}
         >
-            <div className="flex md:justify-center justify-between items-center w-full h-full">
+            <div className="flex h-full w-full items-center justify-between md:justify-center">
                 <FooterLeft></FooterLeft>
 
                 <FooterCenter></FooterCenter>
 
-                <div className="hidden md:flex items-center w-1/3 h-full justify-end gap-x-5 group">
+                <div className="group hidden h-full w-1/3 items-center justify-end gap-x-5 md:flex">
                     <PictureInPictureImage />
                     <VolumeSlider />
                     <TogglePlayerUI />

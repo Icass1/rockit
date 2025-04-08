@@ -32,16 +32,16 @@ export default function SubContextMenuTrigger({
             }}
             className={
                 (className ?? "") +
-                " context-menu-option md:hover:bg-neutral-700 rounded-sm p-2 cursor-pointer font-semibold text-sm  " +
+                " context-menu-option cursor-pointer rounded-sm p-2 text-sm font-semibold md:hover:bg-neutral-700" +
                 (className ?? "") +
-                (disable ? " pointer-events-none opacity-50 " : "")
+                (disable ? " pointer-events-none opacity-50" : "")
             }
         >
             <div className="grid grid-cols-[1fr_20px] items-center">
-                <div className="w-full max-w-full min-w-0 flex flex-row items-center gap-2">
+                <div className="flex w-full max-w-full min-w-0 flex-row items-center gap-2">
                     {children}
                 </div>
-                <ChevronRight className="w-full max-w-full min-w-0 h-auto aspect-square" />
+                <ChevronRight className="aspect-square h-auto w-full max-w-full min-w-0" />
             </div>
         </div>
     );

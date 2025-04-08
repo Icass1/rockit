@@ -95,19 +95,19 @@ function RenderListDownload({
     });
 
     return (
-        <div className="bg-zinc-400/10 min-w-0 max-w-full flex flex-col rounded">
-            <div className="flex flex-row h-16 min-w-0 max-w-full gap-2">
+        <div className="flex max-w-full min-w-0 flex-col rounded bg-zinc-400/10">
+            <div className="flex h-16 max-w-full min-w-0 flex-row gap-2">
                 <Image
                     alt={list[1].listInfo.name}
                     src={list[1].listInfo.images[0].url}
-                    className="h-full w-auto rounded aspect-square object-cover"
+                    className="aspect-square h-full w-auto rounded object-cover"
                 />
-                <div className="flex flex-col min-w-0 max-w-full w-full pr-1">
+                <div className="flex w-full max-w-full min-w-0 flex-col pr-1">
                     <a
                         onClick={() => {
                             setOpen(false);
                         }}
-                        className="text-base font-semibold truncate md:hover:underline"
+                        className="truncate text-base font-semibold md:hover:underline"
                         href={
                             "/" +
                             list[1].listInfo.type +
@@ -117,7 +117,7 @@ function RenderListDownload({
                     >
                         {list[1].listInfo.name}
                     </a>
-                    <label className="text-sm truncate">
+                    <label className="truncate text-sm">
                         {list[1].listInfo.artists
                             .map((artist) => artist.name || artist)
                             .join(", ")}
@@ -125,11 +125,11 @@ function RenderListDownload({
                     <div className="flex flex-row items-center gap-2">
                         <div
                             className={
-                                "progress-bar h-2 w-full rounded-full relative overflow-hidden"
+                                "progress-bar relative h-2 w-full overflow-hidden rounded-full"
                             }
                         >
                             <div
-                                className="bg-red-700 absolute h-full rounded-full transition-all"
+                                className="absolute h-full rounded-full bg-red-700 transition-all"
                                 style={{
                                     width: `calc(${list[1].listError}% + 20px)`,
                                     left: `calc(${list[1].totalCompleted}% - 20px)`,
@@ -137,7 +137,7 @@ function RenderListDownload({
                             ></div>
                             <div
                                 className={
-                                    "from-[#ee1086] to-[#fb6467] bg-gradient-to-r absolute h-full rounded-full transition-all"
+                                    "absolute h-full rounded-full bg-gradient-to-r from-[#ee1086] to-[#fb6467] transition-all"
                                 }
                                 style={{ width: `${list[1].totalCompleted}%` }}
                             ></div>
@@ -153,7 +153,7 @@ function RenderListDownload({
                 </div>
             </div>
             <label
-                className="md:hover:underline text-sm text-blue-500 p-1 select-none"
+                className="p-1 text-sm text-blue-500 select-none md:hover:underline"
                 onClick={() => {
                     setShowAllSongs((value) => !value);
                 }}
@@ -161,11 +161,11 @@ function RenderListDownload({
                 Show {showAllSongs ? "less" : "more"}
             </label>
             <div
-                className="overflow-auto transition-all "
+                className="overflow-auto transition-all"
                 style={{ maxHeight: `${showAllSongs ? 400 : 0}px` }}
             >
                 <div
-                    className="flex flex-col gap-2 p-1 relative"
+                    className="relative flex flex-col gap-2 p-1"
                     style={{
                         height: `${
                             Object.entries(list[1].songs).length * 60
@@ -175,16 +175,16 @@ function RenderListDownload({
                     {Object.entries(list[1].songs).map((songStatus) => (
                         <div
                             key={songStatus[0]}
-                            className="bg-zinc-400/10 absolute w-[calc(100%_-_10px)] transition-[top] duration-500 rounded h-14 flex flex-row gap-x-2 overflow-hidden"
+                            className="absolute flex h-14 w-[calc(100%_-_10px)] flex-row gap-x-2 overflow-hidden rounded bg-zinc-400/10 transition-[top] duration-500"
                             style={{
                                 top: `${(songStatus[1].index || 0) * 60}px`,
                                 transitionTimingFunction:
                                     "cubic-bezier(1,-0.53, 0.09, 1.58)",
                             }}
                         >
-                            <div className="flex flex-col w-full p-1 px-2 min-w-0 max-w-full">
+                            <div className="flex w-full max-w-full min-w-0 flex-col p-1 px-2">
                                 <a
-                                    className="truncate min-w-0 max-w-full"
+                                    className="max-w-full min-w-0 truncate"
                                     href={
                                         songStatus[1].song?.id
                                             ? `/song/${songStatus[1].song.id}`
@@ -193,18 +193,18 @@ function RenderListDownload({
                                 >
                                     {songStatus[1].song?.name}
                                 </a>
-                                <div className="w-full grid grid-cols-[1fr_max-content] items-center gap-x-2 ">
+                                <div className="grid w-full grid-cols-[1fr_max-content] items-center gap-x-2">
                                     <div
                                         className={
-                                            " h-2 w-full rounded-full relative " +
+                                            "relative h-2 w-full rounded-full " +
                                             (songStatus[1].message == "Error"
-                                                ? " bg-red-700 "
-                                                : " progress-bar ")
+                                                ? " bg-red-700"
+                                                : " progress-bar")
                                         }
                                     >
                                         {songStatus[1].message != "Error" && (
                                             <div
-                                                className="from-[#ee1086] to-[#fb6467] bg-gradient-to-r absolute h-full rounded-full transition-all"
+                                                className="absolute h-full rounded-full bg-gradient-to-r from-[#ee1086] to-[#fb6467] transition-all"
                                                 style={{
                                                     width: `${songStatus[1].completed}%`,
                                                 }}
@@ -234,7 +234,7 @@ function RenderSongDownload({
 }) {
     return (
         <a
-            className="bg-zinc-400/10 rounded h-14 min-h-14 flex flex-row gap-x-2 overflow-hidden md:hover:bg-zinc-400/30 cursor-pointer"
+            className="flex h-14 min-h-14 cursor-pointer flex-row gap-x-2 overflow-hidden rounded bg-zinc-400/10 md:hover:bg-zinc-400/30"
             href={`/song/${songStatus[1].song.id}`}
             onClick={() => {
                 setOpen(false);
@@ -248,19 +248,19 @@ function RenderSongDownload({
                     songStatus[1].song?.album?.images[0]?.url ||
                     "/song-placeholder.png"
                 }
-                className="h-full w-auto aspect-square object-cover"
+                className="aspect-square h-full w-auto object-cover"
             />
-            <div className="flex flex-col w-full p-1 pr-2 min-w-0 max-w-full">
-                <label className="truncate min-w-0 max-w-full">
+            <div className="flex w-full max-w-full min-w-0 flex-col p-1 pr-2">
+                <label className="max-w-full min-w-0 truncate">
                     {songStatus[1].song?.name} -{" "}
                     {songStatus[1].song?.artists
                         .map((artist) => artist.name || artist)
                         .join(", ")}
                 </label>
-                <div className="w-full grid grid-cols-[1fr_max-content] items-center gap-x-2 ">
+                <div className="grid w-full grid-cols-[1fr_max-content] items-center gap-x-2">
                     <div
                         className={
-                            "progress-bar h-2 w-full rounded-full relative " +
+                            "progress-bar relative h-2 w-full rounded-full " +
                             (songStatus[1].message == "Error" && "bg-red-400")
                         }
                     >
@@ -268,8 +268,8 @@ function RenderSongDownload({
                             className={
                                 "absolute h-full rounded-full transition-all " +
                                 (songStatus[1].message == "Error"
-                                    ? " bg-red-400 "
-                                    : " from-[#ee1086] to-[#fb6467] bg-gradient-to-r ")
+                                    ? " bg-red-400"
+                                    : " bg-gradient-to-r from-[#ee1086] to-[#fb6467]")
                             }
                             style={{ width: `${songStatus[1].completed}%` }}
                         ></div>
@@ -389,7 +389,7 @@ function AddContextMenu({
                         }
                     }}
                 >
-                    <ExternalLink className="w-5 h-5" />
+                    <ExternalLink className="h-5 w-5" />
                     {list && $lang.open_list} {song && $lang.open_song}
                 </ContextMenuOption>
 
@@ -474,7 +474,7 @@ export function DownloadIcon({
     return (
         <div
             title="Downloads"
-            className={`h-8 rounded-md items-center ml-2 mr-2 transition-all gap-2 md:hover:bg-[#414141] md:flex flex`}
+            className={`mr-2 ml-2 flex h-8 items-center gap-2 rounded-md transition-all md:flex md:hover:bg-[#414141]`}
             onClick={() => {
                 if (innerWidth > 768) {
                     if (setOpen) {
@@ -488,15 +488,15 @@ export function DownloadIcon({
             }}
             ref={downloadsButton}
         >
-            <div className="w-8 h-8 flex items-center justify-center relative">
-                <Download className="w-5 h-5" />
+            <div className="relative flex h-8 w-8 items-center justify-center">
+                <Download className="h-5 w-5" />
                 {$downloads.length > 0 && (
-                    <label className="absolute text-xs bg-red-500 rounded-full top-0 right-0 aspect-square w-auto h-4 text-center ">
+                    <label className="absolute top-0 right-0 aspect-square h-4 w-auto rounded-full bg-red-500 text-center text-xs">
                         {$downloads.length}
                     </label>
                 )}
             </div>
-            <label className="font-semibold hidden md:block">
+            <label className="hidden font-semibold md:block">
                 {$lang.downloads}{" "}
             </label>
         </div>
@@ -545,14 +545,14 @@ export function Downloads({ navOpen = false }: { navOpen?: boolean }) {
 
     if (innerWidth < 768) {
         return (
-            <div className="w-full  pt-20 mb-20 px-2 flex flex-col gap-1">
-                <label className="text-3xl font-bold text-center px-2">
+            <div className="mb-20 flex w-full flex-col gap-1 px-2 pt-20">
+                <label className="px-2 text-center text-3xl font-bold">
                     Music Downloader
                 </label>
-                <div className="flex flex-row w-4/5 mx-auto items-center gap-x-1">
+                <div className="mx-auto flex w-4/5 flex-row items-center gap-x-1">
                     <input
                         type="search"
-                        className="focus:outline-0 py-2 my-2 px-4 w-full rounded-full"
+                        className="my-2 w-full rounded-full px-4 py-2 focus:outline-0"
                         placeholder={$lang.download_input_placeholder}
                         value={url}
                         onChange={(e) => {
@@ -560,10 +560,10 @@ export function Downloads({ navOpen = false }: { navOpen?: boolean }) {
                         }}
                     />
                     <div
-                        className="min-w-9 min-h-9 flex items-center justify-center rounded-full bg-pink-700 hover:bg-pink-800 cursor-pointer"
+                        className="flex min-h-9 min-w-9 cursor-pointer items-center justify-center rounded-full bg-pink-700 hover:bg-pink-800"
                         onClick={handleStartDownload}
                     >
-                        <ArrowDownToLine className="w-5 h-5 text-white" />
+                        <ArrowDownToLine className="h-5 w-5 text-white" />
                     </div>
                 </div>
                 {Object.entries($status.songs)
@@ -591,7 +591,7 @@ export function Downloads({ navOpen = false }: { navOpen?: boolean }) {
         <>
             <div
                 ref={divRef}
-                className={`w-96 bg-gradient-to-r bg-black/50 h-3/4 flex flex-col gap-2 shadow-lg p-2 rounded-tr-3xl absolute bottom-24 transition-all duration-[400ms] overflow-auto z-40 ${
+                className={`absolute bottom-24 z-40 flex h-3/4 w-96 flex-col gap-2 overflow-auto rounded-tr-3xl bg-black/50 bg-gradient-to-r p-2 shadow-lg transition-all duration-[400ms] ${
                     navOpen ? "left-56" : "left-12"
                 }`}
                 style={{
@@ -601,7 +601,7 @@ export function Downloads({ navOpen = false }: { navOpen?: boolean }) {
                 }}
             >
                 {/* Logos */}
-                <div className="flex justify-center gap-6 mt-5">
+                <div className="mt-5 flex justify-center gap-6">
                     <Image
                         width={30}
                         height={30}
@@ -619,15 +619,15 @@ export function Downloads({ navOpen = false }: { navOpen?: boolean }) {
                 </div>
 
                 {/* Label */}
-                <label className="text-3xl font-extrabold text-center py-3">
+                <label className="py-3 text-center text-3xl font-extrabold">
                     Music Downloader
                 </label>
 
-                <div className="flex flex-row items-center mx-auto">
+                <div className="mx-auto flex flex-row items-center">
                     {/* Input */}
                     <input
                         type="search"
-                        className="focus:outline-0 py-2 my-2 px-4 rounded-full mr-3 w-64"
+                        className="my-2 mr-3 w-64 rounded-full px-4 py-2 focus:outline-0"
                         placeholder={$lang.download_input_placeholder}
                         value={url}
                         onChange={(e) => {
@@ -637,10 +637,10 @@ export function Downloads({ navOpen = false }: { navOpen?: boolean }) {
 
                     {/* Download Button */}
                     <div
-                        className="w-9 h-9 flex items-center justify-center rounded-full bg-pink-700 hover:bg-pink-800 cursor-pointer"
+                        className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-pink-700 hover:bg-pink-800"
                         onClick={handleStartDownload}
                     >
-                        <ArrowDownToLine className="w-5 h-5 text-white" />
+                        <ArrowDownToLine className="h-5 w-5 text-white" />
                     </div>
 
                     {/* Toggle switch - Por si en un futuro lo implementamos
@@ -653,15 +653,15 @@ export function Downloads({ navOpen = false }: { navOpen?: boolean }) {
                         </label>
                     </div>*/}
                 </div>
-                <div className="flex items-center justify-between mb-4">
+                <div className="mb-4 flex items-center justify-between">
                     {Object.entries(status).length != 0 && (
-                        <label className="font-bold text-lg text-white">
+                        <label className="text-lg font-bold text-white">
                             {$lang.latest_downloads}
                         </label>
                     )}
 
                     <button
-                        className="text-blue-500 text-sm md:hover:underline mr-2"
+                        className="mr-2 text-sm text-blue-500 md:hover:underline"
                         onClick={() => {
                             // Lógica para limpiar los downloads
                             console.log("Clear downloads clicked");

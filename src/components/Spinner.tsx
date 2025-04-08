@@ -1,8 +1,8 @@
 export default function Spinner() {
     return (
-        <div className="flex items-center justify-center w-8 h-8">
+        <div className="flex h-8 w-8 items-center justify-center">
             <svg
-                className="w-12 h-12 animate-spin-custom"
+                className="animate-spin-custom h-12 w-12"
                 viewBox="0 0 50 50"
                 xmlns="http://www.w3.org/2000/svg"
             >

@@ -55,10 +55,10 @@ export default function LikeButton({ song }: { song: SongDB<"id"> }) {
     };
 
     return (
-        <div className="relative flex justify-center items-center h-full overflow-visible">
+        <div className="relative flex h-full items-center justify-center overflow-visible">
             {/* Fuego animado */}
             {showFire && (
-                <div className="absolute top-1/3 left-1/2 -translate-x-[9px] -translate-y-1/2 pointer-events-none">
+                <div className="pointer-events-none absolute top-1/3 left-1/2 -translate-x-[9px] -translate-y-1/2">
                     <div className="container">
                         <div className="red flame"></div>
                         <div className="orange flame"></div>
@@ -72,7 +72,7 @@ export default function LikeButton({ song }: { song: SongDB<"id"> }) {
 
             {/* Mano de metal */}
             <div
-                className={`w-[22px] h-[22px] cursor-pointer ${
+                className={`h-[22px] w-[22px] cursor-pointer ${
                     animateHand ? "hand-rotate" : ""
                 }`}
                 onClick={handleToggleLiked}
@@ -90,10 +90,10 @@ export default function LikeButton({ song }: { song: SongDB<"id"> }) {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     className={
-                        " lucide lucide-hand-metal " +
+                        "lucide lucide-hand-metal " +
                         ($likedSongs.includes(song.id)
-                            ? "transition-all text-gray-800 md:hover:text-[#202020]"
-                            : "transition-all text-gray-400 md:hover:text-white")
+                            ? "text-gray-800 transition-all md:hover:text-[#202020]"
+                            : "text-gray-400 transition-all md:hover:text-white")
                     }
                 >
                     <rect

@@ -12,7 +12,7 @@ export default async function LoginPage() {
 
     return (
         <div
-            className="h-full w-full relative"
+            className="relative h-full w-full"
             style={{
                 backgroundImage: "url(/background.jpg)",
                 backgroundRepeat: "no-repeat",

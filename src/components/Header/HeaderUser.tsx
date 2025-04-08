@@ -24,17 +24,17 @@ export default function HeaderUser() {
     return (
         <PopupMenu>
             <PopupMenuTrigger>
-                <div className="grid grid-cols-[1fr_40px] items-center relative md:hover:bg-[#272727] gap-x-2 p-3 md:hover:cursor-pointer rounded-lg">
-                    <span className="font-medium min-w-0 max-w-full w-full truncate">
+                <div className="relative grid grid-cols-[1fr_40px] items-center gap-x-2 rounded-lg p-3 md:hover:cursor-pointer md:hover:bg-[#272727]">
+                    <span className="w-full max-w-full min-w-0 truncate font-medium">
                         {session.data?.user.username} - {session.status}
                     </span>
-                    <div className="min-w-10 min-h-10 bg-neutral-400 rounded-full overflow-hidden flex items-center justify-center">
+                    <div className="flex min-h-10 min-w-10 items-center justify-center overflow-hidden rounded-full bg-neutral-400">
                         <Image
                             width={40}
                             height={40}
                             src="/user-placeholder.png"
                             alt="User avatar"
-                            className="w-full h-full object-cover select-none"
+                            className="h-full w-full object-cover select-none"
                         />
                     </div>
                 </div>

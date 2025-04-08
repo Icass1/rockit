@@ -40,16 +40,16 @@ export default function SignupModal() {
     };
 
     return (
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 max-w-lg w-[90%] md:w-full p-8 bg-black bg-opacity-[.92] rounded-xl shadow-lg text-center">
+        <div className="bg-opacity-[.92] absolute top-1/2 left-1/2 w-[90%] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-xl bg-black p-8 text-center shadow-lg md:w-full">
             <Image src="/logo-banner.png" className="w-1/3" alt="Rock It!" />
-            <h2 className="text-3xl mt-4 font-extrabold text-foreground">
+            <h2 className="text-foreground mt-4 text-3xl font-extrabold">
                 Create an Account
             </h2>
-            <p className="mt-2 text-sm text-fo">
+            <p className="text-fo mt-2 text-sm">
                 Or{" "}
                 <Link
                     href="/login"
-                    className="font-bold text-primary md:hover:text-primary/80"
+                    className="text-primary md:hover:text-primary/80 font-bold"
                 >
                     log in with an existing account
                 </Link>
@@ -68,7 +68,7 @@ export default function SignupModal() {
                             onChange={(e) => setPassword(e.currentTarget.value)}
                             autoComplete="new-password"
                             required
-                            className="mt-1 w-4/5 rounded-full text-1xl px-5 py-1 bg-[#202020] text-white"
+                            className="text-1xl mt-1 w-4/5 rounded-full bg-[#202020] px-5 py-1 text-white"
                             placeholder="Password"
                         />
                     </div>
@@ -81,19 +81,19 @@ export default function SignupModal() {
                             }
                             autoComplete="new-password"
                             placeholder="Repeat password"
-                            className="mt-1 w-4/5 rounded-full text-1xl px-5 py-1 bg-[#202020] text-white"
+                            className="text-1xl mt-1 w-4/5 rounded-full bg-[#202020] px-5 py-1 text-white"
                         />
                     </div>
                 </div>
                 {error && (
-                    <p className="text-white bg-[#ed4337] rounded-md w-fit py-1 px-2 mx-auto">
+                    <p className="mx-auto w-fit rounded-md bg-[#ed4337] px-2 py-1 text-white">
                         {error}
                     </p>
                 )}
                 <div className="flex justify-center">
                     <button
                         onClick={handleSubmit}
-                        className="w-1/3 h-8 rounded-md bg-blue-600 flex justify-center items-center md:hover:bg-blue-800 font-bold"
+                        className="flex h-8 w-1/3 items-center justify-center rounded-md bg-blue-600 font-bold md:hover:bg-blue-800"
                     >
                         Sign up
                     </button>

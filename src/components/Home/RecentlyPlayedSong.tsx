@@ -43,13 +43,13 @@ export default function RecentlyPlayedSong({
 
     return (
         <div
-            className="flex-none w-40 md:w-48 md:hover:scale-105 transition"
+            className="w-40 flex-none transition md:w-48 md:hover:scale-105"
             onClick={handleClick}
         >
             <Image
                 width={400}
                 height={400}
-                className="rounded-lg w-full aspect-square object-cover"
+                className="aspect-square w-full rounded-lg object-cover"
                 src={getImageUrl({
                     imageId: song.image,
                     height: 400,
@@ -59,7 +59,7 @@ export default function RecentlyPlayedSong({
                 alt="Song Cover"
             />
             <label
-                className="truncate font-semibold text-center block mt-2"
+                className="mt-2 block truncate text-center font-semibold"
                 onClick={(event) => {
                     event.stopPropagation();
                     redirect(`/song/${song.id}`);
@@ -68,7 +68,7 @@ export default function RecentlyPlayedSong({
                 {song.name}
             </label>
             <label
-                className="truncate text-sm text-center text-gray-400 block"
+                className="block truncate text-center text-sm text-gray-400"
                 onClick={(event) => {
                     event.stopPropagation();
                     redirect(`/artist/${song.artists[0].id}`);

@@ -37,7 +37,7 @@ export default function SearchBar() {
     }, [divRef, searchBarRef]);
 
     return (
-        <div className="w-full h-full relative">
+        <div className="relative h-full w-full">
             {shouldRenderResults && (
                 <RenderSearchBarResults open={open} divRef={divRef} />
             )}

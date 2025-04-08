@@ -15,7 +15,7 @@ export default function Register() {
     };
 
     return (
-        <div className="bg-black flex flex-col">
+        <div className="flex flex-col bg-black">
             <form>
                 <input
                     name="username"

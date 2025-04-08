@@ -29,9 +29,9 @@ export default function PopupMenuOption({
             }}
             className={
                 (className ?? "") +
-                " context-menu-option md:hover:bg-neutral-700 rounded-sm p-2 cursor-pointer font-semibold text-sm flex flex-row items-center gap-2 " +
+                " context-menu-option flex cursor-pointer flex-row items-center gap-2 rounded-sm p-2 text-sm font-semibold md:hover:bg-neutral-700" +
                 (className ?? "") +
-                (disable || !onClick ? " pointer-events-none opacity-50 " : "")
+                (disable || !onClick ? " pointer-events-none opacity-50" : "")
             }
         >
             {children}

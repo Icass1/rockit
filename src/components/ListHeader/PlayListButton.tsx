@@ -34,19 +34,19 @@ export default function PlayListButton({
 
     if (!inDatabase && !$downloadedLists.includes(id)) {
         icon = (
-            <Download className="relative top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1/2 h-1/2" />
+            <Download className="relative top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2" />
         );
     } else if (playingList && $playing) {
         icon = (
             <Pause
-                className="relative top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1/2 h-1/2"
+                className="relative top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2"
                 fill="white"
             />
         );
     } else {
         icon = (
             <Play
-                className="relative top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1/2 h-1/2"
+                className="relative top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2"
                 fill="white"
             />
         );
@@ -75,7 +75,7 @@ export default function PlayListButton({
                     });
                 }
             }}
-            className="absolute bottom-3 right-3 md:w-20 md:h-20 h-16 w-16 bg-gradient-to-r md:hover:scale-105 cursor-pointer transition-transform from-[#ee1086] to-[#fb6467] rounded-full shadow-[0px_0px_20px_3px_#0e0e0e]"
+            className="absolute right-3 bottom-3 h-16 w-16 cursor-pointer rounded-full bg-gradient-to-r from-[#ee1086] to-[#fb6467] shadow-[0px_0px_20px_3px_#0e0e0e] transition-transform md:h-20 md:w-20 md:hover:scale-105"
         >
             {icon}
         </div>

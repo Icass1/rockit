@@ -178,27 +178,27 @@ export default function MobilePlayerUIQueue({
         <div
             id="MobilePlayerUIQueue"
             className={
-                "absolute w-full top-[80px] h-[calc(100%_-_5rem)] grid grid-rows-[40px_1fr] bg-gray-700 rounded-t-lg z-50 pt-4 pl-2 transition-[top] duration-300 md:select-text select-none"
+                "absolute top-[80px] z-50 grid h-[calc(100%_-_5rem)] w-full grid-rows-[40px_1fr] rounded-t-lg bg-gray-700 pt-4 pl-2 transition-[top] duration-300 select-none md:select-text"
             }
             style={{ top: open ? "80px" : height + "px" }}
         >
             <label
-                className="h-full max-h-full min-h-0 font-semibold min-w-0 max-w-full w-full text-center text-xl text-nowrap "
+                className="h-full max-h-full min-h-0 w-full max-w-full min-w-0 text-center text-xl font-semibold text-nowrap"
                 onClick={() => {
                     setOpen(false);
                 }}
             >
                 Queue
             </label>
-            <div className="h-full max-h-full min-h-0 relative min-w-0 max-w-full w-full">
+            <div className="relative h-full max-h-full min-h-0 w-full max-w-full min-w-0">
                 <div
                     ref={scrollRef}
                     onScroll={(e) => setQueueScroll(e.currentTarget.scrollTop)}
                     className={
-                        "h-full max-h-full min-h-0 relative " +
+                        "relative h-full max-h-full min-h-0 " +
                         (draggingSong == undefined
-                            ? " overflow-y-auto "
-                            : " overflow-y-hidden ")
+                            ? " overflow-y-auto"
+                            : " overflow-y-hidden")
                     }
                 >
                     <div className="min-h-5"></div>
@@ -264,8 +264,8 @@ export default function MobilePlayerUIQueue({
                                 className={
                                     "absolute w-full " +
                                     (draggingSong?.song.song.id == song.song.id
-                                        ? " z-10 "
-                                        : " transition-[top] duration-500 ")
+                                        ? " z-10"
+                                        : " transition-[top] duration-500")
                                 }
                                 style={{
                                     top: `${top + 20}px`,
@@ -276,7 +276,7 @@ export default function MobilePlayerUIQueue({
                                 <ContextMenu>
                                     <ContextMenuTrigger>
                                         <div className="grid grid-cols-[1fr_45px] items-center">
-                                            <div className="min-w-0 max-w-full w-full">
+                                            <div className="w-full max-w-full min-w-0">
                                                 <QueueSong
                                                     key={song.index}
                                                     song={song}
@@ -335,8 +335,8 @@ export default function MobilePlayerUIQueue({
                     })}
                     <div className="min-h-10"></div>
                 </div>
-                <div className="absolute w-full -top-1 h-10 bg-gradient-to-t from-transparent to-gray-700"></div>
-                <div className="absolute w-full bottom-0 h-10 bg-gradient-to-b from-transparent to-gray-700"></div>
+                <div className="absolute -top-1 h-10 w-full bg-gradient-to-t from-transparent to-gray-700"></div>
+                <div className="absolute bottom-0 h-10 w-full bg-gradient-to-b from-transparent to-gray-700"></div>
             </div>
         </div>
     );

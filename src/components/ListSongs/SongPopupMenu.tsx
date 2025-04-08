@@ -149,7 +149,7 @@ export default function SongPopupMenu({
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         className={
-                            "lucide lucide-hand-metal text-white h-5 w-5"
+                            "lucide lucide-hand-metal h-5 w-5 text-white"
                         }
                     >
                         <rect

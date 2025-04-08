@@ -111,14 +111,14 @@ export default function PopupMenuContent({
                     : undefined
             }
             onClick={() => _setPopupMenuOpen && _setPopupMenuOpen(false)}
-            className="fixed bg-neutral-800/90 top-0 left-0 w-full h-[calc(100%_-_4rem)] px-10 md:w-max md:h-auto rounded-md md:p-1 overflow-auto md:shadow-[0px_0px_20px_3px_#0e0e0e] z-50"
+            className="fixed top-0 left-0 z-50 h-[calc(100%_-_4rem)] w-full overflow-auto rounded-md bg-neutral-800/90 px-10 md:h-auto md:w-max md:p-1 md:shadow-[0px_0px_20px_3px_#0e0e0e]"
             style={{
                 display: _popupMenuOpen ? "block" : "none",
             }}
         >
-            <div className="overflow-y-auto h-full flex flex-col gap-y-1 py-20 md:py-0">
+            <div className="flex h-full flex-col gap-y-1 overflow-y-auto py-20 md:py-0">
                 {childrenWithProps}
-                <div className="md:hidden min-h-2"></div>
+                <div className="min-h-2 md:hidden"></div>
             </div>
         </PosAfterRenderDiv>,
         portalContainer

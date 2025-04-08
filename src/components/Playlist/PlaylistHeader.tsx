@@ -72,17 +72,17 @@ export default function PlaylistHeader({
     if (id == "liked") {
         coverIcon = (
             <Heart
-                className="w-1/2 h-1/2 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+                className="absolute top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2"
                 fill="white"
             />
         );
     } else if (id == "most-listened") {
         coverIcon = (
-            <Disc3 className="w-1/2 h-1/2 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" />
+            <Disc3 className="absolute top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2" />
         );
     } else if (id == "recent-mix") {
         coverIcon = (
-            <History className="w-1/2 h-1/2 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" />
+            <History className="absolute top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2" />
         );
     }
     const specialPlaylist = ["liked", "most-listened", "recent-mix"].includes(
@@ -92,16 +92,16 @@ export default function PlaylistHeader({
     return (
         <div
             className={
-                "md:top-1/2 md:-translate-y-1/2 top-24 md:w-full md:max-w-96 px-10 md:px-0 flex flex-col gap-1 relative h-[26rem] md:max-h-none md:h-fit " +
+                "relative top-24 flex h-[26rem] flex-col gap-1 px-10 md:top-1/2 md:h-fit md:max-h-none md:w-full md:max-w-96 md:-translate-y-1/2 md:px-0 " +
                 className
             }
             style={style}
         >
             {/* Imagen de la playlist */}
-            <div className="relative overflow-hidden aspect-square rounded-xl md:rounded-md w-full h-auto md:bg-none bg-[rgb(15,15,15)]">
+            <div className="relative aspect-square h-auto w-full overflow-hidden rounded-xl bg-[rgb(15,15,15)] md:rounded-md md:bg-none">
                 {specialPlaylist ? (
                     <div
-                        className="relative rounded-md w-full h-full object-cover"
+                        className="relative h-full w-full rounded-md object-cover"
                         style={{
                             backgroundImage: "url(/rockit-background.png)",
                             backgroundSize: "cover",
@@ -110,7 +110,7 @@ export default function PlaylistHeader({
                         {coverIcon}
                     </div>
                 ) : (
-                    <div className="w-full h-full">
+                    <div className="h-full w-full">
                         <Image
                             width={370}
                             height={370}
@@ -123,7 +123,7 @@ export default function PlaylistHeader({
                                 height: 370,
                                 width: 370,
                             })}
-                            className="absolute w-full h-full"
+                            className="absolute h-full w-full"
                         />
                         <PlayListButton
                             id={id}
@@ -136,7 +136,7 @@ export default function PlaylistHeader({
             </div>
 
             {/* Nombre de la playlist */}
-            <div className="flex flex-row w-fit mx-auto items-center gap-3">
+            <div className="mx-auto flex w-fit flex-row items-center gap-3">
                 <label className="text-2xl font-semibold text-balance">
                     {playlist.name}
                 </label>
@@ -150,12 +150,12 @@ export default function PlaylistHeader({
             </div>
 
             {/* Propietario */}
-            <label className="text-xl font-semibold text-stone-400 flex flex-wrap justify-center">
+            <label className="flex flex-wrap justify-center text-xl font-semibold text-stone-400">
                 {playlist.owner}
             </label>
 
             {/* Información adicional */}
-            <label className="text-sm text-stone-400 text-center">
+            <label className="text-center text-sm text-stone-400">
                 {playlist.songs.length} {$lang.songs} |{" "}
                 {getMinutes(
                     songs.reduce((accumulator: number, song) => {

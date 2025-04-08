@@ -105,7 +105,7 @@ export function DynamicLyrics() {
 
     if (typeof lyrics == "string" || typeof lyrics == "undefined") {
         return (
-            <div className="flex flex-col justify-center items-center px-4 overflow-hidden relative h-full w-full">
+            <div className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden px-4">
                 No lyrics found
             </div>
         );
@@ -115,7 +115,7 @@ export function DynamicLyrics() {
         "absolute text-center left-1/2 -translate-x-1/2 w-full -translate-y-1/2 transition-all duration-500 text-balance origin-center";
 
     return (
-        <div className="flex flex-col justify-center items-center px-4 overflow-hidden relative h-full w-full">
+        <div className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden px-4">
             {lyrics.map((line, index) => {
                 switch (index - lyricsIndex) {
                     case -2:
@@ -124,9 +124,9 @@ export function DynamicLyrics() {
                                 key={index}
                                 className={
                                     commonSyles +
-                                    " scale-[.4] " +
+                                    " scale-[.4]" +
                                     (lyricsTimeStamp.length > 0
-                                        ? " hover:brightness-150 cursor-pointer "
+                                        ? " cursor-pointer hover:brightness-150"
                                         : "")
                                 }
                                 onClick={() => {
@@ -153,9 +153,9 @@ export function DynamicLyrics() {
                                 key={index}
                                 className={
                                     commonSyles +
-                                    " scale-[.6] " +
+                                    " scale-[.6]" +
                                     (lyricsTimeStamp.length > 0
-                                        ? " hover:brightness-150 cursor-pointer "
+                                        ? " cursor-pointer hover:brightness-150"
                                         : "")
                                 }
                                 onClick={() => {
@@ -184,7 +184,7 @@ export function DynamicLyrics() {
                                 className={
                                     commonSyles +
                                     (lyricsTimeStamp.length > 0
-                                        ? " hover:brightness-150 cursor-pointer "
+                                        ? " cursor-pointer hover:brightness-150"
                                         : "")
                                 }
                                 style={{
@@ -205,9 +205,9 @@ export function DynamicLyrics() {
                                 key={index}
                                 className={
                                     commonSyles +
-                                    " scale-[.6] " +
+                                    " scale-[.6]" +
                                     (lyricsTimeStamp.length > 0
-                                        ? " hover:brightness-150 cursor-pointer "
+                                        ? " cursor-pointer hover:brightness-150"
                                         : "")
                                 }
                                 onClick={() => {
@@ -235,9 +235,9 @@ export function DynamicLyrics() {
                                 key={index}
                                 className={
                                     commonSyles +
-                                    " scale-[.4] " +
+                                    " scale-[.4]" +
                                     (lyricsTimeStamp.length > 0
-                                        ? " hover:brightness-150 cursor-pointer "
+                                        ? " cursor-pointer hover:brightness-150"
                                         : "")
                                 }
                                 onClick={() => {
@@ -299,7 +299,7 @@ export function DynamicLyrics() {
             })}
             {lyricsTimeStamp.length == 0 && (
                 <div
-                    className="dynamic-lyrics-scroll hide-scroll-track hide-scroll-thumb absolute overflow-auto block h-full min-w-0 max-w-full w-full"
+                    className="dynamic-lyrics-scroll hide-scroll-track hide-scroll-thumb absolute block h-full w-full max-w-full min-w-0 overflow-auto"
                     onScroll={(e) => {
                         setLyricsIndex(
                             Math.floor(e.currentTarget.scrollTop / 100)

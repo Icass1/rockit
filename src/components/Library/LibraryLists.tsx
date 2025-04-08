@@ -34,7 +34,7 @@ export function LibraryLists() {
 
     return (
         <section>
-            <h2 className="text-2xl font-bold text-left py-4 px-5 md:px-0">
+            <h2 className="px-5 py-4 text-left text-2xl font-bold md:px-0">
                 {$lang.your_albums_playlists}
             </h2>
             <div
@@ -58,11 +58,11 @@ export function LibraryLists() {
                         <Link
                             key={"playlist" + index}
                             href={`/playlist/${playlist.id}`}
-                            className="w-full h-auto flex flex-col min-w-0 max-w-full md:hover:scale-110 transition-transform library-item"
+                            className="library-item flex h-auto w-full max-w-full min-w-0 flex-col transition-transform md:hover:scale-110"
                         >
                             <Image
                                 alt={playlist.name}
-                                className="rounded-md w-full h-full cover"
+                                className="cover h-full w-full rounded-md"
                                 src={getImageUrl({
                                     imageId: playlist.image,
                                     height: 300,
@@ -71,10 +71,10 @@ export function LibraryLists() {
                                     placeHolder: "/rockit-background.png",
                                 })}
                             />
-                            <label className="truncate font-semibold text-center min-h-6">
+                            <label className="min-h-6 truncate text-center font-semibold">
                                 {playlist.name}
                             </label>
-                            <label className="truncate text-sm text-center text-gray-400 min-h-5">
+                            <label className="min-h-5 truncate text-center text-sm text-gray-400">
                                 {playlist.owner}
                             </label>
                         </Link>
@@ -92,7 +92,7 @@ export function LibraryLists() {
                         <Link
                             key={"album" + index}
                             href={`/album/${album.id}`}
-                            className="w-fit h-fit flex flex-col min-w-0 max-w-full md:hover:scale-105 transition-transform library-item"
+                            className="library-item flex h-fit w-fit max-w-full min-w-0 flex-col transition-transform md:hover:scale-105"
                         >
                             <Image
                                 alt={album.name}
@@ -105,14 +105,14 @@ export function LibraryLists() {
                                     placeHolder: "/song-placeholder.png",
                                 })}
                             />
-                            <label className="truncate font-semibold text-center mt-1">
+                            <label className="mt-1 truncate text-center font-semibold">
                                 {album.name}
                             </label>
-                            <div className="text-sm text-center flex flex-row text-gray-400 mx-auto truncate max-w-full">
+                            <div className="mx-auto flex max-w-full flex-row truncate text-center text-sm text-gray-400">
                                 {album.artists.map((artist, index) => (
                                     <label
                                         key={album.id + artist.id}
-                                        className="md:hover:underline truncate"
+                                        className="truncate md:hover:underline"
                                         onClick={() =>
                                             console.log(
                                                 `event.preventDefault(); event.stopPropagation(); location.href='/artist/${artist.id}' `

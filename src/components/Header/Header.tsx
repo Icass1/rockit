@@ -10,7 +10,7 @@ export default async function Header() {
 
     return (
         <header
-            className="w-full z-50 grid grid-cols-[200px_3fr_200px] justify-between pl-4 pr-4 py-4 text-whit"
+            className="text-whit z-50 grid w-full grid-cols-[200px_3fr_200px] justify-between py-4 pr-4 pl-4"
             style={{ backdropFilter: "blur(10px)" }}
         >
             <Link href="/" className="flex items-center select-none">
@@ -31,7 +31,7 @@ export default async function Header() {
                         <HeaderUser />
                     </AddSessionProvider>
                 ) : (
-                    <a className="p-1 bg-green-600 rounded px-4" href="/login">
+                    <a className="rounded bg-green-600 p-1 px-4" href="/login">
                         Login
                     </a>
                 )}

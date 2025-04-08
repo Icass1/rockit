@@ -34,8 +34,8 @@ function Result({
     return (
         <a
             className={
-                "flex flex-row h-full rounded overflow-hidden gap-x-2 bg-zinc-700 md:hover:bg-zinc-500/60 transition-colors cursor-pointer items-center " +
-                (artistsOrOwner == "" ? " rounded-l-[70px] rounded-r-lg " : " ")
+                "flex h-full cursor-pointer flex-row items-center gap-x-2 overflow-hidden rounded bg-zinc-700 transition-colors md:hover:bg-zinc-500/60 " +
+                (artistsOrOwner == "" ? " rounded-l-[70px] rounded-r-lg" : " ")
             }
             href={url
                 .replace("https://open.spotify.com", "")
@@ -44,20 +44,20 @@ function Result({
             <Image
                 alt={name}
                 className={
-                    "aspect-square w-auto h-full object-cover object-center " +
-                    (artistsOrOwner == "" ? " rounded-full " : " ")
+                    "aspect-square h-full w-auto object-cover object-center " +
+                    (artistsOrOwner == "" ? " rounded-full" : " ")
                 }
                 src={image}
             />
-            <div className="flex flex-col text-white min-w-0 max-w-full w-full">
-                <label className="text-base font-semibold truncate">
+            <div className="flex w-full max-w-full min-w-0 flex-col text-white">
+                <label className="truncate text-base font-semibold">
                     {name}
                 </label>
-                <label className="text-sm truncate">{artistsOrOwner}</label>
+                <label className="truncate text-sm">{artistsOrOwner}</label>
             </div>
             {!inDatabase && (
                 <div
-                    className="w-6 h-6 mr-2 text-blue-400 md:hover:scale-105 transition-transform"
+                    className="mr-2 h-6 w-6 text-blue-400 transition-transform md:hover:scale-105"
                     onClick={handleClick}
                 >
                     <DownloadCloud />
@@ -69,7 +69,7 @@ function Result({
 
 function ResultsWrapper({ children }: { children: ReactNode[] }) {
     return (
-        <div className="grid xl:grid-cols-2 lg:grid-cols-1 md:grid-cols-1 gap-2 mb-2 h-fit">
+        <div className="mb-2 grid h-fit gap-2 md:grid-cols-1 lg:grid-cols-1 xl:grid-cols-2">
             {children}
         </div>
     );
@@ -172,10 +172,10 @@ export default function RenderSearchBarResults({
     return (
         <div ref={divRef}>
             {open ? (
-                <div className="h-fit px-4 w-3/4 max-w-[600px] bg-neutral-800 absolute shadow-lg left-1/2 -translate-x-1/2 top-1/2 rounded-b-3xl flex flex-col pt-7 pb-2  gap-2 z-50">
+                <div className="absolute top-1/2 left-1/2 z-50 flex h-fit w-3/4 max-w-[600px] -translate-x-1/2 flex-col gap-2 rounded-b-3xl bg-neutral-800 px-4 pt-7 pb-2 shadow-lg">
                     {bestResult && (
                         <>
-                            <label className="font-bold text-xl text-white ">
+                            <label className="text-xl font-bold text-white">
                                 Best result {bestResult.type}
                             </label>
                             <div className="h-32">
@@ -192,7 +192,7 @@ export default function RenderSearchBarResults({
                     {$searchResults.songs &&
                         $searchResults.songs != "error" && (
                             <>
-                                <label className="font-bold text-xl text-white ">
+                                <label className="text-xl font-bold text-white">
                                     Songs
                                 </label>
                                 <ResultsWrapper>
@@ -230,7 +230,7 @@ export default function RenderSearchBarResults({
                     {$searchResults.albums &&
                         $searchResults.albums != "error" && (
                             <>
-                                <label className="font-bold text-xl text-white ">
+                                <label className="text-xl font-bold text-white">
                                     Albums
                                 </label>
                                 <ResultsWrapper>
@@ -267,7 +267,7 @@ export default function RenderSearchBarResults({
                     {$searchResults.playlists &&
                         $searchResults.playlists != "error" && (
                             <>
-                                <label className="font-bold text-xl text-white ">
+                                <label className="text-xl font-bold text-white">
                                     Playlists
                                 </label>
                                 <ResultsWrapper>
@@ -301,7 +301,7 @@ export default function RenderSearchBarResults({
                     {$searchResults.artists &&
                         $searchResults.artists != "error" && (
                             <>
-                                <label className="font-bold text-xl text-white ">
+                                <label className="text-xl font-bold text-white">
                                     Artists
                                 </label>
                                 <ResultsWrapper>

@@ -14,10 +14,10 @@ export default function LoginModal() {
     };
 
     return (
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 max-w-lg w-[90%] md:w-full p-8 bg-black bg-opacity-[.92] rounded-xl shadow-lg text-center">
+        <div className="bg-opacity-[.92] absolute top-1/2 left-1/2 w-[90%] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-xl bg-black p-8 text-center shadow-lg md:w-full">
             <div id="login-form">
-                <div className="flex justify-center items-center space-x-2">
-                    <h2 className="text-3xl font-extrabold text-foreground">
+                <div className="flex items-center justify-center space-x-2">
+                    <h2 className="text-foreground text-3xl font-extrabold">
                         Log in to
                     </h2>
                     <Image
@@ -28,11 +28,11 @@ export default function LoginModal() {
                         alt="Rock It!"
                     />
                 </div>
-                <p className="mt-2 text-sm text-fo">
+                <p className="text-fo mt-2 text-sm">
                     Or{" "}
                     <Link
                         href="/signup"
-                        className="font-bold text-primary md:hover:text-primary/80"
+                        className="text-primary md:hover:text-primary/80 font-bold"
                     >
                         create a new account
                     </Link>
@@ -43,7 +43,7 @@ export default function LoginModal() {
                             <input
                                 type="text"
                                 placeholder="Username"
-                                className="mt-1 w-4/5 rounded-full text-1xl px-5 py-1 bg-[#202020] text-white"
+                                className="text-1xl mt-1 w-4/5 rounded-full bg-[#202020] px-5 py-1 text-white"
                                 autoComplete="username"
                                 required
                                 value={username}
@@ -56,7 +56,7 @@ export default function LoginModal() {
                             <input
                                 type="password"
                                 placeholder="Password"
-                                className="mt-1 w-4/5 rounded-full text-1xl px-5 py-1 bg-[#202020] text-white"
+                                className="text-1xl mt-1 w-4/5 rounded-full bg-[#202020] px-5 py-1 text-white"
                                 autoComplete="current-password"
                                 required
                                 value={password}
@@ -66,12 +66,12 @@ export default function LoginModal() {
                             />
                         </div>
                     </div>
-                    <p className="text-white bg-[#ed4337] w-full rounded-md leading-8"></p>
+                    <p className="w-full rounded-md bg-[#ed4337] leading-8 text-white"></p>
                     <div className="flex justify-center">
                         <button
                             type="submit"
                             onClick={handleSubmit}
-                            className="w-1/3 h-8 rounded-md bg-green-600 flex justify-center items-center md:hover:bg-green-800 font-bold"
+                            className="flex h-8 w-1/3 items-center justify-center rounded-md bg-green-600 font-bold md:hover:bg-green-800"
                         >
                             Log in
                         </button>

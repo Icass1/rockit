@@ -27,9 +27,9 @@ export default function UsernameInput({
     }, [value]);
 
     return (
-        <div className="flex flex-col w-4/5 mx-auto">
+        <div className="mx-auto flex w-4/5 flex-col">
             {error && (
-                <label className="text-xs text-red-500 text-left">
+                <label className="text-left text-xs text-red-500">
                     Username must be between 4 and 30 characters long and
                     contain only A-Z, a-z and 0-9
                 </label>
@@ -39,7 +39,7 @@ export default function UsernameInput({
                 onChange={onChange}
                 autoComplete="username"
                 required
-                className="mt-1  rounded-full text-1xl px-5 py-1 bg-[#202020] text-white"
+                className="text-1xl mt-1 rounded-full bg-[#202020] px-5 py-1 text-white"
                 placeholder="Username"
             />
         </div>

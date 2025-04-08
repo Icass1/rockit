@@ -42,14 +42,14 @@ export default function QuickSelectionsSong({
 
     return (
         <div
-            className="flex items-center cursor-pointer gap-2 rounded-lg p-2 hover:bg-zinc-800 transition h-fit"
+            className="flex h-fit cursor-pointer items-center gap-2 rounded-lg p-2 transition hover:bg-zinc-800"
             onClick={handleClick}
         >
             {/* Imagen de la canción */}
             <Image
                 width={100}
                 height={100}
-                className="rounded-sm min-w-12 min-h-12 w-12 h-12 object-cover aspect-square"
+                className="aspect-square h-12 min-h-12 w-12 min-w-12 rounded-sm object-cover"
                 src={getImageUrl({
                     imageId: song.image,
                     height: 100,
@@ -59,13 +59,13 @@ export default function QuickSelectionsSong({
                 alt={`Song Cover for ${song.name}`}
             />
             {/* Información de la canción */}
-            <div className="flex flex-col justify-center min-w-0">
+            <div className="flex min-w-0 flex-col justify-center">
                 {/* Nombre de la canción */}
-                <span className="text-md font-semibold text-white truncate">
+                <span className="text-md truncate font-semibold text-white">
                     {song.name}
                 </span>
                 {/* Artista y álbum */}
-                <span className="text-sm text-gray-400 flex-0 md:max-w-[50%] truncate shrink-0">
+                <span className="flex-0 shrink-0 truncate text-sm text-gray-400 md:max-w-[50%]">
                     {song.artists[0].name}
                     {" • "} {song.albumName}
                 </span>

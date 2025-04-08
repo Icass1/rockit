@@ -142,13 +142,13 @@ export default function PlayerUI() {
     return (
         <div
             ref={divRef}
-            className="absolute inset-0 bg-black/80 flex justify-center pl-12 items-center pb-24 transition-all overflow-hidden duration-300 pt-20"
+            className="absolute inset-0 flex items-center justify-center overflow-hidden bg-black/80 pt-20 pb-24 pl-12 transition-all duration-300"
             style={{
                 top: $isPlayerUIVisible ? "0%" : "100%",
                 height: "calc(100%)",
             }}
         >
-            <div className="relative w-full bg-black text-white grid grid-cols-[1fr_1fr] lg:grid-cols-[30%_40%_30%] gap-x-2 px-2 h-full">
+            <div className="relative grid h-full w-full grid-cols-[1fr_1fr] gap-x-2 bg-black px-2 text-white lg:grid-cols-[30%_40%_30%]">
                 <Image
                     alt={$currentSong?.name}
                     src={getImageUrl({
@@ -157,34 +157,34 @@ export default function PlayerUI() {
                         height: 200,
                         placeHolder: "/song-placeholder.png",
                     })}
-                    className="absolute w-full h-auto top-1/2 -translate-y-1/2 blur-md brightness-50"
+                    className="absolute top-1/2 h-auto w-full -translate-y-1/2 blur-md brightness-50"
                 />
 
-                <div className="z-10 w-full h-full hidden lg:block relative">
-                    <h2 className="absolute w-full block text-center text-3xl font-bold mx-auto p-14">
+                <div className="relative z-10 hidden h-full w-full lg:block">
+                    <h2 className="absolute mx-auto block w-full p-14 text-center text-3xl font-bold">
                         Lyrics
                     </h2>
                     <DynamicLyrics />
                 </div>
 
                 {/* Middle Column: Cover & Info */}
-                <div className="min-w-0 w-full min-h-0 max-w-full max-h-full flex flex-col items-center justify-center z-10">
-                    <div className="max-h-[70%] aspect-square">
+                <div className="z-10 flex max-h-full min-h-0 w-full max-w-full min-w-0 flex-col items-center justify-center">
+                    <div className="aspect-square max-h-[70%]">
                         <Image
                             src={getImageUrl({
                                 imageId: $currentSong?.image,
                                 placeHolder: "/song-placeholder.png",
                             })}
                             alt="Song Cover"
-                            className="object-cover mx-auto w-auto h-[100%] rounded-lg aspect-square"
+                            className="mx-auto aspect-square h-[100%] w-auto rounded-lg object-cover"
                         />
                     </div>
-                    <div className="w-full flex flex-col items-center justify-center text-center mt-2 px-2">
-                        <h1 className="text-4xl font-bold text-balance line-clamp-2 leading-normal">
+                    <div className="mt-2 flex w-full flex-col items-center justify-center px-2 text-center">
+                        <h1 className="line-clamp-2 text-4xl leading-normal font-bold text-balance">
                             {$currentSong?.name}
                         </h1>
-                        <p className="text-gray-400 w-full text-xl mt-2 font-medium flex items-center justify-center gap-1">
-                            <span className="max-w-[75%] md:hover:underline truncate text-center">
+                        <p className="mt-2 flex w-full items-center justify-center gap-1 text-xl font-medium text-gray-400">
+                            <span className="max-w-[75%] truncate text-center md:hover:underline">
                                 {$currentSong?.albumName}
                             </span>
                             <span>•</span>
@@ -192,7 +192,7 @@ export default function PlayerUI() {
                             $currentSong.artists.length > 0 ? (
                                 <a
                                     href={`/artist/${$currentSong.artists[0].id}`}
-                                    className="md:hover:underline truncate"
+                                    className="truncate md:hover:underline"
                                     key={$currentSong.artists[0].id}
                                 >
                                     {$currentSong.artists[0].name}
@@ -205,13 +205,13 @@ export default function PlayerUI() {
                 </div>
 
                 {/* Right Column: Queue */}
-                <div className="overflow-hidden flex flex-col h-full bg-gradient-to-r z-10 from-[rgba(0,0,0,0)] to-[rgba(0,0,0,0.5)] select-none">
+                <div className="z-10 flex h-full flex-col overflow-hidden bg-gradient-to-r from-[rgba(0,0,0,0)] to-[rgba(0,0,0,0.5)] select-none">
                     {/* Selector */}
-                    <div className="flex justify-center items-center gap-10 pt-6 pb-4 relative border-b border-white">
+                    <div className="relative flex items-center justify-center gap-10 border-b border-white pt-6 pb-4">
                         <button
                             className={`text-lg font-semibold transition ${
                                 currentTab === "queue"
-                                    ? "text-white border-b-2 border-white"
+                                    ? "border-b-2 border-white text-white"
                                     : "text-gray-400 md:hover:text-white"
                             }`}
                             onClick={() => setCurrentTab("queue")}
@@ -221,7 +221,7 @@ export default function PlayerUI() {
                         <button
                             className={`text-lg font-semibold transition ${
                                 currentTab === "recommended"
-                                    ? "text-white border-b-2 border-white"
+                                    ? "border-b-2 border-white text-white"
                                     : "text-gray-400 md:hover:text-white"
                             }`}
                             onClick={() => setCurrentTab("recommended")}
@@ -231,7 +231,7 @@ export default function PlayerUI() {
                     </div>
                     {/* Contenido dinámico */}
                     <div
-                        className="flex-1 overflow-auto pt-3 pb-7 relative scroll-smooth"
+                        className="relative flex-1 overflow-auto scroll-smooth pt-3 pb-7"
                         ref={queueDivRef}
                         onScroll={(e) =>
                             setQueueScroll(e.currentTarget.scrollTop)
@@ -361,15 +361,15 @@ export default function PlayerUI() {
                         ) : (
                             <>
                                 <section>
-                                    <h2 className="text-2xl font-bold text-left">
+                                    <h2 className="text-left text-2xl font-bold">
                                         Similar Songs
                                     </h2>
-                                    <div className="flex gap-4 overflow-x-auto scrollbar-hide snap-x snap-mandatory px-2 py-2 md:[scrollbar-gutter:stable]">
+                                    <div className="scrollbar-hide flex snap-x snap-mandatory gap-4 overflow-x-auto px-2 py-2 md:[scrollbar-gutter:stable]">
                                         {/* Aquí creamos las columnas */}
                                         {columns.map((_, columnIndex) => (
                                             <div
                                                 key={columnIndex}
-                                                className="flex flex-col gap-1 flex-none w-[calc(50%-10px)] max-w-[300px] snap-center"
+                                                className="flex w-[calc(50%-10px)] max-w-[300px] flex-none snap-center flex-col gap-1"
                                             >
                                                 {Array.from({
                                                     length: songsPerColumn,
@@ -377,11 +377,11 @@ export default function PlayerUI() {
                                                     <a
                                                         href="#"
                                                         key={songIndex}
-                                                        className="flex items-center gap-2 rounded-lg p-2 hover:bg-zinc-800 transition h-fit"
+                                                        className="flex h-fit items-center gap-2 rounded-lg p-2 transition hover:bg-zinc-800"
                                                     >
                                                         {/* Imagen de la canción */}
                                                         <img
-                                                            className="rounded-sm w-12 h-12 object-cover"
+                                                            className="h-12 w-12 rounded-sm object-cover"
                                                             src="/song-placeholder.png"
                                                             alt={`Song ${
                                                                 columnIndex *
@@ -392,9 +392,9 @@ export default function PlayerUI() {
                                                         />
 
                                                         {/* Información de la canción */}
-                                                        <div className="flex flex-col justify-center min-w-0">
+                                                        <div className="flex min-w-0 flex-col justify-center">
                                                             {/* Nombre de la canción */}
-                                                            <span className="text-md font-semibold text-white truncate">
+                                                            <span className="text-md truncate font-semibold text-white">
                                                                 Song{" "}
                                                                 {columnIndex *
                                                                     songsPerColumn +
@@ -403,7 +403,7 @@ export default function PlayerUI() {
                                                             </span>
 
                                                             {/* Artista y álbum */}
-                                                            <span className="text-sm text-gray-400 truncate">
+                                                            <span className="truncate text-sm text-gray-400">
                                                                 Artist{" "}
                                                                 {columnIndex *
                                                                     songsPerColumn +
@@ -423,26 +423,26 @@ export default function PlayerUI() {
                                     </div>
                                 </section>
                                 <section>
-                                    <h2 className="text-2xl font-bold text-left pt-7">
+                                    <h2 className="pt-7 text-left text-2xl font-bold">
                                         Artists you may like
                                     </h2>
-                                    <div className="flex gap-7 overflow-x-auto scrollbar-hide snap-x snap-mandatory py-4 px-2">
+                                    <div className="scrollbar-hide flex snap-x snap-mandatory gap-7 overflow-x-auto px-2 py-4">
                                         {/* Aquí creamos las columnas de artistas */}
                                         {columns.map((_, artistIndex) => (
                                             <div
                                                 key={artistIndex}
-                                                className="flex flex-col items-center gap-2 flex-none snap-center"
+                                                className="flex flex-none snap-center flex-col items-center gap-2"
                                             >
                                                 {/* Imagen del artista */}
                                                 <img
-                                                    className="rounded-full w-28 h-28 object-cover"
+                                                    className="h-28 w-28 rounded-full object-cover"
                                                     src="/user-placeholder.png"
                                                     alt={`Artist ${
                                                         artistIndex + 1
                                                     }`}
                                                 />
                                                 {/* Nombre del artista */}
-                                                <span className="text-md font-semibold text-white text-center truncate">
+                                                <span className="text-md truncate text-center font-semibold text-white">
                                                     Artist {artistIndex + 1}
                                                 </span>
                                             </div>
@@ -450,10 +450,10 @@ export default function PlayerUI() {
                                     </div>
                                 </section>
                                 <section>
-                                    <h2 className="text-2xl font-bold text-left pt-7">
+                                    <h2 className="pt-7 text-left text-2xl font-bold">
                                         Song / Artist Description
                                     </h2>
-                                    <a className="pt-2 px-5 text-justify line-clamp-4">
+                                    <a className="line-clamp-4 px-5 pt-2 text-justify">
                                         Lorem ipsum dolor sit amet, consectetur
                                         adipiscing elit, sed do eiusmod tempor
                                         incididunt ut labore et dolore magna

@@ -19,7 +19,7 @@ import SongPopupMenu from "@/components/ListSongs/SongPopupMenu";
 function FooterLeftForSong({ currentSong }: { currentSong: CurrentSong }) {
     return (
         // <!-- Para el Nicolás de mañana {currentSong && <LikeButton song={currentSong} />} -->
-        <div className="flex items-center w-full md:w-1/3 max-w-full min-w-0 gap-x-4">
+        <div className="flex w-full max-w-full min-w-0 items-center gap-x-4 md:w-1/3">
             {/* Imagen al inicio */}
             <Image
                 width={64}
@@ -31,29 +31,29 @@ function FooterLeftForSong({ currentSong }: { currentSong: CurrentSong }) {
                     placeHolder: "/song-placeholder.png",
                 })}
                 alt="Album Cover"
-                className="md:w-16 md:h-16 rounded-md select-none w-9 h-9"
+                className="h-9 w-9 rounded-md select-none md:h-16 md:w-16"
             />
 
             {/* Parte central que se estira */}
-            <div className="flex flex-col min-w-0 flex-1">
-                <span className="font-semibold flex flex-row gap-3 items-center">
+            <div className="flex min-w-0 flex-1 flex-col">
+                <span className="flex flex-row items-center gap-3 font-semibold">
                     <a
                         href={`/song/${currentSong?.id}`}
                         onClick={() => {
                             isPlayerUIVisible.set(false);
                         }}
-                        className="md:hover:underline truncate line-clamp-1"
+                        className="line-clamp-1 truncate md:hover:underline"
                     >
                         {currentSong?.name || "Canción desconocida :("}
                     </a>
                 </span>
                 <span
-                    className="text-sm text-gray-400 flex flex-row gap-x-1 w-full"
+                    className="flex w-full flex-row gap-x-1 text-sm text-gray-400"
                     onClick={() => {
                         isPlayerUIVisible.set(false);
                     }}
                 >
-                    <div className="flex-0 md:max-w-[50%] truncate shrink-0">
+                    <div className="flex-0 shrink-0 truncate md:max-w-[50%]">
                         {currentSong?.artists ? (
                             currentSong?.artists?.map((artist, index) => (
                                 <a
@@ -71,10 +71,10 @@ function FooterLeftForSong({ currentSong }: { currentSong: CurrentSong }) {
                             <div>Artista desconocido</div>
                         )}
                     </div>
-                    <span className="hidden md:block select-none">•</span>
+                    <span className="hidden select-none md:block">•</span>
                     <a
                         href={`/album/${currentSong?.albumId}`}
-                        className="hidden md:inline-block hover:underline truncate"
+                        className="hidden truncate hover:underline md:inline-block"
                     >
                         {currentSong?.albumName || "Album desconocido"}
                     </a>
@@ -82,11 +82,11 @@ function FooterLeftForSong({ currentSong }: { currentSong: CurrentSong }) {
             </div>
 
             {/* Opciones al final */}
-            <div className="pr-4 flex-row items-left hidden md:flex">
+            <div className="items-left hidden flex-row pr-4 md:flex">
                 {currentSong && <LikeButton song={currentSong} />}
                 {currentSong && (
                     <SongPopupMenu song={currentSong}>
-                        <EllipsisVertical className="w-[22px] h-[24px] text-gray-400 md:hover:text-white md:hover:scale-105" />
+                        <EllipsisVertical className="h-[24px] w-[22px] text-gray-400 md:hover:scale-105 md:hover:text-white" />
                     </SongPopupMenu>
                 )}
             </div>
@@ -99,10 +99,10 @@ function FooterLeftForStation({ currentStation }: { currentStation: Station }) {
     const $playing = useStore(playing);
 
     return (
-        <div className="flex items-center w-full md:w-1/3 max-w-full min-w-0 gap-x-4">
+        <div className="flex w-full max-w-full min-w-0 items-center gap-x-4 md:w-1/3">
             {/* Imagen al inicio */}
             <div
-                className="md:w-16 md:h-16 w-9 h-9 relative rounded-md overflow-hidden"
+                className="relative h-9 w-9 overflow-hidden rounded-md md:h-16 md:w-16"
                 onMouseEnter={() => setHover(true)}
                 onMouseLeave={() => setHover(false)}
             >
@@ -111,12 +111,12 @@ function FooterLeftForStation({ currentStation }: { currentStation: Station }) {
                     height={64}
                     src={currentStation.favicon || "/song-placeholder.png"}
                     alt="Album Cover"
-                    className="absolute w-full h-full select-none "
+                    className="absolute h-full w-full select-none"
                 />
                 {$playing ? (
                     <PauseIcon
                         onClick={() => pause()}
-                        className="absolute p-4 bg-neutral-500/70 transition-all"
+                        className="absolute bg-neutral-500/70 p-4 transition-all"
                         style={{
                             display: hover ? "" : "none",
                             width: hover ? "100%" : "0%",
@@ -126,7 +126,7 @@ function FooterLeftForStation({ currentStation }: { currentStation: Station }) {
                 ) : (
                     <PlayIcon
                         onClick={() => play()}
-                        className="absolute p-4 bg-neutral-500/70 transition-all"
+                        className="absolute bg-neutral-500/70 p-4 transition-all"
                         style={{
                             display: hover ? "" : "none",
                             width: hover ? "100%" : "0%",
@@ -136,18 +136,18 @@ function FooterLeftForStation({ currentStation }: { currentStation: Station }) {
                 )}
             </div>
             {/* Parte central que se estira */}
-            <div className="flex flex-col min-w-0 flex-1">
-                <span className="font-semibold flex flex-row gap-3 items-center truncate line-clamp-1">
+            <div className="flex min-w-0 flex-1 flex-col">
+                <span className="line-clamp-1 flex flex-row items-center gap-3 truncate font-semibold">
                     {currentStation.name}
                 </span>
-                <span className="text-sm text-gray-400 flex flex-row gap-x-1 w-full">
+                <span className="flex w-full flex-row gap-x-1 text-sm text-gray-400">
                     {currentStation.country}
                 </span>
             </div>
 
             {/* Opciones al final */}
-            <div className="pr-4 flex-row items-left hidden md:flex">
-                <EllipsisVertical className="w-[22px] h-[24px] text-gray-400 md:hover:text-white md:hover:scale-105" />
+            <div className="items-left hidden flex-row pr-4 md:flex">
+                <EllipsisVertical className="h-[24px] w-[22px] text-gray-400 md:hover:scale-105 md:hover:text-white" />
             </div>
         </div>
     );
@@ -163,7 +163,7 @@ export default function FooterLeft() {
         return <FooterLeftForStation currentStation={$currentStation} />;
     } else {
         return (
-            <div className="flex items-center w-full md:w-1/3 max-w-full min-w-0 gap-x-4">
+            <div className="flex w-full max-w-full min-w-0 items-center gap-x-4 md:w-1/3">
                 You are not playing anything
             </div>
         );

@@ -188,7 +188,7 @@ export default function PlaylistSongsView({
         return (
             <label
                 className={
-                    "hover:underline cursor-pointer flex flex-row items-center font-semibold select-none " +
+                    "flex cursor-pointer flex-row items-center font-semibold select-none hover:underline " +
                     (filter.column == column ? "text-[#ec5588]" : "")
                 }
                 onClick={() => {
@@ -206,7 +206,7 @@ export default function PlaylistSongsView({
             return (
                 <ArrowUp
                     className={
-                        "w-5 h-5 transition-transform " +
+                        "h-5 w-5 transition-transform " +
                         (filter.ascending ? "" : "rotate-180")
                     }
                 ></ArrowUp>
@@ -225,23 +225,23 @@ export default function PlaylistSongsView({
             onScroll={(event) => {
                 setScroll(event.currentTarget.scrollTop);
             }}
-            className="md:w-full min-h-0 max-h-full h-full overflow-auto relative md:pr-6"
+            className="relative h-full max-h-full min-h-0 overflow-auto md:w-full md:pr-6"
         >
             <PlaylistHeader
                 id={id}
                 playlist={playlist}
                 songs={songs}
                 inDatabase={inDatabase}
-                className="md:hidden flex"
+                className="flex md:hidden"
             />
             <div
-                className="hidden md:flex flex-row items-center gap-4 px-2 rounded text-stone-400 text-sm"
+                className="hidden flex-row items-center gap-4 rounded px-2 text-sm text-stone-400 md:flex"
                 style={{ marginTop: `${marginTop}px` }}
             >
                 <div className="w-10"></div>
-                <div className="flex flex-row w-full items-center justify-between">
-                    <div className="w-1/3 ">{renderColumn("name")}</div>
-                    <div className="flex-1 gap-x-1 flex flex-row w-1/2">
+                <div className="flex w-full flex-row items-center justify-between">
+                    <div className="w-1/3">{renderColumn("name")}</div>
+                    <div className="flex w-1/2 flex-1 flex-row gap-x-1">
                         {renderColumn("artist")}
                         <label>•</label>
                         {renderColumn("album")}
@@ -254,7 +254,7 @@ export default function PlaylistSongsView({
             {/* 4px between songs */}
             {/* 56px height of songs */}
             {songsToRender.length == 0 && (
-                <label className="md:text-3xl text-xl font-bold block mt-10 relative md:top-1/2 md:-translate-y-1/2 w-full text-center text-neutral-400">
+                <label className="relative mt-10 block w-full text-center text-xl font-bold text-neutral-400 md:top-1/2 md:-translate-y-1/2 md:text-3xl">
                     There is nothing to show here
                 </label>
             )}
@@ -280,7 +280,7 @@ export default function PlaylistSongsView({
                     return (
                         <div
                             key={song.id + index}
-                            className="absolute h-[56px] left-0 right-0"
+                            className="absolute right-0 left-0 h-[56px]"
                             style={{ top: `${top}px` }}
                         >
                             <PlaylistSong song={song} />

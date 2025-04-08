@@ -34,7 +34,7 @@ const Slider: FC<SliderProps> = ({
         >
             {/* Barra de progreso */}
             <div
-                className="absolute block top-0 left-0 h-full rounded-full bg-gradient-to-r from-[#ee1086] to-[#fb6467] max-w-full"
+                className="absolute top-0 left-0 block h-full max-w-full rounded-full bg-gradient-to-r from-[#ee1086] to-[#fb6467]"
                 style={{ width: `${value * m + n}%` }}
             ></div>
 
@@ -49,7 +49,7 @@ const Slider: FC<SliderProps> = ({
                 min={min}
                 max={max}
                 step={step}
-                className="absolute left-0 w-full h-full cursor-pointer"
+                className="absolute left-0 h-full w-full cursor-pointer"
             />
         </div>
     );

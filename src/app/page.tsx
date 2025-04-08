@@ -48,15 +48,15 @@ export default function Home() {
     if (!$lang) return;
 
     return (
-        <div className="relative h-full flex flex-col pb-24 pt-24 overflow-y-auto">
+        <div className="relative flex h-full flex-col overflow-y-auto pt-24 pb-24">
             <SongsCarousel></SongsCarousel>
 
-            <section className="md:px-12 py-5 md:py-12 text-white">
-                <h2 className="text-2xl md:text-3xl font-bold text-left px-5 md:px-0">
+            <section className="py-5 text-white md:px-12 md:py-12">
+                <h2 className="px-5 text-left text-2xl font-bold md:px-0 md:text-3xl">
                     {$lang.recent_played}
                 </h2>
                 <div
-                    className="relative flex items-center gap-4 overflow-x-auto py-4 px-8 md:px-2"
+                    className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:px-2"
                     style={{ scrollbarGutter: "stable both" }}
                 >
                     {songsByTimePlayed.slice(0, 20).map((song) => (
@@ -68,17 +68,17 @@ export default function Home() {
                     ))}
                 </div>
             </section>
-            <section className="group md:px-12 text-white">
-                <h2 className="text-2xl md:text-3xl font-bold text-left px-5 md:px-0">
+            <section className="group text-white md:px-12">
+                <h2 className="px-5 text-left text-2xl font-bold md:px-0 md:text-3xl">
                     {$lang.quick_selections}
                 </h2>
-                <div className="flex md:gap-4 overflow-x-auto scrollbar-hide snap-x snap-mandatory py-4 px-8 md:px-2 md:[scrollbar-gutter:stable]">
+                <div className="scrollbar-hide flex snap-x snap-mandatory overflow-x-auto px-8 py-4 md:gap-4 md:px-2 md:[scrollbar-gutter:stable]">
                     {/* Aquí creamos las columnas dinámicamente */}
                     {
                         // Dividir las canciones en columnas de 4 canciones por columna
                         Array.from({ length: 10 }).map((index, columnIndex) => (
                             <div
-                                className="flex flex-col gap-1 flex-none w-[51%] max-w-[200px] md:w-[calc(25%-10px)] md:max-w-[350px] snap-center"
+                                className="flex w-[51%] max-w-[200px] flex-none snap-center flex-col gap-1 md:w-[calc(25%-10px)] md:max-w-[350px]"
                                 key={columnIndex + "_" + index}
                             >
                                 {

@@ -21,33 +21,33 @@ export default function VolumeSlider() {
     if ($volume === 0) {
         volumeIcon = (
             <VolumeOff
-                className="w-[22px] h-[22px] text-gray-400 md:hover:text-white cursor-pointer"
+                className="h-[22px] w-[22px] cursor-pointer text-gray-400 md:hover:text-white"
                 onClick={handleMuteToggle}
             />
         );
     } else if ($volume && $volume < 0.5) {
         volumeIcon = (
             <Volume1
-                className="w-[22px] h-[22px] text-gray-400 md:hover:text-white cursor-pointer"
+                className="h-[22px] w-[22px] cursor-pointer text-gray-400 md:hover:text-white"
                 onClick={handleMuteToggle}
             />
         );
     } else {
         volumeIcon = (
             <Volume2
-                className="w-[22px] h-[22px] text-gray-400 md:hover:text-white cursor-pointer"
+                className="h-[22px] w-[22px] cursor-pointer text-gray-400 md:hover:text-white"
                 onClick={handleMuteToggle}
             />
         );
     }
 
     return (
-        <div className="flex flex-row items-center gap-x-2 h-full">
+        <div className="flex h-full flex-row items-center gap-x-2">
             {volumeIcon}
 
             <Slider
                 id="default-slider"
-                className="w-16 h-1"
+                className="h-1 w-16"
                 value={Math.sqrt($volume || 0)}
                 min={0}
                 max={1}

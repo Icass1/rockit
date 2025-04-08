@@ -61,7 +61,7 @@ export default function SubContextMenuContent({
 
     return (
         <PosAfterRenderDiv
-            className="fixed bg-neutral-800/90 top-0 left-0 w-full h-[calc(100%_-_4rem)] md:h-fit px-10 md:shadow-[0px_0px_20px_3px_#0e0e0e] rounded-md md:p-1 md:w-max"
+            className="fixed top-0 left-0 h-[calc(100%_-_4rem)] w-full rounded-md bg-neutral-800/90 px-10 md:h-fit md:w-max md:p-1 md:shadow-[0px_0px_20px_3px_#0e0e0e]"
             onDimensionsCalculated={
                 innerWidth > 768
                     ? (width, height) => updatePos(width, height)
@@ -80,7 +80,7 @@ export default function SubContextMenuContent({
                 }
             }}
         >
-            <div className="overflow-y-auto md:h-fit flex flex-col gap-y-1 py-20 md:py-0">
+            <div className="flex flex-col gap-y-1 overflow-y-auto py-20 md:h-fit md:py-0">
                 {childrenWithProps}
             </div>
         </PosAfterRenderDiv>

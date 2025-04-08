@@ -209,16 +209,16 @@ export default function MobilePlayerUI() {
         <div
             ref={divRef}
             className={
-                "fixed top-0 left-0 right-0  h-[calc(100%_-_4rem)] w-screen overflow-hidden md:hidden z-40 flex  " +
-                (playerUITop0 ? " top-0 " : " top-full ") +
-                (playerUIhidden ? " hidden " : "") +
-                (enableTransition ? " transition-[top] duration-300 " : "  ")
+                "fixed top-0 right-0 left-0 z-40 flex h-[calc(100%_-_4rem)] w-screen overflow-hidden md:hidden " +
+                (playerUITop0 ? " top-0" : " top-full") +
+                (playerUIhidden ? " hidden" : "") +
+                (enableTransition ? " transition-[top] duration-300" : " ")
             }
             style={{ top: topOffset ? `${topOffset}px` : undefined }}
         >
             {/* Fondo blurreado */}
             <div
-                className="absolute -left-5 -right-5 -bottom-5 -top-5 inset-0 bg-center bg-cover"
+                className="absolute inset-0 -top-5 -right-5 -bottom-5 -left-5 bg-cover bg-center"
                 style={{
                     backgroundImage: `url(${getImageUrl({
                         imageId: $currentSong?.image,
@@ -231,22 +231,22 @@ export default function MobilePlayerUI() {
             ></div>
 
             {/* Iconos en la parte superior */}
-            <div className="absolute top-14 left-0 right-0 flex justify-between p-5 z-50">
+            <div className="absolute top-14 right-0 left-0 z-50 flex justify-between p-5">
                 <ChevronDown
-                    className="text-neutral-300 h-8 w-8"
+                    className="h-8 w-8 text-neutral-300"
                     onClick={() => isMobilePlayerUIVisible.set(false)}
                 />
                 {$currentSong ? (
                     <SongPopupMenu song={$currentSong}>
-                        <Ellipsis className="text-neutral-300 h-6 w-8" />
+                        <Ellipsis className="h-6 w-8 text-neutral-300" />
                     </SongPopupMenu>
                 ) : (
-                    <Ellipsis className="text-neutral-300 h-6 w-8" />
+                    <Ellipsis className="h-6 w-8 text-neutral-300" />
                 )}
             </div>
 
             {/* Contenido principal */}
-            <div className="relative z-30 w-full grid grid-rows-[1fr_min-content_min-content_min-content] gap-y-2 pt-32 pb-20 items-center justify-center h-full text-white px-4">
+            <div className="relative z-30 grid h-full w-full grid-rows-[1fr_min-content_min-content_min-content] items-center justify-center gap-y-2 px-4 pt-32 pb-20 text-white">
                 {/* Imagen de la canción */}
                 {/* <div className="max-w-full min-w-0 w-auto max-h-full min-h-0 h-auto aspect-square left-1/2 relative -translate-x-1/2 bg-blue-400"> */}
                 <img
@@ -257,17 +257,17 @@ export default function MobilePlayerUI() {
                         width: 350,
                     })}
                     alt="Current song artwork"
-                    className="max-w-full min-w-0 w-auto max-h-full min-h-0 h-auto aspect-square left-1/2 relative -translate-x-1/2 bg-blue-400"
+                    className="relative left-1/2 aspect-square h-auto max-h-full min-h-0 w-auto max-w-full min-w-0 -translate-x-1/2 bg-blue-400"
                 />
                 {/* </div> */}
 
                 {/* Título, artista y LikeButton */}
-                <div className="flex justify-between items-center w-full max-w-md pl-5 pr-7">
+                <div className="flex w-full max-w-md items-center justify-between pr-7 pl-5">
                     <div className="text-left">
                         <h2 className="text-xl font-[650]">
                             {$currentSong?.name}
                         </h2>
-                        <p className="text-gray-300 font-semibold">
+                        <p className="font-semibold text-gray-300">
                             {$currentSong?.artists
                                 .map((artist) => artist.name)
                                 .join(", ")}
@@ -281,7 +281,7 @@ export default function MobilePlayerUI() {
                     <Slider
                         id="default-slider"
                         value={$currentTime || 0}
-                        className="h-2 w-full appearance-none cursor-pointer"
+                        className="h-2 w-full cursor-pointer appearance-none"
                         min={0}
                         max={$currentSong?.duration}
                         step={0.001}
@@ -303,62 +303,62 @@ export default function MobilePlayerUI() {
                 </div>
 
                 {/* Controles */}
-                <div className="flex items-center gap-3 left-1/2 relative -translate-x-1/2 w-fit">
+                <div className="relative left-1/2 flex w-fit -translate-x-1/2 items-center gap-3">
                     <button
-                        className="w-12 h-12 flex items-center justify-center"
+                        className="flex h-12 w-12 items-center justify-center"
                         onClick={() => randomQueue.set(!randomQueue.get())}
                     >
                         <Shuffle
                             className={
-                                "w-6 h-6 " +
+                                "h-6 w-6 " +
                                 ($randomQueue
-                                    ? " text-[#ee1086] "
-                                    : " text-white ")
+                                    ? " text-[#ee1086]"
+                                    : " text-white")
                             }
                         />
                     </button>
 
                     <button
-                        className="w-12 h-12 flex items-center justify-center"
+                        className="flex h-12 w-12 items-center justify-center"
                         onClick={async () => {
                             await prev();
                             play();
                         }}
                     >
-                        <SkipBack className="w-8 h-8 fill-current" />
+                        <SkipBack className="h-8 w-8 fill-current" />
                     </button>
 
-                    <button className="w-16 h-16 flex items-center justify-center rounded-full">
+                    <button className="flex h-16 w-16 items-center justify-center rounded-full">
                         {$playing ? (
                             <Pause
-                                className="w-14 h-14 fill-current"
+                                className="h-14 w-14 fill-current"
                                 onClick={pause}
                             />
                         ) : (
                             <Play
-                                className="w-14 h-14 fill-current"
+                                className="h-14 w-14 fill-current"
                                 onClick={play}
                             />
                         )}
                     </button>
 
                     <button
-                        className="w-12 h-12 flex items-center justify-center"
+                        className="flex h-12 w-12 items-center justify-center"
                         onClick={async () => {
                             await next();
                             play();
                         }}
                     >
-                        <SkipForward className="w-8 h-8 fill-current" />
+                        <SkipForward className="h-8 w-8 fill-current" />
                     </button>
 
-                    <button className="w-12 h-12 flex items-center justify-center">
-                        <Repeat className="w-6 h-6" />
+                    <button className="flex h-12 w-12 items-center justify-center">
+                        <Repeat className="h-6 w-6" />
                     </button>
                 </div>
 
                 {/* Otros Botones */}
-                <div className="absolute bottom-0 left-0 right-0 flex justify-around items-center px-4 py-7 text-white font-bold bg-gradient-to-t from-black/50 to-black/0">
+                <div className="absolute right-0 bottom-0 left-0 flex items-center justify-around bg-gradient-to-t from-black/50 to-black/0 px-4 py-7 font-bold text-white">
                     <button
                         className="text-lg"
                         onClick={() => {

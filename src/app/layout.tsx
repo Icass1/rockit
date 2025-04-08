@@ -10,6 +10,7 @@ import Link from "next/link";
 import Image from "@/components/Image";
 import PlayerUI from "@/components/PlayerUI/PlayerUI";
 import MobilePlayerUI from "@/components/PlayerUI/MobilePlayerUI";
+import FooterMobile from "@/components/Footer/FooterMobile";
 
 export const metadata: Metadata = {
     title: "RockIt",
@@ -63,9 +64,11 @@ export default async function RootLayout({
                     <Footer></Footer>
                 </div>
 
-                <div className="z-40 block md:hidden">
-                    <MobilePlayerUI />
+                <div className="fixed right-0 bottom-12 left-0 z-40 block h-14 md:hidden">
+                    <FooterMobile></FooterMobile>
                 </div>
+
+                <MobilePlayerUI />
                 <div className="fixed top-0 right-0 left-12 z-40 hidden h-24 w-auto md:block">
                     <Header></Header>
                 </div>
@@ -82,7 +85,7 @@ export default async function RootLayout({
                     </AddSessionProvider>
                 </div>
 
-                <div className="fixed z-40 mx-auto block h-fit w-full items-center justify-center bg-gradient-to-b from-black to-black/0 md:hidden">
+                <div className="fixed top-0 right-0 left-0 z-40 mx-auto block h-fit items-center justify-center bg-gradient-to-b from-black to-black/0 md:hidden">
                     <Link href="/" className="text-2xl font-bold text-white">
                         <Image
                             src="/logo-banner.png"

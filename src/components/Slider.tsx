@@ -1,3 +1,5 @@
+"use client";
+
 import { useRef, type ChangeEvent, type FC } from "react";
 
 type ChangeEventHandler<T = Element> = (event: ChangeEvent<T>) => void;

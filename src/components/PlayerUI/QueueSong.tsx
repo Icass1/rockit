@@ -13,6 +13,7 @@ import {
 import { useStore } from "@nanostores/react";
 import { EllipsisVertical, Play } from "lucide-react";
 import { useRef, useState } from "react";
+import Image from "@/components/Image";
 
 export function QueueSong({
     song,
@@ -86,7 +87,7 @@ export function QueueSong({
             {/* Cover */}
             <div className="relative">
                 {/* Imagen de portada */}
-                <img
+                <Image
                     src={getImageUrl({
                         imageId: song.song.image,
                         width: 48,

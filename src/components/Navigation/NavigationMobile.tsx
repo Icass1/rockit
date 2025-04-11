@@ -5,9 +5,7 @@ import {
     Home,
     Library,
     Search,
-    ChartLine,
     Users,
-    RadioTower,
     ShieldEllipsis,
     Settings,
 } from "lucide-react";
@@ -30,63 +28,45 @@ export default function NavigationMobile() {
             title: $lang.home,
             href: "/",
             icon: Home,
-            mobile: true,
         },
         {
             name: "Library",
             title: $lang.library,
             href: "/library",
             icon: Library,
-            mobile: true,
         },
         {
             name: "Search",
             title: $lang.search,
             href: "/search",
             icon: Search,
-            mobile: true,
+            disabled: true,
         },
         {
             name: "Friends",
             title: $lang.friends,
             href: "/friends",
             icon: Users,
-            mobile: true,
+            disabled: true,
         },
-        {
-            name: "Radio",
-            title: $lang.radio,
-            href: "/radio",
-            icon: RadioTower,
-            mobile: false,
-        },
-        {
-            name: "Stats",
-            title: $lang.stats,
-            href: "/stats",
-            icon: ChartLine,
-            mobile: false,
-        },
+
         session.data?.user.admin
             ? {
                   name: "Admin",
                   title: "Admin",
                   href: "/admin",
                   icon: ShieldEllipsis,
-                  mobile: true,
               }
             : undefined,
     ];
 
     return (
-        // <div className="flex justify-center items-center py-2 w-full mx-auto min-w-0 max-w-full bg-[#1a1a1a] h-full">
         <div
             className="flex h-full w-full max-w-4xl flex-row items-center justify-center bg-[#1a1a1a]/80 py-2"
             style={{ backdropFilter: "blur(10px)" }}
         >
             {pages
                 .filter((page) => typeof page != "undefined")
-                .filter((page) => page.mobile)
                 .map((page) => (
                     <a
                         key={page.href}
@@ -96,6 +76,10 @@ export default function NavigationMobile() {
                             activePage === page.href
                                 ? "bg-white text-black"
                                 : "text-white"
+                        } ${
+                            page.disabled == true
+                                ? "pointer-events-none opacity-50"
+                                : ""
                         }`}
                     >
                         <div className="flex h-8 w-8 items-center justify-center">
@@ -117,6 +101,5 @@ export default function NavigationMobile() {
                 </div>
             </a>
         </div>
-        // </div>
     );
 }

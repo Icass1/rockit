@@ -41,42 +41,39 @@ export default function Navigation() {
             title: $lang.home,
             href: "/",
             icon: Home,
-            mobile: true,
         },
         {
             name: "Library",
             title: $lang.library,
             href: "/library",
             icon: Library,
-            mobile: true,
         },
         {
             name: "Search",
             title: $lang.search,
             href: "/search",
             icon: Search,
-            mobile: true,
+            disabled: true,
         },
         {
             name: "Friends",
             title: $lang.friends,
             href: "/friends",
             icon: Users,
-            mobile: true,
+            disabled: true,
         },
         {
             name: "Radio",
             title: $lang.radio,
             href: "/radio",
             icon: RadioTower,
-            mobile: false,
+            disabled: true,
         },
         {
             name: "Stats",
             title: $lang.stats,
             href: "/stats",
             icon: ChartLine,
-            mobile: false,
         },
         session.data?.user.admin
             ? {
@@ -84,7 +81,6 @@ export default function Navigation() {
                   title: "Admin",
                   href: "/admin",
                   icon: ShieldEllipsis,
-                  mobile: true,
               }
             : undefined,
     ];
@@ -124,6 +120,10 @@ export default function Navigation() {
                                     activePage === page.href
                                         ? "bg-white text-black"
                                         : "text-white md:hover:bg-[#414141]"
+                                } ${
+                                    page.disabled == true
+                                        ? "pointer-events-none opacity-50"
+                                        : ""
                                 }`}
                             >
                                 <div className="flex h-8 w-8 items-center justify-center">

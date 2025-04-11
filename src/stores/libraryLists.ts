@@ -11,7 +11,6 @@ export const libraryLists = atom<LibraryList[]>([]);
 fetch("/api/user?q=lists")
     .then((response) => response.json())
     .then((data: UserDB<"lists">) => {
-        console.log(data);
         libraryLists.set(data.lists);
     })
     .catch(() => {

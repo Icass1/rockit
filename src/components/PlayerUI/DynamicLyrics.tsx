@@ -86,7 +86,7 @@ export function DynamicLyrics() {
         return () => {
             document.removeEventListener("keyup", handleKey);
         };
-    }, [lyrics, lyricsIndex]);
+    }, [lyrics, lyricsIndex, lyricsTimeStamp]);
 
     useEffect(() => {
         if (!$currentSong || !$currentTime || lyricsTimeStamp.length == 0) {
@@ -101,7 +101,7 @@ export function DynamicLyrics() {
         }
 
         setLyricsIndex(index);
-    }, [$currentTime, $currentSong]);
+    }, [$currentTime, $currentSong, lyricsTimeStamp]);
 
     if (typeof lyrics == "string" || typeof lyrics == "undefined") {
         return (

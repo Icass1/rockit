@@ -97,6 +97,9 @@ export async function downloadResources({
 
     downloadFile("/", database, setResources);
     downloadFile("/library", database, setResources);
+    downloadFile("/settings", database);
+    downloadFile("/stats", database);
+
     downloadFile("/song-placeholder.png", database, setResources);
     downloadFile("/rockit-background.png", database, setResources);
     downloadFile("/logo-banner.png", database, setResources);
@@ -104,6 +107,8 @@ export async function downloadResources({
 
     downloadRsc("/", database);
     downloadRsc("/library", database);
+    downloadRsc("/settings", database);
+    downloadRsc("/stats", database);
 
     const responseStaticTree = await fetch("/api/get-static-tree");
     const staticTree: string[] = await responseStaticTree.json();

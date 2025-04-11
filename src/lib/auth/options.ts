@@ -85,7 +85,7 @@ export const nextAuthOptions: AuthOptions = {
                         id: token.id,
                         username: token.username,
                         admin: token.admin,
-                        lang: token.admin,
+                        lang: token.lang,
                     };
                 }
             }

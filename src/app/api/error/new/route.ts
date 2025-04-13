@@ -43,7 +43,7 @@ export async function POST(request: Request) {
         errorName,
         errorStack,
         new Date().toISOString(),
-        session.user.id
+        session?.user?.id
     );
 
     return new NextResponse("OK");

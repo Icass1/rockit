@@ -1,4 +1,4 @@
-// websocket.mjs
+// node src/server.mjs
 import { WebSocketServer } from "ws";
 
 const wss = new WebSocketServer({ port: 3001 });

@@ -4,6 +4,7 @@ import Hls from "hls.js";
 import { atom } from "nanostores";
 import { lang } from "./lang";
 import { openRockItIndexedDB } from "@/lib/indexedDB";
+import { getSession } from "next-auth/react";
 
 let websocket: WebSocket;
 
@@ -710,14 +711,18 @@ const getUA = () => {
     );
     return device;
 };
-function startSocket() {
+async function startSocket() {
     if (typeof window === "undefined") return null;
+
+    const session = await getSession();
+
+    console.log(session);
 
     if (!window.navigator.onLine) return;
     if (location.protocol == "https:") {
-        websocket = new WebSocket(`wss://${location.host}/ws`);
+        websocket = new WebSocket(`wss://${location.hostname}:3001/ws`);
     } else {
-        websocket = new WebSocket(`ws://${location.host}/ws`);
+        websocket = new WebSocket(`ws://${location.hostname}:3001/ws`);
     }
     websocket.onopen = () => {
         send({
@@ -1044,6 +1049,7 @@ export async function getSongInIndexedDB(
     | undefined
 > {
     if (!database) return;
+    if (!id) return;
 
     const db = database;
     const tx = db.transaction("songs", "readonly");

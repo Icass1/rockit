@@ -245,7 +245,7 @@ export default function PlayerUI() {
                                 {$queue
                                     .filter(
                                         (song) =>
-                                            song.song.id !=
+                                            song?.song?.id !=
                                             draggingSong?.song.id
                                     )
                                     .map((queueSong, index) => {

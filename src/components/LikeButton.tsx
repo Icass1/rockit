@@ -83,7 +83,7 @@ export default function LikeButton({ song }: { song: SongDB<"id"> }) {
                     height="24"
                     viewBox="0 0 24 24"
                     fill={
-                        $likedSongs.includes(song.id) ? "white" : "transparent"
+                        $likedSongs.includes(song?.id) ? "white" : "transparent"
                     }
                     stroke="currentColor"
                     strokeWidth="2"

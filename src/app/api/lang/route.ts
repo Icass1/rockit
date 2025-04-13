@@ -18,7 +18,12 @@ export async function GET(request: Request) {
         if (requestLang) {
             lang = requestLang;
         } else {
-            return new Response("Unauthenticated", { status: 401 });
+            const fileBuffer = await readFile(`src/lang/en.json`, "utf-8");
+
+            return NextResponse.json(
+                { lang: "en", langFile: JSON.parse(fileBuffer) },
+                { status: 401 }
+            );
         }
     } else {
         lang = (

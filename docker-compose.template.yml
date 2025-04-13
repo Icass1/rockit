@@ -14,14 +14,14 @@ services:
       ENVIRONMENT: "PROD"
       CLIENT_ID: "<CLIENT_ID for Spotify API>"
       CLIENT_SECRET: "<CLIENT_SECRET for Spotify API>"
-      FRONTEND_URL: "http://astro-frontend:4321"
+      FRONTEND_URL: "http://astro-frontend:3000"
       DOWNLOAD_THREADS: "2"
       SONGS_PATH: "/songs"
       TEMP_PATH: "/temp"
       LOGS_PATH: "/logs"
       LOG_DUMP_LEVEL: "info" # debug/info/warning/error/critical
       IMAGES_PATH: "/images"
-      API_KEY: "qlLH16dEklu7GbkFLO0eAbTiuxe1fqMLGYzhZqTxtw1hdJGEjx4DYd0ASTSM7544"
+      API_KEY: "<key to communicate between frontend and backend>"
     volumes:
       - <path to songs dir>:/songs
       - <path to temp dir>:/temp
@@ -32,7 +32,7 @@ services:
     build:
       context: .
     ports:
-      - "<Port to access RockIt>:4321"
+      - "<Port to access RockIt>:3000"
     networks:
       - app-network
     restart: unless-stopped
@@ -42,7 +42,9 @@ services:
       SONGS_PATH: "/app/songs"
       IMAGES_PATH: "/app/images"
       INSECURE_DB_MODE: "true"
-      API_KEY: "qlLH16dEklu7GbkFLO0eAbTiuxe1fqMLGYzhZqTxtw1hdJGEjx4DYd0ASTSM7544"
+      API_KEY: "<key to communicate between frontend and backend>"
+      NEXTAUTH_URL: "http://localhost:3000"
+      NEXTAUTH_SECRET: "password"
     volumes:
       - <path to database dir>:/app/database
       - <path to songs dir>:/app/songs

@@ -798,6 +798,8 @@ async function startSocket() {
 
     console.log(session);
 
+    if (!session) return;
+
     if (!window.navigator.onLine) return;
     if (location.protocol == "https:") {
         websocket = new WebSocket(`wss://${location.hostname}:3001/ws`);

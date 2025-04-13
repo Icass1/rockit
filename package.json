@@ -11,8 +11,10 @@
     "dependencies": {
         "@nanostores/react": "^0.8.4",
         "@node-rs/argon2": "^2.0.2",
+        "@types/better-sqlite3": "^7.6.11",
         "@types/lodash": "^4.17.16",
         "argon2": "^0.41.1",
+        "better-sqlite3": "^11.9.1",
         "hls.js": "^1.6.0",
         "lodash": "^4.17.21",
         "lucide-react": "^0.487.0",
@@ -27,16 +29,21 @@
     "devDependencies": {
         "@eslint/eslintrc": "^3",
         "@tailwindcss/postcss": "^4",
-        "@types/better-sqlite3": "^7.6.12",
         "@types/node": "^20",
         "@types/react": "^19",
         "@types/react-dom": "^19",
-        "better-sqlite3": "^11.9.1",
         "eslint": "^9",
         "eslint-config-next": "15.2.3",
         "prettier": "^3.5.3",
         "prettier-plugin-tailwindcss": "^0.6.11",
         "tailwindcss": "^4",
         "typescript": "^5"
+    },
+    "pnpm": {
+        "onlyBuiltDependencies": [
+            "better-sqlite3",
+            "sharp",
+            "argon2"
+        ]
     }
 }

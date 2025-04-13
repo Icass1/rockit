@@ -172,7 +172,12 @@ fetch(
                 | "admin"
             >
         ) => {
-            if (!audio) audio = new Audio();
+            initAudio();
+
+            if (!audio) {
+                console.error("audio is undefined");
+                return;
+            }
 
             queueIndex.set(userJson.queueIndex);
             if (userJson?.currentTime) {
@@ -310,7 +315,12 @@ repeatSong.subscribe((value) => {
 });
 
 const playWhenLoaded = () => {
-    if (!audio) audio = new Audio();
+    initAudio();
+
+    if (!audio) {
+        console.error("audio is undefined");
+        return;
+    }
 
     if (admin.get()) console.log("playWhenLoaded");
     if (admin.get()) console.log("playWhenReady.get()", playWhenReady.get());
@@ -344,8 +354,16 @@ currentSong.subscribe(async (value) => {
 
     send({ currentSong: value?.id || "" });
 
-    if (!audio) audio = new Audio();
-    if (!audio2) audio2 = new Audio();
+    initAudio();
+
+    if (!audio) {
+        console.error("audio is undefined");
+        return;
+    }
+    if (!audio2) {
+        console.error("audio is undefined");
+        return;
+    }
 
     // if (value?.id) {
     //     // Just to fill quickly last listened songs for developing propourses
@@ -440,7 +458,12 @@ currentSong.subscribe(async (value) => {
 currentStation.subscribe(async (value) => {
     if (typeof window === "undefined") return;
 
-    if (!audio) audio = new Audio();
+    initAudio();
+
+    if (!audio) {
+        console.error("audio is undefined");
+        return;
+    }
 
     updateUserIndexedDB();
     send({ currentStation: value?.stationuuid });
@@ -460,7 +483,12 @@ currentStation.subscribe(async (value) => {
             hls.loadSource(value.url_resolved);
             hls.attachMedia(audio);
             hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                if (!audio) audio = new Audio();
+                initAudio();
+
+                if (!audio) {
+                    console.error("audio is undefined");
+                    return;
+                }
 
                 audio
                     .play()
@@ -471,13 +499,23 @@ currentStation.subscribe(async (value) => {
             audio.src = value.url_resolved;
             // audio.play();
             audio.onloadeddata = () => {
-                if (!audio) audio = new Audio();
+                initAudio();
+
+                if (!audio) {
+                    console.error("audio is undefined");
+                    return;
+                }
 
                 // if (admin.get()) console.log("onloadeddata");
                 audio.play();
             };
             audio.oncanplay = () => {
-                if (!audio) audio = new Audio();
+                initAudio();
+
+                if (!audio) {
+                    console.error("audio is undefined");
+                    return;
+                }
 
                 // if (admin.get()) console.log("oncanplay");
                 audio.play();
@@ -517,7 +555,12 @@ queueIndex.subscribe((value) => {
 volume.subscribe((value) => {
     if (typeof window === "undefined") return;
 
-    if (!audio) audio = new Audio();
+    initAudio();
+
+    if (!audio) {
+        console.error("audio is undefined");
+        return;
+    }
 
     updateUserIndexedDB();
     if (window.innerWidth < 768) return;
@@ -529,6 +572,19 @@ volume.subscribe((value) => {
 // **************************
 // **** Helper functions ****
 // **************************
+
+export function initAudio() {
+    if (!audio) {
+        console.warn("initAudio");
+        audio = new Audio();
+        audio.id = new Date().getTime().toString();
+        addAudioEventListeners(audio);
+    }
+    if (!audio2) {
+        console.warn("initAudio2");
+        audio2 = new Audio();
+    }
+}
 
 export function updateUserIndexedDB() {
     if (!database) return;
@@ -608,24 +664,48 @@ async function isHlsContent(url: string): Promise<boolean> {
 }
 
 export async function play() {
-    if (!audio) audio = new Audio();
-    if (!audio2) audio2 = new Audio();
+    initAudio();
+
+    if (!audio) {
+        console.error("audio is undefined");
+        return;
+    }
+    if (!audio2) {
+        console.error("audio is undefined");
+        return;
+    }
     if (admin.get()) console.log("play");
     await audio.play();
     await audio2.play();
 }
 
 export function pause() {
-    if (!audio) audio = new Audio();
-    if (!audio2) audio2 = new Audio();
+    initAudio();
+
+    if (!audio) {
+        console.error("audio is undefined");
+        return;
+    }
+    if (!audio2) {
+        console.error("audio is undefined");
+        return;
+    }
     if (admin.get()) console.log("pause");
     audio.pause();
     audio2.pause();
 }
 
 export function setTime(time: number) {
-    if (!audio) audio = new Audio();
+    initAudio();
+
+    if (!audio) {
+        console.error("audio is undefined");
+        return;
+    }
+
+    console.log("1", audio.currentTime);
     audio.currentTime = time;
+    console.log("2", audio.currentTime);
 }
 
 export function clearCurrentSong() {
@@ -1183,7 +1263,7 @@ if (typeof navigator !== "undefined") {
         if (event.seekTime) setTime(event.seekTime);
     });
 }
-const onLoadedData = () => {
+function onLoadedData() {
     // if (admin.get()) console.log(
     //     "Updating crossFade from",
     //     currentCrossFade.get(),
@@ -1191,10 +1271,15 @@ const onLoadedData = () => {
     //     crossFade.get()
     // );
     currentCrossFade.set(crossFade.get());
-};
+}
 
-const onCanplay = () => {
-    if (!audio) audio = new Audio();
+function onCanplay() {
+    initAudio();
+
+    if (!audio) {
+        console.error("audio is undefined");
+        return;
+    }
 
     if ("mediaSession" in navigator && !isNaN(audio.duration)) {
         navigator.mediaSession.setPositionState({
@@ -1203,12 +1288,20 @@ const onCanplay = () => {
             position: audio.currentTime,
         });
     }
-};
+}
 
-let initAudio = false;
-const onTimeupdate = async () => {
-    if (!audio) audio = new Audio();
-    if (!audio2) audio2 = new Audio();
+let audioIsInit = false;
+async function onTimeupdate() {
+    initAudio();
+
+    if (!audio) {
+        console.error("audio is undefined");
+        return;
+    }
+    if (!audio2) {
+        console.error("audio is undefined");
+        return;
+    }
     const _crossFade = currentCrossFade.get();
 
     currentTime.set(audio.currentTime);
@@ -1230,7 +1323,7 @@ const onTimeupdate = async () => {
                         (audio.duration - _crossFade) -
                         audio2.currentTime
                 ) > 1 &&
-                initAudio &&
+                audioIsInit &&
                 !audio2.paused &&
                 !audio2.paused
             ) {
@@ -1242,8 +1335,8 @@ const onTimeupdate = async () => {
             }
             const tempQueue = queue.get();
 
-            if (!initAudio && !audio.paused && tempQueue) {
-                initAudio = true;
+            if (!audioIsInit && !audio.paused && tempQueue) {
+                audioIsInit = true;
                 // if (admin.get()) console.log("Init audio 2");
                 const currentSongIndexInQueue = tempQueue.findIndex(
                     (song) => song.index == queueIndex.get()
@@ -1276,7 +1369,7 @@ const onTimeupdate = async () => {
                 2;
         } else {
             audio.volume = userVolume;
-            initAudio = false;
+            audioIsInit = false;
             if (!audio2.paused) {
                 if (admin.get()) console.log("audio2.pause()");
                 audio2.pause();
@@ -1284,7 +1377,7 @@ const onTimeupdate = async () => {
         }
     } else {
         if (userVolume) audio.volume = userVolume;
-        initAudio = false;
+        audioIsInit = false;
         if (!audio2.paused) {
             if (admin.get()) console.log("audio2.pause()");
             audio2.pause();
@@ -1315,24 +1408,24 @@ const onTimeupdate = async () => {
             });
         }
     }
-};
+}
 
-const onPlay = () => {
+function onPlay() {
     playing.set(true);
     if ("mediaSession" in navigator) {
         navigator.mediaSession.playbackState = "playing";
     }
-};
+}
 
-const onPause = () => {
+function onPause() {
     // if (admin.get()) console.log("audio pause", audio);
     playing.set(false);
     if ("mediaSession" in navigator) {
         navigator.mediaSession.playbackState = "paused";
     }
-};
+}
 
-const onEnded = async () => {
+async function onEnded() {
     if (repeatSong.get()) {
         setTime(0);
         play();
@@ -1355,13 +1448,15 @@ const onEnded = async () => {
             ],
         });
     }
-};
+}
 
-const onError = (event: ErrorEvent) => {
+function onError(event: ErrorEvent) {
     console.error("Error loading audio", event);
-};
+}
 
-const addAudioEventListeners = (audio: HTMLAudioElement) => {
+function addAudioEventListeners(audio: HTMLAudioElement) {
+    console.warn("addAudioEventListeners", audio);
+
     if (typeof window === "undefined") return;
 
     // if (admin.get()) console.log("AAAAAAAAAAAAAAA", audio.paused);
@@ -1384,9 +1479,9 @@ const addAudioEventListeners = (audio: HTMLAudioElement) => {
     audio.addEventListener("pause", onPause);
     audio.addEventListener("ended", onEnded);
     audio.addEventListener("error", onError);
-};
+}
 
-const removeEventListeners = (audio: HTMLAudioElement) => {
+function removeEventListeners(audio: HTMLAudioElement) {
     audio.removeEventListener("loadeddata", onLoadedData);
     audio.removeEventListener("canplay", onCanplay);
     audio.removeEventListener("timeupdate", onTimeupdate);
@@ -1394,8 +1489,4 @@ const removeEventListeners = (audio: HTMLAudioElement) => {
     audio.removeEventListener("pause", onPause);
     audio.removeEventListener("ended", onEnded);
     audio.removeEventListener("error", onError);
-};
-if (typeof window !== "undefined") {
-    if (!audio) audio = new Audio();
-    addAudioEventListeners(audio);
 }

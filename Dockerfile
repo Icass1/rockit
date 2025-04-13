@@ -1,5 +1,5 @@
 # Astro Dockerfile
-FROM node:20.18.3-slim
+FROM node:20.18.3-bullseye 
 
 WORKDIR /app
 
@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y python3 build-essential
 RUN export python3=/usr/bin/python3
 
 # Install dependencies
-COPY package*.json ./
+COPY package.json pnpm-lock.yaml ./
 RUN npm install pnpm -g
 
 # Copy application code
@@ -26,12 +26,14 @@ RUN rm .env || true
 
 RUN chown -R 1000:1000 /app
 
-EXPOSE 4321
+EXPOSE 3000
 
 # USER 1000:1000
+
+RUN mkdir /app/database
 
 RUN pnpm install
 RUN pnpm run build
 
-# Serve the Astro application
-CMD ["node", "dist/server/entry.mjs"]
+# Serve the NextJS application
+CMD pnpm start

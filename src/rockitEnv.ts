@@ -10,6 +10,8 @@ const REQUIRED_ENV_VARS = [
     "IMAGES_PATH",
     "INSECURE_DB_MODE",
     "API_KEY",
+    "NEXTAUTH_URL",
+    "NEXTAUTH_SECRET",
 ] as const;
 
 type OPTIONAL_ENV_VARS = ["FORCE_REQUEST_LYRICS"];

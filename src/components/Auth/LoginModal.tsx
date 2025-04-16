@@ -3,15 +3,28 @@
 import { signIn } from "next-auth/react";
 import Image from "@/components/Image";
 import Link from "next/link";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export default function LoginModal() {
     const [password, setPassword] = useState("");
     const [username, setUsername] = useState("");
 
-    const handleSubmit = () => {
+    const handleSubmit = useCallback(() => {
         signIn("credentials", { password, username });
-    };
+    }, [password, username]);
+
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key == "Enter") {
+                handleSubmit();
+            }
+        };
+
+        document.addEventListener("keydown", handleKeyDown);
+        return () => {
+            document.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [handleSubmit]);
 
     return (
         <div className="bg-opacity-[.92] absolute top-1/2 left-1/2 w-[90%] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-xl bg-black p-8 text-center shadow-lg md:w-full">

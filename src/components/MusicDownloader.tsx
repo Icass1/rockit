@@ -339,7 +339,7 @@ function AddContextMenu({
                         if (list) {
                             if (list[1].totalCompleted) {
                                 const response = await fetch(
-                                    `/api/songs?songs=${Object.entries(
+                                    `/api/songs1?songs=${Object.entries(
                                         list[1].songs
                                     )
                                         .map(

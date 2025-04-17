@@ -213,7 +213,7 @@ fetch(
 
             if (userJson && userJson.queue.length > 0) {
                 fetch(
-                    `/api/songs?songs=${userJson.queue
+                    `/api/songs1?songs=${userJson.queue
                         .map((queueSong) => queueSong.song)
                         .join()}&p=id,name,artists,images,duration`
                 ).then((response) => {

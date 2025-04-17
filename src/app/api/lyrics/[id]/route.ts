@@ -51,7 +51,7 @@ export async function GET(
     ) as SongDB<"artists" | "name" | "lyrics" | "dynamicLyrics" | "albumName">;
 
     if (!song) {
-        return new Response("Song not found", { status: 404 });
+        return new NextResponse("Song not found", { status: 404 });
     }
 
     if (

@@ -22,11 +22,11 @@ export async function GET(request: NextRequest) {
                 )
             );
     } catch (err) {
-        return new Response(err?.toString(), { status: 404 });
+        return new NextResponse(err?.toString(), { status: 404 });
     }
 
     if (!playlists) {
-        return new Response("playlist not found", { status: 404 });
+        return new NextResponse("playlist not found", { status: 404 });
     }
 
     return NextResponse.json(playlists);

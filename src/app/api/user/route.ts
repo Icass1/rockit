@@ -27,7 +27,7 @@ export async function GET(request: Request) {
                 .get(session.user.id) as RawUserDB
         );
     } catch (err) {
-        return new Response(err?.toString(), { status: 404 });
+        return new NextResponse(err?.toString(), { status: 404 });
     }
 
     // @ts-expect-error Delete passwordHash

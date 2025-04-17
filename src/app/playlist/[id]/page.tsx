@@ -14,6 +14,7 @@ import { parseUser, RawUserDB, UserDB } from "@/lib/db/user";
 import { getImageUrl } from "@/lib/getImageUrl";
 import { getStats, SongForStats } from "@/lib/stats";
 import { SpotifyPlaylistImage } from "@/types/spotify";
+import { NextResponse } from "next/server";
 
 interface Playlist {
     name: string;
@@ -243,7 +244,7 @@ export default async function PlaylistPage({
     if (playlist) {
         inDatabase = true;
     } else {
-        return new Response(
+        return new NextResponse(
             JSON.stringify({
                 error: "",
             }),

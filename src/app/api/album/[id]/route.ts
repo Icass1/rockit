@@ -55,7 +55,7 @@ export async function GET(
     }
 
     if (!album) {
-        return new Response("Album not found", { status: 404 });
+        return new NextResponse("Album not found", { status: 404 });
     }
 
     const songs = await Promise.all(

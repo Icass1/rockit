@@ -22,7 +22,7 @@ export async function GET() {
     )?.lists;
 
     if (!userLists) {
-        return new Response("Fatal error, userLists is undefined");
+        return new NextResponse("Fatal error, userLists is undefined");
     }
 
     let playlists: PlaylistDB[] = [];

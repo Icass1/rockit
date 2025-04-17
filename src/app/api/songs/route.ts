@@ -23,13 +23,13 @@ export async function GET(request: NextRequest) {
             );
     } catch (err) {
         console.error("Error in /api/songs", err?.toString());
-        return new Response("Error: " + err?.toString(), { status: 404 });
+        return new NextResponse("Error: " + err?.toString(), { status: 404 });
     }
 
     if (!songs) {
         console.error("Error in /api/songs songs is undefined");
 
-        return new Response("Song not found", { status: 404 });
+        return new NextResponse("Song not found", { status: 404 });
     }
 
     return NextResponse.json(songs);

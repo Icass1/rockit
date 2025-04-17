@@ -22,7 +22,7 @@ export async function GET() {
             }
         );
     } catch {
-        return new Response("Error connecting to backend", { status: 500 });
+        return new NextResponse("Error connecting to backend", { status: 500 });
     }
 
     return response;

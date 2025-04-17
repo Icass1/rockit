@@ -87,11 +87,9 @@ export async function GET(request: Request) {
             return Math.random() - 0.5;
         } else if (sortBy === "timesPlayed") {
             if (a.timesPlayed === undefined) {
-                console.error("Times played is undefined 1");
                 a.timesPlayed = 0;
             }
             if (b.timesPlayed === undefined) {
-                console.error("Times played is undefined 2");
                 b.timesPlayed = 0;
             }
             return b.timesPlayed - a.timesPlayed;

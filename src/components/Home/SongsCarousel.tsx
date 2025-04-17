@@ -101,7 +101,7 @@ function Song({
                         fallback: song.images[0]?.url,
                         placeHolder: "/song-placeholder.png",
                     })}
-                    className={`${transition} relative top-1/2 -translate-y-1/2`}
+                    className={`${transition} relative top-1/2 -translate-y-1/2 aspect-square h-auto w-full`}
                     style={{ filter: `brightness(${brightness})` }}
                 />
                 <div

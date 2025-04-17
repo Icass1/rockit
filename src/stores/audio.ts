@@ -216,31 +216,39 @@ fetch(
                     `/api/songs?songs=${userJson.queue
                         .map((queueSong) => queueSong.song)
                         .join()}&p=id,name,artists,images,duration`
-                ).then((response) =>
-                    response.json().then((queueSongs: QueueSong[]) => {
-                        queue.set(
-                            userJson.queue
-                                .map((queueSong) => {
-                                    const songInfo = queueSongs
-                                        .filter((song) => song)
-                                        .find(
-                                            (song) => song.id == queueSong.song
-                                        );
+                ).then((response) => {
+                    if (response.ok) {
+                        response.json().then((queueSongs: QueueSong[]) => {
+                            queue.set(
+                                userJson.queue
+                                    .map((queueSong) => {
+                                        const songInfo = queueSongs
+                                            .filter((song) => song)
+                                            .find(
+                                                (song) =>
+                                                    song.id == queueSong.song
+                                            );
 
-                                    if (!songInfo) {
-                                        return undefined;
-                                    }
+                                        if (!songInfo) {
+                                            return undefined;
+                                        }
 
-                                    return {
-                                        song: songInfo,
-                                        list: queueSong.list,
-                                        index: queueSong.index,
-                                    };
-                                })
-                                .filter((song) => typeof song != "undefined")
-                        );
-                    })
-                );
+                                        return {
+                                            song: songInfo,
+                                            list: queueSong.list,
+                                            index: queueSong.index,
+                                        };
+                                    })
+                                    .filter(
+                                        (song) => typeof song != "undefined"
+                                    )
+                            );
+                        });
+                    } else {
+                        console.error("Error getting songs info");
+                        queue.set([]);
+                    }
+                });
             } else {
                 queue.set([]);
             }

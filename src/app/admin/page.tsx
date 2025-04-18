@@ -2,6 +2,7 @@ import { getSession } from "@/lib/auth/getSession";
 import { db } from "@/lib/db/db";
 import { ErrorDB } from "@/lib/db/error";
 import { Link as LinkIcon } from "lucide-react";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
 export default async function AdminPage() {
@@ -44,9 +45,9 @@ export default async function AdminPage() {
                         <label>Users</label>
                     </div>
                     <div className="h-full"></div>
-                    <a href="/admin/user" className="relative w-full">
+                    <Link href="/admin/user" className="relative w-full">
                         <LinkIcon className="relative right-0 ml-auto" />
-                    </a>
+                    </Link>
                 </div>
                 <div className="flex flex-col items-center rounded bg-neutral-700 p-2">
                     <label className="w-full text-lg font-semibold">
@@ -66,9 +67,9 @@ export default async function AdminPage() {
                         <label>Songs with lyrics</label>
                     </div>
                     <div className="h-full"></div>
-                    <a href="/admin/songs" className="relative w-full">
+                    <Link href="/admin/songs" className="relative w-full">
                         <LinkIcon className="relative right-0 ml-auto" />
-                    </a>
+                    </Link>
                 </div>
 
                 <div className="flex flex-col items-center rounded bg-neutral-700 p-2">
@@ -95,9 +96,9 @@ export default async function AdminPage() {
                         <label>Playlists</label>
                     </div>
                     <div className="h-full"></div>
-                    <a href="/admin/lists" className="relative w-full">
+                    <Link href="/admin/lists" className="relative w-full">
                         <LinkIcon className="relative right-0 ml-auto" />
-                    </a>
+                    </Link>
                 </div>
 
                 <div className="flex flex-col items-center rounded bg-neutral-700 p-2">
@@ -125,9 +126,9 @@ export default async function AdminPage() {
                         <label>Erros since last week</label>
                     </div>
                     <div className="h-full"></div>
-                    <a href="/admin/error" className="relative w-full">
+                    <Link href="/admin/error" className="relative w-full">
                         <LinkIcon className="relative right-0 ml-auto" />
-                    </a>
+                    </Link>
                 </div>
                 <div className="flex flex-col items-center rounded bg-neutral-700 p-2">
                     <label className="w-full text-lg font-semibold">DB</label>
@@ -145,7 +146,7 @@ export default async function AdminPage() {
                                 .all().length;
 
                             return (
-                                <a
+                                <Link
                                     key={table.name}
                                     href={`/admin/db/${table.name}`}
                                     className="flex flex-row items-baseline justify-between gap-x-1 text-sm"
@@ -156,15 +157,15 @@ export default async function AdminPage() {
                                     <label className={gradientTextClass}>
                                         {count}
                                     </label>
-                                </a>
+                                </Link>
                             );
                         })}
                     </div>
 
                     <div className="h-full"></div>
-                    <a href="/admin/db" className="relative w-full">
+                    <Link href="/admin/db" className="relative w-full">
                         <LinkIcon className="relative right-0 ml-auto" />
-                    </a>
+                    </Link>
                 </div>
             </div>
             <div className="min-h-10" />

@@ -4,9 +4,13 @@ import Image from "@/components/Image";
 import HeaderUser from "@/components/Header/HeaderUser";
 import { getSession } from "@/lib/auth/getSession";
 import AddSessionProvider from "@/components/AddSessionProvider";
+import { headers } from "next/headers";
 
 export default async function Header() {
     const session = await getSession();
+
+    const headerList = await headers();
+    const pathname = headerList.get("x-current-path");
 
     return (
         <header
@@ -23,7 +27,7 @@ export default async function Header() {
                 />
             </Link>
 
-            <SearchBar />
+            {pathname?.startsWith("/radio") ? <label></label> : <SearchBar />}
 
             <div className="relative ml-auto">
                 {session?.user ? (

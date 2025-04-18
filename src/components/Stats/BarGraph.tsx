@@ -74,7 +74,7 @@ export default function BarGraph({
             clearTimeout(enteringTimeout);
             clearTimeout(exitingTimeout);
         };
-    }, [propItems]);
+    }, [propItems, localItems]);
 
     return (
         <div className="h-[450px] overflow-hidden rounded-lg bg-neutral-800 p-2 md:w-96">

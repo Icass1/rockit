@@ -297,6 +297,7 @@ const fromNetwork = async (request, timeout) => {
     if (
         url.pathname.startsWith("/api") &&
         !url.pathname.startsWith("/api/error/new") &&
+        !url.pathname.startsWith("/api/proxy") &&
         !url.pathname.startsWith("/api/song/audio") &&
         !url.pathname.startsWith("/api/image/") &&
         !url.pathname.startsWith("/api/user/set-lang")
@@ -331,8 +332,7 @@ const fromNetwork = async (request, timeout) => {
 
             throw networkError; // No cache available
         }
-    }
-    if (
+    } else if (
         url.pathname.startsWith("/api/image/") &&
         !url.pathname.startsWith("/api/image/blur/")
     ) {

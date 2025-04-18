@@ -11,7 +11,7 @@ export default function Image(
     props: DetailedHTMLProps<
         ImgHTMLAttributes<HTMLImageElement>,
         HTMLImageElement
-    >
+    > & { fallback?: string }
 ) {
     const { className = "", src, alt, ...rest } = props;
     const [loaded, setLoaded] = useState(false);
@@ -24,21 +24,38 @@ export default function Image(
         if (src) {
             setLoaded(false);
 
-            fetch(src)
-                .then((res) => res.blob())
-                .then((blob) => {
-                    if (!isMounted) return;
-                    objectUrlRef = URL.createObjectURL(blob);
-                    setObjectUrl(objectUrlRef);
-                    setLoaded(true);
-                });
+            fetch(src).then((res) => {
+                if (res.ok) {
+                    res.blob().then((blob) => {
+                        if (!isMounted) return;
+                        objectUrlRef = URL.createObjectURL(blob);
+                        setObjectUrl(objectUrlRef);
+                        setLoaded(true);
+                    });
+                } else {
+                    console.warn("Image couldn't be loaded");
+                    if (props.fallback) {
+                        fetch(props.fallback).then((res) => {
+                            if (res.ok) {
+                                res.blob().then((blob) => {
+                                    if (!isMounted) return;
+                                    objectUrlRef = URL.createObjectURL(blob);
+                                    setObjectUrl(objectUrlRef);
+                                    setLoaded(true);
+                                });
+                            } else {
+                            }
+                        });
+                    }
+                }
+            });
         }
 
         return () => {
             isMounted = false;
             if (objectUrlRef) URL.revokeObjectURL(objectUrlRef);
         };
-    }, [src]);
+    }, [src, props.fallback]);
 
     const combinedClassName = `${className} overflow-hidden`;
 

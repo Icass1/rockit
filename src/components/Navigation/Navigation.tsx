@@ -67,7 +67,6 @@ export default function Navigation() {
             title: $lang.radio,
             href: "/radio",
             icon: RadioTower,
-            disabled: true,
         },
         {
             name: "Stats",

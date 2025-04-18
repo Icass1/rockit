@@ -3,9 +3,9 @@
 import { db } from "@/lib/db/db";
 import { generateId } from "@/lib/generateId";
 import { hash } from "@node-rs/argon2";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
     const { username, password, repeatPassword } = await request.json();
 
     if (

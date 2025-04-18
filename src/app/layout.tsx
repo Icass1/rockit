@@ -90,7 +90,7 @@ export default async function RootLayout({
                         <Image
                             src="/logo-banner.png"
                             alt="App Logo"
-                            className="mx-auto my-2 h-14 object-contain"
+                            className="mx-auto my-2 aspect-[2048/614] h-14 object-contain"
                         />
                     </Link>
                 </div>

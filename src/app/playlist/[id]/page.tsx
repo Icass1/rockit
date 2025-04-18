@@ -186,7 +186,7 @@ export async function generateMetadata({
 }: {
     params: Promise<{ id: string }>;
 }) {
-    const { id } = await params; // No need for await here
+    const { id } = await params;
     const playlist = await getPlaylist(id);
 
     if (!playlist) {

@@ -804,8 +804,6 @@ async function startSocket() {
 
     const session = await getSession();
 
-    console.log(session);
-
     if (!session) return;
 
     if (!window.navigator.onLine) return;

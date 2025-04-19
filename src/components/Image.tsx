@@ -11,7 +11,7 @@ export default function Image(
     props: DetailedHTMLProps<
         ImgHTMLAttributes<HTMLImageElement>,
         HTMLImageElement
-    > & { fallback?: string }
+    > & { fallback?: string; imageClassName?: string }
 ) {
     const { className = "", src, alt, ...rest } = props;
     const [loaded, setLoaded] = useState(false);
@@ -66,7 +66,7 @@ export default function Image(
                 <img
                     src={objectUrl}
                     alt={alt}
-                    className="relative h-full w-full"
+                    className={"relative h-full w-full " + props.imageClassName}
                 />
             )}
         </div>

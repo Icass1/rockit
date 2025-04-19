@@ -75,19 +75,12 @@ export const nextAuthOptions: AuthOptions = {
         async session({ session, token }: { session: Session; token: JWT }) {
             // Send properties to the client
             if (token) {
-                if (session.user) {
-                    session.user.id = token.id;
-                    session.user.username = token.username;
-                    session.user.lang = token.lang;
-                    session.user.admin = token.admin;
-                } else {
-                    session.user = {
-                        id: token.id,
-                        username: token.username,
-                        admin: token.admin,
-                        lang: token.lang,
-                    };
-                }
+                session.user = {
+                    id: token.id,
+                    username: token.username,
+                    admin: token.admin,
+                    lang: token.lang,
+                };
             }
             return session;
         },

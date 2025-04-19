@@ -42,6 +42,7 @@ import {
 } from "@/components/ListHeader/ListOptions";
 import Image from "@/components/Image";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 interface EventSourceStatus {
     message: string;
@@ -103,7 +104,7 @@ function RenderListDownload({
                     className="aspect-square h-full w-auto rounded object-cover"
                 />
                 <div className="flex w-full max-w-full min-w-0 flex-col pr-1">
-                    <a
+                    <Link
                         onClick={() => {
                             setOpen(false);
                         }}
@@ -116,7 +117,7 @@ function RenderListDownload({
                         }
                     >
                         {list[1].listInfo.name}
-                    </a>
+                    </Link>
                     <label className="truncate text-sm">
                         {list[1].listInfo.artists
                             .map((artist) => artist.name || artist)
@@ -183,7 +184,7 @@ function RenderListDownload({
                             }}
                         >
                             <div className="flex w-full max-w-full min-w-0 flex-col p-1 px-2">
-                                <a
+                                <Link
                                     className="max-w-full min-w-0 truncate"
                                     href={
                                         songStatus[1].song?.id
@@ -192,7 +193,7 @@ function RenderListDownload({
                                     }
                                 >
                                     {songStatus[1].song?.name}
-                                </a>
+                                </Link>
                                 <div className="grid w-full grid-cols-[1fr_max-content] items-center gap-x-2">
                                     <div
                                         className={
@@ -233,7 +234,7 @@ function RenderSongDownload({
     setOpen: Dispatch<React.SetStateAction<boolean>>;
 }) {
     return (
-        <a
+        <Link
             className="flex h-14 min-h-14 cursor-pointer flex-row gap-x-2 overflow-hidden rounded bg-zinc-400/10 md:hover:bg-zinc-400/30"
             href={`/song/${songStatus[1].song.id}`}
             onClick={() => {
@@ -280,7 +281,7 @@ function RenderSongDownload({
                     </label>
                 </div>
             </div>
-        </a>
+        </Link>
     );
 }
 

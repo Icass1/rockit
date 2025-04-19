@@ -11,6 +11,7 @@ import { langData } from "@/stores/lang";
 import { useStore } from "@nanostores/react";
 import { ChartLine, ImageUp } from "lucide-react";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 function DisplayName() {
@@ -107,13 +108,13 @@ export default function Settings() {
                             <LogOutButton />
 
                             {/* Botón de estadísticas */}
-                            <a
+                            <Link
                                 className="flex w-40 items-center justify-center gap-2 rounded-lg bg-blue-700 py-2 font-bold text-white shadow-md transition duration-300 hover:bg-blue-900 md:hidden"
                                 href="/stats"
                             >
                                 <ChartLine className="h-5 w-5" />
                                 See User Stats
-                            </a>
+                            </Link>
                         </div>
                     </div>
 

@@ -15,6 +15,7 @@ import { useState } from "react";
 import { getImageUrl } from "@/lib/getImageUrl";
 import Image from "@/components/Image";
 import SongPopupMenu from "@/components/ListSongs/SongPopupMenu";
+import Link from "next/link";
 
 function FooterLeftForSong({ currentSong }: { currentSong: CurrentSong }) {
     return (
@@ -37,7 +38,7 @@ function FooterLeftForSong({ currentSong }: { currentSong: CurrentSong }) {
             {/* Parte central que se estira */}
             <div className="flex min-w-0 flex-1 flex-col">
                 <span className="flex flex-row items-center gap-3 font-semibold">
-                    <a
+                    <Link
                         href={`/song/${currentSong?.id}`}
                         onClick={() => {
                             isPlayerUIVisible.set(false);
@@ -45,7 +46,7 @@ function FooterLeftForSong({ currentSong }: { currentSong: CurrentSong }) {
                         className="line-clamp-1 truncate md:hover:underline"
                     >
                         {currentSong?.name || "Canción desconocida :("}
-                    </a>
+                    </Link>
                 </span>
                 <span
                     className="flex w-full flex-row gap-x-1 text-sm text-gray-400"
@@ -53,10 +54,10 @@ function FooterLeftForSong({ currentSong }: { currentSong: CurrentSong }) {
                         isPlayerUIVisible.set(false);
                     }}
                 >
-                    <div className="flex-0 shrink-0 truncate md:max-w-[50%]">
+                    <div className="flex-0 shrink-0 truncate">
                         {currentSong?.artists ? (
                             currentSong?.artists?.map((artist, index) => (
-                                <a
+                                <Link
                                     href={`/artist/${artist.id}`}
                                     className="md:hover:underline"
                                     key={index}
@@ -65,19 +66,19 @@ function FooterLeftForSong({ currentSong }: { currentSong: CurrentSong }) {
                                     {index < currentSong.artists.length - 1
                                         ? ","
                                         : ""}
-                                </a>
+                                </Link>
                             ))
                         ) : (
                             <div>Artista desconocido</div>
                         )}
                     </div>
                     <span className="hidden select-none md:block">•</span>
-                    <a
+                    <Link
                         href={`/album/${currentSong?.albumId}`}
                         className="hidden truncate hover:underline md:inline-block"
                     >
                         {currentSong?.albumName || "Album desconocido"}
-                    </a>
+                    </Link>
                 </span>
             </div>
 

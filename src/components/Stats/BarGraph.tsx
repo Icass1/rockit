@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useEffect } from "react";
 
 interface Item {
@@ -102,12 +103,12 @@ export default function BarGraph({
                                 style={{ top: `${top}px` }}
                             >
                                 {/* Rest of the component remains unchanged */}
-                                <a
+                                <Link
                                     href={item.href}
                                     className="truncate md:hover:underline"
                                 >
                                     {item.name}
-                                </a>
+                                </Link>
                                 <div className="relative ml-auto flex w-full max-w-full min-w-0 flex-row items-center">
                                     <div
                                         className="block h-1 rounded bg-gradient-to-r from-[#ee1086] to-[#fb6467] transition-[width] duration-1000"

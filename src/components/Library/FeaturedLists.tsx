@@ -166,7 +166,7 @@ export function FeaturedLists() {
                         </label>
                     </Link>
                 ))}
-                <a className="min-h-1 min-w-1 text-transparent">a</a>
+                <div className="min-h-1 min-w-1 text-transparent">a</div>
             </div>
         </section>
     );

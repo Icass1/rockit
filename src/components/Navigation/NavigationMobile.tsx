@@ -12,6 +12,7 @@ import {
 import { langData } from "@/stores/lang";
 import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
+import Link from "next/link";
 
 export default function NavigationMobile() {
     const session = useSession();
@@ -68,7 +69,7 @@ export default function NavigationMobile() {
             {pages
                 .filter((page) => typeof page != "undefined")
                 .map((page) => (
-                    <a
+                    <Link
                         key={page.href}
                         href={page.href}
                         title={page.title}
@@ -85,9 +86,9 @@ export default function NavigationMobile() {
                         <div className="flex h-8 w-8 items-center justify-center">
                             <page.icon className="h-[1.35rem] w-[1.35rem]" />
                         </div>
-                    </a>
+                    </Link>
                 ))}
-            <a
+            <Link
                 href="/settings"
                 title="Settings"
                 className={`mr-2 ml-2 flex h-full w-full items-center justify-center gap-2 rounded-md transition-all ${
@@ -99,7 +100,7 @@ export default function NavigationMobile() {
                 <div className="flex h-8 w-8 items-center justify-center">
                     <Settings className="h-[1.35rem] w-[1.35rem]" />
                 </div>
-            </a>
+            </Link>
         </div>
     );
 }

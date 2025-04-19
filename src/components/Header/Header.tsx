@@ -35,9 +35,12 @@ export default async function Header() {
                         <HeaderUser />
                     </AddSessionProvider>
                 ) : (
-                    <a className="rounded bg-green-600 p-1 px-4" href="/login">
+                    <Link
+                        className="rounded bg-green-600 p-1 px-4"
+                        href="/login"
+                    >
                         Login
-                    </a>
+                    </Link>
                 )}
             </div>
         </header>

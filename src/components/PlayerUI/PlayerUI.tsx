@@ -14,6 +14,7 @@ import { getImageUrl } from "@/lib/getImageUrl";
 import { QueueSong } from "./QueueSong";
 import { DynamicLyrics } from "./DynamicLyrics";
 import Image from "@/components/Image";
+import Link from "next/link";
 
 export default function PlayerUI() {
     // Estas dos cosas son para el mockup del related
@@ -190,13 +191,13 @@ export default function PlayerUI() {
                             <span>•</span>
                             {$currentSong?.artists &&
                             $currentSong.artists.length > 0 ? (
-                                <a
+                                <Link
                                     href={`/artist/${$currentSong.artists[0].id}`}
                                     className="truncate md:hover:underline"
                                     key={$currentSong.artists[0].id}
                                 >
                                     {$currentSong.artists[0].name}
-                                </a>
+                                </Link>
                             ) : (
                                 <span>Artista desconocido</span>
                             )}
@@ -374,7 +375,7 @@ export default function PlayerUI() {
                                                 {Array.from({
                                                     length: songsPerColumn,
                                                 }).map((_, songIndex) => (
-                                                    <a
+                                                    <Link
                                                         href="#"
                                                         key={songIndex}
                                                         className="flex h-fit items-center gap-2 rounded-lg p-2 transition hover:bg-zinc-800"
@@ -416,7 +417,7 @@ export default function PlayerUI() {
                                                                     1}
                                                             </span>
                                                         </div>
-                                                    </a>
+                                                    </Link>
                                                 ))}
                                             </div>
                                         ))}
@@ -453,7 +454,7 @@ export default function PlayerUI() {
                                     <h2 className="pt-7 text-left text-2xl font-bold">
                                         Song / Artist Description
                                     </h2>
-                                    <a className="line-clamp-4 px-5 pt-2 text-justify">
+                                    <Link className="line-clamp-4 px-5 pt-2 text-justify">
                                         Lorem ipsum dolor sit amet, consectetur
                                         adipiscing elit, sed do eiusmod tempor
                                         incididunt ut labore et dolore magna
@@ -466,7 +467,7 @@ export default function PlayerUI() {
                                         occaecat cupidatat non proident, sunt in
                                         culpa qui officia deserunt mollit anim
                                         id est laborum.
-                                    </a>
+                                    </Link>
                                 </section>
                             </>
                         )}

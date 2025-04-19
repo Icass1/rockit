@@ -318,7 +318,7 @@ const fromNetwork = async (request, timeout) => {
 
             return networkResponse;
         } catch (networkError) {
-            console.log(
+            console.debug(
                 "Network failed, trying cache...",
                 url.pathname + url.search,
                 networkError
@@ -435,7 +435,7 @@ const fromNetwork = async (request, timeout) => {
 const fromCache = (request) => {
     const url = new URL(request.url);
 
-    console.log("fromCache", url);
+    console.debug("fromCache", url);
 
     return new Promise(async (resolve) => {
         // Fix 2: Correct RockItDatabase existence check
@@ -452,27 +452,27 @@ const fromCache = (request) => {
         }
 
         if (url.searchParams.get("_rsc")) {
-            console.log(url.pathname, url.searchParams.get("_rsc"));
+            console.debug(url.pathname, url.searchParams.get("_rsc"));
 
             let getRequest;
 
             if (request.headers.get("next-router-prefetch") == "1") {
-                console.log("next-router-prefetch");
+                console.debug("next-router-prefetch");
                 getRequest = RockItDatabase.transaction("rsc")
                     .objectStore("rsc")
                     .get(url.pathname + "next-router-prefetch");
             } else {
-                console.log("no next-router-prefetch");
+                console.debug("no next-router-prefetch");
 
                 getRequest = RockItDatabase.transaction("rsc")
                     .objectStore("rsc")
                     .get(url.pathname);
             }
 
-            console.log(getRequest);
+            console.debug(getRequest);
 
             getRequest.onsuccess = (event) => {
-                console.log("getrequest.onsuccess", event.target.result);
+                console.debug("getrequest.onsuccess", event.target.result);
                 resolve(
                     event.target.result
                         ? new Response(event.target.result.fileContent, {
@@ -498,7 +498,7 @@ const fromCache = (request) => {
                     .objectStore("file")
                     .get(url.pathname);
             } catch (error) {
-                console.log("RockItDatabase error, reopening...", error);
+                console.debug("RockItDatabase error, reopening...", error);
                 try {
                     RockItDatabase = await openRockItIndexedDB();
                     getRequest = RockItDatabase.transaction("file")

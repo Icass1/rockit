@@ -11,6 +11,7 @@ import {
 } from "react";
 import stringSimilarity from "@/lib/stringSimilarity";
 import Image from "@/components/Image";
+import Link from "next/link";
 
 function Result({
     image,
@@ -32,7 +33,7 @@ function Result({
         event.preventDefault();
     };
     return (
-        <a
+        <Link
             className={
                 "flex h-full cursor-pointer flex-row items-center gap-x-2 overflow-hidden rounded bg-zinc-700 transition-colors md:hover:bg-zinc-500/60 " +
                 (artistsOrOwner == "" ? " rounded-l-[70px] rounded-r-lg" : " ")
@@ -41,14 +42,17 @@ function Result({
                 .replace("https://open.spotify.com", "")
                 .replace("track", "song")}
         >
-            <Image
-                alt={name}
-                className={
-                    "aspect-square h-full w-auto object-cover object-center " +
-                    (artistsOrOwner == "" ? " rounded-full" : " ")
-                }
-                src={image}
-            />
+            <div className="aspect-square h-full w-auto">
+                <Image
+                    alt={name}
+                    imageClassName="object-cover"
+                    className={
+                        "h-full w-full " +
+                        (artistsOrOwner == "" ? " rounded-full" : " ")
+                    }
+                    src={image}
+                />
+            </div>
             <div className="flex w-full max-w-full min-w-0 flex-col text-white">
                 <label className="truncate text-base font-semibold">
                     {name}
@@ -63,7 +67,7 @@ function Result({
                     <DownloadCloud />
                 </div>
             )}
-        </a>
+        </Link>
     );
 }
 

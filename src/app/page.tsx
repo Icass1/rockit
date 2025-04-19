@@ -20,29 +20,27 @@ export default function Home() {
     const $lang = useStore(langData);
 
     useEffect(() => {
-        fetch("/api/stats?limit=20&sortBy=timePlayed&noRepeat=true&type=songs").then(
-            (response) => {
-                if (response.ok) {
-                    response.json().then((data) => setSongsByTimePlayed(data));
-                } else {
-                    console.warn("Error fetching songs by time played");
-                }
+        fetch(
+            "/api/stats?limit=20&sortBy=timePlayed&noRepeat=true&type=songs"
+        ).then((response) => {
+            if (response.ok) {
+                response.json().then((data) => setSongsByTimePlayed(data));
+            } else {
+                console.warn("Error fetching songs by time played");
             }
-        );
+        });
     }, []);
 
     useEffect(() => {
-        fetch("/api/stats?limit=40&sortBy=random&noRepeat=true&type=songs").then(
-            (response) => {
-                if (response.ok) {
-                    response
-                        .json()
-                        .then((data) => setRandomSongsLastMonth(data));
-                } else {
-                    console.warn("Error fetching songs");
-                }
+        fetch(
+            "/api/stats?limit=40&sortBy=random&noRepeat=true&type=songs"
+        ).then((response) => {
+            if (response.ok) {
+                response.json().then((data) => setRandomSongsLastMonth(data));
+            } else {
+                console.warn("Error fetching songs");
             }
-        );
+        });
     }, []);
 
     if (!$lang) return;

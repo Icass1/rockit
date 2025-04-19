@@ -454,7 +454,10 @@ export default function PlayerUI() {
                                     <h2 className="pt-7 text-left text-2xl font-bold">
                                         Song / Artist Description
                                     </h2>
-                                    <Link className="line-clamp-4 px-5 pt-2 text-justify">
+                                    <Link
+                                        href=""
+                                        className="line-clamp-4 px-5 pt-2 text-justify"
+                                    >
                                         Lorem ipsum dolor sit amet, consectetur
                                         adipiscing elit, sed do eiusmod tempor
                                         incididunt ut labore et dolore magna

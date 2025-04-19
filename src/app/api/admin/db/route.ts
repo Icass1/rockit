@@ -1,12 +1,12 @@
 import { getSession } from "@/lib/auth/getSession";
 import { db, type Column } from "@/lib/db/db";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function DELETE(request: NextRequest): Promise<Response> {
+export async function DELETE(request: NextRequest): Promise<NextResponse> {
     const session = await getSession();
 
     if (!session.user?.admin) {
-        return new Response("Not found", { status: 404 });
+        return new NextResponse("Not found", { status: 404 });
     }
 
     const data = (await request.json()) as {
@@ -18,16 +18,16 @@ export async function DELETE(request: NextRequest): Promise<Response> {
         db.prepare(
             `DELETE FROM ${data.table} WHERE ${data.primaryKey.column} = ?`
         ).run(data.primaryKey.value);
-        return new Response("OK");
+        return new NextResponse("OK");
     } catch (error) {
-        return new Response(error?.toString(), { status: 500 });
+        return new NextResponse(error?.toString(), { status: 500 });
     }
 }
 
-export async function PUT(request: NextRequest): Promise<Response> {
+export async function PUT(request: NextRequest): Promise<NextResponse> {
     const session = await getSession();
     if (!session.user?.admin) {
-        return new Response("Not found", { status: 404 });
+        return new NextResponse("Not found", { status: 404 });
     }
     const data = (await request.json()) as
         | {
@@ -51,9 +51,9 @@ export async function PUT(request: NextRequest): Promise<Response> {
                     .map(() => "?")
                     .join(",")})`
             ).run(...Object.values(data.fields));
-            return new Response("OK");
+            return new NextResponse("OK");
         } catch (error) {
-            return new Response(error?.toString(), { status: 500 });
+            return new NextResponse(error?.toString(), { status: 500 });
         }
     } else if (data?.type == "UPDATE") {
         try {
@@ -63,12 +63,12 @@ export async function PUT(request: NextRequest): Promise<Response> {
                 ...data.data.editedColumns.map((column) => column.newValue),
                 data.data.primaryKey.value
             );
-            return new Response("OK");
+            return new NextResponse("OK");
         } catch (error) {
-            return new Response(error?.toString(), { status: 500 });
+            return new NextResponse(error?.toString(), { status: 500 });
         }
     } else {
-        return new Response(
+        return new NextResponse(
             `Request type '${JSON.stringify(data)}' not implmented`,
             {
                 status: 400,
@@ -77,11 +77,11 @@ export async function PUT(request: NextRequest): Promise<Response> {
     }
 }
 
-export async function POST(request: NextRequest): Promise<Response> {
+export async function POST(request: NextRequest): Promise<NextResponse> {
     const session = await getSession();
 
     if (!session.user?.admin) {
-        return new Response("Not found", { status: 404 });
+        return new NextResponse("Not found", { status: 404 });
     }
     const data: {
         table: string;
@@ -147,7 +147,7 @@ export async function POST(request: NextRequest): Promise<Response> {
         .prepare(`PRAGMA table_info(${data.table})`)
         .all() as Column[];
 
-    return new Response(
+    return new NextResponse(
         JSON.stringify({
             totalRows: totalRows,
             offset: data.offset ?? 0,

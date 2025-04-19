@@ -16,8 +16,8 @@
       "console": "integratedTerminal"
     },
     {
-      "name": "Astro Server",
-      "command": "./node_modules/.bin/astro dev",
+      "name": "NextJS Server",
+      "command": "./node_modules/.bin/next dev",
       "request": "launch",
       "type": "node-terminal"
     }

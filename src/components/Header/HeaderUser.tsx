@@ -7,7 +7,7 @@ import {
     PopupMenuOption,
     PopupMenuTrigger,
 } from "@/components/PopupMenu/PopupMenu";
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Image from "@/components/Image";
 
@@ -16,9 +16,7 @@ export default function HeaderUser() {
     const router = useRouter();
 
     const handleLogOut = () => {
-        fetch("/api/logout").then(() => {
-            router.push("/login");
-        });
+        signOut();
     };
 
     return (

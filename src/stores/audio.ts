@@ -808,7 +808,7 @@ async function startSocket() {
 
     if (!window.navigator.onLine) return;
     if (location.protocol == "https:") {
-        websocket = new WebSocket(`wss://${location.hostname}:3001/ws`);
+        websocket = new WebSocket(`wss://${location.hostname}/ws`);
     } else {
         websocket = new WebSocket(`ws://${location.hostname}:3001/ws`);
     }

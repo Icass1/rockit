@@ -27,7 +27,7 @@ services:
       - <path to temp dir>:/temp
       - <path to logs dir>:/logs
       - <path to images dir>:/images
-  astro-frontend:
+  nextjs-frontend:
     container_name: "RockIt Frontend"
     build:
       context: .

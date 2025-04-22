@@ -6,7 +6,7 @@ import { langData } from "@/stores/lang";
 import { likedSongs } from "@/stores/likedList";
 import { networkStatus } from "@/stores/networkStatus";
 import { useStore } from "@nanostores/react";
-import type { ReactNode } from "react";
+import { type ReactNode } from "react";
 import {
     PopupMenu,
     PopupMenuContent,
@@ -22,6 +22,7 @@ import {
     ListStart,
     ListX,
     Pause,
+    Pickaxe,
     PlayCircle,
     Share2,
 } from "lucide-react";
@@ -33,10 +34,12 @@ import {
     queue,
     queueIndex,
     saveSongToIndexedDB,
+    send,
 } from "@/stores/audio";
 import { songHandleClick } from "./HandleClick";
 import { downloads } from "@/stores/downloads";
 import { useRouter } from "next/navigation";
+import useDev from "@/hooks/useDev";
 
 export default function SongPopupMenu({
     children,
@@ -65,6 +68,8 @@ export default function SongPopupMenu({
     const offline = $networkStatus == "offline";
 
     const disable = song.path ? false : true;
+
+    const dev = useDev();
 
     if (!$lang) return;
 
@@ -347,6 +352,16 @@ export default function SongPopupMenu({
                     <Link className="h-5 w-5" />
                     {$lang.go_to_album}
                 </PopupMenuOption>
+                {dev && (
+                    <PopupMenuOption
+                        onClick={() => {
+                            send({ songEnded: song.id });
+                        }}
+                    >
+                        <Pickaxe className="h-5 w-5" />
+                        [Dev] Send song ended
+                    </PopupMenuOption>
+                )}
             </PopupMenuContent>
         </PopupMenu>
     );

@@ -69,7 +69,8 @@ export async function GET(request: Request) {
     const noRepeat: boolean | undefined =
         url.searchParams.get("noRepeat") === "true" ? true : undefined;
 
-    const stats = (await getStats(session?.user.id, start, end)) as ApiStats;
+    const stats = (await getStats(session?.user.id, start, end))
+        .stats as ApiStats;
 
     stats.songs.map((song) => {
         const result = stats.songs.find((findSong) => findSong.id == song.id);
@@ -82,7 +83,10 @@ export async function GET(request: Request) {
 
     stats.songs.sort((a, b) => {
         if (sortBy === "timePlayed") {
-            return a.timePlayed - b.timePlayed;
+            return (
+                new Date(b.timePlayed).getTime() -
+                new Date(a.timePlayed).getTime()
+            );
         } else if (sortBy === "random") {
             return Math.random() - 0.5;
         } else if (sortBy === "timesPlayed") {
@@ -115,10 +119,10 @@ export async function GET(request: Request) {
         return 0;
     });
 
-    if (noRepeat) {
-        stats.songs = stats.songs.filter((song) => {
-            return song.timesPlayed;
-        });
+    if (noRepeat || sortBy === "timesPlayed") {
+        stats.songs = [
+            ...new Map(stats.songs.map((song) => [song.id, song])).values(),
+        ];
     }
 
     if (limit == "0") limit = undefined;

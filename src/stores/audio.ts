@@ -112,7 +112,7 @@ export type SongDBWithBlob<
 
 const _queue: Queue | undefined = undefined;
 
-const send = (json: object) => {
+export const send = (json: object) => {
     if (websocket && websocket.OPEN == websocket.readyState) {
         websocket.send(JSON.stringify(json));
     } else {

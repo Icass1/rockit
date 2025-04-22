@@ -44,7 +44,7 @@ async function getPlaylist(id: string) {
             owner: "",
         };
     } else if (id == "most-listened") {
-        const stats = await getStats(session.user.id);
+        const { stats } = await getStats(session.user.id);
         let songs: SongForStats[] = [];
 
         stats.songs.forEach((song) => {
@@ -60,7 +60,6 @@ async function getPlaylist(id: string) {
                     albumId: song.albumId,
                     albumName: song.albumName,
                     duration: song.duration,
-                    images: song.images,
                     artists: song.artists,
                     image: song.image,
                 });
@@ -101,7 +100,7 @@ async function getPlaylist(id: string) {
 
         // console.log(start, end);
 
-        const stats = await getStats(session.user.id, start, end);
+        const { stats } = await getStats(session.user.id, start, end);
         let songs: SongForStats[] = [];
 
         stats.songs.forEach((song) => {
@@ -117,7 +116,6 @@ async function getPlaylist(id: string) {
                     albumId: song.albumId,
                     albumName: song.albumName,
                     duration: song.duration,
-                    images: song.images,
                     artists: song.artists,
                     image: song.image,
                 });
@@ -135,7 +133,7 @@ async function getPlaylist(id: string) {
             owner: "",
         };
     } else if (id == "recent-mix") {
-        const stats = await getStats(
+        const { stats } = await getStats(
             session.user.id,
             new Date().getTime() - 10 * 24 * 60 * 60 * 1000
         );
@@ -154,7 +152,6 @@ async function getPlaylist(id: string) {
                     albumId: song.albumId,
                     albumName: song.albumName,
                     duration: song.duration,
-                    images: song.images,
                     artists: song.artists,
                     image: song.image,
                 });

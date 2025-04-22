@@ -9,6 +9,7 @@ import {
     ListPlusIcon,
     ListStart,
     ListX,
+    Pickaxe,
     PlayCircle,
     Share2,
 } from "lucide-react";
@@ -20,7 +21,7 @@ import { likedSongs } from "@/stores/likedList";
 import type { SongDB } from "@/db/song";
 import { type ReactNode } from "react";
 import { useStore } from "@nanostores/react";
-import { queue, queueIndex, saveSongToIndexedDB } from "@/stores/audio";
+import { queue, queueIndex, saveSongToIndexedDB, send } from "@/stores/audio";
 import { currentList, currentListSongs } from "@/stores/currentList";
 import ContextMenuSplitter from "@/components/ContextMenu/Splitter";
 import { songHandleClick } from "./HandleClick";
@@ -33,6 +34,7 @@ import { networkStatus } from "@/stores/networkStatus";
 import { userLists } from "@/stores/userLists";
 import Image from "@/components/Image";
 import { useRouter } from "next/navigation";
+import useDev from "@/hooks/useDev";
 
 export default function SongContextMenu({
     children,
@@ -60,6 +62,8 @@ export default function SongContextMenu({
     const $userLists = useStore(userLists);
 
     const router = useRouter();
+
+    const dev = useDev();
 
     if (!$lang) return;
 
@@ -303,6 +307,17 @@ export default function SongContextMenu({
                     <Link className="h-5 w-5" />
                     {$lang.go_to_album}
                 </ContextMenuOption>
+                {dev && <ContextMenuSplitter />}
+                {dev && (
+                    <ContextMenuOption
+                        onClick={() => {
+                            send({ songEnded: song.id });
+                        }}
+                    >
+                        <Pickaxe className="h-5 w-5" />
+                        [Dev] Send song ended
+                    </ContextMenuOption>
+                )}
             </ContextMenuContent>
         </ContextMenu>
     );

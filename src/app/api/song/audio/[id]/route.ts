@@ -33,13 +33,42 @@ export async function GET(
 
         if (!range) {
             // No range specified: return full audio
-            const stream = fs.createReadStream(songPath);
+            const fileStream = fs.createReadStream(songPath);
 
             const readableStream = new ReadableStream({
                 start(controller) {
-                    stream.on("data", (chunk) => controller.enqueue(chunk));
-                    stream.on("end", () => controller.close());
-                    stream.on("error", (err) => controller.error(err));
+                    const onData = (
+                        chunk: Buffer<ArrayBufferLike> | string
+                    ) => {
+                        try {
+                            controller.enqueue(chunk);
+                        } catch {
+                            fileStream.destroy();
+                        }
+                    };
+
+                    const onEnd = () => {
+                        controller.close();
+                        cleanup();
+                    };
+
+                    const onError = (err: object) => {
+                        controller.error(err);
+                        cleanup();
+                    };
+
+                    const cleanup = () => {
+                        fileStream.off("data", onData);
+                        fileStream.off("end", onEnd);
+                        fileStream.off("error", onError);
+                    };
+
+                    fileStream.on("data", onData);
+                    fileStream.on("end", onEnd);
+                    fileStream.on("error", onError);
+                },
+                cancel() {
+                    fileStream.destroy();
                 },
             });
             return new NextResponse(readableStream, {

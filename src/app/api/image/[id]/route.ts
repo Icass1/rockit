@@ -9,7 +9,7 @@ export async function GET(
     req: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
-    const { id } = await params; // Get the dynamic "id" from the URL
+    const { id } = await params;
 
     const imageDB = db
         .prepare("SELECT * FROM image WHERE id = ?")
@@ -27,9 +27,36 @@ export async function GET(
 
         const readableStream = new ReadableStream({
             start(controller) {
-                fileStream.on("data", (chunk) => controller.enqueue(chunk));
-                fileStream.on("end", () => controller.close());
-                fileStream.on("error", (err) => controller.error(err));
+                const onData = (chunk: Buffer<ArrayBufferLike> | string) => {
+                    try {
+                        controller.enqueue(chunk);
+                    } catch {
+                        fileStream.destroy();
+                    }
+                };
+
+                const onEnd = () => {
+                    controller.close();
+                    cleanup();
+                };
+
+                const onError = (err: object) => {
+                    controller.error(err);
+                    cleanup();
+                };
+
+                const cleanup = () => {
+                    fileStream.off("data", onData);
+                    fileStream.off("end", onEnd);
+                    fileStream.off("error", onError);
+                };
+
+                fileStream.on("data", onData);
+                fileStream.on("end", onEnd);
+                fileStream.on("error", onError);
+            },
+            cancel() {
+                fileStream.destroy();
             },
         });
 
@@ -42,7 +69,7 @@ export async function GET(
             },
         });
     } catch (error) {
-        return new NextResponse(`Error reading image ${error?.toString()}`, {
+        return new NextResponse(`Error reading image: ${error?.toString()}`, {
             status: 500,
         });
     }

@@ -82,7 +82,7 @@ export async function GET(request: Request) {
 
     stats.songs.sort((a, b) => {
         if (sortBy === "timePlayed") {
-            return b.timePlayed - a.timePlayed;
+            return a.timePlayed - b.timePlayed;
         } else if (sortBy === "random") {
             return Math.random() - 0.5;
         } else if (sortBy === "timesPlayed") {

@@ -22,8 +22,8 @@ export default function StatsPage() {
     };
 
     return (
-        <div>
-            <div className="flex flex-col items-center justify-between space-y-4 pt-24 md:flex-row md:space-y-0">
+        <div className="flex h-full w-full flex-col overflow-y-auto pt-24">
+            <div className="flex flex-col items-center justify-between space-y-4 md:flex-row md:space-y-0">
                 {/* Encabezado dinámico */}
                 <h2 className="text-center text-2xl font-bold md:text-left">
                     {selectedSection === "user" && $lang.user_stats}
@@ -50,11 +50,12 @@ export default function StatsPage() {
                 </div>
             </div>
 
-            <div className="my-4">
-                <div id="dynamic-content">
+            <div className="my-4 h-full">
+                <div>
                     {selectedSection === "user" && (
                         <div>
                             <UserStats />
+                            <div className="min-h-24" />
                         </div>
                     )}
 

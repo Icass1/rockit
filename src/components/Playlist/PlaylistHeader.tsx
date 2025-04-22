@@ -10,22 +10,7 @@ import { Disc3, Heart, History } from "lucide-react";
 import PlayListButton from "@/components/ListHeader/PlayListButton";
 import Image from "@/components/Image";
 import { CSSProperties } from "react";
-
-function getMinutes(seconds: number) {
-    seconds = Math.round(seconds);
-
-    if (typeof seconds !== "number" || isNaN(seconds)) {
-        return "Invalid input";
-    }
-
-    // Calculate minutes and remaining seconds
-    const minutes = Math.floor(seconds / 60);
-
-    // Format the result with leading zeros
-    const formattedMinutes = String(minutes).padStart(2, "0");
-
-    return `${formattedMinutes}`;
-}
+import { getMinutes } from "@/lib/getTime";
 
 export default function PlaylistHeader({
     inDatabase,

@@ -57,11 +57,11 @@ export default function Home() {
                     className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:px-2"
                     style={{ scrollbarGutter: "stable both" }}
                 >
-                    {songsByTimePlayed.slice(0, 20).map((song) => (
+                    {songsByTimePlayed.map((song) => (
                         <RecentlyPlayedSong
                             key={song.id}
                             song={song}
-                            songs={songsByTimePlayed.slice(0, 20)}
+                            songs={songsByTimePlayed}
                         />
                     ))}
                 </div>

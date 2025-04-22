@@ -2,8 +2,11 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import Image from "../Image";
+import { getImageUrl } from "@/lib/getImageUrl";
 
 interface Item {
+    image?: string;
     name: string;
     href: string;
     value: number;
@@ -26,8 +29,6 @@ export default function BarGraph({
         );
     const totalValue = localItems.reduce((sum, item) => sum + item.value, 0);
     const maxValue = Math.max(...localItems.map((item) => item.value));
-
-    console.log(propItems);
 
     useEffect(() => {
         const prevItems = localItems;
@@ -75,10 +76,10 @@ export default function BarGraph({
             clearTimeout(enteringTimeout);
             clearTimeout(exitingTimeout);
         };
-    }, [propItems, localItems]);
+    }, [propItems]);
 
     return (
-        <div className="h-[450px] overflow-hidden rounded-lg bg-neutral-800 p-2 md:w-96">
+        <div className="h-[450px] overflow-hidden rounded-lg bg-neutral-800 p-2">
             <label className="text-lg font-semibold">{name}</label>
 
             <div className="relative w-full">
@@ -99,9 +100,23 @@ export default function BarGraph({
                             <div
                                 key={item.id} // Key remains stable based on id
                                 id={`${item.id}-${item.index}`}
-                                className="absolute grid w-full grid-cols-[1fr_1fr] justify-between gap-2 px-7 transition-[top] duration-1000 md:px-4"
+                                className="absolute grid w-full grid-cols-[min-content_1fr_1fr] items-center justify-between gap-2 px-7 transition-[top] duration-1000 md:px-2"
                                 style={{ top: `${top}px` }}
                             >
+                                {item.image ? (
+                                    <div className="aspect-square h-auto w-[20px]">
+                                        <Image
+                                            className="h-full w-full rounded-sm object-cover"
+                                            src={getImageUrl({
+                                                imageId: item.image,
+                                            })}
+                                            alt=""
+                                        />
+                                    </div>
+                                ) : (
+                                    <div></div>
+                                )}
+
                                 {/* Rest of the component remains unchanged */}
                                 <Link
                                     href={item.href}

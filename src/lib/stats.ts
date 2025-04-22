@@ -1,7 +1,7 @@
 import type { AlbumDB, ArtistDB } from "@/db/album";
 import { parseSong, type RawSongDB, type SongDB } from "@/db/song";
 import { parseUser, type RawUserDB } from "@/db/user";
-import { db } from "./db/db";
+import { db } from "@/db/db";
 
 interface AlbumForStats extends AlbumDB<"name" | "id" | "artists" | "image"> {
     timesPlayed: number;
@@ -19,11 +19,10 @@ export interface SongWithTimePlayed
         | "duration"
         | "name"
         | "image"
-        | "images"
         | "albumId"
         | "albumName"
     > {
-    timePlayed: number;
+    timePlayed: number | string;
 }
 
 export interface SongForStats
@@ -34,7 +33,6 @@ export interface SongForStats
         | "artists"
         | "albumId"
         | "albumName"
-        | "images"
         | "duration"
     > {
     timesPlayed: number;
@@ -51,7 +49,11 @@ export async function getStats(
     userId: string,
     start?: number | undefined,
     end?: number | undefined
-) {
+): Promise<{
+    stats: Stats;
+    newStart: string;
+    newEnd: string;
+}> {
     // **************************
     // Replace with SELECT lastPlayedSong FROM user WHERE id = ?     context.locals.user.id
     // const fileBuffer = await readFile("lastPlayedSongs.json", "utf-8");
@@ -63,9 +65,7 @@ export async function getStats(
         db
             .prepare("SELECT lastPlayedSong FROM user WHERE id = ?")
             .get(userId) as RawUserDB
-    )?.lastPlayedSong as {
-        [key: string]: number[];
-    };
+    )?.lastPlayedSong;
 
     // **************************
 
@@ -77,18 +77,21 @@ export async function getStats(
         | "albumId"
         | "albumName"
         | "image"
-        | "images"
     >[] = [];
 
     if (!lastPlayedSongs) {
-        return { songs: [], artists: [], albums: [] };
+        return {
+            stats: { songs: [], artists: [], albums: [] },
+            newStart: "",
+            newEnd: "",
+        };
     }
 
     Array(Math.floor(Object.keys(lastPlayedSongs).length / 900) + 1)
         .fill(0)
         .map((_, index) => {
             const query =
-                "SELECT id,artists,duration,name,albumId,albumName,image,images FROM song WHERE id = " +
+                "SELECT id,artists,duration,name,albumId,albumName,image FROM song WHERE id = " +
                 Object.keys(lastPlayedSongs)
                     .splice(index * 900, (index + 1) * 900)
                     .map((key) => `'${key}'`)
@@ -104,7 +107,6 @@ export async function getStats(
                         | "albumId"
                         | "albumName"
                         | "image"
-                        | "images"
                     >
             );
             songs = [...songs, ...tempSongs];
@@ -114,9 +116,30 @@ export async function getStats(
 
     // let notInDatabase = [];
 
+    // If start is not provided, start will be set to the first date in the lastPlayedSongs
+    // If end is not provided, end will be set to the last date in the lastPlayedSongs
+    let newStart: string = "";
+    let newEnd: string = "";
+
     Object.entries(lastPlayedSongs).map((entry) => {
         entry[1].map((time) => {
-            if ((start ? start < time : true) && (end ? time < end : true)) {
+            if (
+                (start ? start < new Date(time).getTime() : true) &&
+                (end ? new Date(time).getTime() < end : true)
+            ) {
+                if (
+                    !newStart ||
+                    new Date(time).getTime() < new Date(newStart).getTime()
+                ) {
+                    newStart = new Date(time).toISOString();
+                }
+                if (
+                    !newEnd ||
+                    new Date(time).getTime() > new Date(newEnd).getTime()
+                ) {
+                    newEnd = new Date(time).toISOString();
+                }
+
                 const song = songs.find((song) => song.id == entry[0]);
                 if (song) {
                     out.songs.push({
@@ -126,7 +149,6 @@ export async function getStats(
                         duration: song.duration,
                         name: song.name,
                         image: song.image,
-                        images: song.images,
                         albumId: song.albumId,
                         albumName: song.albumName,
                     });
@@ -199,8 +221,5 @@ export async function getStats(
         artist.index = sortedArtists.indexOf(artist);
     });
 
-    // out.artists.sort((a, b) => b.timesPlayed - a.timesPlayed);
-    out.songs.sort((a, b) => a.timePlayed - b.timePlayed);
-
-    return out;
+    return { stats: out, newStart, newEnd };
 }

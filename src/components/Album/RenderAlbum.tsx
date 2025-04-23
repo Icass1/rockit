@@ -25,7 +25,13 @@ export default function RenderAlbum({ _album }: { _album: GetAlbum }) {
 
     return (
         <div className="relative flex h-full w-full flex-col overflow-y-auto px-2 md:grid md:grid-cols-[min-content_1fr] md:px-0">
-            <div className="relative top-24 mx-4 flex h-full flex-col items-center justify-center gap-1 md:top-0 md:max-w-md">
+            <Image
+                showSkeleton={false}
+                src={`/api/image/blur/${album.image}`}
+                alt=""
+                className="fixed top-0 left-0 z-0 h-full w-full object-cover opacity-35"
+            />
+            <div className="relative top-24 z-10 mx-4 flex h-full flex-col items-center justify-center gap-1 md:top-0 md:max-w-md">
                 <div className="relative aspect-square h-72 overflow-hidden rounded-xl md:h-[40vh] md:rounded-md">
                     <Image
                         alt={album.name}
@@ -91,7 +97,7 @@ export default function RenderAlbum({ _album }: { _album: GetAlbum }) {
                 </label>
             </div>
 
-            <div className="mt-5 flex h-full w-full flex-col px-2 md:mt-0 md:overflow-auto md:px-6">
+            <div className="z-10 mt-5 flex h-full w-full flex-col px-2 md:mt-0 md:overflow-auto md:px-6">
                 <div className="min-h-24"></div>
 
                 {discs.map((discSongs, discIndex) => {

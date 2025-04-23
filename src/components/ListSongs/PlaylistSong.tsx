@@ -20,6 +20,7 @@ import {
 } from "@/components/PopupMenu/PopupMenu";
 import Image from "@/components/Image";
 import { useRouter } from "next/navigation";
+import "@/styles/Skeleton.css";
 
 export default function PlaylistSong({
     song,

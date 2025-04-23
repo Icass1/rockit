@@ -1,5 +1,7 @@
 "use client";
 
+import "@/styles/Skeleton.css";
+
 import {
     DetailedHTMLProps,
     ImgHTMLAttributes,
@@ -11,7 +13,7 @@ export default function Image(
     props: DetailedHTMLProps<
         ImgHTMLAttributes<HTMLImageElement>,
         HTMLImageElement
-    > & { fallback?: string; imageClassName?: string }
+    > & { fallback?: string; imageClassName?: string; showSkeleton?: boolean }
 ) {
     const { className = "", src, alt, ...rest } = props;
     const [loaded, setLoaded] = useState(false);
@@ -61,7 +63,15 @@ export default function Image(
 
     return (
         <div className={combinedClassName} {...rest}>
-            {!loaded && <div className="skeleton relative h-full w-full" />}
+            {!loaded && (
+                <div
+                    className={
+                        "relative h-full w-full " + (props.showSkeleton ?? true)
+                            ? "skeleton"
+                            : ""
+                    }
+                />
+            )}
             {objectUrl && (
                 <img
                     src={objectUrl}

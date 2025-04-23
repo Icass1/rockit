@@ -162,7 +162,7 @@ async function getPlaylist(id: string) {
             .slice(0, 50);
 
         playlist = {
-            name: "Most listened",
+            name: "Recent Mix",
             songs: songs,
             image: "",
             images: [{ url: "/song-placeholder.png", height: 1, width: 1 }],

@@ -309,6 +309,7 @@ export default async function PlaylistPage({
     return (
         <div className="relative flex h-full w-full flex-col gap-2 px-3 md:flex-row md:px-2">
             <Image
+                showSkeleton={false}
                 src={`/api/image/blur/${playlist.image}`}
                 alt=""
                 className="fixed top-0 left-0 h-full w-full object-cover opacity-35"

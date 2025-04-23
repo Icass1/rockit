@@ -23,7 +23,9 @@ function Bar({
 }) {
     const divRef = useRef<HTMLDivElement>(null);
 
-    const handleMouseEnter = () => {
+    const eventListenerAddedRef = useRef(false);
+
+    const handleMouseMove = () => {
         setOverlayData(entry.minutes.toString() + " Minutes");
         setOverlayTitle(
             `${getDateDDMMYYYY(entry.start)} - ${getDateDDMMYYYY(entry.end)}`
@@ -40,6 +42,7 @@ function Bar({
                 divRefRect.y + divRefRect.height < event.clientY
             ) {
                 setOverlayPos([0, 0]);
+                eventListenerAddedRef.current = false;
                 document.removeEventListener("mousemove", handleMouseMove);
                 return;
             }
@@ -51,13 +54,15 @@ function Bar({
             setOverlayPos([event.clientX - rect.x, event.clientY - rect.y]);
         };
 
+        if (eventListenerAddedRef.current) return;
+        eventListenerAddedRef.current = true;
         document.addEventListener("mousemove", handleMouseMove);
     };
 
     return (
         <div
             ref={divRef}
-            onMouseEnter={handleMouseEnter}
+            onMouseMove={handleMouseMove}
             className="absolute block -translate-x-1/2 bg-gradient-to-t from-[#ee1086] to-[#fb6467] transition-all duration-300 ease-in-out md:hover:brightness-150"
             style={{
                 left: `calc((100% ) / ${dataLength} * ${index}  + (100%) / ${dataLength} / 2)`,

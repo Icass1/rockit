@@ -86,7 +86,7 @@ export async function GET(request: Request) {
         }
     });
 
-    const maxGroups = 15;
+    const maxGroups = 13;
     const minGroups = 1;
 
     const hours = Math.round((end - start) / 1000 / 60 / 60);

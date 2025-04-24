@@ -53,7 +53,7 @@ export default function Navigation() {
             title: $lang.search,
             href: "/search",
             icon: Search,
-            disabled: true,
+            disabled: false,
         },
         {
             name: "Friends",

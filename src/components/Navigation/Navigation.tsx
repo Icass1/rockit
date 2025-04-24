@@ -60,7 +60,7 @@ export default function Navigation() {
             title: $lang.friends,
             href: "/friends",
             icon: Users,
-            disabled: true,
+            disabled: false,
         },
         {
             name: "Radio",

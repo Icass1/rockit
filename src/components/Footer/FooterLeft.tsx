@@ -43,7 +43,7 @@ function FooterLeftForSong({ currentSong }: { currentSong: CurrentSong }) {
                         onClick={() => {
                             isPlayerUIVisible.set(false);
                         }}
-                        className="line-clamp-1 truncate md:hover:underline"
+                        className="w-full max-w-full min-w-0 truncate md:hover:underline"
                     >
                         {currentSong?.name || "Canción desconocida :("}
                     </Link>
@@ -54,7 +54,7 @@ function FooterLeftForSong({ currentSong }: { currentSong: CurrentSong }) {
                         isPlayerUIVisible.set(false);
                     }}
                 >
-                    <div className="flex-0 shrink-0 truncate">
+                    <div className="truncate">
                         {currentSong?.artists ? (
                             currentSong?.artists?.map((artist, index) => (
                                 <Link

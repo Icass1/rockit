@@ -26,9 +26,16 @@
     },
     {
       "name": "NextJS Server",
-      "command": "./node_modules/.bin/next dev",
+      "type": "node",
       "request": "launch",
-      "type": "node-terminal"
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
     }
   ]
 }

@@ -1,10 +1,10 @@
-// src/app/not-found.tsx  (Con App Router)
+// rsc/app/500/page.tsx
 
 "use client";
 
 import Link from "next/link";
 
-export default function NotFoundPage() {
+export default function Error500Page() {
     return (
         <div className="w-full flex flex-col items-center justify-center relative select-none">
             <div className="w-full h-24"></div>

@@ -12,7 +12,7 @@ export default function Error500Page() {
                 <div className="flex flex-col md:flex-row items-center gap-8 h-auto">
                     {/* Texto principal */}
                     <div className="text-black text-center w-full">
-                        <h1 className="text-6xl md:text-9xl font-bold mb-4">404</h1>
+                        <h1 className="text-6xl md:text-9xl font-bold mb-4">500</h1>
                         <p className="text-xl md:text-3xl font-semibold mb-2 text-balance">
                             🎵 Whoops! Looks like this track is off-key :(
                         </p>

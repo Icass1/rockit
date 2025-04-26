@@ -1,0 +1,30 @@
+/* globals.css */
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes spin-decelerate {
+    0% {
+        transform: rotate(0deg);
+    }
+    50% {
+        transform: rotate(780deg);
+    }
+    100% {
+        transform: rotate(780deg);
+    }
+}
+
+.animate-spin-slow {
+    animation: spin 6s linear infinite;
+}
+
+.animate-spin-decelerate {
+    animation: spin-decelerate 4s cubic-bezier(0.5, 1, 0.75, 1) forwards;
+}  

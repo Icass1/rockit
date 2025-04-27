@@ -8,8 +8,6 @@ export async function POST(request: Request) {
 
     const session = await getSession();
 
-    console.warn("New error to check");
-
     const {
         msg,
         source,

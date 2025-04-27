@@ -8,6 +8,17 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(request: NextRequest) {
     const { username, password, repeatPassword } = await request.json();
 
+    if (password != repeatPassword) {
+        return NextResponse.json(
+            {
+                error: "Passwords do not match",
+            },
+            {
+                status: 400,
+            }
+        );
+    }
+
     if (
         typeof username !== "string" ||
         username.length < 3 ||
@@ -30,7 +41,7 @@ export async function POST(request: NextRequest) {
     ) {
         return NextResponse.json(
             {
-                error: "Invalid password",
+                error: "Invalid password. Minimun 6 characters",
             },
             {
                 status: 400,
@@ -38,11 +49,7 @@ export async function POST(request: NextRequest) {
         );
     }
 
-    console.log("app>api>auth>register>route.ts", {
-        username,
-        password,
-        repeatPassword,
-    });
+    // password -> $argon2id$v=19$m=19456,t=2,p=1$dOSvbt+FxuohFxwvaCQD0g$J1IDHFc3SUyAXknY0b0emBGQCU0xJFm6gXU2qgQBQ3g
 
     const passwordHash = await hash(password, {
         // recommended minimum parameters
@@ -51,6 +58,7 @@ export async function POST(request: NextRequest) {
         outputLen: 32,
         parallelism: 1,
     });
+
     const userId = generateId(16);
 
     const existingUser = db

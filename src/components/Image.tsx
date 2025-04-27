@@ -66,9 +66,8 @@ export default function Image(
             {!loaded && (
                 <div
                     className={
-                        "relative h-full w-full " + (props.showSkeleton ?? true)
-                            ? "skeleton"
-                            : ""
+                        "relative h-full w-full " +
+                        ((props.showSkeleton ?? true) ? "skeleton" : "")
                     }
                 />
             )}

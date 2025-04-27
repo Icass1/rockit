@@ -53,14 +53,14 @@ export default function Navigation() {
             title: $lang.search,
             href: "/search",
             icon: Search,
-            disabled: true,
+            disabled: false,
         },
         {
             name: "Friends",
             title: $lang.friends,
             href: "/friends",
             icon: Users,
-            disabled: true,
+            disabled: false,
         },
         {
             name: "Radio",

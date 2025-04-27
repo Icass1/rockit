@@ -71,7 +71,7 @@ def search():
 
     query = request.args.get('q')
     
-    search_results = spotify.api_call(path="search", params={"q": query, "type": "track,album,playlist,artist", "limit": "6"})
+    search_results = spotify.api_call(path="search", params={"q": query, "type": "track,album,playlist,artist", "limit": "20"})
 
     return {
         "songs": search_results["tracks"]["items"],

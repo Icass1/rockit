@@ -1,10 +1,11 @@
 "use client";
 
-import PictureInPictureImage from "@/components/PictureInPicture";
+import PictureInPictureImage from "@/components/Footer/PictureInPicture";
 import FooterLeft from "@/components/Footer/FooterLeft";
 import FooterCenter from "@/components/Footer/FooterCenter";
-import VolumeSlider from "@/components//VolumeSlider";
-import TogglePlayerUI from "@/components//TogglePlayerUI";
+import VolumeSlider from "@/components/Footer/VolumeSlider";
+import TogglePlayerUI from "@/components/Footer/TogglePlayerUI";
+import Devices from "@/components/Footer/Devices";
 
 export default function Footer() {
     return (
@@ -18,6 +19,7 @@ export default function Footer() {
                 <FooterCenter></FooterCenter>
 
                 <div className="group hidden h-full w-1/3 items-center justify-end gap-x-5 md:flex">
+                    <Devices></Devices>
                     <PictureInPictureImage />
                     <VolumeSlider />
                     <TogglePlayerUI />

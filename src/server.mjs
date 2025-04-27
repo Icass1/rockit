@@ -8,94 +8,21 @@ const wss = new WebSocketServer({ port: 3001 });
 
 console.log("WebSocket server started on ws://localhost:3001");
 
-function onMessage(userId, json) {
-    if (json.currentSong != undefined) {
-        db.prepare(`UPDATE user SET currentSong = ? WHERE id = ?`).run(
-            json.currentSong == "" ? undefined : json.currentSong,
-            userId
-        );
-        db.prepare(`UPDATE user SET currentStation = ? WHERE id = ?`).run(
-            undefined,
-            userId
-        );
-    } else if (json.currentStation != undefined) {
-        db.prepare(`UPDATE user SET currentStation = ? WHERE id = ?`).run(
-            json.currentStation,
-            userId
-        );
-        db.prepare(`UPDATE user SET currentSong = ? WHERE id = ?`).run(
-            undefined,
-            userId
-        );
-    } else if (json.currentTime != undefined) {
-        // if (allConections[userId].playing == socket) {
-        //     allConections[userId].connections
-        //         ?.filter((conn) => conn.socket != socket)
-        //         .map((conn) =>
-        //             conn?.socket?.send(JSON.stringify(json))
-        //         );
+const clients = {};
 
-        //     db.prepare(
-        //         `UPDATE user SET currentTime = ? WHERE id = ?`
-        //     ).run(json.currentTime, userId);
-        // }
-        db.prepare(`UPDATE user SET currentTime = ? WHERE id = ?`).run(
-            json.currentTime,
-            userId
+function updateClients(userId) {
+    console.log("update clients", clients);
+    clients[userId].forEach((client1) => {
+        client1.ws.send(
+            JSON.stringify({
+                devices: clients[userId].map((client2) => ({
+                    deviceName: client2.deviceName,
+                    you: client1.ws == client2.ws,
+                    audioPlayer: client2.audioPlayer,
+                })),
+            })
         );
-    } else if (json.deviceName != undefined) {
-        // Handle device name
-    } else if (json.queue != undefined) {
-        db.prepare(`UPDATE user SET queue = ? WHERE id = ?`).run(
-            JSON.stringify(json.queue),
-            userId
-        );
-    } else if (json.volume != undefined) {
-        db.prepare(`UPDATE user SET volume = ? WHERE id = ?`).run(
-            json.volume,
-            userId
-        );
-    } else if (json.queueIndex != undefined) {
-        db.prepare(`UPDATE user SET queueIndex = ? WHERE id = ?`).run(
-            json.queueIndex,
-            userId
-        );
-    } else if (json.randomQueue != undefined) {
-        db.prepare(`UPDATE user SET randomQueue = ? WHERE id = ?`).run(
-            json.randomQueue,
-            userId
-        );
-    } else if (json.repeatSong != undefined) {
-        db.prepare(`UPDATE user SET repeatSong = ? WHERE id = ?`).run(
-            json.repeatSong,
-            userId
-        );
-    } else if (json.songEnded != undefined) {
-        let userLastPlayedSong = JSON.parse(
-            db
-                .prepare("SELECT lastPlayedSong FROM user WHERE id = ?")
-                .get(userId).lastPlayedSong
-        );
-
-        if (!userLastPlayedSong) {
-            userLastPlayedSong = {};
-        }
-
-        if (userLastPlayedSong[json.songEnded]) {
-            userLastPlayedSong[json.songEnded].push(new Date().toISOString());
-        } else {
-            userLastPlayedSong[json.songEnded] = [new Date().toISOString()];
-        }
-
-        db.prepare(`UPDATE user SET lastPlayedSong = ? WHERE id = ?`).run(
-            JSON.stringify(userLastPlayedSong),
-            userId
-        );
-    } else {
-        console.log("Unknow parameter from socket", json);
-    }
-
-    console.log(`Received from ${userId}: ${json}`);
+    });
 }
 
 wss.on("connection", async (ws, req) => {
@@ -108,6 +35,7 @@ wss.on("connection", async (ws, req) => {
         );
 
         const user = await response.json();
+        let deviceName = "";
 
         if (!user) {
             ws.close(4000, "Unauthorized");
@@ -120,26 +48,196 @@ wss.on("connection", async (ws, req) => {
             let messageJson;
             try {
                 messageJson = JSON.parse(message);
+
+                console.log(
+                    `Received from ${user.id}: ${JSON.stringify(messageJson)}`
+                );
+                if (messageJson.command) {
+                    console.log(
+                        "Command received from",
+                        deviceName,
+                        "-",
+                        user.username,
+                        messageJson.command
+                    );
+                    if (clients[user.id])
+                        clients[user.id].forEach((client) => {
+                            if (client.ws != ws) {
+                                client.ws.send(
+                                    JSON.stringify({
+                                        command: messageJson.command,
+                                    })
+                                );
+                            }
+                        });
+                } else {
+                    if (clients[user.id])
+                        clients[user.id].forEach((client) => {
+                            if (client.ws != ws) {
+                                client.ws.send(JSON.stringify(messageJson));
+                            }
+                        });
+                }
+
+                if (messageJson.deviceName != undefined) {
+                    deviceName = messageJson.deviceName;
+                    if (clients[user.id]) {
+                        const userDevicesNames = clients[user.id].map(
+                            (client) => client.deviceName
+                        );
+
+                        let newDeviceName = deviceName;
+                        let index = 1;
+                        while (userDevicesNames.includes(newDeviceName)) {
+                            newDeviceName = deviceName + ` (${index})`;
+                            index++;
+                        }
+
+                        deviceName = newDeviceName;
+
+                        const someonePlaying = clients[user.id].some(
+                            (client) => client.audioPlayer
+                        );
+
+                        clients[user.id].push({
+                            ws: ws,
+                            deviceName: newDeviceName,
+                            audioPlayer: !someonePlaying,
+                        });
+                        updateClients(user.id);
+                    } else {
+                        clients[user.id] = [
+                            {
+                                ws: ws,
+                                deviceName: deviceName,
+                                audioPlayer: true,
+                            },
+                        ];
+                        updateClients(user.id);
+                    }
+                } else if (messageJson.setAudioPlayer) {
+                    clients[user.id] = clients[user.id].map((client) => {
+                        if (client.deviceName == messageJson.setAudioPlayer) {
+                            client.audioPlayer = true;
+                        } else {
+                            client.audioPlayer = false;
+                        }
+                        return client;
+                    });
+                    updateClients(user.id);
+                } else if (messageJson.currentSong != undefined) {
+                    if (clients[user.id])
+                        db.prepare(
+                            `UPDATE user SET currentSong = ? WHERE id = ?`
+                        ).run(
+                            messageJson.currentSong == ""
+                                ? undefined
+                                : messageJson.currentSong,
+                            user.id
+                        );
+                    db.prepare(
+                        `UPDATE user SET currentStation = ? WHERE id = ?`
+                    ).run(undefined, user.id);
+                } else if (messageJson.currentStation != undefined) {
+                    db.prepare(
+                        `UPDATE user SET currentStation = ? WHERE id = ?`
+                    ).run(messageJson.currentStation, user.id);
+                    db.prepare(
+                        `UPDATE user SET currentSong = ? WHERE id = ?`
+                    ).run(undefined, user.id);
+                } else if (messageJson.currentTime != undefined) {
+                    if (clients[user.id])
+                        clients[user.id].forEach((client) => {
+                            if (client.ws != ws) {
+                                client.ws.send(
+                                    JSON.stringify({
+                                        currentTime: messageJson.currentTime,
+                                    })
+                                );
+                            }
+                        });
+
+                    db.prepare(
+                        `UPDATE user SET currentTime = ? WHERE id = ?`
+                    ).run(messageJson.currentTime, user.id);
+                } else if (messageJson.queue != undefined) {
+                    db.prepare(`UPDATE user SET queue = ? WHERE id = ?`).run(
+                        JSON.stringify(messageJson.queue),
+                        user.id
+                    );
+                } else if (messageJson.crossFade != undefined) {
+                    db.prepare(
+                        `UPDATE user SET crossFade = ? WHERE id = ?`
+                    ).run(messageJson.crossFade, user.id);
+                } else if (messageJson.volume != undefined) {
+                    db.prepare(`UPDATE user SET volume = ? WHERE id = ?`).run(
+                        messageJson.volume,
+                        user.id
+                    );
+                } else if (messageJson.queueIndex != undefined) {
+                    db.prepare(
+                        `UPDATE user SET queueIndex = ? WHERE id = ?`
+                    ).run(messageJson.queueIndex, user.id);
+                } else if (messageJson.randomQueue != undefined) {
+                    db.prepare(
+                        `UPDATE user SET randomQueue = ? WHERE id = ?`
+                    ).run(messageJson.randomQueue, user.id);
+                } else if (messageJson.repeatSong != undefined) {
+                    db.prepare(
+                        `UPDATE user SET repeatSong = ? WHERE id = ?`
+                    ).run(messageJson.repeatSong, user.id);
+                } else if (messageJson.songEnded != undefined) {
+                    let userLastPlayedSong = JSON.parse(
+                        db
+                            .prepare(
+                                "SELECT lastPlayedSong FROM user WHERE id = ?"
+                            )
+                            .get(user.id).lastPlayedSong
+                    );
+
+                    if (!userLastPlayedSong) {
+                        userLastPlayedSong = {};
+                    }
+
+                    if (userLastPlayedSong[messageJson.songEnded]) {
+                        userLastPlayedSong[messageJson.songEnded].push(
+                            new Date().toISOString()
+                        );
+                    } else {
+                        userLastPlayedSong[messageJson.songEnded] = [
+                            new Date().toISOString(),
+                        ];
+                    }
+
+                    db.prepare(
+                        `UPDATE user SET lastPlayedSong = ? WHERE id = ?`
+                    ).run(JSON.stringify(userLastPlayedSong), user.id);
+                } else {
+                    console.log("Unknow parameter from socket", messageJson);
+                }
             } catch {
                 console.log("Unable to parse socket message", message);
                 return;
             }
-            try {
-                onMessage(user.id, messageJson);
-            } catch (error) {
-                console.error("Error in message process: ", error);
-            }
         });
 
         ws.on("close", () => {
+            if (!clients[user.id]) {
+                return;
+            }
+
+            clients[user.id] = clients[user.id].filter(
+                (client) => client.ws !== ws
+            );
+            updateClients(user.id);
+
             console.log("Client disconnected", user.username);
         });
+
+        ws.send(JSON.stringify({ message: "validated" }));
     } catch (error) {
         console.error("Error in websocket connection: ", error);
     }
-
-    // Send welcome message
-    // ws.send("Connected to WebSocket server");
 });
 
 // Handle server shutdown gracefully

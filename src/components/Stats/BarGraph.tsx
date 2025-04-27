@@ -76,6 +76,7 @@ export default function BarGraph({
             clearTimeout(enteringTimeout);
             clearTimeout(exitingTimeout);
         };
+        // eslint-disable-next-line
     }, [propItems]);
 
     return (

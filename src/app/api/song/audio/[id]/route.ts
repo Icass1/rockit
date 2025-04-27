@@ -97,13 +97,40 @@ export async function GET(
         }
 
         const chunkSize = end - start + 1;
-        const file = fs.createReadStream(songPath, { start, end });
+        const fileStream = fs.createReadStream(songPath, { start, end });
 
         const readableStream = new ReadableStream({
             start(controller) {
-                file.on("data", (chunk) => controller.enqueue(chunk));
-                file.on("end", () => controller.close());
-                file.on("error", (err) => controller.error(err));
+                const onData = (chunk: Buffer<ArrayBufferLike> | string) => {
+                    try {
+                        controller.enqueue(chunk);
+                    } catch {
+                        fileStream.destroy();
+                    }
+                };
+
+                const onEnd = () => {
+                    controller.close();
+                    cleanup();
+                };
+
+                const onError = (err: object) => {
+                    controller.error(err);
+                    cleanup();
+                };
+
+                const cleanup = () => {
+                    fileStream.off("data", onData);
+                    fileStream.off("end", onEnd);
+                    fileStream.off("error", onError);
+                };
+
+                fileStream.on("data", onData);
+                fileStream.on("end", onEnd);
+                fileStream.on("error", onError);
+            },
+            cancel() {
+                fileStream.destroy();
             },
         });
 

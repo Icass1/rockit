@@ -9,7 +9,7 @@ import { notFound } from "next/navigation";
 export default async function AdminUsersPage() {
     const session = await getSession();
 
-    if (!session.user.admin) {
+    if (!session?.user?.admin) {
         notFound();
     }
 

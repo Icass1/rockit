@@ -7,7 +7,7 @@ import { notFound } from "next/navigation";
 export default async function AdminDBTablesPage() {
     const session = await getSession();
 
-    if (!session.user.admin) {
+    if (!session?.user?.admin) {
         notFound();
     }
     const tables = db

@@ -12,7 +12,7 @@ export default async function AdminDBTablePage({
 
     const session = await getSession();
 
-    if (!session.user.admin) {
+    if (!session?.user?.admin) {
         notFound();
     }
 

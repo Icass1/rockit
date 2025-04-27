@@ -14,7 +14,7 @@ export default async function AdminUserPage({
 
     const session = await getSession();
 
-    if (!session.user.admin) {
+    if (!session?.user?.admin) {
         notFound();
     }
 

@@ -5,10 +5,138 @@ import { atom } from "nanostores";
 import { lang } from "./lang";
 import { openRockItIndexedDB } from "@/lib/indexedDB";
 import { getSession } from "next-auth/react";
+import { Device, devices } from "./devices";
 
 let websocket: WebSocket;
 
 export let database: IDBDatabase | undefined;
+
+type Primitive = boolean | number | string;
+
+export type ReadonlyIfObject<Value> = Value extends undefined
+    ? Value
+    : // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      Value extends (...args: any) => any
+      ? Value
+      : Value extends Primitive
+        ? Value
+        : Value extends object
+          ? Readonly<Value>
+          : Value;
+
+type MyAtomWrapper<T> = {
+    get(): T;
+    set(value: T, sendToSocket?: boolean): void;
+    subscribe(callback: (value: T) => void): () => void;
+    listen(
+        listener: (
+            value: ReadonlyIfObject<T>,
+            oldValue: ReadonlyIfObject<T>
+        ) => void
+    ): () => void;
+    notify(oldValue?: ReadonlyIfObject<T>): void;
+    off(): void;
+    lc: number;
+    value: T;
+};
+
+// The wrapper function
+export function createControlledAtom<T>(
+    initialValue: T,
+    name: string
+): MyAtomWrapper<T>;
+export function createControlledAtom<T>(
+    initialValue: T,
+    name: string,
+    getMessageToSend: (value: T) => object | undefined | string | number,
+    getValueFromMessage: // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    | ((value: any) => Promise<T | undefined>)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        | ((value: any) => T | undefined)
+): MyAtomWrapper<T>;
+export function createControlledAtom<T>(
+    initialValue: T,
+    name: string,
+    getMessageToSend?: (value: T) => object | undefined | string | number,
+    getValueFromMessage?: // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    | ((value: any) => Promise<T | undefined>)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        | ((value: any) => T | undefined)
+): MyAtomWrapper<T> {
+    const baseAtom = atom<T>(initialValue);
+    const listenerAdded = atom<boolean>(false);
+
+    const addSocketListener = () => {
+        if (
+            websocket &&
+            websocket.OPEN == websocket.readyState &&
+            !listenerAdded.get()
+        ) {
+            websocket.addEventListener("message", async (message) => {
+                try {
+                    const messageJson = JSON.parse(message.data);
+                    if (!messageJson[name]) return;
+                    if (getValueFromMessage) {
+                        const value = await getValueFromMessage(
+                            messageJson[name]
+                        );
+                        if (typeof value == "undefined") return;
+                        baseAtom.set(value);
+                    } else {
+                        baseAtom.set(messageJson[name]);
+                    }
+                } catch {}
+            });
+            listenerAdded.set(true);
+        }
+    };
+
+    return {
+        get() {
+            addSocketListener();
+            return baseAtom.get();
+        },
+        set(value: T, sendToSocket = true) {
+            addSocketListener();
+
+            if (sendToSocket && websocket) {
+                if (getMessageToSend) {
+                    const valueToSend = getMessageToSend(value);
+                    websocket.send(JSON.stringify({ [name]: valueToSend }));
+                } else {
+                    websocket.send(JSON.stringify({ [name]: value }));
+                }
+            }
+
+            baseAtom.set(value);
+        },
+        subscribe(callback) {
+            addSocketListener();
+
+            return baseAtom.subscribe(callback);
+        },
+        listen(
+            listener: (
+                value: ReadonlyIfObject<T>,
+                oldValue: ReadonlyIfObject<T>
+            ) => void
+        ) {
+            addSocketListener();
+
+            return baseAtom.listen(listener);
+        },
+        notify(oldValue) {
+            addSocketListener();
+
+            return baseAtom.notify(oldValue);
+        },
+        off() {
+            return baseAtom.off();
+        },
+        lc: baseAtom.lc,
+        value: baseAtom.value,
+    };
+}
 
 openRockItIndexedDB().then((_database) => {
     if (!_database) return;
@@ -114,6 +242,8 @@ const _queue: Queue | undefined = undefined;
 
 export const send = (json: object) => {
     if (websocket && websocket.OPEN == websocket.readyState) {
+        console.warn("export const send", json);
+
         websocket.send(JSON.stringify(json));
     } else {
         if (admin.get())
@@ -121,24 +251,117 @@ export const send = (json: object) => {
     }
 };
 
-export const currentSong = atom<CurrentSong | undefined>(undefined);
-export const playing = atom<boolean>(false);
+export const currentSong = createControlledAtom<CurrentSong | undefined>(
+    undefined,
+    "currentSong",
+    (currentSong: CurrentSong) => currentSong?.id,
+    async (songId) => {
+        const response = await fetch(
+            `/api/song/${songId}?q=image,id,name,artists,albumId,albumName,duration,path`
+        );
+
+        return (await response.json()) as CurrentSong;
+    }
+);
+export const playing = createControlledAtom<boolean>(false, "playing");
 export const loading = atom<boolean>(false);
 export const playWhenReady = atom<boolean>(false);
-export const currentTime = atom<number | undefined>(undefined);
+export const currentTime = createControlledAtom<number | undefined>(
+    undefined,
+    "currentTime"
+);
 export const totalTime = atom<number | undefined>(undefined);
-export const queue = atom<Queue | undefined>(_queue);
-export const queueIndex = atom<number | undefined>(undefined);
-export const volume = atom<number | undefined>();
-export const randomQueue = atom<boolean | undefined>(undefined);
-export const repeatSong = atom<boolean | undefined>(undefined);
-export const currentStation = atom<Station | undefined>(undefined);
+
+export const queue = createControlledAtom<Queue | undefined>(
+    _queue,
+    "queue",
+    (queue: Queue | undefined) =>
+        queue
+            ?.map((value) => {
+                if (value?.song && value?.list) {
+                    return {
+                        song: value.song.id,
+                        index: value.index,
+                        list: value.list,
+                    };
+                }
+            })
+            .filter((song) => song),
+    async (queue: UserDB["queue"]) => {
+        const response = await fetch(
+            `/api/songs1?songs=${queue
+                .map((queueSong) => queueSong.song)
+                .join()}&p=id,name,artists,images,duration`
+        );
+
+        const json = (await response.json()) as SongDB<
+            "id" | "name" | "artists" | "image" | "duration"
+        >[];
+
+        return queue
+            .map((queueSong) => {
+                const songInfo = json
+                    .filter((song) => song)
+                    .find((song) => song.id == queueSong.song);
+
+                if (!songInfo) {
+                    return undefined;
+                }
+
+                return {
+                    song: songInfo,
+                    list: queueSong.list,
+                    index: queueSong.index,
+                };
+            })
+            .filter((song) => typeof song != "undefined") as Queue;
+    }
+);
+export const queueIndex = createControlledAtom<number | undefined>(
+    undefined,
+    "queueIndex"
+);
+export const volume = createControlledAtom<number | undefined>(
+    undefined,
+    "volume"
+);
+export const randomQueue = createControlledAtom<boolean | undefined>(
+    undefined,
+    "randomQueue",
+    (value) => (value ? "1" : "0"),
+    (value) => (value == "1" ? true : false)
+);
+export const repeatSong = createControlledAtom<boolean | undefined>(
+    undefined,
+    "repeatSong",
+    (value) => (value ? "1" : "0"),
+    (value) => (value == "1" ? true : false)
+);
+export const currentStation = createControlledAtom<Station | undefined>(
+    undefined,
+    "currentStation",
+    (station: Station | undefined) => station?.stationuuid,
+    async (stationuuid) => {
+        const response = await fetch(
+            `/api/radio/stations/byuuid/${stationuuid}`
+        );
+
+        const data = await response.json();
+
+        if (data && data[0]) {
+            return data[0] as Station;
+        }
+    }
+);
+
 export const songsInIndexedDB = atom<string[] | undefined>(undefined);
 export const serviceWorkerRegistration = atom<
     ServiceWorkerRegistration | undefined
 >(undefined);
 
 export const admin = atom<boolean | undefined>(undefined);
+
+let audioPlayer: boolean = false;
 
 let audio: HTMLAudioElement | undefined;
 let audio2: HTMLAudioElement | undefined;
@@ -150,7 +373,10 @@ let timeSum = 0;
 let inCrossFade = false;
 
 console.warn("to do");
-export const crossFade = atom<number | undefined>(0);
+export const crossFade = createControlledAtom<number | undefined>(
+    0,
+    "crossFade"
+);
 
 export const currentCrossFade = atom<number | undefined>(crossFade.get());
 
@@ -179,24 +405,27 @@ fetch(
                 return;
             }
 
-            queueIndex.set(userJson.queueIndex);
+            queueIndex.set(userJson.queueIndex, false);
             if (userJson?.currentTime) {
                 audio.currentTime = userJson.currentTime;
             }
 
             admin.set(userJson.admin);
 
-            repeatSong.set(userJson.repeatSong);
-            randomQueue.set(userJson.randomQueue);
+            repeatSong.set(userJson.repeatSong, false);
+            randomQueue.set(userJson.randomQueue, false);
 
-            volume.set(window.innerWidth < 768 ? 1 : (userJson?.volume ?? 1));
+            volume.set(
+                window.innerWidth < 768 ? 1 : (userJson?.volume ?? 1),
+                false
+            );
 
             if (userJson.currentSong) {
                 fetch(
                     `/api/song/${userJson.currentSong}?q=image,id,name,artists,albumId,albumName,duration,path`
                 ).then((response) =>
                     response.json().then((data: CurrentSong) => {
-                        currentSong.set(data);
+                        currentSong.set(data, false);
                     })
                 );
             }
@@ -206,7 +435,8 @@ fetch(
                     `/api/radio/stations/byuuid/${userJson.currentStation}`
                 ).then((response) =>
                     response.json().then((data) => {
-                        if (data && data[0]) currentStation.set(data[0]);
+                        console.warn("currentStation.set", data[0]);
+                        if (data && data[0]) currentStation.set(data[0], false);
                     })
                 );
             }
@@ -241,16 +471,21 @@ fetch(
                                     })
                                     .filter(
                                         (song) => typeof song != "undefined"
-                                    )
+                                    ),
+                                false
                             );
+
+                            addSubscribers();
                         });
                     } else {
                         console.error("Error getting songs info");
-                        queue.set([]);
+                        queue.set([], false);
+                        addSubscribers();
                     }
                 });
             } else {
-                queue.set([]);
+                queue.set([], false);
+                addSubscribers();
             }
         }
     )
@@ -291,6 +526,7 @@ fetch(
                     .map((songId: string) => getSongInIndexedDB(songId))
                     .filter((song: SongDB) => typeof song != "undefined")
             );
+            addSubscribers();
         };
 
         userQuery.onerror = () => {
@@ -302,280 +538,286 @@ fetch(
         };
 
         admin.set(false);
+        addSubscribers();
     });
 
 // *****************************
 // **** Store subscriptions ****
 // *****************************
 
-randomQueue.subscribe((value) => {
-    if (typeof window === "undefined") return;
+function addSubscribers() {
+    console.log("addSubscribers");
+    randomQueue.subscribe(() => {
+        if (typeof window === "undefined") return;
 
-    updateUserIndexedDB();
-    send({ randomQueue: value ? "1" : "0" });
-});
-
-repeatSong.subscribe((value) => {
-    if (typeof window === "undefined") return;
-
-    updateUserIndexedDB();
-    send({ repeatSong: value ? "1" : "0" });
-});
-
-const playWhenLoaded = () => {
-    initAudio();
-
-    if (!audio) {
-        console.error("audio is undefined");
-        return;
-    }
-
-    if (admin.get()) console.log("playWhenLoaded");
-    if (admin.get()) console.log("playWhenReady.get()", playWhenReady.get());
-    if (admin.get()) console.log("6");
-    loading.set(false);
-    if (playWhenReady.get()) {
-        if (admin.get()) console.log("7");
-        audio.play().then(() => {
-            if (admin.get()) console.log("8");
-
-            playing.set(true);
-        });
-    }
-    audio.removeEventListener("loadeddata", playWhenLoaded);
-};
-
-playing.subscribe((value) => {
-    if (typeof window === "undefined") return;
-
-    if (value) {
-        document.title = currentSong.get()?.name ?? "Rock It!";
-    } else {
-        document.title = "Rock It!";
-    }
-});
-
-currentSong.subscribe(async (value) => {
-    if (typeof window === "undefined") return;
-
-    updateUserIndexedDB();
-
-    send({ currentSong: value?.id || "" });
-
-    initAudio();
-
-    if (!audio) {
-        console.error("audio is undefined");
-        return;
-    }
-    if (!audio2) {
-        console.error("audio is undefined");
-        return;
-    }
-
-    // if (value?.id) {
-    //     // Just to fill quickly last listened songs for developing propourses
-    //     if (admin.get()) console.log("song ended");
-    //     send({ songEnded: value.id });
-    // }
-
-    if (!value) {
-        return;
-    }
-
-    songCounted = false;
-    lastTime = undefined;
-    timeSum = 0;
-
-    if ("mediaSession" in navigator && value) {
-        navigator.mediaSession.metadata = new MediaMetadata({
-            title: value.name,
-            artist: value.artists.map((artist) => artist.name).join(", "),
-            album: value.albumName,
-            artwork: [
-                {
-                    src: `/api/image/${value.image}`, // Repalce value.image for value.image
-                    sizes: "96x96",
-                    type: "image/png",
-                },
-                {
-                    src: `/api/image/${value.image}`,
-                    sizes: "128x128",
-                    type: "image/png",
-                },
-                {
-                    src: `/api/image/${value.image}`,
-                    sizes: "192x192",
-                    type: "image/png",
-                },
-                {
-                    src: `/api/image/${value.image}`,
-                    sizes: "256x256",
-                    type: "image/png",
-                },
-                {
-                    src: `/api/image/${value.image}`,
-                    sizes: "384x384",
-                    type: "image/png",
-                },
-                {
-                    src: `/api/image/${value.image}`,
-                    sizes: "512x512",
-                    type: "image/png",
-                },
-            ],
-        });
-    }
-    if (admin.get()) console.log("inCrossFade", inCrossFade);
-    if (admin.get()) console.log("audio2.paused", audio2.paused);
-    if (admin.get()) console.log("audio2.src", audio2.src);
-    if (inCrossFade && !audio2.paused && audio2.src) {
-        if (admin.get()) console.log("audio", audio);
-        if (admin.get()) console.log("audio2", audio2);
-        [audio, audio2] = [audio2, audio];
-        audio2.pause();
-        removeEventListeners(audio2);
-        audio2 = new Audio();
-        addAudioEventListeners(audio);
-        inCrossFade = false;
-    } else if (value) {
-        loading.set(true);
-        if (admin.get()) console.log("1");
-        playing.set(false);
-        if (admin.get()) console.log("2");
-        audio2.pause();
-        removeEventListeners(audio2);
-        audio2 = new Audio();
-        if (admin.get()) console.log("3");
-
-        const src = await getSongSrc(value.id);
-        if (src) {
-            audio.src = src;
-        } else {
-            console.error("getSongSrc is undefined");
-        }
-        if (admin.get()) console.log("4");
-        audio.onerror = () => {
-            loading.set(false);
-        };
-        if (admin.get()) console.log("5");
-        audio.addEventListener("loadeddata", playWhenLoaded);
-    }
-});
-
-currentStation.subscribe(async (value) => {
-    if (typeof window === "undefined") return;
-
-    initAudio();
-
-    if (!audio) {
-        console.error("audio is undefined");
-        return;
-    }
-
-    updateUserIndexedDB();
-    send({ currentStation: value?.stationuuid });
-
-    if (!value) {
-        return;
-    }
-
-    clearCurrentSong();
-
-    // if (admin.get()) console.log(value.url_resolved);
-
-    if (value.url_resolved) {
-        const isHls = await isHlsContent(value.url_resolved);
-        if (Hls.isSupported() && isHls) {
-            // if (admin.get()) console.log("Hls");
-            hls.loadSource(value.url_resolved);
-            hls.attachMedia(audio);
-            hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                initAudio();
-
-                if (!audio) {
-                    console.error("audio is undefined");
-                    return;
-                }
-
-                audio
-                    .play()
-                    .catch((err) => console.error("Error playing audio:", err));
-            });
-        } else {
-            // if (admin.get()) console.log("not Hls");
-            audio.src = value.url_resolved;
-            // audio.play();
-            audio.onloadeddata = () => {
-                initAudio();
-
-                if (!audio) {
-                    console.error("audio is undefined");
-                    return;
-                }
-
-                // if (admin.get()) console.log("onloadeddata");
-                audio.play();
-            };
-            audio.oncanplay = () => {
-                initAudio();
-
-                if (!audio) {
-                    console.error("audio is undefined");
-                    return;
-                }
-
-                // if (admin.get()) console.log("oncanplay");
-                audio.play();
-            };
-        }
-    }
-});
-
-queue.subscribe((value) => {
-    if (typeof window === "undefined") return;
-
-    if (!value) return;
-
-    updateUserIndexedDB();
-    send({
-        queue: value
-            .map((value) => {
-                if (value?.song && value?.list) {
-                    return {
-                        song: value.song.id,
-                        index: value.index,
-                        list: value.list,
-                    };
-                }
-            })
-            .filter((song) => song),
+        updateUserIndexedDB();
     });
-});
 
-queueIndex.subscribe((value) => {
-    if (typeof window === "undefined") return;
+    repeatSong.subscribe(() => {
+        if (typeof window === "undefined") return;
 
-    updateUserIndexedDB();
-    send({ queueIndex: value });
-});
+        updateUserIndexedDB();
+    });
 
-volume.subscribe((value) => {
-    if (typeof window === "undefined") return;
+    const playWhenLoaded = () => {
+        initAudio();
 
-    initAudio();
+        if (!audio) {
+            console.error("audio is undefined");
+            return;
+        }
 
-    if (!audio) {
-        console.error("audio is undefined");
-        return;
-    }
+        if (admin.get()) console.log("playWhenLoaded");
+        if (admin.get())
+            console.log("playWhenReady.get()", playWhenReady.get());
+        if (admin.get()) console.log("6");
+        loading.set(false);
 
-    updateUserIndexedDB();
-    if (window.innerWidth < 768) return;
-    if (typeof value == "undefined") return;
-    audio.volume = value;
-    send({ volume: value });
-});
+        if (!audioPlayer) return;
+
+        if (playWhenReady.get()) {
+            if (admin.get()) console.log("7");
+            audio.play().then(() => {
+                if (admin.get()) console.log("8");
+
+                playing.set(true);
+            });
+        }
+        audio.removeEventListener("loadeddata", playWhenLoaded);
+    };
+
+    playing.subscribe((value) => {
+        if (typeof window === "undefined") return;
+
+        if (value) {
+            document.title = currentSong.get()?.name ?? "Rock It!";
+        } else {
+            document.title = "Rock It!";
+        }
+    });
+
+    currentSong.subscribe(async (value) => {
+        if (typeof window === "undefined") return;
+
+        currentStation.set(undefined);
+
+        updateUserIndexedDB();
+
+        initAudio();
+
+        if (!audio) {
+            console.error("audio is undefined");
+            return;
+        }
+        if (!audio2) {
+            console.error("audio is undefined");
+            return;
+        }
+
+        // if (value?.id) {
+        //     // Just to fill quickly last listened songs for developing propourses
+        //     if (admin.get()) console.log("song ended");
+        //     send({ songEnded: value.id });
+        // }
+
+        if (!value) {
+            return;
+        }
+
+        songCounted = false;
+        lastTime = undefined;
+        timeSum = 0;
+
+        if ("mediaSession" in navigator && value) {
+            navigator.mediaSession.metadata = new MediaMetadata({
+                title: value.name,
+                artist: value.artists.map((artist) => artist.name).join(", "),
+                album: value.albumName,
+                artwork: [
+                    {
+                        src: `/api/image/${value.image}`, // Repalce value.image for value.image
+                        sizes: "96x96",
+                        type: "image/png",
+                    },
+                    {
+                        src: `/api/image/${value.image}`,
+                        sizes: "128x128",
+                        type: "image/png",
+                    },
+                    {
+                        src: `/api/image/${value.image}`,
+                        sizes: "192x192",
+                        type: "image/png",
+                    },
+                    {
+                        src: `/api/image/${value.image}`,
+                        sizes: "256x256",
+                        type: "image/png",
+                    },
+                    {
+                        src: `/api/image/${value.image}`,
+                        sizes: "384x384",
+                        type: "image/png",
+                    },
+                    {
+                        src: `/api/image/${value.image}`,
+                        sizes: "512x512",
+                        type: "image/png",
+                    },
+                ],
+            });
+        }
+        if (admin.get()) console.log("inCrossFade", inCrossFade);
+        if (admin.get()) console.log("audio2.paused", audio2.paused);
+        if (admin.get()) console.log("audio2.src", audio2.src);
+        if (inCrossFade && !audio2.paused && audio2.src) {
+            if (admin.get()) console.log("audio", audio);
+            if (admin.get()) console.log("audio2", audio2);
+            [audio, audio2] = [audio2, audio];
+            audio2.pause();
+            removeEventListeners(audio2);
+            audio2 = new Audio();
+            addAudioEventListeners(audio);
+            inCrossFade = false;
+        } else if (value) {
+            loading.set(true);
+            if (admin.get()) console.log("1");
+            playing.set(false);
+            if (admin.get()) console.log("2");
+            audio2.pause();
+            removeEventListeners(audio2);
+            audio2 = new Audio();
+            if (admin.get()) console.log("3");
+
+            const src = await getSongSrc(value.id);
+            if (src) {
+                audio.src = src;
+            } else {
+                console.error("getSongSrc is undefined");
+            }
+            if (admin.get()) console.log("4");
+            audio.onerror = () => {
+                loading.set(false);
+            };
+            if (admin.get()) console.log("5");
+            audio.addEventListener("loadeddata", playWhenLoaded);
+        }
+    });
+
+    currentStation.subscribe(async (value) => {
+        if (typeof window === "undefined") return;
+
+        initAudio();
+
+        if (!audio) {
+            console.error("audio is undefined");
+            return;
+        }
+
+        updateUserIndexedDB();
+
+        if (!value) {
+            return;
+        }
+
+        clearCurrentSong();
+
+        // if (admin.get()) console.log(value.url_resolved);
+
+        if (value.url_resolved) {
+            const isHls = await isHlsContent(value.url_resolved);
+            if (Hls.isSupported() && isHls) {
+                // if (admin.get()) console.log("Hls");
+                hls.loadSource(value.url_resolved);
+                hls.attachMedia(audio);
+                hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                    initAudio();
+
+                    if (!audio) {
+                        console.error("audio is undefined");
+                        return;
+                    }
+
+                    audio
+                        .play()
+                        .catch((err) =>
+                            console.error("Error playing audio:", err)
+                        );
+                });
+            } else {
+                // if (admin.get()) console.log("not Hls");
+                audio.src = value.url_resolved;
+                // audio.play();
+                audio.onloadeddata = () => {
+                    initAudio();
+
+                    if (!audio) {
+                        console.error("audio is undefined");
+                        return;
+                    }
+
+                    // if (admin.get()) console.log("onloadeddata");
+                    audio.play();
+                };
+                audio.oncanplay = () => {
+                    initAudio();
+
+                    if (!audio) {
+                        console.error("audio is undefined");
+                        return;
+                    }
+
+                    // if (admin.get()) console.log("oncanplay");
+                    audio.play();
+                };
+            }
+        }
+    });
+
+    queue.subscribe((value) => {
+        if (typeof window === "undefined") return;
+
+        if (!value) return;
+
+        updateUserIndexedDB();
+        console.error("todo");
+        // send({
+        //     queue: value
+        //         .map((value) => {
+        //             if (value?.song && value?.list) {
+        //                 return {
+        //                     song: value.song.id,
+        //                     index: value.index,
+        //                     list: value.list,
+        //                 };
+        //             }
+        //         })
+        //         .filter((song) => song),
+        // });
+    });
+
+    queueIndex.subscribe(() => {
+        if (typeof window === "undefined") return;
+
+        updateUserIndexedDB();
+    });
+
+    volume.subscribe((value) => {
+        if (typeof window === "undefined") return;
+
+        initAudio();
+
+        if (!audio) {
+            console.error("audio is undefined");
+            return;
+        }
+
+        updateUserIndexedDB();
+        if (window.innerWidth < 768) return;
+        if (typeof value == "undefined") return;
+        audio.volume = value;
+    });
+}
 
 // **************************
 // **** Helper functions ****
@@ -683,8 +925,15 @@ export async function play() {
         return;
     }
     if (admin.get()) console.log("play");
-    await audio.play();
-    await audio2.play();
+
+    if (audioPlayer) {
+        await audio.play();
+        if (audio2.readyState != 0) {
+            await audio2.play();
+        }
+    } else {
+        send({ command: "play" });
+    }
 }
 
 export function pause() {
@@ -698,9 +947,14 @@ export function pause() {
         console.error("audio is undefined");
         return;
     }
+
     if (admin.get()) console.log("pause");
     audio.pause();
     audio2.pause();
+
+    if (!audioPlayer) {
+        send({ command: "pause" });
+    }
 }
 
 export function setTime(time: number) {
@@ -711,16 +965,13 @@ export function setTime(time: number) {
         return;
     }
 
-    console.log("1", audio.currentTime);
     audio.currentTime = time;
-    console.log("2", audio.currentTime);
 }
 
 export function clearCurrentSong() {
     currentSong.set(undefined);
     queue.set([]);
     currentTime.set(0);
-    send({ currentTime: 0 });
 }
 
 export async function prev() {
@@ -812,16 +1063,27 @@ async function startSocket() {
     } else {
         websocket = new WebSocket(`ws://${location.hostname}:3001/ws`);
     }
-    websocket.onopen = () => {
-        send({
-            deviceName: getUA(),
-        });
-    };
+
     websocket.onmessage = (event) => {
-        // if (admin.get()) console.log("Web socket message", event.data);
         const data = JSON.parse(event.data);
-        if (data.currentTime) {
-            setTime(data.currentTime);
+        if (data.message == "validated") {
+            send({
+                deviceName: getUA(),
+            });
+        } else if (data.devices) {
+            console.log(data.devices);
+
+            let player = false;
+
+            data.devices.forEach((device: Device) => {
+                if (device.you && device.audioPlayer) {
+                    player = true;
+                }
+            });
+
+            audioPlayer = player;
+
+            devices.set(data.devices);
         }
     };
     websocket.onclose = () => {
@@ -892,173 +1154,6 @@ export async function next(songEnded = false) {
             }
         });
 }
-
-// function fillImagesIndexedDB(imageStore: IDBObjectStore) {
-//     console.warn("fillImagesIndexedDB");
-//     if (!imageStore.indexNames.contains("id"))
-//         imageStore.createIndex("id", "id", { unique: true });
-//     if (!imageStore.indexNames.contains("blob"))
-//         imageStore.createIndex("blob", "blob", { unique: false });
-// }
-
-// function fillSongsIndexedDB(songsStore: IDBObjectStore) {
-//     console.warn("fillSongsIndexedDB");
-//     if (!songsStore.indexNames.contains("id"))
-//         songsStore.createIndex("id", "id", { unique: true });
-//     if (!songsStore.indexNames.contains("name"))
-//         songsStore.createIndex("name", "name", { unique: false });
-//     if (!songsStore.indexNames.contains("artists"))
-//         songsStore.createIndex("artists", "artists", { unique: false });
-//     if (!songsStore.indexNames.contains("images"))
-//         songsStore.createIndex("images", "images", { unique: false });
-//     if (!songsStore.indexNames.contains("image"))
-//         songsStore.createIndex("image", "image", { unique: false });
-//     if (!songsStore.indexNames.contains("duration"))
-//         songsStore.createIndex("duration", "duration", {
-//             unique: false,
-//         });
-//     if (!songsStore.indexNames.contains("blob"))
-//         songsStore.createIndex("blob", "blob", { unique: false });
-//     if (!songsStore.indexNames.contains("albumId"))
-//         songsStore.createIndex("albumId", "albumId", { unique: false });
-//     if (!songsStore.indexNames.contains("albumName"))
-//         songsStore.createIndex("albumName", "albumName", {
-//             unique: false,
-//         });
-//     if (!songsStore.indexNames.contains("lyrics"))
-//         songsStore.createIndex("lyrics", "lyrics", { unique: false });
-//     if (!songsStore.indexNames.contains("dynamicLyrics"))
-//         songsStore.createIndex("dynamicLyrics", "dynamicLyrics", {
-//             unique: false,
-//         });
-// }
-
-// function fillLangIndexedDB(langStore: IDBObjectStore) {
-//     console.warn("fillLangIndexedDB");
-//     if (!langStore.indexNames.contains("lang"))
-//         langStore.createIndex("lang", "lang", { unique: true });
-//     if (!langStore.indexNames.contains("langData"))
-//         langStore.createIndex("langData", "langData", {
-//             unique: false,
-//         });
-// }
-
-// function fillUserIndexedDB(userStore: IDBObjectStore) {
-//     console.warn("fillUserIndexedDB");
-//     if (!userStore.indexNames.contains("id"))
-//         userStore.createIndex("id", "id", { unique: true });
-//     if (!userStore.indexNames.contains("username"))
-//         userStore.createIndex("username", "username", {
-//             unique: false,
-//         });
-//     if (!userStore.indexNames.contains("currentSong"))
-//         userStore.createIndex("currentSong", "currentSong", {
-//             unique: false,
-//         });
-//     if (!userStore.indexNames.contains("lang"))
-//         userStore.createIndex("lang", "lang", { unique: false });
-//     if (!userStore.indexNames.contains("currentTime"))
-//         userStore.createIndex("currentTime", "currentTime", {
-//             unique: false,
-//         });
-//     if (!userStore.indexNames.contains("queue"))
-//         userStore.createIndex("queue", "queue", { unique: false });
-//     if (!userStore.indexNames.contains("queueIndex"))
-//         userStore.createIndex("queueIndex", "queueIndex", {
-//             unique: false,
-//         });
-//     if (!userStore.indexNames.contains("volume"))
-//         userStore.createIndex("volume", "volume", { unique: false });
-//     if (!userStore.indexNames.contains("randomQueue"))
-//         userStore.createIndex("randomQueue", "randomQueue", {
-//             unique: false,
-//         });
-//     if (!userStore.indexNames.contains("repeatSong"))
-//         userStore.createIndex("repeatSong", "repeatSong", {
-//             unique: false,
-//         });
-//     if (!userStore.indexNames.contains("currentStation"))
-//         userStore.createIndex("currentStation", "currentStation", {
-//             unique: false,
-//         });
-//     if (!userStore.indexNames.contains("admin"))
-//         userStore.createIndex("admin", "admin", { unique: false });
-// }
-// function openRockItIndexedDB(): Promise<IDBDatabase | null> {
-//     if (typeof window === "undefined")
-//         return new Promise((resolve) => resolve(null));
-
-//     const dbOpenRequest = indexedDB.open("RockIt", 14);
-
-//     return new Promise((resolve, reject) => {
-//         dbOpenRequest.onupgradeneeded = function (event) {
-//             const db = dbOpenRequest.result;
-//             console.error("dbOpenRequest.onupgradeneeded 1");
-
-//             const transaction = (event?.target as IDBOpenDBRequest)
-//                 ?.transaction as IDBTransaction;
-
-//             ////////////////
-//             // songsStore //
-//             ////////////////
-//             if (!db.objectStoreNames.contains("songs")) {
-//                 const songsStore = db.createObjectStore("songs", {
-//                     keyPath: "id",
-//                 });
-//                 fillSongsIndexedDB(songsStore);
-//             } else {
-//                 fillSongsIndexedDB(transaction.objectStore("songs"));
-//             }
-
-//             ////////////////
-//             // imageStore //
-//             ////////////////
-//             if (!db.objectStoreNames.contains("images")) {
-//                 const imageStore = db.createObjectStore("images", {
-//                     keyPath: "id",
-//                 });
-//                 fillImagesIndexedDB(imageStore);
-//             } else {
-//                 fillImagesIndexedDB(transaction.objectStore("images"));
-//             }
-
-//             ///////////////
-//             // userStore //
-//             ///////////////
-//             if (!db.objectStoreNames.contains("user")) {
-//                 const userStore = db.createObjectStore("user", {
-//                     keyPath: "id",
-//                 });
-//                 fillUserIndexedDB(userStore);
-//             } else {
-//                 fillUserIndexedDB(transaction.objectStore("user"));
-//             }
-
-//             ///////////////
-//             // langStore //
-//             ///////////////
-//             if (!db.objectStoreNames.contains("lang")) {
-//                 const langStore = db.createObjectStore("lang", {
-//                     keyPath: "lang",
-//                 });
-//                 fillLangIndexedDB(langStore);
-//             } else {
-//                 fillLangIndexedDB(transaction.objectStore("lang"));
-//             }
-//             // No manual transaction.commit() needed
-//             transaction.oncomplete = () => {
-//                 console.log("Upgrade transaction completed.");
-//             };
-//         };
-
-//         dbOpenRequest.onsuccess = function () {
-//             resolve(dbOpenRequest.result);
-//         };
-//         dbOpenRequest.onerror = function () {
-//             reject(dbOpenRequest.error);
-//         };
-//     });
-// }
 
 export async function saveSongToIndexedDB(
     song: SongDB<
@@ -1300,6 +1395,8 @@ function onCanplay() {
 
 let audioIsInit = false;
 async function onTimeupdate() {
+    if (currentStation.get() && !currentSong.get()) return;
+
     initAudio();
 
     if (!audio) {
@@ -1315,9 +1412,7 @@ async function onTimeupdate() {
     currentTime.set(audio.currentTime);
 
     updateUserIndexedDB();
-    send({
-        currentTime: audio.currentTime,
-    });
+
     const userVolume = volume.get();
     if (userVolume && _crossFade && _crossFade > 0 && !repeatSong.get()) {
         if (audio.duration - audio.currentTime < _crossFade) {

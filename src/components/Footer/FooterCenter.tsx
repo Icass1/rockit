@@ -69,12 +69,12 @@ export default function FooterCenter() {
                         ) : $playing ? (
                             <CirclePause
                                 className="h-8 w-8 cursor-pointer text-gray-400 md:hover:scale-105 md:hover:text-white"
-                                onClick={pause}
+                                onClick={() => pause()}
                             />
                         ) : (
                             <CirclePlay
                                 className="h-8 w-8 cursor-pointer text-gray-400 md:hover:scale-105 md:hover:text-white"
-                                onClick={play}
+                                onClick={() => play()}
                             />
                         )}
 

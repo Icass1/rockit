@@ -333,12 +333,12 @@ export default function MobilePlayerUI() {
                         {$playing ? (
                             <Pause
                                 className="h-14 w-14 fill-current"
-                                onClick={pause}
+                                onClick={() => pause()}
                             />
                         ) : (
                             <Play
                                 className="h-14 w-14 fill-current"
-                                onClick={play}
+                                onClick={() => play()}
                             />
                         )}
                     </button>

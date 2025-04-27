@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { useContext } from "react";
 import { TableContext } from "./tableContext";
@@ -33,15 +33,15 @@ export function Header() {
                     ?.map((column) => column.width + "px")
                     .join(" "),
             }}
-            className="grid h-full bg-[#212225] w-fit sticky top-0 z-10 "
+            className="sticky top-0 z-10 grid h-full w-fit bg-[#212225]"
         >
             {columns?.map((column) => (
                 <div
                     key={column.name}
-                    className="min-w-0 max-w-full w-full flex flex-col px-1 gap-y-1 py-1 border border-l-0 border-solid border-[#373838]"
+                    className="flex w-full max-w-full min-w-0 flex-col gap-y-1 border border-l-0 border-solid border-[#373838] px-1 py-1"
                 >
                     <div
-                        className="flex flex-row justify-between items-center"
+                        className="flex flex-row items-center justify-between"
                         onClick={() => {
                             if (sortBy == column.name) {
                                 if (sortAscending) {
@@ -60,37 +60,37 @@ export function Header() {
                         </label>
                         <div className="flex flex-row gap-x-1">
                             {sortBy == column.name && sortAscending == true && (
-                                <ArrowUpAZ className="w-4 h-4" />
+                                <ArrowUpAZ className="h-4 w-4" />
                             )}
                             {sortBy == column.name &&
                                 sortAscending == false && (
-                                    <ArrowDownAZ className="w-4 h-4" />
+                                    <ArrowDownAZ className="h-4 w-4" />
                                 )}
                             {column.key && (
-                                <KeySquare className="w-4 h-4 text-orange-400" />
+                                <KeySquare className="h-4 w-4 text-orange-400" />
                             )}
                             {column.type == "TEXT" && (
                                 <div title="TEXT">
-                                    <Text className="w-4 h-4" />
+                                    <Text className="h-4 w-4" />
                                 </div>
                             )}
                             {column.type == "INTEGER" && (
                                 <div title="INTEGER">
-                                    <Hash className="w-4 h-4" />
+                                    <Hash className="h-4 w-4" />
                                 </div>
                             )}
                             {column.type == "BOOLEAN" && (
                                 <div title="BOOLEAN">
-                                    <ToggleLeft className="w-4 h-4" />
+                                    <ToggleLeft className="h-4 w-4" />
                                 </div>
                             )}
                         </div>
                     </div>
-                    <div className="flex flex-row bg-[#2e2f34] items-center px-1 gap-x-1">
+                    <div className="flex flex-row items-center gap-x-1 bg-[#2e2f34] px-1">
                         <input
                             type="search"
                             placeholder="Filter..."
-                            className="text-sm py-[1px] bg-transparent rounded outline-0 w-full"
+                            className="w-full rounded bg-transparent py-[1px] text-sm outline-0"
                             value={
                                 columnFilters
                                     ? columnFilters[column.name].text
@@ -108,7 +108,7 @@ export function Header() {
                         />
                         <div
                             title="Exact"
-                            className="w-5 h-5"
+                            className="h-5 w-5"
                             onClick={() => {
                                 setColumnFilters((value) => {
                                     if (!value) {
@@ -122,17 +122,17 @@ export function Header() {
                         >
                             <SlidersHorizontal
                                 className={
-                                    "block w-full h-full " +
+                                    "block h-full w-full " +
                                     (columnFilters &&
                                     columnFilters[column.name].exact
-                                        ? " text-blue-500 "
+                                        ? " text-blue-500"
                                         : "")
                                 }
                             />
                         </div>
                         <div
                             title="Invert"
-                            className="w-5 h-5"
+                            className="h-5 w-5"
                             onClick={() => {
                                 setColumnFilters((value) => {
                                     if (!value) {
@@ -146,10 +146,10 @@ export function Header() {
                         >
                             <CircleAlert
                                 className={
-                                    "block w-full h-full " +
+                                    "block h-full w-full " +
                                     (columnFilters &&
                                     columnFilters[column.name].invert
-                                        ? " text-blue-500 "
+                                        ? " text-blue-500"
                                         : "")
                                 }
                             />

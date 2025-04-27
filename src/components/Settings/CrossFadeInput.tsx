@@ -31,7 +31,7 @@ export default function CrossFadeInput() {
             }}
             max="40"
             min="0"
-            className="p-2 w-16 rounded"
+            className="w-16 rounded p-2"
         />
     );
 }

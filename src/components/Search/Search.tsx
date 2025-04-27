@@ -44,11 +44,11 @@ export default function Search() {
                         </label>
                     ) : (
                         <>
-                            <section className="py-2 text-white md:pl-12 md:py-6">
+                            <section className="py-2 text-white md:py-6 md:pl-12">
                                 <h2 className="px-5 text-left text-2xl font-bold md:px-0 md:text-3xl">
                                     {$lang.songs}
                                 </h2>
-                                <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pl-4 md:pr-14">
+                                <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pr-14 md:pl-4">
                                     {/* Aquí creamos las canciones */}
                                     {$searchResults.songs?.map((song) => (
                                         <Link
@@ -104,11 +104,11 @@ export default function Search() {
                                 </div>
                             </section>
 
-                            <section className="py-2 text-white md:pl-12 md:py-6">
+                            <section className="py-2 text-white md:py-6 md:pl-12">
                                 <h2 className="px-5 text-left text-2xl font-bold md:px-0 md:text-3xl">
                                     {$lang.albums}
                                 </h2>
-                                <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pl-4 md:pr-14">
+                                <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pr-14 md:pl-4">
                                     {/* Aquí creamos las canciones */}
                                     {$searchResults.albums?.map((album) => (
                                         <Link
@@ -164,11 +164,11 @@ export default function Search() {
                                 </div>
                             </section>
 
-                            <section className="py-2 text-white md:pl-12 md:py-6">
+                            <section className="py-2 text-white md:py-6 md:pl-12">
                                 <h2 className="px-5 text-left text-2xl font-bold md:px-0 md:text-3xl">
                                     {$lang.artists}
                                 </h2>
-                                <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pl-4 md:pr-14">
+                                <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pr-14 md:pl-4">
                                     {/* Aquí creamos las canciones */}
                                     {$searchResults.artists?.map((artist) => (
                                         <Link
@@ -196,11 +196,11 @@ export default function Search() {
                                 </div>
                             </section>
 
-                            <section className="py-2 text-white md:pl-12 md:py-6">
+                            <section className="py-2 text-white md:py-6 md:pl-12">
                                 <h2 className="px-5 text-left text-2xl font-bold md:px-0 md:text-3xl">
                                     {$lang.playlists}
                                 </h2>
-                                <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pl-4 md:pr-14">
+                                <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pr-14 md:pl-4">
                                     {/* Aquí creamos las canciones  */}
                                     {$searchResults.playlists?.map(
                                         (playlist) => (
@@ -237,11 +237,11 @@ export default function Search() {
                             </section>
                         </>
                     )}
-                    <section className="py-2 text-white md:pl-12 md:py-6">
+                    <section className="py-2 text-white md:py-6 md:pl-12">
                         <h2 className="px-5 text-left text-2xl font-bold md:px-0 md:text-3xl">
                             {$lang.radio_stations}
                         </h2>
-                        <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pl-4 md:pr-14">
+                        <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pr-14 md:pl-4">
                             {$filteredStations.map((station) => (
                                 <div
                                     className="w-36 flex-none transition md:w-48 md:hover:scale-105"
@@ -268,11 +268,11 @@ export default function Search() {
                             ))}
                         </div>
                     </section>
-                    <section className="py-2 text-white md:pl-12 md:py-6">
+                    <section className="py-2 text-white md:py-6 md:pl-12">
                         <h2 className="px-5 text-left text-2xl font-bold md:px-0 md:text-3xl">
                             Youtube Videos
                         </h2>
-                        <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pl-4 md:pr-14">
+                        <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pr-14 md:pl-4">
                             {/* Mockup de videos */}
                             {Array.from({ length: 10 }).map((_, index) => (
                                 <div

@@ -52,7 +52,7 @@ export interface UserDBFull {
     passwordHash: string;
     lists: UserDBList[];
     lastPlayedSong: {
-        [key: string]: (number |string)[];
+        [key: string]: (number | string)[];
     };
     currentSong: string | undefined;
     currentStation: string | undefined;

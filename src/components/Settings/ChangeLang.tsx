@@ -9,7 +9,7 @@ export default function ChangeLang() {
 
     return (
         <div>
-            <label className="block text-gray-300 text-sm md:text-lg mb-2">
+            <label className="mb-2 block text-sm text-gray-300 md:text-lg">
                 {$lang.language}
             </label>
             <select
@@ -17,7 +17,7 @@ export default function ChangeLang() {
                 onChange={(event) => {
                     currentLang.set(event.currentTarget.value);
                 }}
-                className="w-full p-3 rounded-lg bg-[#1e1e1e] text-white border border-[#333] focus:outline-none focus:ring-2 focus:ring-[#ec5588]"
+                className="w-full rounded-lg border border-[#333] bg-[#1e1e1e] p-3 text-white focus:ring-2 focus:ring-[#ec5588] focus:outline-none"
             >
                 <option value="en">English</option>
                 <option value="es">Español</option>

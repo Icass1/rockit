@@ -8,7 +8,7 @@ import {
 } from "@/stores/audio";
 import { isPlayerUIVisible } from "@/stores/isPlayerUIVisible";
 import { useStore } from "@nanostores/react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import useWindowSize from "@/hooks/useWindowSize";
 import { getImageUrl } from "@/lib/getImageUrl";
 import { QueueSong } from "./QueueSong";
@@ -59,8 +59,8 @@ export default function PlayerUI() {
     const [draggingPos, setDraggingPos] = useState<[number, number]>([0, 0]);
     const queueDivRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        const handleMouseUp = (event: globalThis.MouseEvent) => {
+    const handleMouseUp = useCallback(
+        (event: globalThis.MouseEvent) => {
             if (!queueDivRef.current || !draggingSong) return;
             let spacerIndex = undefined;
             if (queueDivRef.current?.offsetTop) {
@@ -102,12 +102,16 @@ export default function PlayerUI() {
             }
 
             setDraggingSong(undefined);
-        };
-        const handleMouseMove = (event: globalThis.MouseEvent) => {
-            if (!queueDivRef.current) return;
-            setDraggingPos([event.clientX - 10, event.clientY - 32]);
-        };
+        },
+        [draggingSong]
+    );
 
+    const handleMouseMove = useCallback((event: globalThis.MouseEvent) => {
+        if (!queueDivRef.current) return;
+        setDraggingPos([event.clientX - 10, event.clientY - 32]);
+    }, []);
+
+    useEffect(() => {
         document.addEventListener("mouseup", handleMouseUp);
         document.addEventListener("mousemove", handleMouseMove);
 
@@ -115,7 +119,7 @@ export default function PlayerUI() {
             document.removeEventListener("mouseup", handleMouseUp);
             document.removeEventListener("mousemove", handleMouseMove);
         };
-    }, [queueDivRef, draggingSong]);
+    }, [handleMouseUp, handleMouseMove]);
 
     useEffect(() => {
         if (!$isPlayerUIVisible) return;

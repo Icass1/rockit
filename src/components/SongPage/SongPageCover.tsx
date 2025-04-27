@@ -16,11 +16,11 @@ import { downloads } from "@/stores/downloads";
 import { useStore } from "@nanostores/react";
 import { Download, Pause, Play } from "lucide-react";
 import { useEffect, useState } from "react";
+import Image from "../Image";
 
 export default function SongPageCover({
     song,
     album,
-    inDatabase,
 }: {
     song: SongDB<
         | "image"
@@ -107,23 +107,23 @@ export default function SongPageCover({
             };
             fetchNewSong();
         }
-    }, [$downloadedSongs]);
+    }, [$downloadedSongs, _song.id]);
 
     const iconClassName =
         "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition-all z-20" +
         (hover ? " w-20 h-20 " : " w-0 h-0 ");
 
     return (
-        <div className="relative w-full h-full max-w-md">
+        <div className="relative h-full w-full max-w-md">
             {/* Contenedor principal */}
             <div
-                className="w-full max-w-md h-auto object-cover aspect-square rounded-lg overflow-hidden relative cursor-pointer select-none"
+                className="relative aspect-square h-auto w-full max-w-md cursor-pointer overflow-hidden rounded-lg object-cover select-none"
                 onMouseEnter={() => setHover(true)}
                 onMouseLeave={() => setHover(false)}
                 onClick={handleClick}
             >
                 {/* Imagen principal */}
-                <img
+                <Image
                     src={
                         (_song?.image
                             ? `/api/image/${_song.image}`
@@ -132,7 +132,7 @@ export default function SongPageCover({
                     }
                     alt="Carátula de la canción"
                     className={
-                        "w-full h-full absolute transition-all z-10 " +
+                        "absolute z-10 h-full w-full transition-all " +
                         (hover ? "brightness-[60%]" : "")
                     }
                 />

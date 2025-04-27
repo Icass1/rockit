@@ -17,10 +17,10 @@ export default function LyricsSection({ song }: LyricsSectionProps) {
     };
 
     return (
-        <div className="mx-auto px-6 md:px-8 py-8 bg-[#3030306f] rounded-lg h-fit">
-            <h2 className="text-2xl font-bold mb-4 text-center">Lyrics</h2>
+        <div className="mx-auto h-fit rounded-lg bg-[#3030306f] px-6 py-8 md:px-8">
+            <h2 className="mb-4 text-center text-2xl font-bold">Lyrics</h2>
             <div>
-                <div className="text-white transition-all text-justify">
+                <div className="text-justify text-white transition-all">
                     {song.lyrics ? (
                         <>
                             {song.lyrics
@@ -34,7 +34,7 @@ export default function LyricsSection({ song }: LyricsSectionProps) {
                             {song.lyrics.split("\n").length > maxLines && (
                                 <button
                                     onClick={toggleExpand}
-                                    className="block mx-auto mt-4 text-blue-500 hover:underline"
+                                    className="mx-auto mt-4 block text-blue-500 hover:underline"
                                 >
                                     {expanded ? "Show Less" : "Show More"}
                                 </button>

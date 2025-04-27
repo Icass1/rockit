@@ -1,5 +1,3 @@
-// app/song/[id]/page.tsx
-import { notFound } from "next/navigation";
 import Link from "next/link";
 import LikeButton from "@/components/LikeButton";
 import SongPopupMenu from "@/components/ListSongs/SongPopupMenu";
@@ -9,16 +7,21 @@ import SongPageCover from "@/components/SongPage/SongPageCover";
 import LyricsSection from "@/components/SongPage/SongPageLyrics";
 import { ENV } from "@/rockitEnv";
 import { db } from "@/lib/db/db";
-import { SpotifyArtist, SpotifyArtistTopTracks, SpotifyTrack } from "@/types/spotify";
+import {
+    SpotifyArtist,
+    SpotifyArtistTopTracks,
+    SpotifyTrack,
+} from "@/types/spotify";
 import { parseSong, RawSongDB, SongDB } from "@/lib/db/song";
 import getAlbum from "@/lib/getAlbum";
+import Image from "@/components/Image";
 
 export default async function SongPage({
     params,
 }: {
     params: Promise<{ id: string }>;
 }) {
-    const { id } = await params; 
+    const { id } = await params;
     let inDatabase;
     let song:
         | SongDB<
@@ -40,12 +43,12 @@ export default async function SongPage({
     song = parseSong(
         db.prepare("SELECT * FROM song WHERE id = ?").get(id) as RawSongDB
     );
-    
+
     const BACKEND_URL = ENV.BACKEND_URL;
-    
+
     if (song) {
         inDatabase = true;
-    
+
         const _album = await getAlbum(song?.albumId);
         if (_album == "error connecting to backend") {
         } else if (_album == "not found") {
@@ -54,9 +57,8 @@ export default async function SongPage({
         }
     } else {
         inDatabase = false;
-        let response;
-    
-        response = await fetch(`${BACKEND_URL}/song/${id}`, {
+
+        const response = await fetch(`${BACKEND_URL}/song/${id}`, {
             signal: AbortSignal.timeout(2000),
         });
         if (response.ok) {
@@ -83,13 +85,13 @@ export default async function SongPage({
             album = _album;
         }
     }
-    
+
     if (!album) {
         throw "Album not found";
     }
-    
+
     let response;
-    
+
     response = await fetch(
         `${BACKEND_URL}/artist-top-songs/${song.artists[0].id}`,
         {
@@ -99,7 +101,7 @@ export default async function SongPage({
     if (response.ok) {
         artistSongs = (await response.json()) as SpotifyArtistTopTracks;
     }
-    
+
     response = await fetch(`${BACKEND_URL}/artist/${song.artists[0].id}`, {
         signal: AbortSignal.timeout(2000),
     });
@@ -115,7 +117,7 @@ export default async function SongPage({
                 <div className="hidden flex-col items-center justify-center md:flex">
                     <div className="flex w-full max-w-sm items-center rounded-lg bg-neutral-200 p-4 shadow-md">
                         <div className="h-32 w-32 flex-shrink-0 overflow-hidden rounded-full bg-neutral-300">
-                            <img
+                            <Image
                                 src={
                                     artist?.images[0]?.url ||
                                     "/user-placeholder.png"
@@ -263,7 +265,7 @@ export default async function SongPage({
                                 href={`/song/${t.id}`}
                                 className="w-40 flex-none transition hover:scale-105 md:w-48"
                             >
-                                <img
+                                <Image
                                     src={
                                         t.album.images[0]?.url ||
                                         "/song-placeholder.png"

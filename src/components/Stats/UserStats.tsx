@@ -78,8 +78,6 @@ export default function UserStats() {
         fetchDebounce.current?.(endDate, startDate);
     }, [startDate, endDate]);
 
-    console.log("fisrtDate", firstDate);
-
     const getTodayDate = () => {
         const today = new Date();
         const yearNumber = today.getFullYear();

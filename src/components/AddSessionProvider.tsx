@@ -7,5 +7,5 @@ export default function AddSessionProvider({
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    return <SessionProvider>{children}</SessionProvider>;
+    return <SessionProvider refetchInterval={3600}>{children}</SessionProvider>;
 }

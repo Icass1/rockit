@@ -118,7 +118,6 @@ export default function RadioStations() {
     };
 
     useEffect(() => {
-        console.warn("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
         if (searchDebounce.current) {
             searchDebounce.current(searchQuery);
         }

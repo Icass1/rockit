@@ -13,6 +13,7 @@
     "quick_selections": "Quick Selections",
     "you_might_like": "You Might Also Like",
     "featured_albums": "Featured Albums",
+    "featured_lists": "Featured Lists",
     "your_albums_playlists": "Your Albums and Playlists",
     "liked_songs": "Liked Songs",
     "most_listened": "Most Listened",
@@ -113,5 +114,6 @@
     "unpin": "Unpin",
     "pin": "Pin",
     "copy_list_url": "Copy list URL",
-    "get_info": "Get info"
+    "get_info": "Get info",
+    "average_minutes_per_song": "Average minutes per song"
 }

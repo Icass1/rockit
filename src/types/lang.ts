@@ -115,4 +115,6 @@ export interface Lang {
     pin: string;
     copy_list_url: string;
     get_info: string;
+    featured_lists: string;
+    average_minutes_per_song: string;
 }

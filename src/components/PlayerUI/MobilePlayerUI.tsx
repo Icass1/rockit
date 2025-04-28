@@ -82,7 +82,7 @@ export default function MobilePlayerUI() {
         return () => {
             document.removeEventListener("click", handleDocumentClick);
         };
-    }, [divRef]);
+    }, [divRef, shouldRender]);
 
     useEffect(() => {
         setEnableTransition(true);

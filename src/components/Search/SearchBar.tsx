@@ -34,7 +34,7 @@ export default function SearchBar() {
         return () => {
             document.removeEventListener("click", handleDocumentClick);
         };
-    }, [divRef, searchBarRef]);
+    }, [divRef, searchBarRef, shouldRenderResults]);
 
     return (
         <div className="relative h-full w-full">

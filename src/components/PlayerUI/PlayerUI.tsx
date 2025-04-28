@@ -196,7 +196,7 @@ export default function PlayerUI() {
         return () => {
             document.removeEventListener("click", handleDocumentClick);
         };
-    }, [divRef]);
+    }, [divRef, shouldRender]);
 
     useEffect(() => {
         if (!$isPlayerUIVisible) return;
@@ -210,7 +210,7 @@ export default function PlayerUI() {
         if (queueDivRef.current) {
             queueDivRef.current.scrollTop = index * 64;
         }
-    }, [$isPlayerUIVisible, queueDivRef]);
+    }, [$isPlayerUIVisible, queueDivRef, shouldRender]);
 
     useEffect(() => {
         // Only run this on client

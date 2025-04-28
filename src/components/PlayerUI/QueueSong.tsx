@@ -5,85 +5,68 @@ import { getImageUrl } from "@/lib/getImageUrl";
 import { getTime } from "@/lib/getTime";
 import {
     currentSong,
+    pause,
+    play,
+    playing,
     playWhenReady,
     queue,
     queueIndex,
     type QueueElement,
 } from "@/stores/audio";
 import { useStore } from "@nanostores/react";
-import { EllipsisVertical, Play } from "lucide-react";
-import { useRef, useState } from "react";
+import { Pause, Play } from "lucide-react";
+import React from "react";
 import Image from "@/components/Image";
 
-export function QueueSong({
-    song,
-    onDrag,
-    dragging = false,
-}: {
-    song: QueueElement;
-    dragging?: boolean;
-    onDrag?: () => void;
-}) {
+export function QueueSong({ song }: { song: QueueElement }) {
     const $queueIndex = useStore(queueIndex);
 
-    const startTimeMouseDownRef = useRef(100);
-    const [mouseDown, setMouseDown] = useState(false);
+    const $playing = useStore(playing);
 
-    const handleMouseDown = () => {
-        startTimeMouseDownRef.current = new Date().getTime();
-        setMouseDown(true);
-    };
-    const handleMouseMove = () => {
-        if (onDrag) onDrag();
-    };
-    const handleMouseUp = async () => {
+    const handleClick = async () => {
+        if (song.index == queueIndex.get() && playing.get()) {
+            pause();
+            return;
+        }
+        if (song.index == queueIndex.get() && !playing.get()) {
+            play();
+            return;
+        }
+
         const tempQueue = queue.get();
         if (!tempQueue) return;
 
-        setMouseDown(false);
-        if (new Date().getTime() - startTimeMouseDownRef.current < 200) {
-            const currentSongIndexInQueue = tempQueue.findIndex(
-                (_song) => _song.index == song.index
-            );
+        const currentSongIndexInQueue = tempQueue.findIndex(
+            (_song) => _song.index == song.index
+        );
 
-            queueIndex.set(tempQueue[currentSongIndexInQueue].index);
+        queueIndex.set(tempQueue[currentSongIndexInQueue].index);
 
-            const newSongId = tempQueue.find(
-                (song) => song.index == queueIndex.get()
-            )?.song.id;
-            if (!newSongId) {
-                return;
-            }
-
-            await fetch(`/api/song/${newSongId}`)
-                .then((response) => response.json())
-                .then((data: SongDB) => {
-                    playWhenReady.set(true);
-                    currentSong.set(data);
-                });
+        const newSongId = tempQueue.find(
+            (song) => song.index == queueIndex.get()
+        )?.song.id;
+        if (!newSongId) {
+            return;
         }
+
+        await fetch(`/api/song/${newSongId}`)
+            .then((response) => response.json())
+            .then((data: SongDB) => {
+                playWhenReady.set(true);
+                currentSong.set(data);
+            });
     };
 
     return (
         <li
             // onClick={handleClick}
-            onMouseDown={handleMouseDown}
-            onMouseUp={handleMouseUp}
-            onMouseMove={mouseDown ? handleMouseMove : undefined}
+            onClick={handleClick}
             className={`group flex items-center gap-x-2 p-2 ${
-                dragging && "bg-[rgba(75,75,75,0.75)]"
-            } ${
                 song.index === $queueIndex
                     ? "bg-[rgba(50,50,50,0.75)]"
                     : "md:hover:bg-[rgba(75,75,75,0.75)]"
             }`}
         >
-            {/* Espacio para el ícono */}
-            <div className="hidden h-10 items-center justify-center md:flex">
-                <div className={`opacity-0 group-hover:opacity-100`}>
-                    <EllipsisVertical className="h-12 w-5 text-white md:hover:cursor-move" />
-                </div>
-            </div>
             {/* Cover */}
             <div className="relative">
                 {/* Imagen de portada */}
@@ -100,7 +83,12 @@ export function QueueSong({
                     }`}
                 />
                 {/* Ícono Play */}
-                {song.index === $queueIndex && (
+                {song.index === $queueIndex && $playing && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <Pause className="h-5 w-5 fill-current text-white" />
+                    </div>
+                )}
+                {song.index === $queueIndex && !$playing && (
                     <div className="absolute inset-0 flex items-center justify-center">
                         <Play className="h-5 w-5 fill-current text-white" />
                     </div>

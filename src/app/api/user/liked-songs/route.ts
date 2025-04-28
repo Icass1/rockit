@@ -21,5 +21,5 @@ export async function GET() {
         ) as UserDB<"likedSongs">
     ).likedSongs;
 
-    return NextResponse.json(userLikedSongs);
+    return NextResponse.json(userLikedSongs.map((song) => song.id));
 }

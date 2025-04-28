@@ -46,16 +46,20 @@ export default function MobilePlayerUIQueue({
     >();
     const [draggingPosY, setDraggingPosY] = useState(0);
     const draggingPosYRef = useRef(0);
+    const scrollContainerTopRef = useRef(0);
 
     useEffect(() => {
-        if (!scrollRef.current) return;
-        if (!open) return;
+        if (!scrollRef.current || !open) return;
 
         const currentSongIndexInQueue = queue
             .get()
             ?.findIndex((song) => song.index == queueIndex.get());
 
-        if (!currentSongIndexInQueue) return;
+        if (
+            currentSongIndexInQueue === -1 ||
+            typeof currentSongIndexInQueue == "undefined"
+        )
+            return;
 
         scrollRef.current.scrollTo(0, currentSongIndexInQueue * 64 - 100);
     }, [scrollRef, open]);
@@ -70,14 +74,14 @@ export default function MobilePlayerUIQueue({
         if (!tempQueue) return;
 
         const index = tempQueue.findIndex((_song) => _song.index == song.index);
-
-        if (!index) return;
+        if (index === -1 || typeof index == "undefined") return;
 
         queue.set([
-            ...tempQueue?.slice(0, index),
-            ...tempQueue?.slice(index + 1),
+            ...tempQueue.slice(0, index),
+            ...tempQueue.slice(index + 1),
         ]);
     };
+
     const handlePlaySong = async (song: QueueElement) => {
         const tempQueue = queue.get();
         if (!tempQueue) return;
@@ -85,15 +89,12 @@ export default function MobilePlayerUIQueue({
         const currentSongIndexInQueue = tempQueue.findIndex(
             (_song) => _song.index == song.index
         );
-
         queueIndex.set(tempQueue[currentSongIndexInQueue].index);
 
         const newSongId = tempQueue.find(
             (song) => song.index == queueIndex.get()
         )?.song.id;
-        if (!newSongId) {
-            return;
-        }
+        if (!newSongId) return;
 
         await fetch(`/api/song/${newSongId}`)
             .then((response) => response.json())
@@ -108,13 +109,13 @@ export default function MobilePlayerUIQueue({
         song: QueueElement,
         index: number
     ) => {
-        setDraggingSong({
-            song: song,
-            index: index,
-        });
+        const scrollContainerTop =
+            scrollRef.current?.getBoundingClientRect().top || 0;
+        scrollContainerTopRef.current = scrollContainerTop;
+
+        setDraggingSong({ song, index });
         setDraggingPosY(event.touches[0].clientY);
-        draggingPosYRef.current =
-            Math.round(event.touches[0].clientY * 100) / 100;
+        draggingPosYRef.current = event.touches[0].clientY;
     };
 
     useEffect(() => {
@@ -170,173 +171,161 @@ export default function MobilePlayerUIQueue({
     }, [draggingSong]);
 
     const $lang = useStore(langData);
-    if (!$lang) return;
-
-    if (!$queue) return <div></div>;
+    if (!$lang || !$queue) return null;
 
     return (
         <div
             id="MobilePlayerUIQueue"
-            className={
-                "absolute top-[80px] z-50 grid h-[calc(100%_-_5rem)] w-full grid-rows-[40px_1fr] rounded-t-lg bg-gray-700 pt-4 pl-2 transition-[top] duration-300 select-none md:select-text"
-            }
+            className="absolute top-[80px] z-50 grid h-[calc(100%_-_5rem)] w-full grid-rows-[40px_1fr] rounded-t-lg bg-gray-700 pt-4 pl-2 transition-[top] duration-300 select-none md:select-text"
             style={{ top: open ? "80px" : height + "px" }}
         >
             <label
-                className="h-full max-h-full min-h-0 w-full max-w-full min-w-0 text-center text-xl font-semibold text-nowrap"
-                onClick={() => {
-                    setOpen(false);
-                }}
+                className="h-full text-center text-xl font-semibold"
+                onClick={() => setOpen(false)}
             >
                 Queue
             </label>
-            <div className="relative h-full max-h-full min-h-0 w-full max-w-full min-w-0">
+            <div className="relative h-full">
                 <div
                     ref={scrollRef}
                     onScroll={(e) => setQueueScroll(e.currentTarget.scrollTop)}
-                    className={
-                        "relative h-full max-h-full min-h-0 " +
-                        (draggingSong == undefined
-                            ? " overflow-y-auto"
-                            : " overflow-y-hidden")
-                    }
+                    className={`relative h-full ${!draggingSong ? "overflow-y-auto" : "overflow-y-hidden"}`}
                 >
-                    <div className="min-h-5"></div>
-                    <div style={{ height: $queue.length * 64 }}></div>
-                    {$queue.map((song, index) => {
-                        if (!scrollRef.current) return;
+                    <div className="min-h-5" />
+                    <div style={{ height: $queue.length * 64 }}>
+                        {$queue.map((song, index) => {
+                            if (!scrollRef.current) return;
 
-                        let top: number;
+                            let top: number;
 
-                        let draggingTop: number | undefined;
+                            let draggingTop: number | undefined;
+                            const isDragging =
+                                draggingSong?.song.song.id === song.song.id;
 
-                        if (draggingSong)
-                            draggingTop = Math.max(
-                                draggingPosY -
-                                    185 +
-                                    scrollRef.current.scrollTop,
-                                0
-                            );
+                            if (draggingSong)
+                                draggingTop = Math.max(
+                                    draggingPosY -
+                                        185 +
+                                        scrollRef.current.scrollTop,
+                                    0
+                                );
 
-                        if (
-                            draggingSong?.song.song.id == song.song.id &&
-                            typeof draggingTop == "number"
-                        ) {
-                            top = draggingTop;
-                        } else {
-                            top = index * 64;
-                        }
+                            if (
+                                draggingSong?.song.song.id == song.song.id &&
+                                typeof draggingTop == "number"
+                            ) {
+                                top = draggingTop;
+                            } else {
+                                top = index * 64;
+                            }
 
-                        if (
-                            typeof draggingTop == "number" &&
-                            typeof draggingSong?.index == "number" &&
-                            draggingSong?.index != index &&
-                            draggingTop - 32 < top &&
-                            draggingSong?.index * 64 > top
-                        ) {
-                            top += 64;
-                        }
+                            if (
+                                typeof draggingTop == "number" &&
+                                typeof draggingSong?.index == "number" &&
+                                draggingSong?.index != index &&
+                                draggingTop - 32 < top &&
+                                draggingSong?.index * 64 > top
+                            ) {
+                                top += 64;
+                            }
 
-                        if (
-                            typeof draggingTop == "number" &&
-                            typeof draggingSong?.index == "number" &&
-                            draggingSong?.index != index &&
-                            draggingTop + 32 > top &&
-                            draggingSong?.index * 64 < top
-                        ) {
-                            top -= 64;
-                        }
+                            if (
+                                typeof draggingTop == "number" &&
+                                typeof draggingSong?.index == "number" &&
+                                draggingSong?.index != index &&
+                                draggingTop + 32 > top &&
+                                draggingSong?.index * 64 < top
+                            ) {
+                                top -= 64;
+                            }
 
-                        if (
-                            (scrollRef.current?.offsetHeight &&
-                                top >
-                                    scrollRef.current?.offsetHeight +
-                                        queueScroll) ||
-                            top < queueScroll - 74
-                        ) {
-                            return;
-                        }
+                            if (
+                                (scrollRef.current?.offsetHeight &&
+                                    top >
+                                        scrollRef.current?.offsetHeight +
+                                            queueScroll) ||
+                                top < queueScroll - 74
+                            ) {
+                                return;
+                            }
 
-                        return (
-                            <div
-                                key={song.song.id + song.index}
-                                id={song.song.id + song.index}
-                                className={
-                                    "absolute w-full " +
-                                    (draggingSong?.song.song.id == song.song.id
-                                        ? " z-10"
-                                        : " transition-[top] duration-500")
-                                }
-                                style={{
-                                    top: `${top + 20}px`,
-                                    transitionTimingFunction:
-                                        "cubic-bezier(1,-0.53, 0.09, 1.58)",
-                                }}
-                            >
-                                <ContextMenu>
-                                    <ContextMenuTrigger>
-                                        <div className="grid grid-cols-[1fr_45px] items-center">
-                                            <div className="w-full max-w-full min-w-0">
-                                                <QueueSong
-                                                    key={song.index}
-                                                    song={song}
+                            return (
+                                <div
+                                    key={`${song.song.id}-${song.index}`}
+                                    className={`absolute w-full ${isDragging ? "z-10" : "transition-[top] duration-500"}`}
+                                    style={{
+                                        top: `${top + 20}px`,
+                                        transitionTimingFunction:
+                                            "cubic-bezier(0.4, 0, 0.2, 1)",
+                                    }}
+                                >
+                                    <ContextMenu>
+                                        <ContextMenuTrigger>
+                                            <div className="grid grid-cols-[1fr_45px] items-center">
+                                                <div className="w-full max-w-full min-w-0">
+                                                    <QueueSong
+                                                        key={song.index}
+                                                        song={song}
+                                                    />
+                                                </div>
+                                                <GripVertical
+                                                    className="h-full w-full p-1 pr-3"
+                                                    onTouchStart={(e) =>
+                                                        touchStart(
+                                                            e,
+                                                            song,
+                                                            index
+                                                        )
+                                                    }
                                                 />
                                             </div>
-                                            <GripVertical
-                                                className="h-full w-full p-1 pr-3"
-                                                onTouchStart={(e) =>
-                                                    touchStart(e, song, index)
+                                        </ContextMenuTrigger>
+                                        <ContextMenuContent
+                                            cover={getImageUrl({
+                                                imageId: song.song.image,
+                                            })}
+                                            title={song.song.name}
+                                            description={`${song.song.albumName} • ${song.song.artists
+                                                .map((a) => a.name)
+                                                .join(", ")}`}
+                                        >
+                                            <ContextMenuOption
+                                                onClick={() =>
+                                                    handlePlaySong(song)
                                                 }
-                                            />
-                                        </div>
-                                    </ContextMenuTrigger>
-                                    <ContextMenuContent
-                                        cover={getImageUrl({
-                                            imageId: song.song.image,
-                                        })}
-                                        title={song.song.name}
-                                        description={
-                                            song.song.albumName +
-                                            " • " +
-                                            song.song.artists
-                                                .map((artist) => artist.name)
-                                                .join(", ")
-                                        }
-                                    >
-                                        <ContextMenuOption
-                                            onClick={() => handlePlaySong(song)}
-                                        >
-                                            <PlayCircle className="h-5 w-5" />
-                                            {$lang.play_song}
-                                        </ContextMenuOption>
-                                        <ContextMenuOption
-                                            onClick={() =>
-                                                handleRemoveSong(song)
-                                            }
-                                        >
-                                            <ListX className="h-5 w-5" />
-                                            {$lang.remove_from_queue}
-                                        </ContextMenuOption>
-                                        <ContextMenuOption
-                                            onClick={() => {
-                                                saveSongToIndexedDB(
-                                                    song.song,
-                                                    true
-                                                );
-                                            }}
-                                        >
-                                            <HardDriveDownload className="h-5 w-5" />
-                                            {$lang.download_song_to_device}
-                                        </ContextMenuOption>
-                                    </ContextMenuContent>
-                                </ContextMenu>
-                            </div>
-                        );
-                    })}
-                    <div className="min-h-10"></div>
+                                            >
+                                                <PlayCircle className="h-5 w-5" />
+                                                {$lang.play_song}
+                                            </ContextMenuOption>
+                                            <ContextMenuOption
+                                                onClick={() =>
+                                                    handleRemoveSong(song)
+                                                }
+                                            >
+                                                <ListX className="h-5 w-5" />
+                                                {$lang.remove_from_queue}
+                                            </ContextMenuOption>
+                                            <ContextMenuOption
+                                                onClick={() =>
+                                                    saveSongToIndexedDB(
+                                                        song.song,
+                                                        true
+                                                    )
+                                                }
+                                            >
+                                                <HardDriveDownload className="h-5 w-5" />
+                                                {$lang.download_song_to_device}
+                                            </ContextMenuOption>
+                                        </ContextMenuContent>
+                                    </ContextMenu>
+                                </div>
+                            );
+                        })}
+                    </div>
+                    <div className="min-h-10" />
                 </div>
-                <div className="absolute -top-1 h-10 w-full bg-gradient-to-t from-transparent to-gray-700"></div>
-                <div className="absolute bottom-0 h-10 w-full bg-gradient-to-b from-transparent to-gray-700"></div>
+                <div className="absolute -top-1 h-10 w-full bg-gradient-to-t from-transparent to-gray-700" />
+                <div className="absolute bottom-0 h-10 w-full bg-gradient-to-b from-transparent to-gray-700" />
             </div>
         </div>
     );

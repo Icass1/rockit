@@ -57,6 +57,8 @@ export default function MobilePlayerUI() {
     const [queueOpen, setQueueOpen] = useState(false);
     const [lyricsOpen, setLyricsOpen] = useState(false);
 
+    const [shouldRender, setShouldRender] = useState(false);
+
     useEffect(() => {
         if (!divRef.current) {
             return;
@@ -107,6 +109,7 @@ export default function MobilePlayerUI() {
         if (!el) return;
 
         const handleTouchStart = (e: TouchEvent) => {
+            console.warn("handleTouchStart");
             if (
                 document
                     .querySelector("#MobilePlayerUIQueue")
@@ -195,9 +198,14 @@ export default function MobilePlayerUI() {
             el.removeEventListener("touchstart", handleTouchStart);
             el.removeEventListener("touchend", handleTouchEnd);
         };
-    }, [divRef, touchStart, touchStartTime, topOffset, cancelHide]);
-
-    const [shouldRender, setShouldRender] = useState(false);
+    }, [
+        divRef,
+        touchStart,
+        touchStartTime,
+        topOffset,
+        cancelHide,
+        shouldRender,
+    ]);
 
     useEffect(() => {
         // Only run this on client

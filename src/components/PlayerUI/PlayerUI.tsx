@@ -2,6 +2,9 @@
 
 import {
     currentSong,
+    pause,
+    play,
+    playing,
     playWhenReady,
     queue,
     queueIndex,
@@ -25,6 +28,8 @@ import {
     GripVertical,
     HardDriveDownload,
     ListX,
+    Pause,
+    Play,
     PlayCircle,
 } from "lucide-react";
 import { SongDB } from "@/lib/db/song";
@@ -65,6 +70,8 @@ export default function PlayerUI() {
     const scrollContainerTopRef = useRef(0);
 
     const $queueIndex = useStore(queueIndex);
+    const [hover, setHover] = useState(false);
+    const $playing = useStore(playing);
 
     const mouseDown = (
         event: React.MouseEvent,
@@ -214,6 +221,10 @@ export default function PlayerUI() {
 
     if (!$lang || !$queue || !shouldRender) return null;
 
+    const iconClassName =
+        "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition-all z-20" +
+        (hover ? " w-20 h-20 " : " w-0 h-0 ");
+
     return (
         <div
             ref={divRef}
@@ -244,15 +255,32 @@ export default function PlayerUI() {
 
                 {/* Middle Column: Cover & Info */}
                 <div className="z-10 flex max-h-full min-h-0 w-full max-w-full min-w-0 flex-col items-center justify-center">
-                    <div className="aspect-square max-h-[70%]">
+                    <div
+                        onMouseEnter={() => setHover(true)}
+                        onMouseLeave={() => setHover(false)}
+                        className="relative mx-auto aspect-square h-[100%] max-h-[70%] w-auto rounded-lg object-cover"
+                    >
                         <Image
                             src={getImageUrl({
                                 imageId: $currentSong?.image,
                                 placeHolder: "/song-placeholder.png",
                             })}
                             alt="Song Cover"
-                            className="mx-auto aspect-square h-[100%] w-auto rounded-lg object-cover"
+                            className="absolute h-full w-full"
                         />
+                        {$playing ? (
+                            <Pause
+                                onClick={() => pause()}
+                                className={iconClassName}
+                                fill="white"
+                            />
+                        ) : (
+                            <Play
+                                onClick={() => play()}
+                                className={iconClassName}
+                                fill="white"
+                            />
+                        )}
                     </div>
                     <div className="mt-2 flex w-full flex-col items-center justify-center px-2 text-center">
                         <h1 className="line-clamp-2 text-4xl leading-normal font-bold text-balance">

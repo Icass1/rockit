@@ -25,8 +25,8 @@ export async function generateMetadata({
         openGraph: {
             title: `${album.name} by ${album.artists[0].name}`,
             description: `Listen to ${album.name} by ${album.artists[0].name}`,
-            type: "music.playlist",
-            url: `https://rockit.rockhosting.org/playlist/${id}`,
+            type: "music.album",
+            url: `https://rockit.rockhosting.org/album/${id}`,
             images: [
                 {
                     url:

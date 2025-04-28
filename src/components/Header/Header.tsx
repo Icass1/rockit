@@ -3,7 +3,6 @@ import SearchBar from "@/components/Search/SearchBar";
 import Image from "@/components/Image";
 import HeaderUser from "@/components/Header/HeaderUser";
 import { getSession } from "@/lib/auth/getSession";
-import AddSessionProvider from "@/components/AddSessionProvider";
 import { headers } from "next/headers";
 
 export default async function Header() {
@@ -31,9 +30,7 @@ export default async function Header() {
 
             <div className="relative ml-auto">
                 {session?.user ? (
-                    <AddSessionProvider>
-                        <HeaderUser />
-                    </AddSessionProvider>
+                    <HeaderUser />
                 ) : (
                     <Link
                         className="rounded bg-green-600 p-1 px-4"

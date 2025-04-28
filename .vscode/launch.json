@@ -7,6 +7,13 @@
         "Python Backend Server",
         "NextJS Server"
       ]
+    },
+    {
+      "name": "Run Frontend Only (NextJS + Custom Node Server)",
+      "configurations": [
+        "NextJS Server",
+        "Custom Node Server"
+      ]
     }
   ],
   "configurations": [
@@ -34,6 +41,15 @@
         "dev"
       ],
       "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "name": "Custom Node Server",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/src/server.mjs",
+      "runtimeExecutable": "node",
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen"
     }

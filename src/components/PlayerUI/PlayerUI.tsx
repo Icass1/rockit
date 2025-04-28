@@ -2,19 +2,33 @@
 
 import {
     currentSong,
+    playWhenReady,
     queue,
     queueIndex,
+    saveSongToIndexedDB,
     type QueueElement,
 } from "@/stores/audio";
 import { isPlayerUIVisible } from "@/stores/isPlayerUIVisible";
 import { useStore } from "@nanostores/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import useWindowSize from "@/hooks/useWindowSize";
 import { getImageUrl } from "@/lib/getImageUrl";
 import { QueueSong } from "./QueueSong";
 import { DynamicLyrics } from "./DynamicLyrics";
 import Image from "@/components/Image";
 import Link from "next/link";
+import ContextMenuContent from "@/components/ContextMenu/Content";
+import ContextMenuOption from "@/components/ContextMenu/Option";
+import ContextMenu from "@/components/ContextMenu/ContextMenu";
+import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
+import {
+    GripVertical,
+    HardDriveDownload,
+    ListX,
+    PlayCircle,
+} from "lucide-react";
+import { SongDB } from "@/lib/db/song";
+import { langData } from "@/stores/lang";
 
 export default function PlayerUI() {
     // Estas dos cosas son para el mockup del related
@@ -32,6 +46,130 @@ export default function PlayerUI() {
 
     const divRef = useRef<HTMLDivElement>(null);
     const innerWidth = useWindowSize().width;
+
+    const [draggingSong, setDraggingSong] = useState<
+        | {
+              song: QueueElement;
+              index: number;
+          }
+        | undefined
+    >();
+
+    const [draggingPosY, setDraggingPosY] = useState(0);
+    const draggingPosYRef = useRef(0);
+
+    const queueDivRef = useRef<HTMLDivElement>(null);
+
+    const [shouldRender, setShouldRender] = useState(false);
+
+    const scrollContainerTopRef = useRef(0);
+
+    const $queueIndex = useStore(queueIndex);
+
+    const mouseDown = (
+        event: React.MouseEvent,
+        song: QueueElement,
+        index: number
+    ) => {
+        const scrollContainerTop =
+            queueDivRef.current?.getBoundingClientRect().top || 0;
+        scrollContainerTopRef.current = scrollContainerTop;
+
+        setDraggingSong({ song, index });
+        setDraggingPosY(event.clientY);
+        draggingPosYRef.current = event.clientY;
+    };
+
+    const handleRemoveSong = (song: QueueElement) => {
+        if (song.index == queueIndex.get()) {
+            // Alert the user that the song is currently playing cannot be removed.
+            return;
+        }
+
+        const tempQueue = queue.get();
+        if (!tempQueue) return;
+
+        const index = tempQueue.findIndex((_song) => _song.index == song.index);
+        if (index === -1 || typeof index == "undefined") return;
+
+        queue.set([
+            ...tempQueue.slice(0, index),
+            ...tempQueue.slice(index + 1),
+        ]);
+    };
+
+    const handlePlaySong = async (song: QueueElement) => {
+        const tempQueue = queue.get();
+        if (!tempQueue) return;
+
+        const currentSongIndexInQueue = tempQueue.findIndex(
+            (_song) => _song.index == song.index
+        );
+        queueIndex.set(tempQueue[currentSongIndexInQueue].index);
+
+        const newSongId = tempQueue.find(
+            (song) => song.index == queueIndex.get()
+        )?.song.id;
+        if (!newSongId) return;
+
+        await fetch(`/api/song/${newSongId}`)
+            .then((response) => response.json())
+            .then((data: SongDB) => {
+                playWhenReady.set(true);
+                currentSong.set(data);
+            });
+    };
+
+    useEffect(() => {
+        if (!draggingSong) return;
+        const handleTouchMove = (event: MouseEvent) => {
+            setDraggingPosY(Math.round(event.clientY * 100) / 100);
+            draggingPosYRef.current = Math.round(event.clientY * 100) / 100;
+        };
+
+        const handleTouchEnd = () => {
+            setDraggingSong(undefined);
+
+            const tempQueue = queue.get();
+            if (!tempQueue) return;
+
+            if (typeof queueDivRef.current?.scrollTop != "number") return;
+            const indexInQueue = Math.floor(
+                (draggingPosYRef.current -
+                    185 +
+                    32 +
+                    queueDivRef.current?.scrollTop) /
+                    64
+            );
+
+            if (draggingSong.index == indexInQueue) return;
+            else if (draggingSong.index < indexInQueue) {
+                queue.set([
+                    ...tempQueue.slice(0, draggingSong.index),
+                    ...tempQueue.slice(
+                        draggingSong.index + 1,
+                        indexInQueue + 1
+                    ),
+                    draggingSong.song,
+                    ...tempQueue.slice(indexInQueue + 1),
+                ]);
+            } else {
+                queue.set([
+                    ...tempQueue.slice(0, indexInQueue),
+                    draggingSong.song,
+                    ...tempQueue.slice(indexInQueue, draggingSong.index),
+                    ...tempQueue.slice(draggingSong.index + 1),
+                ]);
+            }
+        };
+
+        document.addEventListener("mousemove", handleTouchMove);
+        document.addEventListener("mouseup", handleTouchEnd);
+        return () => {
+            document.removeEventListener("mousemove", handleTouchMove);
+            document.removeEventListener("mouseup", handleTouchEnd);
+        };
+    }, [draggingSong]);
 
     useEffect(() => {
         if (!divRef.current) {
@@ -53,74 +191,6 @@ export default function PlayerUI() {
         };
     }, [divRef]);
 
-    const [draggingSong, setDraggingSong] = useState<
-        QueueElement | undefined
-    >();
-    const [draggingPos, setDraggingPos] = useState<[number, number]>([0, 0]);
-    const queueDivRef = useRef<HTMLDivElement>(null);
-
-    const handleMouseUp = useCallback(
-        (event: globalThis.MouseEvent) => {
-            if (!queueDivRef.current || !draggingSong) return;
-            let spacerIndex = undefined;
-            if (queueDivRef.current?.offsetTop) {
-                spacerIndex = Math.floor(
-                    (event.clientY -
-                        32 -
-                        queueDivRef.current.getBoundingClientRect().top +
-                        queueDivRef.current.scrollTop -
-                        30) /
-                        64
-                );
-            }
-
-            const prevSongs = queue.get();
-            if (!prevSongs) return;
-
-            const tempDraggingSong = prevSongs.find(
-                (song) => song.song.id == draggingSong.song.id
-            );
-            if (typeof tempDraggingSong == "undefined") return;
-            if (typeof spacerIndex == "undefined") return;
-
-            const draggingSongIndex = prevSongs.indexOf(tempDraggingSong);
-
-            if (spacerIndex > draggingSongIndex) {
-                queue.set([
-                    ...prevSongs.slice(0, draggingSongIndex),
-                    ...prevSongs.slice(draggingSongIndex + 1, spacerIndex + 2),
-                    tempDraggingSong,
-                    ...prevSongs.slice(spacerIndex + 2),
-                ]);
-            } else if (spacerIndex < draggingSongIndex) {
-                queue.set([
-                    ...prevSongs.slice(0, spacerIndex + 1),
-                    tempDraggingSong,
-                    ...prevSongs.slice(spacerIndex + 1, draggingSongIndex),
-                    ...prevSongs.slice(draggingSongIndex + 1),
-                ]);
-            }
-
-            setDraggingSong(undefined);
-        },
-        [draggingSong]
-    );
-
-    const handleMouseMove = useCallback((event: globalThis.MouseEvent) => {
-        if (!queueDivRef.current) return;
-        setDraggingPos([event.clientX - 10, event.clientY - 32]);
-    }, []);
-
-    useEffect(() => {
-        document.addEventListener("mouseup", handleMouseUp);
-        document.addEventListener("mousemove", handleMouseMove);
-
-        return () => {
-            document.removeEventListener("mouseup", handleMouseUp);
-            document.removeEventListener("mousemove", handleMouseMove);
-        };
-    }, [handleMouseUp, handleMouseMove]);
-
     useEffect(() => {
         if (!$isPlayerUIVisible) return;
 
@@ -135,14 +205,14 @@ export default function PlayerUI() {
         }
     }, [$isPlayerUIVisible, queueDivRef]);
 
-    const [shouldRender, setShouldRender] = useState(false);
-
     useEffect(() => {
         // Only run this on client
         setShouldRender(innerWidth > 768);
     }, [innerWidth]);
 
-    if (!shouldRender) return;
+    const $lang = useStore(langData);
+
+    if (!$lang || !$queue || !shouldRender) return null;
 
     return (
         <div
@@ -247,121 +317,154 @@ export default function PlayerUI() {
                                 <div
                                     style={{ height: $queue.length * 64 }}
                                 ></div>
-                                {$queue
-                                    .filter(
-                                        (song) =>
-                                            song?.song?.id !=
-                                            draggingSong?.song.id
-                                    )
-                                    .map((queueSong, index) => {
-                                        if (
-                                            queueSong.song.id ==
-                                            draggingSong?.song.id
-                                        ) {
-                                            return;
-                                        }
+                                {$queue.map((queueSong, index) => {
+                                    if (!queueDivRef.current) return;
 
-                                        let spacerIndex = undefined;
+                                    let top: number;
 
-                                        if (queueDivRef.current?.offsetTop) {
-                                            spacerIndex = Math.floor(
-                                                (draggingPos[1] -
-                                                    queueDivRef.current.getBoundingClientRect()
-                                                        .top +
-                                                    queueDivRef.current
-                                                        .scrollTop -
-                                                    30) /
-                                                    64
-                                            );
-                                        }
+                                    let draggingTop: number | undefined;
+                                    const isDragging =
+                                        draggingSong?.song.song.id ===
+                                        queueSong.song.id;
 
-                                        let top = index * 64;
-
-                                        if (
-                                            draggingSong &&
-                                            typeof spacerIndex != "undefined" &&
-                                            spacerIndex < index
-                                        ) {
-                                            top += 64;
-                                        }
-                                        if (
-                                            draggingSong &&
-                                            index == 0 &&
-                                            spacerIndex == -1
-                                        ) {
-                                            top -= 64;
-                                        }
-
-                                        if (
-                                            (queueDivRef.current
-                                                ?.offsetHeight &&
-                                                top >
-                                                    queueDivRef.current
-                                                        ?.offsetHeight +
-                                                        queueScroll) ||
-                                            top < queueScroll - 64
-                                        ) {
-                                            return;
-                                        }
-                                        return (
-                                            <div
-                                                key={
-                                                    queueSong.song.id +
-                                                    queueSong.index
-                                                }
-                                                id={
-                                                    queueSong.song.id +
-                                                    queueSong.index
-                                                }
-                                                className="absolute w-full transition-[top] duration-500"
-                                                style={{
-                                                    top: `${top}px`,
-                                                    transitionTimingFunction:
-                                                        "cubic-bezier(1,-0.53, 0.09, 1.58)",
-                                                }}
-                                            >
-                                                {draggingSong &&
-                                                    spacerIndex == -1 &&
-                                                    index == 0 && (
-                                                        <div className="h-16 bg-transparent"></div>
-                                                    )}
-                                                <QueueSong
-                                                    song={queueSong}
-                                                    onDrag={() => {
-                                                        setDraggingSong(
-                                                            queueSong
-                                                        );
-                                                    }}
-                                                />
-                                                {draggingSong &&
-                                                    typeof spacerIndex !=
-                                                        "undefined" &&
-                                                    spacerIndex == index && (
-                                                        <div className="h-16 bg-transparent"></div>
-                                                    )}
-                                            </div>
+                                    if (draggingSong)
+                                        draggingTop = Math.max(
+                                            draggingPosY -
+                                                185 +
+                                                queueDivRef.current.scrollTop,
+                                            0
                                         );
-                                    })}
 
-                                {draggingSong && queueDivRef.current && (
-                                    <div
-                                        className="absolute w-full"
-                                        style={{
-                                            top: `${
-                                                draggingPos[1] +
-                                                queueScroll -
-                                                queueDivRef.current.getBoundingClientRect()
-                                                    .y
-                                            }px`,
-                                            // left: `${draggingPos[0]}px`,
-                                        }}
-                                    >
-                                        <QueueSong
-                                            song={draggingSong}
-                                            dragging
-                                        />
-                                    </div>
-                                )}
+                                    if (
+                                        draggingSong?.song.song.id ==
+                                            queueSong.song.id &&
+                                        typeof draggingTop == "number"
+                                    ) {
+                                        top = draggingTop;
+                                    } else {
+                                        top = index * 64;
+                                    }
+
+                                    if (
+                                        typeof draggingTop == "number" &&
+                                        typeof draggingSong?.index ==
+                                            "number" &&
+                                        draggingSong?.index != index &&
+                                        draggingTop - 32 < top &&
+                                        draggingSong?.index * 64 > top
+                                    ) {
+                                        top += 64;
+                                    }
+
+                                    if (
+                                        typeof draggingTop == "number" &&
+                                        typeof draggingSong?.index ==
+                                            "number" &&
+                                        draggingSong?.index != index &&
+                                        draggingTop + 32 > top &&
+                                        draggingSong?.index * 64 < top
+                                    ) {
+                                        top -= 64;
+                                    }
+
+                                    if (
+                                        (queueDivRef.current?.offsetHeight &&
+                                            top >
+                                                queueDivRef.current
+                                                    ?.offsetHeight +
+                                                    queueScroll) ||
+                                        top < queueScroll - 74
+                                    ) {
+                                        return;
+                                    }
+                                    return (
+                                        <div
+                                            key={`${queueSong.song.id}-${queueSong.index}`}
+                                            className={`absolute w-full ${isDragging ? "z-10" : "transition-[top] duration-500"}`}
+                                            style={{
+                                                top: `${top + 20}px`,
+                                                transitionTimingFunction:
+                                                    "cubic-bezier(0.4, 0, 0.2, 1)",
+                                            }}
+                                        >
+                                            <ContextMenu>
+                                                <ContextMenuTrigger>
+                                                    <div className="grid grid-cols-[1fr_45px] items-center">
+                                                        <div className="w-full max-w-full min-w-0">
+                                                            <QueueSong
+                                                                key={
+                                                                    queueSong.index
+                                                                }
+                                                                song={queueSong}
+                                                            />
+                                                        </div>
+                                                        <GripVertical
+                                                            className="h-full w-full p-1 pr-3"
+                                                            onMouseDown={(e) =>
+                                                                mouseDown(
+                                                                    e,
+                                                                    queueSong,
+                                                                    index
+                                                                )
+                                                            }
+                                                        />
+                                                    </div>
+                                                </ContextMenuTrigger>
+                                                <ContextMenuContent
+                                                    cover={getImageUrl({
+                                                        imageId:
+                                                            queueSong.song
+                                                                .image,
+                                                    })}
+                                                    title={queueSong.song.name}
+                                                    description={`${queueSong.song.albumName} • ${queueSong.song.artists
+                                                        .map((a) => a.name)
+                                                        .join(", ")}`}
+                                                >
+                                                    <ContextMenuOption
+                                                        onClick={() =>
+                                                            handlePlaySong(
+                                                                queueSong
+                                                            )
+                                                        }
+                                                    >
+                                                        <PlayCircle className="h-5 w-5" />
+                                                        {$lang.play_song}
+                                                    </ContextMenuOption>
+                                                    <ContextMenuOption
+                                                        onClick={() =>
+                                                            handleRemoveSong(
+                                                                queueSong
+                                                            )
+                                                        }
+                                                        disable={
+                                                            $queueIndex ==
+                                                            queueSong.index
+                                                        }
+                                                    >
+                                                        <ListX className="h-5 w-5" />
+                                                        {
+                                                            $lang.remove_from_queue
+                                                        }
+                                                    </ContextMenuOption>
+                                                    <ContextMenuOption
+                                                        onClick={() =>
+                                                            saveSongToIndexedDB(
+                                                                queueSong.song,
+                                                                true
+                                                            )
+                                                        }
+                                                    >
+                                                        <HardDriveDownload className="h-5 w-5" />
+                                                        {
+                                                            $lang.download_song_to_device
+                                                        }
+                                                    </ContextMenuOption>
+                                                </ContextMenuContent>
+                                            </ContextMenu>
+                                        </div>
+                                    );
+                                })}
                             </>
                         ) : (
                             <>

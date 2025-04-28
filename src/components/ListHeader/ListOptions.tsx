@@ -43,7 +43,7 @@ export const pinListHandleClick = ({
 
     if (isPinned) {
         // Si ya está en la lista, elimínalo
-        fetch(`/api/unpin/${type}/${id}`, { method: "DELETE" })
+        fetch(`/api/pin/${type}/${id}`, { method: "DELETE" })
             .then((response) => response.json())
             .then(() => {
                 const updatedLists = pinnedLists

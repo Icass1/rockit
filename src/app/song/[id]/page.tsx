@@ -15,6 +15,57 @@ import {
 import { parseSong, RawSongDB, SongDB } from "@/lib/db/song";
 import getAlbum from "@/lib/getAlbum";
 import Image from "@/components/Image";
+import { getImageUrl } from "@/lib/getImageUrl";
+
+export async function generateMetadata({
+    params,
+}: {
+    params: Promise<{ id: string }>;
+}) {
+    const { id } = await params;
+
+    const song = parseSong(
+        db.prepare("SELECT * FROM song WHERE id = ?").get(id) as RawSongDB
+    );
+
+    if (!song) return;
+
+    return {
+        title: `${song.name} by ${song.artists[0].name}`,
+        description: `Listen to ${song.name} by ${song.artists[0].name}`,
+        openGraph: {
+            title: `${song.name} by ${song.artists[0].name}`,
+            description: `Listen to ${song.name} by ${song.artists[0].name}`,
+            type: "music.song",
+            url: `https://rockit.rockhosting.org/song/${id}`,
+            images: [
+                {
+                    url:
+                        "https://rockit.rockhosting.org" +
+                        getImageUrl({ imageId: song.image }),
+                    width: 600,
+                    height: 600,
+                    alt: song.name,
+                },
+            ],
+        },
+        twitter: {
+            card: "",
+            title: `${song.name} by ${song.artists[0].name}`,
+            description: `Listen to ${song.name} by ${song.artists[0].name}`,
+            images: [
+                {
+                    url:
+                        "https://rockit.rockhosting.org" +
+                        getImageUrl({ imageId: song.image }),
+                    width: 600,
+                    height: 600,
+                    alt: song.name,
+                },
+            ],
+        },
+    };
+}
 
 export default async function SongPage({
     params,
@@ -92,25 +143,29 @@ export default async function SongPage({
 
     let response;
 
-    response = await fetch(
-        `${BACKEND_URL}/artist-top-songs/${song.artists[0].id}`,
-        {
-            signal: AbortSignal.timeout(2000),
+    try {
+        response = await fetch(
+            `${BACKEND_URL}/artist-top-songs/${song.artists[0].id}`,
+            {
+                signal: AbortSignal.timeout(2000),
+            }
+        );
+        if (response.ok) {
+            artistSongs = (await response.json()) as SpotifyArtistTopTracks;
         }
-    );
-    if (response.ok) {
-        artistSongs = (await response.json()) as SpotifyArtistTopTracks;
-    }
+    } catch {}
 
-    response = await fetch(`${BACKEND_URL}/artist/${song.artists[0].id}`, {
-        signal: AbortSignal.timeout(2000),
-    });
-    if (response.ok) {
-        artist = await response.json();
-    }
+    try {
+        response = await fetch(`${BACKEND_URL}/artist/${song.artists[0].id}`, {
+            signal: AbortSignal.timeout(2000),
+        });
+        if (response.ok) {
+            artist = await response.json();
+        }
+    } catch {}
 
     return (
-        <div className="mx-auto mt-20 w-full pb-6 md:mt-0 md:px-6">
+        <div className="h-full w-full overflow-y-scroll p-2 pt-16 pb-16 md:mt-0 md:mb-0 md:pt-24 md:pb-24">
             {/* Header */}
             <div className="mx-auto grid w-full grid-cols-1 items-center gap-4 px-10 md:grid-cols-3 md:p-6">
                 {/* Artista */}
@@ -184,10 +239,13 @@ export default async function SongPage({
                         </p>
                     </div>
 
-                    <div className="mt-4 flex justify-center space-x-4">
-                        <LikeButton song={song} />
+                    <div className="mt-4 flex flex-row justify-center gap-4">
+                        <div className="flex flex-row items-center gap-2 rounded bg-[#3030306f] p-2 select-none hover:bg-[#313131]">
+                            <LikeButton song={song} />
+                            <span>Like</span>
+                        </div>
                         <SongPopupMenu song={song}>
-                            <div className="flex items-center rounded bg-[#3030306f] p-2 hover:bg-[#313131]">
+                            <div className="flex cursor-pointer items-center rounded bg-[#3030306f] p-2 hover:bg-[#313131]">
                                 <EllipsisVertical className="h-5 w-5" />
                                 <span>More Options</span>
                             </div>

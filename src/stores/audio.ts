@@ -75,7 +75,7 @@ export function createControlledAtom<T>(
             websocket.addEventListener("message", async (message) => {
                 try {
                     const messageJson = JSON.parse(message.data);
-                    if (!messageJson[name]) return;
+                    if (typeof messageJson[name] == "undefined") return;
                     if (getValueFromMessage) {
                         const value = await getValueFromMessage(
                             messageJson[name]
@@ -372,7 +372,6 @@ let lastTime: number | undefined = undefined;
 let timeSum = 0;
 let inCrossFade = false;
 
-console.warn("to do");
 export const crossFade = createControlledAtom<number | undefined>(
     0,
     "crossFade"
@@ -780,20 +779,6 @@ function addSubscribers() {
         if (!value) return;
 
         updateUserIndexedDB();
-        console.error("todo");
-        // send({
-        //     queue: value
-        //         .map((value) => {
-        //             if (value?.song && value?.list) {
-        //                 return {
-        //                     song: value.song.id,
-        //                     index: value.index,
-        //                     list: value.list,
-        //                 };
-        //             }
-        //         })
-        //         .filter((song) => song),
-        // });
     });
 
     queueIndex.subscribe(() => {
@@ -924,7 +909,13 @@ export async function play() {
         console.error("audio is undefined");
         return;
     }
-    if (admin.get()) console.log("play");
+    if (admin.get())
+        console.log(
+            "export async function play",
+            audioPlayer,
+            audio.readyState,
+            audio2.readyState
+        );
 
     if (audioPlayer) {
         await audio.play();
@@ -948,7 +939,7 @@ export function pause() {
         return;
     }
 
-    if (admin.get()) console.log("pause");
+    if (admin.get()) console.log("pause", audioPlayer);
     audio.pause();
     audio2.pause();
 
@@ -1070,6 +1061,10 @@ async function startSocket() {
             send({
                 deviceName: getUA(),
             });
+        } else if (data.command == "play" && audioPlayer) {
+            play();
+        } else if (data.command == "pause" && audioPlayer) {
+            pause();
         } else if (data.devices) {
             console.log(data.devices);
 
@@ -1080,6 +1075,18 @@ async function startSocket() {
                     player = true;
                 }
             });
+
+            if (audioPlayer && !player) {
+                audioPlayer = true;
+                pause();
+                audioPlayer = false;
+            }
+
+            if (!audioPlayer && player && playing.get()) {
+                audioPlayer = player;
+                play();
+                playing.set(true);
+            }
 
             audioPlayer = player;
 

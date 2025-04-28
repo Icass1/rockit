@@ -536,7 +536,11 @@ const fromCache = (request) => {
 self.addEventListener("fetch", (evt) => {
     // console.debug(evt, evt.request);
 
-    if (evt.request.url.includes("/download-status/")) return;
+    if (
+        evt.request.url.includes("/download-status/") ||
+        evt.request.pathname.startsWith("/api/like")
+    )
+        return;
     // if (!evt.request.url.includes("rockit.rockhosting.org")) return
     // if (!evt.request.url.includes("localhost")) return
 

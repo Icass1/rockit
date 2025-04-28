@@ -538,7 +538,7 @@ self.addEventListener("fetch", (evt) => {
 
     if (
         evt.request.url.includes("/download-status/") ||
-        evt.request.pathname.startsWith("/api/like")
+        evt.request.pathname?.startsWith("/api/like")
     )
         return;
     // if (!evt.request.url.includes("rockit.rockhosting.org")) return

@@ -22,7 +22,7 @@ export default function StatsPage() {
     };
 
     return (
-        <div className="flex h-full w-full flex-col overflow-y-auto pt-24">
+        <div className="flex h-full w-full flex-col overflow-y-auto pt-24 mt-24 md:mt-3 px-6 md:px-12 mb-20 md:mb-0">
             <div className="flex flex-col items-center justify-between space-y-4 md:flex-row md:space-y-0">
                 {/* Encabezado dinámico */}
                 <h2 className="text-center text-2xl font-bold md:text-left">

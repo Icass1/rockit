@@ -37,7 +37,7 @@ export function FeaturedLists() {
     return (
         <section className="pt-5 text-white md:py-12">
             <h2 className="px-5 text-left text-2xl font-bold md:px-0">
-                $lang.featured_lists
+                {$lang.featured_lists}
             </h2>
             <div
                 className="relative flex items-center gap-5 overflow-y-auto py-4 md:overflow-x-auto md:px-2"

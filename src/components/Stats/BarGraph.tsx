@@ -80,7 +80,7 @@ export default function BarGraph({
     }, [propItems]);
 
     return (
-        <div className="h-[450px] overflow-hidden rounded-lg bg-neutral-800 p-2">
+        <div className="h-[525px] overflow-hidden rounded-lg bg-neutral-800 p-2">
             <label className="text-lg font-semibold">{name}</label>
 
             <div className="relative w-full">
@@ -94,7 +94,7 @@ export default function BarGraph({
                         } else if (item.isExiting) {
                             top = 450; // Exit below container
                         } else {
-                            top = item.index < 20 ? item.index * 20 : 21 * 20;
+                            top = item.index < 19 ? item.index * 25 : 20 * 25;
                         }
 
                         return (

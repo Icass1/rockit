@@ -211,11 +211,8 @@ export default function UserStats() {
                                 {$lang.minutes_listend}
                             </label>
                             <label className="w-full max-w-full min-w-0 truncate">
-                                {getMinutes(
-                                    data.totalSecondsListened /
-                                        data.totalTimesPlayedSong
-                                )}{" "}
-                                $lang.average_minutes_per_song
+                                {Math.round(data.totalSecondsListened * 1000 / (data.totalTimesPlayedSong * 60))/1000}{" "}
+                                {$lang.average_minutes_per_song}
                             </label>
                         </div>
                         <VerticalBarGraph

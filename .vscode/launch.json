@@ -18,11 +18,15 @@
       "console": "integratedTerminal"
     },
     {
-      "name": "Python Backend Server",
+      "name": "FastAPI Uvicorn Debug",
       "type": "debugpy",
       "request": "launch",
-      "program": "${workspaceFolder}/backend/main.py",
-      "console": "integratedTerminal"
+      "module": "uvicorn",
+      "args": [
+        "backend.main:app",
+        "--reload"
+      ],
+      "justMyCode": false
     },
     {
       "name": "NextJS Server",

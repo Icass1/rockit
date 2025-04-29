@@ -1,3 +1,45 @@
+from spotdl.download.downloader import DownloaderError, SPONSOR_BLOCK_CATEGORIES
+from spotdl.utils.search import gather_known_songs, reinit_song, songs_from_albums
+from spotdl.utils.metadata import MetadataError, embed_metadata
+from spotdl.utils.m3u import gen_m3u_files
+from spotdl.utils.lrc import generate_lrc
+from spotdl.utils.formatter import create_file_name
+from spotdl.utils.ffmpeg import FFmpegError, convert
+from spotdl.utils.config import (
+    DOWNLOADER_OPTIONS,
+    GlobalConfig,
+    create_settings_type,
+    get_errors_path,
+    get_temp_path,
+    modernize_settings,
+)
+from spotdl.utils.archive import Archive
+from spotdl.types.options import DownloaderOptionalOptions, DownloaderOptions
+from spotdl.providers.lyrics import AzLyrics, Genius, LyricsProvider, MusixMatch, Synced
+from spotdl.providers.audio import (
+    AudioProvider,
+    BandCamp,
+    Piped,
+    SliderKZ,
+    SoundCloud,
+    YouTube,
+    YouTubeMusic,
+)
+from spotdl.download.progress_handler import ProgressHandler
+from yt_dlp.postprocessor.sponsorblock import SponsorBlockPP
+from yt_dlp.postprocessor.modify_chapters import ModifyChaptersPP
+from typing import Dict, List, Optional, Tuple, Type, Union
+from pathlib import Path
+from argparse import Namespace
+import traceback
+import sys
+import shutil
+import re
+import json
+import datetime
+import asyncio
+from logger import getLogger
+from difflib import SequenceMatcher
 import spotdl.download
 import spotdl.download.downloader
 import spotdl.providers.audio.base
@@ -21,62 +63,6 @@ from spotdl.utils.matching import get_best_matches, order_results
 __all__ = ["AudioProviderError", "AudioProvider", "ISRC_REGEX", "YTDLLogger"]
 
 logger = logging.getLogger(__name__)
-
-
-from difflib import SequenceMatcher
-
-from logger import getLogger
-
-
-
-
-
-
-import asyncio
-import datetime
-import json
-import logging
-import re
-import shutil
-import sys
-import traceback
-from argparse import Namespace
-from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Type, Union
-
-from yt_dlp.postprocessor.modify_chapters import ModifyChaptersPP
-from yt_dlp.postprocessor.sponsorblock import SponsorBlockPP
-
-from spotdl.download.progress_handler import ProgressHandler
-from spotdl.providers.audio import (
-    AudioProvider,
-    BandCamp,
-    Piped,
-    SliderKZ,
-    SoundCloud,
-    YouTube,
-    YouTubeMusic,
-)
-from spotdl.providers.lyrics import AzLyrics, Genius, LyricsProvider, MusixMatch, Synced
-from spotdl.types.options import DownloaderOptionalOptions, DownloaderOptions
-from spotdl.types.song import Song
-from spotdl.utils.archive import Archive
-from spotdl.utils.config import (
-    DOWNLOADER_OPTIONS,
-    GlobalConfig,
-    create_settings_type,
-    get_errors_path,
-    get_temp_path,
-    modernize_settings,
-)
-from spotdl.utils.ffmpeg import FFmpegError, convert
-from spotdl.utils.formatter import create_file_name
-from spotdl.utils.lrc import generate_lrc
-from spotdl.utils.m3u import gen_m3u_files
-from spotdl.utils.metadata import MetadataError, embed_metadata
-from spotdl.utils.search import gather_known_songs, reinit_song, songs_from_albums
-
-from spotdl.download.downloader import DownloaderError, SPONSOR_BLOCK_CATEGORIES
 
 
 def get_best_result(self, results: Dict[Result, float], song: Song) -> Tuple[Result, float]:
@@ -129,25 +115,35 @@ def get_best_result(self, results: Dict[Result, float], song: Song) -> Tuple[Res
                     # print("album name", best_result[0].name != None  and song.name != None)
                     # print("album artists", len(best_result[0].artists) != 0 and len(song.artists) != 0)
 
-                    if best_result[0].album != None and song.album_name != None: album_ratio = SequenceMatcher(a=best_result[0].album, b=song.album_name).ratio()
-                    else: album_ratio = 0
-                    
-                    if best_result[0].name != None and song.name != None: name_ratio = SequenceMatcher(a=best_result[0].name, b=song.name).ratio()
-                    else: name_ratio = 0
+                    if best_result[0].album != None and song.album_name != None:
+                        album_ratio = SequenceMatcher(
+                            a=best_result[0].album, b=song.album_name).ratio()
+                    else:
+                        album_ratio = 0
 
-                    if len(best_result[0].artists) != 0 and len(song.artists) != 0: artists_ratio = SequenceMatcher(a=" ".join(best_result[0].artists), b=" ".join(song.artists)).ratio()
-                    else: name_ratio = 0
+                    if best_result[0].name != None and song.name != None:
+                        name_ratio = SequenceMatcher(
+                            a=best_result[0].name, b=song.name).ratio()
+                    else:
+                        name_ratio = 0
 
-                    duration_ratio = -abs(best_result[0].duration - song.duration)/20
+                    if len(best_result[0].artists) != 0 and len(song.artists) != 0:
+                        artists_ratio = SequenceMatcher(a=" ".join(
+                            best_result[0].artists), b=" ".join(song.artists)).ratio()
+                    else:
+                        name_ratio = 0
+
+                    duration_ratio = - \
+                        abs(best_result[0].duration - song.duration)/20
 
                     # album_ratio = SequenceMatcher(a=best_result[0].album, b=song.album_name).ratio() if (best_result[0].album != None and song.album_name != None) else 0
                     # name_ratio = SequenceMatcher(a=best_result[0].name, b=song.name).ratio() if (best_result[0].name != None and song.name != None) else 0
                     # artists_ratio = SequenceMatcher(a=" ".join(best_result[0].artists), b=" ".join(song.artists)).ratio() if (len(best_result[0].artists) != 0 and len(song.artists) != 0) else 0
 
                     views.append(
-                        album_ratio + 
-                        name_ratio + 
-                        artists_ratio + 
+                        album_ratio +
+                        name_ratio +
+                        artists_ratio +
                         duration_ratio
                     )
                 else:
@@ -159,7 +155,8 @@ def get_best_result(self, results: Dict[Result, float], song: Song) -> Tuple[Res
 
                     response = requests.get(best_result[0].url)
                     soup = BeautifulSoup(response.content, 'html.parser')
-                    interaction_count_meta = soup.find("meta", itemprop="interactionCount")
+                    interaction_count_meta = soup.find(
+                        "meta", itemprop="interactionCount")
                     if interaction_count_meta and "content" in interaction_count_meta:
                         _views = int(interaction_count_meta["content"])
                         views.append(_views)
@@ -192,15 +189,8 @@ def get_best_result(self, results: Dict[Result, float], song: Song) -> Tuple[Res
 
     return best_result[0], best_result[1]
 
+
 spotdl.providers.audio.base.AudioProvider.get_best_result = get_best_result
-
-
-
-
-
-
-
-
 
 
 def search(self, song: Song, only_verified: bool = False) -> Optional[str]:
@@ -230,7 +220,8 @@ def search(self, song: Song, only_verified: bool = False) -> Optional[str]:
         isrc_results = self.get_results(song.isrc)
 
         if only_verified:
-            isrc_results = [result for result in isrc_results if result.verified]
+            isrc_results = [
+                result for result in isrc_results if result.verified]
             logger.debug(
                 "[%s] Filtered to %s verified ISRC results",
                 song.song_id,
@@ -324,13 +315,15 @@ def search(self, song: Song, only_verified: bool = False) -> Optional[str]:
 
         if self.filter_results:
             # Order results
-            new_results = order_results(search_results, song, self.search_query)
+            new_results = order_results(
+                search_results, song, self.search_query)
         else:
             new_results = {}
             if len(search_results) > 0:
                 new_results = {search_results[0]: 100.0}
 
-        logger.debug("[%s] Filtered to %s results", song.song_id, len(new_results))
+        logger.debug("[%s] Filtered to %s results",
+                     song.song_id, len(new_results))
 
         # song type results are always more accurate than video type,
         # so if we get score of 80 or above
@@ -375,14 +368,7 @@ def search(self, song: Song, only_verified: bool = False) -> Optional[str]:
     return best_result.url
 
 
-
 spotdl.providers.audio.base.AudioProvider.search = search
-
-
-
-
-
-
 
 
 def search_and_download(  # pylint: disable=R0911
@@ -406,7 +392,8 @@ def search_and_download(  # pylint: disable=R0911
         song.url or song.song_id
     ):
         logger.error("Song is missing required fields: %s", song.display_name)
-        self.errors.append(f"Song is missing required fields: {song.display_name}")
+        self.errors.append(
+            f"Song is missing required fields: {song.display_name}")
 
         return song, None
 
@@ -575,7 +562,8 @@ def search_and_download(  # pylint: disable=R0911
                         continue
 
                     try:
-                        logger.info("Removing duplicate file: %s", old_song_path)
+                        logger.info("Removing duplicate file: %s",
+                                    old_song_path)
                         old_song_path.unlink()
                     except (PermissionError, OSError) as exc:
                         logger.debug(
@@ -651,7 +639,8 @@ def search_and_download(  # pylint: disable=R0911
                 yt_dlp_args=self.settings["yt_dlp_args"],
             )
 
-        logger.debug("Downloading %s using %s", song.display_name, download_url)
+        logger.debug("Downloading %s using %s",
+                     song.display_name, download_url)
 
         # Add progress hook to the audio provider
         audio_downloader.audio_handler.add_progress_hook(
@@ -799,7 +788,8 @@ def search_and_download(  # pylint: disable=R0911
 
                 # Run the post processor to remove the sponsor segments
                 # this returns a list of files to delete
-                files_to_delete, download_info = modify_chapters.run(download_info)
+                files_to_delete, download_info = modify_chapters.run(
+                    download_info)
 
                 # Delete the files that were created by the post processor
                 for file_to_delete in files_to_delete:
@@ -825,7 +815,8 @@ def search_and_download(  # pylint: disable=R0911
         # Add the song to the known songs
         self.known_songs.get(song.url, []).append(output_file)
 
-        logger.info('Downloaded "%s": %s', song.display_name, song.download_url)
+        logger.info('Downloaded "%s": %s',
+                    song.display_name, song.download_url)
 
         return song, output_file
     except (Exception, UnicodeEncodeError) as exception:
@@ -845,6 +836,7 @@ def search_and_download(  # pylint: disable=R0911
         )
         return song, None
 
+
 def search(self, song: Song, display_progress_tracker) -> str:
     """
     Search for a song using all available providers.
@@ -859,24 +851,20 @@ def search(self, song: Song, display_progress_tracker) -> str:
     for audio_provider in self.audio_providers:
         display_progress_tracker.update(f"Searching in {audio_provider.name}")
 
-        url = audio_provider.search(song, self.settings["only_verified_results"])
+        url = audio_provider.search(
+            song, self.settings["only_verified_results"])
         if url:
             return url
         display_progress_tracker.update(f"Done.")
 
-        logger.debug("%s failed to find %s", audio_provider.name, song.display_name)
+        logger.debug("%s failed to find %s",
+                     audio_provider.name, song.display_name)
 
     raise LookupError(f"No results found for song: {song.display_name}")
 
 
 spotdl.download.downloader.Downloader.search_and_download = search_and_download
 spotdl.download.downloader.Downloader.search = search
-
-
-
-
-
-
 
 
 logger = getLogger(__name__)

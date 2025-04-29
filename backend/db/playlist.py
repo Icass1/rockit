@@ -1,16 +1,12 @@
 from typing import TypedDict, List, Optional
 import json
+from dataclasses import dataclass
 
-class OldImageDB(TypedDict):
-    url: str
-    width: int
-    height: int
+from db.commonTypes import OldImageDB
 
-class ArtistDB(TypedDict):
-    name: str
-    id: str
 
-class RawPlaylistDB(TypedDict):
+@dataclass
+class RawPlaylistDB:
     id: str
     images: Optional[str]
     image: str
@@ -22,12 +18,16 @@ class RawPlaylistDB(TypedDict):
     updatedAt: Optional[str]
     createdAt: Optional[str]
 
-class PlaylistDBSong(TypedDict):
+
+@dataclass
+class PlaylistDBSong:
     id: str
     added_at: Optional[str]
     addedInRockit: Optional[bool]
 
-class PlaylistDBFull(TypedDict):
+
+@dataclass
+class PlaylistDBFull:
     id: str
     images: Optional[List[OldImageDB]]
     image: str
@@ -39,24 +39,25 @@ class PlaylistDBFull(TypedDict):
     updatedAt: Optional[str]
     createdAt: Optional[str]
 
+
 def parse_playlist(raw_playlist: Optional[RawPlaylistDB]) -> Optional[PlaylistDBFull]:
     if not raw_playlist:
         return None
-    
-    raw_playlist_images = raw_playlist.get("images", "[]")
-    
+
     return PlaylistDBFull(
-        id=raw_playlist.get("id"),
-        images=json.loads(s=raw_playlist_images) if raw_playlist_images else None,
-        image=raw_playlist.get("image"),
-        name=raw_playlist.get("name"),
-        description=raw_playlist.get("description"),
-        owner=raw_playlist.get("owner"),
-        followers=raw_playlist.get("followers"),
-        songs=json.loads(raw_playlist.get("songs", "[]")),
-        updatedAt=raw_playlist.get("updatedAt"),
-        createdAt=raw_playlist.get("createdAt"),
+        id=raw_playlist.id,
+        images=json.loads(
+            s=raw_playlist.images) if raw_playlist.images else None,
+        image=raw_playlist.image,
+        name=raw_playlist.name,
+        description=raw_playlist.description,
+        owner=raw_playlist.owner,
+        followers=raw_playlist.followers,
+        songs=json.loads(raw_playlist.songs),
+        updatedAt=raw_playlist.updatedAt,
+        createdAt=raw_playlist.createdAt,
     )
+
 
 playlist_query = """
 CREATE TABLE IF NOT EXISTS playlist (

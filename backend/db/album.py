@@ -1,20 +1,22 @@
 from typing import TypedDict, List, Optional
 import json
+from dataclasses import dataclass
 
-class OldImageDB(TypedDict):
-    url: str
-    width: int
-    height: int
+from db.commonTypes import ArtistDB, OldImageDB
 
-class ArtistDB(TypedDict):
-    name: str
-    id: str
 
-class AlbumDBCopyright(TypedDict):
+
+
+
+
+@dataclass
+class AlbumDBCopyright:
     text: str
     type: str
 
-class RawAlbumDB(TypedDict):
+
+@dataclass
+class RawAlbumDB:
     id: str
     type: str
     images: str
@@ -29,7 +31,9 @@ class RawAlbumDB(TypedDict):
     discCount: int
     dateAdded: Optional[int]
 
-class AlbumDBFull(TypedDict):
+
+@dataclass
+class AlbumDBFull:
     id: str
     type: str
     images: List[OldImageDB]
@@ -44,25 +48,27 @@ class AlbumDBFull(TypedDict):
     discCount: int
     dateAdded: Optional[int]
 
+
 def parse_album(raw_album: Optional[RawAlbumDB]) -> Optional[AlbumDBFull]:
     if not raw_album:
         return None
-    
+
     return AlbumDBFull(
-        id=raw_album.get("id"),
-        type=raw_album.get("type"),
-        images=json.loads(raw_album.get("images", "[]")),
-        image=raw_album.get("image"),
-        name=raw_album.get("name"),
-        releaseDate=raw_album.get("releaseDate"),
-        artists=json.loads(raw_album.get("artists", "[]")),
-        copyrights=json.loads(raw_album.get("copyrights", "[]")),
-        popularity=raw_album.get("popularity"),
-        genres=json.loads(raw_album.get("genres", "[]")),
-        songs=json.loads(raw_album.get("songs", "[]")),
-        discCount=raw_album.get("discCount"),
-        dateAdded=raw_album.get("dateAdded"),
+        id=raw_album.id,
+        type=raw_album.type,
+        images=json.loads(raw_album.images),
+        image=raw_album.image,
+        name=raw_album.name,
+        releaseDate=raw_album.releaseDate,
+        artists=json.loads(raw_album.artists),
+        copyrights=json.loads(raw_album.copyrights),
+        popularity=raw_album.popularity,
+        genres=json.loads(raw_album.genres),
+        songs=json.loads(raw_album.songs),
+        discCount=raw_album.discCount,
+        dateAdded=raw_album.dateAdded,
     )
+
 
 album_query = """
 CREATE TABLE IF NOT EXISTS album (

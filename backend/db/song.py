@@ -4,21 +4,19 @@
 
 from typing import TypedDict, List, Optional
 import json
+from dataclasses import dataclass
 
-class OldImageDB(TypedDict):
-    url: str
-    width: int
-    height: int
+from db.commonTypes import ArtistDB, OldImageDB
 
-class ArtistDB(TypedDict):
-    name: str
-    id: str
 
-class DynamicLyrics(TypedDict):
+@dataclass
+class DynamicLyrics:
     lyrics: str
     seconds: int
 
-class RawSongDB(TypedDict):
+
+@dataclass
+class RawSongDB:
     id: str
     name: str
     artists: str
@@ -42,7 +40,9 @@ class RawSongDB(TypedDict):
     popularity: Optional[int]
     dateAdded: Optional[str]
 
-class SongDBFull(TypedDict):
+
+@dataclass
+class SongDBFull:
     id: str
     name: str
     artists: List[ArtistDB]
@@ -66,36 +66,38 @@ class SongDBFull(TypedDict):
     popularity: Optional[int]
     dateAdded: Optional[str]
 
+
 def parse_song(raw_song: Optional[RawSongDB]) -> Optional[SongDBFull]:
     if not raw_song:
-        return None    
+        return None
 
-    dynamic_lyrics = raw_song.get("dynamicLyrics", "[]")
+    dynamic_lyrics = raw_song.dynamicLyrics
 
     return SongDBFull(
-        id=raw_song.get("id", None),
-        name=raw_song.get("name"),
-        artists=json.loads(raw_song.get("artists", "[]")),
-        genres=json.loads(raw_song.get("genres", "[]")),
-        discNumber=raw_song.get("discNumber"),
-        albumName=raw_song.get("albumName"),
-        albumArtist=json.loads(raw_song.get("albumArtist", "[]")),
-        albumType=raw_song.get("albumType"),
-        albumId=raw_song.get("albumId"),
-        duration=raw_song.get("duration"),
-        date=raw_song.get("date"),
-        trackNumber=raw_song.get("trackNumber"),
-        publisher=raw_song.get("publisher"),
-        path=raw_song.get("path"),
-        images=json.loads(raw_song.get("images", "[]")),
-        image=raw_song.get("image"),
-        copyright=raw_song.get("copyright"),
-        downloadUrl=raw_song.get("downloadUrl"),
-        lyrics=raw_song.get("lyrics"),
+        id=raw_song.id,
+        name=raw_song.name,
+        artists=json.loads(raw_song.artists),
+        genres=json.loads(raw_song.genres),
+        discNumber=raw_song.discNumber,
+        albumName=raw_song.albumName,
+        albumArtist=json.loads(raw_song.albumArtist),
+        albumType=raw_song.albumType,
+        albumId=raw_song.albumId,
+        duration=raw_song.duration,
+        date=raw_song.date,
+        trackNumber=raw_song.trackNumber,
+        publisher=raw_song.publisher,
+        path=raw_song.path,
+        images=json.loads(raw_song.images),
+        image=raw_song.image,
+        copyright=raw_song.copyright,
+        downloadUrl=raw_song.downloadUrl,
+        lyrics=raw_song.lyrics,
         dynamicLyrics=json.loads(dynamic_lyrics) if dynamic_lyrics else [],
-        popularity=raw_song.get("popularity"),
-        dateAdded=raw_song.get("dateAdded"),
+        popularity=raw_song.popularity,
+        dateAdded=raw_song.dateAdded,
     )
+
 
 song_query = """
 CREATE TABLE IF NOT EXISTS song (

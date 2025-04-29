@@ -1,21 +1,30 @@
 from typing import TypedDict, List, Optional
 import json
+from dataclasses import dataclass
 
-class PlaylistDBSong(TypedDict):
+
+@dataclass
+class PlaylistDBSong:
     # Assuming the structure of PlaylistDBSong based on previous code
     pass
 
-class UserDBPinnedLists(TypedDict):
+
+@dataclass
+class UserDBPinnedLists:
     type: str
     createdAt: int
     id: str
 
-class UserDBList(TypedDict):
+
+@dataclass
+class UserDBList:
     type: str
     createdAt: int
     id: str
 
-class RawUserDB(TypedDict):
+
+@dataclass
+class RawUserDB:
     id: str
     username: str
     passwordHash: str
@@ -40,7 +49,9 @@ class RawUserDB(TypedDict):
     updatedAt: int
     createdAt: int
 
-class UserDBFull(TypedDict):
+
+@dataclass
+class UserDBFull:
     id: str
     username: str
     passwordHash: str
@@ -65,37 +76,38 @@ class UserDBFull(TypedDict):
     updatedAt: int
     createdAt: int
 
+
 def parse_user(raw_user: Optional[RawUserDB]) -> Optional[UserDBFull]:
     if not raw_user:
         return None
 
-    last_played_songs = raw_user.get("lastPlayedSong")
-
     return UserDBFull(
-        id=raw_user.get("id"),
-        username=raw_user.get("username"),
-        passwordHash=raw_user.get("passwordHash"),
-        lists=json.loads(raw_user.get("lists", "[]")),
-        lastPlayedSong=json.loads(last_played_songs) if last_played_songs else {},
-        currentSong=raw_user.get("currentSong"),
-        currentStation=raw_user.get("currentStation"),
-        currentTime=raw_user.get("currentTime"),
-        queue=json.loads(raw_user.get("queue", "[]")),
-        queueIndex=raw_user.get("queueIndex"),
-        randomQueue=raw_user.get("randomQueue"),
-        repeatSong=raw_user.get("repeatSong"),
-        likedSongs=json.loads(raw_user.get("likedSongs", "[]")),
-        pinnedLists=json.loads(raw_user.get("pinnedLists", "[]")),
-        volume=raw_user.get("volume"),
-        crossFade=raw_user.get("crossFade"),
-        lang=raw_user.get("lang"),
-        admin=raw_user.get("admin"),
-        superAdmin=raw_user.get("superAdmin"),
-        impersonateId=raw_user.get("impersonateId"),
-        devUser=raw_user.get("devUser"),
-        updatedAt=raw_user.get("updatedAt"),
-        createdAt=raw_user.get("createdAt"),
+        id=raw_user.id,
+        username=raw_user.username,
+        passwordHash=raw_user.passwordHash,
+        lists=json.loads(raw_user.lists),
+        lastPlayedSong=json.loads(
+            raw_user.lastPlayedSong) if raw_user.lastPlayedSong else {},
+        currentSong=raw_user.currentSong,
+        currentStation=raw_user.currentStation,
+        currentTime=raw_user.currentTime,
+        queue=json.loads(raw_user.queue),
+        queueIndex=raw_user.queueIndex,
+        randomQueue=raw_user.randomQueue,
+        repeatSong=raw_user.repeatSong,
+        likedSongs=json.loads(raw_user.likedSongs),
+        pinnedLists=json.loads(raw_user.pinnedLists),
+        volume=raw_user.volume,
+        crossFade=raw_user.crossFade,
+        lang=raw_user.lang,
+        admin=raw_user.admin,
+        superAdmin=raw_user.superAdmin,
+        impersonateId=raw_user.impersonateId,
+        devUser=raw_user.devUser,
+        updatedAt=raw_user.updatedAt,
+        createdAt=raw_user.createdAt,
     )
+
 
 user_query = """
 CREATE TABLE IF NOT EXISTS user (

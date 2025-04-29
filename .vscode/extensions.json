@@ -3,7 +3,14 @@
         "astro-build.astro-vscode",
         "bradlc.vscode-tailwindcss",
         "humao.rest-client",
-        "esbenp.prettier-vscode"
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint",
+        "usernamehw.errorlens",
+        "ms-python.vscode-pylance",
+        "ms-python.autopep8",
+        "ms-python.python",
+        "ms-python.debugpy",
+        "alexcvzz.vscode-sqlite"
     ],
     "unwantedRecommendations": []
 }

@@ -174,7 +174,7 @@ function SongsCarousel() {
     const [songs, setSongs] = useState<SongForStats[]>([]);
 
     useEffect(() => {
-        fetch(`/api/stats?type=songs&limit=20&sortBy=random`).then(
+        fetch(`/api/stats?type=songs&limit=20&sortBy=random&noRepeat=true`).then(
             (response) => {
                 if (!response.ok) {
                     response.text().then((text) => {

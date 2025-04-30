@@ -113,6 +113,7 @@ export const songQuery = `CREATE TABLE IF NOT EXISTS song (
     albumArtist TEXT NOT NULL,
     albumType TEXT NOT NULL,
     albumId TEXT NOT NULL,
+    isrc TEXT,
     duration INTEGER NOT NULL,
     date TEXT NOT NULL,
     trackNumber INTEGER,

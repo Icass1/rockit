@@ -115,5 +115,17 @@
     "pin": "Pin",
     "copy_list_url": "Kopiatu zerrendaren URLa",
     "average_minutes_per_song": "Abesti bakoitzeko batez besteko minutuak",
-    "get_info": "Lortu informazioa"
+    "get_info": "Lortu informazioa",
+    "january": "Urtarrila",
+    "february": "Otsaila",
+    "march": "Martxoa",
+    "april": "Apirila",
+    "may": "Maiatza",
+    "june": "Ekaina",
+    "july": "Uztaila",
+    "august": "Abuztua",
+    "september": "Iraila",
+    "october": "Urria",
+    "november": "Azaroa",
+    "december": "Abendua"
 }

@@ -44,7 +44,7 @@ async function getPlaylist(id: string) {
             songs: userDB.likedSongs,
             image: "",
             images: [{ url: "/song-placeholder.png", height: 1, width: 1 }],
-            owner: "",
+            owner: "Rock It!",
         };
     } else if (id == "most-listened") {
         if (!session?.user.id) {
@@ -81,7 +81,7 @@ async function getPlaylist(id: string) {
             songs: songs,
             image: "",
             images: [{ url: "/song-placeholder.png", height: 1, width: 1 }],
-            owner: "",
+            owner: "Rock It!",
         };
     } else if (id == "last-month") {
         const date = new Date();
@@ -112,6 +112,27 @@ async function getPlaylist(id: string) {
         const { stats } = await getStats(session.user.id, start, end);
         let songs: SongForStats[] = [];
 
+        const monthKeys = [
+            "january",
+            "february",
+            "march",
+            "april",
+            "may",
+            "june",
+            "july",
+            "august",
+            "september",
+            "october",
+            "november",
+            "december",
+        ];
+
+        const now = new Date();
+        const prevMonthIndex = now.getMonth() - 1 < 0 ? 11 : now.getMonth() - 1;
+        const prevMonthKey = monthKeys[prevMonthIndex];
+        const localizedMonth =
+            lang[prevMonthKey as keyof typeof lang] || prevMonthKey;
+
         stats.songs.forEach((song) => {
             const result = songs.find((findSong) => findSong.id == song.id);
             if (result) {
@@ -135,11 +156,11 @@ async function getPlaylist(id: string) {
             .slice(0, 50);
 
         playlist = {
-            name: "Most listened",
+            name: `${localizedMonth} Recap`,
             songs: songs,
             image: "",
-            images: [{ url: "/song-placeholder.png", height: 1, width: 1 }],
-            owner: "",
+            images: [{ url: "/rockit-background.png", height: 1, width: 1 }],
+            owner: "Rock It!",
         };
     } else if (id == "recent-mix") {
         if (!session?.user.id) notFound()
@@ -177,7 +198,7 @@ async function getPlaylist(id: string) {
             songs: songs,
             image: "",
             images: [{ url: "/song-placeholder.png", height: 1, width: 1 }],
-            owner: "",
+            owner: "Rock It!",
         };
     } else {
         playlist = parsePlaylist(

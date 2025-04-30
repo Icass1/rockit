@@ -44,7 +44,7 @@ export default async function ArtistPage({ params }: PageProps) {
         >
           <div className="relative z-10 flex flex-col h-screen">
             {/* Header con nombre */}
-            <div className="h-1/4 md:h-1/2 w-full p-4 md:p-8 bg-gradient-to-b from-transparent to-black/50 flex items-end">
+            <div className="h-1/4 md:h-1/2 min-h-1/2 w-full p-4 md:p-8 bg-gradient-to-b from-transparent to-black/50 flex items-end">
               <h1 className="text-4xl md:text-8xl font-extrabold">
                 {artistData.name}
               </h1>

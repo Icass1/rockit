@@ -72,9 +72,12 @@ def parse_song(raw_song: Optional[RawSongDB]) -> Optional[SongDBFull]:
     if not raw_song:
         return None
 
-    print("parse_song, add isrc to song table in database")
-
     dynamic_lyrics = raw_song.get("dynamicLyrics")
+
+    song_path = raw_song.get("path")
+
+    if song_path and song_path.startswith("/"):
+        song_path = song_path[1::]
 
     return SongDBFull(
         id=raw_song.get("id", None),
@@ -92,7 +95,7 @@ def parse_song(raw_song: Optional[RawSongDB]) -> Optional[SongDBFull]:
         date=raw_song.get("date"),
         trackNumber=raw_song.get("trackNumber"),
         publisher=raw_song.get("publisher"),
-        path=raw_song.get("path"),
+        path=song_path,
         images=json.loads(raw_song.get("images", "[]")),
         image=raw_song.get("image"),
         copyright=raw_song.get("copyright"),

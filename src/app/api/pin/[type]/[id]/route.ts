@@ -77,7 +77,7 @@ export async function DELETE(
     const { id, type } = await params;
     const session = await getSession();
 
-    if (!session.user.id) {
+    if (!session?.user.id) {
         return new NextResponse("Unauthenticated", { status: 401 });
     }
 

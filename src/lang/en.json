@@ -115,5 +115,17 @@
     "pin": "Pin",
     "copy_list_url": "Copy list URL",
     "get_info": "Get info",
-    "average_minutes_per_song": "Average minutes per song"
+    "average_minutes_per_song": "Average minutes per song",
+    "january": "January",
+    "february": "February",
+    "march": "March",
+    "april": "April",
+    "may": "May",
+    "june": "June",
+    "july": "July",
+    "august": "August",
+    "september": "September",
+    "october": "October",
+    "november": "November",
+    "december": "December"
 }

@@ -115,5 +115,17 @@
     "pin": "Anclar",
     "copy_list_url": "Copiar URL de la lista",
     "average_minutes_per_song": "Promedio de minutos por canción",
-    "get_info": "Get info"
+    "get_info": "Get info",
+    "january": "Enero",
+    "february": "Febrero",
+    "march": "Marzo",
+    "april": "Abril",
+    "may": "Mayo",
+    "june": "Junio",
+    "july": "Julio",
+    "august": "Agosto",
+    "september": "Septiembre",
+    "october": "Octubre",
+    "november": "Noviembre",
+    "december": "Diciembre"
 }

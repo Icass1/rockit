@@ -117,4 +117,16 @@ export interface Lang {
     get_info: string;
     featured_lists: string;
     average_minutes_per_song: string;
+    january: string;
+    february: string;
+    march: string;
+    april: string;
+    may: string;
+    june: string;
+    july: string;
+    august: string;
+    september: string;
+    october: string;
+    november: string;
+    december: string;
 }

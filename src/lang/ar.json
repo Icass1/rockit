@@ -115,5 +115,17 @@
     "pin": "تثبيت",
     "copy_list_url": "نسخ رابط القائمة",
     "get_info": "الحصول على معلومات",
-    "average_minutes_per_song": "متوسط الدقائق لكل أغنية"
+    "average_minutes_per_song": "متوسط الدقائق لكل أغنية",
+    "january": "يناير",
+    "february": "فبراير",
+    "march": "مارس",
+    "april": "أبريل",
+    "may": "مايو",
+    "june": "يونيو",
+    "july": "يوليو",
+    "august": "أغسطس",
+    "september": "سبتمبر",
+    "october": "أكتوبر",
+    "november": "نوفمبر",
+    "december": "ديسمبر"
 }

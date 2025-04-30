@@ -174,23 +174,23 @@ function SongsCarousel() {
     const [songs, setSongs] = useState<SongForStats[]>([]);
 
     useEffect(() => {
-        fetch(`/api/stats?type=songs&limit=20&sortBy=random&noRepeat=true`).then(
-            (response) => {
-                if (!response.ok) {
-                    response.text().then((text) => {
-                        console.warn("Error response:", text);
-                    });
-                    return;
-                }
-                response
-                    .json()
-                    .then((data) => setSongs(data))
-                    .catch((error) => {
-                        console.warn("Error fetching songs:", error);
-                        setSongs([]);
-                    });
+        fetch(
+            `/api/stats?type=songs&limit=20&sortBy=random&noRepeat=true`
+        ).then((response) => {
+            if (!response.ok) {
+                response.text().then((text) => {
+                    console.warn("Error response:", text);
+                });
+                return;
             }
-        );
+            response
+                .json()
+                .then((data) => setSongs(data))
+                .catch((error) => {
+                    console.warn("Error fetching songs:", error);
+                    setSongs([]);
+                });
+        });
     }, []);
 
     const [currentIndex, setCurrentIndex] = useState(0);

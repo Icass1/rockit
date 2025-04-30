@@ -24,6 +24,7 @@ from logger import getLogger
 
 import patches
 
+
 class Downloader:
     def __init__(self) -> None:
         global init
@@ -85,9 +86,6 @@ class Downloader:
         queue_element.done(success=True if path else False)
 
         self.logger.warn("Should clean downloads_ids_dict and downloads_dict")
-
-        with open("delete.out_song", "w") as f:
-            f.write(str(out_song))
 
     async def download_manager(self):
         try:

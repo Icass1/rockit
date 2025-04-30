@@ -19,7 +19,6 @@ import re
 
 from spotdl.types.song import Song
 
-
 from constants import DOWNLOADER_OPTIONS
 from logger import getLogger
 
@@ -55,9 +54,9 @@ class SpotifyDownloader:
         self.logger: Logger = getLogger(
             name=__name__, class_name="SpotifyDownloader")
 
-        self.downloader = downloader
-        self.download_id = download_id
-        self.url = url
+        self.downloader: Downloader = downloader
+        self.download_id: str = download_id
+        self.url: str = url
 
         self.message_handler = MessageHandler()
 
@@ -93,9 +92,6 @@ class SpotifyDownloader:
         elif "/album/" in self.url:
             album = self.downloader.spotify.get_album(
                 self.url.replace("https://open.spotify.com/album/", ""))
-
-            with open("delete.album_out", "w") as f:
-                f.write(str(album))
 
             out = self.downloader.spotify.get_songs(
                 ids=[a.id for a in album.tracks.items])

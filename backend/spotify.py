@@ -25,15 +25,14 @@ from spotifyApiTypes.RawSpotifyApiPlaylist import PlaylistArtists
 from spotifyApiTypes.RawSpotifyApiArtist import RawSpotifyApiArtist
 from spotifyApiTypes.RawSpotifyApiSearchResults import SpotifySearchResultsArtists
 
-
-_IMAGES_PATH = os.getenv(key="IMAGES_PATH")
-logger = getLogger(__name__)
+_IMAGES_PATH: str | None = os.getenv(key="IMAGES_PATH")
+logger: Logger = getLogger(__name__)
 
 if not _IMAGES_PATH:
     logger.critical("IMAGES_PATH is not set")
     exit()
 
-IMAGES_PATH = _IMAGES_PATH
+IMAGES_PATH: str = _IMAGES_PATH
 
 
 class Spotify:
@@ -46,12 +45,11 @@ class Spotify:
 
         self.client_id = os.getenv('CLIENT_ID')
         self.client_secret = os.getenv('CLIENT_SECRET')
-        pass
 
         self.token: str | None = None
         self.get_token()
 
-        self.artists_cache = {}
+        self.artists_cache: Dict[str, RawSpotifyApiArtist] = {}
 
         self.db = DB()
 
@@ -152,8 +150,7 @@ class Spotify:
             "SELECT * FROM album WHERE id = ?", (id,))
 
         if album_db:
-            with open("delete.album_db", "w") as f:
-                f.write(str(album_db))
+           
 
             self.logger.info("Album found in database")
             return RawSpotifyApiAlbum.from_dict({
@@ -166,7 +163,7 @@ class Spotify:
                 "release_date": album_db.releaseDate,
                 "total_tracks": len(album_db.songs),
                 "label": "",
-                "images": album_db.images
+                "images": album_db.images,
             })
 
         else:
@@ -301,7 +298,7 @@ class Spotify:
                 "duration_ms": song_db.duration * 1000,
                 "popularity": song_db.popularity,
                 "disc_number": song_db.discNumber,
-                "external_ids": {"isrc": None},
+                "external_ids": {"isrc": song_db.isrc},
                 "external_urls": {"spotify": f"https://open.spotify.com/track/{song_db.id}"}
             })
 
@@ -382,9 +379,6 @@ class Spotify:
         album: RawSpotifyApiAlbum | None = self.get_album(
             id=song.album.id, _call_from_song=True)
 
-        with open("delete.album", "w") as f:
-            f.write(str(album))
-
         if not album:
             self.logger.error("Album is None")
             return
@@ -441,7 +435,7 @@ class Spotify:
 
         self.logger.info("Inserting")
 
-        self.db.execute("INSERT INTO song (id,name,artists,discNumber,albumName,albumArtist,albumType,albumId,duration,genres,date,trackNumber,publisher,images,image,copyright,popularity,dateAdded) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", (
+        self.db.execute("INSERT INTO song (id,name,artists,discNumber,albumName,albumArtist,albumType,albumId,isrc,duration,genres,date,trackNumber,publisher,images,image,copyright,popularity,dateAdded) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", (
             song.id,
             song.name,
             json.dumps([{"name": artist.name, "id": artist.id}
@@ -452,6 +446,7 @@ class Spotify:
                         for artist in song.album.artists]),
             song.album.type,
             song.album.id,
+            song.external_ids.isrc,
             round(song.duration_ms/1000, 2),
             json.dumps(genres),
             song.album.release_date,

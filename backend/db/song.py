@@ -25,6 +25,7 @@ class RawSongDB(TypedDict):
     albumArtist: str
     albumType: str
     albumId: str
+    isrc: str
     duration: int
     date: str
     trackNumber: Optional[int]
@@ -51,6 +52,7 @@ class SongDBFull:
     albumArtist: List[ArtistDB]
     albumType: str
     albumId: str
+    isrc: Optional[str]
     duration: int
     date: str
     trackNumber: Optional[int]
@@ -85,6 +87,7 @@ def parse_song(raw_song: Optional[RawSongDB]) -> Optional[SongDBFull]:
         albumArtist=json.loads(raw_song.get("albumArtist", "[]")),
         albumType=raw_song.get("albumType"),
         albumId=raw_song.get("albumId"),
+        isrc=raw_song.get("isrc"),
         duration=raw_song.get("duration"),
         date=raw_song.get("date"),
         trackNumber=raw_song.get("trackNumber"),
@@ -112,6 +115,7 @@ CREATE TABLE IF NOT EXISTS song (
     albumArtist TEXT NOT NULL,
     albumType TEXT NOT NULL,
     albumId TEXT NOT NULL,
+    isrc TEXT,
     duration INTEGER NOT NULL,
     date TEXT NOT NULL,
     trackNumber INTEGER,

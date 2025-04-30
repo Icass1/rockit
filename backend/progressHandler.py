@@ -39,9 +39,8 @@ class ProgressHandler:
         refresh: bool = False,
         **fields: Any,
     ):
-        if completed:
-            self.downloads_dict[task_id].add(
-                message={'id': task_id, 'completed': completed, 'message': fields['message']})
+        self.downloads_dict[task_id].add(
+            message={'id': task_id, 'completed': completed, 'message': fields['message']})
 
     def start_task(self, task_id):
         pass

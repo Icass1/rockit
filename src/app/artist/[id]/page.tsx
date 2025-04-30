@@ -187,7 +187,7 @@ export default async function ArtistPage({ params }: PageProps) {
               </div>
             </section>
 
-            <div className="min-h-8 md:min-h-0 bg-[#171717]" />
+            <div className="min-h-8 md:min-h-24 bg-[#171717]" />
           </div>
         </div>
       </div>

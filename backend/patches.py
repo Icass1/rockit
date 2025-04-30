@@ -615,6 +615,7 @@ def search_and_download(  # pylint: disable=R0911
         # Create the output directory if it doesn't exist
         output_file.parent.mkdir(parents=True, exist_ok=True)
         if song.download_url is None:
+            logger.info('display_progress_tracker.update("Getting download URL")')
             display_progress_tracker.update("Getting download URL")
             download_url = self.search(song, display_progress_tracker)
         else:
@@ -796,6 +797,10 @@ def search_and_download(  # pylint: disable=R0911
                     Path(file_to_delete).unlink()
 
         try:
+
+            logger.info(
+                f'{output_file=} {song=} id3_separator={self.settings["id3_separator"]} skip_album_art={self.settings["skip_album_art"]}')
+
             embed_metadata(
                 output_file,
                 song,
@@ -803,9 +808,12 @@ def search_and_download(  # pylint: disable=R0911
                 skip_album_art=self.settings["skip_album_art"],
             )
         except Exception as exception:
-            raise MetadataError(
-                "Failed to embed metadata to the song"
-            ) from exception
+            # traceback.print_exc()
+            logger.error(exception)
+
+            # raise MetadataError(
+            #     "Failed to embed metadata to the song"
+            # ) from exception
 
         if self.settings["generate_lrc"]:
             generate_lrc(song, output_file)
@@ -849,12 +857,16 @@ def search(self, song: Song, display_progress_tracker) -> str:
     """
 
     for audio_provider in self.audio_providers:
+        logger.info('display_progress_tracker.update(f"Searching in {audio_provider.name}")')
         display_progress_tracker.update(f"Searching in {audio_provider.name}")
 
         url = audio_provider.search(
             song, self.settings["only_verified_results"])
         if url:
             return url
+        
+        logger.info('display_progress_tracker.update(f"Done.")')
+        
         display_progress_tracker.update(f"Done.")
 
         logger.debug("%s failed to find %s",

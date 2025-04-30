@@ -9,6 +9,7 @@ import numpy
 from io import BytesIO
 import cv2
 import math
+from datetime import datetime, timezone
 
 from PIL import Image, ImageTransform, ImageDraw, ImageFilter
 
@@ -16,6 +17,10 @@ if __name__ != "__main__":
     logger = getLogger(__name__)
 
 import random
+
+
+def get_utc_date():
+    return datetime.now(timezone.utc).strftime('%a, %d %b %Y %H:%M:%S GMT')
 
 
 def get_output_file(song):
@@ -63,7 +68,7 @@ def sanitize_folder_name(name: str, max_length: int = 255) -> str:
     return sanitized_name
 
 
-def download_image(url, path):
+def download_image(url: str, path: str):
     try:
         # Send a GET request to the URL
         response = requests.get(url, stream=True)
@@ -206,6 +211,12 @@ def create_playlist_collage(output_path, urls: List[str] = [], paths: List[str] 
 
 
 if __name__ == "__main__":
+
+    print("2025-04-30T09:12:15.024Z")
+    print(get_utc_date())
+
+    exit()
+
     create_playlist_collage(output_path="backend/temp/test.png", urls=[
         # "http://localhost:4321/api/image/630242b7f511492720b85cbab809b03c9c5d1d72",
         # "http://localhost:4321/api/image/85530b18c84d2f112d9a7db27bec795d850c01ba",

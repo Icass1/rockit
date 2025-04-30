@@ -108,4 +108,4 @@ class SpotifyQueueElement(QueueElement):
                 downloadUrl = ?,
                 path = ?
             WHERE id = ?
-        """, (self._song.lyrics, self._song.download_url, song_path, self._song.song_id))
+        """, (self._song.lyrics, self._song.download_url, song_path_db, self._song.song_id))

@@ -14,5 +14,5 @@ export function getSession(
 ) {
     return getServerSession(...args, nextAuthOptions) as Promise<{
         user: User;
-    }>;
+    } | undefined>;
 }

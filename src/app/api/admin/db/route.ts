@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 export async function DELETE(request: NextRequest): Promise<NextResponse> {
     const session = await getSession();
 
-    if (!session.user?.admin) {
+    if (!session?.user?.admin) {
         return new NextResponse("Not found", { status: 404 });
     }
 
@@ -26,7 +26,7 @@ export async function DELETE(request: NextRequest): Promise<NextResponse> {
 
 export async function PUT(request: NextRequest): Promise<NextResponse> {
     const session = await getSession();
-    if (!session.user?.admin) {
+    if (!session?.user?.admin) {
         return new NextResponse("Not found", { status: 404 });
     }
     const data = (await request.json()) as
@@ -80,7 +80,7 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
 export async function POST(request: NextRequest): Promise<NextResponse> {
     const session = await getSession();
 
-    if (!session.user?.admin) {
+    if (!session?.user?.admin) {
         return new NextResponse("Not found", { status: 404 });
     }
     const data: {

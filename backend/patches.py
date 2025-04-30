@@ -797,10 +797,6 @@ def search_and_download(  # pylint: disable=R0911
                     Path(file_to_delete).unlink()
 
         try:
-
-            logger.info(
-                f'{output_file=} {song=} id3_separator={self.settings["id3_separator"]} skip_album_art={self.settings["skip_album_art"]}')
-
             embed_metadata(
                 output_file,
                 song,

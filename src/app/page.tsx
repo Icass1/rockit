@@ -17,6 +17,39 @@ export default function Home() {
         SongForStats[]
     >([]);
 
+    const [nostalgicMix, setNostalgicMix] = useState<SongForStats[]>([]);
+
+    const [hiddenGems, setHiddenGems] = useState<SongForStats[]>([]);
+
+    const [communityTop, setCommunityTop] = useState<SongForStats[]>([]);
+
+    const [monthlyTop, setMonthlyTop] = useState<SongWithTimePlayed[]>([]);
+
+    const monthKeys = [
+        "january",
+        "february",
+        "march",
+        "april",
+        "may",
+        "june",
+        "july",
+        "august",
+        "september",
+        "october",
+        "november",
+        "december",
+    ] as const;
+    const previousMonthIndex = (new Date().getMonth() + 11) % 12;
+    const previousMonthKey = monthKeys[previousMonthIndex];
+
+    type Mood = "relaxed" | "energy" | "focus" | "party";
+    const [moodSongs, setMoodSongs] = useState<Record<Mood, SongForStats[]>>({
+        relaxed: [],
+        energy: [],
+        focus: [],
+        party: [],
+    });
+
     const $lang = useStore(langData);
 
     useEffect(() => {
@@ -43,6 +76,61 @@ export default function Home() {
         });
     }, []);
 
+    useEffect(() => {
+        fetch(
+            "/api/stats?limit=15&sortBy=timePlayed&mixOld=true&type=songs"
+        ).then((r) =>
+            r.ok ? r.json().then(setNostalgicMix) : console.warn("Error")
+        );
+    }, []);
+
+    useEffect(() => {
+        fetch(
+            "/api/stats?limit=20&sortBy=neverPlayed&noRepeat=true&type=songs"
+        ).then((r) =>
+            r.ok ? r.json().then(setHiddenGems) : console.warn("Error")
+        );
+    }, []);
+
+    useEffect(() => {
+        fetch("/api/stats?limit=20&sortBy=popular&type=songs").then((r) =>
+            r.ok ? r.json().then(setCommunityTop) : console.warn("Error")
+        );
+    }, []);
+
+    useEffect(() => {
+        Promise.all(
+            (["relaxed", "energy", "focus", "party"] as Mood[]).map((mood) =>
+                fetch(`/api/stats?limit=10&filterMood=${mood}&type=songs`)
+                    .then((r) => (r.ok ? r.json() : []))
+                    .then((data) => ({ mood, data }))
+            )
+        ).then((results) => {
+            const map = {} as typeof moodSongs;
+            results.forEach((r) => (map[r.mood] = r.data));
+            setMoodSongs(map);
+        });
+    }, []);
+
+    useEffect(() => {
+        const now = new Date();
+        const start = new Date(
+            now.getFullYear(),
+            now.getMonth() - 1,
+            1
+        ).toISOString();
+        const end = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            0
+        ).toISOString();
+        fetch(
+            `/api/stats?limit=5&sortBy=timePlayed&start=${start}&end=${end}&type=songs`
+        ).then((r) =>
+            r.ok ? r.json().then(setMonthlyTop) : console.warn("Error")
+        );
+    }, []);
+
     if (!$lang) return;
 
     return (
@@ -50,22 +138,20 @@ export default function Home() {
             <SongsCarousel></SongsCarousel>
 
             <section className="py-5 text-white md:px-12 md:py-12">
-                <h2 className="px-5 text-left text-2xl font-bold md:px-0 md:text-3xl">
-                    {$lang.recent_played}
+                <h2 className="px-5 text-2xl font-bold md:text-3xl">
+                    {$lang.songsforyou}
                 </h2>
-                <div
-                    className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:px-2"
-                    style={{ scrollbarGutter: "stable both" }}
-                >
-                    {songsByTimePlayed.map((song) => (
+                <div className="flex gap-4 overflow-x-auto px-8 py-4">
+                    {nostalgicMix.map((song) => (
                         <RecentlyPlayedSong
                             key={song.id}
                             song={song}
-                            songs={songsByTimePlayed}
+                            songs={nostalgicMix}
                         />
                     ))}
                 </div>
             </section>
+
             <section className="group text-white md:px-12">
                 <h2 className="px-5 text-left text-2xl font-bold md:px-0 md:text-3xl">
                     {$lang.quick_selections}
@@ -105,6 +191,86 @@ export default function Home() {
                             </div>
                         ))
                     }
+                </div>
+            </section>
+
+            <section className="py-5 text-white md:px-12 md:py-12">
+                <h2 className="px-5 text-left text-2xl font-bold md:px-0 md:text-3xl">
+                    {$lang.recent_played}
+                </h2>
+                <div
+                    className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:px-2"
+                    style={{ scrollbarGutter: "stable both" }}
+                >
+                    {songsByTimePlayed.map((song) => (
+                        <RecentlyPlayedSong
+                            key={song.id}
+                            song={song}
+                            songs={songsByTimePlayed}
+                        />
+                    ))}
+                </div>
+            </section>
+
+            <section className="py-5 text-white md:px-12 md:py-12">
+                <h2 className="px-5 text-2xl font-bold md:text-3xl">
+                    {$lang.hiddengems}
+                </h2>
+                <div className="flex gap-4 overflow-x-auto px-8 py-4">
+                    {hiddenGems.map((song) => (
+                        <RecentlyPlayedSong
+                            key={song.id}
+                            song={song}
+                            songs={hiddenGems}
+                        />
+                    ))}
+                </div>
+            </section>
+
+            <section className="py-5 text-white md:px-12 md:py-12">
+                <h2 className="px-5 text-2xl font-bold md:text-3xl">
+                    {$lang.communitytop}
+                </h2>
+                <div className="flex gap-4 overflow-x-auto px-8 py-4">
+                    {communityTop.map((song) => (
+                        <RecentlyPlayedSong
+                            key={song.id}
+                            song={song}
+                            songs={communityTop}
+                        />
+                    ))}
+                </div>
+            </section>
+
+            {(Object.keys(moodSongs) as Mood[]).map((mood) => (
+                <section key={mood} className="py-5 text-white md:px-12">
+                    <h2 className="px-5 text-2xl font-bold md:text-3xl">
+                        {$lang.moodsongs} {$lang[`${mood}`]}
+                    </h2>
+                    <div className="flex gap-4 overflow-x-auto px-8 py-4">
+                        {moodSongs[mood].map((song) => (
+                            <RecentlyPlayedSong
+                                key={song.id}
+                                song={song}
+                                songs={moodSongs[mood]}
+                            />
+                        ))}
+                    </div>
+                </section>
+            ))}
+
+            <section className="py-5 text-white md:px-12 md:py-12">
+                <h2 className="px-5 text-2xl font-bold md:text-3xl">
+                    {$lang[previousMonthKey]} Recap
+                </h2>
+                <div className="flex gap-4 overflow-x-auto px-8 py-4">
+                    {monthlyTop.map((song) => (
+                        <RecentlyPlayedSong
+                            key={song.id}
+                            song={song}
+                            songs={monthlyTop}
+                        />
+                    ))}
                 </div>
             </section>
         </div>

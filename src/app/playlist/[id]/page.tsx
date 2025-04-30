@@ -107,7 +107,7 @@ async function getPlaylist(id: string) {
 
         // console.log(start, end);
 
-        if (!session?.user.id) notFound()
+        if (!session?.user.id) notFound();
 
         const { stats } = await getStats(session.user.id, start, end);
         let songs: SongForStats[] = [];
@@ -163,7 +163,7 @@ async function getPlaylist(id: string) {
             owner: "Rock It!",
         };
     } else if (id == "recent-mix") {
-        if (!session?.user.id) notFound()
+        if (!session?.user.id) notFound();
 
         const { stats } = await getStats(
             session.user.id,

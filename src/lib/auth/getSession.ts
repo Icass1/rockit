@@ -12,7 +12,10 @@ export function getSession(
         | [NextApiRequest, NextApiResponse]
         | []
 ) {
-    return getServerSession(...args, nextAuthOptions) as Promise<{
-        user: User;
-    } | undefined>;
+    return getServerSession(...args, nextAuthOptions) as Promise<
+        | {
+              user: User;
+          }
+        | undefined
+    >;
 }

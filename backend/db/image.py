@@ -1,8 +1,9 @@
+from dataclasses import dataclass
 from typing import TypedDict, List, Optional
 import json
 
-
-class ImageDB(TypedDict):
+@dataclass
+class ImageDB:
     id: str
     url: str
     path: str

@@ -15,8 +15,7 @@ class DynamicLyrics:
     seconds: int
 
 
-@dataclass
-class RawSongDB:
+class RawSongDB(TypedDict):
     id: str
     name: str
     artists: str
@@ -62,7 +61,7 @@ class SongDBFull:
     copyright: Optional[str]
     downloadUrl: Optional[str]
     lyrics: Optional[str]
-    dynamicLyrics: List[DynamicLyrics]
+    dynamicLyrics: Optional[List[DynamicLyrics]]
     popularity: Optional[int]
     dateAdded: Optional[str]
 
@@ -71,31 +70,34 @@ def parse_song(raw_song: Optional[RawSongDB]) -> Optional[SongDBFull]:
     if not raw_song:
         return None
 
-    dynamic_lyrics = raw_song.dynamicLyrics
+    print("parse_song, add isrc to song table in database")
+
+    dynamic_lyrics = raw_song.get("dynamicLyrics")
 
     return SongDBFull(
-        id=raw_song.id,
-        name=raw_song.name,
-        artists=json.loads(raw_song.artists),
-        genres=json.loads(raw_song.genres),
-        discNumber=raw_song.discNumber,
-        albumName=raw_song.albumName,
-        albumArtist=json.loads(raw_song.albumArtist),
-        albumType=raw_song.albumType,
-        albumId=raw_song.albumId,
-        duration=raw_song.duration,
-        date=raw_song.date,
-        trackNumber=raw_song.trackNumber,
-        publisher=raw_song.publisher,
-        path=raw_song.path,
-        images=json.loads(raw_song.images),
-        image=raw_song.image,
-        copyright=raw_song.copyright,
-        downloadUrl=raw_song.downloadUrl,
-        lyrics=raw_song.lyrics,
+        id=raw_song.get("id", None),
+        name=raw_song.get("name"),
+        artists=[ArtistDB(**data)
+                 for data in json.loads(raw_song.get("artists", "[]"))],
+        genres=json.loads(raw_song.get("genres", "[]")),
+        discNumber=raw_song.get("discNumber"),
+        albumName=raw_song.get("albumName"),
+        albumArtist=json.loads(raw_song.get("albumArtist", "[]")),
+        albumType=raw_song.get("albumType"),
+        albumId=raw_song.get("albumId"),
+        duration=raw_song.get("duration"),
+        date=raw_song.get("date"),
+        trackNumber=raw_song.get("trackNumber"),
+        publisher=raw_song.get("publisher"),
+        path=raw_song.get("path"),
+        images=json.loads(raw_song.get("images", "[]")),
+        image=raw_song.get("image"),
+        copyright=raw_song.get("copyright"),
+        downloadUrl=raw_song.get("downloadUrl"),
+        lyrics=raw_song.get("lyrics"),
         dynamicLyrics=json.loads(dynamic_lyrics) if dynamic_lyrics else [],
-        popularity=raw_song.popularity,
-        dateAdded=raw_song.dateAdded,
+        popularity=raw_song.get("popularity"),
+        dateAdded=raw_song.get("dateAdded"),
     )
 
 

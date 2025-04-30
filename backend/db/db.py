@@ -102,7 +102,6 @@ class Table:
         lock.acquire()
 
         if parameters:
-            print(query, parameters)
             self.db.cur.execute(query, parameters)
         else:
             self.db.cur.execute(query)

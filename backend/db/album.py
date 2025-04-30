@@ -5,18 +5,13 @@ from dataclasses import dataclass
 from db.commonTypes import ArtistDB, OldImageDB
 
 
-
-
-
-
 @dataclass
 class AlbumDBCopyright:
     text: str
     type: str
 
 
-@dataclass
-class RawAlbumDB:
+class RawAlbumDB(TypedDict):
     id: str
     type: str
     images: str
@@ -52,6 +47,22 @@ class AlbumDBFull:
 def parse_album(raw_album: Optional[RawAlbumDB]) -> Optional[AlbumDBFull]:
     if not raw_album:
         return None
+
+    return AlbumDBFull(
+        id=raw_album.get("id"),
+        type=raw_album.get("type"),
+        images=json.loads(raw_album.get("images", "[]")),
+        image=raw_album.get("image"),
+        name=raw_album.get("name"),
+        releaseDate=raw_album.get("releaseDate"),
+        artists=json.loads(raw_album.get("artists", "[]")),
+        copyrights=json.loads(raw_album.get("copyrights", "[]")),
+        popularity=raw_album.get("popularity"),
+        genres=json.loads(raw_album.get("genres", "[]")),
+        songs=json.loads(raw_album.get("songs", "[]")),
+        discCount=raw_album.get("discCount"),
+        dateAdded=raw_album.get("dateAdded"),
+    )
 
     return AlbumDBFull(
         id=raw_album.id,

@@ -5,22 +5,22 @@ from colorama import Fore, Style, init
 import sys
 import traceback
 import threading
-import inspect  # Import inspect module
+import inspect
+
+from constants import LOG_DUMP_LEVEL, LOGS_PATH  # Import inspect module
 
 # Initialize Colorama for cross-platform compatibility
 init(autoreset=True)
 
 
-_LOGS_PATH = os.getenv(key="LOGS_PATH")
+list_dir = os.listdir(LOGS_PATH)
+list_dir.sort()
 
-if not _LOGS_PATH:
-    print("LOGS_PATH is not set")
-    exit()
+while len(list_dir) > 10:
+    os.remove(os.path.join(LOGS_PATH, list_dir[0]))
+    list_dir.pop(0)
 
-LOGS_PATH = _LOGS_PATH
-
-
-current_time = datetime.now().strftime('%Y-%m-%d')
+current_time = datetime.now().strftime('%Y-%m-%d_%H-%M')
 log_file = os.path.join(LOGS_PATH, f"log_{current_time}.log")
 
 if os.path.exists(log_file):
@@ -119,12 +119,6 @@ def getLogger(name, class_name=None):
 
     console_level = logging.INFO
 
-    log_dump_level = os.getenv("LOG_DUMP_LEVEL")
-
-    if not log_dump_level:
-        print("log_dump_level is not defined")
-        exit()
-
     try:
         file_level = {
             "debug": logging.DEBUG,
@@ -132,24 +126,17 @@ def getLogger(name, class_name=None):
             "warning": logging.WARNING,
             "error": logging.ERROR,
             "critical": logging.CRITICAL
-        }[log_dump_level]
+        }[LOG_DUMP_LEVEL]
     except:
         print(
-            f"LOG_DUMP_LEVEL can only be 'debug', 'info', 'warning', 'error' or 'critical' found '{log_dump_level}'")
+            f"LOG_DUMP_LEVEL can only be 'debug', 'info', 'warning', 'error' or 'critical' found '{LOG_DUMP_LEVEL}'")
         exit()
 
     # Avoid adding duplicate handlers
     if logger.hasHandlers():
         return logger
 
-    # Ensure log directory exists
-    log_dir = os.getenv("LOGS_PATH")
-
-    if not log_dir:
-        print("log_dir is not defined")
-        exit()
-
-    ensure_dir_exists(log_dir)
+    ensure_dir_exists(LOGS_PATH)
 
     # Set logging level
     logger.setLevel(min(console_level, file_level))

@@ -109,8 +109,9 @@ class Downloader:
 
                     self.queue.pop(0)
 
-                for index, queue_element in enumerate(self.queue):
-                    queue_element.get_message_handler().add(
-                        message={'id': queue_element.get_song().song_id, 'queue': index + 1})
+                # for index, queue_element in enumerate(self.queue):
+                #     queue_element.get_message_handler().add(
+                #         message={'id': queue_element.get_song().song_id, 'queue': index + 1})
+
         except Exception as e:
             self.logger.critical(f"Error {e}")

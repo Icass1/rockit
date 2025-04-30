@@ -102,9 +102,11 @@ export function createControlledAtom<T>(
             if (sendToSocket && websocket) {
                 if (getMessageToSend) {
                     const valueToSend = getMessageToSend(value);
-                    websocket.send(JSON.stringify({ [name]: valueToSend }));
+                    if (websocket.readyState == websocket.OPEN)
+                        websocket.send(JSON.stringify({ [name]: valueToSend }));
                 } else {
-                    websocket.send(JSON.stringify({ [name]: value }));
+                    if (websocket.readyState == websocket.OPEN)
+                        websocket.send(JSON.stringify({ [name]: value }));
                 }
             }
 

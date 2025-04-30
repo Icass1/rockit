@@ -1,0 +1,171 @@
+
+
+import asyncio
+from logging import Logger
+from typing import Any, Dict, List, Optional, TYPE_CHECKING
+
+from fastapi import BackgroundTasks, Request
+from fastapi.responses import StreamingResponse
+import threading
+import time
+import uuid
+import spotdl
+from spotdl.download.downloader import Downloader as SpotdlDownloader
+import os
+import requests
+import json
+import base64
+import re
+
+from spotdl.types.song import Song
+
+
+from constants import DOWNLOADER_OPTIONS
+from logger import getLogger
+
+from queueElement import QueueElement, SpotifyQueueElement
+from messageHandler import MessageHandler
+from spotify import Spotify
+from backendUtils import create_id, download_image, get_song_name, get_utc_date, sanitize_folder_name
+
+from db.image import ImageDB
+from db.commonTypes import ArtistDB
+from db.song import SongDBFull
+from db.album import AlbumDBFull
+from db.db import DB
+
+from spotifyApiTypes.RawSpotifyApiTrack import RawSpotifyApiTrack, TrackArtists
+from spotifyApiTypes.RawSpotifyApiAlbum import RawSpotifyApiAlbum, AlbumItems
+from spotifyApiTypes.RawSpotifyApiPlaylist import RawSpotifyApiPlaylist, PlaylistItems, PlaylistAlbum, PlaylistArtists, PlaylistTracks
+from spotifyApiTypes.RawSpotifyApiArtist import RawSpotifyApiArtist
+from spotifyApiTypes.RawSpotifyApiSearchResults import RawSpotifyApiSearchResults, SpotifySearchResultsItems2
+from ytMusicApiTypes.RawYTMusicApiPlaylist import RawYTMusicApiPlaylist
+from ytMusicApiTypes.RawYTMusicApiAlbum import RawYTMusicApiAlbum
+from ytMusicApiTypes.RawYTMusicApiSong import RawYTMusicApiSong
+from rockItApiTypes.RawRockItApiAlbum import RawRockItApiAlbum
+
+if TYPE_CHECKING:
+    from downloader import Downloader
+
+
+class SpotifyDownloader:
+    """Class to start spotify album, playlist or song downloads."""
+
+    def __init__(self, downloader: "Downloader", download_id: str, url: str) -> None:
+        self.logger: Logger = getLogger(
+            name=__name__, class_name="SpotifyDownloader")
+
+        self.downloader = downloader
+        self.download_id = download_id
+        self.url = url
+
+        self.message_handler = MessageHandler()
+
+        self.logger.info("")
+
+        asyncio.create_task(self.wait_for_download())
+
+        threading.Thread(target=self.fetch_and_add_to_queue).start()
+
+        self.queue_elements: List[QueueElement] = []
+
+        self._qeuue_set = False
+
+    def fetch_and_add_to_queue(self) -> None:
+
+        self.logger.info(f"Downloading {self.url}")
+
+        spotdl_songs: List[Song] = []
+
+        if "/track/" in self.url:
+
+            out = self.downloader.spotify.get_song(
+                self.url.replace("https://open.spotify.com/track/", ""))
+
+            if not out:
+                self.logger.error(f"out is None. {self.url=}")
+                return
+
+            spotdl_song, song = out
+
+            spotdl_songs.append(spotdl_song)
+
+        elif "/album/" in self.url:
+            album = self.downloader.spotify.get_album(
+                self.url.replace("https://open.spotify.com/album/", ""))
+
+            with open("delete.album_out", "w") as f:
+                f.write(str(album))
+
+            out = self.downloader.spotify.get_songs(
+                ids=[a.id for a in album.tracks.items])
+
+            if not out:
+
+                self.logger.error("out is None")
+                return
+
+            for k in out:
+                spotdl_song, song = k
+                spotdl_songs.append(spotdl_song)
+
+        else:
+            self.logger.error(f"Don't know what to download. {self.url=}")
+            return
+
+        for spotdl_song in spotdl_songs:
+
+            self.logger.info(f"{spotdl_song=}")
+
+            queue_element = SpotifyQueueElement(
+                message_handler=self.message_handler, song=spotdl_song, db=self.downloader.spotify.db)
+
+            self.downloader.queue.append(queue_element)
+            self.queue_elements.append(queue_element)
+
+        self._qeuue_set = True
+
+        # Fetch spotify https://open.spotify.com/intl-es/track/5EvLXXAKicvIF3LegVMlJj?si=f22cd441145541a9
+
+    async def wait_for_download(self):
+        self.logger.info("Waiting for queue setup")
+
+        while not self._qeuue_set:
+            await asyncio.sleep(0)
+
+        self.logger.info("Waiting for songs")
+        for queue_element in self.queue_elements:
+            await queue_element.get_done()
+
+        self.logger.info(
+            f"Done - All songs have finished. Success {sum([1 if queue_element.get_success() else 0 for queue_element in self.queue_elements])} - Fail {sum([0 if queue_element.get_success() else 1 for queue_element in self.queue_elements])}")
+
+        self.logger.warn("Run after all songs finish")
+
+    def status(self, request: Request) -> StreamingResponse:
+        self.logger.info(self.download_id)
+
+        reader = self.message_handler.get_reader()
+
+        async def event_generator():
+            while True:
+                if await request.is_disconnected():
+                    break
+                try:
+                    if reader.get_finish():
+                        break
+
+                    message = await reader.get()
+
+                    if not message:
+                        self.logger.info("message is None. reader has finish")
+                        break
+
+                    yield f"data: {message}\n\n"
+                except asyncio.TimeoutError:
+                    # Send keep-alive to prevent connection from closing
+                    yield ": keep-alive\n\n"
+
+            self.logger.info(f"Finished {self.download_id}")
+
+        return StreamingResponse(event_generator(), media_type="text/event-stream")

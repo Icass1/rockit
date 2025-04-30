@@ -11,6 +11,23 @@ import inspect  # Import inspect module
 init(autoreset=True)
 
 
+_LOGS_PATH = os.getenv(key="LOGS_PATH")
+
+if not _LOGS_PATH:
+    print("LOGS_PATH is not set")
+    exit()
+
+LOGS_PATH = _LOGS_PATH
+
+
+current_time = datetime.now().strftime('%Y-%m-%d')
+log_file = os.path.join(LOGS_PATH, f"log_{current_time}.log")
+
+if os.path.exists(log_file):
+    print("Removing previous log")
+    os.remove(log_file)
+
+
 def ensure_dir_exists(path):
     """Ensure the directory for logs exists."""
     if not os.path.exists(path):
@@ -71,6 +88,8 @@ threading.excepthook = custom_thread_excepthook
 class CustomLogger(logging.Logger):
     def makeRecord(self, name, level, fn, lno, msg, args, exc_info, func=None, extra=None, sinfo=None):
         """Automatically extract the correct class name and function name."""
+
+        # print(name, level, fn, lno, msg, args, exc_info, func, extra, sinfo)
 
         if extra is None:
             extra = {}
@@ -135,15 +154,17 @@ def getLogger(name, class_name=None):
     # Set logging level
     logger.setLevel(min(console_level, file_level))
 
+    fmt = '{asctime} [{levelname:^10}] {pathname}:{lineno} - {message}'
+
     # Define formatters
     plain_formatter = logging.Formatter(
-        '{asctime} [{levelname:^10}] {name}.{classname}{funcName} - {message}',
+        fmt,
         style="{",
         datefmt='%Y-%m-%d %H:%M:%S'
     )
 
     color_formatter = ColorFormatter(
-        '{asctime} [{levelname:^10}] {name}.{classname}{funcName} - {message}',
+        fmt,
         style="{",
         datefmt='%Y-%m-%d %H:%M:%S'
     )
@@ -154,8 +175,6 @@ def getLogger(name, class_name=None):
     console_handler.setFormatter(color_formatter)
 
     # File handler with plain formatting
-    current_time = datetime.now().strftime('%Y-%m-%d_%H-%M')
-    log_file = os.path.join(log_dir, f"log_{current_time}.log")
     file_handler = logging.FileHandler(log_file, mode="a")
     file_handler.setLevel(file_level)
     file_handler.setFormatter(plain_formatter)

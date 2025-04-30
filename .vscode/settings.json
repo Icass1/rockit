@@ -12,5 +12,7 @@
     "editor.codeActionsOnSave": {
         // apply ESLint
         "source.fixAll.eslint": "always"
-    }
+    },
+    // "python.analysis.typeCheckingMode": "strict",
+    "python.analysis.typeCheckingMode": "standard",
 }

@@ -3,10 +3,14 @@
         "bradlc.vscode-tailwindcss",
         "humao.rest-client",
         "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint",
+        "ms-python.vscode-pylance",
+        "ms-python.python",
+        "ms-python.debugpy",
+        "esbenp.prettier-vscode",
         "ms-python.autopep8",
         "usernamehw.errorlens",
         "alexcvzz.vscode-sqlite",
-        "dbaeumer.vscode-eslint"
     ],
     "unwantedRecommendations": []
 }

@@ -1,12 +1,17 @@
+"use client";
+
 import { Plus } from "lucide-react";
 import { useState } from "react";
 import Image from "@/components/Image";
 import { useRouter } from "next/navigation";
+import { useStore } from "@nanostores/react";
+import { langData } from "@/stores/lang";
 
 export default function NewPlaylistButton() {
     const [showCreatePlaylistMenu, setShowCreatePlaylistMenu] = useState(false);
     const [name, setName] = useState("");
     const [error, setError] = useState("");
+    const lang = useStore(langData);
 
     const router = useRouter();
 
@@ -27,38 +32,41 @@ export default function NewPlaylistButton() {
                     <Plus className="cover absolute top-0 left-0 aspect-square h-auto w-full rounded-md p-6" />
                 </div>
                 <label className="min-h-6 truncate text-center font-semibold">
-                    New playlist
+                    {lang?.newplaylist}
                 </label>
             </div>
             {showCreatePlaylistMenu && (
-                <div className="fixed top-0 right-0 bottom-0 left-0 bg-gray-400">
-                    <div className="relative top-1/2 left-1/2 flex h-fit w-2/3 -translate-x-1/2 -translate-y-1/2 flex-col gap-y-4">
-                        <label className="font-semibold">
-                            New playlist name
-                        </label>
+                <div className="fixed top-0 right-0 bottom-0 left-0 bg-[#0b0b0b] z-90">
+                    <div className="relative top-1/2 left-1/2 flex h-fit w-1/2 -translate-x-1/2 -translate-y-1/2 flex-col gap-y-4">
+                    <label className="font-semibold">
+                        {lang?.newplaylistname}
                         {error && (
-                            <label className="text-sm text-red-600">
-                                {error}
-                            </label>
+                            <span className="text-red-600"> - {error}</span>
                         )}
-                        <input
-                            className="w-full border-b border-solid bg-transparent text-2xl font-bold outline-none"
-                            value={name}
-                            type="search"
-                            onChange={(e) => {
-                                setName(e.target.value);
-                            }}
-                        />
-                        <div className="mx-auto flex w-fit flex-row gap-x-4">
+                    </label>
+
+                    <input
+                        className={`w-full border-b border-solid bg-transparent text-2xl font-bold outline-none ${
+                            error ? "text-red-600" : "text-white"
+                        }`}
+                        value={name}
+                        type="search"
+                        onChange={(e) => {
+                            setName(e.target.value);
+                            setError("");
+                        }}
+                    />
+                        <div className="mx-auto flex w-fit flex-row gap-x-5 py-5">
                             <button
+                                className="rounded-md border border-gray-500 px-4 py-2 text-sm text-gray-300 transition hover:border-gray-200 hover:text-white"
                                 onClick={() => {
                                     setShowCreatePlaylistMenu(false);
                                 }}
                             >
-                                Cancel
+                                {lang?.cancel}
                             </button>
                             <button
-                                className="text-green-700"
+                                className="rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                                 onClick={() => {
                                     if (name == "") {
                                         setError(
@@ -85,7 +93,7 @@ export default function NewPlaylistButton() {
                                         );
                                 }}
                             >
-                                Create
+                                {lang?.create}
                             </button>
                         </div>
                     </div>

@@ -122,7 +122,7 @@ export function FeaturedLists() {
                         <div className="absolute top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2"></div>
                     </div>
                     <label className="mt-2 block truncate text-center font-semibold">
-                        {lastMonthName} ReCap
+                        {lastMonthName} Recap
                     </label>
                     <label className="block truncate text-center text-sm text-gray-400">
                         {$lang.by} Rock It!

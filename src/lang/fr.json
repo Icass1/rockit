@@ -136,5 +136,9 @@
     "energy": "Énergique",
     "focus": "Concentré",
     "party": "Fête",
+    "newplaylist": "Nouvelle Playlist",
+    "newplaylistname": "Nom de la Nouvelle Playlist",
+    "cancel": "Annuler",
+    "create": "Créer",
     "your": "Votre"
 }

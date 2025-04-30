@@ -19,7 +19,7 @@ import re
 
 from spotdl.types.song import Song
 
-from constants import DOWNLOADER_OPTIONS
+from constants import DOWNLOADER_OPTIONS, SONGS_PATH
 from logger import getLogger
 
 from queueElement import QueueElement, SpotifyQueueElement
@@ -111,13 +111,23 @@ class SpotifyDownloader:
 
         for spotdl_song in spotdl_songs:
 
-            self.logger.info(f"{spotdl_song=}")
+            song_db: SongDBFull = self.downloader.spotify.db.get(
+                "SELECT * FROM song WHERE id = ?", (spotdl_song.song_id,))
 
-            queue_element = SpotifyQueueElement(
-                message_handler=self.message_handler, song=spotdl_song, db=self.downloader.spotify.db)
+            if not song_db:
+                self.logger.error("song_db is None. This should never happen")
 
-            self.downloader.queue.append(queue_element)
-            self.queue_elements.append(queue_element)
+            if song_db.path and os.path.exists(os.path.join(SONGS_PATH, song_db.path)):
+                self.logger.info(f"Skipping {song_db.id}")
+                self.message_handler.add(
+                    {'id': song_db.id, 'completed': 100, 'message': 'Skipped'})
+
+            else:
+                queue_element = SpotifyQueueElement(
+                    message_handler=self.message_handler, song=spotdl_song, db=self.downloader.spotify.db)
+
+                self.downloader.queue.append(queue_element)
+                self.queue_elements.append(queue_element)
 
         self._qeuue_set = True
 
@@ -138,6 +148,8 @@ class SpotifyDownloader:
 
         self.logger.warn("Run after all songs finish")
 
+        self.message_handler.finish()
+
     def status(self, request: Request) -> StreamingResponse:
         self.logger.info(self.download_id)
 
@@ -153,7 +165,7 @@ class SpotifyDownloader:
 
                     message = await reader.get()
 
-                    if not message:
+                    if reader.get_finish():
                         self.logger.info("message is None. reader has finish")
                         break
 

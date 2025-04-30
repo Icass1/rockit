@@ -214,10 +214,12 @@ export default function PlaylistSongsView({
         }
     };
 
-    const marginTop = innerWidth < 768 ? 20 : 96;
-
     const $lang = useStore(langData);
     if (!$lang) return;
+
+    if (!innerWidth) return;
+
+    const marginTop = innerWidth < 768 ? 20 : 96;
 
     return (
         <div

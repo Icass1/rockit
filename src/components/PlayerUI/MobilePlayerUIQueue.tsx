@@ -171,7 +171,7 @@ export default function MobilePlayerUIQueue({
     }, [draggingSong]);
 
     const $lang = useStore(langData);
-    if (!$lang || !$queue) return null;
+    if (!$lang || !$queue || !height) return null;
 
     return (
         <div

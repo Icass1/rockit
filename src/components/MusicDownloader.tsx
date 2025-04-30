@@ -543,6 +543,8 @@ export function Downloads({ navOpen = false }: { navOpen?: boolean }) {
 
     const $lang = useStore(langData);
     if (!$lang) return;
+    
+    if (!innerWidth) return;
 
     if (innerWidth < 768) {
         return (

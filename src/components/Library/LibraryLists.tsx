@@ -30,6 +30,7 @@ export function LibraryLists() {
 
     const $lang = useStore(langData);
 
+    if (!width) return;
     if (!$lang) return;
 
     return (

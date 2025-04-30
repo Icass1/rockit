@@ -209,6 +209,7 @@ export default function MobilePlayerUI() {
 
     useEffect(() => {
         // Only run this on client
+        if (!innerWidth) return;
         setShouldRender(innerWidth < 768);
     }, [innerWidth]);
 

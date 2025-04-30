@@ -13,6 +13,8 @@ export default function MobilePlayerUILyrics({
 }) {
     const { height } = useWindowSize();
 
+    if (!height) return;
+
     return (
         <div
             id="MobilePlayerUILyrics"

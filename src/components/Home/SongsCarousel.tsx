@@ -42,7 +42,7 @@ function Song({
         scale = "0.5";
         left = "50%";
         brightness = 0.1;
-    } else if (innerWidth < 768) {
+    } else if (innerWidth && innerWidth < 768) {
         scale =
             distanceFromCenter > 4 ? "0" : `${1 - distanceFromCenter * 0.1}`;
         left = `${50 + distanceFromCenter * neg * -15}%`; // Separación horizontal

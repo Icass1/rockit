@@ -149,6 +149,8 @@ export default function RadioStations() {
         return <div>You are offline</div>;
     }
 
+    if (!innerWidth) return;
+
     if (innerWidth > 768) {
         return (
             <div className="h-full overflow-y-auto p-2 pt-16 pb-16 text-white md:mt-0 md:mb-0 md:pt-24 md:pb-24">

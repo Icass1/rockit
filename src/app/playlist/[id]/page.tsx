@@ -16,6 +16,7 @@ import { getStats, SongForStats } from "@/lib/stats";
 import { SpotifyPlaylistImage } from "@/types/spotify";
 import { NextResponse } from "next/server";
 import { getLang } from "@/lib/getLang";
+import { notFound } from "next/navigation";
 
 interface Playlist {
     name: string;
@@ -27,7 +28,7 @@ interface Playlist {
 
 async function getPlaylist(id: string) {
     const session = await getSession();
-    const lang = await getLang(session.user.lang || "en");
+    const lang = await getLang(session?.user?.lang || "en");
 
     let playlist: Playlist | undefined;
 
@@ -35,7 +36,7 @@ async function getPlaylist(id: string) {
         const userDB = parseUser(
             db
                 .prepare("SELECT likedSongs FROM user WHERE id = ?")
-                .get(session.user.id) as RawUserDB
+                .get(session?.user.id) as RawUserDB
         ) as UserDB<"likedSongs">;
 
         playlist = {
@@ -46,6 +47,10 @@ async function getPlaylist(id: string) {
             owner: "Rock It!",
         };
     } else if (id == "most-listened") {
+        if (!session?.user.id) {
+            notFound();
+        }
+
         const { stats } = await getStats(session.user.id);
         let songs: SongForStats[] = [];
 
@@ -102,6 +107,8 @@ async function getPlaylist(id: string) {
 
         // console.log(start, end);
 
+        if (!session?.user.id) notFound()
+
         const { stats } = await getStats(session.user.id, start, end);
         let songs: SongForStats[] = [];
 
@@ -156,6 +163,8 @@ async function getPlaylist(id: string) {
             owner: "Rock It!",
         };
     } else if (id == "recent-mix") {
+        if (!session?.user.id) notFound()
+
         const { stats } = await getStats(
             session.user.id,
             new Date().getTime() - 10 * 24 * 60 * 60 * 1000

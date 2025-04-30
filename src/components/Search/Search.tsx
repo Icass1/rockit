@@ -253,8 +253,9 @@ export default function Search() {
                                         height={60}
                                         className="aspect-square w-full rounded-lg object-cover"
                                         src={
-                                            station.favicon ||
-                                            "/logos/logo-sq-2.png"
+                                            station.favicon
+                                                ? "/api/proxy?url=" + station.favicon
+                                                : "/radio-placeholder.png"
                                         }
                                         alt="Song Cover"
                                     />

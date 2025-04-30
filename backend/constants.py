@@ -3,6 +3,39 @@ from spotdl.types.options import DownloaderOptions
 import os
 
 
+_SONGS_PATH = os.getenv(key="SONGS_PATH")
+_IMAGES_PATH = os.getenv("IMAGES_PATH")
+_TEMP_PATH = os.getenv("TEMP_PATH")
+_LOGS_PATH = os.getenv(key="LOGS_PATH")
+_LOG_DUMP_LEVEL = os.getenv(key="LOG_DUMP_LEVEL")
+
+if not _SONGS_PATH:
+    print("SONGS_PATH is not set")
+    exit()
+
+if not _IMAGES_PATH:
+    print("IMAGES_PATH is not set")
+    exit()
+
+if not _TEMP_PATH:
+    print("TEMP_PATH is not set")
+    exit()
+
+if not _LOGS_PATH:
+    print("LOGS_PATH is not set")
+    exit()
+
+if not _LOG_DUMP_LEVEL:
+    print("LOG_DUMP_LEVEL is not set")
+    exit()
+
+SONGS_PATH = _SONGS_PATH
+IMAGES_PATH = _IMAGES_PATH
+TEMP_PATH = _TEMP_PATH
+LOGS_PATH = _LOGS_PATH
+LOG_DUMP_LEVEL = _LOG_DUMP_LEVEL
+
+
 DOWNLOADER_OPTIONS: DownloaderOptions = {
     "audio_providers": ["youtube-music"],
     "lyrics_providers": ["genius", "azlyrics", "musixmatch"],
@@ -10,7 +43,7 @@ DOWNLOADER_OPTIONS: DownloaderOptions = {
     "playlist_numbering": False,
     "scan_for_songs": False,
     "m3u": None,
-    "output": f"{os.getenv('TEMP_PATH')}" + "/{artists} - {title}.{output-ext}",
+    "output": f"{TEMP_PATH}" + "/{artists} - {title}.{output-ext}",
     "overwrite": "skip",
     "search_query": None,
     "ffmpeg": "ffmpeg",
@@ -52,3 +85,4 @@ DOWNLOADER_OPTIONS: DownloaderOptions = {
     "respect_skip_file": False,
     "sync_remove_lrc": False,
 }
+

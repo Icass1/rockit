@@ -15,6 +15,7 @@ import { getImageUrl } from "@/lib/getImageUrl";
 import { getStats, SongForStats } from "@/lib/stats";
 import { SpotifyPlaylistImage } from "@/types/spotify";
 import { NextResponse } from "next/server";
+import { getLang } from "@/lib/getLang";
 
 interface Playlist {
     name: string;
@@ -26,6 +27,7 @@ interface Playlist {
 
 async function getPlaylist(id: string) {
     const session = await getSession();
+    const lang = await getLang(session.user.lang || "en");
 
     let playlist: Playlist | undefined;
 
@@ -37,7 +39,7 @@ async function getPlaylist(id: string) {
         ) as UserDB<"likedSongs">;
 
         playlist = {
-            name: "Liked",
+            name: lang?.liked_songs ?? "Liked Songs",
             songs: userDB.likedSongs,
             image: "",
             images: [{ url: "/song-placeholder.png", height: 1, width: 1 }],
@@ -70,7 +72,7 @@ async function getPlaylist(id: string) {
             .slice(0, 50);
 
         playlist = {
-            name: "Most listened",
+            name: lang?.most_listened ?? "Most listened",
             songs: songs,
             image: "",
             images: [{ url: "/song-placeholder.png", height: 1, width: 1 }],
@@ -162,7 +164,7 @@ async function getPlaylist(id: string) {
             .slice(0, 50);
 
         playlist = {
-            name: "Recent Mix",
+            name: lang?.recent_mix ?? "Recent Mix",
             songs: songs,
             image: "",
             images: [{ url: "/song-placeholder.png", height: 1, width: 1 }],

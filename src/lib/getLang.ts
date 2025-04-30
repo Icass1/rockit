@@ -1,4 +1,3 @@
-// src/lib/getLang.ts
 import { promises as fs } from "fs";
 import path from "path";
 import type { Lang } from "@/types/lang";

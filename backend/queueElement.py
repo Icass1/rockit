@@ -5,26 +5,11 @@ from spotdl.types.song import Song
 import os
 import shutil
 
+from constants import SONGS_PATH, TEMP_PATH
 from backendUtils import get_output_file, sanitize_folder_name
 from db.db import DB
 from logger import getLogger
 from messageHandler import MessageHandler
-
-
-_SONGS_PATH = os.getenv(key="SONGS_PATH")
-_TEMP_PATH = os.getenv(key="TEMP_PATH")
-logger = getLogger(__name__)
-
-if not _TEMP_PATH:
-    logger.critical("SONGS_PATH is not set")
-    exit()
-
-if not _SONGS_PATH:
-    logger.critical("SONGS_PATH is not set")
-    exit()
-
-SONGS_PATH = _SONGS_PATH
-TEMP_PATH = _TEMP_PATH
 
 
 class QueueElement:
@@ -48,7 +33,6 @@ class QueueElement:
 
     def done(self, success: bool) -> None:
         self._done = True
-        self._message_handler.finish()
         self._success = success
         self.on_done()
 
@@ -76,7 +60,7 @@ class SpotifyQueueElement(QueueElement):
 
         if not self._path:
             self.logger.error(f"Path is not set. {self._song=}")
-            
+
             self.db.execute("""
                 UPDATE song SET
                     lyrics = ?,

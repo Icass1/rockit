@@ -11,6 +11,7 @@ import re
 
 from spotdl.types.song import Song
 
+from constants import IMAGES_PATH
 from db.image import ImageDB
 from db.commonTypes import ArtistDB
 from db.song import SongDBFull
@@ -24,15 +25,6 @@ from spotifyApiTypes.RawSpotifyApiTrack import RawSpotifyApiTrack, TrackArtists
 from spotifyApiTypes.RawSpotifyApiPlaylist import PlaylistArtists
 from spotifyApiTypes.RawSpotifyApiArtist import RawSpotifyApiArtist
 from spotifyApiTypes.RawSpotifyApiSearchResults import SpotifySearchResultsArtists
-
-_IMAGES_PATH: str | None = os.getenv(key="IMAGES_PATH")
-logger: Logger = getLogger(__name__)
-
-if not _IMAGES_PATH:
-    logger.critical("IMAGES_PATH is not set")
-    exit()
-
-IMAGES_PATH: str = _IMAGES_PATH
 
 
 class Spotify:
@@ -144,13 +136,11 @@ class Spotify:
         return genres
 
     def get_album(self, id: str, _call_from_song: bool = False):
-        self.logger.info(id)
 
         album_db: AlbumDBFull | None = self.db.get(
             "SELECT * FROM album WHERE id = ?", (id,))
 
         if album_db:
-           
 
             self.logger.info("Album found in database")
             return RawSpotifyApiAlbum.from_dict({
@@ -245,7 +235,6 @@ class Spotify:
                 "SELECT * FROM song WHERE id = ?", (id,))
 
             if song_db:
-                self.logger.info(f"{id} found in db")
 
                 song = self.get_song(id)
                 if not song:
@@ -282,7 +271,6 @@ class Spotify:
         return out
 
     def get_song(self, id: str) -> tuple[Song, RawSpotifyApiTrack] | None:
-        self.logger.info(id)
 
         song_db: SongDBFull | None = self.db.get(
             "SELECT * FROM song WHERE id = ?", (id,))
@@ -311,8 +299,6 @@ class Spotify:
             if not album:
                 self.logger.error("album is None")
                 return
-
-            self.logger.info(song_db.artists)
 
             genres = song_db.genres
 

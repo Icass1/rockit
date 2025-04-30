@@ -46,7 +46,7 @@ class MessageHandler:
         return MessageHandlderReader(handler=self)
 
     def add(self, message: Any) -> None:
-        self.logger.info(message)
+        self.logger.debug(message)
         self._messages.append(message)
 
     def finish(self) -> None:

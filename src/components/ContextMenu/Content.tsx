@@ -64,6 +64,7 @@ export default function ContextMenuContent({
     if (!_contextMenuPos) return;
     if (!_contextMenuOpen) return;
     if (_contextMenuPos[0] == 0 && _contextMenuPos[1] == 0) return;
+    if (!innerWidth) return;
 
     return (
         <PosAfterRenderDiv

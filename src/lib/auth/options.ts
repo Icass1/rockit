@@ -63,23 +63,43 @@ export const nextAuthOptions: AuthOptions = {
     callbacks: {
         async jwt({ token, user }: { token: JWT; user: User | AdapterUser }) {
             // Persist user data to the token right after sign in
+
             if (user) {
+                const userDB = parseUser(
+                    db
+                        .prepare(
+                            "SELECT passwordHash,username,id,lang,admin FROM user WHERE id = ?"
+                        )
+                        .get(user.id) as RawUserDB
+                ) as UserDB<
+                    "passwordHash" | "username" | "id" | "admin" | "lang"
+                >;
                 token.id = user.id;
                 token.username = user.username;
-                token.admin = user.admin;
-                token.lang = user.lang;
+                token.admin = userDB.admin;
+                token.lang = userDB.lang;
                 // Add any other user properties you need
             }
             return token;
         },
         async session({ session, token }: { session: Session; token: JWT }) {
             // Send properties to the client
+
             if (token) {
+                const userDB = parseUser(
+                    db
+                        .prepare(
+                            "SELECT passwordHash,username,id,lang,admin FROM user WHERE id = ?"
+                        )
+                        .get(token.id) as RawUserDB
+                ) as UserDB<
+                    "passwordHash" | "username" | "id" | "admin" | "lang"
+                >;
                 session.user = {
                     id: token.id,
                     username: token.username,
-                    admin: token.admin,
-                    lang: token.lang,
+                    admin: userDB.admin,
+                    lang: userDB.lang,
                 };
             }
             return session;

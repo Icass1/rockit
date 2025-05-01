@@ -3,7 +3,7 @@
 import { getImageUrl } from "@/lib/getImageUrl";
 import Link from "next/link";
 import Image from "@/components/Image";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { PlaylistDB } from "@/lib/db/playlist";
 import { AlbumDB } from "@/lib/db/album";
 import { useStore } from "@nanostores/react";
@@ -11,11 +11,18 @@ import { langData } from "@/stores/lang";
 import NewPlaylistButton from "@/components/Library/NewPlaylistButton";
 import useWindowSize from "@/hooks/useWindowSize";
 
-export function LibraryLists() {
+export function LibraryLists({
+    filterMode,
+    searchQuery,
+}: {
+    filterMode: "default" | "asc" | "desc";
+    searchQuery: string;
+}) {
     const [playlists, setPlaylists] = useState<PlaylistDB[]>([]);
     const [albums, setAlbums] = useState<AlbumDB[]>([]);
 
     const { width } = useWindowSize();
+    const $lang = useStore(langData);
 
     useEffect(() => {
         fetch("/api/library/lists").then((response) => {
@@ -28,10 +35,41 @@ export function LibraryLists() {
         });
     }, []);
 
-    const $lang = useStore(langData);
+    const filteredPlaylists = useMemo(() => {
+        let result = playlists.filter((pl) =>
+            pl.name.toLowerCase().includes(searchQuery.toLowerCase())
+        );
 
-    if (!width) return;
-    if (!$lang) return;
+        if (filterMode === "asc") {
+            result = result.sort((a, b) => a.name.localeCompare(b.name));
+        } else if (filterMode === "desc") {
+            result = result.sort((a, b) => b.name.localeCompare(a.name));
+        }
+
+        return result;
+    }, [playlists, filterMode, searchQuery]);
+
+    const filteredAlbums = useMemo(() => {
+        let result = albums.filter((al) => {
+            const matchesName = al.name
+                .toLowerCase()
+                .includes(searchQuery.toLowerCase());
+            const matchesArtist = al.artists.some((artist) =>
+                artist.name.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+            return matchesName || matchesArtist;
+        });
+
+        if (filterMode === "asc") {
+            result = result.sort((a, b) => a.name.localeCompare(b.name));
+        } else if (filterMode === "desc") {
+            result = result.sort((a, b) => b.name.localeCompare(a.name));
+        }
+
+        return result;
+    }, [albums, filterMode, searchQuery]);
+
+    if (!width || !$lang) return null;
 
     return (
         <section>
@@ -48,91 +86,68 @@ export function LibraryLists() {
                 }}
             >
                 <NewPlaylistButton />
-                {playlists.map((playlist, index) => {
-                    if (!playlist)
-                        return (
-                            <label key={"playlist" + index}>
-                                Playlist is undefined
-                            </label>
-                        );
-                    return (
-                        <Link
-                            key={"playlist" + index}
-                            href={`/playlist/${playlist.id}`}
-                            className="library-item flex h-auto w-full max-w-full min-w-0 flex-col transition-transform md:hover:scale-110"
-                        >
-                            <Image
-                                alt={playlist.name}
-                                className="cover h-full w-full rounded-md"
-                                src={getImageUrl({
-                                    imageId: playlist.image,
-                                    height: 300,
-                                    width: 300,
-                                    fallback: playlist.images?.[0]?.url,
-                                    placeHolder: "/rockit-background.png",
-                                })}
-                            />
-                            <label className="min-h-6 truncate text-center font-semibold">
-                                {playlist.name}
-                            </label>
-                            <label className="min-h-5 truncate text-center text-sm text-gray-400">
-                                {playlist.owner}
-                            </label>
-                        </Link>
-                    );
-                })}
 
-                {albums.map((album, index) => {
-                    if (!album)
-                        return (
-                            <label key={"album" + index}>
-                                Album is undefined
-                            </label>
-                        );
-                    return (
-                        <Link
-                            key={"album" + index}
-                            href={`/album/${album.id}`}
-                            className="library-item flex h-fit w-fit max-w-full min-w-0 flex-col transition-transform md:hover:scale-105"
-                        >
-                            <Image
-                                alt={album.name}
-                                className="rounded-md"
-                                src={getImageUrl({
-                                    imageId: album.image,
-                                    height: 300,
-                                    width: 300,
-                                    fallback: album.images[0]?.url,
-                                    placeHolder: "/song-placeholder.png",
-                                })}
-                            />
-                            <label className="mt-1 truncate text-center font-semibold">
-                                {album.name}
-                            </label>
-                            <div className="mx-auto flex max-w-full flex-row truncate text-center text-sm text-gray-400">
-                                {album.artists.map((artist, index) => (
-                                    <label
-                                        key={album.id + artist.id}
-                                        className="truncate md:hover:underline"
-                                        onClick={() =>
-                                            console.log(
-                                                `event.preventDefault(); event.stopPropagation(); location.href='/artist/${artist.id}' `
-                                            )
-                                        }
-                                    >
-                                        {`${artist.name}${
-                                            index < album.artists.length - 1
-                                                ? ", "
-                                                : ""
-                                        }`}
-                                    </label>
-                                ))}
-                            </div>
-                        </Link>
-                    );
-                })}
+                {filteredPlaylists.map((playlist, index) => (
+                    <Link
+                        key={"playlist" + index}
+                        href={`/playlist/${playlist.id}`}
+                        className="library-item flex h-auto w-full max-w-full min-w-0 flex-col transition-transform md:hover:scale-110"
+                    >
+                        <Image
+                            alt={playlist.name}
+                            className="cover h-full w-full rounded-md"
+                            src={getImageUrl({
+                                imageId: playlist.image,
+                                height: 300,
+                                width: 300,
+                                fallback: playlist.images?.[0]?.url,
+                                placeHolder: "/rockit-background.png",
+                            })}
+                        />
+                        <label className="min-h-6 truncate text-center font-semibold">
+                            {playlist.name}
+                        </label>
+                        <label className="min-h-5 truncate text-center text-sm text-gray-400">
+                            {playlist.owner}
+                        </label>
+                    </Link>
+                ))}
+
+                {filteredAlbums.map((album, index) => (
+                    <Link
+                        key={"album" + index}
+                        href={`/album/${album.id}`}
+                        className="library-item flex h-fit w-fit max-w-full min-w-0 flex-col transition-transform md:hover:scale-105"
+                    >
+                        <Image
+                            alt={album.name}
+                            className="rounded-md"
+                            src={getImageUrl({
+                                imageId: album.image,
+                                height: 300,
+                                width: 300,
+                                fallback: album.images[0]?.url,
+                                placeHolder: "/song-placeholder.png",
+                            })}
+                        />
+                        <label className="mt-1 truncate text-center font-semibold">
+                            {album.name}
+                        </label>
+                        <div className="mx-auto flex max-w-full flex-row truncate text-center text-sm text-gray-400">
+                            {album.artists.map((artist, i) => (
+                                <label
+                                    key={album.id + artist.id}
+                                    className="truncate md:hover:underline"
+                                >
+                                    {artist.name}
+                                    {i < album.artists.length - 1 ? ", " : ""}
+                                </label>
+                            ))}
+                        </div>
+                    </Link>
+                ))}
             </div>
-            <div className="min-h-10"></div>
+            <div className="min-h-10" />
         </section>
     );
 }

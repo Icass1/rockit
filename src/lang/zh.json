@@ -136,5 +136,9 @@
     "energy": "活力",
     "focus": "专注",
     "party": "派对",
+    "newplaylist": "新建播放列表",
+    "newplaylistname": "新建播放列表名称",
+    "cancel": "取消",
+    "create": "创建",
     "your": "你的"
 }

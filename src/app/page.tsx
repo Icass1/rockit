@@ -137,11 +137,11 @@ export default function Home() {
         <div className="relative flex h-full flex-col overflow-y-auto pt-24 pb-24">
             <SongsCarousel></SongsCarousel>
 
-            <section className="py-5 text-white md:px-12 md:py-12">
+            <section className="py-5 text-white md:py-12 md:pl-12">
                 <h2 className="px-5 text-2xl font-bold md:text-3xl">
                     {$lang.songsforyou}
                 </h2>
-                <div className="flex gap-4 overflow-x-auto px-8 py-4">
+                <div className="flex gap-4 overflow-x-auto px-10 py-4">
                     {nostalgicMix.map((song) => (
                         <RecentlyPlayedSong
                             key={song.id}
@@ -152,7 +152,7 @@ export default function Home() {
                 </div>
             </section>
 
-            <section className="group text-white md:px-12">
+            <section className="group text-white md:pl-12">
                 <h2 className="px-5 text-left text-2xl font-bold md:px-0 md:text-3xl">
                     {$lang.quick_selections}
                 </h2>
@@ -194,14 +194,11 @@ export default function Home() {
                 </div>
             </section>
 
-            <section className="py-5 text-white md:px-12 md:py-12">
-                <h2 className="px-5 text-left text-2xl font-bold md:px-0 md:text-3xl">
+            <section className="py-5 text-white md:py-12 md:pl-12">
+                <h2 className="px-5 text-2xl font-bold md:text-3xl">
                     {$lang.recent_played}
                 </h2>
-                <div
-                    className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:px-2"
-                    style={{ scrollbarGutter: "stable both" }}
-                >
+                <div className="flex gap-4 overflow-x-auto px-10 py-4">
                     {songsByTimePlayed.map((song) => (
                         <RecentlyPlayedSong
                             key={song.id}
@@ -212,11 +209,11 @@ export default function Home() {
                 </div>
             </section>
 
-            <section className="py-5 text-white md:px-12 md:py-12">
+            <section className="text-white md:py-12 md:pl-12">
                 <h2 className="px-5 text-2xl font-bold md:text-3xl">
                     {$lang.hiddengems}
                 </h2>
-                <div className="flex gap-4 overflow-x-auto px-8 py-4">
+                <div className="flex gap-4 overflow-x-auto px-10 py-4">
                     {hiddenGems.map((song) => (
                         <RecentlyPlayedSong
                             key={song.id}
@@ -227,11 +224,11 @@ export default function Home() {
                 </div>
             </section>
 
-            <section className="py-5 text-white md:px-12 md:py-12">
+            <section className="py-5 text-white md:py-12 md:pl-12">
                 <h2 className="px-5 text-2xl font-bold md:text-3xl">
                     {$lang.communitytop}
                 </h2>
-                <div className="flex gap-4 overflow-x-auto px-8 py-4">
+                <div className="flex gap-4 overflow-x-auto px-10 py-4">
                     {communityTop.map((song) => (
                         <RecentlyPlayedSong
                             key={song.id}
@@ -243,11 +240,11 @@ export default function Home() {
             </section>
 
             {(Object.keys(moodSongs) as Mood[]).map((mood) => (
-                <section key={mood} className="py-5 text-white md:px-12">
+                <section key={mood} className="py-5 text-white md:pl-12">
                     <h2 className="px-5 text-2xl font-bold md:text-3xl">
                         {$lang.moodsongs} {$lang[`${mood}`]}
                     </h2>
-                    <div className="flex gap-4 overflow-x-auto px-8 py-4">
+                    <div className="flex gap-4 overflow-x-auto px-10 py-4">
                         {moodSongs[mood].map((song) => (
                             <RecentlyPlayedSong
                                 key={song.id}
@@ -259,11 +256,11 @@ export default function Home() {
                 </section>
             ))}
 
-            <section className="py-5 text-white md:px-12 md:py-12">
+            <section className="text-white md:py-12 md:pl-12">
                 <h2 className="px-5 text-2xl font-bold md:text-3xl">
                     {$lang[previousMonthKey]} Recap
                 </h2>
-                <div className="flex gap-4 overflow-x-auto px-8 py-4">
+                <div className="flex gap-4 overflow-x-auto px-10 py-4">
                     {monthlyTop.map((song) => (
                         <RecentlyPlayedSong
                             key={song.id}

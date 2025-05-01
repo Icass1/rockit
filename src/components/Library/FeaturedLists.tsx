@@ -9,18 +9,45 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import Image from "@/components/Image";
 
-export function FeaturedLists() {
+export function FeaturedLists({
+    filterMode,
+    searchQuery,
+}: {
+    filterMode: "default" | "asc" | "desc";
+    searchQuery: string;
+}) {
     const $lang = useStore(langData);
-
     const [data, setData] = useState<Stats["albums"]>([]);
 
     useEffect(() => {
-        fetch("/api/stats?type=albums&sortBy=timesPlayed").then((response) => {
-            if (response.ok) {
-                response.json().then((data) => setData(data));
-            }
-        });
+        fetch("/api/stats?type=albums&sortBy=timesPlayed")
+            .then((res) => res.ok && res.json())
+            .then((albums) => setData(albums));
     }, []);
+
+    if (!$lang) return null;
+
+    // Filtrar por búsqueda (por nombre de álbum o artista)
+    let filtered = data.filter((album) => {
+        const nameMatch = album.name
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase());
+        const artistMatch = album.artists?.some((artist) =>
+            artist.name.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+        return nameMatch || artistMatch;
+    });
+
+    // Ordenar según filterMode (ejemplo por nombre A–Z)
+    if (filterMode === "asc") {
+        filtered = filtered
+            .slice()
+            .sort((a, b) => a.name.localeCompare(b.name));
+    } else if (filterMode === "desc") {
+        filtered = filtered
+            .slice()
+            .sort((a, b) => b.name.localeCompare(a.name));
+    }
 
     const date = new Date();
     date.setMonth(date.getMonth() - 1);
@@ -32,11 +59,9 @@ export function FeaturedLists() {
     lastMonthName =
         lastMonthName[0].toLocaleUpperCase() + lastMonthName.slice(1);
 
-    if (!$lang) return;
-
     return (
         <section className="pt-5 text-white md:py-12">
-            <h2 className="px-5 text-left text-2xl font-bold md:px-0">
+            <h2 className="px-5 text-2xl font-bold md:px-0">
                 {$lang.featured_lists}
             </h2>
             <div
@@ -108,6 +133,7 @@ export function FeaturedLists() {
                         {$lang.by} Rock It!
                     </label>
                 </Link>
+
                 <Link
                     href={`/playlist/last-month`}
                     className="w-[calc(40%-10px)] flex-none transition md:w-48 md:hover:scale-105"
@@ -122,13 +148,15 @@ export function FeaturedLists() {
                         <div className="absolute top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2"></div>
                     </div>
                     <label className="mt-2 block truncate text-center font-semibold">
-                        {lastMonthName} ReCap
+                        {lastMonthName} Recap
                     </label>
                     <label className="block truncate text-center text-sm text-gray-400">
                         {$lang.by} Rock It!
                     </label>
                 </Link>
-                {data.slice(0, 4).map((album) => (
+
+                {/* Tus álbumes filtrados/ordenados */}
+                {filtered.slice(0, 4).map((album) => (
                     <Link
                         key={album.id}
                         href={`/album/${album.id}`}
@@ -144,28 +172,25 @@ export function FeaturedLists() {
                                 width: 300,
                                 placeHolder: "/song-placeholder.png",
                             })}
-                            alt="Song Cover"
+                            alt={album.name}
                         />
                         <label className="mt-2 block truncate text-center font-semibold">
                             {album.name}
                         </label>
                         <label className="block truncate text-center text-sm text-gray-400">
-                            {album.artists.map((artist, index) => (
-                                <label
-                                    key={album.id + artist.id}
+                            {album.artists.map((artist, i) => (
+                                <span
+                                    key={artist.id}
                                     className="md:hover:underline"
-                                    // onclick={`event.preventDefault(); event.stopPropagation(); location.href='/artist/${artist.id}' `}
                                 >
-                                    {`${artist.name}${
-                                        index < album.artists.length - 1
-                                            ? ","
-                                            : ""
-                                    }`}
-                                </label>
+                                    {artist.name}
+                                    {i < album.artists.length - 1 ? ", " : ""}
+                                </span>
                             ))}
                         </label>
                     </Link>
                 ))}
+
                 <div className="min-h-1 min-w-1 text-transparent">a</div>
             </div>
         </section>

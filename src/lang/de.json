@@ -136,5 +136,9 @@
     "energy": "Energie",
     "focus": "Konzentration",
     "party": "Party",
+    "newplaylist": "Neue Playlist",
+    "newplaylistname": "Neuer Playlist-Name",
+    "cancel": "Abbrechen",
+    "create": "Erstellen",
     "your": "Dein"
 }

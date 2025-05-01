@@ -138,4 +138,8 @@ export interface Lang {
     focus: string;
     party: string;
     your: string;
+    newplaylist: string;
+    newplaylistname: string;
+    cancel: string;
+    create: string;
 }

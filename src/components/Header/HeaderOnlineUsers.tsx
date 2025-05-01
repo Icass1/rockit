@@ -9,8 +9,9 @@ export default function OnlineUserIndicator() {
 
     // Simulación de la actualización del número de usuarios en línea
     useEffect(() => {
+        setOnlineCount(currentCount.current);
         const interval = setInterval(() => {
-            const change = Math.random() < 0.55 ? -1 : 1;
+            const change = Math.random() < 0.51 ? -1 : 1;
             let newCount = currentCount.current + change;
             newCount = Math.max(0, Math.min(10, newCount));
             currentCount.current = newCount;
@@ -21,11 +22,13 @@ export default function OnlineUserIndicator() {
     }, []);
 
     return (
-        <div className="flex items-center gap-1 text-green-500">
+        <>
             {onlineCount > 0 && (
-                <span className="text-md font-semibold">{onlineCount}</span>
+                <div className="flex items-center gap-1 text-green-500">
+                    <span className="text-md font-semibold">{onlineCount}</span>
+                    <User className="h-6 w-6" />
+                </div>
             )}
-            <User className="h-6 w-6" />
-        </div>
+        </>
     );
 }

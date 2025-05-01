@@ -3,12 +3,12 @@ import { ENV } from "@/rockitEnv";
 import type { SpotifyArtist, SpotifyArtistTopTracks } from "@/types/spotify";
 import { Play } from "lucide-react";
 
-interface PageProps {
-    params: { id: string };
-}
-
-export default async function ArtistPage({ params }: PageProps) {
-    const { id } = params;
+export default async function ArtistPage({
+    params,
+}: {
+    params: Promise<{ id: string }>;
+}) {
+    const { id } = await params;
     // 1) Fetch artist data
     const artistRes = await fetch(`${ENV.BACKEND_URL}/artist/${id}`, {
         cache: "no-store",

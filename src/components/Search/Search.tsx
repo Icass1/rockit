@@ -30,11 +30,11 @@ export default function Search() {
 
     return (
         <>
-            <section className="mt-20 block h-12 md:hidden">
+            <section className="mt-20 block h-28 px-5 md:hidden">
                 <SearchBar />
             </section>
             {$searchQuery ? (
-                <div className="overflow-y-auto">
+                <div className="overflow-y-auto pt-0 md:pt-24">
                     {$searchResults.albums == "error" ||
                     $searchResults.songs == "error" ||
                     $searchResults.artists == "error" ||
@@ -296,7 +296,7 @@ export default function Search() {
                             ))}
                         </div>
                     </section>
-                    <div className="min-h-14"></div>
+                    <div className="min-h-24 md:min-h-0"></div>
                 </div>
             ) : (
                 <section className="flex flex-col items-center justify-center px-7 py-36 text-center text-white md:pl-12">

@@ -1,28 +1,42 @@
+// src/app/library/page.tsx   (o donde tengas tu ruta Library)
 "use client";
 
-import { FeaturedLists } from "@/components/Library/FeaturedLists";
-import { LibraryFilters } from "@/components/Library/LibraryFilters";
-import { LibraryLists } from "@/components/Library/LibraryLists";
-import { langData } from "@/stores/lang";
+import { useState } from "react";
 import { useStore } from "@nanostores/react";
+import { langData } from "@/stores/lang";
 
-export default function Library() {
+import { LibraryFilters } from "@/components/Library/LibraryFilters";
+import { FeaturedLists } from "@/components/Library/FeaturedLists";
+import { LibraryLists } from "@/components/Library/LibraryLists";
+
+export default function LibraryPage() {
     const $lang = useStore(langData);
+    const [filterMode, setFilterMode] = useState<"default" | "asc" | "desc">(
+        "default"
+    );
+    const [searchQuery, setSearchQuery] = useState("");
 
-    if (!$lang) return;
+    if (!$lang) return null;
+
     return (
         <div className="h-full w-full overflow-y-auto pt-24 pb-24 md:px-8">
             <section className="flex items-center justify-between px-10 md:px-0">
                 <div className="hidden md:flex">
-                    <label className="text-4xl font-bold text-white">
+                    <h1 className="text-4xl font-bold text-white">
                         {$lang.library}
-                    </label>
+                    </h1>
                 </div>
-                <LibraryFilters />
+                <LibraryFilters
+                    filterMode={filterMode}
+                    setFilterMode={setFilterMode}
+                    searchQuery={searchQuery}
+                    setSearchQuery={setSearchQuery}
+                />
             </section>
 
-            <FeaturedLists />
-            <LibraryLists />
+            <FeaturedLists filterMode={filterMode} searchQuery={searchQuery} />
+
+            <LibraryLists filterMode={filterMode} searchQuery={searchQuery} />
         </div>
     );
 }

@@ -137,7 +137,7 @@ export default function Home() {
         <div className="relative flex h-full flex-col overflow-y-auto pt-24 pb-24">
             <SongsCarousel></SongsCarousel>
 
-            <section className="py-5 text-white md:pl-12 md:py-12">
+            <section className="py-5 text-white md:py-12 md:pl-12">
                 <h2 className="px-5 text-2xl font-bold md:text-3xl">
                     {$lang.songsforyou}
                 </h2>
@@ -194,7 +194,7 @@ export default function Home() {
                 </div>
             </section>
 
-            <section className="py-5 text-white md:pl-12 md:py-12">
+            <section className="py-5 text-white md:py-12 md:pl-12">
                 <h2 className="px-5 text-2xl font-bold md:text-3xl">
                     {$lang.recent_played}
                 </h2>
@@ -209,7 +209,7 @@ export default function Home() {
                 </div>
             </section>
 
-            <section className="text-white md:pl-12 md:py-12">
+            <section className="text-white md:py-12 md:pl-12">
                 <h2 className="px-5 text-2xl font-bold md:text-3xl">
                     {$lang.hiddengems}
                 </h2>
@@ -224,7 +224,7 @@ export default function Home() {
                 </div>
             </section>
 
-            <section className="py-5 text-white md:pl-12 md:py-12">
+            <section className="py-5 text-white md:py-12 md:pl-12">
                 <h2 className="px-5 text-2xl font-bold md:text-3xl">
                     {$lang.communitytop}
                 </h2>
@@ -256,7 +256,7 @@ export default function Home() {
                 </section>
             ))}
 
-            <section className="text-white md:pl-12 md:py-12">
+            <section className="text-white md:py-12 md:pl-12">
                 <h2 className="px-5 text-2xl font-bold md:text-3xl">
                     {$lang[previousMonthKey]} Recap
                 </h2>

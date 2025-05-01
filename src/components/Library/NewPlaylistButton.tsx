@@ -36,26 +36,26 @@ export default function NewPlaylistButton() {
                 </label>
             </div>
             {showCreatePlaylistMenu && (
-                <div className="fixed top-0 right-0 bottom-0 left-0 bg-[#0b0b0b] z-90">
+                <div className="fixed top-0 right-0 bottom-0 left-0 z-90 bg-[#0b0b0b]">
                     <div className="relative top-1/2 left-1/2 flex h-fit w-1/2 -translate-x-1/2 -translate-y-1/2 flex-col gap-y-4">
-                    <label className="font-semibold">
-                        {lang?.newplaylistname}
-                        {error && (
-                            <span className="text-red-600"> - {error}</span>
-                        )}
-                    </label>
+                        <label className="font-semibold">
+                            {lang?.newplaylistname}
+                            {error && (
+                                <span className="text-red-600"> - {error}</span>
+                            )}
+                        </label>
 
-                    <input
-                        className={`w-full border-b border-solid bg-transparent text-2xl font-bold outline-none ${
-                            error ? "text-red-600" : "text-white"
-                        }`}
-                        value={name}
-                        type="search"
-                        onChange={(e) => {
-                            setName(e.target.value);
-                            setError("");
-                        }}
-                    />
+                        <input
+                            className={`w-full border-b border-solid bg-transparent text-2xl font-bold outline-none ${
+                                error ? "text-red-600" : "text-white"
+                            }`}
+                            value={name}
+                            type="search"
+                            onChange={(e) => {
+                                setName(e.target.value);
+                                setError("");
+                            }}
+                        />
                         <div className="mx-auto flex w-fit flex-row gap-x-5 py-5">
                             <button
                                 className="rounded-md border border-gray-500 px-4 py-2 text-sm text-gray-300 transition hover:border-gray-200 hover:text-white"
@@ -66,7 +66,7 @@ export default function NewPlaylistButton() {
                                 {lang?.cancel}
                             </button>
                             <button
-                                className="rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                                className="rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:outline-none"
                                 onClick={() => {
                                     if (name == "") {
                                         setError(

@@ -1,3 +1,4 @@
+import Masonry from "@/components/Masonry/Masonry";
 import { getSession } from "@/lib/auth/getSession";
 import { db } from "@/lib/db/db";
 import { ErrorDB } from "@/lib/db/error";
@@ -31,9 +32,9 @@ export default async function AdminPage() {
         "bg-clip-text text-xl font-bold [-webkit-text-fill-color:transparent] [background-image:-webkit-linear-gradient(0deg,#fb6467,#ee1086)]";
 
     return (
-        <div className="flex h-full flex-col gap-y-1 overflow-y-auto p-2 pt-16 pb-16 md:mt-0 md:mb-0 md:pt-24 md:pb-24">
-            <label className="text-2xl font-semibold">Admin panel</label>
-            <div className="grid grid-cols-1 gap-2 md:grid-cols-[repeat(auto-fill,_minmax(430px,_1fr))]">
+        <div className="mt-0 mb-0 flex h-full flex-col gap-y-1 overflow-y-auto p-2 md:pt-24 md:pb-24">
+            <div className="min-h-20"></div>
+            <Masonry gap={5} minColumnWidth={400}>
                 <div className="flex flex-col items-center rounded bg-neutral-700 p-2">
                     <label className="w-full text-lg font-semibold">
                         Users
@@ -167,8 +168,8 @@ export default async function AdminPage() {
                         <LinkIcon className="relative right-0 ml-auto" />
                     </Link>
                 </div>
-            </div>
-            <div className="min-h-10" />
+            </Masonry>
+            <div className="min-h-24"></div>
         </div>
     );
 }

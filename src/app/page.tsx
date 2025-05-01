@@ -66,7 +66,7 @@ export default function Home() {
 
     useEffect(() => {
         fetch(
-            "/api/stats?limit=40&sortBy=random&noRepeat=true&type=songs"
+            `/api/stats?limit=40&sortBy=random&noRepeat=true&type=songs&start=${new Date().getTime() - 1000 * 60 * 60 * 24 * 30}`
         ).then((response) => {
             if (response.ok) {
                 response.json().then((data) => setRandomSongsLastMonth(data));
@@ -125,7 +125,7 @@ export default function Home() {
             0
         ).toISOString();
         fetch(
-            `/api/stats?limit=5&sortBy=timePlayed&start=${start}&end=${end}&type=songs`
+            `/api/stats?limit=5&sortBy=timesPlayed&start=${start}&end=${end}&type=songs`
         ).then((r) =>
             r.ok ? r.json().then(setMonthlyTop) : console.warn("Error")
         );

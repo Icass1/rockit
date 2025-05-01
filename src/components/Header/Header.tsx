@@ -2,6 +2,7 @@ import Link from "next/link";
 import SearchBar from "@/components/Search/SearchBar";
 import Image from "@/components/Image";
 import HeaderUser from "@/components/Header/HeaderUser";
+import OnlineUserIndicator from "./HeaderOnlineUsers";
 import { getSession } from "@/lib/auth/getSession";
 import { headers } from "next/headers";
 
@@ -13,10 +14,10 @@ export default async function Header() {
 
     return (
         <header
-            className="text-whit z-50 grid w-full grid-cols-[200px_3fr_200px] justify-between py-4 pr-4 pl-4"
+            className="text-white z-50 grid w-full grid-cols-[33%_33%_32%] justify-between py-4 pr-4 pl-4"
             style={{ backdropFilter: "blur(10px)" }}
         >
-            <Link href="/" className="flex items-center select-none">
+            <Link href="/" className="flex flex-row items-center select-none">
                 <Image
                     width={2048}
                     height={614}
@@ -28,7 +29,9 @@ export default async function Header() {
 
             {pathname?.startsWith("/radio") ? <label></label> : <SearchBar />}
 
-            <div className="relative ml-auto">
+            <div className="relative ml-auto flex items-center gap-5">
+                <OnlineUserIndicator />
+
                 {session?.user ? (
                     <HeaderUser />
                 ) : (

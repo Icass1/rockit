@@ -41,14 +41,14 @@ export default function NavigationMobile() {
             title: $lang.search,
             href: "/search",
             icon: Search,
-            disabled: true,
+            disabled: false,
         },
         {
             name: "Friends",
             title: $lang.friends,
             href: "/friends",
             icon: Users,
-            disabled: true,
+            disabled: false,
         },
 
         session.data?.user.admin

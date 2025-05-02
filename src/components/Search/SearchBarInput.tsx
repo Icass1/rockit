@@ -104,7 +104,7 @@ export default function SearchBarInput({
                 setOpen(true);
             }}
             onFocus={() => setOpen(true)}
-            className="text-1xl relative top-1/2 z-10 mx-auto block h-3/4 w-full -translate-y-1/2 rounded-full bg-neutral-900 px-10 font-semibold shadow focus:outline-0 md:z-50"
+            className="text-1xl relative top-1/2 z-10 mx-auto block h-10 w-full -translate-y-1/2 rounded-full bg-neutral-900 px-10 font-semibold shadow focus:outline-0 md:z-50"
             style={{
                 backgroundImage: "url(/search-icon.png)",
                 backgroundPosition: "15px center",

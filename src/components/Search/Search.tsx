@@ -235,68 +235,68 @@ export default function Search() {
                                     )}
                                 </div>
                             </section>
+                            <section className="py-2 text-white md:py-6 md:pl-12">
+                                <h2 className="px-5 text-left text-2xl font-bold md:px-0 md:text-3xl">
+                                    {$lang.radio_stations}
+                                </h2>
+                                <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pr-14 md:pl-4">
+                                    {$filteredStations.map((station) => (
+                                        <div
+                                            className="w-36 flex-none transition md:w-48 md:hover:scale-105"
+                                            key={station.stationuuid}
+                                            onClick={() => handleClick(station)}
+                                        >
+                                            <Image
+                                                width={60}
+                                                height={60}
+                                                className="aspect-square w-full rounded-lg object-cover"
+                                                src={
+                                                    station.favicon
+                                                        ? "/api/proxy?url=" + station.favicon
+                                                        : "/radio-placeholder.png"
+                                                }
+                                                alt="Song Cover"
+                                            />
+                                            <label className="mt-2 block truncate text-center font-semibold">
+                                                {station.name}
+                                            </label>
+                                            <label className="block truncate text-center text-sm text-gray-400">
+                                                {station.country}
+                                            </label>
+                                        </div>
+                                    ))}
+                                </div>
+                            </section>
+                            <section className="py-2 text-white md:py-6 md:pl-12">
+                                <h2 className="px-5 text-left text-2xl font-bold md:px-0 md:text-3xl">
+                                    Youtube Videos
+                                </h2>
+                                <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pr-14 md:pl-4">
+                                    {/* Mockup de videos */}
+                                    {Array.from({ length: 10 }).map((_, index) => (
+                                        <div
+                                            className="w-64 flex-none transition md:w-80 md:hover:scale-105"
+                                            key={"video" + index}
+                                        >
+                                            <Image
+                                                width={60}
+                                                height={60}
+                                                className="aspect-video w-full rounded-lg object-cover"
+                                                src="/video-placeholder.png"
+                                                alt="Video Thumbnail"
+                                            />
+                                            <label className="mt-2 block truncate text-left font-semibold">
+                                                Video title mockup {index + 1}
+                                            </label>
+                                            <label className="block truncate text-left text-sm text-gray-400">
+                                                Author mockup {index + 1}
+                                            </label>
+                                        </div>
+                                    ))}
+                                </div>
+                            </section>
                         </>
                     )}
-                    <section className="py-2 text-white md:py-6 md:pl-12">
-                        <h2 className="px-5 text-left text-2xl font-bold md:px-0 md:text-3xl">
-                            {$lang.radio_stations}
-                        </h2>
-                        <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pr-14 md:pl-4">
-                            {$filteredStations.map((station) => (
-                                <div
-                                    className="w-36 flex-none transition md:w-48 md:hover:scale-105"
-                                    key={station.stationuuid}
-                                    onClick={() => handleClick(station)}
-                                >
-                                    <Image
-                                        width={60}
-                                        height={60}
-                                        className="aspect-square w-full rounded-lg object-cover"
-                                        src={
-                                            station.favicon
-                                                ? "/api/proxy?url=" + station.favicon
-                                                : "/radio-placeholder.png"
-                                        }
-                                        alt="Song Cover"
-                                    />
-                                    <label className="mt-2 block truncate text-center font-semibold">
-                                        {station.name}
-                                    </label>
-                                    <label className="block truncate text-center text-sm text-gray-400">
-                                        {station.country}
-                                    </label>
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-                    <section className="py-2 text-white md:py-6 md:pl-12">
-                        <h2 className="px-5 text-left text-2xl font-bold md:px-0 md:text-3xl">
-                            Youtube Videos
-                        </h2>
-                        <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pr-14 md:pl-4">
-                            {/* Mockup de videos */}
-                            {Array.from({ length: 10 }).map((_, index) => (
-                                <div
-                                    className="w-64 flex-none transition md:w-80 md:hover:scale-105"
-                                    key={"video" + index}
-                                >
-                                    <Image
-                                        width={60}
-                                        height={60}
-                                        className="aspect-video w-full rounded-lg object-cover"
-                                        src="/video-placeholder.png"
-                                        alt="Video Thumbnail"
-                                    />
-                                    <label className="mt-2 block truncate text-left font-semibold">
-                                        Video title mockup {index + 1}
-                                    </label>
-                                    <label className="block truncate text-left text-sm text-gray-400">
-                                        Author mockup {index + 1}
-                                    </label>
-                                </div>
-                            ))}
-                        </div>
-                    </section>
                     <div className="min-h-24 md:min-h-0"></div>
                 </div>
             ) : (

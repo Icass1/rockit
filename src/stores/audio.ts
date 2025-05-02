@@ -7,6 +7,16 @@ import { openRockItIndexedDB } from "@/lib/indexedDB";
 import { getSession } from "next-auth/react";
 import { Device, devices } from "./devices";
 
+// Track user interaction state for iOS autoplay handling
+let hasUserInteraction = false;
+let audioContext: AudioContext | undefined;
+
+// Function to detect iOS devices
+const isIOS = (): boolean => {
+    if (typeof window === "undefined") return false;
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+};
+
 let websocket: WebSocket;
 
 export let database: IDBDatabase | undefined;
@@ -167,6 +177,23 @@ if (typeof window !== "undefined") {
             }),
         });
     };
+    
+    // Function to detect iOS devices
+    const isIOS = () => {
+        return /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+    };
+    
+    // Set up event listeners to track user interactions for iOS autoplay
+    const interactionEvents = ['touchstart', 'mousedown', 'keydown'];
+    interactionEvents.forEach(event => {
+        window.addEventListener(event, () => {
+            hasUserInteraction = true;
+            // Initialize AudioContext on user interaction for iOS
+            if (!audioContext && window.AudioContext) {
+                audioContext = new AudioContext();
+            }
+        }, { once: false, passive: true });
+    });
 }
 export type QueueSong = SongDB<
     "id" | "name" | "artists" | "image" | "duration" | "albumName" | "albumId"
@@ -911,6 +938,15 @@ export async function play() {
         console.error("audio is undefined");
         return;
     }
+    
+    // Mark that we've had user interaction when play is called
+    hasUserInteraction = true;
+    
+    // Resume AudioContext if it exists and is suspended (iOS requirement)
+    if (audioContext && audioContext.state === 'suspended') {
+        await audioContext.resume();
+    }
+    
     if (admin.get())
         console.log(
             "export async function play",
@@ -920,9 +956,18 @@ export async function play() {
         );
 
     if (audioPlayer) {
-        await audio.play();
-        if (audio2.readyState != 0) {
-            await audio2.play();
+        try {
+            await audio.play();
+            if (audio2.readyState != 0) {
+                await audio2.play();
+            }
+        } catch (error) {
+            console.error("Error playing audio:", error);
+            // If play() fails, it's likely due to autoplay restrictions
+            // We'll show a message to the user that they need to interact with the page
+            if (isIOS()) {
+                console.warn("iOS requires user interaction to play audio. Tap anywhere to enable playback.");
+            }
         }
     } else {
         send({ command: "play" });

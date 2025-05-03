@@ -234,6 +234,7 @@ export default function DBTablePage({
                 setSortAscending,
                 columnFilters,
                 setColumnFilters,
+                dbFile,
             }}
         >
             <div

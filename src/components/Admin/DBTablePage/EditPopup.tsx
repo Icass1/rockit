@@ -19,6 +19,7 @@ export function EditPopup({ index }: { index: number }) {
         sortBy,
         sortAscending,
         setEditPopup,
+        dbFile,
     } = useContext(TableContext) as TableContextType;
 
     const [currentIndex, setCurrentIndex] = useState(index);
@@ -46,6 +47,7 @@ export function EditPopup({ index }: { index: number }) {
                 table: table,
                 maxRows: 1,
                 offset: currentIndex,
+                dbFile,
             };
             setFields("Loading");
 

@@ -72,6 +72,7 @@ export type RequestType = {
         invert: boolean;
         exact: boolean;
     }[];
+    dbFile: string
 };
 
 export type Row = {

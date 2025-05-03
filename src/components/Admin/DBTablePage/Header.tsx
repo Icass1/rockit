@@ -28,7 +28,7 @@ export function Header() {
     return (
         <div
             style={{
-                gridArea: "header",
+                gridArea: "main-header",
                 gridTemplateColumns: columns
                     ?.map((column) => column.width + "px")
                     .join(" "),

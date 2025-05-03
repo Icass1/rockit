@@ -26,7 +26,7 @@ export default function Search() {
         play();
     }
 
-    if (!$lang) return;
+    if (!$lang) return false;
 
     return (
         <>
@@ -252,7 +252,8 @@ export default function Search() {
                                                 className="aspect-square w-full rounded-lg object-cover"
                                                 src={
                                                     station.favicon
-                                                        ? "/api/proxy?url=" + station.favicon
+                                                        ? "/api/proxy?url=" +
+                                                          station.favicon
                                                         : "/radio-placeholder.png"
                                                 }
                                                 alt="Song Cover"
@@ -273,26 +274,29 @@ export default function Search() {
                                 </h2>
                                 <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pr-14 md:pl-4">
                                     {/* Mockup de videos */}
-                                    {Array.from({ length: 10 }).map((_, index) => (
-                                        <div
-                                            className="w-64 flex-none transition md:w-80 md:hover:scale-105"
-                                            key={"video" + index}
-                                        >
-                                            <Image
-                                                width={60}
-                                                height={60}
-                                                className="aspect-video w-full rounded-lg object-cover"
-                                                src="/video-placeholder.png"
-                                                alt="Video Thumbnail"
-                                            />
-                                            <label className="mt-2 block truncate text-left font-semibold">
-                                                Video title mockup {index + 1}
-                                            </label>
-                                            <label className="block truncate text-left text-sm text-gray-400">
-                                                Author mockup {index + 1}
-                                            </label>
-                                        </div>
-                                    ))}
+                                    {Array.from({ length: 10 }).map(
+                                        (_, index) => (
+                                            <div
+                                                className="w-64 flex-none transition md:w-80 md:hover:scale-105"
+                                                key={"video" + index}
+                                            >
+                                                <Image
+                                                    width={60}
+                                                    height={60}
+                                                    className="aspect-video w-full rounded-lg object-cover"
+                                                    src="/video-placeholder.png"
+                                                    alt="Video Thumbnail"
+                                                />
+                                                <label className="mt-2 block truncate text-left font-semibold">
+                                                    Video title mockup{" "}
+                                                    {index + 1}
+                                                </label>
+                                                <label className="block truncate text-left text-sm text-gray-400">
+                                                    Author mockup {index + 1}
+                                                </label>
+                                            </div>
+                                        )
+                                    )}
                                 </div>
                             </section>
                         </>

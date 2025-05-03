@@ -48,7 +48,7 @@ export default function NavigationMobile() {
             title: $lang.friends,
             href: "/friends",
             icon: Users,
-            disabled: false,
+            disabled: true,
         },
 
         session.data?.user.admin

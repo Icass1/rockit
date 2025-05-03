@@ -8,13 +8,12 @@ import { getSession } from "next-auth/react";
 import { Device, devices } from "./devices";
 
 // Track user interaction state for iOS autoplay handling
-let hasUserInteraction = false;
 let audioContext: AudioContext | undefined;
 
 // Function to detect iOS devices
 const isIOS = (): boolean => {
     if (typeof window === "undefined") return false;
-    return /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+    return /iPad|iPhone|iPod/.test(navigator.userAgent);
 };
 
 let websocket: WebSocket;
@@ -177,22 +176,20 @@ if (typeof window !== "undefined") {
             }),
         });
     };
-    
-    // Function to detect iOS devices
-    const isIOS = () => {
-        return /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
-    };
-    
+
     // Set up event listeners to track user interactions for iOS autoplay
-    const interactionEvents = ['touchstart', 'mousedown', 'keydown'];
-    interactionEvents.forEach(event => {
-        window.addEventListener(event, () => {
-            hasUserInteraction = true;
-            // Initialize AudioContext on user interaction for iOS
-            if (!audioContext && window.AudioContext) {
-                audioContext = new AudioContext();
-            }
-        }, { once: false, passive: true });
+    const interactionEvents = ["touchstart", "mousedown", "keydown"];
+    interactionEvents.forEach((event) => {
+        window.addEventListener(
+            event,
+            () => {
+                // Initialize AudioContext on user interaction for iOS
+                if (!audioContext && window.AudioContext) {
+                    audioContext = new AudioContext();
+                }
+            },
+            { once: false, passive: true }
+        );
     });
 }
 export type QueueSong = SongDB<
@@ -938,15 +935,12 @@ export async function play() {
         console.error("audio is undefined");
         return;
     }
-    
-    // Mark that we've had user interaction when play is called
-    hasUserInteraction = true;
-    
+
     // Resume AudioContext if it exists and is suspended (iOS requirement)
-    if (audioContext && audioContext.state === 'suspended') {
+    if (audioContext && audioContext.state === "suspended") {
         await audioContext.resume();
     }
-    
+
     if (admin.get())
         console.log(
             "export async function play",
@@ -966,7 +960,9 @@ export async function play() {
             // If play() fails, it's likely due to autoplay restrictions
             // We'll show a message to the user that they need to interact with the page
             if (isIOS()) {
-                console.warn("iOS requires user interaction to play audio. Tap anywhere to enable playback.");
+                console.warn(
+                    "iOS requires user interaction to play audio. Tap anywhere to enable playback."
+                );
             }
         }
     } else {

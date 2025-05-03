@@ -38,10 +38,12 @@ export default function SearchBarInput({
     }, [value]);
 
     useEffect(() => {
-        searchDebounce.current = debounce((query: string) => {
-            search(query);
-            fetchStations("byname", query);
-        }, 1000);
+        if (typeof window !== "undefined") {
+            searchDebounce.current = debounce((query: string) => {
+                search(query);
+                fetchStations("byname", query);
+            }, 1000);
+        }
     }, []);
 
     const fetchStations = async (by: string, searchTerm: string) => {
@@ -91,7 +93,7 @@ export default function SearchBarInput({
     };
 
     const $lang = useStore(langData);
-    if (!$lang) return;
+    if (!$lang) return false;
 
     return (
         <input
@@ -112,6 +114,7 @@ export default function SearchBarInput({
                 backgroundRepeat: "no-repeat",
             }}
             placeholder={$lang.search_bar}
+            suppressHydrationWarning
         />
     );
 }

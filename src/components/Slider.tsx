@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, type ChangeEvent, type FC } from "react";
+import { useRef, type ChangeEvent } from "react";
 
 type ChangeEventHandler<T = Element> = (event: ChangeEvent<T>) => void;
 
@@ -15,7 +15,7 @@ interface SliderProps {
     readOnly?: boolean;
 }
 
-const Slider: FC<SliderProps> = ({
+export default function Slider({
     value,
     onChange,
     max = 100,
@@ -24,9 +24,14 @@ const Slider: FC<SliderProps> = ({
     id,
     className = "",
     readOnly = false,
-}) => {
-    const m = 100 / (max - min);
-    const n = -m * min;
+}: SliderProps) {
+    // const m = 100 / ((max || 100) - (min || 0));
+    // const n = -m * (min || 0);
+
+    const widthPercentage = Math.min(
+        100,
+        Math.max(0, ((value - min) / (max - min)) * 100)
+    );
 
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -37,8 +42,9 @@ const Slider: FC<SliderProps> = ({
             {/* Barra de progreso */}
             <div
                 className="absolute top-0 left-0 block h-full max-w-full rounded-full bg-gradient-to-r from-[#ee1086] to-[#fb6467]"
-                style={{ width: `${value * m + n}%` }}
-            ></div>
+                style={{ width: `${widthPercentage}%` }}
+                suppressHydrationWarning
+            />
 
             {/* Input tipo rango */}
             <input
@@ -55,6 +61,4 @@ const Slider: FC<SliderProps> = ({
             />
         </div>
     );
-};
-
-export default Slider;
+}

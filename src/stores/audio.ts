@@ -6,6 +6,7 @@ import { lang } from "./lang";
 import { openRockItIndexedDB } from "@/lib/indexedDB";
 import { getSession } from "next-auth/react";
 import { Device, devices } from "./devices";
+import { users } from "./users";
 
 // Track user interaction state for iOS autoplay handling
 let audioContext: AudioContext | undefined;
@@ -1108,9 +1109,9 @@ async function startSocket() {
             play();
         } else if (data.command == "pause" && audioPlayer) {
             pause();
+        } else if (data.usersCount) {
+            users.set(data.usersCount);
         } else if (data.devices) {
-            console.log(data.devices);
-
             let player = false;
 
             data.devices.forEach((device: Device) => {

@@ -8,6 +8,7 @@ import { SongForStats, SongWithTimePlayed } from "@/lib/stats";
 import { langData } from "@/stores/lang";
 import { useStore } from "@nanostores/react";
 import { useEffect, useState } from "react";
+import Spinner from "@/components/Spinner";
 
 export default function Home() {
     const [songsByTimePlayed, setSongsByTimePlayed] = useState<
@@ -126,8 +127,9 @@ export default function Home() {
 
     if (!$lang || isLoading) {
         return (
-            <div className="flex h-screen items-center justify-center">
-                Loading...
+            <div className="flex h-screen flex-row items-center justify-center gap-2 text-xl font-semibold">
+                <Spinner></Spinner>
+                <label>Loading...</label>
             </div>
         );
     }
@@ -135,8 +137,9 @@ export default function Home() {
     return (
         <Suspense
             fallback={
-                <div className="flex h-screen items-center justify-center">
-                    Loading...
+                <div className="flex h-screen flex-row items-center justify-center gap-2 text-xl font-semibold">
+                    <Spinner></Spinner>
+                    <label>Loading...</label>
                 </div>
             }
         >

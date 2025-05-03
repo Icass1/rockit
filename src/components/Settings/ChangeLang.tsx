@@ -5,7 +5,7 @@ export default function ChangeLang() {
     const $currentLang = useStore(currentLang);
 
     const $lang = useStore(langData);
-    if (!$lang) return;
+    if (!$lang) return false;
 
     return (
         <div>

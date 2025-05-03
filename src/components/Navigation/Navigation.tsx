@@ -49,7 +49,7 @@ export default function Navigation() {
 
     const activePage = usePathname();
 
-    if (!$lang) return;
+    if (!$lang) return false;
 
     const pages = [
         {

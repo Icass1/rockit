@@ -50,7 +50,7 @@ export default function PlaylistHeader({
           };
 }) {
     const $lang = useStore(langData);
-    if (!$lang) return;
+    if (!$lang) return false;
 
     let coverIcon;
 

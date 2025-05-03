@@ -17,7 +17,7 @@ export default function DownloadAppButton() {
     };
 
     const $lang = useStore(langData);
-    if (!$lang) return;
+    if (!$lang) return false;
 
     return (
         <div>

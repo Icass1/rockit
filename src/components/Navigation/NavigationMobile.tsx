@@ -21,7 +21,7 @@ export default function NavigationMobile() {
 
     const activePage = usePathname();
 
-    if (!$lang) return;
+    if (!$lang) return false;
 
     const pages = [
         {

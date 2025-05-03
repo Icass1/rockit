@@ -16,7 +16,7 @@ export function LibraryFilters({
     setSearchQuery: (q: string) => void;
 }) {
     const $lang = useStore(langData);
-    if (!$lang) return null;
+    if (!$lang) return false;
 
     return (
         <div className="flex w-full items-center gap-4 md:w-fit">

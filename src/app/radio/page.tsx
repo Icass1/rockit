@@ -143,7 +143,7 @@ export default function RadioStations() {
         }
     };
 
-    if (!$lang) return;
+    if (!$lang) return false;
 
     if (!window.navigator.onLine) {
         return <div>You are offline</div>;

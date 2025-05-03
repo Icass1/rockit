@@ -65,7 +65,7 @@ export default function SongContextMenu({
 
     const dev = useDev();
 
-    if (!$lang) return;
+    if (!$lang) return false;
 
     return (
         <ContextMenu>

@@ -176,7 +176,7 @@ export default function PlaylistSongsView({
     }, [filter, songs]);
 
     const renderColumn = (column: columnsType) => {
-        if (!$lang) return;
+        if (!$lang) return false;
         const columnNames = {
             name: $lang.name,
             album: $lang.album,
@@ -215,7 +215,7 @@ export default function PlaylistSongsView({
     };
 
     const $lang = useStore(langData);
-    if (!$lang) return;
+    if (!$lang) return false;
 
     if (!innerWidth) return;
 

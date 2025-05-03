@@ -16,7 +16,7 @@ export default function LibraryPage() {
     );
     const [searchQuery, setSearchQuery] = useState("");
 
-    if (!$lang) return null;
+    if (!$lang) return false;
 
     return (
         <div className="h-full w-full overflow-y-auto pt-24 pb-24 md:px-8">

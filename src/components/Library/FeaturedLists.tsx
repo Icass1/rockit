@@ -25,7 +25,7 @@ export function FeaturedLists({
             .then((albums) => setData(albums));
     }, []);
 
-    if (!$lang) return null;
+    if (!$lang) return false;
 
     // Filtrar por búsqueda (por nombre de álbum o artista)
     let filtered = data.filter((album) => {

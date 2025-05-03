@@ -8,7 +8,7 @@ import Image from "@/components/Image";
 export default function FriendsPage() {
     const $lang = useStore(langData);
 
-    if (!$lang) return;
+    if (!$lang) return false;
     return (
         <div className="my-20 flex flex-col px-2 md:mt-20 md:flex-row md:px-12">
             <div className="mt-8 flex flex-1 flex-col justify-between md:flex-row md:space-x-14">

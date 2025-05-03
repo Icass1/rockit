@@ -77,7 +77,7 @@ function ChangeUsername() {
 export default function Settings() {
     const $lang = useStore(langData);
 
-    if (!$lang) return;
+    if (!$lang) return false;
 
     return (
         <div className="relative flex h-full flex-col overflow-y-auto pt-24 md:h-[calc(100%_-_6rem)] md:overflow-y-hidden">

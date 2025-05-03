@@ -71,7 +71,7 @@ export default function SongPopupMenu({
 
     const dev = useDev();
 
-    if (!$lang) return;
+    if (!$lang) return false;
 
     return (
         <PopupMenu>

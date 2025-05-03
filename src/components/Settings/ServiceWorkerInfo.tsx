@@ -71,7 +71,7 @@ export default function ServiceWorkerInfo() {
     };
 
     const $lang = useStore(langData);
-    if (!$lang) return;
+    if (!$lang) return false;
 
     return (
         <div className="flex flex-col gap-y-1">

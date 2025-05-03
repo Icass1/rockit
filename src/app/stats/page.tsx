@@ -13,7 +13,7 @@ export default function StatsPage() {
     };
 
     const $lang = useStore(langData);
-    if (!$lang) return;
+    if (!$lang) return false;
 
     const pages: { [key: string]: string } = {
         user: $lang.user,

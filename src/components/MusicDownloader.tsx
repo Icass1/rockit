@@ -329,7 +329,7 @@ function AddContextMenu({
     if (!song && !list) {
         return <>{children}</>;
     }
-    if (!$lang) return;
+    if (!$lang) return false;
 
     return (
         <ContextMenu>
@@ -471,7 +471,7 @@ export function DownloadIcon({
     const router = useRouter();
 
     const $lang = useStore(langData);
-    if (!$lang) return;
+    if (!$lang) return false;
     return (
         <div
             title="Downloads"
@@ -542,7 +542,7 @@ export function Downloads({ navOpen = false }: { navOpen?: boolean }) {
     };
 
     const $lang = useStore(langData);
-    if (!$lang) return;
+    if (!$lang) return false;
 
     if (!innerWidth) return;
 

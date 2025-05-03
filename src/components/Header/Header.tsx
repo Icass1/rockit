@@ -14,7 +14,7 @@ export default async function Header() {
 
     return (
         <header
-            className="text-white z-50 grid w-full grid-cols-[33%_33%_32%] justify-between py-4 pr-4 pl-4"
+            className="z-50 grid w-full grid-cols-[33%_33%_32%] justify-between py-4 pr-4 pl-4 text-white md:bg-[#1a1a1a]/30"
             style={{ backdropFilter: "blur(10px)" }}
         >
             <Link href="/" className="flex flex-row items-center select-none">
@@ -35,12 +35,9 @@ export default async function Header() {
                 {session?.user ? (
                     <HeaderUser />
                 ) : (
-                    <Link
-                        className="rounded bg-green-600 p-1 px-4"
-                        href="/login"
-                    >
+                    <a className="rounded bg-green-600 p-1 px-4" href="/login">
                         Login
-                    </Link>
+                    </a>
                 )}
             </div>
         </header>

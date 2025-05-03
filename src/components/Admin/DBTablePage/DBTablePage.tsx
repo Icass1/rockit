@@ -25,8 +25,17 @@ import { TableContext } from "./tableContext";
 import { InsertPopup } from "./InsertPopup";
 import { EditPopup } from "./EditPopup";
 import { Header } from "./Header";
+import Link from "next/link";
 
-export default function DBTablePage({ table }: { table: string }) {
+export default function DBTablePage({
+    table,
+    tables,
+    dbFile,
+}: {
+    table: string;
+    tables?: string[];
+    dbFile: string;
+}) {
     const [data, setData] = useState<Row[] | undefined>();
     const [columns, setColumns] = useState<ColumnType[]>();
 
@@ -79,6 +88,7 @@ export default function DBTablePage({ table }: { table: string }) {
                     offset: offset,
                     sortColumn: sortBy,
                     ascending: sortAscending,
+                    dbFile,
                 };
 
                 fetch("/api/admin/db", {
@@ -131,7 +141,7 @@ export default function DBTablePage({ table }: { table: string }) {
             },
             100
         );
-    }, [table]);
+    }, [table, dbFile]);
 
     useEffect(() => {
         if (!scrollRef.current) return;
@@ -184,7 +194,11 @@ export default function DBTablePage({ table }: { table: string }) {
             method: "DELETE",
             body: JSON.stringify({
                 table: table,
-                primaryKey: { column: primaryKey.name, value: primaryKeyValue },
+                primaryKey: {
+                    column: primaryKey.name,
+                    value: primaryKeyValue,
+                },
+                dbFile,
             }),
         }).then((response) => {
             if (response.ok) {
@@ -241,13 +255,20 @@ export default function DBTablePage({ table }: { table: string }) {
                 )}
                 <div
                     className={
-                        "grid h-full w-full grid-rows-[min-content_1fr_min-content] " +
+                        "grid h-full w-full grid-cols-[100px_1fr] grid-rows-[min-content_1fr_min-content]" +
                         (insertPopupOpen ||
                             (typeof editPopup == "number" &&
                                 "pointer-events-none opacity-50 select-none"))
                     }
+                    style={{
+                        gridTemplateAreas:
+                            '"header header" "left-panel main" "footer footer"',
+                    }}
                 >
-                    <div className="flex h-6 w-full flex-row items-center gap-x-2 bg-[#212225] px-1 text-sm">
+                    <div
+                        className="flex h-6 w-full flex-row items-center gap-x-2 bg-[#212225] px-1 text-sm"
+                        style={{ gridArea: "header" }}
+                    >
                         <RotateCw
                             className="h-4 w-4 cursor-pointer"
                             onClick={() => {
@@ -264,9 +285,24 @@ export default function DBTablePage({ table }: { table: string }) {
                         Rows: {totalRows}
                     </div>
                     <div
+                        style={{ gridArea: "left-panel" }}
+                        className="flex h-full w-full flex-col border-t border-r border-solid border-[#373838] bg-[#212225] p-1"
+                    >
+                        {tables?.map((table) => (
+                            <Link
+                                key={table}
+                                href={`/admin/db/${dbFile}/${table}`}
+                            >
+                                {table}
+                            </Link>
+                        ))}
+                    </div>
+                    <div
                         className="grid h-full w-full grid-cols-[70px_1fr] grid-rows-[min-content_1fr] overflow-auto scroll-smooth bg-[#28282b]"
                         style={{
-                            gridTemplateAreas: ' "corner header" "left main"',
+                            gridTemplateAreas:
+                                '"main-corner main-header" "main-left main-main"',
+                            gridArea: "main",
                         }}
                         onScroll={(e) => {
                             setScroll(e.currentTarget.scrollTop);
@@ -275,12 +311,12 @@ export default function DBTablePage({ table }: { table: string }) {
                     >
                         <Header />
                         <div
-                            style={{ gridArea: "corner" }}
+                            style={{ gridArea: "main-corner" }}
                             className="sticky top-0 left-0 z-20 border-t border-r border-b border-solid border-[#373838] bg-[#212225]"
                         />
 
                         <div
-                            style={{ gridArea: "left" }}
+                            style={{ gridArea: "main-left" }}
                             className="sticky left-0 z-10 border-r border-solid border-[#373838] bg-[#212225]"
                         >
                             {data &&
@@ -310,7 +346,13 @@ export default function DBTablePage({ table }: { table: string }) {
                                                                 row.index
                                                             );
                                                         }}
-                                                        className="h-4 w-4 cursor-pointer"
+                                                        className={
+                                                            "h-4 w-4 cursor-pointer " +
+                                                            (dbFile ===
+                                                            "current"
+                                                                ? ""
+                                                                : "pointer-events-none opacity-50")
+                                                        }
                                                     />
                                                 )}
                                                 {row.index == rowHover && (
@@ -320,7 +362,13 @@ export default function DBTablePage({ table }: { table: string }) {
                                                                 row.index
                                                             );
                                                         }}
-                                                        className="h-4 w-4 cursor-pointer"
+                                                        className={
+                                                            "h-4 w-4 cursor-pointer" +
+                                                            (dbFile ===
+                                                            "current"
+                                                                ? ""
+                                                                : "pointer-events-none opacity-50")
+                                                        }
                                                     />
                                                 )}
                                             </div>
@@ -352,7 +400,7 @@ export default function DBTablePage({ table }: { table: string }) {
 
                         <div
                             className="relative h-full w-full"
-                            style={{ gridArea: "main" }}
+                            style={{ gridArea: "main-main" }}
                         >
                             <div
                                 className=""
@@ -403,7 +451,10 @@ export default function DBTablePage({ table }: { table: string }) {
                                 })}
                         </div>
                     </div>
-                    <div className="flex w-full items-center bg-[#212225] px-1 text-sm">
+                    <div
+                        className="flex w-full items-center bg-[#212225] px-1 text-sm"
+                        style={{ gridArea: "footer" }}
+                    >
                         <ChevronsLeft
                             onClick={() => {
                                 scrollRef.current?.scrollTo(

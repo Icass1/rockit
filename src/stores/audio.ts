@@ -1323,7 +1323,7 @@ async function registerServiceWorker() {
     if (typeof window === "undefined") return;
 
     if ("serviceWorker" in navigator) {
-        const version = 1;
+        const version = 2;
 
         try {
             const updatedServiceWorker = localStorage.getItem(
@@ -1331,7 +1331,7 @@ async function registerServiceWorker() {
             );
 
             if (
-                updatedServiceWorker &&
+                !updatedServiceWorker ||
                 Number(updatedServiceWorker) != version
             ) {
                 console.log("Unregistering service worker");

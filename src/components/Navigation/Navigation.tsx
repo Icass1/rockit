@@ -1,6 +1,6 @@
 "use client";
 
-import { Downloads } from "@/components/MusicDownloader";
+// import { Downloads } from "@/components/MusicDownloader";
 import { pinnedLists } from "@/stores/pinnedLists";
 import { useStore } from "@nanostores/react";
 import {
@@ -208,7 +208,7 @@ export default function Navigation() {
                     </Link> */}
                 </div>
 
-                <Downloads navOpen={open} />
+                {/* <Downloads navOpen={open} /> */}
             </div>
         </div>
     );

@@ -10,6 +10,7 @@ from backendUtils import get_output_file, sanitize_folder_name
 from db.db import DB
 from logger import getLogger
 from messageHandler import MessageHandler
+import time
 
 
 class QueueElement:
@@ -83,6 +84,16 @@ class SpotifyQueueElement(QueueElement):
 
         self.logger.info(
             f"{artist=} - {album=} - {song=} - {song_path=} - {song_path_db=}")
+
+        if not os.path.exists(os.path.join(SONGS_PATH, artist)):
+            self.logger.info(
+                f"Creating directory {os.path.join(SONGS_PATH, artist)}")
+            os.mkdir(os.path.join(SONGS_PATH, artist))
+
+        if not os.path.exists(os.path.join(SONGS_PATH, artist, album)):
+            self.logger.info(
+                f"Creating directory {os.path.join(SONGS_PATH, artist, album)}")
+            os.mkdir(os.path.join(SONGS_PATH, artist, album))
 
         shutil.move(src=str(self._path), dst=song_path)
 

@@ -16,7 +16,7 @@ from db.image import image_query, parse_image
 from db.playlist import playlist_query, parse_playlist
 from db.user import user_query, parse_user
 from db.error import error_query
-from db.download import download_query
+from db.download import download_query, parse_download
 from db.album import album_query, parse_album
 from db.song import song_query, parse_song
 
@@ -141,7 +141,7 @@ class DB:
         self.tables = [
             Table(self, song_query, parser=parse_song),
             Table(self, album_query, parser=parse_album),
-            Table(self, download_query),
+            Table(self, download_query, parse_download),
             Table(self, error_query),
             Table(self, user_query, parse_user),
             Table(self, playlist_query, parse_playlist),

@@ -536,7 +536,7 @@ self.addEventListener("fetch", (evt) => {
     // console.debug(evt, evt.request);
 
     if (
-        evt.request.url.includes("/download-status/") ||
+        evt.request.url.includes("/api/downloads/status") ||
         evt.request.pathname?.startsWith("/api/like")
     )
         return;

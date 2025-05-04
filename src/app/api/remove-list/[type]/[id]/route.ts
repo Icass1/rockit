@@ -11,7 +11,6 @@ export async function GET(
         params: Promise<{ id: string; type: string }>;
     }
 ): Promise<NextResponse> {
-    console.log(params);
     const { id, type } = await params; // Get the dynamic "id" from the URL
 
     const session = await getSession();

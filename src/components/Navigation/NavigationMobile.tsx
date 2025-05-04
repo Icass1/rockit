@@ -21,7 +21,7 @@ export default function NavigationMobile() {
 
     const activePage = usePathname();
 
-    if (!$lang) return;
+    if (!$lang) return false;
 
     const pages = [
         {
@@ -41,7 +41,7 @@ export default function NavigationMobile() {
             title: $lang.search,
             href: "/search",
             icon: Search,
-            disabled: true,
+            disabled: false,
         },
         {
             name: "Friends",

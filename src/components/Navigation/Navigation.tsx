@@ -14,7 +14,7 @@ import {
     RadioTower,
     ShieldEllipsis,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { langData } from "@/stores/lang";
 import { getImageUrl } from "@/lib/getImageUrl";
 import Image from "@/components/Image";
@@ -24,6 +24,22 @@ import Link from "next/link";
 
 export default function Navigation() {
     const [open, setOpen] = useState(false);
+    const hoverTimeout = useRef<NodeJS.Timeout | null>(null); // Referencia para el temporizador
+
+    // Temporizador para abrir el menú
+    const handleMouseEnter = () => {
+        hoverTimeout.current = setTimeout(() => {
+            setOpen(true);
+        }, 1000);
+    };
+
+    const handleMouseLeave = () => {
+        if (hoverTimeout.current) {
+            clearTimeout(hoverTimeout.current); // Limpia el temporizador si el mouse sale antes de tiempo
+            hoverTimeout.current = null;
+        }
+        setOpen(false);
+    };
 
     const $pinnedLists = useStore(pinnedLists);
 
@@ -33,7 +49,7 @@ export default function Navigation() {
 
     const activePage = usePathname();
 
-    if (!$lang) return;
+    if (!$lang) return false;
 
     const pages = [
         {
@@ -60,7 +76,7 @@ export default function Navigation() {
             title: $lang.friends,
             href: "/friends",
             icon: Users,
-            disabled: false,
+            disabled: true,
         },
         {
             name: "Radio",
@@ -90,12 +106,8 @@ export default function Navigation() {
                 "mx-auto h-full max-h-full min-h-0 overflow-hidden bg-black/50 pt-4 pb-4 transition-all duration-[400ms] select-none" +
                 (open ? " w-56" : " w-12")
             }
-            onMouseEnter={() => {
-                setOpen(true);
-            }}
-            onMouseLeave={() => {
-                setOpen(false);
-            }}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
             style={{ backdropFilter: "blur(10px)" }}
         >
             <div className="flex h-full w-56 flex-col gap-4">

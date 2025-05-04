@@ -12,15 +12,27 @@ const clients = {};
 
 function updateClients(userId) {
     console.log("update clients", clients);
-    clients[userId].forEach((client1) => {
-        client1.ws.send(
-            JSON.stringify({
-                devices: clients[userId].map((client2) => ({
-                    deviceName: client2.deviceName,
-                    you: client1.ws == client2.ws,
-                    audioPlayer: client2.audioPlayer,
-                })),
-            })
+    if (clients[userId]) {
+        clients[userId].forEach((client1) => {
+            client1.ws.send(
+                JSON.stringify({
+                    devices: clients[userId].map((client2) => ({
+                        deviceName: client2.deviceName,
+                        you: client1.ws == client2.ws,
+                        audioPlayer: client2.audioPlayer,
+                    })),
+                })
+            );
+        });
+    } else {
+        console.log("Client is no longer present");
+    }
+
+    Object.values(clients).forEach((userClients) => {
+        userClients.forEach((client) =>
+            client.ws.send(
+                JSON.stringify({ usersCount: Object.keys(clients).length })
+            )
         );
     });
 }
@@ -229,12 +241,18 @@ wss.on("connection", async (ws, req) => {
             clients[user.id] = clients[user.id].filter(
                 (client) => client.ws !== ws
             );
+
+            if (clients[user.id].length == 0) {
+                delete clients[user.id];
+            }
+
             updateClients(user.id);
 
             console.log("Client disconnected", user.username);
         });
 
         ws.send(JSON.stringify({ message: "validated" }));
+        ws.send(JSON.stringify({ usersCount: Object.keys(clients).length }));
     } catch (error) {
         console.error("Error in websocket connection: ", error);
     }

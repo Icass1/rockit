@@ -176,7 +176,7 @@ export default function PlaylistSongsView({
     }, [filter, songs]);
 
     const renderColumn = (column: columnsType) => {
-        if (!$lang) return;
+        if (!$lang) return false;
         const columnNames = {
             name: $lang.name,
             album: $lang.album,
@@ -215,7 +215,7 @@ export default function PlaylistSongsView({
     };
 
     const $lang = useStore(langData);
-    if (!$lang) return;
+    if (!$lang) return false;
 
     if (!innerWidth) return;
 
@@ -256,7 +256,7 @@ export default function PlaylistSongsView({
             {/* 4px between songs */}
             {/* 56px height of songs */}
             {songsToRender.length == 0 && (
-                <label className="relative mt-10 block w-full text-center text-xl font-bold text-neutral-400 md:top-1/2 md:-translate-y-1/2 md:text-3xl">
+                <label className="absolute block w-full text-center text-xl font-bold text-neutral-400 md:top-1/2 md:-translate-y-1/2 md:text-3xl">
                     There is nothing to show here
                 </label>
             )}

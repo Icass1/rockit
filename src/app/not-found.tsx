@@ -2,13 +2,13 @@
 
 "use client";
 
+import Image from "@/components/Image";
 import Link from "next/link";
 
 export default function NotFoundPage() {
     return (
-        <div className="relative flex w-full flex-col items-center justify-center select-none">
-            <div className="h-24 w-full"></div>
-            <div className="flex h-[calc(100vh-6rem)] w-full flex-col items-center justify-center bg-gradient-to-r from-[#d185ca] to-[#ffbb9e]">
+        <div className="relative flex w-full h-full flex-col items-center justify-center select-none">
+            <div className="flex h-full w-full flex-col items-center justify-center bg-gradient-to-r from-[#d185ca] to-[#ffbb9e]">
                 <div className="flex h-auto flex-col items-center gap-8 md:flex-row">
                     {/* Texto principal */}
                     <div className="w-full text-center text-black">
@@ -27,12 +27,12 @@ export default function NotFoundPage() {
                     {/* Tocadiscos */}
                     <div className="relative flex aspect-square w-1/2 items-center justify-center md:w-2/3">
                         <div className="absolute h-[92%] w-[92%] rounded-full bg-white" />
-                        <img
+                        <Image
                             src="/vinil-cd.png"
                             alt="Vinyl Record"
                             className="animate-spin-decelerate absolute h-[90%] w-[90%] rounded-full object-cover"
                         />
-                        <img
+                        <Image
                             src="/brazovinilo.png"
                             alt="Vinyl Arm"
                             className="absolute top-0 right-0 z-20 h-[70%] w-[70%] translate-x-10 -translate-y-2 rotate-[-20deg]"

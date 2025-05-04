@@ -1,9 +1,12 @@
+import Masonry from "@/components/Masonry/Masonry";
 import { getSession } from "@/lib/auth/getSession";
 import { db } from "@/lib/db/db";
 import { ErrorDB } from "@/lib/db/error";
-import { Link as LinkIcon } from "lucide-react";
+import { DatabaseBackup, Link as LinkIcon } from "lucide-react";
 import Link from "next/link";
+import { promises as fs } from "fs";
 import { notFound } from "next/navigation";
+import NewBackupButton from "@/components/Admin/NewBackup";
 
 export default async function AdminPage() {
     const session = await getSession();
@@ -27,13 +30,21 @@ export default async function AdminPage() {
         .prepare("SELECT name FROM sqlite_schema WHERE type='table'")
         .all() as { name: string }[];
 
+    const databaseBackups = (
+        await fs.readdir("database", { withFileTypes: true })
+    )
+        .map((entry) => entry.name)
+        .filter((name) => name != "database.db");
+
+    databaseBackups.sort();
+
     const gradientTextClass =
-        "bg-clip-text text-xl font-bold [-webkit-text-fill-color:transparent] [background-image:-webkit-linear-gradient(0deg,#fb6467,#ee1086)]";
+        "bg-clip-text text-xl mr-2 font-bold [-webkit-text-fill-color:transparent] [background-image:-webkit-linear-gradient(0deg,#fb6467,#ee1086)]";
 
     return (
-        <div className="flex h-full flex-col gap-y-1 overflow-y-auto p-2 pt-16 pb-16 md:mt-0 md:mb-0 md:pt-24 md:pb-24">
-            <label className="text-2xl font-semibold">Admin panel</label>
-            <div className="grid grid-cols-1 gap-2 md:grid-cols-[repeat(auto-fill,_minmax(430px,_1fr))]">
+        <div className="mt-0 mb-0 flex h-full flex-col gap-y-1 overflow-y-auto p-2 md:pt-24 md:pb-24">
+            <div className="min-h-20 md:hidden"></div>
+            <Masonry gap={5} minColumnWidth={400}>
                 <div className="flex flex-col items-center rounded bg-neutral-700 p-2">
                     <label className="w-full text-lg font-semibold">
                         Users
@@ -44,7 +55,7 @@ export default async function AdminPage() {
                         </label>
                         <label>Users</label>
                     </div>
-                    <div className="h-full"></div>
+
                     <Link href="/admin/user" className="relative w-full">
                         <LinkIcon className="relative right-0 ml-auto" />
                     </Link>
@@ -66,7 +77,7 @@ export default async function AdminPage() {
                         </label>
                         <label>Songs with lyrics</label>
                     </div>
-                    <div className="h-full"></div>
+
                     <Link href="/admin/songs" className="relative w-full">
                         <LinkIcon className="relative right-0 ml-auto" />
                     </Link>
@@ -95,7 +106,7 @@ export default async function AdminPage() {
                         </label>
                         <label>Playlists</label>
                     </div>
-                    <div className="h-full"></div>
+
                     <Link href="/admin/lists" className="relative w-full">
                         <LinkIcon className="relative right-0 ml-auto" />
                     </Link>
@@ -125,7 +136,7 @@ export default async function AdminPage() {
                         </label>
                         <label>Erros since last week</label>
                     </div>
-                    <div className="h-full"></div>
+
                     <Link href="/admin/error" className="relative w-full">
                         <LinkIcon className="relative right-0 ml-auto" />
                     </Link>
@@ -162,13 +173,34 @@ export default async function AdminPage() {
                         })}
                     </div>
 
-                    <div className="h-full"></div>
                     <Link href="/admin/db" className="relative w-full">
                         <LinkIcon className="relative right-0 ml-auto" />
                     </Link>
                 </div>
-            </div>
-            <div className="min-h-10" />
+                <div className="flex flex-col items-center rounded bg-neutral-700 p-2">
+                    <label className="w-full text-lg font-semibold">
+                        DB Backups
+                    </label>
+
+                    <div className="flex flex-col">
+                        {databaseBackups.map((fileName) => (
+                            <Link
+                                key={fileName}
+                                className="flex flex-row gap-1"
+                                href={`/admin/db/${fileName}`}
+                            >
+                                <DatabaseBackup></DatabaseBackup>
+                                <label>{fileName}</label>
+                            </Link>
+                        ))}
+                    </div>
+
+                    <div className="w-full">
+                        <NewBackupButton />
+                    </div>
+                </div>
+            </Masonry>
+            <div className="min-h-24 md:hidden"></div>
         </div>
     );
 }

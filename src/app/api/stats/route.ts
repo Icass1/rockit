@@ -31,14 +31,31 @@ export async function GET(request: Request) {
     let limit: string | number | undefined =
         url.searchParams.get("limit") ?? "10";
 
-    const sortBy: "timePlayed" | "timesPlayed" | "random" | undefined =
+    const sortBy:
+        | "timePlayed"
+        | "timesPlayed"
+        | "random"
+        | "neverPlayed"
+        | "popular"
+        | undefined =
         (url.searchParams.get("sortBy") as
             | "timePlayed"
             | "timesPlayed"
             | "random"
+            | "neverPlayed"
+            | "popular"
             | undefined) ?? undefined;
 
-    if (sortBy && !["timesPlayed", "timePlayed", "random"].includes(sortBy)) {
+    if (
+        sortBy &&
+        ![
+            "timesPlayed",
+            "timePlayed",
+            "random",
+            "neverPlayed",
+            "popular",
+        ].includes(sortBy)
+    ) {
         return NextResponse.json(
             { error: "Invalid sortBy parameter" },
             { status: 400 }
@@ -97,6 +114,10 @@ export async function GET(request: Request) {
                 b.timesPlayed = 0;
             }
             return b.timesPlayed - a.timesPlayed;
+        } else if (sortBy === "neverPlayed") {
+            return (a.timesPlayed ?? 0) - (b.timesPlayed ?? 0);
+        } else if (sortBy === "popular") {
+            return (b.timesPlayed ?? 0) - (a.timesPlayed ?? 0);
         }
         return 0;
     });

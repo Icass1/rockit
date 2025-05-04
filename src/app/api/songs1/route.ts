@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
                     db
                         .prepare(
                             `SELECT ${
-                                searchParams.get("q") || "*"
+                                searchParams.get("p") || "*"
                             } FROM song WHERE id = ?`
                         )
                         .get(id) as RawSongDB

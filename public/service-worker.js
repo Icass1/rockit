@@ -423,8 +423,7 @@ const fromNetwork = async (request, timeout) => {
                 getRequest.onerror = () => {
                     tryFetchWithPlaceholder(request, resolve, reject);
                 };
-            } catch (error) {
-                console.log("Database error, trying fallback...", error);
+            } catch {
                 tryFetchWithPlaceholder(request, resolve, reject);
             }
         });

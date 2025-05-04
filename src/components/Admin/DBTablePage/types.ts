@@ -48,6 +48,7 @@ export type TableContextType = {
             | undefined
         >
     >;
+    dbFile: string;
 };
 
 export type DebounceFetchType = pkg.DebouncedFunc<
@@ -72,6 +73,7 @@ export type RequestType = {
         invert: boolean;
         exact: boolean;
     }[];
+    dbFile: string;
 };
 
 export type Row = {

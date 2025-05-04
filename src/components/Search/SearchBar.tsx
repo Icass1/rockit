@@ -2,7 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import SearchBarInput from "./SearchBarInput";
-import RenderSearchBarResults from "./SearchBarResults";
+import { usePathname } from "next/navigation";
+import dynamic from "next/dynamic";
+
+const RenderSearchBarResults = dynamic(() => import("./SearchBarResults"), {
+    ssr: false,
+});
 
 export default function SearchBar() {
     const searchBarRef = useRef<HTMLInputElement>(null);
@@ -11,12 +16,14 @@ export default function SearchBar() {
 
     const [shouldRenderResults, setShouldRenderResults] = useState(false);
 
+    const pathname = usePathname();
+
     useEffect(() => {
         // Only run this on client
-        if (window.location.pathname !== "/search") {
+        if (pathname !== "/search") {
             setShouldRenderResults(true);
         }
-    }, []);
+    }, [pathname]);
 
     useEffect(() => {
         if (!divRef.current || !searchBarRef.current) {

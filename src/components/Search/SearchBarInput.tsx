@@ -38,10 +38,12 @@ export default function SearchBarInput({
     }, [value]);
 
     useEffect(() => {
-        searchDebounce.current = debounce((query: string) => {
-            search(query);
-            fetchStations("byname", query);
-        }, 1000);
+        if (typeof window !== "undefined") {
+            searchDebounce.current = debounce((query: string) => {
+                search(query);
+                fetchStations("byname", query);
+            }, 1000);
+        }
     }, []);
 
     const fetchStations = async (by: string, searchTerm: string) => {
@@ -91,7 +93,7 @@ export default function SearchBarInput({
     };
 
     const $lang = useStore(langData);
-    if (!$lang) return;
+    if (!$lang) return false;
 
     return (
         <input
@@ -104,7 +106,7 @@ export default function SearchBarInput({
                 setOpen(true);
             }}
             onFocus={() => setOpen(true)}
-            className="text-1xl relative top-1/2 z-10 mx-auto block h-3/4 w-3/4 max-w-[600px] -translate-y-1/2 rounded-full bg-neutral-900 px-10 font-semibold shadow focus:outline-0 md:z-50"
+            className="text-1xl relative top-1/2 z-10 mx-auto block h-10 w-full -translate-y-1/2 rounded-full bg-neutral-900 px-10 font-semibold shadow focus:outline-0 md:z-50"
             style={{
                 backgroundImage: "url(/search-icon.png)",
                 backgroundPosition: "15px center",
@@ -112,6 +114,7 @@ export default function SearchBarInput({
                 backgroundRepeat: "no-repeat",
             }}
             placeholder={$lang.search_bar}
+            suppressHydrationWarning
         />
     );
 }

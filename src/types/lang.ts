@@ -129,4 +129,17 @@ export interface Lang {
     october: string;
     november: string;
     december: string;
+    songsforyou: string;
+    hiddengems: string;
+    communitytop: string;
+    moodsongs: string;
+    relaxed: string;
+    energy: string;
+    focus: string;
+    party: string;
+    your: string;
+    newplaylist: string;
+    newplaylistname: string;
+    cancel: string;
+    create: string;
 }

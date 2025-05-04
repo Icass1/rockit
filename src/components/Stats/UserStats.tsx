@@ -94,7 +94,7 @@ export default function UserStats() {
     };
 
     const $lang = useStore(langData);
-    if (!$lang) return;
+    if (!$lang) return false;
 
     return (
         <div className="h-full">

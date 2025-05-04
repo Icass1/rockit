@@ -6,6 +6,16 @@ import { lang } from "./lang";
 import { openRockItIndexedDB } from "@/lib/indexedDB";
 import { getSession } from "next-auth/react";
 import { Device, devices } from "./devices";
+import { users } from "./users";
+
+// Track user interaction state for iOS autoplay handling
+let audioContext: AudioContext | undefined;
+
+// Function to detect iOS devices
+const isIOS = (): boolean => {
+    if (typeof window === "undefined") return false;
+    return /iPad|iPhone|iPod/.test(navigator.userAgent);
+};
 
 let websocket: WebSocket;
 
@@ -167,6 +177,21 @@ if (typeof window !== "undefined") {
             }),
         });
     };
+
+    // Set up event listeners to track user interactions for iOS autoplay
+    const interactionEvents = ["touchstart", "mousedown", "keydown"];
+    interactionEvents.forEach((event) => {
+        window.addEventListener(
+            event,
+            () => {
+                // Initialize AudioContext on user interaction for iOS
+                if (!audioContext && window.AudioContext) {
+                    audioContext = new AudioContext();
+                }
+            },
+            { once: false, passive: true }
+        );
+    });
 }
 export type QueueSong = SongDB<
     "id" | "name" | "artists" | "image" | "duration" | "albumName" | "albumId"
@@ -911,6 +936,12 @@ export async function play() {
         console.error("audio is undefined");
         return;
     }
+
+    // Resume AudioContext if it exists and is suspended (iOS requirement)
+    if (audioContext && audioContext.state === "suspended") {
+        await audioContext.resume();
+    }
+
     if (admin.get())
         console.log(
             "export async function play",
@@ -920,9 +951,20 @@ export async function play() {
         );
 
     if (audioPlayer) {
-        await audio.play();
-        if (audio2.readyState != 0) {
-            await audio2.play();
+        try {
+            await audio.play();
+            if (audio2.readyState != 0) {
+                await audio2.play();
+            }
+        } catch (error) {
+            console.error("Error playing audio:", error);
+            // If play() fails, it's likely due to autoplay restrictions
+            // We'll show a message to the user that they need to interact with the page
+            if (isIOS()) {
+                console.warn(
+                    "iOS requires user interaction to play audio. Tap anywhere to enable playback."
+                );
+            }
         }
     } else {
         send({ command: "play" });
@@ -1067,9 +1109,9 @@ async function startSocket() {
             play();
         } else if (data.command == "pause" && audioPlayer) {
             pause();
+        } else if (data.usersCount) {
+            users.set(data.usersCount);
         } else if (data.devices) {
-            console.log(data.devices);
-
             let player = false;
 
             data.devices.forEach((device: Device) => {
@@ -1281,7 +1323,7 @@ async function registerServiceWorker() {
     if (typeof window === "undefined") return;
 
     if ("serviceWorker" in navigator) {
-        const version = 1;
+        const version = 2;
 
         try {
             const updatedServiceWorker = localStorage.getItem(
@@ -1289,7 +1331,7 @@ async function registerServiceWorker() {
             );
 
             if (
-                updatedServiceWorker &&
+                !updatedServiceWorker ||
                 Number(updatedServiceWorker) != version
             ) {
                 console.log("Unregistering service worker");

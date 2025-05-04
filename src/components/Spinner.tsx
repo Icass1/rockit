@@ -1,8 +1,18 @@
-export default function Spinner() {
+export default function Spinner({
+    color = "rgb(156 163 175)",
+    width = 32,
+    height = 32,
+}: {
+    color?: string;
+    width?: number;
+    height?: number;
+}) {
     return (
-        <div className="flex h-8 w-8 items-center justify-center">
+        <div style={{ width: width + "px", height: height + "px" }}>
             <svg
-                className="animate-spin-custom h-12 w-12"
+                className="animate-spin-custom"
+                width={width}
+                height={height}
                 viewBox="0 0 50 50"
                 xmlns="http://www.w3.org/2000/svg"
             >
@@ -45,7 +55,7 @@ export default function Spinner() {
                 }
                 .path {
                     animation: dash 1.5s ease-in-out infinite;
-                    stroke: rgb(156 163 175); /* Tailwind blue-500 */
+                    stroke: ${color}; /* Tailwind blue-500 */
                 }
             `}</style>
         </div>

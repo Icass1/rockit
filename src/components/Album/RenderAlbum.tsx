@@ -21,7 +21,7 @@ export default function RenderAlbum({ _album }: { _album: GetAlbum }) {
     currentListSongs.set(songs);
     currentList.set({ id: album.id, type: "album" });
 
-    if (!$lang) return;
+    if (!$lang) return false;
 
     return (
         <div className="relative flex h-full w-full flex-col overflow-y-auto px-2 md:grid md:grid-cols-[min-content_1fr] md:px-0">

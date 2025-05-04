@@ -7,9 +7,8 @@ import Link from "next/link";
 
 export default function Error500Page() {
     return (
-        <div className="relative flex w-full flex-col items-center justify-center select-none">
-            <div className="h-24 w-full"></div>
-            <div className="flex h-[calc(100vh-6rem)] w-full flex-col items-center justify-center bg-gradient-to-r from-[#d185ca] to-[#ffbb9e]">
+        <div className="relative flex w-full h-full flex-col items-center justify-center select-none">
+            <div className="flex h-full w-full flex-col items-center justify-center bg-gradient-to-r from-[#d185ca] to-[#ffbb9e]">
                 <div className="flex h-auto flex-col items-center gap-8 md:flex-row">
                     {/* Texto principal */}
                     <div className="w-full text-center text-black">

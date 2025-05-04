@@ -2,6 +2,7 @@ import Link from "next/link";
 import SearchBar from "@/components/Search/SearchBar";
 import Image from "@/components/Image";
 import HeaderUser from "@/components/Header/HeaderUser";
+import OnlineUserIndicator from "./HeaderOnlineUsers";
 import { getSession } from "@/lib/auth/getSession";
 import { headers } from "next/headers";
 
@@ -12,11 +13,19 @@ export default async function Header() {
     const pathname = headerList.get("x-current-path");
 
     return (
-        <header
-            className="text-whit z-50 grid w-full grid-cols-[200px_3fr_200px] justify-between py-4 pr-4 pl-4"
-            style={{ backdropFilter: "blur(10px)" }}
-        >
-            <Link href="/" className="flex items-center select-none">
+        <header 
+            className="relative z-50 w-full grid grid-cols-[33%_33%_32%] justify-between py-4 px-4 text-white bg-gradient-to-b via-70% from-black/100 via-black/60 to-black/0">
+            {/* Blur overlay */}
+            <div
+                className="absolute inset-0 -z-10 backdrop-blur-[20px]"
+                style={{
+                    WebkitMaskImage: 'linear-gradient(to bottom, black 33%, transparent 100%)',
+                    maskImage: 'linear-gradient(to bottom, black 33%, transparent 100%)',
+                }}
+            ></div>
+
+            {/* Actual content */}
+            <Link href="/" className="flex flex-row items-center select-none">
                 <Image
                     width={2048}
                     height={614}
@@ -28,16 +37,15 @@ export default async function Header() {
 
             {pathname?.startsWith("/radio") ? <label></label> : <SearchBar />}
 
-            <div className="relative ml-auto">
+            <div className="relative ml-auto flex items-center gap-5">
+                <OnlineUserIndicator />
+
                 {session?.user ? (
                     <HeaderUser />
                 ) : (
-                    <Link
-                        className="rounded bg-green-600 p-1 px-4"
-                        href="/login"
-                    >
+                    <a className="rounded bg-green-600 p-1 px-4" href="/login">
                         Login
-                    </Link>
+                    </a>
                 )}
             </div>
         </header>

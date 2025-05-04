@@ -8,7 +8,7 @@ import { signOut } from "next-auth/react";
 export default function LogOutButton() {
     const $lang = useStore(langData);
 
-    if (!$lang) return;
+    if (!$lang) return false;
 
     const handleLogOut = () => {
         signOut();

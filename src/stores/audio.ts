@@ -388,7 +388,7 @@ export const serviceWorkerRegistration = atom<
 
 export const admin = atom<boolean | undefined>(undefined);
 
-let audioPlayer: boolean = false;
+let audioPlayer: boolean = true;
 
 let audio: HTMLAudioElement | undefined;
 let audio2: HTMLAudioElement | undefined;

@@ -251,11 +251,11 @@ export default function PlayerUI() {
                         height: 200,
                         placeHolder: "/song-placeholder.png",
                     })}
-                    className="absolute top-1/2 h-auto w-full -translate-y-1/2 blur-md brightness-50"
+                    className="absolute top-1/2 h-auto w-full -translate-y-1/2 blur-md brightness-50 select-none"
                 />
 
                 <div className="relative z-10 hidden h-full w-full lg:block">
-                    <h2 className="absolute mx-auto block w-full p-14 text-center text-3xl font-bold">
+                    <h2 className="absolute mx-auto block w-full p-14 text-center text-3xl font-bold select-none">
                         Lyrics
                     </h2>
                     <DynamicLyrics />
@@ -280,7 +280,7 @@ export default function PlayerUI() {
                                 placeHolder: "/song-placeholder.png",
                             })}
                             alt="Song Cover"
-                            className="absolute h-full w-full rounded-xl"
+                            className="absolute h-full w-full rounded-xl select-none"
                         />
                         <div
                             className={`bg-[#1a1a1a]/60 rounded-full h-20 w-20 ${iconClassName}`}

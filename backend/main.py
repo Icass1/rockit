@@ -42,18 +42,16 @@ async def root():
 
 @app.get("/start-download")
 async def start_download(user: str, url: str, background_tasks: BackgroundTasks):
-    return downloader.download_url(url=url, background_tasks=background_tasks)
+    return downloader.download_url(url=url, background_tasks=background_tasks, user_id=user)
 
 
 @app.get("/download-status")
 async def download_status(request: Request, id: str):
-
     return downloader.download_status(request=request, download_id=id)
 
 
 @app.get('/search')
 def search(request: Request, q: str):
-
     search_results = RawSpotifyApiSearchResults.from_dict(downloader.spotify.api_call(path="search", params={
         "q": q, "type": "track,album,playlist,artist", "limit": "6"}))
 

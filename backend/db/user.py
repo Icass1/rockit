@@ -62,17 +62,17 @@ class UserDBFull:
     currentTime: Optional[int]
     queue: List[dict]
     queueIndex: Optional[int]
-    randomQueue: str
-    repeatSong: str
+    randomQueue: bool
+    repeatSong: bool
     likedSongs: List[PlaylistDBSong]
     pinnedLists: List[UserDBPinnedLists]
     volume: int
     crossFade: int
     lang: str
-    admin: str
-    superAdmin: str
+    admin: bool
+    superAdmin: bool
     impersonateId: Optional[str]
-    devUser: str
+    devUser: bool
     updatedAt: int
     createdAt: int
 
@@ -93,17 +93,17 @@ def parse_user(raw_user: Optional[RawUserDB]) -> Optional[UserDBFull]:
         currentTime=raw_user.currentTime,
         queue=json.loads(raw_user.queue),
         queueIndex=raw_user.queueIndex,
-        randomQueue=raw_user.randomQueue,
-        repeatSong=raw_user.repeatSong,
+        randomQueue=True if raw_user.randomQueue == "1" else False,
+        repeatSong=True if raw_user.repeatSong == "1" else False,
         likedSongs=json.loads(raw_user.likedSongs),
         pinnedLists=json.loads(raw_user.pinnedLists),
         volume=raw_user.volume,
         crossFade=raw_user.crossFade,
         lang=raw_user.lang,
-        admin=raw_user.admin,
-        superAdmin=raw_user.superAdmin,
+        admin=True if raw_user.admin == "1" else False,
+        superAdmin=True if raw_user.superAdmin == "1" else False,
         impersonateId=raw_user.impersonateId,
-        devUser=raw_user.devUser,
+        devUser=True if raw_user.devUser == "1" else False,
         updatedAt=raw_user.updatedAt,
         createdAt=raw_user.createdAt,
     )

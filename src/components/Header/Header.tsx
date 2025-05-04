@@ -14,13 +14,13 @@ export default async function Header() {
 
     return (
         <header 
-            className="relative z-50 w-full grid grid-cols-[33%_33%_32%] justify-between py-4 px-4 text-white bg-gradient-to-b via-75% from-black/100 via-black/70 to-black/0">
+            className="relative z-50 w-full grid grid-cols-[33%_33%_32%] justify-between py-4 px-4 text-white bg-gradient-to-b via-70% from-black/100 via-black/60 to-black/0">
             {/* Blur overlay */}
             <div
                 className="absolute inset-0 -z-10 backdrop-blur-[20px]"
                 style={{
-                    WebkitMaskImage: 'linear-gradient(to bottom, black 0%, transparent 100%)',
-                    maskImage: 'linear-gradient(to bottom, black 0%, transparent 100%)',
+                    WebkitMaskImage: 'linear-gradient(to bottom, black 33%, transparent 100%)',
+                    maskImage: 'linear-gradient(to bottom, black 33%, transparent 100%)',
                 }}
             ></div>
 

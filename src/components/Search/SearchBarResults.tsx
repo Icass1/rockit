@@ -176,7 +176,7 @@ export default function RenderSearchBarResults({
     return (
         <div ref={divRef}>
             {open ? (
-                <div className="absolute top-1/2 left-1/2 z-50 flex h-fit w-full -translate-x-1/2 -translate-y-1 flex-col gap-2 rounded-b-3xl bg-neutral-800 px-4 pt-7 shadow-lg">
+                <div className="absolute top-1/2 left-1/2 z-50 flex h-fit w-full -translate-x-1/2 -translate-y-2 flex-col gap-2 rounded-b-3xl bg-neutral-800 px-4 pt-7 shadow-lg">
                     {bestResult && (
                         <>
                             <label className="mt-3 text-xl font-bold text-white">

@@ -14,7 +14,7 @@ from spotdl.types.song import Song
 
 from youtubeDownloader import YoutubeMusicDownloader
 from progressHandler import ProgressHandler
-from backendUtils import get_song_name
+from backendUtils import create_id, get_song_name
 from queueElement import QueueElement
 from messageHandler import MessageHandler
 from spotifyDownloader import SpotifyDownloader
@@ -38,24 +38,28 @@ class Downloader:
 
         self.spotify = Spotify()
 
-        self.max_download_threads = 1
+        self.max_download_threads = 8
         self.queue: List[QueueElement] = []
         self.download_threads: List[threading.Thread] = []
 
         self.downloaders: Dict[str, SpotifyDownloader |
                                YoutubeMusicDownloader] = {}
 
-    def download_url(self, url: str, background_tasks: BackgroundTasks) -> str:
+    def download_url(self, url: str, background_tasks: BackgroundTasks, user_id: str) -> str:
 
         url = self.spotify.parse_url(url)
 
-        download_id = str(uuid.uuid4())
+        download_id = create_id()
 
         self.logger.info(f"{url=} {download_id=}")
 
         if "open.spotify.com" in url:
             self.downloaders[download_id] = SpotifyDownloader(
-                downloader=self, download_id=download_id, url=url)
+                user_id=user_id,
+                downloader=self,
+                download_id=download_id,
+                url=url
+            )
         elif "music.youtube.com" in url:
             self.downloaders[download_id] = YoutubeMusicDownloader(
                 downloader=self, download_id=download_id)

@@ -1,11 +1,13 @@
 "use client";
 
 import Image from "@/components/Image";
+import { SongDB } from "@/lib/db/song";
+import { getImageUrl } from "@/lib/getImageUrl";
 import { downloadInfo, startDownload } from "@/stores/downloads";
 import { langData } from "@/stores/lang";
 import { useStore } from "@nanostores/react";
 import { ArrowDownToLine } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 function SongDownload({
     id,
@@ -16,15 +18,75 @@ function SongDownload({
     completed: number;
     message: string;
 }) {
+    const [name, setName] = useState<string | undefined>();
+    const [image, setImage] = useState<string | undefined>();
+
+    useEffect(() => {
+        console.log(id);
+
+        fetch(`/api/song/${id}?q=name,image`)
+            .then((response) => response.json())
+            .then((data: SongDB<"name" | "image">) => {
+                setName(data.name);
+                setImage(
+                    getImageUrl({
+                        imageId: data.image,
+                        width: 40,
+                        height: 40,
+                        placeHolder: "/song-placeholder.png",
+                    })
+                );
+            });
+    }, [id]);
+
     return (
-        <div className="flex flex-col">
-            <div>
-                {id}:{completed} - {message}
+        <div
+            className="mx-1 grid grid-cols-[2.5rem_4fr_1fr] grid-rows-[25px_15px] items-center gap-x-2"
+            style={{
+                gridTemplateAreas: `
+                "cover name name"
+                "cover progress-bar message" 
+                `,
+            }}
+        >
+            <div
+                className="h-10 min-h-10 w-10 min-w-10"
+                style={{ gridArea: "cover" }}
+            >
+                {image ? (
+                    <Image alt="Cover" src={image} className="h-full w-full" />
+                ) : (
+                    <div
+                        className="skeleton h-full w-full"
+                        style={{ gridArea: "cover" }}
+                    />
+                )}
             </div>
 
-            <div className="relative h-2 w-1/2 bg-neutral-800">
+            <div
+                style={{ gridArea: "name" }}
+                className="h-full w-full max-w-full min-w-0"
+            >
+                {name ? (
+                    <label>{name}</label>
+                ) : (
+                    <div className="skeleton h-4/5 w-2/3 rounded"></div>
+                )}
+            </div>
+            <div
+                title={message}
+                style={{ gridArea: "message" }}
+                className="w-full max-w-full min-w-0 truncate"
+            >
+                {message}
+            </div>
+
+            <div
+                className="progress-bar relative h-2 w-full max-w-full min-w-0 rounded-full bg-neutral-800"
+                style={{ gridArea: "progress-bar" }}
+            >
                 <div
-                    className="h-full bg-red-400"
+                    className="absolute h-full transition-[width] rounded-full bg-gradient-to-r from-[#ee1086] to-[#fb6467]"
                     style={{ width: completed + "%" }}
                 ></div>
             </div>
@@ -41,7 +103,7 @@ export default function DownloaderPage() {
     if (!$lang) return false;
 
     return (
-        <div className="relative mx-auto h-full w-[500px] bg-neutral-700 md:pt-24 md:pb-24">
+        <div className="relative mx-auto h-full w-[500px] overflow-y-auto bg-neutral-700 md:pt-24 md:pb-24">
             <div className="mt-5 flex justify-center gap-6">
                 <Image
                     width={30}
@@ -58,7 +120,7 @@ export default function DownloaderPage() {
                     className="h-7 object-contain"
                 />
             </div>
-            <label className="mx-auto block w-fit py-3 text-3xl font-extrabold">
+            <label className="ml-3 block w-fit py-3 text-3xl font-bold">
                 Music Downloader
             </label>
 
@@ -107,7 +169,7 @@ export default function DownloaderPage() {
                     {$lang.clear_downloads}
                 </button>
             </div>
-            <div className="flex flex-col">
+            <div className="flex flex-col gap-2">
                 {Object.entries($downloadInfo).map((entry) => {
                     return (
                         <SongDownload
@@ -119,6 +181,7 @@ export default function DownloaderPage() {
                     );
                 })}
             </div>
+            <div className="min-h-10" />
         </div>
     );
 }

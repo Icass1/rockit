@@ -230,7 +230,7 @@ export default function PlayerUI() {
     if (!$lang || !$queue || !shouldRender) return null;
 
     const iconClassName =
-        "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 z-20 transition-all z-20 duration-500" +
+        "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 z-20 transition-all z-20 p-5 duration-500" +
         (showIcon ? " opacity-100" : " opacity-0");
 
     return (
@@ -251,11 +251,11 @@ export default function PlayerUI() {
                         height: 200,
                         placeHolder: "/song-placeholder.png",
                     })}
-                    className="absolute top-1/2 h-auto w-full -translate-y-1/2 blur-md brightness-50"
+                    className="absolute top-1/2 h-auto w-full -translate-y-1/2 blur-md brightness-50 select-none"
                 />
 
                 <div className="relative z-10 hidden h-full w-full lg:block">
-                    <h2 className="absolute mx-auto block w-full p-14 text-center text-3xl font-bold">
+                    <h2 className="absolute mx-auto block w-full p-14 text-center text-3xl font-bold select-none">
                         Lyrics
                     </h2>
                     <DynamicLyrics />
@@ -280,13 +280,17 @@ export default function PlayerUI() {
                                 placeHolder: "/song-placeholder.png",
                             })}
                             alt="Song Cover"
-                            className="absolute h-full w-full"
+                            className="absolute h-full w-full rounded-xl select-none"
                         />
-                        {$playing ? (
-                            <Pause className={iconClassName} fill="white" />
-                        ) : (
-                            <Play className={iconClassName} fill="white" />
-                        )}
+                        <div
+                            className={`bg-[#1a1a1a]/60 rounded-full h-20 w-20 ${iconClassName}`}
+                        >
+                            {$playing ? (
+                                <Pause className={iconClassName} fill="white" />
+                            ) : (
+                                <Play className={iconClassName} fill="white" />
+                            )}
+                        </div>
                     </div>
                     <div className="mt-2 flex w-full flex-col items-center justify-center px-2 text-center">
                         <h1 className="line-clamp-2 text-4xl leading-normal font-bold text-balance">

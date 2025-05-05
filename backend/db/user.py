@@ -122,7 +122,7 @@ CREATE TABLE IF NOT EXISTS user (
     queue TEXT DEFAULT "[]" NOT NULL,
     queueIndex INTEGER,
     randomQueue BOOLEAN DEFAULT 0 NOT NULL,
-    repeatSong BOOLEAN DEFAULT 0 NOT NULL,
+    repeatSong TEXT DEFAULT "off" NOT NULL,
     likedSongs TEXT DEFAULT "[]" NOT NULL,
     pinnedLists TEXT DEFAULT "[]" NOT NULL,
     volume INTEGER DEFAULT 1 NOT NULL,

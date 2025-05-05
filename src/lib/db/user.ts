@@ -16,7 +16,7 @@ export interface RawUserDB {
     queue: string;
     queueIndex: number | undefined;
     randomQueue: string;
-    repeatSong: string;
+    repeatSong: "one" | "off" | "all";
     likedSongs: string;
     pinnedLists: string;
     volume: number;
@@ -64,7 +64,7 @@ export interface UserDBFull {
     }[];
     queueIndex: number | undefined;
     randomQueue: boolean;
-    repeatSong: boolean;
+    repeatSong: "one" | "off" | "all";
     likedSongs: PlaylistDBSong[];
     pinnedLists: UserDBPinnedLists[];
     volume: number;
@@ -90,7 +90,7 @@ export const userQuery = `CREATE TABLE IF NOT EXISTS user (
     queue TEXT DEFAULT "[]" NOT NULL,
     queueIndex INTEGER,
     randomQueue BOOLEAN DEFAULT 0 NOT NULL,
-    repeatSong BOOLEAN DEFAULT 0 NOT NULL,
+    repeatSong TEXT DEFAULT "off" NOT NULL,
     likedSongs TEXT DEFAULT "[]" NOT NULL,
     pinnedLists TEXT DEFAULT "[]" NOT NULL,
     volume INTEGER DEFAULT 1 NOT NULL,
@@ -123,7 +123,7 @@ export function parseUser(user: RawUserDB | undefined): UserDB | undefined {
         queue: JSON.parse(user.queue || "[]"),
         queueIndex: user.queueIndex,
         randomQueue: user.randomQueue == "1" ? true : false,
-        repeatSong: user.repeatSong == "1" ? true : false,
+        repeatSong: user.repeatSong,
         likedSongs: JSON.parse(user.likedSongs || "[]"),
         pinnedLists: JSON.parse(user.pinnedLists || "[]"),
         volume: user.volume,

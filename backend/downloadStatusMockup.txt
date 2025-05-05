@@ -1,0 +1,792 @@
+2025-05-04 19:21:55 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 0, 'message': 'In queue'}
+2025-05-04 19:21:55 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 0, 'message': 'In queue'}
+2025-05-04 19:21:55 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 0, 'message': 'In queue'}
+2025-05-04 19:21:55 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 0, 'message': 'In queue'}
+2025-05-04 19:21:55 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 0, 'message': 'In queue'}
+2025-05-04 19:21:55 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 0, 'message': 'In queue'}
+2025-05-04 19:21:55 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 0, 'message': 'In queue'}
+2025-05-04 19:21:55 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 0, 'message': 'In queue'}
+2025-05-04 19:21:55 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 0, 'message': 'In queue'}
+2025-05-04 19:21:55 {'id': '3GNEna2WyHtXk8ySqlp0Nl', 'completed': 0, 'message': 'In queue'}
+2025-05-04 19:21:55 {'id': '0WRKPRS0Dz4YutOzBJzJNu', 'completed': 0, 'message': 'In queue'}
+2025-05-04 19:21:55 {'id': '25Cv6pteVL6Wm4GIvPCFnO', 'completed': 0, 'message': 'In queue'}
+2025-05-04 19:21:55 {'id': '2brodvxnVPmh04DCCTG3Sk', 'completed': 0, 'message': 'In queue'}
+2025-05-04 19:21:55 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 0, 'message': 'In queue'}
+2025-05-04 19:21:55 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 0, 'total': 100, 'message': 'Processing'}
+2025-05-04 19:21:55 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 0, 'total': 100, 'message': 'Processing'}
+2025-05-04 19:21:55 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 0, 'total': 100, 'message': 'Processing'}
+2025-05-04 19:21:55 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 0, 'message': 'Searching lyrics'}
+2025-05-04 19:21:55 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 0, 'message': 'Searching lyrics'}
+2025-05-04 19:21:55 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 0, 'message': 'Searching lyrics'}
+2025-05-04 19:21:55 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 0, 'total': 100, 'message': 'Processing'}
+2025-05-04 19:21:55 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 0, 'total': 100, 'message': 'Processing'}
+2025-05-04 19:21:55 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 0, 'total': 100, 'message': 'Processing'}
+2025-05-04 19:21:55 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 0, 'message': 'Searching lyrics'}
+2025-05-04 19:21:55 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 0, 'message': 'Searching lyrics'}
+2025-05-04 19:21:55 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 0, 'message': 'Searching lyrics'}
+2025-05-04 19:21:55 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 0, 'total': 100, 'message': 'Processing'}
+2025-05-04 19:21:55 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 0, 'total': 100, 'message': 'Processing'}
+2025-05-04 19:21:55 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 0, 'message': 'Searching lyrics'}
+2025-05-04 19:21:55 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 0, 'message': 'Searching lyrics'}
+2025-05-04 19:21:58 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 0, 'message': 'Getting download URL'}
+2025-05-04 19:21:58 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 0, 'message': 'Searching in YouTubeMusic'}
+2025-05-04 19:21:58 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 0, 'message': 'Getting download URL'}
+2025-05-04 19:21:58 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 0, 'message': 'Searching in YouTubeMusic'}
+2025-05-04 19:21:58 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 0, 'message': 'Getting download URL'}
+2025-05-04 19:21:58 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 0, 'message': 'Searching in YouTubeMusic'}
+2025-05-04 19:21:58 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 0, 'message': 'Getting download URL'}
+2025-05-04 19:21:58 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 0, 'message': 'Searching in YouTubeMusic'}
+2025-05-04 19:21:59 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 0, 'message': 'Getting download URL'}
+2025-05-04 19:21:59 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 0, 'message': 'Searching in YouTubeMusic'}
+2025-05-04 19:21:59 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 0, 'message': 'Getting download URL'}
+2025-05-04 19:21:59 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 0, 'message': 'Searching in YouTubeMusic'}
+2025-05-04 19:21:59 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 0, 'message': 'Getting download URL'}
+2025-05-04 19:21:59 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 0, 'message': 'Searching in YouTubeMusic'}
+2025-05-04 19:22:01 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 0, 'message': 'Getting download URL'}
+2025-05-04 19:22:01 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 0, 'message': 'Searching in YouTubeMusic'}
+2025-05-04 19:22:04 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 0.013378317927364094, 'message': 'Downloading'}
+2025-05-04 19:22:04 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 0.04013495378209228, 'message': 'Downloading'}
+2025-05-04 19:22:04 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 0.09364822549154866, 'message': 'Downloading'}
+2025-05-04 19:22:04 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 0.20067476891046143, 'message': 'Downloading'}
+2025-05-04 19:22:04 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 0.41472785574828697, 'message': 'Downloading'}
+2025-05-04 19:22:04 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 0.842834029423938, 'message': 'Downloading'}
+2025-05-04 19:22:04 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 1.69904637677524, 'message': 'Downloading'}
+2025-05-04 19:22:04 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 3.4114710714778442, 'message': 'Downloading'}
+2025-05-04 19:22:04 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 6.836320460883052, 'message': 'Downloading'}
+2025-05-04 19:22:05 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 13.68601923969347, 'message': 'Downloading'}
+2025-05-04 19:22:05 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 0.017472047283727962, 'message': 'Downloading'}
+2025-05-04 19:22:05 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 0.05241614185118389, 'message': 'Downloading'}
+2025-05-04 19:22:05 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 0.12230433098609572, 'message': 'Downloading'}
+2025-05-04 19:22:05 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 0.2620807092559194, 'message': 'Downloading'}
+2025-05-04 19:22:06 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 0.5416334657955668, 'message': 'Downloading'}
+2025-05-04 19:22:06 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 1.1007389788748616, 'message': 'Downloading'}
+2025-05-04 19:22:06 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 23.065252223100174, 'message': 'Downloading'}
+2025-05-04 19:22:06 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 2.218950005033451, 'message': 'Downloading'}
+2025-05-04 19:22:06 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 4.455372057350631, 'message': 'Downloading'}
+2025-05-04 19:22:06 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 8.928216161984988, 'message': 'Downloading'}
+2025-05-04 19:22:06 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 32.134994021564175, 'message': 'Downloading'}
+2025-05-04 19:22:06 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 0.012013006895512884, 'message': 'Downloading'}
+2025-05-04 19:22:06 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 0.03603902068653865, 'message': 'Downloading'}
+2025-05-04 19:22:06 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 0.08409104826859018, 'message': 'Downloading'}
+2025-05-04 19:22:06 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 0.013772111366887432, 'message': 'Downloading'}
+2025-05-04 19:22:06 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 0.014936842246524414, 'message': 'Downloading'}
+2025-05-04 19:22:06 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 0.04481052673957324, 'message': 'Downloading'}
+2025-05-04 19:22:06 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 0.0413163341006623, 'message': 'Downloading'}
+2025-05-04 19:22:06 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 0.18019510343269327, 'message': 'Downloading'}
+2025-05-04 19:22:06 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 0.1045578957256709, 'message': 'Downloading'}
+2025-05-04 19:22:06 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 0.09640477956821203, 'message': 'Downloading'}
+2025-05-04 19:22:06 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 17.873904371253705, 'message': 'Downloading'}
+2025-05-04 19:22:06 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 50.0, 'message': 'Downloading'}
+2025-05-04 19:22:06 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 0.3724032137608994, 'message': 'Downloading'}
+2025-05-04 19:22:06 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 0.2065816705033115, 'message': 'Downloading'}
+2025-05-04 19:22:06 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 0.2240526336978662, 'message': 'Downloading'}
+2025-05-04 19:22:07 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 0.7568194344173117, 'message': 'Downloading'}
+2025-05-04 19:22:07 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 0.4630421096422568, 'message': 'Downloading'}
+2025-05-04 19:22:07 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 0.42693545237351044, 'message': 'Downloading'}
+2025-05-04 19:22:07 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 0.9410210615310379, 'message': 'Downloading'}
+2025-05-04 19:22:07 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 1.5256518757301363, 'message': 'Downloading'}
+2025-05-04 19:22:07 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 0.015055980606014981, 'message': 'Downloading'}
+2025-05-04 19:22:07 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 0.8676430161139084, 'message': 'Downloading'}
+2025-05-04 19:22:07 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 0.04516794181804494, 'message': 'Downloading'}
+2025-05-04 19:22:07 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 1.8969789653086002, 'message': 'Downloading'}
+2025-05-04 19:22:07 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 0.10539186424210487, 'message': 'Downloading'}
+2025-05-04 19:22:07 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 0.22583970909022472, 'message': 'Downloading'}
+2025-05-04 19:22:07 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 0.4667353987864644, 'message': 'Downloading'}
+2025-05-04 19:22:07 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 1.7490581435947041, 'message': 'Downloading'}
+2025-05-04 19:22:07 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 3.063316758355785, 'message': 'Downloading'}
+2025-05-04 19:22:07 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 3.8088947728637255, 'message': 'Downloading'}
+2025-05-04 19:22:07 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 0.9485267781789439, 'message': 'Downloading'}
+2025-05-04 19:22:07 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 1.9121095369639025, 'message': 'Downloading'}
+2025-05-04 19:22:07 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 0.020537521490189725, 'message': 'Downloading'}
+2025-05-04 19:22:07 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 0.061612564470569176, 'message': 'Downloading'}
+2025-05-04 19:22:07 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:07 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 3.5118883985562954, 'message': 'Downloading'}
+2025-05-04 19:22:07 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 0.14376265043132805, 'message': 'Downloading'}
+2025-05-04 19:22:07 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 35.765280789791134, 'message': 'Downloading'}
+2025-05-04 19:22:07 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 0.3080628223528459, 'message': 'Downloading'}
+2025-05-04 19:22:07 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 6.1386465236070835, 'message': 'Downloading'}
+2025-05-04 19:22:07 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 7.0375489084794784, 'message': 'Downloading'}
+2025-05-04 19:22:07 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 3.8392750545338203, 'message': 'Downloading'}
+2025-05-04 19:22:07 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 7.632726387973975, 'message': 'Downloading'}
+2025-05-04 19:22:07 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:07 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 0.6366631661958815, 'message': 'Downloading'}
+2025-05-04 19:22:07 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 12.28930605410968, 'message': 'Downloading'}
+2025-05-04 19:22:07 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 7.693606089673656, 'message': 'Downloading'}
+2025-05-04 19:22:07 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 1.2938638538819527, 'message': 'Downloading'}
+2025-05-04 19:22:07 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 2.6082652292540947, 'message': 'Downloading'}
+2025-05-04 19:22:07 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 5.23706797999838, 'message': 'Downloading'}
+2025-05-04 19:22:07 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 50.0, 'message': 'Downloading'}
+2025-05-04 19:22:07 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 15.280389618194473, 'message': 'Downloading'}
+2025-05-04 19:22:07 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 14.088869928325845, 'message': 'Downloading'}
+2025-05-04 19:22:07 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 15.402268159953325, 'message': 'Downloading'}
+2025-05-04 19:22:07 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 10.494673481486949, 'message': 'Downloading'}
+2025-05-04 19:22:07 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 30.575716078635473, 'message': 'Downloading'}
+2025-05-04 19:22:07 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 24.59062511511487, 'message': 'Downloading'}
+2025-05-04 19:22:07 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 30.819592300512667, 'message': 'Downloading'}
+2025-05-04 19:22:08 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 28.191511968018574, 'message': 'Downloading'}
+2025-05-04 19:22:08 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 21.009884484464088, 'message': 'Downloading'}
+2025-05-04 19:22:08 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 50.0, 'message': 'Downloading'}
+2025-05-04 19:22:08 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 50.0, 'message': 'Downloading'}
+2025-05-04 19:22:08 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 42.04030649041836, 'message': 'Downloading'}
+2025-05-04 19:22:08 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:08 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 50.0, 'message': 'Downloading'}
+2025-05-04 19:22:08 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 50.0, 'message': 'Downloading'}
+2025-05-04 19:22:08 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:08 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:08 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 49.193263237125265, 'message': 'Downloading'}
+2025-05-04 19:22:08 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 50.0, 'message': 'Downloading'}
+2025-05-04 19:22:08 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:09 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:09 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:09 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:09 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:09 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:09 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:09 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 0.020009379396592152, 'message': 'Downloading'}
+2025-05-04 19:22:09 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 0.06002813818977645, 'message': 'Downloading'}
+2025-05-04 19:22:09 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 0.14006565577614508, 'message': 'Downloading'}
+2025-05-04 19:22:09 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 0.3001406909488823, 'message': 'Downloading'}
+2025-05-04 19:22:09 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 0.6202907612943567, 'message': 'Downloading'}
+2025-05-04 19:22:09 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:09 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:09 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 1.2605909019853057, 'message': 'Downloading'}
+2025-05-04 19:22:09 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 2.541191183367203, 'message': 'Downloading'}
+2025-05-04 19:22:09 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 51, 'message': 'Converting'}
+2025-05-04 19:22:09 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:09 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 5.1023917461309996, 'message': 'Downloading'}
+2025-05-04 19:22:09 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 10.22479287165859, 'message': 'Downloading'}
+2025-05-04 19:22:09 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:09 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:09 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:09 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 20.46959512271377, 'message': 'Downloading'}
+2025-05-04 19:22:09 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:09 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:09 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 40.95919962482414, 'message': 'Downloading'}
+2025-05-04 19:22:09 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 50.0, 'message': 'Downloading'}
+2025-05-04 19:22:09 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 52, 'message': 'Converting'}
+2025-05-04 19:22:09 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:09 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:09 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:10 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:10 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 53, 'message': 'Converting'}
+2025-05-04 19:22:10 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:10 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:10 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:10 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:10 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 54, 'message': 'Converting'}
+2025-05-04 19:22:10 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 51, 'message': 'Converting'}
+2025-05-04 19:22:10 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 52, 'message': 'Converting'}
+2025-05-04 19:22:10 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 54, 'message': 'Converting'}
+2025-05-04 19:22:10 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 51, 'message': 'Converting'}
+2025-05-04 19:22:10 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:10 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:10 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 51, 'message': 'Converting'}
+2025-05-04 19:22:10 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 55, 'message': 'Converting'}
+2025-05-04 19:22:10 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 52, 'message': 'Converting'}
+2025-05-04 19:22:10 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:10 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 53, 'message': 'Converting'}
+2025-05-04 19:22:11 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 52, 'message': 'Converting'}
+2025-05-04 19:22:11 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:11 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 54, 'message': 'Converting'}
+2025-05-04 19:22:11 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 53, 'message': 'Converting'}
+2025-05-04 19:22:11 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 57, 'message': 'Converting'}
+2025-05-04 19:22:11 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 54, 'message': 'Converting'}
+2025-05-04 19:22:11 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 52, 'message': 'Converting'}
+2025-05-04 19:22:11 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 55, 'message': 'Converting'}
+2025-05-04 19:22:11 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 53, 'message': 'Converting'}
+2025-05-04 19:22:11 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 55, 'message': 'Converting'}
+2025-05-04 19:22:11 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 52, 'message': 'Converting'}
+2025-05-04 19:22:11 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 53, 'message': 'Converting'}
+2025-05-04 19:22:11 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 59, 'message': 'Converting'}
+2025-05-04 19:22:11 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 54, 'message': 'Converting'}
+2025-05-04 19:22:11 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 57, 'message': 'Converting'}
+2025-05-04 19:22:11 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 53, 'message': 'Converting'}
+2025-05-04 19:22:12 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 56, 'message': 'Converting'}
+2025-05-04 19:22:12 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 54, 'message': 'Converting'}
+2025-05-04 19:22:12 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 53, 'message': 'Converting'}
+2025-05-04 19:22:12 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 54, 'message': 'Converting'}
+2025-05-04 19:22:12 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 61, 'message': 'Converting'}
+2025-05-04 19:22:12 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 56, 'message': 'Converting'}
+2025-05-04 19:22:12 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 58, 'message': 'Converting'}
+2025-05-04 19:22:12 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 54, 'message': 'Converting'}
+2025-05-04 19:22:12 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 55, 'message': 'Converting'}
+2025-05-04 19:22:12 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 58, 'message': 'Converting'}
+2025-05-04 19:22:12 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 53, 'message': 'Converting'}
+2025-05-04 19:22:12 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 55, 'message': 'Converting'}
+2025-05-04 19:22:12 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 63, 'message': 'Converting'}
+2025-05-04 19:22:12 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 59, 'message': 'Converting'}
+2025-05-04 19:22:12 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 59, 'message': 'Converting'}
+2025-05-04 19:22:13 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 55, 'message': 'Converting'}
+2025-05-04 19:22:13 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 56, 'message': 'Converting'}
+2025-05-04 19:22:13 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 59, 'message': 'Converting'}
+2025-05-04 19:22:13 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 55, 'message': 'Converting'}
+2025-05-04 19:22:13 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 57, 'message': 'Converting'}
+2025-05-04 19:22:13 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 63, 'message': 'Converting'}
+2025-05-04 19:22:13 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 59, 'message': 'Converting'}
+2025-05-04 19:22:13 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 60, 'message': 'Converting'}
+2025-05-04 19:22:13 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 57, 'message': 'Converting'}
+2025-05-04 19:22:13 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 57, 'message': 'Converting'}
+2025-05-04 19:22:13 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 59, 'message': 'Converting'}
+2025-05-04 19:22:13 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 56, 'message': 'Converting'}
+2025-05-04 19:22:13 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 57, 'message': 'Converting'}
+2025-05-04 19:22:13 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 65, 'message': 'Converting'}
+2025-05-04 19:22:13 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 60, 'message': 'Converting'}
+2025-05-04 19:22:14 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 61, 'message': 'Converting'}
+2025-05-04 19:22:14 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 59, 'message': 'Converting'}
+2025-05-04 19:22:14 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 59, 'message': 'Converting'}
+2025-05-04 19:22:14 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 60, 'message': 'Converting'}
+2025-05-04 19:22:14 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 57, 'message': 'Converting'}
+2025-05-04 19:22:14 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 59, 'message': 'Converting'}
+2025-05-04 19:22:14 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 66, 'message': 'Converting'}
+2025-05-04 19:22:14 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 62, 'message': 'Converting'}
+2025-05-04 19:22:14 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 62, 'message': 'Converting'}
+2025-05-04 19:22:14 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 59, 'message': 'Converting'}
+2025-05-04 19:22:14 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 59, 'message': 'Converting'}
+2025-05-04 19:22:14 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 61, 'message': 'Converting'}
+2025-05-04 19:22:14 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 57, 'message': 'Converting'}
+2025-05-04 19:22:14 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 60, 'message': 'Converting'}
+2025-05-04 19:22:14 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 68, 'message': 'Converting'}
+2025-05-04 19:22:14 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 63, 'message': 'Converting'}
+2025-05-04 19:22:15 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 63, 'message': 'Converting'}
+2025-05-04 19:22:15 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 61, 'message': 'Converting'}
+2025-05-04 19:22:15 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 60, 'message': 'Converting'}
+2025-05-04 19:22:15 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 58, 'message': 'Converting'}
+2025-05-04 19:22:15 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 62, 'message': 'Converting'}
+2025-05-04 19:22:15 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 60, 'message': 'Converting'}
+2025-05-04 19:22:15 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 69, 'message': 'Converting'}
+2025-05-04 19:22:15 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 64, 'message': 'Converting'}
+2025-05-04 19:22:15 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 64, 'message': 'Converting'}
+2025-05-04 19:22:15 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 62, 'message': 'Converting'}
+2025-05-04 19:22:15 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 61, 'message': 'Converting'}
+2025-05-04 19:22:15 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 63, 'message': 'Converting'}
+2025-05-04 19:22:15 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 59, 'message': 'Converting'}
+2025-05-04 19:22:15 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 62, 'message': 'Converting'}
+2025-05-04 19:22:15 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 70, 'message': 'Converting'}
+2025-05-04 19:22:15 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 66, 'message': 'Converting'}
+2025-05-04 19:22:16 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 65, 'message': 'Converting'}
+2025-05-04 19:22:16 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 63, 'message': 'Converting'}
+2025-05-04 19:22:16 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 63, 'message': 'Converting'}
+2025-05-04 19:22:16 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 63, 'message': 'Converting'}
+2025-05-04 19:22:16 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 60, 'message': 'Converting'}
+2025-05-04 19:22:16 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 63, 'message': 'Converting'}
+2025-05-04 19:22:16 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 72, 'message': 'Converting'}
+2025-05-04 19:22:16 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 68, 'message': 'Converting'}
+2025-05-04 19:22:16 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 67, 'message': 'Converting'}
+2025-05-04 19:22:16 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 65, 'message': 'Converting'}
+2025-05-04 19:22:16 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 63, 'message': 'Converting'}
+2025-05-04 19:22:16 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 64, 'message': 'Converting'}
+2025-05-04 19:22:16 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 61, 'message': 'Converting'}
+2025-05-04 19:22:16 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 64, 'message': 'Converting'}
+2025-05-04 19:22:16 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 73, 'message': 'Converting'}
+2025-05-04 19:22:16 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 69, 'message': 'Converting'}
+2025-05-04 19:22:17 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 69, 'message': 'Converting'}
+2025-05-04 19:22:17 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 68, 'message': 'Converting'}
+2025-05-04 19:22:17 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 65, 'message': 'Converting'}
+2025-05-04 19:22:17 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 66, 'message': 'Converting'}
+2025-05-04 19:22:17 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 62, 'message': 'Converting'}
+2025-05-04 19:22:17 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 65, 'message': 'Converting'}
+2025-05-04 19:22:17 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 75, 'message': 'Converting'}
+2025-05-04 19:22:17 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 71, 'message': 'Converting'}
+2025-05-04 19:22:17 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 70, 'message': 'Converting'}
+2025-05-04 19:22:17 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 69, 'message': 'Converting'}
+2025-05-04 19:22:17 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 66, 'message': 'Converting'}
+2025-05-04 19:22:17 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 63, 'message': 'Converting'}
+2025-05-04 19:22:17 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 67, 'message': 'Converting'}
+2025-05-04 19:22:17 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 66, 'message': 'Converting'}
+2025-05-04 19:22:17 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 75, 'message': 'Converting'}
+2025-05-04 19:22:17 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 72, 'message': 'Converting'}
+2025-05-04 19:22:18 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 70, 'message': 'Converting'}
+2025-05-04 19:22:18 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 71, 'message': 'Converting'}
+2025-05-04 19:22:18 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 68, 'message': 'Converting'}
+2025-05-04 19:22:18 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 63, 'message': 'Converting'}
+2025-05-04 19:22:18 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 68, 'message': 'Converting'}
+2025-05-04 19:22:18 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 67, 'message': 'Converting'}
+2025-05-04 19:22:18 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 77, 'message': 'Converting'}
+2025-05-04 19:22:18 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 74, 'message': 'Converting'}
+2025-05-04 19:22:18 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 72, 'message': 'Converting'}
+2025-05-04 19:22:18 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 72, 'message': 'Converting'}
+2025-05-04 19:22:18 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 69, 'message': 'Converting'}
+2025-05-04 19:22:18 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 69, 'message': 'Converting'}
+2025-05-04 19:22:18 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 64, 'message': 'Converting'}
+2025-05-04 19:22:18 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 77, 'message': 'Converting'}
+2025-05-04 19:22:18 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 68, 'message': 'Converting'}
+2025-05-04 19:22:18 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 76, 'message': 'Converting'}
+2025-05-04 19:22:19 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 73, 'message': 'Converting'}
+2025-05-04 19:22:19 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 73, 'message': 'Converting'}
+2025-05-04 19:22:19 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 69, 'message': 'Converting'}
+2025-05-04 19:22:19 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 70, 'message': 'Converting'}
+2025-05-04 19:22:19 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 64, 'message': 'Converting'}
+2025-05-04 19:22:19 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 69, 'message': 'Converting'}
+2025-05-04 19:22:19 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 78, 'message': 'Converting'}
+2025-05-04 19:22:19 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 77, 'message': 'Converting'}
+2025-05-04 19:22:19 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 74, 'message': 'Converting'}
+2025-05-04 19:22:19 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 74, 'message': 'Converting'}
+2025-05-04 19:22:19 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 65, 'message': 'Converting'}
+2025-05-04 19:22:19 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 71, 'message': 'Converting'}
+2025-05-04 19:22:19 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 71, 'message': 'Converting'}
+2025-05-04 19:22:19 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 70, 'message': 'Converting'}
+2025-05-04 19:22:19 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 80, 'message': 'Converting'}
+2025-05-04 19:22:19 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 78, 'message': 'Converting'}
+2025-05-04 19:22:20 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 76, 'message': 'Converting'}
+2025-05-04 19:22:20 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 76, 'message': 'Converting'}
+2025-05-04 19:22:20 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 72, 'message': 'Converting'}
+2025-05-04 19:22:20 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 72, 'message': 'Converting'}
+2025-05-04 19:22:20 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 67, 'message': 'Converting'}
+2025-05-04 19:22:20 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 71, 'message': 'Converting'}
+2025-05-04 19:22:20 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 81, 'message': 'Converting'}
+2025-05-04 19:22:20 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 81, 'message': 'Converting'}
+2025-05-04 19:22:20 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 77, 'message': 'Converting'}
+2025-05-04 19:22:20 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 78, 'message': 'Converting'}
+2025-05-04 19:22:20 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 74, 'message': 'Converting'}
+2025-05-04 19:22:20 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 74, 'message': 'Converting'}
+2025-05-04 19:22:20 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 67, 'message': 'Converting'}
+2025-05-04 19:22:20 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 72, 'message': 'Converting'}
+2025-05-04 19:22:20 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 84, 'message': 'Converting'}
+2025-05-04 19:22:20 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 82, 'message': 'Converting'}
+2025-05-04 19:22:21 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 79, 'message': 'Converting'}
+2025-05-04 19:22:21 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 80, 'message': 'Converting'}
+2025-05-04 19:22:21 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 75, 'message': 'Converting'}
+2025-05-04 19:22:21 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 68, 'message': 'Converting'}
+2025-05-04 19:22:21 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 75, 'message': 'Converting'}
+2025-05-04 19:22:21 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 73, 'message': 'Converting'}
+2025-05-04 19:22:21 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 85, 'message': 'Converting'}
+2025-05-04 19:22:21 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 84, 'message': 'Converting'}
+2025-05-04 19:22:21 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 81, 'message': 'Converting'}
+2025-05-04 19:22:21 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 81, 'message': 'Converting'}
+2025-05-04 19:22:21 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 76, 'message': 'Converting'}
+2025-05-04 19:22:21 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 69, 'message': 'Converting'}
+2025-05-04 19:22:21 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 76, 'message': 'Converting'}
+2025-05-04 19:22:21 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 75, 'message': 'Converting'}
+2025-05-04 19:22:21 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 86, 'message': 'Converting'}
+2025-05-04 19:22:21 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 85, 'message': 'Converting'}
+2025-05-04 19:22:22 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 83, 'message': 'Converting'}
+2025-05-04 19:22:22 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 82, 'message': 'Converting'}
+2025-05-04 19:22:22 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 78, 'message': 'Converting'}
+2025-05-04 19:22:22 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 70, 'message': 'Converting'}
+2025-05-04 19:22:22 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 77, 'message': 'Converting'}
+2025-05-04 19:22:22 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 76, 'message': 'Converting'}
+2025-05-04 19:22:22 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 87, 'message': 'Converting'}
+2025-05-04 19:22:22 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 86, 'message': 'Converting'}
+2025-05-04 19:22:22 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 84, 'message': 'Converting'}
+2025-05-04 19:22:22 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 83, 'message': 'Converting'}
+2025-05-04 19:22:22 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 79, 'message': 'Converting'}
+2025-05-04 19:22:22 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 71, 'message': 'Converting'}
+2025-05-04 19:22:22 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 78, 'message': 'Converting'}
+2025-05-04 19:22:22 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 77, 'message': 'Converting'}
+2025-05-04 19:22:22 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 88, 'message': 'Converting'}
+2025-05-04 19:22:22 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 87, 'message': 'Converting'}
+2025-05-04 19:22:23 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 86, 'message': 'Converting'}
+2025-05-04 19:22:23 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 84, 'message': 'Converting'}
+2025-05-04 19:22:23 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 72, 'message': 'Converting'}
+2025-05-04 19:22:23 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 81, 'message': 'Converting'}
+2025-05-04 19:22:23 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 79, 'message': 'Converting'}
+2025-05-04 19:22:23 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 90, 'message': 'Converting'}
+2025-05-04 19:22:23 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 78, 'message': 'Converting'}
+2025-05-04 19:22:23 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 89, 'message': 'Converting'}
+2025-05-04 19:22:23 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 87, 'message': 'Converting'}
+2025-05-04 19:22:23 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 85, 'message': 'Converting'}
+2025-05-04 19:22:23 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 82, 'message': 'Converting'}
+2025-05-04 19:22:23 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 73, 'message': 'Converting'}
+2025-05-04 19:22:23 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 80, 'message': 'Converting'}
+2025-05-04 19:22:23 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 90, 'message': 'Converting'}
+2025-05-04 19:22:23 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 79, 'message': 'Converting'}
+2025-05-04 19:22:23 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 90, 'message': 'Converting'}
+2025-05-04 19:22:24 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 88, 'message': 'Converting'}
+2025-05-04 19:22:24 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 86, 'message': 'Converting'}
+2025-05-04 19:22:24 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 83, 'message': 'Converting'}
+2025-05-04 19:22:24 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 73, 'message': 'Converting'}
+2025-05-04 19:22:24 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 81, 'message': 'Converting'}
+2025-05-04 19:22:24 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 79, 'message': 'Converting'}
+2025-05-04 19:22:24 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 91, 'message': 'Converting'}
+2025-05-04 19:22:24 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 91, 'message': 'Converting'}
+2025-05-04 19:22:24 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 89, 'message': 'Converting'}
+2025-05-04 19:22:24 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 86, 'message': 'Converting'}
+2025-05-04 19:22:24 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 83, 'message': 'Converting'}
+2025-05-04 19:22:24 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 74, 'message': 'Converting'}
+2025-05-04 19:22:24 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 81, 'message': 'Converting'}
+2025-05-04 19:22:24 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 92, 'message': 'Converting'}
+2025-05-04 19:22:24 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 80, 'message': 'Converting'}
+2025-05-04 19:22:24 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 93, 'message': 'Converting'}
+2025-05-04 19:22:25 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 90, 'message': 'Converting'}
+2025-05-04 19:22:25 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 87, 'message': 'Converting'}
+2025-05-04 19:22:25 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 84, 'message': 'Converting'}
+2025-05-04 19:22:25 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 74, 'message': 'Converting'}
+2025-05-04 19:22:25 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 82, 'message': 'Converting'}
+2025-05-04 19:22:25 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 94, 'message': 'Converting'}
+2025-05-04 19:22:25 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 94, 'message': 'Converting'}
+2025-05-04 19:22:25 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 81, 'message': 'Converting'}
+2025-05-04 19:22:25 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 94, 'message': 'Converting'}
+2025-05-04 19:22:25 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 94, 'message': 'Converting'}
+2025-05-04 19:22:25 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 91, 'message': 'Converting'}
+2025-05-04 19:22:25 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 95, 'message': 'Converting'}
+2025-05-04 19:22:25 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 95, 'message': 'Embedding metadata'}
+2025-05-04 19:22:25 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 95, 'message': 'Converting'}
+2025-05-04 19:22:25 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 95, 'message': 'Embedding metadata'}
+2025-05-04 19:22:25 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 88, 'message': 'Converting'}
+2025-05-04 19:22:25 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 85, 'message': 'Converting'}
+2025-05-04 19:22:25 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 83, 'message': 'Converting'}
+2025-05-04 19:22:25 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 75, 'message': 'Converting'}
+2025-05-04 19:22:25 {'id': '1hxbW2aQxmFSChaFeOeD5K', 'completed': 100, 'message': 'Done'}
+2025-05-04 19:22:25 {'id': '30j0oL1JjggxZmzMffNUSN', 'completed': 100, 'message': 'Done'}
+2025-05-04 19:22:25 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 82, 'message': 'Converting'}
+2025-05-04 19:22:26 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 0, 'total': 100, 'message': 'Processing'}
+2025-05-04 19:22:26 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 0, 'message': 'Searching lyrics'}
+2025-05-04 19:22:26 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 92, 'message': 'Converting'}
+2025-05-04 19:22:26 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 89, 'message': 'Converting'}
+2025-05-04 19:22:26 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 86, 'message': 'Converting'}
+2025-05-04 19:22:26 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 83, 'message': 'Converting'}
+2025-05-04 19:22:26 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 76, 'message': 'Converting'}
+2025-05-04 19:22:26 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 83, 'message': 'Converting'}
+2025-05-04 19:22:26 {'id': '3GNEna2WyHtXk8ySqlp0Nl', 'completed': 0, 'total': 100, 'message': 'Processing'}
+2025-05-04 19:22:26 {'id': '3GNEna2WyHtXk8ySqlp0Nl', 'completed': 0, 'message': 'Searching lyrics'}
+2025-05-04 19:22:26 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 94, 'message': 'Converting'}
+2025-05-04 19:22:26 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 90, 'message': 'Converting'}
+2025-05-04 19:22:26 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 86, 'message': 'Converting'}
+2025-05-04 19:22:26 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 84, 'message': 'Converting'}
+2025-05-04 19:22:26 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 77, 'message': 'Converting'}
+2025-05-04 19:22:26 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 94, 'message': 'Converting'}
+2025-05-04 19:22:26 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 95, 'message': 'Converting'}
+2025-05-04 19:22:26 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 95, 'message': 'Embedding metadata'}
+2025-05-04 19:22:26 {'id': '2YnZugg0pdEkAtSHR4dwFo', 'completed': 100, 'message': 'Done'}
+2025-05-04 19:22:26 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 83, 'message': 'Converting'}
+2025-05-04 19:22:27 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 91, 'message': 'Converting'}
+2025-05-04 19:22:27 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 87, 'message': 'Converting'}
+2025-05-04 19:22:27 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 86, 'message': 'Converting'}
+2025-05-04 19:22:27 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 77, 'message': 'Converting'}
+2025-05-04 19:22:27 {'id': '0WRKPRS0Dz4YutOzBJzJNu', 'completed': 0, 'total': 100, 'message': 'Processing'}
+2025-05-04 19:22:27 {'id': '0WRKPRS0Dz4YutOzBJzJNu', 'completed': 0, 'message': 'Searching lyrics'}
+2025-05-04 19:22:27 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 84, 'message': 'Converting'}
+2025-05-04 19:22:27 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 93, 'message': 'Converting'}
+2025-05-04 19:22:27 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 89, 'message': 'Converting'}
+2025-05-04 19:22:27 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 78, 'message': 'Converting'}
+2025-05-04 19:22:27 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 86, 'message': 'Converting'}
+2025-05-04 19:22:27 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 85, 'message': 'Converting'}
+2025-05-04 19:22:28 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 94, 'message': 'Converting'}
+2025-05-04 19:22:28 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 95, 'message': 'Converting'}
+2025-05-04 19:22:28 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 95, 'message': 'Embedding metadata'}
+2025-05-04 19:22:28 {'id': '0d6ejWRow4vk6DnLqi6mHu', 'completed': 100, 'message': 'Done'}
+2025-05-04 19:22:28 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 90, 'message': 'Converting'}
+2025-05-04 19:22:28 {'id': '25Cv6pteVL6Wm4GIvPCFnO', 'completed': 0, 'total': 100, 'message': 'Processing'}
+2025-05-04 19:22:28 {'id': '25Cv6pteVL6Wm4GIvPCFnO', 'completed': 0, 'message': 'Searching lyrics'}
+2025-05-04 19:22:28 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 88, 'message': 'Converting'}
+2025-05-04 19:22:28 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 80, 'message': 'Converting'}
+2025-05-04 19:22:28 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 86, 'message': 'Converting'}
+2025-05-04 19:22:28 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 92, 'message': 'Converting'}
+2025-05-04 19:22:28 {'id': '0WRKPRS0Dz4YutOzBJzJNu', 'completed': 0, 'message': 'Getting download URL'}
+2025-05-04 19:22:28 {'id': '0WRKPRS0Dz4YutOzBJzJNu', 'completed': 0, 'message': 'Searching in YouTubeMusic'}
+2025-05-04 19:22:28 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 89, 'message': 'Converting'}
+2025-05-04 19:22:28 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 81, 'message': 'Converting'}
+2025-05-04 19:22:28 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 0, 'message': 'Getting download URL'}
+2025-05-04 19:22:28 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 0, 'message': 'Searching in YouTubeMusic'}
+2025-05-04 19:22:29 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 87, 'message': 'Converting'}
+2025-05-04 19:22:29 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 94, 'message': 'Converting'}
+2025-05-04 19:22:29 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 82, 'message': 'Converting'}
+2025-05-04 19:22:29 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 90, 'message': 'Converting'}
+2025-05-04 19:22:29 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 94, 'message': 'Converting'}
+2025-05-04 19:22:29 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 95, 'message': 'Converting'}
+2025-05-04 19:22:29 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 95, 'message': 'Embedding metadata'}
+2025-05-04 19:22:29 {'id': '2ppwkqJRDKstWjydeTNvvU', 'completed': 100, 'message': 'Done'}
+2025-05-04 19:22:29 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 88, 'message': 'Converting'}
+2025-05-04 19:22:29 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 91, 'message': 'Converting'}
+2025-05-04 19:22:29 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 83, 'message': 'Converting'}
+2025-05-04 19:22:29 {'id': '2brodvxnVPmh04DCCTG3Sk', 'completed': 0, 'total': 100, 'message': 'Processing'}
+2025-05-04 19:22:29 {'id': '3GNEna2WyHtXk8ySqlp0Nl', 'completed': 0, 'message': 'Getting download URL'}
+2025-05-04 19:22:29 {'id': '3GNEna2WyHtXk8ySqlp0Nl', 'completed': 0, 'message': 'Searching in YouTubeMusic'}
+2025-05-04 19:22:29 {'id': '2brodvxnVPmh04DCCTG3Sk', 'completed': 0, 'message': 'Searching lyrics'}
+2025-05-04 19:22:30 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 89, 'message': 'Converting'}
+2025-05-04 19:22:30 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 84, 'message': 'Converting'}
+2025-05-04 19:22:30 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 92, 'message': 'Converting'}
+2025-05-04 19:22:30 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 90, 'message': 'Converting'}
+2025-05-04 19:22:30 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 85, 'message': 'Converting'}
+2025-05-04 19:22:30 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 94, 'message': 'Converting'}
+2025-05-04 19:22:30 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 94, 'message': 'Converting'}
+2025-05-04 19:22:30 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 95, 'message': 'Converting'}
+2025-05-04 19:22:30 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 95, 'message': 'Embedding metadata'}
+2025-05-04 19:22:30 {'id': '25Cv6pteVL6Wm4GIvPCFnO', 'completed': 0, 'message': 'Getting download URL'}
+2025-05-04 19:22:30 {'id': '25Cv6pteVL6Wm4GIvPCFnO', 'completed': 0, 'message': 'Searching in YouTubeMusic'}
+2025-05-04 19:22:30 {'id': '5SdGlLcazlJknmvAirfoi6', 'completed': 100, 'message': 'Done'}
+2025-05-04 19:22:31 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 93, 'message': 'Converting'}
+2025-05-04 19:22:31 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 0, 'total': 100, 'message': 'Processing'}
+2025-05-04 19:22:31 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 0, 'message': 'Searching lyrics'}
+2025-05-04 19:22:31 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 87, 'message': 'Converting'}
+2025-05-04 19:22:31 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 94, 'message': 'Converting'}
+2025-05-04 19:22:31 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 95, 'message': 'Converting'}
+2025-05-04 19:22:31 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 95, 'message': 'Embedding metadata'}
+2025-05-04 19:22:31 {'id': '3jdYrqSwsLpj90d5vuqoGT', 'completed': 100, 'message': 'Done'}
+2025-05-04 19:22:31 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 89, 'message': 'Converting'}
+2025-05-04 19:22:32 {'id': '2brodvxnVPmh04DCCTG3Sk', 'completed': 0, 'message': 'Getting download URL'}
+2025-05-04 19:22:32 {'id': '2brodvxnVPmh04DCCTG3Sk', 'completed': 0, 'message': 'Searching in YouTubeMusic'}
+2025-05-04 19:22:32 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 90, 'message': 'Converting'}
+2025-05-04 19:22:32 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 91, 'message': 'Converting'}
+2025-05-04 19:22:33 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 94, 'message': 'Converting'}
+2025-05-04 19:22:33 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 94, 'message': 'Converting'}
+2025-05-04 19:22:33 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 95, 'message': 'Converting'}
+2025-05-04 19:22:33 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 95, 'message': 'Embedding metadata'}
+2025-05-04 19:22:33 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 0, 'message': 'Getting download URL'}
+2025-05-04 19:22:33 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 0, 'message': 'Searching in YouTubeMusic'}
+2025-05-04 19:22:33 {'id': '3iSrxKrzDTkhfpIHCpNooU', 'completed': 100, 'message': 'Done'}
+2025-05-04 19:22:34 {'id': '0WRKPRS0Dz4YutOzBJzJNu', 'completed': 0.03956628550629776, 'message': 'Downloading'}
+2025-05-04 19:22:34 {'id': '0WRKPRS0Dz4YutOzBJzJNu', 'completed': 0.1186988565188933, 'message': 'Downloading'}
+2025-05-04 19:22:34 {'id': '0WRKPRS0Dz4YutOzBJzJNu', 'completed': 0.2769639985440843, 'message': 'Downloading'}
+2025-05-04 19:22:34 {'id': '3GNEna2WyHtXk8ySqlp0Nl', 'completed': 0.02175925256967423, 'message': 'Downloading'}
+2025-05-04 19:22:34 {'id': '3GNEna2WyHtXk8ySqlp0Nl', 'completed': 0.0652777577090227, 'message': 'Downloading'}
+2025-05-04 19:22:34 {'id': '3GNEna2WyHtXk8ySqlp0Nl', 'completed': 0.15231476798771962, 'message': 'Downloading'}
+2025-05-04 19:22:34 {'id': '0WRKPRS0Dz4YutOzBJzJNu', 'completed': 0.5934942825944665, 'message': 'Downloading'}
+2025-05-04 19:22:34 {'id': '0WRKPRS0Dz4YutOzBJzJNu', 'completed': 1.2265548506952306, 'message': 'Downloading'}
+2025-05-04 19:22:34 {'id': '0WRKPRS0Dz4YutOzBJzJNu', 'completed': 2.492675986896759, 'message': 'Downloading'}
+2025-05-04 19:22:34 {'id': '3GNEna2WyHtXk8ySqlp0Nl', 'completed': 0.3263887885451135, 'message': 'Downloading'}
+2025-05-04 19:22:34 {'id': '3GNEna2WyHtXk8ySqlp0Nl', 'completed': 0.6745368296599011, 'message': 'Downloading'}
+2025-05-04 19:22:34 {'id': '0WRKPRS0Dz4YutOzBJzJNu', 'completed': 5.024918259299816, 'message': 'Downloading'}
+2025-05-04 19:22:34 {'id': '3GNEna2WyHtXk8ySqlp0Nl', 'completed': 1.3708329118894766, 'message': 'Downloading'}
+2025-05-04 19:22:34 {'id': '0WRKPRS0Dz4YutOzBJzJNu', 'completed': 10.08940280410593, 'message': 'Downloading'}
+2025-05-04 19:22:34 {'id': '3GNEna2WyHtXk8ySqlp0Nl', 'completed': 2.763425076348627, 'message': 'Downloading'}
+2025-05-04 19:22:35 {'id': '0WRKPRS0Dz4YutOzBJzJNu', 'completed': 20.218371893718157, 'message': 'Downloading'}
+2025-05-04 19:22:35 {'id': '0WRKPRS0Dz4YutOzBJzJNu', 'completed': 40.47631007294261, 'message': 'Downloading'}
+2025-05-04 19:22:35 {'id': '0WRKPRS0Dz4YutOzBJzJNu', 'completed': 50.0, 'message': 'Downloading'}
+2025-05-04 19:22:35 {'id': '3GNEna2WyHtXk8ySqlp0Nl', 'completed': 5.548609405266929, 'message': 'Downloading'}
+2025-05-04 19:22:35 {'id': '0WRKPRS0Dz4YutOzBJzJNu', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:35 {'id': '0WRKPRS0Dz4YutOzBJzJNu', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:35 {'id': '3GNEna2WyHtXk8ySqlp0Nl', 'completed': 11.118978063103532, 'message': 'Downloading'}
+2025-05-04 19:22:35 {'id': '0WRKPRS0Dz4YutOzBJzJNu', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:35 {'id': '3GNEna2WyHtXk8ySqlp0Nl', 'completed': 22.25971537877674, 'message': 'Downloading'}
+2025-05-04 19:22:35 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 0.015122931414847704, 'message': 'Downloading'}
+2025-05-04 19:22:35 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 0.04536879424454312, 'message': 'Downloading'}
+2025-05-04 19:22:35 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 0.10586051990393394, 'message': 'Downloading'}
+2025-05-04 19:22:35 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 0.22684397122271557, 'message': 'Downloading'}
+2025-05-04 19:22:35 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 0.4688108738602789, 'message': 'Downloading'}
+2025-05-04 19:22:35 {'id': '3GNEna2WyHtXk8ySqlp0Nl', 'completed': 44.54119001012315, 'message': 'Downloading'}
+2025-05-04 19:22:35 {'id': '3GNEna2WyHtXk8ySqlp0Nl', 'completed': 50.0, 'message': 'Downloading'}
+2025-05-04 19:22:36 {'id': '0WRKPRS0Dz4YutOzBJzJNu', 'completed': 53, 'message': 'Converting'}
+2025-05-04 19:22:36 {'id': '3GNEna2WyHtXk8ySqlp0Nl', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:36 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 0.9527446791354055, 'message': 'Downloading'}
+2025-05-04 19:22:36 {'id': '3GNEna2WyHtXk8ySqlp0Nl', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:36 {'id': '3GNEna2WyHtXk8ySqlp0Nl', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:36 {'id': '0WRKPRS0Dz4YutOzBJzJNu', 'completed': 58, 'message': 'Converting'}
+2025-05-04 19:22:36 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 1.9206122896856588, 'message': 'Downloading'}
+2025-05-04 19:22:36 {'id': '25Cv6pteVL6Wm4GIvPCFnO', 'completed': 0.017260426460638308, 'message': 'Downloading'}
+2025-05-04 19:22:36 {'id': '25Cv6pteVL6Wm4GIvPCFnO', 'completed': 0.051781279381914916, 'message': 'Downloading'}
+2025-05-04 19:22:36 {'id': '3GNEna2WyHtXk8ySqlp0Nl', 'completed': 52, 'message': 'Converting'}
+2025-05-04 19:22:36 {'id': '25Cv6pteVL6Wm4GIvPCFnO', 'completed': 0.12082298522446815, 'message': 'Downloading'}
+2025-05-04 19:22:36 {'id': '25Cv6pteVL6Wm4GIvPCFnO', 'completed': 0.25890639690957457, 'message': 'Downloading'}
+2025-05-04 19:22:36 {'id': '25Cv6pteVL6Wm4GIvPCFnO', 'completed': 0.5350732202797874, 'message': 'Downloading'}
+2025-05-04 19:22:37 {'id': '0WRKPRS0Dz4YutOzBJzJNu', 'completed': 63, 'message': 'Converting'}
+2025-05-04 19:22:37 {'id': '25Cv6pteVL6Wm4GIvPCFnO', 'completed': 1.0874068670202133, 'message': 'Downloading'}
+2025-05-04 19:22:37 {'id': '25Cv6pteVL6Wm4GIvPCFnO', 'completed': 2.1920741605010647, 'message': 'Downloading'}
+2025-05-04 19:22:37 {'id': '3GNEna2WyHtXk8ySqlp0Nl', 'completed': 54, 'message': 'Converting'}
+2025-05-04 19:22:37 {'id': '25Cv6pteVL6Wm4GIvPCFnO', 'completed': 4.401408747462768, 'message': 'Downloading'}
+2025-05-04 19:22:37 {'id': '0WRKPRS0Dz4YutOzBJzJNu', 'completed': 68, 'message': 'Converting'}
+2025-05-04 19:22:37 {'id': '25Cv6pteVL6Wm4GIvPCFnO', 'completed': 8.820077921386174, 'message': 'Downloading'}
+2025-05-04 19:22:37 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 3.856347510786165, 'message': 'Downloading'}
+2025-05-04 19:22:37 {'id': '3GNEna2WyHtXk8ySqlp0Nl', 'completed': 57, 'message': 'Converting'}
+2025-05-04 19:22:38 {'id': '0WRKPRS0Dz4YutOzBJzJNu', 'completed': 74, 'message': 'Converting'}
+2025-05-04 19:22:38 {'id': '2brodvxnVPmh04DCCTG3Sk', 'completed': 0.01884703277027823, 'message': 'Downloading'}
+2025-05-04 19:22:38 {'id': '2brodvxnVPmh04DCCTG3Sk', 'completed': 0.05654109831083469, 'message': 'Downloading'}
+2025-05-04 19:22:38 {'id': '2brodvxnVPmh04DCCTG3Sk', 'completed': 0.13192922939194762, 'message': 'Downloading'}
+2025-05-04 19:22:38 {'id': '2brodvxnVPmh04DCCTG3Sk', 'completed': 0.2827054915541734, 'message': 'Downloading'}
+2025-05-04 19:22:38 {'id': '2brodvxnVPmh04DCCTG3Sk', 'completed': 0.5842580158786251, 'message': 'Downloading'}
+2025-05-04 19:22:38 {'id': '2brodvxnVPmh04DCCTG3Sk', 'completed': 1.1873630645275284, 'message': 'Downloading'}
+2025-05-04 19:22:38 {'id': '25Cv6pteVL6Wm4GIvPCFnO', 'completed': 17.657416269232986, 'message': 'Downloading'}
+2025-05-04 19:22:38 {'id': '2brodvxnVPmh04DCCTG3Sk', 'completed': 2.393573161825335, 'message': 'Downloading'}
+2025-05-04 19:22:38 {'id': '2brodvxnVPmh04DCCTG3Sk', 'completed': 4.805993356420949, 'message': 'Downloading'}
+2025-05-04 19:22:38 {'id': '2brodvxnVPmh04DCCTG3Sk', 'completed': 9.630833745612174, 'message': 'Downloading'}
+2025-05-04 19:22:38 {'id': '2brodvxnVPmh04DCCTG3Sk', 'completed': 19.28051452399463, 'message': 'Downloading'}
+2025-05-04 19:22:38 {'id': '2brodvxnVPmh04DCCTG3Sk', 'completed': 38.57987608075953, 'message': 'Downloading'}
+2025-05-04 19:22:38 {'id': '3GNEna2WyHtXk8ySqlp0Nl', 'completed': 60, 'message': 'Converting'}
+2025-05-04 19:22:38 {'id': '2brodvxnVPmh04DCCTG3Sk', 'completed': 50.0, 'message': 'Downloading'}
+2025-05-04 19:22:38 {'id': '0WRKPRS0Dz4YutOzBJzJNu', 'completed': 79, 'message': 'Converting'}
+2025-05-04 19:22:38 {'id': '2brodvxnVPmh04DCCTG3Sk', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:38 {'id': '2brodvxnVPmh04DCCTG3Sk', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:38 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 5.650940294843996, 'message': 'Downloading'}
+2025-05-04 19:22:38 {'id': '3GNEna2WyHtXk8ySqlp0Nl', 'completed': 63, 'message': 'Converting'}
+2025-05-04 19:22:38 {'id': '25Cv6pteVL6Wm4GIvPCFnO', 'completed': 33.18579938867076, 'message': 'Downloading'}
+2025-05-04 19:22:38 {'id': '2brodvxnVPmh04DCCTG3Sk', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:39 {'id': '0WRKPRS0Dz4YutOzBJzJNu', 'completed': 84, 'message': 'Converting'}
+2025-05-04 19:22:39 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 0.009388867260671447, 'message': 'Downloading'}
+2025-05-04 19:22:39 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 0.028166601782014338, 'message': 'Downloading'}
+2025-05-04 19:22:39 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 0.06572207082470014, 'message': 'Downloading'}
+2025-05-04 19:22:39 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 0.1408330089100717, 'message': 'Downloading'}
+2025-05-04 19:22:39 {'id': '25Cv6pteVL6Wm4GIvPCFnO', 'completed': 50.0, 'message': 'Downloading'}
+2025-05-04 19:22:39 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 0.29105488508081484, 'message': 'Downloading'}
+2025-05-04 19:22:39 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 0.5914986374223011, 'message': 'Downloading'}
+2025-05-04 19:22:39 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 1.1923861421052737, 'message': 'Downloading'}
+2025-05-04 19:22:39 {'id': '3GNEna2WyHtXk8ySqlp0Nl', 'completed': 65, 'message': 'Converting'}
+2025-05-04 19:22:39 {'id': '2brodvxnVPmh04DCCTG3Sk', 'completed': 51, 'message': 'Converting'}
+2025-05-04 19:22:39 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 2.394161151471219, 'message': 'Downloading'}
+2025-05-04 19:22:39 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 4.79771117020311, 'message': 'Downloading'}
+2025-05-04 19:22:39 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 9.60481120766689, 'message': 'Downloading'}
+2025-05-04 19:22:39 {'id': '25Cv6pteVL6Wm4GIvPCFnO', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:39 {'id': '25Cv6pteVL6Wm4GIvPCFnO', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:39 {'id': '0WRKPRS0Dz4YutOzBJzJNu', 'completed': 88, 'message': 'Converting'}
+2025-05-04 19:22:39 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 19.219011282594455, 'message': 'Downloading'}
+2025-05-04 19:22:39 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 7.303903281764727, 'message': 'Downloading'}
+2025-05-04 19:22:39 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 38.44741143244958, 'message': 'Downloading'}
+2025-05-04 19:22:39 {'id': '25Cv6pteVL6Wm4GIvPCFnO', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:39 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 50.0, 'message': 'Downloading'}
+2025-05-04 19:22:39 {'id': '3GNEna2WyHtXk8ySqlp0Nl', 'completed': 68, 'message': 'Converting'}
+2025-05-04 19:22:39 {'id': '2brodvxnVPmh04DCCTG3Sk', 'completed': 53, 'message': 'Converting'}
+2025-05-04 19:22:40 {'id': '0WRKPRS0Dz4YutOzBJzJNu', 'completed': 94, 'message': 'Converting'}
+2025-05-04 19:22:40 {'id': '0WRKPRS0Dz4YutOzBJzJNu', 'completed': 94, 'message': 'Converting'}
+2025-05-04 19:22:40 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:40 {'id': '0WRKPRS0Dz4YutOzBJzJNu', 'completed': 95, 'message': 'Converting'}
+2025-05-04 19:22:40 {'id': '0WRKPRS0Dz4YutOzBJzJNu', 'completed': 95, 'message': 'Embedding metadata'}
+2025-05-04 19:22:40 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:40 {'id': '0WRKPRS0Dz4YutOzBJzJNu', 'completed': 100, 'message': 'Done'}
+2025-05-04 19:22:40 {'id': '25Cv6pteVL6Wm4GIvPCFnO', 'completed': 51, 'message': 'Converting'}
+2025-05-04 19:22:40 {'id': '3GNEna2WyHtXk8ySqlp0Nl', 'completed': 70, 'message': 'Converting'}
+2025-05-04 19:22:40 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:40 {'id': '2brodvxnVPmh04DCCTG3Sk', 'completed': 54, 'message': 'Converting'}
+2025-05-04 19:22:40 {'id': '25Cv6pteVL6Wm4GIvPCFnO', 'completed': 53, 'message': 'Converting'}
+2025-05-04 19:22:40 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:22:40 {'id': '3GNEna2WyHtXk8ySqlp0Nl', 'completed': 72, 'message': 'Converting'}
+2025-05-04 19:22:40 {'id': '2brodvxnVPmh04DCCTG3Sk', 'completed': 57, 'message': 'Converting'}
+2025-05-04 19:22:40 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 9.242459284017809, 'message': 'Downloading'}
+2025-05-04 19:22:41 {'id': '25Cv6pteVL6Wm4GIvPCFnO', 'completed': 56, 'message': 'Converting'}
+2025-05-04 19:22:41 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 51, 'message': 'Converting'}
+2025-05-04 19:22:41 {'id': '3GNEna2WyHtXk8ySqlp0Nl', 'completed': 75, 'message': 'Converting'}
+2025-05-04 19:22:41 {'id': '2brodvxnVPmh04DCCTG3Sk', 'completed': 59, 'message': 'Converting'}
+2025-05-04 19:22:41 {'id': '25Cv6pteVL6Wm4GIvPCFnO', 'completed': 58, 'message': 'Converting'}
+2025-05-04 19:22:41 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 52, 'message': 'Converting'}
+2025-05-04 19:22:41 {'id': '3GNEna2WyHtXk8ySqlp0Nl', 'completed': 77, 'message': 'Converting'}
+2025-05-04 19:22:41 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 10.797773030201261, 'message': 'Downloading'}
+2025-05-04 19:22:41 {'id': '2brodvxnVPmh04DCCTG3Sk', 'completed': 61, 'message': 'Converting'}
+2025-05-04 19:22:42 {'id': '25Cv6pteVL6Wm4GIvPCFnO', 'completed': 59, 'message': 'Converting'}
+2025-05-04 19:22:42 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 53, 'message': 'Converting'}
+2025-05-04 19:22:42 {'id': '3GNEna2WyHtXk8ySqlp0Nl', 'completed': 79, 'message': 'Converting'}
+2025-05-04 19:22:42 {'id': '2brodvxnVPmh04DCCTG3Sk', 'completed': 63, 'message': 'Converting'}
+2025-05-04 19:22:42 {'id': '25Cv6pteVL6Wm4GIvPCFnO', 'completed': 60, 'message': 'Converting'}
+2025-05-04 19:22:42 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 54, 'message': 'Converting'}
+2025-05-04 19:22:42 {'id': '3GNEna2WyHtXk8ySqlp0Nl', 'completed': 82, 'message': 'Converting'}
+2025-05-04 19:22:42 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 12.43134499275901, 'message': 'Downloading'}
+2025-05-04 19:22:42 {'id': '2brodvxnVPmh04DCCTG3Sk', 'completed': 65, 'message': 'Converting'}
+2025-05-04 19:22:43 {'id': '25Cv6pteVL6Wm4GIvPCFnO', 'completed': 62, 'message': 'Converting'}
+2025-05-04 19:22:43 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 55, 'message': 'Converting'}
+2025-05-04 19:22:43 {'id': '3GNEna2WyHtXk8ySqlp0Nl', 'completed': 86, 'message': 'Converting'}
+2025-05-04 19:22:43 {'id': '2brodvxnVPmh04DCCTG3Sk', 'completed': 67, 'message': 'Converting'}
+2025-05-04 19:22:43 {'id': '25Cv6pteVL6Wm4GIvPCFnO', 'completed': 64, 'message': 'Converting'}
+2025-05-04 19:22:43 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 13.973839691610346, 'message': 'Downloading'}
+2025-05-04 19:22:43 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 57, 'message': 'Converting'}
+2025-05-04 19:22:43 {'id': '3GNEna2WyHtXk8ySqlp0Nl', 'completed': 89, 'message': 'Converting'}
+2025-05-04 19:22:43 {'id': '2brodvxnVPmh04DCCTG3Sk', 'completed': 69, 'message': 'Converting'}
+2025-05-04 19:22:44 {'id': '25Cv6pteVL6Wm4GIvPCFnO', 'completed': 66, 'message': 'Converting'}
+2025-05-04 19:22:44 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 58, 'message': 'Converting'}
+2025-05-04 19:22:44 {'id': '3GNEna2WyHtXk8ySqlp0Nl', 'completed': 91, 'message': 'Converting'}
+2025-05-04 19:22:44 {'id': '2brodvxnVPmh04DCCTG3Sk', 'completed': 71, 'message': 'Converting'}
+2025-05-04 19:22:44 {'id': '25Cv6pteVL6Wm4GIvPCFnO', 'completed': 68, 'message': 'Converting'}
+2025-05-04 19:22:44 {'id': '3GNEna2WyHtXk8ySqlp0Nl', 'completed': 94, 'message': 'Converting'}
+2025-05-04 19:22:44 {'id': '3GNEna2WyHtXk8ySqlp0Nl', 'completed': 95, 'message': 'Converting'}
+2025-05-04 19:22:44 {'id': '3GNEna2WyHtXk8ySqlp0Nl', 'completed': 95, 'message': 'Embedding metadata'}
+2025-05-04 19:22:44 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 59, 'message': 'Converting'}
+2025-05-04 19:22:44 {'id': '3GNEna2WyHtXk8ySqlp0Nl', 'completed': 100, 'message': 'Done'}
+2025-05-04 19:22:44 {'id': '2brodvxnVPmh04DCCTG3Sk', 'completed': 74, 'message': 'Converting'}
+2025-05-04 19:22:45 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 15.915777677548975, 'message': 'Downloading'}
+2025-05-04 19:22:45 {'id': '25Cv6pteVL6Wm4GIvPCFnO', 'completed': 71, 'message': 'Converting'}
+2025-05-04 19:22:45 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 61, 'message': 'Converting'}
+2025-05-04 19:22:45 {'id': '2brodvxnVPmh04DCCTG3Sk', 'completed': 76, 'message': 'Converting'}
+2025-05-04 19:22:45 {'id': '25Cv6pteVL6Wm4GIvPCFnO', 'completed': 72, 'message': 'Converting'}
+2025-05-04 19:22:45 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 62, 'message': 'Converting'}
+2025-05-04 19:22:45 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 17.39289228130897, 'message': 'Downloading'}
+2025-05-04 19:22:45 {'id': '2brodvxnVPmh04DCCTG3Sk', 'completed': 78, 'message': 'Converting'}
+2025-05-04 19:22:46 {'id': '25Cv6pteVL6Wm4GIvPCFnO', 'completed': 74, 'message': 'Converting'}
+2025-05-04 19:22:46 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 63, 'message': 'Converting'}
+2025-05-04 19:22:46 {'id': '2brodvxnVPmh04DCCTG3Sk', 'completed': 81, 'message': 'Converting'}
+2025-05-04 19:22:46 {'id': '25Cv6pteVL6Wm4GIvPCFnO', 'completed': 76, 'message': 'Converting'}
+2025-05-04 19:22:46 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 64, 'message': 'Converting'}
+2025-05-04 19:22:46 {'id': '2brodvxnVPmh04DCCTG3Sk', 'completed': 83, 'message': 'Converting'}
+2025-05-04 19:22:46 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 19.183423731246606, 'message': 'Downloading'}
+2025-05-04 19:22:47 {'id': '25Cv6pteVL6Wm4GIvPCFnO', 'completed': 78, 'message': 'Converting'}
+2025-05-04 19:22:47 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 65, 'message': 'Converting'}
+2025-05-04 19:22:47 {'id': '2brodvxnVPmh04DCCTG3Sk', 'completed': 85, 'message': 'Converting'}
+2025-05-04 19:22:47 {'id': '25Cv6pteVL6Wm4GIvPCFnO', 'completed': 80, 'message': 'Converting'}
+2025-05-04 19:22:47 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 67, 'message': 'Converting'}
+2025-05-04 19:22:47 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 20.75675503243603, 'message': 'Downloading'}
+2025-05-04 19:22:47 {'id': '2brodvxnVPmh04DCCTG3Sk', 'completed': 88, 'message': 'Converting'}
+2025-05-04 19:22:48 {'id': '25Cv6pteVL6Wm4GIvPCFnO', 'completed': 82, 'message': 'Converting'}
+2025-05-04 19:22:48 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 68, 'message': 'Converting'}
+2025-05-04 19:22:48 {'id': '2brodvxnVPmh04DCCTG3Sk', 'completed': 91, 'message': 'Converting'}
+2025-05-04 19:22:48 {'id': '25Cv6pteVL6Wm4GIvPCFnO', 'completed': 85, 'message': 'Converting'}
+2025-05-04 19:22:48 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 69, 'message': 'Converting'}
+2025-05-04 19:22:48 {'id': '2brodvxnVPmh04DCCTG3Sk', 'completed': 94, 'message': 'Converting'}
+2025-05-04 19:22:48 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 22.733709102734622, 'message': 'Downloading'}
+2025-05-04 19:22:49 {'id': '2brodvxnVPmh04DCCTG3Sk', 'completed': 94, 'message': 'Converting'}
+2025-05-04 19:22:49 {'id': '2brodvxnVPmh04DCCTG3Sk', 'completed': 95, 'message': 'Converting'}
+2025-05-04 19:22:49 {'id': '2brodvxnVPmh04DCCTG3Sk', 'completed': 95, 'message': 'Embedding metadata'}
+2025-05-04 19:22:49 {'id': '2brodvxnVPmh04DCCTG3Sk', 'completed': 100, 'message': 'Done'}
+2025-05-04 19:22:49 {'id': '25Cv6pteVL6Wm4GIvPCFnO', 'completed': 87, 'message': 'Converting'}
+2025-05-04 19:22:49 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 70, 'message': 'Converting'}
+2025-05-04 19:22:49 {'id': '25Cv6pteVL6Wm4GIvPCFnO', 'completed': 90, 'message': 'Converting'}
+2025-05-04 19:22:49 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 72, 'message': 'Converting'}
+2025-05-04 19:22:49 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 24.397526928122065, 'message': 'Downloading'}
+2025-05-04 19:22:50 {'id': '25Cv6pteVL6Wm4GIvPCFnO', 'completed': 92, 'message': 'Converting'}
+2025-05-04 19:22:50 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 73, 'message': 'Converting'}
+2025-05-04 19:22:50 {'id': '25Cv6pteVL6Wm4GIvPCFnO', 'completed': 94, 'message': 'Converting'}
+2025-05-04 19:22:50 {'id': '25Cv6pteVL6Wm4GIvPCFnO', 'completed': 95, 'message': 'Converting'}
+2025-05-04 19:22:50 {'id': '25Cv6pteVL6Wm4GIvPCFnO', 'completed': 95, 'message': 'Embedding metadata'}
+2025-05-04 19:22:50 {'id': '25Cv6pteVL6Wm4GIvPCFnO', 'completed': 100, 'message': 'Done'}
+2025-05-04 19:22:50 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 75, 'message': 'Converting'}
+2025-05-04 19:22:51 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 26.2854417860182, 'message': 'Downloading'}
+2025-05-04 19:22:51 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 76, 'message': 'Converting'}
+2025-05-04 19:22:51 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 77, 'message': 'Converting'}
+2025-05-04 19:22:51 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 27.89393685644469, 'message': 'Downloading'}
+2025-05-04 19:22:52 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 79, 'message': 'Converting'}
+2025-05-04 19:22:52 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 80, 'message': 'Converting'}
+2025-05-04 19:22:52 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 29.795837472202013, 'message': 'Downloading'}
+2025-05-04 19:22:53 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 81, 'message': 'Converting'}
+2025-05-04 19:22:53 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 31.64126339095702, 'message': 'Downloading'}
+2025-05-04 19:22:53 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 82, 'message': 'Converting'}
+2025-05-04 19:22:54 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 83, 'message': 'Converting'}
+2025-05-04 19:22:54 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 84, 'message': 'Converting'}
+2025-05-04 19:22:54 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 33.79518824948229, 'message': 'Downloading'}
+2025-05-04 19:22:55 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 86, 'message': 'Converting'}
+2025-05-04 19:22:55 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 87, 'message': 'Converting'}
+2025-05-04 19:22:55 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 35.68660323896565, 'message': 'Downloading'}
+2025-05-04 19:22:56 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 88, 'message': 'Converting'}
+2025-05-04 19:22:56 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 88, 'message': 'Converting'}
+2025-05-04 19:22:56 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 37.41076510513538, 'message': 'Downloading'}
+2025-05-04 19:22:57 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 90, 'message': 'Converting'}
+2025-05-04 19:22:57 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 91, 'message': 'Converting'}
+2025-05-04 19:22:57 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 39.32427375223263, 'message': 'Downloading'}
+2025-05-04 19:22:58 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 92, 'message': 'Converting'}
+2025-05-04 19:22:58 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 93, 'message': 'Converting'}
+2025-05-04 19:22:58 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 41.348708510518264, 'message': 'Downloading'}
+2025-05-04 19:22:59 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 94, 'message': 'Converting'}
+2025-05-04 19:22:59 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 94, 'message': 'Converting'}
+2025-05-04 19:22:59 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 95, 'message': 'Converting'}
+2025-05-04 19:22:59 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 95, 'message': 'Embedding metadata'}
+2025-05-04 19:22:59 {'id': '2nsKpEuwRqWoUncDCbh50T', 'completed': 100, 'message': 'Done'}
+2025-05-04 19:22:59 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 43.33337173140138, 'message': 'Downloading'}
+2025-05-04 19:23:00 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 45.09684731185464, 'message': 'Downloading'}
+2025-05-04 19:23:02 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 47.22600541649055, 'message': 'Downloading'}
+2025-05-04 19:23:02 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 48.85271003226323, 'message': 'Downloading'}
+2025-05-04 19:23:03 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 50.0, 'message': 'Downloading'}
+2025-05-04 19:23:03 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:23:03 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:23:03 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:23:04 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 50, 'message': 'Converting'}
+2025-05-04 19:23:04 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 53, 'message': 'Converting'}
+2025-05-04 19:23:05 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 55, 'message': 'Converting'}
+2025-05-04 19:23:05 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 57, 'message': 'Converting'}
+2025-05-04 19:23:06 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 59, 'message': 'Converting'}
+2025-05-04 19:23:06 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 61, 'message': 'Converting'}
+2025-05-04 19:23:07 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 63, 'message': 'Converting'}
+2025-05-04 19:23:07 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 65, 'message': 'Converting'}
+2025-05-04 19:23:08 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 67, 'message': 'Converting'}
+2025-05-04 19:23:08 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 68, 'message': 'Converting'}
+2025-05-04 19:23:09 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 69, 'message': 'Converting'}
+2025-05-04 19:23:09 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 71, 'message': 'Converting'}
+2025-05-04 19:23:10 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 72, 'message': 'Converting'}
+2025-05-04 19:23:10 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 74, 'message': 'Converting'}
+2025-05-04 19:23:11 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 76, 'message': 'Converting'}
+2025-05-04 19:23:11 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 77, 'message': 'Converting'}
+2025-05-04 19:23:12 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 79, 'message': 'Converting'}
+2025-05-04 19:23:12 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 81, 'message': 'Converting'}
+2025-05-04 19:23:13 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 83, 'message': 'Converting'}
+2025-05-04 19:23:13 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 85, 'message': 'Converting'}
+2025-05-04 19:23:14 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 86, 'message': 'Converting'}
+2025-05-04 19:23:14 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 88, 'message': 'Converting'}
+2025-05-04 19:23:15 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 90, 'message': 'Converting'}
+2025-05-04 19:23:15 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 92, 'message': 'Converting'}
+2025-05-04 19:23:16 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 93, 'message': 'Converting'}
+2025-05-04 19:23:16 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 94, 'message': 'Converting'}
+2025-05-04 19:23:16 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 95, 'message': 'Converting'}
+2025-05-04 19:23:16 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 95, 'message': 'Embedding metadata'}
+2025-05-04 19:23:16 {'id': '42eZC1LaQ3qioZWVLisVT6', 'completed': 100, 'message': 'Done'}

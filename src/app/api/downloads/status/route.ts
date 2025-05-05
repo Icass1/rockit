@@ -26,6 +26,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         downloadId +
         `&user=${session.user.id}`;
 
+    console.warn("Only for development")
+
+    // const upstreamUrl =
+    //     `${BACKEND_URL}/download-status-mockup?id=` +
+    //     downloadId +
+    //     `&user=${session.user.id}`;
+
     // Connect to the upstream SSE server
     const upstreamResponse: Response = await fetch(upstreamUrl, {
         headers: {

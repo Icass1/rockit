@@ -9,7 +9,7 @@ export const downloadInfo = atom<{
     [key: string]: { completed: number; message: string };
 }>({});
 
-function onMessage(event: MessageEvent<string>, eventSource: EventSource) {
+function onMessage(event: MessageEvent<string>) {
     const message: { id: string; completed: number; message: string } =
         JSON.parse(event.data);
 
@@ -22,9 +22,12 @@ function onMessage(event: MessageEvent<string>, eventSource: EventSource) {
 }
 
 export async function startDownload(url: string) {
+    console.warn("Only for development");
     const response = await fetch(`/api/downloads/start?url=${url}`);
 
     const downloadId = await response.json();
+
+    // const downloadId = "A";
 
     downloads.set([...downloads.get(), downloadId]);
 }
@@ -40,7 +43,7 @@ downloads.subscribe((value) => {
             `/api/downloads/status?id=${downloadId}`
         );
         eventSource.onmessage = (event) => {
-            onMessage(event, eventSource);
+            onMessage(event);
         };
         eventSource.onerror = (error) => {
             eventSources = eventSources.filter((id) => id != downloadId);

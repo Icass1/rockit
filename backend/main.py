@@ -6,6 +6,7 @@ import json
 from asyncio import sleep
 import threading
 from dotenv import load_dotenv
+import time
 
 from spotifyApiTypes.RawSpotifyApiSearchResults import RawSpotifyApiSearchResults
 from downloader import Downloader
@@ -50,6 +51,47 @@ async def download_status(request: Request, id: str):
     return downloader.download_status(request=request, download_id=id)
 
 
+@app.get("/download-status-mockup")
+async def download_status_mockup(request: Request):
+
+    file = open("backend/downloadStatusMockup.txt")
+    content = file.readlines()
+    file.close()
+
+    def get_time(time: str):
+        return int(time.split(":")[0])*3600 + int(time.split(":")[1])*60 + int(time.split(":")[2])
+
+    start_time = get_time(content[0].split(" ")[1])
+    absolute_start_time = time.time()
+
+    print(start_time)
+
+    async def event_generator():
+        current_index = 0
+        while True:
+            if await request.is_disconnected():
+                break
+            try:
+                current_time = start_time + \
+                    (time.time() - absolute_start_time)
+
+                if current_index >= len(content):
+                    break
+
+                if current_time > get_time(content[current_index].split(" ")[1]):
+                    message = content[current_index].split(
+                        content[current_index].split(" ")[1] + " ")[1].replace("\n", "").replace("'", '"')
+                    current_index += 1
+
+                    yield f"data: {message}\n\n"
+
+            except asyncio.TimeoutError:
+                # Send keep-alive to prevent connection from closing
+                yield ": keep-alive\n\n"
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+
 @app.get('/search')
 def search(request: Request, q: str):
     search_results = RawSpotifyApiSearchResults.from_dict(downloader.spotify.api_call(path="search", params={
@@ -65,6 +107,4 @@ def search(request: Request, q: str):
 
 @app.on_event('startup')
 async def app_startup():
-    # threading.Thread(target=downloader.download_manager).start()
-
     asyncio.create_task(downloader.download_manager())

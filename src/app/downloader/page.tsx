@@ -7,6 +7,31 @@ import { useStore } from "@nanostores/react";
 import { ArrowDownToLine } from "lucide-react";
 import { useState } from "react";
 
+function SongDownload({
+    id,
+    completed,
+    message,
+}: {
+    id: string;
+    completed: number;
+    message: string;
+}) {
+    return (
+        <div className="flex flex-col">
+            <div>
+                {id}:{completed} - {message}
+            </div>
+
+            <div className="relative h-2 w-1/2 bg-neutral-800">
+                <div
+                    className="h-full bg-red-400"
+                    style={{ width: completed + "%" }}
+                ></div>
+            </div>
+        </div>
+    );
+}
+
 export default function DownloaderPage() {
     const [url, setURL] = useState("");
 
@@ -85,19 +110,12 @@ export default function DownloaderPage() {
             <div className="flex flex-col">
                 {Object.entries($downloadInfo).map((entry) => {
                     return (
-                        <div key={entry[0]} className="flex flex-col">
-                            <div>
-                                {entry[0]}:{entry[1].completed} -{" "}
-                                {entry[1].message}
-                            </div>
-
-                            <div className="relative h-2 w-1/2 bg-neutral-800">
-                                <div
-                                    className="h-full bg-red-400"
-                                    style={{ width: entry[1].completed + "%" }}
-                                ></div>
-                            </div>
-                        </div>
+                        <SongDownload
+                            key={entry[0]}
+                            id={entry[0]}
+                            completed={entry[1].completed}
+                            message={entry[1].message}
+                        />
                     );
                 })}
             </div>

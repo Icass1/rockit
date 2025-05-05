@@ -358,11 +358,11 @@ export const randomQueue = createControlledAtom<boolean | undefined>(
     (value) => (value ? "1" : "0"),
     (value) => (value == "1" ? true : false)
 );
-export const repeatSong = createControlledAtom<boolean | undefined>(
-    undefined,
+export const repeatSong = createControlledAtom<UserDB["repeatSong"] | undefined>(
+    "off",
     "repeatSong",
-    (value) => (value ? "1" : "0"),
-    (value) => (value == "1" ? true : false)
+    (value) => value ?? "off",
+    (value) => (value === "off" || value === "all" || value === "one" ? value : "off")
 );
 export const currentStation = createControlledAtom<Station | undefined>(
     undefined,
@@ -526,7 +526,7 @@ fetch(
 
         userQuery.onsuccess = async function () {
             if (!userQuery.result) {
-                repeatSong.set(false);
+                repeatSong.set("off");
                 randomQueue.set(false);
                 volume.set(1);
 
@@ -543,7 +543,7 @@ fetch(
                 currentSong.set(undefined);
             }
 
-            repeatSong.set(userQuery.result.repeatSong ?? false);
+            repeatSong.set(userQuery.result.repeatSong ?? "off");
             randomQueue.set(userQuery.result.randomQueue ?? false);
             volume.set(userQuery.result.volume ?? 1);
 
@@ -556,7 +556,7 @@ fetch(
         };
 
         userQuery.onerror = () => {
-            repeatSong.set(false);
+            repeatSong.set("off");
             randomQueue.set(false);
             volume.set(1);
 
@@ -1465,7 +1465,7 @@ async function onTimeupdate() {
     updateUserIndexedDB();
 
     const userVolume = volume.get();
-    if (userVolume && _crossFade && _crossFade > 0 && !repeatSong.get()) {
+    if (userVolume && _crossFade && _crossFade > 0 && repeatSong.get() == "off") {
         if (audio.duration - audio.currentTime < _crossFade) {
             audio.volume =
                 ((-userVolume / _crossFade) *
@@ -1580,7 +1580,7 @@ function onPause() {
 }
 
 async function onEnded() {
-    if (repeatSong.get()) {
+    if (repeatSong.get() == "one") {
         setTime(0);
         play();
         return;

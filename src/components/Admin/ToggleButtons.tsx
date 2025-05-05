@@ -4,7 +4,7 @@ import { useState } from "react";
 
 export default function ToggleButtons() {
     const [randomQueue, setRandomQueue] = useState<boolean>(false);
-    const [repeatSong, setRepeatSong] = useState<boolean>(false);
+    const [repeatSong, setRepeatSong] = useState<string>("off");
     const [admin, setAdmin] = useState<boolean>(false);
     const [devUser, setDevUser] = useState<boolean>(false);
 
@@ -30,11 +30,8 @@ export default function ToggleButtons() {
                 <div className="flex flex-row justify-between pr-5">
                     <label>Repeat Song</label>
                     <input
-                        checked={repeatSong}
+                        checked={repeatSong !== "off"}
                         type="checkbox"
-                        onChange={(e) => {
-                            setRepeatSong(e.currentTarget.checked);
-                        }}
                     />
                 </div>
                 <div className="flex flex-row justify-between pr-5">

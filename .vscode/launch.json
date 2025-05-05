@@ -4,7 +4,7 @@
     {
       "name": "Run Full Stack (Backend + Frontend)",
       "configurations": [
-        "Python Backend Server",
+        "FastAPI Uvicorn",
         "NextJS Server"
       ]
     },
@@ -25,13 +25,12 @@
       "console": "integratedTerminal"
     },
     {
-      "name": "FastAPI Uvicorn Debug",
+      "name": "FastAPI Uvicorn",
       "type": "debugpy",
       "request": "launch",
       "module": "uvicorn",
       "args": [
         "backend.main:app",
-        "--reload"
       ],
       "justMyCode": false
     },

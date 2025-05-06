@@ -9,7 +9,7 @@ import {
 } from "@/stores/audio";
 import { useStore } from "@nanostores/react";
 import LikeButton from "@/components/LikeButton";
-import { EllipsisVertical, PlayIcon, PauseIcon } from "lucide-react";
+import { EllipsisVertical, PlayIcon, PauseIcon, Pause, Play } from "lucide-react";
 import { isPlayerUIVisible } from "@/stores/isPlayerUIVisible";
 import { useState } from "react";
 import { getImageUrl } from "@/lib/getImageUrl";
@@ -18,22 +18,43 @@ import SongPopupMenu from "@/components/ListSongs/SongPopupMenu";
 import Link from "next/link";
 
 function FooterLeftForSong({ currentSong }: { currentSong: CurrentSong }) {
+    const $playing = useStore(playing);
+
     return (
-        // <!-- Para el Nicolás de mañana {currentSong && <LikeButton song={currentSong} />} -->
         <div className="flex w-full max-w-full min-w-0 items-center gap-x-4 md:w-1/3">
             {/* Imagen al inicio */}
-            <Image
-                width={64}
-                height={64}
-                src={getImageUrl({
-                    imageId: currentSong?.image,
-                    width: 64,
-                    height: 64,
-                    placeHolder: "/song-placeholder.png",
-                })}
-                alt="Album Cover"
-                className="h-9 w-9 rounded-md select-none md:h-16 md:w-16"
-            />
+            <div
+                className="relative group h-9 w-9 md:h-16 md:w-16 rounded-md cursor-pointer"
+                onClick={() => ($playing ? pause() : play())}
+            >
+                {/* Imagen del álbum */}
+                <Image
+                    width={64}
+                    height={64}
+                    src={getImageUrl({
+                        imageId: currentSong?.image,
+                        width: 64,
+                        height: 64,
+                        placeHolder: "/song-placeholder.png",
+                    })}
+                    alt="Album Cover"
+                    className="h-9 w-9 md:h-16 md:w-16 rounded-md object-cover select-none transition duration-300 group-hover:brightness-50"
+                />
+
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                    {$playing ? (
+                        <Pause 
+                            className="h-6 w-6 md:h-8 md:w-8 text-white fill-current" 
+                            onClick={() => pause()}
+                        />
+                    ) : (
+                        <Play 
+                            className="h-6 w-6 md:h-8 md:w-8 text-white fill-current" 
+                            onClick={() => play()}
+                        />
+                    )}
+                </div>
+            </div>
 
             {/* Parte central que se estira */}
             <div className="flex min-w-0 flex-1 flex-col">

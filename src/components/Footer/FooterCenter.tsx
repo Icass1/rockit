@@ -8,6 +8,7 @@ import {
     CirclePlay,
     Repeat,
     CirclePause,
+    Repeat1,
 } from "lucide-react";
 import Slider from "@/components/Slider";
 import Spinner from "@/components/Spinner";
@@ -35,6 +36,16 @@ export default function FooterCenter() {
     const $repeatSong = useStore(repeatSong);
     const $loading = useStore(loading);
     const $currentStation = useStore(currentStation);
+
+    const cyclerepeatSong = () => {
+        repeatSong.set(
+            repeatSong.get() === "off"
+                ? "all"
+                : repeatSong.get() === "all"
+                ? "one"
+                : "off"
+        );
+    };
 
     return (
         <div className="hidden w-1/3 flex-col items-center justify-center space-y-1 md:flex">
@@ -87,15 +98,27 @@ export default function FooterCenter() {
                                 play();
                             }}
                         />
-                        <Repeat
-                            className={
-                                "h-[18px] w-[18px] cursor-pointer transition-colors md:hover:scale-105 " +
-                                ($repeatSong
-                                    ? " text-[#ee1086]"
-                                    : " text-gray-400")
-                            }
-                            onClick={() => repeatSong.set(!repeatSong.get())}
-                        />
+                        {
+                            repeatSong.get() === "one" ? (
+                                <Repeat1
+                                    className={
+                                        "h-[18px] w-[18px] cursor-pointer transition-colors md:hover:scale-105 " +
+                                        "text-[#ee1086]"
+                                    }
+                                    onClick={cyclerepeatSong}
+                                />
+                            ) : (
+                                <Repeat
+                                    className={
+                                        "h-[18px] w-[18px] cursor-pointer transition-colors md:hover:scale-105 " +
+                                        (repeatSong.get() === "all"
+                                            ? "text-[#ee1086]"
+                                            : "text-gray-400")
+                                    }
+                                    onClick={cyclerepeatSong}
+                                />
+                            )
+                        }
                     </div>
                     <div className="group flex h-7 w-full items-center space-x-2">
                         <span

@@ -4,13 +4,12 @@ import { queue, queueIndex, songsInIndexedDB } from "@/stores/audio";
 import { getTime } from "@/lib/getTime";
 import LikeButton from "@/components/LikeButton";
 import { EllipsisVertical, CheckCircle2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useStore } from "@nanostores/react";
 import { currentList, currentListSongs } from "@/stores/currentList";
 import { songHandleClick } from "./HandleClick";
 import SongContextMenu from "./SongContextMenu";
 import type { SongDB } from "@/db/song";
-import { downloadedSongs, status } from "@/stores/downloads";
 import { networkStatus } from "@/stores/networkStatus";
 
 export default function AlbumSong({
@@ -36,9 +35,6 @@ export default function AlbumSong({
     const $songsInIndexedDB = useStore(songsInIndexedDB);
     const $networkStatus = useStore(networkStatus);
 
-    const $downloadedSongs = useStore(downloadedSongs);
-    const $status = useStore(status);
-
     const [_song, setSong] =
         useState<
             SongDB<
@@ -59,28 +55,7 @@ export default function AlbumSong({
         e.stopPropagation();
     };
 
-    useEffect(() => {
-        if ($downloadedSongs.includes(_song.id)) {
-            fetch(`/api/song/${_song.id}`)
-                .then((response) => response.json())
-                .then((data) => {
-                    setSong(data);
-                    currentListSongs.set(
-                        currentListSongs.get().map((song) => {
-                            if (song.id == data.id) {
-                                return data;
-                            } else {
-                                return song;
-                            }
-                        })
-                    );
-                });
-        }
-    }, [$downloadedSongs, _song.id]);
-
     if (!$queue) return <div></div>;
-
-    const songStatus = $status.lists[song.albumId]?.songs[song.id];
 
     return (
         <SongContextMenu song={_song}>
@@ -128,26 +103,6 @@ export default function AlbumSong({
                     <label className="w-auto max-w-full min-w-0 truncate">
                         {_song.name}
                     </label>
-                    {songStatus && songStatus.completed != 100 && (
-                        <div
-                            className={
-                                "progress-bar relative h-2 w-32 rounded-full " +
-                                (songStatus.message == "Error" && "bg-red-400")
-                            }
-                        >
-                            <div
-                                className={
-                                    "absolute h-full rounded-full transition-all " +
-                                    (songStatus.message == "Error"
-                                        ? " bg-red-400"
-                                        : " bg-gradient-to-r from-[#ee1086] to-[#fb6467]")
-                                }
-                                style={{
-                                    width: `${songStatus.completed}%`,
-                                }}
-                            ></div>
-                        </div>
-                    )}
                 </div>
                 {$songsInIndexedDB?.includes(_song.id) ? (
                     <div className="min-h-6 min-w-6">

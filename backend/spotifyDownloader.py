@@ -68,7 +68,7 @@ class SpotifyDownloader:
 
         self.queue_elements: List[QueueElement] = []
 
-        self._qeuue_set = False
+        self._queue_set = False
 
         self.downloader.spotify.db.execute(
             query="INSERT INTO download (id, userId, dateStarted, downloadURL, status, seen) VALUES(?, ?, ?, ?, ?, ?)", parameters=(
@@ -163,7 +163,7 @@ class SpotifyDownloader:
                 self.message_handler.add(
                     {'id': spotdl_song.song_id, 'completed': 0, 'message': 'In queue'})
 
-        self._qeuue_set = True
+        self._queue_set = True
 
         # Fetch spotify https://open.spotify.com/intl-es/track/5EvLXXAKicvIF3LegVMlJj?si=f22cd441145541a9
 
@@ -172,7 +172,7 @@ class SpotifyDownloader:
 
         self.update_status_db(status="Waiting for queue setup")
 
-        while not self._qeuue_set:
+        while not self._queue_set:
             await asyncio.sleep(0)
 
         self.logger.info("Waiting for songs")

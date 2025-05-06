@@ -358,12 +358,9 @@ export const randomQueue = createControlledAtom<boolean | undefined>(
     (value) => (value ? "1" : "0"),
     (value) => (value == "1" ? true : false)
 );
-export const repeatSong = createControlledAtom<UserDB["repeatSong"] | undefined>(
-    "off",
-    "repeatSong",
-    (value) => value ?? "off",
-    (value) => (value === "off" || value === "all" || value === "one" ? value : "off")
-);
+export const repeatSong = createControlledAtom<
+    UserDB["repeatSong"] | undefined
+>("off", "repeatSong");
 export const currentStation = createControlledAtom<Station | undefined>(
     undefined,
     "currentStation",
@@ -1465,7 +1462,12 @@ async function onTimeupdate() {
     updateUserIndexedDB();
 
     const userVolume = volume.get();
-    if (userVolume && _crossFade && _crossFade > 0 && repeatSong.get() == "off") {
+    if (
+        userVolume &&
+        _crossFade &&
+        _crossFade > 0 &&
+        repeatSong.get() == "off"
+    ) {
         if (audio.duration - audio.currentTime < _crossFade) {
             audio.volume =
                 ((-userVolume / _crossFade) *

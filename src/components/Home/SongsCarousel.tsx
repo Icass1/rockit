@@ -124,24 +124,30 @@ function Song({
                 >
                     {song.artists[0].name}
                 </label>
-                <button
-                    className="absolute right-4 bottom-4 rounded-full bg-transparent p-3 text-white backdrop-blur-sm transition duration-300 md:hover:bg-black/40"
-                    onClick={handleClick}
-                >
-                    {$currentSong?.id == song.id && $playing ? (
-                        <Pause
-                            className={`${transition} ${
-                                index == currentIndex ? "h-5 w-5" : "h-0 w-0"
-                            }`}
-                        />
-                    ) : (
-                        <Play
-                            className={`${transition} ${
-                                index == currentIndex ? "h-5 w-5" : "h-0 w-0"
-                            }`}
-                        />
-                    )}
-                </button>
+                {distanceFromCenter == 0 && (
+                    <button
+                        className="absolute right-4 bottom-4 rounded-full bg-transparent p-3 text-white backdrop-blur-sm transition duration-300 md:hover:bg-black/40"
+                        onClick={handleClick}
+                    >
+                        {$currentSong?.id == song.id && $playing ? (
+                            <Pause
+                                className={`${transition} ${
+                                    index == currentIndex
+                                        ? "h-5 w-5"
+                                        : "h-0 w-0"
+                                }`}
+                            />
+                        ) : (
+                            <Play
+                                className={`${transition} ${
+                                    index == currentIndex
+                                        ? "h-5 w-5"
+                                        : "h-0 w-0"
+                                }`}
+                            />
+                        )}
+                    </button>
+                )}
             </div>
         </div>
     );

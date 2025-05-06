@@ -155,11 +155,15 @@ async function getPlaylist(id: string) {
             .toSorted((a, b) => b.timesPlayed - a.timesPlayed)
             .slice(0, 50);
 
+        let lastMonthNameIndex = new Intl.DateTimeFormat("en", {
+            month: "long",
+        }).format(date).toLowerCase();
+
         playlist = {
             name: `${localizedMonth} Recap`,
             songs: songs,
             image: "",
-            images: [{ url: "/rockit-background.png", height: 1, width: 1 }],
+            images: [{ url: `/recap-covers/${lastMonthNameIndex}.png`, height: 1, width: 1 }],
             owner: "Rock It!",
         };
     } else if (id == "recent-mix") {

@@ -256,7 +256,7 @@ export default function DBTablePage({
                 )}
                 <div
                     className={
-                        "grid h-full w-full grid-cols-[100px_1fr] grid-rows-[min-content_1fr_min-content]" +
+                        "grid h-full w-full grid-cols-[100px_1fr] grid-rows-[min-content_1fr_min-content] " +
                         (insertPopupOpen ||
                             (typeof editPopup == "number" &&
                                 "pointer-events-none opacity-50 select-none"))

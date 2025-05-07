@@ -42,8 +42,8 @@ export default function FooterCenter() {
             repeatSong.get() === "off"
                 ? "all"
                 : repeatSong.get() === "all"
-                ? "one"
-                : "off"
+                  ? "one"
+                  : "off"
         );
     };
 
@@ -98,27 +98,25 @@ export default function FooterCenter() {
                                 play();
                             }}
                         />
-                        {
-                            $repeatSong === "one" ? (
-                                <Repeat1
-                                    className={
-                                        "h-[18px] w-[18px] cursor-pointer transition-colors md:hover:scale-105 " +
-                                        "text-[#ee1086]"
-                                    }
-                                    onClick={cyclerepeatSong}
-                                />
-                            ) : (
-                                <Repeat
-                                    className={
-                                        "h-[18px] w-[18px] cursor-pointer transition-colors md:hover:scale-105 " +
-                                        ($repeatSong === "all"
-                                            ? "text-[#ee1086]"
-                                            : "text-gray-400")
-                                    }
-                                    onClick={cyclerepeatSong}
-                                />
-                            )
-                        }
+                        {$repeatSong === "one" ? (
+                            <Repeat1
+                                className={
+                                    "h-[18px] w-[18px] cursor-pointer transition-colors md:hover:scale-105 " +
+                                    "text-[#ee1086]"
+                                }
+                                onClick={cyclerepeatSong}
+                            />
+                        ) : (
+                            <Repeat
+                                className={
+                                    "h-[18px] w-[18px] cursor-pointer transition-colors md:hover:scale-105 " +
+                                    ($repeatSong === "all"
+                                        ? "text-[#ee1086]"
+                                        : "text-gray-400")
+                                }
+                                onClick={cyclerepeatSong}
+                            />
+                        )}
                     </div>
                     <div className="group flex h-7 w-full items-center space-x-2">
                         <span

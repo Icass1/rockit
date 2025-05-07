@@ -52,6 +52,12 @@ export function FeaturedLists({
     const date = new Date();
     date.setMonth(date.getMonth() - 1);
 
+    let lastMonthNameIndex = new Intl.DateTimeFormat("en", {
+        month: "long",
+    })
+        .format(date)
+        .toLowerCase();
+
     let lastMonthName = new Intl.DateTimeFormat(lang.get(), {
         month: "long",
     }).format(date);
@@ -141,7 +147,7 @@ export function FeaturedLists({
                     <div
                         className="relative aspect-square w-full rounded-lg object-cover"
                         style={{
-                            backgroundImage: "url(/rockit-background.png)",
+                            backgroundImage: `url(/recap-covers/${lastMonthNameIndex}.png)`,
                             backgroundSize: "cover",
                         }}
                     >

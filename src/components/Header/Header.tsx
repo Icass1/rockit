@@ -13,14 +13,15 @@ export default async function Header() {
     const pathname = headerList.get("x-current-path");
 
     return (
-        <header 
-            className="relative z-50 w-full grid grid-cols-[33%_33%_32%] justify-between py-4 px-4 text-white bg-gradient-to-b via-70% from-black/100 via-black/60 to-black/0">
+        <header className="relative z-50 grid w-full grid-cols-[33%_33%_32%] justify-between bg-gradient-to-b from-black/100 via-black/60 via-70% to-black/0 px-4 py-4 text-white">
             {/* Blur overlay */}
             <div
                 className="absolute inset-0 -z-10 backdrop-blur-[20px]"
                 style={{
-                    WebkitMaskImage: 'linear-gradient(to bottom, black 33%, transparent 100%)',
-                    maskImage: 'linear-gradient(to bottom, black 33%, transparent 100%)',
+                    WebkitMaskImage:
+                        "linear-gradient(to bottom, black 33%, transparent 100%)",
+                    maskImage:
+                        "linear-gradient(to bottom, black 33%, transparent 100%)",
                 }}
             ></div>
 

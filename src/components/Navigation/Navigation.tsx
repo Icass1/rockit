@@ -30,7 +30,7 @@ export default function Navigation() {
     const handleMouseEnter = () => {
         hoverTimeout.current = setTimeout(() => {
             setOpen(true);
-        }, 1000);
+        }, 500);
     };
 
     const handleMouseLeave = () => {

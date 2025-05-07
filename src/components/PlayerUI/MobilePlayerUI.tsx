@@ -74,8 +74,7 @@ export default function MobilePlayerUI() {
                     event.target.className.includes("context-menu-option");
                     return;
                 }
-
-                isMobilePlayerUIVisible.set(false);
+                //isMobilePlayerUIVisible.set(false);
             }
         };
         document.addEventListener("click", handleDocumentClick);

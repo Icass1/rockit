@@ -1,19 +1,8 @@
-import {
-    isSpotifyError,
-    type SpotifyAlbum,
-    type SpotifyError,
-    type SpotifyTrack,
-} from "@/types/spotify";
-
-import {
-    type AlbumDB,
-    type ArtistDB,
-    parseAlbum,
-    type RawAlbumDB,
-} from "@/db/album";
+import { type AlbumDB, parseAlbum, type RawAlbumDB } from "@/db/album";
 import { db } from "@/db/db";
 import { parseSong, type RawSongDB, type SongDB } from "@/db/song";
 import { ENV } from "@/rockitEnv";
+import { SpotifyTrack } from "@/types/spotify";
 
 const BACKEND_URL = ENV.BACKEND_URL;
 
@@ -37,7 +26,6 @@ export type GetAlbum = {
     >;
     songs: Song[];
     discs: Song[][];
-    inDatabase: boolean;
 };
 
 export default async function getAlbum(
@@ -54,7 +42,6 @@ export default async function getAlbum(
               | "image"
           >
         | undefined;
-    let inDatabase: boolean;
     let songs: Song[];
     let discs: Song[][];
 
@@ -62,9 +49,21 @@ export default async function getAlbum(
         db.prepare("SELECT * FROM album WHERE id = ?").get(id) as RawAlbumDB
     );
 
-    if (album) {
-        inDatabase = true;
+    if (!album) {
+        const response = await fetch(`${BACKEND_URL}/album/${id}`, {
+            signal: AbortSignal.timeout(10000),
+        });
 
+        if (!response.ok) {
+            return "error connecting to backend";
+        }
+
+        album = parseAlbum(
+            db.prepare("SELECT * FROM album WHERE id = ?").get(id) as RawAlbumDB
+        );
+    }
+
+    if (album) {
         songs = (
             await Promise.all(
                 album.songs.map(
@@ -93,7 +92,6 @@ export default async function getAlbum(
                             .get(songID) as RawSongDB | undefined;
 
                         if (rawSong) return parseSong(rawSong);
-                        inDatabase = false;
 
                         const response = await fetch(
                             `${BACKEND_URL}/song/${songID}`,
@@ -142,83 +140,7 @@ export default async function getAlbum(
                 discs[song?.discNumber - 1].push({ ...song });
             }
         });
-    } else {
-        inDatabase = false;
-        let response;
-        try {
-            response = await fetch(`${BACKEND_URL}/album/${id}`, {
-                signal: AbortSignal.timeout(2000),
-            });
-        } catch {
-            return "error connecting to backend";
-        }
-        if (!response.ok) {
-            return "not found";
-        }
-        const data: SpotifyAlbum | SpotifyError = await response.json();
-
-        if (isSpotifyError(data)) {
-            return "not found";
-        }
-
-        album = {
-            id: data.id,
-            artists: data.artists as ArtistDB[],
-            images: data.images,
-            name: data.name,
-            releaseDate: data.release_date,
-            songs: data.tracks.items.map((item) => item.id),
-            image: "",
-        };
-
-        songs = data.tracks.items.map((item) => {
-            const songDB = parseSong(
-                db
-                    .prepare(
-                        "SELECT image, id, name, artists, albumId, albumName, path, duration, discNumber, trackNumber FROM song WHERE id = ?"
-                    )
-                    .get(item.id) as RawSongDB
-            );
-
-            if (songDB) {
-                return songDB;
-            }
-
-            return {
-                id: item.id,
-                images: data.images,
-                name: item.name,
-                image: "",
-                artists: data.artists,
-                albumId: data.id,
-                albumName: data.name,
-                path: "",
-                duration: item.duration_ms / 1000,
-                discNumber: item.disc_number,
-                trackNumber: item.track_number,
-            };
-        });
-
-        songs.sort((a, b) => {
-            if (
-                typeof a?.trackNumber == "undefined" ||
-                typeof b?.trackNumber == "undefined"
-            ) {
-                return 0;
-            }
-            return a.trackNumber - b.trackNumber;
-        });
-
-        discs = Array(Math.max(...songs.map((song) => song?.discNumber || 0)))
-            .fill(1)
-            .map(() => []);
-
-        songs.map((song) => {
-            if (song?.discNumber) {
-                discs[song?.discNumber - 1].push({ ...song });
-            }
-        });
+        return { album, songs, discs };
     }
-
-    return { album, inDatabase, songs, discs };
+    return "not found";
 }

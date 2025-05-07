@@ -1,5 +1,5 @@
 import asyncio
-from fastapi import FastAPI, BackgroundTasks, Request, background
+from fastapi import FastAPI, BackgroundTasks, Request, Response, background
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 import json
@@ -8,8 +8,8 @@ import threading
 from dotenv import load_dotenv
 import time
 
-from spotifyApiTypes.RawSpotifyApiSearchResults import RawSpotifyApiSearchResults
-from downloader import Downloader
+from backend.downloader import Downloader
+from backend.spotifyApiTypes.RawSpotifyApiSearchResults import RawSpotifyApiSearchResults
 
 load_dotenv()
 
@@ -103,6 +103,65 @@ def search(request: Request, q: str):
         "playlists": [a._json for a in search_results.playlists.items],
         "artists": [a._json for a in search_results.artists.items],
     }
+
+
+@app.get(path='/status')
+def status(request: Request):
+
+    return {
+        "queueLength": len(downloader.queue),
+        "maxDownloadThreads": downloader.max_download_threads,
+        "currentDownloads": len(downloader.download_threads)
+    }
+
+
+@app.get(path='/get-queue')
+def get_queue(request: Request):
+
+    return [{
+        "done": song._done,
+        "songName": song.get_song().name,
+        "songId": song.get_song().song_id,
+        "songAlbumName": song.get_song().album_name,
+        "songAlbumId": song.get_song().album_id,
+        "songArtist": song.get_song().artist,
+    } for song in downloader.queue]
+
+
+@app.get(path='/get-downloads')
+def get_downloads(request: Request):
+
+    return [{
+        "done": thread[1]._done,
+        "songName": thread[1].get_song().name,
+        "songId": thread[1].get_song().song_id,
+        "songAlbumName": thread[1].get_song().album_name,
+        "songAlbumId": thread[1].get_song().album_id,
+        "songArtist": thread[1].get_song().artist,
+    } for thread in downloader.download_threads]
+
+
+@app.get(path='/album/{album_id}')
+def get_album(request: Request, album_id):
+
+    album = downloader.spotify.get_album(album_id)
+
+    if not album:
+        return Response("Album not found", status_code=404)
+
+    if not album:
+        return Response("Album not found", status_code=404)
+
+    if not album.tracks:
+        return Response("Album not found", status_code=404)
+
+    if not album.tracks.items:
+        return Response("Album not found", status_code=404)
+
+    album._json["tracks"] = downloader.spotify.get_songs(
+        ids=[a.id for a in album.tracks.items if a.id])
+
+    return album._json
 
 
 @app.on_event('startup')

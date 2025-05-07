@@ -10,7 +10,8 @@ export interface RawDownloadDB {
     downloadURL: string;
     status: string;
     seen: string;
-    success?: string;
+    success?: number;
+    fail?: number;
 }
 
 export type DownloadDB<
@@ -25,7 +26,8 @@ export interface DownloadDBFull {
     downloadURL: string;
     status: string;
     seen: boolean;
-    success?: boolean;
+    success?: number;
+    fail?: number;
 }
 
 export const downloadQuery = `CREATE TABLE IF NOT EXISTS download (
@@ -36,7 +38,8 @@ export const downloadQuery = `CREATE TABLE IF NOT EXISTS download (
     downloadURL TEXT NOT NULL,
     status TEXT NOT NULL,
     seen BOOLEAN DEFAULT "1" NOT NULL,
-    success BOOLEAN
+    success INTEGER,
+    fail INTEGER
 )`;
 
 export function parseDownload(
@@ -54,6 +57,7 @@ export function parseDownload(
         downloadURL: download.downloadURL,
         status: download.status,
         seen: download.seen == "1" ? true : false,
-        success: download.success == "1" ? true : false,
+        success: download.success,
+        fail: download.fail,
     };
 }

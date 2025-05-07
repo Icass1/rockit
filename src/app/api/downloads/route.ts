@@ -1,8 +1,9 @@
 import { getSession } from "@/lib/auth/getSession";
-import { ENV } from "@/rockitEnv";
+import { db } from "@/lib/db/db";
+import { parseDownload, RawDownloadDB } from "@/lib/db/download";
 import { NextResponse } from "next/server";
 
-export async function GET() {
+export async function GET(): Promise<NextResponse> {
     const session = await getSession();
 
     if (!session?.user) {
@@ -12,18 +13,10 @@ export async function GET() {
         );
     }
 
-    let response;
+    const downloads = db
+        .prepare("SELECT * FROM download WHERE userId = ? AND seen = 0")
+        .all(session.user.id)
+        .map((entry) => parseDownload(entry as RawDownloadDB));
 
-    try {
-        response = await fetch(
-            `${ENV.BACKEND_URL}/downloads?user=${session.user.id}`,
-            {
-                signal: AbortSignal.timeout(2000),
-            }
-        );
-    } catch {
-        return new NextResponse("Error connecting to backend", { status: 500 });
-    }
-
-    return response;
+    return NextResponse.json(downloads);
 }

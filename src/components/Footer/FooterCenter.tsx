@@ -99,7 +99,7 @@ export default function FooterCenter() {
                             }}
                         />
                         {
-                            repeatSong.get() === "one" ? (
+                            $repeatSong === "one" ? (
                                 <Repeat1
                                     className={
                                         "h-[18px] w-[18px] cursor-pointer transition-colors md:hover:scale-105 " +
@@ -111,7 +111,7 @@ export default function FooterCenter() {
                                 <Repeat
                                     className={
                                         "h-[18px] w-[18px] cursor-pointer transition-colors md:hover:scale-105 " +
-                                        (repeatSong.get() === "all"
+                                        ($repeatSong === "all"
                                             ? "text-[#ee1086]"
                                             : "text-gray-400")
                                     }

@@ -7,6 +7,7 @@ import Link from "next/link";
 import { promises as fs } from "fs";
 import { notFound } from "next/navigation";
 import NewBackupButton from "@/components/Admin/NewBackup";
+import { ENV } from "@/rockitEnv";
 
 export default async function AdminPage() {
     const session = await getSession();
@@ -37,6 +38,12 @@ export default async function AdminPage() {
         .filter((name) => name != "database.db");
 
     databaseBackups.sort();
+
+    const response = await fetch(ENV.BACKEND_URL + "/status");
+    const downloaderStatus: {
+        queueLength: number;
+        maxDownloadThreads: number;
+    } = await response.json();
 
     const gradientTextClass =
         "bg-clip-text text-xl mr-2 font-bold [-webkit-text-fill-color:transparent] [background-image:-webkit-linear-gradient(0deg,#fb6467,#ee1086)]";
@@ -159,7 +166,7 @@ export default async function AdminPage() {
                             return (
                                 <Link
                                     key={table.name}
-                                    href={`/admin/db/${table.name}`}
+                                    href={`/admin/db/current/${table.name}`}
                                     className="flex flex-row items-baseline justify-between gap-x-1 text-sm"
                                 >
                                     <label className="md:hover:underline">
@@ -173,7 +180,7 @@ export default async function AdminPage() {
                         })}
                     </div>
 
-                    <Link href="/admin/db" className="relative w-full">
+                    <Link href="/admin/db/current" className="relative w-full">
                         <LinkIcon className="relative right-0 ml-auto" />
                     </Link>
                 </div>
@@ -198,6 +205,20 @@ export default async function AdminPage() {
                     <div className="w-full">
                         <NewBackupButton />
                     </div>
+                </div>
+                <div className="flex flex-col items-center rounded bg-neutral-700 p-2">
+                    <label className="w-full text-lg font-semibold">
+                        Downloader
+                    </label>
+                    <label>
+                        Songs in queue: {downloaderStatus.queueLength}
+                    </label>
+                    <label>
+                        Threads: {downloaderStatus.maxDownloadThreads}
+                    </label>
+                    <Link href="/admin/downloads" className="relative w-full">
+                        <LinkIcon className="relative right-0 ml-auto" />
+                    </Link>
                 </div>
             </Masonry>
             <div className="min-h-24 md:hidden"></div>

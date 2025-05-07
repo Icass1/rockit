@@ -13,7 +13,7 @@ import AlbumSong from "@/components/ListSongs/AlbumSong";
 import { currentList, currentListSongs } from "@/stores/currentList";
 
 export default function RenderAlbum({ _album }: { _album: GetAlbum }) {
-    const { album, discs, songs, inDatabase } = _album;
+    const { album, discs, songs } = _album;
 
     const router = useRouter();
     const $lang = useStore(langData);
@@ -22,6 +22,10 @@ export default function RenderAlbum({ _album }: { _album: GetAlbum }) {
     currentList.set({ id: album.id, type: "album" });
 
     if (!$lang) return false;
+
+    const inDatabase =
+        typeof songs.find((song) => typeof song.path == "undefined") !=
+        "undefined";
 
     return (
         <div className="relative flex h-full w-full flex-col overflow-y-auto px-2 md:grid md:grid-cols-[min-content_1fr] md:px-0">

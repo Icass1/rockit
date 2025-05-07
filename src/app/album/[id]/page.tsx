@@ -1,6 +1,7 @@
 import RenderAlbum from "@/components/Album/RenderAlbum";
 import getAlbum from "@/lib/getAlbum";
 import { getImageUrl } from "@/lib/getImageUrl";
+import { notFound } from "next/navigation";
 import { NextResponse } from "next/server";
 
 export async function generateMetadata({
@@ -68,7 +69,7 @@ export default async function AlbumPage({
     if (_album == "error connecting to backend") {
         return new NextResponse("Error connecting to backend", { status: 500 });
     } else if (_album == "not found") {
-        return new NextResponse("Ablum not found", { status: 404 });
+        notFound();
     }
 
     return <RenderAlbum _album={_album}></RenderAlbum>;

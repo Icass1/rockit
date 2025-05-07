@@ -2,11 +2,10 @@ from typing import TypedDict, List, Optional
 import json
 from dataclasses import dataclass
 
-from db.commonTypes import OldImageDB
+from backend.db.commonTypes import OldImageDB
 
 
-@dataclass
-class RawPlaylistDB:
+class RawPlaylistDB(TypedDict):
     id: str
     images: Optional[str]
     image: str
@@ -23,7 +22,7 @@ class RawPlaylistDB:
 class PlaylistDBSong:
     id: str
     added_at: Optional[str]
-    addedInRockit: Optional[bool]
+    addedInRockit: Optional[bool] = None
 
 
 @dataclass
@@ -44,18 +43,21 @@ def parse_playlist(raw_playlist: Optional[RawPlaylistDB]) -> Optional[PlaylistDB
     if not raw_playlist:
         return None
 
+    raw_playlist_images = raw_playlist.get("images", "[]")
+
     return PlaylistDBFull(
-        id=raw_playlist.id,
+        id=raw_playlist.get("id"),
         images=json.loads(
-            s=raw_playlist.images) if raw_playlist.images else None,
-        image=raw_playlist.image,
-        name=raw_playlist.name,
-        description=raw_playlist.description,
-        owner=raw_playlist.owner,
-        followers=raw_playlist.followers,
-        songs=json.loads(raw_playlist.songs),
-        updatedAt=raw_playlist.updatedAt,
-        createdAt=raw_playlist.createdAt,
+            s=raw_playlist_images) if raw_playlist_images else None,
+        image=raw_playlist.get("image"),
+        name=raw_playlist.get("name"),
+        description=raw_playlist.get("description"),
+        owner=raw_playlist.get("owner"),
+        followers=raw_playlist.get("followers"),
+        songs=[PlaylistDBSong(**args)
+               for args in json.loads(raw_playlist.get("songs", "[]"))],
+        updatedAt=raw_playlist.get("updatedAt"),
+        createdAt=raw_playlist.get("createdAt"),
     )
 
 

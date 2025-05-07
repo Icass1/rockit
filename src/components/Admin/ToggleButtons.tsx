@@ -1,12 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function ToggleButtons() {
     const [randomQueue, setRandomQueue] = useState<boolean>(false);
     const [repeatSong, setRepeatSong] = useState<string>("off");
     const [admin, setAdmin] = useState<boolean>(false);
     const [devUser, setDevUser] = useState<boolean>(false);
+
+    useEffect(() => {
+        setRepeatSong((value) => value);
+    }, []);
 
     // useEffect(() => {}, [randomQueue]);
     // useEffect(() => {}, [repeatSong]);

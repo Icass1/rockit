@@ -10,7 +10,6 @@ import { currentList, currentListSongs } from "@/stores/currentList";
 import { useStore } from "@nanostores/react";
 import { songHandleClick } from "./HandleClick";
 import SongContextMenu from "@/components/ListSongs/SongContextMenu";
-import { downloadedSongs } from "@/stores/downloads";
 import { getImageUrl } from "@/lib/getImageUrl";
 import { networkStatus } from "@/stores/networkStatus";
 import {
@@ -45,7 +44,6 @@ export default function PlaylistSong({
     const $networkStatus = useStore(networkStatus);
     const $songsInIndexedDB = useStore(songsInIndexedDB);
     const $currentListSongs = useStore(currentListSongs);
-    const $downloadedSongs = useStore(downloadedSongs);
 
     const router = useRouter();
 
@@ -65,25 +63,10 @@ export default function PlaylistSong({
         >(song);
 
     useEffect(() => {
-        if ($downloadedSongs.includes(_song.id)) {
-            fetch(`/api/song/${_song.id}`)
-                .then((response) => response.json())
-                .then((data) => {
-                    setSong(data);
-
-                    currentListSongs.set(
-                        currentListSongs.get().map((song) => {
-                            if (song.id == data.id) {
-                                return data;
-                            } else {
-                                return song;
-                            }
-                        })
-                    );
-                });
-        }
-    }, [$downloadedSongs, _song.id]);
-
+        console.warn("TODO");
+        setSong((value) => value);
+    }, []);
+    
     if (!$queue) return <div className="skeleton h-10 w-full rounded"></div>;
 
     return (

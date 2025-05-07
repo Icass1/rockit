@@ -76,7 +76,7 @@ export function EditPopup({ index }: { index: number }) {
             setFields({ ...tempFields });
             setInitialFields({ ...tempFields });
         }
-    }, [currentIndex, columns, data, offset, table]);
+    }, [currentIndex, columns, data, offset, table, dbFile]);
 
     const handleUpdate = () => {
         const primaryKey = columns?.find((column) => column.key);

@@ -178,7 +178,8 @@ export default async function SongPage({
                                     "/user-placeholder.png"
                                 }
                                 alt="Artista"
-                                className="h-full w-full object-cover"
+                                className="h-full w-full"
+                                imageClassName="object-cover"
                             />
                         </div>
                         <div className="ml-4">

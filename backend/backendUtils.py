@@ -1,22 +1,40 @@
+from functools import wraps
 from spotdl.utils.static import BAD_CHARS
-from constants import DOWNLOADER_OPTIONS
 from spotdl.utils.formatter import create_file_name
 import re
 import requests
-from logger import getLogger
 from typing import List
 import numpy
 from io import BytesIO
 import cv2
 import math
 from datetime import datetime, timezone
+from collections import Counter, defaultdict
+from PIL import Image, ImageTransform, ImageDraw, ImageFilter, ImageFile
 
-from PIL import Image, ImageTransform, ImageDraw, ImageFilter
+from backend.constants import DOWNLOADER_OPTIONS
+from backend.logger import getLogger
 
 if __name__ != "__main__":
     logger = getLogger(__name__)
 
 import random
+
+
+def time_it(func):
+    import time
+
+    logger = getLogger(__name__)
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        start = time.time()
+        result = func(*args, **kwargs)
+        logger.info(
+            f'Time taken by {func.__name__} is {round(time.time()-start, 3)}s')
+
+        return result
+    return wrapper
 
 
 def get_utc_date():
@@ -138,45 +156,65 @@ def get_transfromed_image(image: Image.Image, base_1, base_2):
     return transformed_image_cv2
 
 
-def create_playlist_collage(output_path, urls: List[str] = [], paths: List[str] = []):
+@time_it
+def create_playlist_collage(output_path, urls: List[str] = []):
 
     # https://www.desmos.com/calculator/pao5byd69d?lang=es
 
     out = Image.new("RGBA", (640, 640), (0, 0, 0, 0))  # (26, 26, 26, 255)
 
-    base_1 = (0.68, 0.05)
-    base_2 = (-0.2, 0.65)
+    base_1: tuple[float, float] = (0.68, 0.05)
+    base_2: tuple[float, float] = (-0.2, 0.65)
 
     gap = 20
 
-    abs_base_1 = math.sqrt(base_1[0]**2 + base_1[1]**2)
-    abs_base_2 = math.sqrt(base_2[0]**2 + base_2[1]**2)
+    abs_base_1: float = math.sqrt(base_1[0]**2 + base_1[1]**2)
+    abs_base_2: float = math.sqrt(base_2[0]**2 + base_2[1]**2)
 
-    x_space = (gap + 640*abs_base_2)/(math.sqrt(1 + (base_2[1]/base_2[0])**2))
-    y_space = -base_2[1]/base_2[0]*x_space
+    x_space: float = (gap + 640*abs_base_2) / \
+        (math.sqrt(1 + (base_2[1]/base_2[0])**2))
+    y_space: float = -base_2[1]/base_2[0]*x_space
 
-    d = (640*abs_base_1 + gap)/abs_base_1
+    d: float = (640*abs_base_1 + gap)/abs_base_1
 
-    column_x_space = base_1[0]*d - base_2[0]*640*abs_base_2/2 + gap/2
-    column_y_space = base_1[1]*d - base_2[1]*640*abs_base_2/2 + gap/2
+    column_x_space: float = base_1[0]*d - base_2[0]*640*abs_base_2/2 + gap/2
+    column_y_space: float = base_1[1]*d - base_2[1]*640*abs_base_2/2 + gap/2
 
-    images = []
+    url_counts = Counter(urls)
+    sorted_urls: List[str] = [url for url, _ in url_counts.most_common(7)]
+    target_indices: List[int] = [1, 0, 2, 5, 4, 3, 6]
 
-    for k in paths:
-        images.append(Image.open(k, mode="r"))
+    indexed_images: List[tuple[int, Image.Image]] = []
 
-    for k in urls:
-        response = requests.get(k)
+    for i, url in enumerate(sorted_urls):
+        if i >= 7:
+            break
+
+        response = requests.get(url)
         try:
-            images.append(Image.open(BytesIO(response.content)))
+            image = Image.open(BytesIO(response.content))
+            indexed_images.append((target_indices[i], image))
         except:
-            print(k, response.content)
+            print(url, response.content)
+
+    # Sort the images by their intended indices and extract them
+    indexed_images.sort(key=lambda x: x[0])
+    images: List[Image.Image] = [img for _, img in indexed_images]
+
+    # images.append( Image.new("RGB", (10, 10), "blue"))
+    # images.append( Image.new("RGB", (10, 10), "red"))
+    # images.append( Image.new("RGB", (10, 10), "green"))
+    # images.append( Image.new("RGB", (10, 10), "black"))
+    # images.append( Image.new("RGB", (10, 10), "white"))
+    # images.append( Image.new("RGB", (10, 10), "orange"))
+    # images.append( Image.new("RGB", (10, 10), "yellow"))
+
     index = 0
     while len(images) < 7:
         images.append(images[index])
         index += 1
 
-    random.shuffle(images)
+    # random.shuffle(x=images)
 
     for k in range(3):
         image = get_transfromed_image(images[k], base_1=base_1, base_2=base_2)
@@ -195,18 +233,6 @@ def create_playlist_collage(output_path, urls: List[str] = [], paths: List[str] 
         out.paste(image, (int(x_space*k + column_x_space),
                   int(y_space*k - column_y_space)), image)
 
-    # image = get_transfromed_image(images[9])
-    # k = 1
-    # out.paste(image, (x_space*k + column_x_space*2, int(y_space*k) - column_y_space*2), image)
-
-    # image = get_transfromed_image(images[9], base_1=base_1, base_2=base_2)
-    # k = -1
-    # out.paste(image, (x_space*k - column_x_space*2, int(y_space*k) + column_y_space*2), image)
-
-    # image = get_transfromed_image(images[10])
-    # k = 0
-    # out.paste(image, (x_space*k - column_x_space*2, int(y_space*k) + column_y_space*2), image)
-
     out.save(output_path)
 
 
@@ -215,7 +241,7 @@ if __name__ == "__main__":
     print("2025-04-30T09:12:15.024Z")
     print(get_utc_date())
 
-    exit()
+    # exit()
 
     create_playlist_collage(output_path="backend/temp/test.png", urls=[
         # "http://localhost:4321/api/image/630242b7f511492720b85cbab809b03c9c5d1d72",
@@ -228,12 +254,4 @@ if __name__ == "__main__":
         "https://i.scdn.co/image/ab67616d0000b273726d48d93d02e1271774f023",
         "https://i.scdn.co/image/ab67616d0000b27351c02a77d09dfcd53c8676d0",
         "https://i.scdn.co/image/ab67616d0000b2738399047ff71200928f5b6508",
-    ], paths=[
-        # "/home/icass/rockit/images/album/AC_DC/The Razors Edge/image.png",
-        # "/home/icass/rockit/images/album/AC_DC/Highway to Hell/image.png",
-        # "/home/icass/rockit/images/album/Eminem/Encore (Deluxe Version)/image.png",
-        # "/home/icass/rockit/images/album/AC_DC/Back In Black/image.png",
-        # "/home/icass/rockit/images/album/AC_DC/High Voltage/image.png",
-        # "/home/icass/rockit/images/album/AC_DC/For Those About to Rock (We Salute You)/image.png",
-    ]
-    )
+    ])

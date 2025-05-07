@@ -26,19 +26,20 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         downloadId +
         `&user=${session.user.id}`;
 
-    console.warn("Only for development");
+    let upstreamResponse: Response;
 
-    // const upstreamUrl =
-    //     `${BACKEND_URL}/download-status-mockup?id=` +
-    //     downloadId +
-    //     `&user=${session.user.id}`;
-
-    // Connect to the upstream SSE server
-    const upstreamResponse: Response = await fetch(upstreamUrl, {
-        headers: {
-            // Add any necessary headers for the upstream connection
-        },
-    });
+    try {
+        // Connect to the upstream SSE server
+        upstreamResponse = await fetch(upstreamUrl, {
+            headers: {
+                // Add any necessary headers for the upstream connection
+            },
+        });
+    } catch {
+        return new NextResponse("Failed to connect to upstream server", {
+            status: 502,
+        });
+    }
 
     if (!upstreamResponse.ok) {
         return new NextResponse("Failed to connect to upstream server", {

@@ -4,7 +4,7 @@ import { queue, queueIndex, songsInIndexedDB } from "@/stores/audio";
 import { getTime } from "@/lib/getTime";
 import LikeButton from "@/components/LikeButton";
 import { EllipsisVertical, CheckCircle2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useStore } from "@nanostores/react";
 import { currentList, currentListSongs } from "@/stores/currentList";
 import { songHandleClick } from "./HandleClick";
@@ -48,6 +48,11 @@ export default function AlbumSong({
                 | "duration"
             >
         >(song);
+
+    useEffect(() => {
+        console.warn("TODO")
+        setSong((value) => value);
+    }, []);
 
     const handleOpenOptions = (
         e: React.MouseEvent<SVGSVGElement, MouseEvent>

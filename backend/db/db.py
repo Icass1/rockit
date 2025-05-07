@@ -11,16 +11,16 @@ import atexit
 from threading import Lock
 import inspect
 
-from db.session import sesssion_query
-from db.image import image_query, parse_image
-from db.playlist import playlist_query, parse_playlist
-from db.user import user_query, parse_user
-from db.error import error_query
-from db.download import download_query, parse_download
-from db.album import album_query, parse_album
-from db.song import song_query, parse_song
+from backend.db.session import sesssion_query
+from backend.db.image import image_query, parse_image
+from backend.db.playlist import playlist_query, parse_playlist
+from backend.db.user import user_query, parse_user
+from backend.db.error import error_query
+from backend.db.download import download_query, parse_download
+from backend.db.album import album_query, parse_album
+from backend.db.song import song_query, parse_song
 
-from logger import getLogger
+from backend.logger import getLogger
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -242,22 +242,53 @@ class DB:
         if modified_columns:
             self.logger.warning(
                 f"Detected column modifications: {modified_columns}")
+
             if INSECURE_DB_MODE:
                 self.logger.warning("Applying column changes...")
                 column_names = ", ".join(col['name'] for col in new_columns)
+
+                try:
+                    self.cur.execute(f"DROP TABLE temp_{table_name}")
+                except:
+                    pass
+
+                query_split: List[str] = query.split("\n")
+
+                for k in range(len(query_split)):
+                    if "CREATE TABLE" in query_split[k].upper():
+                        query_split[k] = query_split[k].replace(
+                            table_name, "temp_" + table_name)
+                        break
+
+                print("\n".join(query_split))
+
+                self.cur.execute("\n".join(query_split))
+
                 self.cur.execute(
-                    f"CREATE TABLE temp_{table_name} AS SELECT {column_names} FROM {table_name}")
+                    f"INSERT INTO temp_{table_name} SELECT * FROM {table_name}")
+
                 self.cur.execute(f"DROP TABLE {table_name}")
                 self.cur.execute(
                     f"ALTER TABLE temp_{table_name} RENAME TO {table_name}")
                 self.conn.commit()
 
-        if removed_columns and INSECURE_DB_MODE:
-            self.logger.warning(f"Removing columns: {removed_columns}")
-            for column in removed_columns:
-                self.cur.execute(
-                    f"ALTER TABLE {table_name} DROP COLUMN {column}")
-            self.conn.commit()
+            else:
+                self.logger.warning(
+                    "Set INSECURE_DB_MODE to true to modify them")
+
+        if removed_columns:
+            self.logger.warning(
+                f"Detected removed columns: {removed_columns}")
+            if INSECURE_DB_MODE:
+                self.logger.warning(f"Removing columns: {removed_columns}")
+                for column in removed_columns:
+                    self.cur.execute(
+                        f"ALTER TABLE {table_name} DROP COLUMN {column}")
+                self.conn.commit()
+
+            else:
+                self.logger.warning(
+                    "Set INSECURE_DB_MODE to true to remove them")
 
         if added_columns:
             self.logger.warning(f"Adding new columns: {added_columns}")

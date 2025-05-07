@@ -5,14 +5,15 @@
       "name": "Run Full Stack (Backend + Frontend)",
       "configurations": [
         "FastAPI Uvicorn",
-        "NextJS Server"
+        "NextJS Server",
+        "WebSocket Server"
       ]
     },
     {
-      "name": "Run Frontend Only (NextJS + Custom Node Server)",
+      "name": "Run Frontend Only (NextJS + WebSocket Server)",
       "configurations": [
         "NextJS Server",
-        "Custom Node Server"
+        "WebSocket Server"
       ]
     }
   ],
@@ -48,7 +49,7 @@
       "internalConsoleOptions": "neverOpen"
     },
     {
-      "name": "Custom Node Server",
+      "name": "WebSocket Server",
       "type": "node",
       "request": "launch",
       "program": "${workspaceFolder}/src/server.mjs",

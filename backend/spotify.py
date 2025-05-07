@@ -12,17 +12,20 @@ import re
 from spotdl.types.song import Song
 
 from constants import IMAGES_PATH
+
+from db.db import DB
+from backend.db.commonTypes import ArtistDB
 from db.image import ImageDB
-from db.commonTypes import ArtistDB
 from db.song import SongDBFull
 from db.album import AlbumDBFull
-from db.db import DB
-from backendUtils import create_id, download_image, get_song_name, get_utc_date, sanitize_folder_name
+from db.playlist import PlaylistDBFull
+
+from backendUtils import create_id, create_playlist_collage, download_image, get_song_name, get_utc_date, sanitize_folder_name, time_it
 from logger import getLogger
 
 from spotifyApiTypes.RawSpotifyApiAlbum import RawSpotifyApiAlbum
 from spotifyApiTypes.RawSpotifyApiTrack import RawSpotifyApiTrack, TrackArtists
-from spotifyApiTypes.RawSpotifyApiPlaylist import PlaylistArtists
+from spotifyApiTypes.RawSpotifyApiPlaylist import PlaylistArtists, PlaylistTracks, RawSpotifyApiPlaylist
 from spotifyApiTypes.RawSpotifyApiArtist import RawSpotifyApiArtist
 from spotifyApiTypes.RawSpotifyApiSearchResults import SpotifySearchResultsArtists
 
@@ -94,8 +97,7 @@ class Spotify:
         query_url = url + \
             ("?" + parsed_params if len(parsed_params) > 0 else "")
 
-        self.logger.debug(f"query_url {query_url}")
-        self.logger.warning(query_url)
+        self.logger.warning(f"Spotify api call: {query_url}")
 
         result = requests.get(query_url, headers=headers)
         if result.status_code == 401:
@@ -108,7 +110,7 @@ class Spotify:
             return json.loads(result.content)
         except:
             self.logger.critical(
-                f"Unable to load json. content: {result.content}, text: {result.text}")
+                f"Unable to load json. {result.content=}, {result.text=} {result.status_code=}")
 
     def get_genres(self, artists: List[TrackArtists] | List[PlaylistArtists] | List[SpotifySearchResultsArtists] | List[ArtistDB]):
         genres = []
@@ -127,6 +129,11 @@ class Spotify:
                     f"Getting artist from API {track_artist.id}")
                 raw_artist = self.api_call(path=f"artists/{track_artist.id}")
                 artist = RawSpotifyApiArtist.from_dict(raw_artist)
+
+                if not track_artist.id:
+                    self.logger.error(f"track_artist.id is None {id}")
+                    continue
+
                 self.artists_cache[track_artist.id] = artist
                 if artist.genres:
                     genres += artist.genres
@@ -162,9 +169,37 @@ class Spotify:
             album = RawSpotifyApiAlbum.from_dict(
                 self.api_call(path=f"albums/{id}"))
 
+            if not album.images:
+                self.logger.error(f"album.images is None {id}")
+                return
+
+            if not album.name:
+                self.logger.error(f"album.name is None {id}")
+                return
+
+            if not album.artists:
+                self.logger.error(f"album.artists is None {id}")
+                return
+
+            if not album.artists[0].name:
+                self.logger.error(f"album.artists[0].name is None {id}")
+                return
+
+            if not album.copyrights:
+                self.logger.error(f"album.copyrights is None {id}")
+                return
+
+            if not album.tracks:
+                self.logger.error(f"album.tracks is None {id}")
+                return
+
+            if not album.tracks.items:
+                self.logger.error(f"album.tracks.items is None {id}")
+                return
+
             if len(album.images) > 1:
                 image_url = max(album.images, key=lambda i: i.width *
-                                i.height)["url"] if album.images else None
+                                i.height if i.width and i.height else 0)["url"] if album.images else None
             else:
                 image_url = album.images[0].url
 
@@ -217,12 +252,171 @@ class Spotify:
                     album.popularity,
                     json.dumps(album.genres),
                     json.dumps([track.id for track in album.tracks.items]),
-                    max([track.disc_number for track in album.tracks.items]),
+                    max([
+                        track.disc_number if track.disc_number else 0 for track in album.tracks.items]),
                     get_utc_date()
                 ))
 
             return album
 
+    @time_it
+    def get_playlist(self, id: str) -> RawSpotifyApiPlaylist | None:
+
+        playlist_db: PlaylistDBFull | None = self.db.get(
+            "SELECT * FROM playlist WHERE id = ?", (id,))
+
+        if playlist_db:
+            self.logger.info("Playlist found in database")
+            return RawSpotifyApiPlaylist.from_dict({
+                "id": playlist_db.id,
+                "name": playlist_db.name,
+                "owner": {"display_name": playlist_db.owner},
+                "images": playlist_db.images,
+                "tracks": {
+                    "items": [{
+                        "added_at": song.added_at,
+                        "track":
+                            {
+                                "id": song.id
+                            }
+                    } for song in playlist_db.songs]
+                }
+            })
+
+        else:
+            self.logger.info("Playlist not found in database")
+
+            playlist: RawSpotifyApiPlaylist = RawSpotifyApiPlaylist.from_dict(
+                self.api_call(path=f"playlists/{id}"))
+
+            if not playlist.tracks:
+                self.logger.error(f"playlist.tracks is None {id}")
+                return
+
+            if not playlist.tracks.items:
+                self.logger.error(f"playlist.tracks.items is None {id}")
+                return
+
+            if not playlist.owner:
+                self.logger.error(
+                    f"playlist.owner is None {id}")
+                return
+
+            if not playlist.owner.display_name:
+                self.logger.error(
+                    f"playlist.owner.display_name is None {id}")
+                return
+
+            if not playlist.name:
+                self.logger.error(
+                    f"playlist.name is None {id}")
+                return
+
+            if not playlist.images:
+                self.logger.error(
+                    f"playlist.images[0].url is None {id}")
+                return
+
+            if not playlist.images[0].url:
+                self.logger.error(
+                    f"playlist.images[0].url is None {id}")
+                return
+
+            next_tracks = playlist.tracks.next
+
+            while next_tracks:
+                raw_playlist_tracks: PlaylistTracks | None = PlaylistTracks.from_dict(self.api_call(
+                    path=next_tracks.replace("https://api.spotify.com/v1/", "")))
+
+                if not raw_playlist_tracks:
+                    self.logger.error(
+                        f"raw_playlist_tracks is None {id} {next_tracks}")
+                    return
+
+                if not raw_playlist_tracks.items:
+                    self.logger.error(
+                        f"raw_playlist_tracks.items is None {id} {next_tracks}")
+                    return
+
+                playlist.tracks.items.extend(raw_playlist_tracks.items)
+
+                next_tracks = raw_playlist_tracks.next
+
+         
+
+            self.logger.info(len(playlist.tracks.items))
+
+            image_path_dir = os.path.join("playlist", sanitize_folder_name(
+                playlist.owner.display_name), sanitize_folder_name(playlist.name))
+            image_path = os.path.join(image_path_dir, "image.png")
+            image_path_1 = os.path.join(image_path_dir, "image_1.png")
+
+            images_url: List[str] = []
+            for k in playlist.tracks.items:
+                if not k.track:
+                    self.logger.error(
+                        f"k.track is None {id}")
+                    continue
+
+                if not k.track.album:
+                    self.logger.error(
+                        f"k.track.album is None {id}")
+                    continue
+
+                if not k.track.album.images:
+                    self.logger.error(
+                        msg=f"k.track.album.images is None {id}")
+                    continue
+
+                if not k.track.album.images[0].url:
+                    self.logger.error(
+                        f"k.track.album.images[0].url is None {id}")
+                    continue
+
+                images_url.append(k.track.album.images[0].url)
+
+            create_playlist_collage(output_path=os.path.join(
+                IMAGES_PATH, image_path), urls=images_url)
+
+            self.logger.debug(
+                f"Saved collage to {os.path.join(IMAGES_PATH, image_path)}")
+
+            download_image(playlist.images[0].url, os.path.join(
+                IMAGES_PATH, image_path_1))
+
+            image_db: ImageDB = self.db.get(
+                "SELECT id FROM image WHERE path = ?", (image_path,))
+
+            image_id: str
+
+            if image_db:
+                image_id = image_db.id
+            else:
+                image_id = create_id(20)
+                self.logger.info(
+                    f"Adding image {image_id} with path {image_path} to database")
+
+                self.db.execute(
+                    query="INSERT INTO image (id, path, url) VALUES(?, ?, ?)", parameters=(image_id, image_path, f"https://rockit.rockhosting.org/api/image/{image_id}"))
+
+            self.db.execute("INSERT INTO playlist (id, images, image, name, description, owner, followers, songs, updatedAt, createdAt) VALUES(?,?,?,?,?,?,?,?,?,?)", (
+                playlist.id,
+                json.dumps([image._json for image in playlist.images]),
+                image_id,
+                playlist.name,
+                playlist.description,
+                playlist.owner.display_name,
+                0,
+                json.dumps([{"id": song.track.id, "added_at": song.added_at}
+                           for song in playlist.tracks.items if song.track and song.track.id and song.added_at]),
+                get_utc_date(),
+                get_utc_date()
+
+            ))
+
+            return playlist
+
+    @time_it
     def get_songs(self, ids: List[str]) -> List[tuple[Song, RawSpotifyApiTrack]] | None:
         self.logger.info(ids)
 
@@ -304,6 +498,76 @@ class Spotify:
 
             song_dict = {}
 
+            if not song.artists:
+                self.logger.error(
+                    f"song.artists is None {id}")
+                return
+
+            if not album.artists:
+                self.logger.error(
+                    f"album.artists is None {id}")
+                return
+
+            if not album.artists[0].name:
+                self.logger.error(
+                    f"album.artists[0].name is None {id}")
+                return
+
+            if not album.copyrights:
+                self.logger.error(
+                    f"album.copyrights is None {id}")
+                return
+
+            if not album.copyrights[0].text:
+                self.logger.error(
+                    f"album.copyrights[0].text is None {id}")
+                return
+
+            if not album.tracks:
+                self.logger.error(
+                    f"album.tracks.items[-1].disc_number is None {id}")
+                return
+
+            if not album.tracks.items:
+                self.logger.error(
+                    f"album.tracks.items[-1].disc_number is None {id}")
+                return
+
+            if not album.tracks.items[-1].disc_number:
+                self.logger.error(
+                    f"album.tracks.items[-1].disc_number is None {id}")
+                return
+
+            if not song.duration_ms:
+                self.logger.error(
+                    f"song.duration_ms is None {id}")
+                return
+
+            if not album.release_date:
+                self.logger.error(
+                    f"album.release_date is None {id}")
+                return
+
+            if not song.external_ids:
+                self.logger.error(
+                    f"song.external_ids.isrc is None {id}")
+                return
+
+            if not song.external_ids.isrc:
+                self.logger.error(
+                    f"song.external_ids.isrc is None {id}")
+                return
+
+            if not song.external_urls:
+                self.logger.error(
+                    f"song.external_urls.spotify is None {id}")
+                return
+
+            if not song.external_urls.spotify:
+                self.logger.error(
+                    f"song.external_urls.spotify is None {id}")
+                return
+
             song_dict["name"] = song.name
             song_dict["artists"] = [artist.name for artist in song.artists]
             song_dict["artist"] = song.artists[0].name
@@ -328,7 +592,8 @@ class Spotify:
             song_dict["url"] = song.external_urls.spotify
             song_dict["popularity"] = song.popularity
             song_dict["cover_url"] = (
-                max(album.images, key=lambda i: i.width * i.height)[
+                max(album.images, key=lambda i: i.width *
+                    i.height if i.width and i.height else 0)[
                     "url"
                 ]
                 if album.images
@@ -353,7 +618,7 @@ class Spotify:
 
     def _get_song_from_raw_song(self, raw_song):
 
-        song = RawSpotifyApiTrack.from_dict(raw_song)
+        song: RawSpotifyApiTrack = RawSpotifyApiTrack.from_dict(raw_song)
 
         if not raw_song:
             self.logger.error("raw_song is None")
@@ -362,6 +627,31 @@ class Spotify:
         if "album" not in raw_song or "id" not in raw_song["album"]:
             raise Exception("Album not in song", raw_song)
 
+        if not song.album:
+            self.logger.error(
+                f"song.album is None {raw_song=}")
+            return
+
+        if not song.album.id:
+            self.logger.error(
+                f"song.album.id is None {raw_song=}")
+            return
+
+        if not song.external_ids:
+            self.logger.error(
+                f"song.external_ids is None {raw_song=}")
+            return
+
+        if not song.external_ids.isrc:
+            self.logger.error(
+                f"song.external_ids.isrc is None {raw_song=}")
+            return
+
+        if not song.artists:
+            self.logger.error(
+                f"song.artists is None {raw_song=}")
+            return
+
         album: RawSpotifyApiAlbum | None = self.get_album(
             id=song.album.id, _call_from_song=True)
 
@@ -369,7 +659,51 @@ class Spotify:
             self.logger.error("Album is None")
             return
 
-        self.logger.info(song.external_ids.isrc)
+        if not album.artists:
+            self.logger.error(
+                f"album.artists is None {raw_song=}")
+            return
+
+        if not album.copyrights:
+            self.logger.error(
+                f"album.copyrights is None {raw_song=}")
+            return
+
+        if not album.tracks:
+            self.logger.error(
+                f"album.tracks is None {raw_song=}")
+            return
+
+        if not album.tracks.items:
+            self.logger.error(
+                f"album.tracks.items is None {raw_song=}")
+            return
+
+        if not song.duration_ms:
+            self.logger.error(
+                f"song.duration_ms is None {raw_song=}")
+            return
+
+        if not album.release_date:
+            self.logger.error(
+                f"album.release_date is None {raw_song=}")
+            return
+
+        if not album.images:
+            self.logger.error(
+                f"album.images is None {raw_song=}")
+            return
+
+        if not song.external_urls:
+            self.logger.error(
+                f"song.external_urls is None {raw_song=}")
+            return
+
+        if not song.external_urls.spotify:
+            self.logger.error(
+                f"song.external_urls.spotify is None {raw_song=}")
+            return
+
 
         genres = self.get_genres(artists=song.artists)
 
@@ -399,7 +733,8 @@ class Spotify:
         song_dict["url"] = song.external_urls.spotify
         song_dict["popularity"] = song.popularity
         song_dict["cover_url"] = (
-            max(album.images, key=lambda i: i.width * i.height)[
+            max(album.images, key=lambda i: i.width *
+                i.height if i.width and i.height else 0)[
                 "url"
             ]
             if album.images
@@ -408,9 +743,9 @@ class Spotify:
 
         spotdl_song = Song.from_dict(song_dict)
 
-        self.logger.debug(
-            f"Spotdl song: {spotdl_song}")
-        self.logger.debug(f"Raw song: {song}")
+        # self.logger.debug(
+        #     f"Spotdl song: {spotdl_song}")
+        # self.logger.debug(f"Raw song: {song}")
 
         album_db: AlbumDBFull | None = self.db.get(
             "SELECT * FROM album WHERE id = ?", (song.album.id,))
@@ -419,7 +754,6 @@ class Spotify:
             self.logger.error("Album doesn't exist in db")
             return
 
-        self.logger.info("Inserting")
 
         self.db.execute("INSERT INTO song (id,name,artists,discNumber,albumName,albumArtist,albumType,albumId,isrc,duration,genres,date,trackNumber,publisher,images,image,copyright,popularity,dateAdded) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", (
             song.id,
@@ -429,7 +763,7 @@ class Spotify:
             song.disc_number,
             song.album.name,
             json.dumps([{"name": artist.name, "id": artist.id}
-                        for artist in song.album.artists]),
+                        for artist in song.artists]),
             song.album.type,
             song.album.id,
             song.external_ids.isrc,
@@ -445,9 +779,15 @@ class Spotify:
             get_utc_date()
         ))
 
-        self.logger.info("Inserted")
 
         return Song.from_dict(song_dict), song
 
     def parse_url(self, url: str) -> str:
         return re.sub(r"\/intl-\w+\/", "/", url).split("?")[0]
+
+
+if __name__ == "__main__":
+
+    # https://open.spotify.com/playlist/7h6r9ScqSjCHH3QozfBdIq?si=741f837fb7824e0a
+    spotify = Spotify()
+    spotify.get_playlist("7h6r9ScqSjCHH3QozfBdIq")

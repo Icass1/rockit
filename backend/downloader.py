@@ -1,7 +1,7 @@
 
 import asyncio
 from logging import Logger
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from fastapi import BackgroundTasks, Request
 from fastapi.responses import StreamingResponse
@@ -12,17 +12,18 @@ from spotdl.download.downloader import Downloader as SpotdlDownloader
 from spotdl.types.song import Song
 
 
-from youtubeDownloader import YoutubeMusicDownloader
-from progressHandler import ProgressHandler
-from backendUtils import create_id, get_song_name
-from queueElement import QueueElement
-from messageHandler import MessageHandler
-from spotifyDownloader import SpotifyDownloader
-from spotify import Spotify
-from constants import DOWNLOADER_OPTIONS
-from logger import getLogger
+from backend import queueElement
+from backend.youtubeDownloader import YoutubeMusicDownloader
+from backend.progressHandler import ProgressHandler
+from backend.backendUtils import create_id, get_song_name
+from backend.queueElement import QueueElement
+from backend.messageHandler import MessageHandler
+from backend.spotifyDownloader import SpotifyDownloader
+from backend.spotify import Spotify
+from backend.constants import DOWNLOADER_OPTIONS
+from backend.logger import getLogger
 
-import patches
+import backend.patches
 
 
 class Downloader:
@@ -38,9 +39,9 @@ class Downloader:
 
         self.spotify = Spotify()
 
-        self.max_download_threads = 8
+        self.max_download_threads = 1
         self.queue: List[QueueElement] = []
-        self.download_threads: List[threading.Thread] = []
+        self.download_threads: List[Tuple[threading.Thread, QueueElement]] = []
 
         self.downloaders: Dict[str, SpotifyDownloader |
                                YoutubeMusicDownloader] = {}
@@ -89,7 +90,8 @@ class Downloader:
         queue_element.set_path(path)
         queue_element.done(success=True if path else False)
 
-        self.logger.warn("Should clean downloads_ids_dict and downloads_dict")
+        self.logger.warning(
+            "Should clean downloads_ids_dict and downloads_dict")
 
     async def download_manager(self):
         try:
@@ -98,7 +100,7 @@ class Downloader:
                 await asyncio.sleep(0.4)
 
                 for thread in self.download_threads:
-                    if not thread.is_alive():
+                    if not thread[0].is_alive():
                         self.logger.info("Thread has finished")
                         self.download_threads.remove(thread)
 
@@ -109,7 +111,7 @@ class Downloader:
                         target=self.download_method, args=(self.queue[0],))
 
                     thread.start()
-                    self.download_threads.append(thread)
+                    self.download_threads.append((thread, self.queue[0]))
 
                     self.queue.pop(0)
 

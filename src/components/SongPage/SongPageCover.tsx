@@ -11,7 +11,6 @@ import {
     queue,
     queueIndex,
 } from "@/stores/audio";
-import { downloadedSongs } from "@/stores/downloads";
 import { downloads } from "@/stores/downloads";
 import { useStore } from "@nanostores/react";
 import { Download, Pause, Play } from "lucide-react";
@@ -40,7 +39,6 @@ export default function SongPageCover({
 
     const $currentSong = useStore(currentSong);
     const $playing = useStore(playing);
-    const $downloadedSongs = useStore(downloadedSongs);
 
     const [_song, setSong] =
         useState<
@@ -87,27 +85,9 @@ export default function SongPageCover({
     };
 
     useEffect(() => {
-        if ($downloadedSongs.includes(_song.id)) {
-            let retries = 0;
-
-            const fetchNewSong = () => {
-                fetch(`/api/song/${_song.id}`)
-                    .then((response) => response.json())
-                    .then((data) => {
-                        setSong(data);
-                    })
-                    .catch(() => {
-                        retries += 1;
-
-                        if (retries > 5) return;
-                        setTimeout(() => {
-                            fetchNewSong();
-                        }, 1000);
-                    });
-            };
-            fetchNewSong();
-        }
-    }, [$downloadedSongs, _song.id]);
+        console.warn("TODO");
+        setSong((value) => value);
+    }, []);
 
     const iconClassName =
         "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition-all z-20" +

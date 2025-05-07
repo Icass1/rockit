@@ -1,9 +1,9 @@
-from typing import List, Dict, Any
+from typing import List, Any, Optional
 from dataclasses import dataclass
 
 @dataclass
 class PlaylistExternalUrls:
-    spotify: str
+    spotify: Optional[str]
     _json: dict
     def from_dict(obj: Any) -> 'PlaylistExternalUrls':
         _spotify = obj.get('spotify') if obj and 'spotify' in obj else None
@@ -14,26 +14,10 @@ class PlaylistExternalUrls:
         return None
 
 @dataclass
-class PlaylistFollowers:
-    href: str
-    total: int
-    _json: dict
-    def from_dict(obj: Any) -> 'PlaylistFollowers':
-        _href = obj.get('href') if obj and 'href' in obj else None
-        _total = obj.get('total') if obj and 'total' in obj else None
-        return PlaylistFollowers(_href, _total, obj)
-    def __getitem__(self, item):
-        if item == 'href':
-            return self.href
-        elif item == 'total':
-            return self.total
-        return None
-
-@dataclass
 class PlaylistImages:
-    url: str
-    height: int
-    width: int
+    url: Optional[str]
+    height: Optional[int]
+    width: Optional[int]
     _json: dict
     def from_dict(obj: Any) -> 'PlaylistImages':
         _url = obj.get('url') if obj and 'url' in obj else None
@@ -51,7 +35,7 @@ class PlaylistImages:
 
 @dataclass
 class PlaylistExternalUrls1:
-    spotify: str
+    spotify: Optional[str]
     _json: dict
     def from_dict(obj: Any) -> 'PlaylistExternalUrls1':
         _spotify = obj.get('spotify') if obj and 'spotify' in obj else None
@@ -62,45 +46,25 @@ class PlaylistExternalUrls1:
         return None
 
 @dataclass
-class PlaylistFollowers1:
-    href: str
-    total: int
-    _json: dict
-    def from_dict(obj: Any) -> 'PlaylistFollowers1':
-        _href = obj.get('href') if obj and 'href' in obj else None
-        _total = obj.get('total') if obj and 'total' in obj else None
-        return PlaylistFollowers1(_href, _total, obj)
-    def __getitem__(self, item):
-        if item == 'href':
-            return self.href
-        elif item == 'total':
-            return self.total
-        return None
-
-@dataclass
 class PlaylistOwner:
-    external_urls: PlaylistExternalUrls1
-    followers: PlaylistFollowers1
-    href: str
-    id: str
-    type: str
-    uri: str
-    display_name: str
+    external_urls: Optional[PlaylistExternalUrls1]
+    href: Optional[str]
+    id: Optional[str]
+    type: Optional[str]
+    uri: Optional[str]
+    display_name: Optional[str]
     _json: dict
     def from_dict(obj: Any) -> 'PlaylistOwner':
-        _external_urls = PlaylistExternalUrls1.from_dict(obj.get('external_urls'))
-        _followers = PlaylistFollowers1.from_dict(obj.get('followers'))
+        _external_urls = PlaylistExternalUrls1.from_dict(obj.get('external_urls')) if obj and 'external_urls' in obj else None
         _href = obj.get('href') if obj and 'href' in obj else None
         _id = obj.get('id') if obj and 'id' in obj else None
         _type = obj.get('type') if obj and 'type' in obj else None
         _uri = obj.get('uri') if obj and 'uri' in obj else None
         _display_name = obj.get('display_name') if obj and 'display_name' in obj else None
-        return PlaylistOwner(_external_urls, _followers, _href, _id, _type, _uri, _display_name, obj)
+        return PlaylistOwner(_external_urls, _href, _id, _type, _uri, _display_name, obj)
     def __getitem__(self, item):
         if item == 'external_urls':
             return self.external_urls
-        elif item == 'followers':
-            return self.followers
         elif item == 'href':
             return self.href
         elif item == 'id':
@@ -115,7 +79,7 @@ class PlaylistOwner:
 
 @dataclass
 class PlaylistExternalUrls2:
-    spotify: str
+    spotify: Optional[str]
     _json: dict
     def from_dict(obj: Any) -> 'PlaylistExternalUrls2':
         _spotify = obj.get('spotify') if obj and 'spotify' in obj else None
@@ -126,43 +90,23 @@ class PlaylistExternalUrls2:
         return None
 
 @dataclass
-class PlaylistFollowers2:
-    href: str
-    total: int
-    _json: dict
-    def from_dict(obj: Any) -> 'PlaylistFollowers2':
-        _href = obj.get('href') if obj and 'href' in obj else None
-        _total = obj.get('total') if obj and 'total' in obj else None
-        return PlaylistFollowers2(_href, _total, obj)
-    def __getitem__(self, item):
-        if item == 'href':
-            return self.href
-        elif item == 'total':
-            return self.total
-        return None
-
-@dataclass
 class PlaylistAddedBy:
-    external_urls: PlaylistExternalUrls2
-    followers: PlaylistFollowers2
-    href: str
-    id: str
-    type: str
-    uri: str
+    external_urls: Optional[PlaylistExternalUrls2]
+    href: Optional[str]
+    id: Optional[str]
+    type: Optional[str]
+    uri: Optional[str]
     _json: dict
     def from_dict(obj: Any) -> 'PlaylistAddedBy':
-        _external_urls = PlaylistExternalUrls2.from_dict(obj.get('external_urls'))
-        _followers = PlaylistFollowers2.from_dict(obj.get('followers'))
+        _external_urls = PlaylistExternalUrls2.from_dict(obj.get('external_urls')) if obj and 'external_urls' in obj else None
         _href = obj.get('href') if obj and 'href' in obj else None
         _id = obj.get('id') if obj and 'id' in obj else None
         _type = obj.get('type') if obj and 'type' in obj else None
         _uri = obj.get('uri') if obj and 'uri' in obj else None
-        return PlaylistAddedBy(_external_urls, _followers, _href, _id, _type, _uri, obj)
+        return PlaylistAddedBy(_external_urls, _href, _id, _type, _uri, obj)
     def __getitem__(self, item):
         if item == 'external_urls':
             return self.external_urls
-        elif item == 'followers':
-            return self.followers
         elif item == 'href':
             return self.href
         elif item == 'id':
@@ -175,7 +119,7 @@ class PlaylistAddedBy:
 
 @dataclass
 class PlaylistExternalUrls3:
-    spotify: str
+    spotify: Optional[str]
     _json: dict
     def from_dict(obj: Any) -> 'PlaylistExternalUrls3':
         _spotify = obj.get('spotify') if obj and 'spotify' in obj else None
@@ -186,16 +130,16 @@ class PlaylistExternalUrls3:
         return None
 
 @dataclass
-class PlaylistImages:
-    url: str
-    height: int
-    width: int
+class PlaylistImages1:
+    url: Optional[str]
+    height: Optional[int]
+    width: Optional[int]
     _json: dict
-    def from_dict(obj: Any) -> 'PlaylistImages':
+    def from_dict(obj: Any) -> 'PlaylistImages1':
         _url = obj.get('url') if obj and 'url' in obj else None
         _height = obj.get('height') if obj and 'height' in obj else None
         _width = obj.get('width') if obj and 'width' in obj else None
-        return PlaylistImages(_url, _height, _width, obj)
+        return PlaylistImages1(_url, _height, _width, obj)
     def __getitem__(self, item):
         if item == 'url':
             return self.url
@@ -207,7 +151,7 @@ class PlaylistImages:
 
 @dataclass
 class PlaylistRestrictions:
-    reason: str
+    reason: Optional[str]
     _json: dict
     def from_dict(obj: Any) -> 'PlaylistRestrictions':
         _reason = obj.get('reason') if obj and 'reason' in obj else None
@@ -219,7 +163,7 @@ class PlaylistRestrictions:
 
 @dataclass
 class PlaylistExternalUrls4:
-    spotify: str
+    spotify: Optional[str]
     _json: dict
     def from_dict(obj: Any) -> 'PlaylistExternalUrls4':
         _spotify = obj.get('spotify') if obj and 'spotify' in obj else None
@@ -231,15 +175,15 @@ class PlaylistExternalUrls4:
 
 @dataclass
 class PlaylistArtists:
-    external_urls: PlaylistExternalUrls4
-    href: str
-    id: str
-    name: str
-    type: str
-    uri: str
+    external_urls: Optional[PlaylistExternalUrls4]
+    href: Optional[str]
+    id: Optional[str]
+    name: Optional[str]
+    type: Optional[str]
+    uri: Optional[str]
     _json: dict
     def from_dict(obj: Any) -> 'PlaylistArtists':
-        _external_urls = PlaylistExternalUrls4.from_dict(obj.get('external_urls'))
+        _external_urls = PlaylistExternalUrls4.from_dict(obj.get('external_urls')) if obj and 'external_urls' in obj else None
         _href = obj.get('href') if obj and 'href' in obj else None
         _id = obj.get('id') if obj and 'id' in obj else None
         _name = obj.get('name') if obj and 'name' in obj else None
@@ -263,36 +207,36 @@ class PlaylistArtists:
 
 @dataclass
 class PlaylistAlbum:
-    album_type: str
-    total_tracks: int
-    available_markets: List[str]
-    external_urls: PlaylistExternalUrls3
-    href: str
-    id: str
-    images: List[PlaylistImages]
-    name: str
-    release_date: str
-    release_date_precision: str
-    restrictions: PlaylistRestrictions
-    type: str
-    uri: str
-    artists: List[PlaylistArtists]
+    album_type: Optional[str]
+    total_tracks: Optional[int]
+    available_markets: Optional[List[str]]
+    external_urls: Optional[PlaylistExternalUrls3]
+    href: Optional[str]
+    id: Optional[str]
+    images: Optional[List[PlaylistImages1]]
+    name: Optional[str]
+    release_date: Optional[str]
+    release_date_precision: Optional[str]
+    restrictions: Optional[PlaylistRestrictions]
+    type: Optional[str]
+    uri: Optional[str]
+    artists: Optional[List[PlaylistArtists]]
     _json: dict
     def from_dict(obj: Any) -> 'PlaylistAlbum':
         _album_type = obj.get('album_type') if obj and 'album_type' in obj else None
         _total_tracks = obj.get('total_tracks') if obj and 'total_tracks' in obj else None
         _available_markets = obj.get('available_markets') if obj and 'available_markets' in obj else None
-        _external_urls = PlaylistExternalUrls3.from_dict(obj.get('external_urls'))
+        _external_urls = PlaylistExternalUrls3.from_dict(obj.get('external_urls')) if obj and 'external_urls' in obj else None
         _href = obj.get('href') if obj and 'href' in obj else None
         _id = obj.get('id') if obj and 'id' in obj else None
-        _images = [PlaylistImages.from_dict(k) for k in obj.get('images')]
+        _images = [PlaylistImages1.from_dict(k) for k in obj.get('images')] if obj and 'images' in obj else None
         _name = obj.get('name') if obj and 'name' in obj else None
         _release_date = obj.get('release_date') if obj and 'release_date' in obj else None
         _release_date_precision = obj.get('release_date_precision') if obj and 'release_date_precision' in obj else None
-        _restrictions = PlaylistRestrictions.from_dict(obj.get('restrictions'))
+        _restrictions = PlaylistRestrictions.from_dict(obj.get('restrictions')) if obj and 'restrictions' in obj else None
         _type = obj.get('type') if obj and 'type' in obj else None
         _uri = obj.get('uri') if obj and 'uri' in obj else None
-        _artists = [PlaylistArtists.from_dict(k) for k in obj.get('artists')]
+        _artists = [PlaylistArtists.from_dict(k) for k in obj.get('artists')] if obj and 'artists' in obj else None
         return PlaylistAlbum(_album_type, _total_tracks, _available_markets, _external_urls, _href, _id, _images, _name, _release_date, _release_date_precision, _restrictions, _type, _uri, _artists, obj)
     def __getitem__(self, item):
         if item == 'album_type':
@@ -327,7 +271,7 @@ class PlaylistAlbum:
 
 @dataclass
 class PlaylistExternalUrls5:
-    spotify: str
+    spotify: Optional[str]
     _json: dict
     def from_dict(obj: Any) -> 'PlaylistExternalUrls5':
         _spotify = obj.get('spotify') if obj and 'spotify' in obj else None
@@ -338,22 +282,22 @@ class PlaylistExternalUrls5:
         return None
 
 @dataclass
-class PlaylistArtists:
-    external_urls: PlaylistExternalUrls5
-    href: str
-    id: str
-    name: str
-    type: str
-    uri: str
+class PlaylistArtists1:
+    external_urls: Optional[PlaylistExternalUrls5]
+    href: Optional[str]
+    id: Optional[str]
+    name: Optional[str]
+    type: Optional[str]
+    uri: Optional[str]
     _json: dict
-    def from_dict(obj: Any) -> 'PlaylistArtists':
-        _external_urls = PlaylistExternalUrls5.from_dict(obj.get('external_urls'))
+    def from_dict(obj: Any) -> 'PlaylistArtists1':
+        _external_urls = PlaylistExternalUrls5.from_dict(obj.get('external_urls')) if obj and 'external_urls' in obj else None
         _href = obj.get('href') if obj and 'href' in obj else None
         _id = obj.get('id') if obj and 'id' in obj else None
         _name = obj.get('name') if obj and 'name' in obj else None
         _type = obj.get('type') if obj and 'type' in obj else None
         _uri = obj.get('uri') if obj and 'uri' in obj else None
-        return PlaylistArtists(_external_urls, _href, _id, _name, _type, _uri, obj)
+        return PlaylistArtists1(_external_urls, _href, _id, _name, _type, _uri, obj)
     def __getitem__(self, item):
         if item == 'external_urls':
             return self.external_urls
@@ -371,9 +315,9 @@ class PlaylistArtists:
 
 @dataclass
 class PlaylistExternalIds:
-    isrc: str
-    ean: str
-    upc: str
+    isrc: Optional[str]
+    ean: Optional[str]
+    upc: Optional[str]
     _json: dict
     def from_dict(obj: Any) -> 'PlaylistExternalIds':
         _isrc = obj.get('isrc') if obj and 'isrc' in obj else None
@@ -391,7 +335,7 @@ class PlaylistExternalIds:
 
 @dataclass
 class PlaylistExternalUrls6:
-    spotify: str
+    spotify: Optional[str]
     _json: dict
     def from_dict(obj: Any) -> 'PlaylistExternalUrls6':
         _spotify = obj.get('spotify') if obj and 'spotify' in obj else None
@@ -409,7 +353,7 @@ class PlaylistLinkedFrom:
 
 @dataclass
 class PlaylistRestrictions1:
-    reason: str
+    reason: Optional[str]
     _json: dict
     def from_dict(obj: Any) -> 'PlaylistRestrictions1':
         _reason = obj.get('reason') if obj and 'reason' in obj else None
@@ -421,44 +365,41 @@ class PlaylistRestrictions1:
 
 @dataclass
 class PlaylistTrack:
-    album: PlaylistAlbum
-    artists: List[PlaylistArtists]
-    available_markets: List[str]
-    disc_number: int
-    duration_ms: int
-    explicit: bool
-    external_ids: PlaylistExternalIds
-    external_urls: PlaylistExternalUrls6
-    href: str
-    id: str
-    is_playable: bool
-    linked_from: PlaylistLinkedFrom
-    restrictions: PlaylistRestrictions1
-    name: str
-    popularity: int
-    preview_url: str
-    track_number: int
-    type: str
-    uri: str
-    is_local: bool
+    album: Optional[PlaylistAlbum]
+    artists: Optional[List[PlaylistArtists1]]
+    available_markets: Optional[List[str]]
+    disc_number: Optional[int]
+    duration_ms: Optional[int]
+    explicit: Optional[bool]
+    external_ids: Optional[PlaylistExternalIds]
+    external_urls: Optional[PlaylistExternalUrls6]
+    href: Optional[str]
+    id: Optional[str]
+    is_playable: Optional[bool]
+    linked_from: Optional[PlaylistLinkedFrom]
+    restrictions: Optional[PlaylistRestrictions1]
+    name: Optional[str]
+    popularity: Optional[int]
+    preview_url: Optional[str]
+    track_number: Optional[int]
+    type: Optional[str]
+    uri: Optional[str]
+    is_local: Optional[bool]
     _json: dict
     def from_dict(obj: Any) -> 'PlaylistTrack':
-        if obj == None:
-            print("PlaylistTrack.obj is None")
-            return None
-        _album = PlaylistAlbum.from_dict(obj.get('album'))
-        _artists = [PlaylistArtists.from_dict(k) for k in obj.get('artists')]
+        _album = PlaylistAlbum.from_dict(obj.get('album')) if obj and 'album' in obj else None
+        _artists = [PlaylistArtists1.from_dict(k) for k in obj.get('artists')] if obj and 'artists' in obj else None
         _available_markets = obj.get('available_markets') if obj and 'available_markets' in obj else None
         _disc_number = obj.get('disc_number') if obj and 'disc_number' in obj else None
         _duration_ms = obj.get('duration_ms') if obj and 'duration_ms' in obj else None
         _explicit = obj.get('explicit') if obj and 'explicit' in obj else None
-        _external_ids = PlaylistExternalIds.from_dict(obj.get('external_ids'))
-        _external_urls = PlaylistExternalUrls6.from_dict(obj.get('external_urls'))
+        _external_ids = PlaylistExternalIds.from_dict(obj.get('external_ids')) if obj and 'external_ids' in obj else None
+        _external_urls = PlaylistExternalUrls6.from_dict(obj.get('external_urls')) if obj and 'external_urls' in obj else None
         _href = obj.get('href') if obj and 'href' in obj else None
         _id = obj.get('id') if obj and 'id' in obj else None
         _is_playable = obj.get('is_playable') if obj and 'is_playable' in obj else None
-        _linked_from = PlaylistLinkedFrom.from_dict(obj.get('linked_from'))
-        _restrictions = PlaylistRestrictions1.from_dict(obj.get('restrictions'))
+        _linked_from = PlaylistLinkedFrom.from_dict(obj.get('linked_from')) if obj and 'linked_from' in obj else None
+        _restrictions = PlaylistRestrictions1.from_dict(obj.get('restrictions')) if obj and 'restrictions' in obj else None
         _name = obj.get('name') if obj and 'name' in obj else None
         _popularity = obj.get('popularity') if obj and 'popularity' in obj else None
         _preview_url = obj.get('preview_url') if obj and 'preview_url' in obj else None
@@ -512,16 +453,16 @@ class PlaylistTrack:
 
 @dataclass
 class PlaylistItems:
-    added_at: str
-    added_by: PlaylistAddedBy
-    is_local: bool
-    track: PlaylistTrack
+    added_at: Optional[str]
+    added_by: Optional[PlaylistAddedBy]
+    is_local: Optional[bool]
+    track: Optional[PlaylistTrack]
     _json: dict
     def from_dict(obj: Any) -> 'PlaylistItems':
         _added_at = obj.get('added_at') if obj and 'added_at' in obj else None
-        _added_by = PlaylistAddedBy.from_dict(obj.get('added_by'))
+        _added_by = PlaylistAddedBy.from_dict(obj.get('added_by')) if obj and 'added_by' in obj else None
         _is_local = obj.get('is_local') if obj and 'is_local' in obj else None
-        _track = PlaylistTrack.from_dict(obj.get('track'))
+        _track = PlaylistTrack.from_dict(obj.get('track')) if obj and 'track' in obj else None
         return PlaylistItems(_added_at, _added_by, _is_local, _track, obj)
     def __getitem__(self, item):
         if item == 'added_at':
@@ -536,13 +477,13 @@ class PlaylistItems:
 
 @dataclass
 class PlaylistTracks:
-    href: str
-    limit: int
-    next: str
-    offset: int
-    previous: str
-    total: int
-    items: List[PlaylistItems]
+    href: Optional[str]
+    limit: Optional[int]
+    next: Optional[str]
+    offset: Optional[int]
+    previous: Optional[str]
+    total: Optional[int]
+    items: Optional[List[PlaylistItems]]
     _json: dict
     def from_dict(obj: Any) -> 'PlaylistTracks':
         _href = obj.get('href') if obj and 'href' in obj else None
@@ -551,7 +492,7 @@ class PlaylistTracks:
         _offset = obj.get('offset') if obj and 'offset' in obj else None
         _previous = obj.get('previous') if obj and 'previous' in obj else None
         _total = obj.get('total') if obj and 'total' in obj else None
-        _items = [PlaylistItems.from_dict(k) for k in obj.get('items')]
+        _items = [PlaylistItems.from_dict(k) for k in obj.get('items')] if obj and 'items' in obj else None
         return PlaylistTracks(_href, _limit, _next, _offset, _previous, _total, _items, obj)
     def __getitem__(self, item):
         if item == 'href':
@@ -572,37 +513,35 @@ class PlaylistTracks:
 
 @dataclass
 class RawSpotifyApiPlaylist:
-    collaborative: bool
-    description: str
-    external_urls: PlaylistExternalUrls
-    followers: PlaylistFollowers
-    href: str
-    id: str
-    images: List[PlaylistImages]
-    name: str
-    owner: PlaylistOwner
-    public: bool
-    snapshot_id: str
-    tracks: PlaylistTracks
-    type: str
-    uri: str
+    collaborative: Optional[bool]
+    description: Optional[str]
+    external_urls: Optional[PlaylistExternalUrls]
+    href: Optional[str]
+    id: Optional[str]
+    images: Optional[List[PlaylistImages]]
+    name: Optional[str]
+    owner: Optional[PlaylistOwner]
+    public: Optional[bool]
+    snapshot_id: Optional[str]
+    tracks: Optional[PlaylistTracks]
+    type: Optional[str]
+    uri: Optional[str]
     _json: dict
     def from_dict(obj: Any) -> 'RawSpotifyApiPlaylist':
         _collaborative = obj.get('collaborative') if obj and 'collaborative' in obj else None
         _description = obj.get('description') if obj and 'description' in obj else None
-        _external_urls = PlaylistExternalUrls.from_dict(obj.get('external_urls'))
-        _followers = PlaylistFollowers.from_dict(obj.get('followers'))
+        _external_urls = PlaylistExternalUrls.from_dict(obj.get('external_urls')) if obj and 'external_urls' in obj else None
         _href = obj.get('href') if obj and 'href' in obj else None
         _id = obj.get('id') if obj and 'id' in obj else None
-        _images = [PlaylistImages.from_dict(k) for k in obj.get('images')]
+        _images = [PlaylistImages.from_dict(k) for k in obj.get('images')] if obj and 'images' in obj else None
         _name = obj.get('name') if obj and 'name' in obj else None
-        _owner = PlaylistOwner.from_dict(obj.get('owner'))
+        _owner = PlaylistOwner.from_dict(obj.get('owner')) if obj and 'owner' in obj else None
         _public = obj.get('public') if obj and 'public' in obj else None
         _snapshot_id = obj.get('snapshot_id') if obj and 'snapshot_id' in obj else None
-        _tracks = PlaylistTracks.from_dict(obj.get('tracks'))
+        _tracks = PlaylistTracks.from_dict(obj.get('tracks')) if obj and 'tracks' in obj else None
         _type = obj.get('type') if obj and 'type' in obj else None
         _uri = obj.get('uri') if obj and 'uri' in obj else None
-        return RawSpotifyApiPlaylist(_collaborative, _description, _external_urls, _followers, _href, _id, _images, _name, _owner, _public, _snapshot_id, _tracks, _type, _uri, obj)
+        return RawSpotifyApiPlaylist(_collaborative, _description, _external_urls, _href, _id, _images, _name, _owner, _public, _snapshot_id, _tracks, _type, _uri, obj)
     def __getitem__(self, item):
         if item == 'collaborative':
             return self.collaborative
@@ -610,8 +549,6 @@ class RawSpotifyApiPlaylist:
             return self.description
         elif item == 'external_urls':
             return self.external_urls
-        elif item == 'followers':
-            return self.followers
         elif item == 'href':
             return self.href
         elif item == 'id':
@@ -633,3 +570,4 @@ class RawSpotifyApiPlaylist:
         elif item == 'uri':
             return self.uri
         return None
+

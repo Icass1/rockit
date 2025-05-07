@@ -1,10 +1,10 @@
-from typing import List, Dict, Any
+from typing import List, Any, Optional
 from dataclasses import dataclass
 
 
 @dataclass
 class AlbumExternalUrls:
-    spotify: str
+    spotify: Optional[str]
     _json: dict
 
     def from_dict(obj: Any) -> 'AlbumExternalUrls':
@@ -19,9 +19,9 @@ class AlbumExternalUrls:
 
 @dataclass
 class AlbumImages:
-    url: str
-    height: int
-    width: int
+    url: Optional[str]
+    height: Optional[int]
+    width: Optional[int]
     _json: dict
 
     def from_dict(obj: Any) -> 'AlbumImages':
@@ -42,7 +42,7 @@ class AlbumImages:
 
 @dataclass
 class AlbumRestrictions:
-    reason: str
+    reason: Optional[str]
     _json: dict
 
     def from_dict(obj: Any) -> 'AlbumRestrictions':
@@ -57,7 +57,7 @@ class AlbumRestrictions:
 
 @dataclass
 class AlbumExternalUrls1:
-    spotify: str
+    spotify: Optional[str]
     _json: dict
 
     def from_dict(obj: Any) -> 'AlbumExternalUrls1':
@@ -72,12 +72,12 @@ class AlbumExternalUrls1:
 
 @dataclass
 class AlbumArtists:
-    external_urls: AlbumExternalUrls1
-    href: str
-    id: str
-    name: str
-    type: str
-    uri: str
+    external_urls: Optional[AlbumExternalUrls1]
+    href: Optional[str]
+    id: Optional[str]
+    name: Optional[str]
+    type: Optional[str]
+    uri: Optional[str]
     _json: dict
 
     def from_dict(obj: Any) -> 'AlbumArtists':
@@ -108,7 +108,7 @@ class AlbumArtists:
 
 @dataclass
 class AlbumExternalUrls2:
-    spotify: str
+    spotify: Optional[str]
     _json: dict
 
     def from_dict(obj: Any) -> 'AlbumExternalUrls2':
@@ -122,16 +122,16 @@ class AlbumExternalUrls2:
 
 
 @dataclass
-class AlbumArtists:
-    external_urls: AlbumExternalUrls2
-    href: str
-    id: str
-    name: str
-    type: str
-    uri: str
+class AlbumArtists1:
+    external_urls: Optional[AlbumExternalUrls2]
+    href: Optional[str]
+    id: Optional[str]
+    name: Optional[str]
+    type: Optional[str]
+    uri: Optional[str]
     _json: dict
 
-    def from_dict(obj: Any) -> 'AlbumArtists':
+    def from_dict(obj: Any) -> 'AlbumArtists1':
         _external_urls = AlbumExternalUrls2.from_dict(
             obj.get('external_urls')) if obj and 'external_urls' in obj else None
         _href = obj.get('href') if obj and 'href' in obj else None
@@ -139,7 +139,7 @@ class AlbumArtists:
         _name = obj.get('name') if obj and 'name' in obj else None
         _type = obj.get('type') if obj and 'type' in obj else None
         _uri = obj.get('uri') if obj and 'uri' in obj else None
-        return AlbumArtists(_external_urls, _href, _id, _name, _type, _uri, obj)
+        return AlbumArtists1(_external_urls, _href, _id, _name, _type, _uri, obj)
 
     def __getitem__(self, item):
         if item == 'external_urls':
@@ -159,7 +159,7 @@ class AlbumArtists:
 
 @dataclass
 class AlbumExternalUrls3:
-    spotify: str
+    spotify: Optional[str]
     _json: dict
 
     def from_dict(obj: Any) -> 'AlbumExternalUrls3':
@@ -174,7 +174,7 @@ class AlbumExternalUrls3:
 
 @dataclass
 class AlbumExternalUrls4:
-    spotify: str
+    spotify: Optional[str]
     _json: dict
 
     def from_dict(obj: Any) -> 'AlbumExternalUrls4':
@@ -189,11 +189,11 @@ class AlbumExternalUrls4:
 
 @dataclass
 class AlbumLinkedFrom:
-    external_urls: AlbumExternalUrls4
-    href: str
-    id: str
-    type: str
-    uri: str
+    external_urls: Optional[AlbumExternalUrls4]
+    href: Optional[str]
+    id: Optional[str]
+    type: Optional[str]
+    uri: Optional[str]
     _json: dict
 
     def from_dict(obj: Any) -> 'AlbumLinkedFrom':
@@ -221,7 +221,7 @@ class AlbumLinkedFrom:
 
 @dataclass
 class AlbumRestrictions1:
-    reason: str
+    reason: Optional[str]
     _json: dict
 
     def from_dict(obj: Any) -> 'AlbumRestrictions1':
@@ -236,27 +236,27 @@ class AlbumRestrictions1:
 
 @dataclass
 class AlbumItems:
-    artists: List[AlbumArtists]
-    available_markets: List[str]
-    disc_number: int
-    duration_ms: int
-    explicit: bool
-    external_urls: AlbumExternalUrls3
-    href: str
-    id: str
-    is_playable: bool
-    linked_from: AlbumLinkedFrom
-    restrictions: AlbumRestrictions1
-    name: str
-    preview_url: str
-    track_number: int
-    type: str
-    uri: str
-    is_local: bool
+    artists: Optional[List[AlbumArtists1]]
+    available_markets: Optional[List[str]]
+    disc_number: Optional[int]
+    duration_ms: Optional[int]
+    explicit: Optional[bool]
+    external_urls: Optional[AlbumExternalUrls3]
+    href: Optional[str]
+    id: Optional[str]
+    is_playable: Optional[bool]
+    linked_from: Optional[AlbumLinkedFrom]
+    restrictions: Optional[AlbumRestrictions1]
+    name: Optional[str]
+    preview_url: Optional[str]
+    track_number: Optional[int]
+    type: Optional[str]
+    uri: Optional[str]
+    is_local: Optional[bool]
     _json: dict
 
     def from_dict(obj: Any) -> 'AlbumItems':
-        _artists = [AlbumArtists.from_dict(k) for k in obj.get(
+        _artists = [AlbumArtists1.from_dict(k) for k in obj.get(
             'artists')] if obj and 'artists' in obj else None
         _available_markets = obj.get(
             'available_markets') if obj and 'available_markets' in obj else None
@@ -325,13 +325,13 @@ class AlbumItems:
 
 @dataclass
 class AlbumTracks:
-    href: str
-    limit: int
-    next: str
-    offset: int
-    previous: str
-    total: int
-    items: List[AlbumItems]
+    href: Optional[str]
+    limit: Optional[int]
+    next: Optional[str]
+    offset: Optional[int]
+    previous: Optional[str]
+    total: Optional[int]
+    items: Optional[List[AlbumItems]]
     _json: dict
 
     def from_dict(obj: Any) -> 'AlbumTracks':
@@ -365,8 +365,8 @@ class AlbumTracks:
 
 @dataclass
 class AlbumCopyrights:
-    text: str
-    type: str
+    text: Optional[str]
+    type: Optional[str]
     _json: dict
 
     def from_dict(obj: Any) -> 'AlbumCopyrights':
@@ -384,9 +384,9 @@ class AlbumCopyrights:
 
 @dataclass
 class AlbumExternalIds:
-    isrc: str
-    ean: str
-    upc: str
+    isrc: Optional[str]
+    ean: Optional[str]
+    upc: Optional[str]
     _json: dict
 
     def from_dict(obj: Any) -> 'AlbumExternalIds':
@@ -407,26 +407,26 @@ class AlbumExternalIds:
 
 @dataclass
 class RawSpotifyApiAlbum:
-    album_type: str
-    total_tracks: int
-    available_markets: List[str]
-    external_urls: AlbumExternalUrls
-    href: str
-    id: str
-    images: List[AlbumImages]
-    name: str
-    release_date: str
-    release_date_precision: str
-    restrictions: AlbumRestrictions
-    type: str
-    uri: str
-    artists: List[AlbumArtists]
-    tracks: AlbumTracks
-    copyrights: List[AlbumCopyrights]
-    external_ids: AlbumExternalIds
-    genres: List[str]
-    label: str
-    popularity: int
+    album_type: Optional[str]
+    total_tracks: Optional[int]
+    available_markets: Optional[List[str]]
+    external_urls: Optional[AlbumExternalUrls]
+    href: Optional[str]
+    id: Optional[str]
+    images: Optional[List[AlbumImages]]
+    name: Optional[str]
+    release_date: Optional[str]
+    release_date_precision: Optional[str]
+    restrictions: Optional[AlbumRestrictions]
+    type: Optional[str]
+    uri: Optional[str]
+    artists: Optional[List[AlbumArtists]]
+    tracks: Optional[AlbumTracks]
+    copyrights: Optional[List[AlbumCopyrights]]
+    external_ids: Optional[AlbumExternalIds]
+    genres: Optional[List[Any]]
+    label: Optional[str]
+    popularity: Optional[int]
     _json: dict
 
     def from_dict(obj: Any) -> 'RawSpotifyApiAlbum':

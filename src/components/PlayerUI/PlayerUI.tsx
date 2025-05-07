@@ -27,6 +27,7 @@ import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
 import {
     GripVertical,
     HardDriveDownload,
+    ListPlus,
     ListX,
     Pause,
     Play,
@@ -54,6 +55,7 @@ export default function PlayerUI() {
 
     const [draggingSong, setDraggingSong] = useState<
         | {
+              list: string;
               song: QueueElement;
               index: number;
           }
@@ -81,7 +83,7 @@ export default function PlayerUI() {
             queueDivRef.current?.getBoundingClientRect().top || 0;
         scrollContainerTopRef.current = scrollContainerTop;
 
-        setDraggingSong({ song, index });
+        setDraggingSong({ list: "queue", song, index });
         setDraggingPosY(event.clientY);
         draggingPosYRef.current = event.clientY;
     };
@@ -283,7 +285,7 @@ export default function PlayerUI() {
                             className="absolute h-full w-full rounded-xl select-none"
                         />
                         <div
-                            className={`bg-[#1a1a1a]/60 rounded-full h-20 w-20 ${iconClassName}`}
+                            className={`h-20 w-20 rounded-full bg-[#1a1a1a]/60 ${iconClassName}`}
                         >
                             {$playing ? (
                                 <Pause className={iconClassName} fill="white" />
@@ -420,7 +422,7 @@ export default function PlayerUI() {
                                             key={`${queueSong.song.id}-${queueSong.index}`}
                                             className={`absolute w-full ${isDragging ? "z-10" : "transition-[top] duration-200"}`}
                                             style={{
-                                                top: `${top + 20}px`,
+                                                top: `${(typeof top === "number" ? top : 0) + 20}px`,
                                                 transitionTimingFunction:
                                                     "cubic-bezier(0.4, 0, 0.2, 1)",
                                             }}
@@ -503,6 +505,143 @@ export default function PlayerUI() {
                                         </div>
                                     );
                                 })}
+                                <div>
+                                    <div className="mt-5 h-[1px] w-full bg-neutral-400" />
+                                    <h2 className="text-md my-2 px-4 font-semibold text-neutral-400">
+                                        Reproducciones automáticas a
+                                        continuación
+                                    </h2>
+                                    {[
+                                        {
+                                            id: "auto1",
+                                            title: "Neon Nights",
+                                            artist: "Synthwave Dreams",
+                                        },
+                                        {
+                                            id: "auto2",
+                                            title: "Midnight Ride",
+                                            artist: "Retro Driver",
+                                        },
+                                        {
+                                            id: "auto3",
+                                            title: "Digital Sunset",
+                                            artist: "Pixel Horizons",
+                                        },
+                                        {
+                                            id: "auto4",
+                                            title: "Electric Pulse",
+                                            artist: "Voltage",
+                                        },
+                                        {
+                                            id: "auto5",
+                                            title: "Echoes in the Dark",
+                                            artist: "Shadow Sound",
+                                        },
+                                    ].map((mock, i) => {
+                                        if (!queueDivRef.current) return;
+
+                                        const autoSong = {
+                                            song: {
+                                                id: mock.id,
+                                                name: mock.title,
+                                                albumName: "Unknown Album",
+                                                artists: [
+                                                    {
+                                                        id: "unknown",
+                                                        name: mock.artist,
+                                                    },
+                                                ],
+                                                image: "/song-placeholder.png",
+                                                duration: 0,
+                                                albumId: "",
+                                            },
+                                            list: {
+                                                type: "auto",
+                                                id: "auto-list",
+                                            },
+                                            index: i,
+                                        };
+
+                                        return (
+                                            <div
+                                                key={`auto-${mock.id}`}
+                                                className="relative w-full transition-[top] duration-200"
+                                                style={{
+                                                    transitionTimingFunction:
+                                                        "cubic-bezier(0.4, 0, 0.2, 1)",
+                                                }}
+                                            >
+                                                <ContextMenu>
+                                                    <ContextMenuTrigger>
+                                                        <div className="grid grid-cols-[1fr_45px] items-center">
+                                                            <div className="w-full max-w-full min-w-0">
+                                                                <QueueSong
+                                                                    song={
+                                                                        autoSong
+                                                                    }
+                                                                />
+                                                            </div>
+                                                            <ListPlus className="h-full w-full p-1 pr-4" />
+                                                        </div>
+                                                    </ContextMenuTrigger>
+                                                    <ContextMenuContent
+                                                        cover={getImageUrl({
+                                                            imageId:
+                                                                autoSong.song
+                                                                    .image,
+                                                        })}
+                                                        title={
+                                                            autoSong.song.name
+                                                        }
+                                                        description={`${autoSong.song.albumName} • ${autoSong.song.artists
+                                                            .map((a) => a.name)
+                                                            .join(", ")}`}
+                                                    >
+                                                        <ContextMenuOption
+                                                            onClick={() =>
+                                                                handlePlaySong(
+                                                                    autoSong
+                                                                )
+                                                            }
+                                                        >
+                                                            <PlayCircle className="h-5 w-5" />
+                                                            {$lang.play_song}
+                                                        </ContextMenuOption>
+                                                        <ContextMenuOption
+                                                            onClick={() =>
+                                                                handleRemoveSong(
+                                                                    autoSong
+                                                                )
+                                                            }
+                                                            disable={
+                                                                $queueIndex ===
+                                                                autoSong.index
+                                                            }
+                                                        >
+                                                            <ListX className="h-5 w-5" />
+                                                            {
+                                                                $lang.remove_from_queue
+                                                            }
+                                                        </ContextMenuOption>
+                                                        <ContextMenuOption
+                                                            onClick={() =>
+                                                                saveSongToIndexedDB(
+                                                                    autoSong.song,
+                                                                    true
+                                                                )
+                                                            }
+                                                        >
+                                                            <HardDriveDownload className="h-5 w-5" />
+                                                            {
+                                                                $lang.download_song_to_device
+                                                            }
+                                                        </ContextMenuOption>
+                                                    </ContextMenuContent>
+                                                </ContextMenu>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
                             </>
                         ) : (
                             <>

@@ -40,8 +40,12 @@ export async function GET() {
     };
 
     const pinnedLists = DBPinnedLists.map((list) => {
-        return { ...getList(list), type: list.type };
-    });
+        const parsedList = getList(list);
+
+        if (!parsedList) return;
+
+        return { ...parsedList, type: list.type };
+    }).filter((list) => typeof list != "undefined");
 
     return NextResponse.json(pinnedLists);
 }

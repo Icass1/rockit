@@ -12,7 +12,8 @@ class RawDownloadDB:
     downloadURL: str
     status: str
     seen: str
-    success: str
+    success: int
+    fail: int
 
 
 @dataclass
@@ -24,7 +25,8 @@ class DownloadDBFull:
     downloadURL: str
     status: str
     seen: bool
-    success: bool
+    success: int
+    fail: int
 
 
 def parse_download(raw_download: Optional[RawDownloadDB]) -> Optional[DownloadDBFull]:
@@ -39,7 +41,8 @@ def parse_download(raw_download: Optional[RawDownloadDB]) -> Optional[DownloadDB
         downloadURL=raw_download.downloadURL,
         status=raw_download.status,
         seen=True if raw_download.seen == "1" else False,
-        success=True if raw_download.success == "1" else False,
+        success=raw_download.success,
+        fail=raw_download.fail
     )
 
 
@@ -52,5 +55,6 @@ CREATE TABLE IF NOT EXISTS download (
     downloadURL TEXT NOT NULL,
     status TEXT NOT NULL,
     seen BOOLEAN DEFAULT "1" NOT NULL,
-    success BOOLEAN
+    success INTEGER,
+    fail INTEGER
 )"""

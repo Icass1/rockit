@@ -35,6 +35,7 @@ export type ReadonlyIfObject<Value> = Value extends undefined
           : Value;
 
 type MyAtomWrapper<T> = {
+    length: number;
     get(): T;
     set(value: T, sendToSocket?: boolean): void;
     subscribe(callback: (value: T) => void): () => void;

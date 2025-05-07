@@ -26,7 +26,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         downloadId +
         `&user=${session.user.id}`;
 
-    console.warn("Only for development")
+    console.warn("Only for development");
 
     // const upstreamUrl =
     //     `${BACKEND_URL}/download-status-mockup?id=` +

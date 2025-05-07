@@ -67,12 +67,12 @@ export default function SubContextMenuContent({
                 _setHover?.(false);
             }
         }
-    
+
         document.addEventListener("mousedown", handleClickOutside);
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
         };
-    }, [_setHover]);    
+    }, [_setHover]);
 
     const localRef = React.useRef<HTMLDivElement>(null);
 
@@ -94,11 +94,13 @@ export default function SubContextMenuContent({
                     {childrenWithProps?.map((child, i) => (
                         <label
                             key={i}
-                            className="flex items-center gap-3 px-3 cursor-pointer rounded-md hover:bg-neutral-700 transition-colors"
+                            className="flex cursor-pointer items-center gap-3 rounded-md px-3 transition-colors hover:bg-neutral-700"
                         >
                             <input type="checkbox" className="peer sr-only" />
                             <span className="relative flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md border-2 border-gray-500 bg-transparent transition-all peer-checked:border-pink-600 peer-checked:bg-pink-600 hover:border-pink-500" />
-                            <span className="flex-1 truncate text-white">{child}</span>
+                            <span className="flex-1 truncate text-white">
+                                {child}
+                            </span>
                         </label>
                     ))}
                 </div>

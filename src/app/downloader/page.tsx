@@ -86,7 +86,7 @@ function SongDownload({
                 style={{ gridArea: "progress-bar" }}
             >
                 <div
-                    className="absolute h-full transition-[width] rounded-full bg-gradient-to-r from-[#ee1086] to-[#fb6467]"
+                    className="absolute h-full rounded-full bg-gradient-to-r from-[#ee1086] to-[#fb6467] transition-[width]"
                     style={{ width: completed + "%" }}
                 ></div>
             </div>

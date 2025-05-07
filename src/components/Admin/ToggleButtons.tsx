@@ -29,10 +29,7 @@ export default function ToggleButtons() {
                 </div>
                 <div className="flex flex-row justify-between pr-5">
                     <label>Repeat Song</label>
-                    <input
-                        checked={repeatSong !== "off"}
-                        type="checkbox"
-                    />
+                    <input checked={repeatSong !== "off"} type="checkbox" />
                 </div>
                 <div className="flex flex-row justify-between pr-5">
                     <label className="">Admin</label>

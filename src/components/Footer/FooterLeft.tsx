@@ -9,7 +9,13 @@ import {
 } from "@/stores/audio";
 import { useStore } from "@nanostores/react";
 import LikeButton from "@/components/LikeButton";
-import { EllipsisVertical, PlayIcon, PauseIcon, Pause, Play } from "lucide-react";
+import {
+    EllipsisVertical,
+    PlayIcon,
+    PauseIcon,
+    Pause,
+    Play,
+} from "lucide-react";
 import { isPlayerUIVisible } from "@/stores/isPlayerUIVisible";
 import { useState } from "react";
 import { getImageUrl } from "@/lib/getImageUrl";
@@ -24,7 +30,7 @@ function FooterLeftForSong({ currentSong }: { currentSong: CurrentSong }) {
         <div className="flex w-full max-w-full min-w-0 items-center gap-x-4 md:w-1/3">
             {/* Imagen al inicio */}
             <div
-                className="relative group h-9 w-9 md:h-16 md:w-16 rounded-md cursor-pointer"
+                className="group relative h-9 w-9 cursor-pointer rounded-md md:h-16 md:w-16"
                 onClick={() => ($playing ? pause() : play())}
             >
                 {/* Imagen del álbum */}
@@ -38,18 +44,18 @@ function FooterLeftForSong({ currentSong }: { currentSong: CurrentSong }) {
                         placeHolder: "/song-placeholder.png",
                     })}
                     alt="Album Cover"
-                    className="h-9 w-9 md:h-16 md:w-16 rounded-md object-cover select-none transition duration-300 group-hover:brightness-50"
+                    className="h-9 w-9 rounded-md object-cover transition duration-300 select-none group-hover:brightness-50 md:h-16 md:w-16"
                 />
 
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 transition group-hover:opacity-100">
                     {$playing ? (
-                        <Pause 
-                            className="h-6 w-6 md:h-8 md:w-8 text-white fill-current" 
+                        <Pause
+                            className="h-6 w-6 fill-current text-white md:h-8 md:w-8"
                             onClick={() => pause()}
                         />
                     ) : (
-                        <Play 
-                            className="h-6 w-6 md:h-8 md:w-8 text-white fill-current" 
+                        <Play
+                            className="h-6 w-6 fill-current text-white md:h-8 md:w-8"
                             onClick={() => play()}
                         />
                     )}

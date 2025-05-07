@@ -54,7 +54,9 @@ export function FeaturedLists({
 
     let lastMonthNameIndex = new Intl.DateTimeFormat("en", {
         month: "long",
-    }).format(date).toLowerCase();
+    })
+        .format(date)
+        .toLowerCase();
 
     let lastMonthName = new Intl.DateTimeFormat(lang.get(), {
         month: "long",

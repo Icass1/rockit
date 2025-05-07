@@ -4,13 +4,13 @@ from pathlib import Path
 from spotdl.types.song import Song
 import os
 import shutil
-
-from constants import SONGS_PATH, TEMP_PATH
-from backendUtils import get_output_file, sanitize_folder_name
-from db.db import DB
-from logger import getLogger
-from messageHandler import MessageHandler
 import time
+
+from backend.constants import SONGS_PATH, TEMP_PATH
+from backend.backendUtils import get_output_file, sanitize_folder_name
+from backend.db.db import DB
+from backend.logger import getLogger
+from backend.messageHandler import MessageHandler
 
 
 class QueueElement:
@@ -41,7 +41,7 @@ class QueueElement:
         return self._success
 
     def on_done(self):
-        self.logger.warn("This function should be overwritten")
+        self.logger.warning("This function should be overwritten")
 
     async def get_done(self):
         while not self._done:

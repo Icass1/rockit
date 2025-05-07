@@ -2,7 +2,7 @@ from typing import TypedDict, List, Optional
 import json
 from dataclasses import dataclass
 
-from db.commonTypes import ArtistDB, OldImageDB
+from backend.db.commonTypes import ArtistDB, OldImageDB
 
 
 @dataclass

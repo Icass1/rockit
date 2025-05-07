@@ -7,7 +7,7 @@ import traceback
 import threading
 import inspect
 
-from constants import LOG_DUMP_LEVEL, LOGS_PATH  # Import inspect module
+from backend.constants import LOG_DUMP_LEVEL, LOGS_PATH  # Import inspect module
 
 # Initialize Colorama for cross-platform compatibility
 init(autoreset=True)
@@ -141,17 +141,15 @@ def getLogger(name, class_name=None):
     # Set logging level
     logger.setLevel(min(console_level, file_level))
 
-    fmt = '{asctime} [{levelname:^10}] {pathname}:{lineno} - {message}'
-
     # Define formatters
     plain_formatter = logging.Formatter(
-        fmt,
+        '{asctime} [{levelname:^10}] {pathname}:{lineno} - {name}.{classname}{funcName} - {message}',
         style="{",
         datefmt='%Y-%m-%d %H:%M:%S'
     )
 
     color_formatter = ColorFormatter(
-        fmt,
+        '{asctime} [{levelname:^10}] {pathname}:{lineno} - {message}',
         style="{",
         datefmt='%Y-%m-%d %H:%M:%S'
     )

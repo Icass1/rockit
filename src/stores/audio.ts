@@ -148,6 +148,7 @@ export function createControlledAtom<T>(
         },
         lc: baseAtom.lc,
         value: baseAtom.value,
+        length: 0, // Add the length property with a default value
     };
 }
 

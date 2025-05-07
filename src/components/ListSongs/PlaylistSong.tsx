@@ -66,7 +66,7 @@ export default function PlaylistSong({
         console.warn("TODO");
         setSong((value) => value);
     }, []);
-    
+
     if (!$queue) return <div className="skeleton h-10 w-full rounded"></div>;
 
     return (

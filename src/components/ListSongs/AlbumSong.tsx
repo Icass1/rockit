@@ -50,7 +50,7 @@ export default function AlbumSong({
         >(song);
 
     useEffect(() => {
-        console.warn("TODO")
+        console.warn("TODO");
         setSong((value) => value);
     }, []);
 

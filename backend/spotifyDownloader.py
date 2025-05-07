@@ -4,7 +4,7 @@ import asyncio
 from logging import Logger
 from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
-from fastapi import BackgroundTasks, Request
+from fastapi import BackgroundTasks, Request, Response
 from fastapi.responses import StreamingResponse
 import threading
 import time
@@ -28,7 +28,7 @@ from spotify import Spotify
 from backendUtils import create_id, download_image, get_song_name, get_utc_date, sanitize_folder_name
 
 from db.image import ImageDB
-from db.commonTypes import ArtistDB
+from backend.db.commonTypes import ArtistDB
 from db.song import SongDBFull
 from db.album import AlbumDBFull
 from db.db import DB
@@ -69,6 +69,8 @@ class SpotifyDownloader:
         self.queue_elements: List[QueueElement] = []
 
         self._queue_set = False
+
+        self.error = False
 
         self.downloader.spotify.db.execute(
             query="INSERT INTO download (id, userId, dateStarted, downloadURL, status, seen) VALUES(?, ?, ?, ?, ?, ?)", parameters=(
@@ -116,11 +118,77 @@ class SpotifyDownloader:
             album = self.downloader.spotify.get_album(
                 self.url.replace("https://open.spotify.com/album/", ""))
 
+            if not album:
+                self.error = True
+                self.update_status_db(f"album is None ")
+                self.logger.error(
+                    f"album is None {self.url}")
+                return
+
+            if not album.tracks:
+                self.error = True
+                self.update_status_db(f"album.tracks is None ")
+                self.logger.error(
+                    f"album.tracks is None {self.url}")
+                return
+
+            if not album.tracks.items:
+                self.error = True
+                self.update_status_db("album.tracks.items is None")
+                self.logger.error(
+                    f"album.tracks.items is None {self.url}")
+                return
+
             out = self.downloader.spotify.get_songs(
-                ids=[a.id for a in album.tracks.items])
+                ids=[a.id for a in album.tracks.items if a.id])
 
             if not out:
+                self.error = True
+                self.update_status_db("out is None")
+                self.logger.error("out is None")
+                return
 
+            for k in out:
+
+                spotdl_song, song = k
+                spotdl_songs.append(spotdl_song)
+
+                self.message_handler.add(
+                    {'id': spotdl_song.song_id, 'completed': 0, 'message': 'Starting'})
+
+        elif "/playlist/" in self.url:
+            self.update_status_db("Fetching playlist")
+
+            playlist: RawSpotifyApiPlaylist | None = self.downloader.spotify.get_playlist(
+                self.url.replace("https://open.spotify.com/playlist/", ""))
+
+            if not playlist:
+                self.error = True
+                self.update_status_db(f"playlist is None ")
+                self.logger.error(
+                    f"playlist is None {self.url}")
+                return
+
+            if not playlist.tracks:
+                self.error = True
+                self.update_status_db(f"playlist.tracks is None ")
+                self.logger.error(
+                    f"playlist.tracks is None {self.url}")
+                return
+
+            if not playlist.tracks.items:
+                self.error = True
+                self.update_status_db(f"playlist.tracks.items is None ")
+                self.logger.error(
+                    f"playlist.tracks.items is None {self.url}")
+                return
+
+            out = self.downloader.spotify.get_songs(
+                ids=[a.track.id for a in playlist.tracks.items if a and a.track and a.track.id])
+
+            if not out:
+                self.error = True
+                self.update_status_db("out is None")
                 self.logger.error("out is None")
                 return
 
@@ -133,6 +201,7 @@ class SpotifyDownloader:
                     {'id': spotdl_song.song_id, 'completed': 0, 'message': 'Starting'})
 
         else:
+            self.error = True
             self.update_status_db("Error. Don't know what to download")
             self.logger.error(f"Don't know what to download. {self.url=}")
             return
@@ -173,7 +242,12 @@ class SpotifyDownloader:
         self.update_status_db(status="Waiting for queue setup")
 
         while not self._queue_set:
+            if self.error:
+                self.update_status_db(status="Error found while waiting queue")
+                return
             await asyncio.sleep(0)
+
+        self.update_status_db(status="Waiting for songs")
 
         self.logger.info("Waiting for songs")
         for queue_element in self.queue_elements:
@@ -182,15 +256,31 @@ class SpotifyDownloader:
         self.logger.info(
             f"Done - All songs have finished. Success {sum([1 if queue_element.get_success() else 0 for queue_element in self.queue_elements])} - Fail {sum([0 if queue_element.get_success() else 1 for queue_element in self.queue_elements])}")
 
-        self.logger.warn("Run after all songs finish")
+        self.logger.warning("Run after all songs finish")
 
         self.update_status_db(
-            status=f"ended - Success {sum([1 if queue_element.get_success() else 0 for queue_element in self.queue_elements])} - Fail {sum([0 if queue_element.get_success() else 1 for queue_element in self.queue_elements])}")
+            status=f"ended")
+
+        self.downloader.spotify.db.execute(
+            query="UPDATE download SET success = ?, fail = ?, dateEnded = ? WHERE id = ?",
+            parameters=(
+                sum([1 if queue_element.get_success()
+                    else 0 for queue_element in self.queue_elements]),
+                sum([0 if queue_element.get_success()
+                    else 1 for queue_element in self.queue_elements]),
+                get_utc_date(),
+                self.download_id
+            )
+        )
 
         self.message_handler.finish()
 
-    def status(self, request: Request) -> StreamingResponse:
-        self.logger.info(self.download_id)
+    def status(self, request: Request) -> StreamingResponse | Response:
+        if self.error:
+            self.logger.warning(f"Downloader {self.download_id} has an error.")
+            return Response("Error in spotifyDownloader", 500)
+
+        self.logger.info(f"Started status for download {self.download_id}")
 
         reader = self.message_handler.get_reader()
 
@@ -199,6 +289,8 @@ class SpotifyDownloader:
         async def event_generator():
             while True:
                 if await request.is_disconnected():
+                    break
+                if self.error:
                     break
                 try:
                     if reader.get_finish():

@@ -47,7 +47,7 @@ def generate_class(name, json_data, nested_classes_dict):
     for key, value in items:
         var_name = key
         var_type = parse_type(key, value, nested_classes_dict)
-        class_def.append(f"    {var_name}: {var_type}")
+        class_def.append(f"    {var_name}: Optional[{var_type}]")
     class_def.append(f"    _json: dict")
 
     class_def.append(f"    def from_dict(obj: Any) -> '{name}':")
@@ -131,9 +131,9 @@ def main():
         json_data = json.load(f)
 
     classes = []
-    dir_name = "rockItApiTypes"
-    base_name = "RockItAlbum"
-    root_name = "RawRockItApiAlbum"
+    dir_name = "spotifyApiTypes"
+    base_name = "Track"
+    root_name = "RawSpotifyApiTrack"
     generate_classes(name=root_name, json_data=json_data,
                      classes=classes, base_name=base_name)
 
@@ -141,7 +141,7 @@ def main():
         os.mkdir(f"backend/{dir_name}")
 
     with open(f"backend/{dir_name}/{root_name}.py", "w") as f:
-        f.write("from typing import List, Any\n")
+        f.write("from typing import List, Any, Optional\n")
         f.write("from dataclasses import dataclass\n")
         f.write("\n")
         for class_def in classes:

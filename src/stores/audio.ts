@@ -320,7 +320,7 @@ export const queue = createControlledAtom<Queue | undefined>(
         const response = await fetch(
             `/api/songs1?songs=${queue
                 .map((queueSong) => queueSong.song)
-                .join()}&p=id,name,artists,images,duration`
+                .join()}&p=id,name,artists,image,duration`
         );
 
         const json = (await response.json()) as SongDB<
@@ -470,7 +470,7 @@ fetch(
                 fetch(
                     `/api/songs1?songs=${userJson.queue
                         .map((queueSong) => queueSong.song)
-                        .join()}&p=id,name,artists,images,duration`
+                        .join()}&p=id,name,artists,image,duration`
                 ).then((response) => {
                     if (response.ok) {
                         response.json().then((queueSongs: QueueSong[]) => {

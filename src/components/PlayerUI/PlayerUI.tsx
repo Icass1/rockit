@@ -264,9 +264,9 @@ export default function PlayerUI() {
                 </div>
 
                 {/* Middle Column: Cover & Info */}
-                <div className="z-10 flex max-h-full min-h-0 w-full max-w-full min-w-0 flex-col items-center justify-center">
+                <div className="z-10 grid max-h-full min-h-0 w-full max-w-full min-w-0 grid-rows-[1fr_min-content] items-center justify-center pt-10 pb-10">
                     <div
-                        className="relative mx-auto aspect-square h-[100%] max-h-[70%] w-auto rounded-lg object-cover"
+                        className="relative aspect-square h-auto max-h-full w-auto max-w-full rounded-lg object-cover"
                         onClick={() => {
                             setShowIcon(true);
                             if ($playing) {
@@ -294,7 +294,7 @@ export default function PlayerUI() {
                             )}
                         </div>
                     </div>
-                    <div className="mt-2 flex w-full flex-col items-center justify-center px-2 text-center">
+                    <div className="flex w-full flex-col items-center justify-center px-2 text-center">
                         <h1 className="line-clamp-2 text-4xl leading-normal font-bold text-balance">
                             {$currentSong?.name}
                         </h1>

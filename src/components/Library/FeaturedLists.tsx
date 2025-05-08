@@ -52,7 +52,7 @@ export function FeaturedLists({
     const date = new Date();
     date.setMonth(date.getMonth() - 1);
 
-    let lastMonthNameIndex = new Intl.DateTimeFormat("en", {
+    const lastMonthNameIndex = new Intl.DateTimeFormat("en", {
         month: "long",
     })
         .format(date)

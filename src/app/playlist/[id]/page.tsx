@@ -155,10 +155,13 @@ async function getPlaylist(id: string) {
             .toSorted((a, b) => b.timesPlayed - a.timesPlayed)
             .slice(0, 50);
 
-        let lastMonthNameIndex = new Intl.DateTimeFormat("en", {
+        const lastMonthNamDate = new Date();
+        lastMonthNamDate.setMonth(lastMonthNamDate.getMonth() - 1);
+
+        const lastMonthNameIndex = new Intl.DateTimeFormat("en", {
             month: "long",
         })
-            .format(date)
+            .format(lastMonthNamDate)
             .toLowerCase();
 
         playlist = {

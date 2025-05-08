@@ -55,13 +55,14 @@ downloads.subscribe((value) => {
         };
     }
 });
+if (typeof window != "undefined") {
+    fetch("/api/downloads")
+        .then((response) => response.json())
+        .then((data: DownloadDB[]) => {
+            data.forEach((download) =>
+                downloads.set([...downloads.get(), download.id])
+            );
 
-fetch("/api/downloads")
-    .then((response) => response.json())
-    .then((data: DownloadDB[]) => {
-        data.forEach((download) =>
-            downloads.set([...downloads.get(), download.id])
-        );
-
-        console.log(data);
-    });
+            console.log(data);
+        });
+}

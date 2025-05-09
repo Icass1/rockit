@@ -1,10 +1,9 @@
 import asyncio
-from fastapi import FastAPI, BackgroundTasks, Request, Response, background
+from fastapi import FastAPI, BackgroundTasks, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 import json
 from asyncio import sleep
-import threading
 from dotenv import load_dotenv
 import time
 

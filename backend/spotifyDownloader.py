@@ -2,46 +2,26 @@
 
 import asyncio
 from logging import Logger
-from typing import Any, Dict, List, Optional, TYPE_CHECKING
+from typing import List, TYPE_CHECKING
 
-from fastapi import BackgroundTasks, Request, Response
+from fastapi import Request, Response
 from fastapi.responses import StreamingResponse
 import threading
-import time
-import uuid
-import spotdl
-from spotdl.download.downloader import Downloader as SpotdlDownloader
 import os
-import requests
 import json
-import base64
-import re
 
 from spotdl.types.song import Song
 
-from constants import DOWNLOADER_OPTIONS, SONGS_PATH
+from constants import SONGS_PATH
 from logger import getLogger
 
 from queueElement import QueueElement, SpotifyQueueElement
 from messageHandler import MessageHandler
-from spotify import Spotify
-from backendUtils import create_id, download_image, get_song_name, get_utc_date, sanitize_folder_name
+from backendUtils import get_utc_date
 
-from db.image import ImageDB
-from backend.db.commonTypes import ArtistDB
 from db.song import SongDBFull
-from db.album import AlbumDBFull
-from db.db import DB
 
-from spotifyApiTypes.RawSpotifyApiTrack import RawSpotifyApiTrack, TrackArtists
-from spotifyApiTypes.RawSpotifyApiAlbum import RawSpotifyApiAlbum, AlbumItems
-from spotifyApiTypes.RawSpotifyApiPlaylist import RawSpotifyApiPlaylist, PlaylistItems, PlaylistAlbum, PlaylistArtists, PlaylistTracks
-from spotifyApiTypes.RawSpotifyApiArtist import RawSpotifyApiArtist
-from spotifyApiTypes.RawSpotifyApiSearchResults import RawSpotifyApiSearchResults, SpotifySearchResultsItems2
-from ytMusicApiTypes.RawYTMusicApiPlaylist import RawYTMusicApiPlaylist
-from ytMusicApiTypes.RawYTMusicApiAlbum import RawYTMusicApiAlbum
-from ytMusicApiTypes.RawYTMusicApiSong import RawYTMusicApiSong
-from rockItApiTypes.RawRockItApiAlbum import RawRockItApiAlbum
+from spotifyApiTypes.RawSpotifyApiPlaylist import RawSpotifyApiPlaylist
 
 if TYPE_CHECKING:
     from downloader import Downloader

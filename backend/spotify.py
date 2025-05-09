@@ -2,7 +2,6 @@
 from logging import Logger
 from typing import Any, Dict, List
 
-from spotdl.download.downloader import Downloader as SpotdlDownloader
 import os
 import requests
 import json
@@ -21,7 +20,7 @@ from db.song import SongDBFull
 from db.album import AlbumDBFull
 from db.playlist import PlaylistDBFull
 
-from backendUtils import create_id, create_playlist_collage, download_image, get_song_name, get_utc_date, sanitize_folder_name, time_it
+from backendUtils import create_id, create_playlist_collage, download_image,  get_utc_date, sanitize_folder_name, time_it
 from logger import getLogger
 
 from spotifyApiTypes.RawSpotifyApiAlbum import RawSpotifyApiAlbum

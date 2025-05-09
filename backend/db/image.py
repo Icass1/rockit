@@ -1,6 +1,6 @@
 from dataclasses import dataclass
-from typing import TypedDict, List, Optional
-import json
+from typing import TypedDict, Optional
+
 
 @dataclass
 class ImageDB:
@@ -9,7 +9,13 @@ class ImageDB:
     path: str
 
 
-def parse_image(raw_image: Optional[dict]) -> Optional[ImageDB]:
+class RawImageDB(TypedDict):
+    id: str
+    url: str
+    path: str
+
+
+def parse_image(raw_image: Optional[RawImageDB]) -> Optional[ImageDB]:
     if not raw_image:
         return None
 

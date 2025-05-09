@@ -9,7 +9,6 @@ import re
 
 import atexit
 from threading import Lock
-import inspect
 
 from backend.db.session import sesssion_query
 from backend.db.image import image_query, parse_image

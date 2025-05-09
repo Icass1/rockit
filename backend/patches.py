@@ -1,43 +1,28 @@
 from spotdl.download.downloader import DownloaderError, SPONSOR_BLOCK_CATEGORIES
-from spotdl.utils.search import gather_known_songs, reinit_song, songs_from_albums
-from spotdl.utils.metadata import MetadataError, embed_metadata
-from spotdl.utils.m3u import gen_m3u_files
+from spotdl.utils.search import reinit_song
+from spotdl.utils.metadata import embed_metadata
 from spotdl.utils.lrc import generate_lrc
 from spotdl.utils.formatter import create_file_name
 from spotdl.utils.ffmpeg import FFmpegError, convert
 from spotdl.utils.config import (
-    DOWNLOADER_OPTIONS,
-    GlobalConfig,
-    create_settings_type,
     get_errors_path,
     get_temp_path,
-    modernize_settings,
 )
-from spotdl.utils.archive import Archive
-from spotdl.types.options import DownloaderOptionalOptions, DownloaderOptions
-from spotdl.providers.lyrics import AzLyrics, Genius, LyricsProvider, MusixMatch, Synced
+
 from spotdl.providers.audio import (
     AudioProvider,
-    BandCamp,
+    AudioProviderError,
     Piped,
-    SliderKZ,
-    SoundCloud,
-    YouTube,
-    YouTubeMusic,
+    YTDLLogger,
+    ISRC_REGEX
 )
-from spotdl.download.progress_handler import ProgressHandler
 from yt_dlp.postprocessor.sponsorblock import SponsorBlockPP
 from yt_dlp.postprocessor.modify_chapters import ModifyChaptersPP
-from typing import Dict, List, Optional, Tuple, Type, Union
+from typing import Dict, List, Optional, Tuple, Union
 from pathlib import Path
-from argparse import Namespace
 import traceback
-import sys
 import shutil
-import re
-import json
 import datetime
-import asyncio
 from logger import getLogger
 from difflib import SequenceMatcher
 import spotdl.download
@@ -859,7 +844,6 @@ def search(self, song: Song, display_progress_tracker) -> str:
         if url:
             display_progress_tracker.update(f"Done.")
             return url
-
 
         logger.debug("%s failed to find %s",
                      audio_provider.name, song.display_name)

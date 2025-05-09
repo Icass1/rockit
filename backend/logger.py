@@ -5,7 +5,6 @@ from colorama import Fore, Style, init
 import sys
 import traceback
 import threading
-import inspect
 
 from backend.constants import LOG_DUMP_LEVEL, LOGS_PATH  # Import inspect module
 

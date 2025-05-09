@@ -1,7 +1,7 @@
 import asyncio
 from typing import TYPE_CHECKING
 from fastapi.responses import StreamingResponse
-from fastapi import BackgroundTasks, Request
+from fastapi import Request
 
 if TYPE_CHECKING:
     from downloader import Downloader

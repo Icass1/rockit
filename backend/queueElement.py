@@ -4,7 +4,6 @@ from pathlib import Path
 from spotdl.types.song import Song
 import os
 import shutil
-import time
 
 from backend.constants import SONGS_PATH, TEMP_PATH
 from backend.backendUtils import get_output_file, sanitize_folder_name

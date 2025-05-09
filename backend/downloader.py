@@ -1,28 +1,24 @@
 
 import asyncio
 from logging import Logger
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 
 from fastapi import BackgroundTasks, Request
-from fastapi.responses import StreamingResponse
 import threading
-import uuid
 from spotdl.download.downloader import Downloader as SpotdlDownloader
 
-from spotdl.types.song import Song
 
 
-from backend import queueElement
 from backend.youtubeDownloader import YoutubeMusicDownloader
 from backend.progressHandler import ProgressHandler
 from backend.backendUtils import create_id, get_song_name
 from backend.queueElement import QueueElement
-from backend.messageHandler import MessageHandler
 from backend.spotifyDownloader import SpotifyDownloader
 from backend.spotify import Spotify
 from backend.constants import DOWNLOADER_OPTIONS
 from backend.logger import getLogger
 
+# Do not remove the following import, is needed to apply patches
 import backend.patches
 
 

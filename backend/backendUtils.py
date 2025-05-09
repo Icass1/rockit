@@ -9,8 +9,8 @@ from io import BytesIO
 import cv2
 import math
 from datetime import datetime, timezone
-from collections import Counter, defaultdict
-from PIL import Image, ImageTransform, ImageDraw, ImageFilter, ImageFile
+from collections import Counter
+from PIL import Image, ImageDraw, ImageFilter
 
 from backend.constants import DOWNLOADER_OPTIONS
 from backend.logger import getLogger

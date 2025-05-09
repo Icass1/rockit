@@ -145,7 +145,11 @@ export function checkTable(query: string) {
     );
 
     if (modifiedColumns.length > 0) {
-        console.warn("Detected column change(s).", modifiedColumns);
+        console.warn(
+            "Detected column change(s) in table",
+            tableName,
+            modifiedColumns
+        );
 
         if (ENV.INSECURE_DB_MODE == "true") {
             console.warn("Changing columns");

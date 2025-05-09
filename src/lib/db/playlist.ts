@@ -62,7 +62,7 @@ export function parsePlaylist(
 ): PlaylistDB | undefined {
     if (!playlist) return undefined;
 
-    return {
+    const out = {
         id: playlist.id,
         images: JSON.parse(playlist.images || "[]"),
         image: playlist.image,
@@ -74,6 +74,15 @@ export function parsePlaylist(
         updatedAt: playlist.updatedAt,
         createdAt: playlist.createdAt,
     };
+
+    Object.entries(out).forEach((entry) => {
+        if (typeof entry[1] == "undefined") {
+            // @ts-expect-error delete undefined properties
+            delete out[entry[0]];
+        }
+    });
+
+    return out;
 }
 
 export const playlistQuery = `CREATE TABLE IF NOT EXISTS playlist (

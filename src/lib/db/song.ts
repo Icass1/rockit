@@ -77,7 +77,7 @@ export function parseSong(rawSong: RawSongDB | undefined): SongDB | undefined {
         return undefined;
     }
 
-    return {
+    const out = {
         id: rawSong.id,
         name: rawSong.name,
         artists: JSON.parse(rawSong.artists || "[]"),
@@ -101,6 +101,15 @@ export function parseSong(rawSong: RawSongDB | undefined): SongDB | undefined {
         popularity: rawSong.popularity,
         dateAdded: rawSong.dateAdded,
     };
+
+    Object.entries(out).forEach((entry) => {
+        if (typeof entry[1] == "undefined") {
+            // @ts-expect-error delete undefined properties
+            delete out[entry[0]];
+        }
+    });
+
+    return out;
 }
 
 export const songQuery = `CREATE TABLE IF NOT EXISTS song (

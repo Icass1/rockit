@@ -109,7 +109,7 @@ export function parseUser(user: RawUserDB | undefined): UserDB | undefined {
         return undefined;
     }
 
-    return {
+    const out = {
         id: user.id,
         username: user.username,
         passwordHash: user.passwordHash,
@@ -136,4 +136,13 @@ export function parseUser(user: RawUserDB | undefined): UserDB | undefined {
         updatedAt: user.updatedAt,
         createdAt: user.createdAt,
     };
+
+    Object.entries(out).forEach((entry) => {
+        if (typeof entry[1] == "undefined") {
+            // @ts-expect-error delete undefined properties
+            delete out[entry[0]];
+        }
+    });
+
+    return out;
 }

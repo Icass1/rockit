@@ -315,15 +315,21 @@ export default async function PlaylistPage({
                       | "images"
                   >
                 | undefined => {
+                const songDb = db
+                    .prepare(
+                        "SELECT name, albumId, duration, artists, path, albumName, image, images FROM song WHERE id = ?"
+                    )
+                    .get(song.id) as RawSongDB;
+
+                if (!songDb) {
+                    console.warn("TODO should make a request to backend and get it from database. Song", song.id, "not found");
+                    return undefined;
+                }
+
                 return {
                     added_at: song.added_at,
-                    ...(parseSong(
-                        db
-                            .prepare(
-                                "SELECT name, albumId, duration, artists, path, albumName, image, images, id FROM song WHERE id = ?"
-                            )
-                            .get(song.id) as RawSongDB
-                    ) as SongDB<
+                    id: song.id,
+                    ...(parseSong(songDb) as SongDB<
                         | "name"
                         | "albumId"
                         | "duration"
@@ -331,7 +337,6 @@ export default async function PlaylistPage({
                         | "path"
                         | "albumName"
                         | "image"
-                        | "id"
                         | "images"
                     >),
                 };

@@ -19,7 +19,7 @@ import ContextMenuOption from "@/components/ContextMenu/Option";
 import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
 import { likedSongs } from "@/stores/likedList";
 import type { SongDB } from "@/db/song";
-import { type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useStore } from "@nanostores/react";
 import { queue, queueIndex, saveSongToIndexedDB, send } from "@/stores/audio";
 import { currentList, currentListSongs } from "@/stores/currentList";
@@ -31,10 +31,72 @@ import SubContextMenu from "@/components/ContextMenu/SubContextMenu/ContextMenu"
 import SubContextMenuTrigger from "@/components/ContextMenu/SubContextMenu/Trigger";
 import SubContextMenuContent from "@/components/ContextMenu/SubContextMenu/Content";
 import { networkStatus } from "@/stores/networkStatus";
-import { userLists } from "@/stores/userLists";
 import Image from "@/components/Image";
 import { useRouter } from "next/navigation";
 import useDev from "@/hooks/useDev";
+
+import "@/styles/CheckBox.css";
+
+function ListSubContextMenu({
+    list,
+    songId,
+}: {
+    songId: string;
+    list: { containSong: boolean; name: string; image: string; id: string };
+}) {
+    const [checked, setChecked] = useState(list.containSong);
+    return (
+        <ContextMenuOption closeOnClick={false} onClick={() => {}}>
+            <label className="flex cursor-pointer flex-row items-center gap-3 rounded-md transition-colors hover:bg-neutral-700">
+                <input
+                    checked={checked}
+                    onChange={(e) => {
+                        if (e.target.checked) {
+                            fetch("/api/playlist/add-song", {
+                                method: "POST",
+                                body: JSON.stringify({
+                                    playlistId: list.id,
+                                    songId: songId,
+                                }),
+                            }).then((response) => {
+                                if (response.ok) {
+                                    setChecked(true);
+                                }
+                            });
+                        } else {
+                            fetch("/api/playlist/remove-song", {
+                                method: "POST",
+                                body: JSON.stringify({
+                                    playlistId: list.id,
+                                    songId: songId,
+                                }),
+                            }).then((response) => {
+                                if (response.ok) {
+                                    setChecked(false);
+                                }
+                            });
+                        }
+                    }}
+                    type="checkbox"
+                    className="rockit-checkbox relative h-5 w-5"
+                />
+                <Image
+                    width={24}
+                    height={24}
+                    alt={list.name}
+                    className="h-6 w-6"
+                    src={getImageUrl({
+                        imageId: list?.image,
+                        placeHolder: "/rockit-background.png",
+                        width: 24,
+                        height: 24,
+                    })}
+                />
+                {list.name}
+            </label>
+        </ContextMenuOption>
+    );
+}
 
 export default function SongContextMenu({
     children,
@@ -59,7 +121,9 @@ export default function SongContextMenu({
 
     const offline = $networkStatus == "offline";
 
-    const $userLists = useStore(userLists);
+    const [userLists, setUserLists] = useState<
+        { id: string; name: string; image: string; containSong: boolean }[]
+    >([]);
 
     const router = useRouter();
 
@@ -205,39 +269,28 @@ export default function SongContextMenu({
                     <ListEnd className="h-5 w-5" />
                     {$lang.add_to_queue}
                 </ContextMenuOption>
-                <SubContextMenu>
+                <SubContextMenu
+                    onOpen={() => {
+                        if (userLists.length > 0) return;
+                        fetch(`/api/song/${song.id}/lists`)
+                            .then((response) => response.json())
+                            .then((data) => {
+                                setUserLists(data);
+                            });
+                    }}
+                    onClose={() => {}}
+                >
                     <SubContextMenuTrigger disable={offline}>
                         <ListPlusIcon className="h-5 w-5" />
                         {$lang.add_song_to_playlist}
                     </SubContextMenuTrigger>
                     <SubContextMenuContent>
-                        {$userLists.map((list) => (
-                            <ContextMenuOption
+                        {userLists.map((list) => (
+                            <ListSubContextMenu
+                                songId={song.id}
+                                list={list}
                                 key={list.id}
-                                onClick={() => {
-                                    fetch("/api/playlist/add-song", {
-                                        method: "POST",
-                                        body: JSON.stringify({
-                                            songId: song.id,
-                                            playlistId: list.id,
-                                        }),
-                                    });
-                                }}
-                            >
-                                <Image
-                                    width={24}
-                                    height={24}
-                                    alt={list.name}
-                                    className="h-6 w-6"
-                                    src={getImageUrl({
-                                        imageId: list?.image,
-                                        placeHolder: "/rockit-background.png",
-                                        width: 24,
-                                        height: 24,
-                                    })}
-                                />
-                                {list.name}
-                            </ContextMenuOption>
+                            />
                         ))}
                     </SubContextMenuContent>
                 </SubContextMenu>

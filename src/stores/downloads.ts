@@ -49,7 +49,7 @@ downloads.subscribe((value) => {
         eventSource.onerror = (error) => {
             eventSources = eventSources.filter((id) => id != downloadId);
             downloads.set(downloads.get().filter((id) => id != downloadId));
-            console.log(eventSource.readyState, eventSource.CLOSED);
+            if (eventSource.readyState == eventSource.CLOSED) return;
             console.error("EventSource failed:", error);
             eventSource.close();
         };
@@ -62,7 +62,5 @@ if (typeof window != "undefined") {
             data.forEach((download) =>
                 downloads.set([...downloads.get(), download.id])
             );
-
-            console.log(data);
         });
 }

@@ -1,9 +1,8 @@
 import type { ReactNode } from "react";
-import React, { useEffect } from "react";
+import React from "react";
 import PosAfterRenderDiv from "@/components/PosAfterRenderDiv";
 import type ContextMenuProps from "@/components/ContextMenu/Props";
 import type SubContextMenuProps from "./Props";
-import { Check } from "lucide-react";
 
 export default function SubContextMenuContent({
     children,
@@ -58,24 +57,6 @@ export default function SubContextMenuContent({
         return [x, y];
     };
 
-    useEffect(() => {
-        function handleClickOutside(event: MouseEvent) {
-            if (
-                localRef.current &&
-                !localRef.current.contains(event.target as Node)
-            ) {
-                _setHover?.(false);
-            }
-        }
-
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-    }, [_setHover]);
-
-    const localRef = React.useRef<HTMLDivElement>(null);
-
     if (!_hover) return;
 
     return (
@@ -86,24 +67,21 @@ export default function SubContextMenuContent({
                     ? (width, height) => updatePos(width, height)
                     : undefined
             }
-            onMouseEnter={() => _setHover?.(true)}
-            onMouseLeave={() => _setHover?.(false)}
+            onClick={(event) => {
+                event.stopPropagation();
+                if (_setHover) _setHover(false);
+            }}
+            onMouseEnter={() => {
+                if (_setHover) _setHover(true);
+            }}
+            onMouseLeave={() => {
+                if (_setHover) {
+                    _setHover(false);
+                }
+            }}
         >
-            <div ref={localRef}>
-                <div className="flex flex-col gap-y-1 overflow-y-auto py-20 md:h-fit md:py-0">
-                    {childrenWithProps?.map((child, i) => (
-                        <label
-                            key={i}
-                            className="flex cursor-pointer items-center gap-3 rounded-md px-3 transition-colors hover:bg-neutral-700"
-                        >
-                            <input type="checkbox" className="peer sr-only" />
-                            <span className="relative flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md border-2 border-gray-500 bg-transparent transition-all peer-checked:border-pink-600 peer-checked:bg-pink-600 hover:border-pink-500" />
-                            <span className="flex-1 truncate text-white">
-                                {child}
-                            </span>
-                        </label>
-                    ))}
-                </div>
+            <div className="flex flex-col gap-y-1 overflow-y-auto py-20 md:h-fit md:py-0">
+                {childrenWithProps}
             </div>
         </PosAfterRenderDiv>
     );

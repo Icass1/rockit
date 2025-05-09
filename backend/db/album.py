@@ -95,5 +95,5 @@ CREATE TABLE IF NOT EXISTS album (
     genres TEXT NOT NULL,
     songs TEXT NOT NULL,
     discCount INTEGER NOT NULL,
-    dateAdded INTEGER
+    dateAdded INTEGER NOT NULL
 )"""

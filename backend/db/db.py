@@ -241,7 +241,7 @@ class DB:
 
         if modified_columns:
             self.logger.warning(
-                f"Detected column modifications: {modified_columns}")
+                f"Detected column modifications in table {table_name}: {modified_columns}")
 
             if INSECURE_DB_MODE:
                 self.logger.warning("Applying column changes...")
@@ -278,7 +278,7 @@ class DB:
 
         if removed_columns:
             self.logger.warning(
-                f"Detected removed columns: {removed_columns}")
+                f"Detected removed columns in table {table_name}: {removed_columns}")
             if INSECURE_DB_MODE:
                 self.logger.warning(f"Removing columns: {removed_columns}")
                 for column in removed_columns:
@@ -291,7 +291,8 @@ class DB:
                     "Set INSECURE_DB_MODE to true to remove them")
 
         if added_columns:
-            self.logger.warning(f"Adding new columns: {added_columns}")
+            self.logger.warning(
+                f"Adding new columns to {table_name}: {added_columns}")
             for column in added_columns:
                 new_col = next(
                     (c for c in new_columns if c['name'] == column), None)

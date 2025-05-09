@@ -291,7 +291,7 @@ async function tryFetchWithPlaceholder(request, resolve, reject) {
     }
 }
 
-const fromNetwork = async (request, timeout) => {
+const fromNetwork = async (request) => {
     const url = new URL(request.url);
 
     if (
@@ -503,7 +503,7 @@ const fromCache = (request) => {
                     getRequest = RockItDatabase.transaction("file")
                         .objectStore("file")
                         .get(url.pathname);
-                } catch (retryError) {
+                } catch {
                     return resolve(
                         new Response("You are offline", { status: 404 })
                     );
@@ -537,19 +537,23 @@ self.addEventListener("fetch", (evt) => {
 
     if (
         evt.request.url.includes("/api/downloads/status") ||
-        evt.request.pathname?.startsWith("/api/like")
+        evt.request.pathname?.startsWith("/api/like") ||
+        evt.request.pathname?.startsWith("/api/playlist/remove-song") ||
+        evt.request.pathname?.startsWith("/api/playlist/add-song") ||
+        evt.request.pathname?.startsWith("/api/playlist/new") ||
+        evt.request.pathname?.startsWith("/api/pin")
     )
         return;
     // if (!evt.request.url.includes("rockit.rockhosting.org")) return
     // if (!evt.request.url.includes("localhost")) return
 
     evt.respondWith(
-        fromNetwork(evt.request, 10000).catch(() => fromCache(evt.request))
+        fromNetwork(evt.request).catch(() => fromCache(evt.request))
     );
     // evt.waitUntil(update(evt.request));
 });
 
-self.addEventListener("install", (event) => {
+self.addEventListener("install", () => {
     self.skipWaiting(); // Forces the new SW to take control immediately
 });
 

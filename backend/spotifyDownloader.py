@@ -244,6 +244,8 @@ class SpotifyDownloader:
         while not self._queue_set:
             if self.error:
                 self.update_status_db(status="Error found while waiting queue")
+                self.logger.error("Error found while waiting queue")
+                self.message_handler.finish()
                 return
             await asyncio.sleep(0)
 

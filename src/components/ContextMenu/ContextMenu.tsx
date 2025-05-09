@@ -1,12 +1,20 @@
-import React, { RefObject, useRef, useState, type ReactNode } from "react";
+import React, {
+    RefObject,
+    useEffect,
+    useRef,
+    useState,
+    type ReactNode,
+} from "react";
 import type ContextMenuProps from "./Props";
 
 export default function ContextMenu({
     children,
     closeRef,
+    onOpen,
 }: {
     children: ReactNode[];
     closeRef?: { current?: () => void };
+    onOpen?: () => void;
 }) {
     const [_contextMenuOpen, _setContextMenuOpen] = useState<boolean>(false);
     const [_contextMenuPos, _setContextMenuPos] = useState<[number, number]>([
@@ -17,6 +25,12 @@ export default function ContextMenu({
         closeRef.current = () => {
             _setContextMenuOpen(false);
         };
+
+    useEffect(() => {
+        if (onOpen) {
+            onOpen();
+        }
+    }, [onOpen, _contextMenuOpen]);
 
     const _contextMenuDivRef = useRef<HTMLDivElement>(
         null

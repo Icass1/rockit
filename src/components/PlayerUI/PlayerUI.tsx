@@ -180,19 +180,20 @@ export default function PlayerUI() {
     }, [draggingSong]);
 
     useEffect(() => {
-        if (!divRef.current) {
-            return;
-        }
         const handleDocumentClick = (event: MouseEvent) => {
-            if (
-                !divRef.current?.contains(event?.target as Node) &&
-                !document
-                    .querySelector("#footer")
-                    ?.contains(event?.target as Node)
-            ) {
-                isPlayerUIVisible.set(false);
+            const target = event.target as Node;
+        
+            // Comprueba si está dentro del player
+            const insidePlayer = divRef.current?.contains(target);
+        
+            // Comprueba si está dentro del footer
+            const footerEl = document.getElementById("app-footer");
+            const insideFooter = footerEl?.contains(target);
+        
+            if (!insidePlayer && !insideFooter) {
+              isPlayerUIVisible.set(false);
             }
-        };
+          };
         document.addEventListener("click", handleDocumentClick);
         return () => {
             document.removeEventListener("click", handleDocumentClick);

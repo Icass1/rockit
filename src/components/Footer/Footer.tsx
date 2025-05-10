@@ -10,6 +10,7 @@ import Devices from "@/components/Footer/Devices";
 export default function Footer() {
     return (
         <footer
+            id="app-footer"
             className="box-border h-full w-full px-2 pt-2 text-white md:bg-[#1a1a1a]/90 md:px-5 md:py-4"
             style={{ backdropFilter: "blur(10px)" }}
         >

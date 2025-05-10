@@ -55,11 +55,29 @@ export default function LikeButton({ song }: { song: SongDB<"id"> }) {
     };
 
     return (
-        <div className="relative flex h-full items-center justify-center overflow-visible">
+        <div
+            style={{
+                position: "relative",
+                display: "flex",
+                height: "100%",
+                alignItems: "center",
+                justifyContent: "center",
+                overflow: "visible",
+                paddingLeft: "10px",
+            }}
+        >
             {/* Fuego animado */}
             {showFire && (
-                <div className="pointer-events-none absolute top-1/3 left-1/2 -translate-x-[9px] -translate-y-1/2">
-                    <div className="container">
+                <div
+                    style={{
+                        pointerEvents: "none",
+                        position: "absolute",
+                        top: "33%",
+                        left: "50%",
+                        transform: "translate(-9px, -50%)",
+                    }}
+                >
+                    <div className="flame-container">
                         <div className="red flame"></div>
                         <div className="orange flame"></div>
                         <div className="yellow flame"></div>
@@ -72,10 +90,14 @@ export default function LikeButton({ song }: { song: SongDB<"id"> }) {
 
             {/* Mano de metal */}
             <div
-                className={`h-[22px] w-[22px] cursor-pointer ${
-                    animateHand ? "hand-rotate" : ""
-                }`}
                 onClick={handleToggleLiked}
+                style={{
+                    height: "22px",
+                    width: "22px",
+                    cursor: "pointer",
+                    transform: animateHand ? "rotate(20deg)" : undefined, // si usas hand-rotate
+                    transition: animateHand ? "transform 0.3s ease" : undefined,
+                }}
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -89,12 +111,22 @@ export default function LikeButton({ song }: { song: SongDB<"id"> }) {
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className={
-                        "lucide lucide-hand-metal " +
-                        ($likedSongs.includes(song.id)
-                            ? "text-gray-800 transition-all md:hover:text-[#202020]"
-                            : "text-gray-400 transition-all md:hover:text-white")
-                    }
+                    style={{
+                        color: $likedSongs.includes(song.id)
+                            ? "#202020"
+                            : "#A1A1AA",
+                        transition: "color 0.2s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.color = "#FFFFFF";
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.color = $likedSongs.includes(
+                            song.id
+                        )
+                            ? "#202020"
+                            : "#A1A1AA";
+                    }}
                 >
                     <rect
                         x="6"

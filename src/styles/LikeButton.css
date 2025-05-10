@@ -78,6 +78,73 @@
     box-shadow: 0px 0px 5px 3.3px black; 
 }*/
 
+.flame-container {
+    position: relative;
+    width: 18px;
+    height: 18px;
+}
+
+.flame {
+    position: absolute;
+    bottom: 0;
+    width: 4px;
+    height: 8px;
+    border-radius: 2px 2px 0 0;
+    animation: flicker 1s infinite ease-in-out;
+}
+
+.flame.red {
+    background: #f00;
+    left: 2px;
+    animation-delay: 0s;
+}
+.flame.orange {
+    background: #f60;
+    left: 4px;
+    animation-delay: 0.1s;
+}
+.flame.yellow {
+    background: #ff0;
+    left: 6px;
+    animation-delay: 0.2s;
+}
+.flame.white {
+    background: #fff;
+    left: 8px;
+    animation-delay: 0.3s;
+}
+
+.circle {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    bottom: 2px;
+    animation: rise 2s infinite ease-in-out;
+}
+
+.circle.blue {
+    background: #00f;
+    left: 5px;
+    animation-delay: 0s;
+}
+.circle.black {
+    background: #000;
+    left: 9px;
+    animation-delay: 0.5s;
+}
+
+@keyframes rise {
+    0% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-10px) scale(0.5);
+        opacity: 0;
+    }
+}
+
 @keyframes flicker {
     0% {
         transform: rotate(-4deg);

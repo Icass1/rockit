@@ -1,6 +1,6 @@
 "use client";
 
-import PictureInPictureImage from "@/components/Footer/PictureInPicture";
+import PictureInPictureImage from "@/components/Footer/PictureInPicture/PictureInPicture";
 import FooterLeft from "@/components/Footer/FooterLeft";
 import FooterCenter from "@/components/Footer/FooterCenter";
 import VolumeSlider from "@/components/Footer/VolumeSlider";

@@ -322,7 +322,11 @@ export default async function PlaylistPage({
                     .get(song.id) as RawSongDB;
 
                 if (!songDb) {
-                    console.warn("TODO should make a request to backend and get it from database. Song", song.id, "not found");
+                    console.warn(
+                        "TODO should make a request to backend and get it from database. Song",
+                        song.id,
+                        "not found"
+                    );
                     return undefined;
                 }
 

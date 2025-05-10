@@ -28,6 +28,16 @@ import {
     currentStation,
 } from "@/stores/audio";
 
+export function cyclerepeatSong() {
+    repeatSong.set(
+        repeatSong.get() === "off"
+            ? "all"
+            : repeatSong.get() === "all"
+              ? "one"
+              : "off"
+    );
+}
+
 export default function FooterCenter() {
     const $playing = useStore(playing);
     const $currentTime = useStore(currentTime);
@@ -36,16 +46,6 @@ export default function FooterCenter() {
     const $repeatSong = useStore(repeatSong);
     const $loading = useStore(loading);
     const $currentStation = useStore(currentStation);
-
-    const cyclerepeatSong = () => {
-        repeatSong.set(
-            repeatSong.get() === "off"
-                ? "all"
-                : repeatSong.get() === "all"
-                  ? "one"
-                  : "off"
-        );
-    };
 
     return (
         <div className="hidden w-1/3 flex-col items-center justify-center space-y-1 md:flex">

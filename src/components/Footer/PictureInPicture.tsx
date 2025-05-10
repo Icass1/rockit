@@ -1,116 +1,119 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { currentSong } from "@/stores/audio";
+import { useCallback, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import { PictureInPicture2, Play, Pause } from "lucide-react";
 import { useStore } from "@nanostores/react";
-import { PictureInPicture2 } from "lucide-react";
-import Image from "@/components/Image";
+import { currentSong, playing, play, pause } from "@/stores/audio";
 
-export default function PictureInPictureImage() {
-    const imageRef = useRef<HTMLImageElement>(null);
-    const videoRef = useRef<HTMLVideoElement>(null);
-    const $currentSong = useStore(currentSong);
+export default function MiniplayerPiP() {
+  const $currentSong = useStore(currentSong);
+  const $playing     = useStore(playing);
+  const [pipWindow, setPiPWindow] = useState<Window | null>(null);
 
-    const [canvas, setCanvas] = useState<HTMLCanvasElement>();
+  // Alterna la ventana PiP
+  const togglePiP = useCallback(async () => {
+    // Detección robusta de la API
+    const docPiP =
+      (document as any).pictureInPicture ??
+      (window as any).documentPictureInPicture;
 
-    useEffect(() => {
-        const image = imageRef.current;
-        if (!canvas || !$currentSong || !image) return;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return;
+    if (!docPiP || typeof docPiP.requestWindow !== "function") {
+      console.warn("Document PiP no soportado, usando canvas hack…");
+      // Aquí podrías llamar a tu fallback de canvas si lo tienes
+      return;
+    }
 
-        const handleLoad = () => {
-            const imageElement = imageRef.current;
-            if (!imageElement) return;
-            ctx.drawImage(imageElement, 0, 0, canvas.width, canvas.height);
-        };
+    if (pipWindow) {
+      pipWindow.close();
+      setPiPWindow(null);
+    } else {
+      try {
+        const newWin = await docPiP.requestWindow({ width: 320, height: 240 });
+        setPiPWindow(newWin);
+      } catch (err) {
+        console.error("Error al abrir PiP:", err);
+      }
+    }
+  }, [pipWindow]);
 
-        image.addEventListener("load", handleLoad);
+  // Detectar cierre de la ventana PiP
+  useEffect(() => {
+    const onClose = () => setPiPWindow(null);
+    pipWindow?.addEventListener("pagehide", onClose);
+    return () => pipWindow?.removeEventListener("pagehide", onClose);
+  }, [pipWindow]);
 
-        return () => {
-            image.removeEventListener("load", handleLoad);
-        };
-    }, [canvas, imageRef, $currentSong]);
+  // Contenido que irá dentro de la ventana PiP
+  const PiPContents = (
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        background: "radial-gradient(circle,#111,#000)",
+        color: "white",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "1rem",
+        boxSizing: "border-box",
+        fontFamily: "sans-serif",
+      }}
+    >
+      {/* Cover */}
+      {$currentSong?.image && (
+        <img
+          src={`/api/image/${$currentSong.image}`}
+          alt="Cover"
+          style={{
+            width: "60%",
+            borderRadius: "0.5rem",
+            boxShadow: "0 0 10px rgba(0,0,0,0.5)",
+          }}
+        />
+      )}
 
-    const handlePictureInPicture = async () => {
-        try {
-            // Obtén la imagen
-            const imageElement = imageRef.current;
-            const videoElement = videoRef.current;
+      {/* Título y artista */}
+      <h2 style={{ margin: "0.5rem 0 0.25rem", fontSize: "1.2rem" }}>
+        {$currentSong?.name}
+      </h2>
+      <p style={{ margin: 0, fontSize: "0.9rem", opacity: 0.75, textAlign: "center" }}>
+        {$currentSong?.artists.map((a) => a.name).join(", ")}
+      </p>
 
-            if (!imageElement || !videoElement) {
-                console.error("No se pudo acceder a los elementos.");
-                return;
-            }
+      {/* Controles */}
+      <button
+        onClick={() => ($playing ? pause() : play())}
+        style={{
+          marginTop: "1rem",
+          background: "transparent",
+          border: "none",
+          cursor: "pointer",
+        }}
+        aria-label={$playing ? "Pause" : "Play"}
+      >
+        {$playing ? (
+          <Pause size={32} color="white" />
+        ) : (
+          <Play size={32} color="white" />
+        )}
+      </button>
+    </div>
+  );
 
-            // Crear un canvas para renderizar la imagen
-            const canvas = document.createElement("canvas");
-            canvas.id = "canvas-picture-in-picture";
-            canvas.width = imageElement.naturalWidth;
-            canvas.height = imageElement.naturalHeight;
-            const ctx = canvas.getContext("2d");
-            setCanvas(canvas);
+  return (
+    <div className="flex items-center space-x-2">
+      <button
+        onClick={togglePiP}
+        className="p-2 rounded-full text-gray-400 hover:text-white transition"
+        aria-label={pipWindow ? "Cerrar Miniplayer" : "Abrir Miniplayer"}
+      >
+        <PictureInPicture2 size={24} />
+      </button>
 
-            if (!ctx) {
-                console.error("No se pudo obtener el contexto del canvas.");
-                return;
-            }
-
-            // Dibujar la imagen en el canvas
-            ctx.drawImage(imageElement, 0, 0, canvas.width, canvas.height);
-
-            // Convertir el canvas a un video
-            const stream = canvas.captureStream();
-            videoElement.srcObject = stream;
-            await videoElement.play();
-
-            // Iniciar el modo PiP
-            if (videoElement.requestPictureInPicture) {
-                const a = await videoElement.requestPictureInPicture();
-                console.log(a);
-            } else {
-                console.error("Picture-in-Picture no es compatible.");
-            }
-        } catch (error) {
-            console.error(
-                "Error al iniciar el modo Picture-in-Picture:",
-                error
-            );
-        }
-    };
-
-    return (
-        <div>
-            {/* Imagen visible */}
-            <Image
-                width={100}
-                height={100}
-                ref={imageRef}
-                src={
-                    $currentSong?.image
-                        ? `/api/image/${$currentSong?.image}`
-                        : "/song-placeholder.png"
-                }
-                crossOrigin="anonymous"
-                alt="Demo"
-                className="mx-auto mb-4 hidden w-full max-w-md rounded-lg shadow-md"
-            />
-
-            {/* Video oculto */}
-            <video
-                ref={videoRef}
-                style={{ display: "none" }}
-                muted // El video debe estar silenciado para evitar errores de reproducción.
-            ></video>
-
-            {/* Botón con Icono de Lucide */}
-            <button
-                onClick={handlePictureInPicture}
-                className="flex items-center justify-center rounded-full text-gray-400 transition md:hover:text-white"
-                aria-label="Activar Picture-in-Picture"
-            >
-                <PictureInPicture2 className="h-6 w-6" />
-            </button>
-        </div>
-    );
+      {/* Si la ventana está abierta, hacemos portal de los contenidos */}
+      {pipWindow && createPortal(PiPContents, pipWindow.document.body)}
+    </div>
+  );
 }

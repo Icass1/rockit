@@ -58,6 +58,7 @@ export default function PiPContent() {
             <div
                 style={{
                     position: "relative",
+                    userSelect: "none",
                     width: "100%",
                     aspectRatio: "1 / 1",
                 }}

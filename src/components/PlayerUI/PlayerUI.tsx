@@ -265,9 +265,9 @@ export default function PlayerUI() {
                 </div>
 
                 {/* Middle Column: Cover & Info */}
-                <div className="z-10 grid max-h-full min-h-0 w-full max-w-full min-w-0 grid-rows-[1fr_min-content] items-center justify-center pt-10 pb-10">
+                <div className="z-10 flex flex-col justify-center items-center w-full h-full">
                     <div
-                        className="relative aspect-square h-auto max-h-full w-auto max-w-full rounded-lg object-cover"
+                        className="relative w-full max-w-[80%] aspect-square rounded-lg overflow-hidden"
                         onClick={() => {
                             setShowIcon(true);
                             if ($playing) {

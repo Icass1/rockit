@@ -182,18 +182,18 @@ export default function PlayerUI() {
     useEffect(() => {
         const handleDocumentClick = (event: MouseEvent) => {
             const target = event.target as Node;
-        
+
             // Comprueba si está dentro del player
             const insidePlayer = divRef.current?.contains(target);
-        
+
             // Comprueba si está dentro del footer
             const footerEl = document.getElementById("app-footer");
             const insideFooter = footerEl?.contains(target);
-        
+
             if (!insidePlayer && !insideFooter) {
-              isPlayerUIVisible.set(false);
+                isPlayerUIVisible.set(false);
             }
-          };
+        };
         document.addEventListener("click", handleDocumentClick);
         return () => {
             document.removeEventListener("click", handleDocumentClick);
@@ -265,9 +265,9 @@ export default function PlayerUI() {
                 </div>
 
                 {/* Middle Column: Cover & Info */}
-                <div className="z-10 flex flex-col justify-center items-center w-full h-full">
+                <div className="z-10 flex h-full w-full flex-col items-center justify-center">
                     <div
-                        className="relative w-full max-w-[80%] aspect-square rounded-lg overflow-hidden"
+                        className="relative aspect-square w-full max-w-[70%] overflow-hidden rounded-lg"
                         onClick={() => {
                             setShowIcon(true);
                             if ($playing) {

@@ -12,13 +12,17 @@ export default function HeaderRight({ session }: { session?: any }) {
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (bellRef.current && !bellRef.current.contains(event.target as Node)) {
+            if (
+                bellRef.current &&
+                !bellRef.current.contains(event.target as Node)
+            ) {
                 setShowMenu(false);
             }
         };
 
         document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
+        return () =>
+            document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
     return (
@@ -31,10 +35,10 @@ export default function HeaderRight({ session }: { session?: any }) {
                     className="relative p-1"
                     aria-label="Toggle notifications"
                 >
-                    <Bell className="w-6 h-6 text-white" />
+                    <Bell className="h-6 w-6 text-white" />
 
                     {/* Notification count */}
-                    <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 text-[10px] text-white flex items-center justify-center">
+                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] text-white">
                         3
                     </span>
                 </button>

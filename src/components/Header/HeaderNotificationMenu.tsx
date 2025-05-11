@@ -15,25 +15,25 @@ export default function NotificationMenu() {
     };
 
     return (
-        <div className="absolute right-0 mt-2 w-64 rounded-md bg-neutral-800 shadow-lg z-50">
-            <div className="p-3 text-white text-lg font-bold items-center text-center">
+        <div className="absolute right-0 z-50 mt-2 w-64 rounded-md bg-neutral-800 shadow-lg">
+            <div className="items-center p-3 text-center text-lg font-bold text-white">
                 Notificaciones
             </div>
             <ul className="max-h-60 overflow-auto">
                 {notifications.length === 0 ? (
-                    <li className="px-4 py-2 text-white text-sm">
+                    <li className="px-4 py-2 text-sm text-white">
                         No hay notificaciones
                     </li>
                 ) : (
                     notifications.map((notif) => (
                         <li
                             key={notif.id}
-                            className="flex items-center justify-between px-4 py-2 hover:bg-neutral-700 text-sm"
+                            className="flex items-center justify-between px-4 py-2 text-sm hover:bg-neutral-700"
                         >
                             <span>{notif.message}</span>
                             <Trash2
                                 onClick={() => removeNotification(notif.id)}
-                                className="text-red-500 text-xs"
+                                className="text-xs text-red-500"
                             />
                         </li>
                     ))

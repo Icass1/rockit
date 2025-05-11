@@ -13,6 +13,7 @@ import {
     Users,
     RadioTower,
     ShieldEllipsis,
+    Download,
 } from "lucide-react";
 import { useState, useRef } from "react";
 import { langData } from "@/stores/lang";
@@ -89,6 +90,12 @@ export default function Navigation() {
             title: $lang.stats,
             href: "/stats",
             icon: ChartLine,
+        },
+        {
+            name: "Downloads",
+            title: $lang.downloads,
+            href: "/downloader",
+            icon: Download,
         },
         session.data?.user.admin
             ? {

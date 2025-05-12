@@ -537,11 +537,12 @@ self.addEventListener("fetch", (evt) => {
 
     if (
         evt.request.url.includes("/api/downloads/status") ||
-        evt.request.pathname?.startsWith("/api/like") ||
-        evt.request.pathname?.startsWith("/api/playlist/remove-song") ||
-        evt.request.pathname?.startsWith("/api/playlist/add-song") ||
-        evt.request.pathname?.startsWith("/api/playlist/new") ||
-        evt.request.pathname?.startsWith("/api/pin")
+        evt.request.url.includes("/api/downloads/mark-seen") ||
+        evt.request.url.includes("/api/playlist/remove-song") ||
+        evt.request.url.includes("/api/playlist/add-song") ||
+        evt.request.url.includes("/api/playlist/new") ||
+        evt.request.url.includes("/api/like") ||
+        evt.request.url.includes("/api/pin")
     )
         return;
     // if (!evt.request.url.includes("rockit.rockhosting.org")) return

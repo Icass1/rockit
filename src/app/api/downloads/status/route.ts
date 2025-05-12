@@ -21,10 +21,17 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     const downloadId = url.searchParams.get("id");
 
-    const upstreamUrl =
-        `${BACKEND_URL}/download-status?id=` +
-        downloadId +
-        `&user=${session.user.id}`;
+    let upstreamUrl;
+
+    if (downloadId == "mockup") {
+        console.warn("Only for develpment", downloadId);
+        upstreamUrl = `${BACKEND_URL}/download-status-mockup`;
+    } else {
+        upstreamUrl =
+            `${BACKEND_URL}/download-status?id=` +
+            downloadId +
+            `&user=${session.user.id}`;
+    }
 
     let upstreamResponse: Response;
 

@@ -7,7 +7,12 @@ export const downloadedLists = atom<string[]>([]);
 let eventSources: string[] = [];
 
 export const downloadInfo = atom<{
-    [key: string]: { completed: number; message: string; downloadId: string };
+    [key: string]: {
+        completed: number;
+        message: string;
+        downloadId: string;
+        selected: boolean;
+    };
 }>({});
 
 function onMessage(event: MessageEvent<string>, downloadId: string) {
@@ -18,18 +23,23 @@ function onMessage(event: MessageEvent<string>, downloadId: string) {
         message: message.message,
         completed: message.completed,
         downloadId,
+        selected: true,
     };
 
     downloadInfo.set({ ...downloadInfo.get() });
 }
 
 export async function startDownload(url: string) {
-    console.warn("Only for development");
-    const response = await fetch(`/api/downloads/start?url=${url}`);
+    let downloadId;
 
-    const downloadId = await response.json();
+    if (url == "") {
+        console.warn("Only for development", url);
+        downloadId = "mockup";
+    } else {
+        const response = await fetch(`/api/downloads/start?url=${url}`);
 
-    // const downloadId = "A";
+        downloadId = await response.json();
+    }
 
     downloads.set([...downloads.get(), downloadId]);
 }

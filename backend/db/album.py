@@ -64,22 +64,6 @@ def parse_album(raw_album: Optional[RawAlbumDB]) -> Optional[AlbumDBFull]:
         dateAdded=raw_album.get("dateAdded"),
     )
 
-    return AlbumDBFull(
-        id=raw_album.id,
-        type=raw_album.type,
-        images=json.loads(raw_album.images),
-        image=raw_album.image,
-        name=raw_album.name,
-        releaseDate=raw_album.releaseDate,
-        artists=json.loads(raw_album.artists),
-        copyrights=json.loads(raw_album.copyrights),
-        popularity=raw_album.popularity,
-        genres=json.loads(raw_album.genres),
-        songs=json.loads(raw_album.songs),
-        discCount=raw_album.discCount,
-        dateAdded=raw_album.dateAdded,
-    )
-
 
 album_query = """
 CREATE TABLE IF NOT EXISTS album (

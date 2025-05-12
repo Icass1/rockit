@@ -3,6 +3,7 @@ from logging import Logger
 from typing import Any, Dict, List
 
 import os
+from pydantic import conint
 import requests
 import json
 import base64
@@ -11,6 +12,8 @@ import math
 
 from spotdl.types.song import Song
 
+from backend.db import artist
+from backend.db.artist import ArtistDBFull
 from constants import IMAGES_PATH
 
 from db.db import DB
@@ -43,8 +46,6 @@ class Spotify:
 
         self.token: str | None = None
         self.get_token()
-
-        self.artists_cache: Dict[str, RawSpotifyApiArtist] = {}
 
         self.db = DB()
 
@@ -116,33 +117,29 @@ class Spotify:
         genres = []
 
         for track_artist in artists:
-            if track_artist.id in self.artists_cache:
-                self.logger.debug(
-                    f"Artist from cache {track_artist.id}")
-                if self.artists_cache[track_artist.id].genres:
-                    genres += self.artists_cache[track_artist.id].genres
-                else:
-                    self.logger.error(
-                        f"artist {track_artist.id} doesn't have genres.")
-            else:
-                self.logger.debug(
-                    f"Getting artist from API {track_artist.id}")
-                raw_artist = self.api_call(path=f"artists/{track_artist.id}")
-                artist = RawSpotifyApiArtist.from_dict(raw_artist)
 
-                if not track_artist.id:
-                    self.logger.error(f"track_artist.id is None {id}")
-                    continue
+            if not track_artist.id:
+                self.logger.error(
+                    f"track_artist.id is None {id}")
+                continue
 
-                self.artists_cache[track_artist.id] = artist
-                if artist.genres:
-                    genres += artist.genres
-                else:
-                    self.logger.error(
-                        f"artist {artist.id} doesn't have genres.")
-        return genres
+            artist = self.get_artist(track_artist.id)
 
-    def get_album(self, id: str, _call_from_song: bool = False):
+            if not artist:
+                self.logger.error(
+                    f"artist is None {id}")
+                continue
+
+            if not artist.genres:
+                self.logger.error(
+                    f"artist.genres is None {track_artist.id}")
+                continue
+
+            genres.extend(artist.genres)
+
+        return list(set(genres))
+
+    def get_album(self, id: str) -> RawSpotifyApiAlbum | None:
 
         album_db: AlbumDBFull | None = self.db.get(
             "SELECT * FROM album WHERE id = ?", (id,))
@@ -170,6 +167,38 @@ class Spotify:
             raw_album = self.api_call(path=f"albums/{id}")
 
             return self._get_album_from_raw_album(raw_album)
+
+    def get_artist(self, id: str) -> RawSpotifyApiArtist | None:
+
+        artist_db: ArtistDBFull | None = self.db.get(
+            "SELECT * FROM artist WHERE id = ?", (id,))
+
+        if artist_db:
+            self.logger.info("Artist found in database")
+            return RawSpotifyApiArtist.from_dict({
+                "external_urls": {
+                    "spotify": f"https://open.spotify.com/artist/{id}"
+                },
+                "followers": {
+                    "href": None,
+                    "total": artist_db.followers
+                },
+                "genres": artist_db.genres,
+                "href": f"https://api.spotify.com/v1/artists/{id}",
+                "id": id,
+                "images": artist_db.images,
+                "name": artist_db.name,
+                "popularity": artist_db.popularity,
+                "type": artist_db.type,
+                "uri": f"spotify:artist:{id}"
+            })
+
+        else:
+            self.logger.info("Artist not found in database")
+
+            raw_artist = self.api_call(path=f"artists/{id}")
+
+            return self._get_artist_from_raw_artist(raw_artist)
 
     @time_it
     def get_playlist(self, id: str) -> RawSpotifyApiPlaylist | None:
@@ -226,7 +255,7 @@ class Spotify:
 
             if not playlist.images:
                 self.logger.error(
-                    f"playlist.images[0].url is None {id}")
+                    f"playlist.images is None {id}")
                 return
 
             if not playlist.images[0].url:
@@ -333,6 +362,9 @@ class Spotify:
 
         missing_songs: List[str] = []
         missing_albums: List[str] = []
+        missing_artists: List[str] = []
+
+        songs_in_db: List[str] = []
 
         for id in ids:
             song_db: SongDBFull | None = self.db.get(
@@ -343,6 +375,16 @@ class Spotify:
                     "SELECT id FROM album WHERE id = ?", (song_db.albumId,))
                 if not album_db:
                     missing_albums.append(song_db.albumId)
+
+                for artist in song_db.artists:
+
+                    artist_db = self.db.get(
+                        "SELECT id FROM artist WHERE id = ?", (artist.id,))
+                    if not artist_db:
+                        missing_artists.append(artist.id)
+
+                songs_in_db.append(id)
+
             else:
                 self.logger.info(f"{id} not found in db")
                 missing_songs.append(id)
@@ -364,11 +406,20 @@ class Spotify:
 
         for raw_song in raw_songs:
             album_id: str = raw_song["album"]["id"]
+            artists: list = raw_song["artists"]
 
             album_db = self.db.get(
                 "SELECT id FROM album WHERE id = ?", (album_id,))
             if not album_db:
                 missing_albums.append(album_id)
+
+            for artist in artists:
+                artist_db = self.db.get(
+                    "SELECT id FROM artist WHERE id = ?", (artist["id"],))
+                if not artist_db:
+                    missing_artists.append(artist["id"])
+
+        missing_albums = list(set(missing_albums))
 
         self.logger.info(f"Missing albums: {len(missing_albums)}")
 
@@ -384,6 +435,30 @@ class Spotify:
 
             for raw_album in response["albums"]:
                 self._get_album_from_raw_album(raw_album)
+
+        missing_artists = list(set(missing_artists))
+
+        self.logger.info(f"Missing artists: {len(missing_artists)}")
+
+        # Get missing artists 50 by 50
+        for k in range(math.ceil(len(missing_artists)/50)):
+
+            response = self.api_call(
+                path=f"artists", params={"ids": ",".join(missing_artists[k*50:(k + 1)*50])})
+
+            if not response:
+                self.logger.error("Response is None")
+                continue
+
+            for raw_artist in response["artists"]:
+                self._get_artist_from_raw_artist(raw_artist)
+
+        for song_id in songs_in_db:
+            song = self.get_song(song_id)
+            if not song:
+                self.logger.error("song is None")
+                continue
+            out.append(song)
 
         for raw_song in raw_songs:
 
@@ -421,7 +496,7 @@ class Spotify:
                 raise Exception("Album not in song", song_db)
 
             album: RawSpotifyApiAlbum | None = self.get_album(
-                id=song_db.albumId, _call_from_song=True)
+                id=song_db.albumId)
 
             if not album:
                 self.logger.error("album is None")
@@ -548,6 +623,37 @@ class Spotify:
                 path=f"tracks/{id}")
 
             return self._get_song_from_raw_song(raw_song=raw_song)
+
+    def _get_artist_from_raw_artist(self, raw_artist):
+        artist = RawSpotifyApiArtist.from_dict(raw_artist)
+
+        artist_db: AlbumDBFull | None = self.db.get(
+            "SELECT id FROM artist WHERE id = ?", (artist.id,))
+
+        if not artist.images:
+            self.logger.error(f"artist.images is None {id}")
+            return
+
+        if not artist.followers:
+            self.logger.error(f"artist.followers is None {id}")
+            return
+
+        if artist_db:
+            self.logger.warning(f"This should never happen {artist.id}")
+        else:
+            self.db.execute(
+                "INSERT INTO artist (id, images, name, genres, followers, popularity, type, dateAdded) VALUES(?,?,?,?,?,?,?,?)", (
+                    artist.id,
+                    json.dumps([image._json for image in artist.images]),
+                    artist.name,
+                    json.dumps(artist.genres),
+                    artist.followers.total,
+                    artist.popularity,
+                    artist.type,
+                    get_utc_date()
+                ))
+
+        return artist
 
     def _get_album_from_raw_album(self, raw_album):
 
@@ -689,7 +795,7 @@ class Spotify:
             return
 
         album: RawSpotifyApiAlbum | None = self.get_album(
-            id=song.album.id, _call_from_song=True)
+            id=song.album.id)
 
         if not album:
             self.logger.error("Album is None")
@@ -819,4 +925,6 @@ if __name__ == "__main__":
 
     # https://open.spotify.com/playlist/7h6r9ScqSjCHH3QozfBdIq?si=741f837fb7824e0a
     spotify = Spotify()
-    spotify.get_playlist("7h6r9ScqSjCHH3QozfBdIq")
+
+    spotify.get_artist("3JsMj0DEzyWc0VDlHuy9Bx")
+    # spotify.get_playlist("7h6r9ScqSjCHH3QozfBdIq")

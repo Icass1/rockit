@@ -1,7 +1,8 @@
 import sys
 import os
+import json
 
-
+from backend.downloader import Downloader
 from backend.db.playlist import PlaylistDBFull
 from backend.constants import IMAGES_PATH, SONGS_PATH
 from backend.db.image import ImageDB
@@ -11,10 +12,10 @@ from backend.logger import getLogger
 from backend.db.db import DB
 
 logger = getLogger(__name__)
-
-
-logger = getLogger(__name__)
 db = DB()
+
+
+downlaoder = Downloader()
 
 
 def delete_album(album_id: str):
@@ -124,9 +125,67 @@ def delete():
         help_delete()
 
 
+def help_api_get():
+    print("Posible commands:")
+    print("  api-get album <id>")
+    print("  api-get song <id>")
+    print("  api-get playlist <id>")
+    print("  api-get artist <id>")
+
+
+def api_get():
+    if len(sys.argv) < 3:
+        help_api_get()
+    elif sys.argv[2] == "album":
+        print("TODO")
+    elif sys.argv[2] == "song":
+        print("TODO")
+    elif sys.argv[2] == "playlist":
+        print("TODO")
+    elif sys.argv[2] == "artist":
+        artist = downlaoder.spotify.get_artist(sys.argv[3])
+        if artist:
+            print(json.dumps(artist._json, indent=4))
+        else:
+            print("Artist is None")
+    else:
+        logger.error("Unknow command")
+        help_api_get()
+
+
+def get_status_mockup():
+    if len(sys.argv) != 4:
+        help_get_status_mockup()
+
+    log_file = sys.argv[2]
+    output_file = sys.argv[3]
+
+    if not os.path.exists(log_file):
+        logger.error(f"{log_file} not found")
+
+    file = open(log_file)
+    content = file.readlines()
+    file.close()
+
+    with open(output_file, "w") as f:
+        for line in content:
+            if not "messageHandler.MessageHandler.add" in line:
+                continue
+            f.write(f"{line[0:19]} {line.split(' - ')[2]}")
+
+    print(log_file, output_file)
+
+
+def help_get_status_mockup():
+    print("Posible commands:")
+    print("  get-status-mockup <log file> <output file>")
+
+
 def help():
     print("Posible commands:")
     print("  delete")
+    print("  api-get")
+    print("  get-status-mockup")
 
 
 if __name__ == "__main__":
@@ -135,6 +194,10 @@ if __name__ == "__main__":
         help()
     elif sys.argv[1] == "delete":
         delete()
+    elif sys.argv[1] == "api-get":
+        api_get()
+    elif sys.argv[1] == "get-status-mockup":
+        get_status_mockup()
     else:
         logger.error("Unknow command")
         help()

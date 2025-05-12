@@ -170,6 +170,26 @@ def get_album(request: Request, album_id):
     return album._json
 
 
+@app.get(path='/playlist/{playlist_id}')
+def get_playlist(request: Request, playlist_id):
+
+    playlist = downloader.spotify.get_playlist(playlist_id)
+
+    if not playlist:
+        return Response("Album not found", status_code=404)
+
+    if not playlist.tracks:
+        return Response("Album not found", status_code=404)
+
+    if not playlist.tracks.items:
+        return Response("Album not found", status_code=404)
+
+    playlist._json["tracks"] = downloader.spotify.get_songs(
+        ids=[a.track.id for a in playlist.tracks.items if a.track and a.track.id])
+
+    return playlist._json
+
+
 @app.on_event('startup')
 async def app_startup():
     asyncio.create_task(downloader.download_manager())

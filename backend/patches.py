@@ -842,7 +842,6 @@ def search(self, song: Song, display_progress_tracker) -> str:
         url = audio_provider.search(
             song, self.settings["only_verified_results"])
         if url:
-            display_progress_tracker.update(f"Done.")
             return url
 
         logger.debug("%s failed to find %s",

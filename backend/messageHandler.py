@@ -42,6 +42,9 @@ class MessageHandler:
 
         self._end = False
 
+    def get_last_messge(self):
+        return self._messages[-1]
+
     def get_reader(self) -> MessageHandlderReader:
         return MessageHandlderReader(handler=self)
 

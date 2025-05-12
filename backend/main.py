@@ -63,8 +63,6 @@ async def download_status_mockup(request: Request):
     start_time = get_time(content[0].split(" ")[1])
     absolute_start_time = time.time()
 
-    print(start_time)
-
     async def event_generator():
         current_index = 0
         while True:
@@ -144,6 +142,7 @@ def get_downloads(request: Request):
         "songAlbumName": thread[1].get_song().album_name,
         "songAlbumId": thread[1].get_song().album_id,
         "songArtist": thread[1].get_song().artist,
+        "lastMessage": thread[1].get_message_handler().get_last_messge()
     } for thread in downloader.download_threads]
 
 
@@ -151,9 +150,6 @@ def get_downloads(request: Request):
 def get_album(request: Request, album_id):
 
     album = downloader.spotify.get_album(album_id)
-
-    if not album:
-        return Response("Album not found", status_code=404)
 
     if not album:
         return Response("Album not found", status_code=404)

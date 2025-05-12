@@ -18,6 +18,7 @@ from backend.db.error import error_query
 from backend.db.download import download_query, parse_download
 from backend.db.album import album_query, parse_album
 from backend.db.song import song_query, parse_song
+from backend.db.artist import artist_query, parse_artist
 
 from backend.logger import getLogger
 
@@ -138,14 +139,15 @@ class DB:
 
         self.logger.info("Checking database tables...")
         self.tables = [
-            Table(self, song_query, parser=parse_song),
-            Table(self, album_query, parser=parse_album),
-            Table(self, download_query, parse_download),
-            Table(self, error_query),
-            Table(self, user_query, parse_user),
-            Table(self, playlist_query, parse_playlist),
-            Table(self, image_query, parse_image),
-            Table(self, sesssion_query),
+            Table(db=self, query=song_query, parser=parse_song),
+            Table(db=self, query=artist_query, parser=parse_artist),
+            Table(db=self, query=album_query, parser=parse_album),
+            Table(db=self, query=download_query, parser=parse_download),
+            Table(db=self, query=error_query),
+            Table(db=self, query=user_query, parser=parse_user),
+            Table(db=self, query=playlist_query, parser=parse_playlist),
+            Table(db=self, query=image_query, parser=parse_image),
+            Table(db=self, query=sesssion_query),
         ]
 
         atexit.register(self.close)

@@ -1,13 +1,10 @@
 import Link from "next/link";
 import SearchBar from "@/components/Search/SearchBar";
 import Image from "@/components/Image";
-import { getSession } from "@/lib/auth/getSession";
 import { headers } from "next/headers";
 import HeaderRight from "./HeaderRight";
 
 export default async function Header() {
-    const session = await getSession();
-
     const headerList = await headers();
     const pathname = headerList.get("x-current-path");
 
@@ -37,7 +34,7 @@ export default async function Header() {
 
             {pathname?.startsWith("/radio") ? <label></label> : <SearchBar />}
 
-            <HeaderRight session={session} />
+            <HeaderRight />
         </header>
     );
 }

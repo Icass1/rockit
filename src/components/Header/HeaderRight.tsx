@@ -5,10 +5,12 @@ import { Bell } from "lucide-react";
 import HeaderUser from "./HeaderUser";
 import NotificationMenu from "./HeaderNotificationMenu";
 import OnlineUserIndicator from "./HeaderOnlineUsers";
+import { useSession } from "next-auth/react";
 
-export default function HeaderRight({ session }: { session?: any }) {
+export default function HeaderRight() {
     const [showMenu, setShowMenu] = useState(false);
     const bellRef = useRef<HTMLDivElement>(null);
+    const session = useSession();
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -46,7 +48,7 @@ export default function HeaderRight({ session }: { session?: any }) {
                 {showMenu && <NotificationMenu />}
             </div>
 
-            {session?.user ? (
+            {typeof session?.data?.user != "undefined" ? (
                 <HeaderUser />
             ) : (
                 <a className="rounded bg-green-600 p-1 px-4" href="/login">

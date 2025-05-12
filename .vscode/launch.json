@@ -19,14 +19,17 @@
   ],
   "configurations": [
     {
-      "name": "Python Debugger: Current File",
+      "name": "FastAPI Uvicorn",
       "type": "debugpy",
       "request": "launch",
-      "program": "${file}",
-      "console": "integratedTerminal"
+      "module": "uvicorn",
+      "args": [
+        "backend.main:app",
+      ],
+      "justMyCode": false
     },
     {
-      "name": "FastAPI Uvicorn",
+      "name": "FastAPI Uvicorn (DEBUG)",
       "type": "debugpy",
       "request": "launch",
       "module": "uvicorn",

@@ -104,6 +104,13 @@ def search(request: Request, q: str):
     }
 
 
+@app.get(path='/set-max-download-threads/{max_download_threads}')
+def set_max_download_threads(request: Request, max_download_threads: str):
+
+    downloader.max_download_threads = int(max_download_threads)
+    return Response("OK")
+
+
 @app.get(path='/status')
 def status(request: Request):
 

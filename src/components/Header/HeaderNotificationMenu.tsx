@@ -1,6 +1,6 @@
 "use client";
 
-import { Trash, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { useState } from "react";
 
 export default function NotificationMenu() {

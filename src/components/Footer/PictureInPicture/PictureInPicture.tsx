@@ -12,8 +12,13 @@ export default function MiniplayerPiP() {
     const togglePiP = useCallback(async () => {
         // Detección robusta de la API
         const docPiP =
-            (document as any).pictureInPicture ??
-            (window as any).documentPictureInPicture;
+            (document as { pictureInPicture?: { requestWindow?: object } })
+                .pictureInPicture ??
+            (
+                window as {
+                    documentPictureInPicture?: { requestWindow?: object };
+                }
+            ).documentPictureInPicture;
 
         if (!docPiP || typeof docPiP.requestWindow !== "function") {
             console.warn("Document PiP no soportado, usando canvas hack…");

@@ -2,7 +2,7 @@ import { getSession } from "@/lib/auth/getSession";
 import { SongDB } from "@/lib/db/song";
 import { getStats, SongForStats } from "@/lib/stats";
 import { NextResponse } from "next/server";
-import { writeFile } from "fs";
+// import { writeFile } from "fs";
 import { reduce, shuffle } from "@/lib/arrayTools";
 
 type SongsType = SongDB<
@@ -41,17 +41,17 @@ export async function GET() {
         }
     }
 
-    writeFile(
-        "delete.json",
-        JSON.stringify(uniqueTracks, undefined, 4),
-        (err) => {
-            if (err) {
-                console.error(err);
-            } else {
-                // file written successfully
-            }
-        }
-    );
+    // writeFile(
+    //     "delete.json",
+    //     JSON.stringify(uniqueTracks, undefined, 4),
+    //     (err) => {
+    //         if (err) {
+    //             console.error(err);
+    //         } else {
+    //             // file written successfully
+    //         }
+    //     }
+    // );
 
     const lastMonthDate = new Date().getTime() - 1000 * 60 * 60 * 24 * 30;
 

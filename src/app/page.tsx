@@ -4,30 +4,14 @@ import { Suspense } from "react";
 import QuickSelectionsSong from "@/components/Home/QuickSelectionsSong";
 import RecentlyPlayedSong from "@/components/Home/RecentlyPlayedSong";
 import SongsCarousel from "@/components/Home/SongsCarousel";
-import { SongForStats, SongWithTimePlayed } from "@/lib/stats";
 import { langData } from "@/stores/lang";
 import { useStore } from "@nanostores/react";
-import { useEffect, useState } from "react";
 import Spinner from "@/components/Spinner";
+import useFetch from "@/hooks/useFetch";
+import { HomeStats } from "@/app/api/stats/home/route";
 
 export default function Home() {
-    const [songsByTimePlayed, setSongsByTimePlayed] = useState<
-        SongWithTimePlayed[]
-    >([]);
-    const [randomSongsLastMonth, setRandomSongsLastMonth] = useState<
-        SongForStats[]
-    >([]);
-    const [nostalgicMix, setNostalgicMix] = useState<SongForStats[]>([]);
-    const [hiddenGems, setHiddenGems] = useState<SongForStats[]>([]);
-    const [communityTop, setCommunityTop] = useState<SongForStats[]>([]);
-    const [monthlyTop, setMonthlyTop] = useState<SongWithTimePlayed[]>([]);
-    const [moodSongs, setMoodSongs] = useState<Record<Mood, SongForStats[]>>({
-        relaxed: [],
-        energy: [],
-        focus: [],
-        party: [],
-    });
-    const [isLoading, setIsLoading] = useState(true);
+    const data = useFetch<HomeStats>("/api/stats/home");
 
     const $lang = useStore(langData);
 
@@ -48,84 +32,9 @@ export default function Home() {
     const previousMonthIndex = (new Date().getMonth() + 11) % 12;
     const previousMonthKey = monthKeys[previousMonthIndex];
 
-    type Mood = "relaxed" | "energy" | "focus" | "party";
+    // type Mood = "relaxed" | "energy" | "focus" | "party";
 
-    useEffect(() => {
-        if (!$lang) return;
-
-        const fetchData = async () => {
-            try {
-                const [
-                    timePlayedRes,
-                    randomRes,
-                    nostalgicRes,
-                    gemsRes,
-                    communityRes,
-                    moodsRes,
-                    monthlyRes,
-                ] = await Promise.all([
-                    fetch(
-                        "/api/stats?limit=20&sortBy=timePlayed&noRepeat=true&type=songs"
-                    ),
-                    fetch(
-                        `/api/stats?limit=40&sortBy=random&noRepeat=true&type=songs&start=${new Date().getTime() - 1000 * 60 * 60 * 24 * 30}`
-                    ),
-                    fetch(
-                        "/api/stats?limit=15&sortBy=timePlayed&mixOld=true&type=songs&noRepeat=true"
-                    ),
-                    fetch(
-                        "/api/stats?limit=20&sortBy=neverPlayed&noRepeat=true&type=songs"
-                    ),
-                    fetch(
-                        "/api/stats?limit=20&sortBy=popular&type=songs&noRepeat=true"
-                    ),
-                    Promise.all(
-                        (["relaxed", "energy", "focus", "party"] as Mood[]).map(
-                            (mood) =>
-                                fetch(
-                                    `/api/stats?limit=10&noRepeat=true&filterMood=${mood}&type=songs`
-                                )
-                                    .then((r) => (r.ok ? r.json() : []))
-                                    .then((data) => ({ mood, data }))
-                        )
-                    ),
-                    fetch(
-                        `/api/stats?limit=5&sortBy=timesPlayed&noRepeat=true&start=${new Date(
-                            new Date().getFullYear(),
-                            new Date().getMonth() - 1,
-                            1
-                        ).toISOString()}&end=${new Date(
-                            new Date().getFullYear(),
-                            new Date().getMonth(),
-                            0
-                        ).toISOString()}&type=songs`
-                    ),
-                ]);
-
-                if (timePlayedRes.ok)
-                    setSongsByTimePlayed(await timePlayedRes.json());
-                if (randomRes.ok)
-                    setRandomSongsLastMonth(await randomRes.json());
-                if (nostalgicRes.ok) setNostalgicMix(await nostalgicRes.json());
-                if (gemsRes.ok) setHiddenGems(await gemsRes.json());
-                if (communityRes.ok) setCommunityTop(await communityRes.json());
-
-                const moodMap = {} as typeof moodSongs;
-                moodsRes.forEach((r) => (moodMap[r.mood] = r.data));
-                setMoodSongs(moodMap);
-
-                if (monthlyRes.ok) setMonthlyTop(await monthlyRes.json());
-            } catch (error) {
-                console.error("Error fetching data:", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        fetchData();
-    }, [$lang]);
-
-    if (!$lang || isLoading) {
+    if (!$lang || !data) {
         return (
             <div className="flex h-screen flex-row items-center justify-center gap-2 text-xl font-semibold">
                 <Spinner></Spinner>
@@ -133,6 +42,16 @@ export default function Home() {
             </div>
         );
     }
+
+    const {
+        songsByTimePlayed,
+        randomSongsLastMonth,
+        nostalgicMix,
+        hiddenGems,
+        communityTop,
+        monthlyTop,
+        // moodSongs,
+    } = data;
 
     return (
         <Suspense
@@ -211,7 +130,7 @@ export default function Home() {
                         {$lang.recent_played}
                     </h2>
                     <div className="flex gap-4 overflow-x-auto px-10 py-4">
-                        {songsByTimePlayed.map((song) => (
+                        {songsByTimePlayed?.map((song) => (
                             <RecentlyPlayedSong
                                 key={song.id}
                                 song={song}
@@ -251,7 +170,7 @@ export default function Home() {
                     </div>
                 </section>
 
-                {(Object.keys(moodSongs) as Mood[]).map((mood) => (
+                {/* {(Object.keys(moodSongs) as Mood[]).map((mood) => (
                     <section key={mood} className="py-5 text-white md:pl-12">
                         <h2 className="px-5 text-2xl font-bold md:text-3xl">
                             {$lang.moodsongs} {$lang[`${mood}`]}
@@ -266,7 +185,7 @@ export default function Home() {
                             ))}
                         </div>
                     </section>
-                ))}
+                ))} */}
 
                 <section className="text-white md:py-12 md:pl-12">
                     <h2 className="px-5 text-2xl font-bold md:text-3xl">

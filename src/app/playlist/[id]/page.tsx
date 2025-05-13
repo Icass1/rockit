@@ -12,11 +12,12 @@ import {
 import { parseSong, RawSongDB, SongDB } from "@/lib/db/song";
 import { parseUser, RawUserDB, UserDB } from "@/lib/db/user";
 import { getImageUrl } from "@/lib/getImageUrl";
-import { getStats, SongForStats } from "@/lib/stats";
+import { getStats } from "@/lib/stats";
 import { SpotifyPlaylistImage } from "@/types/spotify";
 import { NextResponse } from "next/server";
 import { getLang } from "@/lib/getLang";
 import { notFound } from "next/navigation";
+import { reduce } from "@/lib/arrayTools";
 
 interface Playlist {
     name: string;
@@ -52,29 +53,10 @@ async function getPlaylist(id: string) {
         }
 
         const { stats } = await getStats(session.user.id);
-        let songs: SongForStats[] = [];
-
-        stats.songs.forEach((song) => {
-            const result = songs.find((findSong) => findSong.id == song.id);
-            if (result) {
-                result.timesPlayed += 1;
-            } else {
-                songs.push({
-                    index: 0,
-                    name: song.name,
-                    id: song.id,
-                    timesPlayed: 1,
-                    albumId: song.albumId,
-                    albumName: song.albumName,
-                    duration: song.duration,
-                    artists: song.artists,
-                    image: song.image,
-                });
-            }
-        });
-        songs = songs
-            .toSorted((a, b) => b.timesPlayed - a.timesPlayed)
-            .slice(0, 50);
+        const songs = reduce(
+            stats.songs.toSorted((a, b) => b.timesPlayed - a.timesPlayed),
+            (item) => item.id
+        ).slice(0, 50);
 
         playlist = {
             name: lang?.most_listened ?? "Most listened",
@@ -110,7 +92,7 @@ async function getPlaylist(id: string) {
         if (!session?.user.id) notFound();
 
         const { stats } = await getStats(session.user.id, start, end);
-        let songs: SongForStats[] = [];
+        // let songs: SongForStats[] = [];
 
         const monthKeys = [
             "january",
@@ -133,27 +115,10 @@ async function getPlaylist(id: string) {
         const localizedMonth =
             lang[prevMonthKey as keyof typeof lang] || prevMonthKey;
 
-        stats.songs.forEach((song) => {
-            const result = songs.find((findSong) => findSong.id == song.id);
-            if (result) {
-                result.timesPlayed += 1;
-            } else {
-                songs.push({
-                    index: 0,
-                    name: song.name,
-                    id: song.id,
-                    timesPlayed: 1,
-                    albumId: song.albumId,
-                    albumName: song.albumName,
-                    duration: song.duration,
-                    artists: song.artists,
-                    image: song.image,
-                });
-            }
-        });
-        songs = songs
-            .toSorted((a, b) => b.timesPlayed - a.timesPlayed)
-            .slice(0, 50);
+        const songs = reduce(
+            stats.songs.toSorted((a, b) => b.timesPlayed - a.timesPlayed),
+            (item) => item.id
+        ).slice(0, 50);
 
         const lastMonthNamDate = new Date();
         lastMonthNamDate.setMonth(lastMonthNamDate.getMonth() - 1);
@@ -184,29 +149,10 @@ async function getPlaylist(id: string) {
             session.user.id,
             new Date().getTime() - 10 * 24 * 60 * 60 * 1000
         );
-        let songs: SongForStats[] = [];
-
-        stats.songs.forEach((song) => {
-            const result = songs.find((findSong) => findSong.id == song.id);
-            if (result) {
-                result.timesPlayed += 1;
-            } else {
-                songs.push({
-                    index: 0,
-                    name: song.name,
-                    id: song.id,
-                    timesPlayed: 1,
-                    albumId: song.albumId,
-                    albumName: song.albumName,
-                    duration: song.duration,
-                    artists: song.artists,
-                    image: song.image,
-                });
-            }
-        });
-        songs = songs
-            .toSorted((a, b) => b.timesPlayed - a.timesPlayed)
-            .slice(0, 50);
+        const songs = reduce(
+            stats.songs.toSorted((a, b) => b.timesPlayed - a.timesPlayed),
+            (item) => item.id
+        ).slice(0, 50);
 
         playlist = {
             name: lang?.recent_mix ?? "Recent Mix",

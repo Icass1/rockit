@@ -18,7 +18,16 @@ export default function FooterMobile() {
         <div className="h-full w-full pb-1">
             <div
                 className="group grid h-full w-full grid-cols-[min-content_1fr_min-content_min-content] items-center gap-x-2 rounded-md bg-black/80 pr-2"
-                onClick={() => isMobilePlayerUIVisible.set(true)}
+                onClick={() => {
+                    if (isMobilePlayerUIVisible.get()) {
+                        isMobilePlayerUIVisible.set(false);
+                        setTimeout(() => {
+                            isMobilePlayerUIVisible.set(true);
+                        }, 500);
+                    } else {
+                        isMobilePlayerUIVisible.set(true);
+                    }
+                }}
             >
                 <div className="aspect-square h-full w-auto">
                     <Image

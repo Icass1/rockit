@@ -39,11 +39,17 @@ export default async function AdminPage() {
 
     databaseBackups.sort();
 
-    const response = await fetch(ENV.BACKEND_URL + "/status");
-    const downloaderStatus: {
-        queueLength: number;
-        maxDownloadThreads: number;
-    } = await response.json();
+    let downloaderStatus:
+        | {
+              queueLength: number;
+              maxDownloadThreads: number;
+          }
+        | undefined = undefined;
+
+    try {
+        const response = await fetch(ENV.BACKEND_URL + "/status");
+        downloaderStatus = await response.json();
+    } catch {}
 
     const gradientTextClass =
         "bg-clip-text text-xl mr-2 font-bold [-webkit-text-fill-color:transparent] [background-image:-webkit-linear-gradient(0deg,#fb6467,#ee1086)]";
@@ -206,20 +212,25 @@ export default async function AdminPage() {
                         <NewBackupButton />
                     </div>
                 </div>
-                <div className="flex flex-col items-center rounded bg-neutral-700 p-2">
-                    <label className="w-full text-lg font-semibold">
-                        Downloader
-                    </label>
-                    <label>
-                        Songs in queue: {downloaderStatus.queueLength}
-                    </label>
-                    <label>
-                        Threads: {downloaderStatus.maxDownloadThreads}
-                    </label>
-                    <Link href="/admin/downloads" className="relative w-full">
-                        <LinkIcon className="relative right-0 ml-auto" />
-                    </Link>
-                </div>
+                {downloaderStatus && (
+                    <div className="flex flex-col items-center rounded bg-neutral-700 p-2">
+                        <label className="w-full text-lg font-semibold">
+                            Downloader
+                        </label>
+                        <label>
+                            Songs in queue: {downloaderStatus.queueLength}
+                        </label>
+                        <label>
+                            Threads: {downloaderStatus.maxDownloadThreads}
+                        </label>
+                        <Link
+                            href="/admin/downloads"
+                            className="relative w-full"
+                        >
+                            <LinkIcon className="relative right-0 ml-auto" />
+                        </Link>
+                    </div>
+                )}
             </Masonry>
             <div className="min-h-24 md:hidden"></div>
         </div>

@@ -4,13 +4,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 import json
 from asyncio import sleep
-from dotenv import load_dotenv
 import time
 
 from backend.downloader import Downloader
 from backend.spotifyApiTypes.RawSpotifyApiSearchResults import RawSpotifyApiSearchResults
 
-load_dotenv()
 
 downloader = Downloader()
 

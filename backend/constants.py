@@ -2,6 +2,9 @@
 from spotdl.types.options import DownloaderOptions
 import os
 
+from dotenv import load_dotenv
+load_dotenv()
+
 
 _SONGS_PATH = os.getenv(key="SONGS_PATH")
 _IMAGES_PATH = os.getenv("IMAGES_PATH")

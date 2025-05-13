@@ -1325,7 +1325,7 @@ async function registerServiceWorker() {
     if (typeof window === "undefined") return;
 
     if ("serviceWorker" in navigator) {
-        const version = 2;
+        const version = 3;
 
         try {
             const updatedServiceWorker = localStorage.getItem(

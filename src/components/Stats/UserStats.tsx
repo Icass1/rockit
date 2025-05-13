@@ -5,7 +5,7 @@ import BarGraph from "./BarGraph";
 import { useEffect, useRef, useState } from "react";
 import { langData } from "@/stores/lang";
 import { useStore } from "@nanostores/react";
-import { UserStats as UserStatsType } from "@/app/api/stats/user-stats/route";
+import { UserStats as UserStatsType } from "@/app/api/stats/user/route";
 import pkg from "lodash";
 import VerticalBarGraph from "./VerticalBarGraph";
 import Masonry from "@/components/Masonry/Masonry";
@@ -51,7 +51,7 @@ export default function UserStats() {
         );
 
     useEffect(() => {
-        fetch("/api/stats/user-stats/first-date").then((response) => {
+        fetch("/api/stats/user/first-date").then((response) => {
             if (response.ok) {
                 response.json().then((data) => {
                     setFirstDate(data);
@@ -63,7 +63,7 @@ export default function UserStats() {
     useEffect(() => {
         fetchDebounce.current = debounce((endDate, startDate) => {
             fetch(
-                `/api/stats/user-stats?start=${new Date(startDate)}&end=${new Date(endDate)}`
+                `/api/stats/user?start=${new Date(startDate)}&end=${new Date(endDate)}`
             ).then((response) => {
                 if (response.ok) {
                     response.json().then((data) => {
@@ -181,7 +181,7 @@ export default function UserStats() {
                         className="text-3xl text-yellow-400"
                         onClick={() =>
                             fetch(
-                                `/api/stats/user-stats?start=${new Date(startDate)}&end=${new Date(endDate)}`
+                                `/api/stats/user?start=${new Date(startDate)}&end=${new Date(endDate)}`
                             ).then((response) => {
                                 if (response.ok) {
                                     response.json().then((data) => {

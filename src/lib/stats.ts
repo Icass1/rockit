@@ -12,18 +12,6 @@ interface ArtistForStats extends ArtistDB {
     timesPlayed: number;
     index: number;
 }
-export interface SongWithTimePlayed
-    extends SongDB<
-        | "artists"
-        | "id"
-        | "duration"
-        | "name"
-        | "image"
-        | "albumId"
-        | "albumName"
-    > {
-    timePlayed: number | string;
-}
 
 export interface SongForStats
     extends SongDB<
@@ -35,12 +23,13 @@ export interface SongForStats
         | "albumName"
         | "duration"
     > {
+    timePlayed: number | string;
     timesPlayed: number;
     index: number;
 }
 
 export interface Stats {
-    songs: SongWithTimePlayed[];
+    songs: SongForStats[];
     artists: ArtistForStats[];
     albums: AlbumForStats[];
 }
@@ -151,6 +140,8 @@ export async function getStats(
                         image: song.image,
                         albumId: song.albumId,
                         albumName: song.albumName,
+                        timesPlayed: 1,
+                        index: 0,
                     });
                     song.artists.map((artist) => {
                         const artistOut = out.artists.find(
@@ -211,14 +202,30 @@ export async function getStats(
 
     const sortedAlbums = [...out.albums];
     sortedAlbums.sort((a, b) => b.timesPlayed - a.timesPlayed);
-    out.albums.map((album) => {
+    out.albums.forEach((album) => {
         album.index = sortedAlbums.indexOf(album);
     });
 
     const sortedArtists = [...out.artists];
     sortedArtists.sort((a, b) => b.timesPlayed - a.timesPlayed);
-    out.artists.map((artist) => {
+    out.artists.forEach((artist) => {
         artist.index = sortedArtists.indexOf(artist);
+    });
+
+    out.songs.forEach((song) => {
+        const firstSong = out.songs.find((_song) => _song.id == song.id);
+        if (firstSong) firstSong.timesPlayed += 1;
+    });
+
+    out.songs.forEach((song) => {
+        const firstSong = out.songs.find((_song) => _song.id == song.id);
+        if (firstSong) song.timesPlayed = firstSong?.timesPlayed;
+    });
+
+    const sortedSongs = [...out.songs];
+    sortedSongs.sort((a, b) => b.timesPlayed - a.timesPlayed);
+    out.songs.forEach((song) => {
+        song.index = sortedSongs.indexOf(song);
     });
 
     return { stats: out, newStart, newEnd };

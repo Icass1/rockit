@@ -19,6 +19,8 @@ main {
     background: #0b0b0b;
     /* min-width: 820px; */
     /* min-height: 728px; */
+    overscroll-behavior: none; /* Prevents scroll chaining and pull-to-refresh */
+    overflow: hidden;
 }
 
 main,

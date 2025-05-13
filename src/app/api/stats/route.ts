@@ -1,11 +1,11 @@
 import { getSession } from "@/lib/auth/getSession";
-import { getStats, SongWithTimePlayed, Stats } from "@/lib/stats";
+import { getStats, Stats } from "@/lib/stats";
 import { NextResponse } from "next/server";
 
 export interface ApiStats {
     albums: Stats["albums"];
     artists: Stats["artists"];
-    songs: (SongWithTimePlayed & { timesPlayed?: number })[];
+    songs: Stats["songs"];
 }
 
 export async function GET(request: Request) {

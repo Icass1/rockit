@@ -170,12 +170,13 @@ export default function MobilePlayerUI() {
 
             const time = new Date().getTime() - touchStartTime;
 
-            if (topOffset / time > 1 || topOffset > window.innerHeight / 3) {
+            if (topOffset / time > 0.7 || topOffset > window.innerHeight / 3) {
                 setEnableTransition(true);
                 setTimeout(() => {
+                    setPlayerUIHidden(true);
+                    isMobilePlayerUIVisible.set(false);
                     setEnableTransition(false);
                     setTopOffset(0);
-                    isMobilePlayerUIVisible.set(false);
                 }, 300);
 
                 setTopOffset(window.innerHeight);

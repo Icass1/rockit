@@ -8,24 +8,6 @@ import threading
 
 from backend.constants import LOG_DUMP_LEVEL, LOGS_PATH  # Import inspect module
 
-# Initialize Colorama for cross-platform compatibility
-init(autoreset=True)
-
-
-list_dir = os.listdir(LOGS_PATH)
-list_dir.sort()
-
-while len(list_dir) > 10:
-    os.remove(os.path.join(LOGS_PATH, list_dir[0]))
-    list_dir.pop(0)
-
-current_time = datetime.now().strftime('%Y-%m-%d_%H-%M')
-log_file = os.path.join(LOGS_PATH, f"log_{current_time}.log")
-
-if os.path.exists(log_file):
-    print("Removing previous log")
-    os.remove(log_file)
-
 
 def ensure_dir_exists(path):
     """Ensure the directory for logs exists."""
@@ -80,10 +62,6 @@ def custom_thread_excepthook(args):
     log_uncaught_exceptions(exc_type, exc_value, exc_traceback)
 
 
-# Apply the custom handler to all new threads
-threading.excepthook = custom_thread_excepthook
-
-
 class CustomLogger(logging.Logger):
     def makeRecord(self, name, level, fn, lno, msg, args, exc_info, func=None, extra=None, sinfo=None):
         """Automatically extract the correct class name and function name."""
@@ -135,8 +113,6 @@ def getLogger(name, class_name=None):
     if logger.hasHandlers():
         return logger
 
-    ensure_dir_exists(LOGS_PATH)
-
     # Set logging level
     logger.setLevel(min(console_level, file_level))
 
@@ -169,5 +145,28 @@ def getLogger(name, class_name=None):
 
     return logger
 
+
+# Initialize Colorama for cross-platform compatibility
+init(autoreset=True)
+
+ensure_dir_exists(LOGS_PATH)
+
+list_dir = os.listdir(LOGS_PATH)
+list_dir.sort()
+
+while len(list_dir) > 10:
+    os.remove(os.path.join(LOGS_PATH, list_dir[0]))
+    list_dir.pop(0)
+
+current_time = datetime.now().strftime('%Y-%m-%d_%H-%M')
+log_file = os.path.join(LOGS_PATH, f"log_{current_time}.log")
+
+if os.path.exists(log_file):
+    print("Removing previous log")
+    os.remove(log_file)
+
+
+# Apply the custom handler to all new threads
+threading.excepthook = custom_thread_excepthook
 
 sys.excepthook = log_uncaught_exceptions

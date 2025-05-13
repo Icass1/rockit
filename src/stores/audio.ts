@@ -654,43 +654,46 @@ function addSubscribers() {
         timeSum = 0;
 
         if ("mediaSession" in navigator && value) {
-            navigator.mediaSession.metadata = new MediaMetadata({
+            const metadata = {
                 title: value.name,
                 artist: value.artists.map((artist) => artist.name).join(", "),
                 album: value.albumName,
                 artwork: [
                     {
-                        src: `/api/image/${value.image}`, // Repalce value.image for value.image
+                        src: `${location.origin}/api/image/${value.image}`, // Repalce value.image for value.image
                         sizes: "96x96",
                         type: "image/png",
                     },
                     {
-                        src: `/api/image/${value.image}`,
+                        src: `${location.origin}/api/image/${value.image}`,
                         sizes: "128x128",
                         type: "image/png",
                     },
                     {
-                        src: `/api/image/${value.image}`,
+                        src: `${location.origin}/api/image/${value.image}`,
                         sizes: "192x192",
                         type: "image/png",
                     },
                     {
-                        src: `/api/image/${value.image}`,
+                        src: `${location.origin}/api/image/${value.image}`,
                         sizes: "256x256",
                         type: "image/png",
                     },
                     {
-                        src: `/api/image/${value.image}`,
+                        src: `${location.origin}/api/image/${value.image}`,
                         sizes: "384x384",
                         type: "image/png",
                     },
                     {
-                        src: `/api/image/${value.image}`,
+                        src: `${location.origin}/api/image/${value.image}`,
                         sizes: "512x512",
                         type: "image/png",
                     },
                 ],
-            });
+            };
+            console.log(metadata);
+
+            navigator.mediaSession.metadata = new MediaMetadata(metadata);
         }
         if (admin.get()) console.log("inCrossFade", inCrossFade);
         if (admin.get()) console.log("audio2.paused", audio2.paused);
@@ -1590,22 +1593,6 @@ async function onEnded() {
         return;
     }
     await next(true);
-    const nextSong = currentSong.get();
-    if ("mediaSession" in navigator && nextSong) {
-        navigator.mediaSession.metadata = new MediaMetadata({
-            title: nextSong.name,
-            artist: nextSong.artists.map((artist) => artist.name).join(", "),
-            album: nextSong.albumName,
-            artwork: [
-                {
-                    src: `/api/image/${nextSong.image}`,
-                    // Asegúrate de usar la URL correcta de la imagen
-                    sizes: "96x96",
-                    type: "image/png",
-                }, // Asegúrate de definir más tamaños de imagen si es necesario
-            ],
-        });
-    }
 }
 
 function onError(event: ErrorEvent) {

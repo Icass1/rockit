@@ -3,13 +3,14 @@
 import { getImageUrl } from "@/lib/getImageUrl";
 import Link from "next/link";
 import Image from "@/components/Image";
-import { useEffect, useState, useMemo } from "react";
+import { useMemo } from "react";
 import { PlaylistDB } from "@/lib/db/playlist";
 import { AlbumDB } from "@/lib/db/album";
 import { useStore } from "@nanostores/react";
 import { langData } from "@/stores/lang";
 import NewPlaylistButton from "@/components/Library/NewPlaylistButton";
 import useWindowSize from "@/hooks/useWindowSize";
+import useFetch from "@/hooks/useFetch";
 
 export function LibraryLists({
     filterMode,
@@ -18,24 +19,20 @@ export function LibraryLists({
     filterMode: "default" | "asc" | "desc";
     searchQuery: string;
 }) {
-    const [playlists, setPlaylists] = useState<PlaylistDB[]>([]);
-    const [albums, setAlbums] = useState<AlbumDB[]>([]);
-
     const { width } = useWindowSize();
     const $lang = useStore(langData);
 
-    useEffect(() => {
-        fetch("/api/library/lists").then((response) => {
-            if (response.ok) {
-                response.json().then((data) => {
-                    setPlaylists(data.playlists);
-                    setAlbums(data.albums);
-                });
-            }
-        });
-    }, []);
+    const data = useFetch<{
+        playlists: PlaylistDB[];
+        albums: AlbumDB[];
+    }>("/api/library/lists");
+
+    const playlists = data?.playlists;
+    const albums = data?.albums;
 
     const filteredPlaylists = useMemo(() => {
+        if (!playlists) return;
+
         let result = playlists.filter((pl) =>
             pl.name.toLowerCase().includes(searchQuery.toLowerCase())
         );
@@ -50,6 +47,8 @@ export function LibraryLists({
     }, [playlists, filterMode, searchQuery]);
 
     const filteredAlbums = useMemo(() => {
+        if (!albums) return;
+
         let result = albums.filter((al) => {
             const matchesName = al.name
                 .toLowerCase()
@@ -69,7 +68,7 @@ export function LibraryLists({
         return result;
     }, [albums, filterMode, searchQuery]);
 
-    if (!width || !$lang) return null;
+    if (!width || !$lang || !filteredPlaylists || !filteredAlbums) return null;
 
     return (
         <section>

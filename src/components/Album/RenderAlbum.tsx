@@ -24,7 +24,7 @@ export default function RenderAlbum({ _album }: { _album: GetAlbum }) {
     if (!$lang) return false;
 
     const inDatabase =
-        typeof songs.find((song) => typeof song.path == "undefined") !=
+        typeof songs.find((song) => typeof song.path == "undefined") ==
         "undefined";
 
     return (

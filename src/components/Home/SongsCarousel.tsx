@@ -10,6 +10,7 @@ import { getImageUrl } from "@/lib/getImageUrl";
 import { songHandleClick } from "@/components/ListSongs/HandleClick";
 import { currentList } from "@/stores/currentList";
 import Image from "@/components/Image";
+import useFetch from "@/hooks/useFetch";
 
 function Song({
     index,
@@ -177,27 +178,9 @@ function Version2({
 }
 
 function SongsCarousel() {
-    const [songs, setSongs] = useState<SongForStats[]>([]);
-
-    useEffect(() => {
-        fetch(
-            `/api/stats?type=songs&limit=20&sortBy=random&noRepeat=true`
-        ).then((response) => {
-            if (!response.ok) {
-                response.text().then((text) => {
-                    console.warn("Error response:", text);
-                });
-                return;
-            }
-            response
-                .json()
-                .then((data) => setSongs(data))
-                .catch((error) => {
-                    console.warn("Error fetching songs:", error);
-                    setSongs([]);
-                });
-        });
-    }, []);
+    const songs = useFetch<SongForStats[]>(
+        "/api/stats?type=songs&limit=20&sortBy=random&noRepeat=true"
+    );
 
     const [currentIndex, setCurrentIndex] = useState(0);
     const divRef = useRef<HTMLDivElement>(null);
@@ -207,13 +190,15 @@ function SongsCarousel() {
     const pauseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const startAutoRotate = useCallback(() => {
+        if (!songs) return;
+
         stopAutoRotate();
         autoRotateRef.current = setInterval(() => {
             setCurrentIndex((value) =>
                 value < songs.length - 1 ? value + 1 : 0
             );
         }, 3000);
-    }, [songs.length]);
+    }, [songs]);
 
     const pauseAndResetAutoRotate = useCallback(() => {
         stopAutoRotate();
@@ -228,14 +213,16 @@ function SongsCarousel() {
     }, [startAutoRotate]);
 
     const nextSlide = useCallback(() => {
+        if (!songs) return;
         setCurrentIndex((value) => (value < songs.length - 1 ? value + 1 : 0));
         pauseAndResetAutoRotate();
-    }, [pauseAndResetAutoRotate, songs.length]);
+    }, [pauseAndResetAutoRotate, songs]);
 
     const prevSlide = useCallback(() => {
+        if (!songs) return;
         setCurrentIndex((value) => (value > 0 ? value - 1 : songs.length - 1));
         pauseAndResetAutoRotate();
-    }, [pauseAndResetAutoRotate, songs.length]);
+    }, [pauseAndResetAutoRotate, songs]);
 
     const handleSwipe = useCallback(() => {
         if (!touchStartX.current || !touchEndX.current) return;
@@ -287,7 +274,7 @@ function SongsCarousel() {
             div.removeEventListener("touchmove", handleTouchMove);
             div.removeEventListener("touchend", handleTouchEnd);
         };
-    }, [songs.length, handleSwipe]);
+    }, [songs, handleSwipe]);
 
     // Inicia el auto-rotar al montar el componente
     useEffect(() => {
@@ -297,6 +284,8 @@ function SongsCarousel() {
             if (pauseTimeoutRef.current) clearTimeout(pauseTimeoutRef.current);
         };
     }, [startAutoRotate]);
+
+    if (!songs) return;
 
     return (
         <div

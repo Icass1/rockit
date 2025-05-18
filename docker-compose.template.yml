@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  flask-backend:
+  fastapi-backend:
     container_name: "RockIt Backend"
     build:
       context: .
@@ -9,46 +9,56 @@ services:
     # ports:
       # - "<Port to access RockIt backend routes (optional)>:8000"
     networks:
-      - app-network
+      - rockit
+    restart: unless-stopped
     environment:
       ENVIRONMENT: "PROD"
       CLIENT_ID: "<CLIENT_ID for Spotify API>"
       CLIENT_SECRET: "<CLIENT_SECRET for Spotify API>"
-      FRONTEND_URL: "http://astro-frontend:3000"
       DOWNLOAD_THREADS: "2"
       SONGS_PATH: "/songs"
       TEMP_PATH: "/temp"
       LOGS_PATH: "/logs"
       LOG_DUMP_LEVEL: "info" # debug/info/warning/error/critical
       IMAGES_PATH: "/images"
-      API_KEY: "<key to communicate between frontend and backend>"
     volumes:
       - <path to songs dir>:/songs
       - <path to temp dir>:/temp
       - <path to logs dir>:/logs
       - <path to images dir>:/images
+      - <path to images dir>:/database
+      
   nextjs-frontend:
     container_name: "RockIt Frontend"
     build:
       context: .
     ports:
       - "<Port to access RockIt>:3000"
+    restart: unless-stopped
     networks:
       - app-network
-    restart: unless-stopped
-    environment:
-      ENVIRONMENT: "PROD"
-      BACKEND_URL: "http://flask-backend:8000"
-      SONGS_PATH: "/app/songs"
-      IMAGES_PATH: "/app/images"
-      INSECURE_DB_MODE: "true"
-      API_KEY: "<key to communicate between frontend and backend>"
-      NEXTAUTH_URL: "http://localhost:3000"
-      NEXTAUTH_SECRET: "password"
+    env_file:
+      - .env.production
     volumes:
       - <path to database dir>:/app/database
       - <path to songs dir>:/app/songs
       - <path to images dir>:/app/images
+
+  websocket-server:
+    container_name: "RockItWebSocket"
+    build:
+      context: .
+      dockerfile: Dockerfile.websocket
+
+    ports:
+      - "<Port to access WebSocket>:3001"
+    restart: unless-stopped
+    networks:
+      - rockit
+    env_file:
+      - .env.production
+    volumes:
+      - <path to database dir>:/app/database
 
 networks:
   app-network:

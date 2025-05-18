@@ -21,7 +21,5 @@ RUN pip install -r backend/requirements.txt
 
 # USER 1000:1000
 
-WORKDIR /backend
-
-CMD ["gunicorn", "-k", "eventlet", "-w", "1", "-b", "0.0.0.0:8000", "main:app"]
+CMD ["fastapi", "run", "backend/main.py"]
 

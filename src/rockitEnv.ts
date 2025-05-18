@@ -9,7 +9,6 @@ const REQUIRED_ENV_VARS = [
     // "LOGS_PATH",
     "IMAGES_PATH",
     "INSECURE_DB_MODE",
-    "API_KEY",
     "NEXTAUTH_URL",
     "NEXTAUTH_SECRET",
 ] as const;

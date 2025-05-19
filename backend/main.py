@@ -183,6 +183,16 @@ def get_playlist(request: Request, playlist_id):
 
     return playlist._json
 
+@app.get(path='/artist/{artist_id}')
+def get_artist(request: Request, artist_id):
+
+    artist = downloader.spotify.get_artist(artist_id)
+
+    if not artist:
+        return Response("Album not found", status_code=404)
+
+    return artist._json
+
 
 @app.on_event('startup')
 async def app_startup():

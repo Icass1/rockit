@@ -104,7 +104,7 @@ export default function PlaylistSong({
                             width: 40,
                             height: 40,
                             fallback: _song?.images?.[0]?.url,
-                            placeHolder: "/song-placeholder.png",
+                            placeHolder: "/api/image/song-placeholder.png",
                         })}
                         className="absolute top-0 right-0 bottom-0 left-0 rounded"
                     />

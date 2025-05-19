@@ -232,7 +232,7 @@ export default function MobilePlayerUI() {
                 style={{
                     backgroundImage: `url(${getImageUrl({
                         imageId: $currentSong?.image,
-                        placeHolder: "/song-placeholder.png",
+                        placeHolder: "/api/image/song-placeholder.png",
                         height: 100,
                         width: 100,
                     })})`,
@@ -262,7 +262,7 @@ export default function MobilePlayerUI() {
                 <Image
                     src={getImageUrl({
                         imageId: $currentSong?.image,
-                        placeHolder: "/song-placeholder.png",
+                        placeHolder: "/api/image/song-placeholder.png",
                         height: 350,
                         width: 350,
                     })}

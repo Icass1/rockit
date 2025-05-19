@@ -62,7 +62,7 @@ export default function Search() {
                                                 className="aspect-square w-full rounded-lg object-cover"
                                                 src={
                                                     song.album.images[0]?.url ||
-                                                    "/song-placeholder.png"
+                                                    "/api/image/song-placeholder.png"
                                                 }
                                                 alt="Song Cover"
                                             />
@@ -122,7 +122,7 @@ export default function Search() {
                                                 className="aspect-square w-full rounded-lg object-cover"
                                                 src={
                                                     album.images[0]?.url ||
-                                                    "/song-placeholder.png"
+                                                    "/api/image/song-placeholder.png"
                                                 }
                                                 alt="Song Cover"
                                             />
@@ -217,7 +217,7 @@ export default function Search() {
                                                         (playlist.images[0] &&
                                                             playlist.images[0]
                                                                 ?.url) ||
-                                                        "/song-placeholder.png"
+                                                        "/api/image/song-placeholder.png"
                                                     }
                                                     alt="Song Cover"
                                                 />

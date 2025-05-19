@@ -99,7 +99,7 @@ function Song({
                         imageId: song.image,
                         width: 300,
                         height: 300,
-                        fallback: "/song-placeholder.png",
+                        fallback: "/api/image/song-placeholder.png",
                     })}
                     className={`${transition} relative top-1/2 aspect-square h-auto w-full -translate-y-1/2`}
                     style={{ filter: `brightness(${brightness})` }}

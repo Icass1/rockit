@@ -12,8 +12,10 @@ export async function GET(
 ) {
     const { id } = await params;
 
+
     // Match base ID and dimensions
-    const match = id.match(/^([a-zA-Z0-9]+)(?:_(\d+)x(\d+))?$/);
+    const match = id.match(/^([a-zA-Z0-9.-]+)(?:[_-](\d+)[x_](\d+))?$/);
+
     if (!match) {
         return new NextResponse("Invalid image ID format", { status: 400 });
     }
@@ -21,6 +23,66 @@ export async function GET(
     const baseId = match[1];
     const width = match[2] ? parseInt(match[2]) : null;
     const height = match[3] ? parseInt(match[3]) : null;
+
+    if (baseId.endsWith(".png")) {
+        // Get the image from public folder
+        const imagePath = path.join("public/", baseId);
+        try {
+            const imageExists = fs.existsSync(imagePath);
+            if (!imageExists) {
+                return new NextResponse("Image file not found", {
+                    status: 404,
+                });
+            }
+
+            const image = fs.createReadStream(imagePath);
+            const contentType = "image/png"; // optionally detect based on imageDB.path extension
+
+            const readableStream = new ReadableStream({
+                start(controller) {
+                    image.on(
+                        "data",
+                        (chunk: Buffer<ArrayBufferLike> | string) => {
+                            try {
+                                controller.enqueue(chunk);
+                            } catch {
+                                image.destroy();
+                            }
+                        }
+                    );
+
+                    image.on("end", () => {
+                        controller.close();
+                    });
+
+                    image.on("error", (err: object) => {
+                        controller.error(err);
+                    });
+                },
+                cancel() {
+                    image.destroy();
+                },
+            });
+
+            return new NextResponse(readableStream, {
+                headers: {
+                    "Content-Type": contentType,
+                    "Content-Disposition": "inline",
+                    // No "Content-Length" because resized content may differ
+                    "Cache-Control": "public, max-age=2592000, immutable",
+                },
+            });
+        } catch (error) {
+            return new NextResponse(
+                `Error processing image: ${error?.toString()}`,
+                {
+                    status: 500,
+                }
+            );
+        }
+    }
+
+
 
     const imageDB = db
         .prepare("SELECT * FROM image WHERE id = ?")

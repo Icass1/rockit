@@ -54,7 +54,7 @@ export default function QuickSelectionsSong({
                     imageId: song.image,
                     height: 100,
                     width: 100,
-                    placeHolder: "/song-placeholder.png",
+                    placeHolder: "/api/image/song-placeholder.png",
                 })}
                 alt={`Song Cover for ${song.name}`}
             />

@@ -327,7 +327,7 @@ export default async function SongPage({
                                 <Image
                                     src={
                                         t.album.images[0]?.url ||
-                                        "/song-placeholder.png"
+                                        "/api/image/song-placeholder.png"
                                     }
                                     alt="Song Cover"
                                     className="aspect-square w-full rounded-lg object-cover"

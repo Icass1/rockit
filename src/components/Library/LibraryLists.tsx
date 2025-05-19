@@ -100,7 +100,7 @@ export function LibraryLists({
                                 height: 300,
                                 width: 300,
                                 fallback: playlist.images?.[0]?.url,
-                                placeHolder: "/rockit-background.png",
+                                placeHolder: "/api/image/rockit-background.png",
                             })}
                         />
                         <label className="min-h-6 truncate text-center font-semibold">
@@ -126,7 +126,7 @@ export function LibraryLists({
                                 height: 300,
                                 width: 300,
                                 fallback: album.images[0]?.url,
-                                placeHolder: "/song-placeholder.png",
+                                placeHolder: "/api/image/song-placeholder.png",
                             })}
                         />
                         <label className="mt-1 truncate text-center font-semibold">

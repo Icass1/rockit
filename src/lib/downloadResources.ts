@@ -100,8 +100,6 @@ export async function downloadResources({
     downloadFile("/settings", database);
     downloadFile("/stats", database);
 
-    downloadFile("/song-placeholder.png", database, setResources);
-    downloadFile("/rockit-background.png", database, setResources);
     downloadFile("/logo-banner.png", database, setResources);
     downloadFile("/user-placeholder.png", database, setResources);
 

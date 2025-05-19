@@ -189,7 +189,8 @@ export default function Navigation() {
                                         imageId: list.image,
                                         width: 32,
                                         height: 32,
-                                        placeHolder: "/song-placeholder.png",
+                                        placeHolder:
+                                            "/api/image/song-placeholder.png",
                                     })}
                                 />
                                 <label className="cursor-pointer truncate text-sm font-semibold">

@@ -252,7 +252,7 @@ export default function PlayerUI() {
                         imageId: $currentSong?.image,
                         width: 200,
                         height: 200,
-                        placeHolder: "/song-placeholder.png",
+                        placeHolder: "/api/image/song-placeholder.png",
                     })}
                     className="absolute top-1/2 h-auto w-full -translate-y-1/2 blur-md brightness-50 select-none"
                 />
@@ -280,7 +280,7 @@ export default function PlayerUI() {
                         <Image
                             src={getImageUrl({
                                 imageId: $currentSong?.image,
-                                placeHolder: "/song-placeholder.png",
+                                placeHolder: "/api/image/song-placeholder.png",
                             })}
                             alt="Song Cover"
                             className="absolute h-full w-full rounded-xl select-none"
@@ -552,7 +552,7 @@ export default function PlayerUI() {
                                                         name: mock.artist,
                                                     },
                                                 ],
-                                                image: "/song-placeholder.png",
+                                                image: "song-placeholder.png",
                                                 duration: 0,
                                                 albumId: "",
                                             },
@@ -668,7 +668,7 @@ export default function PlayerUI() {
                                                         {/* Imagen de la canción */}
                                                         <Image
                                                             className="h-12 w-12 rounded-sm object-cover"
-                                                            src="/song-placeholder.png"
+                                                            src="/api/image/song-placeholder.png"
                                                             alt={`Song ${
                                                                 columnIndex *
                                                                     songsPerColumn +

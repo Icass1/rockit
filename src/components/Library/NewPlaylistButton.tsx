@@ -27,7 +27,7 @@ export default function NewPlaylistButton() {
                     <Image
                         alt=""
                         className="cover absolute top-0 left-0 aspect-square h-auto w-full rounded-md"
-                        src="/rockit-background.png"
+                        src="/api/image/rockit-background.png"
                     />
                     <Plus className="cover absolute top-0 left-0 aspect-square h-auto w-full rounded-md p-6" />
                 </div>

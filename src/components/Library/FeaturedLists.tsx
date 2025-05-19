@@ -6,8 +6,8 @@ import { lang, langData } from "@/stores/lang";
 import { useStore } from "@nanostores/react";
 import { Disc3, Heart, History } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import Image from "@/components/Image";
+import useFetch from "@/hooks/useFetch";
 
 export function FeaturedLists({
     filterMode,
@@ -17,15 +17,11 @@ export function FeaturedLists({
     searchQuery: string;
 }) {
     const $lang = useStore(langData);
-    const [data, setData] = useState<Stats["albums"]>([]);
+    const data = useFetch<Stats["albums"]>(
+        "/api/stats?type=albums&sortBy=timesPlayed"
+    );
 
-    useEffect(() => {
-        fetch("/api/stats?type=albums&sortBy=timesPlayed")
-            .then((res) => res.ok && res.json())
-            .then((albums) => setData(albums));
-    }, []);
-
-    if (!$lang) return false;
+    if (!$lang || !data) return false;
 
     // Filtrar por búsqueda (por nombre de álbum o artista)
     let filtered = data.filter((album) => {
@@ -81,7 +77,8 @@ export function FeaturedLists({
                     <div
                         className="relative aspect-square w-full rounded-lg object-cover"
                         style={{
-                            backgroundImage: "url(/rockit-background.png)",
+                            backgroundImage:
+                                "url(/api/image/rockit-background.png)",
                             backgroundSize: "cover",
                         }}
                     >
@@ -105,7 +102,8 @@ export function FeaturedLists({
                     <div
                         className="relative aspect-square w-full rounded-lg object-cover"
                         style={{
-                            backgroundImage: "url(/rockit-background.png)",
+                            backgroundImage:
+                                "url(/api/image/rockit-background.png)",
                             backgroundSize: "cover",
                         }}
                     >
@@ -126,7 +124,8 @@ export function FeaturedLists({
                     <div
                         className="relative aspect-square w-full rounded-lg object-cover"
                         style={{
-                            backgroundImage: "url(/rockit-background.png)",
+                            backgroundImage:
+                                "url(/api/image/rockit-background.png)",
                             backgroundSize: "cover",
                         }}
                     >
@@ -176,7 +175,7 @@ export function FeaturedLists({
                                 imageId: album.image,
                                 height: 300,
                                 width: 300,
-                                placeHolder: "/song-placeholder.png",
+                                placeHolder: "/api/image/song-placeholder.png",
                             })}
                             alt={album.name}
                         />

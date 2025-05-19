@@ -35,7 +35,7 @@ export default function FooterMobile() {
                             imageId: $currentSong?.image,
                             width: 42,
                             height: 42,
-                            placeHolder: "/song-placeholder.png",
+                            placeHolder: "/api/image/song-placeholder.png",
                         })}
                         alt="Album Cover"
                         className="h-full w-full rounded-md p-1"

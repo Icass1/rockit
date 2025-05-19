@@ -41,7 +41,7 @@ function FooterLeftForSong({ currentSong }: { currentSong: CurrentSong }) {
                         imageId: currentSong?.image,
                         width: 64,
                         height: 64,
-                        placeHolder: "/song-placeholder.png",
+                        placeHolder: "/api/image/song-placeholder.png",
                     })}
                     alt="Album Cover"
                     className="h-9 w-9 rounded-md object-cover transition duration-300 select-none group-hover:brightness-50 md:h-16 md:w-16"
@@ -137,7 +137,10 @@ function FooterLeftForStation({ currentStation }: { currentStation: Station }) {
                 <Image
                     width={64}
                     height={64}
-                    src={currentStation.favicon || "/song-placeholder.png"}
+                    src={
+                        currentStation.favicon ||
+                        "/api/image/song-placeholder.png"
+                    }
                     alt="Album Cover"
                     className="absolute h-full w-full select-none"
                 />

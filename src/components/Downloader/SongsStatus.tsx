@@ -49,7 +49,7 @@ function SongDownload({
                             imageId: song?.image,
                             width: 40,
                             height: 40,
-                            placeHolder: "/song-placeholder.png",
+                            placeHolder: "/api/image/song-placeholder.png",
                         })}
                         className="h-full w-full"
                     />

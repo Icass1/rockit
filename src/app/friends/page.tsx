@@ -77,7 +77,7 @@ export default function FriendsPage() {
                             >
                                 <div className="relative h-24 w-24 hover:cursor-pointer">
                                     <Image
-                                        src="/song-placeholder.png"
+                                        src="/api/image/song-placeholder.png"
                                         alt="Imagen"
                                         className="h-full w-full rounded-md object-cover transition-opacity group-hover:opacity-40"
                                     />

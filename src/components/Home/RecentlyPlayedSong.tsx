@@ -54,7 +54,7 @@ export default function RecentlyPlayedSong({
                     imageId: song.image,
                     height: 400,
                     width: 400,
-                    placeHolder: "/song-placeholder.png",
+                    placeHolder: "/api/image/song-placeholder.png",
                 })}
                 alt="Song Cover"
             />

@@ -87,7 +87,7 @@ function ListSubContextMenu({
                     className="h-6 w-6"
                     src={getImageUrl({
                         imageId: list?.image,
-                        placeHolder: "/rockit-background.png",
+                        placeHolder: "/api/image/rockit-background.png",
                         width: 24,
                         height: 24,
                     })}

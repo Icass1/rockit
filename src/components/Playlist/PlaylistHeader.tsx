@@ -88,7 +88,8 @@ export default function PlaylistHeader({
                     <div
                         className="relative h-full w-full rounded-md object-cover"
                         style={{
-                            backgroundImage: "url(/rockit-background.png)",
+                            backgroundImage:
+                                "url(/api/image/rockit-background.png)",
                             backgroundSize: "cover",
                         }}
                     >
@@ -104,7 +105,7 @@ export default function PlaylistHeader({
                                 imageId: playlist.image,
                                 fallback:
                                     playlist?.images?.[0]?.url ??
-                                    "/rockit-background.png",
+                                    "/api/image/rockit-background.png",
                                 height: 370,
                                 width: 370,
                             })}

@@ -59,13 +59,13 @@ export default function QuickSelectionsSong({
                 alt={`Song Cover for ${song.name}`}
             />
             {/* Información de la canción */}
-            <div className="flex min-w-0 flex-col justify-center">
+            <div className="flex w-full max-w-full min-w-0 flex-col justify-center">
                 {/* Nombre de la canción */}
-                <span className="text-md truncate font-semibold text-white">
+                <span className="text-md w-full max-w-full min-w-0 truncate font-semibold text-white">
                     {song.name}
                 </span>
                 {/* Artista y álbum */}
-                <span className="flex-0 shrink-0 truncate text-sm text-gray-400 md:max-w-[50%]">
+                <span className="w-full max-w-full min-w-0 truncate text-sm text-gray-400">
                     {song.artists[0].name}
                     {" • "} {song.albumName}
                 </span>

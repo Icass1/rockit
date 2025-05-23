@@ -101,6 +101,7 @@ function ListSubContextMenu({
 export default function SongContextMenu({
     children,
     song,
+    onPlay,
 }: {
     children: ReactNode;
     song: SongDB<
@@ -113,6 +114,7 @@ export default function SongContextMenu({
         | "image"
         | "path"
     >;
+    onPlay?: () => void;
 }) {
     const $likedSongs = useStore(likedSongs);
     const $currentListSongs = useStore(currentListSongs);
@@ -144,9 +146,15 @@ export default function SongContextMenu({
                 }
             >
                 <ContextMenuOption
-                    onClick={() => songHandleClick(song, $currentListSongs)}
+                    onClick={() => {
+                        if (onPlay) {
+                            onPlay();
+                        } else {
+                            songHandleClick(song, $currentListSongs);
+                        }
+                    }}
                 >
-                    <PlayCircle className="h-5 w-5" />
+                    <PlayCircle className="h-5 w-5 bg-red-400" />
                     {$lang.play_song}
                 </ContextMenuOption>
                 <ContextMenuOption

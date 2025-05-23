@@ -19,8 +19,6 @@ import React from "react";
 import Image from "@/components/Image";
 
 export function QueueSong({ song }: { song: QueueElement }) {
-    console.log(song);
-
     const $queueIndex = useStore(queueIndex);
 
     const $playing = useStore(playing);

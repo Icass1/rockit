@@ -41,7 +41,9 @@ export function songHandleClick(
         console.warn("Current list is undefined");
         return;
     }
+
     if (_currentList.type == undefined || _currentList.id == undefined) {
+        console.warn("Current list type or id is undefined");
         return;
     }
 

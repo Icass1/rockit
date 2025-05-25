@@ -1,6 +1,7 @@
 import { getSession } from "@/lib/auth/getSession";
-import { getStats, Stats } from "@/lib/stats";
-import { NextResponse } from "next/server";
+import { statsQueue } from "@/lib/jobs/queue";
+import { Stats } from "@/lib/stats";
+import { NextRequest, NextResponse } from "next/server";
 
 export interface ApiStats {
     albums: Stats["albums"];
@@ -8,7 +9,7 @@ export interface ApiStats {
     songs: Stats["songs"];
 }
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
     const session = await getSession();
 
     if (!session?.user) {
@@ -18,6 +19,26 @@ export async function GET(request: Request) {
         );
     }
 
+    const jobId = request.nextUrl.searchParams.get("jobId");
+    if (jobId) {
+        const job = await statsQueue.getJob(jobId);
+        if (!job)
+            return NextResponse.json(
+                { error: "Job not found" },
+                { status: 404 }
+            );
+
+        const state = await job.getState();
+        if (state === "failed") {
+            const reason = job.failedReason || "Unknown error";
+            return NextResponse.json({ state, error: reason }, { status: 500 });
+        } else if (state === "completed") {
+            return NextResponse.json({ state, result: job.returnvalue });
+        }
+
+        return NextResponse.json({ state });
+    }
+
     const url = new URL(request.url);
 
     const startString: string | undefined =
@@ -25,137 +46,14 @@ export async function GET(request: Request) {
     const endString: string | undefined =
         url.searchParams.get("end") ?? undefined;
 
-    const start = startString ? new Date(startString).getTime() : undefined;
-    const end = endString ? new Date(endString).getTime() : undefined;
+    console.log("request.url", request.url);
 
-    let limit: string | number | undefined =
-        url.searchParams.get("limit") ?? "10";
-
-    const sortBy:
-        | "timePlayed"
-        | "timesPlayed"
-        | "random"
-        | "neverPlayed"
-        | "popular"
-        | undefined =
-        (url.searchParams.get("sortBy") as
-            | "timePlayed"
-            | "timesPlayed"
-            | "random"
-            | "neverPlayed"
-            | "popular"
-            | undefined) ?? undefined;
-
-    if (
-        sortBy &&
-        ![
-            "timesPlayed",
-            "timePlayed",
-            "random",
-            "neverPlayed",
-            "popular",
-        ].includes(sortBy)
-    ) {
-        return NextResponse.json(
-            { error: "Invalid sortBy parameter" },
-            { status: 400 }
-        );
-    }
-
-    const type: "songs" | "artists" | "albums" | undefined =
-        url.searchParams.get("type") as
-            | "songs"
-            | "artists"
-            | "albums"
-            | undefined;
-
-    if (type && !["songs", "artists", "albums"].includes(type)) {
-        return NextResponse.json(
-            { error: "Invalid type parameter" },
-            { status: 400 }
-        );
-    }
-
-    if (type == "albums" && sortBy == "timePlayed") {
-        return NextResponse.json(
-            { error: "Invalid type parameter" },
-            { status: 400 }
-        );
-    }
-
-    const noRepeat: boolean | undefined =
-        url.searchParams.get("noRepeat") === "true" ? true : undefined;
-
-    const stats = (await getStats(session?.user.id, start, end))
-        .stats as ApiStats;
-
-    stats.songs.map((song) => {
-        const result = stats.songs.find((findSong) => findSong.id == song.id);
-        if (result?.timesPlayed) {
-            result.timesPlayed += 1;
-        } else if (result) {
-            result.timesPlayed = 1;
-        }
+    const job = await statsQueue.add("generateStats", {
+        userId: session.user.id,
+        startString,
+        endString,
+        url: request.url,
     });
 
-    stats.songs.sort((a, b) => {
-        if (sortBy === "timePlayed") {
-            return (
-                new Date(b.timePlayed).getTime() -
-                new Date(a.timePlayed).getTime()
-            );
-        } else if (sortBy === "random") {
-            return Math.random() - 0.5;
-        } else if (sortBy === "timesPlayed") {
-            if (a.timesPlayed === undefined) {
-                a.timesPlayed = 0;
-            }
-            if (b.timesPlayed === undefined) {
-                b.timesPlayed = 0;
-            }
-            return b.timesPlayed - a.timesPlayed;
-        } else if (sortBy === "neverPlayed") {
-            return (a.timesPlayed ?? 0) - (b.timesPlayed ?? 0);
-        } else if (sortBy === "popular") {
-            return (b.timesPlayed ?? 0) - (a.timesPlayed ?? 0);
-        }
-        return 0;
-    });
-
-    stats.albums.sort((a, b) => {
-        if (sortBy === "random") {
-            return Math.random() - 0.5;
-        } else if (sortBy === "timesPlayed") {
-            return a.index - b.index;
-        }
-        return 0;
-    });
-
-    stats.artists.sort((a, b) => {
-        if (sortBy === "random") {
-            return Math.random() - 0.5;
-        } else if (sortBy === "timesPlayed") {
-            return a.index - b.index;
-        }
-        return 0;
-    });
-
-    if (noRepeat || sortBy === "timesPlayed") {
-        stats.songs = [
-            ...new Map(stats.songs.map((song) => [song.id, song])).values(),
-        ];
-    }
-
-    if (limit == "0") limit = undefined;
-    else limit = Number(limit);
-
-    if (type) {
-        return NextResponse.json(stats[type].slice(0, limit));
-    }
-
-    return NextResponse.json({
-        artists: stats.artists.slice(0, limit),
-        albums: stats.albums.slice(0, limit),
-        songs: stats.songs.slice(0, limit),
-    });
+    return NextResponse.json({ jobId: job.id, state: "queued" });
 }

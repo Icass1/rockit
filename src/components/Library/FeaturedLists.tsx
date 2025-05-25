@@ -18,7 +18,8 @@ export function FeaturedLists({
 }) {
     const $lang = useStore(langData);
     const data = useFetch<Stats["albums"]>(
-        "/api/stats?type=albums&sortBy=timesPlayed"
+        "/api/stats?type=albums&sortBy=timesPlayed",
+        { redis: true }
     );
 
     if (!$lang || !data) return false;

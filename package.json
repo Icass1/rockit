@@ -2,11 +2,13 @@
     "name": "rockit-nextjs",
     "version": "0.1.0",
     "private": true,
+    "type": "module",
     "scripts": {
         "dev": "next dev",
         "build": "next build",
         "start": "next start",
-        "lint": "next lint"
+        "lint": "next lint",
+        "worker": "ts-node src/worker.js"
     },
     "dependencies": {
         "@nanostores/react": "^0.8.4",
@@ -15,7 +17,9 @@
         "@types/lodash": "^4.17.16",
         "argon2": "^0.41.1",
         "better-sqlite3": "^11.9.1",
+        "bullmq": "^5.53.0",
         "hls.js": "^1.6.0",
+        "ioredis": "^5.6.1",
         "lodash": "^4.17.21",
         "lucide-react": "^0.487.0",
         "nanostores": "^0.11.4",
@@ -24,6 +28,7 @@
         "react": "^19.0.0",
         "react-dom": "^19.0.0",
         "sharp": "^0.34.0",
+        "ts-node": "^10.9.2",
         "undici": "^7.7.0",
         "ws": "^8.18.1"
     },
@@ -38,13 +43,16 @@
         "prettier": "^3.5.3",
         "prettier-plugin-tailwindcss": "^0.6.11",
         "tailwindcss": "^4",
+        "tsx": "^4.19.4",
         "typescript": "^5"
     },
     "pnpm": {
         "onlyBuiltDependencies": [
+            "argon2",
             "better-sqlite3",
-            "sharp",
-            "argon2"
+            "esbuild",
+            "msgpackr-extract",
+            "sharp"
         ]
     }
 }

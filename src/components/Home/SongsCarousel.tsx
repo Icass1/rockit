@@ -179,7 +179,8 @@ function Version2({
 
 function SongsCarousel() {
     const songs = useFetch<SongForStats[]>(
-        "/api/stats?type=songs&limit=20&sortBy=random&noRepeat=true"
+        "/api/stats?type=songs&limit=20&sortBy=random&noRepeat=true",
+        { redis: true, json: true }
     );
 
     const [currentIndex, setCurrentIndex] = useState(0);

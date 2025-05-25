@@ -74,14 +74,16 @@ new Worker(
             userId: string;
             startString: string;
             endString: string;
-            url: URL;
+            url: string;
         } = job.data;
+
+        const parametersUrl = new URL(url, "http://localhost");
 
         const start = startString ? new Date(startString).getTime() : undefined;
         const end = endString ? new Date(endString).getTime() : undefined;
 
         let limit: string | number | undefined =
-            url.searchParams?.get("limit") ?? "10";
+            parametersUrl.searchParams?.get("limit") ?? "10";
 
         const sortBy:
             | "timePlayed"
@@ -90,7 +92,7 @@ new Worker(
             | "neverPlayed"
             | "popular"
             | undefined =
-            (url.searchParams?.get("sortBy") as
+            (parametersUrl.searchParams?.get("sortBy") as
                 | "timePlayed"
                 | "timesPlayed"
                 | "random"
@@ -112,7 +114,7 @@ new Worker(
         }
 
         const type: "songs" | "artists" | "albums" | undefined =
-            url.searchParams?.get("type") as
+            parametersUrl.searchParams?.get("type") as
                 | "songs"
                 | "artists"
                 | "albums"
@@ -127,7 +129,7 @@ new Worker(
         }
 
         const noRepeat: boolean | undefined =
-            url.searchParams?.get("noRepeat") === "true" ? true : undefined;
+            parametersUrl.searchParams?.get("noRepeat") === "true" ? true : undefined;
 
         const stats = (await getStats(userId, start, end)).stats as ApiStats;
 

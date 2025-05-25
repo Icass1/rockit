@@ -23,7 +23,14 @@ export default function useFetch<T>(
             query.onsuccess = function () {
                 if (query?.result?.data) {
                     console.log("Data from indexeddb", url);
-                    setData(query.result.data);
+                    if (query.result.data.jobId) {
+                        console.warn(
+                            "This should not happen, jobId found in indexeddb",
+                            query.result.data
+                        );
+                    } else {
+                        setData(query.result.data);
+                    }
                 }
             };
         }

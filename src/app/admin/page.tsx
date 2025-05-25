@@ -47,7 +47,9 @@ export default async function AdminPage() {
         | undefined = undefined;
 
     try {
-        const response = await fetch(ENV.BACKEND_URL + "/status");
+        const response = await fetch(ENV.BACKEND_URL + "/status", {
+            signal: AbortSignal.timeout(5000),
+        });
         downloaderStatus = await response.json();
     } catch {}
 

@@ -8,6 +8,7 @@ import { Disc3, Heart, History } from "lucide-react";
 import Link from "next/link";
 import Image from "@/components/Image";
 import useFetch from "@/hooks/useFetch";
+import { useRef } from "react";
 
 export function FeaturedLists({
     filterMode,
@@ -16,9 +17,13 @@ export function FeaturedLists({
     filterMode: "default" | "asc" | "desc";
     searchQuery: string;
 }) {
+    const lastMonthDate = useRef(
+        new Date(new Date().getTime() - 30 * 24 * 60 * 60 * 1000)
+    );
+
     const $lang = useStore(langData);
     const data = useFetch<Stats["albums"]>(
-        `/api/stats?type=albums&sortBy=timesPlayed&limit=4&start=${new Date(new Date().getTime() - 30 * 24 * 60 * 60 * 1000).toUTCString()}`,
+        `/api/stats?type=albums&sortBy=timesPlayed&limit=4&start=${lastMonthDate.current}`,
         { redis: true }
     );
 

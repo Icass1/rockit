@@ -194,3 +194,39 @@ code {
         background-position: 0% 0;
     }
 }
+
+@keyframes download-u-curve-x {
+    0% {
+        left: var(--start-x);
+    }
+    /* 50% {
+        left: var(--control-x);
+    } */
+    100% {
+        left: var(--end-x);
+    }
+}
+@keyframes download-u-curve-y {
+    0% {
+        height: 5rem;
+        width: 5rem;
+        top: var(--start-y);
+    }
+    /* 50% {
+        top: var(--control-y);
+    } */
+    100% {
+        height: 2.5rem;
+        width: 2.5rem;
+        top: var(--end-y);
+    }
+}
+.download-fly-animation {
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    animation:
+        download-u-curve-x 700ms cubic-bezier(0.41, 0.38, 0.64, 0.61) forwards,
+        download-u-curve-y 700ms cubic-bezier(0.87, -0.52, 0.89, 0.59) forwards;
+    /* animation-iteration-count: infinite; */
+}

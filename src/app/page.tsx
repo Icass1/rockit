@@ -74,7 +74,7 @@ export default function Home() {
                         {$lang.songsforyou}
                     </h2>
                     <div className="flex gap-4 overflow-x-auto px-10 py-4">
-                        {nostalgicMix.map((song) => (
+                        {nostalgicMix?.map((song) => (
                             <RecentlyPlayedSong
                                 key={song.id}
                                 song={song}
@@ -148,7 +148,7 @@ export default function Home() {
                         {$lang.hiddengems}
                     </h2>
                     <div className="flex gap-4 overflow-x-auto px-10 py-4">
-                        {hiddenGems.map((song) => (
+                        {hiddenGems?.map((song) => (
                             <RecentlyPlayedSong
                                 key={song.id}
                                 song={song}
@@ -163,7 +163,7 @@ export default function Home() {
                         {$lang.communitytop}
                     </h2>
                     <div className="flex gap-4 overflow-x-auto px-10 py-4">
-                        {communityTop.map((song) => (
+                        {communityTop?.map((song) => (
                             <RecentlyPlayedSong
                                 key={song.id}
                                 song={song}
@@ -195,7 +195,7 @@ export default function Home() {
                         {$lang[previousMonthKey]} Recap
                     </h2>
                     <div className="flex gap-4 overflow-x-auto px-10 py-4">
-                        {monthlyTop.map((song) => (
+                        {monthlyTop?.map((song) => (
                             <RecentlyPlayedSong
                                 key={song.id}
                                 song={song}

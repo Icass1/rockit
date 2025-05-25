@@ -532,14 +532,18 @@ fetch(
                 queue.set([]);
             }
 
-            const song = await getSongInIndexedDB(userQuery.result.currentSong);
-            if (song) {
-                currentSong.set({
-                    ...song,
-                    path: `/api/song/audio/${song.id}`,
-                });
-            } else {
-                currentSong.set(undefined);
+            if (userQuery.result.currentSong) {
+                const song = await getSongInIndexedDB(
+                    userQuery.result.currentSong
+                );
+                if (song) {
+                    currentSong.set({
+                        ...song,
+                        path: `/api/song/audio/${song.id}`,
+                    });
+                } else {
+                    currentSong.set(undefined);
+                }
             }
 
             repeatSong.set(userQuery.result.repeatSong ?? "off");

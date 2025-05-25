@@ -94,7 +94,7 @@ export function LibraryLists({
                     >
                         <Image
                             alt={playlist.name}
-                            className="cover h-full w-full rounded-md"
+                            className="cover aspect-square h-auto w-full rounded-md"
                             src={getImageUrl({
                                 imageId: playlist.image,
                                 height: 300,
@@ -116,11 +116,11 @@ export function LibraryLists({
                     <Link
                         key={"album" + index}
                         href={`/album/${album.id}`}
-                        className="library-item flex h-fit w-fit max-w-full min-w-0 flex-col transition-transform md:hover:scale-105"
+                        className="library-item flex h-auto w-full max-w-full min-w-0 flex-col transition-transform md:hover:scale-110"
                     >
                         <Image
                             alt={album.name}
-                            className="rounded-md"
+                            className="cover aspect-square h-auto w-full rounded-md"
                             src={getImageUrl({
                                 imageId: album.image,
                                 height: 300,

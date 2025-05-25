@@ -163,7 +163,7 @@ function Version2({
 }) {
     return (
         <div className="relative h-64 w-64 md:h-full md:max-h-[300px] md:w-full">
-            {songs.map((song, index) => (
+            {songs?.map((song, index) => (
                 <Song
                     index={index}
                     currentIndex={currentIndex}

@@ -122,7 +122,7 @@ export default async function SongPage({
                 name: spotifySong.name,
                 lyrics: "",
                 path: "",
-                images: spotifySong.album.images,
+                images: spotifySong.album?.images,
                 albumName: spotifySong.album.name,
                 duration: spotifySong.duration_ms / 1000,
             };
@@ -326,7 +326,7 @@ export default async function SongPage({
                             >
                                 <Image
                                     src={
-                                        t.album.images[0]?.url ||
+                                        t.album?.images[0]?.url ||
                                         "/api/image/song-placeholder.png"
                                     }
                                     alt="Song Cover"

@@ -5,7 +5,11 @@ import { getStats } from "@/lib/stats";
 import { reduce, shuffle } from "@/lib/arrayTools";
 import { ApiStats } from "@/app/api/stats/route";
 
-const connection = new IORedis({ maxRetriesPerRequest: null });
+const connection = new IORedis({
+    host: process.env.REDIS_HOST || "localhost",
+    port: Number(process.env.REDIS_PORT) || 6379,
+    maxRetriesPerRequest: null,
+});
 
 new Worker(
     "home-stats",

@@ -1,7 +1,7 @@
 import { playListHandleClick } from "@/components/PlayList";
 import { pause, play, playing, queue, queueIndex } from "@/stores/audio";
 import { currentList } from "@/stores/currentList";
-import { downloadedLists, downloads } from "@/stores/downloads";
+import { downloadedLists, startDownload } from "@/stores/downloads";
 import { useStore } from "@nanostores/react";
 
 import { Download, Pause, Play } from "lucide-react";
@@ -56,14 +56,7 @@ export default function PlayListButton({
         <div
             onClick={() => {
                 if (!inDatabase && !$downloadedLists.includes(id)) {
-                    fetch(`/api/start-download?url=${url}`).then((response) => {
-                        response.json().then((data) => {
-                            downloads.set([
-                                data.download_id,
-                                ...downloads.get(),
-                            ]);
-                        });
-                    });
+                    startDownload(url);
                 } else if (playingList && $playing) {
                     pause();
                 } else if (playingList) {

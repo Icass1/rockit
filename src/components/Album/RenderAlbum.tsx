@@ -23,9 +23,7 @@ export default function RenderAlbum({ _album }: { _album: GetAlbum }) {
 
     if (!$lang) return false;
 
-    const inDatabase =
-        typeof songs.find((song) => typeof song.path == "undefined") ==
-        "undefined";
+    const inDatabase = typeof songs.find((song) => !song.path) == "undefined";
 
     return (
         <div className="relative flex h-full w-full flex-col overflow-y-auto px-2 md:grid md:grid-cols-[min-content_1fr] md:px-0">

@@ -62,7 +62,7 @@ wss.on("connection", async (ws, req) => {
                 messageJson = JSON.parse(message);
 
                 console.log(
-                    `Received from ${user.id}: ${JSON.stringify(messageJson)}`
+                    // `Received from ${user.id}: ${JSON.stringify(messageJson)}`
                 );
                 if (messageJson.command) {
                     console.log(
@@ -228,7 +228,7 @@ wss.on("connection", async (ws, req) => {
                     console.log("Unknow parameter from socket", messageJson);
                 }
             } catch {
-                console.log("Unable to parse socket message", message);
+                console.log("Unable to parse socket message from", user.id, message);
                 return;
             }
         });

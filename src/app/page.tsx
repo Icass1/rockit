@@ -8,10 +8,13 @@ import { langData } from "@/stores/lang";
 import { useStore } from "@nanostores/react";
 import Spinner from "@/components/Spinner";
 import useFetch from "@/hooks/useFetch";
-import { HomeStats } from "@/app/api/stats/home/route";
+import { HomeStats } from "./api/stats/home/route";
 
 export default function Home() {
-    const data = useFetch<HomeStats>("/api/stats/home");
+    const data = useFetch<HomeStats>("/api/stats/home", {
+        redis: true,
+        json: true,
+    });
 
     const $lang = useStore(langData);
 

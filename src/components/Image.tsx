@@ -26,7 +26,7 @@ export default function Image(
         if (src) {
             setLoaded(false);
 
-            fetch(src).then((res) => {
+            fetch(src, { priority: "low" }).then((res) => {
                 if (res.ok) {
                     res.blob().then((blob) => {
                         if (!isMounted) return;
@@ -37,17 +37,20 @@ export default function Image(
                 } else {
                     console.warn("Image couldn't be loaded");
                     if (props.fallback) {
-                        fetch(props.fallback).then((res) => {
-                            if (res.ok) {
-                                res.blob().then((blob) => {
-                                    if (!isMounted) return;
-                                    objectUrlRef = URL.createObjectURL(blob);
-                                    setObjectUrl(objectUrlRef);
-                                    setLoaded(true);
-                                });
-                            } else {
+                        fetch(props.fallback, { priority: "low" }).then(
+                            (res) => {
+                                if (res.ok) {
+                                    res.blob().then((blob) => {
+                                        if (!isMounted) return;
+                                        objectUrlRef =
+                                            URL.createObjectURL(blob);
+                                        setObjectUrl(objectUrlRef);
+                                        setLoaded(true);
+                                    });
+                                } else {
+                                }
                             }
-                        });
+                        );
                     }
                 }
             });

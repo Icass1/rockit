@@ -22,6 +22,7 @@ import Image from "@/components/Image";
 import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import { downloads } from "@/stores/downloads";
 
 export default function Navigation() {
     const [open, setOpen] = useState(false);
@@ -41,6 +42,8 @@ export default function Navigation() {
         }
         setOpen(false);
     };
+
+    const $downloads = useStore(downloads);
 
     const $pinnedLists = useStore(pinnedLists);
 
@@ -132,9 +135,10 @@ export default function Navigation() {
                         return (
                             <Link
                                 key={page.href}
+                                id={"navigation-" + page.name}
                                 href={page.href}
                                 title={page.title}
-                                className={`mr-2 ml-2 flex h-8 items-center gap-2 rounded-md transition-all ${
+                                className={`relative mr-2 ml-2 flex h-8 items-center gap-2 rounded-md transition-all ${
                                     activePage === page.href
                                         ? "bg-white text-black"
                                         : "text-white md:hover:bg-[#414141]"
@@ -144,7 +148,13 @@ export default function Navigation() {
                                         : ""
                                 }`}
                             >
-                                <div className="flex h-8 w-8 items-center justify-center">
+                                <div className="relative flex h-8 w-8 items-center justify-center">
+                                    {page.name == "Downloads" &&
+                                        $downloads.length > 0 && (
+                                            <label className="absolute top-0 right-0 h-4 w-4 rounded-full bg-red-400 text-center text-xs">
+                                                {$downloads.length}
+                                            </label>
+                                        )}
                                     <page.icon className="h-5 w-5" />
                                 </div>
                                 <label className="cursor-pointer font-semibold">

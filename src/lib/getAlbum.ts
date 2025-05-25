@@ -105,12 +105,12 @@ export default async function getAlbum(
 
                         return {
                             image: undefined,
-                            images: responseJson.album.images,
+                            images: responseJson.album?.images,
                             id: songID,
                             name: responseJson.name,
                             artists: responseJson.artists,
-                            albumId: responseJson.album.id,
-                            albumName: responseJson.album.name,
+                            albumId: responseJson.album?.id,
+                            albumName: responseJson.album?.name,
                             path: undefined,
                             duration: responseJson.duration_ms / 1000,
                             discNumber: responseJson.disc_number,

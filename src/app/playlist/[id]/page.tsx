@@ -235,11 +235,9 @@ export default async function PlaylistPage({
 
     const playlist = await getPlaylist(id);
 
-    let inDatabase: boolean;
+    let inDatabase: boolean = true;
 
-    if (playlist) {
-        inDatabase = true;
-    } else {
+    if (!playlist) {
         return new NextResponse(
             JSON.stringify({
                 error: "",
@@ -280,6 +278,10 @@ export default async function PlaylistPage({
                         "not found"
                     );
                     return undefined;
+                }
+
+                if (!songDb.path) {
+                    inDatabase = false;
                 }
 
                 return {

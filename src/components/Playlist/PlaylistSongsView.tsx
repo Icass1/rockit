@@ -266,7 +266,7 @@ export default function PlaylistSongsView({
                         index * (56 + 4) +
                         (innerWidth < 768 ? 100 : 25) +
                         marginTop;
-                    if (innerWidth < 768) top += 370;
+                    if (innerWidth < 768) top += innerWidth;
 
                     if (divRef.current) {
                         const boundaries =
@@ -300,7 +300,10 @@ export default function PlaylistSongsView({
             <div
                 style={{
                     minHeight: `${
-                        songsToRender.length * (4 + 56) + 100 + marginTop
+                        songsToRender.length * (4 + 56) +
+                        marginTop +
+                        innerWidth -
+                        200
                     }px`,
                 }}
             />

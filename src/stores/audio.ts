@@ -939,6 +939,12 @@ export async function play() {
         return;
     }
 
+    if (!audio.paused) {
+        console.warn("Audio is already playing");
+        pause();
+        return;
+    }
+
     // Resume AudioContext if it exists and is suspended (iOS requirement)
     if (audioContext && audioContext.state === "suspended") {
         await audioContext.resume();
@@ -982,6 +988,12 @@ export function pause() {
     }
     if (!audio2) {
         console.error("audio is undefined");
+        return;
+    }
+
+    if (audio.paused) {
+        console.warn("Audio is already paused");
+        play();
         return;
     }
 
@@ -1324,6 +1336,17 @@ export async function getSongIdsInIndexedDB(): Promise<string[]> {
 async function registerServiceWorker() {
     if (typeof window === "undefined") return;
 
+    if (localStorage.getItem("service-worker") == "false") {
+        console.warn("service worker is disabled in localStore");
+        await Promise.all(
+            (await navigator.serviceWorker.getRegistrations()).map((worker) => {
+                console.warn("Unregistering service worker");
+                worker.unregister();
+            })
+        );
+        return;
+    }
+
     if ("serviceWorker" in navigator) {
         const version = 3;
 
@@ -1572,6 +1595,7 @@ async function onTimeupdate() {
 }
 
 function onPlay() {
+    console.log("onPlay");
     playing.set(true);
     if ("mediaSession" in navigator) {
         navigator.mediaSession.playbackState = "playing";
@@ -1579,7 +1603,7 @@ function onPlay() {
 }
 
 function onPause() {
-    // if (admin.get()) console.log("audio pause", audio);
+    console.log("onPause");
     playing.set(false);
     if ("mediaSession" in navigator) {
         navigator.mediaSession.playbackState = "paused";

@@ -5,10 +5,12 @@ from fastapi.responses import StreamingResponse
 import json
 from asyncio import sleep
 import time
+import threading
+from functools import wraps
+import inspect
 
 from backend.downloader import Downloader
 from backend.spotifyApiTypes.RawSpotifyApiSearchResults import RawSpotifyApiSearchResults
-
 
 downloader = Downloader()
 
@@ -57,16 +59,24 @@ def fast_api_route(path: str):
 
     return decorator
 
+
+def get_status():
     return {
         "queueLength": len(downloader.queue),
         "maxDownloadThreads": downloader.max_download_threads,
         "currentDownloads": len(downloader.download_threads),
         "numberOfThreadsActive": threading.active_count(),
         "numberOfThreads": len(threading.enumerate()),
+        "threads": [thread.name for thread in threading.enumerate()],
+        "asyncioTasks": [task.get_name() for task in asyncio.all_tasks()],
         "fastapiVersion": app.version,
     }
 
+
 @fast_api_route(path="/")
+def root():
+    return get_status()
+
 
 @fast_api_route("/start-download")
 async def start_download(user: str, url: str, background_tasks: BackgroundTasks):
@@ -141,17 +151,7 @@ def set_max_download_threads(request: Request, max_download_threads: str):
 @fast_api_route(path='/status')
 def status(request: Request):
 
-    return {
-        "queueLength": len(downloader.queue),
-        "maxDownloadThreads": downloader.max_download_threads,
-        "currentDownloads": len(downloader.download_threads)
-    }
-
-
-@app.get(path='/get-queue')
-
-
-
+    return get_status()
 
 
 @fast_api_route(path='/get-queue')

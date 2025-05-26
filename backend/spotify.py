@@ -733,6 +733,9 @@ class Spotify:
         album_db: AlbumDBFull | None = self.db.get(
             "SELECT id FROM album WHERE id = ?", (album.id,))
 
+        self.logger.info(
+            f"Album {album.id} found in db: {album_db=}")
+
         if album_db:
             self.logger.warning(f"This should never happen {album.id}")
         else:

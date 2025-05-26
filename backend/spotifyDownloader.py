@@ -44,6 +44,8 @@ class SpotifyDownloader:
 
         asyncio.create_task(self.wait_for_download())
 
+        self.logger.info(f"{threading.enumerate()=}")
+
         threading.Thread(target=self.fetch_and_add_to_queue).start()
 
         self.queue_elements: List[QueueElement] = []
@@ -76,6 +78,7 @@ class SpotifyDownloader:
         spotdl_songs: List[Song] = []
 
         if "/track/" in self.url:
+            self.logger.info(f"Fetching song {self.url=}")
             self.update_status_db("Fetching song")
 
             out = self.downloader.spotify.get_song(
@@ -93,6 +96,7 @@ class SpotifyDownloader:
                 {'id': spotdl_song.song_id, 'completed': 0, 'message': 'Starting'})
 
         elif "/album/" in self.url:
+            self.logger.info(f"Fetching album {self.url=}")
             self.update_status_db("Fetching album")
 
             album = self.downloader.spotify.get_album(
@@ -137,6 +141,7 @@ class SpotifyDownloader:
                     {'id': spotdl_song.song_id, 'completed': 0, 'message': 'Starting'})
 
         elif "/playlist/" in self.url:
+            self.logger.info(f"Fetching playlist {self.url=}")
             self.update_status_db("Fetching playlist")
 
             playlist: RawSpotifyApiPlaylist | None = self.downloader.spotify.get_playlist(
@@ -185,6 +190,9 @@ class SpotifyDownloader:
             self.update_status_db("Error. Don't know what to download")
             self.logger.error(f"Don't know what to download. {self.url=}")
             return
+
+        self.logger.info(f"Fetch done.")
+        self.logger.info(f"Found {len(spotdl_songs)} songs to download")
 
         for spotdl_song in spotdl_songs:
 

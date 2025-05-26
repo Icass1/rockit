@@ -107,6 +107,8 @@ class Downloader:
                 while len(self.download_threads) < self.max_download_threads and len(self.queue) > 0:
                     self.logger.info("Starting new thread")
 
+                    self.logger.info(f"{threading.enumerate()=}")
+
                     thread = threading.Thread(
                         target=self.download_method, args=(self.queue[0],))
 

@@ -12,10 +12,11 @@ from backend.logger import getLogger
 from backend.db.db import DB
 
 logger = getLogger(__name__)
-db = DB()
 
 
-downlaoder = Downloader()
+downloader = Downloader()
+
+db = downloader.spotify.db
 
 
 def delete_album(album_id: str):
@@ -143,7 +144,7 @@ def api_get():
     elif sys.argv[2] == "playlist":
         print("TODO")
     elif sys.argv[2] == "artist":
-        artist = downlaoder.spotify.get_artist(sys.argv[3])
+        artist = downloader.spotify.get_artist(sys.argv[3])
         if artist:
             print(json.dumps(artist._json, indent=4))
         else:

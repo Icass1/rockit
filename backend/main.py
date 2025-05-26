@@ -35,7 +35,15 @@ async def waypoints_generator():
 
 @app.get("/")
 async def root():
-    return {"message": "Hello World"}
+
+    return {
+        "queueLength": len(downloader.queue),
+        "maxDownloadThreads": downloader.max_download_threads,
+        "currentDownloads": len(downloader.download_threads),
+        "numberOfThreadsActive": threading.active_count(),
+        "numberOfThreads": len(threading.enumerate()),
+        "fastapiVersion": app.version,
+    }
 
 
 @app.get("/start-download")

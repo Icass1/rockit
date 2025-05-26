@@ -200,8 +200,17 @@ def get_album(request: Request, album_id):
 
     return album._json
 
+
 @fast_api_route(path='/song/{song_id}')
 def get_song(request: Request, song_id):
+
+    song = downloader.spotify.get_song(song_id)
+
+    if not song:
+        return Response("song not found", status_code=404)
+
+    return song[1]._json
+
 
 @fast_api_route(path='/playlist/{playlist_id}')
 def get_playlist(request: Request, playlist_id):

@@ -740,7 +740,7 @@ class Spotify:
             self.logger.warning(f"This should never happen {album.id}")
         else:
             self.db.execute(
-                "INSERT INTO album (id,type,images,image,name,releaseDate,artists,copyrights,popularity,genres,songs,discCount,dateAdded) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)", (
+                "INSERT OR IGNORE INTO album (id,type,images,image,name,releaseDate,artists,copyrights,popularity,genres,songs,discCount,dateAdded) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)", (
                     album.id,
                     album.type,
                     json.dumps([image._json for image in album.images]),

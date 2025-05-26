@@ -33,8 +33,29 @@ async def waypoints_generator():
         await sleep(1)
 
 
-@app.get("/")
-async def root():
+def fast_api_route(path: str):
+    """
+    Decorator to register a GET route in FastAPI and set the asyncio task name.
+    Supports both async and sync route handlers.
+    """
+    def decorator(func):
+        is_coroutine = inspect.iscoroutinefunction(func)
+
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            task = asyncio.current_task()
+            if task:
+                task.set_name(f"get - {path}")
+
+            if is_coroutine:
+                return await func(*args, **kwargs)
+            else:
+                return func(*args, **kwargs)
+
+        app.get(path)(wrapper)
+        return wrapper
+
+    return decorator
 
     return {
         "queueLength": len(downloader.queue),
@@ -45,18 +66,19 @@ async def root():
         "fastapiVersion": app.version,
     }
 
+@fast_api_route(path="/")
 
-@app.get("/start-download")
+@fast_api_route("/start-download")
 async def start_download(user: str, url: str, background_tasks: BackgroundTasks):
     return downloader.download_url(url=url, background_tasks=background_tasks, user_id=user)
 
 
-@app.get("/download-status")
+@fast_api_route("/download-status")
 async def download_status(request: Request, id: str):
     return downloader.download_status(request=request, download_id=id)
 
 
-@app.get("/download-status-mockup")
+@fast_api_route("/download-status-mockup")
 async def download_status_mockup(request: Request):
 
     file = open("backend/downloadStatusMockup.txt")
@@ -95,8 +117,9 @@ async def download_status_mockup(request: Request):
     return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 
-@app.get('/search')
+@fast_api_route('/search')
 def search(request: Request, q: str):
+
     search_results = RawSpotifyApiSearchResults.from_dict(downloader.spotify.api_call(path="search", params={
         "q": q, "type": "track,album,playlist,artist", "limit": "6"}))
 
@@ -108,14 +131,14 @@ def search(request: Request, q: str):
     }
 
 
-@app.get(path='/set-max-download-threads/{max_download_threads}')
+@fast_api_route(path='/set-max-download-threads/{max_download_threads}')
 def set_max_download_threads(request: Request, max_download_threads: str):
 
     downloader.max_download_threads = int(max_download_threads)
     return Response("OK")
 
 
-@app.get(path='/status')
+@fast_api_route(path='/status')
 def status(request: Request):
 
     return {
@@ -126,6 +149,12 @@ def status(request: Request):
 
 
 @app.get(path='/get-queue')
+
+
+
+
+
+@fast_api_route(path='/get-queue')
 def get_queue(request: Request):
 
     return [{
@@ -138,7 +167,7 @@ def get_queue(request: Request):
     } for song in downloader.queue]
 
 
-@app.get(path='/get-downloads')
+@fast_api_route(path='/get-downloads')
 def get_downloads(request: Request):
 
     return [{
@@ -152,7 +181,7 @@ def get_downloads(request: Request):
     } for thread in downloader.download_threads]
 
 
-@app.get(path='/album/{album_id}')
+@fast_api_route(path='/album/{album_id}')
 def get_album(request: Request, album_id):
 
     album = downloader.spotify.get_album(album_id)
@@ -171,8 +200,10 @@ def get_album(request: Request, album_id):
 
     return album._json
 
+@fast_api_route(path='/song/{song_id}')
+def get_song(request: Request, song_id):
 
-@app.get(path='/playlist/{playlist_id}')
+@fast_api_route(path='/playlist/{playlist_id}')
 def get_playlist(request: Request, playlist_id):
 
     playlist = downloader.spotify.get_playlist(playlist_id)
@@ -191,7 +222,8 @@ def get_playlist(request: Request, playlist_id):
 
     return playlist._json
 
-@app.get(path='/artist/{artist_id}')
+
+@fast_api_route(path='/artist/{artist_id}')
 def get_artist(request: Request, artist_id):
 
     artist = downloader.spotify.get_artist(artist_id)

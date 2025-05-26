@@ -243,6 +243,22 @@ def get_artist(request: Request, artist_id):
     return artist._json
 
 
+@fast_api_route(path='/remove-cache')
+def remove_cache():
+    """
+    Remove the cache of the audio handler.
+    This is a workaround to prevent the cache from growing indefinitely.
+    """
+
+    count = 0
+
+    for k in downloader.spotdl_downloader.audio_providers:
+        count += 1
+        k.audio_handler.cache.remove()
+
+    return f"Removed cache of {count} audio handlers"
+
+
 @app.on_event('startup')
 async def app_startup():
     asyncio.create_task(downloader.download_manager(), name="Download Manager")

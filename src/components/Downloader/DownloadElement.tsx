@@ -225,6 +225,14 @@ export default function DownloadElement({
                 >
                     <label>[DEV]</label>
                     <div className="grid grid-cols-[1fr_2fr] gap-x-2">
+                        <label className="text-right">id</label>
+                        <label className="w-full max-w-full min-w-0 truncate">
+                            {download.id}
+                        </label>
+                        <label className="text-right">userId</label>
+                        <label className="w-full max-w-full min-w-0 truncate">
+                            {download.userId}
+                        </label>
                         <label className="text-right">dateStarted</label>
                         <label className="w-full max-w-full min-w-0 truncate">
                             {download.dateStarted}

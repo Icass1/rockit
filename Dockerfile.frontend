@@ -1,0 +1,20 @@
+# Astro Dockerfile
+FROM rockit-nextjs-base
+
+WORKDIR /app
+
+# Copy application code
+COPY . .
+
+RUN rm .env || true
+
+# RUN chown -R 1000:1000 /app
+
+EXPOSE 3000
+
+RUN mkdir /app/database
+
+RUN pnpm run build
+
+# Serve the NextJS application
+CMD pnpm start

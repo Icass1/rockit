@@ -1,13 +1,7 @@
 # Flask Dockerfile
 # FROM python:3.10-slim
 
-FROM python:3.10-slim
-
-
-# Install FFmpeg
-RUN apt-get update && apt-get install -y ffmpeg && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
-
+FROM rockit-nextjs-fastapi-base
     
 COPY backend backend
 
@@ -16,8 +10,6 @@ RUN rm backend/.env || true
 RUN chown -R 1000:1000 /backend
 RUN mkdir /.spotdl
 RUN chown -R 1000:1000 /.spotdl
-
-RUN pip install -r backend/requirements.txt
 
 # USER 1000:1000
 

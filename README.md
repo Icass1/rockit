@@ -20,6 +20,7 @@ pip install -r requirements.txt
 ```bash
 pnpm i
 ```
+
 If better-sqlite returns an error run:
 
 ```bash
@@ -27,10 +28,13 @@ sudo apt install build-essential
 ```
 
 ## Setup .env file
+
 Create .env file from tamplate.
+
 ```bash
 cp example.env .env
 ```
+
 Then, fill all the settings.
 
 ## Start server
@@ -55,12 +59,23 @@ pnpm run build
 pnpm pack
 ```
 
+# Docker
 
+## Docker base images
+
+```bash
+# Backend base image image
+docker build -f Dockerfile.backend.base -t rockit-nextjs-fastapi-base .
+# Frontend base image image
+docker build -f Dockerfile.frontend.base -t rockit-nextjs-base .
+```
+
+## Docker compose
 
 Build Docker Images and start containers
 
 ```bash
-docker-compose up -d --build; docker system prune --all
+docker compose up -d --build
 ```
 
 ## Para Nico xd

@@ -2,7 +2,6 @@ import { type AlbumDB, parseAlbum, type RawAlbumDB } from "@/db/album";
 import { db } from "@/db/db";
 import { parseSong, type RawSongDB, type SongDB } from "@/db/song";
 import { ENV } from "@/rockitEnv";
-import { SpotifyTrack } from "@/types/spotify";
 
 const BACKEND_URL = ENV.BACKEND_URL;
 
@@ -100,22 +99,19 @@ export default async function getAlbum(
                             }
                         );
 
-                        const responseJson =
-                            (await response.json()) as SpotifyTrack;
+                        if (response.ok) {
+                            const rawSong = db
+                                .prepare(
+                                    "SELECT image, images, id, name, artists, albumId, albumName, path, duration, discNumber, trackNumber FROM song WHERE id = ?"
+                                )
+                                .get(songID) as RawSongDB | undefined;
 
-                        return {
-                            image: undefined,
-                            images: responseJson.album?.images,
-                            id: songID,
-                            name: responseJson.name,
-                            artists: responseJson.artists,
-                            albumId: responseJson.album?.id,
-                            albumName: responseJson.album?.name,
-                            path: undefined,
-                            duration: responseJson.duration_ms / 1000,
-                            discNumber: responseJson.disc_number,
-                            trackNumber: responseJson.track_number,
-                        };
+                            if (rawSong) return parseSong(rawSong);
+                            else {
+                                console.error("Song not found in DB", songID);
+                                return undefined;
+                            }
+                        }
                     }
                 )
             )

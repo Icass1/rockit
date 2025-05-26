@@ -854,5 +854,39 @@ spotdl.download.downloader.Downloader.search_and_download = search_and_download
 spotdl.download.downloader.Downloader.search = search
 
 
+def get_download_metadata(self, url: str, download: bool = False) -> Dict:
+    """
+    Get metadata for a download using yt-dlp.
+
+    ### Arguments
+    - url: The url to get metadata for.
+
+    ### Returns
+    - A dictionary containing the metadata.
+    """
+
+    print("spotdl/providers/audio/base.py", "get_download_metadata", url)
+
+    try:
+        data = self.audio_handler.extract_info(url, download=download)
+
+        if data:
+            return data
+    except Exception as exception:
+        logger.debug(exception)
+        import traceback
+        print(traceback.format_exc())
+        traceback.print_exc()
+
+        print("spotdl/providers/audio/base.py", exception)
+        raise AudioProviderError(
+            f"YT-DLP download error - {url}") from exception
+
+    raise AudioProviderError(f"No metadata found for the provided url {url}")
+
+
+spotdl.providers.audio.base.AudioProvider.get_download_metadata = get_download_metadata
+
+
 logger = getLogger(__name__)
 logger.info("Patches applied")

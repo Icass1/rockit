@@ -561,10 +561,10 @@ class Spotify:
                     f"song.external_ids.isrc is None {id}")
                 return
 
-            if not song.external_ids.isrc:
-                self.logger.error(
-                    f"song.external_ids.isrc is None {id}")
-                return
+            # if not song.external_ids.isrc:
+            #     self.logger.error(
+            #         f"song.external_ids.isrc is None {id}")
+            #     return
 
             if not song.external_urls:
                 self.logger.error(
@@ -784,10 +784,10 @@ class Spotify:
                 f"song.external_ids is None {raw_song=}")
             return
 
-        if not song.external_ids.isrc:
-            self.logger.error(
-                f"song.external_ids.isrc is None {raw_song=}")
-            return
+        # if not song.external_ids.isrc:
+        #     self.logger.error(
+        #         f"song.external_ids.isrc is None {raw_song=}")
+        #     return
 
         if not song.artists:
             self.logger.error(

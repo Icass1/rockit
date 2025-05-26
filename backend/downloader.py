@@ -110,7 +110,7 @@ class Downloader:
                     self.logger.info(f"{threading.enumerate()=}")
 
                     thread = threading.Thread(
-                        target=self.download_method, args=(self.queue[0],))
+                        target=self.download_method, args=(self.queue[0],), name=f"Downloader-{self.queue[0].get_song().song_id}")
 
                     thread.start()
                     self.download_threads.append((thread, self.queue[0]))

@@ -236,4 +236,4 @@ def get_artist(request: Request, artist_id):
 
 @app.on_event('startup')
 async def app_startup():
-    asyncio.create_task(downloader.download_manager())
+    asyncio.create_task(downloader.download_manager(), name="Download Manager")

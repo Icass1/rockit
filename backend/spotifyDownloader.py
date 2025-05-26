@@ -42,11 +42,11 @@ class SpotifyDownloader:
 
         self.logger.info("")
 
-        asyncio.create_task(self.wait_for_download())
+        asyncio.create_task(self.wait_for_download(), name=f"wait_for_download {url=} {user_id=} {download_id=}")
 
         self.logger.info(f"{threading.enumerate()=}")
 
-        threading.Thread(target=self.fetch_and_add_to_queue).start()
+        threading.Thread(target=self.fetch_and_add_to_queue, name=f"fetch_and_add_to_queue {url=} {user_id=} {download_id=}").start()
 
         self.queue_elements: List[QueueElement] = []
 

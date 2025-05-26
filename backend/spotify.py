@@ -894,7 +894,7 @@ class Spotify:
             self.logger.error("Album doesn't exist in db")
             return
 
-        self.db.execute("INSERT INTO song (id,name,artists,discNumber,albumName,albumArtist,albumType,albumId,isrc,duration,genres,date,trackNumber,publisher,images,image,copyright,popularity,dateAdded) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", (
+        self.db.execute("INSERT OR IGNORE INTO song (id,name,artists,discNumber,albumName,albumArtist,albumType,albumId,isrc,duration,genres,date,trackNumber,publisher,images,image,copyright,popularity,dateAdded) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", (
             song.id,
             song.name,
             json.dumps([{"name": artist.name, "id": artist.id}

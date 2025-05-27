@@ -35,7 +35,7 @@ export interface RawAlbumDB {
 }
 export interface AlbumDBFull {
     id: string;
-    type: string;
+    type: "album";
     images: OldImageDB[];
     image: string;
     name: string;
@@ -60,7 +60,7 @@ export function parseAlbum(album: RawAlbumDB | undefined): AlbumDB | undefined {
     }
     return {
         id: album.id,
-        type: album.type,
+        type: "album" as const,
         images: JSON.parse(album.images || "[]"),
         image: album.image,
         name: album.name,

@@ -41,6 +41,7 @@ export interface PlaylistDBFull {
     owner: string;
     followers: number;
     songs: PlaylistDBSong[];
+    type: "playlist";
     updatedAt: string | undefined;
     createdAt: string | undefined;
 }
@@ -73,6 +74,7 @@ export function parsePlaylist(
         songs: JSON.parse(playlist.songs || "[]"),
         updatedAt: playlist.updatedAt,
         createdAt: playlist.createdAt,
+        type: "playlist" as const,
     };
 
     Object.entries(out).forEach((entry) => {

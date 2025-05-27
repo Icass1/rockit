@@ -118,32 +118,36 @@ export default function ListOptions({
         const tempQueue = queue.get();
         if (!tempQueue) return;
 
-        const songsToAdd = $songs.map((song, index) => {
-            return {
-                song: song,
-                list: { type, id },
-                index:
-                    Math.max(...tempQueue.map((_song) => _song.index)) +
-                    index +
-                    1,
-            };
-        });
+        const songsToAdd = $songs
+            .map((song, index) => {
+                return {
+                    song: song,
+                    list: { type, id },
+                    index:
+                        Math.max(...tempQueue.map((_song) => _song.index)) +
+                        index +
+                        1,
+                };
+            })
+            .filter((song) => song?.song?.id);
         queue.set([...tempQueue, ...songsToAdd]);
     };
     const addListToTopQueue = () => {
         const tempQueue = queue.get();
         if (!tempQueue) return;
 
-        const songsToAdd = $songs.map((song, index) => {
-            return {
-                song: song,
-                list: { type, id },
-                index:
-                    Math.max(...tempQueue.map((_song) => _song.index)) +
-                    index +
-                    1,
-            };
-        });
+        const songsToAdd = $songs
+            .map((song, index) => {
+                return {
+                    song: song,
+                    list: { type, id },
+                    index:
+                        Math.max(...tempQueue.map((_song) => _song.index)) +
+                        index +
+                        1,
+                };
+            })
+            .filter((song) => song?.song?.id);
         const index = tempQueue.findIndex(
             (_song) => _song.index == queueIndex.get()
         );
@@ -214,49 +218,49 @@ export default function ListOptions({
             </PopupMenuTrigger>
             <PopupMenuContent>
                 <PopupMenuOption
-                    disable={!inDatabase && !$downloadedLists.includes(id)}
+                    // disable={!inDatabase && !$downloadedLists.includes(id)}
                     onClick={() => playListHandleClick({ type, id })}
                 >
                     <Play className="h-5 w-5" />
                     Play list
                 </PopupMenuOption>
                 <PopupMenuOption
-                    disable={!inDatabase && !$downloadedLists.includes(id)}
+                    // disable={!inDatabase && !$downloadedLists.includes(id)}
                     onClick={likeAllSongs}
                 >
                     <Heart className="h-5 w-5" />
                     Like all songs on the list
                 </PopupMenuOption>
                 <PopupMenuOption
-                    disable={!inDatabase && !$downloadedLists.includes(id)}
+                    // disable={!inDatabase && !$downloadedLists.includes(id)}
                     onClick={addListToTopQueue}
                 >
                     <ListStart className="h-5 w-5" />
                     Add list to top of queue
                 </PopupMenuOption>
                 <PopupMenuOption
-                    disable={!inDatabase && !$downloadedLists.includes(id)}
+                    // disable={!inDatabase && !$downloadedLists.includes(id)}
                     onClick={addListToBottomQueue}
                 >
                     <ListEnd className="h-5 w-5" />
                     Add list to bottom of queue
                 </PopupMenuOption>
                 <PopupMenuOption
-                    disable={!inDatabase && !$downloadedLists.includes(id)}
+                    // disable={!inDatabase && !$downloadedLists.includes(id)}
                     onClick={downloadListToDevice}
                 >
                     <HardDriveDownload className="h-5 w-5" />
                     Download list to device
                 </PopupMenuOption>
                 <PopupMenuOption
-                    disable={!inDatabase && !$downloadedLists.includes(id)}
+                    // disable={!inDatabase && !$downloadedLists.includes(id)}
                     onClick={() => addToLibraryHandleClick({ id, type })}
                 >
                     <Library className="h-5 w-5" />
                     {isInLibrary ? "Remove from library" : "Add to library"}
                 </PopupMenuOption>
                 <PopupMenuOption
-                    disable={!inDatabase && !$downloadedLists.includes(id)}
+                    // disable={!inDatabase && !$downloadedLists.includes(id)}
                     onClick={() => pinListHandleClick({ id, type })}
                 >
                     {isPinned ? (

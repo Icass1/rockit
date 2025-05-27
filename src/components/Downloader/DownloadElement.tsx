@@ -8,6 +8,7 @@ import useDev from "@/hooks/useDev";
 import { EyeIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { downloadInfo } from "@/stores/downloads";
+import Link from "next/link";
 
 export default function DownloadElement({
     download,
@@ -135,127 +136,141 @@ export default function DownloadElement({
         }
     };
 
+    let link = "";
+    if (download.downloadURL.includes("https://open.spotify.com")) {
+        link = download.downloadURL
+            .replace("https://open.spotify.com", "")
+            .replace("track", "song");
+    } else {
+        console.warn(
+            "DownloadElement: Unsupported download URL format",
+            download.downloadURL
+        );
+    }
+
     return (
-        <div
-            onClick={handleClick}
-            className={
-                "grid cursor-pointer grid-cols-[2.5rem_1fr_2rem] grid-rows-[min-content_1.5rem_1rem_1fr_min-content] items-center rounded bg-neutral-700 p-2 transition-colors hover:bg-neutral-800" +
-                (selected ? " bg-green-700" : "")
-            }
-            style={{
-                gridTemplateAreas: `
-                    "download-element-type download-element-type download-element-type"
-                    "download-element-cover download-element-name download-element-mark-as-seen"
-                    "download-element-cover download-element-artist-owner download-element-mark-as-seen"
-                    "download-element-download-url download-element-download-url download-element-download-url"
-                    "download-element-dev-data download-element-dev-data download-element-dev-data"
-                    `,
-            }}
-        >
+        <Link href={link}>
             <div
-                style={{ gridArea: "download-element-cover" }}
+                onClick={handleClick}
                 className={
-                    "h-full max-h-full min-h-0 w-full max-w-full min-w-0" +
-                    (cover ? "" : " skeleton")
+                    "grid cursor-pointer grid-cols-[2.5rem_1fr_2rem] grid-rows-[min-content_1.5rem_1rem_1fr_min-content] items-center rounded bg-neutral-700 p-2 transition-colors hover:bg-neutral-800" +
+                    (selected ? " bg-green-700" : "")
                 }
+                style={{
+                    gridTemplateAreas: `
+                    "download-element-type          download-element-type          download-element-type"
+                    "download-element-cover         download-element-name          download-element-mark-as-seen"
+                    "download-element-cover         download-element-artist-owner  download-element-mark-as-seen"
+                    "download-element-download-url  download-element-download-url  download-element-download-url"
+                    "download-element-dev-data      download-element-dev-data      download-element-dev-data"
+                    `,
+                }}
             >
-                {cover && (
-                    <Image
-                        src={getImageUrl({
-                            imageId: cover,
-                            width: 40,
-                            height: 40,
-                        })}
-                        alt="cover"
-                        className="relative h-full w-full rounded"
-                    />
+                <div
+                    style={{ gridArea: "download-element-cover" }}
+                    className={
+                        "h-full max-h-full min-h-0 w-full max-w-full min-w-0" +
+                        (cover ? "" : " skeleton")
+                    }
+                >
+                    {cover && (
+                        <Image
+                            src={getImageUrl({
+                                imageId: cover,
+                                width: 40,
+                                height: 40,
+                            })}
+                            alt="cover"
+                            className="relative h-full w-full rounded"
+                        />
+                    )}
+                </div>
+                <label
+                    style={{ gridArea: "download-element-type" }}
+                    className={
+                        "px-1 pb-1 text-xs" +
+                        (type ? "" : " skeleton mx-1 mb-1 min-h-4 w-1/3")
+                    }
+                >
+                    {type}
+                </label>
+                <label
+                    style={{
+                        gridArea: "download-element-name",
+                    }}
+                    className={
+                        "px-1" +
+                        (name
+                            ? ""
+                            : " skeleton mx-1 h-4/5 max-h-full min-h-0 w-1/2")
+                    }
+                >
+                    {name}
+                </label>
+                <label
+                    style={{ gridArea: "download-element-artist-owner" }}
+                    className={
+                        "px-1 text-sm " +
+                        (artistOwner
+                            ? ""
+                            : " skeleton mx-1 h-4/5 max-h-full min-h-0 w-1/3")
+                    }
+                >
+                    {artistOwner}
+                </label>
+                <div
+                    style={{ gridArea: "download-element-mark-as-seen" }}
+                    className="relative h-full max-h-full min-h-0 w-full max-w-full min-w-0"
+                    title="Mark as seen"
+                    onClick={handleMarkSeen}
+                >
+                    <EyeIcon className="absolute top-1/2 left-1/2 h-6 w-6 -translate-1/2"></EyeIcon>
+                </div>
+                <label
+                    style={{ gridArea: "download-element-download-url" }}
+                    className="text-xs"
+                >
+                    {download.downloadURL}
+                </label>
+                {dev && (
+                    <div
+                        className="w-full max-w-full min-w-0 text-yellow-500"
+                        style={{ gridArea: "download-element-dev-data" }}
+                    >
+                        <label>[DEV]</label>
+                        <div className="grid grid-cols-[1fr_2fr] gap-x-2">
+                            <label className="text-right">id</label>
+                            <label className="w-full max-w-full min-w-0 truncate">
+                                {download.id}
+                            </label>
+                            <label className="text-right">userId</label>
+                            <label className="w-full max-w-full min-w-0 truncate">
+                                {download.userId}
+                            </label>
+                            <label className="text-right">dateStarted</label>
+                            <label className="w-full max-w-full min-w-0 truncate">
+                                {download.dateStarted}
+                            </label>
+                            <label className="text-right">dateEnded</label>
+                            <label className="w-full max-w-full min-w-0 truncate">
+                                {download.dateEnded}
+                            </label>
+                            <label className="text-right">status</label>
+                            <label className="w-full max-w-full min-w-0 truncate">
+                                {download.status}
+                            </label>
+                            <label className="text-right">fail</label>
+                            <label className="w-full max-w-full min-w-0 truncate">
+                                {download.fail}
+                            </label>
+                            <label className="text-right">success</label>
+                            <label className="w-full max-w-full min-w-0 truncate">
+                                {download.success}
+                            </label>
+                        </div>
+                    </div>
                 )}
             </div>
-            <label
-                style={{ gridArea: "download-element-type" }}
-                className={
-                    "px-1 pb-1 text-xs" +
-                    (type ? "" : " skeleton mx-1 mb-1 min-h-4 w-1/3")
-                }
-            >
-                {type}
-            </label>
-            <label
-                style={{
-                    gridArea: "download-element-name",
-                }}
-                className={
-                    "px-1" +
-                    (name
-                        ? ""
-                        : " skeleton mx-1 h-4/5 max-h-full min-h-0 w-1/2")
-                }
-            >
-                {name}
-            </label>
-            <label
-                style={{ gridArea: "download-element-artist-owner" }}
-                className={
-                    "px-1 text-sm " +
-                    (artistOwner
-                        ? ""
-                        : " skeleton mx-1 h-4/5 max-h-full min-h-0 w-1/3")
-                }
-            >
-                {artistOwner}
-            </label>
-            <div
-                style={{ gridArea: "download-element-mark-as-seen" }}
-                className="relative h-full max-h-full min-h-0 w-full max-w-full min-w-0"
-                title="Mark as seen"
-                onClick={handleMarkSeen}
-            >
-                <EyeIcon className="absolute top-1/2 left-1/2 h-6 w-6 -translate-1/2"></EyeIcon>
-            </div>
-            <label
-                style={{ gridArea: "download-element-download-url" }}
-                className="text-xs"
-            >
-                {download.downloadURL}
-            </label>
-            {dev && (
-                <div
-                    className="w-full max-w-full min-w-0 text-yellow-500"
-                    style={{ gridArea: "download-element-dev-data" }}
-                >
-                    <label>[DEV]</label>
-                    <div className="grid grid-cols-[1fr_2fr] gap-x-2">
-                        <label className="text-right">id</label>
-                        <label className="w-full max-w-full min-w-0 truncate">
-                            {download.id}
-                        </label>
-                        <label className="text-right">userId</label>
-                        <label className="w-full max-w-full min-w-0 truncate">
-                            {download.userId}
-                        </label>
-                        <label className="text-right">dateStarted</label>
-                        <label className="w-full max-w-full min-w-0 truncate">
-                            {download.dateStarted}
-                        </label>
-                        <label className="text-right">dateEnded</label>
-                        <label className="w-full max-w-full min-w-0 truncate">
-                            {download.dateEnded}
-                        </label>
-                        <label className="text-right">status</label>
-                        <label className="w-full max-w-full min-w-0 truncate">
-                            {download.status}
-                        </label>
-                        <label className="text-right">fail</label>
-                        <label className="w-full max-w-full min-w-0 truncate">
-                            {download.fail}
-                        </label>
-                        <label className="text-right">success</label>
-                        <label className="w-full max-w-full min-w-0 truncate">
-                            {download.success}
-                        </label>
-                    </div>
-                </div>
-            )}
-        </div>
+        </Link>
     );
 }

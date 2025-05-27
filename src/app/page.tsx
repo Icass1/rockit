@@ -11,7 +11,7 @@ import useFetch from "@/hooks/useFetch";
 import { HomeStats } from "./api/stats/home/route";
 
 export default function Home() {
-    const data = useFetch<HomeStats>("/api/stats/home", {
+    const [data] = useFetch<HomeStats>("/api/stats/home", {
         redis: true,
         json: true,
     });

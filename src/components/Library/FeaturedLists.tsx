@@ -22,7 +22,7 @@ export function FeaturedLists({
     );
 
     const $lang = useStore(langData);
-    const data = useFetch<Stats["albums"]>(
+    const [data] = useFetch<Stats["albums"]>(
         `/api/stats?type=albums&sortBy=timesPlayed&limit=4&start=${lastMonthDate.current}`,
         { redis: true }
     );

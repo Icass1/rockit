@@ -154,7 +154,7 @@ export default function SongContextMenu({
                         }
                     }}
                 >
-                    <PlayCircle className="h-5 w-5 bg-red-400" />
+                    <PlayCircle className="h-5 w-5" />
                     {$lang.play_song}
                 </ContextMenuOption>
                 <ContextMenuOption

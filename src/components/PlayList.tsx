@@ -23,7 +23,10 @@ export function playListHandleClick({
             return { song: song, list: { type, id }, index: index };
         });
 
-    if (songsToAdd.length == 0) return;
+    if (songsToAdd.length == 0) {
+        console.warn("No songs to play in this list");
+        return;
+    }
 
     if (!window.navigator.onLine) {
         songsToAdd = songsToAdd.filter((song) =>

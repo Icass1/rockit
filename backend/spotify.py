@@ -1,6 +1,6 @@
 
 from logging import Logger
-from typing import Any, Dict, List
+from typing import Any, Dict, List, cast
 
 import os
 from pydantic import conint
@@ -167,6 +167,58 @@ class Spotify:
             raw_album = self.api_call(path=f"albums/{id}")
 
             return self._get_album_from_raw_album(raw_album)
+
+    def get_albums(self, ids: List[str]) -> None | List[AlbumDBFull]:
+
+        if len(ids) == 0:
+            return []
+
+        result = self.db.get_all(
+            query=f"SELECT * FROM album WHERE id=? {'OR id=?'.join(' ' for _ in ids)}", parameters=ids)
+
+        missing_albums: List[str] = ids.copy()
+
+        if result:
+            albums_db = cast(List[AlbumDBFull], result)
+
+            for album_db in albums_db:
+                missing_albums.remove(album_db.id)
+
+        print(f"{missing_albums=}")
+
+        for k in range(math.ceil(len(missing_albums)/20)):
+
+            response = self.api_call(
+                path=f"albums", params={"ids": ",".join(missing_albums[k*20:(k + 1)*20])})
+
+            if not response:
+                self.logger.error("Response is None")
+                continue
+
+            print(f"{response=}")
+
+            for raw_album in response["albums"]:
+                self._get_album_from_raw_album(raw_album)
+
+        result = self.db.get_all(
+            query=f"SELECT * FROM album WHERE id=? {'OR id=?'.join(' ' for k in ids)}", parameters=ids)
+
+        if not result:
+            self.logger.error(f"Result is None {ids}")
+            return
+
+        albums_db = cast(List[AlbumDBFull], result)
+
+        missing_albums: List[str] = ids.copy()
+
+        for album_db in albums_db:
+            missing_albums.remove(album_db.id)
+
+        if len(missing_albums) != 0:
+            self.logger.error(
+                f"There are still missing albums {missing_albums}")
+
+        return albums_db
 
     def get_artist(self, id: str) -> RawSpotifyApiArtist | None:
 
@@ -423,18 +475,8 @@ class Spotify:
 
         self.logger.info(f"Missing albums: {len(missing_albums)}")
 
-        # Get missing albums 20 by 20
-        for k in range(math.ceil(len(missing_albums)/20)):
-
-            response = self.api_call(
-                path=f"albums", params={"ids": ",".join(missing_albums[k*20:(k + 1)*20])})
-
-            if not response:
-                self.logger.error("Response is None")
-                continue
-
-            for raw_album in response["albums"]:
-                self._get_album_from_raw_album(raw_album)
+        # Get missing albums
+        self.get_albums(missing_albums)
 
         missing_artists = list(set(missing_artists))
 
@@ -656,6 +698,10 @@ class Spotify:
         return artist
 
     def _get_album_from_raw_album(self, raw_album):
+
+        if not raw_album:
+            self.logger.error(f"raw_album is None")
+            return
 
         album = RawSpotifyApiAlbum.from_dict(raw_album)
 

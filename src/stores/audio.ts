@@ -317,19 +317,27 @@ export const queue = createControlledAtom<Queue | undefined>(
             })
             .filter((song) => song),
     async (queue: UserDB["queue"]) => {
-        const response = await fetch(
-            `/api/songs1?songs=${queue
-                .map((queueSong) => queueSong.song)
-                .join()}&p=id,name,artists,image,duration`
-        );
-
-        const json = (await response.json()) as SongDB<
+        const songs: SongDB<
             "id" | "name" | "artists" | "image" | "duration"
-        >[];
+        >[] = [];
+
+        for (const queueChunk of splitIntoChunks(queue, 100)) {
+            const response = await fetch(
+                `/api/songs1?songs=${queueChunk
+                    .map((queueSong) => queueSong.song)
+                    .join()}&p=id,name,artists,image,duration`
+            );
+
+            songs.push(
+                ...((await response.json()) as SongDB<
+                    "id" | "name" | "artists" | "image" | "duration"
+                >[])
+            );
+        }
 
         return queue
             .map((queueSong) => {
-                const songInfo = json
+                const songInfo = songs
                     .filter((song) => song)
                     .find((song) => song.id == queueSong.song);
 
@@ -467,46 +475,65 @@ fetch(
             }
 
             if (userJson && userJson.queue.length > 0) {
-                fetch(
-                    `/api/songs1?songs=${userJson.queue
-                        .map((queueSong) => queueSong.song)
-                        .join()}&p=id,name,artists,image,duration`
-                ).then((response) => {
-                    if (response.ok) {
-                        response.json().then((queueSongs: QueueSong[]) => {
-                            queue.set(
-                                userJson.queue
-                                    .map((queueSong) => {
-                                        const songInfo = queueSongs
-                                            .filter((song) => song)
-                                            .find(
-                                                (song) =>
-                                                    song.id == queueSong.song
-                                            );
+                const getSongs = async () => {
+                    const songs: SongDB<
+                        | "id"
+                        | "name"
+                        | "artists"
+                        | "image"
+                        | "duration"
+                        | "albumName"
+                        | "albumId"
+                    >[] = [];
 
-                                        if (!songInfo) {
-                                            return undefined;
-                                        }
+                    for (const queueChunk of splitIntoChunks(
+                        userJson.queue,
+                        100
+                    )) {
+                        const response = await fetch(
+                            `/api/songs1?songs=${queueChunk
+                                .map((queueSong) => queueSong.song)
+                                .join()}&p=id,name,artists,image,duration,albumName,albumId`
+                        );
 
-                                        return {
-                                            song: songInfo,
-                                            list: queueSong.list,
-                                            index: queueSong.index,
-                                        };
-                                    })
-                                    .filter(
-                                        (song) => typeof song != "undefined"
-                                    ),
-                                false
-                            );
-
-                            addSubscribers();
-                        });
-                    } else {
-                        console.error("Error getting songs info");
-                        queue.set([], false);
-                        addSubscribers();
+                        songs.push(
+                            ...((await response.json()) as SongDB<
+                                | "id"
+                                | "name"
+                                | "artists"
+                                | "image"
+                                | "duration"
+                                | "albumName"
+                                | "albumId"
+                            >[])
+                        );
                     }
+                    return songs;
+                };
+
+                getSongs().then((data) => {
+                    queue.set(
+                        userJson.queue
+                            .map((queueSong) => {
+                                const songInfo = data
+                                    .filter((song) => song)
+                                    .find((song) => song.id == queueSong.song);
+
+                                if (!songInfo) {
+                                    return undefined;
+                                }
+
+                                return {
+                                    song: songInfo,
+                                    list: queueSong.list,
+                                    index: queueSong.index,
+                                };
+                            })
+                            .filter((song) => typeof song != "undefined"),
+                        false
+                    );
+
+                    addSubscribers();
                 });
             } else {
                 queue.set([], false);

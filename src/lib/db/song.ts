@@ -40,7 +40,8 @@ export interface RawSongDB {
     lyrics: string | undefined;
     dynamicLyrics: string | undefined;
     popularity: number | undefined;
-    dateAdded: string | undefined;
+    dateAdded: string;
+    isrc?: string;
 }
 
 export type SongDB<Keys extends keyof SongDBFull = keyof SongDBFull> = Pick<
@@ -69,7 +70,8 @@ export type SongDBFull = {
     lyrics: string | undefined;
     dynamicLyrics: DynamicLyrics[];
     popularity: number | undefined;
-    dateAdded: string | undefined;
+    dateAdded: string;
+    isrc?: string;
 };
 
 export function parseSong(rawSong: RawSongDB | undefined): SongDB | undefined {
@@ -100,6 +102,7 @@ export function parseSong(rawSong: RawSongDB | undefined): SongDB | undefined {
         dynamicLyrics: JSON.parse(rawSong.dynamicLyrics || "[]"),
         popularity: rawSong.popularity,
         dateAdded: rawSong.dateAdded,
+        isrc: rawSong.isrc,
     };
 
     Object.entries(out).forEach((entry) => {

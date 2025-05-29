@@ -7,6 +7,7 @@ import { openRockItIndexedDB } from "@/lib/indexedDB";
 import { getSession } from "next-auth/react";
 import { Device, devices } from "./devices";
 import { users } from "./users";
+import { splitIntoChunks } from "@/lib/arrayTools";
 
 // Track user interaction state for iOS autoplay handling
 let audioContext: AudioContext | undefined;

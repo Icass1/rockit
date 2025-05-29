@@ -103,7 +103,9 @@ function AddListContextMenu({
                         1,
                 };
             })
-            .filter((queueSong) => queueSong?.song?.id);
+            .filter(
+                (queueSong) => queueSong?.song?.id && queueSong?.song?.path
+            );
         const index = tempQueue.findIndex(
             (_song) => _song.index == queueIndex.get()
         );
@@ -136,7 +138,9 @@ function AddListContextMenu({
                         1,
                 };
             })
-            .filter((queueSong) => queueSong?.song?.id);
+            .filter(
+                (queueSong) => queueSong?.song?.id && queueSong?.song?.path
+            );
         const index = tempQueue.findIndex(
             (_song) => _song.index == queueIndex.get()
         );
@@ -182,7 +186,9 @@ function AddListContextMenu({
                         1,
                 };
             })
-            .filter((queueSong) => queueSong?.song?.id);
+            .filter(
+                (queueSong) => queueSong?.song?.id && queueSong?.song?.path
+            );
         queue.set([...tempQueue, ...songsToAdd]);
     };
 

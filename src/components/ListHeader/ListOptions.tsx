@@ -129,7 +129,7 @@ export default function ListOptions({
                         1,
                 };
             })
-            .filter((song) => song?.song?.id);
+            .filter((song) => song?.song?.id && song?.song?.path);
         queue.set([...tempQueue, ...songsToAdd]);
     };
     const addListToTopQueue = () => {
@@ -147,7 +147,7 @@ export default function ListOptions({
                         1,
                 };
             })
-            .filter((song) => song?.song?.id);
+            .filter((song) => song?.song?.id && song?.song?.path);
         const index = tempQueue.findIndex(
             (_song) => _song.index == queueIndex.get()
         );

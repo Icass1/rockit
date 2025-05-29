@@ -1181,23 +1181,46 @@ export async function next(songEnded = false) {
 
     if (admin.get()) console.log({ newSongId, songEnded });
 
-    await fetch(`/api/song/${newSongId}`)
+    await fetch(
+        `/api/song/${newSongId}?q=id,name,artists,image,duration,albumName,albumId,path`
+    )
         .then((response) => response.json())
-        .then((data) => {
-            const _crossFade = currentCrossFade.get();
-            if (_crossFade && _crossFade > 0 && songEnded) {
-                inCrossFade = true;
-                if (admin.get()) console.log("Playwhenready 2");
+        .then(
+            (
+                data: SongDB<
+                    | "id"
+                    | "name"
+                    | "artists"
+                    | "image"
+                    | "duration"
+                    | "albumName"
+                    | "albumId"
+                    | "path"
+                >
+            ) => {
+                if (!data?.path) {
+                    console.warn(
+                        "Song isn't downloaded, skipping to next song in queue"
+                    );
+                    next();
+                    return;
+                }
 
-                playWhenReady.set(false);
-            } else {
-                if (admin.get()) console.log("Playwhenready 3");
+                const _crossFade = currentCrossFade.get();
+                if (_crossFade && _crossFade > 0 && songEnded) {
+                    inCrossFade = true;
+                    if (admin.get()) console.log("Playwhenready 2");
 
-                inCrossFade = false;
-                playWhenReady.set(true);
+                    playWhenReady.set(false);
+                } else {
+                    if (admin.get()) console.log("Playwhenready 3");
+
+                    inCrossFade = false;
+                    playWhenReady.set(true);
+                }
+                currentSong.set(data);
             }
-            currentSong.set(data);
-        })
+        )
         .catch(async () => {
             const song = await getSongInIndexedDB(newSongId);
             if (song) {

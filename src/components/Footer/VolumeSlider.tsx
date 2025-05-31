@@ -47,7 +47,7 @@ export default function VolumeSlider() {
 
             <Slider
                 id="default-slider"
-                className="h-1 w-16"
+                className="h-1 w-16 bg-neutral-700"
                 value={Math.sqrt($volume || 0)}
                 min={0}
                 max={1}

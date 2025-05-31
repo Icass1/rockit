@@ -26,6 +26,8 @@ import {
     repeatSong,
     setTime,
     currentStation,
+    crossFadeCurrentTime,
+    crossFade,
 } from "@/stores/audio";
 
 export function cyclerepeatSong() {
@@ -46,6 +48,8 @@ export default function FooterCenter() {
     const $repeatSong = useStore(repeatSong);
     const $loading = useStore(loading);
     const $currentStation = useStore(currentStation);
+    const $crossFadeCurrentTime = useStore(crossFadeCurrentTime);
+    const $crossFade = useStore(crossFade);
 
     return (
         <div className="hidden w-1/3 flex-col items-center justify-center space-y-1 md:flex">
@@ -118,31 +122,55 @@ export default function FooterCenter() {
                             />
                         )}
                     </div>
-                    <div className="group flex h-7 w-full items-center space-x-2">
+                    <div className="flex h-7 w-full items-center space-x-2">
                         <span
                             id="current-time"
                             className="min-w-6 text-xs font-semibold"
                         >
-                            {getTime($currentTime || 0)}
+                            {$crossFadeCurrentTime && $crossFade
+                                ? getTime($crossFadeCurrentTime)
+                                : getTime($currentTime || 0)}
                         </span>
 
-                        <Slider
-                            id="default-slider"
-                            className="group relative h-1 w-full max-w-full min-w-0 rounded bg-neutral-700"
-                            value={$currentTime ?? 0}
-                            min={0}
-                            max={$currentSong?.duration}
-                            step={0.001}
-                            onChange={(event) => {
-                                setTime(Number(event.target.value));
-                            }}
-                        />
+                        {$crossFadeCurrentTime && $crossFade ? (
+                            <Slider
+                                id="default-slider"
+                                className="relative h-1 w-full max-w-full min-w-0 rounded bg-neutral-700"
+                                barClassName="bg-gradient-to-r from-[#ee1086] to-[#20d2fa] transition-[width] duration-500"
+                                value={$crossFadeCurrentTime}
+                                min={0}
+                                max={$crossFade}
+                                step={0.001}
+                                onChange={(event) => {
+                                    if ($currentSong)
+                                        setTime(
+                                            $currentSong?.duration -
+                                                $crossFade +
+                                                Number(event.target.value)
+                                        );
+                                }}
+                            />
+                        ) : (
+                            <Slider
+                                id="default-slider"
+                                className="relative h-1 w-full max-w-full min-w-0 rounded bg-neutral-700"
+                                value={$currentTime ?? 0}
+                                min={0}
+                                max={$currentSong?.duration}
+                                step={0.001}
+                                onChange={(event) => {
+                                    setTime(Number(event.target.value));
+                                }}
+                            />
+                        )}
 
                         <span
                             id="total-time"
                             className="min-w-6 text-xs font-semibold"
                         >
-                            {getTime($currentSong?.duration || 0)}
+                            {$crossFadeCurrentTime && $crossFade
+                                ? getTime($crossFade)
+                                : getTime($currentSong?.duration || 0)}
                         </span>
                     </div>
                 </>

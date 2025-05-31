@@ -1,5 +1,106 @@
-interface Albums {
-    id?: string;
+// **********************************************
+// **** File managed by sqlWrapper by RockIt ****
+// ***********^**********************************
+
+import { DB, BaseTable } from "@/lib/sqlWrapper";
+
+export const db = new DB("database/test-database2.db");
+interface Spotify_imagesTypes {
+    id: string;
+    url: string;
+    width: number;
+    height: number;
+}
+class Spotify_imagesRow {
+    private columnName: string;
+    private value: string | number | null;
+    private db: DB;
+    constructor(columnName: string, value: string | number | null, db: DB) {
+        this.columnName = columnName;
+        this.value = value;
+        this.db = db;
+    }
+    get id(): string {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT id FROM spotify_images WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as Spotify_imagesTypes
+        ).id as string;
+    }
+    set id(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get url(): string {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT url FROM spotify_images WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as Spotify_imagesTypes
+        ).url as string;
+    }
+    set url(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get width(): number {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT width FROM spotify_images WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as Spotify_imagesTypes
+        ).width as number;
+    }
+    set width(newValue: number) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get height(): number {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT height FROM spotify_images WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as Spotify_imagesTypes
+        ).height as number;
+    }
+    set height(newValue: number) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    // *********************
+    // *********************
+    get album_images() {
+        const a = this.db.db
+            .prepare(`SELECT album_id FROM album_images WHERE image_id = ?`)
+            .all(this.id) as { album_id: string }[];
+        return a.map(
+            (b) => new Album_imagesRow("album_id", b.album_id, this.db)
+        );
+    }
+    get artist_images() {
+        const a = this.db.db
+            .prepare(`SELECT artist_id FROM artist_images WHERE image_id = ?`)
+            .all(this.id) as { artist_id: string }[];
+        return a.map(
+            (b) => new Artist_imagesRow("artist_id", b.artist_id, this.db)
+        );
+    }
+}
+class Spotify_images extends BaseTable<Spotify_imagesTypes> {
+    db: DB;
+    constructor(db: DB) {
+        super("spotify_images", db);
+        this.db = db;
+    }
+    get(columnName: string, value: string | number | null): Spotify_imagesRow {
+        return new Spotify_imagesRow(columnName, value, this.db);
+    }
+}
+export const spotify_images = new Spotify_images(db);
+
+interface AlbumsTypes {
+    id: string;
     image: string;
     name: string;
     release_date: string;
@@ -7,8 +108,445 @@ interface Albums {
     disc_count: number;
     date_added: string;
 }
-interface Songs {
-    id?: string;
+class AlbumsRow {
+    private columnName: string;
+    private value: string | number | null;
+    private db: DB;
+    constructor(columnName: string, value: string | number | null, db: DB) {
+        this.columnName = columnName;
+        this.value = value;
+        this.db = db;
+    }
+    get id(): string {
+        return (
+            this.db.db
+                .prepare(`SELECT id FROM albums WHERE ${this.columnName} = ?`)
+                .get(this.value) as AlbumsTypes
+        ).id as string;
+    }
+    set id(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get image(): string {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT image FROM albums WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as AlbumsTypes
+        ).image as string;
+    }
+    set image(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get name(): string {
+        return (
+            this.db.db
+                .prepare(`SELECT name FROM albums WHERE ${this.columnName} = ?`)
+                .get(this.value) as AlbumsTypes
+        ).name as string;
+    }
+    set name(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get release_date(): string {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT release_date FROM albums WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as AlbumsTypes
+        ).release_date as string;
+    }
+    set release_date(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get popularity(): number | undefined {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT popularity FROM albums WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as AlbumsTypes
+        ).popularity as number | undefined;
+    }
+    set popularity(newValue: number | undefined) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get disc_count(): number {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT disc_count FROM albums WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as AlbumsTypes
+        ).disc_count as number;
+    }
+    set disc_count(newValue: number) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get date_added(): string {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT date_added FROM albums WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as AlbumsTypes
+        ).date_added as string;
+    }
+    set date_added(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    // *********************
+    // *********************
+    get album_images() {
+        const a = this.db.db
+            .prepare(`SELECT album_id FROM album_images WHERE album_id = ?`)
+            .all(this.id) as { album_id: string }[];
+        return a.map(
+            (b) => new Album_imagesRow("album_id", b.album_id, this.db)
+        );
+    }
+    get album_artists() {
+        const a = this.db.db
+            .prepare(`SELECT album_id FROM album_artists WHERE album_id = ?`)
+            .all(this.id) as { album_id: string }[];
+        return a.map(
+            (b) => new Album_artistsRow("album_id", b.album_id, this.db)
+        );
+    }
+    get songs() {
+        const a = this.db.db
+            .prepare(`SELECT id FROM songs WHERE album_id = ?`)
+            .all(this.id) as { id: string }[];
+        return a.map((b) => new SongsRow("id", b.id, this.db));
+    }
+}
+class Albums extends BaseTable<AlbumsTypes> {
+    db: DB;
+    constructor(db: DB) {
+        super("albums", db);
+        this.db = db;
+    }
+    get(columnName: string, value: string | number | null): AlbumsRow {
+        return new AlbumsRow(columnName, value, this.db);
+    }
+}
+export const albums = new Albums(db);
+
+interface Album_imagesTypes {
+    album_id: string;
+    image_id: string;
+}
+class Album_imagesRow {
+    private columnName: string;
+    private value: string | number | null;
+    private db: DB;
+    constructor(columnName: string, value: string | number | null, db: DB) {
+        this.columnName = columnName;
+        this.value = value;
+        this.db = db;
+    }
+    get album_id(): string {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT album_id FROM album_images WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as Album_imagesTypes
+        ).album_id as string;
+    }
+    set album_id(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get image_id(): string {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT image_id FROM album_images WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as Album_imagesTypes
+        ).image_id as string;
+    }
+    set image_id(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    // *********************
+    get album(): AlbumsRow {
+        return new AlbumsRow("id", this.album_id, this.db);
+    }
+    get image(): Spotify_imagesRow {
+        return new Spotify_imagesRow("id", this.image_id, this.db);
+    }
+    // *********************
+}
+class Album_images extends BaseTable<Album_imagesTypes> {
+    db: DB;
+    constructor(db: DB) {
+        super("album_images", db);
+        this.db = db;
+    }
+    get(columnName: string, value: string | number | null): Album_imagesRow {
+        return new Album_imagesRow(columnName, value, this.db);
+    }
+}
+export const album_images = new Album_images(db);
+
+interface ArtistsTypes {
+    id: string;
+    name: string;
+    genres?: string;
+    followers?: number;
+    popularity?: number;
+    date_added?: string;
+    image?: string;
+}
+class ArtistsRow {
+    private columnName: string;
+    private value: string | number | null;
+    private db: DB;
+    constructor(columnName: string, value: string | number | null, db: DB) {
+        this.columnName = columnName;
+        this.value = value;
+        this.db = db;
+    }
+    get id(): string {
+        return (
+            this.db.db
+                .prepare(`SELECT id FROM artists WHERE ${this.columnName} = ?`)
+                .get(this.value) as ArtistsTypes
+        ).id as string;
+    }
+    set id(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get name(): string {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT name FROM artists WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as ArtistsTypes
+        ).name as string;
+    }
+    set name(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get genres(): string | undefined {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT genres FROM artists WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as ArtistsTypes
+        ).genres as string | undefined;
+    }
+    set genres(newValue: string | undefined) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get followers(): number | undefined {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT followers FROM artists WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as ArtistsTypes
+        ).followers as number | undefined;
+    }
+    set followers(newValue: number | undefined) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get popularity(): number | undefined {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT popularity FROM artists WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as ArtistsTypes
+        ).popularity as number | undefined;
+    }
+    set popularity(newValue: number | undefined) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get date_added(): string | undefined {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT date_added FROM artists WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as ArtistsTypes
+        ).date_added as string | undefined;
+    }
+    set date_added(newValue: string | undefined) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get image(): string | undefined {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT image FROM artists WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as ArtistsTypes
+        ).image as string | undefined;
+    }
+    set image(newValue: string | undefined) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    // *********************
+    // *********************
+    get album_artists() {
+        const a = this.db.db
+            .prepare(`SELECT album_id FROM album_artists WHERE artist_id = ?`)
+            .all(this.id) as { album_id: string }[];
+        return a.map(
+            (b) => new Album_artistsRow("album_id", b.album_id, this.db)
+        );
+    }
+    get artist_images() {
+        const a = this.db.db
+            .prepare(`SELECT artist_id FROM artist_images WHERE artist_id = ?`)
+            .all(this.id) as { artist_id: string }[];
+        return a.map(
+            (b) => new Artist_imagesRow("artist_id", b.artist_id, this.db)
+        );
+    }
+    get song_artists() {
+        const a = this.db.db
+            .prepare(`SELECT song_id FROM song_artists WHERE artist_id = ?`)
+            .all(this.id) as { song_id: string }[];
+        return a.map((b) => new Song_artistsRow("song_id", b.song_id, this.db));
+    }
+}
+class Artists extends BaseTable<ArtistsTypes> {
+    db: DB;
+    constructor(db: DB) {
+        super("artists", db);
+        this.db = db;
+    }
+    get(columnName: string, value: string | number | null): ArtistsRow {
+        return new ArtistsRow(columnName, value, this.db);
+    }
+}
+export const artists = new Artists(db);
+
+interface Album_artistsTypes {
+    album_id: string;
+    artist_id: string;
+}
+class Album_artistsRow {
+    private columnName: string;
+    private value: string | number | null;
+    private db: DB;
+    constructor(columnName: string, value: string | number | null, db: DB) {
+        this.columnName = columnName;
+        this.value = value;
+        this.db = db;
+    }
+    get album_id(): string {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT album_id FROM album_artists WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as Album_artistsTypes
+        ).album_id as string;
+    }
+    set album_id(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get artist_id(): string {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT artist_id FROM album_artists WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as Album_artistsTypes
+        ).artist_id as string;
+    }
+    set artist_id(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    // *********************
+    get album(): AlbumsRow {
+        return new AlbumsRow("id", this.album_id, this.db);
+    }
+    get image(): ArtistsRow {
+        return new ArtistsRow("id", this.artist_id, this.db);
+    }
+    // *********************
+}
+class Album_artists extends BaseTable<Album_artistsTypes> {
+    db: DB;
+    constructor(db: DB) {
+        super("album_artists", db);
+        this.db = db;
+    }
+    get(columnName: string, value: string | number | null): Album_artistsRow {
+        return new Album_artistsRow(columnName, value, this.db);
+    }
+}
+export const album_artists = new Album_artists(db);
+
+interface Artist_imagesTypes {
+    artist_id: string;
+    image_id: string;
+}
+class Artist_imagesRow {
+    private columnName: string;
+    private value: string | number | null;
+    private db: DB;
+    constructor(columnName: string, value: string | number | null, db: DB) {
+        this.columnName = columnName;
+        this.value = value;
+        this.db = db;
+    }
+    get artist_id(): string {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT artist_id FROM artist_images WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as Artist_imagesTypes
+        ).artist_id as string;
+    }
+    set artist_id(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get image_id(): string {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT image_id FROM artist_images WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as Artist_imagesTypes
+        ).image_id as string;
+    }
+    set image_id(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    // *********************
+    get album(): ArtistsRow {
+        return new ArtistsRow("id", this.artist_id, this.db);
+    }
+    get image(): Spotify_imagesRow {
+        return new Spotify_imagesRow("id", this.image_id, this.db);
+    }
+    // *********************
+}
+class Artist_images extends BaseTable<Artist_imagesTypes> {
+    db: DB;
+    constructor(db: DB) {
+        super("artist_images", db);
+        this.db = db;
+    }
+    get(columnName: string, value: string | number | null): Artist_imagesRow {
+        return new Artist_imagesRow(columnName, value, this.db);
+    }
+}
+export const artist_images = new Artist_images(db);
+
+interface SongsTypes {
+    id: string;
     name: string;
     duration: number;
     track_number: number;
@@ -23,247 +561,1295 @@ interface Songs {
     lyrics?: string;
     dynamic_lyrics?: string;
 }
-import { fileURLToPath } from "url";
-// ;
-
-import { Database } from "better-sqlite3";
-import sqlite from "better-sqlite3";
-import { readFile, readFileSync } from "fs";
-
-function capitalizeFirstLetter(val: string) {
-    return String(val).charAt(0).toUpperCase() + String(val).slice(1);
-}
-
-interface ColumnOptions {
-    type: "INTEGER" | "TEXT" | "DATE";
-    primaryKey?: boolean;
-    unique?: boolean;
-    notNull?: boolean;
-}
-class Column {
-    tableName: string;
-    columnName: string;
-    options: ColumnOptions;
-    reference: Column | undefined;
-
-    constructor(columnName: string, tableName: string, options: ColumnOptions) {
-        this.tableName = tableName;
+class SongsRow {
+    private columnName: string;
+    private value: string | number | null;
+    private db: DB;
+    constructor(columnName: string, value: string | number | null, db: DB) {
         this.columnName = columnName;
-        this.options = options;
-    }
-
-    setReference(column: Column) {
-        this.reference = column;
-    }
-
-    getQuery() {
-        const tokens: string[] = [];
-
-        tokens.push(this.columnName);
-        tokens.push(this.options.type);
-
-        if (this.options.notNull) {
-            tokens.push("NOT NULL");
-        }
-        if (this.options.primaryKey) {
-            tokens.push("PRIMARY KEY");
-        }
-        if (this.options.unique) {
-            tokens.push("UNIQUE");
-        }
-        return tokens.join(" ");
-    }
-    getReferences(): string | undefined {
-        if (!this.reference) return;
-
-        return `FOREIGN KEY (${this.columnName}) REFERENCES ${this.reference.tableName}(${this.reference.columnName})`;
-    }
-    getTypes() {
-        // id: string;
-        let variableType: string;
-
-        if (this.options.type == "DATE") {
-            variableType = "string";
-        } else if (this.options.type == "INTEGER") {
-            variableType = "number";
-        } else if (this.options.type == "TEXT") {
-            variableType = "string";
-        } else {
-            variableType = "undefined";
-        }
-
-        return `    ${this.columnName}${this.options.notNull ? "" : "?"}: ${variableType};`;
-    }
-}
-
-class Row<T> {
-    table: Table<T>;
-    column: string;
-    value: string | number | null;
-    constructor(
-        table: Table<T>,
-        column: string,
-        value: string | number | null
-    ) {
-        this.table = table;
-        this.column = column;
         this.value = value;
-        return new Proxy(this, {
-            set(target, prop, value) {
-                console.log(
-                    `UPDATE ${target.table.tableName} SET ${String(prop)}=? WHERE ${column}=?`,
-                    [value, target.value]
-                );
-                return true;
-            },
-            get(target, prop) {
-                console.log(
-                    `SELECT ${String(prop)} FROM ${target.table.tableName} WHERE ${column}=?`,
-                    [target.value]
-                );
-                return "TASDFASEVASVAwsdf";
-            },
-        });
-    }
-}
-
-class Table<T> {
-    tableName: string;
-    columns: Column[] = [];
-    db: DB;
-    constructor(db: DB, tableName: string) {
-        this.tableName = tableName;
         this.db = db;
     }
-
-    addColumn(columnName: string, options: ColumnOptions) {
-        const column = new Column(columnName, this.tableName, options);
-        this.columns.push(column);
-
-        this[columnName] = columnName;
-
-        return column;
-    }
-
-    getQuery() {
-        const query: string[] = [];
-
-        // query.push(`CREATE TABLE IF NOT EXISTS ${this.tableName} (`);
-
-        this.columns.forEach((column) => query.push(column.getQuery()));
-        this.columns.forEach((column) => {
-            const references = column.getReferences();
-            if (references) {
-                query.push(references);
-            }
-        });
-        // query.push(`)`);
-
+    get id(): string {
         return (
-            `CREATE TABLE IF NOT EXISTS ${this.tableName} (\n` +
-            query.join(",\n") +
-            "\n)"
+            this.db.db
+                .prepare(`SELECT id FROM songs WHERE ${this.columnName} = ?`)
+                .get(this.value) as SongsTypes
+        ).id as string;
+    }
+    set id(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get name(): string {
+        return (
+            this.db.db
+                .prepare(`SELECT name FROM songs WHERE ${this.columnName} = ?`)
+                .get(this.value) as SongsTypes
+        ).name as string;
+    }
+    set name(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get duration(): number {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT duration FROM songs WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as SongsTypes
+        ).duration as number;
+    }
+    set duration(newValue: number) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get track_number(): number {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT track_number FROM songs WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as SongsTypes
+        ).track_number as number;
+    }
+    set track_number(newValue: number) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get disc_number(): number {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT disc_number FROM songs WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as SongsTypes
+        ).disc_number as number;
+    }
+    set disc_number(newValue: number) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get popularity(): number | undefined {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT popularity FROM songs WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as SongsTypes
+        ).popularity as number | undefined;
+    }
+    set popularity(newValue: number | undefined) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get image(): string | undefined {
+        return (
+            this.db.db
+                .prepare(`SELECT image FROM songs WHERE ${this.columnName} = ?`)
+                .get(this.value) as SongsTypes
+        ).image as string | undefined;
+    }
+    set image(newValue: string | undefined) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get path(): string | undefined {
+        return (
+            this.db.db
+                .prepare(`SELECT path FROM songs WHERE ${this.columnName} = ?`)
+                .get(this.value) as SongsTypes
+        ).path as string | undefined;
+    }
+    set path(newValue: string | undefined) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get album_id(): string {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT album_id FROM songs WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as SongsTypes
+        ).album_id as string;
+    }
+    set album_id(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get date_added(): string {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT date_added FROM songs WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as SongsTypes
+        ).date_added as string;
+    }
+    set date_added(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get isrc(): string {
+        return (
+            this.db.db
+                .prepare(`SELECT isrc FROM songs WHERE ${this.columnName} = ?`)
+                .get(this.value) as SongsTypes
+        ).isrc as string;
+    }
+    set isrc(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get download_url(): string | undefined {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT download_url FROM songs WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as SongsTypes
+        ).download_url as string | undefined;
+    }
+    set download_url(newValue: string | undefined) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get lyrics(): string | undefined {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT lyrics FROM songs WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as SongsTypes
+        ).lyrics as string | undefined;
+    }
+    set lyrics(newValue: string | undefined) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get dynamic_lyrics(): string | undefined {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT dynamic_lyrics FROM songs WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as SongsTypes
+        ).dynamic_lyrics as string | undefined;
+    }
+    set dynamic_lyrics(newValue: string | undefined) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    // *********************
+    get album(): AlbumsRow {
+        return new AlbumsRow("id", this.album_id, this.db);
+    }
+    // *********************
+    get song_artists() {
+        const a = this.db.db
+            .prepare(`SELECT song_id FROM song_artists WHERE song_id = ?`)
+            .all(this.id) as { song_id: string }[];
+        return a.map((b) => new Song_artistsRow("song_id", b.song_id, this.db));
+    }
+    get users() {
+        const a = this.db.db
+            .prepare(`SELECT id FROM users WHERE current_song_id = ?`)
+            .all(this.id) as { id: string }[];
+        return a.map((b) => new UsersRow("id", b.id, this.db));
+    }
+    get user_queue() {
+        const a = this.db.db
+            .prepare(`SELECT user_id FROM user_queue WHERE song_id = ?`)
+            .all(this.id) as { user_id: string }[];
+        return a.map((b) => new User_queueRow("user_id", b.user_id, this.db));
+    }
+    get user_liked_songs() {
+        const a = this.db.db
+            .prepare(`SELECT user_id FROM user_liked_songs WHERE song_id = ?`)
+            .all(this.id) as { user_id: string }[];
+        return a.map(
+            (b) => new User_liked_songsRow("user_id", b.user_id, this.db)
         );
     }
-
-    getTypes() {
-        console.log(`interface ${capitalizeFirstLetter(this.tableName)} {`);
-        const types = this.columns.map((column) => column.getTypes());
-        console.log(types.join("\n"));
-        console.log("}");
-
-        return "";
-    }
-
-    get(column: string, value: string | number | null): Row<T> {
-        return new Row<T>(this, column, value);
-    }
-    insert(object: T) {
-        console.log("Insert", { object });
-    }
-    commit() {
-        this.db.db.exec(this.getQuery());
+    get user_song_history() {
+        const a = this.db.db
+            .prepare(`SELECT user_id FROM user_song_history WHERE song_id = ?`)
+            .all(this.id) as { user_id: string }[];
+        return a.map(
+            (b) => new User_song_historyRow("user_id", b.user_id, this.db)
+        );
     }
 }
-
-class DB {
-    db: Database;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    tables: Table<any>[] = [];
-
-    fileContent: string;
-
-    constructor() {
-        this.db = sqlite("database/test-database2.db");
-
-        this.fileContent = readFileSync(fileURLToPath(import.meta.url), "utf8");
+class Songs extends BaseTable<SongsTypes> {
+    db: DB;
+    constructor(db: DB) {
+        super("songs", db);
+        this.db = db;
     }
-    addTable<T>(tableName: string) {
-        const table = new Table<T>(this, tableName);
-        this.tables.push(table);
-        return table;
-    }
-    commit() {
-        this.tables.forEach((table) => table.commit());
-        const type = this.tables.map((table) => table.getTypes());
+    get(columnName: string, value: string | number | null): SongsRow {
+        return new SongsRow(columnName, value, this.db);
     }
 }
+export const songs = new Songs(db);
 
-export const db = new DB();
+interface Song_artistsTypes {
+    song_id: string;
+    artist_id: string;
+}
+class Song_artistsRow {
+    private columnName: string;
+    private value: string | number | null;
+    private db: DB;
+    constructor(columnName: string, value: string | number | null, db: DB) {
+        this.columnName = columnName;
+        this.value = value;
+        this.db = db;
+    }
+    get song_id(): string {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT song_id FROM song_artists WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as Song_artistsTypes
+        ).song_id as string;
+    }
+    set song_id(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get artist_id(): string {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT artist_id FROM song_artists WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as Song_artistsTypes
+        ).artist_id as string;
+    }
+    set artist_id(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    // *********************
+    get album(): SongsRow {
+        return new SongsRow("id", this.song_id, this.db);
+    }
+    get image(): ArtistsRow {
+        return new ArtistsRow("id", this.artist_id, this.db);
+    }
+    // *********************
+}
+class Song_artists extends BaseTable<Song_artistsTypes> {
+    db: DB;
+    constructor(db: DB) {
+        super("song_artists", db);
+        this.db = db;
+    }
+    get(columnName: string, value: string | number | null): Song_artistsRow {
+        return new Song_artistsRow(columnName, value, this.db);
+    }
+}
+export const song_artists = new Song_artists(db);
 
-const albums = db.addTable("albums");
-const albumId = albums.addColumn("id", {
-    type: "TEXT",
-    primaryKey: true,
-    unique: true,
-});
-albums.addColumn("image", { type: "TEXT", notNull: true });
-albums.addColumn("name", { type: "TEXT", notNull: true });
-albums.addColumn("release_date", { type: "DATE", notNull: true });
-albums.addColumn("popularity", { type: "INTEGER" });
-albums.addColumn("disc_count", { type: "INTEGER", notNull: true });
-albums.addColumn("date_added", { type: "DATE", notNull: true });
+interface UsersTypes {
+    id: string;
+    username: string;
+    password_hash: string;
+    current_song_id?: string;
+    current_station?: string;
+    current_time?: number;
+    queue_index?: number;
+    random_queue: boolean;
+    repeat_song: string;
+    volume: number;
+    cross_fade: number;
+    lang: string;
+    admin: boolean;
+    super_admin: boolean;
+    impersonate_id?: string;
+    dev_user: boolean;
+    created_at: string;
+}
+class UsersRow {
+    private columnName: string;
+    private value: string | number | null;
+    private db: DB;
+    constructor(columnName: string, value: string | number | null, db: DB) {
+        this.columnName = columnName;
+        this.value = value;
+        this.db = db;
+    }
+    get id(): string {
+        return (
+            this.db.db
+                .prepare(`SELECT id FROM users WHERE ${this.columnName} = ?`)
+                .get(this.value) as UsersTypes
+        ).id as string;
+    }
+    set id(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get username(): string {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT username FROM users WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as UsersTypes
+        ).username as string;
+    }
+    set username(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get password_hash(): string {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT password_hash FROM users WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as UsersTypes
+        ).password_hash as string;
+    }
+    set password_hash(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get current_song_id(): string | undefined {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT current_song_id FROM users WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as UsersTypes
+        ).current_song_id as string | undefined;
+    }
+    set current_song_id(newValue: string | undefined) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get current_station(): string | undefined {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT current_station FROM users WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as UsersTypes
+        ).current_station as string | undefined;
+    }
+    set current_station(newValue: string | undefined) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get current_time(): number | undefined {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT current_time FROM users WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as UsersTypes
+        ).current_time as number | undefined;
+    }
+    set current_time(newValue: number | undefined) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get queue_index(): number | undefined {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT queue_index FROM users WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as UsersTypes
+        ).queue_index as number | undefined;
+    }
+    set queue_index(newValue: number | undefined) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get random_queue(): boolean {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT random_queue FROM users WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as UsersTypes
+        ).random_queue as boolean;
+    }
+    set random_queue(newValue: boolean) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get repeat_song(): string {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT repeat_song FROM users WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as UsersTypes
+        ).repeat_song as string;
+    }
+    set repeat_song(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get volume(): number {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT volume FROM users WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as UsersTypes
+        ).volume as number;
+    }
+    set volume(newValue: number) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get cross_fade(): number {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT cross_fade FROM users WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as UsersTypes
+        ).cross_fade as number;
+    }
+    set cross_fade(newValue: number) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get lang(): string {
+        return (
+            this.db.db
+                .prepare(`SELECT lang FROM users WHERE ${this.columnName} = ?`)
+                .get(this.value) as UsersTypes
+        ).lang as string;
+    }
+    set lang(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get admin(): boolean {
+        return (
+            this.db.db
+                .prepare(`SELECT admin FROM users WHERE ${this.columnName} = ?`)
+                .get(this.value) as UsersTypes
+        ).admin as boolean;
+    }
+    set admin(newValue: boolean) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get super_admin(): boolean {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT super_admin FROM users WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as UsersTypes
+        ).super_admin as boolean;
+    }
+    set super_admin(newValue: boolean) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get impersonate_id(): string | undefined {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT impersonate_id FROM users WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as UsersTypes
+        ).impersonate_id as string | undefined;
+    }
+    set impersonate_id(newValue: string | undefined) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get dev_user(): boolean {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT dev_user FROM users WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as UsersTypes
+        ).dev_user as boolean;
+    }
+    set dev_user(newValue: boolean) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get created_at(): string {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT created_at FROM users WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as UsersTypes
+        ).created_at as string;
+    }
+    set created_at(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    // *********************
+    get current_song(): SongsRow | undefined {
+        if (this.current_song_id)
+            return new SongsRow("id", this.current_song_id, this.db);
+    }
+    get impersonated_user(): UsersRow | undefined {
+        if (this.impersonate_id)
+            return new UsersRow("id", this.impersonate_id, this.db);
+    }
+    // *********************
+    get users() {
+        const a = this.db.db
+            .prepare(`SELECT id FROM users WHERE impersonate_id = ?`)
+            .all(this.id) as { id: string }[];
+        return a.map((b) => new UsersRow("id", b.id, this.db));
+    }
+    get user_lists() {
+        const a = this.db.db
+            .prepare(`SELECT user_id FROM user_lists WHERE user_id = ?`)
+            .all(this.id) as { user_id: string }[];
+        return a.map((b) => new User_listsRow("user_id", b.user_id, this.db));
+    }
+    get user_queue() {
+        const a = this.db.db
+            .prepare(`SELECT user_id FROM user_queue WHERE user_id = ?`)
+            .all(this.id) as { user_id: string }[];
+        return a.map((b) => new User_queueRow("user_id", b.user_id, this.db));
+    }
+    get user_liked_songs() {
+        const a = this.db.db
+            .prepare(`SELECT user_id FROM user_liked_songs WHERE user_id = ?`)
+            .all(this.id) as { user_id: string }[];
+        return a.map(
+            (b) => new User_liked_songsRow("user_id", b.user_id, this.db)
+        );
+    }
+    get user_song_history() {
+        const a = this.db.db
+            .prepare(`SELECT user_id FROM user_song_history WHERE user_id = ?`)
+            .all(this.id) as { user_id: string }[];
+        return a.map(
+            (b) => new User_song_historyRow("user_id", b.user_id, this.db)
+        );
+    }
+    get downloads() {
+        const a = this.db.db
+            .prepare(`SELECT id FROM downloads WHERE user_id = ?`)
+            .all(this.id) as { id: string }[];
+        return a.map((b) => new DownloadsRow("id", b.id, this.db));
+    }
+    get errors() {
+        const a = this.db.db
+            .prepare(`SELECT id FROM errors WHERE user_id = ?`)
+            .all(this.id) as { id: string }[];
+        return a.map((b) => new ErrorsRow("id", b.id, this.db));
+    }
+}
+class Users extends BaseTable<UsersTypes> {
+    db: DB;
+    constructor(db: DB) {
+        super("users", db);
+        this.db = db;
+    }
+    get(columnName: string, value: string | number | null): UsersRow {
+        return new UsersRow(columnName, value, this.db);
+    }
+}
+export const users = new Users(db);
 
-export const songs = db.addTable<Songs>("songs");
+interface User_listsTypes {
+    user_id: string;
+    item_type: string;
+    item_id: string;
+    created_at: string;
+}
+class User_listsRow {
+    private columnName: string;
+    private value: string | number | null;
+    private db: DB;
+    constructor(columnName: string, value: string | number | null, db: DB) {
+        this.columnName = columnName;
+        this.value = value;
+        this.db = db;
+    }
+    get user_id(): string {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT user_id FROM user_lists WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as User_listsTypes
+        ).user_id as string;
+    }
+    set user_id(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get item_type(): string {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT item_type FROM user_lists WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as User_listsTypes
+        ).item_type as string;
+    }
+    set item_type(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get item_id(): string {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT item_id FROM user_lists WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as User_listsTypes
+        ).item_id as string;
+    }
+    set item_id(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get created_at(): string {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT created_at FROM user_lists WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as User_listsTypes
+        ).created_at as string;
+    }
+    set created_at(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    // *********************
+    get user(): UsersRow {
+        return new UsersRow("id", this.user_id, this.db);
+    }
+    // *********************
+}
+class User_lists extends BaseTable<User_listsTypes> {
+    db: DB;
+    constructor(db: DB) {
+        super("user_lists", db);
+        this.db = db;
+    }
+    get(columnName: string, value: string | number | null): User_listsRow {
+        return new User_listsRow(columnName, value, this.db);
+    }
+}
+export const user_lists = new User_lists(db);
 
-songs.addColumn("id", {
-    type: "TEXT",
-    primaryKey: true,
-    unique: true,
-});
-songs.addColumn("name", { type: "TEXT", notNull: true });
-songs.addColumn("duration", { type: "INTEGER", notNull: true });
-songs.addColumn("track_number", { type: "INTEGER", notNull: true });
-songs.addColumn("disc_number", { type: "INTEGER", notNull: true });
-songs.addColumn("popularity", { type: "INTEGER" });
-songs.addColumn("image", { type: "TEXT" });
-songs.addColumn("path", { type: "TEXT" });
-songs
-    .addColumn("album_id", {
-        type: "TEXT",
-        notNull: true,
-    })
-    .setReference(albumId);
-songs.addColumn("date_added", { type: "DATE", notNull: true });
-songs.addColumn("isrc", {
-    type: "TEXT",
-    notNull: true,
-    unique: true,
-});
-songs.addColumn("download_url", {
-    type: "TEXT",
-});
-songs.addColumn("lyrics", {
-    type: "TEXT",
-});
-songs.addColumn("dynamic_lyrics", {
-    type: "TEXT",
-});
+interface User_queueTypes {
+    user_id: string;
+    position: number;
+    song_id: string;
+    list_type: string;
+    list_id: string;
+}
+class User_queueRow {
+    private columnName: string;
+    private value: string | number | null;
+    private db: DB;
+    constructor(columnName: string, value: string | number | null, db: DB) {
+        this.columnName = columnName;
+        this.value = value;
+        this.db = db;
+    }
+    get user_id(): string {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT user_id FROM user_queue WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as User_queueTypes
+        ).user_id as string;
+    }
+    set user_id(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get position(): number {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT position FROM user_queue WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as User_queueTypes
+        ).position as number;
+    }
+    set position(newValue: number) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get song_id(): string {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT song_id FROM user_queue WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as User_queueTypes
+        ).song_id as string;
+    }
+    set song_id(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get list_type(): string {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT list_type FROM user_queue WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as User_queueTypes
+        ).list_type as string;
+    }
+    set list_type(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get list_id(): string {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT list_id FROM user_queue WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as User_queueTypes
+        ).list_id as string;
+    }
+    set list_id(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    // *********************
+    get user(): UsersRow {
+        return new UsersRow("id", this.user_id, this.db);
+    }
+    get song(): SongsRow {
+        return new SongsRow("id", this.song_id, this.db);
+    }
+    // *********************
+}
+class User_queue extends BaseTable<User_queueTypes> {
+    db: DB;
+    constructor(db: DB) {
+        super("user_queue", db);
+        this.db = db;
+    }
+    get(columnName: string, value: string | number | null): User_queueRow {
+        return new User_queueRow(columnName, value, this.db);
+    }
+}
+export const user_queue = new User_queue(db);
 
-// console.log("ASD")
-db.commit();
+interface User_pinned_listsTypes {
+    user_id: string;
+    item_type: string;
+    item_id: string;
+    created_at: string;
+}
+class User_pinned_listsRow {
+    private columnName: string;
+    private value: string | number | null;
+    private db: DB;
+    constructor(columnName: string, value: string | number | null, db: DB) {
+        this.columnName = columnName;
+        this.value = value;
+        this.db = db;
+    }
+    get user_id(): string {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT user_id FROM user_pinned_lists WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as User_pinned_listsTypes
+        ).user_id as string;
+    }
+    set user_id(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get item_type(): string {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT item_type FROM user_pinned_lists WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as User_pinned_listsTypes
+        ).item_type as string;
+    }
+    set item_type(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get item_id(): string {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT item_id FROM user_pinned_lists WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as User_pinned_listsTypes
+        ).item_id as string;
+    }
+    set item_id(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get created_at(): string {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT created_at FROM user_pinned_lists WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as User_pinned_listsTypes
+        ).created_at as string;
+    }
+    set created_at(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    // *********************
+    // *********************
+}
+class User_pinned_lists extends BaseTable<User_pinned_listsTypes> {
+    db: DB;
+    constructor(db: DB) {
+        super("user_pinned_lists", db);
+        this.db = db;
+    }
+    get(
+        columnName: string,
+        value: string | number | null
+    ): User_pinned_listsRow {
+        return new User_pinned_listsRow(columnName, value, this.db);
+    }
+}
+export const user_pinned_lists = new User_pinned_lists(db);
 
-songs.insert({ id: "AS", name: "A" });
+interface User_liked_songsTypes {
+    user_id: string;
+    song_id: string;
+    created_at: string;
+}
+class User_liked_songsRow {
+    private columnName: string;
+    private value: string | number | null;
+    private db: DB;
+    constructor(columnName: string, value: string | number | null, db: DB) {
+        this.columnName = columnName;
+        this.value = value;
+        this.db = db;
+    }
+    get user_id(): string {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT user_id FROM user_liked_songs WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as User_liked_songsTypes
+        ).user_id as string;
+    }
+    set user_id(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get song_id(): string {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT song_id FROM user_liked_songs WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as User_liked_songsTypes
+        ).song_id as string;
+    }
+    set song_id(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get created_at(): string {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT created_at FROM user_liked_songs WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as User_liked_songsTypes
+        ).created_at as string;
+    }
+    set created_at(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    // *********************
+    get user(): UsersRow {
+        return new UsersRow("id", this.user_id, this.db);
+    }
+    get song(): SongsRow {
+        return new SongsRow("id", this.song_id, this.db);
+    }
+    // *********************
+}
+class User_liked_songs extends BaseTable<User_liked_songsTypes> {
+    db: DB;
+    constructor(db: DB) {
+        super("user_liked_songs", db);
+        this.db = db;
+    }
+    get(
+        columnName: string,
+        value: string | number | null
+    ): User_liked_songsRow {
+        return new User_liked_songsRow(columnName, value, this.db);
+    }
+}
+export const user_liked_songs = new User_liked_songs(db);
 
-// console.log(songs.get(songs.id, "asfasdfas").isrc);
-// songs.get(songs.id, "asfasdfas").isrc = "ASDF";
+interface User_song_historyTypes {
+    user_id: string;
+    song_id: string;
+    played_at: string;
+}
+class User_song_historyRow {
+    private columnName: string;
+    private value: string | number | null;
+    private db: DB;
+    constructor(columnName: string, value: string | number | null, db: DB) {
+        this.columnName = columnName;
+        this.value = value;
+        this.db = db;
+    }
+    get user_id(): string {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT user_id FROM user_song_history WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as User_song_historyTypes
+        ).user_id as string;
+    }
+    set user_id(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get song_id(): string {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT song_id FROM user_song_history WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as User_song_historyTypes
+        ).song_id as string;
+    }
+    set song_id(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get played_at(): string {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT played_at FROM user_song_history WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as User_song_historyTypes
+        ).played_at as string;
+    }
+    set played_at(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    // *********************
+    get user(): UsersRow {
+        return new UsersRow("id", this.user_id, this.db);
+    }
+    get song(): SongsRow {
+        return new SongsRow("id", this.song_id, this.db);
+    }
+    // *********************
+}
+class User_song_history extends BaseTable<User_song_historyTypes> {
+    db: DB;
+    constructor(db: DB) {
+        super("user_song_history", db);
+        this.db = db;
+    }
+    get(
+        columnName: string,
+        value: string | number | null
+    ): User_song_historyRow {
+        return new User_song_historyRow(columnName, value, this.db);
+    }
+}
+export const user_song_history = new User_song_history(db);
+
+interface DownloadsTypes {
+    id: string;
+    user_id: string;
+    date_started: string;
+    date_ended?: string;
+    download_url: string;
+    status: string;
+    seen: boolean;
+    success?: number;
+    fail?: number;
+}
+class DownloadsRow {
+    private columnName: string;
+    private value: string | number | null;
+    private db: DB;
+    constructor(columnName: string, value: string | number | null, db: DB) {
+        this.columnName = columnName;
+        this.value = value;
+        this.db = db;
+    }
+    get id(): string {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT id FROM downloads WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as DownloadsTypes
+        ).id as string;
+    }
+    set id(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get user_id(): string {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT user_id FROM downloads WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as DownloadsTypes
+        ).user_id as string;
+    }
+    set user_id(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get date_started(): string {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT date_started FROM downloads WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as DownloadsTypes
+        ).date_started as string;
+    }
+    set date_started(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get date_ended(): string | undefined {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT date_ended FROM downloads WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as DownloadsTypes
+        ).date_ended as string | undefined;
+    }
+    set date_ended(newValue: string | undefined) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get download_url(): string {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT download_url FROM downloads WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as DownloadsTypes
+        ).download_url as string;
+    }
+    set download_url(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get status(): string {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT status FROM downloads WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as DownloadsTypes
+        ).status as string;
+    }
+    set status(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get seen(): boolean {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT seen FROM downloads WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as DownloadsTypes
+        ).seen as boolean;
+    }
+    set seen(newValue: boolean) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get success(): number | undefined {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT success FROM downloads WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as DownloadsTypes
+        ).success as number | undefined;
+    }
+    set success(newValue: number | undefined) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get fail(): number | undefined {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT fail FROM downloads WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as DownloadsTypes
+        ).fail as number | undefined;
+    }
+    set fail(newValue: number | undefined) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    // *********************
+    get user(): UsersRow {
+        return new UsersRow("id", this.user_id, this.db);
+    }
+    // *********************
+}
+class Downloads extends BaseTable<DownloadsTypes> {
+    db: DB;
+    constructor(db: DB) {
+        super("downloads", db);
+        this.db = db;
+    }
+    get(columnName: string, value: string | number | null): DownloadsRow {
+        return new DownloadsRow(columnName, value, this.db);
+    }
+}
+export const downloads = new Downloads(db);
+
+interface ErrorsTypes {
+    id: string;
+    msg?: string;
+    source?: string;
+    line_no?: number;
+    column_no?: number;
+    error_message?: string;
+    error_cause?: string;
+    error_name?: string;
+    error_stack?: string;
+    user_id?: string;
+    date_added?: string;
+}
+class ErrorsRow {
+    private columnName: string;
+    private value: string | number | null;
+    private db: DB;
+    constructor(columnName: string, value: string | number | null, db: DB) {
+        this.columnName = columnName;
+        this.value = value;
+        this.db = db;
+    }
+    get id(): string {
+        return (
+            this.db.db
+                .prepare(`SELECT id FROM errors WHERE ${this.columnName} = ?`)
+                .get(this.value) as ErrorsTypes
+        ).id as string;
+    }
+    set id(newValue: string) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get msg(): string | undefined {
+        return (
+            this.db.db
+                .prepare(`SELECT msg FROM errors WHERE ${this.columnName} = ?`)
+                .get(this.value) as ErrorsTypes
+        ).msg as string | undefined;
+    }
+    set msg(newValue: string | undefined) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get source(): string | undefined {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT source FROM errors WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as ErrorsTypes
+        ).source as string | undefined;
+    }
+    set source(newValue: string | undefined) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get line_no(): number | undefined {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT line_no FROM errors WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as ErrorsTypes
+        ).line_no as number | undefined;
+    }
+    set line_no(newValue: number | undefined) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get column_no(): number | undefined {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT column_no FROM errors WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as ErrorsTypes
+        ).column_no as number | undefined;
+    }
+    set column_no(newValue: number | undefined) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get error_message(): string | undefined {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT error_message FROM errors WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as ErrorsTypes
+        ).error_message as string | undefined;
+    }
+    set error_message(newValue: string | undefined) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get error_cause(): string | undefined {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT error_cause FROM errors WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as ErrorsTypes
+        ).error_cause as string | undefined;
+    }
+    set error_cause(newValue: string | undefined) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get error_name(): string | undefined {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT error_name FROM errors WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as ErrorsTypes
+        ).error_name as string | undefined;
+    }
+    set error_name(newValue: string | undefined) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get error_stack(): string | undefined {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT error_stack FROM errors WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as ErrorsTypes
+        ).error_stack as string | undefined;
+    }
+    set error_stack(newValue: string | undefined) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get user_id(): string | undefined {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT user_id FROM errors WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as ErrorsTypes
+        ).user_id as string | undefined;
+    }
+    set user_id(newValue: string | undefined) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    get date_added(): string | undefined {
+        return (
+            this.db.db
+                .prepare(
+                    `SELECT date_added FROM errors WHERE ${this.columnName} = ?`
+                )
+                .get(this.value) as ErrorsTypes
+        ).date_added as string | undefined;
+    }
+    set date_added(newValue: string | undefined) {
+        console.warn("TODO", newValue, this.columnName, this.value);
+    }
+    // *********************
+    get user(): UsersRow | undefined {
+        if (this.user_id) return new UsersRow("id", this.user_id, this.db);
+    }
+    // *********************
+}
+class Errors extends BaseTable<ErrorsTypes> {
+    db: DB;
+    constructor(db: DB) {
+        super("errors", db);
+        this.db = db;
+    }
+    get(columnName: string, value: string | number | null): ErrorsRow {
+        return new ErrorsRow(columnName, value, this.db);
+    }
+}
+export const errors = new Errors(db);

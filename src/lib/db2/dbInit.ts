@@ -35,7 +35,7 @@ albums.addColumn("name", { type: "TEXT", notNull: true });
 albums.addColumn("release_date", { type: "DATE", notNull: true });
 albums.addColumn("popularity", { type: "INTEGER" });
 albums.addColumn("disc_count", { type: "INTEGER", notNull: true });
-albums.addColumn("date_added", { type: "DATE", notNull: true });
+albums.addColumn("date_added", { type: db.NOW, notNull: true });
 
 // **********************
 // **** album_images ****
@@ -71,7 +71,8 @@ artists.addColumn("popularity", {
     type: "INTEGER",
 });
 artists.addColumn("date_added", {
-    type: "DATE",
+    type: db.NOW,
+    notNull: true,
 });
 artists.addColumn("image", { type: "TEXT" });
 
@@ -129,7 +130,7 @@ songs
         notNull: true,
     })
     .setReference(albumId, "album");
-songs.addColumn("date_added", { type: "DATE", notNull: true });
+songs.addColumn("date_added", { type: db.NOW, notNull: true });
 songs.addColumn("isrc", {
     type: "TEXT",
     notNull: true,
@@ -199,7 +200,7 @@ users
     .addColumn("impersonate_id", { type: "TEXT" })
     .setReference(userId, "impersonated_user");
 users.addColumn("dev_user", { type: "BOOLEAN", default: false, notNull: true });
-users.addColumn("created_at", { type: "DATE", notNull: true });
+users.addColumn("date_added", { type: db.NOW, notNull: true });
 
 // ********************
 // **** user_lists ****
@@ -224,7 +225,7 @@ user_lists.addColumn("item_id", {
     notNull: true,
     primaryKey: true,
 });
-user_lists.addColumn("created_at", { type: "DATE", notNull: true });
+user_lists.addColumn("date_added", { type: db.NOW, notNull: true });
 
 // ********************
 // **** user_queue ****
@@ -279,7 +280,7 @@ user_pinned_lists.addColumn("item_id", {
     primaryKey: true,
     notNull: true,
 });
-user_pinned_lists.addColumn("created_at", { type: "DATE", notNull: true });
+user_pinned_lists.addColumn("date_added", { type: db.NOW, notNull: true });
 
 // **************************
 // **** user_liked_songs ****
@@ -301,7 +302,7 @@ user_liked_songs
         primaryKey: true,
     })
     .setReference(songId, "song");
-user_liked_songs.addColumn("created_at", { type: "DATE", notNull: true });
+user_liked_songs.addColumn("date_added", { type: db.NOW, notNull: true });
 
 // **************************
 // **** user_song_history ****
@@ -367,6 +368,6 @@ errors.addColumn("error_cause", { type: "TEXT" });
 errors.addColumn("error_name", { type: "TEXT" });
 errors.addColumn("error_stack", { type: "TEXT" });
 errors.addColumn("user_id", { type: "TEXT" }).setReference(userId, "user");
-errors.addColumn("date_added", { type: "DATE" });
+errors.addColumn("date_added", { type: db.NOW, notNull: true });
 
 db.commit("src/lib/db2/db.ts");

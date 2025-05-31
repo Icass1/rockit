@@ -1,13 +1,14 @@
 import { Database } from "better-sqlite3";
 import sqlite from "better-sqlite3";
 import { writeFileSync } from "fs";
+import { getDatabaseDate } from "./getTime";
 
 function capitalizeFirstLetter(val: string) {
     return String(val).charAt(0).toUpperCase() + String(val).slice(1);
 }
 
 interface ColumnOptions {
-    type: "INTEGER" | "TEXT" | "DATE" | "BOOLEAN";
+    type: "INTEGER" | "TEXT" | "DATE" | "BOOLEAN" | "sqlWrapper-now-func";
     primaryKey?: boolean;
     unique?: boolean;
     notNull?: boolean;
@@ -49,7 +50,11 @@ class ColumnInit {
         const tokens: string[] = [];
 
         tokens.push(this.columnName);
-        tokens.push(this.options.type);
+        if (this.options.type == "sqlWrapper-now-func") {
+            tokens.push("DATE");
+        } else {
+            tokens.push(this.options.type);
+        }
 
         if (this.options.notNull) {
             tokens.push("NOT NULL");
@@ -94,6 +99,8 @@ class ColumnInit {
             variableType = "string";
         } else if (this.options.type == "BOOLEAN") {
             variableType = "boolean";
+        } else if (this.options.type == "sqlWrapper-now-func") {
+            variableType = "string";
         } else {
             throw `Unknown varialbe type ${this.options.type}`;
         }
@@ -102,9 +109,7 @@ class ColumnInit {
     }
 
     getTypeLine() {
-        // id: string;
-
-        return `    ${this.columnName}${this.options.notNull ? "" : "?"}: ${this.getType()};`;
+        return `    ${this.columnName}${this.options.notNull && this.options.type != "sqlWrapper-now-func" ? "" : "?"}: ${this.getType()};`;
     }
 }
 
@@ -122,7 +127,7 @@ export class TableInit {
         this.tableName = tableName;
         this.db = db;
 
-        this.typesName = capitalizeFirstLetter(this.tableName) + "Types";
+        this.typesName = capitalizeFirstLetter(this.tableName) + "Type";
         this.rowClassName = capitalizeFirstLetter(this.tableName) + "Row";
     }
 
@@ -275,7 +280,17 @@ export class TableInit {
         );
         lines.push("    db: DB");
         lines.push("    constructor(db: DB) {");
-        lines.push(`        super("${this.tableName}", db)`);
+        lines.push(
+            `        super("${this.tableName}", db, [${this.columns
+                .map((column) => {
+                    if (column.options.type == "sqlWrapper-now-func")
+                        return `{
+                            columnName: '${column.columnName}',
+                            type: '${column.options.type}',
+                        }`;
+                })
+                .filter((columnInfo) => columnInfo)}])`
+        );
         lines.push("        this.db = db");
         lines.push("    }");
         lines.push(
@@ -314,9 +329,16 @@ interface InsertOptions {
 export class BaseTable<T> {
     tableName: string;
     db: DB;
-    constructor(tableName: string, db: DB) {
+    columnsInfo: { columnName: string; type: string }[] = [];
+
+    constructor(
+        tableName: string,
+        db: DB,
+        columnsInfo: { columnName: string; type: string }[]
+    ) {
         this.tableName = tableName;
         this.db = db;
+        this.columnsInfo = columnsInfo;
     }
 
     insert(object: T[], options?: InsertOptions): void;
@@ -330,6 +352,19 @@ export class BaseTable<T> {
                 if (typeof _object != "object")
                     throw "Input object is not an object";
                 if (!_object) throw "Input object is not defined";
+
+                this.columnsInfo.forEach((columnInfo) => {
+                    if (
+                        columnInfo.type === "sqlWrapper-now-func" &&
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        !(_object as any)[columnInfo.columnName]
+                    ) {
+                        console.log("Setting", columnInfo.columnName);
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        (_object as any)[columnInfo.columnName] =
+                            getDatabaseDate();
+                    }
+                });
 
                 const queryString = `INSERT INTO ${this.tableName} (${Object.keys(_object).join(",")}) VALUES (${Object.keys(
                     _object
@@ -353,6 +388,18 @@ export class BaseTable<T> {
                 }
             });
         } else {
+            this.columnsInfo.forEach((columnInfo) => {
+                if (
+                    columnInfo.type === "sqlWrapper-now-func" &&
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    !(object as any)[columnInfo.columnName]
+                ) {
+                    console.log("Setting", columnInfo.columnName);
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    (object as any)[columnInfo.columnName] = getDatabaseDate();
+                }
+            });
+
             const queryString = `INSERT INTO ${this.tableName} (${Object.keys(object).join(",")}) VALUES (${Object.keys(
                 object
             )
@@ -381,6 +428,8 @@ export class DB {
     tables: TableInit[] = [];
 
     dbFile: string;
+
+    NOW = "sqlWrapper-now-func" as const;
 
     constructor(dbFile: string) {
         this.db = sqlite(dbFile);

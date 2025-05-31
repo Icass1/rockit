@@ -94,3 +94,21 @@ export function getMinutes(seconds: number) {
 
     return `${formattedMinutes}`;
 }
+
+export function getDatabaseDate(date?: Date | number | undefined | string) {
+    if (date instanceof Date) {
+        const pad = (n: number) => n.toString().padStart(2, "0");
+
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+    } else if (typeof date == "number" || typeof date == "string") {
+        if (Number(date)) {
+            return getDatabaseDate(new Date(Number(date)));
+        } else {
+            return getDatabaseDate(new Date(date));
+        }
+    } else if (typeof date == "undefined") {
+        return getDatabaseDate(new Date());
+    } else {
+        throw "date input not valid";
+    }
+}

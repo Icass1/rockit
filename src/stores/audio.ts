@@ -1139,6 +1139,12 @@ const getUA = () => {
 async function startSocket() {
     if (typeof window === "undefined") return null;
 
+    if (localStorage.getItem("web-socket") == "false") {
+        console.warn("web socket is disabled in localStore");
+
+        return;
+    }
+
     const session = await getSession();
 
     if (!session) return;

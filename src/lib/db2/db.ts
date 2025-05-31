@@ -5,7 +5,7 @@
 import { DB, BaseTable } from "@/lib/sqlWrapper";
 
 export const db = new DB("database/test-database2.db");
-interface Spotify_imagesTypes {
+interface Spotify_imagesType {
     id: string;
     url: string;
     width: number;
@@ -26,7 +26,7 @@ class Spotify_imagesRow {
                 .prepare(
                     `SELECT id FROM spotify_images WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as Spotify_imagesTypes
+                .get(this.value) as Spotify_imagesType
         ).id as string;
     }
     set id(newValue: string) {
@@ -38,7 +38,7 @@ class Spotify_imagesRow {
                 .prepare(
                     `SELECT url FROM spotify_images WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as Spotify_imagesTypes
+                .get(this.value) as Spotify_imagesType
         ).url as string;
     }
     set url(newValue: string) {
@@ -50,7 +50,7 @@ class Spotify_imagesRow {
                 .prepare(
                     `SELECT width FROM spotify_images WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as Spotify_imagesTypes
+                .get(this.value) as Spotify_imagesType
         ).width as number;
     }
     set width(newValue: number) {
@@ -62,7 +62,7 @@ class Spotify_imagesRow {
                 .prepare(
                     `SELECT height FROM spotify_images WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as Spotify_imagesTypes
+                .get(this.value) as Spotify_imagesType
         ).height as number;
     }
     set height(newValue: number) {
@@ -87,10 +87,10 @@ class Spotify_imagesRow {
         );
     }
 }
-class Spotify_images extends BaseTable<Spotify_imagesTypes> {
+class Spotify_images extends BaseTable<Spotify_imagesType> {
     db: DB;
     constructor(db: DB) {
-        super("spotify_images", db);
+        super("spotify_images", db, []);
         this.db = db;
     }
     get(columnName: string, value: string | number | null): Spotify_imagesRow {
@@ -99,14 +99,14 @@ class Spotify_images extends BaseTable<Spotify_imagesTypes> {
 }
 export const spotify_images = new Spotify_images(db);
 
-interface AlbumsTypes {
+interface AlbumsType {
     id: string;
     image: string;
     name: string;
     release_date: string;
     popularity?: number;
     disc_count: number;
-    date_added: string;
+    date_added?: string;
 }
 class AlbumsRow {
     private columnName: string;
@@ -121,7 +121,7 @@ class AlbumsRow {
         return (
             this.db.db
                 .prepare(`SELECT id FROM albums WHERE ${this.columnName} = ?`)
-                .get(this.value) as AlbumsTypes
+                .get(this.value) as AlbumsType
         ).id as string;
     }
     set id(newValue: string) {
@@ -133,7 +133,7 @@ class AlbumsRow {
                 .prepare(
                     `SELECT image FROM albums WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as AlbumsTypes
+                .get(this.value) as AlbumsType
         ).image as string;
     }
     set image(newValue: string) {
@@ -143,7 +143,7 @@ class AlbumsRow {
         return (
             this.db.db
                 .prepare(`SELECT name FROM albums WHERE ${this.columnName} = ?`)
-                .get(this.value) as AlbumsTypes
+                .get(this.value) as AlbumsType
         ).name as string;
     }
     set name(newValue: string) {
@@ -155,7 +155,7 @@ class AlbumsRow {
                 .prepare(
                     `SELECT release_date FROM albums WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as AlbumsTypes
+                .get(this.value) as AlbumsType
         ).release_date as string;
     }
     set release_date(newValue: string) {
@@ -167,7 +167,7 @@ class AlbumsRow {
                 .prepare(
                     `SELECT popularity FROM albums WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as AlbumsTypes
+                .get(this.value) as AlbumsType
         ).popularity as number | undefined;
     }
     set popularity(newValue: number | undefined) {
@@ -179,7 +179,7 @@ class AlbumsRow {
                 .prepare(
                     `SELECT disc_count FROM albums WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as AlbumsTypes
+                .get(this.value) as AlbumsType
         ).disc_count as number;
     }
     set disc_count(newValue: number) {
@@ -191,7 +191,7 @@ class AlbumsRow {
                 .prepare(
                     `SELECT date_added FROM albums WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as AlbumsTypes
+                .get(this.value) as AlbumsType
         ).date_added as string;
     }
     set date_added(newValue: string) {
@@ -222,10 +222,15 @@ class AlbumsRow {
         return a.map((b) => new SongsRow("id", b.id, this.db));
     }
 }
-class Albums extends BaseTable<AlbumsTypes> {
+class Albums extends BaseTable<AlbumsType> {
     db: DB;
     constructor(db: DB) {
-        super("albums", db);
+        super("albums", db, [
+            {
+                columnName: "date_added",
+                type: "sqlWrapper-now-func",
+            },
+        ]);
         this.db = db;
     }
     get(columnName: string, value: string | number | null): AlbumsRow {
@@ -234,7 +239,7 @@ class Albums extends BaseTable<AlbumsTypes> {
 }
 export const albums = new Albums(db);
 
-interface Album_imagesTypes {
+interface Album_imagesType {
     album_id: string;
     image_id: string;
 }
@@ -253,7 +258,7 @@ class Album_imagesRow {
                 .prepare(
                     `SELECT album_id FROM album_images WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as Album_imagesTypes
+                .get(this.value) as Album_imagesType
         ).album_id as string;
     }
     set album_id(newValue: string) {
@@ -265,7 +270,7 @@ class Album_imagesRow {
                 .prepare(
                     `SELECT image_id FROM album_images WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as Album_imagesTypes
+                .get(this.value) as Album_imagesType
         ).image_id as string;
     }
     set image_id(newValue: string) {
@@ -280,10 +285,10 @@ class Album_imagesRow {
     }
     // *********************
 }
-class Album_images extends BaseTable<Album_imagesTypes> {
+class Album_images extends BaseTable<Album_imagesType> {
     db: DB;
     constructor(db: DB) {
-        super("album_images", db);
+        super("album_images", db, []);
         this.db = db;
     }
     get(columnName: string, value: string | number | null): Album_imagesRow {
@@ -292,7 +297,7 @@ class Album_images extends BaseTable<Album_imagesTypes> {
 }
 export const album_images = new Album_images(db);
 
-interface ArtistsTypes {
+interface ArtistsType {
     id: string;
     name: string;
     genres?: string;
@@ -314,7 +319,7 @@ class ArtistsRow {
         return (
             this.db.db
                 .prepare(`SELECT id FROM artists WHERE ${this.columnName} = ?`)
-                .get(this.value) as ArtistsTypes
+                .get(this.value) as ArtistsType
         ).id as string;
     }
     set id(newValue: string) {
@@ -326,7 +331,7 @@ class ArtistsRow {
                 .prepare(
                     `SELECT name FROM artists WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as ArtistsTypes
+                .get(this.value) as ArtistsType
         ).name as string;
     }
     set name(newValue: string) {
@@ -338,7 +343,7 @@ class ArtistsRow {
                 .prepare(
                     `SELECT genres FROM artists WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as ArtistsTypes
+                .get(this.value) as ArtistsType
         ).genres as string | undefined;
     }
     set genres(newValue: string | undefined) {
@@ -350,7 +355,7 @@ class ArtistsRow {
                 .prepare(
                     `SELECT followers FROM artists WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as ArtistsTypes
+                .get(this.value) as ArtistsType
         ).followers as number | undefined;
     }
     set followers(newValue: number | undefined) {
@@ -362,22 +367,22 @@ class ArtistsRow {
                 .prepare(
                     `SELECT popularity FROM artists WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as ArtistsTypes
+                .get(this.value) as ArtistsType
         ).popularity as number | undefined;
     }
     set popularity(newValue: number | undefined) {
         console.warn("TODO", newValue, this.columnName, this.value);
     }
-    get date_added(): string | undefined {
+    get date_added(): string {
         return (
             this.db.db
                 .prepare(
                     `SELECT date_added FROM artists WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as ArtistsTypes
-        ).date_added as string | undefined;
+                .get(this.value) as ArtistsType
+        ).date_added as string;
     }
-    set date_added(newValue: string | undefined) {
+    set date_added(newValue: string) {
         console.warn("TODO", newValue, this.columnName, this.value);
     }
     get image(): string | undefined {
@@ -386,7 +391,7 @@ class ArtistsRow {
                 .prepare(
                     `SELECT image FROM artists WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as ArtistsTypes
+                .get(this.value) as ArtistsType
         ).image as string | undefined;
     }
     set image(newValue: string | undefined) {
@@ -417,10 +422,15 @@ class ArtistsRow {
         return a.map((b) => new Song_artistsRow("song_id", b.song_id, this.db));
     }
 }
-class Artists extends BaseTable<ArtistsTypes> {
+class Artists extends BaseTable<ArtistsType> {
     db: DB;
     constructor(db: DB) {
-        super("artists", db);
+        super("artists", db, [
+            {
+                columnName: "date_added",
+                type: "sqlWrapper-now-func",
+            },
+        ]);
         this.db = db;
     }
     get(columnName: string, value: string | number | null): ArtistsRow {
@@ -429,7 +439,7 @@ class Artists extends BaseTable<ArtistsTypes> {
 }
 export const artists = new Artists(db);
 
-interface Album_artistsTypes {
+interface Album_artistsType {
     album_id: string;
     artist_id: string;
 }
@@ -448,7 +458,7 @@ class Album_artistsRow {
                 .prepare(
                     `SELECT album_id FROM album_artists WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as Album_artistsTypes
+                .get(this.value) as Album_artistsType
         ).album_id as string;
     }
     set album_id(newValue: string) {
@@ -460,7 +470,7 @@ class Album_artistsRow {
                 .prepare(
                     `SELECT artist_id FROM album_artists WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as Album_artistsTypes
+                .get(this.value) as Album_artistsType
         ).artist_id as string;
     }
     set artist_id(newValue: string) {
@@ -475,10 +485,10 @@ class Album_artistsRow {
     }
     // *********************
 }
-class Album_artists extends BaseTable<Album_artistsTypes> {
+class Album_artists extends BaseTable<Album_artistsType> {
     db: DB;
     constructor(db: DB) {
-        super("album_artists", db);
+        super("album_artists", db, []);
         this.db = db;
     }
     get(columnName: string, value: string | number | null): Album_artistsRow {
@@ -487,7 +497,7 @@ class Album_artists extends BaseTable<Album_artistsTypes> {
 }
 export const album_artists = new Album_artists(db);
 
-interface Artist_imagesTypes {
+interface Artist_imagesType {
     artist_id: string;
     image_id: string;
 }
@@ -506,7 +516,7 @@ class Artist_imagesRow {
                 .prepare(
                     `SELECT artist_id FROM artist_images WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as Artist_imagesTypes
+                .get(this.value) as Artist_imagesType
         ).artist_id as string;
     }
     set artist_id(newValue: string) {
@@ -518,7 +528,7 @@ class Artist_imagesRow {
                 .prepare(
                     `SELECT image_id FROM artist_images WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as Artist_imagesTypes
+                .get(this.value) as Artist_imagesType
         ).image_id as string;
     }
     set image_id(newValue: string) {
@@ -533,10 +543,10 @@ class Artist_imagesRow {
     }
     // *********************
 }
-class Artist_images extends BaseTable<Artist_imagesTypes> {
+class Artist_images extends BaseTable<Artist_imagesType> {
     db: DB;
     constructor(db: DB) {
-        super("artist_images", db);
+        super("artist_images", db, []);
         this.db = db;
     }
     get(columnName: string, value: string | number | null): Artist_imagesRow {
@@ -545,7 +555,7 @@ class Artist_images extends BaseTable<Artist_imagesTypes> {
 }
 export const artist_images = new Artist_images(db);
 
-interface SongsTypes {
+interface SongsType {
     id: string;
     name: string;
     duration: number;
@@ -555,7 +565,7 @@ interface SongsTypes {
     image?: string;
     path?: string;
     album_id: string;
-    date_added: string;
+    date_added?: string;
     isrc: string;
     download_url?: string;
     lyrics?: string;
@@ -574,7 +584,7 @@ class SongsRow {
         return (
             this.db.db
                 .prepare(`SELECT id FROM songs WHERE ${this.columnName} = ?`)
-                .get(this.value) as SongsTypes
+                .get(this.value) as SongsType
         ).id as string;
     }
     set id(newValue: string) {
@@ -584,7 +594,7 @@ class SongsRow {
         return (
             this.db.db
                 .prepare(`SELECT name FROM songs WHERE ${this.columnName} = ?`)
-                .get(this.value) as SongsTypes
+                .get(this.value) as SongsType
         ).name as string;
     }
     set name(newValue: string) {
@@ -596,7 +606,7 @@ class SongsRow {
                 .prepare(
                     `SELECT duration FROM songs WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as SongsTypes
+                .get(this.value) as SongsType
         ).duration as number;
     }
     set duration(newValue: number) {
@@ -608,7 +618,7 @@ class SongsRow {
                 .prepare(
                     `SELECT track_number FROM songs WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as SongsTypes
+                .get(this.value) as SongsType
         ).track_number as number;
     }
     set track_number(newValue: number) {
@@ -620,7 +630,7 @@ class SongsRow {
                 .prepare(
                     `SELECT disc_number FROM songs WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as SongsTypes
+                .get(this.value) as SongsType
         ).disc_number as number;
     }
     set disc_number(newValue: number) {
@@ -632,7 +642,7 @@ class SongsRow {
                 .prepare(
                     `SELECT popularity FROM songs WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as SongsTypes
+                .get(this.value) as SongsType
         ).popularity as number | undefined;
     }
     set popularity(newValue: number | undefined) {
@@ -642,7 +652,7 @@ class SongsRow {
         return (
             this.db.db
                 .prepare(`SELECT image FROM songs WHERE ${this.columnName} = ?`)
-                .get(this.value) as SongsTypes
+                .get(this.value) as SongsType
         ).image as string | undefined;
     }
     set image(newValue: string | undefined) {
@@ -652,7 +662,7 @@ class SongsRow {
         return (
             this.db.db
                 .prepare(`SELECT path FROM songs WHERE ${this.columnName} = ?`)
-                .get(this.value) as SongsTypes
+                .get(this.value) as SongsType
         ).path as string | undefined;
     }
     set path(newValue: string | undefined) {
@@ -664,7 +674,7 @@ class SongsRow {
                 .prepare(
                     `SELECT album_id FROM songs WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as SongsTypes
+                .get(this.value) as SongsType
         ).album_id as string;
     }
     set album_id(newValue: string) {
@@ -676,7 +686,7 @@ class SongsRow {
                 .prepare(
                     `SELECT date_added FROM songs WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as SongsTypes
+                .get(this.value) as SongsType
         ).date_added as string;
     }
     set date_added(newValue: string) {
@@ -686,7 +696,7 @@ class SongsRow {
         return (
             this.db.db
                 .prepare(`SELECT isrc FROM songs WHERE ${this.columnName} = ?`)
-                .get(this.value) as SongsTypes
+                .get(this.value) as SongsType
         ).isrc as string;
     }
     set isrc(newValue: string) {
@@ -698,7 +708,7 @@ class SongsRow {
                 .prepare(
                     `SELECT download_url FROM songs WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as SongsTypes
+                .get(this.value) as SongsType
         ).download_url as string | undefined;
     }
     set download_url(newValue: string | undefined) {
@@ -710,7 +720,7 @@ class SongsRow {
                 .prepare(
                     `SELECT lyrics FROM songs WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as SongsTypes
+                .get(this.value) as SongsType
         ).lyrics as string | undefined;
     }
     set lyrics(newValue: string | undefined) {
@@ -722,7 +732,7 @@ class SongsRow {
                 .prepare(
                     `SELECT dynamic_lyrics FROM songs WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as SongsTypes
+                .get(this.value) as SongsType
         ).dynamic_lyrics as string | undefined;
     }
     set dynamic_lyrics(newValue: string | undefined) {
@@ -768,10 +778,15 @@ class SongsRow {
         );
     }
 }
-class Songs extends BaseTable<SongsTypes> {
+class Songs extends BaseTable<SongsType> {
     db: DB;
     constructor(db: DB) {
-        super("songs", db);
+        super("songs", db, [
+            {
+                columnName: "date_added",
+                type: "sqlWrapper-now-func",
+            },
+        ]);
         this.db = db;
     }
     get(columnName: string, value: string | number | null): SongsRow {
@@ -780,7 +795,7 @@ class Songs extends BaseTable<SongsTypes> {
 }
 export const songs = new Songs(db);
 
-interface Song_artistsTypes {
+interface Song_artistsType {
     song_id: string;
     artist_id: string;
 }
@@ -799,7 +814,7 @@ class Song_artistsRow {
                 .prepare(
                     `SELECT song_id FROM song_artists WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as Song_artistsTypes
+                .get(this.value) as Song_artistsType
         ).song_id as string;
     }
     set song_id(newValue: string) {
@@ -811,7 +826,7 @@ class Song_artistsRow {
                 .prepare(
                     `SELECT artist_id FROM song_artists WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as Song_artistsTypes
+                .get(this.value) as Song_artistsType
         ).artist_id as string;
     }
     set artist_id(newValue: string) {
@@ -826,10 +841,10 @@ class Song_artistsRow {
     }
     // *********************
 }
-class Song_artists extends BaseTable<Song_artistsTypes> {
+class Song_artists extends BaseTable<Song_artistsType> {
     db: DB;
     constructor(db: DB) {
-        super("song_artists", db);
+        super("song_artists", db, []);
         this.db = db;
     }
     get(columnName: string, value: string | number | null): Song_artistsRow {
@@ -838,7 +853,7 @@ class Song_artists extends BaseTable<Song_artistsTypes> {
 }
 export const song_artists = new Song_artists(db);
 
-interface UsersTypes {
+interface UsersType {
     id: string;
     username: string;
     password_hash: string;
@@ -855,7 +870,7 @@ interface UsersTypes {
     super_admin: boolean;
     impersonate_id?: string;
     dev_user: boolean;
-    created_at: string;
+    date_added?: string;
 }
 class UsersRow {
     private columnName: string;
@@ -870,7 +885,7 @@ class UsersRow {
         return (
             this.db.db
                 .prepare(`SELECT id FROM users WHERE ${this.columnName} = ?`)
-                .get(this.value) as UsersTypes
+                .get(this.value) as UsersType
         ).id as string;
     }
     set id(newValue: string) {
@@ -882,7 +897,7 @@ class UsersRow {
                 .prepare(
                     `SELECT username FROM users WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as UsersTypes
+                .get(this.value) as UsersType
         ).username as string;
     }
     set username(newValue: string) {
@@ -894,7 +909,7 @@ class UsersRow {
                 .prepare(
                     `SELECT password_hash FROM users WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as UsersTypes
+                .get(this.value) as UsersType
         ).password_hash as string;
     }
     set password_hash(newValue: string) {
@@ -906,7 +921,7 @@ class UsersRow {
                 .prepare(
                     `SELECT current_song_id FROM users WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as UsersTypes
+                .get(this.value) as UsersType
         ).current_song_id as string | undefined;
     }
     set current_song_id(newValue: string | undefined) {
@@ -918,7 +933,7 @@ class UsersRow {
                 .prepare(
                     `SELECT current_station FROM users WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as UsersTypes
+                .get(this.value) as UsersType
         ).current_station as string | undefined;
     }
     set current_station(newValue: string | undefined) {
@@ -930,7 +945,7 @@ class UsersRow {
                 .prepare(
                     `SELECT current_time FROM users WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as UsersTypes
+                .get(this.value) as UsersType
         ).current_time as number | undefined;
     }
     set current_time(newValue: number | undefined) {
@@ -942,7 +957,7 @@ class UsersRow {
                 .prepare(
                     `SELECT queue_index FROM users WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as UsersTypes
+                .get(this.value) as UsersType
         ).queue_index as number | undefined;
     }
     set queue_index(newValue: number | undefined) {
@@ -954,7 +969,7 @@ class UsersRow {
                 .prepare(
                     `SELECT random_queue FROM users WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as UsersTypes
+                .get(this.value) as UsersType
         ).random_queue as boolean;
     }
     set random_queue(newValue: boolean) {
@@ -966,7 +981,7 @@ class UsersRow {
                 .prepare(
                     `SELECT repeat_song FROM users WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as UsersTypes
+                .get(this.value) as UsersType
         ).repeat_song as string;
     }
     set repeat_song(newValue: string) {
@@ -978,7 +993,7 @@ class UsersRow {
                 .prepare(
                     `SELECT volume FROM users WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as UsersTypes
+                .get(this.value) as UsersType
         ).volume as number;
     }
     set volume(newValue: number) {
@@ -990,7 +1005,7 @@ class UsersRow {
                 .prepare(
                     `SELECT cross_fade FROM users WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as UsersTypes
+                .get(this.value) as UsersType
         ).cross_fade as number;
     }
     set cross_fade(newValue: number) {
@@ -1000,7 +1015,7 @@ class UsersRow {
         return (
             this.db.db
                 .prepare(`SELECT lang FROM users WHERE ${this.columnName} = ?`)
-                .get(this.value) as UsersTypes
+                .get(this.value) as UsersType
         ).lang as string;
     }
     set lang(newValue: string) {
@@ -1010,7 +1025,7 @@ class UsersRow {
         return (
             this.db.db
                 .prepare(`SELECT admin FROM users WHERE ${this.columnName} = ?`)
-                .get(this.value) as UsersTypes
+                .get(this.value) as UsersType
         ).admin as boolean;
     }
     set admin(newValue: boolean) {
@@ -1022,7 +1037,7 @@ class UsersRow {
                 .prepare(
                     `SELECT super_admin FROM users WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as UsersTypes
+                .get(this.value) as UsersType
         ).super_admin as boolean;
     }
     set super_admin(newValue: boolean) {
@@ -1034,7 +1049,7 @@ class UsersRow {
                 .prepare(
                     `SELECT impersonate_id FROM users WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as UsersTypes
+                .get(this.value) as UsersType
         ).impersonate_id as string | undefined;
     }
     set impersonate_id(newValue: string | undefined) {
@@ -1046,22 +1061,22 @@ class UsersRow {
                 .prepare(
                     `SELECT dev_user FROM users WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as UsersTypes
+                .get(this.value) as UsersType
         ).dev_user as boolean;
     }
     set dev_user(newValue: boolean) {
         console.warn("TODO", newValue, this.columnName, this.value);
     }
-    get created_at(): string {
+    get date_added(): string {
         return (
             this.db.db
                 .prepare(
-                    `SELECT created_at FROM users WHERE ${this.columnName} = ?`
+                    `SELECT date_added FROM users WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as UsersTypes
-        ).created_at as string;
+                .get(this.value) as UsersType
+        ).date_added as string;
     }
-    set created_at(newValue: string) {
+    set date_added(newValue: string) {
         console.warn("TODO", newValue, this.columnName, this.value);
     }
     // *********************
@@ -1121,10 +1136,15 @@ class UsersRow {
         return a.map((b) => new ErrorsRow("id", b.id, this.db));
     }
 }
-class Users extends BaseTable<UsersTypes> {
+class Users extends BaseTable<UsersType> {
     db: DB;
     constructor(db: DB) {
-        super("users", db);
+        super("users", db, [
+            {
+                columnName: "date_added",
+                type: "sqlWrapper-now-func",
+            },
+        ]);
         this.db = db;
     }
     get(columnName: string, value: string | number | null): UsersRow {
@@ -1133,11 +1153,11 @@ class Users extends BaseTable<UsersTypes> {
 }
 export const users = new Users(db);
 
-interface User_listsTypes {
+interface User_listsType {
     user_id: string;
     item_type: string;
     item_id: string;
-    created_at: string;
+    date_added?: string;
 }
 class User_listsRow {
     private columnName: string;
@@ -1154,7 +1174,7 @@ class User_listsRow {
                 .prepare(
                     `SELECT user_id FROM user_lists WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as User_listsTypes
+                .get(this.value) as User_listsType
         ).user_id as string;
     }
     set user_id(newValue: string) {
@@ -1166,7 +1186,7 @@ class User_listsRow {
                 .prepare(
                     `SELECT item_type FROM user_lists WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as User_listsTypes
+                .get(this.value) as User_listsType
         ).item_type as string;
     }
     set item_type(newValue: string) {
@@ -1178,22 +1198,22 @@ class User_listsRow {
                 .prepare(
                     `SELECT item_id FROM user_lists WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as User_listsTypes
+                .get(this.value) as User_listsType
         ).item_id as string;
     }
     set item_id(newValue: string) {
         console.warn("TODO", newValue, this.columnName, this.value);
     }
-    get created_at(): string {
+    get date_added(): string {
         return (
             this.db.db
                 .prepare(
-                    `SELECT created_at FROM user_lists WHERE ${this.columnName} = ?`
+                    `SELECT date_added FROM user_lists WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as User_listsTypes
-        ).created_at as string;
+                .get(this.value) as User_listsType
+        ).date_added as string;
     }
-    set created_at(newValue: string) {
+    set date_added(newValue: string) {
         console.warn("TODO", newValue, this.columnName, this.value);
     }
     // *********************
@@ -1202,10 +1222,15 @@ class User_listsRow {
     }
     // *********************
 }
-class User_lists extends BaseTable<User_listsTypes> {
+class User_lists extends BaseTable<User_listsType> {
     db: DB;
     constructor(db: DB) {
-        super("user_lists", db);
+        super("user_lists", db, [
+            {
+                columnName: "date_added",
+                type: "sqlWrapper-now-func",
+            },
+        ]);
         this.db = db;
     }
     get(columnName: string, value: string | number | null): User_listsRow {
@@ -1214,7 +1239,7 @@ class User_lists extends BaseTable<User_listsTypes> {
 }
 export const user_lists = new User_lists(db);
 
-interface User_queueTypes {
+interface User_queueType {
     user_id: string;
     position: number;
     song_id: string;
@@ -1236,7 +1261,7 @@ class User_queueRow {
                 .prepare(
                     `SELECT user_id FROM user_queue WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as User_queueTypes
+                .get(this.value) as User_queueType
         ).user_id as string;
     }
     set user_id(newValue: string) {
@@ -1248,7 +1273,7 @@ class User_queueRow {
                 .prepare(
                     `SELECT position FROM user_queue WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as User_queueTypes
+                .get(this.value) as User_queueType
         ).position as number;
     }
     set position(newValue: number) {
@@ -1260,7 +1285,7 @@ class User_queueRow {
                 .prepare(
                     `SELECT song_id FROM user_queue WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as User_queueTypes
+                .get(this.value) as User_queueType
         ).song_id as string;
     }
     set song_id(newValue: string) {
@@ -1272,7 +1297,7 @@ class User_queueRow {
                 .prepare(
                     `SELECT list_type FROM user_queue WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as User_queueTypes
+                .get(this.value) as User_queueType
         ).list_type as string;
     }
     set list_type(newValue: string) {
@@ -1284,7 +1309,7 @@ class User_queueRow {
                 .prepare(
                     `SELECT list_id FROM user_queue WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as User_queueTypes
+                .get(this.value) as User_queueType
         ).list_id as string;
     }
     set list_id(newValue: string) {
@@ -1299,10 +1324,10 @@ class User_queueRow {
     }
     // *********************
 }
-class User_queue extends BaseTable<User_queueTypes> {
+class User_queue extends BaseTable<User_queueType> {
     db: DB;
     constructor(db: DB) {
-        super("user_queue", db);
+        super("user_queue", db, []);
         this.db = db;
     }
     get(columnName: string, value: string | number | null): User_queueRow {
@@ -1311,11 +1336,11 @@ class User_queue extends BaseTable<User_queueTypes> {
 }
 export const user_queue = new User_queue(db);
 
-interface User_pinned_listsTypes {
+interface User_pinned_listsType {
     user_id: string;
     item_type: string;
     item_id: string;
-    created_at: string;
+    date_added?: string;
 }
 class User_pinned_listsRow {
     private columnName: string;
@@ -1332,7 +1357,7 @@ class User_pinned_listsRow {
                 .prepare(
                     `SELECT user_id FROM user_pinned_lists WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as User_pinned_listsTypes
+                .get(this.value) as User_pinned_listsType
         ).user_id as string;
     }
     set user_id(newValue: string) {
@@ -1344,7 +1369,7 @@ class User_pinned_listsRow {
                 .prepare(
                     `SELECT item_type FROM user_pinned_lists WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as User_pinned_listsTypes
+                .get(this.value) as User_pinned_listsType
         ).item_type as string;
     }
     set item_type(newValue: string) {
@@ -1356,31 +1381,36 @@ class User_pinned_listsRow {
                 .prepare(
                     `SELECT item_id FROM user_pinned_lists WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as User_pinned_listsTypes
+                .get(this.value) as User_pinned_listsType
         ).item_id as string;
     }
     set item_id(newValue: string) {
         console.warn("TODO", newValue, this.columnName, this.value);
     }
-    get created_at(): string {
+    get date_added(): string {
         return (
             this.db.db
                 .prepare(
-                    `SELECT created_at FROM user_pinned_lists WHERE ${this.columnName} = ?`
+                    `SELECT date_added FROM user_pinned_lists WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as User_pinned_listsTypes
-        ).created_at as string;
+                .get(this.value) as User_pinned_listsType
+        ).date_added as string;
     }
-    set created_at(newValue: string) {
+    set date_added(newValue: string) {
         console.warn("TODO", newValue, this.columnName, this.value);
     }
     // *********************
     // *********************
 }
-class User_pinned_lists extends BaseTable<User_pinned_listsTypes> {
+class User_pinned_lists extends BaseTable<User_pinned_listsType> {
     db: DB;
     constructor(db: DB) {
-        super("user_pinned_lists", db);
+        super("user_pinned_lists", db, [
+            {
+                columnName: "date_added",
+                type: "sqlWrapper-now-func",
+            },
+        ]);
         this.db = db;
     }
     get(
@@ -1392,10 +1422,10 @@ class User_pinned_lists extends BaseTable<User_pinned_listsTypes> {
 }
 export const user_pinned_lists = new User_pinned_lists(db);
 
-interface User_liked_songsTypes {
+interface User_liked_songsType {
     user_id: string;
     song_id: string;
-    created_at: string;
+    date_added?: string;
 }
 class User_liked_songsRow {
     private columnName: string;
@@ -1412,7 +1442,7 @@ class User_liked_songsRow {
                 .prepare(
                     `SELECT user_id FROM user_liked_songs WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as User_liked_songsTypes
+                .get(this.value) as User_liked_songsType
         ).user_id as string;
     }
     set user_id(newValue: string) {
@@ -1424,22 +1454,22 @@ class User_liked_songsRow {
                 .prepare(
                     `SELECT song_id FROM user_liked_songs WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as User_liked_songsTypes
+                .get(this.value) as User_liked_songsType
         ).song_id as string;
     }
     set song_id(newValue: string) {
         console.warn("TODO", newValue, this.columnName, this.value);
     }
-    get created_at(): string {
+    get date_added(): string {
         return (
             this.db.db
                 .prepare(
-                    `SELECT created_at FROM user_liked_songs WHERE ${this.columnName} = ?`
+                    `SELECT date_added FROM user_liked_songs WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as User_liked_songsTypes
-        ).created_at as string;
+                .get(this.value) as User_liked_songsType
+        ).date_added as string;
     }
-    set created_at(newValue: string) {
+    set date_added(newValue: string) {
         console.warn("TODO", newValue, this.columnName, this.value);
     }
     // *********************
@@ -1451,10 +1481,15 @@ class User_liked_songsRow {
     }
     // *********************
 }
-class User_liked_songs extends BaseTable<User_liked_songsTypes> {
+class User_liked_songs extends BaseTable<User_liked_songsType> {
     db: DB;
     constructor(db: DB) {
-        super("user_liked_songs", db);
+        super("user_liked_songs", db, [
+            {
+                columnName: "date_added",
+                type: "sqlWrapper-now-func",
+            },
+        ]);
         this.db = db;
     }
     get(
@@ -1466,7 +1501,7 @@ class User_liked_songs extends BaseTable<User_liked_songsTypes> {
 }
 export const user_liked_songs = new User_liked_songs(db);
 
-interface User_song_historyTypes {
+interface User_song_historyType {
     user_id: string;
     song_id: string;
     played_at: string;
@@ -1486,7 +1521,7 @@ class User_song_historyRow {
                 .prepare(
                     `SELECT user_id FROM user_song_history WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as User_song_historyTypes
+                .get(this.value) as User_song_historyType
         ).user_id as string;
     }
     set user_id(newValue: string) {
@@ -1498,7 +1533,7 @@ class User_song_historyRow {
                 .prepare(
                     `SELECT song_id FROM user_song_history WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as User_song_historyTypes
+                .get(this.value) as User_song_historyType
         ).song_id as string;
     }
     set song_id(newValue: string) {
@@ -1510,7 +1545,7 @@ class User_song_historyRow {
                 .prepare(
                     `SELECT played_at FROM user_song_history WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as User_song_historyTypes
+                .get(this.value) as User_song_historyType
         ).played_at as string;
     }
     set played_at(newValue: string) {
@@ -1525,10 +1560,10 @@ class User_song_historyRow {
     }
     // *********************
 }
-class User_song_history extends BaseTable<User_song_historyTypes> {
+class User_song_history extends BaseTable<User_song_historyType> {
     db: DB;
     constructor(db: DB) {
-        super("user_song_history", db);
+        super("user_song_history", db, []);
         this.db = db;
     }
     get(
@@ -1540,7 +1575,7 @@ class User_song_history extends BaseTable<User_song_historyTypes> {
 }
 export const user_song_history = new User_song_history(db);
 
-interface DownloadsTypes {
+interface DownloadsType {
     id: string;
     user_id: string;
     date_started: string;
@@ -1566,7 +1601,7 @@ class DownloadsRow {
                 .prepare(
                     `SELECT id FROM downloads WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as DownloadsTypes
+                .get(this.value) as DownloadsType
         ).id as string;
     }
     set id(newValue: string) {
@@ -1578,7 +1613,7 @@ class DownloadsRow {
                 .prepare(
                     `SELECT user_id FROM downloads WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as DownloadsTypes
+                .get(this.value) as DownloadsType
         ).user_id as string;
     }
     set user_id(newValue: string) {
@@ -1590,7 +1625,7 @@ class DownloadsRow {
                 .prepare(
                     `SELECT date_started FROM downloads WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as DownloadsTypes
+                .get(this.value) as DownloadsType
         ).date_started as string;
     }
     set date_started(newValue: string) {
@@ -1602,7 +1637,7 @@ class DownloadsRow {
                 .prepare(
                     `SELECT date_ended FROM downloads WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as DownloadsTypes
+                .get(this.value) as DownloadsType
         ).date_ended as string | undefined;
     }
     set date_ended(newValue: string | undefined) {
@@ -1614,7 +1649,7 @@ class DownloadsRow {
                 .prepare(
                     `SELECT download_url FROM downloads WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as DownloadsTypes
+                .get(this.value) as DownloadsType
         ).download_url as string;
     }
     set download_url(newValue: string) {
@@ -1626,7 +1661,7 @@ class DownloadsRow {
                 .prepare(
                     `SELECT status FROM downloads WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as DownloadsTypes
+                .get(this.value) as DownloadsType
         ).status as string;
     }
     set status(newValue: string) {
@@ -1638,7 +1673,7 @@ class DownloadsRow {
                 .prepare(
                     `SELECT seen FROM downloads WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as DownloadsTypes
+                .get(this.value) as DownloadsType
         ).seen as boolean;
     }
     set seen(newValue: boolean) {
@@ -1650,7 +1685,7 @@ class DownloadsRow {
                 .prepare(
                     `SELECT success FROM downloads WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as DownloadsTypes
+                .get(this.value) as DownloadsType
         ).success as number | undefined;
     }
     set success(newValue: number | undefined) {
@@ -1662,7 +1697,7 @@ class DownloadsRow {
                 .prepare(
                     `SELECT fail FROM downloads WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as DownloadsTypes
+                .get(this.value) as DownloadsType
         ).fail as number | undefined;
     }
     set fail(newValue: number | undefined) {
@@ -1674,10 +1709,10 @@ class DownloadsRow {
     }
     // *********************
 }
-class Downloads extends BaseTable<DownloadsTypes> {
+class Downloads extends BaseTable<DownloadsType> {
     db: DB;
     constructor(db: DB) {
-        super("downloads", db);
+        super("downloads", db, []);
         this.db = db;
     }
     get(columnName: string, value: string | number | null): DownloadsRow {
@@ -1686,7 +1721,7 @@ class Downloads extends BaseTable<DownloadsTypes> {
 }
 export const downloads = new Downloads(db);
 
-interface ErrorsTypes {
+interface ErrorsType {
     id: string;
     msg?: string;
     source?: string;
@@ -1712,7 +1747,7 @@ class ErrorsRow {
         return (
             this.db.db
                 .prepare(`SELECT id FROM errors WHERE ${this.columnName} = ?`)
-                .get(this.value) as ErrorsTypes
+                .get(this.value) as ErrorsType
         ).id as string;
     }
     set id(newValue: string) {
@@ -1722,7 +1757,7 @@ class ErrorsRow {
         return (
             this.db.db
                 .prepare(`SELECT msg FROM errors WHERE ${this.columnName} = ?`)
-                .get(this.value) as ErrorsTypes
+                .get(this.value) as ErrorsType
         ).msg as string | undefined;
     }
     set msg(newValue: string | undefined) {
@@ -1734,7 +1769,7 @@ class ErrorsRow {
                 .prepare(
                     `SELECT source FROM errors WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as ErrorsTypes
+                .get(this.value) as ErrorsType
         ).source as string | undefined;
     }
     set source(newValue: string | undefined) {
@@ -1746,7 +1781,7 @@ class ErrorsRow {
                 .prepare(
                     `SELECT line_no FROM errors WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as ErrorsTypes
+                .get(this.value) as ErrorsType
         ).line_no as number | undefined;
     }
     set line_no(newValue: number | undefined) {
@@ -1758,7 +1793,7 @@ class ErrorsRow {
                 .prepare(
                     `SELECT column_no FROM errors WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as ErrorsTypes
+                .get(this.value) as ErrorsType
         ).column_no as number | undefined;
     }
     set column_no(newValue: number | undefined) {
@@ -1770,7 +1805,7 @@ class ErrorsRow {
                 .prepare(
                     `SELECT error_message FROM errors WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as ErrorsTypes
+                .get(this.value) as ErrorsType
         ).error_message as string | undefined;
     }
     set error_message(newValue: string | undefined) {
@@ -1782,7 +1817,7 @@ class ErrorsRow {
                 .prepare(
                     `SELECT error_cause FROM errors WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as ErrorsTypes
+                .get(this.value) as ErrorsType
         ).error_cause as string | undefined;
     }
     set error_cause(newValue: string | undefined) {
@@ -1794,7 +1829,7 @@ class ErrorsRow {
                 .prepare(
                     `SELECT error_name FROM errors WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as ErrorsTypes
+                .get(this.value) as ErrorsType
         ).error_name as string | undefined;
     }
     set error_name(newValue: string | undefined) {
@@ -1806,7 +1841,7 @@ class ErrorsRow {
                 .prepare(
                     `SELECT error_stack FROM errors WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as ErrorsTypes
+                .get(this.value) as ErrorsType
         ).error_stack as string | undefined;
     }
     set error_stack(newValue: string | undefined) {
@@ -1818,22 +1853,22 @@ class ErrorsRow {
                 .prepare(
                     `SELECT user_id FROM errors WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as ErrorsTypes
+                .get(this.value) as ErrorsType
         ).user_id as string | undefined;
     }
     set user_id(newValue: string | undefined) {
         console.warn("TODO", newValue, this.columnName, this.value);
     }
-    get date_added(): string | undefined {
+    get date_added(): string {
         return (
             this.db.db
                 .prepare(
                     `SELECT date_added FROM errors WHERE ${this.columnName} = ?`
                 )
-                .get(this.value) as ErrorsTypes
-        ).date_added as string | undefined;
+                .get(this.value) as ErrorsType
+        ).date_added as string;
     }
-    set date_added(newValue: string | undefined) {
+    set date_added(newValue: string) {
         console.warn("TODO", newValue, this.columnName, this.value);
     }
     // *********************
@@ -1842,10 +1877,15 @@ class ErrorsRow {
     }
     // *********************
 }
-class Errors extends BaseTable<ErrorsTypes> {
+class Errors extends BaseTable<ErrorsType> {
     db: DB;
     constructor(db: DB) {
-        super("errors", db);
+        super("errors", db, [
+            {
+                columnName: "date_added",
+                type: "sqlWrapper-now-func",
+            },
+        ]);
         this.db = db;
     }
     get(columnName: string, value: string | number | null): ErrorsRow {

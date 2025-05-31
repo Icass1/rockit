@@ -13,7 +13,12 @@ export default function Image(
     props: DetailedHTMLProps<
         ImgHTMLAttributes<HTMLImageElement>,
         HTMLImageElement
-    > & { fallback?: string; imageClassName?: string; showSkeleton?: boolean }
+    > & {
+        fallback?: string;
+        imageClassName?: string;
+        showSkeleton?: boolean;
+        onLoad?: () => void;
+    }
 ) {
     const { className = "", src, alt, ...rest } = props;
     const [loaded, setLoaded] = useState(false);
@@ -33,6 +38,9 @@ export default function Image(
                         objectUrlRef = URL.createObjectURL(blob);
                         setObjectUrl(objectUrlRef);
                         setLoaded(true);
+                        if (props.onLoad) {
+                            props.onLoad();
+                        }
                     });
                 } else {
                     console.warn("Image couldn't be loaded");
@@ -46,6 +54,9 @@ export default function Image(
                                             URL.createObjectURL(blob);
                                         setObjectUrl(objectUrlRef);
                                         setLoaded(true);
+                                        if (props.onLoad) {
+                                            props.onLoad();
+                                        }
                                     });
                                 } else {
                                 }

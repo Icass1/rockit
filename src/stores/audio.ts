@@ -1508,15 +1508,6 @@ if (typeof navigator !== "undefined") {
         if (event.seekTime) setTime(event.seekTime);
     });
 }
-function onLoadedData() {
-    // if (admin.get()) console.log(
-    //     "Updating crossFade from",
-    //     currentCrossFade.get(),
-    //     "to",
-    //     crossFade.get()
-    // );
-    currentCrossFade.set(crossFade.get());
-}
 
 function onCanplay() {
     initAudio();
@@ -1625,6 +1616,10 @@ async function onTimeupdate() {
                     userVolume) /
                 userVolume ** 2;
         } else {
+            crossFadeCurrentTime.set(undefined);
+            if (currentCrossFade.get() != crossFade.get())
+                currentCrossFade.set(crossFade.get());
+
             audio.volume = userVolume;
             audioIsInit = false;
             if (!audio2.paused) {
@@ -1714,7 +1709,7 @@ function addAudioEventListeners(audio: HTMLAudioElement) {
     // );
     currentCrossFade.set(crossFade.get());
 
-    audio.addEventListener("loadeddata", onLoadedData);
+    // audio.addEventListener("loadeddata", onLoadedData);
     audio.addEventListener("canplay", onCanplay);
     audio.addEventListener("timeupdate", onTimeupdate);
     audio.addEventListener("play", onPlay);
@@ -1724,7 +1719,7 @@ function addAudioEventListeners(audio: HTMLAudioElement) {
 }
 
 function removeEventListeners(audio: HTMLAudioElement) {
-    audio.removeEventListener("loadeddata", onLoadedData);
+    // audio.removeEventListener("loadeddata", onLoadedData);
     audio.removeEventListener("canplay", onCanplay);
     audio.removeEventListener("timeupdate", onTimeupdate);
     audio.removeEventListener("play", onPlay);

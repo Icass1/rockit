@@ -1563,10 +1563,15 @@ async function onTimeupdate() {
         repeatSong.get() == "off"
     ) {
         if (audio.duration - audio.currentTime < _crossFade) {
+            crossFadeCurrentTime.set(
+                _crossFade + audio.currentTime - audio.duration
+            );
             audio.volume =
-                ((-userVolume / _crossFade) *
+                (((-userVolume / _crossFade) *
                     (audio.currentTime - audio.duration)) **
-                2;
+                    2 *
+                    userVolume) /
+                userVolume ** 2;
             if (
                 Math.abs(
                     audio.currentTime -
@@ -1613,10 +1618,12 @@ async function onTimeupdate() {
                 }
             }
             audio2.volume =
-                ((userVolume / _crossFade) *
+                (((userVolume / _crossFade) *
                     (audio.currentTime - audio.duration) +
                     userVolume) **
-                2;
+                    2 *
+                    userVolume) /
+                userVolume ** 2;
         } else {
             audio.volume = userVolume;
             audioIsInit = false;

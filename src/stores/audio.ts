@@ -413,9 +413,10 @@ export const crossFade = createControlledAtom<number | undefined>(
 );
 
 export const currentCrossFade = atom<number | undefined>(crossFade.get());
+export const crossFadeCurrentTime = atom<number | undefined>(undefined);
 
 fetch(
-    "/api/user?q=currentSong,currentTime,queue,queueIndex,volume,randomQueue,repeatSong,currentStation,admin"
+    "/api/user?q=currentSong,currentTime,queue,queueIndex,volume,randomQueue,repeatSong,currentStation,admin,crossFade"
 )
     .then((userJsonResponse) => userJsonResponse.json())
     .then(
@@ -430,6 +431,7 @@ fetch(
                 | "randomQueue"
                 | "repeatSong"
                 | "admin"
+                | "crossFade"
             >
         ) => {
             initAudio();
@@ -448,6 +450,9 @@ fetch(
 
             repeatSong.set(userJson.repeatSong, false);
             randomQueue.set(userJson.randomQueue, false);
+
+            crossFade.set(userJson.crossFade, false);
+            currentCrossFade.set(userJson.crossFade);
 
             volume.set(
                 window.innerWidth < 768 ? 1 : (userJson?.volume ?? 1),

@@ -5,6 +5,7 @@ import { db as mainDb } from "./lib/db/db";
 import { OldImageDB, RawAlbumDB } from "./lib/db/album";
 import { RawSongDB } from "./lib/db/song";
 import { RawUserDB } from "./lib/db/user";
+import { getDatabaseDate } from "./lib/getTime";
 
 db.exec(`
 CREATE TABLE IF NOT EXISTS spotify_images (
@@ -257,7 +258,7 @@ artists.forEach((artistDB) => {
             artistDB.genres,
             artistDB.followers,
             artistDB.popularity,
-            new Date(artistDB.dateAdded).toISOString().split("T")[0],
+            getDatabaseDate(artistDB.dateAdded),
             JSON.stringify(artistDB.image)
         );
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -301,7 +302,7 @@ albums.forEach((albumDB) => {
             albumDB.releaseDate,
             albumDB.popularity,
             albumDB.discCount,
-            new Date(albumDB.dateAdded).toISOString().split("T")[0]
+            getDatabaseDate(albumDB.dateAdded)
         );
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -382,13 +383,7 @@ songs.forEach((songDB) => {
             songDB.image,
             songDB.path,
             songDB.albumId,
-            new Date(
-                (Number(songDB.dateAdded) as number) || NaN
-                    ? Number(songDB.dateAdded)
-                    : songDB.dateAdded
-            )
-                .toISOString()
-                .split("T")[0],
+            getDatabaseDate(songDB.dateAdded),
             songDB.isrc,
             songDB.downloadUrl,
             songDB.lyrics,
@@ -461,7 +456,7 @@ users.forEach((userDB) => {
             userDB.superAdmin,
             null,
             userDB.devUser,
-            new Date(userDB.createdAt).toISOString().split("T")[0]
+            getDatabaseDate(userDB.createdAt)
         );
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {

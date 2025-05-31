@@ -63,7 +63,6 @@ export default function LikeButton({ song }: { song: SongDB<"id"> }) {
                 alignItems: "center",
                 justifyContent: "center",
                 overflow: "visible",
-                paddingLeft: "10px",
             }}
         >
             {/* Fuego animado */}

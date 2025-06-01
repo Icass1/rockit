@@ -236,6 +236,14 @@ def create_playlist_collage(output_path, urls: List[str] = []):
     out.save(output_path)
 
 
+def get_datetime_from_database_date(date: str):
+    a = date.split("T")
+    b = a[0].split("-")
+    c = a[1].split(":")
+
+    return datetime(year=int(b[0]), month=int(b[1]), day=int(b[2]), hour=int(c[0]), minute=int(c[1]), second=int(c[2]))
+
+
 if __name__ == "__main__":
 
     print("2025-04-30T09:12:15.024Z")

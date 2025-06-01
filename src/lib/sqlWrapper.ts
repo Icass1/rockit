@@ -7,8 +7,24 @@ function capitalizeFirstLetter(val: string) {
     return String(val).charAt(0).toUpperCase() + String(val).slice(1);
 }
 
+function snakeCaseToCamelCase(val: string) {
+    return capitalizeFirstLetter(
+        val
+            .toLowerCase()
+            .replace(/([-_][a-z])/g, (group) =>
+                group.toUpperCase().replace("-", "").replace("_", "")
+            )
+    );
+}
+
 interface ColumnOptions {
-    type: "INTEGER" | "TEXT" | "DATE" | "BOOLEAN" | "sqlWrapper-now-func";
+    type:
+        | "INTEGER"
+        | "TEXT"
+        | "DATE"
+        | "BOOLEAN"
+        | "sqlWrapper-now-func"
+        | "sqlWrapper-date-on-update-func";
     primaryKey?: boolean;
     unique?: boolean;
     notNull?: boolean;
@@ -51,6 +67,8 @@ class ColumnInit {
 
         tokens.push(this.columnName);
         if (this.options.type == "sqlWrapper-now-func") {
+            tokens.push("DATE");
+        } else if (this.options.type == "sqlWrapper-date-on-update-func") {
             tokens.push("DATE");
         } else {
             tokens.push(this.options.type);
@@ -101,15 +119,61 @@ class ColumnInit {
             variableType = "boolean";
         } else if (this.options.type == "sqlWrapper-now-func") {
             variableType = "string";
+        } else if (this.options.type == "sqlWrapper-date-on-update-func") {
+            variableType = "string";
         } else {
-            throw `Unknown varialbe type ${this.options.type}`;
+            throw `1. Unknown variable type ${this.options.type}`;
+        }
+
+        return variableType;
+    }
+
+    getPythonType() {
+        let variableType: string;
+
+        if (this.options.type == "DATE") {
+            variableType = "datetime";
+        } else if (this.options.type == "INTEGER") {
+            variableType = "float";
+        } else if (this.options.type == "TEXT") {
+            variableType = "str";
+        } else if (this.options.type == "BOOLEAN") {
+            variableType = "bool";
+        } else if (this.options.type == "sqlWrapper-now-func") {
+            variableType = "datetime";
+        } else if (this.options.type == "sqlWrapper-date-on-update-func") {
+            variableType = "datetime";
+        } else {
+            throw `2. Unknown variable type ${this.options.type}`;
+        }
+
+        return variableType;
+    }
+
+    getPythonRawType() {
+        let variableType: string;
+
+        if (this.options.type == "DATE") {
+            variableType = "str";
+        } else if (this.options.type == "INTEGER") {
+            variableType = "float";
+        } else if (this.options.type == "TEXT") {
+            variableType = "str";
+        } else if (this.options.type == "BOOLEAN") {
+            variableType = "str";
+        } else if (this.options.type == "sqlWrapper-now-func") {
+            variableType = "str";
+        } else if (this.options.type == "sqlWrapper-date-on-update-func") {
+            variableType = "str";
+        } else {
+            throw `3. Unknown variable type ${this.options.type}`;
         }
 
         return variableType;
     }
 
     getTypeLine() {
-        return `    ${this.columnName}${this.options.notNull && this.options.type != "sqlWrapper-now-func" ? "" : "?"}: ${this.getType()};`;
+        return `    ${this.columnName}${this.options.notNull && this.options.type != "sqlWrapper-now-func" && this.options.type != "sqlWrapper-date-on-update-func" && typeof this.options.default == "undefined" ? "" : "?"}: ${this.getType()};`;
     }
 }
 
@@ -127,8 +191,8 @@ export class TableInit {
         this.tableName = tableName;
         this.db = db;
 
-        this.typesName = capitalizeFirstLetter(this.tableName) + "Type";
-        this.rowClassName = capitalizeFirstLetter(this.tableName) + "Row";
+        this.typesName = snakeCaseToCamelCase(this.tableName) + "Type";
+        this.rowClassName = snakeCaseToCamelCase(this.tableName) + "Row";
     }
 
     addColumn(columnName: string, options: ColumnOptions) {
@@ -189,7 +253,7 @@ export class TableInit {
     getTypes() {
         const lines: string[] = [];
 
-        lines.push(`interface ${this.typesName} {`);
+        lines.push(`export interface ${this.typesName} {`);
 
         this.columns.forEach((column) => lines.push(column.getTypeLine()));
 
@@ -276,7 +340,7 @@ export class TableInit {
         lines.push("}");
 
         lines.push(
-            `class ${capitalizeFirstLetter(this.tableName)} extends BaseTable<${this.typesName}> {`
+            `class ${snakeCaseToCamelCase(this.tableName)} extends BaseTable<${this.typesName}> {`
         );
         lines.push("    db: DB");
         lines.push("    constructor(db: DB) {");
@@ -284,6 +348,12 @@ export class TableInit {
             `        super("${this.tableName}", db, [${this.columns
                 .map((column) => {
                     if (column.options.type == "sqlWrapper-now-func")
+                        return `{
+                            columnName: '${column.columnName}',
+                            type: '${column.options.type}',
+                        }`;
+
+                    if (column.options.type == "sqlWrapper-date-on-update-func")
                         return `{
                             columnName: '${column.columnName}',
                             type: '${column.options.type}',
@@ -303,7 +373,7 @@ export class TableInit {
         lines.push("}");
 
         lines.push(
-            `export const ${this.tableName} = new ${capitalizeFirstLetter(this.tableName)}(db);`
+            `export const ${this.tableName} = new ${snakeCaseToCamelCase(this.tableName)}(db);`
         );
 
         lines.push("");
@@ -312,10 +382,54 @@ export class TableInit {
 
         return lines;
     }
+    getPythonClassDefinition() {
+        const lines: string[] = [];
 
-    // get(column: string, value: string | number | null): Row<T> {
-    //     return new Row<T>(this, column, value);
-    // }
+        lines.push(`class ${this.typesName}(TypedDict):`);
+        this.columns.forEach((column) =>
+            lines.push(
+                `    ${column.columnName}: ${column.options.notNull ? column.getPythonRawType() : `Optional[${column.getPythonRawType()}]`}`
+            )
+        );
+
+        lines.push(`@dataclass`);
+        lines.push(`class ${this.rowClassName}:`);
+        this.columns.forEach((column) =>
+            lines.push(
+                `    ${column.columnName}: ${column.options.notNull ? column.getPythonType() : `Optional[${column.getPythonType()}]`}`
+            )
+        );
+
+        lines.push(
+            `def ${this.tableName}_parser(raw_object: Optional[${this.typesName}]) -> Optional[${this.rowClassName}]:`
+        );
+
+        lines.push("    if not raw_object: return");
+
+        lines.push("    object = {");
+
+        this.columns.forEach((column) =>
+            lines.push(
+                `        "${column.columnName}": cast(${column.options.notNull ? column.getPythonType() : `Optional[${column.getPythonType()}]`}, parse_column(value=raw_object.get("${column.columnName}"), column_type="${column.options.type}")),`
+            )
+        );
+
+        lines.push("    }");
+
+        lines.push(`    return ${this.rowClassName}(**object)`);
+
+        return lines;
+    }
+
+    getPythonClassInstantiation() {
+        const lines: string[] = [];
+
+        lines.push(
+            `            Table(db=self, table_name="${this.tableName}", parser=${this.tableName}_parser),`
+        );
+
+        return lines;
+    }
 
     commit() {
         this.db.db.exec(this.getQuery());
@@ -355,7 +469,9 @@ export class BaseTable<T> {
 
                 this.columnsInfo.forEach((columnInfo) => {
                     if (
-                        columnInfo.type === "sqlWrapper-now-func" &&
+                        (columnInfo.type === "sqlWrapper-now-func" ||
+                            columnInfo.type ==
+                                "sqlWrapper-date-on-update-func") &&
                         // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         !(_object as any)[columnInfo.columnName]
                     ) {
@@ -363,6 +479,16 @@ export class BaseTable<T> {
                         // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         (_object as any)[columnInfo.columnName] =
                             getDatabaseDate();
+                    }
+                });
+
+                Object.entries(_object).forEach((entry) => {
+                    if (entry[1] === true) {
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        (_object as any)[entry[0]] = "TRUE";
+                    } else if (entry[1] === false) {
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        (_object as any)[entry[0]] = "FALSE";
                     }
                 });
 
@@ -390,13 +516,23 @@ export class BaseTable<T> {
         } else {
             this.columnsInfo.forEach((columnInfo) => {
                 if (
-                    columnInfo.type === "sqlWrapper-now-func" &&
+                    (columnInfo.type === "sqlWrapper-now-func" ||
+                        columnInfo.type == "sqlWrapper-date-on-update-func") &&
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     !(object as any)[columnInfo.columnName]
                 ) {
-                    console.log("Setting", columnInfo.columnName);
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     (object as any)[columnInfo.columnName] = getDatabaseDate();
+                }
+            });
+
+            Object.entries(object).forEach((entry) => {
+                if (entry[1] === true) {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    (object as any)[entry[0]] = "TRUE";
+                } else if (entry[1] === false) {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    (object as any)[entry[0]] = "FALSE";
                 }
             });
 
@@ -430,6 +566,7 @@ export class DB {
     dbFile: string;
 
     NOW = "sqlWrapper-now-func" as const;
+    DATE_ON_UPDATE = "sqlWrapper-date-on-update-func" as const;
 
     constructor(dbFile: string) {
         this.db = sqlite(dbFile);
@@ -440,9 +577,10 @@ export class DB {
         this.tables.push(table);
         return table;
     }
-    commit(outputFile: string) {
+    commit() {
         this.tables.forEach((table) => table.commit());
-
+    }
+    writeClassesToFile(outputFile: string) {
         const lines: string[] = [];
         lines.push("// **********************************************");
         lines.push("// **** File managed by sqlWrapper by RockIt ****");
@@ -453,6 +591,38 @@ export class DB {
         lines.push(`export const db = new DB("${this.dbFile}");`);
 
         this.tables.map((table) => lines.push(...table.getClassDefinition()));
+
+        writeFileSync(outputFile, lines.join("\n"));
+    }
+
+    writePythonClassesToFile(outputFile: string) {
+        const lines = [];
+
+        lines.push("# **********************************************");
+        lines.push("# **** File managed by sqlWrapper by RockIt ****");
+        lines.push("# ***********^**********************************");
+        lines.push("");
+        lines.push("from backend.db.baseDb import BaseDB, Table");
+        lines.push("from backend.backendUtils import parse_column");
+        lines.push("from dataclasses import dataclass");
+        lines.push("from typing import TypedDict, Optional, cast");
+        lines.push("from datetime import datetime");
+        lines.push("");
+        lines.push("");
+
+        this.tables.map((table) =>
+            lines.push(...table.getPythonClassDefinition())
+        );
+
+        lines.push("class DB(BaseDB):");
+        lines.push("    def __init__(self):");
+        lines.push("        super().__init__()");
+        lines.push("        self.tables = [");
+        this.tables.map((table) =>
+            lines.push(...table.getPythonClassInstantiation())
+        );
+
+        lines.push("        ]");
 
         writeFileSync(outputFile, lines.join("\n"));
     }

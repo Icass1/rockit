@@ -1,220 +1,30 @@
-import sqlite from "better-sqlite3";
-export const db = sqlite("database/test-database.db");
-
-import { db as mainDb } from "./lib/db/db";
-import { OldImageDB, RawAlbumDB } from "./lib/db/album";
-import { RawSongDB } from "./lib/db/song";
-import { RawUserDB } from "./lib/db/user";
+import {
+    artist_external_images,
+    artists as artistsDB,
+    albums as albumsDB,
+    users as usersDB,
+    songs as songsDB,
+    playlists as playlistsDB,
+    external_images,
+    album_artists,
+    album_external_images,
+    song_artists,
+    UsersType,
+    user_queue,
+    user_liked_songs,
+    UserLikedSongsType,
+    user_lists,
+    user_pinned_lists,
+    user_song_history,
+    UserSongHistoryType,
+    PlaylistsType,
+    PlaylistSongsType,
+    playlist_external_images,
+    playlist_songs,
+} from "./lib/db/db";
 import { getDatabaseDate } from "./lib/getTime";
 
-db.exec(`
-CREATE TABLE IF NOT EXISTS spotify_images (
-    id TEXT PRIMARY KEY,
-    url TEXT UNIQUE NOT NULL,
-    width INTEGER,
-    height INTEGER
-);
-`);
-
-db.exec(`
-CREATE TABLE IF NOT EXISTS albums (
-    id TEXT PRIMARY KEY UNIQUE,
-    image TEXT NOT NULL,
-    name TEXT NOT NULL,
-    release_date DATE NOT NULL,
-    popularity INTEGER,
-    disc_count INTEGER NOT NULL,
-    date_added DATE NOT NULL
-)`);
-db.exec(`
-CREATE TABLE IF NOT EXISTS album_images (
-    album_id TEXT NOT NULL,
-    image_id TEXT NOT NULL,
-    FOREIGN KEY (album_id) REFERENCES albums(id),
-    FOREIGN KEY (image_id) REFERENCES spotify_images(id),
-    PRIMARY KEY (album_id, image_id)
-);
-`);
-db.exec(`
-CREATE TABLE IF NOT EXISTS album_artists (
-    album_id TEXT NOT NULL,
-    artist_id TEXT NOT NULL,
-    FOREIGN KEY (album_id) REFERENCES albums(id),
-    FOREIGN KEY (artist_id) REFERENCES artists(id),
-    PRIMARY KEY (album_id, artist_id)
-);
-`);
-db.exec(`
-CREATE TABLE IF NOT EXISTS artists (
-    id TEXT PRIMARY KEY UNIQUE,
-    name TEXT NOT NULL,
-    genres TEXT,
-    followers INTEGER,
-    popularity INTEGER,
-    date_added DATE,
-    image TEXT
-);
-`);
-db.exec(`
-CREATE TABLE IF NOT EXISTS artist_images (
-    artist_id TEXT NOT NULL,
-    image_id TEXT NOT NULL,
-    FOREIGN KEY (artist_id) REFERENCES artists(id),
-    FOREIGN KEY (image_id) REFERENCES spotify_images(id),
-    PRIMARY KEY (artist_id, image_id)
-);
-`);
-
-db.exec(`
-CREATE TABLE IF NOT EXISTS songs (
-    id TEXT PRIMARY KEY UNIQUE,
-    name TEXT NOT NULL,
-    duration INTEGER NOT NULL,
-    track_number INTEGER NOT NULL,
-    disc_number INTEGER NOT NULL,
-    popularity INTEGER,
-    image TEXT,
-    path TEXT,
-    album_id TEXT NOT NULL,
-    date_added DATE NOT NULL,
-    isrc TEXT UNIQUE NOT NULL,
-    download_url TEXT,
-    lyrics TEXT,
-    dynamic_lyrics TEXT,
-    FOREIGN KEY (album_id) REFERENCES albums(id)
-)
-`);
-
-db.exec(`
-CREATE TABLE IF NOT EXISTS song_artists (
-    song_id TEXT NOT NULL,
-    artist_id TEXT NOT NULL,
-    FOREIGN KEY (song_id) REFERENCES songs(id),
-    FOREIGN KEY (artist_id) REFERENCES artists(id),
-    PRIMARY KEY (song_id, artist_id)
-);    
-`);
-
-db.exec(`
-CREATE TABLE IF NOT EXISTS downloads (
-    id TEXT PRIMARY KEY UNIQUE,
-    user_id TEXT NOT NULL,
-    date_started DATE NOT NULL,
-    date_ended DATE,
-    download_url TEXT NOT NULL,
-    status TEXT NOT NULL,
-    seen BOOLEAN NOT NULL DEFAULT FALSE,
-    success INTEGER,
-    fail INTEGER,
-    FOREIGN KEY (user_id) REFERENCES users(id)
-)
-`);
-
-db.exec(`
-CREATE TABLE IF NOT EXISTS users (
-    id TEXT NOT NULL UNIQUE PRIMARY KEY,
-    username TEXT NOT NULL UNIQUE,
-    password_hash TEXT NOT NULL,
-    current_song TEXT,
-    current_station TEXT,
-    current_time INTEGER,
-    queue_index INTEGER,
-    random_queue BOOLEAN DEFAULT 0 NOT NULL,
-    repeat_song TEXT DEFAULT "off" NOT NULL CHECK (repeat_song IN ('off', 'one', 'all')),
-    volume INTEGER DEFAULT 1 NOT NULL,
-    cross_fade INTEGER DEFAULT 0 NOT NULL,
-    lang TEXT DEFAULT "en" NOT NULL,
-    admin BOOLEAN DEFAULT 0 NOT NULL,
-    super_admin BOOLEAN DEFAULT 0 NOT NULL,
-    impersonate_id TEXT,
-    dev_user BOOLEAN DEFAULT 0 NOT NULL,
-    created_at DATE NOT NULL,
-    FOREIGN KEY (current_song) REFERENCES songs(id),
-    FOREIGN KEY (impersonate_id) REFERENCES users(id)
-);
-`);
-
-db.exec(`
-CREATE TABLE IF NOT EXISTS user_lists (
-    user_id TEXT NOT NULL,
-    item_type TEXT NOT NULL CHECK (item_type IN ('playlist', 'album')),
-    item_id TEXT NOT NULL,
-    created_at DATE NOT NULL,
-    PRIMARY KEY (user_id, item_type, item_id),
-    FOREIGN KEY (user_id) REFERENCES users(id)
-);
-`);
-
-db.exec(`
-CREATE TABLE IF NOT EXISTS user_queue (
-    user_id TEXT NOT NULL,
-    position INTEGER NOT NULL,
-    song_id TEXT NOT NULL,
-    list_type TEXT CHECK(list_type IN ('album', 'playlist', 'recently-played')),
-    list_id TEXT NOT NULL,
-    PRIMARY KEY (user_id, song_id, position),
-    FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (song_id) REFERENCES songs(id)
-);
-`);
-
-db.exec(`
-CREATE TABLE IF NOT EXISTS user_pinned_lists (
-    user_id TEXT NOT NULL,
-    item_type TEXT NOT NULL CHECK (item_type IN ('playlist', 'album')),
-    item_id TEXT NOT NULL,
-    created_at DATE NOT NULL,
-    PRIMARY KEY (user_id, item_type, item_id),
-    FOREIGN KEY (user_id) REFERENCES users(id)
-);
-`);
-
-db.exec(`
-CREATE TABLE IF NOT EXISTS user_liked_songs (
-    user_id TEXT NOT NULL,
-    created_at DATE,
-    song_id TEXT NOT NULL,
-    PRIMARY KEY (user_id, song_id),
-    FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (song_id) REFERENCES songs(id)
-);
-`);
-
-db.exec(`
-CREATE TABLE IF NOT EXISTS user_song_history (
-    user_id TEXT NOT NULL,
-    song_id TEXT NOT NULL,
-    played_at TIMESTAMP NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (song_id) REFERENCES songs(id)
-);
-`);
-
-db.exec(`
-CREATE TABLE IF NOT EXISTS session (
-    id TEXT NOT NULL PRIMARY KEY,
-    expires_at INTEGER NOT NULL,
-    user_id TEXT NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES user(id)
-);
-`);
-
-db.exec(`
-CREATE TABLE IF NOT EXISTS error (
-    id TEXT NOT NULL PRIMARY KEY UNIQUE,
-    msg TEXT,
-    source TEXT,
-    line_no INTEGER,
-    column_no INTEGER,
-    error_message TEXT,
-    error_cause TEXT,
-    error_name TEXT,
-    error_stack TEXT,
-    date_added DATE,
-    user_id TEXT,
-    FOREIGN KEY (user_id) REFERENCES users(id)
-);
-`);
+import sqlite from "better-sqlite3";
 
 export interface RawArtistDB {
     id: string;
@@ -225,200 +35,166 @@ export interface RawArtistDB {
     popularity: number;
     type: string;
     dateAdded: string;
-    image: object;
+    image: string;
 }
 
-const albums: RawAlbumDB[] = mainDb
-    .prepare("SELECT * FROM album")
-    .all() as RawAlbumDB[];
-const artists: RawArtistDB[] = mainDb
-    .prepare("SELECT * FROM artist")
-    .all() as RawArtistDB[];
-const songs: RawSongDB[] = mainDb
-    .prepare("SELECT * FROM song")
-    .all() as RawSongDB[];
-
-const users: RawUserDB[] = mainDb
-    .prepare("SELECT * FROM user")
-    .all() as RawUserDB[];
+const oldDb = sqlite("database/back.database.2025.06.01.db", {
+    readonly: true,
+});
+const albums = oldDb.prepare("SELECT * FROM album").all();
+const artists = oldDb.prepare("SELECT * FROM artist").all();
+const songs = oldDb.prepare("SELECT * FROM song").all();
+const users = oldDb.prepare("SELECT * FROM user").all();
+const playlists = oldDb.prepare("SELECT * FROM playlist").all();
 
 const missingArtists: string[] = [];
 const songsMissingIsrc: string[] = [];
 const missingAlbums: string[] = [];
+const missingSongs: string[] = [];
 
-artists.forEach((artistDB) => {
-    // console.log({ artistDB });
-
-    try {
-        db.prepare(
-            "INSERT INTO artists (id, name, genres, followers, popularity, date_added, image) VALUES (?, ?, ?, ?, ?, ?, ?)"
-        ).run(
-            artistDB.id,
-            artistDB.name,
-            artistDB.genres,
-            artistDB.followers,
-            artistDB.popularity,
-            getDatabaseDate(artistDB.dateAdded),
-            JSON.stringify(artistDB.image)
-        );
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-        if (error.toString().includes("UNIQUE constraint failed: artists.id")) {
-            // Artist already exists, skip
-            return;
-        } else {
-            console.log("Error inserting artist:", artistDB.id, error);
-        }
-    }
-
-    const images: OldImageDB[] = JSON.parse(artistDB.images);
+artists.forEach((artistDB: any) => {
+    artistsDB.insert(
+        {
+            id: artistDB.id,
+            name: artistDB.name,
+            genres: artistDB.genres,
+            followers: artistDB.followers,
+            popularity: artistDB.popularity,
+            image: artistDB.image,
+        },
+        { ignoreIfExists: true }
+    );
+    const images = JSON.parse(artistDB.images);
 
     images.forEach((image) => {
-        const { url, width, height } = image;
+        const {
+            url,
+            width,
+            height,
+        }: { url: string; width: number; height: number } = image;
 
-        const id = url.replace("https://i.scdn.co/image/", "");
+        const id: string | undefined = url.split("/").at(-1);
+        if (!id) {
+            console.error("Missing image", id);
+            return;
+        }
+        external_images.insert(
+            {
+                id,
+                url,
+                width,
+                height,
+            },
+            { ignoreIfExists: true }
+        );
 
-        db.prepare(
-            "INSERT INTO spotify_images (id, url, width, height) VALUES (?, ?, ?, ?)"
-        ).run(id, url, width, height);
-
-        db.prepare(
-            "INSERT INTO artist_images (artist_id, image_id) VALUES (?, ?)"
-        ).run(artistDB.id, id);
+        artist_external_images.insert(
+            {
+                artist_id: artistDB.id,
+                image_id: id,
+            },
+            { ignoreIfExists: true }
+        );
     });
 });
 
-albums.forEach((albumDB) => {
+albums.forEach((albumDB: any) => {
     // console.log({ albumDB });
-    const images: OldImageDB[] = JSON.parse(albumDB.images);
 
-    try {
-        db.prepare(
-            "INSERT INTO albums (id, image, name, release_date, popularity, disc_count, date_added) VALUES (?, ?, ?, ?, ?, ?, ?)"
-        ).run(
-            albumDB.id,
-            albumDB.image,
-            albumDB.name,
-            albumDB.releaseDate,
-            albumDB.popularity,
-            albumDB.discCount,
-            getDatabaseDate(albumDB.dateAdded)
-        );
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-        if (error.toString().includes("UNIQUE constraint failed: albums.id")) {
-            // Artist already exists, skip
-            return;
-        } else {
-            console.log("Error inserting album:", albumDB.id, error);
-        }
-    }
+    albumsDB.insert(
+        {
+            id: albumDB.id,
+            image: albumDB.image,
+            name: albumDB.name,
+            release_date: albumDB.releaseDate,
+            popularity: albumDB.popularity,
+            disc_count: albumDB.discCount,
+        },
+        { ignoreIfExists: true }
+    );
 
     const artists = JSON.parse(albumDB.artists);
-
     artists.forEach((artist: { id: string }) => {
         try {
-            db.prepare(
-                "INSERT INTO album_artists (album_id, artist_id) VALUES (?, ?)"
-            ).run(albumDB.id, artist.id);
+            album_artists.insert({
+                album_id: albumDB.id,
+                artist_id: artist.id,
+            });
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
             if (error.toString().includes("FOREIGN KEY constraint failed")) {
                 missingArtists.push(artist.id);
-
-                return;
-            } else {
-                console.log("Error inserting album artist:", {
-                    albumId: albumDB.id,
-                    artist,
-                    error,
-                });
             }
         }
     });
 
+    const images: any[] = JSON.parse(albumDB.images);
     images.forEach((image) => {
         const { url, width, height } = image;
 
-        const id = url.replace("https://i.scdn.co/image/", "");
+        const id = url.split("/").at(-1);
 
-        try {
-            db.prepare(
-                "INSERT INTO spotify_images (id, url, width, height) VALUES (?, ?, ?, ?)"
-            ).run(id, url, width, height);
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (error: any) {
-            if (
-                error
-                    .toString()
-                    .includes("UNIQUE constraint failed: spotify_images.url")
-            ) {
-            } else {
-                console.log("Error inserting spotify_images:", {
-                    albumId: albumDB.id,
-                    image: image,
-                    error,
-                });
-            }
-        }
+        external_images.insert(
+            {
+                id,
+                url,
+                width,
+                height,
+            },
+            { ignoreIfExists: true }
+        );
 
-        db.prepare(
-            "INSERT INTO album_images (album_id, image_id) VALUES (?, ?)"
-        ).run(albumDB.id, id);
+        album_external_images.insert(
+            {
+                album_id: albumDB.id,
+                image_id: id,
+            },
+            { ignoreIfExists: true }
+        );
     });
 });
 
-songs.forEach((songDB) => {
+songs.forEach((songDB: any) => {
     try {
-        db.prepare(
-            "INSERT INTO songs (id, name, duration, track_number, disc_number, popularity, image, path, album_id, date_added, isrc, download_url, lyrics, dynamic_lyrics) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-        ).run(
-            songDB.id,
-            songDB.name,
-            songDB.duration,
-            songDB.trackNumber,
-            songDB.discNumber,
-            songDB.popularity,
-            songDB.image,
-            songDB.path,
-            songDB.albumId,
-            getDatabaseDate(songDB.dateAdded),
-            songDB.isrc,
-            songDB.downloadUrl,
-            songDB.lyrics,
-            songDB.dynamicLyrics
+        songsDB.insert(
+            {
+                id: songDB.id,
+                name: songDB.name,
+                duration: songDB.duration,
+                track_number: songDB.trackNumber,
+                disc_number: songDB.discNumber,
+                popularity: songDB.popularity,
+                image: songDB.image,
+                path: songDB.path,
+                album_id: songDB.albumId,
+                isrc: songDB.isrc,
+                download_url: songDB.downloadUrl,
+                lyrics: songDB.lyrics,
+                dynamic_lyrics: songDB.dynamicLyrics,
+            },
+            { ignoreIfExists: true }
         );
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-        if (error.toString().includes("UNIQUE constraint failed: songs.id")) {
-        } else if (
-            error.toString().includes("UNIQUE constraint failed: songs.isrc")
-        ) {
-        } else if (
-            error.toString().includes("NOT NULL constraint failed: songs.isrc")
-        ) {
-            songsMissingIsrc.push(songDB.id);
-        } else if (error.toString().includes("FOREIGN KEY constraint failed")) {
+        if (error.toString().includes("FOREIGN KEY constraint failed")) {
             missingAlbums.push(songDB.albumId);
-        } else {
-            console.log({ songDB });
-            console.log("Error inserting song:", songDB.id, error);
         }
     }
 
     const artists = JSON.parse(songDB.artists);
     artists.forEach((artist: { id: string }) => {
         try {
-            db.prepare(
-                "INSERT INTO song_artists (song_id, artist_id) VALUES (?, ?)"
-            ).run(songDB.id, artist.id);
+            song_artists.insert(
+                {
+                    artist_id: artist.id,
+                    song_id: songDB.id,
+                },
+                { ignoreIfExists: true }
+            );
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
             if (error.toString().includes("FOREIGN KEY constraint failed")) {
                 missingArtists.push(artist.id);
-            } else {
-                console.log("Error inserting song artist:", error);
             }
         }
     });
@@ -435,70 +211,176 @@ export interface List {
     id: string;
 }
 
-users.forEach((userDB) => {
-    try {
-        db.prepare(
-            "INSERT INTO users (id, username, password_hash, current_song, current_station, current_time, queue_index, random_queue, repeat_song, volume, cross_fade, lang, admin, super_admin, impersonate_id, dev_user, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-        ).run(
-            userDB.id,
-            userDB.username,
-            userDB.passwordHash,
-            userDB.currentSong,
-            userDB.currentStation,
-            userDB.currentTime,
-            userDB.queueIndex,
-            userDB.randomQueue,
-            userDB.repeatSong,
-            userDB.volume,
-            userDB.crossFade,
-            userDB.lang,
-            userDB.admin,
-            userDB.superAdmin,
-            null,
-            userDB.devUser,
-            getDatabaseDate(userDB.createdAt)
-        );
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-        if (
-            error
-                .toString()
-                .includes("UNIQUE constraint failed: users.username")
-        ) {
-        } else {
-            console.log("Error inserting user:", { userDB, error });
-        }
-    }
+users.forEach((userDB: any) => {
+    const userToInsert: UsersType = {
+        id: userDB.id,
+        username: userDB.username,
+        password_hash: userDB.passwordHash,
+        current_song_id: userDB.currentSong,
+        current_station: userDB.currentStation,
+        current_time: userDB.currentTime,
+        queue_index: userDB.queueIndex,
+        random_queue: userDB.randomQueue == "1" ? true : false,
+        repeat_song: userDB.repeatSong,
+        volume: userDB.volume,
+        cross_fade: userDB.crossFade,
+        lang: userDB.lang,
+        admin: userDB.admin == "1" ? true : false,
+        super_admin: userDB.superAdmin == "1" ? true : false,
+        dev_user: userDB.devUser == "1" ? true : false,
+    };
+
+    usersDB.insert(userToInsert, { ignoreIfExists: true });
 
     const queue: Queue[] = JSON.parse(userDB.queue);
-
     queue.forEach((item) => {
         try {
-            db.prepare(
-                "INSERT INTO user_queue (user_id, position, song_id, list_type, list_id) VALUES (?, ?, ?, ?, ?)"
-            ).run(
-                userDB.id,
-                item.index,
-                item.song,
-                item.list.type,
-                item.list.id
-            );
+            user_queue.insert({
+                user_id: userDB.id,
+                position: item.index,
+                song_id: item.song,
+                list_id: item.list.id,
+                list_type: item.list.type,
+            });
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
-            if (
-                error
-                    .toString()
-                    .includes(
-                        "UNIQUE constraint failed: user_queue.user_id, user_queue.song_id, user_queue.position"
-                    )
-            ) {
-            } else {
-                console.log("Error inserting user queue:", {
-                    userId: userDB.id,
-                    item,
-                    error,
-                });
+            if (error.toString().includes("FOREIGN KEY constraint failed")) {
+                missingSongs.push(item.song);
+            }
+        }
+    });
+
+    const likedSongs = JSON.parse(userDB.likedSongs);
+    likedSongs.forEach((song: any) => {
+        const a: UserLikedSongsType = {
+            song_id: song.id,
+            date_added: getDatabaseDate(song.added_at),
+            user_id: userDB.id,
+        };
+        try {
+            user_liked_songs.insert(a);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (error: any) {
+            if (error.toString().includes("FOREIGN KEY constraint failed")) {
+                missingSongs.push(song.id);
+            }
+        }
+    });
+
+    const userLists = JSON.parse(userDB.lists);
+
+    userLists.forEach((userList) =>
+        user_lists.insert(
+            {
+                user_id: userDB.id,
+                item_id: userList.id,
+                item_type: userList.type,
+                date_added: getDatabaseDate(userList.createdAt),
+            },
+            { ignoreIfExists: true }
+        )
+    );
+
+    const userPinnedLists: UserDBPinnedLists[] = JSON.parse(userDB.pinnedLists);
+
+    userPinnedLists.forEach((userList) =>
+        user_pinned_lists.insert(
+            {
+                user_id: userDB.id,
+                item_id: userList.id,
+                item_type: userList.type,
+                date_added: getDatabaseDate(userList.createdAt),
+            },
+            { ignoreIfExists: true }
+        )
+    );
+
+    const userHistory: { [key: string]: (number | string)[] } = JSON.parse(
+        userDB.lastPlayedSong
+    );
+
+    Object.entries(userHistory).forEach((entry) => {
+        entry[1].forEach((time) => {
+            const a: UserSongHistoryType = {
+                song_id: entry[0],
+                user_id: userDB.id,
+                played_at: getDatabaseDate(time),
+            };
+            try {
+                user_song_history.insert(a, { ignoreIfExists: true });
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            } catch (error: any) {
+                if (
+                    error.toString().includes("FOREIGN KEY constraint failed")
+                ) {
+                    missingSongs.push(entry[0]);
+                }
+            }
+        });
+    });
+});
+
+playlists.forEach((playlistDB) => {
+    const a: PlaylistsType = {
+        id: playlistDB.id,
+        name: playlistDB.name,
+        owner: playlistDB.owner,
+        followers: playlistDB.followers,
+        image: playlistDB.image ?? undefined,
+        date_added: getDatabaseDate(playlistDB.createdAt ?? new Date()),
+    };
+
+    playlistsDB.insert(a, { ignoreIfExists: true });
+    const images: object[] = JSON.parse(playlistDB.images);
+
+    images?.forEach((image) => {
+        let { url, width, height } = image;
+
+        if (
+            url ==
+                "https://i.scdn.co/image/ab67616d00001e02b2fb4238eaa37aad5e01ada1" ||
+            url ==
+                "https://image-cdn-fa.spotifycdn.com/image/ab67706c0000da8443ee594ee3c5c0572a155ca1"
+        ) {
+            (width = 300), (height = 300);
+        }
+
+        const id = url.split("/").at(-1);
+
+        external_images.insert(
+            {
+                id,
+                url,
+                width,
+                height,
+            },
+            { ignoreIfExists: true }
+        );
+
+        playlist_external_images.insert(
+            {
+                playlist_id: playlistDB.id,
+                image_id: id,
+            },
+            { ignoreIfExists: true }
+        );
+    });
+
+    const songs = JSON.parse(playlistDB.songs);
+
+    songs.forEach((song: any) => {
+        const a: PlaylistSongsType = {
+            song_id: song.id,
+            date_added: getDatabaseDate(song.added_at ?? new Date()),
+            playlist_id: playlistDB.id,
+        };
+        try {
+            playlist_songs.insert(a);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (error: any) {
+            if (error.toString().includes("FOREIGN KEY constraint failed")) {
+                missingSongs.push(a.song_id);
             }
         }
     });
@@ -517,6 +399,16 @@ console.log(
 console.log(
     "missing albums:",
     missingAlbums.reduce((acc: string[], id) => {
+        if (!acc.includes(id)) {
+            acc.push(id);
+        }
+        return acc;
+    }, [])
+);
+
+console.log(
+    "missing songs:",
+    missingSongs.reduce((acc: string[], id) => {
         if (!acc.includes(id)) {
             acc.push(id);
         }

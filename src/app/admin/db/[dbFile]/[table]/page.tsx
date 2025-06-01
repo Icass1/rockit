@@ -28,7 +28,7 @@ export default async function AdminDBTablePage({
             }[]
         ).map((table) => table.name);
     } else {
-        const tempDb = sqlite(`database/${dbFile}`);
+        const tempDb = sqlite(`database/${dbFile}`, { readonly: true });
 
         tables = (
             tempDb

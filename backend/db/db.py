@@ -1,370 +1,517 @@
+# **********************************************
+# **** File managed by sqlWrapper by RockIt ****
+# ***********^**********************************
+
+from backend.db.baseDb import BaseDB, Table
+from backend.backendUtils import parse_column
+from dataclasses import dataclass
+from typing import TypedDict, Optional, cast
+from datetime import datetime
 
 
-import os
-import sqlite3
-from typing import Any, List, Dict, Callable
-import sys
-import json
-import re
-
-import atexit
-from threading import Lock
-
-from backend.db.session import sesssion_query
-from backend.db.image import image_query, parse_image
-from backend.db.playlist import playlist_query, parse_playlist
-from backend.db.user import user_query, parse_user
-from backend.db.error import error_query
-from backend.db.download import download_query, parse_download
-from backend.db.album import album_query, parse_album
-from backend.db.song import song_query, parse_song
-from backend.db.artist import artist_query, parse_artist
-
-from backend.logger import getLogger
-
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
-
-DB_PATH = "database/database.db"
-INSECURE_DB_MODE = os.getenv("INSECURE_DB_MODE", "false") == "true"
-
-os.makedirs("database", exist_ok=True)
-
-
-lock = Lock()
-
-
-class Table:
-    def __init__(self, db: "DB", query, parser: Callable | None = None):
-        self.logger = getLogger(__name__, class_name="Table")
-
-        self.db = db
-        self.query = query
-        self.parser = parser
-
-        self.table_name = self.db.get_table_name(query)
-
-        if not self.table_name:
-            self.logger.critical(f"Unable to get table_name. query: {query}")
-            return
-
-        self.logger.info(f"Checking {self.table_name} table...")
-
-        self.db.check_table(query)
-        self.db.execute(query)
-        self.columns = self.db.get_existing_columns(self.table_name)
-
-    def get_columns_from_select(self, query: str):
-        match = re.search(r"SELECT\s+(.*?)\s+FROM", query, re.IGNORECASE)
-        if not match:
-            return None
-
-        columns_part = match.group(1).strip()
-
-        # Handle wildcard case
-        if columns_part == "*":
-            return "*"
-
-        # Split columns, handling possible spaces and backticks/quotes
-        columns = re.split(r"\s*,\s*", columns_part)
-        columns = [col.strip("`\"'") for col in columns]
-
-        return columns
-
-    def get_all(self, query: str, parameters=None):
-        lock.acquire()
-        if parameters:
-            self.db.cur.execute(query, parameters)
-        else:
-            self.db.cur.execute(query)
-
-        results = self.db.cur.fetchall()
-        lock.release()
-
-        columns = self.get_columns_from_select(query)
-
-        if columns == "*":
-            columns = [k.get("name") for k in self.columns]
-
-        if not columns:
-            return
-
-        if self.parser:
-            results = [self.parser(dict(zip(columns, result)))
-                       for result in results]
-        else:
-            results = [dict(zip(columns, result)) for result in results]
-
-        return results
-
-    def get(self, query: str, parameters=None):
-        lock.acquire()
-
-        if parameters:
-            self.db.cur.execute(query, parameters)
-        else:
-            self.db.cur.execute(query)
-
-        result = self.db.cur.fetchmany(1)
-        lock.release()
-
-        if len(result) == 0:
-            return None
-        result = result[0]
-
-        columns = self.get_columns_from_select(query)
-
-        if columns == "*":
-            columns = [k.get("name") for k in self.columns]
-
-        if not columns:
-            return
-
-        if self.parser:
-            result = self.parser(dict(zip(columns, result)))
-        else:
-            result = dict(zip(columns, result))
-        return result
-
-
-class DB:
+class ExternalImagesType(TypedDict):
+    id: str
+    url: str
+    width: float
+    height: float
+@dataclass
+class ExternalImagesRow:
+    id: str
+    url: str
+    width: float
+    height: float
+def external_images_parser(raw_object: Optional[ExternalImagesType]) -> Optional[ExternalImagesRow]:
+    if not raw_object: return
+    object = {
+        "id": cast(str, parse_column(value=raw_object.get("id"), column_type="TEXT")),
+        "url": cast(str, parse_column(value=raw_object.get("url"), column_type="TEXT")),
+        "width": cast(float, parse_column(value=raw_object.get("width"), column_type="INTEGER")),
+        "height": cast(float, parse_column(value=raw_object.get("height"), column_type="INTEGER")),
+    }
+    return ExternalImagesRow(**object)
+class AlbumsType(TypedDict):
+    id: str
+    image: str
+    name: str
+    release_date: str
+    popularity: Optional[float]
+    disc_count: float
+    date_added: str
+@dataclass
+class AlbumsRow:
+    id: str
+    image: str
+    name: str
+    release_date: datetime
+    popularity: Optional[float]
+    disc_count: float
+    date_added: datetime
+def albums_parser(raw_object: Optional[AlbumsType]) -> Optional[AlbumsRow]:
+    if not raw_object: return
+    object = {
+        "id": cast(str, parse_column(value=raw_object.get("id"), column_type="TEXT")),
+        "image": cast(str, parse_column(value=raw_object.get("image"), column_type="TEXT")),
+        "name": cast(str, parse_column(value=raw_object.get("name"), column_type="TEXT")),
+        "release_date": cast(datetime, parse_column(value=raw_object.get("release_date"), column_type="DATE")),
+        "popularity": cast(Optional[float], parse_column(value=raw_object.get("popularity"), column_type="INTEGER")),
+        "disc_count": cast(float, parse_column(value=raw_object.get("disc_count"), column_type="INTEGER")),
+        "date_added": cast(datetime, parse_column(value=raw_object.get("date_added"), column_type="sqlWrapper-now-func")),
+    }
+    return AlbumsRow(**object)
+class AlbumExternalImagesType(TypedDict):
+    album_id: str
+    image_id: str
+@dataclass
+class AlbumExternalImagesRow:
+    album_id: str
+    image_id: str
+def album_external_images_parser(raw_object: Optional[AlbumExternalImagesType]) -> Optional[AlbumExternalImagesRow]:
+    if not raw_object: return
+    object = {
+        "album_id": cast(str, parse_column(value=raw_object.get("album_id"), column_type="TEXT")),
+        "image_id": cast(str, parse_column(value=raw_object.get("image_id"), column_type="TEXT")),
+    }
+    return AlbumExternalImagesRow(**object)
+class ArtistsType(TypedDict):
+    id: str
+    name: str
+    genres: Optional[str]
+    followers: Optional[float]
+    popularity: Optional[float]
+    date_added: str
+    image: Optional[str]
+@dataclass
+class ArtistsRow:
+    id: str
+    name: str
+    genres: Optional[str]
+    followers: Optional[float]
+    popularity: Optional[float]
+    date_added: datetime
+    image: Optional[str]
+def artists_parser(raw_object: Optional[ArtistsType]) -> Optional[ArtistsRow]:
+    if not raw_object: return
+    object = {
+        "id": cast(str, parse_column(value=raw_object.get("id"), column_type="TEXT")),
+        "name": cast(str, parse_column(value=raw_object.get("name"), column_type="TEXT")),
+        "genres": cast(Optional[str], parse_column(value=raw_object.get("genres"), column_type="TEXT")),
+        "followers": cast(Optional[float], parse_column(value=raw_object.get("followers"), column_type="INTEGER")),
+        "popularity": cast(Optional[float], parse_column(value=raw_object.get("popularity"), column_type="INTEGER")),
+        "date_added": cast(datetime, parse_column(value=raw_object.get("date_added"), column_type="sqlWrapper-now-func")),
+        "image": cast(Optional[str], parse_column(value=raw_object.get("image"), column_type="TEXT")),
+    }
+    return ArtistsRow(**object)
+class AlbumArtistsType(TypedDict):
+    album_id: str
+    artist_id: str
+@dataclass
+class AlbumArtistsRow:
+    album_id: str
+    artist_id: str
+def album_artists_parser(raw_object: Optional[AlbumArtistsType]) -> Optional[AlbumArtistsRow]:
+    if not raw_object: return
+    object = {
+        "album_id": cast(str, parse_column(value=raw_object.get("album_id"), column_type="TEXT")),
+        "artist_id": cast(str, parse_column(value=raw_object.get("artist_id"), column_type="TEXT")),
+    }
+    return AlbumArtistsRow(**object)
+class ArtistExternalImagesType(TypedDict):
+    artist_id: str
+    image_id: str
+@dataclass
+class ArtistExternalImagesRow:
+    artist_id: str
+    image_id: str
+def artist_external_images_parser(raw_object: Optional[ArtistExternalImagesType]) -> Optional[ArtistExternalImagesRow]:
+    if not raw_object: return
+    object = {
+        "artist_id": cast(str, parse_column(value=raw_object.get("artist_id"), column_type="TEXT")),
+        "image_id": cast(str, parse_column(value=raw_object.get("image_id"), column_type="TEXT")),
+    }
+    return ArtistExternalImagesRow(**object)
+class SongsType(TypedDict):
+    id: str
+    name: str
+    duration: float
+    track_number: float
+    disc_number: float
+    popularity: Optional[float]
+    image: Optional[str]
+    path: Optional[str]
+    album_id: str
+    date_added: str
+    isrc: str
+    download_url: Optional[str]
+    lyrics: Optional[str]
+    dynamic_lyrics: Optional[str]
+@dataclass
+class SongsRow:
+    id: str
+    name: str
+    duration: float
+    track_number: float
+    disc_number: float
+    popularity: Optional[float]
+    image: Optional[str]
+    path: Optional[str]
+    album_id: str
+    date_added: datetime
+    isrc: str
+    download_url: Optional[str]
+    lyrics: Optional[str]
+    dynamic_lyrics: Optional[str]
+def songs_parser(raw_object: Optional[SongsType]) -> Optional[SongsRow]:
+    if not raw_object: return
+    object = {
+        "id": cast(str, parse_column(value=raw_object.get("id"), column_type="TEXT")),
+        "name": cast(str, parse_column(value=raw_object.get("name"), column_type="TEXT")),
+        "duration": cast(float, parse_column(value=raw_object.get("duration"), column_type="INTEGER")),
+        "track_number": cast(float, parse_column(value=raw_object.get("track_number"), column_type="INTEGER")),
+        "disc_number": cast(float, parse_column(value=raw_object.get("disc_number"), column_type="INTEGER")),
+        "popularity": cast(Optional[float], parse_column(value=raw_object.get("popularity"), column_type="INTEGER")),
+        "image": cast(Optional[str], parse_column(value=raw_object.get("image"), column_type="TEXT")),
+        "path": cast(Optional[str], parse_column(value=raw_object.get("path"), column_type="TEXT")),
+        "album_id": cast(str, parse_column(value=raw_object.get("album_id"), column_type="TEXT")),
+        "date_added": cast(datetime, parse_column(value=raw_object.get("date_added"), column_type="sqlWrapper-now-func")),
+        "isrc": cast(str, parse_column(value=raw_object.get("isrc"), column_type="TEXT")),
+        "download_url": cast(Optional[str], parse_column(value=raw_object.get("download_url"), column_type="TEXT")),
+        "lyrics": cast(Optional[str], parse_column(value=raw_object.get("lyrics"), column_type="TEXT")),
+        "dynamic_lyrics": cast(Optional[str], parse_column(value=raw_object.get("dynamic_lyrics"), column_type="TEXT")),
+    }
+    return SongsRow(**object)
+class SongArtistsType(TypedDict):
+    song_id: str
+    artist_id: str
+@dataclass
+class SongArtistsRow:
+    song_id: str
+    artist_id: str
+def song_artists_parser(raw_object: Optional[SongArtistsType]) -> Optional[SongArtistsRow]:
+    if not raw_object: return
+    object = {
+        "song_id": cast(str, parse_column(value=raw_object.get("song_id"), column_type="TEXT")),
+        "artist_id": cast(str, parse_column(value=raw_object.get("artist_id"), column_type="TEXT")),
+    }
+    return SongArtistsRow(**object)
+class UsersType(TypedDict):
+    id: str
+    username: str
+    password_hash: str
+    current_song_id: Optional[str]
+    current_station: Optional[str]
+    current_time: Optional[float]
+    queue_index: Optional[float]
+    random_queue: str
+    repeat_song: str
+    volume: float
+    cross_fade: float
+    lang: str
+    admin: str
+    super_admin: str
+    impersonate_id: Optional[str]
+    dev_user: str
+    date_added: str
+@dataclass
+class UsersRow:
+    id: str
+    username: str
+    password_hash: str
+    current_song_id: Optional[str]
+    current_station: Optional[str]
+    current_time: Optional[float]
+    queue_index: Optional[float]
+    random_queue: bool
+    repeat_song: str
+    volume: float
+    cross_fade: float
+    lang: str
+    admin: bool
+    super_admin: bool
+    impersonate_id: Optional[str]
+    dev_user: bool
+    date_added: datetime
+def users_parser(raw_object: Optional[UsersType]) -> Optional[UsersRow]:
+    if not raw_object: return
+    object = {
+        "id": cast(str, parse_column(value=raw_object.get("id"), column_type="TEXT")),
+        "username": cast(str, parse_column(value=raw_object.get("username"), column_type="TEXT")),
+        "password_hash": cast(str, parse_column(value=raw_object.get("password_hash"), column_type="TEXT")),
+        "current_song_id": cast(Optional[str], parse_column(value=raw_object.get("current_song_id"), column_type="TEXT")),
+        "current_station": cast(Optional[str], parse_column(value=raw_object.get("current_station"), column_type="TEXT")),
+        "current_time": cast(Optional[float], parse_column(value=raw_object.get("current_time"), column_type="INTEGER")),
+        "queue_index": cast(Optional[float], parse_column(value=raw_object.get("queue_index"), column_type="INTEGER")),
+        "random_queue": cast(bool, parse_column(value=raw_object.get("random_queue"), column_type="BOOLEAN")),
+        "repeat_song": cast(str, parse_column(value=raw_object.get("repeat_song"), column_type="TEXT")),
+        "volume": cast(float, parse_column(value=raw_object.get("volume"), column_type="INTEGER")),
+        "cross_fade": cast(float, parse_column(value=raw_object.get("cross_fade"), column_type="INTEGER")),
+        "lang": cast(str, parse_column(value=raw_object.get("lang"), column_type="TEXT")),
+        "admin": cast(bool, parse_column(value=raw_object.get("admin"), column_type="BOOLEAN")),
+        "super_admin": cast(bool, parse_column(value=raw_object.get("super_admin"), column_type="BOOLEAN")),
+        "impersonate_id": cast(Optional[str], parse_column(value=raw_object.get("impersonate_id"), column_type="TEXT")),
+        "dev_user": cast(bool, parse_column(value=raw_object.get("dev_user"), column_type="BOOLEAN")),
+        "date_added": cast(datetime, parse_column(value=raw_object.get("date_added"), column_type="sqlWrapper-now-func")),
+    }
+    return UsersRow(**object)
+class UserListsType(TypedDict):
+    user_id: str
+    item_type: str
+    item_id: str
+    date_added: str
+@dataclass
+class UserListsRow:
+    user_id: str
+    item_type: str
+    item_id: str
+    date_added: datetime
+def user_lists_parser(raw_object: Optional[UserListsType]) -> Optional[UserListsRow]:
+    if not raw_object: return
+    object = {
+        "user_id": cast(str, parse_column(value=raw_object.get("user_id"), column_type="TEXT")),
+        "item_type": cast(str, parse_column(value=raw_object.get("item_type"), column_type="TEXT")),
+        "item_id": cast(str, parse_column(value=raw_object.get("item_id"), column_type="TEXT")),
+        "date_added": cast(datetime, parse_column(value=raw_object.get("date_added"), column_type="sqlWrapper-now-func")),
+    }
+    return UserListsRow(**object)
+class UserQueueType(TypedDict):
+    user_id: str
+    position: float
+    song_id: str
+    list_type: str
+    list_id: str
+@dataclass
+class UserQueueRow:
+    user_id: str
+    position: float
+    song_id: str
+    list_type: str
+    list_id: str
+def user_queue_parser(raw_object: Optional[UserQueueType]) -> Optional[UserQueueRow]:
+    if not raw_object: return
+    object = {
+        "user_id": cast(str, parse_column(value=raw_object.get("user_id"), column_type="TEXT")),
+        "position": cast(float, parse_column(value=raw_object.get("position"), column_type="INTEGER")),
+        "song_id": cast(str, parse_column(value=raw_object.get("song_id"), column_type="TEXT")),
+        "list_type": cast(str, parse_column(value=raw_object.get("list_type"), column_type="TEXT")),
+        "list_id": cast(str, parse_column(value=raw_object.get("list_id"), column_type="TEXT")),
+    }
+    return UserQueueRow(**object)
+class UserPinnedListsType(TypedDict):
+    user_id: str
+    item_type: str
+    item_id: str
+    date_added: str
+@dataclass
+class UserPinnedListsRow:
+    user_id: str
+    item_type: str
+    item_id: str
+    date_added: datetime
+def user_pinned_lists_parser(raw_object: Optional[UserPinnedListsType]) -> Optional[UserPinnedListsRow]:
+    if not raw_object: return
+    object = {
+        "user_id": cast(str, parse_column(value=raw_object.get("user_id"), column_type="TEXT")),
+        "item_type": cast(str, parse_column(value=raw_object.get("item_type"), column_type="TEXT")),
+        "item_id": cast(str, parse_column(value=raw_object.get("item_id"), column_type="TEXT")),
+        "date_added": cast(datetime, parse_column(value=raw_object.get("date_added"), column_type="sqlWrapper-now-func")),
+    }
+    return UserPinnedListsRow(**object)
+class UserLikedSongsType(TypedDict):
+    user_id: str
+    song_id: str
+    date_added: str
+@dataclass
+class UserLikedSongsRow:
+    user_id: str
+    song_id: str
+    date_added: datetime
+def user_liked_songs_parser(raw_object: Optional[UserLikedSongsType]) -> Optional[UserLikedSongsRow]:
+    if not raw_object: return
+    object = {
+        "user_id": cast(str, parse_column(value=raw_object.get("user_id"), column_type="TEXT")),
+        "song_id": cast(str, parse_column(value=raw_object.get("song_id"), column_type="TEXT")),
+        "date_added": cast(datetime, parse_column(value=raw_object.get("date_added"), column_type="sqlWrapper-now-func")),
+    }
+    return UserLikedSongsRow(**object)
+class UserSongHistoryType(TypedDict):
+    user_id: str
+    song_id: str
+    played_at: str
+@dataclass
+class UserSongHistoryRow:
+    user_id: str
+    song_id: str
+    played_at: datetime
+def user_song_history_parser(raw_object: Optional[UserSongHistoryType]) -> Optional[UserSongHistoryRow]:
+    if not raw_object: return
+    object = {
+        "user_id": cast(str, parse_column(value=raw_object.get("user_id"), column_type="TEXT")),
+        "song_id": cast(str, parse_column(value=raw_object.get("song_id"), column_type="TEXT")),
+        "played_at": cast(datetime, parse_column(value=raw_object.get("played_at"), column_type="DATE")),
+    }
+    return UserSongHistoryRow(**object)
+class PlaylistsType(TypedDict):
+    id: str
+    image: str
+    name: str
+    owner: str
+    followers: float
+    date_added: str
+    updated_at: str
+@dataclass
+class PlaylistsRow:
+    id: str
+    image: str
+    name: str
+    owner: str
+    followers: float
+    date_added: datetime
+    updated_at: datetime
+def playlists_parser(raw_object: Optional[PlaylistsType]) -> Optional[PlaylistsRow]:
+    if not raw_object: return
+    object = {
+        "id": cast(str, parse_column(value=raw_object.get("id"), column_type="TEXT")),
+        "image": cast(str, parse_column(value=raw_object.get("image"), column_type="TEXT")),
+        "name": cast(str, parse_column(value=raw_object.get("name"), column_type="TEXT")),
+        "owner": cast(str, parse_column(value=raw_object.get("owner"), column_type="TEXT")),
+        "followers": cast(float, parse_column(value=raw_object.get("followers"), column_type="INTEGER")),
+        "date_added": cast(datetime, parse_column(value=raw_object.get("date_added"), column_type="sqlWrapper-now-func")),
+        "updated_at": cast(datetime, parse_column(value=raw_object.get("updated_at"), column_type="sqlWrapper-date-on-update-func")),
+    }
+    return PlaylistsRow(**object)
+class PlaylistExternalImagesType(TypedDict):
+    playlist_id: str
+    image_id: str
+@dataclass
+class PlaylistExternalImagesRow:
+    playlist_id: str
+    image_id: str
+def playlist_external_images_parser(raw_object: Optional[PlaylistExternalImagesType]) -> Optional[PlaylistExternalImagesRow]:
+    if not raw_object: return
+    object = {
+        "playlist_id": cast(str, parse_column(value=raw_object.get("playlist_id"), column_type="TEXT")),
+        "image_id": cast(str, parse_column(value=raw_object.get("image_id"), column_type="TEXT")),
+    }
+    return PlaylistExternalImagesRow(**object)
+class PlaylistSongsType(TypedDict):
+    playlist_id: str
+    song_id: str
+    added_by: Optional[str]
+    date_added: Optional[str]
+    disabled: str
+@dataclass
+class PlaylistSongsRow:
+    playlist_id: str
+    song_id: str
+    added_by: Optional[str]
+    date_added: Optional[datetime]
+    disabled: bool
+def playlist_songs_parser(raw_object: Optional[PlaylistSongsType]) -> Optional[PlaylistSongsRow]:
+    if not raw_object: return
+    object = {
+        "playlist_id": cast(str, parse_column(value=raw_object.get("playlist_id"), column_type="TEXT")),
+        "song_id": cast(str, parse_column(value=raw_object.get("song_id"), column_type="TEXT")),
+        "added_by": cast(Optional[str], parse_column(value=raw_object.get("added_by"), column_type="TEXT")),
+        "date_added": cast(Optional[datetime], parse_column(value=raw_object.get("date_added"), column_type="sqlWrapper-now-func")),
+        "disabled": cast(bool, parse_column(value=raw_object.get("disabled"), column_type="BOOLEAN")),
+    }
+    return PlaylistSongsRow(**object)
+class DownloadsType(TypedDict):
+    id: str
+    user_id: str
+    date_started: str
+    date_ended: Optional[str]
+    download_url: str
+    status: str
+    seen: str
+    success: Optional[float]
+    fail: Optional[float]
+@dataclass
+class DownloadsRow:
+    id: str
+    user_id: str
+    date_started: datetime
+    date_ended: Optional[datetime]
+    download_url: str
+    status: str
+    seen: bool
+    success: Optional[float]
+    fail: Optional[float]
+def downloads_parser(raw_object: Optional[DownloadsType]) -> Optional[DownloadsRow]:
+    if not raw_object: return
+    object = {
+        "id": cast(str, parse_column(value=raw_object.get("id"), column_type="TEXT")),
+        "user_id": cast(str, parse_column(value=raw_object.get("user_id"), column_type="TEXT")),
+        "date_started": cast(datetime, parse_column(value=raw_object.get("date_started"), column_type="DATE")),
+        "date_ended": cast(Optional[datetime], parse_column(value=raw_object.get("date_ended"), column_type="DATE")),
+        "download_url": cast(str, parse_column(value=raw_object.get("download_url"), column_type="TEXT")),
+        "status": cast(str, parse_column(value=raw_object.get("status"), column_type="TEXT")),
+        "seen": cast(bool, parse_column(value=raw_object.get("seen"), column_type="BOOLEAN")),
+        "success": cast(Optional[float], parse_column(value=raw_object.get("success"), column_type="INTEGER")),
+        "fail": cast(Optional[float], parse_column(value=raw_object.get("fail"), column_type="INTEGER")),
+    }
+    return DownloadsRow(**object)
+class ErrorsType(TypedDict):
+    id: str
+    msg: Optional[str]
+    source: Optional[str]
+    line_no: Optional[float]
+    column_no: Optional[float]
+    error_message: Optional[str]
+    error_cause: Optional[str]
+    error_name: Optional[str]
+    error_stack: Optional[str]
+    user_id: Optional[str]
+    date_added: str
+@dataclass
+class ErrorsRow:
+    id: str
+    msg: Optional[str]
+    source: Optional[str]
+    line_no: Optional[float]
+    column_no: Optional[float]
+    error_message: Optional[str]
+    error_cause: Optional[str]
+    error_name: Optional[str]
+    error_stack: Optional[str]
+    user_id: Optional[str]
+    date_added: datetime
+def errors_parser(raw_object: Optional[ErrorsType]) -> Optional[ErrorsRow]:
+    if not raw_object: return
+    object = {
+        "id": cast(str, parse_column(value=raw_object.get("id"), column_type="TEXT")),
+        "msg": cast(Optional[str], parse_column(value=raw_object.get("msg"), column_type="TEXT")),
+        "source": cast(Optional[str], parse_column(value=raw_object.get("source"), column_type="TEXT")),
+        "line_no": cast(Optional[float], parse_column(value=raw_object.get("line_no"), column_type="INTEGER")),
+        "column_no": cast(Optional[float], parse_column(value=raw_object.get("column_no"), column_type="INTEGER")),
+        "error_message": cast(Optional[str], parse_column(value=raw_object.get("error_message"), column_type="TEXT")),
+        "error_cause": cast(Optional[str], parse_column(value=raw_object.get("error_cause"), column_type="TEXT")),
+        "error_name": cast(Optional[str], parse_column(value=raw_object.get("error_name"), column_type="TEXT")),
+        "error_stack": cast(Optional[str], parse_column(value=raw_object.get("error_stack"), column_type="TEXT")),
+        "user_id": cast(Optional[str], parse_column(value=raw_object.get("user_id"), column_type="TEXT")),
+        "date_added": cast(datetime, parse_column(value=raw_object.get("date_added"), column_type="sqlWrapper-now-func")),
+    }
+    return ErrorsRow(**object)
+class DB(BaseDB):
     def __init__(self):
-        self.conn = sqlite3.connect(DB_PATH, check_same_thread=False)
-        self.cur = self.conn.cursor()
-        # Enable foreign key support
-        self.conn.execute('PRAGMA foreign_keys = ON')
-
-        self.logger = getLogger(__name__, class_name="DB")
-
-        self.logger.info("Checking database tables...")
+        super().__init__()
         self.tables = [
-            Table(db=self, query=song_query, parser=parse_song),
-            Table(db=self, query=artist_query, parser=parse_artist),
-            Table(db=self, query=album_query, parser=parse_album),
-            Table(db=self, query=download_query, parser=parse_download),
-            Table(db=self, query=error_query),
-            Table(db=self, query=user_query, parser=parse_user),
-            Table(db=self, query=playlist_query, parser=parse_playlist),
-            Table(db=self, query=image_query, parser=parse_image),
-            Table(db=self, query=sesssion_query),
+            Table(db=self, table_name="external_images", parser=external_images_parser),
+            Table(db=self, table_name="albums", parser=albums_parser),
+            Table(db=self, table_name="album_external_images", parser=album_external_images_parser),
+            Table(db=self, table_name="artists", parser=artists_parser),
+            Table(db=self, table_name="album_artists", parser=album_artists_parser),
+            Table(db=self, table_name="artist_external_images", parser=artist_external_images_parser),
+            Table(db=self, table_name="songs", parser=songs_parser),
+            Table(db=self, table_name="song_artists", parser=song_artists_parser),
+            Table(db=self, table_name="users", parser=users_parser),
+            Table(db=self, table_name="user_lists", parser=user_lists_parser),
+            Table(db=self, table_name="user_queue", parser=user_queue_parser),
+            Table(db=self, table_name="user_pinned_lists", parser=user_pinned_lists_parser),
+            Table(db=self, table_name="user_liked_songs", parser=user_liked_songs_parser),
+            Table(db=self, table_name="user_song_history", parser=user_song_history_parser),
+            Table(db=self, table_name="playlists", parser=playlists_parser),
+            Table(db=self, table_name="playlist_external_images", parser=playlist_external_images_parser),
+            Table(db=self, table_name="playlist_songs", parser=playlist_songs_parser),
+            Table(db=self, table_name="downloads", parser=downloads_parser),
+            Table(db=self, table_name="errors", parser=errors_parser),
         ]
-
-        atexit.register(self.close)
-
-    def close(self):
-        self.logger.info("Closing database connection...")
-        self.conn.close()
-        self.logger.info("Done")
-
-    def get_table_difference(self, list_a: List[Dict], list_b: List[Dict]):
-        added_columns = []
-        removed_columns = []
-        modified_columns = []
-
-        for col_a in list_a:
-            col_b = next(
-                (c for c in list_b if c['name'] == col_a['name']), None)
-            if col_b is None:
-                removed_columns.append(col_a['name'])
-                continue
-            for param in ['dflt_value', 'pk', 'type', 'notnull']:
-                if col_a[param] != col_b[param]:
-                    modified_columns.append({
-                        'name': col_a['name'],
-                        'param': param,
-                        'previous': col_a[param],
-                        'next': col_b[param]
-                    })
-
-        for col_b in list_b:
-            if not any(col_a['name'] == col_b['name'] for col_a in list_a):
-                added_columns.append(col_b['name'])
-
-        return modified_columns, removed_columns, added_columns
-
-    def get_table_columns(self, query: str):
-
-        col_defs = query.split("(", 1)[1].rsplit(")", 1)[
-            0].replace("\n", "").split(",")
-
-        new_columns = []
-        for idx, col in enumerate(col_defs):
-            parts = col.strip().split()
-            name, col_type = parts[0], parts[1]
-            new_columns.append({
-                'cid': idx,
-                'name': name,
-                'type': col_type,
-                'notnull': int("NOT NULL" in col),
-                'dflt_value': parts[parts.index("DEFAULT") + 1] if "DEFAULT" in parts else None,
-                'pk': int("PRIMARY KEY" in col)
-            })
-
-        return new_columns
-
-    def get_table(self, table_name):
-        for k in self.tables:
-            if k.table_name == table_name:
-                return k
-
-    def get_existing_columns(self, table_name: str):
-        self.cur.execute(f"PRAGMA table_info({table_name})")
-        existing_columns = [dict(zip(
-            [col[0] for col in self.cur.description], row)) for row in self.cur.fetchall()]
-
-        return existing_columns
-
-    def get_table_name(self, query: str) -> str | None:
-        match = re.search(
-            r"\b(?:FROM|INTO|TABLE(?: IF NOT EXISTS)?|JOIN)\s+([`\"']?)(\w+)\1", query, re.IGNORECASE)
-
-        result = match.group(2) if match else None
-        return result
-
-    def check_table(self, query: str):
-
-        table_name = self.get_table_name(query)
-
-        if not table_name:
-            return
-
-        existing_columns = self.get_existing_columns(table_name)
-
-        if not existing_columns:
-            self.logger.warning(f"Table {table_name} does not exist.")
-            return
-
-        new_columns = self.get_table_columns(query=query)
-
-        modified_columns, removed_columns, added_columns = self.get_table_difference(
-            existing_columns, new_columns)
-
-        if modified_columns:
-            self.logger.warning(
-                f"Detected column modifications in table {table_name}: {modified_columns}")
-
-            if INSECURE_DB_MODE:
-                self.logger.warning("Applying column changes...")
-                column_names = ", ".join(col['name'] for col in new_columns)
-
-                try:
-                    self.cur.execute(f"DROP TABLE temp_{table_name}")
-                except:
-                    pass
-
-                query_split: List[str] = query.split("\n")
-
-                for k in range(len(query_split)):
-                    if "CREATE TABLE" in query_split[k].upper():
-                        query_split[k] = query_split[k].replace(
-                            table_name, "temp_" + table_name)
-                        break
-
-                print("\n".join(query_split))
-
-                self.cur.execute("\n".join(query_split))
-
-                self.cur.execute(
-                    f"INSERT INTO temp_{table_name} SELECT * FROM {table_name}")
-
-                self.cur.execute(f"DROP TABLE {table_name}")
-                self.cur.execute(
-                    f"ALTER TABLE temp_{table_name} RENAME TO {table_name}")
-                self.conn.commit()
-
-            else:
-                self.logger.warning(
-                    "Set INSECURE_DB_MODE to true to modify them")
-
-        if removed_columns:
-            self.logger.warning(
-                f"Detected removed columns in table {table_name}: {removed_columns}")
-            if INSECURE_DB_MODE:
-                self.logger.warning(f"Removing columns: {removed_columns}")
-                for column in removed_columns:
-                    self.cur.execute(
-                        f"ALTER TABLE {table_name} DROP COLUMN {column}")
-                self.conn.commit()
-
-            else:
-                self.logger.warning(
-                    "Set INSECURE_DB_MODE to true to remove them")
-
-        if added_columns:
-            self.logger.warning(
-                f"Adding new columns to {table_name}: {added_columns}")
-            for column in added_columns:
-                new_col = next(
-                    (c for c in new_columns if c['name'] == column), None)
-                if new_col:
-                    query = f"ALTER TABLE {table_name} ADD COLUMN {new_col['name']} {new_col['type']}"
-                    if new_col['dflt_value']:
-                        query += f" DEFAULT {new_col['dflt_value']}"
-                    if new_col['notnull']:
-                        query += " NOT NULL"
-                    self.cur.execute(query)
-            self.conn.commit()
-
-    def execute(self, query: str, parameters=None):
-        lock.acquire()
-        if parameters:
-            self.cur.execute(query, parameters)
-        else:
-            self.cur.execute(query)
-
-        self.conn.commit()
-        lock.release()
-
-    def get_all(self, query: str, parameters=None):
-
-        table_name = self.get_table_name(query)
-        table = self.get_table(table_name)
-
-        if not table:
-            self.logger.error(f"Table '{table_name}' not found")
-            return
-
-        return table.get_all(query, parameters)
-
-    def get(self, query: str, parameters=None) -> Any:
-        table_name = self.get_table_name(query=query)
-        table = self.get_table(table_name=table_name)
-
-        if not table:
-            self.logger.error(f"Table '{table_name}' not found")
-            return
-
-        return table.get(query, parameters)
-
-
-def main():
-
-    db = DB()
-
-    image = db.get("SELECT * FROM song WHERE id = '5gLJZBGkpvRXWbEbTcLIz8'")
-    print(json.dumps(image, indent=4))
-
-    return
-
-    playlist = db.get("SELECT * FROM playlist LIMIT 1")
-    print(json.dumps(playlist, indent=4))
-
-    user = db.get("SELECT * FROM user LIMIT 1")
-    print(json.dumps(user, indent=4))
-
-    error = db.get("SELECT * FROM error LIMIT 1")
-    print(json.dumps(error, indent=4))
-
-    for song in db.get_all("SELECT * FROM song LIMIT 2"):
-        print(song["name"], song.get("artists")[0].get("name"))
-
-    album = db.get("SELECT id,songs FROM album LIMIT 1")
-    print(album["id"], album["songs"])
-
-    download = db.get("SELECT * FROM download LIMIT 1")
-    print(json.dumps(download, indent=4))
-
-
-if __name__ == "__main__":
-    main()

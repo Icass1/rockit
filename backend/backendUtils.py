@@ -3,7 +3,7 @@ from spotdl.utils.static import BAD_CHARS
 from spotdl.utils.formatter import create_file_name
 import re
 import requests
-from typing import List
+from typing import List, Literal
 import numpy
 from io import BytesIO
 import cv2
@@ -242,6 +242,21 @@ def get_datetime_from_database_date(date: str):
     c = a[1].split(":")
 
     return datetime(year=int(b[0]), month=int(b[1]), day=int(b[2]), hour=int(c[0]), minute=int(c[1]), second=int(c[2]))
+
+
+def parse_column(value: str | int | float | None, column_type: Literal["TEXT"] | Literal["INTEGER"] | Literal["BOOLEAN"] | Literal["DATE"] | Literal["sqlWrapper-now-func"] | Literal["sqlWrapper-date-on-update-func"]) -> str | datetime | bool | float | None:
+
+    if column_type == "BOOLEAN":
+        if value == "1" or value == 1 or value == "TRUE":
+            return True
+        if value == "0" or value == 0 or value == "FALSE":
+            return True
+    if column_type == "DATE" or column_type == "sqlWrapper-now-func" or column_type == "sqlWrapper-date-on-update-func":
+        if type(value) != str:
+            raise Exception(f"Invalid date format {value=}")
+        return get_datetime_from_database_date(value)
+
+    return value
 
 
 if __name__ == "__main__":

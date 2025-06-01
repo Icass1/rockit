@@ -2,15 +2,15 @@
 
 import { DB } from "@/lib/sqlWrapper";
 
-export const db = new DB("database/test-database2.db");
+export const db = new DB("database/database.db");
 
 // ************************
 // **** spotify_images ****
 // ************************
 
-const images = db.addTable("spotify_images");
+const images = db.addTable("external_images");
 
-const imageId = images.addColumn("id", {
+const externalImageId = images.addColumn("id", {
     type: "TEXT",
     primaryKey: true,
     unique: true,
@@ -41,14 +41,14 @@ albums.addColumn("date_added", { type: db.NOW, notNull: true });
 // **** album_images ****
 // **********************
 
-const album_images = db.addTable("album_images");
+const album_images = db.addTable("album_external_images");
 
 const album_images_album_id = album_images
     .addColumn("album_id", { type: "TEXT", notNull: true })
     .setReference(albumId, "album");
 const album_images_image_id = album_images
     .addColumn("image_id", { type: "TEXT", notNull: true })
-    .setReference(imageId, "image");
+    .setReference(externalImageId, "image");
 
 album_images.setPrimaryKeys([album_images_album_id, album_images_image_id]);
 
@@ -95,14 +95,14 @@ album_artists.setPrimaryKeys([album_artists_album_id, album_artists_artist_id]);
 // **** artist_images ****
 // ***********************
 
-const artist_images = db.addTable("artist_images");
+const artist_images = db.addTable("artist_external_images");
 
 const artist_images_artist_id = artist_images
     .addColumn("artist_id", { type: "TEXT" })
     .setReference(artistId, "album");
 const artist_images_image_id = artist_images
     .addColumn("image_id", { type: "TEXT" })
-    .setReference(imageId, "image");
+    .setReference(externalImageId, "image");
 
 artist_images.setPrimaryKeys([artist_images_artist_id, artist_images_image_id]);
 
@@ -327,6 +327,53 @@ user_song_history
 user_song_history.addColumn("played_at", { type: "DATE", notNull: true });
 
 // *******************
+// **** playlists ****
+// *******************
+const playlists = db.addTable("playlists");
+const playlistId = playlists.addColumn("id", {
+    type: "TEXT",
+    primaryKey: true,
+    unique: true,
+    notNull: true,
+});
+playlists.addColumn("image", { type: "TEXT", notNull: true });
+playlists.addColumn("name", { type: "TEXT", notNull: true });
+playlists.addColumn("owner", { type: "TEXT", notNull: true });
+playlists.addColumn("followers", { type: "INTEGER", notNull: true });
+playlists.addColumn("date_added", { type: db.NOW, notNull: true });
+playlists.addColumn("updated_at", { type: db.DATE_ON_UPDATE, notNull: true });
+
+// *************************
+// **** playlist_images ****
+// *************************
+
+const playlist_images = db.addTable("playlist_external_images");
+playlist_images
+    .addColumn("playlist_id", { type: "TEXT", primaryKey: true })
+    .setReference(playlistId, "playlist");
+playlist_images
+    .addColumn("image_id", { type: "TEXT", primaryKey: true })
+    .setReference(externalImageId, "image");
+
+const playlist_songs = db.addTable("playlist_songs");
+playlist_songs
+    .addColumn("playlist_id", { type: "TEXT", primaryKey: true })
+    .setReference(playlistId, "playlist");
+playlist_songs
+    .addColumn("song_id", { type: "TEXT", primaryKey: true })
+    .setReference(songId, "song");
+playlist_songs
+    .addColumn("added_by", { type: "TEXT" })
+    .setReference(userId, "user");
+playlist_songs.addColumn("date_added", { type: db.NOW });
+
+playlist_songs.addColumn("disabled", {
+    type: "BOOLEAN",
+    default: false,
+    notNull: true,
+});
+
+// *******************
 // **** downloads ****
 // *******************
 
@@ -370,4 +417,9 @@ errors.addColumn("error_stack", { type: "TEXT" });
 errors.addColumn("user_id", { type: "TEXT" }).setReference(userId, "user");
 errors.addColumn("date_added", { type: db.NOW, notNull: true });
 
-db.commit("src/lib/db2/db.ts");
+db.tables.forEach((table) => console.log(table.getQuery()));
+
+db.commit();
+
+db.writeClassesToFile("src/lib/db/db.ts");
+db.writePythonClassesToFile("backend/db/db.py");

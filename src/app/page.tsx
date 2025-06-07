@@ -49,7 +49,6 @@ export default function Home() {
     const {
         songsByTimePlayed,
         randomSongsLastMonth,
-        nostalgicMix,
         hiddenGems,
         communityTop,
         monthlyTop,
@@ -72,15 +71,16 @@ export default function Home() {
                 <section className="py-5 text-white md:py-12 md:pl-12">
                     <h2 className="px-5 text-2xl font-bold md:text-3xl">
                         {$lang.songsforyou}
+                        {/* Canciones mas escuchadas de los ultimos 7 dias + recomendaciones */}
                     </h2>
                     <div className="flex gap-4 overflow-x-auto px-10 py-4">
-                        {nostalgicMix?.map((song) => (
+                        {/* {nostalgicMix?.map((song) => (
                             <RecentlyPlayedSong
                                 key={song.id}
                                 song={song}
                                 songs={nostalgicMix}
                             />
-                        ))}
+                        ))} */}
                     </div>
                 </section>
 
@@ -148,6 +148,7 @@ export default function Home() {
                         {$lang.hiddengems}
                     </h2>
                     <div className="flex gap-4 overflow-x-auto px-10 py-4">
+                        {/* Most listened songs from one year ago to 3 months ago */}
                         {hiddenGems?.map((song) => (
                             <RecentlyPlayedSong
                                 key={song.id}
@@ -163,6 +164,7 @@ export default function Home() {
                         {$lang.communitytop}
                     </h2>
                     <div className="flex gap-4 overflow-x-auto px-10 py-4">
+                        {/* Most listened songs by all RockIt users */}
                         {communityTop?.map((song) => (
                             <RecentlyPlayedSong
                                 key={song.id}
@@ -195,6 +197,7 @@ export default function Home() {
                         {$lang[previousMonthKey]} Recap
                     </h2>
                     <div className="flex gap-4 overflow-x-auto px-10 py-4">
+                        {/* Most listened songs from last month */}
                         {monthlyTop?.map((song) => (
                             <RecentlyPlayedSong
                                 key={song.id}

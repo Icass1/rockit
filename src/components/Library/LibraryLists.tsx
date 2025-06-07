@@ -20,6 +20,8 @@ import {
     Library,
     ListEnd,
     ListStart,
+    PinIcon,
+    PinOff,
     PlayCircle,
     Shuffle,
 } from "lucide-react";
@@ -35,6 +37,8 @@ import {
 } from "@/stores/audio";
 import { downloadFile, downloadRsc } from "@/lib/downloadResources";
 import ContextMenuSplitter from "../ContextMenu/Splitter";
+import { pinnedLists } from "@/stores/pinnedLists";
+import { downloadListZip, pinListHandleClick } from "../ListHeader/ListOptions";
 
 async function getListSongs(list: PlaylistDB | AlbumDB) {
     if (list.type == "playlist") {
@@ -297,13 +301,18 @@ function AddListContextMenu({
                 )}
 
                 <ContextMenuSplitter />
+
                 <ContextMenuOption onClick={downloadListToDevice}>
                     <HardDriveDownload className="h-5 w-5" />
                     Download list to device
                 </ContextMenuOption>
-                <ContextMenuOption onClick={handleRemoveFromLibrary}>
-                    <Library className="h-5 w-5" />
-                    Remove from library
+                <ContextMenuOption
+                    onClick={() =>
+                        downloadListZip({ id: list.id, type: list.type })
+                    }
+                >
+                    <HardDriveDownload className="h-5 w-5" />
+                    Download ZIP
                 </ContextMenuOption>
             </ContextMenuContent>
         </ContextMenu>

@@ -323,13 +323,18 @@ export default function ListOptions({
                         Download to server
                     </PopupMenuOption>
                 )}
-                { id != "last-month" && id != "liked" && id != "most-listened" && id != "recent-mix" && 
-                <PopupMenuOption onClick={() => downloadListZip({ id, type })}>
-                    <HardDriveDownloadIcon className="h-5 w-5" />
-                    Download ZIP
-                </PopupMenuOption>
-
-                }
+                {id != "last-month" &&
+                    id != "liked" &&
+                    id != "most-listened" &&
+                    id != "recent-mix" &&
+                    type == "album" && (
+                        <PopupMenuOption
+                            onClick={() => downloadListZip({ id, type })}
+                        >
+                            <HardDriveDownloadIcon className="h-5 w-5" />
+                            Download ZIP
+                        </PopupMenuOption>
+                    )}
             </PopupMenuContent>
         </PopupMenu>
     );

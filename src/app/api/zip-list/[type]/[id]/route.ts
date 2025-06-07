@@ -92,6 +92,8 @@ export async function GET(
     path = join(ENV.SONGS_PATH, path);
     path = path;
 
+    console.log({path})
+
     const job = await zipDirectoryQueue.add("generateStats", {
         path,
     });

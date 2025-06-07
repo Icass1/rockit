@@ -306,14 +306,16 @@ function AddListContextMenu({
                     <HardDriveDownload className="h-5 w-5" />
                     Download list to device
                 </ContextMenuOption>
-                <ContextMenuOption
-                    onClick={() =>
-                        downloadListZip({ id: list.id, type: list.type })
-                    }
-                >
-                    <HardDriveDownload className="h-5 w-5" />
-                    Download ZIP
-                </ContextMenuOption>
+                {list.type == "album" && (
+                    <ContextMenuOption
+                        onClick={() =>
+                            downloadListZip({ id: list.id, type: list.type })
+                        }
+                    >
+                        <HardDriveDownload className="h-5 w-5" />
+                        Download ZIP
+                    </ContextMenuOption>
+                )}
             </ContextMenuContent>
         </ContextMenu>
     );

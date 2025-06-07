@@ -81,6 +81,8 @@ function AddListContextMenu({
     children: React.ReactNode;
     list: PlaylistDB | AlbumDB;
 }) {
+    const $pinnedLists = useStore(pinnedLists);
+
     const addListToTopQueue = async () => {
         const songs = await getListSongs(list);
 
@@ -261,6 +263,39 @@ function AddListContextMenu({
                     <ListEnd className="h-5 w-5" />
                     Add list to bottom of queue
                 </ContextMenuOption>
+
+                <ContextMenuSplitter />
+
+                <ContextMenuOption onClick={handleRemoveFromLibrary}>
+                    <Library className="h-5 w-5" />
+                    Remove from library
+                </ContextMenuOption>
+                {$pinnedLists.find((_list) => _list.id == list.id) ? (
+                    <ContextMenuOption
+                        onClick={() => {
+                            pinListHandleClick({
+                                id: list.id,
+                                type: list.type,
+                            });
+                        }}
+                    >
+                        <PinOff className="h-5 w-5" />
+                        Unpin
+                    </ContextMenuOption>
+                ) : (
+                    <ContextMenuOption
+                        onClick={() => {
+                            pinListHandleClick({
+                                id: list.id,
+                                type: list.type,
+                            });
+                        }}
+                    >
+                        <PinIcon className="h-5 w-5" />
+                        Pin
+                    </ContextMenuOption>
+                )}
+
                 <ContextMenuSplitter />
                 <ContextMenuOption onClick={downloadListToDevice}>
                     <HardDriveDownload className="h-5 w-5" />

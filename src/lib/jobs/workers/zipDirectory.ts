@@ -6,6 +6,7 @@ import { createWriteStream, existsSync } from "fs";
 import { generateId } from "@/lib/generateId";
 import { mkdir } from "fs/promises";
 import { ENV } from "@/rockitEnv";
+import { once } from "events";
 
 new Worker(
     "zip-directory",
@@ -22,16 +23,19 @@ new Worker(
             await mkdir(ENV.TEMP_PATH);
         }
 
-        const target = `temp/${id}`;
+        const target = `${ENV.TEMP_PATH}/${id}`;
 
         const output = createWriteStream(target);
 
-        const archive = archiver.create("zip"); // if using `import * as archiver`
+        const archive = archiver.create("zip", {
+            zlib: { level: 9 }, // optional: best compression
+        }); // if using `import * as archiver`
 
         archive.pipe(output);
         archive.directory(path, false);
 
-        archive.finalize();
+        await archive.finalize();
+        await once(output, "close"); // or "finish"
 
         return id;
     },

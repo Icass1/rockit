@@ -33,7 +33,7 @@ export default function RenderAlbum({ _album }: { _album: GetAlbum }) {
                 alt=""
                 className="fixed top-0 left-0 z-0 h-full w-full object-cover opacity-35"
             />
-            <div className="relative top-24 z-10 mx-4 flex h-full flex-col items-center justify-center gap-1 md:top-0 md:max-w-md">
+            <div className="relative top-24 z-50 mx-4 flex h-full flex-col items-center justify-center gap-1 md:top-0 md:max-w-md">
                 <div className="relative aspect-square h-72 overflow-hidden rounded-xl md:h-[40vh] md:rounded-md">
                     <Image
                         alt={album.name}
@@ -52,7 +52,7 @@ export default function RenderAlbum({ _album }: { _album: GetAlbum }) {
                     />
                 </div>
 
-                <div className="mx-auto flex w-fit flex-row items-center gap-2">
+                <div className="mx-auto flex w-fit flex-row items-center gap-2 z-50">
                     <label className="text-center text-2xl font-semibold text-balance">
                         {album.name}
                     </label>

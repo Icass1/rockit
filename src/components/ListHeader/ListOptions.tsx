@@ -261,7 +261,7 @@ export default function ListOptions({
     return (
         <PopupMenu>
             <PopupMenuTrigger className="pt-[2px]">
-                <Menu strokeWidth={1.3} className="h-6 w-6 cursor-pointer" />
+                <Menu strokeWidth={1.3} className="h-6 w-6 z-50 cursor-pointer" />
             </PopupMenuTrigger>
             <PopupMenuContent>
                 <PopupMenuOption

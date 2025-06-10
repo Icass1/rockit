@@ -38,8 +38,11 @@ function FooterLeftForSong({ currentSong }: { currentSong: CurrentSong }) {
 
     const $currentCrossFade = useStore(currentCrossFade);
     const $crossFadeCurrentTime = useStore(crossFadeCurrentTime);
+
+    console.warn("Fix get first element in queue if index is too high");
     const [nextSong, setNextSong] = useState<undefined | QueueSong>(
-        $queue?.[$queue.findIndex((song) => song.index == $queueIndex) + 1].song
+        $queue?.[$queue.findIndex((song) => song.index == $queueIndex) + 1]
+            ?.song
     );
 
     const [overwriteOpacity, setOverwriteOpacity] = useState<
@@ -50,12 +53,14 @@ function FooterLeftForSong({ currentSong }: { currentSong: CurrentSong }) {
         setTimeout(() => {
             setOverwriteOpacity(undefined);
             const tempQueue = queue.get();
+            console.warn("Fix get first element in queue if index is too high");
+
             setNextSong(
                 tempQueue?.[
                     tempQueue.findIndex(
                         (song) => song.index == queueIndex.get()
                     ) + 1
-                ].song
+                ]?.song
             );
         }, 1000);
     };

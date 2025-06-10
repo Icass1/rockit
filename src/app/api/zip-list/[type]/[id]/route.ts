@@ -53,7 +53,10 @@ export async function GET(
                 .get(id) as RawAlbumDB
         ) as AlbumDB<"name" | "artists">;
 
-        path = join(album.artists[0].name, album.name);
+        path = join(
+            sanitizeFolderName(album.artists[0].name),
+            sanitizeFolderName(album.name)
+        );
 
         name = album.name;
 
@@ -64,15 +67,17 @@ export async function GET(
                 .prepare("SELECT name, owner FROM playlist WHERE id = ?")
                 .get(id) as RawPlaylistDB
         ) as PlaylistDB<"name" | "owner">;
-        console.log(playlist);
-        path = join(playlist.owner, playlist.name);
+        path = join(
+            sanitizeFolderName(playlist.owner),
+            sanitizeFolderName(playlist.name)
+        );
         name = playlist.name;
     }
 
     const getId = request.nextUrl.searchParams.get("getId");
     if (getId) {
         const fileBuffer = await readFile(
-            join(sanitizeFolderName(ENV.TEMP_PATH), sanitizeFolderName(getId))
+            join(ENV.TEMP_PATH, sanitizeFolderName(getId))
         );
 
         const response = new NextResponse(fileBuffer);
@@ -82,9 +87,7 @@ export async function GET(
             `attachment; filename="${name}.zip"`
         );
 
-        await rm(
-            join(sanitizeFolderName(ENV.TEMP_PATH), sanitizeFolderName(getId))
-        );
+        await rm(join(ENV.TEMP_PATH, sanitizeFolderName(getId)));
 
         return response;
     }
@@ -92,7 +95,7 @@ export async function GET(
     path = join(ENV.SONGS_PATH, path);
     path = path;
 
-    console.log({path})
+    console.log({path});
 
     const job = await zipDirectoryQueue.add("generateStats", {
         path,

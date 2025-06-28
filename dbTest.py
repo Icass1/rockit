@@ -1,45 +1,91 @@
-from backend.db.db import DB, SongsRow, UsersRow
-import json
 
 
-def main():
-
-    db = DB()
-
-    song: SongsRow = db.get(
-        "SELECT * FROM songs WHERE id = '5gLJZBGkpvRXWbEbTcLIz8'")
-
-    print(song.id)
-
-    user: UsersRow = db.get(
-        "SELECT * FROM users WHERE id = 'kor0r3n05o6ihak3'")
-
-    print(user.admin, type(user.admin))
-    print(user.date_added, type(user.date_added))
-    print(user.queue_index, type(user.queue_index))
-
-    # print(get_datetime_from_database_date(user.date_added))
-
-    return
-
-    playlist = db.get("SELECT * FROM playlist LIMIT 1")
-    print(json.dumps(playlist, indent=4))
-
-    user = db.get("SELECT * FROM user LIMIT 1")
-    print(json.dumps(user, indent=4))
-
-    error = db.get("SELECT * FROM error LIMIT 1")
-    print(json.dumps(error, indent=4))
-
-    for song in db.get_all("SELECT * FROM song LIMIT 2"):
-        print(song["name"], song.get("artists")[0].get("name"))
-
-    album = db.get("SELECT id,songs FROM album LIMIT 1")
-    print(album["id"], album["songs"])
-
-    download = db.get("SELECT * FROM download LIMIT 1")
-    print(json.dumps(download, indent=4))
 
 
-if __name__ == "__main__":
-    main()
+from sqlalchemy import Table, create_engine, Column, Integer, String, ForeignKey, select
+from sqlalchemy.orm import declarative_base, relationship, Session, joinedload
+
+Base = declarative_base()
+
+# Association tables
+song_artists = Table(
+    'song_artists', Base.metadata,
+    Column('song_id', ForeignKey('songs.id'), primary_key=True),
+    Column('artist_id', ForeignKey('artists.id'), primary_key=True)
+)
+
+album_artists = Table(
+    'album_artists', Base.metadata,
+    Column('album_id', ForeignKey('albums.id'), primary_key=True),
+    Column('artist_id', ForeignKey('artists.id'), primary_key=True)
+)
+
+# Define ORM models
+class Album(Base):
+    __tablename__ = 'albums'
+    id = Column(String, primary_key=True)
+    name = Column(String)
+
+    songs = relationship("Song", back_populates="album")
+    artists = relationship(
+        "Artist", secondary=album_artists, back_populates="albums")
+
+
+class Song(Base):
+    __tablename__ = "songs"
+    id = Column(String, primary_key=True)
+    name = Column(String)
+    album_id = Column(String, ForeignKey('albums.id'))
+
+    album = relationship("Album", back_populates="songs")
+    artists = relationship(
+        "Artist", secondary=song_artists, back_populates="songs")
+
+
+class Artist(Base):
+    __tablename__ = 'artists'
+    id = Column(String, primary_key=True)
+    name = Column(String)
+
+    songs = relationship("Song", secondary=song_artists,
+                         back_populates="artists")
+    albums = relationship("Album", secondary=album_artists,
+                          back_populates="artists")
+
+
+# In-memory SQLite DB
+engine = create_engine("sqlite:///database.db", echo=True)
+Base.metadata.create_all(engine)
+
+session = Session(engine)
+
+# with Session(engine) as session:
+#     artist1 = Artist(id="artistid1", name="Artist One")
+#     artist2 = Artist(id="artistid2", name="Artist Two")
+
+#     album = Album(id="albumid1", name="Best Album", artists=[artist1])
+#     song1 = Song(id="songid1", name="Hit Song",
+#                  album=album, artists=[artist1, artist2])
+#     song2 = Song(id="songid2", name="Chill Song",
+#                  album=album, artists=[artist1])
+
+#     session.add_all([album, song1, song2])
+#     session.commit()
+
+
+album_id = "1zcm3UvHNHpseYOUfd0pna"
+
+album = session.execute(
+    select(Album)
+    .options(
+        joinedload(Album.artists),              # Load album → artists
+        joinedload(Album.songs)
+        .joinedload(Song.artists)           # Load songs → artists
+    )
+    .where(Album.id == album_id)
+).unique().scalar_one_or_none()
+
+if album:
+    print("album.songs", album.songs)
+else:
+    print("Album not found")

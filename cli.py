@@ -3,13 +3,8 @@ import os
 import json
 
 from backend.downloader import Downloader
-from backend.db.playlist import PlaylistDBFull
 from backend.constants import IMAGES_PATH, SONGS_PATH
-from backend.db.image import ImageDB
-from backend.db.album import AlbumDBFull
-from backend.db.song import SongDBFull
 from backend.logger import getLogger
-from backend.db.db import DB
 
 logger = getLogger(__name__)
 

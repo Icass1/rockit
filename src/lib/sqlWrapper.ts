@@ -17,14 +17,20 @@ function snakeCaseToCamelCase(val: string) {
     );
 }
 
+function singularizeName(val: string) {
+    if (val.at(-1) == "s" || val.at(-1) == "S") {
+        return val.slice(0, -1);
+    }
+    return val;
+}
+
+interface TableInitOptions {
+    associationTable?: boolean;
+}
+
 interface ColumnOptions {
-    type:
-        | "INTEGER"
-        | "TEXT"
-        | "DATE"
-        | "BOOLEAN"
-        | "sqlWrapper-now-func"
-        | "sqlWrapper-date-on-update-func";
+    type: "INTEGER" | "TEXT" | "DATE" | "BOOLEAN";
+
     primaryKey?: boolean;
     unique?: boolean;
     notNull?: boolean;
@@ -66,13 +72,8 @@ class ColumnInit {
         const tokens: string[] = [];
 
         tokens.push(this.columnName);
-        if (this.options.type == "sqlWrapper-now-func") {
-            tokens.push("DATE");
-        } else if (this.options.type == "sqlWrapper-date-on-update-func") {
-            tokens.push("DATE");
-        } else {
-            tokens.push(this.options.type);
-        }
+
+        tokens.push(this.options.type);
 
         if (this.options.notNull) {
             tokens.push("NOT NULL");
@@ -128,28 +129,6 @@ class ColumnInit {
         return variableType;
     }
 
-    getPythonType() {
-        let variableType: string;
-
-        if (this.options.type == "DATE") {
-            variableType = "datetime";
-        } else if (this.options.type == "INTEGER") {
-            variableType = "float";
-        } else if (this.options.type == "TEXT") {
-            variableType = "str";
-        } else if (this.options.type == "BOOLEAN") {
-            variableType = "bool";
-        } else if (this.options.type == "sqlWrapper-now-func") {
-            variableType = "datetime";
-        } else if (this.options.type == "sqlWrapper-date-on-update-func") {
-            variableType = "datetime";
-        } else {
-            throw `2. Unknown variable type ${this.options.type}`;
-        }
-
-        return variableType;
-    }
-
     getPythonRawType() {
         let variableType: string;
 
@@ -161,10 +140,6 @@ class ColumnInit {
             variableType = "str";
         } else if (this.options.type == "BOOLEAN") {
             variableType = "str";
-        } else if (this.options.type == "sqlWrapper-now-func") {
-            variableType = "str";
-        } else if (this.options.type == "sqlWrapper-date-on-update-func") {
-            variableType = "str";
         } else {
             throw `3. Unknown variable type ${this.options.type}`;
         }
@@ -172,8 +147,24 @@ class ColumnInit {
         return variableType;
     }
 
+    getSqlAlchemyType() {
+        let variableType: string;
+        if (this.options.type == "TEXT") {
+            variableType = "String";
+        } else if (this.options.type == "INTEGER") {
+            variableType = "Integer";
+        } else if (this.options.type == "DATE") {
+            variableType = "DateTime";
+        } else if (this.options.type == "BOOLEAN") {
+            variableType = "Boolean";
+        } else {
+            throw `4. Unknown variable type ${this.options.type}`;
+        }
+        return variableType;
+    }
+
     getTypeLine() {
-        return `    ${this.columnName}${this.options.notNull && this.options.type != "sqlWrapper-now-func" && this.options.type != "sqlWrapper-date-on-update-func" && typeof this.options.default == "undefined" ? "" : "?"}: ${this.getType()};`;
+        return `    ${this.columnName}${this.options.notNull && typeof this.options.default == "undefined" ? "" : "?"}: ${this.getType()};`;
     }
 }
 
@@ -185,11 +176,15 @@ export class TableInit {
     rowClassName: string;
     primaryKeys: ColumnInit[] = [];
 
+    associationTable: boolean;
+
     foreginKeys: { foreginColumn: ColumnInit; column: ColumnInit }[] = [];
 
-    constructor(db: DB, tableName: string) {
+    constructor(db: DB, tableName: string, options?: TableInitOptions) {
         this.tableName = tableName;
         this.db = db;
+
+        this.associationTable = options?.associationTable ?? false;
 
         this.typesName = snakeCaseToCamelCase(this.tableName) + "Type";
         this.rowClassName = snakeCaseToCamelCase(this.tableName) + "Row";
@@ -218,6 +213,7 @@ export class TableInit {
             if (this.primaryKeys.indexOf(column) - 1) {
                 this.primaryKeys.push(column);
                 column.options.notNull = true;
+                column.options.primaryKey = true;
             }
         });
     }
@@ -267,166 +263,220 @@ export class TableInit {
 
         lines.push(...this.getTypes());
 
-        lines.push(`class ${this.rowClassName} {`);
-        lines.push("    private columnName: string");
-        lines.push("    private value: string | number | null");
-        lines.push("    private db: DB");
-        lines.push(
-            "    constructor(columnName: string, value: string | number | null, db: DB) {"
-        );
-        lines.push("        this.columnName = columnName");
-        lines.push("        this.value = value");
-        lines.push("        this.db = db");
-        lines.push("    }");
+        // lines.push(`class ${this.rowClassName} {`);
+        // lines.push(
+        //     "    private identifierColumns: {columnName: string, value: string | number | null}[]"
+        // );
+        // lines.push("    private db: DB");
+        // lines.push(
+        //     "    constructor(identifierColumns:{columnName: string, value: string | number | null}[], db: DB) {"
+        // );
+        // lines.push("        this.identifierColumns = identifierColumns");
+        // lines.push("        this.db = db");
+        // lines.push("    }");
 
-        this.columns.forEach((column) => {
-            lines.push(
-                `    get ${column.columnName}(): ${column.getType()}${column.options.notNull ? "" : " | undefined"} {`
-            );
-            lines.push(
-                "        return (this.db.db.prepare(" +
-                    "`" +
-                    `SELECT ${column.columnName} FROM ${this.tableName} WHERE ` +
-                    "${this.columnName} = ?`).get(this.value) as " +
-                    `${this.typesName})` +
-                    `.${column.columnName} as ${column.getType()}${column.options.notNull ? "" : " | undefined"}`
-            );
+        // this.columns.forEach((column) => {
+        //     lines.push(
+        //         `    get ${column.columnName}(): ${column.getType()}${column.options.notNull ? "" : " | undefined"} {`
+        //     );
+        //     lines.push(
+        //         "        return (this.db.db.prepare(" +
+        //             "`" +
+        //             `SELECT ${column.columnName} FROM ${this.tableName} WHERE ` +
+        //             " ${this.identifierColumns.map(identifier => identifier.columnName).join('=? AND ')}=?`).get(...this.identifierColumns.map(identifier => identifier.value)) as " +
+        //             `${this.typesName})` +
+        //             `.${column.columnName} as ${column.getType()}${column.options.notNull ? "" : " | undefined"}`
+        //     );
 
-            lines.push(`    }`);
-            lines.push(
-                `    set ${column.columnName}(newValue: ${column.getType()}${column.options.notNull ? "" : " | undefined"}) {`
-            );
-            lines.push(
-                `        console.warn("TODO", newValue, this.columnName, this.value)`
-            );
-            lines.push(`    }`);
-        });
+        //     lines.push(`    }`);
+        //     lines.push(
+        //         `    set ${column.columnName}(newValue: ${column.getType()}${column.options.notNull ? "" : " | undefined"}) {`
+        //     );
+        //     lines.push(
+        //         `        console.warn("TODO", newValue, this.identifierColumns)`
+        //     );
+        //     lines.push(`    }`);
+        // });
 
-        lines.push("    // *********************");
+        // lines.push("    // *********************");
 
-        this.columns.forEach((column) => {
-            if (column.reference && column.referenceAccessName) {
-                lines.push(
-                    `    get ${column.referenceAccessName}(): ${column.reference.table.rowClassName}${column.options.notNull ? "" : " | undefined"} {`
-                );
-                lines.push(
-                    (column.options.notNull
-                        ? "        "
-                        : `        if (this.${column.columnName}) `) +
-                        `return new ${column.reference.table.rowClassName}("${column.reference.columnName}", this.${column.columnName}, this.db)`
-                );
-                lines.push(`    }`);
-            }
-        });
-        lines.push("    // *********************");
+        // this.columns.forEach((column) => {
+        //     if (column.reference && column.referenceAccessName) {
+        //         lines.push(
+        //             `    get ${column.referenceAccessName}(): ${column.reference.table.rowClassName}${column.options.notNull ? "" : " | undefined"} {`
+        //         );
+        //         lines.push(
+        //             (column.options.notNull
+        //                 ? "        "
+        //                 : `        if (this.${column.columnName}) `) +
+        //                 `return new ${column.reference.table.rowClassName}([{columnName: "${column.reference.columnName}", value: this.${column.columnName}}], this.db)`
+        //         );
+        //         lines.push(`    }`);
+        //     }
+        // });
+        // lines.push("    // *********************");
 
-        this.foreginKeys.forEach((foreginKey) => {
-            lines.push(
-                `    get ${foreginKey.foreginColumn.table.tableName}() {`
-            );
-            lines.push(
-                `        const a ` +
-                    " = this.db.db.prepare(`SELECT " +
-                    `${foreginKey.foreginColumn.table.primaryKeys[0].columnName} FROM ${foreginKey.foreginColumn.table.tableName} WHERE ${foreginKey.foreginColumn.columnName} = ?` +
-                    "`)" +
-                    `.all(this.${foreginKey.column.columnName}) as {${foreginKey.foreginColumn.table.primaryKeys[0].columnName}: ${foreginKey.foreginColumn.table.primaryKeys[0].getType()}}[]`
-            );
-            lines.push(
-                `        return a.map(b => new ${foreginKey.foreginColumn.table.rowClassName}("${foreginKey.foreginColumn.table.primaryKeys[0].columnName}", b.${foreginKey.foreginColumn.table.primaryKeys[0].columnName}, this.db))`
-            );
-            lines.push(`    }`);
-        });
+        // this.foreginKeys.forEach((foreginKey) => {
+        //     lines.push(
+        //         `    get ${foreginKey.foreginColumn.table.tableName}() {`
+        //     );
+        //     console.log(foreginKey.foreginColumn.table.primaryKeys);
 
-        lines.push("}");
+        //     const keys = foreginKey.foreginColumn.table.primaryKeys.filter(
+        //         (key) => key.columnName != foreginKey.foreginColumn.columnName
+        //     );
 
-        lines.push(
-            `class ${snakeCaseToCamelCase(this.tableName)} extends BaseTable<${this.typesName}> {`
-        );
-        lines.push("    db: DB");
-        lines.push("    constructor(db: DB) {");
-        lines.push(
-            `        super("${this.tableName}", db, [${this.columns
-                .map((column) => {
-                    if (column.options.type == "sqlWrapper-now-func")
-                        return `{
-                            columnName: '${column.columnName}',
-                            type: '${column.options.type}',
-                        }`;
+        //     lines.push(
+        //         `        const a ` +
+        //             " = this.db.db.prepare(`SELECT " +
+        //             `${keys.map((key) => key.columnName).join(",")} FROM ${foreginKey.foreginColumn.table.tableName} WHERE ${foreginKey.foreginColumn.columnName} = ?` +
+        //             "`)" +
+        //             `.all(this.${foreginKey.column.columnName}) as {${keys.map((key) => `${key.columnName}: ${key.getType()}`).join(",")}}[]`
+        //     );
+        //     lines.push(
+        //         `        return a.map(b => new ${foreginKey.foreginColumn.table.rowClassName}([${keys.map((key) => `{columnName: "${key.columnName}", value:  b.${key.columnName}}`).join(",")}], this.db))`
+        //     );
+        //     lines.push(`    }`);
+        // });
 
-                    if (column.options.type == "sqlWrapper-date-on-update-func")
-                        return `{
-                            columnName: '${column.columnName}',
-                            type: '${column.options.type}',
-                        }`;
-                })
-                .filter((columnInfo) => columnInfo)}])`
-        );
-        lines.push("        this.db = db");
-        lines.push("    }");
-        lines.push(
-            `    get(columnName: string, value: string | number | null): ${this.rowClassName} {`
-        );
-        lines.push(
-            `        return new ${this.rowClassName}(columnName, value, this.db)`
-        );
-        lines.push("    }");
-        lines.push("}");
+        // lines.push("}");
 
-        lines.push(
-            `export const ${this.tableName} = new ${snakeCaseToCamelCase(this.tableName)}(db);`
-        );
+        // lines.push(
+        //     `class ${snakeCaseToCamelCase(this.tableName)} extends BaseTable<${this.typesName}> {`
+        // );
+        // lines.push("    db: DB");
+        // lines.push("    constructor(db: DB) {");
+        // lines.push(
+        //     `        super("${this.tableName}", db, [${this.columns
+        //         .map((column) => {
+        //             if (column.options.type == "sqlWrapper-now-func")
+        //                 return `{
+        //                     columnName: '${column.columnName}',
+        //                     type: '${column.options.type}',
+        //                 }`;
 
-        lines.push("");
-        lines.push("");
-        lines.push("");
+        //             if (column.options.type == "sqlWrapper-date-on-update-func")
+        //                 return `{
+        //                     columnName: '${column.columnName}',
+        //                     type: '${column.options.type}',
+        //                 }`;
+        //         })
+        //         .filter((columnInfo) => columnInfo)}])`
+        // );
+        // lines.push("        this.db = db");
+        // lines.push("    }");
+        // lines.push(
+        //     `    get(columnName: string, value: string | number | null): ${this.rowClassName} {`
+        // );
+        // lines.push(
+        //     `        return new ${this.rowClassName}([{columnName: columnName, value: value}], this.db)`
+        // );
+        // lines.push("    }");
+        // lines.push("}");
 
-        return lines;
-    }
-    getPythonClassDefinition() {
-        const lines: string[] = [];
+        // lines.push(
+        //     `export const ${this.tableName} = new ${snakeCaseToCamelCase(this.tableName)}(db);`
+        // );
 
-        lines.push(`class ${this.typesName}(TypedDict):`);
-        this.columns.forEach((column) =>
-            lines.push(
-                `    ${column.columnName}: ${column.options.notNull ? column.getPythonRawType() : `Optional[${column.getPythonRawType()}]`}`
-            )
-        );
-
-        lines.push(`@dataclass`);
-        lines.push(`class ${this.rowClassName}:`);
-        this.columns.forEach((column) =>
-            lines.push(
-                `    ${column.columnName}: ${column.options.notNull ? column.getPythonType() : `Optional[${column.getPythonType()}]`}`
-            )
-        );
-
-        lines.push(
-            `def ${this.tableName}_parser(raw_object: Optional[${this.typesName}]) -> Optional[${this.rowClassName}]:`
-        );
-
-        lines.push("    if not raw_object: return");
-
-        lines.push("    object = {");
-
-        this.columns.forEach((column) =>
-            lines.push(
-                `        "${column.columnName}": cast(${column.options.notNull ? column.getPythonType() : `Optional[${column.getPythonType()}]`}, parse_column(value=raw_object.get("${column.columnName}"), column_type="${column.options.type}")),`
-            )
-        );
-
-        lines.push("    }");
-
-        lines.push(`    return ${this.rowClassName}(**object)`);
+        // lines.push("");
+        // lines.push("");
+        // lines.push("");
 
         return lines;
     }
 
-    getPythonClassInstantiation() {
+    getPythonTables() {
         const lines: string[] = [];
 
-        lines.push(
-            `            Table(db=self, table_name="${this.tableName}", parser=${this.tableName}_parser),`
-        );
+        if (this.associationTable) {
+            console.log(this.tableName);
+
+            lines.push(`${this.tableName} = Table(`);
+            lines.push(`    '${this.tableName}', Base.metadata,`);
+            this.columns.forEach((column) => {
+                if (column.reference) {
+                    lines.push(
+                        `    Column('${column.columnName}', ForeignKey('${column.reference.table.tableName}.${column.reference.columnName}'), primary_key=${column.options.primaryKey ? "True" : "False"}, unique=${column.options.unique ? "True" : "False"}, nullable=${column.options.notNull ? "False" : "True"}),`
+                    );
+                } else {
+                    lines.push(
+                        `    Column('${column.columnName}', primary_key=${column.options.primaryKey ? "True" : "False"}, unique=${column.options.unique ? "True" : "False"}, nullable=${column.options.notNull ? "False" : "True"}),`
+                    );
+                }
+            });
+
+            lines.push(")");
+            lines.push("");
+        } else {
+            lines.push(
+                `class ${singularizeName(capitalizeFirstLetter(snakeCaseToCamelCase(this.tableName)))}(Base):`
+            );
+            lines.push(`    __tablename__ = "${this.tableName}"`);
+
+            this.columns.forEach((column) => {
+                if (column.reference) {
+                    lines.push(
+                        `    ${column.columnName} = Column(${column.getSqlAlchemyType()}, ForeignKey('${column.reference.table.tableName}.${column.reference.columnName}'), primary_key=${column.options.primaryKey ? "True" : "False"}, unique=${column.options.unique ? "True" : "False"}, nullable=${column.options.notNull ? "False" : "True"})`
+                    );
+                } else {
+                    lines.push(
+                        `    ${column.columnName} = Column(${column.getSqlAlchemyType()}, primary_key=${column.options.primaryKey ? "True" : "False"}, unique=${column.options.unique ? "True" : "False"}, nullable=${column.options.notNull ? "False" : "True"})`
+                    );
+                }
+            });
+            lines.push("");
+
+            this.columns
+                .filter((column) => column.reference)
+                .forEach((column) => {
+                    if (!column.reference) return;
+                    lines.push(
+                        `    # 1 ${column.table.tableName}.${column.columnName} ${column.reference.table.tableName}.${column.reference.columnName}`
+                    );
+                    lines.push(
+                        `    ${singularizeName(column.reference.table.tableName)} = relationship("${singularizeName(capitalizeFirstLetter(snakeCaseToCamelCase(column.reference.table.tableName)))}", back_populates="${this.tableName}")`
+                    );
+                });
+            lines.push("");
+
+            this.foreginKeys.forEach((key) => {
+                if (key.foreginColumn.table.associationTable) {
+                    if (key.foreginColumn.table.columns.length > 2) {
+                        throw `Association table ${key.foreginColumn.table} has more than two columns`;
+                    }
+                    const column = key.foreginColumn.table.columns.find(
+                        (column) => column != key.foreginColumn
+                    );
+
+                    if (!column) {
+                        throw `Association table ${key.foreginColumn.table} only has one column`;
+                    }
+
+                    if (!column.reference) {
+                        throw `Column ${column.table.tableName}.${column.columnName} doesn't have a reference`;
+                    }
+                    lines.push(
+                        `    # 2 ${key.column.table.tableName}.${key.column.columnName} ${key.foreginColumn.table.tableName}.${key.foreginColumn.columnName} ${column.table.tableName}.${column.columnName} ${column.reference.table.tableName}.${column.reference.columnName}`
+                    );
+
+                    lines.push(
+                        `    ${column.reference.table.tableName} = relationship("${singularizeName(capitalizeFirstLetter(snakeCaseToCamelCase(column.reference?.table.tableName)))}", secondary=${column.table.tableName}, back_populates="${this.tableName}")`
+                    );
+                } else {
+                    lines.push(
+                        `    # 3 ${key.column.table.tableName}.${key.column.columnName} ${key.foreginColumn.table.tableName}.${key.foreginColumn.columnName}`
+                    );
+                    lines.push(
+                        `    ${key.foreginColumn.table.tableName} = relationship("${singularizeName(capitalizeFirstLetter(snakeCaseToCamelCase(key.foreginColumn.table.tableName)))}", back_populates="${singularizeName(this.tableName)}")`
+                    );
+
+                 
+                }
+            });
+
+            lines.push("");
+            lines.push("");
+        }
 
         return lines;
     }
@@ -572,8 +622,8 @@ export class DB {
         this.db = sqlite(dbFile);
         this.dbFile = dbFile;
     }
-    addTable(tableName: string) {
-        const table = new TableInit(this, tableName);
+    addTable(tableName: string, options?: TableInitOptions) {
+        const table = new TableInit(this, tableName, options);
         this.tables.push(table);
         return table;
     }
@@ -586,9 +636,6 @@ export class DB {
         lines.push("// **** File managed by sqlWrapper by RockIt ****");
         lines.push("// ***********^**********************************");
         lines.push("");
-        lines.push('import { DB, BaseTable } from "@/lib/sqlWrapper";');
-        lines.push("");
-        lines.push(`export const db = new DB("${this.dbFile}");`);
 
         this.tables.map((table) => lines.push(...table.getClassDefinition()));
 
@@ -602,27 +649,20 @@ export class DB {
         lines.push("# **** File managed by sqlWrapper by RockIt ****");
         lines.push("# ***********^**********************************");
         lines.push("");
-        lines.push("from backend.db.baseDb import BaseDB, Table");
-        lines.push("from backend.backendUtils import parse_column");
-        lines.push("from dataclasses import dataclass");
-        lines.push("from typing import TypedDict, Optional, cast");
-        lines.push("from datetime import datetime");
-        lines.push("");
-        lines.push("");
-
-        this.tables.map((table) =>
-            lines.push(...table.getPythonClassDefinition())
+        lines.push(
+            "from sqlalchemy import Table, create_engine, Column, Integer, String, DateTime, Boolean, ForeignKey, select"
         );
-
-        lines.push("class DB(BaseDB):");
-        lines.push("    def __init__(self):");
-        lines.push("        super().__init__()");
-        lines.push("        self.tables = [");
-        this.tables.map((table) =>
-            lines.push(...table.getPythonClassInstantiation())
+        lines.push(
+            "from sqlalchemy.orm import declarative_base, relationship, Session, joinedload"
         );
+        lines.push("Base = declarative_base()");
 
-        lines.push("        ]");
+        this.tables
+            .filter((table) => table.associationTable)
+            .map((table) => lines.push(...table.getPythonTables()));
+        this.tables
+            .filter((table) => !table.associationTable)
+            .map((table) => lines.push(...table.getPythonTables()));
 
         writeFileSync(outputFile, lines.join("\n"));
     }

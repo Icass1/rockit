@@ -1,7 +1,7 @@
 // import sqlite from "better-sqlite3";
 // export const db = sqlite("database/test-database.db");
 
-import { users } from "./lib/db/db";
+import { albums, users } from "./lib/db/db";
 import { getDatabaseDate } from "./lib/getTime";
 
 console.log("==========================");
@@ -77,6 +77,19 @@ console.log(getDatabaseDate());
 //     { ignoreIfExists: true }
 // );
 
-const user = users.get("id", "kor0r3n05o6ihak3");
+// const user = users.get("id", "kor0r3n05o6ihak3");
 
-console.log(user.user_lists.map((list) => [list.item_type, list.item_id]));
+// console.log(
+//     user.user_lists.map((list) => {
+//         let a;
+//         if (list.item_type == "album") {
+//             a = albums.get("id", list.item_id).songs;
+//         }
+
+//         console.log(list.item_id, list.item_type, a);
+//     })
+// );
+
+
+const user = users.get("admin", true);
+console.log(user.username)

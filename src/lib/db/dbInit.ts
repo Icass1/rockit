@@ -4,21 +4,40 @@ import { DB } from "@/lib/sqlWrapper";
 
 export const db = new DB("database/database.db");
 
-// ************************
-// **** spotify_images ****
-// ************************
+// *************************
+// **** external_images ****
+// *************************
 
-const images = db.addTable("external_images");
+const external_images = db.addTable("external_images");
 
-const externalImageId = images.addColumn("id", {
+const externalImageId = external_images.addColumn("id", {
     type: "TEXT",
     primaryKey: true,
     unique: true,
     notNull: true,
 });
-images.addColumn("url", { type: "TEXT", unique: true, notNull: true });
-images.addColumn("width", { type: "INTEGER", notNull: true });
-images.addColumn("height", { type: "INTEGER", notNull: true });
+external_images.addColumn("url", { type: "TEXT", unique: true, notNull: true });
+external_images.addColumn("width", { type: "INTEGER", notNull: true });
+external_images.addColumn("height", { type: "INTEGER", notNull: true });
+
+// *************************
+// **** internal_images ****
+// *************************
+
+const internal_images = db.addTable("internal_images");
+
+const internalImageId = internal_images.addColumn("id", {
+    type: "TEXT",
+    primaryKey: true,
+    unique: true,
+    notNull: true,
+});
+internal_images.addColumn("url", { type: "TEXT", unique: true, notNull: true });
+internal_images.addColumn("path", {
+    type: "TEXT",
+    unique: true,
+    notNull: true,
+});
 
 // ****************
 // **** Albums ****
@@ -30,18 +49,23 @@ const albumId = albums.addColumn("id", {
     primaryKey: true,
     unique: true,
 });
-albums.addColumn("image", { type: "TEXT", notNull: true });
+albums
+    .addColumn("image_id", { type: "TEXT", notNull: true })
+    .setReference(internalImageId, "image");
 albums.addColumn("name", { type: "TEXT", notNull: true });
-albums.addColumn("release_date", { type: "DATE", notNull: true });
+albums.addColumn("release_date", { type: "TEXT", notNull: true });
 albums.addColumn("popularity", { type: "INTEGER" });
 albums.addColumn("disc_count", { type: "INTEGER", notNull: true });
-albums.addColumn("date_added", { type: db.NOW, notNull: true });
+albums.addColumn("date_added", { type: "DATE", notNull: true });
+albums.addColumn("path", { type: "TEXT", notNull: true });
 
 // **********************
 // **** album_images ****
 // **********************
 
-const album_images = db.addTable("album_external_images");
+const album_images = db.addTable("album_external_images", {
+    associationTable: true,
+});
 
 const album_images_album_id = album_images
     .addColumn("album_id", { type: "TEXT", notNull: true })
@@ -71,23 +95,25 @@ artists.addColumn("popularity", {
     type: "INTEGER",
 });
 artists.addColumn("date_added", {
-    type: db.NOW,
+    type: "DATE",
     notNull: true,
 });
-artists.addColumn("image", { type: "TEXT" });
+artists
+    .addColumn("image_id", { type: "TEXT" })
+    .setReference(internalImageId, "image");
 
 // ***********************
 // **** album_artists ****
 // ***********************
 
-const album_artists = db.addTable("album_artists");
+const album_artists = db.addTable("album_artists", { associationTable: true });
 
 const album_artists_album_id = album_artists
     .addColumn("album_id", { type: "TEXT" })
     .setReference(albumId, "album");
 const album_artists_artist_id = album_artists
     .addColumn("artist_id", { type: "TEXT" })
-    .setReference(artistId, "image");
+    .setReference(artistId, "artist");
 
 album_artists.setPrimaryKeys([album_artists_album_id, album_artists_artist_id]);
 
@@ -95,7 +121,9 @@ album_artists.setPrimaryKeys([album_artists_album_id, album_artists_artist_id]);
 // **** artist_images ****
 // ***********************
 
-const artist_images = db.addTable("artist_external_images");
+const artist_images = db.addTable("artist_external_images", {
+    associationTable: true,
+});
 
 const artist_images_artist_id = artist_images
     .addColumn("artist_id", { type: "TEXT" })
@@ -122,7 +150,9 @@ songs.addColumn("duration", { type: "INTEGER", notNull: true });
 songs.addColumn("track_number", { type: "INTEGER", notNull: true });
 songs.addColumn("disc_number", { type: "INTEGER", notNull: true });
 songs.addColumn("popularity", { type: "INTEGER" });
-songs.addColumn("image", { type: "TEXT" });
+songs
+    .addColumn("image_id", { type: "TEXT" })
+    .setReference(internalImageId, "image");
 songs.addColumn("path", { type: "TEXT" });
 songs
     .addColumn("album_id", {
@@ -130,7 +160,7 @@ songs
         notNull: true,
     })
     .setReference(albumId, "album");
-songs.addColumn("date_added", { type: db.NOW, notNull: true });
+songs.addColumn("date_added", { type: "DATE", notNull: true });
 songs.addColumn("isrc", {
     type: "TEXT",
     notNull: true,
@@ -150,14 +180,16 @@ songs.addColumn("dynamic_lyrics", {
 // **** song_artists ****
 // **********************
 
-const song_artists = db.addTable("song_artists");
+const song_artists = db.addTable("song_artists", {
+    associationTable: true,
+});
 
 const song_artists_song_id = song_artists
     .addColumn("song_id", { type: "TEXT" })
-    .setReference(songId, "album");
+    .setReference(songId, "songs");
 const song_artists_artist_id = song_artists
     .addColumn("artist_id", { type: "TEXT" })
-    .setReference(artistId, "image");
+    .setReference(artistId, "artists");
 
 song_artists.setPrimaryKeys([song_artists_song_id, song_artists_artist_id]);
 
@@ -196,11 +228,11 @@ users.addColumn("super_admin", {
     default: false,
     notNull: true,
 });
-users
-    .addColumn("impersonate_id", { type: "TEXT" })
-    .setReference(userId, "impersonated_user");
+// users
+//     .addColumn("impersonate_id", { type: "TEXT" })
+//     .setReference(userId, "impersonated_user");
 users.addColumn("dev_user", { type: "BOOLEAN", default: false, notNull: true });
-users.addColumn("date_added", { type: db.NOW, notNull: true });
+users.addColumn("date_added", { type: "DATE", notNull: true });
 
 // ********************
 // **** user_lists ****
@@ -213,7 +245,7 @@ user_lists
         notNull: true,
         primaryKey: true,
     })
-    .setReference(userId, "user");
+    .setReference(userId, "lists");
 user_lists.addColumn("item_type", {
     type: "TEXT",
     notNull: true,
@@ -225,20 +257,20 @@ user_lists.addColumn("item_id", {
     notNull: true,
     primaryKey: true,
 });
-user_lists.addColumn("date_added", { type: db.NOW, notNull: true });
+user_lists.addColumn("date_added", { type: "DATE", notNull: true });
 
 // ********************
 // **** user_queue ****
 // ********************
 
-const user_queue = db.addTable("user_queue");
+const user_queue = db.addTable("user_queue_songs");
 user_queue
     .addColumn("user_id", {
         type: "TEXT",
         notNull: true,
         primaryKey: true,
     })
-    .setReference(userId, "user");
+    .setReference(userId, "queue_songs");
 user_queue.addColumn("position", {
     type: "INTEGER",
     notNull: true,
@@ -280,7 +312,7 @@ user_pinned_lists.addColumn("item_id", {
     primaryKey: true,
     notNull: true,
 });
-user_pinned_lists.addColumn("date_added", { type: db.NOW, notNull: true });
+user_pinned_lists.addColumn("date_added", { type: "DATE", notNull: true });
 
 // **************************
 // **** user_liked_songs ****
@@ -302,29 +334,29 @@ user_liked_songs
         primaryKey: true,
     })
     .setReference(songId, "song");
-user_liked_songs.addColumn("date_added", { type: db.NOW, notNull: true });
+user_liked_songs.addColumn("date_added", { type: "DATE", notNull: true });
 
-// **************************
-// **** user_song_history ****
-// **************************
+// ****************************
+// **** user_history_songs ****
+// ****************************
 
-const user_song_history = db.addTable("user_song_history");
+const user_history_songs = db.addTable("user_history_songs");
 
-user_song_history
+user_history_songs
     .addColumn("user_id", {
         type: "TEXT",
         notNull: true,
         primaryKey: true,
     })
     .setReference(userId, "user");
-user_song_history
+user_history_songs
     .addColumn("song_id", {
         type: "TEXT",
         notNull: true,
         primaryKey: true,
     })
     .setReference(songId, "song");
-user_song_history.addColumn("played_at", { type: "DATE", notNull: true });
+user_history_songs.addColumn("played_at", { type: "DATE", notNull: true });
 
 // *******************
 // **** playlists ****
@@ -336,24 +368,33 @@ const playlistId = playlists.addColumn("id", {
     unique: true,
     notNull: true,
 });
-playlists.addColumn("image", { type: "TEXT", notNull: true });
+playlists
+    .addColumn("image_id", { type: "TEXT", notNull: true })
+    .setReference(internalImageId, "image");
 playlists.addColumn("name", { type: "TEXT", notNull: true });
 playlists.addColumn("owner", { type: "TEXT", notNull: true });
 playlists.addColumn("followers", { type: "INTEGER", notNull: true });
-playlists.addColumn("date_added", { type: db.NOW, notNull: true });
-playlists.addColumn("updated_at", { type: db.DATE_ON_UPDATE, notNull: true });
+playlists.addColumn("date_added", { type: "DATE", notNull: true });
+playlists.addColumn("updated_at", { type: "DATE", notNull: true });
+playlists.addColumn("path", { type: "TEXT", notNull: true });
 
 // *************************
 // **** playlist_images ****
 // *************************
 
-const playlist_images = db.addTable("playlist_external_images");
+const playlist_images = db.addTable("playlist_external_images", {
+    associationTable: true,
+});
 playlist_images
     .addColumn("playlist_id", { type: "TEXT", primaryKey: true })
     .setReference(playlistId, "playlist");
 playlist_images
     .addColumn("image_id", { type: "TEXT", primaryKey: true })
     .setReference(externalImageId, "image");
+
+// ************************
+// **** playlist_songs ****
+// ************************
 
 const playlist_songs = db.addTable("playlist_songs");
 playlist_songs
@@ -365,7 +406,7 @@ playlist_songs
 playlist_songs
     .addColumn("added_by", { type: "TEXT" })
     .setReference(userId, "user");
-playlist_songs.addColumn("date_added", { type: db.NOW });
+playlist_songs.addColumn("date_added", { type: "DATE" });
 
 playlist_songs.addColumn("disabled", {
     type: "BOOLEAN",
@@ -415,11 +456,11 @@ errors.addColumn("error_cause", { type: "TEXT" });
 errors.addColumn("error_name", { type: "TEXT" });
 errors.addColumn("error_stack", { type: "TEXT" });
 errors.addColumn("user_id", { type: "TEXT" }).setReference(userId, "user");
-errors.addColumn("date_added", { type: db.NOW, notNull: true });
+errors.addColumn("date_added", { type: "DATE", notNull: true });
 
 db.tables.forEach((table) => console.log(table.getQuery()));
 
 db.commit();
 
-db.writeClassesToFile("src/lib/db/db.ts");
+db.writeClassesToFile("src/lib/db/dbTypes.ts");
 db.writePythonClassesToFile("backend/db/db.py");

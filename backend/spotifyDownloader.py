@@ -19,7 +19,6 @@ from queueElement import QueueElement, SpotifyQueueElement
 from messageHandler import MessageHandler
 from backendUtils import get_utc_date
 
-from db.song import SongDBFull
 
 from spotifyApiTypes.RawSpotifyApiPlaylist import RawSpotifyApiPlaylist
 

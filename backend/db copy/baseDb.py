@@ -107,6 +107,8 @@ class Table:
         if not columns:
             return
 
+        print(columns, result)
+
         if self.parser:
             result = self.parser(dict(zip(columns, result)))
         else:
@@ -124,7 +126,7 @@ class BaseDB:
         self.logger = getLogger(__name__, class_name="DB")
 
         self.logger.info("Checking database tables...")
-        self.tables = [
+        self.tables: List[Table] = [
 
         ]
 

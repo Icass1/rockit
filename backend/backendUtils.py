@@ -3,7 +3,7 @@ from spotdl.utils.static import BAD_CHARS
 from spotdl.utils.formatter import create_file_name
 import re
 import requests
-from typing import List, Literal
+from typing import List, Literal, Union
 import numpy
 from io import BytesIO
 import cv2

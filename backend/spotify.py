@@ -12,16 +12,9 @@ import math
 
 from spotdl.types.song import Song
 
-from backend.db import artist
-from backend.db.artist import ArtistDBFull
 from constants import IMAGES_PATH
 
-from db.db import DB
-from backend.db.commonTypes import ArtistDB
-from db.image import ImageDB
-from db.song import SongDBFull
-from db.album import AlbumDBFull
-from db.playlist import PlaylistDBFull
+from backend.db.db import DB, AlbumsRow, ArtistsRow
 
 from backendUtils import create_id, create_playlist_collage, download_image,  get_utc_date, sanitize_folder_name, time_it
 from logger import getLogger
@@ -113,7 +106,7 @@ class Spotify:
             self.logger.critical(
                 f"Unable to load json. {result.content=}, {result.text=} {result.status_code=}")
 
-    def get_genres(self, artists: List[TrackArtists] | List[PlaylistArtists] | List[SpotifySearchResultsArtists] | List[ArtistDB]):
+    def get_genres(self, artists: List[TrackArtists] | List[PlaylistArtists] | List[SpotifySearchResultsArtists] | List[ArtistsRow]):
         genres = []
 
         for track_artist in artists:
@@ -141,8 +134,8 @@ class Spotify:
 
     def get_album(self, id: str) -> RawSpotifyApiAlbum | None:
 
-        album_db: AlbumDBFull | None = self.db.get(
-            "SELECT * FROM album WHERE id = ?", (id,))
+        album_db: AlbumsRow | None = self.db.get(
+            "SELECT * FROM albums WHERE id = ?", (id,))
 
         if album_db:
 
@@ -151,7 +144,7 @@ class Spotify:
                 "id": album_db.id,
                 "name": album_db.name,
                 "artists": album_db.artists,
-                "type": album_db.type,
+                "type": "album",
                 "copyrights": album_db.copyrights,
                 "tracks": {"items": [{"id": song_id, "disc_number": album_db.discCount} for song_id in album_db.songs]},
                 "release_date": album_db.releaseDate,
@@ -170,7 +163,7 @@ class Spotify:
 
     def get_artist(self, id: str) -> RawSpotifyApiArtist | None:
 
-        artist_db: ArtistDBFull | None = self.db.get(
+        artist_db: ArtistsRow | None = self.db.get(
             "SELECT * FROM artist WHERE id = ?", (id,))
 
         if artist_db:
@@ -203,7 +196,7 @@ class Spotify:
     @time_it
     def get_playlist(self, id: str) -> RawSpotifyApiPlaylist | None:
 
-        playlist_db: PlaylistDBFull | None = self.db.get(
+        playlist_db: playlist | None = self.db.get(
             "SELECT * FROM playlist WHERE id = ?", (id,))
 
         if playlist_db:

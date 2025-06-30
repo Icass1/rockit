@@ -60,14 +60,11 @@ wss.on("connection", async (ws, req) => {
             let messageJson;
             try {
                 if (message != message.toString()) {
-                    console.log(message, message.toString());
+                    console.log("message", message, message.toString());
                 }
                 messageJson = JSON.parse(message.toString());
 
-                console
-                    .log
-                    // `Received from ${user.id}: ${JSON.stringify(messageJson)}`
-                    ();
+
                 if (messageJson.command) {
                     console.log(
                         "Command received from",

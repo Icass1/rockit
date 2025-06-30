@@ -39,8 +39,11 @@ import { downloadFile, downloadRsc } from "@/lib/downloadResources";
 import ContextMenuSplitter from "../ContextMenu/Splitter";
 import { pinnedLists } from "@/stores/pinnedLists";
 import { downloadListZip, pinListHandleClick } from "../ListHeader/ListOptions";
+import PlayLibraryButton from "./PlayLibraryButton";
 
-async function getListSongs(list: PlaylistDB | AlbumDB) {
+async function getListSongs(
+    list: PlaylistDB<"type" | "songs"> | AlbumDB<"type" | "songs">
+) {
     if (list.type == "playlist") {
         const response = await fetch(
             `/api/songs1?songs=${list.songs
@@ -387,9 +390,12 @@ export function LibraryLists({
 
     return (
         <section>
-            <h2 className="px-5 py-4 text-left text-2xl font-bold md:px-0">
-                {$lang.your_albums_playlists}
-            </h2>
+            <div className="flex flex-row items-center justify-between px-5 py-4 md:px-0">
+                <h2 className="text-2xl font-bold">
+                    {$lang.your_albums_playlists}
+                </h2>
+                <PlayLibraryButton />
+            </div>
             <div
                 className="grid gap-x-5 gap-y-3 px-5"
                 style={{

@@ -1,4 +1,3 @@
-import { AlbumDB } from "@/lib/db/album";
 import { SongDB } from "@/lib/db/song";
 import {
     currentSong,
@@ -11,13 +10,12 @@ import {
     randomQueue,
     songsInIndexedDB,
 } from "@/stores/audio";
-import { currentList } from "@/stores/currentList";
 import { libraryLists } from "@/stores/libraryLists";
 import { useStore } from "@nanostores/react";
 
 import { Pause, Play } from "lucide-react";
 
-export default function PlayLibraryButton({}: {}) {
+export default function PlayLibraryButton() {
     let icon;
 
     const $queue = useStore(queue);

@@ -77,6 +77,10 @@ class SpotifyQueueElement(QueueElement):
         song = sanitize_folder_name(get_output_file(
             self._song).replace(f"{TEMP_PATH}/", ""))
 
+        if not os.path.exists(SONGS_PATH):
+            self.logger.info(f"Creating directory {SONGS_PATH}")
+            os.mkdir(SONGS_PATH)
+
         song_path = os.path.join(SONGS_PATH, artist, album, song)
 
         song_path_db = os.path.join(artist, album, song)

@@ -3,11 +3,11 @@ import { searchQuery, searchResults } from "@/stores/searchResults";
 
 import { DownloadCloud } from "lucide-react";
 import {
+    Dispatch,
     useEffect,
     useState,
     type MouseEvent,
     type ReactNode,
-    type RefObject,
 } from "react";
 import stringSimilarity from "@/lib/stringSimilarity";
 import Image from "@/components/Image";
@@ -19,12 +19,14 @@ function Result({
     artistsOrOwner,
     inDatabase,
     url,
+    setOpen,
 }: {
     image: string;
     name: string;
     artistsOrOwner: string;
     inDatabase: boolean;
     url: string;
+    setOpen: Dispatch<React.SetStateAction<boolean>>;
 }) {
     const handleClick = (
         event: MouseEvent<HTMLDivElement, globalThis.MouseEvent>
@@ -34,6 +36,7 @@ function Result({
     };
     return (
         <Link
+            onClick={() => setOpen(false)}
             className={
                 "flex h-full cursor-pointer flex-row items-center gap-x-2 overflow-hidden rounded bg-zinc-700 transition-colors md:hover:bg-zinc-500/60 " +
                 (artistsOrOwner == "" ? " rounded-l-[70px] rounded-r-lg" : " ")
@@ -80,11 +83,11 @@ function ResultsWrapper({ children }: { children: ReactNode[] }) {
 }
 
 export default function RenderSearchBarResults({
-    divRef,
     open,
+    setOpen,
 }: {
-    divRef: RefObject<HTMLDivElement | null>;
     open: boolean;
+    setOpen: Dispatch<React.SetStateAction<boolean>>;
 }) {
     const $searchResults = useStore(searchResults);
     const [bestResult, setBestResult] = useState<
@@ -174,7 +177,7 @@ export default function RenderSearchBarResults({
     }, [$searchResults, $searchQuery]);
 
     return (
-        <div ref={divRef}>
+        <div id="search-bar-results">
             {open ? (
                 <div className="absolute top-1/2 left-1/2 z-50 flex h-fit w-full -translate-x-1/2 -translate-y-2 flex-col gap-2 rounded-b-3xl bg-neutral-800 px-4 pt-7 shadow-lg">
                     {bestResult && (
@@ -189,6 +192,7 @@ export default function RenderSearchBarResults({
                                     inDatabase={bestResult.inDatabase}
                                     image={bestResult.image}
                                     url={bestResult?.url}
+                                    setOpen={setOpen}
                                 />
                             </div>
                         </>
@@ -225,6 +229,7 @@ export default function RenderSearchBarResults({
                                                         song.external_urls
                                                             .spotify
                                                     }
+                                                    setOpen={setOpen}
                                                 />
                                             </div>
                                         ))}
@@ -262,6 +267,7 @@ export default function RenderSearchBarResults({
                                                         album.external_urls
                                                             .spotify
                                                     }
+                                                    setOpen={setOpen}
                                                 />
                                             </div>
                                         ))}
@@ -296,6 +302,7 @@ export default function RenderSearchBarResults({
                                                         playlist.external_urls
                                                             .spotify
                                                     }
+                                                    setOpen={setOpen}
                                                 />
                                             </div>
                                         ))}
@@ -325,6 +332,7 @@ export default function RenderSearchBarResults({
                                                         artist.external_urls
                                                             .spotify
                                                     }
+                                                    setOpen={setOpen}
                                                 />
                                             </div>
                                         ))}

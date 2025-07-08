@@ -11,19 +11,20 @@ import re
 import math
 
 from spotdl.types.song import Song
+from sqlalchemy import select
 
-from constants import IMAGES_PATH
+from backend.constants import IMAGES_PATH
 
-from backend.db.db import DB, AlbumsRow, ArtistsRow
+from backend.db.db import session, Artist as ArtistDB, Album as AlbumDB
 
-from backendUtils import create_id, create_playlist_collage, download_image,  get_utc_date, sanitize_folder_name, time_it
-from logger import getLogger
+from backend.backendUtils import create_id, create_playlist_collage, download_image,  get_utc_date, sanitize_folder_name, time_it
+from backend.logger import getLogger
 
-from spotifyApiTypes.RawSpotifyApiAlbum import RawSpotifyApiAlbum
-from spotifyApiTypes.RawSpotifyApiTrack import RawSpotifyApiTrack, TrackArtists
-from spotifyApiTypes.RawSpotifyApiPlaylist import PlaylistArtists, PlaylistTracks, RawSpotifyApiPlaylist
-from spotifyApiTypes.RawSpotifyApiArtist import RawSpotifyApiArtist
-from spotifyApiTypes.RawSpotifyApiSearchResults import SpotifySearchResultsArtists
+from backend.spotifyApiTypes.RawSpotifyApiAlbum import RawSpotifyApiAlbum
+from backend.spotifyApiTypes.RawSpotifyApiTrack import RawSpotifyApiTrack, TrackArtists
+from backend.spotifyApiTypes.RawSpotifyApiPlaylist import PlaylistArtists, PlaylistTracks, RawSpotifyApiPlaylist
+from backend.spotifyApiTypes.RawSpotifyApiArtist import RawSpotifyApiArtist
+from backend.spotifyApiTypes.RawSpotifyApiSearchResults import SpotifySearchResultsArtists
 
 
 class Spotify:
@@ -39,8 +40,6 @@ class Spotify:
 
         self.token: str | None = None
         self.get_token()
-
-        self.db = DB()
 
     def get_auth_header(self):
         if not self.token:
@@ -106,7 +105,7 @@ class Spotify:
             self.logger.critical(
                 f"Unable to load json. {result.content=}, {result.text=} {result.status_code=}")
 
-    def get_genres(self, artists: List[TrackArtists] | List[PlaylistArtists] | List[SpotifySearchResultsArtists] | List[ArtistsRow]):
+    def get_genres(self, artists: List[TrackArtists] | List[PlaylistArtists] | List[SpotifySearchResultsArtists] | List[ArtistDB]):
         genres = []
 
         for track_artist in artists:
@@ -134,8 +133,11 @@ class Spotify:
 
     def get_album(self, id: str) -> RawSpotifyApiAlbum | None:
 
-        album_db: AlbumsRow | None = self.db.get(
-            "SELECT * FROM albums WHERE id = ?", (id,))
+        # album_db: AlbumDB | None = self.db.get(
+        #     "SELECT * FROM albums WHERE id = ?", (id,))
+
+        album_db: AlbumDB = session.execute(select(AlbumDB).where(
+            AlbumDB.id == id)).scalar_one_or_none()
 
         if album_db:
 

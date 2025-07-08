@@ -12,15 +12,15 @@ import json
 
 from spotdl.types.song import Song
 
-from constants import SONGS_PATH
-from logger import getLogger
+from backend.constants import SONGS_PATH
+from backend.logger import getLogger
 
-from queueElement import QueueElement, SpotifyQueueElement
-from messageHandler import MessageHandler
-from backendUtils import get_utc_date
+from backend.queueElement import QueueElement, SpotifyQueueElement
+from backend.messageHandler import MessageHandler
+from backend.backendUtils import get_utc_date
 
 
-from spotifyApiTypes.RawSpotifyApiPlaylist import RawSpotifyApiPlaylist
+from backend.spotifyApiTypes.RawSpotifyApiPlaylist import RawSpotifyApiPlaylist
 
 if TYPE_CHECKING:
     from downloader import Downloader

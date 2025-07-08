@@ -23,7 +23,7 @@ from pathlib import Path
 import traceback
 import shutil
 import datetime
-from logger import getLogger
+from backend.logger import getLogger
 from difflib import SequenceMatcher
 import spotdl.download
 import spotdl.download.downloader

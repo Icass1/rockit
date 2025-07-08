@@ -1,66 +1,7 @@
-// lib/jobs/worker.ts
 import { Worker } from "bullmq";
-import IORedis from "ioredis";
 import { getStats } from "@/lib/stats";
-import { reduce, shuffle } from "@/lib/arrayTools";
 import { ApiStats } from "@/app/api/stats/route";
-
-const connection = new IORedis({
-    host: process.env.REDIS_HOST || "localhost",
-    port: Number(process.env.REDIS_PORT) || 6379,
-    maxRetriesPerRequest: null,
-});
-
-new Worker(
-    "home-stats",
-    async (job) => {
-        const { userId } = job.data;
-        const { stats } = await getStats(userId);
-
-        const now = Date.now();
-        const lastMonth = now - 1000 * 60 * 60 * 24 * 30;
-        const lastSixMonths = now - 1000 * 60 * 60 * 24 * 30 * 6;
-        const lastYear = now - 1000 * 60 * 60 * 24 * 30 * 12;
-
-        const songsByTimePlayed = reduce(
-            stats.songs.toSorted(
-                (b, a) =>
-                    new Date(a.timePlayed).getTime() -
-                    new Date(b.timePlayed).getTime()
-            ),
-            (item) => item.id
-        ).slice(0, 20);
-
-        const randomSongsLastMonth = shuffle(
-            reduce(
-                stats.songs.filter(
-                    (song) => new Date(song.timePlayed).getTime() > lastMonth
-                ),
-                (item) => item.id
-            )
-        ).slice(0, 20);
-
-        const hiddenGems = reduce(
-            stats.songs.filter(
-                (song) =>
-                    new Date(song.timePlayed).getTime() < lastSixMonths &&
-                    new Date(song.timePlayed).getTime() > lastYear
-            ),
-            (item) => item.id
-        ).slice(0, 20);
-
-        return {
-            songsByTimePlayed,
-            randomSongsLastMonth,
-            hiddenGems,
-            nostalgicMix: [],
-            communityTop: [],
-            monthlyTop: [],
-            moodSongs: [],
-        };
-    },
-    { connection }
-);
+import { connection } from "@/lib/jobs/connection";
 
 new Worker(
     "stats",

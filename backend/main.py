@@ -1,4 +1,6 @@
 import asyncio
+import math
+from typing import List, cast
 from fastapi import FastAPI, BackgroundTasks, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -9,6 +11,7 @@ import threading
 from functools import wraps
 import inspect
 
+from backend.db.song import SongDBFull
 from backend.downloader import Downloader
 from backend.spotifyApiTypes.RawSpotifyApiSearchResults import RawSpotifyApiSearchResults
 
@@ -201,6 +204,13 @@ def get_album(request: Request, album_id):
     return album._json
 
 
+@fast_api_route(path='/albums')
+def get_albums(request: Request, ids: str):
+
+    result = downloader.spotify.get_albums(ids.split(","))
+    return result
+
+
 @fast_api_route(path='/song/{song_id}')
 def get_song(request: Request, song_id):
 
@@ -210,6 +220,50 @@ def get_song(request: Request, song_id):
         return Response("song not found", status_code=404)
 
     return song[1]._json
+
+
+@fast_api_route(path='/songs')
+def get_songs(request: Request, ids):
+
+    songs = downloader.spotify.get_songs(ids=ids.split(","))
+
+    if not songs:
+        return Response(content="songs not found", status_code=404)
+
+    return [song[1]._json for song in songs]
+
+
+@fast_api_route(path='/set-isrc')
+def set_isrc(request: Request):
+
+    res = downloader.spotify.db.get_all(
+        "SELECT id FROM song WHERE isrc IS NULL")
+
+    if not res:
+        return Response(content="All songs seem to have the isrc set", status_code=404)
+
+    songs = cast(List[SongDBFull], res)
+
+    songs_id = [song.id for song in songs]
+
+    for k in range(math.ceil(len(songs_id)/100)):
+
+        response = downloader.spotify.api_call(
+            path=f"tracks", params={"ids": ",".join(songs_id[k*100:(k + 1)*100])})
+
+        if not response:
+            continue
+
+        tracks = response["tracks"]
+
+        for k in tracks:
+            isrc = k["external_ids"]["isrc"]
+            id = k["id"]
+            print(isrc, id)
+            downloader.spotify.db.execute(
+                "UPDATE song SET isrc = ? WHERE id = ?", (isrc, id))
+
+    return "OK"
 
 
 @fast_api_route(path='/playlist/{playlist_id}')
@@ -241,6 +295,12 @@ def get_artist(request: Request, artist_id):
         return Response("Album not found", status_code=404)
 
     return artist._json
+
+
+@fast_api_route(path='/artists')
+def get_artists(request: Request, ids: str):
+
+    return "OK"
 
 
 @fast_api_route(path='/remove-cache')

@@ -10,6 +10,7 @@ import { useStore } from "@nanostores/react";
 import {
     Download,
     HardDriveDownload,
+    HardDriveDownloadIcon,
     Heart,
     Library,
     ListEnd,
@@ -59,6 +60,52 @@ export const pinListHandleClick = ({
                 pinnedLists.set([...pinnedLists.get(), data]);
             });
     }
+};
+
+export const downloadListZip = async ({
+    id,
+    type,
+}: {
+    id: string;
+    type: string;
+}) => {
+    const response = await fetch(`/api/zip-list/${type}/${id}`);
+
+    if (!response.ok) {
+        console.warn("Response not ok");
+        return;
+    }
+    const jobId = (await response.json()).jobId;
+
+    const interval = setInterval(async () => {
+        const response = await fetch(
+            `/api/zip-list/${type}/${id}?jobId=${jobId}`
+        );
+        if (!response.ok) {
+            console.warn("Response not ok");
+            clearInterval(interval);
+            return;
+        }
+
+        const json = await response.json();
+
+        if (json.state == "completed") {
+            const resultId = json.result;
+
+            const a = document.createElement("a");
+            const url = `/api/zip-list/${type}/${id}?getId=${resultId}`;
+
+            a.href = url;
+
+            document.body.appendChild(a);
+            a.click();
+
+            // Cleanup
+            a.remove();
+            window.URL.revokeObjectURL(url);
+            clearInterval(interval);
+        }
+    }, 2000);
 };
 
 export const addToLibraryHandleClick = ({
@@ -129,7 +176,7 @@ export default function ListOptions({
                         1,
                 };
             })
-            .filter((song) => song?.song?.id);
+            .filter((song) => song?.song?.id && song?.song?.path);
         queue.set([...tempQueue, ...songsToAdd]);
     };
     const addListToTopQueue = () => {
@@ -147,7 +194,7 @@ export default function ListOptions({
                         1,
                 };
             })
-            .filter((song) => song?.song?.id);
+            .filter((song) => song?.song?.id && song?.song?.path);
         const index = tempQueue.findIndex(
             (_song) => _song.index == queueIndex.get()
         );
@@ -214,7 +261,7 @@ export default function ListOptions({
     return (
         <PopupMenu>
             <PopupMenuTrigger className="pt-[2px]">
-                <Menu strokeWidth={1.3} className="h-6 w-6 cursor-pointer" />
+                <Menu strokeWidth={1.3} className="h-6 w-6 z-50 cursor-pointer" />
             </PopupMenuTrigger>
             <PopupMenuContent>
                 <PopupMenuOption
@@ -276,6 +323,18 @@ export default function ListOptions({
                         Download to server
                     </PopupMenuOption>
                 )}
+                {id != "last-month" &&
+                    id != "liked" &&
+                    id != "most-listened" &&
+                    id != "recent-mix" &&
+                    type == "album" && (
+                        <PopupMenuOption
+                            onClick={() => downloadListZip({ id, type })}
+                        >
+                            <HardDriveDownloadIcon className="h-5 w-5" />
+                            Download ZIP
+                        </PopupMenuOption>
+                    )}
             </PopupMenuContent>
         </PopupMenu>
     );

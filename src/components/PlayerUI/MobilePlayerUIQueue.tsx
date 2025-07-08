@@ -185,7 +185,7 @@ export default function MobilePlayerUIQueue({
             >
                 Queue
             </label>
-            <div className="relative h-full">
+            <div className="absolute top-12 right-0 bottom-0 left-0">
                 <div
                     ref={scrollRef}
                     onScroll={(e) => setQueueScroll(e.currentTarget.scrollTop)}

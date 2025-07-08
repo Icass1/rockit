@@ -291,7 +291,7 @@ export default function MobilePlayerUI() {
                     <Slider
                         id="default-slider"
                         value={$currentTime || 0}
-                        className="h-2 w-full cursor-pointer appearance-none"
+                        className="h-2 w-full cursor-pointer appearance-none bg-neutral-700"
                         min={0}
                         max={$currentSong?.duration}
                         step={0.001}

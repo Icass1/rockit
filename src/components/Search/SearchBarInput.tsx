@@ -1,4 +1,4 @@
-import { useEffect, useRef, type Dispatch, type RefObject } from "react";
+import { useEffect, useRef, type Dispatch } from "react";
 import pkg from "lodash";
 import {
     searchQuery,
@@ -10,10 +10,8 @@ import { langData } from "@/stores/lang";
 const { debounce } = pkg;
 
 export default function SearchBarInput({
-    searchBarRef,
     setOpen,
 }: {
-    searchBarRef: RefObject<HTMLInputElement | null>;
     setOpen: Dispatch<React.SetStateAction<boolean>>;
 }) {
     const value = useStore(searchQuery);
@@ -98,7 +96,7 @@ export default function SearchBarInput({
     return (
         <input
             type="search"
-            ref={searchBarRef}
+            id="search-bar"
             value={value}
             onChange={(e) => {
                 searchQuery.set(e.target.value);

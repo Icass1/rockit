@@ -22,3 +22,11 @@ export function shuffle<T>(array: T[]): T[] {
     }
     return newArray;
 }
+
+export function splitIntoChunks<T>(array: T[], chunkSize: number): T[][] {
+    const chunks = [];
+    for (let i = 0; i < array.length; i += chunkSize) {
+        chunks.push(array.slice(i, i + chunkSize));
+    }
+    return chunks;
+}

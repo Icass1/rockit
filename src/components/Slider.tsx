@@ -12,6 +12,7 @@ interface SliderProps {
     step?: number;
     id: string;
     className?: string;
+    barClassName?: string;
     readOnly?: boolean;
 }
 
@@ -23,6 +24,7 @@ export default function Slider({
     step,
     id,
     className = "",
+    barClassName = "bg-gradient-to-r from-[#ee1086] to-[#fb6467]",
     readOnly = false,
 }: SliderProps) {
     // const m = 100 / ((max || 100) - (min || 0));
@@ -36,12 +38,13 @@ export default function Slider({
     const inputRef = useRef<HTMLInputElement>(null);
 
     return (
-        <div
-            className={className + " relative w-16 rounded-full bg-neutral-700"}
-        >
+        <div className={className + " relative w-16 rounded-full"}>
             {/* Barra de progreso */}
             <div
-                className="absolute top-0 left-0 block h-full max-w-full rounded-full bg-gradient-to-r from-[#ee1086] to-[#fb6467]"
+                className={
+                    "absolute top-0 left-0 block h-full max-w-full rounded-full " +
+                    barClassName
+                }
                 style={{ width: `${widthPercentage}%` }}
                 suppressHydrationWarning
             />

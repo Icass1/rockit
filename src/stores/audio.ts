@@ -7,6 +7,7 @@ import { openRockItIndexedDB } from "@/lib/indexedDB";
 import { getSession } from "next-auth/react";
 import { Device, devices } from "./devices";
 import { users } from "./users";
+import { splitIntoChunks } from "@/lib/arrayTools";
 
 // Track user interaction state for iOS autoplay handling
 let audioContext: AudioContext | undefined;
@@ -317,19 +318,27 @@ export const queue = createControlledAtom<Queue | undefined>(
             })
             .filter((song) => song),
     async (queue: UserDB["queue"]) => {
-        const response = await fetch(
-            `/api/songs1?songs=${queue
-                .map((queueSong) => queueSong.song)
-                .join()}&p=id,name,artists,image,duration`
-        );
-
-        const json = (await response.json()) as SongDB<
+        const songs: SongDB<
             "id" | "name" | "artists" | "image" | "duration"
-        >[];
+        >[] = [];
+
+        for (const queueChunk of splitIntoChunks(queue, 100)) {
+            const response = await fetch(
+                `/api/songs1?songs=${queueChunk
+                    .map((queueSong) => queueSong.song)
+                    .join()}&p=id,name,artists,image,duration`
+            );
+
+            songs.push(
+                ...((await response.json()) as SongDB<
+                    "id" | "name" | "artists" | "image" | "duration"
+                >[])
+            );
+        }
 
         return queue
             .map((queueSong) => {
-                const songInfo = json
+                const songInfo = songs
                     .filter((song) => song)
                     .find((song) => song.id == queueSong.song);
 
@@ -404,9 +413,10 @@ export const crossFade = createControlledAtom<number | undefined>(
 );
 
 export const currentCrossFade = atom<number | undefined>(crossFade.get());
+export const crossFadeCurrentTime = atom<number | undefined>(undefined);
 
 fetch(
-    "/api/user?q=currentSong,currentTime,queue,queueIndex,volume,randomQueue,repeatSong,currentStation,admin"
+    "/api/user?q=currentSong,currentTime,queue,queueIndex,volume,randomQueue,repeatSong,currentStation,admin,crossFade"
 )
     .then((userJsonResponse) => userJsonResponse.json())
     .then(
@@ -421,6 +431,7 @@ fetch(
                 | "randomQueue"
                 | "repeatSong"
                 | "admin"
+                | "crossFade"
             >
         ) => {
             initAudio();
@@ -439,6 +450,9 @@ fetch(
 
             repeatSong.set(userJson.repeatSong, false);
             randomQueue.set(userJson.randomQueue, false);
+
+            crossFade.set(userJson.crossFade, false);
+            currentCrossFade.set(userJson.crossFade);
 
             volume.set(
                 window.innerWidth < 768 ? 1 : (userJson?.volume ?? 1),
@@ -467,46 +481,65 @@ fetch(
             }
 
             if (userJson && userJson.queue.length > 0) {
-                fetch(
-                    `/api/songs1?songs=${userJson.queue
-                        .map((queueSong) => queueSong.song)
-                        .join()}&p=id,name,artists,image,duration`
-                ).then((response) => {
-                    if (response.ok) {
-                        response.json().then((queueSongs: QueueSong[]) => {
-                            queue.set(
-                                userJson.queue
-                                    .map((queueSong) => {
-                                        const songInfo = queueSongs
-                                            .filter((song) => song)
-                                            .find(
-                                                (song) =>
-                                                    song.id == queueSong.song
-                                            );
+                const getSongs = async () => {
+                    const songs: SongDB<
+                        | "id"
+                        | "name"
+                        | "artists"
+                        | "image"
+                        | "duration"
+                        | "albumName"
+                        | "albumId"
+                    >[] = [];
 
-                                        if (!songInfo) {
-                                            return undefined;
-                                        }
+                    for (const queueChunk of splitIntoChunks(
+                        userJson.queue,
+                        100
+                    )) {
+                        const response = await fetch(
+                            `/api/songs1?songs=${queueChunk
+                                .map((queueSong) => queueSong.song)
+                                .join()}&p=id,name,artists,image,duration,albumName,albumId`
+                        );
 
-                                        return {
-                                            song: songInfo,
-                                            list: queueSong.list,
-                                            index: queueSong.index,
-                                        };
-                                    })
-                                    .filter(
-                                        (song) => typeof song != "undefined"
-                                    ),
-                                false
-                            );
-
-                            addSubscribers();
-                        });
-                    } else {
-                        console.error("Error getting songs info");
-                        queue.set([], false);
-                        addSubscribers();
+                        songs.push(
+                            ...((await response.json()) as SongDB<
+                                | "id"
+                                | "name"
+                                | "artists"
+                                | "image"
+                                | "duration"
+                                | "albumName"
+                                | "albumId"
+                            >[])
+                        );
                     }
+                    return songs;
+                };
+
+                getSongs().then((data) => {
+                    queue.set(
+                        userJson.queue
+                            .map((queueSong) => {
+                                const songInfo = data
+                                    .filter((song) => song)
+                                    .find((song) => song.id == queueSong.song);
+
+                                if (!songInfo) {
+                                    return undefined;
+                                }
+
+                                return {
+                                    song: songInfo,
+                                    list: queueSong.list,
+                                    index: queueSong.index,
+                                };
+                            })
+                            .filter((song) => typeof song != "undefined"),
+                        false
+                    );
+
+                    addSubscribers();
                 });
             } else {
                 queue.set([], false);
@@ -1106,6 +1139,12 @@ const getUA = () => {
 async function startSocket() {
     if (typeof window === "undefined") return null;
 
+    if (localStorage.getItem("web-socket") == "false") {
+        console.warn("web socket is disabled in localStore");
+
+        return;
+    }
+
     const session = await getSession();
 
     if (!session) return;
@@ -1181,23 +1220,46 @@ export async function next(songEnded = false) {
 
     if (admin.get()) console.log({ newSongId, songEnded });
 
-    await fetch(`/api/song/${newSongId}`)
+    await fetch(
+        `/api/song/${newSongId}?q=id,name,artists,image,duration,albumName,albumId,path`
+    )
         .then((response) => response.json())
-        .then((data) => {
-            const _crossFade = currentCrossFade.get();
-            if (_crossFade && _crossFade > 0 && songEnded) {
-                inCrossFade = true;
-                if (admin.get()) console.log("Playwhenready 2");
+        .then(
+            (
+                data: SongDB<
+                    | "id"
+                    | "name"
+                    | "artists"
+                    | "image"
+                    | "duration"
+                    | "albumName"
+                    | "albumId"
+                    | "path"
+                >
+            ) => {
+                if (!data?.path) {
+                    console.warn(
+                        "Song isn't downloaded, skipping to next song in queue"
+                    );
+                    next();
+                    return;
+                }
 
-                playWhenReady.set(false);
-            } else {
-                if (admin.get()) console.log("Playwhenready 3");
+                const _crossFade = currentCrossFade.get();
+                if (_crossFade && _crossFade > 0 && songEnded) {
+                    inCrossFade = true;
+                    if (admin.get()) console.log("Playwhenready 2");
 
-                inCrossFade = false;
-                playWhenReady.set(true);
+                    playWhenReady.set(false);
+                } else {
+                    if (admin.get()) console.log("Playwhenready 3");
+
+                    inCrossFade = false;
+                    playWhenReady.set(true);
+                }
+                currentSong.set(data);
             }
-            currentSong.set(data);
-        })
+        )
         .catch(async () => {
             const song = await getSongInIndexedDB(newSongId);
             if (song) {
@@ -1352,7 +1414,7 @@ async function registerServiceWorker() {
     }
 
     if ("serviceWorker" in navigator) {
-        const version = 3;
+        const version = 4;
 
         try {
             const updatedServiceWorker = localStorage.getItem(
@@ -1446,15 +1508,6 @@ if (typeof navigator !== "undefined") {
         if (event.seekTime) setTime(event.seekTime);
     });
 }
-function onLoadedData() {
-    // if (admin.get()) console.log(
-    //     "Updating crossFade from",
-    //     currentCrossFade.get(),
-    //     "to",
-    //     crossFade.get()
-    // );
-    currentCrossFade.set(crossFade.get());
-}
 
 function onCanplay() {
     initAudio();
@@ -1501,10 +1554,15 @@ async function onTimeupdate() {
         repeatSong.get() == "off"
     ) {
         if (audio.duration - audio.currentTime < _crossFade) {
+            crossFadeCurrentTime.set(
+                _crossFade + audio.currentTime - audio.duration
+            );
             audio.volume =
-                ((-userVolume / _crossFade) *
+                (((-userVolume / _crossFade) *
                     (audio.currentTime - audio.duration)) **
-                2;
+                    2 *
+                    userVolume) /
+                userVolume ** 2;
             if (
                 Math.abs(
                     audio.currentTime -
@@ -1551,11 +1609,17 @@ async function onTimeupdate() {
                 }
             }
             audio2.volume =
-                ((userVolume / _crossFade) *
+                (((userVolume / _crossFade) *
                     (audio.currentTime - audio.duration) +
                     userVolume) **
-                2;
+                    2 *
+                    userVolume) /
+                userVolume ** 2;
         } else {
+            crossFadeCurrentTime.set(undefined);
+            if (currentCrossFade.get() != crossFade.get())
+                currentCrossFade.set(crossFade.get());
+
             audio.volume = userVolume;
             audioIsInit = false;
             if (!audio2.paused) {
@@ -1645,7 +1709,7 @@ function addAudioEventListeners(audio: HTMLAudioElement) {
     // );
     currentCrossFade.set(crossFade.get());
 
-    audio.addEventListener("loadeddata", onLoadedData);
+    // audio.addEventListener("loadeddata", onLoadedData);
     audio.addEventListener("canplay", onCanplay);
     audio.addEventListener("timeupdate", onTimeupdate);
     audio.addEventListener("play", onPlay);
@@ -1655,7 +1719,7 @@ function addAudioEventListeners(audio: HTMLAudioElement) {
 }
 
 function removeEventListeners(audio: HTMLAudioElement) {
-    audio.removeEventListener("loadeddata", onLoadedData);
+    // audio.removeEventListener("loadeddata", onLoadedData);
     audio.removeEventListener("canplay", onCanplay);
     audio.removeEventListener("timeupdate", onTimeupdate);
     audio.removeEventListener("play", onPlay);

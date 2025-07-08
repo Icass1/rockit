@@ -15,3 +15,7 @@ export const homeStatsQueue = new Queue("home-stats", {
 export const statsQueue = new Queue("stats", {
     connection,
 });
+
+export const zipDirectoryQueue = new Queue("zip-directory", {
+    connection,
+});

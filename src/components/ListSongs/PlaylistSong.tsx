@@ -63,7 +63,7 @@ export default function PlaylistSong({
         >(song);
 
     useEffect(() => {
-        console.warn("TODO");
+        console.warn("TODO handle when a song is downloaded");
         setSong((value) => value);
     }, []);
 

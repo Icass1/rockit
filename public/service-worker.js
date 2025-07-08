@@ -542,6 +542,7 @@ self.addEventListener("fetch", (evt) => {
         evt.request.url.includes("/api/playlist/add-song") ||
         evt.request.url.includes("/api/playlist/new") ||
         evt.request.url.includes("/api/like") ||
+        evt.request.url.includes("/api/zip-list") ||
         evt.request.url.includes("/api/pin")
     )
         return;

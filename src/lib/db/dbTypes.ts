@@ -21,6 +21,7 @@ export interface AlbumsType {
     popularity?: number;
     disc_count: number;
     date_added: string;
+    path: string;
 }
 export interface AlbumExternalImagesType {
     album_id: string;
@@ -118,6 +119,7 @@ export interface PlaylistsType {
     followers: number;
     date_added: string;
     updated_at: string;
+    path: string;
 }
 export interface PlaylistExternalImagesType {
     playlist_id: string;

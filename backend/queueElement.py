@@ -5,9 +5,11 @@ from spotdl.types.song import Song
 import os
 import shutil
 
+from sqlalchemy import select
+
 from backend.constants import SONGS_PATH, TEMP_PATH
 from backend.backendUtils import get_output_file, sanitize_folder_name
-from backend.db.db import DB
+from backend.db.db import session, Song as SongDB
 from backend.logger import getLogger
 from backend.messageHandler import MessageHandler
 
@@ -50,24 +52,25 @@ class QueueElement:
 
 
 class SpotifyQueueElement(QueueElement):
-    def __init__(self, message_handler: MessageHandler, song: Song, db: DB) -> None:
+    def __init__(self, message_handler: MessageHandler, song: Song) -> None:
         super().__init__(message_handler, song)
         self.logger = getLogger(__name__, "SpotifyQueueElement")
-
-        self.db = db
 
     def on_done(self):
 
         if not self._path:
             self.logger.error(f"Path is not set. {self._song=}")
 
-            self.db.execute("""
-                UPDATE song SET
-                    lyrics = ?,
-                    downloadUrl = ?
-                WHERE id = ?
-            """, (self._song.lyrics, self._song.download_url, self._song.song_id))
-            return
+            song = session.execute(select(Song).where(
+                SongDB.song_id == self._song.song_id)).scalar_one_or_none()
+
+            if not song:
+                self.logger.error(f"Song not found in database. {self._song=}")
+                return
+
+            song.download_url = self._song.download_url
+            song.lyrics = self._song.lyrics
+            session.commit()
 
         artist = sanitize_folder_name(
             self._song.artist)
@@ -96,10 +99,15 @@ class SpotifyQueueElement(QueueElement):
 
         shutil.move(src=str(self._path), dst=song_path)
 
-        self.db.execute("""
-            UPDATE song SET
-                lyrics = ?,
-                downloadUrl = ?,
-                path = ?
-            WHERE id = ?
-        """, (self._song.lyrics, self._song.download_url, song_path_db, self._song.song_id))
+        song_db = session.execute(select(SongDB).where(
+            SongDB.song_id == self._song.song_id)).scalar_one_or_none()
+        if not song_db:
+            self.logger.error(f"Song not found in database. {self._song=}")
+            return
+
+        song_db.download_url = self._song.download_url
+        song_db.lyrics = self._song.lyrics
+        song_db.path = song_path_db
+        session.commit()
+
+        self.logger.info(f"Moved song to {song_path}")

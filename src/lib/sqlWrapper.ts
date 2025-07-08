@@ -400,7 +400,7 @@ export class TableInit {
                     );
                 } else {
                     lines.push(
-                        `    Column('${column.columnName}', primary_key=${column.options.primaryKey ? "True" : "False"}, unique=${column.options.unique ? "True" : "False"}, nullable=${column.options.notNull ? "False" : "True"}),`
+                        `    Column'${column.columnName}', primary_key=${column.options.primaryKey ? "True" : "False"}, unique=${column.options.unique ? "True" : "False"}, nullable=${column.options.notNull ? "False" : "True"}),`
                     );
                 }
             });
@@ -416,11 +416,11 @@ export class TableInit {
             this.columns.forEach((column) => {
                 if (column.reference) {
                     lines.push(
-                        `    ${column.columnName} = Column(${column.getSqlAlchemyType()}, ForeignKey('${column.reference.table.tableName}.${column.reference.columnName}'), primary_key=${column.options.primaryKey ? "True" : "False"}, unique=${column.options.unique ? "True" : "False"}, nullable=${column.options.notNull ? "False" : "True"})`
+                        `    ${column.columnName} = mapped_column(${column.getSqlAlchemyType()}, ForeignKey('${column.reference.table.tableName}.${column.reference.columnName}'), primary_key=${column.options.primaryKey ? "True" : "False"}, unique=${column.options.unique ? "True" : "False"}, nullable=${column.options.notNull ? "False" : "True"})`
                     );
                 } else {
                     lines.push(
-                        `    ${column.columnName} = Column(${column.getSqlAlchemyType()}, primary_key=${column.options.primaryKey ? "True" : "False"}, unique=${column.options.unique ? "True" : "False"}, nullable=${column.options.notNull ? "False" : "True"})`
+                        `    ${column.columnName} = mapped_column(${column.getSqlAlchemyType()}, primary_key=${column.options.primaryKey ? "True" : "False"}, unique=${column.options.unique ? "True" : "False"}, nullable=${column.options.notNull ? "False" : "True"})`
                     );
                 }
             });
@@ -469,8 +469,6 @@ export class TableInit {
                     lines.push(
                         `    ${key.foreginColumn.table.tableName} = relationship("${singularizeName(capitalizeFirstLetter(snakeCaseToCamelCase(key.foreginColumn.table.tableName)))}", back_populates="${singularizeName(this.tableName)}")`
                     );
-
-                 
                 }
             });
 
@@ -653,7 +651,7 @@ export class DB {
             "from sqlalchemy import Table, create_engine, Column, Integer, String, DateTime, Boolean, ForeignKey, select"
         );
         lines.push(
-            "from sqlalchemy.orm import declarative_base, relationship, Session, joinedload"
+            "from sqlalchemy.orm import declarative_base, relationship, Session, joinedload, mapped_column"
         );
         lines.push("Base = declarative_base()");
 
@@ -663,6 +661,11 @@ export class DB {
         this.tables
             .filter((table) => !table.associationTable)
             .map((table) => lines.push(...table.getPythonTables()));
+
+        lines.push('engine = create_engine("sqlite:///database.db")');
+        lines.push("Base.metadata.create_all(engine)");
+        lines.push("");
+        lines.push("session = Session(engine)");
 
         writeFileSync(outputFile, lines.join("\n"));
     }

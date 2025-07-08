@@ -28,6 +28,7 @@ export interface RawUserDB {
     devUser: string;
     updatedAt: number;
     createdAt: number;
+    libraryView: "byArtist" | "grid";
 }
 
 export interface UserDBPinnedLists {
@@ -76,6 +77,7 @@ export interface UserDBFull {
     devUser: boolean;
     updatedAt: number;
     createdAt: number;
+    libraryView: "byArtist" | "grid";
 }
 
 export const userQuery = `CREATE TABLE IF NOT EXISTS user (
@@ -101,7 +103,8 @@ export const userQuery = `CREATE TABLE IF NOT EXISTS user (
     impersonateId TEXT,
     devUser BOOLEAN DEFAULT 0 NOT NULL,
     updatedAt INTEGER NOT NULL,
-    createdAt INTEGER NOT NULL
+    createdAt INTEGER NOT NULL,
+    libraryView STRING NOT NULL DEFAULT "grid"
 )`;
 
 export function parseUser(user: RawUserDB | undefined): UserDB | undefined {
@@ -135,6 +138,7 @@ export function parseUser(user: RawUserDB | undefined): UserDB | undefined {
         devUser: user.devUser == "1" ? true : false,
         updatedAt: user.updatedAt,
         createdAt: user.createdAt,
+        libraryView: user.libraryView,
     };
 
     Object.entries(out).forEach((entry) => {

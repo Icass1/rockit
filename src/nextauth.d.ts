@@ -15,6 +15,7 @@ declare module "next-auth" {
             username: string;
             admin: boolean;
             lang: string;
+            libraryView: "byArtist" | "grid";
         };
     }
 }

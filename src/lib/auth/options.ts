@@ -89,17 +89,18 @@ export const nextAuthOptions: AuthOptions = {
                 const userDB = parseUser(
                     db
                         .prepare(
-                            "SELECT passwordHash,username,id,lang,admin FROM user WHERE id = ?"
+                            "SELECT passwordHash,username,id,lang,admin,libraryView FROM user WHERE id = ?"
                         )
                         .get(token.id) as RawUserDB
                 ) as UserDB<
-                    "passwordHash" | "username" | "id" | "admin" | "lang"
+                    "passwordHash" | "username" | "id" | "admin" | "lang" | "libraryView"
                 >;
                 session.user = {
                     id: token.id,
                     username: token.username,
                     admin: userDB.admin,
                     lang: userDB.lang,
+                    libraryView: userDB.libraryView
                 };
             }
             return session;

@@ -1,9 +1,8 @@
 
 
-
-
-from sqlalchemy import Table, create_engine, Column, Integer, String, ForeignKey, select
-from sqlalchemy.orm import declarative_base, relationship, Session, joinedload
+from typing import Any, List, Literal
+from sqlalchemy import Table, create_engine, Column, String, ForeignKey, select
+from sqlalchemy.orm import declarative_base, relationship, Session, joinedload, Mapped, mapped_column
 
 Base = declarative_base()
 
@@ -21,14 +20,20 @@ album_artists = Table(
 )
 
 # Define ORM models
+
+
 class Album(Base):
     __tablename__ = 'albums'
-    id = Column(String, primary_key=True)
-    name = Column(String)
+    id = mapped_column(String, primary_key=True)
+    name = mapped_column(String)
 
     songs = relationship("Song", back_populates="album")
     artists = relationship(
         "Artist", secondary=album_artists, back_populates="albums")
+
+    # songs: _RelationshipDeclared[List["Song"]] = relationship("Song", back_populates="album")
+    # artists: _RelationshipDeclared[List["Artist"]] = relationship(
+    #     "Artist", secondary=album_artists, back_populates="albums")
 
 
 class Song(Base):
@@ -54,7 +59,7 @@ class Artist(Base):
 
 
 # In-memory SQLite DB
-engine = create_engine("sqlite:///database.db", echo=True)
+engine = create_engine("sqlite:///database.db")
 Base.metadata.create_all(engine)
 
 session = Session(engine)
@@ -73,9 +78,9 @@ session = Session(engine)
 #     session.commit()
 
 
-album_id = "1zcm3UvHNHpseYOUfd0pna"
+album_id = "albumid1"
 
-album = session.execute(
+album: Album | None = session.execute(
     select(Album)
     .options(
         joinedload(Album.artists),              # Load album → artists
@@ -85,7 +90,14 @@ album = session.execute(
     .where(Album.id == album_id)
 ).unique().scalar_one_or_none()
 
+
 if album:
-    print("album.songs", album.songs)
+    print(album.name)
+    album.name = "test album name"
+    print(type(album.name))
+    artists: List[Artist] = album.artists
+    session.commit()
+
+    print("album.songs", artists[0].songs)
 else:
     print("Album not found")

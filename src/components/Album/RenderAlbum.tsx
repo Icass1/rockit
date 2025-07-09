@@ -99,7 +99,7 @@ export default function RenderAlbum({ _album }: { _album: GetAlbum }) {
                 </label>
             </div>
 
-            <div className="z-10 mt-5 flex h-full w-full flex-col px-2 md:mt-0 md:overflow-auto md:px-6">
+            <div className="z-50 mt-5 flex h-full w-full flex-col px-2 md:mt-0 md:overflow-auto md:px-6">
                 <div className="min-h-24"></div>
 
                 {discs.map((discSongs, discIndex) => {

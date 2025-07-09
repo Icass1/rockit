@@ -35,7 +35,7 @@ export default function NewBackupButton() {
             }
         >
             New backup
-            {inProgress && <Spinner color="white" width={20} height={20} />}
+            {inProgress && <Spinner color="white" width="20px" height="20px" />}
         </div>
     );
 }

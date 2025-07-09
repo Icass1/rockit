@@ -15,6 +15,7 @@ import { getTime } from "@/lib/getTime";
 import {
     currentSong,
     currentTime,
+    loading,
     next,
     pause,
     play,
@@ -33,6 +34,7 @@ import MobilePlayerUIQueue from "@/components/PlayerUI/MobilePlayerUIQueue";
 import MobilePlayerUILyrics from "@/components/PlayerUI/MobilePlayerUILyrics";
 import SongPopupMenu from "@/components/ListSongs/SongPopupMenu";
 import Image from "@/components/Image";
+import Spinner from "@/components/Spinner";
 
 export default function MobilePlayerUI() {
     const $playing = useStore(playing);
@@ -58,6 +60,8 @@ export default function MobilePlayerUI() {
     const [lyricsOpen, setLyricsOpen] = useState(false);
 
     const [shouldRender, setShouldRender] = useState(false);
+
+    const $loading = useStore(loading);
 
     useEffect(() => {
         if (!divRef.current) {
@@ -339,7 +343,9 @@ export default function MobilePlayerUI() {
                     </button>
 
                     <button className="flex h-16 w-16 items-center justify-center rounded-full">
-                        {$playing ? (
+                        {$loading ? (
+                            <Spinner width="56px" height="56px"></Spinner>
+                        ) : $playing ? (
                             <Pause
                                 className="h-14 w-14 fill-current"
                                 onClick={() => pause()}

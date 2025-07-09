@@ -1,6 +1,13 @@
 "use client";
 
-import { pause, play, playing, currentSong, currentTime } from "@/stores/audio";
+import {
+    pause,
+    play,
+    playing,
+    currentSong,
+    currentTime,
+    loading,
+} from "@/stores/audio";
 import { useStore } from "@nanostores/react";
 import { Play, Pause } from "lucide-react";
 import LikeButton from "@/components/LikeButton";
@@ -8,11 +15,13 @@ import { isMobilePlayerUIVisible } from "@/stores/isPlayerUIVisible";
 import Slider from "@/components/Slider";
 import { getImageUrl } from "@/lib/getImageUrl";
 import Image from "@/components/Image";
+import Spinner from "@/components/Spinner";
 
 export default function FooterMobile() {
     const $playing = useStore(playing);
     const $currentSong = useStore(currentSong);
     const $currentTime = useStore(currentTime);
+    const $loading = useStore(loading);
 
     return (
         <div className="h-full w-full pb-1">
@@ -54,7 +63,9 @@ export default function FooterMobile() {
                 </div>
 
                 {$currentSong && <LikeButton song={$currentSong} />}
-                {$playing ? (
+                {$loading ? (
+                    <Spinner className="relative h-full max-w-6"></Spinner>
+                ) : $playing ? (
                     <Pause
                         className="h-full fill-current text-white"
                         onClick={(event) => {

@@ -76,8 +76,9 @@ export default function ContextMenuContent({
                     : undefined
             }
             onClick={() => _setContextMenuOpen && _setContextMenuOpen(false)}
-            className="fixed top-0 left-0 z-50 h-[calc(100%_-_4rem)] w-full overflow-auto rounded-md bg-neutral-800/90 px-10 md:h-auto md:w-max md:p-1 md:shadow-[0px_0px_20px_3px_#0e0e0e]"
+            className="fixed top-0 left-0 h-[calc(100%_-_4rem)] w-full overflow-auto rounded-md bg-neutral-800/90 px-10 md:h-auto md:w-max md:p-1 md:shadow-[0px_0px_20px_3px_#0e0e0e]"
             style={{
+                zIndex: "1000",
                 display: _contextMenuOpen ? "block" : "none",
             }}
         >
@@ -88,7 +89,7 @@ export default function ContextMenuContent({
                         height={208}
                         src={cover}
                         alt="cover"
-                        className="mx-auto h-52 w-52 rounded md:hidden"
+                        className="mx-auto min-h-52 min-w-52 rounded md:hidden"
                     />
                 )}
                 {title && (

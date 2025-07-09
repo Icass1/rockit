@@ -111,9 +111,10 @@ export default function PopupMenuContent({
                     : undefined
             }
             onClick={() => _setPopupMenuOpen && _setPopupMenuOpen(false)}
-            className="fixed top-0 left-0 z-50 h-[calc(100%_-_4rem)] w-full overflow-auto rounded-md bg-neutral-800/90 px-10 md:h-auto md:w-max md:p-1 md:shadow-[0px_0px_20px_3px_#0e0e0e]"
+            className="fixed top-0 left-0 h-[calc(100%_-_4rem)] w-full overflow-auto rounded-md bg-neutral-800/90 px-10 md:h-auto md:w-max md:p-1 md:shadow-[0px_0px_20px_3px_#0e0e0e]"
             style={{
                 display: _popupMenuOpen ? "block" : "none",
+                zIndex: "1000",
             }}
         >
             <div className="flex h-full flex-col gap-y-1 overflow-y-auto py-20 md:py-0">

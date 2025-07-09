@@ -1,14 +1,16 @@
 export default function Spinner({
     color = "rgb(156 163 175)",
-    width = 32,
-    height = 32,
+    width = "32px",
+    height = "32px",
+    className = "",
 }: {
     color?: string;
-    width?: number;
-    height?: number;
+    width?: string;
+    height?: string;
+    className?: string;
 }) {
     return (
-        <div style={{ width: width + "px", height: height + "px" }}>
+        <div style={{ width: width, height: height }} className={className}>
             <svg
                 className="animate-spin-custom"
                 width={width}

@@ -35,9 +35,9 @@ export function ByArtistLayout({
         filteredPlaylists.forEach((playlist) => {
             artistMap["Your playlists"].push(playlist);
         });
-        return Object.entries(artistMap).map(([name, albums]) => ({
+        return Object.entries(artistMap).map(([name, lists]) => ({
             name,
-            albums,
+            lists,
         }));
     }, [filteredAlbums, filteredPlaylists]);
 
@@ -63,32 +63,32 @@ export function ByArtistLayout({
                         {artist.name === "Your playlists" ? (
                             <NewPlaylistButton />
                         ) : null}
-                        {artist.albums.map((album, index) => {
+                        {artist.lists.map((list, index) => {
                             return (
                                 <AddListContextMenu
-                                    key={"album" + index}
-                                    list={album}
+                                    key={"list" + index}
+                                    list={list}
                                 >
                                     <Link
-                                        key={"album" + index}
-                                        href={`/album/${album.id}`}
+                                        key={"list" + index}
+                                        href={artist.name === "Your playlists" ? `/playlist/${list.id}`: `/album/${list.id}`}
                                         className="library-item flex h-auto w-full max-w-full min-w-0 flex-col transition-transform md:hover:scale-110"
                                     >
                                         <Image
-                                            alt={album.name}
+                                            alt={list.name}
                                             className="cover aspect-square h-auto w-full rounded-md"
                                             src={getImageUrl({
-                                                imageId: album.image,
+                                                imageId: list.image,
                                                 height: 300,
                                                 width: 300,
                                                 fallback:
-                                                    album?.images?.[0]?.url,
+                                                    list?.images?.[0]?.url,
                                                 placeHolder:
                                                     "/api/image/song-placeholder.png",
                                             })}
                                         />
                                         <label className="mt-1 truncate text-center font-semibold">
-                                            {album.name}
+                                            {list.name}
                                         </label>
                                     </Link>
                                 </AddListContextMenu>

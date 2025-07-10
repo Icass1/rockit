@@ -1219,6 +1219,17 @@ export async function next(songEnded = false) {
         return;
     }
 
+    // Save the next song to IndexedDB
+
+    const nextNewSongId = tempQueue.find(
+        (song) => song.index == tempQueue[currentSongIndexInQueue + 2].index
+    )?.song.id;
+
+    if (nextNewSongId)
+        getSongData(nextNewSongId).then((data) => {
+            if (data) saveSongToIndexedDB(data);
+        });
+
     if (admin.get()) console.log({ newSongId, songEnded });
 
     const song = await getSongData(newSongId);
@@ -1299,7 +1310,6 @@ export async function saveSongToIndexedDB(
     const currentSongsInIndexedDB = await getSongIdsInIndexedDB();
 
     if (currentSongsInIndexedDB.includes(song.id) && !force) return;
-
 
     fetch(`/api/song/audio/${song.id}`).then((response) => {
         if (response.ok) {

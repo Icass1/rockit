@@ -1221,70 +1221,65 @@ export async function next(songEnded = false) {
 
     if (admin.get()) console.log({ newSongId, songEnded });
 
-    await fetch(
-        `/api/song/${newSongId}?q=id,name,artists,image,duration,albumName,albumId,path`
-    )
-        .then((response) => response.json())
-        .then(
-            (
-                data: SongDB<
-                    | "id"
-                    | "name"
-                    | "artists"
-                    | "image"
-                    | "duration"
-                    | "albumName"
-                    | "albumId"
-                    | "path"
-                >
-            ) => {
-                if (!data?.path) {
-                    console.warn(
-                        "Song isn't downloaded, skipping to next song in queue"
-                    );
-                    next();
-                    return;
-                }
+    const song = await getSongData(newSongId);
 
-                const _crossFade = currentCrossFade.get();
-                if (_crossFade && _crossFade > 0 && songEnded) {
-                    inCrossFade = true;
-                    if (admin.get()) console.log("Playwhenready 2");
+    if (!song) {
+        console.error("Song data not found");
+        return;
+    }
 
-                    playWhenReady.set(false);
-                } else {
-                    if (admin.get()) console.log("Playwhenready 3");
+    currentSong.set(song);
 
-                    inCrossFade = false;
-                    playWhenReady.set(true);
-                }
-                currentSong.set(data);
-            }
-        )
-        .catch(async () => {
-            const song = await getSongInIndexedDB(newSongId);
-            if (song) {
-                currentSong.set({
-                    ...song,
-                    path: `/api/song/audio/${song.id}`,
-                });
-            } else {
-                currentSong.set(undefined);
-            }
+    const _crossFade = currentCrossFade.get();
+    if (_crossFade && _crossFade > 0 && songEnded) {
+        inCrossFade = true;
+        if (admin.get()) console.log("Playwhenready 2");
 
-            const _crossFade = currentCrossFade.get();
-            if (_crossFade && _crossFade > 0 && songEnded) {
-                inCrossFade = true;
-                if (admin.get()) console.log("Playwhenready 2");
+        playWhenReady.set(false);
+    } else {
+        if (admin.get()) console.log("Playwhenready 3");
 
-                playWhenReady.set(false);
-            } else {
-                if (admin.get()) console.log("Playwhenready 3");
+        inCrossFade = false;
+        playWhenReady.set(true);
+    }
+}
 
-                inCrossFade = false;
-                playWhenReady.set(true);
-            }
+export async function getSongData(
+    id: string
+): Promise<
+    | undefined
+    | SongDB<
+          | "id"
+          | "name"
+          | "artists"
+          | "image"
+          | "duration"
+          | "albumName"
+          | "albumId"
+          | "path"
+      >
+> {
+    const song = await getSongInIndexedDB(id);
+    if (song) {
+        NotificationController.add("Song data found in IndexedDB", "debug");
+        currentSong.set({
+            ...song,
+            path: `/api/song/audio/${song.id}`,
         });
+    } else {
+        NotificationController.add("Song data not found in IndexedDB", "debug");
+
+        const response = await fetch(
+            `/api/song/${id}?q=id,name,artists,image,duration,albumName,albumId,path`
+        );
+        if (!response.ok) {
+            console.error("Error fetching song data:", response.statusText);
+            return;
+        }
+        const responseJson = await response.json();
+
+        return responseJson;
+    }
 }
 
 export async function saveSongToIndexedDB(
@@ -1305,6 +1300,7 @@ export async function saveSongToIndexedDB(
 
     if (currentSongsInIndexedDB.includes(song.id) && !force) return;
 
+
     fetch(`/api/song/audio/${song.id}`).then((response) => {
         if (response.ok) {
             response.blob().then(async (songBlob) => {
@@ -1323,6 +1319,11 @@ export async function saveSongToIndexedDB(
                 const songsStore = songsTx.objectStore("songs");
                 songsStore.put(songToSave);
                 songsInIndexedDB.set(await getSongIdsInIndexedDB());
+
+                NotificationController.add(
+                    "Song saved to IndexedDB",
+                    "success"
+                );
             });
         }
     });
@@ -1474,13 +1475,19 @@ async function registerServiceWorker() {
 
 async function getSongSrc(songID: string) {
     if (songsInIndexedDB.get()?.includes(songID)) {
-        NotificationController.add(`Song found in IndexedDB: ${songID}`, "info");
+        NotificationController.add(
+            `Song found in IndexedDB: ${songID}`,
+            "info"
+        );
         const song = await getSongInIndexedDB(songID);
         if (!song) return;
         const audioURL = URL.createObjectURL(song.blob);
         return audioURL;
     } else {
-        NotificationController.add(`Song not found in IndexedDB, fetching from API: ${songID}`, "info");
+        NotificationController.add(
+            `Song not found in IndexedDB, fetching from API: ${songID}`,
+            "info"
+        );
         return `/api/song/audio/${songID}`;
     }
 }

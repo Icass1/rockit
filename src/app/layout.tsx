@@ -11,6 +11,7 @@ import PlayerUI from "@/components/PlayerUI/PlayerUI";
 import MobilePlayerUI from "@/components/PlayerUI/MobilePlayerUI";
 import FooterMobile from "@/components/Footer/FooterMobile";
 import AddSessionProvider from "@/components/AddSessionProvider";
+import { NotificationProvider } from "@/components/NotificationSystem/main";
 
 export const metadata: Metadata = {
     title: "RockIt",
@@ -53,47 +54,49 @@ export default async function RootLayout({
             </head>
             <body className="bg-black">
                 <AddSessionProvider>
-                    <div className="fixed top-0 right-0 bottom-0 left-0 bg-[#0b0b0b] md:top-0 md:right-0 md:bottom-0 md:left-12">
-                        {children}
-                    </div>
+                    <NotificationProvider>
+                        <div className="fixed top-0 right-0 bottom-0 left-0 bg-[#0b0b0b] md:top-0 md:right-0 md:bottom-0 md:left-12">
+                            {children}
+                        </div>
 
-                    <div className="hidden md:block">
-                        <PlayerUI />
-                    </div>
+                        <div className="hidden md:block">
+                            <PlayerUI />
+                        </div>
 
-                    <div className="fixed right-0 bottom-0 left-0 z-40 hidden h-24 md:block">
-                        <Footer></Footer>
-                    </div>
+                        <div className="fixed right-0 bottom-0 left-0 z-40 hidden h-24 md:block">
+                            <Footer></Footer>
+                        </div>
 
-                    <div className="fixed right-0 bottom-12 left-0 z-40 block h-14 md:hidden">
-                        <FooterMobile></FooterMobile>
-                    </div>
+                        <div className="fixed right-0 bottom-12 left-0 z-40 block h-14 md:hidden">
+                            <FooterMobile></FooterMobile>
+                        </div>
 
-                    <MobilePlayerUI />
-                    <div className="fixed top-0 right-0 left-12 z-40 hidden h-24 w-auto md:block">
-                        <Header></Header>
-                    </div>
+                        <MobilePlayerUI />
+                        <div className="fixed top-0 right-0 left-12 z-40 hidden h-24 w-auto md:block">
+                            <Header></Header>
+                        </div>
 
-                    <div className="fixed z-40 hidden md:top-0 md:bottom-24 md:left-0 md:block">
-                        <Navigation></Navigation>
-                    </div>
+                        <div className="fixed z-40 hidden md:top-0 md:bottom-24 md:left-0 md:block">
+                            <Navigation></Navigation>
+                        </div>
 
-                    <div className="fixed right-0 bottom-0 left-0 z-40 block h-12 md:hidden">
-                        <NavigationMobile></NavigationMobile>
-                    </div>
+                        <div className="fixed right-0 bottom-0 left-0 z-40 block h-12 md:hidden">
+                            <NavigationMobile></NavigationMobile>
+                        </div>
 
-                    <div className="fixed top-0 right-0 left-0 z-40 mx-auto block h-fit items-center justify-center bg-gradient-to-b from-black to-black/0 md:hidden">
-                        <Link
-                            href="/"
-                            className="text-2xl font-bold text-white"
-                        >
-                            <Image
-                                src="/logo-banner.png"
-                                alt="App Logo"
-                                className="mx-auto my-2 aspect-[2048/614] h-14 object-contain"
-                            />
-                        </Link>
-                    </div>
+                        <div className="fixed top-0 right-0 left-0 z-40 mx-auto block h-fit items-center justify-center bg-gradient-to-b from-black to-black/0 md:hidden">
+                            <Link
+                                href="/"
+                                className="text-2xl font-bold text-white"
+                            >
+                                <Image
+                                    src="/logo-banner.png"
+                                    alt="App Logo"
+                                    className="mx-auto my-2 aspect-[2048/614] h-14 object-contain"
+                                />
+                            </Link>
+                        </div>
+                    </NotificationProvider>
                 </AddSessionProvider>
             </body>
         </html>

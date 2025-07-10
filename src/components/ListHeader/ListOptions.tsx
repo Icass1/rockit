@@ -31,6 +31,7 @@ import { libraryLists } from "@/stores/libraryLists";
 import { pinnedLists } from "@/stores/pinnedLists";
 import { playListHandleClick } from "@/components/PlayList";
 import { downloadFile, downloadRsc } from "@/lib/downloadResources";
+import { NotificationController } from "../NotificationSystem/notificationController";
 
 export const pinListHandleClick = ({
     id,
@@ -214,8 +215,10 @@ export default function ListOptions({
                         // Add song to liked songs store
                         likedSongs.set([...likedSongs.get(), song.id]);
                     } else {
-                        console.log("Error");
-                        // Tell user like request was unsuccessful
+                        NotificationController.add(
+                            "Unable to like all songs on the list.",
+                            "error"
+                        );
                     }
                 }
             );
@@ -261,7 +264,10 @@ export default function ListOptions({
     return (
         <PopupMenu>
             <PopupMenuTrigger className="pt-[2px]">
-                <Menu strokeWidth={1.3} className="h-6 w-6 z-50 cursor-pointer" />
+                <Menu
+                    strokeWidth={1.3}
+                    className="z-50 h-6 w-6 cursor-pointer"
+                />
             </PopupMenuTrigger>
             <PopupMenuContent>
                 <PopupMenuOption

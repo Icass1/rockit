@@ -26,6 +26,7 @@ import { InsertPopup } from "./InsertPopup";
 import { EditPopup } from "./EditPopup";
 import { Header } from "./Header";
 import Link from "next/link";
+import { NotificationController } from "@/components/NotificationSystem/notificationController";
 
 export default function DBTablePage({
     table,
@@ -179,7 +180,10 @@ export default function DBTablePage({
 
         const primaryKey = columns?.find((column) => column.key);
         if (!primaryKey) {
-            // Tell user primaryKey couldn't be found.
+            NotificationController.add(
+                "Primary key not found for table " + table,
+                "error"
+            );
             return;
         }
 
@@ -211,7 +215,10 @@ export default function DBTablePage({
                         sortAscending
                     );
             } else {
-                // Notify user there has been an error.
+                NotificationController.add(
+                    `Error deleting row with ${primaryKey.name} = ${primaryKeyValue}`,
+                    "error"
+                );
             }
         });
     };

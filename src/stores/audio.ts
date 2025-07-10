@@ -8,6 +8,7 @@ import { getSession } from "next-auth/react";
 import { Device, devices } from "./devices";
 import { users } from "./users";
 import { splitIntoChunks } from "@/lib/arrayTools";
+import { NotificationController } from "@/components/NotificationSystem/notificationController";
 
 // Track user interaction state for iOS autoplay handling
 let audioContext: AudioContext | undefined;
@@ -1473,11 +1474,13 @@ async function registerServiceWorker() {
 
 async function getSongSrc(songID: string) {
     if (songsInIndexedDB.get()?.includes(songID)) {
+        NotificationController.add(`Song found in IndexedDB: ${songID}`, "info");
         const song = await getSongInIndexedDB(songID);
         if (!song) return;
         const audioURL = URL.createObjectURL(song.blob);
         return audioURL;
     } else {
+        NotificationController.add(`Song not found in IndexedDB, fetching from API: ${songID}`, "info");
         return `/api/song/audio/${songID}`;
     }
 }

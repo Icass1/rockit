@@ -6,6 +6,7 @@ import { useStore } from "@nanostores/react";
 import type { MouseEvent } from "react";
 import { useState } from "react";
 import "@/styles/LikeButton.css";
+import { NotificationController } from "./NotificationSystem/notificationController";
 
 export default function LikeButton({ song }: { song: SongDB<"id"> }) {
     const $likedSongs = useStore(likedSongs);
@@ -27,8 +28,10 @@ export default function LikeButton({ song }: { song: SongDB<"id"> }) {
                                 .filter((likedSong) => likedSong != song.id)
                         );
                     } else {
-                        console.log("Error");
-                        // Tell user like request was unsuccessful
+                        NotificationController.add(
+                            "Unable to remove the song from your favorites.",
+                            "error"
+                        );
                     }
                 }
             );
@@ -40,8 +43,10 @@ export default function LikeButton({ song }: { song: SongDB<"id"> }) {
                         // Add song to liked songs store
                         likedSongs.set([...likedSongs.get(), song.id]);
                     } else {
-                        console.log("Error");
-                        // Tell user like request was unsuccessful
+                        NotificationController.add(
+                            "Unable to add the song to your favorites.",
+                            "error"
+                        );
                     }
                 }
             );

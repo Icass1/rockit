@@ -1,3 +1,4 @@
+import { NotificationController } from "@/components/NotificationSystem/notificationController";
 import { DownloadDB } from "@/lib/db/download";
 import { atom } from "nanostores";
 
@@ -25,6 +26,17 @@ function onMessage(event: MessageEvent<string>, downloadId: string) {
         downloadId,
         selected: true,
     };
+
+    if (message.completed >= 100) {
+        NotificationController.add(
+            `Download ${message.id} completed: ${message.message}`,
+            "success"
+        );
+        // downloadedLists.set([...downloadedLists.get(), message.id]);
+
+        // downloads.set(downloads.get().filter((id) => id != downloadId));
+        // eventSources = eventSources.filter((id) => id != downloadId);
+    }
 
     downloadInfo.set({ ...downloadInfo.get() });
 }

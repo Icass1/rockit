@@ -36,6 +36,7 @@ import { useRouter } from "next/navigation";
 import useDev from "@/hooks/useDev";
 
 import "@/styles/CheckBox.css";
+import { NotificationController } from "../NotificationSystem/notificationController";
 
 function ListSubContextMenu({
     list,
@@ -176,7 +177,10 @@ export default function SongContextMenu({
                                     );
                                 } else {
                                     console.log("Error");
-                                    // Tell user like request was unsuccessful
+                                    NotificationController.add(
+                                        "Unable to remove the song from your favorites.",
+                                        "error"
+                                    );
                                 }
                             });
                         } else {
@@ -191,7 +195,10 @@ export default function SongContextMenu({
                                     ]);
                                 } else {
                                     console.log("Error");
-                                    // Tell user like request was unsuccessful
+                                    NotificationController.add(
+                                        "Unable to add the song to your favorites.",
+                                        "error"
+                                    );
                                 }
                             });
                         }

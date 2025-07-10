@@ -5,6 +5,7 @@ import { TableContext } from "./tableContext";
 import type { RequestType, Row, TableContextType } from "./types";
 import { BasePopup } from "./BasePopup";
 import { Hash, KeySquare, Text, ToggleLeft } from "lucide-react";
+import { NotificationController } from "@/components/NotificationSystem/notificationController";
 
 export function EditPopup({ index }: { index: number }) {
     const {
@@ -81,7 +82,10 @@ export function EditPopup({ index }: { index: number }) {
     const handleUpdate = () => {
         const primaryKey = columns?.find((column) => column.key);
         if (!primaryKey) {
-            // Tell user primaryKey couldn't be found.
+            NotificationController.add(
+                "Primary key not found for table " + table,
+                "error"
+            );
             return;
         }
 

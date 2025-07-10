@@ -40,6 +40,7 @@ import { songHandleClick } from "./HandleClick";
 import { downloads } from "@/stores/downloads";
 import { useRouter } from "next/navigation";
 import useDev from "@/hooks/useDev";
+import { NotificationController } from "../NotificationSystem/notificationController";
 
 export default function SongPopupMenu({
     children,
@@ -122,7 +123,10 @@ export default function SongPopupMenu({
                                     );
                                 } else {
                                     console.log("Error");
-                                    // Tell user like request was unsuccessful
+                                    NotificationController.add(
+                                        "Unable to remove the song from your favorites.",
+                                        "error"
+                                    );
                                 }
                             });
                         } else {
@@ -137,7 +141,10 @@ export default function SongPopupMenu({
                                     ]);
                                 } else {
                                     console.log("Error");
-                                    // Tell user like request was unsuccessful
+                                    NotificationController.add(
+                                        "Unable to add the song to your favorites.",
+                                        "error"
+                                    );
                                 }
                             });
                         }

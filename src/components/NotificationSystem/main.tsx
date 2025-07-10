@@ -12,7 +12,7 @@ import { NotificationController } from "./notificationController";
 
 type Notification = {
     message: string;
-    type: "success" | "error" | "info";
+    type: "success" | "error" | "info" | "warning" | "debug";
     duration?: number;
     id: number;
 };
@@ -31,11 +31,12 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
 
     const addNotification = (
         message: string,
-        type: Notification["type"] = "info"
+        level: Notification["type"] = "info",
+        duration: number = 3
     ) => {
         setNotifications((prev) => [
             ...prev,
-            { message, type, id: Date.now(), duration: 5 },
+            { message, type: level, id: Date.now(), duration },
         ]);
     };
 
@@ -79,15 +80,12 @@ function Notification({
 
     const firstCall = useRef(true);
 
-    console.log(notification.message, notification.id, level);
-
     useEffect(() => {
         if (!firstCall.current) {
             return;
         }
         firstCall.current = false;
 
-        console.log("Notification effect", notification.id);
         setTimeout(() => {
             setRight("10px");
         }, 50);
@@ -105,9 +103,15 @@ function Notification({
         );
     }, [notification.duration, notification.id, removeNotification, firstCall]);
 
+    useEffect(() => {
+        if (level > 4) {
+            setRight("-100%");
+        }
+    }, [level]);
+
     return (
         <div
-            className="fixed min-h-10 max-w-[450px] bg-red-400 transition-all duration-[0.4s]"
+            className="fixed min-h-10 max-w-[450px] overflow-hidden rounded bg-neutral-200 p-2 text-black shadow-xl transition-all duration-[0.4s]"
             style={{
                 zIndex: 2000,
                 bottom: `${level * 50 + 80}px`,
@@ -117,7 +121,7 @@ function Notification({
         >
             {notification.message}
             <div
-                className="absolute right-0 bottom-0 left-0 h-1 animate-[progressBar] bg-blue-400"
+                className="absolute right-0 bottom-0 left-0 h-1 animate-[progressBar] bg-gradient-to-l from-[#ee1086] to-[#fb6467]"
                 style={{
                     animationDuration: notification.duration
                         ? `${notification.duration}s`

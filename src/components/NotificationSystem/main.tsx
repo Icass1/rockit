@@ -28,16 +28,20 @@ const NotificationContext = createContext<NotificationContextType | undefined>(
 
 export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     const [notifications, setNotifications] = useState<Notification[]>([]);
+    const notificationId = useRef(0);
 
     const addNotification = (
         message: string,
         level: Notification["type"] = "info",
         duration: number = 3
     ) => {
-        setNotifications((prev) => [
-            ...prev,
-            { message, type: level, id: Date.now(), duration },
-        ]);
+        setNotifications((prev) => {
+            notificationId.current += 1;
+            return [
+                ...prev,
+                { message, type: level, id: notificationId.current, duration },
+            ];
+        });
     };
 
     NotificationController.add = addNotification;

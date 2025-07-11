@@ -127,6 +127,10 @@ export const addToLibraryHandleClick = ({
                     .get()
                     .filter((list) => list.id !== id);
                 libraryLists.set(updatedLists);
+                NotificationController.add(
+                    "List removed from library.",
+                    "success"
+                );
             });
     } else {
         // Agregar a la biblioteca
@@ -134,6 +138,7 @@ export const addToLibraryHandleClick = ({
             .then((response) => response.json())
             .then((data) => {
                 libraryLists.set([...libraryLists.get(), data]);
+                NotificationController.add("List added to library.", "success");
             });
     }
 };

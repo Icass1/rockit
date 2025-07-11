@@ -852,6 +852,31 @@ function addSubscribers() {
         if (typeof window === "undefined") return;
 
         updateUserIndexedDB();
+
+        const tempQueue = queue.get();
+
+        if (tempQueue) {
+            const currentSongIndexInQueue = tempQueue.findIndex(
+                (song) => song.index == queueIndex.get()
+            );
+
+            // Save the next song to IndexedDB
+            const nextNewSongId = tempQueue.find((song) => {
+                if (currentSongIndexInQueue + 1 >= tempQueue.length) {
+                    return song.index == tempQueue[0].index;
+                } else {
+                    return (
+                        song.index ==
+                        tempQueue[currentSongIndexInQueue + 1].index
+                    );
+                }
+            })?.song.id;
+
+            if (nextNewSongId)
+                getSongData(nextNewSongId).then((data) => {
+                    if (data) saveSongToIndexedDB(data);
+                });
+        }
     });
 
     volume.subscribe((value) => {
@@ -1219,17 +1244,6 @@ export async function next(songEnded = false) {
         return;
     }
 
-    // Save the next song to IndexedDB
-
-    const nextNewSongId = tempQueue.find(
-        (song) => song.index == tempQueue[currentSongIndexInQueue + 2].index
-    )?.song.id;
-
-    if (nextNewSongId)
-        getSongData(nextNewSongId).then((data) => {
-            if (data) saveSongToIndexedDB(data);
-        });
-
     if (admin.get()) console.log({ newSongId, songEnded });
 
     const song = await getSongData(newSongId);
@@ -1273,10 +1287,7 @@ export async function getSongData(
     const song = await getSongInIndexedDB(id);
     if (song) {
         NotificationController.add("Song data found in IndexedDB", "debug");
-        currentSong.set({
-            ...song,
-            path: `/api/song/audio/${song.id}`,
-        });
+        return { ...song, path: "this string cannot be empty" };
     } else {
         NotificationController.add("Song data not found in IndexedDB", "debug");
 

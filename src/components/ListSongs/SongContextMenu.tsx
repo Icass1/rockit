@@ -62,6 +62,10 @@ function ListSubContextMenu({
                             }).then((response) => {
                                 if (response.ok) {
                                     setChecked(true);
+                                    NotificationController.add(
+                                        "Song added to playlist",
+                                        "success"
+                                    );
                                 }
                             });
                         } else {
@@ -74,6 +78,10 @@ function ListSubContextMenu({
                             }).then((response) => {
                                 if (response.ok) {
                                     setChecked(false);
+                                    NotificationController.add(
+                                        "Song removed from playlist",
+                                        "success"
+                                    );
                                 }
                             });
                         }

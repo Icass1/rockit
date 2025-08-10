@@ -64,7 +64,6 @@ wss.on("connection", async (ws, req) => {
                 }
                 messageJson = JSON.parse(message.toString());
 
-
                 if (messageJson.command) {
                     console.log(
                         "Command received from",
@@ -73,26 +72,28 @@ wss.on("connection", async (ws, req) => {
                         user.username,
                         messageJson.command
                     );
-                    if (clients[user.id])
-                        clients[user.id].forEach((client) => {
-                            if (client.ws != ws) {
-                                client.ws.send(
-                                    JSON.stringify({
-                                        command: messageJson.command,
-                                    })
-                                );
-                            }
-                        });
+
+                    // if (clients[user.id])
+                    //     clients[user.id].forEach((client) => {
+                    //         if (client.ws != ws) {
+                    //             client.ws.send(
+                    //                 JSON.stringify({
+                    //                     command: messageJson.command,
+                    //                 })
+                    //             );
+                    //         }
+                    //     });
                 } else {
-                    if (clients[user.id])
-                        clients[user.id].forEach((client) => {
-                            if (client.ws != ws) {
-                                client.ws.send(JSON.stringify(messageJson));
-                            }
-                        });
+                    // if (clients[user.id])
+                    //     clients[user.id].forEach((client) => {
+                    //         if (client.ws != ws) {
+                    //             client.ws.send(JSON.stringify(messageJson));
+                    //         }
+                    //     });
                 }
 
                 if (messageJson.deviceName != undefined) {
+                    return;
                     deviceName = messageJson.deviceName;
                     if (clients[user.id]) {
                         const userDevicesNames = clients[user.id].map(
@@ -129,6 +130,7 @@ wss.on("connection", async (ws, req) => {
                         updateClients(user.id);
                     }
                 } else if (messageJson.setAudioPlayer) {
+                    return;
                     clients[user.id] = clients[user.id].map((client) => {
                         if (client.deviceName == messageJson.setAudioPlayer) {
                             client.audioPlayer = true;
@@ -139,15 +141,15 @@ wss.on("connection", async (ws, req) => {
                     });
                     updateClients(user.id);
                 } else if (messageJson.currentSong != undefined) {
-                    if (clients[user.id])
-                        db.prepare(
-                            `UPDATE user SET currentSong = ? WHERE id = ?`
-                        ).run(
-                            messageJson.currentSong == ""
-                                ? undefined
-                                : messageJson.currentSong,
-                            user.id
-                        );
+                    // if (clients[user.id])
+                    db.prepare(
+                        `UPDATE user SET currentSong = ? WHERE id = ?`
+                    ).run(
+                        messageJson.currentSong == ""
+                            ? undefined
+                            : messageJson.currentSong,
+                        user.id
+                    );
                     db.prepare(
                         `UPDATE user SET currentStation = ? WHERE id = ?`
                     ).run(undefined, user.id);
@@ -159,16 +161,16 @@ wss.on("connection", async (ws, req) => {
                         `UPDATE user SET currentSong = ? WHERE id = ?`
                     ).run(undefined, user.id);
                 } else if (messageJson.currentTime != undefined) {
-                    if (clients[user.id])
-                        clients[user.id].forEach((client) => {
-                            if (client.ws != ws) {
-                                client.ws.send(
-                                    JSON.stringify({
-                                        currentTime: messageJson.currentTime,
-                                    })
-                                );
-                            }
-                        });
+                    // if (clients[user.id])
+                    //     clients[user.id].forEach((client) => {
+                    //         if (client.ws != ws) {
+                    //             client.ws.send(
+                    //                 JSON.stringify({
+                    //                     currentTime: messageJson.currentTime,
+                    //                 })
+                    //             );
+                    //         }
+                    //     });
 
                     db.prepare(
                         `UPDATE user SET currentTime = ? WHERE id = ?`
@@ -257,7 +259,7 @@ wss.on("connection", async (ws, req) => {
         });
 
         ws.send(JSON.stringify({ message: "validated" }));
-        ws.send(JSON.stringify({ usersCount: Object.keys(clients).length }));
+        // ws.send(JSON.stringify({ usersCount: Object.keys(clients).length }));
     } catch (error) {
         console.error("Error in websocket connection: ", error);
     }

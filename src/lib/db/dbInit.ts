@@ -458,9 +458,10 @@ errors.addColumn("error_stack", { type: "TEXT" });
 errors.addColumn("user_id", { type: "TEXT" }).setReference(userId, "user");
 errors.addColumn("date_added", { type: "DATE", notNull: true });
 
-db.tables.forEach((table) => console.log(table.getQuery()));
+db.tables.forEach((table) => console.log(`DROP TABLE ${table.tableName} CASCADE;`));
 
-db.commit();
+// db.commit();
 
-db.writeClassesToFile("src/lib/db/dbTypes.ts");
-db.writePythonClassesToFile("backend/db/db.py");
+db.writeCreateSchemaToFile("test.sql");
+// db.writeClassesToFile("src/lib/db/dbTypes.ts");
+// db.writePythonClassesToFile("backend/db/db.py");

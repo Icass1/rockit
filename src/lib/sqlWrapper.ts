@@ -71,7 +71,11 @@ class ColumnInit {
     getQuery() {
         const tokens: string[] = [];
 
-        tokens.push(this.columnName);
+        if (this.columnName == "current_time") {
+            tokens.push('"' + this.columnName + '"');
+        } else {
+            tokens.push(this.columnName);
+        }
 
         tokens.push(this.options.type);
 
@@ -80,10 +84,10 @@ class ColumnInit {
         }
 
         if (typeof this.options.default != "undefined") {
-            if (this.options.default == false) {
+            if (this.options.default === false) {
                 tokens.push("DEFAULT FALSE");
             } else if (typeof this.options.default == "string") {
-                tokens.push(`DEFAULT "${this.options.default}"`);
+                tokens.push(`DEFAULT '${this.options.default}'`);
             } else if (typeof this.options.default == "number") {
                 tokens.push(`DEFAULT ${this.options.default}`);
             } else {
@@ -225,24 +229,26 @@ export class TableInit {
     getQuery() {
         const query: string[] = [];
 
-        this.columns.forEach((column) => query.push(column.getQuery()));
+        this.columns.forEach((column) =>
+            query.push("    " + column.getQuery())
+        );
         this.columns.forEach((column) => {
             const references = column.getReferences();
             if (references) {
-                query.push(references);
+                query.push("    " + references);
             }
         });
 
         if (this.primaryKeys.length > 0) {
             query.push(
-                `PRIMARY KEY (${this.primaryKeys.map((column) => column.columnName).join(",")})`
+                `    PRIMARY KEY (${this.primaryKeys.map((column) => column.columnName).join(",")})`
             );
         }
 
         return (
-            `CREATE TABLE IF NOT EXISTS ${this.tableName} (\n` +
+            `CREATE TABLE IF NOT EXISTS main.${this.tableName} (\n` +
             query.join(",\n") +
-            "\n)"
+            "\n);"
         );
     }
 
@@ -628,11 +634,24 @@ export class DB {
     commit() {
         this.tables.forEach((table) => table.commit());
     }
+
+    writeCreateSchemaToFile(outputFile: string) {
+        const lines: string[] = [];
+        lines.push("-- **********************************************");
+        lines.push("-- **** File managed by sqlWrapper by RockIt ****");
+        lines.push("-- **********************************************");
+        lines.push("");
+        lines.push("SET search_path TO main;");
+        lines.push("");
+        this.tables.map((table) => lines.push(...table.getQuery().split("\n")));
+        writeFileSync(outputFile, lines.join("\n"));
+    }
+
     writeClassesToFile(outputFile: string) {
         const lines: string[] = [];
         lines.push("// **********************************************");
         lines.push("// **** File managed by sqlWrapper by RockIt ****");
-        lines.push("// ***********^**********************************");
+        lines.push("// **********************************************");
         lines.push("");
 
         this.tables.map((table) => lines.push(...table.getClassDefinition()));
@@ -645,7 +664,7 @@ export class DB {
 
         lines.push("# **********************************************");
         lines.push("# **** File managed by sqlWrapper by RockIt ****");
-        lines.push("# ***********^**********************************");
+        lines.push("# **********************************************");
         lines.push("");
         lines.push(
             "from sqlalchemy import Table, create_engine, Column, Integer, String, DateTime, Boolean, ForeignKey, select"

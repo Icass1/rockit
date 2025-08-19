@@ -124,6 +124,7 @@ export function EditPopup({ index }: { index: number }) {
                 table: table,
                 data: updateRequest,
                 type: "UPDATE",
+                dbFile: dbFile,
             }),
         }).then((response) => {
             if (response.ok) {

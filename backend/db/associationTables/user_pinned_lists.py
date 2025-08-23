@@ -1,14 +1,15 @@
-from sqlalchemy import Table, Column, ForeignKey, DateTime
+
+from sqlalchemy import Table, Column, ForeignKey
 
 from backend.db.base import Base
 
 from backend.db.associationTables.generalColumns import date_added_column, date_updated_column
 
-user_liked_songs = Table(
-    'user_liked_songs', Base.metadata,
+
+user_pinned_lists = Table(
+    'user_pinned_lists', Base.metadata,
     Column('user_id', ForeignKey('users.id'), primary_key=True),
-    Column('song_id', ForeignKey('songs.id'), primary_key=True),
-    Column("added_at", DateTime, nullable=False),
+    Column('list_id', ForeignKey('lists.id'), primary_key=True),
     date_added_column(),
     date_updated_column(),
     schema='main'

@@ -6,9 +6,11 @@ from backend.db.base import Base
 from backend.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdated, TableAutoincrementId
 
 from backend.db.associationTables.user_history_songs import user_history_songs
+from backend.db.associationTables.user_pinned_lists import user_pinned_lists
 from backend.db.associationTables.user_liked_songs import user_liked_songs
 from backend.db.associationTables.user_queue_songs import user_queue_songs
 from backend.db.associationTables.user_lists import user_lists
+
 
 class UserRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     __tablename__ = 'users'
@@ -30,12 +32,19 @@ class UserRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     super_admin = mapped_column(Boolean, nullable=False, default=False)
 
     # many-to-many with songs
-    history_songs = relationship("SongRow", secondary=user_history_songs, back_populates="history_users")
-    liked_songs = relationship("SongRow", secondary=user_liked_songs, back_populates="liked_by_users")
-    queue_songs = relationship("SongRow", secondary=user_queue_songs, back_populates="queued_by_users")
+    history_songs = relationship(
+        "SongRow", secondary=user_history_songs, back_populates="history_users")
+    liked_songs = relationship(
+        "SongRow", secondary=user_liked_songs, back_populates="liked_by_users")
+    queue_songs = relationship(
+        "SongRow", secondary=user_queue_songs, back_populates="queued_by_users")
+    pinned_lists = relationship(
+        "ListRow", secondary=user_pinned_lists, back_populates="pinned_by_users")
 
     # many-to-many with lists
-    lists = relationship("ListRow", secondary=user_lists, back_populates="users")  # change pinned_lists if needed
+    # change pinned_lists if needed
+    lists = relationship("ListRow", secondary=user_lists,
+                         back_populates="users")
 
     # one-to-many
     downloads = relationship("DownloadRow", back_populates="user")

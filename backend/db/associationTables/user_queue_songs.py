@@ -10,8 +10,8 @@ user_queue_songs = Table(
     Column('user_id', ForeignKey('users.id'), primary_key=True),
     Column('song_id', ForeignKey('songs.id'), primary_key=True),
     Column('position', Integer, nullable=False),
-    Column('list_type', Enum("album", "playlist", "carousel"
-           "recently-played", name="list_type_enum", schema="main"), nullable=False),
+    Column('list_type', Enum("album", "playlist", "carousel",
+           "recently-played", "recent-mix", name="list_type_enum", schema="main"), nullable=False),
     Column('list_id', ForeignKey('lists.id'), nullable=True),
     date_added_column(),
     date_updated_column(),

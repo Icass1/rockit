@@ -23,5 +23,8 @@ class ListRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     playlist: Mapped[PlaylistRow] = relationship("PlaylistRow", back_populates="list",
                                                  uselist=False, cascade="all, delete-orphan")
 
+    pinned_by_users = relationship(
+        "UserRow", secondary="main.user_pinned_lists", back_populates="pinned_lists")
+
     users: Mapped[UserRow] = relationship(
         "UserRow", secondary="main.user_lists", back_populates="lists")

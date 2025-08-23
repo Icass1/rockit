@@ -155,7 +155,7 @@ Base.metadata.schema = "main"
 
 @declarative_mixin
 class TableDateUpdated:
-    date_updated = Column(
+    date_updated = mapped_column(
         DateTime(timezone=False),
         nullable=False,
         default=func.now(),
@@ -165,7 +165,7 @@ class TableDateUpdated:
 
 @declarative_mixin
 class TableDateAdded:
-    date_added = Column(
+    date_added = mapped_column(
         DateTime(timezone=False),
         nullable=False,
         default=func.now(),
@@ -174,7 +174,7 @@ class TableDateAdded:
 
 @declarative_mixin
 class TableAutoincrementId:
-    id = Column(
+    id = mapped_column(
         Integer,
         primary_key=True,
         autoincrement=True
@@ -223,7 +223,7 @@ album_external_images = Table(
     Base.metadata,
     Column('album_id', ForeignKey('main.albums.id'), primary_key=True),
     Column('external_image_id', ForeignKey(
-        'main.external_images.id'), primary_key=True),
+        column='main.external_images.id'), primary_key=True),
     date_added_column(),
     date_updated_column(),
     schema='main'
@@ -325,8 +325,8 @@ class Genre(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     __tablename__ = 'genres'
     __table_args__ = {'schema': 'main', 'extend_existing': True},
 
-    public_id = Column(String, nullable=False)
-    name = Column(String, nullable=False, unique=True)
+    public_id = mapped_column(String, nullable=False)
+    name = mapped_column(String, nullable=False, unique=True)
 
     artists = relationship(
         "Artist", secondary=artist_genres, back_populates="genres")
@@ -351,10 +351,10 @@ class ExternalImage(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded
     __tablename__ = 'external_images'
     __table_args__ = {'schema': 'main', 'extend_existing': True},
 
-    public_id = Column(String, nullable=False)
-    url = Column(String, nullable=False, unique=True)
-    width = Column(Integer, nullable=True)
-    height = Column(Integer, nullable=True)
+    public_id = mapped_column(String, nullable=False)
+    url = mapped_column(String, nullable=False, unique=True)
+    width = mapped_column(Integer, nullable=True)
+    height = mapped_column(Integer, nullable=True)
 
     albums = relationship(
         "Album",
@@ -376,14 +376,14 @@ class ExternalImage(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded
 class Album(Base, TableDateUpdated, TableDateAdded):
     __tablename__ = "albums"
 
-    id = Column(Integer, ForeignKey('lists.id'), primary_key=True)
-    public_id = Column(String, nullable=False)
-    internal_image_id = Column(Integer, ForeignKey(
+    id = mapped_column(Integer, ForeignKey('lists.id'), primary_key=True)
+    public_id = mapped_column(String, nullable=False)
+    internal_image_id = mapped_column(Integer, ForeignKey(
         "main.internal_images.id"), nullable=False)
-    name = Column(String, nullable=False)
-    release_date = Column(String, nullable=False)
-    popularity = Column(Integer)
-    disc_count = Column(Integer, nullable=False)
+    name = mapped_column(String, nullable=False)
+    release_date = mapped_column(String, nullable=False)
+    popularity = mapped_column(Integer)
+    disc_count = mapped_column(Integer, nullable=False)
 
     # ORM relationship
     internal_image = relationship("InternalImage", back_populates="albums")
@@ -402,20 +402,20 @@ class Song(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     __tablename__ = "songs"
     __table_args__ = {'schema': 'main', 'extend_existing': True},
 
-    public_id = Column(String, nullable=False)
-    name = Column(String, nullable=False)
-    duration = Column(Integer, nullable=False)
-    track_number = Column(Integer, nullable=False)
-    disc_number = Column(Integer, nullable=False)
-    popularity = Column(Integer)
-    internal_image_id = Column(Integer, ForeignKey(
+    public_id = mapped_column(String, nullable=False)
+    name = mapped_column(String, nullable=False)
+    duration = mapped_column(Integer, nullable=False)
+    track_number = mapped_column(Integer, nullable=False)
+    disc_number = mapped_column(Integer, nullable=False)
+    popularity = mapped_column(Integer)
+    internal_image_id = mapped_column(Integer, ForeignKey(
         'main.internal_images.id'), nullable=True)
-    path = Column(String)
-    album_id = Column(Integer, ForeignKey('main.albums.id'), nullable=False)
-    isrc = Column(String, nullable=False, unique=False)
-    download_url = Column(String)
-    lyrics = Column(Text)
-    dynamic_lyrics = Column(Text)
+    path = mapped_column(String)
+    album_id = mapped_column(Integer, ForeignKey('main.albums.id'), nullable=False)
+    isrc = mapped_column(String, nullable=False, unique=False)
+    download_url = mapped_column(String)
+    lyrics = mapped_column(Text)
+    dynamic_lyrics = mapped_column(Text)
 
     internal_image = relationship(
         'InternalImage', back_populates='songs', foreign_keys=[internal_image_id])
@@ -434,11 +434,11 @@ class Artist(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     __tablename__ = 'artists'
     __table_args__ = {'schema': 'main', 'extend_existing': True},
 
-    public_id = Column(String, nullable=False)
-    name = Column(String)
-    followers = Column(Integer, nullable=False, default=0)
-    popularity = Column(Integer, nullable=False, default=0)
-    internal_image_id = Column(Integer, ForeignKey(
+    public_id = mapped_column(String, nullable=False)
+    name = mapped_column(String)
+    followers = mapped_column(Integer, nullable=False, default=0)
+    popularity = mapped_column(Integer, nullable=False, default=0)
+    internal_image_id = mapped_column(Integer, ForeignKey(
         'main.internal_images.id'), nullable=True)
 
     songs = relationship("Song", secondary=song_artists,
@@ -465,14 +465,14 @@ class Playlist(Base, TableDateUpdated, TableDateAdded):
     __tablename__ = 'playlists'
     __table_args__ = {'schema': 'main', 'extend_existing': True},
 
-    id = Column(Integer, ForeignKey('lists.id'), primary_key=True)
-    public_id = Column(String, nullable=False)
-    internal_image_id = Column(Integer, ForeignKey(
+    id = mapped_column(Integer, ForeignKey('lists.id'), primary_key=True)
+    public_id = mapped_column(String, nullable=False)
+    internal_image_id = mapped_column(Integer, ForeignKey(
         'main.internal_images.id'), nullable=True)
-    name = Column(String, nullable=False)
-    owner = Column(String, nullable=False)
-    followers = Column(Integer, nullable=False, default=0)
-    description = Column(Text, nullable=True)
+    name = mapped_column(String, nullable=False)
+    owner = mapped_column(String, nullable=False)
+    followers = mapped_column(Integer, nullable=False, default=0)
+    description = mapped_column(Text, nullable=True)
 
     internal_image = relationship(
         'InternalImage', back_populates='playlists', foreign_keys=[internal_image_id])
@@ -493,50 +493,50 @@ class User(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     __tablename__ = 'users'
     __table_args__ = {'schema': 'main', 'extend_existing': True},
 
-    public_id = Column(String, nullable=False)
-    username = Column(String, nullable=False, unique=True)
-    password_hash = Column(String, nullable=False)
-    current_station = Column(String, nullable=True)
-    current_time = Column(Integer, nullable=True)
-    queue_index = Column(Integer, nullable=True)
-    random_queue = Column(Boolean, nullable=False, default=False)
-    repeat_song = Column(Enum(
+    public_id = mapped_column(String, nullable=False)
+    username = mapped_column(String, nullable=False, unique=True)
+    password_hash = mapped_column(String, nullable=False)
+    current_station = mapped_column(String, nullable=True)
+    current_time = mapped_column(Integer, nullable=True)
+    queue_index = mapped_column(Integer, nullable=True)
+    random_queue = mapped_column(Boolean, nullable=False, default=False)
+    repeat_song = mapped_column(Enum(
         "off", "one", "all", name="repeat_song_enum", schema="main"), nullable=False, default="off")
-    volume = Column(Double, nullable=False, default=1)
-    cross_fade = Column(Double, nullable=False, default=0)
-    lang = Column(String, nullable=False, default="en")
-    admin = Column(Boolean, nullable=False, default=False)
-    super_admin = Column(Boolean, nullable=False, default=False)
+    volume = mapped_column(Double, nullable=False, default=1)
+    cross_fade = mapped_column(Double, nullable=False, default=0)
+    lang = mapped_column(String, nullable=False, default="en")
+    admin = mapped_column(Boolean, nullable=False, default=False)
+    super_admin = mapped_column(Boolean, nullable=False, default=False)
 
 
 class Downloads(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     __tablename__ = 'downloads'
     __table_args__ = {'schema': 'main', 'extend_existing': True},
 
-    user_id = Column(Integer, ForeignKey('main.users.id'), nullable=False)
-    date_started = Column(DateTime(timezone=False), nullable=False)
-    date_ended = Column(DateTime(timezone=False), nullable=True)
-    download_url = Column(String, nullable=False)
-    status = Column(Enum("pending", "in_progress", "completed",
+    user_id = mapped_column(Integer, ForeignKey('main.users.id'), nullable=False)
+    date_started = mapped_column(DateTime(timezone=False), nullable=False)
+    date_ended = mapped_column(DateTime(timezone=False), nullable=True)
+    download_url = mapped_column(String, nullable=False)
+    status = mapped_column(Enum("pending", "in_progress", "completed",
                          "failed", name="download_status_enum", schema="main"), nullable=False, default="pending")
-    seen = Column(Boolean, nullable=False, default=False)
-    success = Column(Integer, nullable=True)
-    fail = Column(Integer, nullable=True)
+    seen = mapped_column(Boolean, nullable=False, default=False)
+    success = mapped_column(Integer, nullable=True)
+    fail = mapped_column(Integer, nullable=True)
 
 
 class Errors(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     __tablename__ = 'errors'
     __table_args__ = {'schema': 'main', 'extend_existing': True},
 
-    user_id = Column(Integer, ForeignKey('main.users.id'), nullable=True)
-    message = Column(Text, nullable=True)
-    source = Column(String, nullable=True)
-    line_no = Column(Integer, nullable=True)
-    column_no = Column(Integer, nullable=True)
-    error_message = Column(Text, nullable=True)
-    error_cause = Column(Text, nullable=True)
-    error_name = Column(String, nullable=True)
-    error_stack = Column(Text, nullable=True)
+    user_id = mapped_column(Integer, ForeignKey('main.users.id'), nullable=True)
+    message = mapped_column(Text, nullable=True)
+    source = mapped_column(String, nullable=True)
+    line_no = mapped_column(Integer, nullable=True)
+    column_no = mapped_column(Integer, nullable=True)
+    error_message = mapped_column(Text, nullable=True)
+    error_cause = mapped_column(Text, nullable=True)
+    error_name = mapped_column(String, nullable=True)
+    error_stack = mapped_column(Text, nullable=True)
 
 
 engine = create_engine(
@@ -552,7 +552,7 @@ cursor = conn.cursor()
 
 exit()
 
-external_images_in_db: List[Tuple[str, str]] = [(str(external_image.id), str(external_image.url))
+external_images_in_db: List[Tuple[str, str]] = [(external_image.id, external_image.url)
                                                 for external_image in session.query(ExternalImage).all()]
 
 cursor.execute("PRAGMA table_info(playlist);")

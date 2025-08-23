@@ -1,6 +1,6 @@
 
 import os  # noqa
-import sys  # noqa
+import sys
 
 
 sys.path.append(os.getcwd())  # noqa
@@ -26,6 +26,28 @@ import json
 from backend.backendUtils import create_id, download_image, get_utc_date, sanitize_folder_name
 from backend.constants import IMAGES_PATH
 from backend.logger import getLogger
+from backend.db.db import RockitDB
+
+
+from backend.db.associationTables.playlist_external_images import playlist_external_images
+from backend.db.associationTables.album_external_images import album_external_images
+from backend.db.associationTables.artist_external_images import artist_external_images
+from backend.db.associationTables.playlist_songs import playlist_songs
+from backend.db.associationTables.song_artists import song_artists
+from backend.db.associationTables.album_artists import album_artists
+from backend.db.associationTables.artist_genres import artist_genres
+
+from backend.db.ormModels.externalImage import ExternalImageRow
+from backend.db.ormModels.internalImage import InternalImageRow
+from backend.db.ormModels.download import DownloadRow
+from backend.db.ormModels.playlist import PlaylistRow
+from backend.db.ormModels.artist import ArtistRow
+from backend.db.ormModels.album import AlbumRow
+from backend.db.ormModels.genre import GenreRow
+from backend.db.ormModels.error import ErrorRow
+from backend.db.ormModels.song import SongRow
+from backend.db.ormModels.list import ListRow
+from backend.db.ormModels.user import UserRow
 
 logger = getLogger(__name__)
 
@@ -139,424 +161,25 @@ def api_call(path: str, params: Dict[str, str] = {}) -> Any | None:
 get_token()
 
 
-# def logger.error(message: str):
-#     with open("db/log.txt", "a") as f:
-#         f.write(f"{message}\n")
-
-
 def parse_any_datetime(s: str) -> datetime:
     return parser.parse(s)
 
 
-Base = declarative_base()
-Base.metadata.schema = "main"
+rockit_db = RockitDB()
 
-
-@declarative_mixin
-class TableDateUpdated:
-    date_updated = mapped_column(
-        DateTime(timezone=False),
-        nullable=False,
-        default=func.now(),
-        onupdate=func.now()
-    )
-
-
-@declarative_mixin
-class TableDateAdded:
-    date_added = mapped_column(
-        DateTime(timezone=False),
-        nullable=False,
-        default=func.now(),
-    )
-
-
-@declarative_mixin
-class TableAutoincrementId:
-    id: Mapped[int] = mapped_column(
-        Integer,
-        primary_key=True,
-        autoincrement=True,
-    )
-
-
-def date_added_column():
-    return Column("date_added", DateTime(timezone=False), nullable=False, default=func.now())
-
-
-def date_updated_column():
-    return Column("date_updated", DateTime(timezone=False), nullable=False, default=func.now(), onupdate=func.now())
-
-
-# Association tables
-lists = Table(
-    'lists', Base.metadata,
-    Column('id', Integer, primary_key=True, autoincrement=True),
-    Column('type', Enum("album", "playlist",
-           name="type_enum", schema="main"), nullable=False),
-    Column("public_id", String, nullable=False, unique=True),
-    date_added_column(),
-    date_updated_column(),
-    schema='main'
-)
-
-song_artists = Table(
-    'song_artists', Base.metadata,
-    Column('song_id', ForeignKey('songs.id'), primary_key=True),
-    Column('artist_id', ForeignKey('artists.id'), primary_key=True),
-    date_added_column(),
-    date_updated_column(),
-    schema='main'
-)
-
-album_artists = Table(
-    'album_artists', Base.metadata,
-    Column('album_id', ForeignKey('albums.id'), primary_key=True),
-    Column('artist_id', ForeignKey('artists.id'), primary_key=True),
-    date_added_column(),
-    date_updated_column(),
-    schema='main'
-)
-
-album_external_images = Table(
-    'album_external_images',
-    Base.metadata,
-    Column('album_id', ForeignKey('main.albums.id'), primary_key=True),
-    Column('external_image_id', ForeignKey(
-        column='main.external_images.id'), primary_key=True),
-    date_added_column(),
-    date_updated_column(),
-    schema='main'
-)
-
-playlist_external_images = Table(
-    'playlist_external_images',
-    Base.metadata,
-    Column('playlist_id', ForeignKey('main.playlists.id'), primary_key=True),
-    Column('external_image_id', ForeignKey(
-        'main.external_images.id'), primary_key=True),
-    date_added_column(),
-    date_updated_column(),
-    schema='main'
-)
-
-artist_external_images = Table(
-    'artist_external_images',
-    Base.metadata,
-    Column('artist_id', ForeignKey('main.artists.id'), primary_key=True),
-    Column('external_image_id', ForeignKey(
-        'main.external_images.id'), primary_key=True),
-    date_added_column(),
-    date_updated_column(),
-    schema='main'
-)
-
-playlist_songs = Table(
-    'playlist_songs',
-    Base.metadata,
-    Column('playlist_id', ForeignKey('main.playlists.id'), primary_key=True),
-    Column('song_id', ForeignKey('main.songs.id'), primary_key=True),
-    Column("added_by", String, nullable=True),
-    Column("disabled", Boolean(), nullable=False),
-    date_added_column(),
-    date_updated_column(),
-    schema='main'
-)
-
-artist_genres = Table(
-    'artist_genres', Base.metadata,
-    Column('artist_id', ForeignKey('artists.id'), primary_key=True),
-    Column('genre_id', ForeignKey(column='genres.id'), primary_key=True),
-    date_added_column(),
-    date_updated_column(),
-    schema='main'
-)
-
-user_lists = Table(
-    'user_lists', Base.metadata,
-    Column('user_id', ForeignKey('users.id'), primary_key=True),
-    Column('list_id', ForeignKey('lists.id'), primary_key=True),
-    date_added_column(),
-    date_updated_column(),
-    schema='main'
-)
-
-user_queue_songs = Table(
-    'user_queue_songs', Base.metadata,
-    Column('user_id', ForeignKey('users.id'), primary_key=True),
-    Column('song_id', ForeignKey('songs.id'), primary_key=True),
-    Column('position', Integer, nullable=False),
-    Column('list_type', Enum("album", "playlist", "carousel"
-           "recently-played", name="list_type_enum", schema="main"), nullable=False),
-    Column('list_id', ForeignKey('lists.id'), nullable=True),
-)
-
-user_pinned_lists = Table(
-    'user_pinned_lists', Base.metadata,
-    Column('user_id', ForeignKey('users.id'), primary_key=True),
-    Column('list_id', ForeignKey('lists.id'), primary_key=True),
-    date_added_column(),
-    date_updated_column(),
-    schema='main'
-)
-
-user_liked_songs = Table(
-    'user_liked_songs', Base.metadata,
-    Column('user_id', ForeignKey('users.id'), primary_key=True),
-    Column('song_id', ForeignKey('songs.id'), primary_key=True),
-    date_added_column(),
-    date_updated_column(),
-    schema='main'
-)
-
-user_history_songs = Table(
-    'user_history_songs', Base.metadata,
-    Column('user_id', ForeignKey('users.id'), primary_key=True),
-    Column('song_id', ForeignKey('songs.id'), primary_key=True),
-    Column('played_at', DateTime(timezone=False),
-           nullable=False, primary_key=True),
-    date_added_column(),
-    date_updated_column(),
-    schema='main'
-)
-
-
-class Genre(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
-    __tablename__ = 'genres'
-    __table_args__ = {'schema': 'main', 'extend_existing': True},
-
-    public_id = mapped_column(String, nullable=False, unique=True)
-    name = mapped_column(String, nullable=False, unique=True)
-
-    artists = relationship(
-        "Artist", secondary=artist_genres, back_populates="genres")
-
-
-# Define ORM models
-class InternalImage(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
-    __tablename__ = 'internal_images'
-    __table_args__ = {'schema': 'main', 'extend_existing': True},
-
-    public_id = mapped_column(String, nullable=False, unique=True)
-    url = mapped_column(String, nullable=False)
-    path = mapped_column(String, nullable=False, unique=True)
-
-    songs = relationship("Song", back_populates="internal_image")
-    albums = relationship("Album", back_populates="internal_image")
-    playlists = relationship("Playlist", back_populates="internal_image")
-    artists = relationship("Artist", back_populates="internal_image")
-
-
-class ExternalImage(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
-    __tablename__ = 'external_images'
-    __table_args__ = {'schema': 'main', 'extend_existing': True},
-
-    public_id = mapped_column(String, nullable=False, unique=True)
-    url = mapped_column(String, nullable=False, unique=True)
-    width = mapped_column(Integer, nullable=True)
-    height = mapped_column(Integer, nullable=True)
-
-    albums = relationship(
-        "Album",
-        secondary=album_external_images,
-        back_populates="external_images"
-    )
-    playlists = relationship(
-        "Playlist",
-        secondary=playlist_external_images,
-        back_populates="external_images"
-    )
-    artists = relationship(
-        "Artist",
-        secondary=artist_external_images,
-        back_populates="external_images"
-    )
-
-
-class Album(Base, TableDateUpdated, TableDateAdded):
-    __tablename__ = "albums"
-
-    id: Mapped[int] = mapped_column(
-        Integer, ForeignKey('lists.id'), primary_key=True)
-    public_id = mapped_column(String, nullable=False, unique=True)
-    internal_image_id = mapped_column(Integer, ForeignKey(
-        "main.internal_images.id"), nullable=False)
-    name = mapped_column(String, nullable=False)
-    release_date = mapped_column(String, nullable=False)
-    popularity = mapped_column(Integer)
-    disc_count = mapped_column(Integer, nullable=False)
-
-    # ORM relationship
-    internal_image = relationship("InternalImage", back_populates="albums")
-    songs = relationship("Song", back_populates="album")
-    artists = relationship(
-        "Artist", secondary=album_artists, back_populates="albums")
-
-    external_images = relationship(
-        "ExternalImage",
-        secondary=album_external_images,
-        back_populates="albums"
-    )
-
-
-class Song(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
-    __tablename__ = "songs"
-    __table_args__ = {'schema': 'main', 'extend_existing': True},
-
-    public_id = mapped_column(String, nullable=False, unique=True)
-    name = mapped_column(String, nullable=False)
-    duration = mapped_column(Integer, nullable=False)
-    track_number = mapped_column(Integer, nullable=False)
-    disc_number = mapped_column(Integer, nullable=False)
-    popularity = mapped_column(Integer)
-    internal_image_id = mapped_column(Integer, ForeignKey(
-        'main.internal_images.id'), nullable=True)
-    path = mapped_column(String)
-    album_id = mapped_column(Integer, ForeignKey(
-        'main.albums.id'), nullable=False)
-    isrc = mapped_column(String, nullable=False, unique=False)
-    download_url = mapped_column(String)
-    lyrics = mapped_column(Text)
-    dynamic_lyrics = mapped_column(Text)
-
-    internal_image = relationship(
-        'InternalImage', back_populates='songs', foreign_keys=[internal_image_id])
-    album = relationship("Album", back_populates="songs")
-    artists = relationship(
-        "Artist", secondary=song_artists, back_populates="songs")
-
-    playlists = relationship(
-        "Playlist",
-        secondary=playlist_songs,
-        back_populates="songs"
-    )
-
-
-class Artist(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
-    __tablename__ = 'artists'
-    __table_args__ = {'schema': 'main', 'extend_existing': True},
-
-    public_id = mapped_column(String, nullable=False, unique=True)
-    name = mapped_column(String)
-    followers = mapped_column(Integer, nullable=False, default=0)
-    popularity = mapped_column(Integer, nullable=False, default=0)
-    internal_image_id = mapped_column(Integer, ForeignKey(
-        'main.internal_images.id'), nullable=True)
-
-    songs = relationship("Song", secondary=song_artists,
-                         back_populates="artists")
-    albums = relationship("Album", secondary=album_artists,
-                          back_populates="artists")
-    internal_image = relationship(
-        'InternalImage', back_populates='artists', foreign_keys=[internal_image_id])
-
-    genres = relationship(
-        "Genre",
-        secondary=artist_genres,
-        back_populates="artists"
-    )
-
-    external_images = relationship(
-        "ExternalImage",
-        secondary=artist_external_images,
-        back_populates="artists"
-    )
-
-
-class Playlist(Base, TableDateUpdated, TableDateAdded):
-    __tablename__ = 'playlists'
-    __table_args__ = {'schema': 'main', 'extend_existing': True},
-
-    id = mapped_column(Integer, ForeignKey('lists.id'), primary_key=True)
-    public_id = mapped_column(String, nullable=False, unique=True)
-    internal_image_id = mapped_column(Integer, ForeignKey(
-        'main.internal_images.id'), nullable=True)
-    name = mapped_column(String, nullable=False)
-    owner = mapped_column(String, nullable=False)
-    followers = mapped_column(Integer, nullable=False, default=0)
-    description = mapped_column(Text, nullable=True)
-
-    internal_image = relationship(
-        'InternalImage', back_populates='playlists', foreign_keys=[internal_image_id])
-
-    external_images = relationship(
-        "ExternalImage",
-        secondary=playlist_external_images,
-        back_populates="playlists"
-    )
-    songs = relationship(
-        "Song",
-        secondary=playlist_songs,
-        back_populates="playlists"
-    )
-
-
-class User(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
-    __tablename__ = 'users'
-    __table_args__ = {'schema': 'main', 'extend_existing': True},
-
-    public_id = mapped_column(String, nullable=False, unique=True)
-    username = mapped_column(String, nullable=False, unique=True)
-    password_hash = mapped_column(String, nullable=False)
-    current_station = mapped_column(String, nullable=True)
-    current_time = mapped_column(Integer, nullable=True)
-    queue_index = mapped_column(Integer, nullable=True)
-    random_queue = mapped_column(Boolean, nullable=False, default=False)
-    repeat_song = mapped_column(Enum(
-        "off", "one", "all", name="repeat_song_enum", schema="main"), nullable=False, default="off")
-    volume = mapped_column(Double, nullable=False, default=1)
-    cross_fade = mapped_column(Double, nullable=False, default=0)
-    lang = mapped_column(String, nullable=False, default="en")
-    admin = mapped_column(Boolean, nullable=False, default=False)
-    super_admin = mapped_column(Boolean, nullable=False, default=False)
-
-
-class Downloads(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
-    __tablename__ = 'downloads'
-    __table_args__ = {'schema': 'main', 'extend_existing': True},
-
-    user_id = mapped_column(Integer, ForeignKey(
-        'main.users.id'), nullable=False)
-    date_started = mapped_column(DateTime(timezone=False), nullable=False)
-    date_ended = mapped_column(DateTime(timezone=False), nullable=True)
-    download_url = mapped_column(String, nullable=False)
-    status = mapped_column(Enum("pending", "in_progress", "completed",
-                                "failed", name="download_status_enum", schema="main"), nullable=False, default="pending")
-    seen = mapped_column(Boolean, nullable=False, default=False)
-    success = mapped_column(Integer, nullable=True)
-    fail = mapped_column(Integer, nullable=True)
-
-
-class Errors(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
-    __tablename__ = 'errors'
-    __table_args__ = {'schema': 'main', 'extend_existing': True},
-
-    user_id = mapped_column(Integer, ForeignKey(
-        'main.users.id'), nullable=True)
-    message = mapped_column(Text, nullable=True)
-    source = mapped_column(String, nullable=True)
-    line_no = mapped_column(Integer, nullable=True)
-    column_no = mapped_column(Integer, nullable=True)
-    error_message = mapped_column(Text, nullable=True)
-    error_cause = mapped_column(Text, nullable=True)
-    error_name = mapped_column(String, nullable=True)
-    error_stack = mapped_column(Text, nullable=True)
-
-
-engine = create_engine(
-    "postgresql://admin:admin@12.12.12.3:5432/development?sslmode=disable", echo=False)
-Base.metadata.create_all(engine)
-
-session = Session(engine)
+session = rockit_db.session
 
 conn = sqlite3.connect(
     'file:database/database-prod.db?mode=ro', check_same_thread=False)
 cursor = conn.cursor()
 
 
-external_images_in_db: List[ExternalImage] = session.query(ExternalImage).all()
-internal_images_in_db: List[InternalImage] = session.query(InternalImage).all()
-albums_in_db: List[Album] = session.query(Album).all()
+external_images_in_db: List[ExternalImageRow] = session.query(
+    ExternalImageRow).all()
+internal_images_in_db: List[InternalImageRow] = session.query(
+    InternalImageRow).all()
+albums_in_db: List[AlbumRow] = session.query(AlbumRow).all()
+lists_in_db: List[ListRow] = session.query(ListRow).all()
 
 cursor.execute("PRAGMA table_info(playlist);")
 print(",".join([column[1] for column in cursor.fetchall()]))
@@ -595,7 +218,7 @@ def add_internal_images():
         if found:
             continue
 
-        image_to_add = InternalImage(
+        image_to_add = InternalImageRow(
             public_id=id,
             url=url,
             path=path)
@@ -609,6 +232,9 @@ def add_internal_images():
 
 
 def add_albums():
+    """
+    Add albums and their external images to the database.
+    """
 
     cursor.execute(
         "SELECT id,type,images,image,name,releaseDate,artists,copyrights,popularity,genres,songs,discCount,dateAdded FROM album")
@@ -646,29 +272,39 @@ def add_albums():
                 f"Skipping album {public_id} with empty internal_image_id")
             continue
 
-        # logger.info(f"Adding album: {name} with id: {id}")
-
         for k in internal_images_in_db:
             if k.public_id == internal_image_id:
                 internal_image_id = k.id
                 break
 
-        stmt = insert(lists).values(
-            type="album",
-            public_id=public_id
-        ).on_conflict_do_nothing().returning(lists.c.id)
-        result = session.execute(stmt)
-        album_id: int | None = result.scalar_one_or_none()
-        session.flush()
+        # Get int id of list. If it does not exist, create it.
+        album_id: int | None = None
+
+        for list_in_db in lists_in_db:
+            if list_in_db.public_id == public_id:
+                album_id = list_in_db.id
+                break
+
+        if not album_id:
+            list_to_add = ListRow(
+                type="album",
+                public_id=public_id
+            )
+
+            list_to_add: ListRow = session.merge(list_to_add)
+            session.flush()
+
+            album_id: int | None = list_to_add.id
 
         if not album_id:
             logger.error(f"Failed to get album_id for album {public_id}")
             continue
 
+        # Add to album_artists_list for later processing
         album_artists_list.extend([(album_id, artist["id"])
                                   for artist in artists])
 
-        albums_to_add = Album(
+        albums_to_add = AlbumRow(
             id=album_id,
             public_id=public_id,
             name=name,
@@ -694,10 +330,10 @@ def add_albums():
 
             else:
                 external_image_public_id = create_id()
-                external_image_to_add = ExternalImage(
+                external_image_to_add = ExternalImageRow(
                     public_id=external_image_public_id, url=url, width=width, height=height)
 
-                external_image_to_add: ExternalImage = session.merge(
+                external_image_to_add: ExternalImageRow = session.merge(
                     external_image_to_add)
                 session.flush()
                 external_images_in_db.append(external_image_to_add)
@@ -715,7 +351,10 @@ def add_albums():
     logger.info("Added all albums and their external images.")
 
 
-def download_albums_data(ids: List[str]):
+def download_and_add_to_db_albums_data(ids: List[str]):
+    """
+    Download albums data from Spotify API and add to database.
+    """
     for k in range(math.ceil(len(ids)/20)):
         response = api_call(
             path=f"albums", params={"ids": ",".join(ids[k*20:(k + 1)*20])})
@@ -726,6 +365,7 @@ def download_albums_data(ids: List[str]):
 
         for album in response["albums"]:
 
+            # Download external image if not already downloaded.
             if len(album["images"]) > 1:
                 image_url = max(album["images"], key=lambda i: i["width"] *
                                 i["height"] if i["width"] and i["height"] else 0)["url"] if album["images"] else None
@@ -746,32 +386,54 @@ def download_albums_data(ids: List[str]):
                 download_image(url=image_url, path=os.path.join(
                     IMAGES_PATH, image_path))
 
-            image = session.query(InternalImage).filter(
-                InternalImage.path == image_path).first()
+            # Check if image already exists in DB. If not, add it and get its id.
+            image: InternalImageRow | None = None
 
-            album_artists_list.extend(
-                [(album["id"], artist["id"]) for artist in album["artists"]])
+            for internal_image in internal_images_in_db:
+                if internal_image.path == image_path:
+                    image = internal_image
+                    break
 
             if image:
-                # logger.info("Image in database")
                 image_id = image.id
             else:
-                # logger.info("Image not in database")
-                logger.info(image_path)
+                image_public_id = create_id(20)
 
-                image_id = create_id(20)
+                image_to_add = InternalImageRow(
+                    public_id=image_public_id,
+                    url=image_url,
+                    path=image_path
+                )
 
-            image_to_add = InternalImage(
-                public_id=image_id,
-                url=image_url,
-                path=image_path
-            )
+                image_to_add = session.merge(image_to_add)
+                session.flush()
+                internal_images_in_db.append(image_to_add)
+                image_id = image_to_add.id
 
-            session.merge(image_to_add)
-
+            # Add artists to artists_to_add for later processing
             artists_to_add.extend(album["artists"])
 
-            album_to_add = Album(
+            # Get int id of list. If it does not exist, create it.
+            album_id: int | None = None
+
+            for list_in_db in lists_in_db:
+                if list_in_db.public_id == album["id"]:
+                    album_id = list_in_db.id
+                    break
+
+            if not album_id:
+                list_to_add = ListRow(
+                    type="album",
+                    public_id=album["id"]
+                )
+
+                list_to_add: ListRow = session.merge(list_to_add)
+                session.flush()
+
+                album_id: int | None = list_to_add.id
+
+            album_to_add = AlbumRow(
+                id=album_id,
                 public_id=album["id"],
                 name=album["name"],
                 internal_image_id=image_id,
@@ -782,31 +444,35 @@ def download_albums_data(ids: List[str]):
 
             session.merge(album_to_add)
 
+            album_artists_list.extend(
+                [(album["id"], artist["id"]) for artist in album["artists"]])
+
             for album_image in album["images"]:
                 url = album_image['url']
                 width = album_image['width']
                 height = album_image['height']
 
-                external_image_id: str | None = None
+                external_image_id: int | None = None
 
-                if url in [url for _, url in external_images_in_db]:
-                    # logger.info(f"External image already exists in DB: {url}")ko
-                    for k in external_images_in_db:
-                        if k[1] == url:
-                            external_image_id = k[0]
-                            break
+                for external_image in external_images_in_db:
+                    if external_image.url == url:
+                        external_image_id = external_image.id
+                        break
                 else:
-                    external_image_id = create_id()
-                    external_image_to_add = ExternalImage(
-                        public_id=external_image_id, url=url, width=width, height=height)
+                    external_image_public_id = create_id()
+                    external_image_to_add = ExternalImageRow(
+                        public_id=external_image_public_id, url=url, width=width, height=height)
 
-                    external_images_in_db.append((external_image_id, url))
-
-                    session.merge(external_image_to_add)
+                    external_image_to_add: ExternalImageRow = session.merge(
+                        external_image_to_add)
                     session.flush()
 
+                    external_image_id = external_image_to_add.id
+
+                    external_images_in_db.append(external_image_to_add)
+
                 stmt = insert(album_external_images).values(
-                    album_id=album["id"],
+                    album_id=album_id,
                     external_image_id=external_image_id
                 ).on_conflict_do_nothing()
                 session.execute(stmt)
@@ -819,14 +485,17 @@ def add_songs():
     cursor.execute("SELECT id,name,artists,genres,discNumber,albumName,albumArtist,albumType,albumId,isrc,duration,date,trackNumber,publisher,path,images,image,copyright,downloadUrl,lyrics,dynamicLyrics,popularity,dateAdded FROM song")
     songs = cursor.fetchall()
 
-    songs_in_db = session.query(Song).all()
-    songs_in_db_id = {song.id for song in songs_in_db}
+    songs_in_db = session.query(SongRow).all()
 
-    songs_without_isrc = [song[0]
-                          for song in songs if (song[9] == "" or song[9] is None) and song[0] not in songs_in_db_id]
+    # Get list of songs without isrc that are not in the database.
+    # Songs in database are skipped because they already have an isrc.
+    songs_without_isrc: List[str] = [song[0]
+                                     for song in songs if (song[9] == "" or song[9] is None) and song[0] not in [song.public_id for song in songs_in_db]]
+
+    logger.info(f"Songs without ISRC: {len(songs_without_isrc)}")
 
     missing_albums = set()
-    albums_in_db = [a.id for a in session.query(Album).all()]
+    albums_in_db = [a.id for a in session.query(AlbumRow).all()]
     for song in songs:
         album_id = song[8]
         if album_id is None or album_id == "":
@@ -842,9 +511,7 @@ def add_songs():
 
     logger.info(f"Missing albums: {len(missing_albums)}")
 
-    download_albums_data(missing_albums)
-
-    logger.info("Songs without ISRC:", len(songs_without_isrc))
+    download_and_add_to_db_albums_data(missing_albums)
 
     songs_isrc: Dict[str, str] = {}
 
@@ -1163,11 +830,11 @@ if __name__ == "__main__":
     add_internal_images()
     add_albums()
     add_songs()
-    add_playlists()
-    add_artists()
-    add_song_artists()
-    add_album_artists()
+    # add_playlists()
+    # add_artists()
+    # add_song_artists()
+    # add_album_artists()
 
     logger.info("All data added successfully.")
     session.close()
-    engine.dispose()
+    # engine.dispose()

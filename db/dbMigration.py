@@ -12,11 +12,11 @@ from sqlalchemy.orm import declarative_base, relationship, Session, mapped_colum
 from sqlalchemy.dialects.postgresql.dml import Insert
 from sqlalchemy.dialects.postgresql import insert
 
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any, Literal, Tuple
 from datetime import datetime
 from dateutil import parser
+from tqdm import tqdm
 import requests
-import hashlib
 import sqlite3
 import base64
 import dotenv
@@ -106,64 +106,79 @@ def get_auth_header():
 def api_call(path: str, params: Dict[str, str] = {}) -> Any | None:
     global token, client_id, client_secret
 
-    # Ensure temp directory exists
-    os.makedirs("temp", exist_ok=True)
+    parsed_params = ""
 
-    # Build a deterministic string for request
-    params_str = "&".join(f"{k}={v}" for k, v in sorted(params.items()))
-    cache_key_str = f"{path}?{params_str}"
-    cache_hash = hashlib.sha256(cache_key_str.encode()).hexdigest()
-    cache_file = os.path.join("temp", f"{cache_hash}.json")
+    for index, k in enumerate(list(params.items())):
+        if index != 0:
+            parsed_params += "&"
+        parsed_params += k[0] + "=" + k[1]
 
-    # Check cache first
-    if os.path.exists(cache_file):
-        try:
-            with open(cache_file, "r", encoding="utf-8") as f:
-                logger.info(f"{cache_key_str}")
-                logger.info(f"Cache hit: {cache_file}")
-                return json.load(f)
-        except Exception as e:
-            logger.warning(f"Cache read failed ({cache_file}): {e}")
-
-    # Build the API request
-    parsed_params = "&".join(f"{k}={v}" for k, v in params.items())
     url = f"https://api.spotify.com/v1/{path}"
     headers = get_auth_header()
-    query_url = url + ("?" + parsed_params if parsed_params else "")
+
+    query_url = url + \
+        ("?" + parsed_params if len(parsed_params) > 0 else "")
 
     logger.warning(f"Spotify api call: {query_url}")
 
     result = requests.get(query_url, headers=headers)
     if result.status_code == 401:
-        logger.info("Token expired")
+        logger.info("Token espired")
         get_token()
         headers = get_auth_header()
         result = requests.get(query_url, headers=headers)
 
     try:
-        data = result.json()
-        # print(data)
-        # Save to cache
-        try:
-            logger.info(f"Saving cache file: {cache_file}")
-            with open(cache_file, "w", encoding="utf-8") as f:
-                json.dump(data, f)
-        except Exception as e:
-            logger.warning(f"Failed to write cache file {cache_file}: {e}")
-        return data
-    except Exception:
+        return json.loads(result.content)
+    except:
         logger.critical(
-            f"Unable to load json. {result.content=}, {result.text=} {result.status_code=}"
-        )
-        return None
-
-
-get_token()
+            f"Unable to load json. {result.content=}, {result.text=} {result.status_code=}")
 
 
 def parse_any_datetime(s: str) -> datetime:
     return parser.parse(s)
 
+
+def get_spotify_data(ids: List[str], data_name: Literal["album"] | Literal["artist"] | Literal["track"]) -> List[Dict]:
+    """
+    Searches for albums in cache or via Spotify API.
+    """
+    with open(f"cache/{data_name}s.json", "r") as f:
+        data = json.load(f)
+
+    missing_data: List[str] = []
+    result: List[Dict] = []
+
+    for id in ids:
+        for album in data:
+            if album["id"] == id:
+                result.append(album)
+                break
+        else:
+            missing_data.append(id)
+
+    logger.info(f"{len(result)} {data_name}s found in cache")
+    logger.info(f"Missing {data_name}s: {len(missing_data)}")
+
+    for k in range(math.ceil(len(missing_data)/20)):
+        response = api_call(
+            path=f"{data_name}s", params={"ids": ",".join(missing_data[k*20:(k + 1)*20])})
+
+        if not response:
+            logger.error("Response is None")
+            continue
+
+        result.extend(response[f"{data_name}s"])
+
+        logger.info(f"{data_name}s cache length: {len(result)}")
+
+        with open(f"cache/{data_name}s.json", "w") as f:
+            json.dump(result, f)
+
+    return result
+
+
+get_token()
 
 rockit_db = RockitDB()
 
@@ -180,6 +195,7 @@ internal_images_in_db: List[InternalImageRow] = session.query(
     InternalImageRow).all()
 albums_in_db: List[AlbumRow] = session.query(AlbumRow).all()
 lists_in_db: List[ListRow] = session.query(ListRow).all()
+songs_in_db: List[SongRow] = session.query(SongRow).all()
 
 cursor.execute("PRAGMA table_info(playlist);")
 print(",".join([column[1] for column in cursor.fetchall()]))
@@ -195,7 +211,7 @@ def add_internal_images():
     cursor.execute("SELECT id,path,url FROM image")
     images = cursor.fetchall()
     paths = []
-    for image in images:
+    for image in tqdm(images, desc="Adding internal images"):
 
         id = image[0]
         path = image[1]
@@ -240,7 +256,7 @@ def add_albums():
         "SELECT id,type,images,image,name,releaseDate,artists,copyrights,popularity,genres,songs,discCount,dateAdded FROM album")
     albums = cursor.fetchall()
 
-    for album in albums:
+    for album in tqdm(albums, desc="Adding albums"):
         public_id: str = album[0]
         type = album[1]
         external_images = json.loads(album[2])
@@ -314,7 +330,9 @@ def add_albums():
             popularity=popularity
         )
 
-        session.merge(albums_to_add)
+        albums_to_add = session.merge(albums_to_add)
+
+        albums_in_db.append(albums_to_add)
 
         for k in external_images:
             url = k['url']
@@ -355,137 +373,130 @@ def download_and_add_to_db_albums_data(ids: List[str]):
     """
     Download albums data from Spotify API and add to database.
     """
-    for k in range(math.ceil(len(ids)/20)):
-        response = api_call(
-            path=f"albums", params={"ids": ",".join(ids[k*20:(k + 1)*20])})
 
-        if not response:
-            logger.error("Response is None")
-            continue
+    for album in tqdm(get_spotify_data(ids, "album"), desc="Downloading albums data"):
 
-        for album in response["albums"]:
+        # Download external image if not already downloaded.
+        if len(album["images"]) > 1:
+            image_url = max(album["images"], key=lambda i: i["width"] *
+                            i["height"] if i["width"] and i["height"] else 0)["url"] if album["images"] else None
+        else:
+            image_url = album["images"][0]["url"]
 
-            # Download external image if not already downloaded.
-            if len(album["images"]) > 1:
-                image_url = max(album["images"], key=lambda i: i["width"] *
-                                i["height"] if i["width"] and i["height"] else 0)["url"] if album["images"] else None
-            else:
-                image_url = album["images"][0]["url"]
+        image_path_dir = os.path.join("album", sanitize_folder_name(
+            album["artists"][0]["name"]), sanitize_folder_name(album["name"]))
+        image_path = os.path.join(image_path_dir, "image.png")
 
-            image_path_dir = os.path.join("album", sanitize_folder_name(
-                album["artists"][0]["name"]), sanitize_folder_name(album["name"]))
-            image_path = os.path.join(image_path_dir, "image.png")
+        if not os.path.exists(os.path.join(IMAGES_PATH, image_path_dir)):
+            os.makedirs(os.path.join(
+                IMAGES_PATH, image_path_dir))
 
-            if not os.path.exists(os.path.join(IMAGES_PATH, image_path_dir)):
-                os.makedirs(os.path.join(
-                    IMAGES_PATH, image_path_dir))
+        if not os.path.exists(os.path.join(IMAGES_PATH, image_path)) and type(image_url) == str:
+            logger.info(
+                f"Downloading image {image_url=} {image_path=}")
+            download_image(url=image_url, path=os.path.join(
+                IMAGES_PATH, image_path))
 
-            if not os.path.exists(os.path.join(IMAGES_PATH, image_path)) and type(image_url) == str:
-                logger.info(
-                    f"Downloading image {image_url=} {image_path=}")
-                download_image(url=image_url, path=os.path.join(
-                    IMAGES_PATH, image_path))
+        # Check if image already exists in DB. If not, add it and get its id.
+        image: InternalImageRow | None = None
 
-            # Check if image already exists in DB. If not, add it and get its id.
-            image: InternalImageRow | None = None
+        for internal_image in internal_images_in_db:
+            if internal_image.path == image_path:
+                image = internal_image
+                break
 
-            for internal_image in internal_images_in_db:
-                if internal_image.path == image_path:
-                    image = internal_image
-                    break
+        if image:
+            image_id = image.id
+        else:
+            image_public_id = create_id(20)
 
-            if image:
-                image_id = image.id
-            else:
-                image_public_id = create_id(20)
-
-                image_to_add = InternalImageRow(
-                    public_id=image_public_id,
-                    url=image_url,
-                    path=image_path
-                )
-
-                image_to_add = session.merge(image_to_add)
-                session.flush()
-                internal_images_in_db.append(image_to_add)
-                image_id = image_to_add.id
-
-            # Add artists to artists_to_add for later processing
-            artists_to_add.extend(album["artists"])
-
-            # Get int id of list. If it does not exist, create it.
-            album_id: int | None = None
-
-            for list_in_db in lists_in_db:
-                if list_in_db.public_id == album["id"]:
-                    album_id = list_in_db.id
-                    break
-
-            if not album_id:
-                list_to_add = ListRow(
-                    type="album",
-                    public_id=album["id"]
-                )
-
-                list_to_add: ListRow = session.merge(list_to_add)
-                session.flush()
-
-                album_id: int | None = list_to_add.id
-
-            album_to_add = AlbumRow(
-                id=album_id,
-                public_id=album["id"],
-                name=album["name"],
-                internal_image_id=image_id,
-                release_date=album["release_date"],
-                disc_count=len(album.get("disc_number", [])),
-                popularity=album.get("popularity", 0)
+            image_to_add = InternalImageRow(
+                public_id=image_public_id,
+                url=image_url,
+                path=image_path
             )
 
-            session.merge(album_to_add)
+            image_to_add = session.merge(image_to_add)
+            session.flush()
+            internal_images_in_db.append(image_to_add)
+            image_id = image_to_add.id
 
-            album_artists_list.extend(
-                [(album["id"], artist["id"]) for artist in album["artists"]])
+        # Add artists to artists_to_add for later processing
+        artists_to_add.extend(album["artists"])
 
-            for album_image in album["images"]:
-                url = album_image['url']
-                width = album_image['width']
-                height = album_image['height']
+        # Get int id of list. If it does not exist, create it.
+        album_id: int | None = None
 
-                external_image_id: int | None = None
+        for list_in_db in lists_in_db:
+            if list_in_db.public_id == album["id"]:
+                album_id = list_in_db.id
+                break
 
-                for external_image in external_images_in_db:
-                    if external_image.url == url:
-                        external_image_id = external_image.id
-                        break
-                else:
-                    external_image_public_id = create_id()
-                    external_image_to_add = ExternalImageRow(
-                        public_id=external_image_public_id, url=url, width=width, height=height)
+        if not album_id:
+            list_to_add = ListRow(
+                type="album",
+                public_id=album["id"]
+            )
 
-                    external_image_to_add: ExternalImageRow = session.merge(
-                        external_image_to_add)
-                    session.flush()
+            list_to_add: ListRow = session.merge(list_to_add)
+            session.flush()
 
-                    external_image_id = external_image_to_add.id
+            album_id: int | None = list_to_add.id
 
-                    external_images_in_db.append(external_image_to_add)
+        album_to_add = AlbumRow(
+            id=album_id,
+            public_id=album["id"],
+            name=album["name"],
+            internal_image_id=image_id,
+            release_date=album["release_date"],
+            disc_count=len(album.get("disc_number", [])),
+            popularity=album.get("popularity", 0)
+        )
 
-                stmt = insert(album_external_images).values(
-                    album_id=album_id,
-                    external_image_id=external_image_id
-                ).on_conflict_do_nothing()
-                session.execute(stmt)
+        album_to_add = session.merge(album_to_add)
 
-        session.commit()
+        albums_in_db.append(album_to_add)
+
+        album_artists_list.extend(
+            [(album_id, artist["id"]) for artist in album["artists"]])
+
+        for album_image in album["images"]:
+            url = album_image['url']
+            width = album_image['width']
+            height = album_image['height']
+
+            external_image_id: int | None = None
+
+            for external_image in external_images_in_db:
+                if external_image.url == url:
+                    external_image_id = external_image.id
+                    break
+            else:
+                external_image_public_id = create_id()
+                external_image_to_add = ExternalImageRow(
+                    public_id=external_image_public_id, url=url, width=width, height=height)
+
+                external_image_to_add: ExternalImageRow = session.merge(
+                    external_image_to_add)
+                session.flush()
+
+                external_image_id = external_image_to_add.id
+
+                external_images_in_db.append(external_image_to_add)
+
+            stmt = insert(album_external_images).values(
+                album_id=album_id,
+                external_image_id=external_image_id
+            ).on_conflict_do_nothing()
+            session.execute(stmt)
+
+    session.commit()
 
 
 def add_songs():
 
     cursor.execute("SELECT id,name,artists,genres,discNumber,albumName,albumArtist,albumType,albumId,isrc,duration,date,trackNumber,publisher,path,images,image,copyright,downloadUrl,lyrics,dynamicLyrics,popularity,dateAdded FROM song")
     songs = cursor.fetchall()
-
-    songs_in_db = session.query(SongRow).all()
 
     # Get list of songs without isrc that are not in the database.
     # Songs in database are skipped because they already have an isrc.
@@ -495,7 +506,6 @@ def add_songs():
     logger.info(f"Songs without ISRC: {len(songs_without_isrc)}")
 
     missing_albums = set()
-    albums_in_db = [a.id for a in session.query(AlbumRow).all()]
     for song in songs:
         album_id = song[8]
         if album_id is None or album_id == "":
@@ -503,7 +513,7 @@ def add_songs():
                 f"Skipping song {song[0]} with empty album_id")
             continue
 
-        if album_id not in missing_albums and album_id not in albums_in_db:
+        if album_id not in missing_albums and album_id:
             missing_albums.add(album_id)
 
     missing_albums = list(missing_albums)
@@ -515,21 +525,13 @@ def add_songs():
 
     songs_isrc: Dict[str, str] = {}
 
-    for k in range(math.ceil(len(songs_without_isrc)/100)):
-        response = api_call(
-            path=f"tracks", params={"ids": ",".join(songs_without_isrc[k*100:(k + 1)*100])})
-
-        if not response:
-            logger.error("Response is None")
-            continue
-
-        for track in response["tracks"]:
-            songs_isrc[track["id"]] = track["external_ids"]["isrc"]
+    for k in get_spotify_data(songs_without_isrc, "track"):
+        songs_isrc[k["id"]] = k["external_ids"]["isrc"]
 
     with open("db/songs_isrc.json", "w") as f:
         json.dump(songs_isrc, f, indent=4)
 
-    for song in songs:
+    for song in tqdm(songs, desc="Adding songs"):
         id = song[0]
         name = song[1]
         artists = json.loads(song[2])
@@ -538,7 +540,7 @@ def add_songs():
         album_name = song[5]
         album_artist = json.loads(song[6])
         album_type = song[7]
-        album_id = song[8]
+        album_public_id = song[8]
         isrc = song[9]
         duration = song[10]
         date = song[11]
@@ -546,7 +548,7 @@ def add_songs():
         publisher = song[13]
         path = song[14]
         external_images = json.loads(song[15])
-        internal_image_id = song[16]
+        internal_image_public_id = song[16]
         copyright = song[17]
         download_url = song[18]
         lyrics = song[19]
@@ -554,7 +556,18 @@ def add_songs():
         popularity = song[21]
 
         artists_to_add.extend(artists)
-        song_artists_list.extend([(id, artist["id"]) for artist in artists])
+
+        found = False
+        for song_in_db in songs_in_db:
+            if song_in_db.public_id == id:
+                found = True
+
+                song_artists_list.extend(
+                    [(song_in_db.id, artist["id"]) for artist in artists])
+                break
+
+        if found:
+            continue
 
         if isrc == "" or isrc is None:
             if id in songs_isrc:
@@ -563,13 +576,19 @@ def add_songs():
                 logger.error(f"Skipping song {id} with empty ISRC")
                 continue
 
-        # if id == "2h6HdN3oPr4JijIQV29hv1":
-        #     logger.info("Skipping song with id 2h6HdN3oPr4JijIQV29hv1 beacause is repeated in production database")
-        #     continue
+        internal_image_id: int | None = None
+        for k in internal_images_in_db:
+            if k.public_id == internal_image_public_id:
+                internal_image_id = k.id
+                break
 
-        # logger.info(f"Adding song: {name} - {album_name}")
+        album_id: int | None = None
+        for album in albums_in_db:
+            if album.public_id == album_public_id:
+                album_id = album.id
+                break
 
-        song_to_add = Song(
+        song_to_add = SongRow(
             public_id=id,
             name=name,
             duration=duration,
@@ -585,37 +604,69 @@ def add_songs():
             dynamic_lyrics=dynamic_lyrics
         )
 
-        session.merge(song_to_add)
+        song_to_add = session.merge(song_to_add)
+        songs_in_db.append(song_to_add)
+
+        song_artists_list.extend(
+            [(song_to_add.id, artist["id"]) for artist in artists])
 
     session.commit()
-    logger.info("Added all songs.")
+    logger.info("Added all songs and external images.")
 
 
 def add_playlists():
 
-    songs_in_db = session.query(Song).all()
     songs_in_db_id = {song.id for song in songs_in_db}
 
     cursor.execute(
         "SELECT id,images,name,description,owner,followers,songs,image,updatedAt,createdAt FROM playlist")
     playlists = cursor.fetchall()
 
-    for playlist in playlists:
-        id = playlist[0]
+    for playlist in tqdm(playlists, desc="Adding playlists"):
+        public_id = playlist[0]
         external_images = json.loads(playlist[1])
         name = playlist[2]
         description = playlist[3]
         owner = playlist[4]
         followers = playlist[5]
         songs = json.loads(playlist[6])
-        internal_image_id = playlist[7]
+        internal_image_public_id = playlist[7]
         updated_at = playlist[8]
         created_at = playlist[9]
 
-        # logger.info(f"Adding playlist: {name} with id: {id}")
+        # Get int id of list. If it does not exist, create it.
+        playlist_id: int | None = None
 
-        playlist_to_add = Playlist(
-            public_id=id,
+        for list_in_db in lists_in_db:
+            if list_in_db.public_id == public_id:
+                playlist_id = list_in_db.id
+                break
+
+        if not playlist_id:
+            list_to_add = ListRow(
+                type="album",
+                public_id=public_id
+            )
+
+            list_to_add: ListRow = session.merge(list_to_add)
+            session.flush()
+
+            playlist_id: int | None = list_to_add.id
+
+        if not playlist_id:
+            logger.error(
+                f"Failed to get alplaylist_idbum_id for album {public_id}")
+            continue
+
+        internal_image_id: int | None = None
+        for k in internal_images_in_db:
+            if k.public_id == internal_image_public_id:
+                internal_image_id = k.id
+                break
+
+        playlist_to_add = PlaylistRow(
+            id=playlist_id,
+            public_id=public_id,
             name=name,
             description=description,
             owner=owner,
@@ -629,38 +680,40 @@ def add_playlists():
             width = k['width']
             height = k['height']
 
-            external_image_id: str | None = None
+            external_image_id: int | None = None
 
-            if url in [image[1] for image in external_images_in_db]:
-                # logger.info(f"External image already exists in DB: {url}")
-                for k in external_images_in_db:
-                    if k[1] == url:
-                        external_image_id = k[0]
-                        break
+            for external_image in external_images_in_db:
+                if external_image.url == url:
+                    external_image_id = external_image.id
+                    break
+
             else:
-                external_image_id = create_id()
-                external_image_to_add = ExternalImage(
-                    public_id=external_image_id, url=url, width=width, height=height)
+                external_image_public_id = create_id()
+                external_image_to_add = ExternalImageRow(
+                    public_id=external_image_public_id, url=url, width=width, height=height)
 
-                external_images_in_db.append((external_image_id, url))
-
-                logger.info(
-                    f"Adding external image {external_image_id} to playlist: {name}")
-
-                session.merge(external_image_to_add)
+                external_image_to_add: ExternalImageRow = session.merge(
+                    external_image_to_add)
                 session.flush()
+                external_images_in_db.append(external_image_to_add)
 
-            stmt: Insert = insert(playlist_external_images).values(
-                playlist_id=id,
+                external_image_id = external_image_to_add.id
+
+            stmt = insert(playlist_external_images).values(
+                playlist_id=playlist_id,
                 external_image_id=external_image_id
             ).on_conflict_do_nothing()
-            # logger.info(
-            #     f"Adding external image to playlist_external_images: {id=} {external_image_id=}")
             session.execute(stmt)
 
         for song in songs:
-            song_id = song['id']
+            song_public_id = song['id']
             added_at = song['added_at']
+
+            song_id: int | None = None
+            for song_in_db in songs_in_db:
+                if song_in_db.public_id == song_public_id:
+                    song_id = song_in_db.id
+                    break
 
             # dt = datetime.strptime(added_at, "%Y-%m-%dT%H:%M:%SZ")
 
@@ -676,7 +729,7 @@ def add_playlists():
                 continue
 
             stmt: Insert = insert(playlist_songs).values(
-                playlist_id=id,
+                playlist_id=playlist_id,
                 song_id=song_id,
                 added_by=None,
                 date_added=formatted,
@@ -700,105 +753,112 @@ def add_artists():
     unique_artists = list(unique_artists)
     unique_artists.sort()
 
-    genres_in_db = session.query(Genre).all()
-    genres_in_db = [(str(genre.id), str(genre.name)) for genre in genres_in_db]
+    genres_in_db = session.query(GenreRow).all()
 
-    artists_in_db = session.query(Artist).all()
+    artists_in_db = session.query(ArtistRow).all()
     unique_artists = [artist for artist in unique_artists if artist not in [
-        a.id for a in artists_in_db]]
+        a.public_id for a in artists_in_db]]
 
     logger.info(f"Unique artists to add: {len(unique_artists)}")
 
-    for k in range(math.ceil(len(unique_artists)/50)):
-        response = api_call(
-            path=f"artists", params={"ids": ",".join(unique_artists[k*50:(k + 1)*50])})
+    for artist in tqdm(get_spotify_data(unique_artists, "artist"), desc="Downloading artists data"):
 
-        if not response:
-            logger.error("Response is None")
+        found = False
+        for artist_in_db in artists_in_db:
+            if artist_in_db.public_id == artist["id"]:
+                logger.error(f"This sould not happen {artist=}")
+                found = True
+                break
+
+        if found:
             continue
 
-        for artist in response["artists"]:
-            artist_to_add = Artist(
-                public_id=artist["id"],
-                name=artist["name"],
-                followers=artist["followers"]["total"],
-                popularity=artist["popularity"]
-            )
+        artist_to_add = ArtistRow(
+            public_id=artist["id"],
+            name=artist["name"],
+            followers=artist["followers"]["total"],
+            popularity=artist["popularity"]
+        )
 
-            session.merge(artist_to_add)
+        artist_to_add = session.merge(artist_to_add)
+        artists_in_db.append(artist_to_add)
+        session.flush()
+
+        for image in artist["images"]:
+            url = image["url"]
+            width = image["width"]
+            height = image["height"]
+
+            external_image_public_id: str | None = None
+
+            for external_image in external_images_in_db:
+                if external_image.url == url:
+                    external_image_id = external_image.id
+                    break
+
+            else:
+                external_image_public_id = create_id()
+                external_image_to_add = ExternalImageRow(
+                    public_id=external_image_public_id, url=url, width=width, height=height)
+
+                external_image_to_add: ExternalImageRow = session.merge(
+                    external_image_to_add)
+                session.flush()
+                external_images_in_db.append(external_image_to_add)
+
+                external_image_id = external_image_to_add.id
+
+            stmt = insert(artist_external_images).values(
+                artist_id=artist_to_add.id,
+                external_image_id=external_image_id
+            ).on_conflict_do_nothing()
+            session.execute(stmt)
+
+        for genre in artist["genres"]:
+
+            genre_id: int | None = None
+            for genre_in_db in genres_in_db:
+                if genre_in_db.name == genre:
+                    genre_id = genre_in_db.id
+                    break
+            else:
+                genre_to_add = GenreRow(
+                    public_id=create_id(),
+                    name=genre
+                )
+                genre_to_add = session.merge(genre_to_add)
+                session.flush()
+                genres_in_db.append(genre_to_add)
+                genre_id = genre_to_add.id
+
+            stmt = insert(artist_genres).values(
+                artist_id=artist_to_add.id,
+                genre_id=genre_id
+            ).on_conflict_do_nothing()
+            session.execute(stmt)
             session.flush()
 
-            for image in artist["images"]:
-                url = image["url"]
-                width = image["width"]
-                height = image["height"]
+    session.commit()
 
-                external_image_id: str | None = None
-
-                if url in [url for _, url in external_images_in_db]:
-                    # logger.info(f"External image already exists in DB: {url}")
-                    for k in external_images_in_db:
-                        if k[1] == url:
-                            external_image_id = k[0]
-                            break
-                else:
-                    external_image_id = create_id()
-                    external_image_to_add = ExternalImage(
-                        public_id=external_image_id, url=url, width=width, height=height)
-
-                    external_images_in_db.append((external_image_id, url))
-
-                    # logger.info(
-                    #     f"Adding external image {external_image_id} to artist: {artist['name']}")
-
-                    session.merge(external_image_to_add)
-                    session.flush()
-
-                stmt = insert(artist_external_images).values(
-                    artist_id=artist["id"],
-                    external_image_id=external_image_id
-                ).on_conflict_do_nothing()
-                session.execute(stmt)
-
-            for genre in artist["genres"]:
-
-                genre_id: str | None = None
-                if genre in [g[1] for g in genres_in_db]:
-                    genre_id = next((
-                        str(g[0]) for g in genres_in_db if g[1] == genre), None)
-                else:
-                    genre_id = create_id(20)
-                    genre_to_add = Genre(id=genre_id, name=genre)
-                    session.merge(genre_to_add)
-                    session.flush()
-
-                    genres_in_db.append((genre_id, genre))
-
-                if genre_id is None:
-                    logger.error(
-                        f"Skipping genre {genre} for artist {artist['id']} because it does not exist in the database")
-                    continue
-
-                stmt = insert(artist_genres).values(
-                    artist_id=artist["id"],
-                    genre_id=genre_id
-                ).on_conflict_do_nothing()
-                session.execute(stmt)
-                session.flush()
-
-        session.commit()
-        # break
+    logger.info("Added all artists and their external images and genres.")
 
 
 def add_song_artists():
 
-    artists_in_db = session.query(Artist).all()
+    artists_in_db = session.query(ArtistRow).all()
 
-    for song_id, artist_id in song_artists_list:
-        if not any(artist.id == artist_id for artist in artists_in_db):
+    logger.info(f"Adding {len(song_artists_list)} song artists...")
+
+    for song_id, artist_public_id in tqdm(song_artists_list, desc="Adding song artists"):
+        for artist_in_db in artists_in_db:
+            if artist_in_db.public_id == artist_public_id:
+                artist_id = artist_in_db.id
+                break
+        else:
             logger.error(
-                f"Skipping song {song_id} with artist {artist_id} because artist does not exist in the database")
+                f"Skipping album {song_id} with artist {artist_public_id} because artist does not exist in the database")
             continue
+
         stmt = insert(song_artists).values(
             song_id=song_id,
             artist_id=artist_id
@@ -809,12 +869,19 @@ def add_song_artists():
 
 
 def add_album_artists():
-    artists_in_db = session.query(Artist).all()
+    artists_in_db = session.query(ArtistRow).all()
 
-    for album_id, artist_id in album_artists_list:
-        if not any(artist.id == artist_id for artist in artists_in_db):
+    logger.info(f"Adding {len(album_artists_list)} album artists...")
+
+    for album_id, artist_public_id in tqdm(album_artists_list, desc="Adding album artists"):
+
+        for artist_in_db in artists_in_db:
+            if artist_in_db.public_id == artist_public_id:
+                artist_id = artist_in_db.id
+                break
+        else:
             logger.error(
-                f"Skipping song {album_id} with artist {artist_id} because artist does not exist in the database")
+                f"Skipping album {album_id} with artist {artist_public_id} because artist does not exist in the database")
             continue
 
         stmt = insert(album_artists).values(
@@ -827,9 +894,9 @@ def add_album_artists():
 
 
 if __name__ == "__main__":
-    add_internal_images()
-    add_albums()
-    add_songs()
+    # add_internal_images()
+    # add_albums()
+    # add_songs()
     # add_playlists()
     # add_artists()
     # add_song_artists()

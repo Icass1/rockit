@@ -60,6 +60,14 @@
       "runtimeExecutable": "node",
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "name": "DB Migration Script",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/db/dbMigration.py",
+      "console": "integratedTerminal",
+      "justMyCode": true
     }
   ]
 }

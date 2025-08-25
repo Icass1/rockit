@@ -21,6 +21,7 @@ google-api-core==2.23.0
 google-auth==2.36.0
 google-auth-httplib2==0.2.0
 googleapis-common-protos==1.65.0
+greenlet==3.2.4
 h11==0.16.0
 httplib2==0.22.0
 httptools==0.6.4
@@ -39,6 +40,7 @@ pillow==11.0.0
 platformdirs==4.3.7
 proto-plus==1.25.0
 protobuf==5.28.3
+psycopg2-binary==2.9.10
 pyasn1==0.6.1
 pyasn1_modules==0.4.1
 pydantic==2.11.4
@@ -58,6 +60,7 @@ requirements-parser==0.11.0
 rich==13.9.4
 rich-toolkit==0.14.6
 rsa==4.9
+setuptools==80.9.0
 shellingham==1.5.4
 simple-websocket==1.1.0
 six==1.17.0
@@ -66,6 +69,7 @@ soundcloud-v2==1.6.0
 soupsieve==2.7
 spotdl==4.2.8
 spotipy==2.25.1
+SQLAlchemy==2.0.42
 starlette==0.27.0
 syncedlyrics==1.0.1
 text-unidecode==1.3

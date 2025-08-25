@@ -1,10 +1,10 @@
 
 import asyncio
+import threading
+import traceback
 from logging import Logger
 from typing import Dict, List, Tuple
-
 from fastapi import BackgroundTasks, Request
-import threading
 from spotdl.download.downloader import Downloader as SpotdlDownloader
 
 
@@ -94,32 +94,51 @@ class Downloader:
             "Should clean downloads_ids_dict and downloads_dict")
 
     async def download_manager(self):
+        # ******************
+        # **** To check ****
+        # ******************
         try:
             self.logger.info("Started")
             while True:
                 await asyncio.sleep(0.4)
 
-                for thread in self.download_threads:
-                    if not thread[0].is_alive():
-                        self.logger.info("Thread has finished")
-                        self.download_threads.remove(thread)
+                # Clean up finished threads
+                for thread, queue_item in self.download_threads.copy():
+                    if not thread.is_alive():
+                        self.logger.info(f"Thread {thread.name} has finished")
+                        self.download_threads.remove((thread, queue_item))
 
+                # Start new threads if below max
                 while len(self.download_threads) < self.max_download_threads and len(self.queue) > 0:
                     self.logger.info("Starting new thread")
-
                     self.logger.info(f"{threading.enumerate()=}")
 
+                    queue_item: QueueElement = self.queue[0]
+
+                    def thread_target(item: QueueElement):
+                        try:
+                            # Set up a timer for 10 minutes
+                            timer = threading.Timer(interval=600, function=lambda: self.logger.error(
+                                f"Download timeout for {item.get_song().song_id}"))
+                            timer.start()
+                            try:
+                                self.download_method(queue_element=item)
+                            finally:
+                                timer.cancel()
+                        except Exception as e:
+                            self.logger.error(
+                                f"Download failed for {item.get_song().song_id}: {e}")
+                            self.logger.debug(traceback.format_exc())
+
                     thread = threading.Thread(
-                        target=self.download_method, args=(self.queue[0],), name=f"Downloader-{self.queue[0].get_song().song_id}")
-
+                        target=thread_target,
+                        args=(queue_item,),
+                        name=f"Downloader-{queue_item.get_song().song_id}"
+                    )
                     thread.start()
-                    self.download_threads.append((thread, self.queue[0]))
-
+                    self.download_threads.append((thread, queue_item))
                     self.queue.pop(0)
 
-                # for index, queue_element in enumerate(self.queue):
-                #     queue_element.get_message_handler().add(
-                #         message={'id': queue_element.get_song().song_id, 'queue': index + 1})
-
         except Exception as e:
-            self.logger.critical(f"Error {e}")
+            self.logger.critical(f"Error in download manager: {e}")
+            self.logger.debug(traceback.format_exc())

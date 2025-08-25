@@ -15,14 +15,26 @@ from backend.db.ormModels.song import SongRow
 from backend.db.ormModels.list import ListRow
 from backend.db.ormModels.user import UserRow
 
+
 class RockitDB:
     def __init__(self):
-
+        """
+        Initialize the RockitDB instance and create a database session.
+        """
         engine = create_engine(
             "postgresql://admin:admin@12.12.12.3:5432/development?sslmode=disable", echo=False)
         Base.metadata.create_all(engine)
 
-
-
-
         self.session = Session(engine)
+
+    def get_session(self) -> Session:
+        """
+        Get the current database session.
+        """
+        return self.session
+
+    def close_session(self) -> None:
+        """
+        Close the current database session.
+        """
+        self.session.close()

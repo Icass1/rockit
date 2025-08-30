@@ -28,16 +28,16 @@ class SongRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     duration: Mapped[int] = mapped_column(Integer, nullable=False)
     track_number: Mapped[int] = mapped_column(Integer, nullable=False)
     disc_number: Mapped[int] = mapped_column(Integer, nullable=False)
-    popularity: Mapped[int] = mapped_column(Integer)
-    internal_image_id: Mapped[int] = mapped_column(Integer, ForeignKey(
+    popularity: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    internal_image_id: Mapped[int | None] = mapped_column(Integer, ForeignKey(
         'main.internal_images.id'), nullable=True)
-    path: Mapped[str] = mapped_column(String)
+    path: Mapped[str | None] = mapped_column(String, nullable=True)
     album_id: Mapped[int] = mapped_column(Integer, ForeignKey(
         'main.albums.id'), nullable=False)
     isrc: Mapped[str] = mapped_column(String, nullable=False, unique=False)
-    download_url: Mapped[str] = mapped_column(String)
-    lyrics: Mapped[str] = mapped_column(Text)
-    dynamic_lyrics: Mapped[str] = mapped_column(Text)
+    download_url: Mapped[str | None] = mapped_column(String, nullable=True)
+    lyrics: Mapped[str | None] = mapped_column(Text, nullable=True)
+    dynamic_lyrics: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     artists: Mapped[List["ArtistRow"]] = relationship(
         "ArtistRow", secondary=song_artists, back_populates="songs")
@@ -46,7 +46,7 @@ class SongRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
         "PlaylistRow", secondary=playlist_songs, back_populates="songs"
     )
 
-    internal_image: Mapped["InternalImageRow"] = relationship(
+    internal_image: Mapped["InternalImageRow | None"] = relationship(
         'InternalImageRow', back_populates='songs', foreign_keys=[internal_image_id])
     album: Mapped["AlbumRow"] = relationship(
         "AlbumRow", back_populates="songs")

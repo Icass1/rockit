@@ -21,8 +21,8 @@ class ExternalImageRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAd
 
     public_id: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     url: Mapped[str] = mapped_column(String, nullable=False, unique=True)
-    width: Mapped[int] = mapped_column(Integer, nullable=True)
-    height: Mapped[int] = mapped_column(Integer, nullable=True)
+    width: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    height: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     albums: Mapped[List["AlbumRow"]] = relationship(
         "AlbumRow",

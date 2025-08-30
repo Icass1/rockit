@@ -22,14 +22,14 @@ class PlaylistRow(Base, TableDateUpdated, TableDateAdded):
     id: Mapped[int] = mapped_column(
         Integer, ForeignKey('lists.id'), primary_key=True)
     public_id: Mapped[int] = mapped_column(String, nullable=False, unique=True)
-    internal_image_id: Mapped[int] = mapped_column(Integer, ForeignKey(
+    internal_image_id: Mapped[int | None] = mapped_column(Integer, ForeignKey(
         'main.internal_images.id'), nullable=True)
     name: Mapped[int] = mapped_column(String, nullable=False)
     owner: Mapped[int] = mapped_column(String, nullable=False)
     followers: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    description: Mapped[int] = mapped_column(Text, nullable=True)
+    description: Mapped[int | None] = mapped_column(Text, nullable=True)
 
-    internal_image: Mapped["InternalImageRow"] = relationship(
+    internal_image: Mapped["InternalImageRow | None"] = relationship(
         'InternalImageRow', back_populates='playlists', foreign_keys=[internal_image_id])
 
     external_images: Mapped[List["ExternalImageRow"]] = relationship(
@@ -42,9 +42,6 @@ class PlaylistRow(Base, TableDateUpdated, TableDateAdded):
         secondary=playlist_songs,
         back_populates="playlists"
     )
-
-    internal_image: Mapped["InternalImageRow"] = relationship(
-        'InternalImageRow', back_populates='playlists', foreign_keys=[internal_image_id])
 
     list: Mapped["ListRow"] = relationship(
         "ListRow", back_populates="playlist", uselist=False)

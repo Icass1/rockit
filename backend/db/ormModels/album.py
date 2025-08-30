@@ -27,7 +27,7 @@ class AlbumRow(Base, TableDateUpdated, TableDateAdded):
         "main.internal_images.id"), nullable=False)
     name: Mapped[str] = mapped_column(String, nullable=False)
     release_date: Mapped[str] = mapped_column(String, nullable=False)
-    popularity: Mapped[int] = mapped_column(Integer)
+    popularity: Mapped[int | None] = mapped_column(Integer)
     disc_count: Mapped[int] = mapped_column(Integer, nullable=False)
 
     # ORM relationship

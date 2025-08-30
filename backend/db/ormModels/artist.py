@@ -23,10 +23,10 @@ class ArtistRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     __table_args__ = {'schema': 'main', 'extend_existing': True},
 
     public_id: Mapped[str] = mapped_column(String, nullable=False, unique=True)
-    name: Mapped[str] = mapped_column(String)
+    name: Mapped[str | None] = mapped_column(String)
     followers: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     popularity: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    internal_image_id: Mapped[int] = mapped_column(Integer, ForeignKey(
+    internal_image_id: Mapped[int | None] = mapped_column(Integer, ForeignKey(
         'main.internal_images.id'), nullable=True)
 
     songs: Mapped[List["SongRow"]] = relationship("SongRow", secondary=song_artists,

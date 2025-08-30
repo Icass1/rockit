@@ -26,7 +26,7 @@
       "args": [
         "backend.main:app",
       ],
-      "justMyCode": false
+      "justMyCode": true
     },
     {
       "name": "FastAPI Uvicorn (DEBUG)",
@@ -37,7 +37,7 @@
         "backend.main:app",
         "--reload"
       ],
-      "justMyCode": false
+      "justMyCode": true
     },
     {
       "name": "NextJS Server",

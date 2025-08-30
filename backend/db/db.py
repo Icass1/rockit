@@ -1,5 +1,7 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import Session
+from contextlib import contextmanager
+from typing import Generator, Callable, TypeVar
+from sqlalchemy.orm import Session, sessionmaker
 
 from backend.db.base import Base
 
@@ -14,27 +16,55 @@ from backend.db.ormModels.error import ErrorRow
 from backend.db.ormModels.song import SongRow
 from backend.db.ormModels.list import ListRow
 from backend.db.ormModels.user import UserRow
+from backend.logger import getLogger
+
+T = TypeVar("T")
 
 
 class RockitDB:
-    def __init__(self):
+    def __init__(self, username: str, password: str, host: str, port: int, database: str, verbose: bool = False):
         """
         Initialize the RockitDB instance and create a database session.
         """
-        engine = create_engine(
-            "postgresql://admin:admin@12.12.12.3:5432/development?sslmode=disable", echo=False)
-        Base.metadata.create_all(engine)
+        self.database: str = database
 
-        self.session = Session(engine)
+        self.logger = getLogger(__name__, "RockitDB")
+
+        self.engine = create_engine(
+            f"postgresql://{username}:{password}@{host}:{port}/{self.database}?sslmode=disable", echo=verbose)
+        Base.metadata.create_all(self.engine)
+
+        self.SessionLocal = sessionmaker(
+            bind=self.engine, expire_on_commit=False)
 
     def get_session(self) -> Session:
         """
-        Get the current database session.
+        Create a new database session. 
+        Must be closed by the caller.
         """
-        return self.session
+        return self.SessionLocal()
 
-    def close_session(self) -> None:
+    def close(self) -> None:
         """
-        Close the current database session.
+        Dispose of the engine (optional cleanup).
         """
-        self.session.close()
+        self.engine.dispose()
+
+    @contextmanager
+    def session_scope(self) -> Generator[Session, None, None]:
+        """Provide a transactional scope around a series of operations."""
+        session = self.get_session()
+        try:
+            yield session
+            session.commit()
+        except Exception as e:
+            self.logger.error(f"Error executing query ({e}). Rolling back...")
+            session.rollback()
+            raise
+        finally:
+            session.close()
+
+    def execute_with_session(self, func: Callable[[Session], T]) -> T:
+        """Execute a function with a session, auto-closing and rolling back on errors."""
+        with self.session_scope() as session:
+            return func(session)

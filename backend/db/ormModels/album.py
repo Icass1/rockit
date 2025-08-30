@@ -27,7 +27,7 @@ class AlbumRow(Base, TableDateUpdated, TableDateAdded):
         "main.internal_images.id"), nullable=False)
     name: Mapped[str] = mapped_column(String, nullable=False)
     release_date: Mapped[str] = mapped_column(String, nullable=False)
-    popularity: Mapped[int | None] = mapped_column(Integer)
+    popularity: Mapped[int] = mapped_column(Integer, nullable=False)
     disc_count: Mapped[int] = mapped_column(Integer, nullable=False)
 
     # ORM relationship
@@ -49,14 +49,14 @@ class AlbumRow(Base, TableDateUpdated, TableDateAdded):
     list: Mapped["ListRow"] = relationship(
         "ListRow", back_populates="album", uselist=False)
 
-    def __init__(self, id: int, public_id: str, internal_image_id: int, name: str, release_date: str, disc_count: int, popularity: int | None = None):
+    def __init__(self, id: int, public_id: str, internal_image_id: int, name: str, release_date: str, popularity: int, disc_count: int):
         kwargs = {}
         kwargs['id'] = id
         kwargs['public_id'] = public_id
         kwargs['internal_image_id'] = internal_image_id
         kwargs['name'] = name
         kwargs['release_date'] = release_date
-        kwargs['disc_count'] = disc_count
         kwargs['popularity'] = popularity
+        kwargs['disc_count'] = disc_count
         for k, v in kwargs.items():
             setattr(self, k, v)

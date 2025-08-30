@@ -23,9 +23,9 @@ class ArtistRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     __table_args__ = {'schema': 'main', 'extend_existing': True},
 
     public_id: Mapped[str] = mapped_column(String, nullable=False, unique=True)
-    name: Mapped[str | None] = mapped_column(String)
-    followers: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    popularity: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    name: Mapped[str] = mapped_column(String, nullable=False)
+    followers: Mapped[int] = mapped_column(Integer, nullable=False)
+    popularity: Mapped[int] = mapped_column(Integer, nullable=False)
     internal_image_id: Mapped[int] = mapped_column(Integer, ForeignKey(
         'main.internal_images.id'), nullable=False)
 
@@ -48,12 +48,12 @@ class ArtistRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
         back_populates="artists"
     )
 
-    def __init__(self, public_id: str, internal_image_id: int, name: str | None = None, followers: int = 0, popularity: int = 0):
+    def __init__(self, public_id: str, name: str, followers: int, popularity: int, internal_image_id: int):
         kwargs = {}
         kwargs['public_id'] = public_id
-        kwargs['internal_image_id'] = internal_image_id
         kwargs['name'] = name
         kwargs['followers'] = followers
         kwargs['popularity'] = popularity
+        kwargs['internal_image_id'] = internal_image_id
         for k, v in kwargs.items():
             setattr(self, k, v)

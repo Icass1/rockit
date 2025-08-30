@@ -1,4 +1,4 @@
-from typing import List, TYPE_CHECKING
+from typing import Final, Literal, TYPE_CHECKING
 
 from sqlalchemy import Enum, String
 from sqlalchemy.orm import relationship, mapped_column, Mapped
@@ -14,12 +14,23 @@ if TYPE_CHECKING:
     from backend.db.ormModels.playlist import PlaylistRow
 
 
+LIST_TYPES: Final[tuple[str, ...]] = (
+    "album",
+    "playlist"
+)
+
+LIST_TYPE_TYPE = Literal[
+    "album",
+    "playlist"
+]
+
+
 class ListRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     __tablename__ = 'lists'
     __table_args__ = {'schema': 'main', 'extend_existing': True},
 
-    type: Mapped[str] = mapped_column(Enum("album", "playlist", name="type_enum",
-                                           schema="main"), nullable=False, unique=False)
+    type: Mapped[LIST_TYPE_TYPE] = mapped_column(Enum(*LIST_TYPES, name="type_enum",
+                                                      schema="main"), nullable=False, unique=False)
     public_id: Mapped[str] = mapped_column(String, nullable=False, unique=True)
 
     # Relationships
@@ -34,7 +45,7 @@ class ListRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     users: Mapped["UserRow"] = relationship(
         "UserRow", secondary=user_lists, back_populates="lists")
 
-    def __init__(self, type: str, public_id: str):
+    def __init__(self, type: LIST_TYPE_TYPE, public_id: str):
         kwargs = {}
         kwargs['type'] = type
         kwargs['public_id'] = public_id

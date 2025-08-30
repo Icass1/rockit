@@ -20,3 +20,10 @@ class GenreRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
 
     artists: Mapped[List["ArtistRow"]] = relationship(
         "ArtistRow", secondary=artist_genres, back_populates="genres")
+
+    def __init__(self, public_id: str, name: str):
+        kwargs = {}
+        kwargs['public_id'] = public_id
+        kwargs['name'] = name
+        for k, v in kwargs.items():
+            setattr(self, k, v)

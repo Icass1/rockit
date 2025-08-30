@@ -52,3 +52,17 @@ class DownloadRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
 
     user: Mapped["UserRow"] = relationship("UserRow", back_populates="downloads",
                                            foreign_keys=[user_id])
+
+    def __init__(self, public_id: str, user_id: int, date_started: datetime, download_url: str, date_ended: datetime | None = None, status: STATUS_TYPE = "pending", seen: bool = False, success: int | None = None, fail: int | None = None):
+        kwargs = {}
+        kwargs['public_id'] = public_id
+        kwargs['user_id'] = user_id
+        kwargs['date_started'] = date_started
+        kwargs['download_url'] = download_url
+        kwargs['date_ended'] = date_ended
+        kwargs['status'] = status
+        kwargs['seen'] = seen
+        kwargs['success'] = success
+        kwargs['fail'] = fail
+        for k, v in kwargs.items():
+            setattr(self, k, v)

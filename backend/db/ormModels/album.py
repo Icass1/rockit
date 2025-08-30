@@ -48,3 +48,15 @@ class AlbumRow(Base, TableDateUpdated, TableDateAdded):
 
     list: Mapped["ListRow"] = relationship(
         "ListRow", back_populates="album", uselist=False)
+
+    def __init__(self, id: int, public_id: str, internal_image_id: int, name: str, release_date: str, disc_count: int, popularity: int | None = None):
+        kwargs = {}
+        kwargs['id'] = id
+        kwargs['public_id'] = public_id
+        kwargs['internal_image_id'] = internal_image_id
+        kwargs['name'] = name
+        kwargs['release_date'] = release_date
+        kwargs['disc_count'] = disc_count
+        kwargs['popularity'] = popularity
+        for k, v in kwargs.items():
+            setattr(self, k, v)

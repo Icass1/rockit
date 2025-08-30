@@ -33,3 +33,10 @@ class ListRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
 
     users: Mapped["UserRow"] = relationship(
         "UserRow", secondary=user_lists, back_populates="lists")
+
+    def __init__(self, type: str, public_id: str):
+        kwargs = {}
+        kwargs['type'] = type
+        kwargs['public_id'] = public_id
+        for k, v in kwargs.items():
+            setattr(self, k, v)

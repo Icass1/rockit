@@ -27,3 +27,17 @@ class ErrorRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
 
     user: Mapped["UserRow | None"] = relationship("UserRow", back_populates="errors",
                                                   foreign_keys=[user_id])
+
+    def __init__(self, user_id: int | None = None, message: str | None = None, source: str | None = None, line_no: int | None = None, column_no: int | None = None, error_message: str | None = None, error_cause: str | None = None, error_name: str | None = None, error_stack: str | None = None):
+        kwargs = {}
+        kwargs['user_id'] = user_id
+        kwargs['message'] = message
+        kwargs['source'] = source
+        kwargs['line_no'] = line_no
+        kwargs['column_no'] = column_no
+        kwargs['error_message'] = error_message
+        kwargs['error_cause'] = error_cause
+        kwargs['error_name'] = error_name
+        kwargs['error_stack'] = error_stack
+        for k, v in kwargs.items():
+            setattr(self, k, v)

@@ -29,8 +29,8 @@ class SongRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     track_number: Mapped[int] = mapped_column(Integer, nullable=False)
     disc_number: Mapped[int] = mapped_column(Integer, nullable=False)
     popularity: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    internal_image_id: Mapped[int | None] = mapped_column(Integer, ForeignKey(
-        'main.internal_images.id'), nullable=True)
+    internal_image_id: Mapped[int] = mapped_column(Integer, ForeignKey(
+        'main.internal_images.id'), nullable=False)
     path: Mapped[str | None] = mapped_column(String, nullable=True)
     album_id: Mapped[int] = mapped_column(Integer, ForeignKey(
         'main.albums.id'), nullable=False)
@@ -58,3 +58,21 @@ class SongRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
         "UserRow", secondary=user_liked_songs, back_populates="liked_songs")
     queued_by_users: Mapped[List["UserRow"]] = relationship(
         "UserRow", secondary=user_queue_songs, back_populates="queue_songs")
+
+    def __init__(self, public_id: str, name: str, duration: int, track_number: int, disc_number: int, internal_image_id: int, album_id: int, isrc: str, popularity: int | None = None, path: str | None = None, download_url: str | None = None, lyrics: str | None = None, dynamic_lyrics: str | None = None):
+        kwargs = {}
+        kwargs['public_id'] = public_id
+        kwargs['name'] = name
+        kwargs['duration'] = duration
+        kwargs['track_number'] = track_number
+        kwargs['disc_number'] = disc_number
+        kwargs['internal_image_id'] = internal_image_id
+        kwargs['album_id'] = album_id
+        kwargs['isrc'] = isrc
+        kwargs['popularity'] = popularity
+        kwargs['path'] = path
+        kwargs['download_url'] = download_url
+        kwargs['lyrics'] = lyrics
+        kwargs['dynamic_lyrics'] = dynamic_lyrics
+        for k, v in kwargs.items():
+            setattr(self, k, v)

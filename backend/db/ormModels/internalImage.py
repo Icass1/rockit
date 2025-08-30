@@ -29,3 +29,11 @@ class InternalImageRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAd
         "PlaylistRow", back_populates="internal_image")
     artists: Mapped[List["ArtistRow"]] = relationship(
         "ArtistRow", back_populates="internal_image")
+
+    def __init__(self, public_id: str, url: str, path: str):
+        kwargs = {}
+        kwargs['public_id'] = public_id
+        kwargs['url'] = url
+        kwargs['path'] = path
+        for k, v in kwargs.items():
+            setattr(self, k, v)

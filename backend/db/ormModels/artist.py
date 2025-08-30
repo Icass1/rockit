@@ -26,8 +26,8 @@ class ArtistRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     name: Mapped[str | None] = mapped_column(String)
     followers: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     popularity: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    internal_image_id: Mapped[int | None] = mapped_column(Integer, ForeignKey(
-        'main.internal_images.id'), nullable=True)
+    internal_image_id: Mapped[int] = mapped_column(Integer, ForeignKey(
+        'main.internal_images.id'), nullable=False)
 
     songs: Mapped[List["SongRow"]] = relationship("SongRow", secondary=song_artists,
                                                   back_populates="artists")
@@ -47,3 +47,13 @@ class ArtistRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
         secondary=artist_external_images,
         back_populates="artists"
     )
+
+    def __init__(self, public_id: str, internal_image_id: int, name: str | None = None, followers: int = 0, popularity: int = 0):
+        kwargs = {}
+        kwargs['public_id'] = public_id
+        kwargs['internal_image_id'] = internal_image_id
+        kwargs['name'] = name
+        kwargs['followers'] = followers
+        kwargs['popularity'] = popularity
+        for k, v in kwargs.items():
+            setattr(self, k, v)

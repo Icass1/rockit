@@ -39,3 +39,12 @@ class ExternalImageRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAd
         secondary=artist_external_images,
         back_populates="external_images"
     )
+
+    def __init__(self, public_id: str, url: str, width: int | None = None, height: int | None = None):
+        kwargs = {}
+        kwargs['public_id'] = public_id
+        kwargs['url'] = url
+        kwargs['width'] = width
+        kwargs['height'] = height
+        for k, v in kwargs.items():
+            setattr(self, k, v)

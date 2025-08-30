@@ -59,3 +59,21 @@ class UserRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
         "DownloadRow", back_populates="user")
     errors: Mapped[List["ErrorRow"]] = relationship(
         "ErrorRow", back_populates="user")
+
+    def __init__(self, public_id: str, username: str, password_hash: str, current_station: str | None = None, current_time: int | None = None, queue_index: int | None = None, random_queue: bool = False, repeat_song: str = "off", volume: float = 1, cross_fade: float = 0, lang: str = "en", admin: bool = False, super_admin: bool = False):
+        kwargs = {}
+        kwargs['public_id'] = public_id
+        kwargs['username'] = username
+        kwargs['password_hash'] = password_hash
+        kwargs['current_station'] = current_station
+        kwargs['current_time'] = current_time
+        kwargs['queue_index'] = queue_index
+        kwargs['random_queue'] = random_queue
+        kwargs['repeat_song'] = repeat_song
+        kwargs['volume'] = volume
+        kwargs['cross_fade'] = cross_fade
+        kwargs['lang'] = lang
+        kwargs['admin'] = admin
+        kwargs['super_admin'] = super_admin
+        for k, v in kwargs.items():
+            setattr(self, k, v)

@@ -1,15 +1,24 @@
+from typing import List, TYPE_CHECKING
+
 from sqlalchemy import ForeignKey, String, Integer
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 
 from backend.db.base import Base
-
-from backend.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdated, TableAutoincrementId
+from backend.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdated
 from backend.db.associationTables.album_artists import album_artists
 from backend.db.associationTables.album_external_images import album_external_images
+
+if TYPE_CHECKING:
+    from backend.db.ormModels.song import SongRow
+    from backend.db.ormModels.list import ListRow
+    from backend.db.ormModels.artist import ArtistRow
+    from backend.db.ormModels.internalImage import InternalImageRow
+    from backend.db.ormModels.externalImage import ExternalImageRow
 
 
 class AlbumRow(Base, TableDateUpdated, TableDateAdded):
     __tablename__ = "albums"
+    __table_args__ = {'schema': 'main', 'extend_existing': True},
 
     id: Mapped[int] = mapped_column(
         Integer, ForeignKey('lists.id'), primary_key=True)
@@ -22,17 +31,20 @@ class AlbumRow(Base, TableDateUpdated, TableDateAdded):
     disc_count: Mapped[int] = mapped_column(Integer, nullable=False)
 
     # ORM relationship
-    internal_image = relationship("InternalImageRow", back_populates="albums")
+    internal_image: Mapped["InternalImageRow"] = relationship(
+        "InternalImageRow", back_populates="albums")
 
-    songs = relationship("SongRow", back_populates="album")
+    songs: Mapped[List["SongRow"]] = relationship(
+        "SongRow", back_populates="album")
 
-    artists = relationship(
+    artists: Mapped[List["ArtistRow"]] = relationship(
         "ArtistRow", secondary=album_artists, back_populates="albums")
 
-    external_images = relationship(
+    external_images: Mapped[List["ExternalImageRow"]] = relationship(
         "ExternalImageRow",
         secondary=album_external_images,
         back_populates="albums"
     )
 
-    list = relationship("ListRow", back_populates="album", uselist=False)
+    list: Mapped["ListRow"] = relationship(
+        "ListRow", back_populates="album", uselist=False)

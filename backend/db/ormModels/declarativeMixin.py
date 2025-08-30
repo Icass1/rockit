@@ -1,7 +1,8 @@
+from datetime import datetime
 
 from sqlalchemy import Integer, func, DateTime
 from sqlalchemy.orm import mapped_column, declarative_mixin, Mapped
-from datetime import datetime
+
 
 @declarative_mixin
 class TableDateUpdated:

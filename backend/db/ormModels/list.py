@@ -1,12 +1,17 @@
+from typing import List, TYPE_CHECKING
+
 from sqlalchemy import Enum, String
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 
 from backend.db.base import Base
-
-from backend.db.ormModels.album import AlbumRow
 from backend.db.ormModels.declarativeMixin import TableAutoincrementId, TableDateAdded, TableDateUpdated
-from backend.db.ormModels.playlist import PlaylistRow
-from backend.db.ormModels.user import UserRow
+from backend.db.associationTables.user_lists import user_lists
+from backend.db.associationTables.user_pinned_lists import user_pinned_lists
+
+if TYPE_CHECKING:
+    from backend.db.ormModels.user import UserRow
+    from backend.db.ormModels.album import AlbumRow
+    from backend.db.ormModels.playlist import PlaylistRow
 
 
 class ListRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
@@ -18,13 +23,13 @@ class ListRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     public_id: Mapped[str] = mapped_column(String, nullable=False, unique=True)
 
     # Relationships
-    album: Mapped[AlbumRow] = relationship("AlbumRow", back_populates="list",
-                                           uselist=False, cascade="all, delete-orphan")
-    playlist: Mapped[PlaylistRow] = relationship("PlaylistRow", back_populates="list",
-                                                 uselist=False, cascade="all, delete-orphan")
+    album: Mapped["AlbumRow"] = relationship("AlbumRow", back_populates="list",
+                                             uselist=False, cascade="all, delete-orphan")
+    playlist: Mapped["PlaylistRow"] = relationship("PlaylistRow", back_populates="list",
+                                                   uselist=False, cascade="all, delete-orphan")
 
-    pinned_by_users = relationship(
-        "UserRow", secondary="main.user_pinned_lists", back_populates="pinned_lists")
+    pinned_by_users: Mapped["UserRow"] = relationship(
+        "UserRow", secondary=user_pinned_lists, back_populates="pinned_lists")
 
-    users: Mapped[UserRow] = relationship(
-        "UserRow", secondary="main.user_lists", back_populates="lists")
+    users: Mapped["UserRow"] = relationship(
+        "UserRow", secondary=user_lists, back_populates="lists")

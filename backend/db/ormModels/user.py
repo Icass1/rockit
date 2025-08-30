@@ -1,51 +1,61 @@
+from typing import List, TYPE_CHECKING
+
 from sqlalchemy import String, Integer, Enum, Boolean, Double
-from sqlalchemy.orm import mapped_column, relationship
+from sqlalchemy.orm import mapped_column, relationship, Mapped
 
 from backend.db.base import Base
-
 from backend.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdated, TableAutoincrementId
-
-from backend.db.associationTables.user_history_songs import user_history_songs
-from backend.db.associationTables.user_pinned_lists import user_pinned_lists
+from backend.db.associationTables.user_lists import user_lists
 from backend.db.associationTables.user_liked_songs import user_liked_songs
 from backend.db.associationTables.user_queue_songs import user_queue_songs
-from backend.db.associationTables.user_lists import user_lists
+from backend.db.associationTables.user_pinned_lists import user_pinned_lists
+from backend.db.associationTables.user_history_songs import user_history_songs
+
+if TYPE_CHECKING:
+    from backend.db.ormModels.song import SongRow
+    from backend.db.ormModels.list import ListRow
+    from backend.db.ormModels.error import ErrorRow
+    from backend.db.ormModels.download import DownloadRow
 
 
 class UserRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     __tablename__ = 'users'
     __table_args__ = {'schema': 'main', 'extend_existing': True},
 
-    public_id = mapped_column(String, nullable=False, unique=True)
-    username = mapped_column(String, nullable=False, unique=True)
-    password_hash = mapped_column(String, nullable=False)
-    current_station = mapped_column(String, nullable=True)
-    current_time = mapped_column(Integer, nullable=True)
-    queue_index = mapped_column(Integer, nullable=True)
-    random_queue = mapped_column(Boolean, nullable=False, default=False)
-    repeat_song = mapped_column(Enum(
+    public_id: Mapped[str] = mapped_column(String, nullable=False, unique=True)
+    username: Mapped[str] = mapped_column(String, nullable=False, unique=True)
+    password_hash: Mapped[str] = mapped_column(String, nullable=False)
+    current_station: Mapped[str] = mapped_column(String, nullable=True)
+    current_time: Mapped[int] = mapped_column(Integer, nullable=True)
+    queue_index: Mapped[int] = mapped_column(Integer, nullable=True)
+    random_queue: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False)
+    repeat_song: Mapped[str] = mapped_column(Enum(
         "off", "one", "all", name="repeat_song_enum", schema="main"), nullable=False, default="off")
-    volume = mapped_column(Double, nullable=False, default=1)
-    cross_fade = mapped_column(Double, nullable=False, default=0)
-    lang = mapped_column(String, nullable=False, default="en")
-    admin = mapped_column(Boolean, nullable=False, default=False)
-    super_admin = mapped_column(Boolean, nullable=False, default=False)
+    volume: Mapped[float] = mapped_column(Double, nullable=False, default=1)
+    cross_fade: Mapped[float] = mapped_column(
+        Double, nullable=False, default=0)
+    lang: Mapped[str] = mapped_column(String, nullable=False, default="en")
+    admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    super_admin: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False)
 
     # many-to-many with songs
-    history_songs = relationship(
+    history_songs: Mapped[List["SongRow"]] = relationship(
         "SongRow", secondary=user_history_songs, back_populates="history_users")
-    liked_songs = relationship(
+    liked_songs: Mapped[List["SongRow"]] = relationship(
         "SongRow", secondary=user_liked_songs, back_populates="liked_by_users")
-    queue_songs = relationship(
+    queue_songs: Mapped[List["SongRow"]] = relationship(
         "SongRow", secondary=user_queue_songs, back_populates="queued_by_users")
-    pinned_lists = relationship(
+    pinned_lists: Mapped[List["ListRow"]] = relationship(
         "ListRow", secondary=user_pinned_lists, back_populates="pinned_by_users")
 
     # many-to-many with lists
-    # change pinned_lists if needed
-    lists = relationship("ListRow", secondary=user_lists,
-                         back_populates="users")
+    lists: Mapped[List["ListRow"]] = relationship("ListRow", secondary=user_lists,
+                                                  back_populates="users")
 
     # one-to-many
-    downloads = relationship("DownloadRow", back_populates="user")
-    errors = relationship("ErrorRow", back_populates="user")
+    downloads: Mapped[List["DownloadRow"]] = relationship(
+        "DownloadRow", back_populates="user")
+    errors: Mapped[List["ErrorRow"]] = relationship(
+        "ErrorRow", back_populates="user")

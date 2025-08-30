@@ -1,38 +1,35 @@
-
 import asyncio
+import threading
 from logging import Logger
 from typing import Dict, List, Tuple
-
 from fastapi import BackgroundTasks, Request
-import threading
 from spotdl.download.downloader import Downloader as SpotdlDownloader
 
-
-from backend.youtubeDownloader import YoutubeMusicDownloader
-from backend.progressHandler import ProgressHandler
-from backend.backendUtils import create_id, get_song_name
-from backend.queueElement import QueueElement
-from backend.spotifyDownloader import SpotifyDownloader
+from backend.db.db import RockitDB
 from backend.spotify import Spotify
-from backend.constants import DOWNLOADER_OPTIONS
 from backend.logger import getLogger
+from backend.queueElement import QueueElement
+from backend.constants import DOWNLOADER_OPTIONS
+from backend.progressHandler import ProgressHandler
+from backend.spotifyDownloader import SpotifyDownloader
+from backend.backendUtils import create_id, get_song_name
+from backend.youtubeDownloader import YoutubeMusicDownloader
 
 # Do not remove the following import, is needed to apply patches
 import backend.patches
 
 
 class Downloader:
-    def __init__(self) -> None:
-        global init
+    def __init__(self, rockit_db: RockitDB) -> None:
         self.logger: Logger = getLogger(name=__name__, class_name="Downloader")
-        self.logger.info(f"Init")
 
         self.progress_handler = ProgressHandler()
+        self.rockit_db: RockitDB = rockit_db
 
         self.spotdl_downloader = SpotdlDownloader(settings=DOWNLOADER_OPTIONS)
         self.spotdl_downloader.progress_handler.rich_progress_bar = self.progress_handler  # type: ignore
 
-        self.spotify = Spotify()
+        self.spotify = Spotify(rockit_db = self.rockit_db)
 
         self.max_download_threads: int = 4
         self.queue: List[QueueElement] = []
@@ -44,30 +41,30 @@ class Downloader:
         self.check_downloads_in_db()
 
     def check_downloads_in_db(self):
-        self.logger.warning("TODO")
+        self.logger.error("Not implemented error.")
 
-    def download_url(self, url: str, background_tasks: BackgroundTasks, user_id: str) -> str:
+    def download_url(self, url: str, background_tasks: BackgroundTasks, user_id: int) -> str:
 
         url = self.spotify.parse_url(url)
 
-        download_id = create_id()
-
-        self.logger.info(f"{url=} {download_id=}")
+        download_public_id = create_id()
 
         if "open.spotify.com" in url:
-            self.downloaders[download_id] = SpotifyDownloader(
+            self.downloaders[download_public_id] = SpotifyDownloader(
                 user_id=user_id,
                 downloader=self,
-                download_id=download_id,
+                download_public_id=download_public_id,
                 url=url
             )
         elif "music.youtube.com" in url:
-            self.downloaders[download_id] = YoutubeMusicDownloader(
-                downloader=self, download_id=download_id)
+            self.downloaders[download_public_id] = YoutubeMusicDownloader(
+                downloader=self, download_public_id=download_public_id)
         else:
             self.logger.error("Unknown provider")
 
-        return download_id
+        self.logger.info(f"{url=} {download_public_id=}")
+
+        return download_public_id
 
     def download_status(self, request: Request, download_id):
 
@@ -95,7 +92,7 @@ class Downloader:
 
     async def download_manager(self):
         try:
-            self.logger.info("Started")
+            self.logger.info("Started download manager.")
             while True:
                 await asyncio.sleep(0.4)
 

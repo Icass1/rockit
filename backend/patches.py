@@ -889,4 +889,4 @@ spotdl.providers.audio.base.AudioProvider.get_download_metadata = get_download_m
 
 
 logger = getLogger(__name__)
-logger.info("Patches applied")
+logger.info("Patches applied.")

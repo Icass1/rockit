@@ -8,8 +8,8 @@ if TYPE_CHECKING:
 
 
 class YoutubeMusicDownloader:
-    def __init__(self, downloader: "Downloader", download_id: str) -> None:
-        self.download_id = download_id
+    def __init__(self, downloader: "Downloader", download_public_id: str) -> None:
+        self.download_public_id = download_public_id
 
     def status(self, request: Request) -> StreamingResponse:
 

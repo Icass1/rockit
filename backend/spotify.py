@@ -5,6 +5,7 @@ import math
 import base64
 import requests
 from logging import Logger
+from spotdl.types.song import Song as SpotdlSong
 from typing import Any, Dict, List, Literal, Sequence, Set
 
 from sqlalchemy import select
@@ -39,6 +40,9 @@ class Spotify:
     """Class to interact with Spotify API"""
 
     def __init__(self, rockit_db: RockitDB) -> None:
+
+        if not os.path.exists(".spotify_cache"):
+            os.mkdir(".spotify_cache")
 
         self.logger: Logger = getLogger(
             name=__name__, class_name="Spotify")
@@ -209,6 +213,12 @@ class Spotify:
             return image_to_add.id
 
         return self.rockit_db.execute_with_session(_func)
+
+    def get_spotdl_song_from_song_row(self, song_row: SongRow) -> SpotdlSong:
+        """TODO"""
+
+        return SpotdlSong()
+
 
     # ***********************
     # **** Album methods ****

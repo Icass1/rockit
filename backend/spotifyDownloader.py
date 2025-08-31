@@ -4,7 +4,7 @@ import asyncio
 import threading
 from logging import Logger
 from datetime import datetime
-from spotdl.types.song import Song
+from spotdl.types.song import Song as SpotdlSong
 from typing import List, TYPE_CHECKING, Tuple, Sequence
 
 from fastapi import Request, Response
@@ -107,25 +107,25 @@ class SpotifyDownloader:
 
         self.logger.info(f"Downloading {self.url}")
 
-        spotdl_songs: List[Song] = []
+        song_rows: List[SongRow] = []
         try:
             if "/track/" in self.url:
                 self.logger.info(f"Fetching song {self.url=}")
                 self.update_status_db(new_status="fetching")
 
-                out = self.downloader.spotify.get_song(
+                song_row = self.downloader.spotify.get_song(
                     self.url.replace("https://open.spotify.com/track/", ""))
 
-                if not out:
+                if not song_row:
                     self.logger.error(f"out is None. {self.url=}")
                     return
 
-                spotdl_song, song = out
+                # spotdl_song, song = out
 
-                spotdl_songs.append(spotdl_song)
+                song_rows.append(song_row)
 
                 self.message_handler.add(
-                    {'id': spotdl_song.song_id, 'completed': 0, 'message': 'Starting'})
+                    {'id': song_row.public_id, 'completed': 0, 'message': 'Starting'})
 
             elif "/album/" in self.url:
                 self.logger.info(f"Fetching album {self.url=}")
@@ -134,43 +134,12 @@ class SpotifyDownloader:
                 album = self.downloader.spotify.get_album(
                     self.url.replace("https://open.spotify.com/album/", ""))
 
-                if not album:
-                    self.error = True
-                    self.update_status_db(new_status="failed")
-                    self.logger.error(
-                        f"album is None {self.url}")
-                    return
-
-                if not album.tracks:
-                    self.error = True
-                    self.update_status_db(new_status="failed")
-                    self.logger.error(
-                        f"album.tracks is None {self.url}")
-                    return
-
-                if not album.tracks.items:
-                    self.error = True
-                    self.update_status_db(new_status="failed")
-                    self.logger.error(
-                        f"album.tracks.items is None {self.url}")
-                    return
-
-                out = self.downloader.spotify.get_songs(
-                    public_ids=[a.id for a in album.tracks.items if a.id])
-
-                if not out:
-                    self.error = True
-                    self.update_status_db(new_status="failed")
-                    self.logger.error("out is None")
-                    return
-
-                for k in out:
-
-                    spotdl_song, song = k
-                    spotdl_songs.append(spotdl_song)
+                for song_row in album.songs:
+                    # spotdl_song = self.downloader.spotify.get_spotdl_song_from_song_row(song_row)
+                    song_rows.append(song_row)
 
                     self.message_handler.add(
-                        {'id': spotdl_song.song_id, 'completed': 0, 'message': 'Starting'})
+                        {'id': song_row.public_id, 'completed': 0, 'message': 'Starting'})
 
             elif "/playlist/" in self.url:
                 self.logger.info(f"Fetching playlist {self.url=}")
@@ -224,32 +193,18 @@ class SpotifyDownloader:
                 return
 
             self.logger.info(f"Fetch done.")
-            self.logger.info(f"Found {len(spotdl_songs)} songs to download")
+            self.logger.info(f"Found {len(song_rows)} songs to download")
 
-            songs_in_db: Sequence[Row[Tuple[int, str, str | None]]] = self.rockit_db.execute_with_session(lambda session: session.execute(select(SongRow.id, SongRow.public_id, SongRow.path).where(
-                SongRow.public_id.in_([spotdl_song.song_id for spotdl_song in spotdl_songs]))).all())
-
-            for spotdl_song in spotdl_songs:
-
-                song_in_db: RowMapping | None = None
-
-                for k in songs_in_db:
-                    if k._mapping[SongRow.public_id] == spotdl_song.song_id:
-                        song_in_db = k._mapping
-
-                if not song_in_db:
-                    self.message_handler.add(
-                        {'id': spotdl_song.song_id, 'completed': 0, 'message': 'Error'})
-                    self.logger.error("song_db is None. This should never happen")
-                    continue
-
-                if song_in_db[SongRow.path] and os.path.exists(os.path.join(SONGS_PATH, song_in_db[SongRow.path])):
+            for song_row in song_rows:
+                if song_row.path and os.path.exists(os.path.join(SONGS_PATH, song_row.path)):
                     self.logger.info(
-                        f"Skipping song with public id: {song_in_db[SongRow.public_id]}")
+                        f"Skipping song with public id: {song_row.public_id}")
                     self.message_handler.add(
-                        {'id': song_in_db[SongRow.public_id], 'completed': 100, 'message': 'Skipped'})
+                        {'id': song_row.public_id, 'completed': 100, 'message': 'Skipped'})
 
                 else:
+                    spotdl_song: SpotdlSong = self.downloader.spotify.get_spotdl_song_from_song_row(song_row=song_row)
+
                     queue_element = SpotifyQueueElement(
                         message_handler=self.message_handler, rockit_db=self.downloader.rockit_db, song=spotdl_song)
 

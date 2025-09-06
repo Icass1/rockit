@@ -9,7 +9,7 @@ from spotdl.types.song import Song as SpotdlSong
 from typing import Any, Dict, List, Literal, Sequence, Set
 
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.dialects.postgresql import insert
 
 from backend.logger import getLogger
@@ -217,8 +217,36 @@ class Spotify:
     def get_spotdl_song_from_song_row(self, song_row: SongRow) -> SpotdlSong:
         """TODO"""
 
-        return SpotdlSong()
+        if len(song_row.artists) == 0:
+            self.logger.error(
+                f"Song {song_row.public_id} has no artists in database.")
 
+            song_row = self.get_song(song_row.public_id)
+
+        return SpotdlSong(
+            name=song_row.name,
+            artists=[artist.name for artist in song_row.artists],
+            artist=song_row.artists[0].name,
+            genres=[],
+            disc_number=1,
+            disc_count=1,
+            album_name=song_row.album.name,
+            album_artist=song_row.album.artists[0].name,
+            album_type="album",
+            album_id=song_row.album.public_id,
+            duration=song_row.duration,
+            year=1,
+            date="date",
+            track_number=1,
+            tracks_count=1,
+            song_id=song_row.public_id,
+            explicit=False,
+            publisher="publisher",
+            url=f"https://open.spotify.com/track/{song_row.public_id}",
+            isrc=song_row.isrc,
+            cover_url="cover_url",
+            copyright_text="copyright_text"
+        )
 
     # ***********************
     # **** Album methods ****
@@ -234,6 +262,26 @@ class Spotify:
             result.append(RawSpotifyApiAlbum.from_dict(raw_album))
 
         return result
+
+    def get_albums_from_db(self, public_ids: List[str]) -> Sequence[AlbumRow]:
+        return self.rockit_db.execute_with_session(
+            lambda s:
+            s.execute(
+                select(AlbumRow)
+                .options(
+                    joinedload(AlbumRow.songs).
+                    joinedload(SongRow.artists),
+                    joinedload(AlbumRow.songs).
+                    joinedload(SongRow.album).
+                    joinedload(AlbumRow.artists)
+                )
+                .where(
+                    AlbumRow.public_id.in_(public_ids)
+                ))
+                .unique()
+                .scalars()
+                .all()
+        )
 
     def add_spotify_albums_to_db(self, albums: List[RawSpotifyApiAlbum]) -> None:
         """Adds Spotify albums to database."""
@@ -262,32 +310,46 @@ class Spotify:
             artists_in_db: List[ArtistRow] = self.get_artists(
                 list(artist_ids))
 
-            internal_images_in_db = s.execute(select(InternalImageRow).where(
+            internal_images_in_db: Sequence[InternalImageRow] = s.execute(select(InternalImageRow).where(
                 InternalImageRow.url.in_([album.images[0].url for album in albums if album.images and album.images[0].url]))).scalars().all()
+
+            lists_in_db: Sequence[ListRow] = s.execute(select(ListRow).where(
+                ListRow.public_id.in_([album.id for album in albums]))).scalars().all()
+
+            albums_in_db: Sequence[AlbumRow] = s.execute(select(AlbumRow).where(
+                AlbumRow.public_id.in_([album.id for album in albums]))).scalars().all()
 
             for album in albums:
 
                 if not album.id or not album.name or not album.release_date or not album.tracks or not album.tracks or not album.tracks or not album.tracks.items or not album.images or not album.images[0].url or not album.artists or not album.artists[0].name or not album.popularity:
-                    self.logger.error("Album is missing properties.")
+                    self.logger.error(f"Album is missing properties. {album=}")
                     continue
 
-                # Add list.
-                list_to_add = ListRow(
-                    type="album",
-                    public_id=album.id
-                )
+                album_id: None | int = None
 
-                list_to_add = s.merge(list_to_add)
-                s.flush()
-                album_id = list_to_add.id
+                for list_in_db in lists_in_db:
+                    if list_in_db.public_id == album.id:
+                        album_id = list_in_db.id
+                        self.logger.info(
+                            f"List {list_in_db.id} - {list_in_db.public_id} of type {list_in_db.type} already in DB.")
+                        break
+                else:
+                    # Add list.
+                    list_to_add = ListRow(
+                        type="album",
+                        public_id=album.id
+                    )
+
+                    list_to_add = s.merge(list_to_add)
+                    s.flush()
+                    album_id = list_to_add.id
 
                 # Add album internal image.
-
                 internal_image_id: int | None = None
                 for internal_image_in_db in internal_images_in_db:
                     if album.images[0].url == internal_image_in_db.url:
                         internal_image_id = internal_image_in_db.id
-                
+
                 if not internal_image_id:
                     internal_image_id = self.download_image(
                         image_url=album.images[0].url,
@@ -298,19 +360,25 @@ class Spotify:
                         )
                     )
 
-                # Add album.
-                album_to_add = AlbumRow(
-                    public_id=album.id,
-                    id=album_id,
-                    internal_image_id=internal_image_id,
-                    name=album.name,
-                    release_date=album.release_date,
-                    disc_count=max(
-                        [song.disc_number for song in album.tracks.items if song.disc_number]),
-                    popularity=album.popularity
-                )
-                album_to_add = s.merge(album_to_add)
-                s.commit()
+                for album_in_db in albums_in_db:
+                    if album_in_db.public_id == album.id:
+                        self.logger.info(
+                            f"Album {album_in_db.id} - {album_in_db.public_id} already in DB.")
+                        break
+                else:
+                    # Add album.
+                    album_to_add = AlbumRow(
+                        public_id=album.id,
+                        id=album_id,
+                        internal_image_id=internal_image_id,
+                        name=album.name,
+                        release_date=album.release_date,
+                        disc_count=max(
+                            [song.disc_number for song in album.tracks.items if song.disc_number]),
+                        popularity=album.popularity
+                    )
+                    album_to_add = s.merge(album_to_add)
+                    s.commit()
 
                 for artist in album.artists:
                     artist_id: int | None = None
@@ -336,8 +404,26 @@ class Spotify:
 
         result: List[AlbumRow] = []
 
-        albums_in_db: Sequence[AlbumRow] = self.rockit_db.execute_with_session(lambda s: s.execute(select(AlbumRow).where(
-            AlbumRow.public_id.in_(public_ids))).scalars().all())
+        albums_in_db: Sequence[AlbumRow] = self.get_albums_from_db(
+            public_ids=public_ids)
+
+        have_to_update = False
+
+        # Check if albums has no artists. That should never happen.
+        for album_in_db in albums_in_db:
+            if len(album_in_db.artists) == 0:
+                self.logger.error(
+                    f"Album {album_in_db.id} - {album_in_db.public_id} has no artists in database.")
+                spotify_albums = self.get_albums_from_spotify(
+                    [album_in_db.public_id,])
+                self.add_spotify_albums_to_db(spotify_albums)
+
+                have_to_update = True
+
+        # If an album with no artists was found, the artists should be now in database so update all albums.
+        if have_to_update:
+            albums_in_db: Sequence[AlbumRow] = self.get_albums_from_db(
+                public_ids=public_ids)
 
         albums_in_db_public_ids: List[str] = [
             album.public_id for album in albums_in_db]
@@ -349,14 +435,13 @@ class Spotify:
                 missing_albums.append(public_id)
 
         self.logger.info(
-            f"{len(albums_in_db_public_ids)} albums in database, {len(missing_albums)} albums missing.")
+            f"{len(albums_in_db_public_ids)} album(s) in database, {len(missing_albums)} album(s) missing.")
 
         if len(missing_albums) > 0:
             spotify_albums = self.get_albums_from_spotify(missing_albums)
             self.add_spotify_albums_to_db(spotify_albums)
 
-        new_albums_in_db: Sequence[AlbumRow] = self.rockit_db.execute_with_session(lambda s: s.execute(select(AlbumRow).where(
-            AlbumRow.public_id.in_(missing_albums))).scalars().all())
+        new_albums_in_db = self.get_albums_from_db(missing_albums)
 
         if len(new_albums_in_db) != len(missing_albums):
             self.logger.error(
@@ -390,6 +475,24 @@ class Spotify:
 
         return result
 
+    def get_songs_from_db(self, public_ids) -> Sequence[SongRow]:
+        return self.rockit_db.execute_with_session(
+            lambda s:
+            s.execute(
+                select(SongRow)
+                .options(
+                    joinedload(SongRow.artists),
+                    joinedload(SongRow.album).
+                    joinedload(AlbumRow.artists)
+                )
+                .where(
+                    SongRow.public_id.in_(public_ids)
+                ))
+                .unique()
+                .scalars()
+                .all()
+        )
+
     def add_spotify_songs_to_db(self, songs: List[RawSpotifyApiTrack]) -> None:
         """Adds Spotify songs to database."""
 
@@ -411,6 +514,9 @@ class Spotify:
             albums_in_db = s.execute(select(AlbumRow).where(AlbumRow.public_id.in_(
                 [song.album.id for song in songs if song.album and song.album.id]))).scalars().all()
 
+            songs_in_db = self.get_songs_from_db(
+                public_ids=[song.id for song in songs])
+
             for song in songs:
                 if not song.id or not song.name or not song.duration_ms or not song.track_number or not song.disc_number or not song.external_ids or not song.external_ids.isrc or not song.album or not song.album.id or not song.artists:
                     continue
@@ -428,21 +534,30 @@ class Spotify:
                         f"Unable to add song {song.id} because the album {song.album.id} is not yet in database. Consider calling self.get_albums(list of songs album id) before this.")
                     continue
 
-                song_to_add = SongRow(
-                    public_id=song.id,
-                    name=song.name,
-                    duration=int(song.duration_ms/1000),
-                    track_number=song.track_number,
-                    disc_number=song.disc_number,
-                    internal_image_id=internal_image_id,
-                    album_id=album_id,
-                    isrc=song.external_ids.isrc
-                )
+                song_id: int | None = None
 
-                song_to_add = s.merge(song_to_add)
-                s.flush()
+                for song_in_db in songs_in_db:
+                    if song_in_db.public_id == song.id:
+                        song_id = song_in_db.id
+                        self.logger.info(
+                            f"Song {song_in_db.id} - {song_in_db.public_id} already in DB.")
+                        break
+                else:
+                    song_to_add = SongRow(
+                        public_id=song.id,
+                        name=song.name,
+                        duration=int(song.duration_ms/1000),
+                        track_number=song.track_number,
+                        disc_number=song.disc_number,
+                        internal_image_id=internal_image_id,
+                        album_id=album_id,
+                        isrc=song.external_ids.isrc
+                    )
 
-                song_id = song_to_add.id
+                    song_to_add = s.merge(song_to_add)
+                    s.flush()
+
+                    song_id = song_to_add.id
 
                 for artist in song.artists:
                     artist_id: int | None = None
@@ -465,8 +580,7 @@ class Spotify:
 
         result: List[SongRow] = []
 
-        songs_in_db: Sequence[SongRow] = self.rockit_db.execute_with_session(lambda s: s.execute(select(SongRow).where(
-            SongRow.public_id.in_(public_ids))).scalars().all())
+        songs_in_db: Sequence[SongRow] = self.get_songs_from_db(public_ids)
 
         songs_in_db_public_ids: List[str] = [
             song.public_id for song in songs_in_db]
@@ -477,24 +591,38 @@ class Spotify:
             if not public_id in songs_in_db_public_ids:
                 missing_songs.append(public_id)
 
+        # Check if song in db has no artists. This should never happen.
+        for song_in_db in songs_in_db:
+            if len(song_in_db.artists) == 0:
+                self.logger.error(
+                    f"Song {song_in_db.id} - {song_in_db.public_id} has no artists in database.")
+                missing_songs.append(song_in_db.public_id)
+
         self.logger.info(
             f"{len(songs_in_db_public_ids)} songs in database, {len(missing_songs)} songs missing.")
 
-        spotify_songs = self.get_songs_from_spotify(missing_songs)
+        spotify_songs: List[RawSpotifyApiTrack] = self.get_songs_from_spotify(
+            missing_songs)
         self.add_spotify_songs_to_db(spotify_songs)
 
-        new_songs_in_db: Sequence[SongRow] = self.rockit_db.execute_with_session(lambda s: s.execute(select(SongRow).where(
-            SongRow.public_id.in_(missing_songs))).scalars().all())
+        new_songs_in_db: Sequence[SongRow] = self.get_songs_from_db(
+            missing_songs)
 
         if len(new_songs_in_db) != len(missing_songs):
             self.logger.error(
                 f"{len(missing_songs) - len(new_songs_in_db)} missing songs haven't been added to database.")
 
         for song_in_db in songs_in_db:
-            result.append(song_in_db)
+            for new_song_in_db in new_songs_in_db:
+                if song_in_db.id == new_song_in_db.id:
+                    self.logger.warning(
+                        f"Song {song_in_db.id} is in both, songs_in_db and new_songs_in_db, skipping song_in_db because new_song_in_db is probably updated")
+                    break
+            else:
+                result.append(song_in_db)
 
-        for song_in_db in new_songs_in_db:
-            result.append(song_in_db)
+        for new_song_in_db in new_songs_in_db:
+            result.append(new_song_in_db)
 
         return result
 
@@ -560,8 +688,17 @@ class Spotify:
             genres_in_db: List[GenreRow] = s.query(GenreRow).all()
 
             for artist in artists:
-                if not artist.name or not artist.id or not artist.followers or not artist.followers.total or not artist.popularity or not artist.images or not artist.images[0].url or not artist.genres:
-                    self.logger.error("Artist is missing properties.")
+                if \
+                        not artist.name or \
+                        not artist.id or \
+                        not artist.followers or\
+                        not artist.followers.total or\
+                        not artist.popularity or \
+                        not artist.images or\
+                        not artist.images[0].url or \
+                        artist.genres is None:
+                    self.logger.error(
+                        f"Artist is missing properties. {artist=}")
                     continue
 
                 internal_image_id: int = self.download_image(

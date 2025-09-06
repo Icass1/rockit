@@ -14,33 +14,31 @@ _LOGS_PATH = os.getenv(key="LOGS_PATH")
 _LOG_DUMP_LEVEL = os.getenv(key="LOG_DUMP_LEVEL")
 _CONSOLE_DUMP_LEVEL = os.getenv(key="CONSOLE_DUMP_LEVEL")
 _DOWNLOAD_THREADS = os.getenv(key="DOWNLOAD_THREADS")
+_JWT_SECRET = os.getenv(key="JWT_SECRET")
 
 if not _SONGS_PATH:
     print("SONGS_PATH is not set")
     exit()
-
 if not _IMAGES_PATH:
     print("IMAGES_PATH is not set")
     exit()
-
 if not _TEMP_PATH:
     print("TEMP_PATH is not set")
     exit()
-
 if not _LOGS_PATH:
     print("LOGS_PATH is not set")
     exit()
-
 if not _LOG_DUMP_LEVEL:
     print("LOG_DUMP_LEVEL is not set")
     exit()
-
 if not _CONSOLE_DUMP_LEVEL:
     print("CONSOLE_DUMP_LEVEL is not set")
     exit()
-
 if not _DOWNLOAD_THREADS:
-    print("CONSOLE_DUMP_LEVEL is not set")
+    print("DOWNLOAD_THREADS is not set")
+    exit()
+if not _JWT_SECRET:
+    print("JWT_SECRET is not set")
     exit()
 
 SONGS_PATH = _SONGS_PATH
@@ -54,6 +52,8 @@ try:
 except:
     print("CONSOLE_DUMP_LEVEL must be an integer")
     exit()
+
+JWT_SECRET = _JWT_SECRET
 
 DOWNLOADER_OPTIONS: DownloaderOptions = {
     "audio_providers": ["youtube-music", "youtube"],

@@ -2,6 +2,7 @@ from typing import List, TYPE_CHECKING
 
 from sqlalchemy import String, Integer, Enum, Boolean, Double
 from sqlalchemy.orm import mapped_column, relationship, Mapped
+from sqlalchemy.orm.properties import MappedColumn
 
 from backend.db.base import Base
 from backend.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdated, TableAutoincrementId
@@ -23,8 +24,12 @@ class UserRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     __table_args__ = {'schema': 'main', 'extend_existing': True},
 
     public_id: Mapped[str] = mapped_column(String, nullable=False, unique=True)
-    username: Mapped[str] = mapped_column(String, nullable=False, unique=True)
-    password_hash: Mapped[str] = mapped_column(String, nullable=False)
+    username: Mapped[str | None] = mapped_column(
+        String, nullable=False, unique=True)
+    password_hash: Mapped[str | None] = mapped_column(String, nullable=True)
+    provider: MappedColumn[str | None] = mapped_column(String, nullable=True)
+    provider_account_id: MappedColumn[str | None] = mapped_column(
+        String, nullable=True)
     current_station: Mapped[str | None] = mapped_column(String, nullable=True)
     current_time: Mapped[int | None] = mapped_column(Integer, nullable=True)
     queue_index: Mapped[int | None] = mapped_column(Integer, nullable=True)
@@ -36,6 +41,7 @@ class UserRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     cross_fade: Mapped[float] = mapped_column(
         Double, nullable=False, default=0)
     lang: Mapped[str] = mapped_column(String, nullable=False, default="en")
+    image: MappedColumn[str | None] = mapped_column(String, nullable=True)
     admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     super_admin: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False)
@@ -60,11 +66,13 @@ class UserRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     errors: Mapped[List["ErrorRow"]] = relationship(
         "ErrorRow", back_populates="user")
 
-    def __init__(self, public_id: str, username: str, password_hash: str, current_station: str | None = None, current_time: int | None = None, queue_index: int | None = None, random_queue: bool = False, repeat_song: str = "off", volume: float = 1, cross_fade: float = 0, lang: str = "en", admin: bool = False, super_admin: bool = False):
+    def __init__(self, public_id: str, username: str | None, password_hash: str | None = None, provider: str | None = None, provider_account_id: str | None = None, current_station: str | None = None, current_time: int | None = None, queue_index: int | None = None, random_queue: bool = False, repeat_song: str = "off", volume: float = 1, cross_fade: float = 0, lang: str = "en", image: str | None = None, admin: bool = False, super_admin: bool = False):
         kwargs = {}
         kwargs['public_id'] = public_id
         kwargs['username'] = username
         kwargs['password_hash'] = password_hash
+        kwargs['provider'] = provider
+        kwargs['provider_account_id'] = provider_account_id
         kwargs['current_station'] = current_station
         kwargs['current_time'] = current_time
         kwargs['queue_index'] = queue_index
@@ -73,6 +81,7 @@ class UserRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
         kwargs['volume'] = volume
         kwargs['cross_fade'] = cross_fade
         kwargs['lang'] = lang
+        kwargs['image'] = image
         kwargs['admin'] = admin
         kwargs['super_admin'] = super_admin
         for k, v in kwargs.items():

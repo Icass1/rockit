@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db/db";
 
 import { readFile } from "fs/promises";
 import { getSession } from "@/lib/auth/getSession";
-import { UserDB } from "@/lib/db/user";
 
 export async function GET(request: Request) {
     const session = await getSession();
@@ -26,11 +24,7 @@ export async function GET(request: Request) {
             );
         }
     } else {
-        lang = (
-            db
-                .prepare("SELECT lang FROM user WHERE id = ?")
-                .get(session.user.id) as UserDB<"lang">
-        ).lang;
+        lang = "us";
     }
 
     const fileBuffer = await readFile(`src/lang/${lang}.json`, "utf-8");

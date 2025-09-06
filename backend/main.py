@@ -150,7 +150,8 @@ def search(request: Request, q: str):
 @fast_api_route(path='/set-max-download-threads/{max_download_threads}')
 def set_max_download_threads(request: Request, max_download_threads: str):
 
-    downloader.max_download_threads = int(max_download_threads)
+    downloader.set_max_download_threads(int(max_download_threads))
+
     return Response("OK")
 
 

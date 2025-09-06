@@ -43,8 +43,9 @@ class ProgressHandler:
             message={'id': task_id, 'completed': completed, 'message': fields['message']})
 
     def start_task(self, task_id):
-        pass
         # self.logger.info(task_id)
+        pass
 
     def remove_task(self, task_id):
-        self.logger.info(task_id)
+        # self.logger.info(task_id)
+        pass

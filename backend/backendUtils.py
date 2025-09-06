@@ -1,16 +1,16 @@
-from functools import wraps
-from spotdl.utils.static import BAD_CHARS
 from spotdl.utils.formatter import create_file_name
-import re
-import requests
-from typing import List, Literal, Union
-import numpy
-from io import BytesIO
-import cv2
-import math
-from datetime import datetime, timezone
-from collections import Counter
 from PIL import Image, ImageDraw, ImageFilter
+from spotdl.utils.static import BAD_CHARS
+from datetime import UTC, datetime
+from collections import Counter
+from functools import wraps
+from typing import List
+from io import BytesIO
+import requests
+import numpy
+import math
+import cv2
+import re
 
 from backend.constants import DOWNLOADER_OPTIONS
 from backend.logger import getLogger
@@ -38,7 +38,7 @@ def time_it(func):
 
 
 def get_utc_date():
-    return datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
+    return datetime.now(UTC).strftime('%Y-%m-%d %H:%M:%S')
 
 
 def get_output_file(song):

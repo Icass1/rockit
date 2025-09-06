@@ -53,7 +53,6 @@ class MessageHandler:
         self._messages.append(message)
 
     def finish(self) -> None:
-        self.logger.info("")
         self._end = True
 
     def get_finish(self) -> bool:

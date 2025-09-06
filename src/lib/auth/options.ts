@@ -1,13 +1,8 @@
-import { db } from "@/lib/db/db";
-import { parseUser, RawUserDB, UserDB } from "@/lib/db/user";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { verify } from "@node-rs/argon2";
-import { JWT } from "next-auth/jwt";
-import { AdapterUser } from "next-auth/adapters";
-import { Session, User } from "next-auth";
-import { AuthOptions } from "next-auth";
+import { NextAuthOptions } from "next-auth";
+import { ENV } from "@/rockitEnv";
 
-export const nextAuthOptions: AuthOptions = {
+export const nextAuthOptions: NextAuthOptions = {
     session: {
         strategy: "jwt",
     },
@@ -30,79 +25,53 @@ export const nextAuthOptions: AuthOptions = {
                 const { username } = credentials;
                 const { password } = credentials;
 
-                const userDB = parseUser(
-                    db
-                        .prepare(
-                            "SELECT passwordHash,username,id,lang,admin FROM user WHERE username = ?"
-                        )
-                        .get(username) as RawUserDB
-                ) as UserDB<
-                    "passwordHash" | "username" | "id" | "admin" | "lang"
-                >;
+                console.log(`${ENV.BACKEND_URL}/auth/login`, {
+                    username,
+                    password,
+                });
 
-                if (!userDB) {
+                const response = await fetch(`${ENV.BACKEND_URL}/auth/login`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        username: username,
+                        password: password,
+                    }),
+                });
+
+                if (!response.ok) {
                     return null;
                 }
-                const passwordCorrect = await verify(
-                    userDB.passwordHash,
-                    password
-                );
 
-                if (passwordCorrect) {
-                    return {
-                        id: userDB.id,
-                        username: userDB.username,
-                        admin: userDB.admin,
-                        lang: userDB.lang,
-                    };
-                }
-                return null;
+                const data = await response.json();
+
+                console.log(data);
+
+                return {
+                    id: data.user.id,
+                    username: data.user.username,
+                    admin: data.user.admin,
+                    lang: data.user.lang,
+                    access_token: data.access_token,
+                    image: data.user.image,
+                };
             },
         }),
     ],
     callbacks: {
-        async jwt({ token, user }: { token: JWT; user: User | AdapterUser }) {
-            // Persist user data to the token right after sign in
-
+        async jwt({ token, user }) {
             if (user) {
-                const userDB = parseUser(
-                    db
-                        .prepare(
-                            "SELECT passwordHash,username,id,lang,admin FROM user WHERE id = ?"
-                        )
-                        .get(user.id) as RawUserDB
-                ) as UserDB<
-                    "passwordHash" | "username" | "id" | "admin" | "lang"
-                >;
-                token.id = user.id;
-                token.username = user.username;
-                token.admin = userDB.admin;
-                token.lang = userDB.lang;
-                // Add any other user properties you need
+                token.user = user;
             }
             return token;
         },
-        async session({ session, token }: { session: Session; token: JWT }) {
-            // Send properties to the client
 
-            if (token) {
-                const userDB = parseUser(
-                    db
-                        .prepare(
-                            "SELECT passwordHash,username,id,lang,admin FROM user WHERE id = ?"
-                        )
-                        .get(token.id) as RawUserDB
-                ) as UserDB<
-                    "passwordHash" | "username" | "id" | "admin" | "lang"
-                >;
-                session.user = {
-                    id: token.id,
-                    username: token.username,
-                    admin: userDB.admin,
-                    lang: userDB.lang,
-                };
-            }
+        async session({ session, token }) {
+            session.user = token.user;
+            session.accessToken = token.accessToken as string;
             return session;
         },
     },
+
+    secret: ENV.NEXTAUTH_SECRET,
 };

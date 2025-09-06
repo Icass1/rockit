@@ -31,9 +31,8 @@ from backend.db.associationTables.artist_genres import artist_genres
 
 from backend.spotifyApiTypes.RawSpotifyApiAlbum import RawSpotifyApiAlbum
 from backend.spotifyApiTypes.RawSpotifyApiArtist import RawSpotifyApiArtist
-from backend.spotifyApiTypes.RawSpotifyApiTrack import RawSpotifyApiTrack, TrackArtists
-from backend.spotifyApiTypes.RawSpotifyApiSearchResults import SpotifySearchResultsArtists
-from backend.spotifyApiTypes.RawSpotifyApiPlaylist import PlaylistArtists, PlaylistTracks, RawSpotifyApiPlaylist
+from backend.spotifyApiTypes.RawSpotifyApiTrack import RawSpotifyApiTrack
+from backend.spotifyApiTypes.RawSpotifyApiPlaylist import RawSpotifyApiPlaylist
 
 
 class Spotify:

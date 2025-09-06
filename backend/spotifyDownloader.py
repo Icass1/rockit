@@ -74,7 +74,7 @@ class SpotifyDownloader:
             download_to_add = DownloadRow(
                 public_id=download_public_id,
                 user_id=user_id,
-                date_started=datetime.now(),
+                date_started=datetime.now(tz=UTC),
                 download_url=url
             )
 
@@ -257,7 +257,7 @@ class SpotifyDownloader:
                                 else 0 for queue_element in self.queue_elements]),
                     fail=sum([0 if queue_element.get_success()
                               else 1 for queue_element in self.queue_elements]),
-                    date_ended=datetime.now()
+                    date_ended=datetime.now(tz=UTC)
                 )
             )
         )

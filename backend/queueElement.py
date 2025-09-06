@@ -65,18 +65,22 @@ class SpotifyQueueElement(QueueElement):
         if not self._path:
             self.logger.error(f"Path is not set. {self._song=}")
 
-            song_in_db: SongRow | None = self._rockit_db.execute_with_session(
-                lambda s: s.execute(select(SongRow).where(
+            with self._rockit_db.session_scope() as s:
+                song_in_db: SongRow | None = s.execute(select(SongRow).where(
                     SongRow.public_id == self._song.song_id)
                 ).scalar_one_or_none()
-            )
 
-            if not song_in_db:
-                self.logger.error(f"Song not found in database. {self._song=}")
-                return
+                if not song_in_db:
+                    self.logger.error(
+                        f"Song not found in database. {self._song=}")
+                    return
 
-            song_in_db.download_url = self._song.download_url
-            song_in_db.lyrics = self._song.lyrics
+                if self._song.download_url:
+                    song_in_db.download_url = self._song.download_url
+                if self._song.lyrics:
+                    song_in_db.lyrics = self._song.lyrics
+
+            return
 
         artist = sanitize_folder_name(
             self._song.artist)
@@ -90,12 +94,12 @@ class SpotifyQueueElement(QueueElement):
             self.logger.info(f"Creating directory {SONGS_PATH}")
             os.mkdir(SONGS_PATH)
 
-        song_path = os.path.join(SONGS_PATH, artist, album, song_path)
+        final_song_path = os.path.join(SONGS_PATH, artist, album, song_path)
 
         song_path_db = os.path.join(artist, album, song_path)
 
         self.logger.info(
-            f"{artist=} - {album=} - {song_path=} - {song_path=} - {song_path_db=}")
+            f"{artist=} - {album=} - {song_path=} - {final_song_path=} - {song_path_db=}")
 
         if not os.path.exists(os.path.join(SONGS_PATH, artist)):
             self.logger.info(
@@ -107,7 +111,7 @@ class SpotifyQueueElement(QueueElement):
                 f"Creating directory {os.path.join(SONGS_PATH, artist, album)}")
             os.mkdir(os.path.join(SONGS_PATH, artist, album))
 
-        shutil.move(src=str(self._path), dst=song_path)
+        shutil.move(src=str(self._path), dst=final_song_path)
 
         def _update(s: Session):
 
@@ -117,10 +121,12 @@ class SpotifyQueueElement(QueueElement):
                 self.logger.error(f"Song not found in database. {self._song=}")
                 return
 
-            song_db.download_url = self._song.download_url
-            song_db.lyrics = self._song.lyrics
+            if self._song.download_url:
+                song_db.download_url = self._song.download_url
+            if self._song.lyrics:
+                song_db.lyrics = self._song.lyrics
             song_db.path = song_path_db
 
         self._rockit_db.execute_with_session(_update)
 
-        self.logger.info(f"Moved song to {song_path}")
+        self.logger.info(f"Moved song to {final_song_path}")

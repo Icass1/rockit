@@ -21,8 +21,9 @@ export default function SignupModal() {
 
         console.log({ username, password, repeatPassword });
 
-        const response = await fetch("/api/auth/signup", {
+        const response = await fetch(`http://localhost:8000/auth/signup`, {
             method: "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ username, password, repeatPassword }),
         });
 

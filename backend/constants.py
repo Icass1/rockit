@@ -1,16 +1,19 @@
 
+from dotenv import load_dotenv
 from spotdl.types.options import DownloaderOptions
 import os
 
-from dotenv import load_dotenv
-load_dotenv()
+os.system("bash -c 'set -a && source .env && set +a'")
 
+load_dotenv()
 
 _SONGS_PATH = os.getenv(key="SONGS_PATH")
 _IMAGES_PATH = os.getenv("IMAGES_PATH")
 _TEMP_PATH = os.getenv("TEMP_PATH")
 _LOGS_PATH = os.getenv(key="LOGS_PATH")
 _LOG_DUMP_LEVEL = os.getenv(key="LOG_DUMP_LEVEL")
+_CONSOLE_DUMP_LEVEL = os.getenv(key="CONSOLE_DUMP_LEVEL")
+_DOWNLOAD_THREADS = os.getenv(key="DOWNLOAD_THREADS")
 
 if not _SONGS_PATH:
     print("SONGS_PATH is not set")
@@ -32,15 +35,28 @@ if not _LOG_DUMP_LEVEL:
     print("LOG_DUMP_LEVEL is not set")
     exit()
 
+if not _CONSOLE_DUMP_LEVEL:
+    print("CONSOLE_DUMP_LEVEL is not set")
+    exit()
+
+if not _DOWNLOAD_THREADS:
+    print("CONSOLE_DUMP_LEVEL is not set")
+    exit()
+
 SONGS_PATH = _SONGS_PATH
 IMAGES_PATH = _IMAGES_PATH
 TEMP_PATH = _TEMP_PATH
 LOGS_PATH = _LOGS_PATH
 LOG_DUMP_LEVEL = _LOG_DUMP_LEVEL
-
+CONSOLE_DUMP_LEVEL = _CONSOLE_DUMP_LEVEL
+try:
+    DOWNLOAD_THREADS = int(_DOWNLOAD_THREADS)
+except:
+    print("CONSOLE_DUMP_LEVEL must be an integer")
+    exit()
 
 DOWNLOADER_OPTIONS: DownloaderOptions = {
-    "audio_providers": ["youtube-music"],
+    "audio_providers": ["youtube-music", "youtube"],
     "lyrics_providers": ["genius", "azlyrics", "musixmatch"],
     "genius_token": "alXXDbPZtK1m2RrZ8I4k2Hn8Ahsd0Gh_o076HYvcdlBvmc0ULL1H8Z8xRlew5qaG",
     "playlist_numbering": False,
@@ -88,4 +104,3 @@ DOWNLOADER_OPTIONS: DownloaderOptions = {
     "respect_skip_file": False,
     "sync_remove_lrc": False,
 }
-

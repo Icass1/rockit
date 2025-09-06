@@ -3,15 +3,15 @@ import json
 import asyncio
 import threading
 from logging import Logger
-from datetime import datetime
+from datetime import UTC, datetime
+import traceback
+from typing import List, TYPE_CHECKING
 from spotdl.types.song import Song as SpotdlSong
-from typing import List, TYPE_CHECKING, Tuple, Sequence
 
 from fastapi import Request, Response
 from fastapi.responses import StreamingResponse
 
-from sqlalchemy import RowMapping, select, update
-from sqlalchemy.engine.row import Row
+from sqlalchemy import update
 from sqlalchemy.orm import Session
 
 from backend.db.db import RockitDB
@@ -120,8 +120,6 @@ class SpotifyDownloader:
                     self.logger.error(f"out is None. {self.url=}")
                     return
 
-                # spotdl_song, song = out
-
                 song_rows.append(song_row)
 
                 self.message_handler.add(
@@ -135,7 +133,6 @@ class SpotifyDownloader:
                     self.url.replace("https://open.spotify.com/album/", ""))
 
                 for song_row in album.songs:
-                    # spotdl_song = self.downloader.spotify.get_spotdl_song_from_song_row(song_row)
                     song_rows.append(song_row)
 
                     self.message_handler.add(
@@ -203,7 +200,8 @@ class SpotifyDownloader:
                         {'id': song_row.public_id, 'completed': 100, 'message': 'Skipped'})
 
                 else:
-                    spotdl_song: SpotdlSong = self.downloader.spotify.get_spotdl_song_from_song_row(song_row=song_row)
+                    spotdl_song: SpotdlSong = self.downloader.spotify.get_spotdl_song_from_song_row(
+                        song_row=song_row)
 
                     queue_element = SpotifyQueueElement(
                         message_handler=self.message_handler, rockit_db=self.downloader.rockit_db, song=spotdl_song)
@@ -219,6 +217,7 @@ class SpotifyDownloader:
             # Fetch spotify https://open.spotify.com/intl-es/track/5EvLXXAKicvIF3LegVMlJj?si=f22cd441145541a9
         except Exception as e:
             self.logger.error(f"Error fetching and adding to queue. ({e})")
+            self.logger.error(traceback.format_exc())
             self.error = True
 
     async def wait_for_download(self):
@@ -298,6 +297,6 @@ class SpotifyDownloader:
                     # Send keep-alive to prevent connection from closing
                     yield ": keep-alive\n\n"
 
-            self.logger.info(f"Finished {self.download_id}")
+            self.logger.info(f"Finished download with id {self.download_id}")
 
         return StreamingResponse(event_generator(), media_type="text/event-stream")

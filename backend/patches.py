@@ -33,7 +33,6 @@ import requests
 from typing import Dict, List, Tuple
 from bs4 import BeautifulSoup
 
-import logging
 from typing import Dict, List, Optional, Tuple
 
 
@@ -47,7 +46,10 @@ from spotdl.utils.matching import get_best_matches, order_results
 
 __all__ = ["AudioProviderError", "AudioProvider", "ISRC_REGEX", "YTDLLogger"]
 
-logger = logging.getLogger(__name__)
+
+from backend.logger import getLogger
+
+logger = getLogger(__name__, "patches")
 
 
 def get_best_result(self, results: Dict[Result, float], song: Song) -> Tuple[Result, float]:
@@ -175,10 +177,7 @@ def get_best_result(self, results: Dict[Result, float], song: Song) -> Tuple[Res
     return best_result[0], best_result[1]
 
 
-spotdl.providers.audio.base.AudioProvider.get_best_result = get_best_result
-
-
-def search(self, song: Song, only_verified: bool = False) -> Optional[str]:
+def AudioProvider_search(self, song: Song, only_verified: bool = False) -> Optional[str]:
     """
     Search for a song and return best match.
 
@@ -353,9 +352,6 @@ def search(self, song: Song, only_verified: bool = False) -> Optional[str]:
     return best_result.url
 
 
-spotdl.providers.audio.base.AudioProvider.search = search
-
-
 def search_and_download(  # pylint: disable=R0911
     self: spotdl.Downloader, song: Song
 ) -> Tuple[Song, Optional[Path]]:
@@ -514,10 +510,11 @@ def search_and_download(  # pylint: disable=R0911
         # Find song lyrics and add them to the song object
         try:
             display_progress_tracker.update("Searching lyrics")
-
+            print(__file__, f"Searching lyrics", self.search_lyrics)
             lyrics = self.search_lyrics(song)
+            print(__file__, f"Done", lyrics)
             if lyrics is None:
-                logger.debug(
+                logger.info(
                     "No lyrics found for %s, lyrics providers: %s",
                     song.display_name,
                     ", ".join(
@@ -527,7 +524,7 @@ def search_and_download(  # pylint: disable=R0911
             else:
                 song.lyrics = lyrics
         except Exception as exc:
-            logger.debug("Could not search for lyrics: %s", exc)
+            logger.info("Could not search for lyrics: %s", exc)
 
         # If the file already exists and we want to overwrite the metadata,
         # we can skip the download
@@ -825,7 +822,7 @@ def search_and_download(  # pylint: disable=R0911
         return song, None
 
 
-def search(self, song: Song, display_progress_tracker) -> str:
+def Downloader_search(self: spotdl.download.downloader.Downloader, song: Song, display_progress_tracker) -> str:
     """
     Search for a song using all available providers.
 
@@ -850,11 +847,7 @@ def search(self, song: Song, display_progress_tracker) -> str:
     raise LookupError(f"No results found for song: {song.display_name}")
 
 
-spotdl.download.downloader.Downloader.search_and_download = search_and_download
-spotdl.download.downloader.Downloader.search = search
-
-
-def get_download_metadata(self, url: str, download: bool = False) -> Dict:
+def get_download_metadata(self: spotdl.providers.audio.base.AudioProvider, url: str, download: bool = False) -> Dict:
     """
     Get metadata for a download using yt-dlp.
 
@@ -865,28 +858,30 @@ def get_download_metadata(self, url: str, download: bool = False) -> Dict:
     - A dictionary containing the metadata.
     """
 
-    print("spotdl/providers/audio/base.py", "get_download_metadata", url)
+    # print(__file__, "get_download_metadata", url)
 
     try:
+        logger.debug("Clearing cache...")
+        self.audio_handler.cache.remove()
         data = self.audio_handler.extract_info(url, download=download)
 
         if data:
             return data
     except Exception as exception:
-        logger.debug(exception)
-        import traceback
-        print(traceback.format_exc())
-        traceback.print_exc()
+        logger.error(traceback.format_exc())
 
-        print("spotdl/providers/audio/base.py", exception)
         raise AudioProviderError(
             f"YT-DLP download error - {url}") from exception
 
     raise AudioProviderError(f"No metadata found for the provided url {url}")
 
 
+spotdl.download.downloader.Downloader.search_and_download = search_and_download
+spotdl.download.downloader.Downloader.search = Downloader_search
+
 spotdl.providers.audio.base.AudioProvider.get_download_metadata = get_download_metadata
+spotdl.providers.audio.base.AudioProvider.get_best_result = get_best_result
+spotdl.providers.audio.base.AudioProvider.search = AudioProvider_search
 
 
-logger = getLogger(__name__)
 logger.info("Patches applied.")

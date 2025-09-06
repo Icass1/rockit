@@ -6,60 +6,16 @@ import threading
 from datetime import datetime
 from colorama import Fore, Style, init
 
-from backend.constants import LOG_DUMP_LEVEL, LOGS_PATH  # Import inspect module
+# Import inspect module
+from backend.constants import CONSOLE_DUMP_LEVEL, LOG_DUMP_LEVEL, LOGS_PATH
 
-
-def ensure_dir_exists(path):
-    """Ensure the directory for logs exists."""
-    if not os.path.exists(path):
-        os.makedirs(path)
-
-
-class ColorFormatter(logging.Formatter):
-    """Custom formatter to add colors to log levels."""
-    COLORS = {
-        'DEBUG': Fore.BLUE,
-        'INFO': Fore.GREEN,
-        'WARNING': Fore.YELLOW,
-        'ERROR': Fore.RED,
-        'CRITICAL': Fore.MAGENTA + Style.BRIGHT
-    }
-
-    def format(self, record):
-        log_color = self.COLORS.get(record.levelname, "")
-        message = super().format(record)
-        return f"{log_color}{message}{Style.RESET_ALL}"
-
-
-def log_uncaught_exceptions(exc_type, exc_value, exc_traceback):
-    """Log uncaught exceptions."""
-    if issubclass(exc_type, KeyboardInterrupt):
-        # Allow KeyboardInterrupt to exit gracefully
-        sys.__excepthook__(exc_type, exc_value, exc_traceback)
-        return
-
-    tb_lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
-
-    # Combine the traceback into a single string
-    error_message = ''.join(tb_lines)
-
-    # Optionally, you can also include the exception type and value
-    formatted_message = "\n"
-    formatted_message += f"Exception Type: {exc_type.__name__}\n"
-    formatted_message += f"Exception Value: {exc_value}\n"
-    formatted_message += "Traceback:\n"
-    formatted_message += error_message
-
-    logger = getLogger("Uncaught Exceptions")
-    logger.critical(formatted_message)
-
-# Override threading's excepthook for all threads
-
-
-def custom_thread_excepthook(args):
-    # return
-    exc_type, exc_value, exc_traceback, thread = args
-    log_uncaught_exceptions(exc_type, exc_value, exc_traceback)
+LEVELS = {
+    "debug": logging.DEBUG,
+    "info": logging.INFO,
+    "warning": logging.WARNING,
+    "error": logging.ERROR,
+    "critical": logging.CRITICAL
+}
 
 
 class CustomLogger(logging.Logger):
@@ -86,6 +42,57 @@ class CustomLogger(logging.Logger):
 logging.setLoggerClass(CustomLogger)
 
 
+class ColorFormatter(logging.Formatter):
+    """Custom formatter to add colors to log levels."""
+    COLORS = {
+        'DEBUG': Fore.BLUE,
+        'INFO': Fore.GREEN,
+        'WARNING': Fore.YELLOW,
+        'ERROR': Fore.RED,
+        'CRITICAL': Fore.MAGENTA + Style.BRIGHT
+    }
+
+    def format(self, record):
+        log_color = self.COLORS.get(record.levelname, "")
+        message = super().format(record)
+        return f"{log_color}{message}{Style.RESET_ALL}"
+
+
+def ensure_dir_exists(path):
+    """Ensure the directory for logs exists."""
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+
+def log_uncaught_exceptions(exc_type, exc_value, exc_traceback):
+    """Log uncaught exceptions."""
+    if issubclass(exc_type, KeyboardInterrupt):
+        # Allow KeyboardInterrupt to exit gracefully
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+
+    tb_lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+
+    # Combine the traceback into a single string
+    error_message = ''.join(tb_lines)
+
+    # Optionally, you can also include the exception type and value
+    formatted_message = "\n"
+    formatted_message += f"Exception Type: {exc_type.__name__}\n"
+    formatted_message += f"Exception Value: {exc_value}\n"
+    formatted_message += "Traceback:\n"
+    formatted_message += error_message
+
+    logger = getLogger("Uncaught Exceptions")
+    logger.critical(formatted_message)
+
+
+def custom_thread_excepthook(args):
+    """Override threading's excepthook for all threads"""
+    exc_type, exc_value, exc_traceback, thread = args
+    log_uncaught_exceptions(exc_type, exc_value, exc_traceback)
+
+
 def getLogger(name, class_name=None):
     """Create or retrieve a logger with console and file handlers."""
 
@@ -94,16 +101,15 @@ def getLogger(name, class_name=None):
 
     logger = logging.getLogger(name)
 
-    console_level = logging.INFO
+    try:
+        file_level = LEVELS[LOG_DUMP_LEVEL]
+    except:
+        print(
+            f"LOG_DUMP_LEVEL can only be 'debug', 'info', 'warning', 'error' or 'critical' found '{LOG_DUMP_LEVEL}'")
+        exit()
 
     try:
-        file_level = {
-            "debug": logging.DEBUG,
-            "info": logging.INFO,
-            "warning": logging.WARNING,
-            "error": logging.ERROR,
-            "critical": logging.CRITICAL
-        }[LOG_DUMP_LEVEL]
+        console_level = LEVELS[CONSOLE_DUMP_LEVEL]
     except:
         print(
             f"LOG_DUMP_LEVEL can only be 'debug', 'info', 'warning', 'error' or 'critical' found '{LOG_DUMP_LEVEL}'")
@@ -114,7 +120,7 @@ def getLogger(name, class_name=None):
         return logger
 
     # Set logging level
-    logger.setLevel(min(console_level, file_level))
+    logger.setLevel(console_level)
 
     # Define formatters
     plain_formatter = logging.Formatter(

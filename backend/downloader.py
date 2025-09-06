@@ -9,17 +9,22 @@ from backend.db.db import RockitDB
 from backend.spotify import Spotify
 from backend.logger import getLogger
 from backend.queueElement import QueueElement
-from backend.constants import DOWNLOADER_OPTIONS
 from backend.progressHandler import ProgressHandler
 from backend.spotifyDownloader import SpotifyDownloader
 from backend.backendUtils import create_id, get_song_name
 from backend.youtubeDownloader import YoutubeMusicDownloader
+from backend.constants import DOWNLOAD_THREADS, DOWNLOADER_OPTIONS
 
 # Do not remove the following import, is needed to apply patches
 import backend.patches
 
 
 class Downloader:
+    """RockIt music downloader."""
+
+    max_download_threads: int
+    """Max number of concurrent downloads."""
+    
     def __init__(self, rockit_db: RockitDB) -> None:
         self.logger: Logger = getLogger(name=__name__, class_name="Downloader")
 
@@ -29,19 +34,24 @@ class Downloader:
         self.spotdl_downloader = SpotdlDownloader(settings=DOWNLOADER_OPTIONS)
         self.spotdl_downloader.progress_handler.rich_progress_bar = self.progress_handler  # type: ignore
 
-        self.spotify = Spotify(rockit_db = self.rockit_db)
+        self.spotify = Spotify(rockit_db=self.rockit_db)
 
-        self.max_download_threads: int = 4
         self.queue: List[QueueElement] = []
         self.download_threads: List[Tuple[threading.Thread, QueueElement]] = []
 
         self.downloaders: Dict[str, SpotifyDownloader |
                                YoutubeMusicDownloader] = {}
 
+        self.set_max_download_threads(DOWNLOAD_THREADS)
         self.check_downloads_in_db()
 
     def check_downloads_in_db(self):
         self.logger.error("Not implemented error.")
+
+    def set_max_download_threads(self, new_max: int):
+        self.max_download_threads = new_max
+        self.logger.info(
+            f"Current max download threads: {self.max_download_threads}.")
 
     def download_url(self, url: str, background_tasks: BackgroundTasks, user_id: int) -> str:
 
@@ -103,8 +113,6 @@ class Downloader:
 
                 while len(self.download_threads) < self.max_download_threads and len(self.queue) > 0:
                     self.logger.info("Starting new thread")
-
-                    self.logger.info(f"{threading.enumerate()=}")
 
                     thread = threading.Thread(
                         target=self.download_method, args=(self.queue[0],), name=f"Downloader-{self.queue[0].get_song().song_id}")

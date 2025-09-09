@@ -83,7 +83,7 @@ export default async function ArtistPage({
                                                     src={
                                                         song.album.images[0]
                                                             ?.url ??
-                                                        "/api/image/song-placeholder.png"
+                                                        "/song-placeholder.png"
                                                     }
                                                     alt={song.name}
                                                     className="h-full w-full rounded object-cover transition duration-300 group-hover:brightness-50"
@@ -120,7 +120,7 @@ export default async function ArtistPage({
                                             </div>
                                             <div className="relative h-10 w-10 md:h-12 md:w-12">
                                                 <img
-                                                    src="/api/image/song-placeholder.png"
+                                                    src="/song-placeholder.png"
                                                     alt={`Album ${idx + 1}`}
                                                     className="h-full w-full rounded object-cover transition duration-300 group-hover:brightness-50"
                                                 />
@@ -155,7 +155,7 @@ export default async function ArtistPage({
                                 >
                                     <img
                                         className="aspect-square w-full rounded-lg object-cover"
-                                        src="/api/image/song-placeholder.png"
+                                        src="/song-placeholder.png"
                                         alt={`Release ${idx + 1}`}
                                     />
                                     <label className="mt-2 block truncate text-center font-semibold">

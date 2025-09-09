@@ -181,7 +181,7 @@ export function FeaturedLists({
                                 imageId: album.image,
                                 height: 300,
                                 width: 300,
-                                placeHolder: "/api/image/song-placeholder.png",
+                                placeHolder: "/song-placeholder.png",
                             })}
                             alt={album.name}
                         />

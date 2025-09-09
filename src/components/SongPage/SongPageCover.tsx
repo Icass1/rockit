@@ -108,7 +108,7 @@ export default function SongPageCover({
                         (_song?.image
                             ? `/api/image/${_song.image}`
                             : album?.album.images[0].url) ||
-                        "/api/image/song-placeholder.png"
+                        "/song-placeholder.png"
                     }
                     alt="Carátula de la canción"
                     className={

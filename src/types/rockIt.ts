@@ -1,71 +1,54 @@
-export interface RockItAlbum {
-    id: string;
-    type: string;
-    images: RockItAlbumImage[];
-    image: string;
-    name: string;
-    releaseDate: string;
-    artists: RockItAlbumArtist[];
-    copyrights: RockItAlbumCopyright[];
-    popularity: number;
-    genres: object[];
-    songs: RockItAlbumSong[];
-    discCount: number;
-    dateAdded: number;
-}
+// ****************************************
+// ************** Song stuff **************
+// ****************************************
 
-export interface RockItAlbumImage {
+export type RockItExternalImage = {
     url: string;
-    height: number;
-    width: number;
-}
+    width?: number;
+    height?: number;
+};
 
-export interface RockItAlbumArtist {
+export type DynamicLyrics = {
+    lyrics: string;
+    seconds: number;
+};
+
+export interface RockItArtist {
+    public_id: string;
     name: string;
-    id: string;
 }
 
-export interface RockItAlbumCopyright {
+export interface RockItCopyright {
     text: string;
-    type: string;
+    type: "C" | "P";
 }
 
-export interface RockItAlbumSong {
-    id: string;
+export interface RockItAlbum {
+    public_id: string;
     name: string;
-    artists: RockItAlbumArtist2[];
+    copyrights: RockItCopyright[];
+}
+
+export type RockItSong<Keys extends keyof SongDBFull = keyof SongDBFull> = Pick<
+    SongDBFull,
+    Keys
+>;
+export interface SongDBFull {
+    publicId: string;
+    name: string;
+    artists: RockItArtist[];
     genres: string[];
     discNumber: number;
-    albumName: string;
-    albumArtist: RockItAlbumAlbumArtist[];
-    albumType: string;
-    albumId: string;
+    album: RockItAlbum;
     duration: number;
-    date: string;
     trackNumber: number;
     publisher: string;
-    path: string;
-    images: RockItAlbumImage2[];
-    image: string;
-    copyright: string;
-    downloadUrl: string;
-    lyrics?: string;
-    popularity: number;
+    images: RockItExternalImage[];
+    internalImageUrl?: string;
+    downloadUrl?: string;
+    lyrics: string;
+    dynamicLyrics: DynamicLyrics[];
+    popularity?: number;
     dateAdded: string;
-}
-
-export interface RockItAlbumArtist2 {
-    name: string;
-    id: string;
-}
-
-export interface RockItAlbumAlbumArtist {
-    name: string;
-    id: string;
-}
-
-export interface RockItAlbumImage2 {
-    url: string;
-    height: number;
-    width: number;
+    isrc: string;
 }

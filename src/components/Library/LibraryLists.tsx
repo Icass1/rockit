@@ -453,8 +453,7 @@ export function LibraryLists({
                                     height: 300,
                                     width: 300,
                                     fallback: album.images[0]?.url,
-                                    placeHolder:
-                                        "/api/image/song-placeholder.png",
+                                    placeHolder: "/song-placeholder.png",
                                 })}
                             />
                             <label className="mt-1 truncate text-center font-semibold">

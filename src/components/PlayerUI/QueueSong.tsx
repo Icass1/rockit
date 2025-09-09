@@ -75,7 +75,7 @@ export function QueueSong({ song }: { song: QueueElement }) {
                         imageId: song.song.image,
                         width: 48,
                         height: 48,
-                        placeHolder: "/api/image/song-placeholder.png",
+                        placeHolder: "/song-placeholder.png",
                     })}
                     alt={song.song.name}
                     className={`h-12 w-12 rounded object-cover ${

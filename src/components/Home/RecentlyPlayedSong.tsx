@@ -1,4 +1,3 @@
-import type { SongDB } from "@/lib/db/song";
 import { getImageUrl } from "@/lib/getImageUrl";
 import { currentList } from "@/stores/currentList";
 import { songHandleClick } from "@/components/ListSongs/HandleClick";
@@ -54,7 +53,7 @@ export default function RecentlyPlayedSong({
                     imageId: song.image,
                     height: 400,
                     width: 400,
-                    placeHolder: "/api/image/song-placeholder.png",
+                    placeHolder: "/song-placeholder.png",
                 })}
                 alt="Song Cover"
             />

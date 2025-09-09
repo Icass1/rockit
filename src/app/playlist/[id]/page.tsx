@@ -44,9 +44,7 @@ async function getPlaylist(id: string) {
             name: lang?.liked_songs ?? "Liked Songs",
             songs: userDB.likedSongs,
             image: "",
-            images: [
-                { url: "/api/image/song-placeholder.png", height: 1, width: 1 },
-            ],
+            images: [{ url: "/song-placeholder.png", height: 1, width: 1 }],
             owner: "Rock It!",
         };
     } else if (id == "most-listened") {
@@ -64,9 +62,7 @@ async function getPlaylist(id: string) {
             name: lang?.most_listened ?? "Most listened",
             songs: songs,
             image: "",
-            images: [
-                { url: "/api/image/song-placeholder.png", height: 1, width: 1 },
-            ],
+            images: [{ url: "/song-placeholder.png", height: 1, width: 1 }],
             owner: "Rock It!",
         };
     } else if (id == "last-month") {
@@ -162,9 +158,7 @@ async function getPlaylist(id: string) {
             name: lang?.recent_mix ?? "Recent Mix",
             songs: songs,
             image: "",
-            images: [
-                { url: "/api/image/song-placeholder.png", height: 1, width: 1 },
-            ],
+            images: [{ url: "/song-placeholder.png", height: 1, width: 1 }],
             owner: "Rock It!",
         };
     } else {

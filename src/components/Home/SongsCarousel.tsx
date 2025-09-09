@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Play, ChevronLeft, ChevronRight, Pause } from "lucide-react";
-import type { SongForStats } from "@/lib/stats";
 import useWindowSize from "@/hooks/useWindowSize";
 import { currentSong, playing } from "@/stores/audio";
 import { useStore } from "@nanostores/react";
@@ -11,6 +10,8 @@ import { songHandleClick } from "@/components/ListSongs/HandleClick";
 import { currentList } from "@/stores/currentList";
 import Image from "@/components/Image";
 import useFetch from "@/hooks/useFetch";
+import { StatsResponse } from "@/responses/stats/statsResponse";
+import { RockItSong } from "@/types/rockIt";
 
 function Song({
     index,
@@ -21,9 +22,9 @@ function Song({
 }: {
     index: number;
     currentIndex: number;
-    song: SongForStats;
+    song: RockItSong;
     songsLength: number;
-    songs: SongForStats[];
+    songs: RockItSong[];
 }) {
     let distanceFromCenter = Math.abs(index - currentIndex);
     let neg = index > currentIndex ? -1 : 1;
@@ -75,7 +76,7 @@ function Song({
 
     return (
         <div
-            key={song.id}
+            key={song.public_id}
             className={
                 "absolute aspect-square h-full w-auto origin-center -translate-x-1/2" +
                 transition
@@ -96,10 +97,10 @@ function Song({
                     width={300}
                     height={300}
                     src={getImageUrl({
-                        imageId: song.image,
+                        imageId: song.internalImageUrl,
                         width: 300,
                         height: 300,
-                        fallback: "/api/image/song-placeholder.png",
+                        fallback: "/song-placeholder.png",
                     })}
                     className={`${transition} relative top-1/2 aspect-square h-auto w-full -translate-y-1/2`}
                     style={{ filter: `brightness(${brightness})` }}
@@ -130,7 +131,7 @@ function Song({
                         className="absolute right-4 bottom-4 rounded-full bg-transparent p-3 text-white backdrop-blur-sm transition duration-300 md:hover:bg-black/40"
                         onClick={handleClick}
                     >
-                        {$currentSong?.id == song.id && $playing ? (
+                        {$currentSong?.id == song.public_id && $playing ? (
                             <Pause
                                 className={`${transition} ${
                                     index == currentIndex
@@ -158,7 +159,7 @@ function Version2({
     songs,
     currentIndex,
 }: {
-    songs: SongForStats[];
+    songs: RockItSong[];
     currentIndex: number;
 }) {
     return (
@@ -178,9 +179,9 @@ function Version2({
 }
 
 function SongsCarousel() {
-    const [songs] = useFetch<SongForStats[]>(
-        "/api/stats?type=songs&limit=20&sortBy=random&noRepeat=true",
-        { redis: true, json: true }
+    const [songs] = useFetch<StatsResponse>(
+        "/stats?type=songs&limit=20&sortBy=random&noRepeat=true",
+        { json: true }
     );
 
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -210,7 +211,7 @@ function SongsCarousel() {
 
         pauseTimeoutRef.current = setTimeout(() => {
             startAutoRotate();
-        }, 2000); // Mas los 3000 de auto-rotar
+        }, 2000);
     }, [startAutoRotate]);
 
     const nextSlide = useCallback(() => {

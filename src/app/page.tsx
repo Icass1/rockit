@@ -8,13 +8,12 @@ import { langData } from "@/stores/lang";
 import { useStore } from "@nanostores/react";
 import Spinner from "@/components/Spinner";
 import useFetch from "@/hooks/useFetch";
-import { HomeStats } from "./api/stats/home/route";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { HomeStats } from "@/responses/stats/homeStatsResponse";
 
 export default function Home() {
-    const [data] = useFetch<HomeStats>("/api/stats/home", {
-        redis: true,
+    const [data] = useFetch<HomeStats>("/stats/home", {
         json: true,
     });
 
@@ -45,8 +44,6 @@ export default function Home() {
         router.push("/login");
     }
 
-    // type Mood = "relaxed" | "energy" | "focus" | "party";
-
     if (!$lang || !data) {
         return (
             <div className="flex h-screen flex-row items-center justify-center gap-2 text-xl font-semibold">
@@ -65,6 +62,8 @@ export default function Home() {
         // moodSongs,
     } = data;
 
+    console.log(songsByTimePlayed)
+
     return (
         <Suspense
             fallback={
@@ -76,7 +75,7 @@ export default function Home() {
         >
             <div className="relative flex h-full flex-col overflow-y-auto pt-24 pb-24">
                 {/* Rest of your component remains the same */}
-                <SongsCarousel />
+                {/* <SongsCarousel /> */}
 
                 <section className="py-5 text-white md:py-12 md:pl-12">
                     <h2 className="px-5 text-2xl font-bold md:text-3xl">
@@ -108,29 +107,26 @@ export default function Home() {
                                         className="flex w-[51%] max-w-[200px] flex-none snap-center flex-col gap-1 md:w-[calc(25%-10px)] md:max-w-[350px]"
                                         key={columnIndex + "_" + index}
                                     >
-                                        {
-                                            // Asignar las canciones a cada columna
-                                            randomSongsLastMonth
-                                                .slice(
-                                                    columnIndex * 4,
-                                                    columnIndex * 4 + 4
-                                                )
-                                                .map((song) => (
-                                                    <QuickSelectionsSong
-                                                        key={
-                                                            columnIndex +
-                                                            "_" +
-                                                            index +
-                                                            song.id
-                                                        }
-                                                        song={song}
-                                                        songs={randomSongsLastMonth.slice(
-                                                            0,
-                                                            8 * 4 + 4
-                                                        )}
-                                                    />
-                                                ))
-                                        }
+                                        {randomSongsLastMonth
+                                            .slice(
+                                                columnIndex * 4,
+                                                columnIndex * 4 + 4
+                                            )
+                                            .map((song) => (
+                                                <QuickSelectionsSong
+                                                    key={
+                                                        columnIndex +
+                                                        "_" +
+                                                        index +
+                                                        song.publicId
+                                                    }
+                                                    song={song}
+                                                    songs={randomSongsLastMonth.slice(
+                                                        0,
+                                                        8 * 4 + 4
+                                                    )}
+                                                />
+                                            ))}
                                     </div>
                                 )
                             )
@@ -145,7 +141,7 @@ export default function Home() {
                     <div className="flex gap-4 overflow-x-auto px-10 py-4">
                         {songsByTimePlayed?.map((song) => (
                             <RecentlyPlayedSong
-                                key={song.id}
+                                key={song.publicId}
                                 song={song}
                                 songs={songsByTimePlayed}
                             />
@@ -161,7 +157,7 @@ export default function Home() {
                         {/* Most listened songs from one year ago to 3 months ago */}
                         {hiddenGems?.map((song) => (
                             <RecentlyPlayedSong
-                                key={song.id}
+                                key={song.publicId}
                                 song={song}
                                 songs={hiddenGems}
                             />
@@ -177,7 +173,7 @@ export default function Home() {
                         {/* Most listened songs by all RockIt users */}
                         {communityTop?.map((song) => (
                             <RecentlyPlayedSong
-                                key={song.id}
+                                key={song.publicId}
                                 song={song}
                                 songs={communityTop}
                             />
@@ -210,7 +206,7 @@ export default function Home() {
                         {/* Most listened songs from last month */}
                         {monthlyTop?.map((song) => (
                             <RecentlyPlayedSong
-                                key={song.id}
+                                key={song.publicId}
                                 song={song}
                                 songs={monthlyTop}
                             />

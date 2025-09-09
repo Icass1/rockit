@@ -1,30 +1,28 @@
-import type { SongDB } from "@/lib/db/song";
 import { getImageUrl } from "@/lib/getImageUrl";
 import { currentList } from "@/stores/currentList";
 import { songHandleClick } from "@/components/ListSongs/HandleClick";
 import Image from "@/components/Image";
 import SongContextMenu from "../ListSongs/SongContextMenu";
+import { RockItSong } from "@/types/rockIt";
 
 export default function QuickSelectionsSong({
     song,
     songs,
 }: {
-    song: SongDB<
+    song: RockItSong<
         | "name"
-        | "image"
+        | "internalImageUrl"
         | "artists"
-        | "id"
-        | "albumName"
-        | "albumId"
+        | "publicId"
+        | "album"
         | "duration"
     >;
-    songs: SongDB<
+    songs: RockItSong<
         | "name"
-        | "image"
+        | "internalImageUrl"
         | "artists"
-        | "id"
-        | "albumName"
-        | "albumId"
+        | "publicId"
+        | "album"
         | "duration"
     >[];
 }) {
@@ -59,10 +57,10 @@ export default function QuickSelectionsSong({
                     height={100}
                     className="aspect-square h-12 min-h-12 w-12 min-w-12 rounded-sm object-cover"
                     src={getImageUrl({
-                        imageId: song.image,
+                        imageId: song.internalImageUrl,
                         height: 100,
                         width: 100,
-                        placeHolder: "/api/image/song-placeholder.png",
+                        placeHolder: "/song-placeholder.png",
                     })}
                     alt={`Song Cover for ${song.name}`}
                 />
@@ -75,7 +73,7 @@ export default function QuickSelectionsSong({
                     {/* Artista y álbum */}
                     <span className="w-full max-w-full min-w-0 truncate text-sm text-gray-400">
                         {song.artists[0].name}
-                        {" • "} {song.albumName}
+                        {" • "} {song.album.name}
                     </span>
                 </div>
             </div>
@@ -96,7 +94,7 @@ export default function QuickSelectionsSong({
                     imageId: song.image,
                     height: 100,
                     width: 100,
-                    placeHolder: "/api/image/song-placeholder.png",
+                    placeHolder: "/song-placeholder.png",
                 })}
                 alt={`Song Cover for ${song.name}`}
             />

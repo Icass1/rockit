@@ -1,7 +1,5 @@
 import Masonry from "@/components/Masonry/Masonry";
 import { getSession } from "@/lib/auth/getSession";
-import { db } from "@/lib/db/db";
-import { ErrorDB } from "@/lib/db/error";
 import { DatabaseBackup, Link as LinkIcon } from "lucide-react";
 import Link from "next/link";
 import { promises as fs } from "fs";

@@ -4,9 +4,9 @@
     {
       "name": "Run Full Stack (Backend + Frontend)",
       "configurations": [
-        "FastAPI Uvicorn",
+        "FastAPI Uvicorn (DEBUG)",
         "NextJS Server",
-        "WebSocket Server"
+        // "WebSocket Server"
       ]
     },
     {

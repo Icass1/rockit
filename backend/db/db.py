@@ -7,6 +7,7 @@ from backend.db.base import Base
 
 from backend.db.ormModels.externalImage import ExternalImageRow
 from backend.db.ormModels.internalImage import InternalImageRow
+from backend.db.ormModels.copyright import CopyrightRow
 from backend.db.ormModels.download import DownloadRow
 from backend.db.ormModels.playlist import PlaylistRow
 from backend.db.ormModels.artist import ArtistRow
@@ -16,7 +17,7 @@ from backend.db.ormModels.error import ErrorRow
 from backend.db.ormModels.song import SongRow
 from backend.db.ormModels.list import ListRow
 from backend.db.ormModels.user import UserRow
-from backend.logger import getLogger
+from backend.utils.logger import getLogger
 
 T = TypeVar("T")
 
@@ -30,12 +31,16 @@ class RockitDB:
 
         self.logger = getLogger(__name__, "RockitDB")
 
+        connection_string = f"postgresql://{username}:{password}@{host}:{port}/{self.database}?sslmode=disable"
+
         self.engine = create_engine(
-            f"postgresql://{username}:{password}@{host}:{port}/{self.database}?sslmode=disable", echo=verbose)
+            connection_string, echo=verbose)
         Base.metadata.create_all(self.engine)
 
         self.SessionLocal = sessionmaker(
             bind=self.engine, expire_on_commit=False)
+
+        self.logger.info(f"Using connection string: '{connection_string}'")
 
     def get_session(self) -> Session:
         """

@@ -6,12 +6,14 @@ from sqlalchemy.orm import relationship, mapped_column, Mapped
 from backend.db.base import Base
 from backend.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdated
 from backend.db.associationTables.album_artists import album_artists
+from backend.db.associationTables.album_copyrights import album_copyrights
 from backend.db.associationTables.album_external_images import album_external_images
 
 if TYPE_CHECKING:
     from backend.db.ormModels.song import SongRow
     from backend.db.ormModels.list import ListRow
     from backend.db.ormModels.artist import ArtistRow
+    from backend.db.ormModels.copyright import CopyrightRow
     from backend.db.ormModels.internalImage import InternalImageRow
     from backend.db.ormModels.externalImage import ExternalImageRow
 
@@ -48,6 +50,12 @@ class AlbumRow(Base, TableDateUpdated, TableDateAdded):
 
     list: Mapped["ListRow"] = relationship(
         "ListRow", back_populates="album", uselist=False)
+
+    copyrights: Mapped[List["CopyrightRow"]] = relationship(
+        "CopyrightRow",
+        secondary=album_copyrights,
+        back_populates="albums"
+    )
 
     def __init__(self, id: int, public_id: str, internal_image_id: int, name: str, release_date: str, popularity: int, disc_count: int):
         kwargs = {}

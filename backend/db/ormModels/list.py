@@ -29,7 +29,7 @@ class ListRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     __tablename__ = 'lists'
     __table_args__ = {'schema': 'main', 'extend_existing': True},
 
-    type: Mapped[LIST_TYPE_TYPE] = mapped_column(Enum(*LIST_TYPES, name="type_enum",
+    type: Mapped[LIST_TYPE_TYPE] = mapped_column(Enum(*LIST_TYPES, name="list_type_enum",
                                                       schema="main"), nullable=False, unique=False)
     public_id: Mapped[str] = mapped_column(String, nullable=False, unique=True)
 

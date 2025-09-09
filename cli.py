@@ -2,9 +2,9 @@ import sys
 import os
 import json
 
-from backend.downloader import Downloader
+from backend.downloader.downloader import Downloader
 from backend.constants import IMAGES_PATH, SONGS_PATH
-from backend.logger import getLogger
+from backend.utils.logger import getLogger
 
 logger = getLogger(__name__)
 

@@ -10,7 +10,7 @@ sys.path.append(os.getcwd())  # noqa
 sys.path.append(os.getcwd() + "/backend")  # noqa
 
 from backend.db.ormModels.playlist import PlaylistRow
-from backend.logger import getLogger
+from backend.utils.logger import getLogger
 
 from backend.db.associationTables.song_artists import song_artists
 from backend.db.associationTables.user_history_songs import user_history_songs

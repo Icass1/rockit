@@ -18,10 +18,9 @@ import dotenv
 import math
 import json
 
-from backend.backendUtils import create_id, download_image, get_utc_date, sanitize_folder_name
+from backend.utils.backendUtils import create_id, download_image, get_utc_date, sanitize_folder_name
 from backend.constants import IMAGES_PATH
-from backend.logger import getLogger
-from backend.db.db import RockitDB
+from backend.utils.logger import getLogger
 
 from backend.db.associationTables.playlist_external_images import playlist_external_images
 from backend.db.associationTables.artist_external_images import artist_external_images
@@ -47,6 +46,8 @@ from backend.db.ormModels.error import ErrorRow
 from backend.db.ormModels.song import SongRow
 from backend.db.ormModels.list import ListRow
 from backend.db.ormModels.user import UserRow
+
+from backend.initDb import rockit_db
 
 logger = getLogger(__name__)
 
@@ -191,8 +192,6 @@ def get_spotify_data(ids: List[str], data_name: Literal["album"] | Literal["arti
 
 
 get_token()
-
-rockit_db = RockitDB("admin", "admin", "12.12.12.3", 5432, "development_1")
 
 session = rockit_db.get_session()
 
@@ -1155,13 +1154,17 @@ def add_users():
                             f"Skipping list {list_public_id} in user {public_id} queue because it has unknown type {list_type}")
                         continue
 
-                    user_queue_songs_values.append({
-                        "user_id": user_in_db.id,
-                        "song_id": next((song.id for song in songs_in_db if song.public_id == song_public_id), None),
-                        "list_id": list_id,
-                        "list_type": list_type,
-                        "position": index
-                    })
+                    song_id = next(
+                        (song.id for song in songs_in_db if song.public_id == song_public_id), None)
+
+                    if song_id:
+                        user_queue_songs_values.append({
+                            "user_id": user_in_db.id,
+                            "song_id": song_id,
+                            "list_id": list_id,
+                            "list_type": list_type,
+                            "position": index
+                        })
 
                 # Add user pinned lists.
                 for item in pinned_lists:

@@ -15,10 +15,10 @@ from sqlalchemy import update
 from sqlalchemy.orm import Session
 
 from backend.db.db import RockitDB
-from backend.logger import getLogger
+from backend.utils.logger import getLogger
 from backend.constants import SONGS_PATH
-from backend.messageHandler import MessageHandler
-from backend.queueElement import QueueElement, SpotifyQueueElement
+from backend.downloader.messageHandler import MessageHandler
+from backend.downloader.queueElement import QueueElement, SpotifyQueueElement
 
 from backend.db.ormModels.song import SongRow
 from backend.db.ormModels.download import STATUS_TYPE, DownloadRow

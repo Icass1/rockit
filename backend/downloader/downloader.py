@@ -6,17 +6,17 @@ from fastapi import BackgroundTasks, Request
 from spotdl.download.downloader import Downloader as SpotdlDownloader
 
 from backend.db.db import RockitDB
-from backend.spotify import Spotify
-from backend.logger import getLogger
-from backend.queueElement import QueueElement
-from backend.progressHandler import ProgressHandler
-from backend.spotifyDownloader import SpotifyDownloader
-from backend.backendUtils import create_id, get_song_name
-from backend.youtubeDownloader import YoutubeMusicDownloader
+from backend.utils.spotify import Spotify
+from backend.utils.logger import getLogger
+from backend.downloader.queueElement import QueueElement
+from backend.downloader.progressHandler import ProgressHandler
+from backend.downloader.spotifyDownloader import SpotifyDownloader
+from backend.utils.backendUtils import create_id, get_song_name
+from backend.downloader.youtubeDownloader import YoutubeMusicDownloader
 from backend.constants import DOWNLOAD_THREADS, DOWNLOADER_OPTIONS
 
 # Do not remove the following import, is needed to apply patches
-import backend.patches
+import backend.downloader.patches
 
 
 class Downloader:
@@ -24,7 +24,7 @@ class Downloader:
 
     max_download_threads: int
     """Max number of concurrent downloads."""
-    
+
     def __init__(self, rockit_db: RockitDB) -> None:
         self.logger: Logger = getLogger(name=__name__, class_name="Downloader")
 

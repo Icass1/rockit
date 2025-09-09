@@ -13,7 +13,7 @@ import cv2
 import re
 
 from backend.constants import DOWNLOADER_OPTIONS
-from backend.logger import getLogger
+from backend.utils.logger import getLogger
 
 if __name__ != "__main__":
     logger = getLogger(__name__)

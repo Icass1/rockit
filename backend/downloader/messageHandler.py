@@ -3,7 +3,7 @@
 import asyncio
 from logging import Logger
 from typing import Any, List
-from backend.logger import getLogger
+from backend.utils.logger import getLogger
 
 
 class MessageHandlderReader:

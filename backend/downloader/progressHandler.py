@@ -1,8 +1,8 @@
 from logging import Logger
 from typing import Any, Dict, Optional
 
-from backend.logger import getLogger
-from backend.messageHandler import MessageHandler
+from backend.utils.logger import getLogger
+from backend.downloader.messageHandler import MessageHandler
 
 
 class ProgressHandler:

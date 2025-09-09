@@ -23,7 +23,7 @@ from pathlib import Path
 import traceback
 import shutil
 import datetime
-from backend.logger import getLogger
+from backend.utils.logger import getLogger
 from difflib import SequenceMatcher
 import spotdl.download
 import spotdl.download.downloader
@@ -47,7 +47,7 @@ from spotdl.utils.matching import get_best_matches, order_results
 __all__ = ["AudioProviderError", "AudioProvider", "ISRC_REGEX", "YTDLLogger"]
 
 
-from backend.logger import getLogger
+from backend.utils.logger import getLogger
 
 logger = getLogger(__name__, "patches")
 

@@ -1,59 +1,47 @@
-
-from dotenv import load_dotenv
 from spotdl.types.options import DownloaderOptions
+from dotenv import load_dotenv
 import os
+import sys
 
 os.system("bash -c 'set -a && source .env && set +a'")
 
 load_dotenv()
 
-_SONGS_PATH = os.getenv(key="SONGS_PATH")
-_IMAGES_PATH = os.getenv("IMAGES_PATH")
-_TEMP_PATH = os.getenv("TEMP_PATH")
-_LOGS_PATH = os.getenv(key="LOGS_PATH")
-_LOG_DUMP_LEVEL = os.getenv(key="LOG_DUMP_LEVEL")
-_CONSOLE_DUMP_LEVEL = os.getenv(key="CONSOLE_DUMP_LEVEL")
-_DOWNLOAD_THREADS = os.getenv(key="DOWNLOAD_THREADS")
-_JWT_SECRET = os.getenv(key="JWT_SECRET")
 
-if not _SONGS_PATH:
-    print("SONGS_PATH is not set")
-    exit()
-if not _IMAGES_PATH:
-    print("IMAGES_PATH is not set")
-    exit()
-if not _TEMP_PATH:
-    print("TEMP_PATH is not set")
-    exit()
-if not _LOGS_PATH:
-    print("LOGS_PATH is not set")
-    exit()
-if not _LOG_DUMP_LEVEL:
-    print("LOG_DUMP_LEVEL is not set")
-    exit()
-if not _CONSOLE_DUMP_LEVEL:
-    print("CONSOLE_DUMP_LEVEL is not set")
-    exit()
-if not _DOWNLOAD_THREADS:
-    print("DOWNLOAD_THREADS is not set")
-    exit()
-if not _JWT_SECRET:
-    print("JWT_SECRET is not set")
-    exit()
+def get_env_str(name: str) -> str:
+    var = os.getenv(name)
+    if not var:
+        print(f"Environment variable '{name}' is not set")
+        sys.exit(1)
+    return var
 
-SONGS_PATH = _SONGS_PATH
-IMAGES_PATH = _IMAGES_PATH
-TEMP_PATH = _TEMP_PATH
-LOGS_PATH = _LOGS_PATH
-LOG_DUMP_LEVEL = _LOG_DUMP_LEVEL
-CONSOLE_DUMP_LEVEL = _CONSOLE_DUMP_LEVEL
-try:
-    DOWNLOAD_THREADS = int(_DOWNLOAD_THREADS)
-except:
-    print("CONSOLE_DUMP_LEVEL must be an integer")
-    exit()
 
-JWT_SECRET = _JWT_SECRET
+def get_env_int(name: str) -> int:
+
+    env_str = get_env_str(name)
+
+    try:
+        return int(env_str)
+    except:
+        print(f"Environment variable '{name}' must be a number, '{env_str}'")
+        exit()
+
+
+SONGS_PATH = get_env_str("SONGS_PATH")
+IMAGES_PATH = get_env_str("IMAGES_PATH")
+TEMP_PATH = get_env_str("TEMP_PATH")
+LOGS_PATH = get_env_str("LOGS_PATH")
+LOG_DUMP_LEVEL = get_env_str("LOG_DUMP_LEVEL")
+CONSOLE_DUMP_LEVEL = get_env_str("CONSOLE_DUMP_LEVEL")
+DOWNLOAD_THREADS = get_env_int("DOWNLOAD_THREADS")
+JWT_SECRET = get_env_str("JWT_SECRET")
+
+DB_HOST = get_env_str("DB_HOST")
+DB_USER = get_env_str("DB_USER")
+DB_PASSWORD = get_env_str("DB_PASSWORD")
+DB_PORT = get_env_int("DB_PORT")
+DB_DATABASE = get_env_str("DB_DATABASE")
+
 
 DOWNLOADER_OPTIONS: DownloaderOptions = {
     "audio_providers": ["youtube-music", "youtube"],

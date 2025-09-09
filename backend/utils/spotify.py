@@ -8,14 +8,15 @@ from logging import Logger
 from spotdl.types.song import Song as SpotdlSong
 from typing import Any, Dict, List, Literal, Sequence, Set
 
-from sqlalchemy import select
+from sqlalchemy import and_, select
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.dialects.postgresql import insert
 
-from backend.logger import getLogger
+from backend.db.ormModels.copyright import CopyrightRow
+from backend.utils.logger import getLogger
 from backend.db.db import RockitDB
 from backend.constants import IMAGES_PATH
-from backend.backendUtils import create_id, download_image, sanitize_folder_name
+from backend.utils.backendUtils import create_id, download_image, sanitize_folder_name
 
 from backend.db.ormModels.list import ListRow
 from backend.db.ormModels.song import SongRow
@@ -28,6 +29,7 @@ from backend.db.ormModels.internalImage import InternalImageRow
 from backend.db.associationTables.song_artists import song_artists
 from backend.db.associationTables.album_artists import album_artists
 from backend.db.associationTables.artist_genres import artist_genres
+from backend.db.associationTables.album_copyrights import album_copyrights
 
 from backend.spotifyApiTypes.RawSpotifyApiAlbum import RawSpotifyApiAlbum
 from backend.spotifyApiTypes.RawSpotifyApiArtist import RawSpotifyApiArtist
@@ -203,7 +205,7 @@ class Spotify:
         def _func(s: Session):
             image_to_add = InternalImageRow(
                 public_id=image_public_id,
-                url=image_url,
+                url=f"https://api.rockit.rockhosting.org/image/{image_public_id}",
                 path=image_path
             )
 
@@ -320,7 +322,7 @@ class Spotify:
 
             for album in albums:
 
-                if not album.id or not album.name or not album.release_date or not album.tracks or not album.tracks or not album.tracks or not album.tracks.items or not album.images or not album.images[0].url or not album.artists or not album.artists[0].name or not album.popularity:
+                if not album.id or not album.name or not album.release_date or not album.tracks or not album.tracks or not album.tracks or not album.tracks.items or not album.images or not album.images[0].url or not album.artists or not album.artists[0].name or not album.popularity or not album.copyrights:
                     self.logger.error(f"Album is missing properties. {album=}")
                     continue
 
@@ -378,6 +380,42 @@ class Spotify:
                     )
                     album_to_add = s.merge(album_to_add)
                     s.commit()
+
+                # Add album copyrights.
+                for album_copyright in album.copyrights:
+                    copyright_in_db = s.query(CopyrightRow).where(and_(
+                        CopyrightRow.text == album_copyright.text,
+                        CopyrightRow.type == album_copyright.type
+                    )).first()
+
+                    copyright_in_db_id: int | None = None
+
+                    if copyright_in_db:
+                        copyright_in_db_id = copyright_in_db.id
+                    else:
+                        if not album_copyright.text:
+                            self.logger.error(
+                                f"Copyright text of album {album.id} is None")
+                            continue
+                        if not album_copyright.type in ("C", "P"):
+                            self.logger.error(
+                                f"Copyright type of album {album.id} is not 'C' or 'P'")
+                            continue
+
+                        copyright_to_add = CopyrightRow(
+                            public_id=create_id(),
+                            text=album_copyright.text,
+                            type=album_copyright.type
+                        )
+                        copyright_to_add = s.merge(instance=copyright_to_add)
+                        s.commit()
+                        copyright_in_db_id = copyright_to_add.id
+
+                    stmt = insert(album_copyrights).values(
+                        album_id=album_id,
+                        copyright_id=copyright_in_db_id
+                    ).on_conflict_do_nothing()
+                    s.execute(stmt)
 
                 for artist in album.artists:
                     artist_id: int | None = None

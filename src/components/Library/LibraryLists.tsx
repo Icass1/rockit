@@ -10,6 +10,7 @@ import useFetch from "@/hooks/useFetch";
 import { libraryLists } from "@/stores/libraryLists";
 import { GridLayout } from "./GridLayout";
 import { ByArtistLayout } from "./ByArtistLayout";
+import PlayLibraryButton from "./PlayLibraryButton";
 
 function Layout({
   libraryView,
@@ -103,8 +104,9 @@ export function LibraryLists({
 
   return (
     <section>
-      <div className="flex flex-row items-center justify-between px-5 py-4 md:px-0">
+      <div className="flex flex-row items-center justify-start gap-4 px-5 py-4 md:px-0">
         <h2 className="text-3xl font-bold">{$lang.your_albums_playlists}</h2>
+        <PlayLibraryButton />
       </div>
 
       <Layout

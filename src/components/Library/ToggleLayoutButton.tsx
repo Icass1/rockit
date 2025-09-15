@@ -38,7 +38,7 @@ export default function ToggleLayoutButton({
         }
       }}
       title="Toggle layout"
-      className="h-6 w-6 cursor-pointer transition-transform"
+      className="h-6 w-6 cursor-pointer transition-transform hidden md:flex"
     >
       {icon}
     </div>

@@ -104,7 +104,7 @@ export function LibraryLists({
   return (
     <section>
       <div className="flex flex-row items-center justify-between px-5 py-4 md:px-0">
-        <h2 className="text-2xl font-bold">{$lang.your_albums_playlists}</h2>
+        <h2 className="text-3xl font-bold">{$lang.your_albums_playlists}</h2>
       </div>
 
       <Layout

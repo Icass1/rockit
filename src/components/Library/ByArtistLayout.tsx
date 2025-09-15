@@ -47,7 +47,7 @@ export function ByArtistLayout({
         <div className="flex flex-col gap-7">
             {artists.map((artist) => (
                 <div key={artist.name} className="flex flex-col gap-4">
-                    <h3 className="ml-6 text-3xl font-semibold">
+                    <h3 className="ml-6 text-2xl font-semibold">
                         {artist.name}
                     </h3>
 

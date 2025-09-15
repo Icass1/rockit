@@ -39,8 +39,8 @@ export default function LibraryPage() {
   if (!$lang) return null;
 
   return (
-    <div className="h-full w-full overflow-y-auto pt-24 pb-24 md:px-8">
-      <section className="flex items-center justify-between px-10 md:px-0">
+    <div className="h-full w-full overflow-y-auto pt-24 pb-24 md:px-8 md:pt-28">
+      <section className="flex items-center justify-between px-10 md:px-0 py-0 md:py-4">
         <div className="hidden md:flex">
           <h1 className="text-4xl font-bold text-white">{$lang.library}</h1>
         </div>

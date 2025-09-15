@@ -59,7 +59,8 @@
       "program": "${workspaceFolder}/src/server.mjs",
       "runtimeExecutable": "node",
       "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen"
+      "internalConsoleOptions": "neverOpen",
+      "envFile": "${workspaceFolder}/.env"
     }
   ]
 }

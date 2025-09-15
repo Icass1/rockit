@@ -69,7 +69,7 @@ export function FeaturedLists({
 
     return (
         <section className="pt-5 text-white md:py-12">
-            <h2 className="px-5 text-2xl font-bold md:px-0">
+            <h2 className="px-5 text-3xl font-bold md:px-0">
                 {$lang.featured_lists}
             </h2>
             <div

@@ -188,7 +188,6 @@
     "title_label": "العنوان",
     "artist_label": "الفنان",
     "pending_playlist_name": "اسم قائمة التشغيل (قيد الانتظار)",
-    "mock_note": "لا يتم معالجة عمليات الرفع عبر هذه الواجهة.",
     "select_files_note": "لا يوجد رفع حقيقي — واجهة فقط",
     "upload_tab_title": "رفع المقاطع"
 }

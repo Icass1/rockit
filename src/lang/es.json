@@ -188,7 +188,6 @@
     "title_label": "Título",
     "artist_label": "Artista",
     "pending_playlist_name": "Nombre de playlist (pendiente)",
-    "mock_note": "Las subidas no se procesan en esta interfaz.",
     "select_files_note": "Sin subida real — solo interfaz",
     "upload_tab_title": "Subir canciones"
 }

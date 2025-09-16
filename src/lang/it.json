@@ -187,7 +187,6 @@
     "title_label": "Titolo",
     "artist_label": "Artista",
     "pending_playlist_name": "Nome playlist (in sospeso)",
-    "mock_note": "Le operazioni di upload non vengono eseguite in questa interfaccia.",
     "select_files_note": "Nessun caricamento reale — solo interfaccia",
     "upload_tab_title": "Carica brani"
 }

@@ -187,7 +187,6 @@
     "title_label": "Titel",
     "artist_label": "Interpret",
     "pending_playlist_name": "Playlist-Name (ausstehend)",
-    "mock_note": "Uploads werden in dieser Oberfläche nicht verarbeitet.",
     "select_files_note": "Kein echter Upload — nur Oberfläche",
     "upload_tab_title": "Tracks hochladen"
 }

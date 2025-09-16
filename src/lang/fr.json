@@ -187,7 +187,6 @@
     "title_label": "Titre",
     "artist_label": "Artiste",
     "pending_playlist_name": "Nom de la playlist (en attente)",
-    "mock_note": "Les fichiers ne sont pas traités par cette interface.",
     "select_files_note": "Aucun téléchargement réel — interface uniquement",
     "upload_tab_title": "Importer des pistes"
 }

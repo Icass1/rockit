@@ -187,7 +187,6 @@
     "title_label": "タイトル",
     "artist_label": "アーティスト",
     "pending_playlist_name": "プレイリスト名（保留）",
-    "mock_note": "このインターフェースではアップロードは処理されません。",
     "select_files_note": "実際のアップロードは行われません — インターフェースのみ",
     "upload_tab_title": "トラックをアップロード"
 }

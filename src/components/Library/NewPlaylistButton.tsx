@@ -189,7 +189,7 @@ export default function NewPlaylistButton() {
             aria-modal="true"
           >
             {/* Mobile bottom sheet style: rounded-t and internal padding */}
-            <div className="mx-auto flex max-h-[92vh] flex-col overflow-hidden rounded-t-xl p-4 md:rounded-2xl md:p-6">
+            <div className="mx-auto flex max-h-[92vh] flex-col overflow-y-auto rounded-t-xl p-4 md:rounded-2xl md:p-6 pb-32 md:pb-6">
               {/* Header */}
               <div className="mb-3 flex items-center justify-between">
                 <div className="flex items-center gap-x-3">
@@ -285,20 +285,26 @@ export default function NewPlaylistButton() {
                         </div>
 
                         <div className="mt-3 flex items-center gap-x-2">
-                          <input
-                            className="w-full rounded-md border border-white/6 bg-transparent px-3 py-2 text-sm text-white placeholder:text-gray-500 outline-none"
-                            placeholder={lang?.search_placeholder ?? "Buscar álbum o canción (mock)"}
-                            type="search"
-                            onChange={() => {
-                              // mock search — no-op
-                            }}
-                          />
-                          <button onClick={() => selectAllLibrary(true)} className="rounded-md border border-gray-500 px-2 py-2 text-xs text-gray-300 hover:text-white">
-                            {lang?.select_all ?? "Seleccionar todo"}
-                          </button>
-                          <button onClick={() => selectAllLibrary(false)} className="rounded-md border border-gray-500 px-2 py-2 text-xs text-gray-300 hover:text-white">
-                            {lang?.clear ?? "Limpiar"}
-                          </button>
+                            <input
+                                className="flex-1 rounded-md border border-white/6 bg-transparent px-3 py-2 text-sm text-white placeholder:text-gray-500 outline-none"
+                                placeholder={lang?.search_placeholder ?? "Buscar álbum o canción (mock)"}
+                                type="search"
+                                onChange={() => {
+                                // mock search — no-op
+                                }}
+                            />
+                            <button
+                                onClick={() => selectAllLibrary(true)}
+                                className="rounded-md border border-gray-500 px-2 py-2 text-xs text-gray-300 hover:text-white"
+                            >
+                                {lang?.select_all ?? "Seleccionar todo"}
+                            </button>
+                            <button
+                                onClick={() => selectAllLibrary(false)}
+                                className="rounded-md border border-gray-500 px-2 py-2 text-xs text-gray-300 hover:text-white"
+                            >
+                                {lang?.clear ?? "Limpiar"}
+                            </button>
                         </div>
 
                         <div className="mt-3 max-h-40 overflow-auto">
@@ -557,9 +563,6 @@ export default function NewPlaylistButton() {
                   </div>
                 </div>
               </div>
-
-              {/* Bottom note (small) */}
-              <div className="mt-3 text-right text-xs text-gray-500">{lang?.mock_note ?? "Interfaz mockup • sin procesamiento real de archivos"}</div>
             </div>
           </div>
         </div>

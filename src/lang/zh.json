@@ -187,7 +187,6 @@
     "title_label": "标题",
     "artist_label": "艺术家",
     "pending_playlist_name": "播放列表名称（待定）",
-    "mock_note": "此界面不会处理上传。",
     "select_files_note": "无实际上传 — 仅界面",
     "upload_tab_title": "上传曲目"
 }

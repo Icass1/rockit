@@ -188,7 +188,6 @@
     "title_label": "Title",
     "artist_label": "Artist",
     "pending_playlist_name": "Playlist name (pending)",
-    "mock_note": "Uploads are not processed in this interface.",
     "select_files_note": "No real upload — interface only",
     "upload_tab_title": "Upload tracks"
 }

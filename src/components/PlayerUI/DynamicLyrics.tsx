@@ -339,7 +339,7 @@ export function DynamicLyrics() {
         >
             <header
                 id="lyrics-header"
-                className="absolute inset-x-0 top-0 z-20 flex items-center justify-center px-6 py-6"
+                className="absolute inset-x-0 top-0 z-20 items-center justify-center px-6 py-6 hidden md:flex"
             >
                 <div className="ml-8 inline-flex items-center gap-2">
                     <h2 className="text-3xl font-bold text-white select-none">

@@ -30,11 +30,10 @@ import Slider from "@/components/Slider";
 import { useEffect, useRef, useState } from "react";
 import useWindowSize from "@/hooks/useWindowSize";
 import { getImageUrl } from "@/lib/getImageUrl";
-import MobilePlayerUIQueue from "@/components/PlayerUI/MobilePlayerUIQueue";
-import MobilePlayerUILyrics from "@/components/PlayerUI/MobilePlayerUILyrics";
 import SongPopupMenu from "@/components/ListSongs/SongPopupMenu";
 import Image from "@/components/Image";
 import Spinner from "@/components/Spinner";
+import MobilePlayerUITabs from "./MobilePlayerTabs";
 
 export default function MobilePlayerUI() {
     const $playing = useStore(playing);
@@ -56,8 +55,7 @@ export default function MobilePlayerUI() {
 
     const divRef = useRef<HTMLDivElement>(null);
 
-    const [queueOpen, setQueueOpen] = useState(false);
-    const [lyricsOpen, setLyricsOpen] = useState(false);
+    const [menuOpen, setMenuOpen] = useState(false);
 
     const [shouldRender, setShouldRender] = useState(false);
 
@@ -295,7 +293,7 @@ export default function MobilePlayerUI() {
                     <Slider
                         id="default-slider"
                         value={$currentTime || 0}
-                        className="h-2 w-full cursor-pointer appearance-none bg-neutral-700"
+                        className="h-2 w-full cursor-pointer appearance-none bg-neutral-800"
                         min={0}
                         max={$currentSong?.duration}
                         step={0.001}
@@ -378,7 +376,7 @@ export default function MobilePlayerUI() {
                     <button
                         className="text-lg"
                         onClick={() => {
-                            setQueueOpen(true);
+                            setMenuOpen(true);
                         }}
                     >
                         Queue
@@ -386,7 +384,7 @@ export default function MobilePlayerUI() {
                     <button
                         className="text-lg"
                         onClick={() => {
-                            setLyricsOpen(true);
+                            setMenuOpen(true);
                         }}
                     >
                         Lyrics
@@ -394,8 +392,7 @@ export default function MobilePlayerUI() {
                     <button className="text-lg">Related</button>
                 </div>
             </div>
-            <MobilePlayerUIQueue open={queueOpen} setOpen={setQueueOpen} />
-            <MobilePlayerUILyrics open={lyricsOpen} setOpen={setLyricsOpen} />
+            <MobilePlayerUITabs open={menuOpen} setOpen={setMenuOpen} />
         </div>
     );
 }

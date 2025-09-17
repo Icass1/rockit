@@ -93,14 +93,19 @@ export const nextAuthOptions: AuthOptions = {
                         )
                         .get(token.id) as RawUserDB
                 ) as UserDB<
-                    "passwordHash" | "username" | "id" | "admin" | "lang" | "libraryView"
+                    | "passwordHash"
+                    | "username"
+                    | "id"
+                    | "admin"
+                    | "lang"
+                    | "libraryView"
                 >;
                 session.user = {
                     id: token.id,
                     username: token.username,
                     admin: userDB.admin,
                     lang: userDB.lang,
-                    libraryView: userDB.libraryView
+                    libraryView: userDB.libraryView,
                 };
             }
             return session;

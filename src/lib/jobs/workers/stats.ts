@@ -70,7 +70,9 @@ new Worker(
         }
 
         const noRepeat: boolean | undefined =
-            parametersUrl.searchParams?.get("noRepeat") === "true" ? true : undefined;
+            parametersUrl.searchParams?.get("noRepeat") === "true"
+                ? true
+                : undefined;
 
         const stats = (await getStats(userId, start, end)).stats as ApiStats;
 

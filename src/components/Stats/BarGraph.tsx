@@ -101,7 +101,7 @@ export default function BarGraph({
                             <div
                                 key={item.id} // Key remains stable based on id
                                 id={`${item.id}-${item.index}`}
-                                className="absolute grid w-full grid-cols-[min-content_1fr_1fr] pr-5 items-center justify-between gap-2 px-7 transition-[top] duration-1000 md:px-2"
+                                className="absolute grid w-full grid-cols-[min-content_1fr_1fr] items-center justify-between gap-2 px-7 pr-5 transition-[top] duration-1000 md:px-2"
                                 style={{ top: `${top}px` }}
                             >
                                 {item.image ? (
@@ -133,7 +133,7 @@ export default function BarGraph({
                                         }}
                                     />
                                     <label
-                                        className="flex px-1 text-left text-xs font-semibold transition-[left] duration-1000 absolute"
+                                        className="absolute flex px-1 text-left text-xs font-semibold transition-[left] duration-1000"
                                         style={{
                                             left: `min(calc(${(item.value / maxValue) * 100}% + 4px)`,
                                         }}

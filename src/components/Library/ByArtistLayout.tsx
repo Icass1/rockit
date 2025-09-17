@@ -71,7 +71,11 @@ export function ByArtistLayout({
                                 >
                                     <Link
                                         key={"list" + index}
-                                        href={artist.name === "Your playlists" ? `/playlist/${list.id}`: `/album/${list.id}`}
+                                        href={
+                                            artist.name === "Your playlists"
+                                                ? `/playlist/${list.id}`
+                                                : `/album/${list.id}`
+                                        }
                                         className="library-item flex h-auto w-full max-w-full min-w-0 flex-col transition-transform md:hover:scale-110"
                                     >
                                         <Image

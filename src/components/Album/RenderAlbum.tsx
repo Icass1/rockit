@@ -52,7 +52,7 @@ export default function RenderAlbum({ _album }: { _album: GetAlbum }) {
                     />
                 </div>
 
-                <div className="mx-auto flex w-fit flex-row items-center gap-2 z-50">
+                <div className="z-50 mx-auto flex w-fit flex-row items-center gap-2">
                     <label className="text-center text-2xl font-semibold text-balance">
                         {album.name}
                     </label>

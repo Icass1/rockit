@@ -13,109 +13,117 @@ import { ByArtistLayout } from "./ByArtistLayout";
 import PlayLibraryButton from "./PlayLibraryButton";
 
 function Layout({
-  libraryView,
-  filteredAlbums,
-  filteredPlaylists,
+    libraryView,
+    filteredAlbums,
+    filteredPlaylists,
 }: {
-  libraryView: "grid" | "byArtist";
-  filteredAlbums: AlbumDB[];
-  filteredPlaylists: PlaylistDB[];
+    libraryView: "grid" | "byArtist";
+    filteredAlbums: AlbumDB[];
+    filteredPlaylists: PlaylistDB[];
 }) {
-  if (libraryView === "grid") {
+    if (libraryView === "grid") {
+        return (
+            <GridLayout
+                filteredAlbums={filteredAlbums}
+                filteredPlaylists={filteredPlaylists}
+            />
+        );
+    }
     return (
-      <GridLayout
-        filteredAlbums={filteredAlbums}
-        filteredPlaylists={filteredPlaylists}
-      />
+        <ByArtistLayout
+            filteredAlbums={filteredAlbums}
+            filteredPlaylists={filteredPlaylists}
+        />
     );
-  }
-  return (
-    <ByArtistLayout
-      filteredAlbums={filteredAlbums}
-      filteredPlaylists={filteredPlaylists}
-    />
-  );
 }
 
 export function LibraryLists({
-  filterMode,
-  searchQuery,
-  libraryView,
+    filterMode,
+    searchQuery,
+    libraryView,
 }: {
-  filterMode: "default" | "asc" | "desc";
-  searchQuery: string;
-  libraryView: "grid" | "byArtist";
+    filterMode: "default" | "asc" | "desc";
+    searchQuery: string;
+    libraryView: "grid" | "byArtist";
 }) {
-  const { width } = useWindowSize();
-  const $lang = useStore(langData);
+    const { width } = useWindowSize();
+    const $lang = useStore(langData);
 
-  const [data, updateLists] = useFetch<{
-    playlists: PlaylistDB[];
-    albums: AlbumDB[];
-  }>("/api/library/lists");
+    const [data, updateLists] = useFetch<{
+        playlists: PlaylistDB[];
+        albums: AlbumDB[];
+    }>("/api/library/lists");
 
-  useEffect(() => {
-    return libraryLists.listen(() => {
-      updateLists();
-    });
-  }, [updateLists]);
+    useEffect(() => {
+        return libraryLists.listen(() => {
+            updateLists();
+        });
+    }, [updateLists]);
 
-  const playlists = data?.playlists;
-  const albums = data?.albums;
+    const playlists = data?.playlists;
+    const albums = data?.albums;
 
-  const filteredPlaylists = useMemo(() => {
-    if (!playlists) return;
-    let result = playlists.filter((pl) =>
-      pl.name.toLowerCase().includes(searchQuery.toLowerCase())
+    const filteredPlaylists = useMemo(() => {
+        if (!playlists) return;
+        let result = playlists.filter((pl) =>
+            pl.name.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+
+        if (filterMode === "asc") {
+            result = result.sort((a, b) => a.name.localeCompare(b.name));
+        } else if (filterMode === "desc") {
+            result = result.sort((a, b) => b.name.localeCompare(a.name));
+        }
+
+        return result;
+    }, [playlists, filterMode, searchQuery]);
+
+    const filteredAlbums = useMemo(() => {
+        if (!albums) return;
+        let result = albums.filter((al) => {
+            const lowerQ = searchQuery.toLowerCase();
+            const matchesName = al.name.toLowerCase().includes(lowerQ);
+            const matchesArtist = al.artists.some((artist) =>
+                artist.name.toLowerCase().includes(lowerQ)
+            );
+            return matchesName || matchesArtist;
+        });
+
+        if (filterMode === "asc") {
+            result = result.sort((a, b) => a.name.localeCompare(b.name));
+        } else if (filterMode === "desc") {
+            result = result.sort((a, b) => b.name.localeCompare(a.name));
+        }
+
+        return result;
+    }, [albums, filterMode, searchQuery]);
+
+    // espera a que todo esté listo
+    if (
+        !width ||
+        !$lang ||
+        !filteredPlaylists ||
+        !filteredAlbums ||
+        !libraryView
+    )
+        return null;
+
+    return (
+        <section>
+            <div className="flex flex-row items-center justify-start gap-4 px-5 py-4 md:px-0">
+                <h2 className="text-3xl font-bold">
+                    {$lang.your_albums_playlists}
+                </h2>
+                <PlayLibraryButton />
+            </div>
+
+            <Layout
+                libraryView={libraryView}
+                filteredAlbums={filteredAlbums}
+                filteredPlaylists={filteredPlaylists}
+            />
+
+            <div className="min-h-10" />
+        </section>
     );
-
-    if (filterMode === "asc") {
-      result = result.sort((a, b) => a.name.localeCompare(b.name));
-    } else if (filterMode === "desc") {
-      result = result.sort((a, b) => b.name.localeCompare(a.name));
-    }
-
-    return result;
-  }, [playlists, filterMode, searchQuery]);
-
-  const filteredAlbums = useMemo(() => {
-    if (!albums) return;
-    let result = albums.filter((al) => {
-      const lowerQ = searchQuery.toLowerCase();
-      const matchesName = al.name.toLowerCase().includes(lowerQ);
-      const matchesArtist = al.artists.some((artist) =>
-        artist.name.toLowerCase().includes(lowerQ)
-      );
-      return matchesName || matchesArtist;
-    });
-
-    if (filterMode === "asc") {
-      result = result.sort((a, b) => a.name.localeCompare(b.name));
-    } else if (filterMode === "desc") {
-      result = result.sort((a, b) => b.name.localeCompare(a.name));
-    }
-
-    return result;
-  }, [albums, filterMode, searchQuery]);
-
-  // espera a que todo esté listo
-  if (!width || !$lang || !filteredPlaylists || !filteredAlbums || !libraryView)
-    return null;
-
-  return (
-    <section>
-      <div className="flex flex-row items-center justify-start gap-4 px-5 py-4 md:px-0">
-        <h2 className="text-3xl font-bold">{$lang.your_albums_playlists}</h2>
-        <PlayLibraryButton />
-      </div>
-
-      <Layout
-        libraryView={libraryView}
-        filteredAlbums={filteredAlbums}
-        filteredPlaylists={filteredPlaylists}
-      />
-
-      <div className="min-h-10" />
-    </section>
-  );
 }

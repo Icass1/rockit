@@ -12,7 +12,6 @@ export async function GET(
 ) {
     const { id } = await params;
 
-
     // Match base ID and dimensions
     const match = id.match(/^([a-zA-Z0-9.-]+)(?:[_-](\d+)[x_](\d+))?$/);
 
@@ -81,8 +80,6 @@ export async function GET(
             );
         }
     }
-
-
 
     const imageDB = db
         .prepare("SELECT * FROM image WHERE id = ?")

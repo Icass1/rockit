@@ -258,9 +258,6 @@ export default function PlayerUI() {
                 />
 
                 <div className="relative z-10 hidden h-full w-full lg:block">
-                    <h2 className="absolute mx-auto block w-full p-14 text-center text-3xl font-bold select-none">
-                        Lyrics
-                    </h2>
                     <DynamicLyrics />
                 </div>
 
@@ -299,7 +296,7 @@ export default function PlayerUI() {
                         <h1 className="line-clamp-2 text-4xl leading-normal font-bold text-balance">
                             {$currentSong?.name}
                         </h1>
-                        <p className="mt-2 flex w-full items-center justify-center gap-1 text-xl font-medium text-gray-400">
+                        <p className="mt-2 flex w-full items-center justify-center gap-1 text-xl font-medium text-neutral-400">
                             <span className="max-w-[75%] truncate text-center md:hover:underline">
                                 {$currentSong?.albumName}
                             </span>
@@ -328,7 +325,7 @@ export default function PlayerUI() {
                             className={`text-lg font-semibold transition ${
                                 currentTab === "queue"
                                     ? "border-b-2 border-white text-white"
-                                    : "text-gray-400 md:hover:text-white"
+                                    : "text-neutral-400 md:hover:text-white"
                             }`}
                             onClick={() => setCurrentTab("queue")}
                         >
@@ -338,7 +335,7 @@ export default function PlayerUI() {
                             className={`text-lg font-semibold transition ${
                                 currentTab === "recommended"
                                     ? "border-b-2 border-white text-white"
-                                    : "text-gray-400 md:hover:text-white"
+                                    : "text-neutral-400 md:hover:text-white"
                             }`}
                             onClick={() => setCurrentTab("recommended")}
                         >
@@ -689,7 +686,7 @@ export default function PlayerUI() {
                                                             </span>
 
                                                             {/* Artista y álbum */}
-                                                            <span className="truncate text-sm text-gray-400">
+                                                            <span className="truncate text-sm text-neutral-400">
                                                                 Artist{" "}
                                                                 {columnIndex *
                                                                     songsPerColumn +

@@ -1,3 +1,5 @@
+from importlib import import_module
+import os
 import time
 import inspect
 import asyncio
@@ -15,8 +17,6 @@ from backend.responses.meResponse import MeReponse
 from backend.downloader.downloader import Downloader
 from backend.spotifyApiTypes.RawSpotifyApiSearchResults import RawSpotifyApiSearchResults
 
-from backend.routers import auth, stats
-
 from backend.initDb import rockit_db
 
 logger = getLogger(__file__, "main")
@@ -24,8 +24,23 @@ logger = getLogger(__file__, "main")
 downloader = Downloader(rockit_db=rockit_db)
 app = FastAPI()
 
-app.include_router(auth.router)
-app.include_router(stats.router)
+# Search and initialize all routers.
+for file_name in os.listdir("backend/routers"):
+    if not file_name.endswith(".py"):
+        continue
+
+    if file_name == "__init__.py":
+        continue
+
+    module_name = file_name.replace(".py", "")
+
+    logger.info(f"Including router {module_name}.")
+
+    module = import_module(f"backend.routers.{module_name}")
+    try:
+        app.include_router(module.router)
+    except Exception as e:
+        logger.error(f"Error including router {module_name}. ({e})")
 
 app.add_middleware(
     CORSMiddleware,

@@ -10,7 +10,6 @@
         "esbenp.prettier-vscode",
         "ms-python.autopep8",
         "usernamehw.errorlens",
-        "alexcvzz.vscode-sqlite",
     ],
     "unwantedRecommendations": []
 }

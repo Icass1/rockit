@@ -71,7 +71,7 @@ function FooterLeftForSong({ currentSong }: { currentSong: CurrentSong }) {
                 $queue[
                     $queue.findIndex((song) => song.index == queueIndex.get()) +
                         1
-                ].song
+                ]?.song
             );
         }
     }, [$queue]);

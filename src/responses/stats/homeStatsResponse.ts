@@ -1,16 +1,14 @@
-// type SongsType = SongDB<
-//     "id" | "name" | "artists" | "albumId" | "albumName" | "duration" | "image"
-// >[];
 
 import { RockItSong } from "@/types/rockIt";
 
+import * as z from "zod";
 
-export interface HomeStats {
-    songsByTimePlayed: RockItSong[];
-    randomSongsLastMonth: RockItSong[];
-    nostalgicMix: RockItSong[];
-    hiddenGems: RockItSong[];
-    communityTop: RockItSong[];
-    monthlyTop: RockItSong[];
-    moodSongs: RockItSong[];
-}
+export const HomeStats = z.object({
+    songsByTimePlayed: z.array(RockItSong),
+    randomSongsLastMonth: z.array(RockItSong),
+    nostalgicMix: z.array(RockItSong),
+    hiddenGems: z.array(RockItSong),
+    communityTop: z.array(RockItSong),
+    monthlyTop: z.array(RockItSong),
+    moodSongs: z.array(RockItSong),
+});

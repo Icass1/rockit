@@ -13,9 +13,7 @@ import { useRouter } from "next/navigation";
 import { HomeStats } from "@/responses/stats/homeStatsResponse";
 
 export default function Home() {
-    const [data] = useFetch<HomeStats>("/stats/home", {
-        json: true,
-    });
+    const [data] = useFetch("/stats/home", HomeStats);
 
     const $lang = useStore(langData);
 
@@ -62,8 +60,6 @@ export default function Home() {
         // moodSongs,
     } = data;
 
-    console.log(songsByTimePlayed)
-
     return (
         <Suspense
             fallback={
@@ -75,7 +71,7 @@ export default function Home() {
         >
             <div className="relative flex h-full flex-col overflow-y-auto pt-24 pb-24">
                 {/* Rest of your component remains the same */}
-                {/* <SongsCarousel /> */}
+                <SongsCarousel />
 
                 <section className="py-5 text-white md:py-12 md:pl-12">
                     <h2 className="px-5 text-2xl font-bold md:text-3xl">

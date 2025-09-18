@@ -18,7 +18,6 @@ import ContextMenu from "@/components/ContextMenu/ContextMenu";
 import ContextMenuOption from "@/components/ContextMenu/Option";
 import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
 import { likedSongs } from "@/stores/likedList";
-import type { SongDB } from "@/db/song";
 import { useState, type ReactNode } from "react";
 import { useStore } from "@nanostores/react";
 import { queue, queueIndex, saveSongToIndexedDB, send } from "@/stores/audio";
@@ -26,16 +25,16 @@ import { currentList, currentListSongs } from "@/stores/currentList";
 import ContextMenuSplitter from "@/components/ContextMenu/Splitter";
 import { songHandleClick } from "./HandleClick";
 import { langData } from "@/stores/lang";
-import { getImageUrl } from "@/lib/getImageUrl";
 import SubContextMenu from "@/components/ContextMenu/SubContextMenu/ContextMenu";
 import SubContextMenuTrigger from "@/components/ContextMenu/SubContextMenu/Trigger";
 import SubContextMenuContent from "@/components/ContextMenu/SubContextMenu/Content";
 import { networkStatus } from "@/stores/networkStatus";
-import Image from "@/components/Image";
 import { useRouter } from "next/navigation";
 import useDev from "@/hooks/useDev";
 
 import "@/styles/CheckBox.css";
+import Image from "next/image";
+import { RockItSongType } from "@/types/rockIt";
 
 function ListSubContextMenu({
     list,
@@ -85,12 +84,7 @@ function ListSubContextMenu({
                     height={24}
                     alt={list.name}
                     className="h-6 w-6"
-                    src={getImageUrl({
-                        imageId: list?.image,
-                        placeHolder: "/api/image/rockit-background.png",
-                        width: 24,
-                        height: 24,
-                    })}
+                    src={list?.image}
                 />
                 {list.name}
             </label>
@@ -104,16 +98,7 @@ export default function SongContextMenu({
     onPlay,
 }: {
     children: ReactNode;
-    song: SongDB<
-        | "id"
-        | "name"
-        | "artists"
-        | "albumName"
-        | "albumId"
-        | "duration"
-        | "image"
-        | "path"
-    >;
+    song: RockItSongType;
     onPlay?: () => void;
 }) {
     const $likedSongs = useStore(likedSongs);
@@ -137,10 +122,10 @@ export default function SongContextMenu({
         <ContextMenu>
             <ContextMenuTrigger>{children}</ContextMenuTrigger>
             <ContextMenuContent
-                cover={getImageUrl({ imageId: song?.image })}
+                cover={song?.internalImageUrl}
                 title={song.name}
                 description={
-                    song.albumName +
+                    song.album.name +
                     " • " +
                     song.artists.map((artist) => artist.name).join(", ")
                 }
@@ -160,8 +145,8 @@ export default function SongContextMenu({
                 <ContextMenuOption
                     disable={offline}
                     onClick={() => {
-                        if (likedSongs.get().includes(song.id)) {
-                            fetch(`/api/like/${song.id}`, {
+                        if (likedSongs.get().includes(song.publicId)) {
+                            fetch(`/api/like/${song.publicId}`, {
                                 method: "DELETE",
                             }).then((response) => {
                                 if (response.ok) {
@@ -171,7 +156,7 @@ export default function SongContextMenu({
                                             .get()
                                             .filter(
                                                 (likedSong) =>
-                                                    likedSong != song.id
+                                                    likedSong != song.publicId
                                             )
                                     );
                                 } else {
@@ -180,14 +165,14 @@ export default function SongContextMenu({
                                 }
                             });
                         } else {
-                            fetch(`/api/like/${song.id}`, {
+                            fetch(`/api/like/${song.publicId}`, {
                                 method: "POST",
                             }).then((response) => {
                                 if (response.ok) {
                                     // Add song to liked songs store
                                     likedSongs.set([
                                         ...likedSongs.get(),
-                                        song.id,
+                                        song.publicId,
                                     ]);
                                 } else {
                                     console.log("Error");
@@ -224,7 +209,7 @@ export default function SongContextMenu({
                         <path d="M10 11V5a2 2 2 1 0-4 0v9"></path>
                         <path d="m7 15-1.76-1.76a2 2 0 0 0-2.83 2.82l3.6 3.6C7.5 21.14 9.2 22 12 22h2a8 8 0 0 0 8-8V7a2 2 0 1 0-4 0v5"></path>
                     </svg>
-                    {$likedSongs.includes(song.id)
+                    {$likedSongs.includes(song.publicId)
                         ? $lang.remove_from_liked
                         : $lang.add_to_liked}
                 </ContextMenuOption>
@@ -280,7 +265,7 @@ export default function SongContextMenu({
                 <SubContextMenu
                     onOpen={() => {
                         if (userLists.length > 0) return;
-                        fetch(`/api/song/${song.id}/lists`)
+                        fetch(`/api/song/${song.publicId}/lists`)
                             .then((response) => response.json())
                             .then((data) => {
                                 setUserLists(data);
@@ -295,7 +280,7 @@ export default function SongContextMenu({
                     <SubContextMenuContent>
                         {userLists.map((list) => (
                             <ListSubContextMenu
-                                songId={song.id}
+                                songId={song.publicId}
                                 list={list}
                                 key={list.id}
                             />
@@ -308,10 +293,10 @@ export default function SongContextMenu({
                     onClick={() => {
                         navigator.share({
                             title: "RockIt!",
-                            text: `${song.name} ${song.albumName} ${song.artists
+                            text: `${song.name} ${song.album.name} ${song.artists
                                 .map((artist) => artist.name)
                                 .join(", ")}`,
-                            url: `/song/${song.id}`,
+                            url: `/song/${song.publicId}`,
                         });
                     }}
                 >
@@ -321,7 +306,7 @@ export default function SongContextMenu({
                 <ContextMenuOption
                     onClick={() => {
                         navigator.clipboard.writeText(
-                            location.origin + `/song/${song.id}`
+                            location.origin + `/song/${song.publicId}`
                         );
                     }}
                 >
@@ -354,7 +339,7 @@ export default function SongContextMenu({
                 <ContextMenuSplitter />
                 <ContextMenuOption
                     onClick={() => {
-                        router.push(`/artist/${song.artists[0].id}`);
+                        router.push(`/artist/${song.artists[0].publicId}`);
                     }}
                 >
                     <Link className="h-5 w-5" />
@@ -362,7 +347,7 @@ export default function SongContextMenu({
                 </ContextMenuOption>
                 <ContextMenuOption
                     onClick={() => {
-                        router.push(`/album/${song.albumId}`);
+                        router.push(`/album/${song.album.publicId}`);
                     }}
                 >
                     <Link className="h-5 w-5" />
@@ -372,7 +357,7 @@ export default function SongContextMenu({
                 {dev && (
                     <ContextMenuOption
                         onClick={() => {
-                            send({ songEnded: song.id });
+                            send({ songEnded: song.publicId });
                         }}
                     >
                         <Pickaxe className="h-5 w-5" />

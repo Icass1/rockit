@@ -1,5 +1,3 @@
-import type { SongDB, SongDBFull } from "@/lib/db/song";
-import { type UserDB } from "@/lib/db/user";
 import Hls from "hls.js";
 import { atom } from "nanostores";
 import { lang } from "./lang";
@@ -8,6 +6,8 @@ import { getSession } from "next-auth/react";
 import { Device, devices } from "./devices";
 import { users } from "./users";
 import { splitIntoChunks } from "@/lib/arrayTools";
+import { RockItSongType } from "@/types/rockIt";
+import apiFetch from "@/lib/apiFetch";
 
 // Track user interaction state for iOS autoplay handling
 let audioContext: AudioContext | undefined;
@@ -166,7 +166,7 @@ registerServiceWorker();
 
 if (typeof window !== "undefined") {
     window.onerror = function (msg, source, lineNo, columnNo, error) {
-        fetch("/api/error/new", {
+        fetch("http://localhost:8000/error/new", {
             method: "POST",
             body: JSON.stringify({
                 msg,
@@ -196,9 +196,7 @@ if (typeof window !== "undefined") {
         );
     });
 }
-export type QueueSong = SongDB<
-    "id" | "name" | "artists" | "image" | "duration" | "albumName" | "albumId"
->;
+export type QueueSong = RockItSongType;
 
 export type QueueElement = {
     song: QueueSong;
@@ -208,16 +206,7 @@ export type QueueElement = {
 
 type Queue = QueueElement[];
 export type CurrentSong =
-    | SongDB<
-          | "image"
-          | "id"
-          | "name"
-          | "artists"
-          | "albumId"
-          | "albumName"
-          | "duration"
-          | "path"
-      >
+    | RockItSongType
     | undefined;
 
 export type Station = {
@@ -260,7 +249,7 @@ export type Station = {
     has_extended_info: boolean;
 };
 
-interface SongDBFullWithBlob extends SongDBFull {
+interface SongDBFullWithBlob extends RockItSongType {
     blob: Blob;
 }
 
@@ -284,7 +273,7 @@ export const send = (json: object) => {
 export const currentSong = createControlledAtom<CurrentSong | undefined>(
     undefined,
     "currentSong",
-    (currentSong: CurrentSong) => currentSong?.id,
+    (currentSong: CurrentSong) => currentSong?.publicId,
     async (songId) => {
         const response = await fetch(
             `/api/song/${songId}?q=image,id,name,artists,albumId,albumName,duration,path`
@@ -318,9 +307,7 @@ export const queue = createControlledAtom<Queue | undefined>(
             })
             .filter((song) => song),
     async (queue: UserDB["queue"]) => {
-        const songs: SongDB<
-            "id" | "name" | "artists" | "image" | "duration"
-        >[] = [];
+        const songs: RockItSongType[] = [];
 
         for (const queueChunk of splitIntoChunks(queue, 100)) {
             const response = await fetch(
@@ -330,9 +317,7 @@ export const queue = createControlledAtom<Queue | undefined>(
             );
 
             songs.push(
-                ...((await response.json()) as SongDB<
-                    "id" | "name" | "artists" | "image" | "duration"
-                >[])
+                ...((await response.json()) as RockItSongType[])
             );
         }
 
@@ -415,10 +400,10 @@ export const crossFade = createControlledAtom<number | undefined>(
 export const currentCrossFade = atom<number | undefined>(crossFade.get());
 export const crossFadeCurrentTime = atom<number | undefined>(undefined);
 
-fetch(
-    "/api/user?q=currentSong,currentTime,queue,queueIndex,volume,randomQueue,repeatSong,currentStation,admin,crossFade"
+apiFetch(
+    "/user"
 )
-    .then((userJsonResponse) => userJsonResponse.json())
+    .then((userJsonResponse) => userJsonResponse?.json())
     .then(
         (
             userJson: UserDB<
@@ -482,15 +467,7 @@ fetch(
 
             if (userJson && userJson.queue.length > 0) {
                 const getSongs = async () => {
-                    const songs: SongDB<
-                        | "id"
-                        | "name"
-                        | "artists"
-                        | "image"
-                        | "duration"
-                        | "albumName"
-                        | "albumId"
-                    >[] = [];
+                    const songs: RockItSongType[] = [];
 
                     for (const queueChunk of splitIntoChunks(
                         userJson.queue,
@@ -503,15 +480,7 @@ fetch(
                         );
 
                         songs.push(
-                            ...((await response.json()) as SongDB<
-                                | "id"
-                                | "name"
-                                | "artists"
-                                | "image"
-                                | "duration"
-                                | "albumName"
-                                | "albumId"
-                            >[])
+                            ...((await response.json()) as RockItSongType[])
                         );
                     }
                     return songs;
@@ -523,7 +492,7 @@ fetch(
                             .map((queueSong) => {
                                 const songInfo = data
                                     .filter((song) => song)
-                                    .find((song) => song.id == queueSong.song);
+                                    .find((song) => song.publicId == queueSong.song);
 
                                 if (!songInfo) {
                                     return undefined;
@@ -900,14 +869,14 @@ export function updateUserIndexedDB() {
         const user = {
             id: "user",
             username: "testuser",
-            currentSong: currentSong.get()?.id ?? userQuery.result?.currentSong,
+            currentSong: currentSong.get()?.publicId ?? userQuery.result?.currentSong,
             currentTime: currentTime.get() ?? userQuery.result?.currentTime,
             lang: lang.get() ?? userQuery.result?.lang,
             queue:
                 queue.get()?.map((value) => {
                     if (value?.song && value?.list) {
                         return {
-                            song: value.song.id,
+                            song: value.song.publicId,
                             index: value.index,
                             list: value.list,
                         };
@@ -1088,14 +1057,14 @@ export async function prev() {
     }
 
     const newSongId = tempQueue.find((song) => song.index == queueIndex.get())
-        ?.song.id;
+        ?.song.publicId;
     if (!newSongId) {
         return;
     }
 
     await fetch(`/api/song/${newSongId}`)
         .then((response) => response.json())
-        .then((data: SongDB) => {
+        .then((data: RockItSongType) => {
             // if (admin.get()) console.log("Playwhenready 1");
             playWhenReady.set(true);
             currentSong.set(data);

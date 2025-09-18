@@ -5,13 +5,12 @@ import { Play, ChevronLeft, ChevronRight, Pause } from "lucide-react";
 import useWindowSize from "@/hooks/useWindowSize";
 import { currentSong, playing } from "@/stores/audio";
 import { useStore } from "@nanostores/react";
-import { getImageUrl } from "@/lib/getImageUrl";
 import { songHandleClick } from "@/components/ListSongs/HandleClick";
 import { currentList } from "@/stores/currentList";
-import Image from "@/components/Image";
 import useFetch from "@/hooks/useFetch";
 import { StatsResponse } from "@/responses/stats/statsResponse";
 import { RockItSong } from "@/types/rockIt";
+import Image from "next/image";
 
 function Song({
     index,
@@ -76,7 +75,7 @@ function Song({
 
     return (
         <div
-            key={song.public_id}
+            key={song.publicId}
             className={
                 "absolute aspect-square h-full w-auto origin-center -translate-x-1/2" +
                 transition
@@ -96,12 +95,7 @@ function Song({
                     alt={song.name}
                     width={300}
                     height={300}
-                    src={getImageUrl({
-                        imageId: song.internalImageUrl,
-                        width: 300,
-                        height: 300,
-                        fallback: "/song-placeholder.png",
-                    })}
+                    src={song.internalImageUrl ?? "song-placeholder.png"}
                     className={`${transition} relative top-1/2 aspect-square h-auto w-full -translate-y-1/2`}
                     style={{ filter: `brightness(${brightness})` }}
                 />
@@ -131,7 +125,7 @@ function Song({
                         className="absolute right-4 bottom-4 rounded-full bg-transparent p-3 text-white backdrop-blur-sm transition duration-300 md:hover:bg-black/40"
                         onClick={handleClick}
                     >
-                        {$currentSong?.id == song.public_id && $playing ? (
+                        {$currentSong?.id == song.publicId && $playing ? (
                             <Pause
                                 className={`${transition} ${
                                     index == currentIndex

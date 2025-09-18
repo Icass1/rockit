@@ -15,10 +15,8 @@ import { isPlayerUIVisible } from "@/stores/isPlayerUIVisible";
 import { useStore } from "@nanostores/react";
 import { useEffect, useRef, useState } from "react";
 import useWindowSize from "@/hooks/useWindowSize";
-import { getImageUrl } from "@/lib/getImageUrl";
 import { QueueSong } from "./QueueSong";
 import { DynamicLyrics } from "./DynamicLyrics";
-import Image from "@/components/Image";
 import Link from "next/link";
 import ContextMenuContent from "@/components/ContextMenu/Content";
 import ContextMenuOption from "@/components/ContextMenu/Option";
@@ -33,8 +31,9 @@ import {
     Play,
     PlayCircle,
 } from "lucide-react";
-import { SongDB } from "@/lib/db/song";
 import { langData } from "@/stores/lang";
+import { RockItSongType } from "@/types/rockIt";
+import Image from "next/image";
 
 export default function PlayerUI() {
     // Estas dos cosas son para el mockup del related
@@ -117,12 +116,12 @@ export default function PlayerUI() {
 
         const newSongId = tempQueue.find(
             (song) => song.index == queueIndex.get()
-        )?.song.id;
+        )?.song.publicId;
         if (!newSongId) return;
 
         await fetch(`/api/song/${newSongId}`)
             .then((response) => response.json())
-            .then((data: SongDB) => {
+            .then((data: RockItSongType) => {
                 playWhenReady.set(true);
                 currentSong.set(data);
             });

@@ -6,8 +6,6 @@ import { Play, Pause } from "lucide-react";
 import LikeButton from "@/components/LikeButton";
 import { isMobilePlayerUIVisible } from "@/stores/isPlayerUIVisible";
 import Slider from "@/components/Slider";
-import { getImageUrl } from "@/lib/getImageUrl";
-import Image from "@/components/Image";
 
 export default function FooterMobile() {
     const $playing = useStore(playing);

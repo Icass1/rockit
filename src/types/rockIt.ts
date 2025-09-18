@@ -2,53 +2,56 @@
 // ************** Song stuff **************
 // ****************************************
 
-export type RockItExternalImage = {
-    url: string;
-    width?: number;
-    height?: number;
-};
+import * as z from "zod";
 
-export type DynamicLyrics = {
-    lyrics: string;
-    seconds: number;
-};
+export const RockItExternalImage = z.object({
+    url: z.string(),
+    width: z.string().nullable(),
+    height: z.string().nullable(),
+});
 
-export interface RockItArtist {
-    public_id: string;
-    name: string;
-}
+export const DynamicLyrics = z.object({
+    lyrics: z.string(),
+    seconds: z.number(),
+});
 
-export interface RockItCopyright {
-    text: string;
-    type: "C" | "P";
-}
+export const RockItArtist = z.object({
+    publicId: z.string(),
+    name: z.string(),
+    genres: z.array(z.string()),
+});
 
-export interface RockItAlbum {
-    public_id: string;
-    name: string;
-    copyrights: RockItCopyright[];
-}
+export const RockItCopyright = z.object({
+    text: z.string(),
+    type: z.string(),
+});
 
-export type RockItSong<Keys extends keyof SongDBFull = keyof SongDBFull> = Pick<
-    SongDBFull,
-    Keys
->;
-export interface SongDBFull {
-    publicId: string;
-    name: string;
-    artists: RockItArtist[];
-    genres: string[];
-    discNumber: number;
-    album: RockItAlbum;
-    duration: number;
-    trackNumber: number;
-    publisher: string;
-    images: RockItExternalImage[];
-    internalImageUrl?: string;
-    downloadUrl?: string;
-    lyrics: string;
-    dynamicLyrics: DynamicLyrics[];
-    popularity?: number;
-    dateAdded: string;
-    isrc: string;
-}
+export const RockItAlbum = z.object({
+    publicId: z.string(),
+    name: z.string(),
+    copyrights: z.array(RockItCopyright),
+    externalImages: z.array(RockItExternalImage),
+});
+
+export const RockItSong = z.object({
+    publicId: z.string(),
+    name: z.string(),
+    artists: z.array(RockItArtist),
+    discNumber: z.number(),
+    album: RockItAlbum,
+    duration: z.number(),
+    trackNumber: z.number(),
+    internalImageUrl: z.string().nullable(),
+    downloadUrl: z.string().nullable(),
+    popularity: z.number().nullable(),
+    dateAdded: z.string(),
+    isrc: z.string(),
+});
+
+export type RockItSongType = z.infer<typeof RockItSong>;
+
+
+export const RockItUser = z.object({
+    
+
+})

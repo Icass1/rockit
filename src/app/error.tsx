@@ -2,7 +2,7 @@
 
 "use client";
 
-import Image from "@/components/Image";
+import Image from "next/image";
 import Link from "next/link";
 
 export default function Error500Page() {

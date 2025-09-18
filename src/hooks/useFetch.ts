@@ -1,65 +1,40 @@
-// import { database } from "@/stores/audio";
-import { getSession } from "next-auth/react";
-import { useState, useEffect, SetStateAction, Dispatch } from "react";
+import apiFetch from "@/lib/apiFetch";
+import { signOut } from "next-auth/react";
+import { useState, useEffect } from "react";
+import { z, ZodType } from "zod";
 
-interface UseFetchOptions {
-    json?: boolean;
-    redis?: boolean;
-}
-
-function update(
-    json: boolean,
+async function update<T extends ZodType>(
     path: string,
-    setData: Dispatch<SetStateAction<undefined>>
+    schema: T,
+    setData: React.Dispatch<React.SetStateAction<z.infer<T> | undefined>>
 ) {
-    getSession().then((session) => {
-        console.log(session?.user.access_token);
-        if (json) {
-            fetch(`http://localhost:8000${path}`, {
-                headers: {
-                    Authorization: `Bearer ${session?.user.access_token}`,
-                },
-            })
-                .then((response) => response.json())
-                .then((data) => {
-                    console.log("Data from server", path, data);
-                    setData(data);
-                });
-        } else {
-            console.warn("Not implemented error.");
-        }
-    });
+    const res = await apiFetch(path);
+
+    if (!res) {
+        signOut();
+        window.location.href = "/login";
+        return;
+    }
+
+    if (res.ok) {
+        const json = await res.json();
+        const parsed = schema.parse(json);
+        setData(parsed);
+    } else if (res.status === 401) {
+        signOut();
+        window.location.href = "/login";
+    }
 }
 
-export default function useFetch<T>(
+export default function useFetch<T extends ZodType>(
     path: string,
-    options?: UseFetchOptions
-): [undefined | T, () => void] {
-    const [data, setData] = useState(undefined);
-
-    const json = options?.json ?? true;
+    schema: T
+): [z.infer<T> | undefined, () => void] {
+    const [data, setData] = useState<z.infer<T> | undefined>(undefined);
 
     useEffect(() => {
-        // if (database) {
-        //     const apiTransaction = database.transaction("api", "readonly");
-        //     const apiStore = apiTransaction.objectStore("api");
-        //     const query = apiStore.get(url);
-        //     query.onsuccess = function () {
-        //         if (query?.result?.data) {
-        //             console.log("Data from indexeddb", url);
-        //             if (query.result.data.jobId) {
-        //                 console.warn(
-        //                     "This should not happen, jobId found in indexeddb",
-        //                     query.result.data
-        //                 );
-        //             } else {
-        //                 setData(query.result.data);
-        //             }
-        //         }
-        //     };
-        // }
+        update(path, schema, setData);
+    }, [path, schema]);
 
-        update(json, path, setData);
-    }, [path, json]);
-    return [data, () => update(json, path, setData)];
+    return [data, () => update(path, schema, setData)];
 }

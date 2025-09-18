@@ -1,31 +1,15 @@
-import { getImageUrl } from "@/lib/getImageUrl";
 import { currentList } from "@/stores/currentList";
 import { songHandleClick } from "@/components/ListSongs/HandleClick";
 import { redirect } from "next/navigation";
-import Image from "@/components/Image";
+import { RockItSongType } from "@/types/rockIt";
+import Image from "next/image";
 
 export default function RecentlyPlayedSong({
     song,
     songs,
 }: {
-    song: SongDB<
-        | "name"
-        | "image"
-        | "artists"
-        | "id"
-        | "albumName"
-        | "albumId"
-        | "duration"
-    >;
-    songs: SongDB<
-        | "name"
-        | "image"
-        | "artists"
-        | "id"
-        | "albumName"
-        | "albumId"
-        | "duration"
-    >[];
+    song: RockItSongType;
+    songs: RockItSongType[];
 }) {
     const handleClick = () => {
         currentList.set({ type: "recently-played", id: "recently-played" });
@@ -49,19 +33,14 @@ export default function RecentlyPlayedSong({
                 width={400}
                 height={400}
                 className="aspect-square w-full rounded-lg object-cover"
-                src={getImageUrl({
-                    imageId: song.image,
-                    height: 400,
-                    width: 400,
-                    placeHolder: "/song-placeholder.png",
-                })}
+                src={song.internalImageUrl ?? "song-placeholder.png"}
                 alt="Song Cover"
             />
             <label
                 className="mt-2 block truncate text-center font-semibold"
                 onClick={(event) => {
                     event.stopPropagation();
-                    redirect(`/song/${song.id}`);
+                    redirect(`/song/${song.publicId}`);
                 }}
             >
                 {song.name}
@@ -70,7 +49,7 @@ export default function RecentlyPlayedSong({
                 className="block truncate text-center text-sm text-gray-400"
                 onClick={(event) => {
                     event.stopPropagation();
-                    redirect(`/artist/${song.artists[0].id}`);
+                    redirect(`/artist/${song.artists[0].publicId}`);
                 }}
             >
                 {song.artists[0].name}

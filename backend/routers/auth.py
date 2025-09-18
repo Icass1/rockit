@@ -49,7 +49,7 @@ def signup(payload: SignUpRequest):
 def login(payload: LoginInRequest):
     with rockit_db.session_scope() as s:
         user: UserRow | None = get_user_by_username(s, payload.username)
-        if not user or not user.password_hash or not ph.verify(payload.password, user.password_hash):
+        if not user or not user.password_hash or not ph.verify(user.password_hash, payload.password):
             raise HTTPException(
                 status_code=401, detail="Invalid credentials")
         token = create_access_token(

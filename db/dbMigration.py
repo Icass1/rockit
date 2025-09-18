@@ -575,6 +575,7 @@ def download_and_add_to_db_songs_data(ids: List[str]):
             download_url=None,
             lyrics=None,
             dynamic_lyrics=None
+            preview_url=
         )
 
         song_to_add = session.merge(song_to_add)
@@ -699,6 +700,7 @@ def add_songs():
             download_url=download_url,
             lyrics=lyrics,
             dynamic_lyrics=dynamic_lyrics
+            preview_url=
         )
 
         song_to_add = session.merge(song_to_add)

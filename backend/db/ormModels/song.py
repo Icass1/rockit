@@ -38,6 +38,7 @@ class SongRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     download_url: Mapped[str | None] = mapped_column(String, nullable=True)
     lyrics: Mapped[str | None] = mapped_column(Text, nullable=True)
     dynamic_lyrics: Mapped[str | None] = mapped_column(Text, nullable=True)
+    preview_url: Mapped[str | None] = mapped_column(String, nullable=True)
 
     artists: Mapped[List["ArtistRow"]] = relationship(
         "ArtistRow", secondary=song_artists, back_populates="songs")
@@ -59,7 +60,7 @@ class SongRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     queued_by_users: Mapped[List["UserRow"]] = relationship(
         "UserRow", secondary=user_queue_songs, back_populates="queue_songs")
 
-    def __init__(self, public_id: str, name: str, duration: int, track_number: int, disc_number: int, internal_image_id: int, album_id: int, isrc: str, popularity: int | None = None, path: str | None = None, download_url: str | None = None, lyrics: str | None = None, dynamic_lyrics: str | None = None):
+    def __init__(self, public_id: str, name: str, duration: int, track_number: int, disc_number: int, internal_image_id: int, album_id: int, isrc: str, popularity: int | None = None, path: str | None = None, download_url: str | None = None, lyrics: str | None = None, dynamic_lyrics: str | None = None, preview_url: str | None = None):
         kwargs = {}
         kwargs['public_id'] = public_id
         kwargs['name'] = name
@@ -74,5 +75,6 @@ class SongRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
         kwargs['download_url'] = download_url
         kwargs['lyrics'] = lyrics
         kwargs['dynamic_lyrics'] = dynamic_lyrics
+        kwargs['preview_url'] = preview_url
         for k, v in kwargs.items():
             setattr(self, k, v)

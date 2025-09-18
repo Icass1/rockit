@@ -246,7 +246,8 @@ class Spotify:
             url=f"https://open.spotify.com/track/{song_row.public_id}",
             isrc=song_row.isrc,
             cover_url="cover_url",
-            copyright_text="copyright_text"
+            copyright_text="copyright_text",
+            download_url=song_row.download_url
         )
 
     # ***********************
@@ -588,7 +589,8 @@ class Spotify:
                         disc_number=song.disc_number,
                         internal_image_id=internal_image_id,
                         album_id=album_id,
-                        isrc=song.external_ids.isrc
+                        isrc=song.external_ids.isrc,
+                        preview_url=song.preview_url
                     )
 
                     song_to_add = s.merge(song_to_add)

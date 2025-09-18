@@ -1253,6 +1253,14 @@ export async function next(songEnded = false) {
         return;
     }
 
+    if (!songEnded)
+        send({
+            skippedSong: {
+                previousSong: currentSong.get()?.id,
+                nextSong: song.id,
+            },
+        });
+
     currentSong.set(song);
 
     const _crossFade = currentCrossFade.get();
@@ -1572,6 +1580,20 @@ async function onTimeupdate() {
         return;
     }
     const _crossFade = currentCrossFade.get();
+
+    const lastCurrentTime = currentTime.get();
+
+    if (lastCurrentTime && Math.abs(audio.currentTime - lastCurrentTime) > 5) {
+        console.log(audio.currentTime - lastCurrentTime);
+        send({
+            currentTimeStep: {
+                step: audio.currentTime - lastCurrentTime,
+                from: lastCurrentTime,
+                to: audio.currentTime,
+                song: currentSong.get()?.id,
+            },
+        });
+    }
 
     currentTime.set(audio.currentTime);
 

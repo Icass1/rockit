@@ -5,6 +5,7 @@ import {
     queue,
     queueIndex,
     randomQueue,
+    send,
     songsInIndexedDB,
 } from "@/stores/audio";
 import { currentList } from "@/stores/currentList";
@@ -62,6 +63,10 @@ export function songHandleClick(
             songsInIndexedDB.get()?.includes(song.song.id)
         );
     }
+
+    send({
+        clickedSong: { previousSong: currentSong.get()?.id, nextSong: song.id },
+    });
 
     if (randomQueue.get()) {
         const shuffled = [...songsToAdd].sort(() => Math.random() - 0.5);

@@ -8,6 +8,45 @@ const wss = new WebSocketServer({ port: 3001 });
 
 console.log("WebSocket server started on ws://localhost:3001");
 
+db.exec(`CREATE TABLE IF NOT EXISTS clicked_songs (
+    id integer primary key,
+    previous_song_id TEXT,
+    next_song_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    updatedAt TEXT NOT NULL,
+    createdAt TEXT NOT NULL
+)`);
+
+db.exec(`CREATE TABLE IF NOT EXISTS skipped_songs (
+    id integer primary key,
+    previous_song_id TEXT,
+    next_song_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    updatedAt TEXT NOT NULL,
+    createdAt TEXT NOT NULL
+)`);
+
+db.exec(`CREATE TABLE IF NOT EXISTS skipped_songs (
+    id integer primary key,
+    previous_song_id TEXT,
+    next_song_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    updatedAt TEXT NOT NULL,
+    createdAt TEXT NOT NULL
+)`);
+
+db.exec(`CREATE TABLE IF NOT EXISTS current_time_step (
+    id integer primary key,
+    step DOUBLE NOT NULL,
+    current_time_from DOUBLE NOT NULL,
+    current_time_to DOUBLE NOT NULL,
+    song_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    updatedAt TEXT NOT NULL,
+    createdAt TEXT NOT NULL
+)`);
+
+
 const clients = {};
 
 function updateClients(userId) {
@@ -227,14 +266,58 @@ wss.on("connection", async (ws, req) => {
                     db.prepare(
                         `UPDATE user SET lastPlayedSong = ? WHERE id = ?`
                     ).run(JSON.stringify(userLastPlayedSong), user.id);
+                } else if (
+                    messageJson.clickedSong?.previousSong != undefined &&
+                    messageJson.clickedSong?.nextSong != undefined
+                ) {
+                    db.prepare(
+                        `INSERT INTO clicked_songs (previous_song_id, next_song_id, user_id, updatedAt, createdAt) VALUES (?, ?, ?, ?, ?)`
+                    ).run(
+                        messageJson.clickedSong.previousSong,
+                        messageJson.clickedSong.nextSong,
+                        user.id,
+                        new Date().toISOString(),
+                        new Date().toISOString()
+                    );
+                } else if (
+                    messageJson.skippedSong?.previousSong != undefined &&
+                    messageJson.skippedSong?.nextSong != undefined
+                ) {
+                    db.prepare(
+                        `INSERT INTO skipped_songs (previous_song_id, next_song_id, user_id, updatedAt, createdAt) VALUES (?, ?, ?, ?, ?)`
+                    ).run(
+                        messageJson.skippedSong.previousSong,
+                        messageJson.skippedSong.nextSong,
+                        user.id,
+                        new Date().toISOString(),
+                        new Date().toISOString()
+                    );
+                } else if (
+                    messageJson.currentTimeStep?.step != undefined &&
+                    messageJson.currentTimeStep?.from != undefined &&
+                    messageJson.currentTimeStep?.to != undefined &&
+                    messageJson.currentTimeStep?.song != undefined
+                ) {
+                    db.prepare(
+                        `INSERT INTO current_time_step (current_time_from, current_time_to, step, song_id, user_id, updatedAt, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?)`
+                    ).run(
+                        messageJson.currentTimeStep.from,
+                        messageJson.currentTimeStep.to,
+                        messageJson.currentTimeStep.step,
+                        messageJson.currentTimeStep.song,
+                        user.id,
+                        new Date().toISOString(),
+                        new Date().toISOString()
+                    );
                 } else {
                     console.log("Unknow parameter from socket", messageJson);
                 }
-            } catch {
+            } catch (error) {
                 console.log(
                     "Unable to parse socket message from",
                     user.id,
-                    message
+                    error,
+                    message.toString()
                 );
                 return;
             }

@@ -10,7 +10,6 @@ import Spinner from "@/components/Spinner";
 import useFetch from "@/hooks/useFetch";
 import { HomeStats } from "./api/stats/home/route";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
 
 export default function Home() {
     const [data] = useFetch<HomeStats>("/api/stats/home", {
@@ -39,10 +38,8 @@ export default function Home() {
 
     const session = useSession();
 
-    const router = useRouter();
-
     if (session.status == "unauthenticated") {
-        router.push("/login");
+        window.location.href = "/login";
     }
 
     // type Mood = "relaxed" | "energy" | "focus" | "party";

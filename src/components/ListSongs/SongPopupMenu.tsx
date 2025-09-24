@@ -1,9 +1,5 @@
 "use client";
 
-import type { SongDB } from "@/lib/db/song";
-import { currentList, currentListSongs } from "@/stores/currentList";
-import { langData } from "@/stores/lang";
-import { likedSongs } from "@/stores/likedList";
 import { networkStatus } from "@/stores/networkStatus";
 import { useStore } from "@nanostores/react";
 import { type ReactNode } from "react";
@@ -26,18 +22,8 @@ import {
     PlayCircle,
     Share2,
 } from "lucide-react";
-import {
-    currentSong,
-    pause,
-    play,
-    playing,
-    queue,
-    queueIndex,
-    saveSongToIndexedDB,
-    send,
-} from "@/stores/audio";
+
 import { songHandleClick } from "./HandleClick";
-import { downloads } from "@/stores/downloads";
 import { useRouter } from "next/navigation";
 import useDev from "@/hooks/useDev";
 

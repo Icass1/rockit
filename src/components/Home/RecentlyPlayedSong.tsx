@@ -1,4 +1,3 @@
-import { currentList } from "@/stores/currentList";
 import { songHandleClick } from "@/components/ListSongs/HandleClick";
 import { redirect } from "next/navigation";
 import { RockItSongType } from "@/types/rockIt";

@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 import QuickSelectionsSong from "@/components/Home/QuickSelectionsSong";
 import RecentlyPlayedSong from "@/components/Home/RecentlyPlayedSong";
 import SongsCarousel from "@/components/Home/SongsCarousel";
@@ -36,8 +36,17 @@ export default function Home() {
     const session = useSession();
 
     if (session.status == "unauthenticated") {
-        console.warn("Home -> /login")
+        console.warn("Home -> /login");
         location.href = "/login";
+    }
+
+    console.warn({ data, $lang }); // <- Hydratation error here.
+
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => setMounted(true), []);
+
+    if (!mounted) {
+        return null; // or a lightweight loader
     }
 
     if (!$lang) {

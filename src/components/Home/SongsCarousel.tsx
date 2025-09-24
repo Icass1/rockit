@@ -3,14 +3,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Play, ChevronLeft, ChevronRight, Pause } from "lucide-react";
 import useWindowSize from "@/hooks/useWindowSize";
-import { currentSong, playing } from "@/stores/audio";
 import { useStore } from "@nanostores/react";
 import { songHandleClick } from "@/components/ListSongs/HandleClick";
-import { currentList } from "@/stores/currentList";
 import useFetch from "@/hooks/useFetch";
 import { StatsResponse } from "@/responses/stats/statsResponse";
-import { RockItSong } from "@/types/rockIt";
+import { RockItSongType } from "@/types/rockIt";
 import Image from "next/image";
+import { rockitIt } from "@/lib/rockit";
 
 function Song({
     index,
@@ -21,9 +20,9 @@ function Song({
 }: {
     index: number;
     currentIndex: number;
-    song: RockItSong;
+    song: RockItSongType;
     songsLength: number;
-    songs: RockItSong[];
+    songs: RockItSongType[];
 }) {
     let distanceFromCenter = Math.abs(index - currentIndex);
     let neg = index > currentIndex ? -1 : 1;
@@ -57,13 +56,16 @@ function Song({
 
     const transition = " transition-all duration-300 ";
 
-    const $currentSong = useStore(currentSong);
-    const $playing = useStore(playing);
+    const $currentSong = useStore(rockitIt.queueManager.currentSongAtom);
+    const $playing = useStore(rockitIt.audioManager.playingAtom);
 
     const handleClick = () => {
-        currentList.set({ type: "carousel", id: "carousel" });
+        rockitIt.queueManager.currentListAtom.set({
+            type: "carousel",
+            id: "carousel",
+        });
         songHandleClick(
-            { ...song, path: "this path is not needed but cannot be empty" },
+            song,
             songs.map((song) => {
                 return {
                     ...song,
@@ -125,7 +127,7 @@ function Song({
                         className="absolute right-4 bottom-4 rounded-full bg-transparent p-3 text-white backdrop-blur-sm transition duration-300 md:hover:bg-black/40"
                         onClick={handleClick}
                     >
-                        {$currentSong?.id == song.publicId && $playing ? (
+                        {$currentSong?.publicId == song.publicId && $playing ? (
                             <Pause
                                 className={`${transition} ${
                                     index == currentIndex
@@ -153,7 +155,7 @@ function Version2({
     songs,
     currentIndex,
 }: {
-    songs: RockItSong[];
+    songs: RockItSongType[];
     currentIndex: number;
 }) {
     return (
@@ -173,9 +175,9 @@ function Version2({
 }
 
 function SongsCarousel() {
-    const [songs] = useFetch<StatsResponse>(
+    const [songs] = useFetch(
         "/stats?type=songs&limit=20&sortBy=random&noRepeat=true",
-        { json: true }
+        StatsResponse
     );
 
     const [currentIndex, setCurrentIndex] = useState(0);

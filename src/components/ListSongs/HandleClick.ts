@@ -1,35 +1,8 @@
-import type { SongDB } from "@/db/song";
-import {
-    currentSong,
-    playWhenReady,
-    queue,
-    queueIndex,
-    randomQueue,
-    songsInIndexedDB,
-} from "@/stores/audio";
-import { currentList } from "@/stores/currentList";
+import { RockItSongType } from "@/types/rockIt";
 
 export function songHandleClick(
-    song: SongDB<
-        | "id"
-        | "name"
-        | "artists"
-        | "albumName"
-        | "albumId"
-        | "duration"
-        | "image"
-        | "path"
-    >,
-    currentListSongs: SongDB<
-        | "id"
-        | "name"
-        | "artists"
-        | "image"
-        | "duration"
-        | "albumId"
-        | "albumName"
-        | "path"
-    >[]
+    song: RockItSongType,
+    currentListSongs: RockItSongType[]
 ) {
     const _currentList = currentList.get();
     if (!song.path) {

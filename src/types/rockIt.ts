@@ -50,8 +50,23 @@ export const RockItSong = z.object({
 
 export type RockItSongType = z.infer<typeof RockItSong>;
 
+export const RockItUser = z.object({});
 
-export const RockItUser = z.object({
-    
+export const RockItSpotifySearchResults = z.object({
+    songs: z.array(RockItSong),
+    albums: z.array(RockItAlbum),
+    artists: z.array(RockItArtist),
+});
 
-})
+export const RockItYoutubeSearchResults = z.object({
+    songs: z.array(RockItSong),
+    albums: z.array(RockItAlbum),
+    artists: z.array(RockItArtist),
+});
+
+export const RockItSearchResults = z.object({
+    spotifyResults: RockItYoutubeSearchResults,
+    youtubeResults: RockItYoutubeSearchResults,
+});
+
+export type RockItSearchResults = z.infer<typeof RockItSearchResults>;

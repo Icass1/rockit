@@ -1,8 +1,8 @@
 import Link from "next/link";
 import SearchBar from "@/components/Search/SearchBar";
-import Image from "@/components/Image";
 import { headers } from "next/headers";
 import HeaderRight from "./HeaderRight";
+import Image from "next/image";
 
 export default async function Header() {
     const headerList = await headers();

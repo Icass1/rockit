@@ -60,18 +60,21 @@ export default async function RootLayout({
                     <div className="hidden md:block">
                         <PlayerUI />
                     </div>
+                    */}
                     <div className="fixed right-0 bottom-0 left-0 z-40 hidden h-24 md:block">
                         <Footer></Footer>
                     </div>
-
+                    {/* 
                     <div className="fixed right-0 bottom-12 left-0 z-40 block h-14 md:hidden">
                         <FooterMobile></FooterMobile>
                     </div>
 
                     <MobilePlayerUI />
+                    */}
                     <div className="fixed top-0 right-0 left-12 z-40 hidden h-24 w-auto md:block">
                         <Header></Header>
                     </div>
+                    {/* 
 
                     <div className="fixed z-40 hidden md:top-0 md:bottom-24 md:left-0 md:block">
                         <Navigation></Navigation>

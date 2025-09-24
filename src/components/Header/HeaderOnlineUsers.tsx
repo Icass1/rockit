@@ -1,11 +1,9 @@
 "use client";
 
-import { users } from "@/stores/users";
-import { useStore } from "@nanostores/react";
 import { User } from "lucide-react";
 
 export default function OnlineUserIndicator() {
-    const $users = useStore(users);
+    const $users = 1653;
 
     return (
         <>

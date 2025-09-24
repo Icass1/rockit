@@ -5,8 +5,6 @@ import {
     PopupMenuTrigger,
 } from "@/components/PopupMenu/PopupMenu";
 import { useStore } from "@nanostores/react";
-import { devices } from "@/stores/devices";
-import { send } from "@/stores/audio";
 
 export default function Devices() {
     const $devices = useStore(devices);

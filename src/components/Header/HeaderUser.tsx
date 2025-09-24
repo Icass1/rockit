@@ -9,14 +9,15 @@ import {
 } from "@/components/PopupMenu/PopupMenu";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import Image from "@/components/Image";
 import useDev from "@/hooks/useDev";
+import Image from "next/image";
 
 export default function HeaderUser() {
     const session = useSession();
     const router = useRouter();
 
     const handleLogOut = () => {
+        console.warn("HeaderUser signOut");
         signOut();
     };
 

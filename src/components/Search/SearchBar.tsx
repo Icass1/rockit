@@ -47,7 +47,7 @@ export default function SearchBar() {
             {shouldRenderResults && (
                 <RenderSearchBarResults open={open} setOpen={setOpen} />
             )}
-            <SearchBarInput setOpen={setOpen} />
+            <SearchBarInput />
         </div>
     );
 }

@@ -12,27 +12,16 @@ import {
     Repeat,
 } from "lucide-react";
 import { useStore } from "@nanostores/react";
-import {
-    currentSong,
-    playing,
-    play,
-    pause,
-    prev,
-    next,
-    randomQueue,
-    repeatSong,
-    setTime,
-    currentTime,
-} from "@/stores/audio";
+
 import LikeButton from "@/components/LikeButton";
-import { cyclerepeatSong } from "../FooterCenter";
 import { getTime } from "@/lib/utils/getTime";
+import { rockitIt } from "@/lib/rockit";
 
 export default function PiPContent() {
-    const $currentSong = useStore(currentSong);
-    const $currentTime = useStore(currentTime);
-    const $playing = useStore(playing);
-    const $repeatSong = useStore(repeatSong);
+    const $currentSong = useStore(rockitIt.queueManager.currentSongAtom);
+    const $currentTime = useStore(rockitIt.audioManager.currentTimeAtom);
+    const $playing = useStore(rockitIt.audioManager.playingAtom);
+    const $repeatSong = useStore(rockitIt.userManager.repeatSongAtom);
     const [hover, setHover] = useState(false);
 
     return (
@@ -64,9 +53,9 @@ export default function PiPContent() {
                 }}
             >
                 {/* Cover */}
-                {$currentSong?.image && (
+                {$currentSong?.internalImageUrl && (
                     <img
-                        src={`/api/image/${$currentSong.image}`}
+                        src={`/api/image/${$currentSong.internalImageUrl}`}
                         alt="Cover"
                         style={{
                             width: "100%",
@@ -105,18 +94,13 @@ export default function PiPContent() {
                             }}
                         >
                             <button
-                                onClick={() =>
-                                    randomQueue.set(!randomQueue.get())
-                                }
+                                onClick={rockitIt.userManager.toggleRandomQueue}
                                 style={iconButton}
                             >
                                 <Shuffle style={responsiveIcon} color="white" />
                             </button>
                             <button
-                                onClick={async () => {
-                                    await prev();
-                                    play();
-                                }}
+                                onClick={rockitIt.audioManager.skipBack}
                                 style={iconButton}
                             >
                                 <SkipBack
@@ -126,7 +110,7 @@ export default function PiPContent() {
                                 />
                             </button>
                             <button
-                                onClick={() => ($playing ? pause() : play())}
+                                onClick={rockitIt.audioManager.togglePlayPause}
                                 style={iconButton}
                                 aria-label={$playing ? "Pause" : "Play"}
                             >
@@ -153,10 +137,7 @@ export default function PiPContent() {
                                 )}
                             </button>
                             <button
-                                onClick={async () => {
-                                    await next();
-                                    play();
-                                }}
+                                onClick={rockitIt.audioManager.skipForward}
                                 style={iconButton}
                             >
                                 <SkipForward
@@ -166,7 +147,7 @@ export default function PiPContent() {
                                 />
                             </button>
                             <button
-                                onClick={cyclerepeatSong}
+                                onClick={rockitIt.userManager.cyclerepeatSong}
                                 style={iconButton}
                             >
                                 {$repeatSong === "one" ? (
@@ -215,7 +196,9 @@ export default function PiPContent() {
                                 max={$currentSong?.duration ?? 0}
                                 step={0.001}
                                 onChange={(e) =>
-                                    setTime(Number(e.target.value))
+                                    rockitIt.audioManager.setCurrentTime(
+                                        Number(e.target.value)
+                                    )
                                 }
                                 style={{
                                     flexGrow: 1,

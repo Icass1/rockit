@@ -1,5 +1,4 @@
 import { useStore } from "@nanostores/react";
-import { searchQuery, searchResults } from "@/stores/searchResults";
 
 import { DownloadCloud } from "lucide-react";
 import {
@@ -10,8 +9,8 @@ import {
     type ReactNode,
 } from "react";
 import stringSimilarity from "@/lib/utils/stringSimilarity";
-import Image from "@/components/Image";
 import Link from "next/link";
+import Image from "next/image";
 
 function Result({
     image,
@@ -47,8 +46,9 @@ function Result({
         >
             <div className="aspect-square h-full w-auto">
                 <Image
+                    width={100}
+                    height={100}
                     alt={name}
-                    imageClassName="object-cover"
                     className={
                         "h-full w-full " +
                         (artistsOrOwner == "" ? " rounded-full" : " ")

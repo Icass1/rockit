@@ -12,44 +12,23 @@ import {
 } from "lucide-react";
 import Slider from "@/components/Slider";
 import Spinner from "@/components/Spinner";
-
-import {
-    currentSong,
-    currentTime,
-    loading,
-    next,
-    pause,
-    play,
-    playing,
-    prev,
-    randomQueue,
-    repeatSong,
-    setTime,
-    currentStation,
-    crossFadeCurrentTime,
-    crossFade,
-} from "@/stores/audio";
-
-export function cyclerepeatSong() {
-    repeatSong.set(
-        repeatSong.get() === "off"
-            ? "all"
-            : repeatSong.get() === "all"
-              ? "one"
-              : "off"
-    );
-}
+import { rockitIt } from "@/lib/rockit";
 
 export default function FooterCenter() {
-    const $playing = useStore(playing);
-    const $currentTime = useStore(currentTime);
-    const $currentSong = useStore(currentSong);
-    const $randomQueue = useStore(randomQueue);
-    const $repeatSong = useStore(repeatSong);
-    const $loading = useStore(loading);
-    const $currentStation = useStore(currentStation);
-    const $crossFadeCurrentTime = useStore(crossFadeCurrentTime);
-    const $crossFade = useStore(crossFade);
+    const $playing = useStore(rockitIt.audioManager.playingAtom);
+    const $currentTime = useStore(rockitIt.audioManager.currentTimeAtom);
+    const $loading = useStore(rockitIt.audioManager.loadingAtom);
+    const $currentSong = useStore(rockitIt.queueManager.currentSongAtom);
+    const $randomQueue = useStore(rockitIt.userManager.randomQueueAtom);
+    const $repeatSong = useStore(rockitIt.userManager.repeatSongAtom);
+    const $currentStation = useStore(
+        rockitIt.stationManager.currentStationAtom
+    );
+    // const $crossFadeCurrentTime = useStore(rockitIt.userManager.crossFadeCurrentTimeAtom);
+    // const $crossFade = useStore(crossFade);
+
+    const $crossFadeCurrentTime = 0;
+    const $crossFade = 0;
 
     return (
         <div className="hidden w-1/3 flex-col items-center justify-center space-y-1 md:flex">
@@ -67,16 +46,13 @@ export default function FooterCenter() {
                                     ? " text-[#ee1086]"
                                     : " text-gray-400")
                             }
-                            onClick={() => randomQueue.set(!randomQueue.get())}
+                            onClick={rockitIt.userManager.toggleRandomQueue}
                         />
                         <SkipBack
                             className={
                                 "h-[22px] w-[22px] cursor-pointer fill-current text-gray-400 md:hover:scale-105 md:hover:text-white"
                             }
-                            onClick={async () => {
-                                await prev();
-                                play();
-                            }}
+                            onClick={rockitIt.audioManager.skipBack}
                         />
 
                         {$loading ? (
@@ -84,12 +60,12 @@ export default function FooterCenter() {
                         ) : $playing ? (
                             <CirclePause
                                 className="h-8 w-8 cursor-pointer text-gray-400 md:hover:scale-105 md:hover:text-white"
-                                onClick={() => pause()}
+                                onClick={rockitIt.audioManager.pause}
                             />
                         ) : (
                             <CirclePlay
                                 className="h-8 w-8 cursor-pointer text-gray-400 md:hover:scale-105 md:hover:text-white"
-                                onClick={() => play()}
+                                onClick={rockitIt.audioManager.play}
                             />
                         )}
 
@@ -97,10 +73,7 @@ export default function FooterCenter() {
                             className={
                                 "h-[22px] w-[22px] cursor-pointer fill-current text-gray-400 md:hover:scale-105 md:hover:text-white"
                             }
-                            onClick={async () => {
-                                await next();
-                                play();
-                            }}
+                            onClick={rockitIt.audioManager.skipForward}
                         />
                         {$repeatSong === "one" ? (
                             <Repeat1
@@ -108,7 +81,7 @@ export default function FooterCenter() {
                                     "h-[18px] w-[18px] cursor-pointer transition-colors md:hover:scale-105 " +
                                     "text-[#ee1086]"
                                 }
-                                onClick={cyclerepeatSong}
+                                onClick={rockitIt.userManager.cyclerepeatSong}
                             />
                         ) : (
                             <Repeat
@@ -118,7 +91,7 @@ export default function FooterCenter() {
                                         ? "text-[#ee1086]"
                                         : "text-gray-400")
                                 }
-                                onClick={cyclerepeatSong}
+                                onClick={rockitIt.userManager.cyclerepeatSong}
                             />
                         )}
                     </div>
@@ -143,7 +116,7 @@ export default function FooterCenter() {
                                 step={0.001}
                                 onChange={(event) => {
                                     if ($currentSong)
-                                        setTime(
+                                        rockitIt.audioManager.setCurrentTime(
                                             $currentSong?.duration -
                                                 $crossFade +
                                                 Number(event.target.value)
@@ -159,7 +132,9 @@ export default function FooterCenter() {
                                 max={$currentSong?.duration}
                                 step={0.001}
                                 onChange={(event) => {
-                                    setTime(Number(event.target.value));
+                                    rockitIt.audioManager.setCurrentTime(
+                                        Number(event.target.value)
+                                    );
                                 }}
                             />
                         )}

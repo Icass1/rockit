@@ -1,58 +1,11 @@
 "use client";
 
-import type { SongDB } from "@/db/song";
-import { likedSongs } from "@/stores/likedList";
 import { useStore } from "@nanostores/react";
-import type { MouseEvent } from "react";
-import { useState } from "react";
 import "@/styles/LikeButton.css";
+import { rockitIt } from "@/lib/rockit";
 
-export default function LikeButton({ song }: { song: SongDB<"id"> }) {
-    const $likedSongs = useStore(likedSongs);
-    const [showFire, setShowFire] = useState(false);
-    const [animateHand, setAnimateHand] = useState(false);
-
-    const handleToggleLiked = (event: MouseEvent) => {
-        event.stopPropagation();
-
-        if (likedSongs.get().includes(song.id)) {
-            setAnimateHand(true);
-            fetch(`/api/like/${song.id}`, { method: "DELETE" }).then(
-                (response) => {
-                    if (response.ok) {
-                        // Remove song to liked songs store
-                        likedSongs.set(
-                            likedSongs
-                                .get()
-                                .filter((likedSong) => likedSong != song.id)
-                        );
-                    } else {
-                        console.log("Error");
-                        // Tell user like request was unsuccessful
-                    }
-                }
-            );
-        } else {
-            setShowFire(true);
-            fetch(`/api/like/${song.id}`, { method: "POST" }).then(
-                (response) => {
-                    if (response.ok) {
-                        // Add song to liked songs store
-                        likedSongs.set([...likedSongs.get(), song.id]);
-                    } else {
-                        console.log("Error");
-                        // Tell user like request was unsuccessful
-                    }
-                }
-            );
-        }
-
-        // Restablecer después de las animaciones
-        setTimeout(() => {
-            setAnimateHand(false);
-            setShowFire(false);
-        }, 500);
-    };
+export default function LikeButton({ songPublicId }: { songPublicId: string }) {
+    const $likedSongs = useStore(rockitIt.songManager.likedSongsAtom);
 
     return (
         <div
@@ -66,7 +19,7 @@ export default function LikeButton({ song }: { song: SongDB<"id"> }) {
             }}
         >
             {/* Fuego animado */}
-            {showFire && (
+            {/* {showFire && (
                 <div
                     style={{
                         pointerEvents: "none",
@@ -85,17 +38,19 @@ export default function LikeButton({ song }: { song: SongDB<"id"> }) {
                         <div className="black circle"></div>
                     </div>
                 </div>
-            )}
+            )} */}
 
             {/* Mano de metal */}
             <div
-                onClick={handleToggleLiked}
+                onClick={() =>
+                    rockitIt.songManager.toggleLikeSong(songPublicId)
+                }
                 style={{
                     height: "22px",
                     width: "22px",
                     cursor: "pointer",
-                    transform: animateHand ? "rotate(20deg)" : undefined, // si usas hand-rotate
-                    transition: animateHand ? "transform 0.3s ease" : undefined,
+                    // transform: animateHand ? "rotate(20deg)" : undefined, // si usas hand-rotate
+                    // transition: animateHand ? "transform 0.3s ease" : undefined,
                 }}
             >
                 <svg
@@ -104,14 +59,16 @@ export default function LikeButton({ song }: { song: SongDB<"id"> }) {
                     height="24"
                     viewBox="0 0 24 24"
                     fill={
-                        $likedSongs.includes(song?.id) ? "white" : "transparent"
+                        $likedSongs.includes(songPublicId)
+                            ? "white"
+                            : "transparent"
                     }
                     stroke="currentColor"
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     style={{
-                        color: $likedSongs.includes(song.id)
+                        color: $likedSongs.includes(songPublicId)
                             ? "#202020"
                             : "#A1A1AA",
                         transition: "color 0.2s ease",
@@ -121,7 +78,7 @@ export default function LikeButton({ song }: { song: SongDB<"id"> }) {
                     }}
                     onMouseLeave={(e) => {
                         e.currentTarget.style.color = $likedSongs.includes(
-                            song.id
+                            songPublicId
                         )
                             ? "#202020"
                             : "#A1A1AA";

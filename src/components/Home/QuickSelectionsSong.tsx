@@ -1,4 +1,3 @@
-import { currentList } from "@/stores/currentList";
 import { songHandleClick } from "@/components/ListSongs/HandleClick";
 import SongContextMenu from "../ListSongs/SongContextMenu";
 import { RockItSongType } from "@/types/rockIt";

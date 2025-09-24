@@ -6,6 +6,7 @@ export default async function apiFetch(path: string): Promise<Response | undefin
     if (!token) {
         const session = await getSession();
         if (!session?.user.access_token) {
+            console.warn("apiFetch -> /login")
             signOut();
             window.location.href = "/login";
             return;

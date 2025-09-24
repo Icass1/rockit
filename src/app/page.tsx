@@ -4,18 +4,17 @@ import { Suspense } from "react";
 import QuickSelectionsSong from "@/components/Home/QuickSelectionsSong";
 import RecentlyPlayedSong from "@/components/Home/RecentlyPlayedSong";
 import SongsCarousel from "@/components/Home/SongsCarousel";
-import { langData } from "@/stores/lang";
 import { useStore } from "@nanostores/react";
 import Spinner from "@/components/Spinner";
 import useFetch from "@/hooks/useFetch";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import { HomeStats } from "@/responses/stats/homeStatsResponse";
+import { rockitIt } from "@/lib/rockit";
 
 export default function Home() {
     const [data] = useFetch("/stats/home", HomeStats);
 
-    const $lang = useStore(langData);
+    const $lang = useStore(rockitIt.languageManager.langDataAtom);
 
     const monthKeys = [
         "january",
@@ -36,13 +35,20 @@ export default function Home() {
 
     const session = useSession();
 
-    const router = useRouter();
-
     if (session.status == "unauthenticated") {
-        router.push("/login");
+        console.warn("Home -> /login")
+        location.href = "/login";
     }
 
-    if (!$lang || !data) {
+    if (!$lang) {
+        return (
+            <div className="flex h-screen flex-row items-center justify-center gap-2 text-xl font-semibold">
+                <label>Fatal error, unable to get language.</label>
+            </div>
+        );
+    }
+
+    if (!data) {
         return (
             <div className="flex h-screen flex-row items-center justify-center gap-2 text-xl font-semibold">
                 <Spinner></Spinner>

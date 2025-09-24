@@ -35,7 +35,7 @@ import {
     queueIndex,
     saveSongToIndexedDB,
 } from "@/stores/audio";
-import { downloadFile, downloadRsc } from "@/lib/downloadResources";
+import { downloadFile, downloadRsc } from "@/lib/utils/downloadResources";
 import ContextMenuSplitter from "../ContextMenu/Splitter";
 import { pinnedLists } from "@/stores/pinnedLists";
 import { downloadListZip, pinListHandleClick } from "../ListHeader/ListOptions";

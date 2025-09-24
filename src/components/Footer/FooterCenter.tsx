@@ -1,4 +1,4 @@
-import { getTime } from "@/lib/getTime";
+import { getTime } from "@/lib/utils/getTime";
 
 import { useStore } from "@nanostores/react";
 import {

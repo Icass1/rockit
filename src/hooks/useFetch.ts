@@ -1,4 +1,4 @@
-import apiFetch from "@/lib/apiFetch";
+import apiFetch from "@/lib/utils/apiFetch";
 import { signOut } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { z, ZodType } from "zod";
@@ -11,6 +11,7 @@ async function update<T extends ZodType>(
     const res = await apiFetch(path);
 
     if (!res) {
+        console.warn("useFetch.update 1 -> /login");
         signOut();
         window.location.href = "/login";
         return;
@@ -21,6 +22,7 @@ async function update<T extends ZodType>(
         const parsed = schema.parse(json);
         setData(parsed);
     } else if (res.status === 401) {
+        console.warn("useFetch.update 2 -> /login");
         signOut();
         window.location.href = "/login";
     }

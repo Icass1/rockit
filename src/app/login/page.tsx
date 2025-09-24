@@ -1,12 +1,12 @@
-import { redirect } from "next/navigation";
+"use client";
+
 import LoginModal from "@/components/Auth/LoginModal";
-import { getSession } from "@/lib/auth/getSession";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 
-export default async function LoginPage() {
-    const session = await getSession();
+export default function LoginPage() {
+    const session = useSession();
 
-    if (session) {
+    if (session.status == "authenticated") {
         signOut();
     }
 

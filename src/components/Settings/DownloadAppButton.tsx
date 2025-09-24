@@ -1,4 +1,7 @@
-import { clearResources, downloadResources } from "@/lib/downloadResources";
+import {
+    clearResources,
+    downloadResources,
+} from "@/lib/utils/downloadResources";
 import { langData } from "@/stores/lang";
 import { useStore } from "@nanostores/react";
 import { Download } from "lucide-react";

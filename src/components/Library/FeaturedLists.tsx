@@ -1,7 +1,7 @@
 "use client";
 
 import { getImageUrl } from "@/lib/getImageUrl";
-import { Stats } from "@/lib/stats";
+import { Stats } from "@/lib/utils/stats";
 import { lang, langData } from "@/stores/lang";
 import { useStore } from "@nanostores/react";
 import { Disc3, Heart, History } from "lucide-react";

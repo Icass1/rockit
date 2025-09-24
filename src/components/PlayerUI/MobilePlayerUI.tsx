@@ -11,7 +11,7 @@ import {
     ChevronDown,
     Ellipsis,
 } from "lucide-react";
-import { getTime } from "@/lib/getTime";
+import { getTime } from "@/lib/utils/getTime";
 import {
     currentSong,
     currentTime,

@@ -2,12 +2,10 @@ import ClearDownloads from "@/components/Downloader/ClearDownloads";
 import DownloadElement from "@/components/Downloader/DownloadElement";
 import InputBar from "@/components/Downloader/InputBar";
 import SongsStatus from "@/components/Downloader/SongsStatus";
-import Image from "@/components/Image";
-import { getSession } from "@/lib/auth/getSession";
-import { db } from "@/lib/db/db";
-import { parseDownload, RawDownloadDB } from "@/lib/db/download";
-import { getLang } from "@/lib/getLang";
+import { getSession } from "@/lib/utils/auth/getSession";
+import { getLang } from "@/lib/utils/getLang";
 import { RotateCw } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -15,6 +13,7 @@ export default async function Downloads() {
     const session = await getSession();
 
     if (!session?.user) {
+        console.warn("Downloads -> /login")
         redirect("/login");
     }
 

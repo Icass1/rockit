@@ -1,7 +1,7 @@
 "use client";
 
 import type { SongDB } from "@/db/song";
-import type { GetAlbum } from "@/lib/getAlbum";
+import type { GetAlbum } from "@/lib/utils/getAlbum";
 import {
     currentSong,
     pause,

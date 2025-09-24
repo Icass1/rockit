@@ -1,5 +1,5 @@
 import Masonry from "@/components/Masonry/Masonry";
-import { getSession } from "@/lib/auth/getSession";
+import { getSession } from "@/lib/utils/auth/getSession";
 import { DatabaseBackup, Link as LinkIcon } from "lucide-react";
 import Link from "next/link";
 import { promises as fs } from "fs";

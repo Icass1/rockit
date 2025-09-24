@@ -1,11 +1,11 @@
 "use client";
 
-import { GetAlbum } from "@/lib/getAlbum";
+import { GetAlbum } from "@/lib/utils/getAlbum";
 import Image from "@/components/Image";
 import PlayListButton from "@/components/ListHeader/PlayListButton";
 import ListOptions from "@/components/ListHeader/ListOptions";
 import { useRouter } from "next/navigation";
-import { getMinutes, getYear } from "@/lib/getTime";
+import { getMinutes, getYear } from "@/lib/utils/getTime";
 import { Disc } from "lucide-react";
 import { useStore } from "@nanostores/react";
 import { langData } from "@/stores/lang";
@@ -52,7 +52,7 @@ export default function RenderAlbum({ _album }: { _album: GetAlbum }) {
                     />
                 </div>
 
-                <div className="mx-auto flex w-fit flex-row items-center gap-2 z-50">
+                <div className="z-50 mx-auto flex w-fit flex-row items-center gap-2">
                     <label className="text-center text-2xl font-semibold text-balance">
                         {album.name}
                     </label>

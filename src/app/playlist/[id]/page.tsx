@@ -1,7 +1,7 @@
 import Image from "@/components/Image";
 import PlaylistHeader from "@/components/Playlist/PlaylistHeader";
 import PlaylistSongsView from "@/components/Playlist/PlaylistSongsView";
-import { getSession } from "@/lib/auth/getSession";
+import { getSession } from "@/lib/utils/auth/getSession";
 import { db } from "@/lib/db/db";
 import {
     parsePlaylist,
@@ -12,12 +12,12 @@ import {
 import { parseSong, RawSongDB, SongDB } from "@/lib/db/song";
 import { parseUser, RawUserDB, UserDB } from "@/lib/db/user";
 import { getImageUrl } from "@/lib/getImageUrl";
-import { getStats } from "@/lib/stats";
+import { getStats } from "@/lib/utils/stats";
 import { SpotifyPlaylistImage } from "@/types/spotify";
 import { NextResponse } from "next/server";
-import { getLang } from "@/lib/getLang";
+import { getLang } from "@/lib/utils/getLang";
 import { notFound } from "next/navigation";
-import { reduce } from "@/lib/arrayTools";
+import { reduce } from "@/lib/utils/arrayTools";
 
 interface Playlist {
     name: string;

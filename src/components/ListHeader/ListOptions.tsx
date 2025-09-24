@@ -30,7 +30,7 @@ import { downloadedLists, downloads } from "@/stores/downloads";
 import { libraryLists } from "@/stores/libraryLists";
 import { pinnedLists } from "@/stores/pinnedLists";
 import { playListHandleClick } from "@/components/PlayList";
-import { downloadFile, downloadRsc } from "@/lib/downloadResources";
+import { downloadFile, downloadRsc } from "@/lib/utils/downloadResources";
 
 export const pinListHandleClick = ({
     id,
@@ -261,7 +261,10 @@ export default function ListOptions({
     return (
         <PopupMenu>
             <PopupMenuTrigger className="pt-[2px]">
-                <Menu strokeWidth={1.3} className="h-6 w-6 z-50 cursor-pointer" />
+                <Menu
+                    strokeWidth={1.3}
+                    className="z-50 h-6 w-6 cursor-pointer"
+                />
             </PopupMenuTrigger>
             <PopupMenuContent>
                 <PopupMenuOption

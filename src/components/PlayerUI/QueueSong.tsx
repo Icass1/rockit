@@ -2,7 +2,7 @@
 
 import type { SongDB } from "@/lib/db/song";
 import { getImageUrl } from "@/lib/getImageUrl";
-import { getTime } from "@/lib/getTime";
+import { getTime } from "@/lib/utils/getTime";
 import {
     currentSong,
     pause,

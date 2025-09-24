@@ -10,7 +10,7 @@ import { Disc3, Heart, History } from "lucide-react";
 import PlayListButton from "@/components/ListHeader/PlayListButton";
 import Image from "@/components/Image";
 import { CSSProperties } from "react";
-import { getMinutes } from "@/lib/getTime";
+import { getMinutes } from "@/lib/utils/getTime";
 
 export default function PlaylistHeader({
     inDatabase,

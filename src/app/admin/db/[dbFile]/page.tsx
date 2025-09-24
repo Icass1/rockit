@@ -1,4 +1,4 @@
-import { getSession } from "@/lib/auth/getSession";
+import { getSession } from "@/lib/utils/auth/getSession";
 import { db } from "@/lib/db/db";
 import { Table } from "lucide-react";
 import Link from "next/link";

@@ -1,7 +1,7 @@
 // app>api>auth>register>route.ts
 
 import { db } from "@/lib/db/db";
-import { generateId } from "@/lib/generateId";
+import { generateId } from "@/lib/utils/generateId";
 import { hash } from "@node-rs/argon2";
 import { NextRequest, NextResponse } from "next/server";
 

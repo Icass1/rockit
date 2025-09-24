@@ -11,11 +11,9 @@ import { useStore } from "@nanostores/react";
 import { ChartLine, ImageUp } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 function DisplayName() {
     const session = useSession();
-    const router = useRouter();
 
     if (session.status == "loading")
         return (
@@ -24,7 +22,8 @@ function DisplayName() {
             </h2>
         );
     if (session.status == "unauthenticated") {
-        router.push("/login");
+        console.warn("DisplayName -> /login")
+        location.href = "/login";
     }
 
     return (
@@ -36,12 +35,12 @@ function DisplayName() {
 
 function Username() {
     const session = useSession();
-    const router = useRouter();
 
     if (session.status == "loading")
         return <p className="text-base text-gray-500 md:text-lg">Loading</p>;
     if (session.status == "unauthenticated") {
-        router.push("/login");
+        console.warn("Username -> /login")
+        location.href = "/login";
     }
 
     return (
@@ -53,13 +52,13 @@ function Username() {
 
 function ChangeUsername() {
     const session = useSession();
-    const router = useRouter();
 
     if (session.status == "loading")
         return <p className="text-base text-gray-500 md:text-lg">Loading</p>;
 
     if (session.status == "unauthenticated") {
-        router.push("/login");
+        console.warn("ChangeUsername -> /login")
+        location.href = "/login";
     }
 
     return (

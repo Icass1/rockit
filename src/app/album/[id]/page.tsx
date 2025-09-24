@@ -1,5 +1,5 @@
 import RenderAlbum from "@/components/Album/RenderAlbum";
-import getAlbum from "@/lib/getAlbum";
+import getAlbum from "@/lib/utils/getAlbum";
 import { getImageUrl } from "@/lib/getImageUrl";
 import { notFound } from "next/navigation";
 import { NextResponse } from "next/server";

@@ -1,6 +1,6 @@
 "use client";
 
-import { getDate, getDateYYYYMMDD, getMinutes } from "@/lib/getTime";
+import { getDate, getDateYYYYMMDD, getMinutes } from "@/lib/utils/getTime";
 import BarGraph from "./BarGraph";
 import { useEffect, useRef, useState } from "react";
 import { langData } from "@/stores/lang";

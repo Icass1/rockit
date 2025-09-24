@@ -1,5 +1,5 @@
 import DBTablePage from "@/components/Admin/DBTablePage/DBTablePage";
-import { getSession } from "@/lib/auth/getSession";
+import { getSession } from "@/lib/utils/auth/getSession";
 import { db } from "@/lib/db/db";
 import { notFound } from "next/navigation";
 import sqlite from "better-sqlite3";

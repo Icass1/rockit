@@ -1,6 +1,6 @@
 import ToggleButtons from "@/components/Admin/ToggleButtons";
 import Image from "@/components/Image";
-import { getSession } from "@/lib/auth/getSession";
+import { getSession } from "@/lib/utils/auth/getSession";
 import { db } from "@/lib/db/db";
 import { parseUser, RawUserDB, UserDB } from "@/lib/db/user";
 import { notFound } from "next/navigation";

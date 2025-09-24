@@ -1,7 +1,7 @@
 import Link from "next/link";
 import LikeButton from "@/components/LikeButton";
 import SongPopupMenu from "@/components/ListSongs/SongPopupMenu";
-import { getTime } from "@/lib/getTime";
+import { getTime } from "@/lib/utils/getTime";
 import { EllipsisVertical } from "lucide-react";
 import SongPageCover from "@/components/SongPage/SongPageCover";
 import LyricsSection from "@/components/SongPage/SongPageLyrics";
@@ -13,7 +13,7 @@ import {
     SpotifyTrack,
 } from "@/types/spotify";
 import { parseSong, RawSongDB, SongDB } from "@/lib/db/song";
-import getAlbum from "@/lib/getAlbum";
+import getAlbum from "@/lib/utils/getAlbum";
 import Image from "@/components/Image";
 import { getImageUrl } from "@/lib/getImageUrl";
 

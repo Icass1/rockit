@@ -26,7 +26,7 @@ import {
 } from "@/stores/audio";
 import LikeButton from "@/components/LikeButton";
 import { cyclerepeatSong } from "../FooterCenter";
-import { getTime } from "@/lib/getTime";
+import { getTime } from "@/lib/utils/getTime";
 
 export default function PiPContent() {
     const $currentSong = useStore(currentSong);

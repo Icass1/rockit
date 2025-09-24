@@ -9,7 +9,7 @@ import {
     type MouseEvent,
     type ReactNode,
 } from "react";
-import stringSimilarity from "@/lib/stringSimilarity";
+import stringSimilarity from "@/lib/utils/stringSimilarity";
 import Image from "@/components/Image";
 import Link from "next/link";
 

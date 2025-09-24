@@ -10,7 +10,12 @@ export default function LoginModal() {
     const [username, setUsername] = useState("");
 
     const handleSubmit = useCallback(() => {
-        signIn("credentials", { password, username });
+        signIn("credentials", {
+            password,
+            username,
+            redirect: true,
+            callbackUrl: "/",
+        });
     }, [password, username]);
 
     useEffect(() => {

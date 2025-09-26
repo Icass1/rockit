@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.dialects.postgresql import insert
 
 from backend.db.ormModels.copyright import CopyrightRow
+from backend.spotifyApiTypes.RawSpotifyApiSearchResults import RawSpotifyApiSearchResults
 from backend.utils.logger import getLogger
 from backend.db.db import RockitDB
 from backend.constants import IMAGES_PATH
@@ -184,6 +185,17 @@ class Spotify:
                 json.dump(data, f)
 
         return result
+
+    def search(self, q: str, limit: int = 6) -> RawSpotifyApiSearchResults:
+        """Searches Spotify for tracks, albums, playlists and artists."""
+
+        response = self.api_call(
+            path="search", params={"q": q, "type": "track,album,playlist,artist", "limit": str(limit)})
+
+        parsed_response: RawSpotifyApiSearchResults = RawSpotifyApiSearchResults.from_dict(
+            response)
+
+        return parsed_response
 
     def download_image(self, image_url: str, image_path_dir: str):
         """TODO"""

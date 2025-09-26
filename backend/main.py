@@ -13,7 +13,8 @@ from fastapi import Depends, FastAPI, BackgroundTasks, Request, Response
 from backend.utils.logger import getLogger
 from backend.db.ormModels.user import UserRow
 from backend.utils.auth import get_current_user
-from backend.responses.meResponse import MeReponse
+from backend.responses.meResponse import MeResponse
+from backend.responses.searchResponse import SearchResponse, SpotifyResults
 from backend.downloader.downloader import Downloader
 from backend.spotifyApiTypes.RawSpotifyApiSearchResults import RawSpotifyApiSearchResults
 
@@ -143,20 +144,6 @@ async def download_status_mockup(request: Request):
     return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 
-@fast_api_route('/search')
-def search(request: Request, q: str):
-
-    search_results = RawSpotifyApiSearchResults.from_dict(downloader.spotify.api_call(path="search", params={
-        "q": q, "type": "track,album,playlist,artist", "limit": "6"}))
-
-    return {
-        "songs": [a._json for a in search_results.tracks.items],
-        "albums": [a._json for a in search_results.albums.items],
-        "playlists": [a._json for a in search_results.playlists.items],
-        "artists": [a._json for a in search_results.artists.items],
-    }
-
-
 @fast_api_route(path='/set-max-download-threads/{max_download_threads}')
 def set_max_download_threads(request: Request, max_download_threads: str):
 
@@ -216,7 +203,16 @@ def remove_cache():
 
 @app.get("/me")
 def read_me(current_user: UserRow = Depends(get_current_user)):
-    return MeReponse(username=current_user.username, image=current_user.image, admin=current_user.admin)
+    return MeResponse(username=current_user.username, image=current_user.image, admin=current_user.admin)
+
+
+@app.get("/search")
+def search(query: str) -> SearchResponse:
+
+    spotify_search: RawSpotifyApiSearchResults = downloader.spotify.search(
+        q=query, limit=6)
+
+    return SearchResponse(spotifyResults=SpotifyResults.from_spotify_search(spotify_search=spotify_search))
 
 
 @app.on_event('startup')

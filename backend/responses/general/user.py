@@ -6,16 +6,5 @@ from backend.responses.general.album import RockItAlbumResponse
 from backend.responses.general.artist import RockItArtistResponse
 
 
-class RockItSongResponse(BaseModel):
-    publicId: str
-    name: str
-    artists: List[RockItArtistResponse]
-    album: RockItAlbumResponse
-    duration: int
-    trackNumber: int
-    discNumber: int
-    internalImageUrl: Optional[str]
-    downloadUrl: Optional[str]
-    popularity: Optional[int]
-    dateAdded: datetime
-    isrc: str
+class RockItUserResponse(BaseModel):
+    pass

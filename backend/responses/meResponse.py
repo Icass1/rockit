@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
 
-class MeReponse(BaseModel):
+class MeResponse(BaseModel):
     username: str | None
     image: str | None
     admin: bool

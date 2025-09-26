@@ -45,7 +45,7 @@ export default function SongPopupMenu({
 }) {
     const $likedSongs = useStore(likedSongs);
     const $currentListSongs = useStore(currentListSongs);
-    const $lang = useStore(langData);
+    const lang = useLanguage();
     const $networkStatus = useStore(networkStatus);
     const $playing = useStore(playing);
 
@@ -57,7 +57,7 @@ export default function SongPopupMenu({
 
     const dev = useDev();
 
-    if (!$lang) return false;
+    if (!lang) return false;
 
     return (
         <PopupMenu>
@@ -80,12 +80,12 @@ export default function SongPopupMenu({
                     {currentSong.get()?.id == song.id && $playing ? (
                         <>
                             <Pause fill="white" className="h-5 w-5" />
-                            {$lang.pause_song ?? "Pause song"}
+                            {lang.pause_song ?? "Pause song"}
                         </>
                     ) : (
                         <>
                             <PlayCircle className="h-5 w-5" />
-                            {$lang.play_song}
+                            {lang.play_song}
                         </>
                     )}
                 </PopupMenuOption>
@@ -157,8 +157,8 @@ export default function SongPopupMenu({
                         <path d="m7 15-1.76-1.76a2 2 0 0 0-2.83 2.82l3.6 3.6C7.5 21.14 9.2 22 12 22h2a8 8 0 0 0 8-8V7a2 2 0 1 0-4 0v5"></path>
                     </svg>
                     {$likedSongs.includes(song.id)
-                        ? $lang.remove_from_liked
-                        : $lang.add_to_liked}
+                        ? lang.remove_from_liked
+                        : lang.add_to_liked}
                 </PopupMenuOption>
                 <PopupMenuOption
                     disable={disable}
@@ -185,7 +185,7 @@ export default function SongPopupMenu({
                     }}
                 >
                     <ListStart className="h-5 w-5" />
-                    {$lang.play_next}
+                    {lang.play_next}
                 </PopupMenuOption>
 
                 <PopupMenuOption
@@ -209,12 +209,12 @@ export default function SongPopupMenu({
                     }}
                 >
                     <ListEnd className="h-5 w-5" />
-                    {$lang.add_to_queue}
+                    {lang.add_to_queue}
                 </PopupMenuOption>
                 {/* <SubContextMenu>
                     <SubContextMenuTrigger disable={offline || disable}>
                         <ListPlusIcon className="w-5 h-5" />
-                        {$lang.add_song_to_playlist}
+                        {lang.add_song_to_playlist}
                     </SubContextMenuTrigger>
                     <SubContextMenuContent>
                         {$userLists.map((list) => (
@@ -258,7 +258,7 @@ export default function SongPopupMenu({
                     }}
                 >
                     <Share2 className="h-5 w-5" />
-                    {$lang.share_song}
+                    {lang.share_song}
                 </PopupMenuOption>
                 <PopupMenuOption
                     onClick={() => {
@@ -268,7 +268,7 @@ export default function SongPopupMenu({
                     }}
                 >
                     <Copy className="h-5 w-5" />
-                    {$lang.copy_song_url}
+                    {lang.copy_song_url}
                 </PopupMenuOption>
                 {/* <ContextMenuSplitter /> */}
                 <PopupMenuOption
@@ -276,19 +276,19 @@ export default function SongPopupMenu({
                     disable={disable || true}
                 >
                     <ListX className="h-5 w-5" />
-                    {$lang.remove_from_queue}
+                    {lang.remove_from_queue}
                 </PopupMenuOption>
                 <PopupMenuOption
                     className="hover:bg-red-700"
                     disable={disable || true}
                 >
                     <ListX className="h-5 w-5" />
-                    {$lang.remove_from_playlist}
+                    {lang.remove_from_playlist}
                 </PopupMenuOption>
                 {/* <ContextMenuSplitter /> */}
                 <PopupMenuOption disable={disable || true}>
                     <Download className="h-5 w-5" />
-                    {$lang.download_mp3}
+                    {lang.download_mp3}
                 </PopupMenuOption>
                 <PopupMenuOption
                     disable={offline || disable}
@@ -297,7 +297,7 @@ export default function SongPopupMenu({
                     }}
                 >
                     <HardDriveDownload className="h-5 w-5" />
-                    {$lang.download_song_to_device}
+                    {lang.download_song_to_device}
                 </PopupMenuOption>
                 {disable && (
                     <PopupMenuOption
@@ -328,7 +328,7 @@ export default function SongPopupMenu({
                     }}
                 >
                     <Link className="h-5 w-5" />
-                    {$lang.go_to_artist}
+                    {lang.go_to_artist}
                 </PopupMenuOption>
                 <PopupMenuOption
                     onClick={() => {
@@ -336,7 +336,7 @@ export default function SongPopupMenu({
                     }}
                 >
                     <Link className="h-5 w-5" />
-                    {$lang.go_to_album}
+                    {lang.go_to_album}
                 </PopupMenuOption>
                 {dev && (
                     <PopupMenuOption

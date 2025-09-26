@@ -1,11 +1,6 @@
 "use client";
 
-import { downloadInfo } from "@/stores/downloads";
 import { useStore } from "@nanostores/react";
-import Image from "@/components/Image";
-import { SongDB } from "@/lib/db/song";
-import { getImageUrl } from "@/lib/getImageUrl";
-import { langData } from "@/stores/lang";
 import { useEffect, useState } from "react";
 
 function SongDownload({
@@ -100,8 +95,8 @@ function SongDownload({
 export default function SongsStatus() {
     const $downloadInfo = useStore(downloadInfo);
 
-    const $lang = useStore(langData);
-    if (!$lang) return false;
+    const lang = useLanguage();
+    if (!lang) return false;
 
     let someSelected = false;
 

@@ -1,10 +1,8 @@
 "use client";
 
-import { pause, play, playing, currentSong, currentTime } from "@/stores/audio";
 import { useStore } from "@nanostores/react";
 import { Play, Pause } from "lucide-react";
 import LikeButton from "@/components/LikeButton";
-import { isMobilePlayerUIVisible } from "@/stores/isPlayerUIVisible";
 import Slider from "@/components/Slider";
 
 export default function FooterMobile() {

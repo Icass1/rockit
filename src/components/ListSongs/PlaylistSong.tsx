@@ -1,23 +1,18 @@
 "use client";
 
-import { queue, queueIndex, songsInIndexedDB } from "@/stores/audio";
-import type { PlaylistDBSongWithAddedAt } from "@/db/playlist";
 import { getTime } from "@/lib/utils/getTime";
 import LikeButton from "@/components/LikeButton";
 import { EllipsisVertical, CheckCircle2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { currentList, currentListSongs } from "@/stores/currentList";
 import { useStore } from "@nanostores/react";
 import { songHandleClick } from "./HandleClick";
 import SongContextMenu from "@/components/ListSongs/SongContextMenu";
-import { getImageUrl } from "@/lib/getImageUrl";
 import { networkStatus } from "@/stores/networkStatus";
 import {
     PopupMenu,
     PopupMenuContent,
     PopupMenuTrigger,
 } from "@/components/PopupMenu/PopupMenu";
-import Image from "@/components/Image";
 import { useRouter } from "next/navigation";
 import "@/styles/Skeleton.css";
 

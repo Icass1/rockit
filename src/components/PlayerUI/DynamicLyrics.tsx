@@ -1,6 +1,5 @@
 "use client";
 
-import { currentSong, currentTime, setTime } from "@/stores/audio";
 import { useStore } from "@nanostores/react";
 import { useEffect, useState } from "react";
 

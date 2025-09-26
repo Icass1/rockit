@@ -1,7 +1,6 @@
 "use client";
 
 // import { Downloads } from "@/components/MusicDownloader";
-import { pinnedLists } from "@/stores/pinnedLists";
 import { useStore } from "@nanostores/react";
 import {
     Home,
@@ -16,19 +15,16 @@ import {
     Download,
 } from "lucide-react";
 import { useState, useRef } from "react";
-import { langData } from "@/stores/lang";
-import { getImageUrl } from "@/lib/getImageUrl";
-import Image from "@/components/Image";
-import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { downloads } from "@/stores/downloads";
+import { useLanguage } from "@/contexts/LanguageContext";
+import Image from "next/image";
+import { rockitIt } from "@/lib/rockit";
 
 export default function Navigation() {
     const [open, setOpen] = useState(false);
-    const hoverTimeout = useRef<NodeJS.Timeout | null>(null); // Referencia para el temporizador
+    const hoverTimeout = useRef<NodeJS.Timeout | null>(null);
 
-    // Temporizador para abrir el menú
     const handleMouseEnter = () => {
         hoverTimeout.current = setTimeout(() => {
             setOpen(true);
@@ -37,70 +33,70 @@ export default function Navigation() {
 
     const handleMouseLeave = () => {
         if (hoverTimeout.current) {
-            clearTimeout(hoverTimeout.current); // Limpia el temporizador si el mouse sale antes de tiempo
+            clearTimeout(hoverTimeout.current);
             hoverTimeout.current = null;
         }
         setOpen(false);
     };
 
-    const $downloads = useStore(downloads);
+    const $downloads = [];
 
-    const $pinnedLists = useStore(pinnedLists);
+    const $pinnedLists = [];
 
-    const session = useSession();
-
-    const $lang = useStore(langData);
+    const lang = useLanguage();
 
     const activePage = usePathname();
 
-    if (!$lang) return false;
+    const user = useStore(rockitIt.userManager.userAtom);
+
+    if (!lang) return false;
 
     const pages = [
         {
             name: "Home",
-            title: $lang.home,
+            title: lang.home,
             href: "/",
             icon: Home,
         },
         {
             name: "Library",
-            title: $lang.library,
+            title: lang.library,
             href: "/library",
             icon: Library,
         },
         {
             name: "Search",
-            title: $lang.search,
+            title: lang.search,
             href: "/search",
             icon: Search,
             disabled: false,
         },
         {
             name: "Friends",
-            title: $lang.friends,
+            title: lang.friends,
             href: "/friends",
             icon: Users,
             disabled: true,
         },
         {
             name: "Radio",
-            title: $lang.radio,
+            title: lang.radio,
             href: "/radio",
             icon: RadioTower,
         },
         {
             name: "Stats",
-            title: $lang.stats,
+            title: lang.stats,
             href: "/stats",
             icon: ChartLine,
         },
         {
             name: "Downloads",
-            title: $lang.downloads,
+            title: lang.downloads,
             href: "/downloader",
             icon: Download,
         },
-        session.data?.user.admin
+        user?.admin
             ? {
                   name: "Admin",
                   title: "Admin",
@@ -178,7 +174,7 @@ export default function Navigation() {
                         <Pin className="h-5 w-5" />
                     </div>
                     <label className="text-md cursor-pointer font-semibold">
-                        {$lang.pinned_lists}
+                        {lang.pinned_lists}
                     </label>
                 </div>
                 <div className="flex h-full flex-col gap-4 overflow-y-scroll">
@@ -208,24 +204,7 @@ export default function Navigation() {
                             </Link>
                         );
                     })}
-                    {/* Mockup de Pinned Artist */}
-                    {/* <Link
-                        href={`/artist/0`}
-                        title={"Artist Mockup"}
-                        className={`h-8 rounded-full items-center ml-2 mr-2 transition-all flex gap-3 md:hover:bg-[#414141] cursor-pointer`}
-                    >
-                        <Image
-
-                            className="w-8 h-8 flex items-center justify-center rounded-full"
-                            src={"/user-placeholder.png"}
-                        />
-                        <label className="font-semibold text-sm truncate cursor-pointer">
-                            Artist Mockup
-                        </label>
-                    </Link> */}
                 </div>
-
-                {/* <Downloads navOpen={open} /> */}
             </div>
         </div>
     );

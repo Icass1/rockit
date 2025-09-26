@@ -1,14 +1,14 @@
 import { songHandleClick } from "@/components/ListSongs/HandleClick";
 import { redirect } from "next/navigation";
-import { RockItSongType } from "@/types/rockIt";
+import { RockItSong } from "@/types/rockIt";
 import Image from "next/image";
 
 export default function RecentlyPlayedSong({
     song,
     songs,
 }: {
-    song: RockItSongType;
-    songs: RockItSongType[];
+    song: RockItSong;
+    songs: RockItSong[];
 }) {
     const handleClick = () => {
         currentList.set({ type: "recently-played", id: "recently-played" });

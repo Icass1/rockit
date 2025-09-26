@@ -1,13 +1,9 @@
 "use client";
 
-import { DownloadDB } from "@/lib/db/download";
 import { MouseEvent, useEffect, useState } from "react";
-import Image from "../Image";
-import { getImageUrl } from "@/lib/getImageUrl";
 import useDev from "@/hooks/useDev";
 import { EyeIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { downloadInfo } from "@/stores/downloads";
 import Link from "next/link";
 
 export default function DownloadElement({

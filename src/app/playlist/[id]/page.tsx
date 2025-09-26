@@ -1,17 +1,6 @@
-import Image from "@/components/Image";
 import PlaylistHeader from "@/components/Playlist/PlaylistHeader";
 import PlaylistSongsView from "@/components/Playlist/PlaylistSongsView";
 import { getSession } from "@/lib/utils/auth/getSession";
-import { db } from "@/lib/db/db";
-import {
-    parsePlaylist,
-    PlaylistDBSong,
-    PlaylistDBSongWithAddedAt,
-    RawPlaylistDB,
-} from "@/lib/db/playlist";
-import { parseSong, RawSongDB, SongDB } from "@/lib/db/song";
-import { parseUser, RawUserDB, UserDB } from "@/lib/db/user";
-import { getImageUrl } from "@/lib/getImageUrl";
 import { getStats } from "@/lib/utils/stats";
 import { SpotifyPlaylistImage } from "@/types/spotify";
 import { NextResponse } from "next/server";

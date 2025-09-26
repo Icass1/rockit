@@ -1,6 +1,3 @@
-import { serviceWorkerRegistration } from "@/stores/audio";
-import { langData } from "@/stores/lang";
-import { useStore } from "@nanostores/react";
 import { useState } from "react";
 
 export default function ServiceWorkerInfo() {
@@ -70,8 +67,8 @@ export default function ServiceWorkerInfo() {
         setStatus("Registering.");
     };
 
-    const $lang = useStore(langData);
-    if (!$lang) return false;
+    const lang = useLanguage();
+    if (!lang) return false;
 
     return (
         <div className="flex flex-col gap-y-1">
@@ -82,13 +79,13 @@ export default function ServiceWorkerInfo() {
                 onClick={handleGetInfo}
                 className="flex w-28 items-center justify-center gap-2 rounded-lg bg-[#1e1e1e] py-2 text-white shadow-md transition duration-300 active:bg-green-700 md:w-32 md:hover:bg-green-700"
             >
-                {$lang.get_info}
+                {lang.get_info}
             </button>
             <button
                 onClick={handleUpdate}
                 className="flex w-28 items-center justify-center gap-2 rounded-lg bg-[#1e1e1e] py-2 text-white shadow-md transition duration-300 active:bg-green-700 md:w-32 md:hover:bg-green-700"
             >
-                {$lang.update}
+                {lang.update}
             </button>
             <button
                 onClick={handleRegister}

@@ -1,13 +1,8 @@
 "use client";
 
-import { getImageUrl } from "@/lib/getImageUrl";
 import Link from "next/link";
-import Image from "@/components/Image";
 import { useEffect, useMemo } from "react";
-import { PlaylistDB } from "@/lib/db/playlist";
-import { AlbumDB } from "@/lib/db/album";
 import { useStore } from "@nanostores/react";
-import { langData } from "@/stores/lang";
 import NewPlaylistButton from "@/components/Library/NewPlaylistButton";
 import useWindowSize from "@/hooks/useWindowSize";
 import useFetch from "@/hooks/useFetch";
@@ -25,25 +20,15 @@ import {
     PlayCircle,
     Shuffle,
 } from "lucide-react";
-import { libraryLists } from "@/stores/libraryLists";
 import { playListHandleClick } from "../PlayList";
-import { currentListSongs } from "@/stores/currentList";
-import { SongDB } from "@/lib/db/song";
-import {
-    database,
-    queue,
-    queueIndex,
-    saveSongToIndexedDB,
-} from "@/stores/audio";
+
 import { downloadFile, downloadRsc } from "@/lib/utils/downloadResources";
 import ContextMenuSplitter from "../ContextMenu/Splitter";
-import { pinnedLists } from "@/stores/pinnedLists";
 import { downloadListZip, pinListHandleClick } from "../ListHeader/ListOptions";
 import PlayLibraryButton from "./PlayLibraryButton";
+import { RockItAlbum, RockItPlaylist } from "@/types/rockIt";
 
-async function getListSongs(
-    list: PlaylistDB<"type" | "songs"> | AlbumDB<"type" | "songs">
-) {
+async function getListSongs(list: RockItPlaylist | RockItAlbum) {
     if (list.type == "playlist") {
         const response = await fetch(
             `/api/songs1?songs=${list.songs
@@ -332,7 +317,7 @@ export function LibraryLists({
     searchQuery: string;
 }) {
     const { width } = useWindowSize();
-    const $lang = useStore(langData);
+    const lang = useLanguage();
 
     const [data, updateLists] = useFetch<{
         playlists: PlaylistDB[];
@@ -386,13 +371,13 @@ export function LibraryLists({
         return result;
     }, [albums, filterMode, searchQuery]);
 
-    if (!width || !$lang || !filteredPlaylists || !filteredAlbums) return null;
+    if (!width || !lang || !filteredPlaylists || !filteredAlbums) return null;
 
     return (
         <section>
             <div className="flex flex-row items-center justify-between px-5 py-4 md:px-0">
                 <h2 className="text-2xl font-bold">
-                    {$lang.your_albums_playlists}
+                    {lang.your_albums_playlists}
                 </h2>
                 <PlayLibraryButton />
             </div>

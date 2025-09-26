@@ -1,27 +1,23 @@
 "use client";
 
 import { GetAlbum } from "@/lib/utils/getAlbum";
-import Image from "@/components/Image";
 import PlayListButton from "@/components/ListHeader/PlayListButton";
 import ListOptions from "@/components/ListHeader/ListOptions";
 import { useRouter } from "next/navigation";
 import { getMinutes, getYear } from "@/lib/utils/getTime";
 import { Disc } from "lucide-react";
-import { useStore } from "@nanostores/react";
-import { langData } from "@/stores/lang";
 import AlbumSong from "@/components/ListSongs/AlbumSong";
-import { currentList, currentListSongs } from "@/stores/currentList";
 
 export default function RenderAlbum({ _album }: { _album: GetAlbum }) {
     const { album, discs, songs } = _album;
 
     const router = useRouter();
-    const $lang = useStore(langData);
+    const lang = useLanguage();
 
     currentListSongs.set(songs);
     currentList.set({ id: album.id, type: "album" });
 
-    if (!$lang) return false;
+    if (!lang) return false;
 
     const inDatabase = typeof songs.find((song) => !song.path) == "undefined";
 
@@ -107,7 +103,7 @@ export default function RenderAlbum({ _album }: { _album: GetAlbum }) {
                         <div key={discIndex}>
                             <label className="mb-2 flex flex-row items-center gap-2 text-lg font-semibold text-neutral-400">
                                 <Disc className="h-6 w-6" />
-                                {$lang.disc} {discIndex + 1}
+                                {lang.disc} {discIndex + 1}
                             </label>
 
                             {discSongs.map((song, songIndex) => {

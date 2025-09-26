@@ -1,7 +1,6 @@
 "use client";
 
-import { useStore } from "@nanostores/react";
-import { langData } from "@/stores/lang";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { ArrowDownAZ, ArrowUpAZ, ClockArrowDown } from "lucide-react";
 
 export function LibraryFilters({
@@ -15,8 +14,8 @@ export function LibraryFilters({
     searchQuery: string;
     setSearchQuery: (q: string) => void;
 }) {
-    const $lang = useStore(langData);
-    if (!$lang) return false;
+    const lang = useLanguage();
+    if (!lang) return false;
 
     return (
         <div className="flex w-full items-center gap-4 md:w-fit">
@@ -53,7 +52,7 @@ export function LibraryFilters({
                     backgroundRepeat: "no-repeat",
                 }}
                 type="search"
-                placeholder={$lang.search_library}
+                placeholder={lang.search_library}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
             />

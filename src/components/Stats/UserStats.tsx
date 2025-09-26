@@ -3,9 +3,6 @@
 import { getDate, getDateYYYYMMDD, getMinutes } from "@/lib/utils/getTime";
 import BarGraph from "./BarGraph";
 import { useEffect, useRef, useState } from "react";
-import { langData } from "@/stores/lang";
-import { useStore } from "@nanostores/react";
-import { UserStats as UserStatsType } from "@/app/api/stats/user/route";
 import pkg from "lodash";
 import VerticalBarGraph from "./VerticalBarGraph";
 import Masonry from "@/components/Masonry/Masonry";
@@ -93,13 +90,13 @@ export default function UserStats() {
         return yearNumber + "-" + monthString + "-" + dayString;
     };
 
-    const $lang = useStore(langData);
-    if (!$lang) return false;
+    const lang = useLanguage();
+    if (!lang) return false;
 
     return (
         <div className="h-full">
             <div className="flex flex-col items-center justify-center text-lg font-semibold md:flex-row md:gap-1 md:px-5">
-                <span className="block md:inline">{$lang.showing_data}</span>
+                <span className="block md:inline">{lang.showing_data}</span>
                 <div className="flex flex-row gap-1">
                     <div
                         className="cursor-pointer underline md:hover:underline"
@@ -140,7 +137,7 @@ export default function UserStats() {
                         />
                         {getDate(startDate)}
                     </div>
-                    <label>{$lang.to}</label>
+                    <label>{lang.to}</label>
                     <div
                         className="cursor-pointer underline md:hover:underline"
                         onClick={() => {
@@ -204,18 +201,18 @@ export default function UserStats() {
                         <div className="flex h-fit flex-col rounded-lg bg-neutral-800 p-2 font-semibold">
                             <label>
                                 {data.totalTimesPlayedSong}{" "}
-                                {$lang.songs_listened}
+                                {lang.songs_listened}
                             </label>
                             <label>
                                 {getMinutes(data.totalSecondsListened)}{" "}
-                                {$lang.minutes_listend}
+                                {lang.minutes_listend}
                             </label>
                             <label className="w-full max-w-full min-w-0 truncate">
                                 {Math.round(
                                     (data.totalSecondsListened * 1000) /
                                         (data.totalTimesPlayedSong * 60)
                                 ) / 1000}{" "}
-                                {$lang.average_minutes_per_song}
+                                {lang.average_minutes_per_song}
                             </label>
                         </div>
                         <VerticalBarGraph
@@ -224,7 +221,7 @@ export default function UserStats() {
                         />
 
                         <BarGraph
-                            name={$lang.most_listened_albums}
+                            name={lang.most_listened_albums}
                             type="value"
                             items={data.albums.map((album) => {
                                 return {
@@ -238,7 +235,7 @@ export default function UserStats() {
                             })}
                         />
                         <BarGraph
-                            name={$lang.most_listened_artists}
+                            name={lang.most_listened_artists}
                             items={data.artists.map((artist) => {
                                 return {
                                     index: artist.index,
@@ -250,7 +247,7 @@ export default function UserStats() {
                             })}
                         />
                         <BarGraph
-                            name={$lang.most_listened_songs}
+                            name={lang.most_listened_songs}
                             type="value"
                             items={data.songs.map((song) => {
                                 return {

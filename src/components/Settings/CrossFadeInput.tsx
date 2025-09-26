@@ -1,4 +1,3 @@
-import { crossFade } from "@/stores/audio";
 import { useStore } from "@nanostores/react";
 
 export default function CrossFadeInput() {

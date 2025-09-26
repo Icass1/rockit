@@ -1,16 +1,3 @@
-import { SongDB } from "@/lib/db/song";
-import {
-    currentSong,
-    pause,
-    play,
-    playing,
-    playWhenReady,
-    queue,
-    queueIndex,
-    randomQueue,
-    songsInIndexedDB,
-} from "@/stores/audio";
-import { libraryLists } from "@/stores/libraryLists";
 import { useStore } from "@nanostores/react";
 
 import { Pause, Play } from "lucide-react";

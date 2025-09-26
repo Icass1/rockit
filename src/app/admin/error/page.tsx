@@ -1,7 +1,4 @@
 import { getSession } from "@/lib/utils/auth/getSession";
-import { db } from "@/lib/db/db";
-import { ErrorDB } from "@/lib/db/error";
-import { RawUserDB } from "@/lib/db/user";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";

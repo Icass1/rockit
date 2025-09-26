@@ -1,7 +1,9 @@
-import { Lang } from "@/types/lang";
-import { RockItSearchResults, RockItSongType } from "@/types/rockIt";
+import { RockItSong, RockItUser } from "@/types/rockIt";
 import { Station } from "@/types/station";
 import { atom } from "nanostores";
+import { getSession, signOut } from "next-auth/react";
+import apiFetch from "./utils/apiFetch";
+import { SearchResultsResponse } from "@/responses/searchResponse";
 
 class AudioManager {
     private _audio?: HTMLAudioElement;
@@ -130,45 +132,6 @@ class AudioManager {
     // #endregion: Getters
 }
 
-class LanguageManager {
-    // #region: Atoms
-
-    private _langAtom = atom<string | undefined>();
-    private _langDataAtom = atom<Lang | undefined>();
-
-    // #endregion: Atoms
-
-    // #region: Constructor
-
-    constructor() {
-        if (typeof window === "undefined") return;
-
-        this.init();
-        console.log("LanguageManager initialized");
-    }
-
-    private async init() {
-        const response = await fetch("/api/lang?lang=en");
-        const data = await response.json();
-        this._langDataAtom.set(data.langFile);
-        this._langAtom.set(data.lang);
-    }
-
-    // #endregion: Constructor
-
-    // #region: Getters
-
-    get langDataAtom() {
-        return this._langDataAtom;
-    }
-
-    get langAtom() {
-        return this._langAtom;
-    }
-
-    // #endregion: Getters
-}
-
 class SongManager {
     // #region: Atoms
 
@@ -225,10 +188,10 @@ class NotificationManager {
 class QueueManager {
     // #region: Atoms
 
-    private _currentSongAtom = atom<RockItSongType | undefined>();
+    private _currentSongAtom = atom<RockItSong | undefined>();
     private _currentListAtom = atom<{ type: string; id: string } | undefined>();
 
-    private _queueAtom = atom<RockItSongType[]>([]);
+    private _queueAtom = atom<RockItSong[]>([]);
     private _queueIndexAtom = atom<number>(0);
 
     // #endregion: Atoms
@@ -273,11 +236,39 @@ class UserManager {
     private _randomQueueAtom = atom<boolean>(false);
     private _repeatSongAtom = atom<"all" | "one" | "off">("off");
 
-    // #endregion: Atoms
+    private _userAtom = atom<RockItUser | undefined>();
+
+    // #endregion
+
+    // #region: Constructor
 
     constructor() {
+        if (typeof window === "undefined") return;
+        this.init();
         console.log("UserManager initialized");
     }
+
+    private async init() {
+        const session = await getSession();
+        if (!session) {
+            console.warn("No session found in UserManager");
+        }
+
+        const response = await apiFetch("/me");
+        if (!response?.ok) {
+            console.warn("No response from /me");
+            signOut();
+            window.location.href = "/login";
+            return;
+        }
+
+        const responseJson = await response.json();
+        const user = RockItUser.parse(responseJson);
+
+        this._userAtom.set(user);
+    }
+
+    // #endregion
 
     toggleRandomQueue() {
         this._randomQueueAtom.set(!this._randomQueueAtom.get());
@@ -301,6 +292,12 @@ class UserManager {
     get repeatSongAtom() {
         return this._repeatSongAtom;
     }
+
+    get userAtom() {
+        return this._userAtom;
+    }
+
+    // #endregion
 }
 
 class StationManager {
@@ -308,7 +305,7 @@ class StationManager {
 
     private _currentStationAtom = atom<Station | undefined>();
 
-    // #endregion: Atoms
+    // #endregion
 
     // #region: Constructor
 
@@ -366,7 +363,7 @@ class SearchManager {
 
     private _searchQueryAtom = atom<string>("");
     private _searchingAtom = atom<boolean>(false);
-    private _searchResultsAtom = atom<RockItSearchResults | undefined>();
+    private _searchResultsAtom = atom<SearchResultsResponse | undefined>();
 
     // #endregion: Atoms
 
@@ -379,7 +376,25 @@ class SearchManager {
 
         this._searchQueryAtom.set(query);
         this._searchingAtom.set(true);
-        throw new Error("Method not implemented.");
+
+        apiFetch("/search?query=" + encodeURIComponent(query)).then((data) => {
+            if (!data?.ok) {
+                console.warn("No response from /search");
+                this._searchingAtom.set(false);
+                return;
+            }
+
+            data.json().then((json) => {
+                try {
+                    const results = SearchResultsResponse.parse(json);
+                    this._searchResultsAtom.set(results);
+                } catch (e) {
+                    console.error("Error parsing search results", e, json);
+                } finally {
+                    this._searchingAtom.set(false);
+                }
+            });
+        });
     }
 
     // #region: Getters
@@ -388,12 +403,29 @@ class SearchManager {
         return this._searchQueryAtom;
     }
 
+    get searchResultsAtom() {
+        return this._searchResultsAtom;
+    }
+
+    get searchingAtom() {
+        return this._searchingAtom;
+    }
+
     // #endregion: Getters
 }
 
 export class RockIt {
+    // #region: Constants
+
+    public VERSION = "0.1.0";
+
+    public BACKEND_URL = "http://localhost:8000";
+
+    // #endregion: Constants
+
+    // #region: Managers
+
     audioManager: AudioManager = new AudioManager();
-    languageManager: LanguageManager = new LanguageManager();
     songManager: SongManager = new SongManager();
     playlistManager: PlaylistManager = new PlaylistManager();
     albumManager: AlbumManager = new AlbumManager();
@@ -406,6 +438,9 @@ export class RockIt {
     stationManager: StationManager = new StationManager();
     playerUIManager: PlayerUIManager = new PlayerUIManager();
     searchManager: SearchManager = new SearchManager();
+
+    // #endregion: Managers
+
     constructor() {
         console.log("RockIt initialized");
     }

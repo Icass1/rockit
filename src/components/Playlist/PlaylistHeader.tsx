@@ -1,14 +1,8 @@
 "use client";
 
 import ListOptions from "@/components/ListHeader/ListOptions";
-import type { PlaylistDB, PlaylistDBSong } from "@/lib/db/playlist";
-import type { SongDB } from "@/lib/db/song";
-import { getImageUrl } from "@/lib/getImageUrl";
-import { langData } from "@/stores/lang";
-import { useStore } from "@nanostores/react";
 import { Disc3, Heart, History } from "lucide-react";
 import PlayListButton from "@/components/ListHeader/PlayListButton";
-import Image from "@/components/Image";
 import { CSSProperties } from "react";
 import { getMinutes } from "@/lib/utils/getTime";
 
@@ -49,8 +43,8 @@ export default function PlaylistHeader({
               owner: string;
           };
 }) {
-    const $lang = useStore(langData);
-    if (!$lang) return false;
+    const lang = useLanguage();
+    if (!lang) return false;
 
     let coverIcon;
 
@@ -142,13 +136,13 @@ export default function PlaylistHeader({
 
             {/* Información adicional */}
             <label className="text-center text-sm text-stone-400">
-                {playlist.songs.length} {$lang.songs} |{" "}
+                {playlist.songs.length} {lang.songs} |{" "}
                 {getMinutes(
                     songs.reduce((accumulator: number, song) => {
                         return accumulator + (song?.duration || 0);
                     }, 0)
                 )}{" "}
-                {$lang.minutes}
+                {lang.minutes}
             </label>
         </div>
     );

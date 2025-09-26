@@ -1,22 +1,10 @@
 "use client";
 
-import type { SongDB } from "@/lib/db/song";
-import { getImageUrl } from "@/lib/getImageUrl";
 import { getTime } from "@/lib/utils/getTime";
-import {
-    currentSong,
-    pause,
-    play,
-    playing,
-    playWhenReady,
-    queue,
-    queueIndex,
-    type QueueElement,
-} from "@/stores/audio";
+
 import { useStore } from "@nanostores/react";
 import { Pause, Play } from "lucide-react";
 import React from "react";
-import Image from "@/components/Image";
 
 export function QueueSong({ song }: { song: QueueElement }) {
     const $queueIndex = useStore(queueIndex);

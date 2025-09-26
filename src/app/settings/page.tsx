@@ -1,13 +1,10 @@
 "use client";
 
-import Image from "@/components/Image";
 import ChangeLang from "@/components/Settings/ChangeLang";
 import CrossFadeInput from "@/components/Settings/CrossFadeInput";
 import DownloadAppButton from "@/components/Settings/DownloadAppButton";
 import LogOutButton from "@/components/Settings/LogOutButton";
 import ServiceWorkerInfo from "@/components/Settings/ServiceWorkerInfo";
-import { langData } from "@/stores/lang";
-import { useStore } from "@nanostores/react";
 import { ChartLine, ImageUp } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -22,7 +19,7 @@ function DisplayName() {
             </h2>
         );
     if (session.status == "unauthenticated") {
-        console.warn("DisplayName -> /login")
+        console.warn("DisplayName -> /login");
         location.href = "/login";
     }
 
@@ -39,7 +36,7 @@ function Username() {
     if (session.status == "loading")
         return <p className="text-base text-gray-500 md:text-lg">Loading</p>;
     if (session.status == "unauthenticated") {
-        console.warn("Username -> /login")
+        console.warn("Username -> /login");
         location.href = "/login";
     }
 
@@ -57,7 +54,7 @@ function ChangeUsername() {
         return <p className="text-base text-gray-500 md:text-lg">Loading</p>;
 
     if (session.status == "unauthenticated") {
-        console.warn("ChangeUsername -> /login")
+        console.warn("ChangeUsername -> /login");
         location.href = "/login";
     }
 
@@ -74,9 +71,9 @@ function ChangeUsername() {
 }
 
 export default function Settings() {
-    const $lang = useStore(langData);
+    const lang = useLanguage();
 
-    if (!$lang) return false;
+    if (!lang) return false;
 
     return (
         <div className="relative flex h-full flex-col overflow-y-auto pt-24 md:h-[calc(100%_-_6rem)] md:overflow-y-hidden">
@@ -119,12 +116,12 @@ export default function Settings() {
                 {/* Columna derecha */}
                 <div className="flex h-full w-full flex-col gap-y-4 md:w-2/3 md:gap-y-6 md:overflow-y-auto md:pr-[30%] md:pl-1">
                     <h2 className="top-0 z-10 bg-gradient-to-b from-[rgb(11,11,11)] to-transparent py-2 text-center text-xl font-bold text-white md:sticky md:text-2xl">
-                        {$lang.user_settings}
+                        {lang.user_settings}
                     </h2>
                     {/* Cambiar nombre de usuario */}
                     <div>
                         <label className="mb-2 block text-sm text-gray-300 md:text-lg">
-                            {$lang.display_name}
+                            {lang.display_name}
                         </label>
                         <ChangeUsername />
                     </div>
@@ -136,23 +133,23 @@ export default function Settings() {
                     <form>
                         <div>
                             <label className="mb-2 block text-sm text-gray-300 md:text-lg">
-                                {$lang.change_password}
+                                {lang.change_password}
                             </label>
                             <input
                                 type="password"
                                 autoComplete="new-password"
-                                placeholder={$lang.new_password}
+                                placeholder={lang.new_password}
                                 className="w-full rounded-lg border border-[#333] bg-[#1e1e1e] p-3 text-white focus:ring-2 focus:ring-[#ec5588] focus:outline-none"
                             />
                         </div>
                         <div>
                             <label className="mb-2 block text-sm text-gray-300 md:text-lg">
-                                {$lang.repeat_password}
+                                {lang.repeat_password}
                             </label>
                             <input
                                 type="password"
                                 autoComplete="new-password"
-                                placeholder={$lang.repeat_password}
+                                placeholder={lang.repeat_password}
                                 className="w-full rounded-lg border border-[#333] bg-[#1e1e1e] p-3 text-white focus:ring-2 focus:ring-[#ec5588] focus:outline-none"
                             />
                         </div>

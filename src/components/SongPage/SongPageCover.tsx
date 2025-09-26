@@ -1,21 +1,10 @@
 "use client";
 
-import type { SongDB } from "@/db/song";
 import type { GetAlbum } from "@/lib/utils/getAlbum";
-import {
-    currentSong,
-    pause,
-    play,
-    playing,
-    playWhenReady,
-    queue,
-    queueIndex,
-} from "@/stores/audio";
-import { downloads } from "@/stores/downloads";
+
 import { useStore } from "@nanostores/react";
 import { Download, Pause, Play } from "lucide-react";
 import { useEffect, useState } from "react";
-import Image from "../Image";
 
 export default function SongPageCover({
     song,

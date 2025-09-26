@@ -6,8 +6,8 @@ import * as z from "zod";
 
 export const RockItExternalImage = z.object({
     url: z.string(),
-    width: z.string().nullable(),
-    height: z.string().nullable(),
+    width: z.number().nullable(),
+    height: z.number().nullable(),
 });
 
 export const DynamicLyrics = z.object({
@@ -19,6 +19,7 @@ export const RockItArtist = z.object({
     publicId: z.string(),
     name: z.string(),
     genres: z.array(z.string()),
+    externalImages: z.array(RockItExternalImage),
 });
 
 export const RockItCopyright = z.object({
@@ -31,7 +32,18 @@ export const RockItAlbum = z.object({
     name: z.string(),
     copyrights: z.array(RockItCopyright),
     externalImages: z.array(RockItExternalImage),
+    artists: z.array(RockItArtist),
 });
+
+export type RockItAlbum = z.infer<typeof RockItAlbum>;
+
+export const RockItPlaylist = z.object({
+    publicId: z.string(),
+    name: z.string(),
+    externalImages: z.array(RockItExternalImage),
+});
+
+export type RockItPlaylist = z.infer<typeof RockItPlaylist>;
 
 export const RockItSong = z.object({
     publicId: z.string(),
@@ -48,25 +60,12 @@ export const RockItSong = z.object({
     isrc: z.string(),
 });
 
-export type RockItSongType = z.infer<typeof RockItSong>;
+export type RockItSong = z.infer<typeof RockItSong>;
 
-export const RockItUser = z.object({});
-
-export const RockItSpotifySearchResults = z.object({
-    songs: z.array(RockItSong),
-    albums: z.array(RockItAlbum),
-    artists: z.array(RockItArtist),
+export const RockItUser = z.object({
+    username: z.string(),
+    image: z.string().nullable(),
+    admin: z.boolean(),
 });
 
-export const RockItYoutubeSearchResults = z.object({
-    songs: z.array(RockItSong),
-    albums: z.array(RockItAlbum),
-    artists: z.array(RockItArtist),
-});
-
-export const RockItSearchResults = z.object({
-    spotifyResults: RockItYoutubeSearchResults,
-    youtubeResults: RockItYoutubeSearchResults,
-});
-
-export type RockItSearchResults = z.infer<typeof RockItSearchResults>;
+export type RockItUser = z.infer<typeof RockItUser>;

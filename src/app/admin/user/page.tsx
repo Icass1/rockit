@@ -1,7 +1,4 @@
-import Image from "@/components/Image";
 import { getSession } from "@/lib/utils/auth/getSession";
-import { db } from "@/lib/db/db";
-import { UserDB } from "@/lib/db/user";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";

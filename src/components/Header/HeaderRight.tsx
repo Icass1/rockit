@@ -5,12 +5,13 @@ import { Bell } from "lucide-react";
 import HeaderUser from "./HeaderUser";
 import NotificationMenu from "./HeaderNotificationMenu";
 import OnlineUserIndicator from "./HeaderOnlineUsers";
-import { useSession } from "next-auth/react";
+import { useStore } from "@nanostores/react";
+import { rockitIt } from "@/lib/rockit";
 
 export default function HeaderRight() {
     const [showMenu, setShowMenu] = useState(false);
     const bellRef = useRef<HTMLDivElement>(null);
-    const session = useSession();
+    const $user = useStore(rockitIt.userManager.userAtom);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -48,7 +49,7 @@ export default function HeaderRight() {
                 {showMenu && <NotificationMenu />}
             </div>
 
-            {typeof session?.data?.user != "undefined" ? (
+            {$user ? (
                 <HeaderUser />
             ) : (
                 <a className="rounded bg-green-600 p-1 px-4" href="/login">

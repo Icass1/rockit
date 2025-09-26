@@ -1,13 +1,4 @@
 import { PlayCircle } from "lucide-react";
-import {
-    currentSong,
-    playWhenReady,
-    queue,
-    queueIndex,
-    randomQueue,
-    songsInIndexedDB,
-} from "@/stores/audio";
-import { currentListSongs } from "@/stores/currentList";
 
 export function playListHandleClick({
     type,

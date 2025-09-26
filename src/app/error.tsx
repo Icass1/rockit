@@ -28,11 +28,15 @@ export default function Error500Page() {
                     <div className="relative flex aspect-square w-1/2 items-center justify-center md:w-2/3">
                         <div className="absolute h-[92%] w-[92%] rounded-full bg-white" />
                         <Image
+                            width={1080}
+                            height={1080}
                             src="/vinil-cd.png"
                             alt="Vinyl Record"
                             className="animate-spin-decelerate absolute h-[90%] w-[90%] rounded-full object-cover"
                         />
                         <Image
+                            width={500}
+                            height={500}
                             src="/brazovinilo.png"
                             alt="Vinyl Arm"
                             className="absolute top-0 right-0 z-20 h-[70%] w-[70%] translate-x-10 -translate-y-2 rotate-[-20deg]"

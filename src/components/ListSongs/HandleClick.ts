@@ -1,8 +1,8 @@
-import { RockItSongType } from "@/types/rockIt";
+import { RockItSong } from "@/types/rockIt";
 
 export function songHandleClick(
-    song: RockItSongType,
-    currentListSongs: RockItSongType[]
+    song: RockItSong,
+    currentListSongs: RockItSong[]
 ) {
     const _currentList = currentList.get();
     if (!song.path) {

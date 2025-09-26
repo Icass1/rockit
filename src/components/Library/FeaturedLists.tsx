@@ -1,14 +1,11 @@
 "use client";
 
-import { getImageUrl } from "@/lib/getImageUrl";
 import { Stats } from "@/lib/utils/stats";
-import { lang, langData } from "@/stores/lang";
-import { useStore } from "@nanostores/react";
 import { Disc3, Heart, History } from "lucide-react";
 import Link from "next/link";
-import Image from "@/components/Image";
 import useFetch from "@/hooks/useFetch";
 import { useRef } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function FeaturedLists({
     filterMode,
@@ -21,13 +18,13 @@ export function FeaturedLists({
         new Date(new Date().getTime() - 30 * 24 * 60 * 60 * 1000)
     );
 
-    const $lang = useStore(langData);
+    const lang = useLanguage;
     const [data] = useFetch<Stats["albums"]>(
         `/api/stats?type=albums&sortBy=timesPlayed&limit=4&start=${lastMonthDate.current}`,
         { redis: true }
     );
 
-    if (!$lang || !data) return false;
+    if (!lang || !data) return false;
 
     // Filtrar por búsqueda (por nombre de álbum o artista)
     let filtered = data.filter((album) => {
@@ -70,7 +67,7 @@ export function FeaturedLists({
     return (
         <section className="pt-5 text-white md:py-12">
             <h2 className="px-5 text-2xl font-bold md:px-0">
-                {$lang.featured_lists}
+                {lang.featured_lists}
             </h2>
             <div
                 className="relative flex items-center gap-5 overflow-y-auto py-4 md:overflow-x-auto md:px-2"
@@ -94,10 +91,10 @@ export function FeaturedLists({
                         />
                     </div>
                     <label className="mt-2 block truncate text-center font-semibold">
-                        {$lang.liked_songs}
+                        {lang.liked_songs}
                     </label>
                     <label className="block truncate text-center text-sm text-gray-400">
-                        {$lang.by} Rock It!
+                        {lang.by} Rock It!
                     </label>
                 </Link>
 
@@ -116,10 +113,10 @@ export function FeaturedLists({
                         <Disc3 className="absolute top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2" />
                     </div>
                     <label className="mt-2 block truncate text-center font-semibold">
-                        {$lang.most_listened}
+                        {lang.most_listened}
                     </label>
                     <label className="block truncate text-center text-sm text-gray-400">
-                        {$lang.by} Rock It!
+                        {lang.by} Rock It!
                     </label>
                 </Link>
 
@@ -138,10 +135,10 @@ export function FeaturedLists({
                         <History className="absolute top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2" />
                     </div>
                     <label className="mt-2 block truncate text-center font-semibold">
-                        {$lang.recent_mix}
+                        {lang.recent_mix}
                     </label>
                     <label className="block truncate text-center text-sm text-gray-400">
-                        {$lang.by} Rock It!
+                        {lang.by} Rock It!
                     </label>
                 </Link>
 
@@ -162,7 +159,7 @@ export function FeaturedLists({
                         {lastMonthName} Recap
                     </label>
                     <label className="block truncate text-center text-sm text-gray-400">
-                        {$lang.by} Rock It!
+                        {lang.by} Rock It!
                     </label>
                 </Link>
 

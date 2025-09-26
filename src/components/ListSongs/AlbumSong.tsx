@@ -1,15 +1,12 @@
 "use client";
 
-import { queue, queueIndex, songsInIndexedDB } from "@/stores/audio";
 import { getTime } from "@/lib/utils/getTime";
 import LikeButton from "@/components/LikeButton";
 import { EllipsisVertical, CheckCircle2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useStore } from "@nanostores/react";
-import { currentList, currentListSongs } from "@/stores/currentList";
 import { songHandleClick } from "./HandleClick";
 import SongContextMenu from "./SongContextMenu";
-import type { SongDB } from "@/db/song";
 import { networkStatus } from "@/stores/networkStatus";
 
 export default function AlbumSong({

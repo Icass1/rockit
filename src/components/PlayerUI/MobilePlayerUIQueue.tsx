@@ -1,13 +1,5 @@
 "use client";
 
-import {
-    currentSong,
-    playWhenReady,
-    queue,
-    queueIndex,
-    saveSongToIndexedDB,
-    type QueueElement,
-} from "@/stores/audio";
 import { useStore } from "@nanostores/react";
 import { QueueSong } from "@/components/PlayerUI/QueueSong";
 import useWindowSize from "@/hooks/useWindowSize";
@@ -16,15 +8,12 @@ import ContextMenu from "@/components/ContextMenu/ContextMenu";
 import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
 import ContextMenuContent from "@/components/ContextMenu/Content";
 import ContextMenuOption from "@/components/ContextMenu/Option";
-import { getImageUrl } from "@/lib/getImageUrl";
 import {
     GripVertical,
     HardDriveDownload,
     ListX,
     PlayCircle,
 } from "lucide-react";
-import { langData } from "@/stores/lang";
-import type { SongDB } from "@/lib/db/song";
 
 export default function MobilePlayerUIQueue({
     open,
@@ -170,8 +159,8 @@ export default function MobilePlayerUIQueue({
         };
     }, [draggingSong]);
 
-    const $lang = useStore(langData);
-    if (!$lang || !$queue || !height) return null;
+    const lang = useLanguage();
+    if (!lang || !$queue || !height) return null;
 
     return (
         <div
@@ -295,7 +284,7 @@ export default function MobilePlayerUIQueue({
                                                 }
                                             >
                                                 <PlayCircle className="h-5 w-5" />
-                                                {$lang.play_song}
+                                                {lang.play_song}
                                             </ContextMenuOption>
                                             <ContextMenuOption
                                                 onClick={() =>
@@ -303,7 +292,7 @@ export default function MobilePlayerUIQueue({
                                                 }
                                             >
                                                 <ListX className="h-5 w-5" />
-                                                {$lang.remove_from_queue}
+                                                {lang.remove_from_queue}
                                             </ContextMenuOption>
                                             <ContextMenuOption
                                                 onClick={() =>
@@ -314,7 +303,7 @@ export default function MobilePlayerUIQueue({
                                                 }
                                             >
                                                 <HardDriveDownload className="h-5 w-5" />
-                                                {$lang.download_song_to_device}
+                                                {lang.download_song_to_device}
                                             </ContextMenuOption>
                                         </ContextMenuContent>
                                     </ContextMenu>

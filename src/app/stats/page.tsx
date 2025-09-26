@@ -12,13 +12,13 @@ export default function StatsPage() {
         setSelectedSection(section);
     };
 
-    const $lang = useStore(langData);
-    if (!$lang) return false;
+    const lang = useLanguage();
+    if (!lang) return false;
 
     const pages: { [key: string]: string } = {
-        user: $lang.user,
-        general: $lang.general,
-        friends: $lang.friends,
+        user: lang.user,
+        general: lang.general,
+        friends: lang.friends,
     };
 
     return (
@@ -26,9 +26,9 @@ export default function StatsPage() {
             <div className="flex flex-col items-center justify-between space-y-4 md:flex-row md:space-y-0">
                 {/* Encabezado dinámico */}
                 <h2 className="text-center text-2xl font-bold md:text-left">
-                    {selectedSection === "user" && $lang.user_stats}
-                    {selectedSection === "general" && $lang.general_stats}
-                    {selectedSection === "friends" && $lang.friends_stats}
+                    {selectedSection === "user" && lang.user_stats}
+                    {selectedSection === "general" && lang.general_stats}
+                    {selectedSection === "friends" && lang.friends_stats}
                 </h2>
 
                 {/* Toggle Switch */}

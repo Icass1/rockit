@@ -11,6 +11,7 @@ import {
 import stringSimilarity from "@/lib/utils/stringSimilarity";
 import Link from "next/link";
 import Image from "next/image";
+import { rockitIt } from "@/lib/rockit";
 
 function Result({
     image,
@@ -89,7 +90,7 @@ export default function RenderSearchBarResults({
     open: boolean;
     setOpen: Dispatch<React.SetStateAction<boolean>>;
 }) {
-    const $searchResults = useStore(searchResults);
+    const $searchResults = useStore(rockitIt.searchManager.searchResultsAtom);
     const [bestResult, setBestResult] = useState<
         | {
               name: string;
@@ -101,80 +102,82 @@ export default function RenderSearchBarResults({
           }
         | undefined
     >();
-    const $searchQuery = useStore(searchQuery);
+    const $searchQuery = useStore(rockitIt.searchManager.searchQueryAtom);
 
-    useEffect(() => {
-        let highestSimilarity = 0;
-        let bestResult = undefined;
-        const searchQuery = $searchQuery;
+    // useEffect(() => {
+    //     if (!$searchResults) return;
 
-        if ($searchResults.albums != "error")
-            $searchResults.albums?.map((album) => {
-                const similarity = stringSimilarity(album.name, searchQuery);
-                if (similarity > highestSimilarity) {
-                    highestSimilarity = similarity;
-                    bestResult = {
-                        name: album.name,
-                        artistsOrOwner: album.artists
-                            .map((artist) => artist.name)
-                            .join(","),
-                        url: album.external_urls.spotify,
-                        image: album.images[0]?.url,
-                        inDatabase: album.inDatabase,
-                        type: "album",
-                    };
-                }
-            });
-        if ($searchResults.playlists != "error")
-            $searchResults.playlists?.map((playlist) => {
-                const similarity = stringSimilarity(playlist.name, searchQuery);
-                if (similarity > highestSimilarity) {
-                    highestSimilarity = similarity;
-                    bestResult = {
-                        name: playlist.name,
-                        artistsOrOwner: playlist.owner.display_name,
-                        url: playlist.external_urls.spotify,
-                        image: playlist.images[0]?.url,
-                        inDatabase: playlist.inDatabase,
-                        type: "playlist",
-                    };
-                }
-            });
-        if ($searchResults.songs != "error")
-            $searchResults.songs?.map((song) => {
-                const similarity = stringSimilarity(song.name, searchQuery);
-                if (similarity > highestSimilarity) {
-                    highestSimilarity = similarity;
-                    bestResult = {
-                        name: song.name,
-                        artistsOrOwner: song.album.artists
-                            .map((artist) => artist.name)
-                            .join(","),
-                        url: song.external_urls.spotify,
-                        image: song.album.images[0]?.url,
-                        inDatabase: song.inDatabase,
-                        type: "song",
-                    };
-                }
-            });
-        if ($searchResults.artists != "error")
-            $searchResults.artists?.map((artist) => {
-                const similarity = stringSimilarity(artist.name, searchQuery);
-                if (similarity > highestSimilarity) {
-                    highestSimilarity = similarity;
-                    bestResult = {
-                        name: artist.name,
-                        artistsOrOwner: "",
-                        url: artist.external_urls.spotify,
-                        image: artist.images[0]?.url,
-                        inDatabase: true,
-                        type: "artist",
-                    };
-                }
-            });
+    //     let highestSimilarity = 0;
+    //     let bestResult = undefined;
+    //     const searchQuery = $searchQuery;
 
-        setBestResult(bestResult);
-    }, [$searchResults, $searchQuery]);
+    //     if ($searchResults.spotifyResults.albums)
+    //         $searchResults.spotifyResults.albums?.map((album) => {
+    //             const similarity = stringSimilarity(album.name, searchQuery);
+    //             if (similarity > highestSimilarity) {
+    //                 highestSimilarity = similarity;
+    //                 bestResult = {
+    //                     name: album.name,
+    //                     artistsOrOwner: album.artists
+    //                         .map((artist) => artist.name)
+    //                         .join(","),
+    //                     url: album.external_urls.spotify,
+    //                     image: album.images[0]?.url,
+    //                     inDatabase: album.inDatabase,
+    //                     type: "album",
+    //                 };
+    //             }
+    //         });
+    //     if ($searchResults.spotifyResults)
+    //         $searchResults.spotifyResults.playlists?.map((playlist) => {
+    //             const similarity = stringSimilarity(playlist.name, searchQuery);
+    //             if (similarity > highestSimilarity) {
+    //                 highestSimilarity = similarity;
+    //                 bestResult = {
+    //                     name: playlist.name,
+    //                     artistsOrOwner: playlist.owner.display_name,
+    //                     url: playlist.external_urls.spotify,
+    //                     image: playlist.images[0]?.url,
+    //                     inDatabase: playlist.inDatabase,
+    //                     type: "playlist",
+    //                 };
+    //             }
+    //         });
+    //     if ($searchResults.spotifyResults.songs)
+    //         $searchResults.spotifyResults.songs?.map((song) => {
+    //             const similarity = stringSimilarity(song.name, searchQuery);
+    //             if (similarity > highestSimilarity) {
+    //                 highestSimilarity = similarity;
+    //                 bestResult = {
+    //                     name: song.name,
+    //                     artistsOrOwner: song.album.artists
+    //                         .map((artist) => artist.name)
+    //                         .join(","),
+    //                     url: song.external_urls.spotify,
+    //                     image: song.album.images[0]?.url,
+    //                     inDatabase: song.inDatabase,
+    //                     type: "song",
+    //                 };
+    //             }
+    //         });
+    //     if ($searchResults.artists != "error")
+    //         $searchResults.artists?.map((artist) => {
+    //             const similarity = stringSimilarity(artist.name, searchQuery);
+    //             if (similarity > highestSimilarity) {
+    //                 highestSimilarity = similarity;
+    //                 bestResult = {
+    //                     name: artist.name,
+    //                     artistsOrOwner: "",
+    //                     url: artist.external_urls.spotify,
+    //                     image: artist.images[0]?.url,
+    //                     inDatabase: true,
+    //                     type: "artist",
+    //                 };
+    //             }
+    //         });
+
+    //     setBestResult(bestResult);
+    // }, [$searchResults, $searchQuery]);
 
     return (
         <div id="search-bar-results">

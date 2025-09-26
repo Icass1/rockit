@@ -15,9 +15,9 @@ import Link from "next/link";
 import { rockitIt } from "@/lib/rockit";
 import Image from "next/image";
 import { Station } from "@/types/station";
-import { RockItSongType } from "@/types/rockIt";
+import { RockItSong } from "@/types/rockIt";
 
-function FooterLeftForSong({ currentSong }: { currentSong: RockItSongType }) {
+function FooterLeftForSong({ currentSong }: { currentSong: RockItSong }) {
     const $playing = useStore(rockitIt.audioManager.playingAtom);
 
     const $queue = useStore(rockitIt.queueManager.queueAtom);
@@ -167,9 +167,9 @@ function FooterLeftForStation({ currentStation }: { currentStation: Station }) {
     const [hover, setHover] = useState(false);
     const $playing = useStore(rockitIt.audioManager.playingAtom);
 
-    const $lang = useStore(rockitIt.languageManager.langDataAtom);
+    const lang = useStore(rockitIt.languageManager.langDataAtom);
 
-    if (!$lang) {
+    if (!lang) {
         return false;
     }
 

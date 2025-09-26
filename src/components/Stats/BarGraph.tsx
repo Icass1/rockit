@@ -2,8 +2,6 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import Image from "../Image";
-import { getImageUrl } from "@/lib/getImageUrl";
 
 interface Item {
     image?: string;

@@ -1,7 +1,4 @@
 import { playListHandleClick } from "@/components/PlayList";
-import { pause, play, playing, queue, queueIndex } from "@/stores/audio";
-import { currentList } from "@/stores/currentList";
-import { downloadedLists, startDownload } from "@/stores/downloads";
 import { useStore } from "@nanostores/react";
 
 import { Download, Pause, Play } from "lucide-react";

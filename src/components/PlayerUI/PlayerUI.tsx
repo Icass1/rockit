@@ -1,17 +1,5 @@
 "use client";
 
-import {
-    currentSong,
-    pause,
-    play,
-    playing,
-    playWhenReady,
-    queue,
-    queueIndex,
-    saveSongToIndexedDB,
-    type QueueElement,
-} from "@/stores/audio";
-import { isPlayerUIVisible } from "@/stores/isPlayerUIVisible";
 import { useStore } from "@nanostores/react";
 import { useEffect, useRef, useState } from "react";
 import useWindowSize from "@/hooks/useWindowSize";
@@ -31,8 +19,7 @@ import {
     Play,
     PlayCircle,
 } from "lucide-react";
-import { langData } from "@/stores/lang";
-import { RockItSongType } from "@/types/rockIt";
+import { RockItSong } from "@/types/rockIt";
 import Image from "next/image";
 
 export default function PlayerUI() {
@@ -121,7 +108,7 @@ export default function PlayerUI() {
 
         await fetch(`/api/song/${newSongId}`)
             .then((response) => response.json())
-            .then((data: RockItSongType) => {
+            .then((data: RockItSong) => {
                 playWhenReady.set(true);
                 currentSong.set(data);
             });
@@ -227,9 +214,9 @@ export default function PlayerUI() {
         return () => clearTimeout(t);
     }, [showIcon]);
 
-    const $lang = useStore(langData);
+    const lang = useLanguage();
 
-    if (!$lang || !$queue || !shouldRender) return null;
+    if (!lang || !$queue || !shouldRender) return null;
 
     const iconClassName =
         "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 z-20 transition-all z-20 p-5 duration-500" +
@@ -469,7 +456,7 @@ export default function PlayerUI() {
                                                         }
                                                     >
                                                         <PlayCircle className="h-5 w-5" />
-                                                        {$lang.play_song}
+                                                        {lang.play_song}
                                                     </ContextMenuOption>
                                                     <ContextMenuOption
                                                         onClick={() =>
@@ -483,9 +470,7 @@ export default function PlayerUI() {
                                                         }
                                                     >
                                                         <ListX className="h-5 w-5" />
-                                                        {
-                                                            $lang.remove_from_queue
-                                                        }
+                                                        {lang.remove_from_queue}
                                                     </ContextMenuOption>
                                                     <ContextMenuOption
                                                         onClick={() =>
@@ -497,7 +482,7 @@ export default function PlayerUI() {
                                                     >
                                                         <HardDriveDownload className="h-5 w-5" />
                                                         {
-                                                            $lang.download_song_to_device
+                                                            lang.download_song_to_device
                                                         }
                                                     </ContextMenuOption>
                                                 </ContextMenuContent>
@@ -605,7 +590,7 @@ export default function PlayerUI() {
                                                             }
                                                         >
                                                             <PlayCircle className="h-5 w-5" />
-                                                            {$lang.play_song}
+                                                            {lang.play_song}
                                                         </ContextMenuOption>
                                                         <ContextMenuOption
                                                             onClick={() =>
@@ -620,7 +605,7 @@ export default function PlayerUI() {
                                                         >
                                                             <ListX className="h-5 w-5" />
                                                             {
-                                                                $lang.remove_from_queue
+                                                                lang.remove_from_queue
                                                             }
                                                         </ContextMenuOption>
                                                         <ContextMenuOption
@@ -633,7 +618,7 @@ export default function PlayerUI() {
                                                         >
                                                             <HardDriveDownload className="h-5 w-5" />
                                                             {
-                                                                $lang.download_song_to_device
+                                                                lang.download_song_to_device
                                                             }
                                                         </ContextMenuOption>
                                                     </ContextMenuContent>

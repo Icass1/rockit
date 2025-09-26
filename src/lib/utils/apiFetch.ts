@@ -1,12 +1,15 @@
 import { getSession, signOut } from "next-auth/react";
+import { rockitIt } from "@/lib/rockit";
 
-export default async function apiFetch(path: string): Promise<Response | undefined> {
+export default async function apiFetch(
+    path: string
+): Promise<Response | undefined> {
     let token = localStorage.getItem("access_token");
 
     if (!token) {
         const session = await getSession();
         if (!session?.user.access_token) {
-            console.warn("apiFetch -> /login")
+            console.warn("apiFetch -> /login");
             signOut();
             window.location.href = "/login";
             return;
@@ -16,7 +19,7 @@ export default async function apiFetch(path: string): Promise<Response | undefin
         localStorage.setItem("access_token", token);
     }
 
-    return fetch(`http://localhost:8000${path}`, {
+    return fetch(`${rockitIt.BACKEND_URL}${path}`, {
         headers: {
             Authorization: `Bearer ${token}`,
         },

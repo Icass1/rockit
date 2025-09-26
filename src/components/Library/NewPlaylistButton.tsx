@@ -2,16 +2,14 @@
 
 import { Plus } from "lucide-react";
 import { useState } from "react";
-import Image from "@/components/Image";
 import { useRouter } from "next/navigation";
-import { useStore } from "@nanostores/react";
-import { langData } from "@/stores/lang";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function NewPlaylistButton() {
     const [showCreatePlaylistMenu, setShowCreatePlaylistMenu] = useState(false);
     const [name, setName] = useState("");
     const [error, setError] = useState("");
-    const lang = useStore(langData);
+    const lang = useLanguage();
 
     const router = useRouter();
 

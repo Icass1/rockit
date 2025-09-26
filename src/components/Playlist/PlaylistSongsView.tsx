@@ -1,17 +1,9 @@
 "use client";
 
-import type {
-    PlaylistDB,
-    PlaylistDBSong,
-    PlaylistDBSongWithAddedAt,
-} from "@/db/playlist";
 import PlaylistSong from "@/components/ListSongs/PlaylistSong";
 import { useEffect, useRef, useState } from "react";
 import { ArrowUp } from "lucide-react";
-import { currentList, currentListSongs } from "@/stores/currentList";
 import PlaylistHeader from "./PlaylistHeader";
-import { langData } from "@/stores/lang";
-import { useStore } from "@nanostores/react";
 import useWindowSize from "@/hooks/useWindowSize";
 
 type columnsType = "name" | "album" | "artist" | "addedAt" | "duration";
@@ -176,13 +168,13 @@ export default function PlaylistSongsView({
     }, [filter, songs]);
 
     const renderColumn = (column: columnsType) => {
-        if (!$lang) return false;
+        if (!lang) return false;
         const columnNames = {
-            name: $lang.name,
-            album: $lang.album,
-            artist: $lang.artist,
-            addedAt: $lang.date_added,
-            duration: $lang.duration,
+            name: lang.name,
+            album: lang.album,
+            artist: lang.artist,
+            addedAt: lang.date_added,
+            duration: lang.duration,
         };
 
         return (
@@ -214,8 +206,8 @@ export default function PlaylistSongsView({
         }
     };
 
-    const $lang = useStore(langData);
-    if (!$lang) return false;
+    const lang = useLanguage();
+    if (!lang) return false;
 
     if (!innerWidth) return;
 

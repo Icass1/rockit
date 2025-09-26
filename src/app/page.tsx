@@ -1,20 +1,19 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense } from "react";
 import QuickSelectionsSong from "@/components/Home/QuickSelectionsSong";
 import RecentlyPlayedSong from "@/components/Home/RecentlyPlayedSong";
 import SongsCarousel from "@/components/Home/SongsCarousel";
-import { useStore } from "@nanostores/react";
 import Spinner from "@/components/Spinner";
 import useFetch from "@/hooks/useFetch";
 import { useSession } from "next-auth/react";
 import { HomeStats } from "@/responses/stats/homeStatsResponse";
-import { rockitIt } from "@/lib/rockit";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Home() {
     const [data] = useFetch("/stats/home", HomeStats);
 
-    const $lang = useStore(rockitIt.languageManager.langDataAtom);
+    const lang = useLanguage();
 
     const monthKeys = [
         "january",
@@ -40,16 +39,14 @@ export default function Home() {
         location.href = "/login";
     }
 
-    console.warn({ data, $lang }); // <- Hydratation error here.
+    // const [mounted, setMounted] = useState(false);
+    // useEffect(() => setMounted(true), []);
 
-    const [mounted, setMounted] = useState(false);
-    useEffect(() => setMounted(true), []);
+    // if (!mounted) {
+    //     return null; // or a lightweight loader
+    // }
 
-    if (!mounted) {
-        return null; // or a lightweight loader
-    }
-
-    if (!$lang) {
+    if (!lang) {
         return (
             <div className="flex h-screen flex-row items-center justify-center gap-2 text-xl font-semibold">
                 <label>Fatal error, unable to get language.</label>
@@ -90,7 +87,7 @@ export default function Home() {
 
                 <section className="py-5 text-white md:py-12 md:pl-12">
                     <h2 className="px-5 text-2xl font-bold md:text-3xl">
-                        {$lang.songsforyou}
+                        {lang.songsforyou}
                         {/* Canciones mas escuchadas de los ultimos 7 dias + recomendaciones */}
                     </h2>
                     <div className="flex gap-4 overflow-x-auto px-10 py-4">
@@ -106,7 +103,7 @@ export default function Home() {
 
                 <section className="group text-white md:pl-12">
                     <h2 className="px-5 text-2xl font-bold md:text-3xl">
-                        {$lang.quick_selections}
+                        {lang.quick_selections}
                     </h2>
                     <div className="scrollbar-hide flex snap-x snap-mandatory overflow-x-auto px-8 py-4 md:gap-4 md:px-2 md:[scrollbar-gutter:stable]">
                         {/* Aquí creamos las columnas dinámicamente */}
@@ -147,7 +144,7 @@ export default function Home() {
 
                 <section className="py-5 text-white md:py-12 md:pl-12">
                     <h2 className="px-5 text-2xl font-bold md:text-3xl">
-                        {$lang.recent_played}
+                        {lang.recent_played}
                     </h2>
                     <div className="flex gap-4 overflow-x-auto px-10 py-4">
                         {songsByTimePlayed?.map((song) => (
@@ -162,7 +159,7 @@ export default function Home() {
 
                 <section className="text-white md:py-12 md:pl-12">
                     <h2 className="px-5 text-2xl font-bold md:text-3xl">
-                        {$lang.hiddengems}
+                        {lang.hiddengems}
                     </h2>
                     <div className="flex gap-4 overflow-x-auto px-10 py-4">
                         {/* Most listened songs from one year ago to 3 months ago */}
@@ -178,7 +175,7 @@ export default function Home() {
 
                 <section className="py-5 text-white md:py-12 md:pl-12">
                     <h2 className="px-5 text-2xl font-bold md:text-3xl">
-                        {$lang.communitytop}
+                        {lang.communitytop}
                     </h2>
                     <div className="flex gap-4 overflow-x-auto px-10 py-4">
                         {/* Most listened songs by all RockIt users */}
@@ -195,7 +192,7 @@ export default function Home() {
                 {/* {(Object.keys(moodSongs) as Mood[]).map((mood) => (
                     <section key={mood} className="py-5 text-white md:pl-12">
                         <h2 className="px-5 text-2xl font-bold md:text-3xl">
-                            {$lang.moodsongs} {$lang[`${mood}`]}
+                            {lang.moodsongs} {lang[`${mood}`]}
                         </h2>
                         <div className="flex gap-4 overflow-x-auto px-10 py-4">
                             {moodSongs[mood].map((song) => (
@@ -211,7 +208,7 @@ export default function Home() {
 
                 <section className="text-white md:py-12 md:pl-12">
                     <h2 className="px-5 text-2xl font-bold md:text-3xl">
-                        {$lang[previousMonthKey]} Recap
+                        {lang[previousMonthKey]} Recap
                     </h2>
                     <div className="flex gap-4 overflow-x-auto px-10 py-4">
                         {/* Most listened songs from last month */}

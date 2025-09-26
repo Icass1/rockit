@@ -12,27 +12,14 @@ import {
     Ellipsis,
 } from "lucide-react";
 import { getTime } from "@/lib/utils/getTime";
-import {
-    currentSong,
-    currentTime,
-    next,
-    pause,
-    play,
-    playing,
-    prev,
-    randomQueue,
-    setTime,
-} from "@/stores/audio";
+
 import LikeButton from "@/components/LikeButton";
-import { isMobilePlayerUIVisible } from "@/stores/isPlayerUIVisible";
 import Slider from "@/components/Slider";
 import { useEffect, useRef, useState } from "react";
 import useWindowSize from "@/hooks/useWindowSize";
-import { getImageUrl } from "@/lib/getImageUrl";
 import MobilePlayerUIQueue from "@/components/PlayerUI/MobilePlayerUIQueue";
 import MobilePlayerUILyrics from "@/components/PlayerUI/MobilePlayerUILyrics";
 import SongPopupMenu from "@/components/ListSongs/SongPopupMenu";
-import Image from "@/components/Image";
 
 export default function MobilePlayerUI() {
     const $playing = useStore(playing);

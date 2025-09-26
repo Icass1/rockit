@@ -17,35 +17,35 @@ import Link from "next/link";
 export default function NavigationMobile() {
     const session = useSession();
 
-    const $lang = useStore(langData);
+    const lang = useLanguage();
 
     const activePage = usePathname();
 
-    if (!$lang) return false;
+    if (!lang) return false;
 
     const pages = [
         {
             name: "Home",
-            title: $lang.home,
+            title: lang.home,
             href: "/",
             icon: Home,
         },
         {
             name: "Library",
-            title: $lang.library,
+            title: lang.library,
             href: "/library",
             icon: Library,
         },
         {
             name: "Search",
-            title: $lang.search,
+            title: lang.search,
             href: "/search",
             icon: Search,
             disabled: false,
         },
         {
             name: "Friends",
-            title: $lang.friends,
+            title: lang.friends,
             href: "/friends",
             icon: Users,
             disabled: true,

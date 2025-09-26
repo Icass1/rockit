@@ -1,11 +1,3 @@
-import {
-    database,
-    queue,
-    queueIndex,
-    saveSongToIndexedDB,
-} from "@/stores/audio";
-import { currentListSongs } from "@/stores/currentList";
-import { likedSongs } from "@/stores/likedList";
 import { useStore } from "@nanostores/react";
 import {
     Download,
@@ -26,9 +18,6 @@ import {
     PopupMenuOption,
     PopupMenuTrigger,
 } from "@/components/PopupMenu/PopupMenu";
-import { downloadedLists, downloads } from "@/stores/downloads";
-import { libraryLists } from "@/stores/libraryLists";
-import { pinnedLists } from "@/stores/pinnedLists";
 import { playListHandleClick } from "@/components/PlayList";
 import { downloadFile, downloadRsc } from "@/lib/utils/downloadResources";
 

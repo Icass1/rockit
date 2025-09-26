@@ -28,7 +28,7 @@ export default async function Header() {
                     height={614}
                     src="/logo-banner.png"
                     alt="Logo"
-                    className="h-14"
+                    className="h-14 w-auto"
                 />
             </Link>
 

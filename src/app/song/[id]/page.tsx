@@ -6,16 +6,12 @@ import { EllipsisVertical } from "lucide-react";
 import SongPageCover from "@/components/SongPage/SongPageCover";
 import LyricsSection from "@/components/SongPage/SongPageLyrics";
 import { ENV } from "@/rockitEnv";
-import { db } from "@/lib/db/db";
 import {
     SpotifyArtist,
     SpotifyArtistTopTracks,
     SpotifyTrack,
 } from "@/types/spotify";
-import { parseSong, RawSongDB, SongDB } from "@/lib/db/song";
 import getAlbum from "@/lib/utils/getAlbum";
-import Image from "@/components/Image";
-import { getImageUrl } from "@/lib/getImageUrl";
 
 export async function generateMetadata({
     params,

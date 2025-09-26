@@ -4,8 +4,8 @@ import { langData } from "@/stores/lang";
 import { useStore } from "@nanostores/react";
 
 export default function ClearDownloads() {
-    const $lang = useStore(langData);
-    if (!$lang) return false;
+    const lang = useLanguage();
+    if (!lang) return false;
 
     return (
         <button
@@ -15,7 +15,7 @@ export default function ClearDownloads() {
                 console.log("Clear downloads clicked");
             }}
         >
-            {$lang.clear_downloads}
+            {lang.clear_downloads}
         </button>
     );
 }

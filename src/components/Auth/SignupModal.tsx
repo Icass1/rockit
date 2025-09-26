@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import UsernameInput from "./UsernameInput";
 import Image from "next/image";
+import { rockitIt } from "@/lib/rockit";
 
 export default function SignupModal() {
     const [password, setPassword] = useState("");
@@ -21,7 +22,7 @@ export default function SignupModal() {
 
         console.log({ username, password, repeatPassword });
 
-        const response = await fetch(`http://localhost:8000/auth/signup`, {
+        const response = await fetch(`${rockitIt.BACKEND_URL}/auth/signup`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ username, password, repeatPassword }),

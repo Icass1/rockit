@@ -1,4 +1,8 @@
-import { RockItSong, RockItUser } from "@/types/rockIt";
+import {
+    RockItAlbumWithSongs,
+    RockItSongWithoutAlbum,
+    RockItUser,
+} from "@/types/rockIt";
 import { Station } from "@/types/station";
 import { atom } from "nanostores";
 import { getSession, signOut } from "next-auth/react";
@@ -171,6 +175,17 @@ class AlbumManager {
     constructor() {
         console.log("AlbumManager initialized");
     }
+
+    async getSpotifyAlbumAsync(publicId: string) {
+        const response = await apiFetch(`/spotify-album/${publicId}`, false);
+        if (!response?.ok) {
+            throw "Error fetching album.";
+        }
+
+        const responseJson = await response?.json();
+
+        return RockItAlbumWithSongs.parse(responseJson);
+    }
 }
 
 class ServiceWorkerManager {
@@ -188,10 +203,10 @@ class NotificationManager {
 class QueueManager {
     // #region: Atoms
 
-    private _currentSongAtom = atom<RockItSong | undefined>();
+    private _currentSongAtom = atom<RockItSongWithoutAlbum | undefined>();
     private _currentListAtom = atom<{ type: string; id: string } | undefined>();
 
-    private _queueAtom = atom<RockItSong[]>([]);
+    private _queueAtom = atom<RockItSongWithoutAlbum[]>([]);
     private _queueIndexAtom = atom<number>(0);
 
     // #endregion: Atoms

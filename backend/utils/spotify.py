@@ -1,3 +1,4 @@
+from doctest import UnexpectedException
 import os
 import re
 import json
@@ -214,16 +215,27 @@ class Spotify:
 
         image_public_id = create_id()
 
-        def _func(s: Session):
-            image_to_add = InternalImageRow(
+        def _func(s: Session) -> int:
+            stmt = insert(InternalImageRow).values(
                 public_id=image_public_id,
                 url=f"https://api.rockit.rockhosting.org/image/{image_public_id}",
-                path=image_path
-            )
+                path=image_path,
+            ).on_conflict_do_nothing().returning(InternalImageRow.id)
 
-            image_to_add = s.merge(image_to_add)
-            s.flush()
-            return image_to_add.id
+            result: int | None = s.execute(stmt).scalar()
+            if result is None:
+                # Already exists: fetch by either unique key
+                result = s.scalar(
+                    select(InternalImageRow.id).where(
+                        (InternalImageRow.public_id == image_public_id) |
+                        (InternalImageRow.path == image_path)
+                    )
+                )
+
+            if not result:
+                raise Exception("This should not happen.")
+
+            return result
 
         return self.rockit_db.execute_with_session(_func)
 
@@ -283,11 +295,37 @@ class Spotify:
             s.execute(
                 select(AlbumRow)
                 .options(
+                    # Load album artists and album artists genres.
+                    joinedload(AlbumRow.artists).
+                    joinedload(ArtistRow.genres),
+                    # Load album artists and album artists external images.
+                    joinedload(AlbumRow.artists).
+                    joinedload(ArtistRow.external_images),
+                    # Load album artists and album internal external image.
+                    joinedload(AlbumRow.artists).
+                    joinedload(ArtistRow.internal_image),
+                    # Load song artists.
                     joinedload(AlbumRow.songs).
                     joinedload(SongRow.artists),
+                    # Load song artists.
+                    joinedload(AlbumRow.songs).
+                    joinedload(SongRow.internal_image),
+                    # Load song album, song album artists and song album artists genres.
                     joinedload(AlbumRow.songs).
                     joinedload(SongRow.album).
-                    joinedload(AlbumRow.artists)
+                    joinedload(AlbumRow.artists).
+                    joinedload(ArtistRow.genres),
+                    # Load song album artists external_images.
+                    joinedload(AlbumRow.songs).
+                    joinedload(SongRow.album).
+                    joinedload(AlbumRow.artists).
+                    joinedload(ArtistRow.external_images),
+                    # Load album external images.
+                    joinedload(AlbumRow.external_images),
+                    # Load album internal image.
+                    joinedload(AlbumRow.internal_image),
+                    # Load album copyrights.
+                    joinedload(AlbumRow.copyrights),
                 )
                 .where(
                     AlbumRow.public_id.in_(public_ids)
@@ -602,7 +640,8 @@ class Spotify:
                         internal_image_id=internal_image_id,
                         album_id=album_id,
                         isrc=song.external_ids.isrc,
-                        preview_url=song.preview_url
+                        preview_url=song.preview_url,
+                        popularity=song.popularity
                     )
 
                     song_to_add = s.merge(song_to_add)

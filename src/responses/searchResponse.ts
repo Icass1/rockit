@@ -1,9 +1,9 @@
-import { RockItAlbum, RockItArtist, RockItSong } from "@/types/rockIt";
+import { RockItAlbumWithoutSongs, RockItArtist, RockItSongWithAlbum } from "@/types/rockIt";
 import * as z from "zod";
 
 export const SpotifySearchResultsResponse = z.object({
-    songs: z.array(RockItSong),
-    albums: z.array(RockItAlbum),
+    songs: z.array(RockItSongWithAlbum),
+    albums: z.array(RockItAlbumWithoutSongs),
     artists: z.array(RockItArtist),
 });
 

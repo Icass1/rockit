@@ -1,50 +1,51 @@
 "use client";
 
-import { GetAlbum } from "@/lib/utils/getAlbum";
 import PlayListButton from "@/components/ListHeader/PlayListButton";
 import ListOptions from "@/components/ListHeader/ListOptions";
 import { useRouter } from "next/navigation";
 import { getMinutes, getYear } from "@/lib/utils/getTime";
 import { Disc } from "lucide-react";
 import AlbumSong from "@/components/ListSongs/AlbumSong";
+import { RockItAlbumWithSongs } from "@/types/rockIt";
+import { useLanguage } from "@/contexts/LanguageContext";
+import Image from "next/image";
 
-export default function RenderAlbum({ _album }: { _album: GetAlbum }) {
-    const { album, discs, songs } = _album;
-
+export default function RenderAlbum({
+    album,
+}: {
+    album: RockItAlbumWithSongs;
+}) {
     const router = useRouter();
     const lang = useLanguage();
 
-    currentListSongs.set(songs);
-    currentList.set({ id: album.id, type: "album" });
-
     if (!lang) return false;
 
-    const inDatabase = typeof songs.find((song) => !song.path) == "undefined";
+    const allSongsInDatabase = album.songs.find((song) => song.downloadUrl)
+        ? true
+        : false;
 
     return (
         <div className="relative flex h-full w-full flex-col overflow-y-auto px-2 md:grid md:grid-cols-[min-content_1fr] md:px-0">
             <Image
-                showSkeleton={false}
-                src={`/api/image/blur/${album.image}`}
+                width={600}
+                height={600}
+                src={album.internalImageUrl ?? "/song-placeholder.png"}
                 alt=""
                 className="fixed top-0 left-0 z-0 h-full w-full object-cover opacity-35"
             />
             <div className="relative top-24 z-50 mx-4 flex h-full flex-col items-center justify-center gap-1 md:top-0 md:max-w-md">
                 <div className="relative aspect-square h-72 overflow-hidden rounded-xl md:h-[40vh] md:rounded-md">
                     <Image
+                        width={600}
+                        height={600}
                         alt={album.name}
-                        src={
-                            album.image
-                                ? `/api/image/${album.image}`
-                                : album.images[0].url
-                        }
+                        src={album.internalImageUrl ?? "/song-placeholder.png"}
                         className="absolute h-full w-full object-fill"
                     />
                     <PlayListButton
                         type="album"
-                        id={album.id}
-                        inDatabase={inDatabase}
-                        url={`https://open.spotify.com/album/${album.id}`}
+                        id={album.publicId}
+                        url={`https://open.spotify.com/album/${album.publicId}`}
                     />
                 </div>
 
@@ -55,9 +56,9 @@ export default function RenderAlbum({ _album }: { _album: GetAlbum }) {
 
                     <ListOptions
                         type="album"
-                        id={album.id}
-                        url={`https://open.spotify.com/album/${album.id}`}
-                        inDatabase={inDatabase}
+                        id={album.publicId}
+                        url={`https://open.spotify.com/album/${album.publicId}`}
+                        allSongsInDatabase={allSongsInDatabase}
                     />
                 </div>
 

@@ -1,7 +1,5 @@
 import RenderAlbum from "@/components/Album/RenderAlbum";
-import getAlbum from "@/lib/utils/getAlbum";
-import { notFound } from "next/navigation";
-import { NextResponse } from "next/server";
+import { rockitIt } from "@/lib/rockit";
 
 export async function generateMetadata({
     params,
@@ -9,15 +7,8 @@ export async function generateMetadata({
     params: Promise<{ id: string }>;
 }) {
     const { id } = await params; // No need for await here
-    const _album = await getAlbum(id);
 
-    if (_album == "error connecting to backend") {
-        return;
-    } else if (_album == "not found") {
-        return;
-    }
-
-    const { album } = _album;
+    return {};
 
     return {
         title: `${album.name} by ${album.artists[0].name}`,
@@ -59,17 +50,14 @@ export async function generateMetadata({
 export default async function AlbumPage({
     params,
 }: {
-    params: Promise<{ id: string }>;
+    params: Promise<{ publicId: string }>;
 }) {
-    const { id } = await params; // No need for await here
+    const { publicId } = await params; // No need for await here
 
-    const _album = await getAlbum(id);
+    const album = await rockitIt.albumManager.getSpotifyAlbumAsync(publicId);
 
-    if (_album == "error connecting to backend") {
-        return new NextResponse("Error connecting to backend", { status: 500 });
-    } else if (_album == "not found") {
-        notFound();
-    }
+    console.log(album);
 
-    return <RenderAlbum _album={_album}></RenderAlbum>;
+
+    return <RenderAlbum album={album}></RenderAlbum>;
 }

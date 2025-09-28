@@ -130,121 +130,111 @@ export default function ListOptions({
     type,
     id,
     image,
-    inDatabase,
+    allSongsInDatabase,
     url,
 }: {
     url: string;
-    inDatabase: boolean;
+    allSongsInDatabase: boolean;
     type: string;
     id: string;
     image?: string;
 }) {
-    const $songs = useStore(currentListSongs);
+    // const $songs = useStore(currentListSongs);
 
-    const $libraryLists = useStore(libraryLists);
-    const isInLibrary = $libraryLists.some((list) => list.id === id);
+    // const $libraryLists = useStore(libraryLists);
+    // const isInLibrary = $libraryLists.some((list) => list.id === id);
 
-    // Determina si el elemento ya está en la lista
-    const $pinnedLists = useStore(pinnedLists);
-    const isPinned = $pinnedLists.some((list) => list.id === id);
+    // // Determina si el elemento ya está en la lista
+    // const $pinnedLists = useStore(pinnedLists);
+    // const isPinned = $pinnedLists.some((list) => list.id === id);
 
-    const $downloadedLists = useStore(downloadedLists);
+    // const $downloadedLists = useStore(downloadedLists);
 
     const addListToBottomQueue = () => {
-        const tempQueue = queue.get();
-        if (!tempQueue) return;
-
-        const songsToAdd = $songs
-            .map((song, index) => {
-                return {
-                    song: song,
-                    list: { type, id },
-                    index:
-                        Math.max(...tempQueue.map((_song) => _song.index)) +
-                        index +
-                        1,
-                };
-            })
-            .filter((song) => song?.song?.id && song?.song?.path);
-        queue.set([...tempQueue, ...songsToAdd]);
+        // const tempQueue = queue.get();
+        // if (!tempQueue) return;
+        // const songsToAdd = $songs
+        //     .map((song, index) => {
+        //         return {
+        //             song: song,
+        //             list: { type, id },
+        //             index:
+        //                 Math.max(...tempQueue.map((_song) => _song.index)) +
+        //                 index +
+        //                 1,
+        //         };
+        //     })
+        //     .filter((song) => song?.song?.id && song?.song?.path);
+        // queue.set([...tempQueue, ...songsToAdd]);
     };
     const addListToTopQueue = () => {
-        const tempQueue = queue.get();
-        if (!tempQueue) return;
-
-        const songsToAdd = $songs
-            .map((song, index) => {
-                return {
-                    song: song,
-                    list: { type, id },
-                    index:
-                        Math.max(...tempQueue.map((_song) => _song.index)) +
-                        index +
-                        1,
-                };
-            })
-            .filter((song) => song?.song?.id && song?.song?.path);
-        const index = tempQueue.findIndex(
-            (_song) => _song.index == queueIndex.get()
-        );
-
-        queue.set([
-            ...tempQueue.slice(0, index + 1),
-            ...songsToAdd,
-            ...tempQueue.slice(index + 1),
-        ]);
+        // const tempQueue = queue.get();
+        // if (!tempQueue) return;
+        // const songsToAdd = $songs
+        //     .map((song, index) => {
+        //         return {
+        //             song: song,
+        //             list: { type, id },
+        //             index:
+        //                 Math.max(...tempQueue.map((_song) => _song.index)) +
+        //                 index +
+        //                 1,
+        //         };
+        //     })
+        //     .filter((song) => song?.song?.id && song?.song?.path);
+        // const index = tempQueue.findIndex(
+        //     (_song) => _song.index == queueIndex.get()
+        // );
+        // queue.set([
+        //     ...tempQueue.slice(0, index + 1),
+        //     ...songsToAdd,
+        //     ...tempQueue.slice(index + 1),
+        // ]);
     };
 
     const likeAllSongs = () => {
-        $songs.map((song) => {
-            fetch(`/api/like/${song.id}`, { method: "POST" }).then(
-                (response) => {
-                    if (response.ok) {
-                        // Add song to liked songs store
-                        likedSongs.set([...likedSongs.get(), song.id]);
-                    } else {
-                        console.log("Error");
-                        // Tell user like request was unsuccessful
-                    }
-                }
-            );
-        });
+        // $songs.map((song) => {
+        //     fetch(`/api/like/${song.id}`, { method: "POST" }).then(
+        //         (response) => {
+        //             if (response.ok) {
+        //                 // Add song to liked songs store
+        //                 likedSongs.set([...likedSongs.get(), song.id]);
+        //             } else {
+        //                 console.log("Error");
+        //                 // Tell user like request was unsuccessful
+        //             }
+        //         }
+        //     );
+        // });
     };
 
     const downloadListToDevice = async () => {
-        console.warn("to do");
-
-        currentListSongs.get().map((song) => {
-            saveSongToIndexedDB(song);
-        });
-
-        if (!database) return;
-
-        const imageBlob = await fetch(`/api/image/${image}`).then((response) =>
-            response.blob()
-        );
-
-        const imageToSave = {
-            id: image,
-            blob: imageBlob,
-        };
-
-        await downloadFile(`/${type}/${id}`, database);
-        await downloadRsc(`/${type}/${id}`, database);
-
-        const imagesTx = database.transaction("images", "readwrite");
-        const imagesStore = imagesTx.objectStore("images");
-        imagesStore.put(imageToSave);
-
-        console.log("List downloaded!");
+        // console.warn("to do");
+        // currentListSongs.get().map((song) => {
+        //     saveSongToIndexedDB(song);
+        // });
+        // if (!database) return;
+        // const imageBlob = await fetch(`/api/image/${image}`).then((response) =>
+        //     response.blob()
+        // );
+        // const imageToSave = {
+        //     id: image,
+        //     blob: imageBlob,
+        // };
+        // await downloadFile(`/${type}/${id}`, database);
+        // await downloadRsc(`/${type}/${id}`, database);
+        // const imagesTx = database.transaction("images", "readwrite");
+        // const imagesStore = imagesTx.objectStore("images");
+        // imagesStore.put(imageToSave);
+        // console.log("List downloaded!");
     };
 
     const downloadListToDB = () => {
-        fetch(`/api/start-download?url=${url}`).then((response) => {
-            response.json().then((data) => {
-                downloads.set([data.download_id, ...downloads.get()]);
-            });
-        });
+        // fetch(`/api/start-download?url=${url}`).then((response) => {
+        //     response.json().then((data) => {
+        //         downloads.set([data.download_id, ...downloads.get()]);
+        //     });
+        // });
     };
 
     return (
@@ -309,7 +299,7 @@ export default function ListOptions({
                     )}
                     {isPinned ? "Unpin from left panel" : "Pin to left panel"}
                 </PopupMenuOption>
-                {!inDatabase && !$downloadedLists.includes(id) && (
+                {!allSongsInDatabase && !$downloadedLists.includes(id) && (
                     <PopupMenuOption onClick={downloadListToDB}>
                         <Download className="h-5 w-5" />
                         Download to server

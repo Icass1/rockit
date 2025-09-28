@@ -10,6 +10,7 @@ from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Depends, FastAPI, BackgroundTasks, Request, Response
 
+from backend.responses.general.albumWithSongs import RockItAlbumWithSongsResponse
 from backend.utils.logger import getLogger
 from backend.db.ormModels.user import UserRow
 from backend.utils.auth import get_current_user
@@ -213,6 +214,12 @@ def search(query: str) -> SearchResponse:
         q=query, limit=6)
 
     return SearchResponse(spotifyResults=SpotifyResults.from_spotify_search(spotify_search=spotify_search))
+
+
+@app.get("/spotify-album/{album_public_id}")
+def get_spotify_album(album_public_id: str) -> RockItAlbumWithSongsResponse:
+
+    return RockItAlbumWithSongsResponse.from_row(album=downloader.spotify.get_album(public_id=album_public_id))
 
 
 @app.on_event('startup')

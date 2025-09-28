@@ -61,12 +61,10 @@ function DownloadFlyAnimation({
 export default function PlayListButton({
     id,
     type,
-    inDatabase,
     url,
 }: {
     id: string;
     type: string;
-    inDatabase: boolean;
     url: string;
 }) {
     const $queue = useStore(queue);

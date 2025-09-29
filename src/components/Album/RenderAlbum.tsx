@@ -9,6 +9,7 @@ import AlbumSong from "@/components/ListSongs/AlbumSong";
 import { RockItAlbumWithSongs } from "@/types/rockIt";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Image from "next/image";
+import { groupBy } from "lodash";
 
 export default function RenderAlbum({
     album,
@@ -24,15 +25,17 @@ export default function RenderAlbum({
         ? true
         : false;
 
+    const discs = groupBy(album.songs, (song) => song.discNumber);
+
     return (
         <div className="relative flex h-full w-full flex-col overflow-y-auto px-2 md:grid md:grid-cols-[min-content_1fr] md:px-0">
-            <Image
+            {/* <Image
                 width={600}
                 height={600}
-                src={album.internalImageUrl ?? "/song-placeholder.png"}
+                src={album.internalImageBluredUrl ?? "/song-placeholder.png"}
                 alt=""
                 className="fixed top-0 left-0 z-0 h-full w-full object-cover opacity-35"
-            />
+            /> */}
             <div className="relative top-24 z-50 mx-4 flex h-full flex-col items-center justify-center gap-1 md:top-0 md:max-w-md">
                 <div className="relative aspect-square h-72 overflow-hidden rounded-xl md:h-[40vh] md:rounded-md">
                     <Image
@@ -66,14 +69,14 @@ export default function RenderAlbum({
                     {album.artists.map((artist, index) => (
                         <span
                             className="flex items-center space-x-1"
-                            key={artist.id}
+                            key={artist.publicId}
                         >
                             <label
                                 className="line-clamp-2 hover:underline"
                                 onClick={(e) => {
                                     e.preventDefault();
                                     e.stopPropagation();
-                                    router.push(`/artist/${artist.id}`);
+                                    router.push(`/artist/${artist.publicId}`);
                                 }}
                                 // onclick={`event.preventDefault(); event.stopPropagation(); location.href='/artist/${artist.id}'`}
                             >
@@ -88,8 +91,8 @@ export default function RenderAlbum({
                 <label className="text-center text-sm text-stone-400">
                     {getYear(album.releaseDate)} | {album.songs.length} Songs |{" "}
                     {getMinutes(
-                        songs.reduce((accumulator: number, song) => {
-                            return accumulator + (song?.duration || 0);
+                        album.songs.reduce((accumulator: number, song) => {
+                            return accumulator + (song.duration || 0);
                         }, 0)
                     )}{" "}
                     Minutes
@@ -99,20 +102,20 @@ export default function RenderAlbum({
             <div className="z-10 mt-5 flex h-full w-full flex-col px-2 md:mt-0 md:overflow-auto md:px-6">
                 <div className="min-h-24"></div>
 
-                {discs.map((discSongs, discIndex) => {
+                {Object.entries(discs).map((entry) => {
                     return (
-                        <div key={discIndex}>
+                        <div key={entry[0]}>
                             <label className="mb-2 flex flex-row items-center gap-2 text-lg font-semibold text-neutral-400">
                                 <Disc className="h-6 w-6" />
-                                {lang.disc} {discIndex + 1}
+                                {lang.disc} {entry[0] + 1}
                             </label>
 
-                            {discSongs.map((song, songIndex) => {
+                            {entry[1].map((song, songIndex) => {
                                 if (song) {
                                     return (
                                         <AlbumSong
-                                            key={song.id}
-                                            song={song}
+                                            key={song.publicId}
+                                            song={{ ...song, album }}
                                             index={songIndex}
                                         />
                                     );

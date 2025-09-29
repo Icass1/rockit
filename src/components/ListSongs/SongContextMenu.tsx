@@ -30,7 +30,9 @@ import useDev from "@/hooks/useDev";
 
 import "@/styles/CheckBox.css";
 import Image from "next/image";
-import { RockItSong } from "@/types/rockIt";
+import { RockItSongWithAlbum } from "@/types/rockIt";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { rockitIt } from "@/lib/rockit";
 
 function ListSubContextMenu({
     list,
@@ -94,11 +96,13 @@ export default function SongContextMenu({
     onPlay,
 }: {
     children: ReactNode;
-    song: RockItSong;
+    song: RockItSongWithAlbum;
     onPlay?: () => void;
 }) {
-    const $likedSongs = useStore(likedSongs);
-    const $currentListSongs = useStore(currentListSongs);
+    const $likedSongs = useStore(rockitIt.songManager.likedSongsAtom);
+    const $currentListSongs = useStore(
+        rockitIt.currentListManager.currentListSongsAtom
+    );
     const lang = useLanguage();
     const $networkStatus = useStore(networkStatus);
 
@@ -118,7 +122,7 @@ export default function SongContextMenu({
         <ContextMenu>
             <ContextMenuTrigger>{children}</ContextMenuTrigger>
             <ContextMenuContent
-                cover={song?.internalImageUrl}
+                cover={song.internalImageUrl ?? "/song-placeholder.png"}
                 title={song.name}
                 description={
                     song.album.name +
@@ -141,41 +145,7 @@ export default function SongContextMenu({
                 <ContextMenuOption
                     disable={offline}
                     onClick={() => {
-                        if (likedSongs.get().includes(song.publicId)) {
-                            fetch(`/api/like/${song.publicId}`, {
-                                method: "DELETE",
-                            }).then((response) => {
-                                if (response.ok) {
-                                    // Remove song to liked songs store
-                                    likedSongs.set(
-                                        likedSongs
-                                            .get()
-                                            .filter(
-                                                (likedSong) =>
-                                                    likedSong != song.publicId
-                                            )
-                                    );
-                                } else {
-                                    console.log("Error");
-                                    // Tell user like request was unsuccessful
-                                }
-                            });
-                        } else {
-                            fetch(`/api/like/${song.publicId}`, {
-                                method: "POST",
-                            }).then((response) => {
-                                if (response.ok) {
-                                    // Add song to liked songs store
-                                    likedSongs.set([
-                                        ...likedSongs.get(),
-                                        song.publicId,
-                                    ]);
-                                } else {
-                                    console.log("Error");
-                                    // Tell user like request was unsuccessful
-                                }
-                            });
-                        }
+                        rockitIt.songManager.toggleLikeSong(song.publicId);
                     }}
                 >
                     <svg

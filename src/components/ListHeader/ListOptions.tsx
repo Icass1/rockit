@@ -20,6 +20,7 @@ import {
 } from "@/components/PopupMenu/PopupMenu";
 import { playListHandleClick } from "@/components/PlayList";
 import { downloadFile, downloadRsc } from "@/lib/utils/downloadResources";
+import { rockitIt } from "@/lib/rockit";
 
 export const pinListHandleClick = ({
     id,
@@ -148,7 +149,9 @@ export default function ListOptions({
     // const $pinnedLists = useStore(pinnedLists);
     // const isPinned = $pinnedLists.some((list) => list.id === id);
 
-    // const $downloadedLists = useStore(downloadedLists);
+    const $downloadedLists = useStore(
+        rockitIt.downloaderManager.downloadedListsAtom
+    );
 
     const addListToBottomQueue = () => {
         // const tempQueue = queue.get();
@@ -236,6 +239,9 @@ export default function ListOptions({
         //     });
         // });
     };
+
+    const isInLibrary = false;
+    const isPinned = false;
 
     return (
         <PopupMenu>

@@ -15,6 +15,7 @@ class RockItAlbumWithoutSongsResponse(BaseModel):
     copyrights: List[RockItCopyrightResponse]
     externalImages: List[RockItExternalImageResponse]
     artists: List[RockItArtistResponse]
+    releaseDate: str
 
     @staticmethod
     def from_spotify_api_search_results(album: SpotifySearchResultsItems2 | SpotifySearchResultsAlbum) -> "RockItAlbumWithoutSongsResponse":
@@ -26,7 +27,8 @@ class RockItAlbumWithoutSongsResponse(BaseModel):
                 image) for image in album.images],
             artists=[RockItArtistResponse.from_spotify_api_search_results(
                 artist) for artist in album.artists],
-            internalImageUrl=None
+            internalImageUrl=None,
+            releaseDate=album.release_date
         )
 
     @staticmethod
@@ -39,5 +41,6 @@ class RockItAlbumWithoutSongsResponse(BaseModel):
                 image) for image in album.external_images],
             artists=[RockItArtistResponse.from_row(
                 artist) for artist in album.artists],
-            internalImageUrl=f"http://localhost:8000/image/{album.internal_image.public_id}" if album.internal_image else None
+            internalImageUrl=f"http://localhost:8000/image/{album.internal_image.public_id}" if album.internal_image else None,
+            releaseDate=album.release_date
         )

@@ -10,6 +10,7 @@ export const RockItExternalImage = z.object({
     width: z.number().nullable(),
     height: z.number().nullable(),
 });
+
 // #endregion
 
 // #region: RockItExternalImage
@@ -17,6 +18,7 @@ export const DynamicLyrics = z.object({
     lyrics: z.string(),
     seconds: z.number(),
 });
+
 // #endregion
 
 // #region: RockItArtist
@@ -29,13 +31,16 @@ export const RockItArtist = z.object({
 // #endregion
 
 // #region: RockItCopyright
+
 export const RockItCopyright = z.object({
     text: z.string(),
     type: z.string(),
 });
+
 // #endregion
 
 // #region: RockItAlbumWithoutSongs
+
 export const RockItAlbumWithoutSongs = z.object({
     publicId: z.string(),
     name: z.string(),
@@ -43,20 +48,25 @@ export const RockItAlbumWithoutSongs = z.object({
     externalImages: z.array(RockItExternalImage),
     artists: z.array(RockItArtist),
     internalImageUrl: z.string().nullable(),
+    releaseDate: z.string(),
 });
 export type RockItAlbumWithoutSongs = z.infer<typeof RockItAlbumWithoutSongs>;
+
 // #endregion
 
 // #region: RockItPlaylist
+
 export const RockItPlaylist = z.object({
     publicId: z.string(),
     name: z.string(),
     externalImages: z.array(RockItExternalImage),
 });
 export type RockItPlaylist = z.infer<typeof RockItPlaylist>;
+
 // #endregion
 
 // #region: RockItSongWithoutAlbum
+
 export const RockItSongWithoutAlbum = z.object({
     publicId: z.string(),
     name: z.string(),
@@ -71,13 +81,16 @@ export const RockItSongWithoutAlbum = z.object({
     isrc: z.string(),
 });
 export type RockItSongWithoutAlbum = z.infer<typeof RockItSongWithoutAlbum>;
+
 // #endregion
 
 // #region: RockItSongWithAlbum
-export const RockItSongWithAlbum = RockItAlbumWithoutSongs.extend({
+
+export const RockItSongWithAlbum = RockItSongWithoutAlbum.extend({
     album: RockItAlbumWithoutSongs,
 });
 export type RockItSongWithAlbum = z.infer<typeof RockItSongWithAlbum>;
+
 // #endregion
 
 // #region: RockItAlbumWithSongs
@@ -85,13 +98,37 @@ export const RockItAlbumWithSongs = RockItAlbumWithoutSongs.extend({
     songs: z.array(RockItSongWithoutAlbum),
 });
 export type RockItAlbumWithSongs = z.infer<typeof RockItAlbumWithSongs>;
+
 // #endregion
 
 // #region: RockItUser
+
 export const RockItUser = z.object({
     username: z.string(),
     image: z.string().nullable(),
     admin: z.boolean(),
 });
 export type RockItUser = z.infer<typeof RockItUser>;
+
+// #endregion
+
+// #region: RockItQueueListSong
+
+export const RockItQueueListSong = z.object({
+    publicId: z.string(),
+    type: z.string(),
+});
+export type RockItQueueListSong = z.infer<typeof RockItQueueListSong>;
+
+// #endregion
+
+// #region: RockItQueueSong
+
+export const RockItQueueSong = z.object({
+    index: z.number(),
+    list: RockItQueueListSong,
+    song: RockItSongWithoutAlbum,
+});
+export type RockItQueueSong = z.infer<typeof RockItQueueSong>;
+
 // #endregion

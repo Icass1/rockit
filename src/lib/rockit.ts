@@ -1,5 +1,7 @@
 import {
     RockItAlbumWithSongs,
+    RockItQueueSong,
+    RockItSongWithAlbum,
     RockItSongWithoutAlbum,
     RockItUser,
 } from "@/types/rockIt";
@@ -29,7 +31,6 @@ class AudioManager {
         if (typeof window === "undefined") return;
 
         this._audio = new Audio();
-        console.log("AudioManager initialized");
     }
 
     skipBack() {
@@ -145,15 +146,124 @@ class SongManager {
 
     // #region: Constructor
 
-    constructor() {
-        console.log("SongManager initialized");
-    }
+    constructor() {}
 
     // #endregion: Constructor
 
     toggleLikeSong(songPublicId: string) {
+        //  if (rockitIt.songManager.likedSongsAtom.get().includes(song.publicId)) {
+        //                             fetch(`/api/like/${song.publicId}`, {
+        //                                 method: "DELETE",
+        //                             }).then((response) => {
+        //                                 if (response.ok) {
+        //                                     // Remove song to liked songs store
+        //                                     likedSongs.set(
+        //                                         likedSongs
+        //                                             .get()
+        //                                             .filter(
+        //                                                 (likedSong) =>
+        //                                                     likedSong != song.publicId
+        //                                             )
+        //                                     );
+        //                                 } else {
+        //                                     console.log("Error");
+        //                                     // Tell user like request was unsuccessful
+        //                                 }
+        //                             });
+        //                         } else {
+        //                             fetch(`/api/like/${song.publicId}`, {
+        //                                 method: "POST",
+        //                             }).then((response) => {
+        //                                 if (response.ok) {
+        //                                     // Add song to liked songs store
+        //                                     likedSongs.set([
+        //                                         ...likedSongs.get(),
+        //                                         song.publicId,
+        //                                     ]);
+        //                                 } else {
+        //                                     console.log("Error");
+        //                                     // Tell user like request was unsuccessful
+        //                                 }
+        //                             });
+        //                         }
+
         console.warn("toggleLikeSong", songPublicId);
         throw new Error("Method not implemented.");
+    }
+
+    playSong(song: RockItSongWithAlbum) {
+        throw new Error("Method not implemented.");
+        const _currentList = currentList.get();
+        if (!song.path) {
+            console.warn("song.path is undefined. ( Song:", song, ")");
+            return;
+        }
+
+        if (!_currentList) {
+            console.warn("Current list is undefined");
+            return;
+        }
+
+        if (_currentList.type == undefined || _currentList.id == undefined) {
+            console.warn("Current list type or id is undefined");
+            return;
+        }
+
+        let songsToAdd = currentListSongs
+            .filter((song) => song?.path)
+            .map((song, index) => {
+                return {
+                    song: song,
+                    list: { type: _currentList.type, id: _currentList.id },
+                    index: index,
+                };
+            });
+
+        if (!window.navigator.onLine) {
+            songsToAdd = songsToAdd.filter((song) =>
+                songsInIndexedDB.get()?.includes(song.song.id)
+            );
+        }
+
+        if (randomQueue.get()) {
+            const shuffled = [...songsToAdd].sort(() => Math.random() - 0.5);
+
+            const firstSong = songsToAdd.find(
+                (dataSong) => dataSong.song.id == song.id
+            );
+
+            if (!firstSong) {
+                console.error(
+                    "First song not found in songsToAdd in AlbumSong"
+                );
+                return;
+            }
+
+            // Move firstSong to the first position
+            const updatedQueue = [
+                firstSong,
+                ...shuffled.filter((s) => s.index !== firstSong.index),
+            ];
+
+            playWhenReady.set(true);
+            currentSong.set(song);
+            queueIndex.set(firstSong.index); // Since firstSong is now at index 0
+            queue.set(updatedQueue);
+        } else {
+            const firstSong = songsToAdd.find(
+                (dataSong) => dataSong.song.id == song.id
+            );
+            if (!firstSong) {
+                console.error(
+                    "First song not found in songsToAdd in AlbumSong"
+                );
+                return;
+            }
+            playWhenReady.set(true);
+            currentSong.set(song);
+            queueIndex.set(firstSong.index);
+            queue.set(songsToAdd);
+        }
     }
 
     // #region: Getters
@@ -166,15 +276,11 @@ class SongManager {
 }
 
 class PlaylistManager {
-    constructor() {
-        console.log("PlaylistManager initialized");
-    }
+    constructor() {}
 }
 
 class AlbumManager {
-    constructor() {
-        console.log("AlbumManager initialized");
-    }
+    constructor() {}
 
     async getSpotifyAlbumAsync(publicId: string) {
         const response = await apiFetch(`/spotify-album/${publicId}`, false);
@@ -189,31 +295,27 @@ class AlbumManager {
 }
 
 class ServiceWorkerManager {
-    constructor() {
-        console.log("ServiceWorkerManager initialized");
-    }
+    constructor() {}
 }
 
 class NotificationManager {
-    constructor() {
-        console.log("NotificationManager initialized");
-    }
+    constructor() {}
 }
 
 class QueueManager {
     // #region: Atoms
 
     private _currentSongAtom = atom<RockItSongWithoutAlbum | undefined>();
-    private _currentListAtom = atom<{ type: string; id: string } | undefined>();
+    private _currentListAtom = atom<
+        { type: string; publicId: string } | undefined
+    >();
 
-    private _queueAtom = atom<RockItSongWithoutAlbum[]>([]);
+    private _queueAtom = atom<RockItQueueSong[]>([]);
     private _queueIndexAtom = atom<number>(0);
 
     // #endregion: Atoms
 
-    constructor() {
-        console.log("QueueManager initialized");
-    }
+    constructor() {}
 
     // #region: Getters
 
@@ -234,15 +336,29 @@ class QueueManager {
 }
 
 class WebSocketManager {
-    constructor() {
-        console.log("WebSocketManager initialized");
-    }
+    constructor() {}
 }
 
 class DownloaderManager {
-    constructor() {
-        console.log("DownloaderManager initialized");
+    // #region: Atoms
+
+    private _downloadedListsAtom = atom<string[]>([]);
+
+    // #endregion: Getters
+
+    // #region: Constructor
+
+    constructor() {}
+
+    // #endregion
+
+    // #region: Getters
+
+    get downloadedListsAtom() {
+        return this._downloadedListsAtom;
     }
+
+    // #endregion: Getters
 }
 
 class UserManager {
@@ -260,7 +376,6 @@ class UserManager {
     constructor() {
         if (typeof window === "undefined") return;
         this.init();
-        console.log("UserManager initialized");
     }
 
     private async init() {
@@ -285,6 +400,7 @@ class UserManager {
 
     // #endregion
 
+    // #region: Methods
     toggleRandomQueue() {
         this._randomQueueAtom.set(!this._randomQueueAtom.get());
     }
@@ -298,6 +414,8 @@ class UserManager {
                   : "off"
         );
     }
+
+    // #endregion
 
     // #region: Getters
 
@@ -324,9 +442,7 @@ class StationManager {
 
     // #region: Constructor
 
-    constructor() {
-        console.log("StationManager initialized");
-    }
+    constructor() {}
 
     // #endregion: Constructor
 
@@ -348,11 +464,11 @@ class PlayerUIManager {
 
     // #region: Constructor
 
-    constructor() {
-        console.log("PlayerUIManager initialized");
-    }
+    constructor() {}
 
     // #endregion: Constructor
+
+    // #region: Methods
 
     show() {
         this._visibleAtom.set(true);
@@ -363,6 +479,8 @@ class PlayerUIManager {
     toggle() {
         this._visibleAtom.set(!this._visibleAtom.get());
     }
+
+    // #endregion
 
     // #region: Getters
 
@@ -382,9 +500,13 @@ class SearchManager {
 
     // #endregion: Atoms
 
-    constructor() {
-        console.log("SearchManager initialized");
-    }
+    // #region: Constructor
+
+    constructor() {}
+
+    // #endregion
+
+    // #region: Methods
 
     search(query: string) {
         // `/api/radio/stations/${by}/${searchTerm}?limit=10&offset=0`
@@ -412,6 +534,8 @@ class SearchManager {
         });
     }
 
+    // #endregion
+
     // #region: Getters
 
     get searchQueryAtom() {
@@ -424,6 +548,50 @@ class SearchManager {
 
     get searchingAtom() {
         return this._searchingAtom;
+    }
+
+    // #endregion: Getters
+}
+
+class IndexedDBManager {
+    // #region: Atoms
+
+    private _songsInIndexedDBAtom = atom<string[]>([]);
+
+    // #endregion: Atoms
+
+    // #region: Constructor
+
+    constructor() {}
+
+    // #endregion: Constructor
+
+    // #region: Getters
+
+    get songsInIndexedDBAtom() {
+        return this._songsInIndexedDBAtom;
+    }
+
+    // #endregion: Getters
+}
+
+class CurrentListManager {
+    // #region: Atoms
+
+    private _currentListSongsAtom = atom<string[]>([]);
+
+    // #endregion: Atoms
+
+    // #region: Constructor
+
+    constructor() {}
+
+    // #endregion: Constructor
+
+    // #region: Getters
+
+    get currentListSongsAtom() {
+        return this._currentListSongsAtom;
     }
 
     // #endregion: Getters
@@ -453,12 +621,12 @@ export class RockIt {
     stationManager: StationManager = new StationManager();
     playerUIManager: PlayerUIManager = new PlayerUIManager();
     searchManager: SearchManager = new SearchManager();
+    indexedDBManager: IndexedDBManager = new IndexedDBManager();
+    currentListManager: CurrentListManager = new CurrentListManager();
 
     // #endregion: Managers
 
-    constructor() {
-        console.log("RockIt initialized");
-    }
+    constructor() {}
 }
 
 export const rockitIt = new RockIt();

@@ -56,8 +56,5 @@ export default async function AlbumPage({
 
     const album = await rockitIt.albumManager.getSpotifyAlbumAsync(publicId);
 
-    console.log(album);
-
-
     return <RenderAlbum album={album}></RenderAlbum>;
 }

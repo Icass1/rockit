@@ -21,7 +21,7 @@ class AudioManager {
     private _playingAtom = atom<boolean>(false);
     private _loadingAtom = atom<boolean>(false);
     private _currentTimeAtom = atom<number>(0);
-    private _currentVolume = atom<number>(0);
+    private _currentVolume = atom<number>(1);
 
     // #endregion: Atoms
 
@@ -29,11 +29,36 @@ class AudioManager {
 
     private _muted = false;
 
+    // #region: Constructor
+
     constructor() {
         if (typeof window === "undefined") return;
 
         this._audio = new Audio();
+
+        this._audio.onplaying = (ev: Event) => {
+            this.handleAudioPlaying(ev);
+        };
+        this._audio.ontimeupdate = () => {
+            this.handleAudioTimeUpdate();
+        };
+        this._audio.onloadeddata = (ev: Event) => {
+            this.handleLoadedData(ev);
+        };
+        this._audio.onloadstart = (ev: Event) => {
+            this.handleLoadStart(ev);
+        };
+        this._audio.onpause = (ev: Event) => {
+            this.handleAudioPause(ev);
+        };
+        this._audio.onplay = (ev: Event) => {
+            this.handleAudioPlay(ev);
+        };
     }
+
+    // #endregion: Constructor
+
+    // #region: Methods
 
     skipBack() {
         throw new Error("(skipBack) Method not implemented.");
@@ -52,7 +77,22 @@ class AudioManager {
     }
 
     play() {
-        throw new Error("(play) Method not implemented.");
+        if (!this._audio) {
+            console.warn("(play) Audio element not initialized");
+            return;
+        }
+
+        if (
+            rockitIt.queueManager.currentSong?.audioUrl &&
+            this._audio.src != rockitIt.queueManager.currentSong.audioUrl
+        ) {
+            console.log(
+                `(play) Setting audio src to ${rockitIt.queueManager.currentSong.audioUrl}`
+            );
+            this._audio.volume = this._currentVolume.get();
+            this._audio.src = rockitIt.queueManager.currentSong.audioUrl;
+        }
+        this._audio.play();
     }
 
     pause() {
@@ -61,7 +101,7 @@ class AudioManager {
 
     mute() {
         if (!this._audio) {
-            console.warn("Audio element not initialized");
+            console.warn("(mute) Audio element not initialized");
             return false;
         }
         this._mutePreviousVolume = this.volume;
@@ -71,21 +111,21 @@ class AudioManager {
 
     unmute() {
         if (!this._audio) {
-            console.warn("Audio element not initialized");
+            console.warn("(unmute) Audio element not initialized");
             return false;
         }
         if (this._mutePreviousVolume !== undefined) {
             this.volume = this._mutePreviousVolume;
             this._mutePreviousVolume = undefined;
         } else {
-            console.warn("No previous volume stored.");
+            console.warn("(unmute) No previous volume stored.");
         }
         this._muted = false;
     }
 
     toggleMute() {
         if (!this._audio) {
-            console.warn("Audio element not initialized");
+            console.warn("(toggleMute) Audio element not initialized");
             return false;
         }
         if (this._muted) {
@@ -96,13 +136,55 @@ class AudioManager {
     }
 
     setCurrentTime(time: number) {
-        console.warn("setCurrentTime", time);
-        throw new Error("Method not implemented.");
+        if (!this._audio) {
+            console.warn("(setCurrentTime) Audio element not initialized");
+            return false;
+        }
+        this._audio.currentTime = time;
     }
 
     setSrc() {
-        throw new Error("Method not implemented.");
+        throw new Error("(setSrc) Method not implemented.");
     }
+
+    // #endregion: Methods
+
+    // #region: Handlers
+
+    private handleAudioPlaying(ev: Event) {
+        console.log("(handleAudioPlaying)", ev);
+    }
+
+    private handleAudioTimeUpdate() {
+        if (!this._audio) {
+            console.warn(
+                "(handleAudioTimeUpdate) Audio element not initialized"
+            );
+            return false;
+        }
+        this._currentTimeAtom.set(this._audio.currentTime);
+    }
+
+    private handleLoadedData(ev: Event) {
+        console.log("(handleLoadedData)", ev);
+        this._loadingAtom.set(false);
+    }
+
+    private handleLoadStart(ev: Event) {
+        console.log("(handleLoadStart)", ev);
+        this._loadingAtom.set(true);
+    }
+
+    private handleAudioPause(ev: Event) {
+        this.playingAtom.set(false);
+        console.log("(handleAudioPause)", ev);
+    }
+
+    private handleAudioPlay(ev: Event) {
+        this.playingAtom.set(true);
+        console.log("(handleAudioPlay)", ev);
+    }
+    // #endregion: Handlers
 
     // #region: Setters
 
@@ -601,6 +683,9 @@ class QueueManager {
     get currentSongAtom() {
         return this._currentSongAtom;
     }
+    get currentSong() {
+        return this._currentSongAtom.get();
+    }
     get currentListAtom() {
         return this._currentListAtom;
     }
@@ -635,6 +720,8 @@ class DownloaderManager {
 
     async downloadListToDBAsync(type: "album" | "playlist", publicId: string) {
         const url = `https://open.spotify.com/${type}/${publicId}`;
+
+        console.log("(downloadListToDBAsync)", url);
 
         const response = await apiFetch(`/start-download?user=1&url=${url}`);
 
@@ -678,6 +765,7 @@ class DownloaderManager {
     // #region: Handlers
 
     private handleEventSourceError(eventSource: EventSource, ev: Event) {
+        eventSource.close()
         console.log(`Error in ${eventSource.url} ${ev}`);
     }
 

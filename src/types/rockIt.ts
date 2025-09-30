@@ -79,6 +79,8 @@ export const RockItSongWithoutAlbum = z.object({
     popularity: z.number().nullable(),
     dateAdded: z.string(),
     isrc: z.string(),
+    downloaded: z.boolean(),
+    audioUrl: z.string().nullable(),
 });
 export type RockItSongWithoutAlbum = z.infer<typeof RockItSongWithoutAlbum>;
 

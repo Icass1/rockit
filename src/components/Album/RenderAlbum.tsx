@@ -12,6 +12,7 @@ import Image from "next/image";
 import { groupBy } from "lodash";
 import { rockitIt } from "@/lib/rockit";
 import { useEffect } from "react";
+import DownloadListButton from "../ListHeader/DownloadListButton";
 
 export default function RenderAlbum({
     album,
@@ -31,9 +32,11 @@ export default function RenderAlbum({
 
     if (!lang) return false;
 
-    const allSongsInDatabase = album.songs.find((song) => song.downloadUrl)
+    const allSongsInDatabase = album.songs.every((song) => song.downloaded)
         ? true
         : false;
+
+    const anySongDownloaded = album.songs.some((song) => song.downloaded);
 
     const discs = groupBy(album.songs, (song) => song.discNumber);
 
@@ -55,11 +58,17 @@ export default function RenderAlbum({
                         src={album.internalImageUrl ?? "/song-placeholder.png"}
                         className="absolute h-full w-full object-fill"
                     />
-                    <PlayListButton
-                        type="album"
-                        id={album.publicId}
-                        url={`https://open.spotify.com/album/${album.publicId}`}
-                    />
+                    <div className="absolute right-3 bottom-3 flex h-16 w-auto flex-row gap-4 md:h-20">
+                        {anySongDownloaded && (
+                            <PlayListButton type="album" id={album.publicId} />
+                        )}
+                        {!allSongsInDatabase && (
+                            <DownloadListButton
+                                type="album"
+                                publicId={album.publicId}
+                            />
+                        )}
+                    </div>
                 </div>
 
                 <div className="z-50 mx-auto flex w-fit flex-row items-center gap-2">

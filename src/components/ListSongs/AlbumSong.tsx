@@ -34,20 +34,16 @@ export default function AlbumSong({
 
     const [songUnavaliable, setSongUnavaliable] = useState(true);
     const [songPlaying, setSongPlaying] = useState(false);
-        
-    console.log("C");
 
     useEffect(() => {
-        console.log("B");
         setSongUnavaliable(
             ($networkStatus == "offline" &&
                 !$songsInIndexedDB?.includes(song.publicId)) ||
-                !song.downloadUrl
+                !song.downloaded
         );
-    }, [$songsInIndexedDB, $networkStatus, song.downloadUrl, song.publicId]);
+    }, [$songsInIndexedDB, $networkStatus, song.downloaded, song.publicId]);
 
     useEffect(() => {
-        console.log("A");
         setSongPlaying(
             $queue.find((song) => song.index == $queueIndex)?.list?.publicId ==
                 $currentList?.publicId &&
@@ -59,8 +55,6 @@ export default function AlbumSong({
     }, [song.publicId, $currentList, $queue, $queueIndex]);
 
     if (!$queue) return <div></div>;
-    
-    console.log("D");
 
     return (
         <SongContextMenu song={song}>
@@ -95,7 +89,7 @@ export default function AlbumSong({
                     }
                 >
                     <label className="w-auto max-w-full min-w-0 truncate">
-                        {song.name} {songUnavaliable ? "true" : "false"}
+                        {song.name}
                     </label>
                 </div>
                 {$songsInIndexedDB?.includes(song.publicId) ? (

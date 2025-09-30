@@ -10,6 +10,8 @@ import { RockItAlbumWithSongs } from "@/types/rockIt";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Image from "next/image";
 import { groupBy } from "lodash";
+import { rockitIt } from "@/lib/rockit";
+import { useEffect } from "react";
 
 export default function RenderAlbum({
     album,
@@ -18,6 +20,14 @@ export default function RenderAlbum({
 }) {
     const router = useRouter();
     const lang = useLanguage();
+
+    useEffect(() => {
+        rockitIt.currentListManager.setCurrentListSongs(
+            album.songs.map((song) => {
+                return { ...song, album };
+            })
+        );
+    }, [album]);
 
     if (!lang) return false;
 
@@ -59,8 +69,7 @@ export default function RenderAlbum({
 
                     <ListOptions
                         type="album"
-                        id={album.publicId}
-                        url={`https://open.spotify.com/album/${album.publicId}`}
+                        publicId={album.publicId}
                         allSongsInDatabase={allSongsInDatabase}
                     />
                 </div>
@@ -78,7 +87,6 @@ export default function RenderAlbum({
                                     e.stopPropagation();
                                     router.push(`/artist/${artist.publicId}`);
                                 }}
-                                // onclick={`event.preventDefault(); event.stopPropagation(); location.href='/artist/${artist.id}'`}
                             >
                                 {`${artist.name}${
                                     index < album.artists.length - 1 ? ", " : ""
@@ -107,26 +115,16 @@ export default function RenderAlbum({
                         <div key={entry[0]}>
                             <label className="mb-2 flex flex-row items-center gap-2 text-lg font-semibold text-neutral-400">
                                 <Disc className="h-6 w-6" />
-                                {lang.disc} {entry[0] + 1}
+                                {lang.disc} {entry[0]}
                             </label>
 
-                            {entry[1].map((song, songIndex) => {
-                                if (song) {
-                                    return (
-                                        <AlbumSong
-                                            key={song.publicId}
-                                            song={{ ...song, album }}
-                                            index={songIndex}
-                                        />
-                                    );
-                                } else {
-                                    return (
-                                        <div key={songIndex}>
-                                            Song is undefined
-                                        </div>
-                                    );
-                                }
-                            })}
+                            {entry[1].map((song, songIndex) => (
+                                <AlbumSong
+                                    key={song.publicId}
+                                    song={{ ...song, album }}
+                                    index={songIndex}
+                                />
+                            ))}
                         </div>
                     );
                 })}

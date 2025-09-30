@@ -3,9 +3,8 @@
 import { getTime } from "@/lib/utils/getTime";
 import LikeButton from "@/components/LikeButton";
 import { EllipsisVertical, CheckCircle2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useStore } from "@nanostores/react";
-import { songHandleClick } from "./HandleClick";
 import SongContextMenu from "./SongContextMenu";
 import { networkStatus } from "@/stores/networkStatus";
 import { RockItSongWithAlbum } from "@/types/rockIt";
@@ -33,28 +32,52 @@ export default function AlbumSong({
         e.stopPropagation();
     };
 
+    const [songUnavaliable, setSongUnavaliable] = useState(true);
+    const [songPlaying, setSongPlaying] = useState(false);
+        
+    console.log("C");
+
+    useEffect(() => {
+        console.log("B");
+        setSongUnavaliable(
+            ($networkStatus == "offline" &&
+                !$songsInIndexedDB?.includes(song.publicId)) ||
+                !song.downloadUrl
+        );
+    }, [$songsInIndexedDB, $networkStatus, song.downloadUrl, song.publicId]);
+
+    useEffect(() => {
+        console.log("A");
+        setSongPlaying(
+            $queue.find((song) => song.index == $queueIndex)?.list?.publicId ==
+                $currentList?.publicId &&
+                $queue.find((song) => song.index == $queueIndex)?.list?.type ==
+                    $currentList?.type &&
+                $queue.find((song) => song.index == $queueIndex)?.song
+                    .publicId == song.publicId
+        );
+    }, [song.publicId, $currentList, $queue, $queueIndex]);
+
     if (!$queue) return <div></div>;
+    
+    console.log("D");
 
     return (
         <SongContextMenu song={song}>
             <div
                 className={
                     "grid grid-cols-[min-content_1fr_min-content_min-content_40px] items-center gap-2 rounded py-[0.5rem] transition-colors select-none md:gap-4 md:px-2 md:py-[0.65rem] md:select-text " +
-                    // If offline and the song is not saved to indexedDB or the song is not in the server database, disable that song
-                    ((($networkStatus == "offline" &&
-                        !$songsInIndexedDB?.includes(song.publicId)) ||
-                        !song.downloadUrl) &&
-                        "pointer-events-none opacity-40") +
-                    ($queue.find((song) => song.index == $queueIndex)?.list
-                        ?.publicId == $currentList?.publicId &&
-                    $queue.find((song) => song.index == $queueIndex)?.list
-                        ?.type == $currentList?.type &&
-                    $queue.find((song) => song.index == $queueIndex)?.song
-                        .publicId == song.publicId
-                        ? " text-[#ec5588]"
-                        : "")
+                    (songUnavaliable ? " pointer-events-none opacity-40" : "") +
+                    (songPlaying ? " text-[#ec5588]" : "")
                 }
-                onClick={() => songHandleClick(song, currentListSongs.get())}
+                onClick={() =>
+                    rockitIt.albumManager.playAlbum(
+                        rockitIt.currentListManager.currentListSongsAtom.get(),
+                        "album",
+                        song.album.publicId,
+                        song.publicId
+                    )
+                }
                 onMouseEnter={() => {
                     setHovered(true);
                 }}
@@ -68,18 +91,11 @@ export default function AlbumSong({
                 <div
                     className={
                         "grid w-full max-w-full min-w-0 grid-cols-[1fr_max-content] items-center gap-1 truncate text-base font-semibold md:text-clip" +
-                        ($queue.find((song) => song.index == $queueIndex)?.list
-                            ?.publicId == $currentList?.publicId &&
-                        $queue.find((song) => song.index == $queueIndex)?.list
-                            ?.type == $currentList?.type &&
-                        $queue.find((song) => song.index == $queueIndex)?.song
-                            .publicId == song.publicId
-                            ? " text-[#ec5588]"
-                            : "")
+                        (songPlaying ? " text-[#ec5588]" : "")
                     }
                 >
                     <label className="w-auto max-w-full min-w-0 truncate">
-                        {song.name}
+                        {song.name} {songUnavaliable ? "true" : "false"}
                     </label>
                 </div>
                 {$songsInIndexedDB?.includes(song.publicId) ? (
@@ -91,7 +107,6 @@ export default function AlbumSong({
                 )}
                 <LikeButton songPublicId={song.publicId} />
 
-                {/* <EllipsisVertical className="text-gray-400 flex md:hidden md:hover:text-white md:hover:scale-105" /> */}
                 <label className="flex min-w-7 items-center justify-center text-sm text-white/80 select-none">
                     {hovered && window.innerWidth > 768 ? (
                         <EllipsisVertical

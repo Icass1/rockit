@@ -255,7 +255,11 @@ export default function SongContextMenu({
                 </SubContextMenu>
                 <ContextMenuSplitter />
                 <ContextMenuOption
-                    disable={typeof navigator.share == "undefined" || offline}
+                    disable={
+                        typeof navigator == "undefined" ||
+                        typeof navigator.share == "undefined" ||
+                        offline
+                    }
                     onClick={() => {
                         navigator.share({
                             title: "RockIt!",

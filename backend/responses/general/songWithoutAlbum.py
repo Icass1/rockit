@@ -50,8 +50,8 @@ class RockItSongWithoutAlbumResponse(BaseModel):
             trackNumber=song.track_number,
             discNumber=song.disc_number,
             internalImageUrl=f"http://localhost:8000/image/{song.internal_image.public_id}" if song.internal_image else None,
-            downloadUrl=None,
+            downloadUrl=song.download_url,
             popularity=song.popularity,
             dateAdded=song.date_added,
-            isrc=song.isrc
+            isrc=song.isrc,
         )

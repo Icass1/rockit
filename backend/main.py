@@ -10,7 +10,9 @@ from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Depends, FastAPI, BackgroundTasks, Request, Response
 
+from backend.db.ormModels import download
 from backend.responses.general.albumWithSongs import RockItAlbumWithSongsResponse
+from backend.responses.startDownloadResponse import StartDownloadResponse
 from backend.utils.logger import getLogger
 from backend.db.ormModels.user import UserRow
 from backend.utils.auth import get_current_user
@@ -97,8 +99,10 @@ def root():
 
 
 @fast_api_route("/start-download")
-async def start_download(user: int, url: str, background_tasks: BackgroundTasks):
-    return downloader.download_url(url=url, background_tasks=background_tasks, user_id=user)
+async def start_download(user: int, url: str, background_tasks: BackgroundTasks) -> StartDownloadResponse:
+    download_id = downloader.download_url(
+        url=url, background_tasks=background_tasks, user_id=user)
+    return StartDownloadResponse(downloadId=download_id)
 
 
 @fast_api_route("/download-status")

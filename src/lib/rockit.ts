@@ -2,7 +2,6 @@ import {
     RockItAlbumWithSongs,
     RockItQueueSong,
     RockItSongWithAlbum,
-    RockItSongWithoutAlbum,
     RockItUser,
 } from "@/types/rockIt";
 import { Station } from "@/types/station";
@@ -10,6 +9,9 @@ import { atom } from "nanostores";
 import { getSession, signOut } from "next-auth/react";
 import apiFetch from "./utils/apiFetch";
 import { SearchResultsResponse } from "@/responses/searchResponse";
+import { StartDownloadResponse } from "@/responses/startDownloadResponse";
+
+const RESPONSE_UNDEFINED_MESSAGE = "Response is undefined.";
 
 class AudioManager {
     private _audio?: HTMLAudioElement;
@@ -34,23 +36,27 @@ class AudioManager {
     }
 
     skipBack() {
-        throw new Error("Method not implemented.");
+        throw new Error("(skipBack) Method not implemented.");
     }
 
     skipForward() {
-        throw new Error("Method not implemented.");
+        throw new Error("(skipForward) Method not implemented.");
     }
 
     togglePlayPause() {
-        throw new Error("Method not implemented.");
+        throw new Error("(togglePlayPause) Method not implemented.");
+    }
+
+    togglePlayPauseOrSetSong() {
+        throw new Error("(togglePlayPauseOrSetSong) Method not implemented.");
     }
 
     play() {
-        throw new Error("Method not implemented.");
+        throw new Error("(play) Method not implemented.");
     }
 
     pause() {
-        throw new Error("Method not implemented.");
+        throw new Error("(pause) Method not implemented.");
     }
 
     mute() {
@@ -192,78 +198,79 @@ class SongManager {
     }
 
     playSong(song: RockItSongWithAlbum) {
+        console.log(song);
         throw new Error("Method not implemented.");
-        const _currentList = currentList.get();
-        if (!song.path) {
-            console.warn("song.path is undefined. ( Song:", song, ")");
-            return;
-        }
+        // const _currentList = currentList.get();
+        // if (!song.path) {
+        //     console.warn("song.path is undefined. ( Song:", song, ")");
+        //     return;
+        // }
 
-        if (!_currentList) {
-            console.warn("Current list is undefined");
-            return;
-        }
+        // if (!_currentList) {
+        //     console.warn("Current list is undefined");
+        //     return;
+        // }
 
-        if (_currentList.type == undefined || _currentList.id == undefined) {
-            console.warn("Current list type or id is undefined");
-            return;
-        }
+        // if (_currentList.type == undefined || _currentList.id == undefined) {
+        //     console.warn("Current list type or id is undefined");
+        //     return;
+        // }
 
-        let songsToAdd = currentListSongs
-            .filter((song) => song?.path)
-            .map((song, index) => {
-                return {
-                    song: song,
-                    list: { type: _currentList.type, id: _currentList.id },
-                    index: index,
-                };
-            });
+        // let songsToAdd = currentListSongs
+        //     .filter((song) => song?.path)
+        //     .map((song, index) => {
+        //         return {
+        //             song: song,
+        //             list: { type: _currentList.type, id: _currentList.id },
+        //             index: index,
+        //         };
+        //     });
 
-        if (!window.navigator.onLine) {
-            songsToAdd = songsToAdd.filter((song) =>
-                songsInIndexedDB.get()?.includes(song.song.id)
-            );
-        }
+        // if (!window.navigator.onLine) {
+        //     songsToAdd = songsToAdd.filter((song) =>
+        //         songsInIndexedDB.get()?.includes(song.song.id)
+        //     );
+        // }
 
-        if (randomQueue.get()) {
-            const shuffled = [...songsToAdd].sort(() => Math.random() - 0.5);
+        // if (randomQueue.get()) {
+        //     const shuffled = [...songsToAdd].sort(() => Math.random() - 0.5);
 
-            const firstSong = songsToAdd.find(
-                (dataSong) => dataSong.song.id == song.id
-            );
+        //     const firstSong = songsToAdd.find(
+        //         (dataSong) => dataSong.song.id == song.id
+        //     );
 
-            if (!firstSong) {
-                console.error(
-                    "First song not found in songsToAdd in AlbumSong"
-                );
-                return;
-            }
+        //     if (!firstSong) {
+        //         console.error(
+        //             "First song not found in songsToAdd in AlbumSong"
+        //         );
+        //         return;
+        //     }
 
-            // Move firstSong to the first position
-            const updatedQueue = [
-                firstSong,
-                ...shuffled.filter((s) => s.index !== firstSong.index),
-            ];
+        //     // Move firstSong to the first position
+        //     const updatedQueue = [
+        //         firstSong,
+        //         ...shuffled.filter((s) => s.index !== firstSong.index),
+        //     ];
 
-            playWhenReady.set(true);
-            currentSong.set(song);
-            queueIndex.set(firstSong.index); // Since firstSong is now at index 0
-            queue.set(updatedQueue);
-        } else {
-            const firstSong = songsToAdd.find(
-                (dataSong) => dataSong.song.id == song.id
-            );
-            if (!firstSong) {
-                console.error(
-                    "First song not found in songsToAdd in AlbumSong"
-                );
-                return;
-            }
-            playWhenReady.set(true);
-            currentSong.set(song);
-            queueIndex.set(firstSong.index);
-            queue.set(songsToAdd);
-        }
+        //     playWhenReady.set(true);
+        //     currentSong.set(song);
+        //     queueIndex.set(firstSong.index); // Since firstSong is now at index 0
+        //     queue.set(updatedQueue);
+        // } else {
+        //     const firstSong = songsToAdd.find(
+        //         (dataSong) => dataSong.song.id == song.id
+        //     );
+        //     if (!firstSong) {
+        //         console.error(
+        //             "First song not found in songsToAdd in AlbumSong"
+        //         );
+        //         return;
+        //     }
+        //     playWhenReady.set(true);
+        //     currentSong.set(song);
+        //     queueIndex.set(firstSong.index);
+        //     queue.set(songsToAdd);
+        // }
     }
 
     // #region: Getters
@@ -283,7 +290,9 @@ class AlbumManager {
     constructor() {}
 
     async getSpotifyAlbumAsync(publicId: string) {
-        const response = await apiFetch(`/spotify-album/${publicId}`, false);
+        const response = await apiFetch(`/spotify-album/${publicId}`, {
+            auth: false,
+        });
         if (!response?.ok) {
             throw "Error fetching album.";
         }
@@ -291,6 +300,216 @@ class AlbumManager {
         const responseJson = await response?.json();
 
         return RockItAlbumWithSongs.parse(responseJson);
+    }
+
+    async playAlbum(
+        songs: RockItSongWithAlbum[],
+        listType: "album" | "playlist",
+        listPublicId: string,
+        startSongPublicId?: string
+    ) {
+        rockitIt.queueManager.setSongs(songs, listType, listPublicId);
+
+        if (startSongPublicId)
+            rockitIt.queueManager.moveToSong(startSongPublicId);
+        else rockitIt.queueManager.setIndex(0);
+
+        rockitIt.audioManager.play();
+    }
+}
+
+class ListManager {
+    private _libraryListsAtom = atom<
+        { publicId: string; type: "album" | "playlist" }[]
+    >([]);
+    private _pinnedListsAtom = atom<
+        { publicId: string; type: "album" | "playlist" }[]
+    >([]);
+
+    constructor() {}
+
+    // #region: Mehtods
+
+    async addListToLibraryAsync(type: "album" | "playlist", publicId: string) {
+        const response = await apiFetch(
+            `/library/add-list/${type}/${publicId}`
+        );
+
+        if (!response) {
+            rockitIt.notificationManager.notifyError(
+                RESPONSE_UNDEFINED_MESSAGE
+            );
+            return;
+        }
+        if (!response?.ok) {
+            rockitIt.notificationManager.notifyError(
+                "Unable to add list to library."
+            );
+            return;
+        }
+        this._libraryListsAtom.set([
+            ...this._libraryListsAtom.get(),
+            { publicId, type },
+        ]);
+        rockitIt.notificationManager.notifyInfo("List added to library.");
+    }
+
+    async removeListFromLibraryAsync(
+        type: "album" | "playlist",
+        publicId: string
+    ) {
+        const response = await apiFetch(
+            `/library/remove-list/${type}/${publicId}`
+        );
+
+        if (!response) {
+            rockitIt.notificationManager.notifyError(
+                RESPONSE_UNDEFINED_MESSAGE
+            );
+            return;
+        }
+        if (!response.ok) {
+            rockitIt.notificationManager.notifyError(
+                "Unable to remove list from library."
+            );
+            return;
+        }
+        this._libraryListsAtom.set([
+            ...this._libraryListsAtom
+                .get()
+                .filter((list) => list.publicId !== publicId),
+        ]);
+        rockitIt.notificationManager.notifyInfo("List removed from library.");
+    }
+
+    async toggleListInLibraryAsync(
+        type: "album" | "playlist",
+        publicId: string
+    ) {
+        if (this.listInLibrary(publicId))
+            await this.removeListFromLibraryAsync(type, publicId);
+        else await this.addListToLibraryAsync(type, publicId);
+    }
+
+    listInLibrary(publicId: string) {
+        return this._libraryListsAtom
+            .get()
+            .some((list) => list.publicId == publicId);
+    }
+
+    async pinListAsync(type: "album" | "playlist", publicId: string) {
+        const response = await apiFetch(`/pin/${type}/${publicId}`, {
+            headers: { method: "POST" },
+        });
+
+        if (!response) {
+            rockitIt.notificationManager.notifyError(
+                RESPONSE_UNDEFINED_MESSAGE
+            );
+            return;
+        }
+        if (!response.ok) {
+            rockitIt.notificationManager.notifyError(
+                "Unable to remove list from library."
+            );
+            return;
+        }
+        this._pinnedListsAtom.set([
+            ...this._pinnedListsAtom.get(),
+            { publicId, type },
+        ]);
+        rockitIt.notificationManager.notifyInfo("List pinned.");
+    }
+
+    async unPinListAsync(type: "album" | "playlist", publicId: string) {
+        console.log(type, publicId);
+        throw "Not implemented method";
+    }
+
+    async togglePinListAsync(type: "album" | "playlist", publicId: string) {
+        if (this.listIsPinned(publicId))
+            await this.removeListFromLibraryAsync(type, publicId);
+        else await this.addListToLibraryAsync(type, publicId);
+    }
+
+    listIsPinned(publicId: string) {
+        return this._pinnedListsAtom
+            .get()
+            .some((list) => list.publicId == publicId);
+    }
+
+    async likeAllSongsAsync(type: "album" | "playlist", publicId: string) {
+        console.log(type, publicId);
+        throw "Not implemented method";
+    }
+
+    async addListToTopQueueAsync(type: "album" | "playlist", publicId: string) {
+        console.log(type, publicId);
+        throw "Not implemented method";
+    }
+
+    async addListToBottomQueueAsync(
+        type: "album" | "playlist",
+        publicId: string
+    ) {
+        console.log(type, publicId);
+        throw "Not implemented method";
+    }
+
+    async downloadListZipAsync(type: "album" | "playlist", publicId: string) {
+        console.log(type, publicId);
+        throw "Not implemented method";
+        // const response = await apiFetch(`/zip-list/${type}/${id}`);
+
+        // if (!response) {
+        //     rockitIt.notificationManager.notifyError(RESPONSE_UNDEFINED_MESSAGE);
+        //     return;
+        // }
+        // if (!response.ok) {
+        //     rockitIt.notificationManager.notifyError("Unable to zip list.");
+        //     return;
+        // }
+        // const jobId = (await response.json()).jobId;
+
+        // const interval = setInterval(async () => {
+        //     const response = await fetch(
+        //         `/api/zip-list/${type}/${id}?jobId=${jobId}`
+        //     );
+        //     if (!response.ok) {
+        //         console.warn("Response not ok");
+        //         clearInterval(interval);
+        //         return;
+        //     }
+
+        //     const json = await response.json();
+
+        //     if (json.state == "completed") {
+        //         const resultId = json.result;
+
+        //         const a = document.createElement("a");
+        //         const url = `/api/zip-list/${type}/${id}?getId=${resultId}`;
+
+        //         a.href = url;
+
+        //         document.body.appendChild(a);
+        //         a.click();
+
+        //         // Cleanup
+        //         a.remove();
+        //         window.URL.revokeObjectURL(url);
+        //         clearInterval(interval);
+        //     }
+        // }, 2000);
+    }
+
+    // #endregion
+
+    get libraryListsAtom() {
+        return this._libraryListsAtom;
+    }
+
+    get pinnedListsAtom() {
+        return this._pinnedListsAtom;
     }
 }
 
@@ -300,12 +519,19 @@ class ServiceWorkerManager {
 
 class NotificationManager {
     constructor() {}
+
+    notifyError(message: string) {
+        console.error(message);
+    }
+    notifyInfo(message: string) {
+        console.info(message);
+    }
 }
 
 class QueueManager {
     // #region: Atoms
 
-    private _currentSongAtom = atom<RockItSongWithoutAlbum | undefined>();
+    private _currentSongAtom = atom<RockItSongWithAlbum | undefined>();
     private _currentListAtom = atom<
         { type: string; publicId: string } | undefined
     >();
@@ -315,7 +541,60 @@ class QueueManager {
 
     // #endregion: Atoms
 
+    // #region: Constructor
+
     constructor() {}
+
+    // #endregion: Constructor
+
+    // #region: Methods
+
+    setSongs(
+        songs: RockItSongWithAlbum[],
+        listType: "album" | "playlist",
+        listPublicId: string
+    ) {
+        this._queueAtom.set(
+            songs.map((song, index) => {
+                return {
+                    list: { type: listType, publicId: listPublicId },
+                    song,
+                    index: index,
+                };
+            })
+        );
+    }
+
+    moveToSong(publicId: string) {
+        console.log(this._queueAtom.get());
+
+        const song = this._queueAtom
+            .get()
+            .find((song) => song.song.publicId == publicId);
+        if (!song) {
+            rockitIt.notificationManager.notifyError(
+                "(moveToSong) Song not found in queue."
+            );
+            return;
+        }
+        this._queueIndexAtom.set(song.index);
+        this._currentSongAtom.set(song.song);
+    }
+
+    setIndex(index: number) {
+        this._queueIndexAtom.set(index);
+        const song = this._queueAtom.get().find((song) => song.index == index);
+
+        if (!song) {
+            rockitIt.notificationManager.notifyError(
+                "(setIndex) Song not found in queue."
+            );
+            return;
+        }
+        this._currentSongAtom.set(song.song);
+    }
+
+    // #endregion: Methods
 
     // #region: Getters
 
@@ -351,6 +630,69 @@ class DownloaderManager {
     constructor() {}
 
     // #endregion
+
+    // #region: Methods
+
+    async downloadListToDBAsync(type: "album" | "playlist", publicId: string) {
+        const url = `https://open.spotify.com/${type}/${publicId}`;
+
+        const response = await apiFetch(`/start-download?user=1&url=${url}`);
+
+        if (!response) {
+            rockitIt.notificationManager.notifyError(
+                RESPONSE_UNDEFINED_MESSAGE
+            );
+            return;
+        }
+        if (!response.ok) {
+            rockitIt.notificationManager.notifyError(
+                "Unable to start download."
+            );
+            return;
+        }
+
+        const responseJson = await response.json();
+        const startDownload = StartDownloadResponse.parse(responseJson);
+
+        console.log(startDownload.downloadId);
+
+        const eventSource = new EventSource(
+            `${rockitIt.BACKEND_URL}/download-status?id=${startDownload.downloadId}`
+        );
+
+        eventSource.onerror = (ev: Event) => {
+            this.handleEventSourceError(eventSource, ev);
+        };
+
+        eventSource.onmessage = (ev: MessageEvent) => {
+            this.handleEventSourceMessage(eventSource, ev);
+        };
+
+        eventSource.onopen = (ev: Event) => {
+            this.handleEventSourceOpen(eventSource, ev);
+        };
+    }
+
+    // #endregion: Methods
+
+    // #region: Handlers
+
+    private handleEventSourceError(eventSource: EventSource, ev: Event) {
+        console.log(`Error in ${eventSource.url} ${ev}`);
+    }
+
+    private handleEventSourceMessage(
+        eventSource: EventSource,
+        ev: MessageEvent
+    ) {
+        console.log(`Message from ${eventSource.url} ${ev.data}`);
+    }
+
+    private handleEventSourceOpen(eventSource: EventSource, ev: Event) {
+        console.log(`Event source open ${eventSource.url} ${ev}`);
+    }
+
+    // #endregion: Handlers
 
     // #region: Getters
 
@@ -566,6 +908,19 @@ class IndexedDBManager {
 
     // #endregion: Constructor
 
+    // #region: Methods
+
+    async downloadListToDeviceAsync(
+        type: "album" | "playlist",
+        publicId: string,
+        internalImageUrl?: string
+    ) {
+        console.log(type, publicId, internalImageUrl);
+        throw "Not implemented method";
+    }
+
+    // #endregion: Methods
+
     // #region: Getters
 
     get songsInIndexedDBAtom() {
@@ -578,7 +933,7 @@ class IndexedDBManager {
 class CurrentListManager {
     // #region: Atoms
 
-    private _currentListSongsAtom = atom<string[]>([]);
+    private _currentListSongsAtom = atom<RockItSongWithAlbum[]>([]);
 
     // #endregion: Atoms
 
@@ -587,6 +942,14 @@ class CurrentListManager {
     constructor() {}
 
     // #endregion: Constructor
+
+    // #region: Methods
+
+    setCurrentListSongs(songs: RockItSongWithAlbum[]) {
+        this._currentListSongsAtom.set(songs);
+    }
+
+    // #endregion: Methods
 
     // #region: Getters
 
@@ -623,6 +986,7 @@ export class RockIt {
     searchManager: SearchManager = new SearchManager();
     indexedDBManager: IndexedDBManager = new IndexedDBManager();
     currentListManager: CurrentListManager = new CurrentListManager();
+    listManager: ListManager = new ListManager();
 
     // #endregion: Managers
 

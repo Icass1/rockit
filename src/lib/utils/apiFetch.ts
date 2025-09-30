@@ -1,11 +1,19 @@
 import { getSession, signOut } from "next-auth/react";
 import { rockitIt } from "@/lib/rockit";
 
+interface ApiFetchOptions {
+    headers?: HeadersInit;
+    auth?: boolean;
+}
+
 export default async function apiFetch(
     path: string,
-    auth: boolean = true
+    options?: ApiFetchOptions
 ): Promise<Response | undefined> {
     let token;
+
+    const auth = options?.auth ?? true;
+
     if (auth) token = localStorage.getItem("access_token");
 
     if (!token && auth) {
@@ -21,12 +29,12 @@ export default async function apiFetch(
         localStorage.setItem("access_token", token);
     }
 
-    const headers: HeadersInit = {};
+    const authHeaders: HeadersInit = {};
     if (auth) {
-        headers.Authorization = `Bearer ${token}`;
+        authHeaders.Authorization = `Bearer ${token}`;
     }
 
     return fetch(`${rockitIt.BACKEND_URL}${path}`, {
-        headers,
+        headers: { ...options?.headers, ...authHeaders },
     });
 }

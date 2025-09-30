@@ -15,20 +15,20 @@ import Link from "next/link";
 import { rockitIt } from "@/lib/rockit";
 import Image from "next/image";
 import { Station } from "@/types/station";
-import { RockItSong } from "@/types/rockIt";
+import { RockItSongWithAlbum } from "@/types/rockIt";
+import { useLanguage } from "@/contexts/LanguageContext";
 
-function FooterLeftForSong({ currentSong }: { currentSong: RockItSong }) {
+function FooterLeftForSong({
+    currentSong,
+}: {
+    currentSong: RockItSongWithAlbum;
+}) {
     const $playing = useStore(rockitIt.audioManager.playingAtom);
 
     const $queue = useStore(rockitIt.queueManager.queueAtom);
 
-    // const $currentCrossFade = useStore(currentCrossFade);
-    // const $crossFadeCurrentTime = useStore(crossFadeCurrentTime);
-
     const $currentCrossFade = 0;
     const $crossFadeCurrentTime = 0;
-
-    console.warn("Fix get first element in queue if index is too high");
 
     const [overwriteOpacity, setOverwriteOpacity] = useState<
         undefined | number
@@ -46,6 +46,8 @@ function FooterLeftForSong({ currentSong }: { currentSong: RockItSong }) {
     if (!$queue) {
         return false;
     }
+
+    console.log(currentSong);
 
     return (
         <div className="grid w-full max-w-full min-w-0 grid-cols-[min-content_1fr_min-content] items-center gap-x-4 pr-2 md:w-1/3">
@@ -152,7 +154,9 @@ function FooterLeftForSong({ currentSong }: { currentSong: RockItSong }) {
 
             {/* Opciones al final */}
             <div className="items-left hidden flex-row gap-1 md:flex">
-                {currentSong && <LikeButton song={currentSong} />}
+                {currentSong && (
+                    <LikeButton songPublicId={currentSong.publicId} />
+                )}
                 {currentSong && (
                     <SongPopupMenu song={currentSong}>
                         <EllipsisVertical className="h-[24px] w-[22px] text-gray-400 md:hover:scale-105 md:hover:text-white" />
@@ -167,7 +171,7 @@ function FooterLeftForStation({ currentStation }: { currentStation: Station }) {
     const [hover, setHover] = useState(false);
     const $playing = useStore(rockitIt.audioManager.playingAtom);
 
-    const lang = useStore(rockitIt.languageManager.langDataAtom);
+    const lang = useLanguage();
 
     if (!lang) {
         return false;

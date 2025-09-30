@@ -24,11 +24,10 @@ import { playListHandleClick } from "../PlayList";
 
 import { downloadFile, downloadRsc } from "@/lib/utils/downloadResources";
 import ContextMenuSplitter from "../ContextMenu/Splitter";
-import { downloadListZip, pinListHandleClick } from "../ListHeader/ListOptions";
 import PlayLibraryButton from "./PlayLibraryButton";
-import { RockItAlbum, RockItPlaylist } from "@/types/rockIt";
+import { RockItAlbumWithSongs, RockItPlaylist } from "@/types/rockIt";
 
-async function getListSongs(list: RockItPlaylist | RockItAlbum) {
+async function getListSongs(list: RockItPlaylist | RockItAlbumWithSongs) {
     if (list.type == "playlist") {
         const response = await fetch(
             `/api/songs1?songs=${list.songs

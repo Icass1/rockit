@@ -40,7 +40,7 @@ class RockItAlbumWithSongsResponse(RockItAlbumWithoutSongsResponse):
                     song) for song in album.songs
             ],
             internalImageUrl=f"http://localhost:8000/image/{album.internal_image.public_id}" if album.internal_image else None,
-            releaseDate=album.release_date
+            releaseDate=album.release_date,
         )
 
 

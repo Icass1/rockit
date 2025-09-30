@@ -26,34 +26,28 @@ import {
 import { songHandleClick } from "./HandleClick";
 import { useRouter } from "next/navigation";
 import useDev from "@/hooks/useDev";
+import { RockItSongWithAlbum } from "@/types/rockIt";
+import { rockitIt } from "@/lib/rockit";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function SongPopupMenu({
     children,
     song,
 }: {
     children: ReactNode;
-    song: SongDB<
-        | "id"
-        | "name"
-        | "artists"
-        | "albumName"
-        | "albumId"
-        | "duration"
-        | "image"
-        | "path"
-    >;
+    song: RockItSongWithAlbum;
 }) {
-    const $likedSongs = useStore(likedSongs);
-    const $currentListSongs = useStore(currentListSongs);
+    const $likedSongs = useStore(rockitIt.songManager.likedSongsAtom);
+
     const lang = useLanguage();
     const $networkStatus = useStore(networkStatus);
-    const $playing = useStore(playing);
+    const $playing = useStore(rockitIt.audioManager.playingAtom);
 
     const router = useRouter();
 
     const offline = $networkStatus == "offline";
 
-    const disable = song.path ? false : true;
+    const disable = song.downloadUrl ? false : true;
 
     const dev = useDev();
 
@@ -66,18 +60,21 @@ export default function SongPopupMenu({
                 <PopupMenuOption
                     disable={disable}
                     onClick={() => {
-                        if (currentSong.get()?.id == song.id) {
-                            if ($playing) {
-                                pause();
-                            } else {
-                                play();
-                            }
-                        } else {
-                            songHandleClick(song, $currentListSongs);
-                        }
+                        rockitIt.audioManager.togglePlayPauseOrSetSong();
+
+                        // if (currentSong.get()?.id == song.id) {
+                        //     if ($playing) {
+                        //         pause();
+                        //     } else {
+                        //         play();
+                        //     }
+                        // } else {
+                        //     songHandleClick(song, $currentListSongs);
+                        // }
                     }}
                 >
-                    {currentSong.get()?.id == song.id && $playing ? (
+                    {rockitIt.queueManager.currentSongAtom.get()?.publicId ==
+                        song.publicId && $playing ? (
                         <>
                             <Pause fill="white" className="h-5 w-5" />
                             {lang.pause_song ?? "Pause song"}
@@ -92,8 +89,8 @@ export default function SongPopupMenu({
                 <PopupMenuOption
                     disable={offline || disable}
                     onClick={() => {
-                        if (likedSongs.get().includes(song.id)) {
-                            fetch(`/api/like/${song.id}`, {
+                        if (rockitIt.songManager.likedSongsAtom.get().includes(song.publicId)) {
+                            fetch(`/api/like/${song.publicId}`, {
                                 method: "DELETE",
                             }).then((response) => {
                                 if (response.ok) {

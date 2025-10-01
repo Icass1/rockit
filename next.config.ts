@@ -1,26 +1,23 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-    /* config options here */
-    watchOptions: {
-        pollIntervalMs: 1000,
-    },
-    images: {
-        remotePatterns: [
-            {
-                protocol: "http",
-                hostname: "localhost",
-                port: "8000",
-                pathname: "/**",
-                search: "",
-            },
-            {
-                protocol: "https",
-                hostname: "*.scdn.co",
-                pathname: "/**",
-            },
-        ],
-    },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "http",
+        hostname: "localhost",
+        port: "8000",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "*.scdn.co",
+        pathname: "/**",
+      },
+    ],
+  },
+  // Remove the entire `webpack` function and `watchOptions` property for now
+  // The `experimental.turbo` section can stay, but ensure it's correctly formatted
 };
 
 export default nextConfig;

@@ -9,6 +9,7 @@ import useFetch from "@/hooks/useFetch";
 import { useSession } from "next-auth/react";
 import { HomeStats } from "@/responses/stats/homeStatsResponse";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
     const [data] = useFetch("/stats/home", HomeStats);
@@ -33,6 +34,7 @@ export default function Home() {
     const previousMonthKey = monthKeys[previousMonthIndex];
 
     const session = useSession();
+    const router = useRouter();
 
     if (session.status == "unauthenticated") {
         console.warn("Home -> /login");
@@ -54,6 +56,9 @@ export default function Home() {
         );
     }
 
+    console.log({ data });
+    console.warn({ data });
+
     if (!data) {
         return (
             <div className="flex h-screen flex-row items-center justify-center gap-2 text-xl font-semibold">
@@ -71,6 +76,16 @@ export default function Home() {
         monthlyTop,
         // moodSongs,
     } = data;
+
+    if (
+        songsByTimePlayed.length == 0 &&
+        randomSongsLastMonth.length == 0 &&
+        hiddenGems.length == 0 &&
+        communityTop.length == 0 &&
+        monthlyTop.length == 0
+    ) {
+        router.push("/search");
+    }
 
     return (
         <Suspense

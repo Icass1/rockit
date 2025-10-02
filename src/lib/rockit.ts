@@ -91,6 +91,10 @@ class AudioManager {
             );
             this._audio.volume = this._currentVolume.get();
             this._audio.src = rockitIt.queueManager.currentSong.audioUrl;
+
+            rockitIt.webSocketManager.send({
+                currentSong: rockitIt.queueManager.currentSong.publicId,
+            });
         }
         this._audio.play();
     }
@@ -163,6 +167,9 @@ class AudioManager {
             return false;
         }
         this._currentTimeAtom.set(this._audio.currentTime);
+        rockitIt.webSocketManager.send({
+            currentTime: this._audio.currentTime,
+        });
     }
 
     private handleLoadedData(ev: Event) {
@@ -700,7 +707,21 @@ class QueueManager {
 }
 
 class WebSocketManager {
-    constructor() {}
+    webSocket?: WebSocket;
+    constructor() {
+        if (typeof window === "undefined") return;
+    }
+    async init(BACKEND_URL: string) {
+        console.log("WebSocketManager.init");
+        this.webSocket = new WebSocket(`${BACKEND_URL}/ws`);
+        console.log(this.webSocket);
+    }
+
+    send(message: object) {
+        if (!this.webSocket) return;
+
+        this.webSocket.send(JSON.stringify(message));
+    }
 }
 
 class DownloaderManager {
@@ -814,7 +835,7 @@ class UserManager {
             console.warn("No session found in UserManager");
         }
 
-        const response = await apiFetch("/me");
+        const response = await apiFetch("/auth/me");
         if (!response?.ok) {
             console.log(window.location.pathname);
             if (
@@ -823,7 +844,7 @@ class UserManager {
             ) {
                 return;
             } else {
-                console.warn("No response from /me");
+                console.warn("No response from /auth/me");
                 console.warn("UserManager.init -> /login");
                 signOut();
                 window.location.pathname = "/login";
@@ -1087,7 +1108,10 @@ export class RockIt {
 
     // #endregion: Managers
 
-    constructor() {}
+    constructor() {
+        if (typeof window === "undefined") return;
+        this.webSocketManager.init(this.BACKEND_URL);
+    }
 }
 
 export const rockitIt = new RockIt();

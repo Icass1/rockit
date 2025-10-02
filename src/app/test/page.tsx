@@ -16,7 +16,7 @@ export default function Home() {
 
     useEffect(() => {
         if (session.status != "authenticated") return;
-        fetch(`http://localhost:8000/me`, {
+        fetch(`http://localhost:8000/auth/me`, {
             headers: {
                 Authorization: `Bearer ${session.data?.user.access_token}`,
             },

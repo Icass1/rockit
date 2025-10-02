@@ -33,7 +33,7 @@ export default function LibraryPage() {
                 />
             </section>
 
-            <FeaturedLists filterMode={filterMode} searchQuery={searchQuery} />
+            {/* <FeaturedLists filterMode={filterMode} searchQuery={searchQuery} /> */}
 
             <LibraryLists filterMode={filterMode} searchQuery={searchQuery} />
         </div>

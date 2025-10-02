@@ -383,8 +383,6 @@ export function LibraryLists({
 
     const filteredLists = lists;
 
-    console.log(lists);
-
     if (!width || !lang || !filteredLists) return null;
 
     return (

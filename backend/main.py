@@ -14,6 +14,7 @@ from backend.downloader import downloader
 from backend.responses.searchResponse import SearchResponse, SpotifyResults
 from backend.responses.general.albumWithSongs import RockItAlbumWithSongsResponse
 
+from backend.telegram.telegram_monitor import telegram_bot_task
 from backend.utils.logger import getLogger
 from backend.utils.fastAPIRoute import fast_api_route
 
@@ -170,3 +171,4 @@ async def websocket_endpoint(websocket: WebSocket):
 async def app_startup():
     """TODO"""
     asyncio.create_task(downloader.download_manager(), name="Download Manager")
+    asyncio.create_task(telegram_bot_task(), name="Rockit Telegram Bot")

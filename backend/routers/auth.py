@@ -7,9 +7,9 @@ from backend.utils.logger import getLogger
 from backend.utils.backendUtils import create_id
 from backend.utils.auth import create_access_token, get_current_user, get_user_by_username
 
-from backend.requests.oAuth import OAuthRequest
-from backend.requests.signUp import SignUpRequest
-from backend.requests.logIn import LoginInRequest
+from backend.requests.oAuthRequest import OAuthRequest
+from backend.requests.signUpRequest import SignUpRequest
+from backend.requests.logInRequest import LoginInRequest
 
 from backend.responses.meResponse import MeResponse
 

@@ -32,6 +32,7 @@ class RockitDB:
         self.logger = getLogger(__name__, "RockitDB")
 
         connection_string = f"postgresql://{username}:{password}@{host}:{port}/{self.database}?sslmode=disable"
+        self.logger.info(f"Using connection string: '{connection_string}'")
 
         self.engine = create_engine(
             connection_string, echo=verbose)
@@ -40,7 +41,6 @@ class RockitDB:
         self.SessionLocal = sessionmaker(
             bind=self.engine, expire_on_commit=False)
 
-        self.logger.info(f"Using connection string: '{connection_string}'")
 
     def get_session(self) -> Session:
         """

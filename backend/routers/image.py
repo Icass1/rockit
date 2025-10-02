@@ -6,7 +6,7 @@ from fastapi.responses import FileResponse
 from backend.constants import IMAGES_PATH
 from backend.db.ormModels.internalImage import InternalImageRow
 
-from backend.initDb import rockit_db
+from backend.init import rockit_db
 
 
 router = APIRouter(prefix="/image")

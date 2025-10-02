@@ -8,7 +8,7 @@ from backend.db.ormModels.song import SongRow
 from backend.db.ormModels.user import UserRow
 from backend.utils.auth import get_current_user
 
-from backend.initDb import rockit_db
+from backend.init import rockit_db
 
 router = APIRouter(prefix="/user")
 

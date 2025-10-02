@@ -1,17 +1,20 @@
-from fastapi import HTTPException, APIRouter
+from argon2 import PasswordHasher
+from fastapi import HTTPException, APIRouter, Depends
 
-from backend.utils.auth import create_access_token, get_user_by_username
-from backend.utils.logger import getLogger
-from backend.utils.backendUtils import create_id
 from backend.db.ormModels.user import UserRow
 
+from backend.utils.logger import getLogger
+from backend.utils.backendUtils import create_id
+from backend.utils.auth import create_access_token, get_current_user, get_user_by_username
+
+from backend.requests.oAuth import OAuthRequest
 from backend.requests.signUp import SignUpRequest
 from backend.requests.logIn import LoginInRequest
-from backend.requests.oAuth import OAuthRequest
 
-from backend.initDb import rockit_db
+from backend.responses.meResponse import MeResponse
 
-from argon2 import PasswordHasher
+from backend.init import rockit_db
+
 
 # Configure Argon2 parameters (matches your hash's parameters)
 ph = PasswordHasher(
@@ -88,3 +91,9 @@ def oauth_upsert(payload: OAuthRequest):
         token = create_access_token(
             {"user_id": str(user.id), "sub": str(user.id)})
         return {"access_token": token, "token_type": "bearer", "user": {"id": user.id, "username": user.username, "image": user.image}}
+
+
+@router.get("/me")
+def read_me(current_user: UserRow = Depends(get_current_user)):
+    """TODO"""
+    return MeResponse(username=current_user.username, image=current_user.image, admin=current_user.admin)

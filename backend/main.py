@@ -1,53 +1,28 @@
 import os
-import time
-import inspect
 import asyncio
 import threading
-from functools import wraps
 from importlib import import_module
-from typing import List, Literal
 
-from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import Depends, FastAPI, BackgroundTasks, HTTPException, Request, Response
-
-from sqlalchemy import and_, delete
-from sqlalchemy.dialects.postgresql import insert
-from sqlalchemy.dialects.postgresql.dml import Insert
-
-from sqlalchemy.orm import aliased
+from fastapi import FastAPI, HTTPException, Request, Response, WebSocket
 
 from backend.constants import SONGS_PATH
 
-from backend.db.associationTables.user_library_lists import user_library_lists
-
-from backend.db.ormModels.album import AlbumRow
-from backend.db.ormModels.list import ListRow
-from backend.db.ormModels.playlist import PlaylistRow
 from backend.db.ormModels.song import SongRow
-from backend.db.ormModels.user import UserRow
 
-from backend.responses.general import albumWithoutSongs
-from backend.responses.general.albumWithoutSongs import RockItAlbumWithoutSongsResponse
-from backend.responses.general.playlist import RockItPlaylistResponse
-from backend.responses.libraryListsResponse import LibraryListsResponse
-from backend.responses.meResponse import MeResponse
-from backend.responses.startDownloadResponse import StartDownloadResponse
+from backend.downloader import downloader
 from backend.responses.searchResponse import SearchResponse, SpotifyResults
 from backend.responses.general.albumWithSongs import RockItAlbumWithSongsResponse
 
 from backend.utils.logger import getLogger
-from backend.utils.auth import get_current_user
-
-from backend.downloader.downloader import Downloader
+from backend.utils.fastAPIRoute import fast_api_route
 
 from backend.spotifyApiTypes.RawSpotifyApiSearchResults import RawSpotifyApiSearchResults
 
-from backend.initDb import rockit_db
+from backend.init import rockit_db, downloader
 
 logger = getLogger(__file__, "main")
 
-downloader = Downloader(rockit_db=rockit_db)
 app = FastAPI()
 
 # Search and initialize all routers.
@@ -77,31 +52,6 @@ app.add_middleware(
 )
 
 
-def fast_api_route(path: str):
-    """
-    Decorator to register a GET route in FastAPI and set the asyncio task name.
-    Supports both async and sync route handlers.
-    """
-    def decorator(func):
-        is_coroutine = inspect.iscoroutinefunction(func)
-
-        @wraps(func)
-        async def wrapper(*args, **kwargs):
-            task = asyncio.current_task()
-            if task:
-                task.set_name(f"get - {path}")
-
-            if is_coroutine:
-                return await func(*args, **kwargs)
-            else:
-                return func(*args, **kwargs)
-
-        app.get(path)(wrapper)
-        return wrapper
-
-    return decorator
-
-
 def get_status():
     """TODO"""
     return {
@@ -116,128 +66,19 @@ def get_status():
     }
 
 
-@fast_api_route(path="/")
+@fast_api_route(app=app, path="/")
 def root():
     """TODO"""
     return get_status()
 
 
-@fast_api_route("/start-download")
-async def start_download(user: int, url: str, background_tasks: BackgroundTasks) -> StartDownloadResponse:
-    """TODO"""
-    download_id = downloader.download_url(
-        url=url, background_tasks=background_tasks, user_id=user)
-    return StartDownloadResponse(downloadId=download_id)
-
-
-@fast_api_route("/download-status")
-async def download_status(request: Request, id: str):
-    """TODO"""
-    return downloader.download_status(request=request, download_id=id)
-
-
-@fast_api_route("/download-status-mockup")
-async def download_status_mockup(request: Request):
-    """TODO"""
-    file = open("backend/downloadStatusMockup.txt")
-    content = file.readlines()
-    file.close()
-
-    def get_time(time: str):
-        return int(time.split(":")[0])*3600 + int(time.split(":")[1])*60 + int(time.split(":")[2])
-
-    start_time = get_time(content[0].split(" ")[1])
-    absolute_start_time = time.time()
-
-    async def event_generator():
-        current_index = 0
-        while True:
-            if await request.is_disconnected():
-                break
-            try:
-                current_time = start_time + \
-                    (time.time() - absolute_start_time)
-
-                if current_index >= len(content):
-                    break
-
-                if current_time > get_time(content[current_index].split(" ")[1]):
-                    message = content[current_index].split(
-                        content[current_index].split(" ")[1] + " ")[1].replace("\n", "").replace("'", '"')
-                    current_index += 1
-
-                    yield f"data: {message}\n\n"
-
-            except asyncio.TimeoutError:
-                # Send keep-alive to prevent connection from closing
-                yield ": keep-alive\n\n"
-
-    return StreamingResponse(event_generator(), media_type="text/event-stream")
-
-
-@fast_api_route(path='/set-max-download-threads/{max_download_threads}')
-def set_max_download_threads(request: Request, max_download_threads: str):
-    """TODO"""
-    downloader.set_max_download_threads(int(max_download_threads))
-
-    return Response("OK")
-
-
-@fast_api_route(path='/status')
+@fast_api_route(app=app, path='/status')
 def status(request: Request):
     """TODO"""
     return get_status()
 
 
-@fast_api_route(path='/get-queue')
-def get_queue(request: Request):
-    """TODO"""
-    return [{
-        "done": song._done,
-        "songName": song.get_song().name,
-        "songId": song.get_song().song_id,
-        "songAlbumName": song.get_song().album_name,
-        "songAlbumId": song.get_song().album_id,
-        "songArtist": song.get_song().artist,
-    } for song in downloader.queue]
-
-
-@fast_api_route(path='/get-downloads')
-def get_downloads(request: Request):
-    """TODO"""
-    return [{
-        "done": thread[1]._done,
-        "songName": thread[1].get_song().name,
-        "songId": thread[1].get_song().song_id,
-        "songAlbumName": thread[1].get_song().album_name,
-        "songAlbumId": thread[1].get_song().album_id,
-        "songArtist": thread[1].get_song().artist,
-        "lastMessage": thread[1].get_message_handler().get_last_messge()
-    } for thread in downloader.download_threads]
-
-
-@fast_api_route(path='/remove-cache')
-def remove_cache():
-    """
-    Remove the cache of the audio handler.
-    This is a workaround to prevent the cache from growing indefinitely.
-    """
-    count = 0
-
-    for k in downloader.spotdl_downloader.audio_providers:
-        count += 1
-        k.audio_handler.cache.remove()
-
-    return f"Removed cache of {count} audio handlers"
-
-
-@app.get("/me")
-def read_me(current_user: UserRow = Depends(get_current_user)):
-    """TODO"""
-    return MeResponse(username=current_user.username, image=current_user.image, admin=current_user.admin)
-
-
-@app.get("/search")
+@fast_api_route(app=app, path='/search')
 def search(query: str) -> SearchResponse:
     """TODO"""
     spotify_search: RawSpotifyApiSearchResults = downloader.spotify.search(
@@ -250,89 +91,6 @@ def search(query: str) -> SearchResponse:
 def get_spotify_album(album_public_id: str) -> RockItAlbumWithSongsResponse:
     """TODO"""
     return RockItAlbumWithSongsResponse.from_row(album=downloader.spotify.get_album(public_id=album_public_id))
-
-
-@app.get("/library/add-list/{type}/{publicId}")
-async def add_list_to_library(type: str, publicId: str, current_user: UserRow = Depends(get_current_user)) -> Response:
-    """TODO"""
-
-    with rockit_db.session_scope() as s:
-
-        list_row: ListRow | None = s.query(ListRow).where(
-            and_(
-                ListRow.type == type,
-                ListRow.public_id == publicId
-            )
-        ).first()
-
-        if not list_row:
-            raise HTTPException(status_code=404, detail="List not found")
-
-        user_id: int = current_user.id
-        list_id: int = list_row.id
-
-        stmt: Insert = insert(user_library_lists).values(
-            (user_id, list_id)
-        )
-
-        s.execute(stmt)
-
-    return Response("OK")
-
-
-@app.get("/library/remove-list/{type}/{publicId}")
-async def remove_list_from_library(type: Literal["album", "playlist"], publicId: str, current_user: UserRow = Depends(get_current_user)) -> Response:
-    """TODO"""
-
-    with rockit_db.session_scope() as s:
-
-        list_row = s.query(ListRow).where(
-            ListRow.type == type and ListRow.public_id == publicId).first()
-
-        if not list_row:
-            raise HTTPException(status_code=404, detail="List not found")
-
-        user_id: int = current_user.id
-        list_id: int = list_row.id
-
-        stmt = delete(user_library_lists).where(user_library_lists.c.user_id ==
-                                                user_id and user_library_lists.c.list_id == list_id)
-
-        s.execute(stmt)
-
-    return Response("OK")
-
-
-@app.get("/library/lists")
-async def get_library_lists(current_user: UserRow = Depends(get_current_user)) -> LibraryListsResponse:
-    """TODO"""
-
-    with rockit_db.session_scope() as s:
-
-        user: UserRow | None = s.query(UserRow).where(
-            UserRow.id == current_user.id).first()
-
-        if not user:
-            logger.error("This should never happen.")
-            raise HTTPException(status_code=500)
-
-        library_lists: List[ListRow] = user.lists
-
-        album_rows: List[AlbumRow] = []
-        playlist_rows: List[PlaylistRow] = []
-
-        for library_list in library_lists:
-            if library_list.album:
-                album_rows.append(library_list.album)
-            if library_list.playlist:
-                playlist_rows.append(library_list.playlist)
-
-        return LibraryListsResponse(
-            albums=[RockItAlbumWithoutSongsResponse.from_row(
-                album_row) for album_row in album_rows],
-            playlists=[RockItPlaylistResponse.from_row(
-                playlist_row) for playlist_row in playlist_rows]
-        )
 
 
 @app.get("/audio/{publicId}")
@@ -392,6 +150,20 @@ async def get_audio(request: Request, publicId: str) -> Response:
             "Content-Length": str(length),
         },
     )
+
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    print("Web socket connected")
+    await websocket.accept()
+    try:
+        while True:
+            data = await websocket.receive_text()
+            print(data)
+            await websocket.send_text(f"Message text was: {data}")
+    except Exception as e:
+        print(e)
+    print("Web socket disconnected")
 
 
 @app.on_event('startup')

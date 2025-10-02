@@ -47,7 +47,7 @@ from backend.db.ormModels.song import SongRow
 from backend.db.ormModels.list import ListRow
 from backend.db.ormModels.user import UserRow
 
-from backend.initDb import rockit_db
+from backend.init import rockit_db
 
 logger = getLogger(__name__)
 

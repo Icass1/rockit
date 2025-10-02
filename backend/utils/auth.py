@@ -9,7 +9,7 @@ from backend.utils.logger import getLogger
 from backend.db.ormModels.user import UserRow
 from backend.constants import JWT_SECRET
 
-from backend.initDb import rockit_db
+from backend.init import rockit_db
 
 security = HTTPBearer()
 

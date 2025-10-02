@@ -10,7 +10,7 @@ import { RockItAlbumWithSongs } from "@/types/rockIt";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Image from "next/image";
 import { groupBy } from "lodash";
-import { rockitIt } from "@/lib/rockit";
+import { rockIt } from "@/lib/rockit";
 import { useEffect } from "react";
 import DownloadListButton from "../ListHeader/DownloadListButton";
 
@@ -23,7 +23,7 @@ export default function RenderAlbum({
     const lang = useLanguage();
 
     useEffect(() => {
-        rockitIt.currentListManager.setCurrentListSongs(
+        rockIt.currentListManager.setCurrentListSongs(
             album.songs.map((song) => {
                 return { ...song, album };
             })

@@ -12,7 +12,7 @@ import {
 import { useEffect, useState } from "react";
 import SongPopupMenu from "@/components/ListSongs/SongPopupMenu";
 import Link from "next/link";
-import { rockitIt } from "@/lib/rockit";
+import { rockIt } from "@/lib/rockit";
 import Image from "next/image";
 import { Station } from "@/types/station";
 import { RockItSongWithAlbum } from "@/types/rockIt";
@@ -23,9 +23,9 @@ function FooterLeftForSong({
 }: {
     currentSong: RockItSongWithAlbum;
 }) {
-    const $playing = useStore(rockitIt.audioManager.playingAtom);
+    const $playing = useStore(rockIt.audioManager.playingAtom);
 
-    const $queue = useStore(rockitIt.queueManager.queueAtom);
+    const $queue = useStore(rockIt.queueManager.queueAtom);
 
     const $currentCrossFade = 0;
     const $crossFadeCurrentTime = 0;
@@ -54,7 +54,7 @@ function FooterLeftForSong({
             {/* Imagen al inicio */}
             <div
                 className="group relative h-9 w-9 cursor-pointer rounded-md md:h-16 md:w-16"
-                onClick={rockitIt.audioManager.togglePlayPause}
+                onClick={rockIt.audioManager.togglePlayPause}
             >
                 {/* Imagen del álbum */}
                 <div className="relative h-9 w-9 rounded-md md:h-16 md:w-16">
@@ -75,12 +75,12 @@ function FooterLeftForSong({
                     {$playing ? (
                         <Pause
                             className="h-6 w-6 fill-current text-white md:h-8 md:w-8"
-                            onClick={rockitIt.audioManager.pause}
+                            onClick={rockIt.audioManager.pause}
                         />
                     ) : (
                         <Play
                             className="h-6 w-6 fill-current text-white md:h-8 md:w-8"
-                            onClick={rockitIt.audioManager.play}
+                            onClick={rockIt.audioManager.play}
                         />
                     )}
                 </div>
@@ -107,7 +107,7 @@ function FooterLeftForSong({
                         <span className="flex flex-row items-center gap-3 font-semibold">
                             <Link
                                 href={`/song/${currentSong?.publicId}`}
-                                onClick={rockitIt.playerUIManager.hide}
+                                onClick={rockIt.playerUIManager.hide}
                                 className="w-full max-w-full min-w-0 truncate md:hover:underline"
                             >
                                 {currentSong?.name || "Canción desconocida :("}
@@ -115,7 +115,7 @@ function FooterLeftForSong({
                         </span>
                         <span
                             className="flex w-full flex-row gap-x-1 text-sm text-gray-400"
-                            onClick={rockitIt.playerUIManager.hide}
+                            onClick={rockIt.playerUIManager.hide}
                         >
                             <div className="truncate">
                                 {currentSong?.artists ? (
@@ -169,7 +169,7 @@ function FooterLeftForSong({
 
 function FooterLeftForStation({ currentStation }: { currentStation: Station }) {
     const [hover, setHover] = useState(false);
-    const $playing = useStore(rockitIt.audioManager.playingAtom);
+    const $playing = useStore(rockIt.audioManager.playingAtom);
 
     const lang = useLanguage();
 
@@ -194,7 +194,7 @@ function FooterLeftForStation({ currentStation }: { currentStation: Station }) {
                 />
                 {$playing ? (
                     <PauseIcon
-                        onClick={rockitIt.audioManager.pause}
+                        onClick={rockIt.audioManager.pause}
                         className="absolute bg-neutral-500/70 p-4 transition-all"
                         style={{
                             display: hover ? "" : "none",
@@ -204,7 +204,7 @@ function FooterLeftForStation({ currentStation }: { currentStation: Station }) {
                     />
                 ) : (
                     <PlayIcon
-                        onClick={rockitIt.audioManager.play}
+                        onClick={rockIt.audioManager.play}
                         className="absolute bg-neutral-500/70 p-4 transition-all"
                         style={{
                             display: hover ? "" : "none",
@@ -233,10 +233,8 @@ function FooterLeftForStation({ currentStation }: { currentStation: Station }) {
 }
 
 export default function FooterLeft() {
-    const $currentSong = useStore(rockitIt.queueManager.currentSongAtom);
-    const $currentStation = useStore(
-        rockitIt.stationManager.currentStationAtom
-    );
+    const $currentSong = useStore(rockIt.queueManager.currentSongAtom);
+    const $currentStation = useStore(rockIt.stationManager.currentStationAtom);
 
     if ($currentSong) {
         return <FooterLeftForSong currentSong={$currentSong} />;

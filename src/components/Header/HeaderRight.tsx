@@ -6,12 +6,12 @@ import HeaderUser from "./HeaderUser";
 import NotificationMenu from "./HeaderNotificationMenu";
 import OnlineUserIndicator from "./HeaderOnlineUsers";
 import { useStore } from "@nanostores/react";
-import { rockitIt } from "@/lib/rockit";
+import { rockIt } from "@/lib/rockit";
 
 export default function HeaderRight() {
     const [showMenu, setShowMenu] = useState(false);
     const bellRef = useRef<HTMLDivElement>(null);
-    const $user = useStore(rockitIt.userManager.userAtom);
+    const $user = useStore(rockIt.userManager.userAtom);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {

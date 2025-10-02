@@ -1,5 +1,5 @@
 import { getSession, signOut } from "next-auth/react";
-import { rockitIt } from "@/lib/rockit";
+import { rockIt } from "@/lib/rockit";
 
 interface ApiFetchOptions {
     headers?: HeadersInit;
@@ -34,7 +34,7 @@ export default async function apiFetch(
         authHeaders.Authorization = `Bearer ${token}`;
     }
 
-    return fetch(`${rockitIt.BACKEND_URL}${path}`, {
+    return fetch(`${rockIt.BACKEND_URL}${path}`, {
         headers: { ...options?.headers, ...authHeaders },
     });
 }

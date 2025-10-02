@@ -32,7 +32,7 @@ import {
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LibraryListsResponse } from "@/responses/libraryListsResponse";
 import Image from "next/image";
-import { rockitIt } from "@/lib/rockit";
+import { rockIt } from "@/lib/rockit";
 
 async function getListSongs(list: RockItPlaylist | RockItAlbumWithSongs) {
     if (list.type == "playlist") {
@@ -79,7 +79,7 @@ function AddListContextMenu({
     children: React.ReactNode;
     list: RockItPlaylist | RockItAlbumWithoutSongs;
 }) {
-    const $pinnedLists = useStore(rockitIt.listManager.pinnedListsAtom);
+    const $pinnedLists = useStore(rockIt.listManager.pinnedListsAtom);
 
     // const addListToTopQueue = async () => {
     //     const songs = await getListSongs(list);
@@ -418,7 +418,7 @@ export function LibraryLists({
                                 className="cover aspect-square h-auto w-full rounded-md"
                                 src={
                                     playlist.internalImageUrl ??
-                                    rockitIt.PLAYLIST_PLACEHOLDER_IMAGE_URL
+                                    rockIt.PLAYLIST_PLACEHOLDER_IMAGE_URL
                                 }
                                 width={600}
                                 height={600}
@@ -445,7 +445,7 @@ export function LibraryLists({
                                 className="cover aspect-square h-auto w-full rounded-md"
                                 src={
                                     album.internalImageUrl ??
-                                    rockitIt.ALBUM_PLACEHOLDER_IMAGE_URL
+                                    rockIt.ALBUM_PLACEHOLDER_IMAGE_URL
                                 }
                                 width={600}
                                 height={600}

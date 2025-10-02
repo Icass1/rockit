@@ -1,6 +1,6 @@
 import SearchBar from "@/components/Search/SearchBar";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { rockitIt } from "@/lib/rockit";
+import { rockIt } from "@/lib/rockit";
 import { getBestImage } from "@/lib/utils/getBestImage";
 import { RockItAlbum, RockItSong } from "@/types/rockIt";
 import { useStore } from "@nanostores/react";
@@ -128,9 +128,9 @@ function SongsSection({ spotifySongs }: { spotifySongs: RockItSong[] }) {
 }
 
 function Results() {
-    const $searchResults = useStore(rockitIt.searchManager.searchResultsAtom);
-    const $searching = useStore(rockitIt.searchManager.searchingAtom);
-    const $searchQuery = useStore(rockitIt.searchManager.searchQueryAtom);
+    const $searchResults = useStore(rockIt.searchManager.searchResultsAtom);
+    const $searching = useStore(rockIt.searchManager.searchingAtom);
+    const $searchQuery = useStore(rockIt.searchManager.searchQueryAtom);
     const lang = useLanguage();
 
     if (!lang) return false;

@@ -11,7 +11,7 @@ import {
 import stringSimilarity from "@/lib/utils/stringSimilarity";
 import Link from "next/link";
 import Image from "next/image";
-import { rockitIt } from "@/lib/rockit";
+import { rockIt } from "@/lib/rockit";
 
 function Result({
     image,
@@ -90,7 +90,7 @@ export default function RenderSearchBarResults({
     open: boolean;
     setOpen: Dispatch<React.SetStateAction<boolean>>;
 }) {
-    const $searchResults = useStore(rockitIt.searchManager.searchResultsAtom);
+    const $searchResults = useStore(rockIt.searchManager.searchResultsAtom);
     const [bestResult, setBestResult] = useState<
         | {
               name: string;
@@ -102,7 +102,7 @@ export default function RenderSearchBarResults({
           }
         | undefined
     >();
-    const $searchQuery = useStore(rockitIt.searchManager.searchQueryAtom);
+    const $searchQuery = useStore(rockIt.searchManager.searchQueryAtom);
 
     // useEffect(() => {
     //     if (!$searchResults) return;

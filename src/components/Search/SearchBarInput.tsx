@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import pkg from "lodash";
 
-import { rockitIt } from "@/lib/rockit";
+import { rockIt } from "@/lib/rockit";
 import { useLanguage } from "@/contexts/LanguageContext";
 const { debounce } = pkg;
 
@@ -14,7 +14,7 @@ export default function SearchBarInput() {
 
     useEffect(() => {
         searchDebounce.current = debounce((query: string) => {
-            rockitIt.searchManager.search(query);
+            rockIt.searchManager.search(query);
         }, 1000);
     }, []);
 

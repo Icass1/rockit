@@ -1,4 +1,4 @@
-import { rockitIt } from "@/lib/rockit";
+import { rockIt } from "@/lib/rockit";
 import { useStore } from "@nanostores/react";
 
 import { Pause, Play } from "lucide-react";
@@ -11,7 +11,7 @@ export default function PlayListButton({
     id: string;
     type: string;
 }) {
-    const $playing = useStore(rockitIt.audioManager.playingAtom);
+    const $playing = useStore(rockIt.audioManager.playingAtom);
 
     const divRef = useRef<HTMLDivElement>(null);
 

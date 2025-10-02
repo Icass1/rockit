@@ -27,7 +27,7 @@ import { songHandleClick } from "./HandleClick";
 import { useRouter } from "next/navigation";
 import useDev from "@/hooks/useDev";
 import { RockItSongWithAlbum } from "@/types/rockIt";
-import { rockitIt } from "@/lib/rockit";
+import { rockIt } from "@/lib/rockit";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function SongPopupMenu({
@@ -37,11 +37,11 @@ export default function SongPopupMenu({
     children: ReactNode;
     song: RockItSongWithAlbum;
 }) {
-    const $likedSongs = useStore(rockitIt.songManager.likedSongsAtom);
+    const $likedSongs = useStore(rockIt.songManager.likedSongsAtom);
 
     const lang = useLanguage();
     const $networkStatus = useStore(networkStatus);
-    const $playing = useStore(rockitIt.audioManager.playingAtom);
+    const $playing = useStore(rockIt.audioManager.playingAtom);
 
     const router = useRouter();
 
@@ -60,7 +60,7 @@ export default function SongPopupMenu({
                 <PopupMenuOption
                     disable={disable}
                     onClick={() => {
-                        rockitIt.audioManager.togglePlayPauseOrSetSong();
+                        rockIt.audioManager.togglePlayPauseOrSetSong();
 
                         // if (currentSong.get()?.id == song.id) {
                         //     if ($playing) {
@@ -73,7 +73,7 @@ export default function SongPopupMenu({
                         // }
                     }}
                 >
-                    {rockitIt.queueManager.currentSongAtom.get()?.publicId ==
+                    {rockIt.queueManager.currentSongAtom.get()?.publicId ==
                         song.publicId && $playing ? (
                         <>
                             <Pause fill="white" className="h-5 w-5" />
@@ -89,7 +89,11 @@ export default function SongPopupMenu({
                 <PopupMenuOption
                     disable={offline || disable}
                     onClick={() => {
-                        if (rockitIt.songManager.likedSongsAtom.get().includes(song.publicId)) {
+                        if (
+                            rockIt.songManager.likedSongsAtom
+                                .get()
+                                .includes(song.publicId)
+                        ) {
                             fetch(`/api/like/${song.publicId}`, {
                                 method: "DELETE",
                             }).then((response) => {

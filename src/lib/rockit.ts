@@ -83,17 +83,17 @@ class AudioManager {
         }
 
         if (
-            rockitIt.queueManager.currentSong?.audioUrl &&
-            this._audio.src != rockitIt.queueManager.currentSong.audioUrl
+            rockIt.queueManager.currentSong?.audioUrl &&
+            this._audio.src != rockIt.queueManager.currentSong.audioUrl
         ) {
             console.log(
-                `(play) Setting audio src to ${rockitIt.queueManager.currentSong.audioUrl}`
+                `(play) Setting audio src to ${rockIt.queueManager.currentSong.audioUrl}`
             );
             this._audio.volume = this._currentVolume.get();
-            this._audio.src = rockitIt.queueManager.currentSong.audioUrl;
+            this._audio.src = rockIt.queueManager.currentSong.audioUrl;
 
-            rockitIt.webSocketManager.send({
-                currentSong: rockitIt.queueManager.currentSong.publicId,
+            rockIt.webSocketManager.send({
+                currentSong: rockIt.queueManager.currentSong.publicId,
             });
         }
         this._audio.play();
@@ -167,7 +167,7 @@ class AudioManager {
             return false;
         }
         this._currentTimeAtom.set(this._audio.currentTime);
-        rockitIt.webSocketManager.send({
+        rockIt.webSocketManager.send({
             currentTime: this._audio.currentTime,
         });
     }
@@ -246,7 +246,7 @@ class SongManager {
     // #endregion: Constructor
 
     toggleLikeSong(songPublicId: string) {
-        //  if (rockitIt.songManager.likedSongsAtom.get().includes(song.publicId)) {
+        //  if (rockIt.songManager.likedSongsAtom.get().includes(song.publicId)) {
         //                             fetch(`/api/like/${song.publicId}`, {
         //                                 method: "DELETE",
         //                             }).then((response) => {
@@ -397,13 +397,13 @@ class AlbumManager {
         listPublicId: string,
         startSongPublicId?: string
     ) {
-        rockitIt.queueManager.setSongs(songs, listType, listPublicId);
+        rockIt.queueManager.setSongs(songs, listType, listPublicId);
 
         if (startSongPublicId)
-            rockitIt.queueManager.moveToSong(startSongPublicId);
-        else rockitIt.queueManager.setIndex(0);
+            rockIt.queueManager.moveToSong(startSongPublicId);
+        else rockIt.queueManager.setIndex(0);
 
-        rockitIt.audioManager.play();
+        rockIt.audioManager.play();
     }
 }
 
@@ -425,13 +425,11 @@ class ListManager {
         );
 
         if (!response) {
-            rockitIt.notificationManager.notifyError(
-                RESPONSE_UNDEFINED_MESSAGE
-            );
+            rockIt.notificationManager.notifyError(RESPONSE_UNDEFINED_MESSAGE);
             return;
         }
         if (!response?.ok) {
-            rockitIt.notificationManager.notifyError(
+            rockIt.notificationManager.notifyError(
                 "Unable to add list to library."
             );
             return;
@@ -440,7 +438,7 @@ class ListManager {
             ...this._libraryListsAtom.get(),
             { publicId, type },
         ]);
-        rockitIt.notificationManager.notifyInfo("List added to library.");
+        rockIt.notificationManager.notifyInfo("List added to library.");
     }
 
     async removeListFromLibraryAsync(
@@ -452,13 +450,11 @@ class ListManager {
         );
 
         if (!response) {
-            rockitIt.notificationManager.notifyError(
-                RESPONSE_UNDEFINED_MESSAGE
-            );
+            rockIt.notificationManager.notifyError(RESPONSE_UNDEFINED_MESSAGE);
             return;
         }
         if (!response.ok) {
-            rockitIt.notificationManager.notifyError(
+            rockIt.notificationManager.notifyError(
                 "Unable to remove list from library."
             );
             return;
@@ -468,7 +464,7 @@ class ListManager {
                 .get()
                 .filter((list) => list.publicId !== publicId),
         ]);
-        rockitIt.notificationManager.notifyInfo("List removed from library.");
+        rockIt.notificationManager.notifyInfo("List removed from library.");
     }
 
     async toggleListInLibraryAsync(
@@ -492,13 +488,11 @@ class ListManager {
         });
 
         if (!response) {
-            rockitIt.notificationManager.notifyError(
-                RESPONSE_UNDEFINED_MESSAGE
-            );
+            rockIt.notificationManager.notifyError(RESPONSE_UNDEFINED_MESSAGE);
             return;
         }
         if (!response.ok) {
-            rockitIt.notificationManager.notifyError(
+            rockIt.notificationManager.notifyError(
                 "Unable to remove list from library."
             );
             return;
@@ -507,7 +501,7 @@ class ListManager {
             ...this._pinnedListsAtom.get(),
             { publicId, type },
         ]);
-        rockitIt.notificationManager.notifyInfo("List pinned.");
+        rockIt.notificationManager.notifyInfo("List pinned.");
     }
 
     async unPinListAsync(type: "album" | "playlist", publicId: string) {
@@ -551,11 +545,11 @@ class ListManager {
         // const response = await apiFetch(`/zip-list/${type}/${id}`);
 
         // if (!response) {
-        //     rockitIt.notificationManager.notifyError(RESPONSE_UNDEFINED_MESSAGE);
+        //     rockIt.notificationManager.notifyError(RESPONSE_UNDEFINED_MESSAGE);
         //     return;
         // }
         // if (!response.ok) {
-        //     rockitIt.notificationManager.notifyError("Unable to zip list.");
+        //     rockIt.notificationManager.notifyError("Unable to zip list.");
         //     return;
         // }
         // const jobId = (await response.json()).jobId;
@@ -661,7 +655,7 @@ class QueueManager {
             .get()
             .find((song) => song.song.publicId == publicId);
         if (!song) {
-            rockitIt.notificationManager.notifyError(
+            rockIt.notificationManager.notifyError(
                 "(moveToSong) Song not found in queue."
             );
             return;
@@ -675,7 +669,7 @@ class QueueManager {
         const song = this._queueAtom.get().find((song) => song.index == index);
 
         if (!song) {
-            rockitIt.notificationManager.notifyError(
+            rockIt.notificationManager.notifyError(
                 "(setIndex) Song not found in queue."
             );
             return;
@@ -747,15 +741,11 @@ class DownloaderManager {
         const response = await apiFetch(`/start-download?user=1&url=${url}`);
 
         if (!response) {
-            rockitIt.notificationManager.notifyError(
-                RESPONSE_UNDEFINED_MESSAGE
-            );
+            rockIt.notificationManager.notifyError(RESPONSE_UNDEFINED_MESSAGE);
             return;
         }
         if (!response.ok) {
-            rockitIt.notificationManager.notifyError(
-                "Unable to start download."
-            );
+            rockIt.notificationManager.notifyError("Unable to start download.");
             return;
         }
 
@@ -765,7 +755,7 @@ class DownloaderManager {
         console.log(startDownload.downloadId);
 
         const eventSource = new EventSource(
-            `${rockitIt.BACKEND_URL}/download-status?id=${startDownload.downloadId}`
+            `${rockIt.BACKEND_URL}/download-status?id=${startDownload.downloadId}`
         );
 
         eventSource.onerror = (ev: Event) => {
@@ -1114,4 +1104,4 @@ export class RockIt {
     }
 }
 
-export const rockitIt = new RockIt();
+export const rockIt = new RockIt();

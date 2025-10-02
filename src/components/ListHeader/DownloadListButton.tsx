@@ -1,4 +1,4 @@
-import { rockitIt } from "@/lib/rockit";
+import { rockIt } from "@/lib/rockit";
 import { Download } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -75,7 +75,7 @@ export default function DownloadListButton({
             <div
                 ref={divRef}
                 onClick={() => {
-                    rockitIt.downloaderManager.downloadListToDBAsync(
+                    rockIt.downloaderManager.downloadListToDBAsync(
                         type,
                         publicId
                     );

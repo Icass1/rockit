@@ -9,7 +9,7 @@ import useFetch from "@/hooks/useFetch";
 import { StatsResponse } from "@/responses/stats/statsResponse";
 import { RockItSong } from "@/types/rockIt";
 import Image from "next/image";
-import { rockitIt } from "@/lib/rockit";
+import { rockIt } from "@/lib/rockit";
 
 function Song({
     index,
@@ -56,11 +56,11 @@ function Song({
 
     const transition = " transition-all duration-300 ";
 
-    const $currentSong = useStore(rockitIt.queueManager.currentSongAtom);
-    const $playing = useStore(rockitIt.audioManager.playingAtom);
+    const $currentSong = useStore(rockIt.queueManager.currentSongAtom);
+    const $playing = useStore(rockIt.audioManager.playingAtom);
 
     const handleClick = () => {
-        rockitIt.queueManager.currentListAtom.set({
+        rockIt.queueManager.currentListAtom.set({
             type: "carousel",
             id: "carousel",
         });

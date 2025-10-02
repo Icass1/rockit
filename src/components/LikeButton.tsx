@@ -2,10 +2,10 @@
 
 import { useStore } from "@nanostores/react";
 import "@/styles/LikeButton.css";
-import { rockitIt } from "@/lib/rockit";
+import { rockIt } from "@/lib/rockit";
 
 export default function LikeButton({ songPublicId }: { songPublicId: string }) {
-    const $likedSongs = useStore(rockitIt.songManager.likedSongsAtom);
+    const $likedSongs = useStore(rockIt.songManager.likedSongsAtom);
 
     return (
         <div
@@ -42,9 +42,7 @@ export default function LikeButton({ songPublicId }: { songPublicId: string }) {
 
             {/* Mano de metal */}
             <div
-                onClick={() =>
-                    rockitIt.songManager.toggleLikeSong(songPublicId)
-                }
+                onClick={() => rockIt.songManager.toggleLikeSong(songPublicId)}
                 style={{
                     height: "22px",
                     width: "22px",

@@ -19,7 +19,7 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Image from "next/image";
-import { rockitIt } from "@/lib/rockit";
+import { rockIt } from "@/lib/rockit";
 
 export default function Navigation() {
     const [open, setOpen] = useState(false);
@@ -47,7 +47,7 @@ export default function Navigation() {
 
     const activePage = usePathname();
 
-    const user = useStore(rockitIt.userManager.userAtom);
+    const user = useStore(rockIt.userManager.userAtom);
 
     if (!lang) return false;
 

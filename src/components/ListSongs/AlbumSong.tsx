@@ -8,7 +8,7 @@ import { useStore } from "@nanostores/react";
 import SongContextMenu from "./SongContextMenu";
 import { networkStatus } from "@/stores/networkStatus";
 import { RockItSongWithAlbum } from "@/types/rockIt";
-import { rockitIt } from "@/lib/rockit";
+import { rockIt } from "@/lib/rockit";
 
 export default function AlbumSong({
     song,
@@ -18,11 +18,11 @@ export default function AlbumSong({
     index: number;
 }) {
     const [hovered, setHovered] = useState(false);
-    const $queue = useStore(rockitIt.queueManager.queueAtom);
-    const $queueIndex = useStore(rockitIt.queueManager.queueIndexAtom);
-    const $currentList = useStore(rockitIt.queueManager.currentListAtom);
+    const $queue = useStore(rockIt.queueManager.queueAtom);
+    const $queueIndex = useStore(rockIt.queueManager.queueIndexAtom);
+    const $currentList = useStore(rockIt.queueManager.currentListAtom);
     const $songsInIndexedDB = useStore(
-        rockitIt.indexedDBManager.songsInIndexedDBAtom
+        rockIt.indexedDBManager.songsInIndexedDBAtom
     );
     const $networkStatus = useStore(networkStatus);
 
@@ -65,8 +65,8 @@ export default function AlbumSong({
                     (songPlaying ? " text-[#ec5588]" : "")
                 }
                 onClick={() =>
-                    rockitIt.albumManager.playAlbum(
-                        rockitIt.currentListManager.currentListSongsAtom.get(),
+                    rockIt.albumManager.playAlbum(
+                        rockIt.currentListManager.currentListSongsAtom.get(),
                         "album",
                         song.album.publicId,
                         song.publicId

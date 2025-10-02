@@ -32,7 +32,7 @@ import "@/styles/CheckBox.css";
 import Image from "next/image";
 import { RockItSongWithAlbum } from "@/types/rockIt";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { rockitIt } from "@/lib/rockit";
+import { rockIt } from "@/lib/rockit";
 
 function ListSubContextMenu({
     list,
@@ -99,9 +99,9 @@ export default function SongContextMenu({
     song: RockItSongWithAlbum;
     onPlay?: () => void;
 }) {
-    const $likedSongs = useStore(rockitIt.songManager.likedSongsAtom);
+    const $likedSongs = useStore(rockIt.songManager.likedSongsAtom);
     const $currentListSongs = useStore(
-        rockitIt.currentListManager.currentListSongsAtom
+        rockIt.currentListManager.currentListSongsAtom
     );
     const lang = useLanguage();
     const $networkStatus = useStore(networkStatus);
@@ -145,7 +145,7 @@ export default function SongContextMenu({
                 <ContextMenuOption
                     disable={offline}
                     onClick={() => {
-                        rockitIt.songManager.toggleLikeSong(song.publicId);
+                        rockIt.songManager.toggleLikeSong(song.publicId);
                     }}
                 >
                     <svg

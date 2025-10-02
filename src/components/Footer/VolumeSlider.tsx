@@ -1,31 +1,31 @@
 import { useStore } from "@nanostores/react";
 import { Volume1, Volume2, VolumeOff } from "lucide-react";
 import Slider from "@/components/Slider";
-import { rockitIt } from "@/lib/rockit";
+import { rockIt } from "@/lib/rockit";
 
 export default function VolumeSlider() {
-    const $volume = useStore(rockitIt.audioManager.volumeAtom);
+    const $volume = useStore(rockIt.audioManager.volumeAtom);
 
     let volumeIcon;
     if ($volume === 0) {
         volumeIcon = (
             <VolumeOff
                 className="h-[22px] w-[22px] cursor-pointer text-gray-400 md:hover:text-white"
-                onClick={() => rockitIt.audioManager.toggleMute()}
+                onClick={() => rockIt.audioManager.toggleMute()}
             />
         );
     } else if ($volume && $volume < 0.5) {
         volumeIcon = (
             <Volume1
                 className="h-[22px] w-[22px] cursor-pointer text-gray-400 md:hover:text-white"
-                onClick={() => rockitIt.audioManager.toggleMute()}
+                onClick={() => rockIt.audioManager.toggleMute()}
             />
         );
     } else {
         volumeIcon = (
             <Volume2
                 className="h-[22px] w-[22px] cursor-pointer text-gray-400 md:hover:text-white"
-                onClick={() => rockitIt.audioManager.toggleMute()}
+                onClick={() => rockIt.audioManager.toggleMute()}
             />
         );
     }
@@ -42,7 +42,7 @@ export default function VolumeSlider() {
                 max={1}
                 step={0.001}
                 onChange={(event) =>
-                    (rockitIt.audioManager.volume =
+                    (rockIt.audioManager.volume =
                         Number(event.target.value) ** 2)
                 }
             />

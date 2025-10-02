@@ -1,12 +1,12 @@
 "use client";
 
-import { rockitIt } from "@/lib/rockit";
+import { rockIt } from "@/lib/rockit";
 import { useStore } from "@nanostores/react";
 import { LogOut } from "lucide-react";
 import { signOut } from "next-auth/react";
 
 export default function LogOutButton() {
-    const lang = useStore(rockitIt.languageManager.langDataAtom);
+    const lang = useStore(rockIt.languageManager.langDataAtom);
 
     if (!lang) return false;
 

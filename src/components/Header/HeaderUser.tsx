@@ -11,12 +11,12 @@ import { signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
-import { rockitIt } from "@/lib/rockit";
+import { rockIt } from "@/lib/rockit";
 import { useEffect, useState } from "react";
 
 export default function HeaderUser() {
     const router = useRouter();
-    const $user = useStore(rockitIt.userManager.userAtom);
+    const $user = useStore(rockIt.userManager.userAtom);
 
     const [user, setUser] = useState<RockItUser | undefined>();
 

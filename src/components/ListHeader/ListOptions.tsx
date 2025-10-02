@@ -19,7 +19,7 @@ import {
     PopupMenuTrigger,
 } from "@/components/PopupMenu/PopupMenu";
 import { playListHandleClick } from "@/components/PlayList";
-import { rockitIt } from "@/lib/rockit";
+import { rockIt } from "@/lib/rockit";
 
 export default function ListOptions({
     type,
@@ -32,17 +32,17 @@ export default function ListOptions({
     internalImageUrl?: string;
     allSongsInDatabase: boolean;
 }) {
-    const $libraryLists = useStore(rockitIt.listManager.libraryListsAtom);
+    const $libraryLists = useStore(rockIt.listManager.libraryListsAtom);
     const isInLibrary = $libraryLists.some(
         (list) => list.publicId === publicId
     );
 
     // // Determina si el elemento ya está en la lista
-    const $pinnedLists = useStore(rockitIt.listManager.pinnedListsAtom);
+    const $pinnedLists = useStore(rockIt.listManager.pinnedListsAtom);
     const isPinned = $pinnedLists.some((list) => list.publicId === publicId);
 
     const $downloadedLists = useStore(
-        rockitIt.downloaderManager.downloadedListsAtom
+        rockIt.downloaderManager.downloadedListsAtom
     );
 
     return (
@@ -64,7 +64,7 @@ export default function ListOptions({
                 <PopupMenuOption
                     // disable={!inDatabase && !$downloadedLists.includes(id)}
                     onClick={() =>
-                        rockitIt.listManager.likeAllSongsAsync(type, publicId)
+                        rockIt.listManager.likeAllSongsAsync(type, publicId)
                     }
                 >
                     <Heart className="h-5 w-5" />
@@ -73,7 +73,7 @@ export default function ListOptions({
                 <PopupMenuOption
                     // disable={!inDatabase && !$downloadedLists.includes(id)}
                     onClick={() =>
-                        rockitIt.listManager.addListToTopQueueAsync(
+                        rockIt.listManager.addListToTopQueueAsync(
                             type,
                             publicId
                         )
@@ -85,7 +85,7 @@ export default function ListOptions({
                 <PopupMenuOption
                     // disable={!inDatabase && !$downloadedLists.includes(id)}
                     onClick={() =>
-                        rockitIt.listManager.addListToBottomQueueAsync(
+                        rockIt.listManager.addListToBottomQueueAsync(
                             type,
                             publicId
                         )
@@ -97,7 +97,7 @@ export default function ListOptions({
                 <PopupMenuOption
                     // disable={!inDatabase && !$downloadedLists.includes(id)}
                     onClick={() =>
-                        rockitIt.indexedDBManager.downloadListToDeviceAsync(
+                        rockIt.indexedDBManager.downloadListToDeviceAsync(
                             type,
                             publicId,
                             internalImageUrl
@@ -110,7 +110,7 @@ export default function ListOptions({
                 <PopupMenuOption
                     // disable={!inDatabase && !$downloadedLists.includes(id)}
                     onClick={() =>
-                        rockitIt.listManager.toggleListInLibraryAsync(
+                        rockIt.listManager.toggleListInLibraryAsync(
                             type,
                             publicId
                         )
@@ -122,7 +122,7 @@ export default function ListOptions({
                 <PopupMenuOption
                     // disable={!inDatabase && !$downloadedLists.includes(id)}
                     onClick={() =>
-                        rockitIt.listManager.togglePinListAsync(type, publicId)
+                        rockIt.listManager.togglePinListAsync(type, publicId)
                     }
                 >
                     {isPinned ? (
@@ -136,7 +136,7 @@ export default function ListOptions({
                     !$downloadedLists.includes(publicId) && (
                         <PopupMenuOption
                             onClick={() =>
-                                rockitIt.downloaderManager.downloadListToDBAsync(
+                                rockIt.downloaderManager.downloadListToDBAsync(
                                     type,
                                     publicId
                                 )
@@ -153,7 +153,7 @@ export default function ListOptions({
                     type == "album" && (
                         <PopupMenuOption
                             onClick={() =>
-                                rockitIt.listManager.downloadListZipAsync(
+                                rockIt.listManager.downloadListZipAsync(
                                     type,
                                     publicId
                                 )

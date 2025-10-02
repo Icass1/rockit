@@ -1,4 +1,4 @@
-import { rockitIt } from "@/lib/rockit";
+import { rockIt } from "@/lib/rockit";
 import { useStore } from "@nanostores/react";
 
 import { Pause, Play } from "lucide-react";
@@ -6,8 +6,8 @@ import { Pause, Play } from "lucide-react";
 export default function PlayLibraryButton() {
     let icon;
 
-    const $queue = useStore(rockitIt.queueManager.queueAtom);
-    const $queueIndex = useStore(rockitIt.queueManager.queueIndexAtom);
+    const $queue = useStore(rockIt.queueManager.queueAtom);
+    const $queueIndex = useStore(rockIt.queueManager.queueIndexAtom);
 
     const playingLibrary = $queue?.find(
         (queueSong) =>
@@ -16,7 +16,7 @@ export default function PlayLibraryButton() {
         ? true
         : false;
 
-    const $playing = useStore(rockitIt.audioManager.playingAtom);
+    const $playing = useStore(rockIt.audioManager.playingAtom);
 
     if (playingLibrary && $playing) {
         icon = (

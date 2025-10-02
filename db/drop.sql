@@ -12,7 +12,7 @@ DROP TABLE IF EXISTS main.song_artists CASCADE;
 DROP TABLE IF EXISTS main.song_external_images CASCADE;
 
 DROP TABLE IF EXISTS main.users CASCADE;
-DROP TABLE IF EXISTS main.user_lists CASCADE;
+DROP TABLE IF EXISTS main.user_library_lists CASCADE;
 DROP TABLE IF EXISTS main.user_queue_songs CASCADE;
 DROP TABLE IF EXISTS main.user_pinned_lists CASCADE;
 DROP TABLE IF EXISTS main.user_liked_songs CASCADE;

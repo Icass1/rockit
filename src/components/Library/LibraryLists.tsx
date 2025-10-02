@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo } from "react";
 import { useStore } from "@nanostores/react";
 import NewPlaylistButton from "@/components/Library/NewPlaylistButton";
 import useWindowSize from "@/hooks/useWindowSize";
@@ -25,7 +24,15 @@ import { playListHandleClick } from "../PlayList";
 import { downloadFile, downloadRsc } from "@/lib/utils/downloadResources";
 import ContextMenuSplitter from "../ContextMenu/Splitter";
 import PlayLibraryButton from "./PlayLibraryButton";
-import { RockItAlbumWithSongs, RockItPlaylist } from "@/types/rockIt";
+import {
+    RockItAlbumWithoutSongs,
+    RockItAlbumWithSongs,
+    RockItPlaylist,
+} from "@/types/rockIt";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { LibraryListsResponse } from "@/responses/libraryListsResponse";
+import Image from "next/image";
+import { rockitIt } from "@/lib/rockit";
 
 async function getListSongs(list: RockItPlaylist | RockItAlbumWithSongs) {
     if (list.type == "playlist") {
@@ -70,198 +77,200 @@ function AddListContextMenu({
     list,
 }: {
     children: React.ReactNode;
-    list: PlaylistDB | AlbumDB;
+    list: RockItPlaylist | RockItAlbumWithoutSongs;
 }) {
-    const $pinnedLists = useStore(pinnedLists);
+    const $pinnedLists = useStore(rockitIt.listManager.pinnedListsAtom);
 
-    const addListToTopQueue = async () => {
-        const songs = await getListSongs(list);
+    // const addListToTopQueue = async () => {
+    //     const songs = await getListSongs(list);
 
-        if (!songs) {
-            console.warn("addListToTopQueue Songs is undefined");
-            return;
-        }
+    //     if (!songs) {
+    //         console.warn("addListToTopQueue Songs is undefined");
+    //         return;
+    //     }
 
-        const tempQueue = queue.get();
-        if (!tempQueue) return;
+    //     const tempQueue = queue.get();
+    //     if (!tempQueue) return;
 
-        const songsToAdd = songs
-            .map((song, index) => {
-                return {
-                    song: song,
-                    list: { type: list.type, id: list.id },
-                    index:
-                        Math.max(...tempQueue.map((_song) => _song.index)) +
-                        index +
-                        1,
-                };
-            })
-            .filter(
-                (queueSong) => queueSong?.song?.id && queueSong?.song?.path
-            );
-        const index = tempQueue.findIndex(
-            (_song) => _song.index == queueIndex.get()
-        );
+    //     const songsToAdd = songs
+    //         .map((song, index) => {
+    //             return {
+    //                 song: song,
+    //                 list: { type: list.type, id: list.id },
+    //                 index:
+    //                     Math.max(...tempQueue.map((_song) => _song.index)) +
+    //                     index +
+    //                     1,
+    //             };
+    //         })
+    //         .filter(
+    //             (queueSong) => queueSong?.song?.id && queueSong?.song?.path
+    //         );
+    //     const index = tempQueue.findIndex(
+    //         (_song) => _song.index == queueIndex.get()
+    //     );
 
-        queue.set([
-            ...tempQueue.slice(0, index + 1),
-            ...songsToAdd,
-            ...tempQueue.slice(index + 1),
-        ]);
-    };
+    //     queue.set([
+    //         ...tempQueue.slice(0, index + 1),
+    //         ...songsToAdd,
+    //         ...tempQueue.slice(index + 1),
+    //     ]);
+    // };
 
-    const addListToQueueRandomly = async () => {
-        const songs = await getListSongs(list);
-        if (!songs) {
-            console.warn("addListToBottomQueue Songs is undefined");
-            return;
-        }
+    // const addListToQueueRandomly = async () => {
+    //     const songs = await getListSongs(list);
+    //     if (!songs) {
+    //         console.warn("addListToBottomQueue Songs is undefined");
+    //         return;
+    //     }
 
-        const tempQueue = queue.get();
-        if (!tempQueue) return;
+    //     const tempQueue = queue.get();
+    //     if (!tempQueue) return;
 
-        const songsToAdd = songs
-            .map((song, index) => {
-                return {
-                    song: song,
-                    list: { type: list.type, id: list.id },
-                    index:
-                        Math.max(...tempQueue.map((_song) => _song.index)) +
-                        index +
-                        1,
-                };
-            })
-            .filter(
-                (queueSong) => queueSong?.song?.id && queueSong?.song?.path
-            );
-        const index = tempQueue.findIndex(
-            (_song) => _song.index == queueIndex.get()
-        );
+    //     const songsToAdd = songs
+    //         .map((song, index) => {
+    //             return {
+    //                 song: song,
+    //                 list: { type: list.type, id: list.id },
+    //                 index:
+    //                     Math.max(...tempQueue.map((_song) => _song.index)) +
+    //                     index +
+    //                     1,
+    //             };
+    //         })
+    //         .filter(
+    //             (queueSong) => queueSong?.song?.id && queueSong?.song?.path
+    //         );
+    //     const index = tempQueue.findIndex(
+    //         (_song) => _song.index == queueIndex.get()
+    //     );
 
-        const queueAfterCurrentIndex = [
-            // ...songsToAdd,
+    //     const queueAfterCurrentIndex = [
+    //         // ...songsToAdd,
 
-            ...tempQueue.slice(index + 1),
-        ];
+    //         ...tempQueue.slice(index + 1),
+    //     ];
 
-        songsToAdd.forEach((song, i) => {
-            // Assign a random index to each song to be added
-            const index = Math.floor(
-                Math.random() * (queueAfterCurrentIndex.length + i)
-            );
-            // Insert the song into the queueAfterCurrentIndex at the random index
-            queueAfterCurrentIndex.splice(index, 0, song);
-        });
+    //     songsToAdd.forEach((song, i) => {
+    //         // Assign a random index to each song to be added
+    //         const index = Math.floor(
+    //             Math.random() * (queueAfterCurrentIndex.length + i)
+    //         );
+    //         // Insert the song into the queueAfterCurrentIndex at the random index
+    //         queueAfterCurrentIndex.splice(index, 0, song);
+    //     });
 
-        queue.set([
-            ...tempQueue.slice(0, index + 1),
-            ...queueAfterCurrentIndex,
-        ]);
-    };
+    //     queue.set([
+    //         ...tempQueue.slice(0, index + 1),
+    //         ...queueAfterCurrentIndex,
+    //     ]);
+    // };
 
-    const addListToBottomQueue = async () => {
-        const songs = await getListSongs(list);
-        if (!songs) {
-            console.warn("addListToBottomQueue Songs is undefined");
-            return;
-        }
-        const tempQueue = queue.get();
-        if (!tempQueue) return;
+    // const addListToBottomQueue = async () => {
+    //     const songs = await getListSongs(list);
+    //     if (!songs) {
+    //         console.warn("addListToBottomQueue Songs is undefined");
+    //         return;
+    //     }
+    //     const tempQueue = queue.get();
+    //     if (!tempQueue) return;
 
-        const songsToAdd = songs
-            .map((song, index) => {
-                return {
-                    song: song,
-                    list: { type: list.type, id: list.id },
-                    index:
-                        Math.max(...tempQueue.map((_song) => _song.index)) +
-                        index +
-                        1,
-                };
-            })
-            .filter(
-                (queueSong) => queueSong?.song?.id && queueSong?.song?.path
-            );
-        queue.set([...tempQueue, ...songsToAdd]);
-    };
+    //     const songsToAdd = songs
+    //         .map((song, index) => {
+    //             return {
+    //                 song: song,
+    //                 list: { type: list.type, id: list.id },
+    //                 index:
+    //                     Math.max(...tempQueue.map((_song) => _song.index)) +
+    //                     index +
+    //                     1,
+    //             };
+    //         })
+    //         .filter(
+    //             (queueSong) => queueSong?.song?.id && queueSong?.song?.path
+    //         );
+    //     queue.set([...tempQueue, ...songsToAdd]);
+    // };
 
-    const handlePlay = async () => {
-        const songs = await getListSongs(list);
-        if (!songs) {
-            console.warn("Songs is undefined");
-            return;
-        }
+    // const handlePlay = async () => {
+    //     const songs = await getListSongs(list);
+    //     if (!songs) {
+    //         console.warn("Songs is undefined");
+    //         return;
+    //     }
 
-        currentListSongs.set(songs);
+    //     currentListSongs.set(songs);
 
-        playListHandleClick({ type: list.type, id: list.id });
-    };
+    //     playListHandleClick({ type: list.type, id: list.id });
+    // };
 
-    const downloadListToDevice = async () => {
-        currentListSongs.get().map((song) => {
-            saveSongToIndexedDB(song);
-        });
+    // const downloadListToDevice = async () => {
+    //     currentListSongs.get().map((song) => {
+    //         saveSongToIndexedDB(song);
+    //     });
 
-        if (!database) return;
+    //     if (!database) return;
 
-        const imageBlob = await fetch(`/api/image/${list.image}`).then(
-            (response) => response.blob()
-        );
+    //     const imageBlob = await fetch(`/api/image/${list.image}`).then(
+    //         (response) => response.blob()
+    //     );
 
-        const imageToSave = {
-            id: list.image,
-            blob: imageBlob,
-        };
+    //     const imageToSave = {
+    //         id: list.image,
+    //         blob: imageBlob,
+    //     };
 
-        await downloadFile(`/${list.type}/${list.id}`, database);
-        await downloadRsc(`/${list.type}/${list.id}`, database);
+    //     await downloadFile(`/${list.type}/${list.id}`, database);
+    //     await downloadRsc(`/${list.type}/${list.id}`, database);
 
-        const imagesTx = database.transaction("images", "readwrite");
-        const imagesStore = imagesTx.objectStore("images");
-        imagesStore.put(imageToSave);
+    //     const imagesTx = database.transaction("images", "readwrite");
+    //     const imagesStore = imagesTx.objectStore("images");
+    //     imagesStore.put(imageToSave);
 
-        console.log("List downloaded!");
-    };
+    //     console.log("List downloaded!");
+    // };
 
-    const handleRemoveFromLibrary = () => {
-        fetch(`/api/remove-list/${list.type}/${list.id}`)
-            .then((response) => response.json())
-            .then(() => {
-                libraryLists.set(
-                    libraryLists.get().filter((list) => list.id !== list.id)
-                );
-            });
-    };
+    // const handleRemoveFromLibrary = () => {
+    //     fetch(`/api/remove-list/${list.type}/${list.id}`)
+    //         .then((response) => response.json())
+    //         .then(() => {
+    //             libraryLists.set(
+    //                 libraryLists.get().filter((list) => list.id !== list.id)
+    //             );
+    //         });
+    // };
 
     return (
         <ContextMenu>
             <ContextMenuTrigger>{children}</ContextMenuTrigger>
             <ContextMenuContent>
-                <ContextMenuOption onClick={handlePlay}>
+                <ContextMenuOption onClick={() => handlePlay}>
                     <PlayCircle className="h-5 w-5" />
                     Play {list.type}
                 </ContextMenuOption>
                 <ContextMenuSplitter />
-                <ContextMenuOption onClick={addListToTopQueue}>
+                <ContextMenuOption onClick={() => addListToTopQueue}>
                     <ListStart className="h-5 w-5" />
                     Add list to top of queue
                 </ContextMenuOption>
-                <ContextMenuOption onClick={addListToQueueRandomly}>
+                <ContextMenuOption onClick={() => addListToQueueRandomly}>
                     <Shuffle className="h-5 w-5" />
                     Add list to queue randomly
                 </ContextMenuOption>
-                <ContextMenuOption onClick={addListToBottomQueue}>
+                <ContextMenuOption onClick={() => addListToBottomQueue}>
                     <ListEnd className="h-5 w-5" />
                     Add list to bottom of queue
                 </ContextMenuOption>
 
                 <ContextMenuSplitter />
 
-                <ContextMenuOption onClick={handleRemoveFromLibrary}>
+                <ContextMenuOption onClick={() => handleRemoveFromLibrary}>
                     <Library className="h-5 w-5" />
                     Remove from library
                 </ContextMenuOption>
-                {$pinnedLists.find((_list) => _list.id == list.id) ? (
+                {$pinnedLists.find(
+                    (_list) => _list.publicId == list.publicId
+                ) ? (
                     <ContextMenuOption
                         onClick={() => {
                             pinListHandleClick({
@@ -289,7 +298,7 @@ function AddListContextMenu({
 
                 <ContextMenuSplitter />
 
-                <ContextMenuOption onClick={downloadListToDevice}>
+                <ContextMenuOption onClick={() => downloadListToDevice}>
                     <HardDriveDownload className="h-5 w-5" />
                     Download list to device
                 </ContextMenuOption>
@@ -318,59 +327,65 @@ export function LibraryLists({
     const { width } = useWindowSize();
     const lang = useLanguage();
 
-    const [data, updateLists] = useFetch<{
-        playlists: PlaylistDB[];
-        albums: AlbumDB[];
-    }>("/api/library/lists");
+    const [lists] = useFetch("/library/lists", LibraryListsResponse);
 
-    useEffect(() => {
-        return libraryLists.listen(() => {
-            updateLists();
-        });
-    }, [updateLists]);
+    // const [data, updateLists] = useFetch<{
+    //     playlists: PlaylistDB[];
+    //     albums: AlbumDB[];
+    // }>("/api/library/lists");
 
-    const playlists = data?.playlists;
-    const albums = data?.albums;
+    // useEffect(() => {
+    //     return libraryLists.listen(() => {
+    //         updateLists();
+    //     });
+    // }, [updateLists]);
 
-    const filteredPlaylists = useMemo(() => {
-        if (!playlists) return;
+    // const playlists = data?.playlists;
+    // const albums = data?.albums;
 
-        let result = playlists.filter((pl) =>
-            pl.name.toLowerCase().includes(searchQuery.toLowerCase())
-        );
+    // const filteredPlaylists = useMemo(() => {
+    //     if (!playlists) return;
 
-        if (filterMode === "asc") {
-            result = result.sort((a, b) => a.name.localeCompare(b.name));
-        } else if (filterMode === "desc") {
-            result = result.sort((a, b) => b.name.localeCompare(a.name));
-        }
+    //     let result = playlists.filter((pl) =>
+    //         pl.name.toLowerCase().includes(searchQuery.toLowerCase())
+    //     );
 
-        return result;
-    }, [playlists, filterMode, searchQuery]);
+    //     if (filterMode === "asc") {
+    //         result = result.sort((a, b) => a.name.localeCompare(b.name));
+    //     } else if (filterMode === "desc") {
+    //         result = result.sort((a, b) => b.name.localeCompare(a.name));
+    //     }
 
-    const filteredAlbums = useMemo(() => {
-        if (!albums) return;
+    //     return result;
+    // }, [playlists, filterMode, searchQuery]);
 
-        let result = albums.filter((al) => {
-            const matchesName = al.name
-                .toLowerCase()
-                .includes(searchQuery.toLowerCase());
-            const matchesArtist = al.artists.some((artist) =>
-                artist.name.toLowerCase().includes(searchQuery.toLowerCase())
-            );
-            return matchesName || matchesArtist;
-        });
+    // const filteredAlbums = useMemo(() => {
+    //     if (!albums) return;
 
-        if (filterMode === "asc") {
-            result = result.sort((a, b) => a.name.localeCompare(b.name));
-        } else if (filterMode === "desc") {
-            result = result.sort((a, b) => b.name.localeCompare(a.name));
-        }
+    //     let result = albums.filter((al) => {
+    //         const matchesName = al.name
+    //             .toLowerCase()
+    //             .includes(searchQuery.toLowerCase());
+    //         const matchesArtist = al.artists.some((artist) =>
+    //             artist.name.toLowerCase().includes(searchQuery.toLowerCase())
+    //         );
+    //         return matchesName || matchesArtist;
+    //     });
 
-        return result;
-    }, [albums, filterMode, searchQuery]);
+    //     if (filterMode === "asc") {
+    //         result = result.sort((a, b) => a.name.localeCompare(b.name));
+    //     } else if (filterMode === "desc") {
+    //         result = result.sort((a, b) => b.name.localeCompare(a.name));
+    //     }
 
-    if (!width || !lang || !filteredPlaylists || !filteredAlbums) return null;
+    //     return result;
+    // }, [albums, filterMode, searchQuery]);
+
+    const filteredLists = lists;
+
+    console.log(lists);
+
+    if (!width || !lang || !filteredLists) return null;
 
     return (
         <section>
@@ -391,26 +406,24 @@ export function LibraryLists({
             >
                 <NewPlaylistButton />
 
-                {filteredPlaylists.map((playlist, index) => (
+                {filteredLists.playlists.map((playlist, index) => (
                     <AddListContextMenu
                         key={"playlist" + index}
                         list={playlist}
                     >
                         <Link
-                            href={`/playlist/${playlist.id}`}
+                            href={`/playlist/${playlist.publicId}`}
                             className="library-item flex h-auto w-full max-w-full min-w-0 flex-col transition-transform md:hover:scale-110"
                         >
                             <Image
                                 alt={playlist.name}
                                 className="cover aspect-square h-auto w-full rounded-md"
-                                src={getImageUrl({
-                                    imageId: playlist.image,
-                                    height: 300,
-                                    width: 300,
-                                    fallback: playlist.images?.[0]?.url,
-                                    placeHolder:
-                                        "/api/image/rockit-background.png",
-                                })}
+                                src={
+                                    playlist.internalImageUrl ??
+                                    rockitIt.PLAYLIST_PLACEHOLDER_IMAGE_URL
+                                }
+                                width={600}
+                                height={600}
                             />
                             <label className="min-h-6 truncate text-center font-semibold">
                                 {playlist.name}
@@ -422,23 +435,22 @@ export function LibraryLists({
                     </AddListContextMenu>
                 ))}
 
-                {filteredAlbums.map((album, index) => (
+                {filteredLists.albums.map((album, index) => (
                     <AddListContextMenu key={"album" + index} list={album}>
                         <Link
                             key={"album" + index}
-                            href={`/album/${album.id}`}
+                            href={`/album/${album.publicId}`}
                             className="library-item flex h-auto w-full max-w-full min-w-0 flex-col transition-transform md:hover:scale-110"
                         >
                             <Image
                                 alt={album.name}
                                 className="cover aspect-square h-auto w-full rounded-md"
-                                src={getImageUrl({
-                                    imageId: album.image,
-                                    height: 300,
-                                    width: 300,
-                                    fallback: album.images[0]?.url,
-                                    placeHolder: "/song-placeholder.png",
-                                })}
+                                src={
+                                    album.internalImageUrl ??
+                                    rockitIt.ALBUM_PLACEHOLDER_IMAGE_URL
+                                }
+                                width={600}
+                                height={600}
                             />
                             <label className="mt-1 truncate text-center font-semibold">
                                 {album.name}
@@ -446,7 +458,7 @@ export function LibraryLists({
                             <div className="mx-auto flex max-w-full flex-row truncate text-center text-sm text-gray-400">
                                 {album.artists.map((artist, i) => (
                                     <label
-                                        key={album.id + artist.id}
+                                        key={album.publicId + artist.publicId}
                                         className="truncate md:hover:underline"
                                     >
                                         {artist.name}

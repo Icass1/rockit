@@ -33,7 +33,7 @@ from backend.db.associationTables.playlist_songs import playlist_songs
 from backend.db.associationTables.album_artists import album_artists
 from backend.db.associationTables.artist_genres import artist_genres
 from backend.db.associationTables.song_artists import song_artists
-from backend.db.associationTables.user_lists import user_lists
+from backend.db.associationTables.user_library_lists import user_library_lists
 
 from backend.db.ormModels.externalImage import ExternalImageRow
 from backend.db.ormModels.internalImage import InternalImageRow
@@ -1023,7 +1023,7 @@ def add_users():
     cursor.execute("SELECT id,username,passwordHash,lists,lastPlayedSong,currentList,currentSong,currentTime,queue,queueIndex,pinnedLists,randomQueue,volume,admin,superAdmin,devUser,showLyrics,updatedAt,createdAt,likedSongs,lang,repeatSong,impersonateId,currentStation,crossFade,libraryView FROM user")
     users = cursor.fetchall()
 
-    user_lists_values = []
+    user_library_lists_values = []
     user_history_songs_values = []
     user_queue_songs_values = []
     user_pinned_lists_values = []
@@ -1108,7 +1108,7 @@ def add_users():
                             f"Skipping list {list_public_id} in user {public_id} lists because it has unknown type {list_type}")
                         continue
 
-                    user_lists_values.append(
+                    user_library_lists_values.append(
                         {"user_id": user_in_db.id, "list_id": list_id})
 
                 # Add user queue songs.
@@ -1235,9 +1235,9 @@ def add_users():
 
         session.merge(user_to_add)
 
-    if len(user_lists_values) > 0:
-        stmt = insert(user_lists).values(
-            user_lists_values
+    if len(user_library_lists_values) > 0:
+        stmt = insert(user_library_lists).values(
+            user_library_lists_values
         ).on_conflict_do_nothing()
         session.execute(stmt)
 

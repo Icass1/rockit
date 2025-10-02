@@ -765,7 +765,7 @@ class DownloaderManager {
     // #region: Handlers
 
     private handleEventSourceError(eventSource: EventSource, ev: Event) {
-        eventSource.close()
+        eventSource.close();
         console.log(`Error in ${eventSource.url} ${ev}`);
     }
 
@@ -816,10 +816,19 @@ class UserManager {
 
         const response = await apiFetch("/me");
         if (!response?.ok) {
-            console.warn("No response from /me");
-            signOut();
-            window.location.href = "/login";
-            return;
+            console.log(window.location.pathname);
+            if (
+                window.location.pathname == "/login" ||
+                window.location.pathname == "/signup"
+            ) {
+                return;
+            } else {
+                console.warn("No response from /me");
+                console.warn("UserManager.init -> /login");
+                signOut();
+                window.location.pathname = "/login";
+                return;
+            }
         }
 
         const responseJson = await response.json();

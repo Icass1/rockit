@@ -6,7 +6,7 @@ from sqlalchemy.orm.properties import MappedColumn
 
 from backend.db.base import Base
 from backend.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdated, TableAutoincrementId
-from backend.db.associationTables.user_lists import user_lists
+from backend.db.associationTables.user_library_lists import user_library_lists
 from backend.db.associationTables.user_liked_songs import user_liked_songs
 from backend.db.associationTables.user_queue_songs import user_queue_songs
 from backend.db.associationTables.user_pinned_lists import user_pinned_lists
@@ -57,7 +57,7 @@ class UserRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
         "ListRow", secondary=user_pinned_lists, back_populates="pinned_by_users")
 
     # many-to-many with lists
-    lists: Mapped[List["ListRow"]] = relationship("ListRow", secondary=user_lists,
+    lists: Mapped[List["ListRow"]] = relationship("ListRow", secondary=user_library_lists,
                                                   back_populates="users")
 
     # one-to-many

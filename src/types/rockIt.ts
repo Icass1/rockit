@@ -60,6 +60,8 @@ export const RockItPlaylist = z.object({
     publicId: z.string(),
     name: z.string(),
     externalImages: z.array(RockItExternalImage),
+    owner: z.string(),
+    internalImageUrl: z.string().nullable(),
 });
 export type RockItPlaylist = z.infer<typeof RockItPlaylist>;
 

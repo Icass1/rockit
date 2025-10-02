@@ -5,24 +5,32 @@ import asyncio
 import threading
 from functools import wraps
 from importlib import import_module
-from typing import Literal
+from typing import List, Literal
 
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Depends, FastAPI, BackgroundTasks, HTTPException, Request, Response
 
-from sqlalchemy import delete
+from sqlalchemy import and_, delete
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.dialects.postgresql.dml import Insert
 
+from sqlalchemy.orm import aliased
+
 from backend.constants import SONGS_PATH
 
-from backend.db.associationTables.user_lists import user_lists
+from backend.db.associationTables.user_library_lists import user_library_lists
 
+from backend.db.ormModels.album import AlbumRow
 from backend.db.ormModels.list import ListRow
+from backend.db.ormModels.playlist import PlaylistRow
 from backend.db.ormModels.song import SongRow
 from backend.db.ormModels.user import UserRow
 
+from backend.responses.general import albumWithoutSongs
+from backend.responses.general.albumWithoutSongs import RockItAlbumWithoutSongsResponse
+from backend.responses.general.playlist import RockItPlaylistResponse
+from backend.responses.libraryListsResponse import LibraryListsResponse
 from backend.responses.meResponse import MeResponse
 from backend.responses.startDownloadResponse import StartDownloadResponse
 from backend.responses.searchResponse import SearchResponse, SpotifyResults
@@ -251,7 +259,11 @@ async def add_list_to_library(type: str, publicId: str, current_user: UserRow = 
     with rockit_db.session_scope() as s:
 
         list_row: ListRow | None = s.query(ListRow).where(
-            ListRow.type == type and ListRow.public_id == publicId).first()
+            and_(
+                ListRow.type == type,
+                ListRow.public_id == publicId
+            )
+        ).first()
 
         if not list_row:
             raise HTTPException(status_code=404, detail="List not found")
@@ -259,7 +271,7 @@ async def add_list_to_library(type: str, publicId: str, current_user: UserRow = 
         user_id: int = current_user.id
         list_id: int = list_row.id
 
-        stmt: Insert = insert(user_lists).values(
+        stmt: Insert = insert(user_library_lists).values(
             (user_id, list_id)
         )
 
@@ -283,12 +295,44 @@ async def remove_list_from_library(type: Literal["album", "playlist"], publicId:
         user_id: int = current_user.id
         list_id: int = list_row.id
 
-        stmt = delete(user_lists).where(user_lists.c.user_id ==
-                                        user_id and user_lists.c.list_id == list_id)
+        stmt = delete(user_library_lists).where(user_library_lists.c.user_id ==
+                                                user_id and user_library_lists.c.list_id == list_id)
 
         s.execute(stmt)
 
     return Response("OK")
+
+
+@app.get("/library/lists")
+async def get_library_lists(current_user: UserRow = Depends(get_current_user)) -> LibraryListsResponse:
+    """TODO"""
+
+    with rockit_db.session_scope() as s:
+
+        user: UserRow | None = s.query(UserRow).where(
+            UserRow.id == current_user.id).first()
+
+        if not user:
+            logger.error("This should never happen.")
+            raise HTTPException(status_code=500)
+
+        library_lists: List[ListRow] = user.lists
+
+        album_rows: List[AlbumRow] = []
+        playlist_rows: List[PlaylistRow] = []
+
+        for library_list in library_lists:
+            if library_list.album:
+                album_rows.append(library_list.album)
+            if library_list.playlist:
+                playlist_rows.append(library_list.playlist)
+
+        return LibraryListsResponse(
+            albums=[RockItAlbumWithoutSongsResponse.from_row(
+                album_row) for album_row in album_rows],
+            playlists=[RockItPlaylistResponse.from_row(
+                playlist_row) for playlist_row in playlist_rows]
+        )
 
 
 @app.get("/audio/{publicId}")

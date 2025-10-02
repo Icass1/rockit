@@ -5,7 +5,7 @@ from sqlalchemy.orm import relationship, mapped_column, Mapped
 
 from backend.db.base import Base
 from backend.db.ormModels.declarativeMixin import TableAutoincrementId, TableDateAdded, TableDateUpdated
-from backend.db.associationTables.user_lists import user_lists
+from backend.db.associationTables.user_library_lists import user_library_lists
 from backend.db.associationTables.user_pinned_lists import user_pinned_lists
 
 if TYPE_CHECKING:
@@ -43,7 +43,7 @@ class ListRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
         "UserRow", secondary=user_pinned_lists, back_populates="pinned_lists")
 
     users: Mapped["UserRow"] = relationship(
-        "UserRow", secondary=user_lists, back_populates="lists")
+        "UserRow", secondary=user_library_lists, back_populates="lists")
 
     def __init__(self, type: LIST_TYPE_TYPE, public_id: str):
         kwargs = {}

@@ -4,6 +4,7 @@ import { Plus } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
+import Image from "next/image";
 
 export default function NewPlaylistButton() {
     const [showCreatePlaylistMenu, setShowCreatePlaylistMenu] = useState(false);
@@ -25,7 +26,9 @@ export default function NewPlaylistButton() {
                     <Image
                         alt=""
                         className="cover absolute top-0 left-0 aspect-square h-auto w-full rounded-md"
-                        src="/api/image/rockit-background.png"
+                        src="/rockit-background.png"
+                        width={600}
+                        height={600}
                     />
                     <Plus className="cover absolute top-0 left-0 aspect-square h-auto w-full rounded-md p-6" />
                 </div>

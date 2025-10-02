@@ -29,7 +29,7 @@ export default function SignupModal() {
         });
 
         if (response.ok) {
-            signIn("credentials", { password, username });
+            signIn("credentials", { password, username, callbackUrl: "/" });
         } else {
             const errorJson = await response.json();
 
@@ -43,7 +43,13 @@ export default function SignupModal() {
 
     return (
         <div className="bg-opacity-[.92] absolute top-1/2 left-1/2 w-[90%] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-xl bg-black p-8 text-center shadow-lg md:w-full">
-            <Image width={2028} height={614} src="/logo-banner.png" className="w-1/3" alt="Rock It!" />
+            <Image
+                width={2028}
+                height={614}
+                src="/logo-banner.png"
+                className="w-1/3"
+                alt="Rock It!"
+            />
             <h2 className="text-foreground mt-4 text-3xl font-extrabold">
                 Create an Account
             </h2>

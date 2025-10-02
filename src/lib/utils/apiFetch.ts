@@ -21,7 +21,7 @@ export default async function apiFetch(
         if (!session?.user.access_token) {
             console.warn("apiFetch -> /login");
             signOut();
-            window.location.href = "/login";
+            window.location.pathname = "/login";
             return;
         }
         token = session?.user.access_token;

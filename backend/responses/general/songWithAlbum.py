@@ -28,7 +28,9 @@ class RockItSongWithAlbumResponse(RockItSongWithoutAlbumResponse):
             downloadUrl=None,
             popularity=track.popularity,
             dateAdded=datetime.now(),
-            isrc=track.external_ids.isrc
+            isrc=track.external_ids.isrc,
+            downloaded=False,
+            audioUrl=None
         )
 
     @staticmethod

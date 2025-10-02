@@ -1,16 +1,8 @@
-import { getServerSession } from "next-auth";
-import { redirect } from "next/navigation";
+"use client";
+
 import SignupModal from "@/components/Auth/SignupModal";
 
-export default async function SignupPage() {
-    const session = await getServerSession();
-
-    console.log(session);
-
-    if (session) {
-        redirect("/");
-    }
-
+export default function SignupPage() {
     return (
         <div
             className="relative h-full w-full"

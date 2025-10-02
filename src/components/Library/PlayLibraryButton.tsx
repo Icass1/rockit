@@ -1,3 +1,4 @@
+import { rockitIt } from "@/lib/rockit";
 import { useStore } from "@nanostores/react";
 
 import { Pause, Play } from "lucide-react";
@@ -5,8 +6,8 @@ import { Pause, Play } from "lucide-react";
 export default function PlayLibraryButton() {
     let icon;
 
-    const $queue = useStore(queue);
-    const $queueIndex = useStore(queueIndex);
+    const $queue = useStore(rockitIt.queueManager.queueAtom);
+    const $queueIndex = useStore(rockitIt.queueManager.queueIndexAtom);
 
     const playingLibrary = $queue?.find(
         (queueSong) =>
@@ -15,7 +16,7 @@ export default function PlayLibraryButton() {
         ? true
         : false;
 
-    const $playing = useStore(playing);
+    const $playing = useStore(rockitIt.audioManager.playingAtom);
 
     if (playingLibrary && $playing) {
         icon = (
@@ -33,67 +34,67 @@ export default function PlayLibraryButton() {
         );
     }
 
-    const playLibraryHandler = async () => {
-        const albums = libraryLists
-            .get()
-            .filter((list) => list.type === "album");
+    // const playLibraryHandler = async () => {
+    //     const albums = libraryLists
+    //         .get()
+    //         .filter((list) => list.type === "album");
 
-        const librarySongs: SongDB<
-            | "id"
-            | "path"
-            | "name"
-            | "image"
-            | "artists"
-            | "albumName"
-            | "albumId"
-            | "duration"
-        >[] = [];
+    //     const librarySongs: SongDB<
+    //         | "id"
+    //         | "path"
+    //         | "name"
+    //         | "image"
+    //         | "artists"
+    //         | "albumName"
+    //         | "albumId"
+    //         | "duration"
+    //     >[] = [];
 
-        await Promise.all(
-            albums.map(async (album) => {
-                const response = await fetch(`/api/album/${album.id}?p=songs`);
-                const json = await response.json();
-                const albumsSongs = json.songs;
-                librarySongs.push(...albumsSongs);
-            })
-        );
+    //     await Promise.all(
+    //         albums.map(async (album) => {
+    //             const response = await fetch(`/api/album/${album.id}?p=songs`);
+    //             const json = await response.json();
+    //             const albumsSongs = json.songs;
+    //             librarySongs.push(...albumsSongs);
+    //         })
+    //     );
 
-        let songsToAdd = librarySongs
-            .filter((song) => song?.path)
-            .map((song, index) => {
-                return {
-                    song: song,
-                    list: { type: "library", id: "" },
-                    index: index,
-                };
-            });
+    //     let songsToAdd = librarySongs
+    //         .filter((song) => song?.path)
+    //         .map((song, index) => {
+    //             return {
+    //                 song: song,
+    //                 list: { type: "library", id: "" },
+    //                 index: index,
+    //             };
+    //         });
 
-        if (songsToAdd.length == 0) {
-            console.warn("No songs to play in this list");
-            return;
-        }
+    //     if (songsToAdd.length == 0) {
+    //         console.warn("No songs to play in this list");
+    //         return;
+    //     }
 
-        if (!window.navigator.onLine) {
-            songsToAdd = songsToAdd.filter((song) =>
-                songsInIndexedDB.get()?.includes(song.song.id)
-            );
-        }
+    //     if (!window.navigator.onLine) {
+    //         songsToAdd = songsToAdd.filter((song) =>
+    //             songsInIndexedDB.get()?.includes(song.song.id)
+    //         );
+    //     }
 
-        if (randomQueue.get()) {
-            const shuffled = [...songsToAdd].sort(() => Math.random() - 0.5);
-            playWhenReady.set(true);
+    //     if (randomQueue.get()) {
+    //         const shuffled = [...songsToAdd].sort(() => Math.random() - 0.5);
+    //         playWhenReady.set(true);
 
-            currentSong.set(shuffled[0].song);
-            queueIndex.set(shuffled[0].index);
-            queue.set(shuffled);
-        } else {
-            playWhenReady.set(true);
+    //         currentSong.set(shuffled[0].song);
+    //         queueIndex.set(shuffled[0].index);
+    //         queue.set(shuffled);
+    //     } else {
+    //         playWhenReady.set(true);
 
-            currentSong.set(songsToAdd[0].song);
-            queueIndex.set(0);
-            queue.set(songsToAdd);
-        }
-    };
+    //         currentSong.set(songsToAdd[0].song);
+    //         queueIndex.set(0);
+    //         queue.set(songsToAdd);
+    //     }
+    // };
 
     return (
         <>

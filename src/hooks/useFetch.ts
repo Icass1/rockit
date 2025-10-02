@@ -13,7 +13,7 @@ async function update<T extends ZodType>(
     if (!res) {
         console.warn("useFetch.update 1 -> /login");
         signOut();
-        window.location.href = "/login";
+        window.location.pathname = "/login";
         return;
     }
 
@@ -24,7 +24,7 @@ async function update<T extends ZodType>(
     } else if (res.status === 401) {
         console.warn("useFetch.update 2 -> /login");
         signOut();
-        window.location.href = "/login";
+        window.location.pathname = "/login";
     }
 }
 

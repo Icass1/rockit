@@ -1,4 +1,3 @@
-from doctest import UnexpectedException
 import os
 import re
 import json
@@ -13,7 +12,6 @@ from sqlalchemy import and_, select
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.dialects.postgresql import insert
 
-from backend.db.ormModels.copyright import CopyrightRow
 from backend.spotifyApiTypes.RawSpotifyApiSearchResults import RawSpotifyApiSearchResults
 from backend.utils.logger import getLogger
 from backend.db.db import RockitDB
@@ -26,12 +24,16 @@ from backend.db.ormModels.genre import GenreRow
 from backend.db.ormModels.album import AlbumRow
 from backend.db.ormModels.artist import ArtistRow
 from backend.db.ormModels.playlist import PlaylistRow
+from backend.db.ormModels.copyright import CopyrightRow
+from backend.db.ormModels.externalImage import ExternalImageRow
 from backend.db.ormModels.internalImage import InternalImageRow
 
 from backend.db.associationTables.song_artists import song_artists
 from backend.db.associationTables.album_artists import album_artists
 from backend.db.associationTables.artist_genres import artist_genres
 from backend.db.associationTables.album_copyrights import album_copyrights
+from backend.db.associationTables.album_external_images import album_external_images
+from backend.db.associationTables.artist_external_images import artist_external_images
 
 from backend.spotifyApiTypes.RawSpotifyApiAlbum import RawSpotifyApiAlbum
 from backend.spotifyApiTypes.RawSpotifyApiArtist import RawSpotifyApiArtist
@@ -307,6 +309,18 @@ class Spotify:
                     # Load song artists.
                     joinedload(AlbumRow.songs).
                     joinedload(SongRow.artists),
+                    # Load song artists genres.
+                    joinedload(AlbumRow.songs).
+                    joinedload(SongRow.artists).
+                    joinedload(ArtistRow.genres),
+                    # Load song artists external images.
+                    joinedload(AlbumRow.songs).
+                    joinedload(SongRow.artists).
+                    joinedload(ArtistRow.external_images),
+                    # Load song artists intenral image.
+                    joinedload(AlbumRow.songs).
+                    joinedload(SongRow.artists).
+                    joinedload(ArtistRow.internal_image),
                     # Load song artists.
                     joinedload(AlbumRow.songs).
                     joinedload(SongRow.internal_image),
@@ -431,6 +445,37 @@ class Spotify:
                     )
                     album_to_add = s.merge(album_to_add)
                     s.commit()
+
+                # Add album external images.
+                for album_external_image in album.images:
+                    external_image_in_db = s.query(ExternalImageRow).where(
+                        ExternalImageRow.url == album_external_image.url).first()
+
+                    external_image_in_db_id: int | None = None
+                    if external_image_in_db:
+                        external_image_in_db_id = external_image_in_db.id
+                    else:
+                        if not album_external_image.url:
+                            self.logger.error(
+                                f"External image url {album.id} is None")
+                            continue
+
+                        external_image_to_add = ExternalImageRow(
+                            public_id=create_id(),
+                            url=album_external_image.url,
+                            width=album_external_image.width,
+                            height=album_external_image.height,
+                        )
+                        external_image_to_add = s.merge(
+                            instance=external_image_to_add)
+                        s.commit()
+                        external_image_in_db_id = external_image_to_add.id
+
+                    stmt = insert(album_external_images).values(
+                        album_id=album_id,
+                        external_image_id=external_image_in_db_id
+                    ).on_conflict_do_nothing()
+                    s.execute(stmt)
 
                 # Add album copyrights.
                 for album_copyright in album.copyrights:
@@ -807,6 +852,37 @@ class Spotify:
 
                 artist_to_add = s.merge(artist_to_add)
                 s.flush()
+
+                # Add album external images.
+                for artist_external_image in artist.images:
+                    external_image_in_db: ExternalImageRow | None = s.query(ExternalImageRow).where(
+                        ExternalImageRow.url == artist_external_image.url).first()
+
+                    external_image_in_db_id: int | None = None
+                    if external_image_in_db:
+                        external_image_in_db_id = external_image_in_db.id
+                    else:
+                        if not artist_external_image.url:
+                            self.logger.error(
+                                f"External image url {artist.id} is None")
+                            continue
+
+                        external_image_to_add = ExternalImageRow(
+                            public_id=create_id(),
+                            url=artist_external_image.url,
+                            width=artist_external_image.width,
+                            height=artist_external_image.height,
+                        )
+                        external_image_to_add = s.merge(
+                            instance=external_image_to_add)
+                        s.commit()
+                        external_image_in_db_id = external_image_to_add.id
+
+                    stmt = insert(artist_external_images).values(
+                        artist_id=artist_to_add.id,
+                        external_image_id=external_image_in_db_id
+                    ).on_conflict_do_nothing()
+                    s.execute(stmt)
 
                 for genre in artist.genres:
 

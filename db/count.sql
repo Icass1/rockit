@@ -1,5 +1,4 @@
 -- DROP FUNCTION IF EXISTS main.count_all_tables(schema_name text);
-
 -- CREATE OR REPLACE FUNCTION main.count_all_tables(schema_name text)
 -- RETURNS TABLE(table_name text, number_of_rows bigint) AS $$
 -- DECLARE
@@ -19,10 +18,11 @@
 --             schema_name,
 --             tbl
 --         );
-        
 --         RETURN QUERY EXECUTE sql;
 --     END LOOP;
 -- END;
 -- $$ LANGUAGE plpgsql;
-
-SELECT * FROM main.count_all_tables('main');
+SELECT
+    *
+FROM
+    main.count_all_tables('main');

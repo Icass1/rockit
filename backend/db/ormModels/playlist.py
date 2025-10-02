@@ -21,13 +21,13 @@ class PlaylistRow(Base, TableDateUpdated, TableDateAdded):
 
     id: Mapped[int] = mapped_column(
         Integer, ForeignKey('lists.id'), primary_key=True)
-    public_id: Mapped[int] = mapped_column(String, nullable=False, unique=True)
+    public_id: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     internal_image_id: Mapped[int] = mapped_column(Integer, ForeignKey(
         'main.internal_images.id'), nullable=False)
-    name: Mapped[int] = mapped_column(String, nullable=False)
-    owner: Mapped[int] = mapped_column(String, nullable=False)
+    name: Mapped[str] = mapped_column(String, nullable=False)
+    owner: Mapped[str] = mapped_column(String, nullable=False)
     followers: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    description: Mapped[int | None] = mapped_column(Text, nullable=True)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     internal_image: Mapped["InternalImageRow | None"] = relationship(
         'InternalImageRow', back_populates='playlists', foreign_keys=[internal_image_id])
@@ -46,7 +46,7 @@ class PlaylistRow(Base, TableDateUpdated, TableDateAdded):
     list: Mapped["ListRow"] = relationship(
         "ListRow", back_populates="playlist", uselist=False)
 
-    def __init__(self, id: int, public_id: int, internal_image_id: int, name: int, owner: int, followers: int = 0, description: int | None = None):
+    def __init__(self, id: int, public_id: str, internal_image_id: int, name: str, owner: str, followers: int = 0, description: str | None = None):
         kwargs = {}
         kwargs['id'] = id
         kwargs['public_id'] = public_id

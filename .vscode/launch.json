@@ -2,16 +2,22 @@
   "version": "0.3.0",
   "compounds": [
     {
-      "name": "Run Full Stack (Backend + Frontend)",
+      "name": "Full Stack",
+      "configurations": [
+        "FastAPI Uvicorn (DEBUG)",
+        "NextJS Server",
+      ]
+    },
+    {
+      "name": "Full Stack SSH Tunel",
       "configurations": [
         "SSH Tunnel",
         "FastAPI Uvicorn (DEBUG)",
         "NextJS Server",
-        // "WebSocket Server"
       ]
     },
     {
-      "name": "Run Frontend Only (NextJS + WebSocket Server)",
+      "name": "Frontend",
       "configurations": [
         "NextJS Server",
         "WebSocket Server"
@@ -31,12 +37,14 @@
     },
     {
       "name": "SSH Tunnel",
-      "type": "node",   
+      "type": "node",
       "request": "launch",
       "runtimeExecutable": "ssh",
       "runtimeArgs": [
-        "-L", "5433:localhost:5432",
-        "-J", "gateway@rockhosting.org",
+        "-L",
+        "5433:localhost:5432",
+        "-J",
+        "gateway@rockhosting.org",
         "root@rockit.rockhosting.lan"
       ],
       "console": "integratedTerminal",

@@ -17,7 +17,7 @@ from sqlalchemy.orm import Session
 from backend.db.db import RockitDB
 from backend.utils.logger import getLogger
 from backend.constants import SONGS_PATH
-from backend.downloader.messageHandler import MessageHandler
+from backend.downloader.messageHandler import MessageHandlderReader, MessageHandler
 from backend.downloader.queueElement import QueueElement, SpotifyQueueElement
 
 from backend.db.ormModels.song import SongRow
@@ -272,7 +272,7 @@ class SpotifyDownloader:
 
         self.logger.info(f"Started status for download {self.download_id}")
 
-        reader = self.message_handler.get_reader()
+        reader: MessageHandlderReader = self.message_handler.get_reader()
 
         self.logger.debug(self.message_handler._messages)
 
@@ -297,6 +297,7 @@ class SpotifyDownloader:
                     # Send keep-alive to prevent connection from closing
                     yield ": keep-alive\n\n"
 
-            self.logger.info(f"Finished download with id {self.download_id}")
+            self.logger.info(
+                f"Finished download with id {self.download_id}")
 
         return StreamingResponse(event_generator(), media_type="text/event-stream")

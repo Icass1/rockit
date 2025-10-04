@@ -4,11 +4,11 @@ import { rockIt } from "@/lib/rockit";
 export async function generateMetadata({
     params,
 }: {
-    params: Promise<{ id: string }>;
+    params: Promise<{ publicId: string }>;
 }) {
-    const { id } = await params; // No need for await here
+    const { publicId } = await params;
 
-    return {};
+    const album = await rockIt.albumManager.getSpotifyAlbumAsync(publicId);
 
     return {
         title: `${album.name} by ${album.artists[0].name}`,
@@ -17,12 +17,10 @@ export async function generateMetadata({
             title: `${album.name} by ${album.artists[0].name}`,
             description: `Listen to ${album.name} by ${album.artists[0].name}`,
             type: "music.album",
-            url: `https://rockit.rockhosting.org/album/${id}`,
+            url: `https://rockit.rockhosting.org/album/${publicId}`,
             images: [
                 {
-                    url:
-                        "https://rockit.rockhosting.org" +
-                        getImageUrl({ imageId: album.image }),
+                    url: album.internalImageUrl,
                     width: 600,
                     height: 600,
                     alt: album.name,
@@ -35,9 +33,7 @@ export async function generateMetadata({
             description: `Listen to ${album.name} by ${album.artists[0].name}`,
             images: [
                 {
-                    url:
-                        "https://rockit.rockhosting.org" +
-                        getImageUrl({ imageId: album.image }),
+                    url: album.internalImageUrl,
                     width: 600,
                     height: 600,
                     alt: album.name,
@@ -52,7 +48,7 @@ export default async function AlbumPage({
 }: {
     params: Promise<{ publicId: string }>;
 }) {
-    const { publicId } = await params; // No need for await here
+    const { publicId } = await params;
 
     const album = await rockIt.albumManager.getSpotifyAlbumAsync(publicId);
 

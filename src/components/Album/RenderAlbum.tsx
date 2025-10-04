@@ -34,19 +34,27 @@ export default function RenderAlbum({
     const [progress, setProgress] = useState(0);
 
     useEffect(() => {
-        // Simulate download progress
-        const timer = setInterval(() => {
-            setProgress((prev) => {
-                if (prev >= 100) {
-                    clearInterval(timer);
-                    return 100;
+        rockIt.downloaderManager.downloadingSongsStatusAtom.subscribe(
+            (value) => {
+                let completed = 0;
+                for (const song of value) {
+                    if (
+                        album.songs.find(
+                            (albumSong) => albumSong.publicId == song.publicId
+                        )
+                    ) {
+                        console.log(song.message, song.completed);
+                        if (song.message == "Error") {
+                            completed += 100;
+                        } else {
+                            completed += song.completed;
+                        }
+                    }
                 }
-                return prev + 1;
-            });
-        }, 100);
-
-        return () => clearInterval(timer);
-    }, []);
+                setProgress(Math.round(completed / album.songs.length));
+            }
+        );
+    }, [album.songs]);
 
     if (!lang) return false;
 
@@ -77,7 +85,7 @@ export default function RenderAlbum({
                         className="absolute h-full w-full object-fill"
                     />
 
-                    <div className="absolute top-10 right-10 bottom-10 left-10 rounded-full border-8 border-blue-600">
+                    <div className="absolute top-10 right-10 bottom-10 left-10">
                         <DownloadAnimation progress={progress} duration={2} />
                     </div>
 

@@ -8,7 +8,6 @@ Puede importarse y arrancarse como tarea asyncio desde tu FastAPI.
 from __future__ import annotations
 import os
 import asyncio
-import logging
 import random
 from typing import Optional, Set
 
@@ -20,8 +19,9 @@ from telegram.ext import (
     ContextTypes,
 )
 
-logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+from backend.utils.logger import getLogger
+
+logger = getLogger(__name__)
 
 # --- Mock state ---
 _connected_users: Set[int] = set()
@@ -34,7 +34,7 @@ def _mock_service_status() -> dict:
         return {
             "name": name,
             "status": "online" if up else "offline",
-            "uptime": f"{random.randint(1,72)}h" if up else "0h",
+            "uptime": f"{random.randint(1, 72)}h" if up else "0h",
             "cpu%": round(random.uniform(0.5, 45.0), 1),
             "mem%": round(random.uniform(1.0, 60.0), 1),
         }
@@ -150,8 +150,10 @@ class TelegramBotRunner:
             summary = _mock_service_status()
             text_lines = ["Notificación periódica (mock):"]
             for s, info in summary.items():
-                text_lines.append(f"{s}: {info['status']} (uptime {info['uptime']})")
-            text_lines.append(f"Usuarios conectados (mock): {len(_connected_users)}")
+                text_lines.append(
+                    f"{s}: {info['status']} (uptime {info['uptime']})")
+            text_lines.append(
+                f"Usuarios conectados (mock): {len(_connected_users)}")
             text = "\n".join(text_lines)
 
             # self.app puede ser None o self.app.bot puede ser None según estado -> comprobamos.
@@ -159,11 +161,14 @@ class TelegramBotRunner:
                 try:
                     # mypy/pylance ya entiende que app.bot no es None aquí por el getattr + comprobación
                     await self.app.bot.send_message(chat_id=self.admin_chat_id, text=text)
-                    logger.info("Enviada notificación periódica al admin_chat_id.")
+                    logger.info(
+                        "Enviada notificación periódica al admin_chat_id.")
                 except Exception as e:
-                    logger.exception("Error enviando notificación periódica: %s", e)
+                    logger.exception(
+                        "Error enviando notificación periódica: %s", e)
             else:
-                logger.debug("Periodic notification skipped (no admin_chat_id or bot not ready).")
+                logger.debug(
+                    "Periodic notification skipped (no admin_chat_id or bot not ready).")
 
     async def start(self):
         if not self.token:
@@ -180,9 +185,11 @@ class TelegramBotRunner:
         if updater is not None:
             await updater.start_polling()
         else:
-            logger.warning("Application.updater is None — skipping start_polling().")
+            logger.warning(
+                "Application.updater is None — skipping start_polling().")
 
-        self._main_loop_task = asyncio.create_task(self._periodic_worker(), name="tg-periodic-worker")
+        self._main_loop_task = asyncio.create_task(
+            self._periodic_worker(), name="tg-periodic-worker")
         logger.info("Telegram bot started (mock mode).")
 
     async def stop(self):
@@ -206,7 +213,8 @@ class TelegramBotRunner:
                 await self.app.stop()
                 await self.app.shutdown()
             except Exception:
-                logger.exception("Error stopping/shutting down application (ignored).")
+                logger.exception(
+                    "Error stopping/shutting down application (ignored).")
         logger.info("Telegram bot stopped.")
 
 
@@ -214,7 +222,8 @@ async def telegram_bot_task(token: Optional[str] = None, admin_chat_id: Optional
     # token safe get
     token = token or os.environ.get("TELEGRAM_BOT_TOKEN")
     if token is None:
-        logger.error("No TELEGRAM_BOT_TOKEN provided; telegram_bot_task will not start.")
+        logger.error(
+            "No TELEGRAM_BOT_TOKEN provided; telegram_bot_task will not start.")
         return
 
     # Evitamos int(None) — comprobamos la variable de entorno antes de convertir.
@@ -222,7 +231,8 @@ async def telegram_bot_task(token: Optional[str] = None, admin_chat_id: Optional
         env_admin = os.environ.get("TELEGRAM_ADMIN_CHAT_ID")
         admin_chat_id = int(env_admin) if env_admin is not None else None
 
-    runner = TelegramBotRunner(token=token, admin_chat_id=admin_chat_id, periodic_seconds=periodic_seconds)
+    runner = TelegramBotRunner(
+        token=token, admin_chat_id=admin_chat_id, periodic_seconds=periodic_seconds)
 
     try:
         await runner.start()

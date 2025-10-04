@@ -111,7 +111,12 @@ class SpotifyQueueElement(QueueElement):
                 f"Creating directory {os.path.join(SONGS_PATH, artist, album)}")
             os.mkdir(os.path.join(SONGS_PATH, artist, album))
 
-        shutil.move(src=str(self._path), dst=final_song_path)
+        try:
+            shutil.move(src=str(self._path), dst=final_song_path)
+        except FileNotFoundError:
+            self.logger.error(
+                f"Unable to find file {self._path} to move to {final_song_path}.")
+            return
 
         def _update(s: Session):
 

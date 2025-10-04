@@ -2,11 +2,20 @@ import { atom } from "nanostores";
 import apiFetch from "@/lib/utils/apiFetch";
 import { RESPONSE_UNDEFINED_MESSAGE, rockIt } from "@/lib/rockit";
 import { StartDownloadResponse } from "@/responses/startDownloadResponse";
+import { DownloadStatusMessage } from "@/responses/downloadStatusMessage";
+
+interface SongStatus {
+    publicId: string;
+    message: string;
+    completed: number;
+}
 
 export class DownloaderManager {
     // #region: Atoms
 
     private _downloadedListsAtom = atom<string[]>([]);
+    private _downloadedSongsAtom = atom<string[]>([]);
+    private _downloadingSongsStatusAtom = atom<SongStatus[]>([]);
 
     // #endregion: Getters
 
@@ -23,7 +32,9 @@ export class DownloaderManager {
 
         console.log("(downloadListToDBAsync)", url);
 
-        const response = await apiFetch(`/start-download?user=1&url=${url}`);
+        const response = await apiFetch(
+            `/downloader/start-download?user=1&url=${url}`
+        );
 
         if (!response) {
             rockIt.notificationManager.notifyError(RESPONSE_UNDEFINED_MESSAGE);
@@ -40,7 +51,7 @@ export class DownloaderManager {
         console.log(startDownload.downloadId);
 
         const eventSource = new EventSource(
-            `${rockIt.BACKEND_URL}/download-status?id=${startDownload.downloadId}`
+            `${rockIt.BACKEND_URL}/downloader/download-status?id=${startDownload.downloadId}`
         );
 
         eventSource.onerror = (ev: Event) => {
@@ -69,7 +80,23 @@ export class DownloaderManager {
         eventSource: EventSource,
         ev: MessageEvent
     ) {
-        console.log(`Message from ${eventSource.url} ${ev.data}`);
+        try {
+            const data = DownloadStatusMessage.parse(JSON.parse(ev.data));
+            if (data.completed == 100) {
+                console.log("Song downloaded", data.id);
+            }
+            this._downloadingSongsStatusAtom.set([
+                ...this._downloadingSongsStatusAtom.get(),
+                {
+                    publicId: data.id,
+                    completed: data.completed,
+                    message: data.message,
+                },
+            ]);
+        } catch (error) {
+            console.error(error);
+            console.error(`Error parsing message '${ev.data}'`);
+        }
     }
 
     private handleEventSourceOpen(eventSource: EventSource, ev: Event) {
@@ -82,6 +109,14 @@ export class DownloaderManager {
 
     get downloadedListsAtom() {
         return this._downloadedListsAtom;
+    }
+
+    get downloadedSongsAtom() {
+        return this._downloadedSongsAtom;
+    }
+
+    get downloadingSongsStatusAtom() {
+        return this._downloadingSongsStatusAtom;
     }
 
     // #endregion: Getters

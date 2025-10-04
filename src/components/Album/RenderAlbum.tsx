@@ -11,8 +11,9 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import Image from "next/image";
 import { groupBy } from "lodash";
 import { rockIt } from "@/lib/rockit";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import DownloadListButton from "../ListHeader/DownloadListButton";
+import DownloadAnimation from "./DownloadAnimation";
 
 export default function RenderAlbum({
     album,
@@ -29,6 +30,23 @@ export default function RenderAlbum({
             })
         );
     }, [album]);
+
+    const [progress, setProgress] = useState(0);
+
+    useEffect(() => {
+        // Simulate download progress
+        const timer = setInterval(() => {
+            setProgress((prev) => {
+                if (prev >= 100) {
+                    clearInterval(timer);
+                    return 100;
+                }
+                return prev + 1;
+            });
+        }, 100);
+
+        return () => clearInterval(timer);
+    }, []);
 
     if (!lang) return false;
 
@@ -58,6 +76,11 @@ export default function RenderAlbum({
                         src={album.internalImageUrl ?? "/song-placeholder.png"}
                         className="absolute h-full w-full object-fill"
                     />
+
+                    <div className="absolute top-10 right-10 bottom-10 left-10 rounded-full border-8 border-blue-600">
+                        <DownloadAnimation progress={progress} duration={2} />
+                    </div>
+
                     <div className="absolute right-3 bottom-3 flex h-16 w-auto flex-row gap-4 md:h-20">
                         {anySongDownloaded && (
                             <PlayListButton type="album" id={album.publicId} />

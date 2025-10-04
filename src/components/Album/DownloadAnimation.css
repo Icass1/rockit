@@ -1,0 +1,93 @@
+.download-container {
+    display: inline-block;
+    padding: 20px;
+}
+
+.download-svg {
+    display: block;
+}
+
+.progress-circle {
+    transition: stroke-dashoffset 0.3s ease;
+}
+
+.download-icon {
+    opacity: 0;
+    transform: scale(0.8);
+}
+
+.download-icon.animate {
+    opacity: 1;
+    transform: scale(1);
+    transition: all 0.5s ease 0.5s; /* Delay to start after circle appears */
+}
+
+.arrow-stem {
+    stroke-dasharray: 30;
+    stroke-dashoffset: 30;
+}
+
+.arrow-head {
+    stroke-dasharray: 28;
+    stroke-dashoffset: 28;
+}
+
+.horizontal-line {
+    stroke-dasharray: 30;
+    stroke-dashoffset: 30;
+}
+
+.download-icon.animate .arrow-stem {
+    animation: drawStem 0.6s ease 0.8s forwards;
+}
+
+.download-icon.animate .arrow-head {
+    animation: drawHead 0.4s ease 1.4s forwards;
+}
+
+.download-icon.animate .horizontal-line {
+    animation: drawLine 0.4s ease 1.2s forwards;
+}
+
+@keyframes drawStem {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+@keyframes drawHead {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+@keyframes drawLine {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+.progress-text {
+    font-family: Arial, sans-serif;
+    opacity: 0;
+    animation: fadeIn 0.5s ease 1s forwards;
+}
+
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+    }
+}
+
+/* Circle appearance animation */
+.download-svg circle:nth-child(1) {
+    stroke-dasharray: 283; /* 2 * π * 45 */
+    stroke-dashoffset: 283;
+    animation: drawCircle 1s ease forwards;
+}
+
+@keyframes drawCircle {
+    to {
+        stroke-dashoffset: 0;
+    }
+}

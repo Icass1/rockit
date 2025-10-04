@@ -1,11 +1,19 @@
+import { getSession } from "next-auth/react";
+
 export class WebSocketManager {
     webSocket?: WebSocket;
     constructor() {
         if (typeof window === "undefined") return;
     }
     async init(BACKEND_URL: string) {
+        const session = await getSession();
+
+        console.log(session);
+
         console.log("WebSocketManager.init");
-        this.webSocket = new WebSocket(`${BACKEND_URL}/ws`);
+        this.webSocket = new WebSocket(
+            `${BACKEND_URL}/ws?token=${session?.user.access_token}`
+        );
         console.log(this.webSocket);
     }
 

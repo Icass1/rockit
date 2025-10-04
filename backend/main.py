@@ -2,6 +2,7 @@ import os
 import asyncio
 import threading
 from importlib import import_module
+from typing import Optional
 
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, HTTPException, Request, Response, WebSocket
@@ -11,10 +12,12 @@ from backend.constants import SONGS_PATH
 from backend.db.ormModels.song import SongRow
 
 from backend.downloader import downloader
+
 from backend.responses.searchResponse import SearchResponse, SpotifyResults
 from backend.responses.general.albumWithSongs import RockItAlbumWithSongsResponse
 
 from backend.telegram.telegram_monitor import telegram_bot_task
+
 from backend.utils.logger import getLogger
 from backend.utils.fastAPIRoute import fast_api_route
 
@@ -155,7 +158,10 @@ async def get_audio(request: Request, publicId: str) -> Response:
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
-    print("Web socket connected")
+    token: Optional[str] = websocket.query_params.get(
+        "token") or websocket.headers.get("Authorization")
+
+    print("Web socket connected", token)
     await websocket.accept()
     try:
         while True:

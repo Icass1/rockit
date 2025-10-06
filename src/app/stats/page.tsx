@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import UserStats from "@/components/Stats/UserStats";
-import { langData } from "@/stores/lang";
-import { useStore } from "@nanostores/react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function StatsPage() {
     const [selectedSection, setSelectedSection] = useState<string>("user");

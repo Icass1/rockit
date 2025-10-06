@@ -3,6 +3,8 @@ import React, { useEffect, useState } from "react";
 const DownloadAnimation = ({ progress = 0, duration = 2 }) => {
     const [isAnimating, setIsAnimating] = useState(false);
 
+    console.warn("DownloadAnimation", { duration });
+
     useEffect(() => {
         setIsAnimating(true);
     }, []);

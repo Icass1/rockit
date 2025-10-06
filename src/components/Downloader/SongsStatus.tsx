@@ -1,6 +1,9 @@
 "use client";
 
+import { rockIt } from "@/lib/rockit/rockIt";
+import { RockItSongWithAlbum } from "@/lib/rockit/rockItSongWithAlbum";
 import { useStore } from "@nanostores/react";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 
 function SongDownload({
@@ -12,8 +15,7 @@ function SongDownload({
     completed: number;
     message: string;
 }) {
-    const [song, setSong] =
-        useState<SongDB<"name" | "image" | "albumId" | "albumName">>();
+    const [song, setSong] = useState<RockItSongWithAlbum>();
 
     useEffect(() => {
         fetch(`/api/song/${id}?q=name,image,albumName,albumId`)
@@ -37,23 +39,14 @@ function SongDownload({
                 className="h-10 min-h-10 w-10 min-w-10"
                 style={{ gridArea: "cover" }}
             >
-                {song?.image ? (
-                    <Image
-                        alt="Cover"
-                        src={getImageUrl({
-                            imageId: song?.image,
-                            width: 40,
-                            height: 40,
-                            placeHolder: "/song-placeholder.png",
-                        })}
-                        className="h-full w-full"
-                    />
-                ) : (
-                    <div
-                        className="skeleton h-full w-full"
-                        style={{ gridArea: "cover" }}
-                    />
-                )}
+                <Image
+                    alt="Cover"
+                    src={
+                        song?.album.internalImageUrl ??
+                        rockIt.SONG_PLACEHOLDER_IMAGE_URL
+                    }
+                    className="h-full w-full"
+                />
             </div>
 
             <div

@@ -1,7 +1,6 @@
 "use client";
 
-import { langData } from "@/stores/lang";
-import { useStore } from "@nanostores/react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function ClearDownloads() {
     const lang = useLanguage();

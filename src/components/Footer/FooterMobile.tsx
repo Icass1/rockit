@@ -4,11 +4,12 @@ import { useStore } from "@nanostores/react";
 import { Play, Pause } from "lucide-react";
 import LikeButton from "@/components/LikeButton";
 import Slider from "@/components/Slider";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function FooterMobile() {
-    const $playing = useStore(playing);
-    const $currentSong = useStore(currentSong);
-    const $currentTime = useStore(currentTime);
+    const $playing = useStore(rockIt.audioManager.playingAtom);
+    const $currentSong = useStore(rockIt.queueManager.currentSongAtom);
+    const $currentTime = useStore(rockIt.audioManager.currentTimeAtom);
 
     return (
         <div className="h-full w-full pb-1">

@@ -19,22 +19,21 @@ import {
     PlayCircle,
     Shuffle,
 } from "lucide-react";
-import { playListHandleClick } from "../PlayList";
 
-import { downloadFile, downloadRsc } from "@/lib/utils/downloadResources";
 import ContextMenuSplitter from "../ContextMenu/Splitter";
 import PlayLibraryButton from "./PlayLibraryButton";
-import {
-    RockItAlbumWithoutSongs,
-    RockItAlbumWithSongs,
-    RockItPlaylist,
-} from "@/types/rockIt";
+
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LibraryListsResponse } from "@/responses/libraryListsResponse";
 import Image from "next/image";
 import { rockIt } from "@/lib/rockit";
+import { RockItPlaylistResponse } from "@/responses/rockItPlaylistResponse";
+import { RockItAlbumWithSongsResponse } from "@/responses/rockItAlbumWithSongsResponse";
+import { RockItAlbumWithoutSongsResponse } from "@/responses/rockItAlbumWithoutSongsResponse";
 
-async function getListSongs(list: RockItPlaylist | RockItAlbumWithSongs) {
+async function getListSongs(
+    list: RockItPlaylistResponse | RockItAlbumWithSongsResponse
+) {
     if (list.type == "playlist") {
         const response = await fetch(
             `/api/songs1?songs=${list.songs
@@ -77,7 +76,7 @@ function AddListContextMenu({
     list,
 }: {
     children: React.ReactNode;
-    list: RockItPlaylist | RockItAlbumWithoutSongs;
+    list: RockItPlaylistResponse | RockItAlbumWithoutSongsResponse;
 }) {
     const $pinnedLists = useStore(rockIt.listManager.pinnedListsAtom);
 

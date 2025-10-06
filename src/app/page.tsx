@@ -7,12 +7,12 @@ import SongsCarousel from "@/components/Home/SongsCarousel";
 import Spinner from "@/components/Spinner";
 import useFetch from "@/hooks/useFetch";
 import { useSession } from "next-auth/react";
-import { HomeStats } from "@/responses/stats/homeStatsResponse";
+import { HomeStatsResponse } from "@/responses/stats/homeStatsResponse";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useRouter } from "next/navigation";
 
 export default function Home() {
-    const [data] = useFetch("/stats/home", HomeStats);
+    const [data] = useFetch("/stats/home", HomeStatsResponse);
 
     const lang = useLanguage();
 

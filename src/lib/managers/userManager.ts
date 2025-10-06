@@ -1,7 +1,7 @@
 import { atom } from "nanostores";
 import { getSession, signOut } from "next-auth/react";
 import apiFetch from "@/lib/utils/apiFetch";
-import { RockItUser } from "@/types/rockIt";
+import { RockItUserResponse } from "@/responses/rockItUserResponse";
 
 export class UserManager {
     // #region: Atoms
@@ -9,7 +9,7 @@ export class UserManager {
     private _randomQueueAtom = atom<boolean>(false);
     private _repeatSongAtom = atom<"all" | "one" | "off">("off");
 
-    private _userAtom = atom<RockItUser | undefined>();
+    private _userAtom = atom<RockItUserResponse | undefined>();
 
     // #endregion
 
@@ -44,7 +44,7 @@ export class UserManager {
         }
 
         const responseJson = await response.json();
-        const user = RockItUser.parse(responseJson);
+        const user = RockItUserResponse.parse(responseJson);
 
         this._userAtom.set(user);
     }

@@ -1,6 +1,7 @@
 import apiFetch from "@/lib/utils/apiFetch";
-import { RockItAlbumWithSongs, RockItSongWithAlbum } from "@/types/rockIt";
 import { rockIt } from "@/lib/rockit";
+import { RockItAlbumWithSongsResponse } from "@/responses/rockItAlbumWithSongsResponse";
+import { RockItSongWithAlbumResponse } from "@/responses/rockItSongWithAlbumResponse";
 
 export class AlbumManager {
     constructor() {}
@@ -15,11 +16,11 @@ export class AlbumManager {
 
         const responseJson = await response?.json();
 
-        return RockItAlbumWithSongs.parse(responseJson);
+        return RockItAlbumWithSongsResponse.parse(responseJson);
     }
 
     async playAlbum(
-        songs: RockItSongWithAlbum[],
+        songs: RockItSongWithAlbumResponse[],
         listType: "album" | "playlist",
         listPublicId: string,
         startSongPublicId?: string

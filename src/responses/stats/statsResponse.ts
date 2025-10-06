@@ -1,5 +1,5 @@
-import { RockItSongWithAlbum } from "@/types/rockIt";
 import * as z from "zod";
+import { RockItSongWithAlbumResponse } from "../rockItSongWithAlbumResponse";
 
-export const StatsResponse = z.array(RockItSongWithAlbum);
+export const StatsResponse = z.array(RockItSongWithAlbumResponse);
 export type StatsResponseType = z.infer<typeof StatsResponse>;

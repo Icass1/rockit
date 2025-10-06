@@ -2,6 +2,7 @@
 
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Forward, Play } from "lucide-react";
+import Image from "next/image";
 
 export default function FriendsPage() {
     const lang = useLanguage();
@@ -75,8 +76,10 @@ export default function FriendsPage() {
                             >
                                 <div className="relative h-24 w-24 hover:cursor-pointer">
                                     <Image
+                                        width={96}
+                                        height={96}
                                         src="/song-placeholder.png"
-                                        alt="Imagen"
+                                        alt=""
                                         className="h-full w-full rounded-md object-cover transition-opacity group-hover:opacity-40"
                                     />
                                     <Play className="absolute inset-0 m-auto h-8 w-8 fill-current text-4xl opacity-0 transition-opacity group-hover:opacity-100" />

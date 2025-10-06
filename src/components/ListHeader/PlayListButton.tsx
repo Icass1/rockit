@@ -1,4 +1,4 @@
-import { rockIt } from "@/lib/rockit";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { useStore } from "@nanostores/react";
 
 import { Pause, Play } from "lucide-react";
@@ -38,7 +38,9 @@ export default function PlayListButton({
     return (
         <div
             ref={divRef}
-            onClick={() => {}}
+            onClick={() => {
+                console.log(id, type);
+            }}
             className="h-16 w-16 cursor-pointer rounded-full bg-gradient-to-r from-[#ee1086] to-[#fb6467] shadow-[0px_0px_20px_3px_#0e0e0e] transition-transform md:h-20 md:w-20 md:hover:scale-105"
         >
             {icon}

@@ -6,7 +6,7 @@ import HeaderUser from "./HeaderUser";
 import NotificationMenu from "./HeaderNotificationMenu";
 import OnlineUserIndicator from "./HeaderOnlineUsers";
 import { useStore } from "@nanostores/react";
-import { rockIt } from "@/lib/rockit";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function HeaderRight() {
     const [showMenu, setShowMenu] = useState(false);

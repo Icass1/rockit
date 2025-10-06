@@ -3,69 +3,45 @@
 import ListOptions from "@/components/ListHeader/ListOptions";
 import { Disc3, Heart, History } from "lucide-react";
 import PlayListButton from "@/components/ListHeader/PlayListButton";
-import { CSSProperties } from "react";
 import { getMinutes } from "@/lib/utils/getTime";
+import { useLanguage } from "@/contexts/LanguageContext";
+import Image from "next/image";
+import { rockIt } from "@/lib/rockit/rockIt";
+import { RockItPlaylist } from "@/lib/rockit/rockItPlaylist";
+import { RockItPlaylistResponse } from "@/responses/rockItPlaylistResponse";
 
 export default function PlaylistHeader({
-    inDatabase,
-    id,
-    songs,
     className,
-    playlist,
-    style,
+    playlistResponse,
 }: {
-    inDatabase: boolean;
-    id: string | "liked" | "most-listened" | "recent-mix";
-    songs: SongDB<
-        | "id"
-        | "images"
-        | "image"
-        | "name"
-        | "albumId"
-        | "duration"
-        | "artists"
-        | "path"
-        | "albumName"
-    >[];
     className: string;
-    style?: CSSProperties;
-    playlist:
-        | PlaylistDB
-        | {
-              name: string;
-              songs: PlaylistDBSong[];
-              image: string;
-              images:
-                  | {
-                        url: string;
-                    }[]
-                  | undefined;
-              owner: string;
-          };
+    playlistResponse: RockItPlaylistResponse;
 }) {
     const lang = useLanguage();
     if (!lang) return false;
 
+    const playlist = RockItPlaylist.fromResponse(playlistResponse);
+
     let coverIcon;
 
-    if (id == "liked") {
+    if (playlist.publicId == "liked") {
         coverIcon = (
             <Heart
                 className="absolute top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2"
                 fill="white"
             />
         );
-    } else if (id == "most-listened") {
+    } else if (playlist.publicId == "most-listened") {
         coverIcon = (
             <Disc3 className="absolute top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2" />
         );
-    } else if (id == "recent-mix") {
+    } else if (playlist.publicId == "recent-mix") {
         coverIcon = (
             <History className="absolute top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2" />
         );
     }
     const specialPlaylist = ["liked", "most-listened", "recent-mix"].includes(
-        id
+        playlist.publicId
     );
 
     return (
@@ -74,7 +50,6 @@ export default function PlaylistHeader({
                 "relative top-24 flex h-[26rem] flex-col gap-1 px-10 md:top-1/2 md:h-fit md:max-h-none md:w-full md:max-w-96 md:-translate-y-1/2 md:px-0 " +
                 className
             }
-            style={style}
         >
             {/* Imagen de la playlist */}
             <div className="relative aspect-square h-auto w-full overflow-hidden rounded-xl bg-[rgb(15,15,15)] md:rounded-md md:bg-none">
@@ -95,21 +70,15 @@ export default function PlaylistHeader({
                             width={370}
                             height={370}
                             alt={playlist.name}
-                            src={getImageUrl({
-                                imageId: playlist.image,
-                                fallback:
-                                    playlist?.images?.[0]?.url ??
-                                    "/api/image/rockit-background.png",
-                                height: 370,
-                                width: 370,
-                            })}
+                            src={
+                                playlist.internalImageUrl ??
+                                rockIt.PLAYLIST_PLACEHOLDER_IMAGE_URL
+                            }
                             className="absolute h-full w-full"
                         />
                         <PlayListButton
-                            id={id}
+                            id={playlist.publicId}
                             type="playlist"
-                            inDatabase={inDatabase}
-                            url={`https://open.spotify.com/playlist/${id}`}
                         />
                     </div>
                 )}
@@ -121,11 +90,13 @@ export default function PlaylistHeader({
                     {playlist.name}
                 </label>
                 <ListOptions
-                    url={`https://open.spotify.com/playlist/${id}`}
                     type="playlist"
-                    id={id}
-                    image={playlist.image}
-                    inDatabase={inDatabase}
+                    publicId={playlist.publicId}
+                    internalImageUrl={
+                        playlist.internalImageUrl ??
+                        rockIt.PLAYLIST_PLACEHOLDER_IMAGE_URL
+                    }
+                    allSongsInDatabase={false}
                 />
             </div>
 
@@ -138,8 +109,8 @@ export default function PlaylistHeader({
             <label className="text-center text-sm text-stone-400">
                 {playlist.songs.length} {lang.songs} |{" "}
                 {getMinutes(
-                    songs.reduce((accumulator: number, song) => {
-                        return accumulator + (song?.duration || 0);
+                    playlist.songs.reduce((accumulator: number, song) => {
+                        return accumulator + (song.duration || 0);
                     }, 0)
                 )}{" "}
                 {lang.minutes}

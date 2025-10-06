@@ -1,14 +1,16 @@
-import { atom } from "nanostores";
+import { createArrayAtom } from "@/lib/store";
 import apiFetch from "@/lib/utils/apiFetch";
-import { RESPONSE_UNDEFINED_MESSAGE, rockIt } from "@/lib/rockit";
+import { RESPONSE_UNDEFINED_MESSAGE, rockIt } from "@/lib/rockit/rockIt";
 
 export class ListManager {
-    private _libraryListsAtom = atom<
-        { publicId: string; type: "album" | "playlist" }[]
-    >([]);
-    private _pinnedListsAtom = atom<
-        { publicId: string; type: "album" | "playlist" }[]
-    >([]);
+    private _libraryListsAtom = createArrayAtom<{
+        publicId: string;
+        type: "album" | "playlist";
+    }>([]);
+    private _pinnedListsAtom = createArrayAtom<{
+        publicId: string;
+        type: "album" | "playlist";
+    }>([]);
 
     constructor() {}
 
@@ -29,10 +31,13 @@ export class ListManager {
             );
             return;
         }
-        this._libraryListsAtom.set([
-            ...this._libraryListsAtom.get(),
-            { publicId, type },
-        ]);
+
+        this._libraryListsAtom.push({ publicId, type });
+
+        // this._libraryListsAtom.set([
+        //     ...this._libraryListsAtom.get(),
+        //     { publicId, type },
+        // ]);
         rockIt.notificationManager.notifyInfo("List added to library.");
     }
 
@@ -54,6 +59,7 @@ export class ListManager {
             );
             return;
         }
+
         this._libraryListsAtom.set([
             ...this._libraryListsAtom
                 .get()

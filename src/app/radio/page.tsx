@@ -5,29 +5,29 @@ import { ListPlus, Play, SearchX } from "lucide-react";
 import pkg from "lodash";
 import useWindowSize from "@/hooks/useWindowSize";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
+import { Station } from "@/types/station";
+import { rockIt } from "@/lib/rockit/rockIt";
+import Image from "next/image";
+import { useLanguage } from "@/contexts/LanguageContext";
 const { debounce } = pkg;
 
 function StationCard({ station }: { station: Station }) {
-    const handleClick = () => {
-        currentStation.set(station);
-        play();
-    };
-
     return (
         <div
             className="flex h-32 cursor-pointer items-center gap-2 rounded-md bg-neutral-800 px-4 py-2 shadow-md transition hover:bg-neutral-700"
-            onClick={handleClick}
+            onClick={() => {
+                rockIt.stationManager.setAndPlayStation(station);
+            }}
         >
             {/* Imagen de la estación */}
             <Image
                 src={
                     station.favicon
                         ? "/api/proxy?url=" + station.favicon
-                        : "/radio-placeholder.png"
+                        : rockIt.STATION_PLACEHOLDER_IMAGE_URL
                 }
                 alt={`${station.name} cover`}
                 className="aspect-square min-h-14 min-w-14 rounded-md object-cover md:h-24 md:min-h-24 md:w-24 md:min-w-24"
-                fallback="/radio-placeholder.png"
             />
             {/* Información de la estación */}
             <div className="min-w-0 flex-1">
@@ -56,7 +56,7 @@ function StationCard({ station }: { station: Station }) {
             {/* Botón de reproducción */}
             <button
                 className="hidden rounded-full bg-pink-500 p-3 text-white hover:bg-pink-600 md:flex"
-                onClick={handleClick}
+                onClick={() => rockIt.stationManager.setAndPlayStation(station)}
             >
                 <Play className="h-5 w-5 fill-current" />
             </button>

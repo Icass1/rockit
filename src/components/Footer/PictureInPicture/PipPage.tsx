@@ -15,7 +15,7 @@ import { useStore } from "@nanostores/react";
 
 import LikeButton from "@/components/LikeButton";
 import { getTime } from "@/lib/utils/getTime";
-import { rockIt } from "@/lib/rockit";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function PiPContent() {
     const $currentSong = useStore(rockIt.queueManager.currentSongAtom);

@@ -1,10 +1,10 @@
-import { RockItSongWithAlbum } from "@/types/rockIt";
-import { atom } from "nanostores";
+import { createArrayAtom } from "@/lib/store";
+import { RockItSongWithAlbum } from "../rockit/rockItSongWithAlbum";
 
 export class CurrentListManager {
     // #region: Atoms
 
-    private _currentListSongsAtom = atom<RockItSongWithAlbum[]>([]);
+    private _currentListSongsAtom = createArrayAtom<RockItSongWithAlbum>([]);
 
     // #endregion: Atoms
 

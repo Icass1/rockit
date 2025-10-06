@@ -1,15 +1,15 @@
-import { atom } from "nanostores";
-import { rockIt } from "@/lib/rockit";
+import { createAtom } from "@/lib/store";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export class AudioManager {
     private _audio?: HTMLAudioElement;
 
     // #region: Atoms
 
-    private _playingAtom = atom<boolean>(false);
-    private _loadingAtom = atom<boolean>(false);
-    private _currentTimeAtom = atom<number>(0);
-    private _currentVolume = atom<number>(1);
+    private _playingAtom = createAtom<boolean>(false);
+    private _loadingAtom = createAtom<boolean>(false);
+    private _currentTimeAtom = createAtom<number>(0);
+    private _currentVolume = createAtom<number>(1);
 
     // #endregion: Atoms
 

@@ -9,7 +9,7 @@ import useFetch from "@/hooks/useFetch";
 import { StatsResponse } from "@/responses/stats/statsResponse";
 import { RockItSong } from "@/types/rockIt";
 import Image from "next/image";
-import { rockIt } from "@/lib/rockit";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 function Song({
     index,
@@ -60,10 +60,11 @@ function Song({
     const $playing = useStore(rockIt.audioManager.playingAtom);
 
     const handleClick = () => {
-        rockIt.queueManager.currentListAtom.set({
+        rockIt.queueManager.setCurrentList({
             type: "carousel",
-            id: "carousel",
+            publicId: "carousel",
         });
+
         songHandleClick(
             song,
             songs.map((song) => {

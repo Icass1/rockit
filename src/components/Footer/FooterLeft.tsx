@@ -12,7 +12,7 @@ import {
 import { useEffect, useState } from "react";
 import SongPopupMenu from "@/components/ListSongs/SongPopupMenu";
 import Link from "next/link";
-import { rockIt } from "@/lib/rockit";
+import { rockIt } from "@/lib/rockit/rockIt";
 import Image from "next/image";
 import { Station } from "@/types/station";
 import { RockItSongWithAlbum } from "@/types/rockIt";

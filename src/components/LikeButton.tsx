@@ -2,7 +2,7 @@
 
 import { useStore } from "@nanostores/react";
 import "@/styles/LikeButton.css";
-import { rockIt } from "@/lib/rockit";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function LikeButton({ songPublicId }: { songPublicId: string }) {
     const $likedSongs = useStore(rockIt.songManager.likedSongsAtom);

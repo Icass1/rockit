@@ -1,17 +1,21 @@
-import { RockItQueueSong, RockItSongWithAlbum } from "@/types/rockIt";
-import { atom } from "nanostores";
-import { rockIt } from "@/lib/rockit";
+import { createArrayAtom, createAtom } from "@/lib/store";
+import { rockIt } from "@/lib/rockit/rockIt";
+
+import { RockItQueueSong } from "@/types/rockIt";
+import { RockItSongWithAlbumResponse } from "@/responses/rockItSongWithAlbumResponse";
 
 export class QueueManager {
     // #region: Atoms
 
-    private _currentSongAtom = atom<RockItSongWithAlbum | undefined>();
-    private _currentListAtom = atom<
+    private _currentSongAtom = createAtom<
+        RockItSongWithAlbumResponse | undefined
+    >();
+    private _currentListAtom = createAtom<
         { type: string; publicId: string } | undefined
     >();
 
-    private _queueAtom = atom<RockItQueueSong[]>([]);
-    private _queueIndexAtom = atom<number>(0);
+    private _queueAtom = createArrayAtom<RockItQueueSong>([]);
+    private _queueIndexAtom = createAtom<number>(0);
 
     // #endregion: Atoms
 
@@ -24,7 +28,7 @@ export class QueueManager {
     // #region: Methods
 
     setSongs(
-        songs: RockItSongWithAlbum[],
+        songs: RockItSongWithAlbumResponse[],
         listType: "album" | "playlist",
         listPublicId: string
     ) {
@@ -66,6 +70,10 @@ export class QueueManager {
             return;
         }
         this._currentSongAtom.set(song.song);
+    }
+
+    setCurrentList(currentList: { type: string; publicId: string }) {
+        this._currentListAtom.set(currentList);
     }
 
     // #endregion: Methods

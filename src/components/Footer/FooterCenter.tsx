@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import Slider from "@/components/Slider";
 import Spinner from "@/components/Spinner";
-import { rockIt } from "@/lib/rockit";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function FooterCenter() {
     const $playing = useStore(rockIt.audioManager.playingAtom);

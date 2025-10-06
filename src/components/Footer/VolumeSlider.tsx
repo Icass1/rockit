@@ -1,7 +1,7 @@
 import { useStore } from "@nanostores/react";
 import { Volume1, Volume2, VolumeOff } from "lucide-react";
 import Slider from "@/components/Slider";
-import { rockIt } from "@/lib/rockit";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function VolumeSlider() {
     const $volume = useStore(rockIt.audioManager.volumeAtom);

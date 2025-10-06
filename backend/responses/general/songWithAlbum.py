@@ -1,7 +1,7 @@
+import os
 from datetime import datetime
-from typing import List, Optional
-from pydantic import BaseModel
 
+from backend.constants import SONGS_PATH
 from backend.db.ormModels.song import SongRow
 from backend.responses.general.albumWithoutSongs import RockItAlbumWithoutSongsResponse
 from backend.responses.general.artist import RockItArtistResponse
@@ -35,4 +35,24 @@ class RockItSongWithAlbumResponse(RockItSongWithoutAlbumResponse):
 
     @staticmethod
     def from_row(song: SongRow) -> "RockItSongWithAlbumResponse":
-        raise NotImplementedError()
+        downloaded = song.path != None and os.path.exists(
+            os.path.join(SONGS_PATH, song.path))
+        return RockItSongWithAlbumResponse(
+            publicId=song.public_id,
+            name=song.name,
+            artists=[
+                RockItArtistResponse.from_row(
+                    artist) for artist in song.artists
+            ],
+            duration=song.duration,
+            trackNumber=song.track_number,
+            discNumber=song.disc_number,
+            internalImageUrl=f"http://localhost:8000/image/{song.internal_image.public_id}" if song.internal_image else None,
+            downloadUrl=song.download_url,
+            popularity=song.popularity,
+            dateAdded=song.date_added,
+            isrc=song.isrc,
+            downloaded=downloaded,
+            audioUrl=f"http://localhost:8000/audio/{song.public_id}" if downloaded else None,
+            album=RockItAlbumWithoutSongsResponse.from_row(song.album)
+        )

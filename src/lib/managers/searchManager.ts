@@ -1,13 +1,15 @@
 import { SearchResultsResponse } from "@/responses/searchResponse";
 import apiFetch from "@/lib/utils/apiFetch";
-import { atom } from "nanostores";
+import { createAtom } from "@/lib/store";
 
 export class SearchManager {
     // #region: Atoms
 
-    private _searchQueryAtom = atom<string>("");
-    private _searchingAtom = atom<boolean>(false);
-    private _searchResultsAtom = atom<SearchResultsResponse | undefined>();
+    private _searchQueryAtom = createAtom<string>("");
+    private _searchingAtom = createAtom<boolean>(false);
+    private _searchResultsAtom = createAtom<
+        SearchResultsResponse | undefined
+    >();
 
     // #endregion: Atoms
 

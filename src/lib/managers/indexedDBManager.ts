@@ -1,9 +1,9 @@
-import { atom } from "nanostores";
+import { createArrayAtom } from "@/lib/store";
 
 export class IndexedDBManager {
     // #region: Atoms
 
-    private _songsInIndexedDBAtom = atom<string[]>([]);
+    private _songsInIndexedDBAtom = createArrayAtom<string>([]);
 
     // #endregion: Atoms
 

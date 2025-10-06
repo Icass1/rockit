@@ -6,4 +6,7 @@ export const RockItArtistResponse = z.object({
     name: z.string(),
     genres: z.array(z.string()),
     externalImages: z.array(RockItExternalImageResponse),
+    internalImageUrl: z.string().nullable(),
 });
+
+export type RockItArtistResponse = z.infer<typeof RockItArtistResponse>;

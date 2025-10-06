@@ -26,7 +26,7 @@ import PlayLibraryButton from "./PlayLibraryButton";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LibraryListsResponse } from "@/responses/libraryListsResponse";
 import Image from "next/image";
-import { rockIt } from "@/lib/rockit";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { RockItPlaylistResponse } from "@/responses/rockItPlaylistResponse";
 import { RockItAlbumWithSongsResponse } from "@/responses/rockItAlbumWithSongsResponse";
 import { RockItAlbumWithoutSongsResponse } from "@/responses/rockItAlbumWithoutSongsResponse";

@@ -1,9 +1,9 @@
-import { atom } from "nanostores";
+import { createAtom } from "@/lib/store";
 
 export class PlayerUIManager {
     // #region: Atoms
 
-    private _visibleAtom = atom<boolean>(true);
+    private _visibleAtom = createAtom<boolean>(true);
 
     // #endregion: Atoms
 

@@ -11,7 +11,7 @@ import { signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
-import { rockIt } from "@/lib/rockit";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { useEffect, useState } from "react";
 
 export default function HeaderUser() {

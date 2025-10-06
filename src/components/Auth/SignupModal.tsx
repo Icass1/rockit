@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import UsernameInput from "./UsernameInput";
 import Image from "next/image";
-import { rockIt } from "@/lib/rockit";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function SignupModal() {
     const [password, setPassword] = useState("");

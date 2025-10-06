@@ -1,10 +1,10 @@
 import { Station } from "@/types/station";
-import { atom } from "nanostores";
+import { createAtom } from "@/lib/store";
 
 export class StationManager {
     // #region: Atoms
 
-    private _currentStationAtom = atom<Station | undefined>();
+    private _currentStationAtom = createAtom<Station | undefined>();
 
     // #endregion
 
@@ -13,6 +13,13 @@ export class StationManager {
     constructor() {}
 
     // #endregion: Constructor
+
+    // #region: Method
+
+    setAndPlayStation(station: Station) {
+        throw `(setAndPlayStation) not implemented ${station}`;
+    }
+    // #endregion: Method
 
     // #region: Getters
 

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import pkg from "lodash";
 
-import { rockIt } from "@/lib/rockit";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { useLanguage } from "@/contexts/LanguageContext";
 const { debounce } = pkg;
 

@@ -1,6 +1,6 @@
 import SearchBar from "@/components/Search/SearchBar";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { rockIt } from "@/lib/rockit";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { getBestImage } from "@/lib/utils/getBestImage";
 import { RockItAlbum, RockItSong } from "@/types/rockIt";
 import { useStore } from "@nanostores/react";

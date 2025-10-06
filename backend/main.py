@@ -91,11 +91,6 @@ def search(query: str) -> SearchResponse:
     return SearchResponse(spotifyResults=SpotifyResults.from_spotify_search(spotify_search=spotify_search))
 
 
-@app.get("/spotify-album/{album_public_id}")
-def get_spotify_album(album_public_id: str) -> RockItAlbumWithSongsResponse:
-    """TODO"""
-    return RockItAlbumWithSongsResponse.from_row(album=downloader.spotify.get_album(public_id=album_public_id))
-
 
 @app.get("/audio/{publicId}")
 async def get_audio(request: Request, publicId: str) -> Response:

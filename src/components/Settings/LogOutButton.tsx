@@ -1,6 +1,6 @@
 "use client";
 
-import { rockIt } from "@/lib/rockit";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { useStore } from "@nanostores/react";
 import { LogOut } from "lucide-react";
 import { signOut } from "next-auth/react";

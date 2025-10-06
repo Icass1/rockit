@@ -19,7 +19,7 @@ import {
     PopupMenuTrigger,
 } from "@/components/PopupMenu/PopupMenu";
 import { playListHandleClick } from "@/components/PlayList";
-import { rockIt } from "@/lib/rockit";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function ListOptions({
     type,
@@ -136,7 +136,7 @@ export default function ListOptions({
                     !$downloadedLists.includes(publicId) && (
                         <PopupMenuOption
                             onClick={() =>
-                                rockIt.downloaderManager.downloadListToDBAsync(
+                                rockIt.downloaderManager.downloadSpotifyListToDBAsync(
                                     type,
                                     publicId
                                 )

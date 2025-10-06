@@ -1,104 +1,94 @@
 "use client";
 
-import type { GetAlbum } from "@/lib/utils/getAlbum";
+import { rockIt } from "@/lib/rockit/rockIt";
+import { RockItSongWithAlbum } from "@/lib/rockit/rockItSongWithAlbum";
 
 import { useStore } from "@nanostores/react";
 import { Download, Pause, Play } from "lucide-react";
-import { useEffect, useState } from "react";
+import Image from "next/image";
+import { useState } from "react";
 
-export default function SongPageCover({
+function SongPageCoverIcon({
     song,
-    album,
+    hover,
 }: {
-    song: SongDB<
-        | "image"
-        | "path"
-        | "id"
-        | "albumName"
-        | "albumId"
-        | "artists"
-        | "name"
-        | "images"
-        | "duration"
-    >;
-    album: GetAlbum;
-    inDatabase: boolean;
+    song: RockItSongWithAlbum;
+    hover: boolean;
 }) {
-    const [hover, setHover] = useState(false);
-
-    const $currentSong = useStore(currentSong);
-    const $playing = useStore(playing);
-
-    const [_song, setSong] =
-        useState<
-            SongDB<
-                | "image"
-                | "path"
-                | "id"
-                | "albumName"
-                | "albumId"
-                | "artists"
-                | "name"
-                | "images"
-                | "duration"
-            >
-        >(song);
-
-    const handleClick = () => {
-        if (_song.path == undefined || _song.path == "") {
-            fetch(
-                `/api/start-download?url=https://open.spotify.com/track/${_song.id}`
-            ).then((response) => {
-                response.json().then((data) => {
-                    downloads.set([data.download_id, ...downloads.get()]);
-                });
-            });
-            return;
-        }
-
-        if (!_song.path) {
-            return;
-        }
-
-        if ($currentSong?.id == _song.id && $playing) {
-            pause();
-        } else if ($currentSong?.id == _song.id) {
-            play();
-        } else {
-            playWhenReady.set(true);
-            currentSong.set(_song);
-
-            queueIndex.set(0);
-            queue.set([{ song: _song, list: undefined, index: 0 }]);
-        }
-    };
-
-    useEffect(() => {
-        console.warn("TODO");
-        setSong((value) => value);
-    }, []);
+    const $currentSong = useStore(rockIt.queueManager.currentSongAtom);
+    const $playing = useStore(rockIt.audioManager.playingAtom);
 
     const iconClassName =
         "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition-all z-20" +
         (hover ? " w-20 h-20 " : " w-0 h-0 ");
 
+    if (!song.downloaded) {
+        return (
+            <Download
+                className={iconClassName}
+                onClick={() =>
+                    rockIt.downloaderManager.downloadSpotifySongToDBAsync(
+                        song.publicId
+                    )
+                }
+            />
+        );
+    }
+
+    if ($currentSong?.publicId == song.publicId && $playing) {
+        return <Pause className={iconClassName} fill="white" />;
+    } else {
+        return <Play className={iconClassName} fill="white" />;
+    }
+}
+
+export default function SongPageCover({ song }: { song: RockItSongWithAlbum }) {
+    const [hover, setHover] = useState(false);
+
+    // const handleClick = () => {
+    //     if (song.path == undefined || song.path == "") {
+    //         fetch(
+    //             `/api/start-download?url=https://open.spotify.com/track/${song.id}`
+    //         ).then((response) => {
+    //             response.json().then((data) => {
+    //                 downloads.set([data.download_id, ...downloads.get()]);
+    //             });
+    //         });
+    //         return;
+    //     }
+
+    //     if (!song.path) {
+    //         return;
+    //     }
+
+    //     if ($currentSong?.id == song.id && $playing) {
+    //         rockIt.audioManager.pause();
+    //     } else if ($currentSong?.id == song.id) {
+    //         rockIt.audioManager.play();
+    //     } else {
+    //         playWhenReady.set(true);
+    //         currentSong.set(song);
+
+    //         queueIndex.set(0);
+    //         queue.set([{ song: song, list: undefined, index: 0 }]);
+    //     }
+    // };
+
     return (
         <div className="relative h-full w-full max-w-md">
-            {/* Contenedor principal */}
             <div
                 className="relative aspect-square h-auto w-full max-w-md cursor-pointer overflow-hidden rounded-lg object-cover select-none"
                 onMouseEnter={() => setHover(true)}
                 onMouseLeave={() => setHover(false)}
-                onClick={handleClick}
+                onClick={() => console.log("(SongPageCover) handleClick")}
             >
-                {/* Imagen principal */}
                 <Image
                     src={
-                        (_song?.image
-                            ? `/api/image/${_song.image}`
-                            : album?.album.images[0].url) ||
-                        "/song-placeholder.png"
+                        song.album.internalImageUrl ??
+                        rockIt.SONG_PLACEHOLDER_IMAGE_URL
                     }
+                    width={600}
+                    height={600}
                     alt="Carátula de la canción"
                     className={
                         "absolute z-10 h-full w-full transition-all " +
@@ -106,13 +96,7 @@ export default function SongPageCover({
                     }
                 />
 
-                {_song.path == undefined || _song.path == "" ? (
-                    <Download className={iconClassName} />
-                ) : $currentSong?.id == _song.id && $playing ? (
-                    <Pause className={iconClassName} fill="white" />
-                ) : (
-                    <Play className={iconClassName} fill="white" />
-                )}
+                <SongPageCoverIcon song={song} hover={hover} />
             </div>
         </div>
     );

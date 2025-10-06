@@ -45,7 +45,8 @@ class RockItSongWithoutAlbumResponse(BaseModel):
 
     @staticmethod
     def from_row(song: SongRow) -> "RockItSongWithoutAlbumResponse":
-        downloaded = song.path != None and os.path.exists(os.path.join(SONGS_PATH, song.path))
+        downloaded = song.path != None and os.path.exists(
+            os.path.join(SONGS_PATH, song.path))
         return RockItSongWithoutAlbumResponse(
             publicId=song.public_id,
             name=song.name,

@@ -27,7 +27,7 @@ import { songHandleClick } from "./HandleClick";
 import { useRouter } from "next/navigation";
 import useDev from "@/hooks/useDev";
 import { RockItSongWithAlbum } from "@/types/rockIt";
-import { rockIt } from "@/lib/rockit";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function SongPopupMenu({

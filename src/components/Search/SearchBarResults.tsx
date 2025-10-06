@@ -1,17 +1,11 @@
 import { useStore } from "@nanostores/react";
 
 import { DownloadCloud } from "lucide-react";
-import {
-    Dispatch,
-    useEffect,
-    useState,
-    type MouseEvent,
-    type ReactNode,
-} from "react";
+import { Dispatch, useState, type MouseEvent, type ReactNode } from "react";
 import stringSimilarity from "@/lib/utils/stringSimilarity";
 import Link from "next/link";
 import Image from "next/image";
-import { rockIt } from "@/lib/rockit";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 function Result({
     image,

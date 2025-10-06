@@ -5,8 +5,11 @@ import CrossFadeInput from "@/components/Settings/CrossFadeInput";
 import DownloadAppButton from "@/components/Settings/DownloadAppButton";
 import LogOutButton from "@/components/Settings/LogOutButton";
 import ServiceWorkerInfo from "@/components/Settings/ServiceWorkerInfo";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { ChartLine, ImageUp } from "lucide-react";
 import { useSession } from "next-auth/react";
+import Image from "next/image";
 import Link from "next/link";
 
 function DisplayName() {
@@ -83,7 +86,7 @@ export default function Settings() {
                     <div className="group relative flex items-center justify-center">
                         {/* Imagen de perfil */}
                         <Image
-                            src={"/user-placeholder.png"}
+                            src={rockIt.USER_PLACEHOLDER_IMAGE_URL}
                             alt="User Profile Picture"
                             className="h-48 rounded-full bg-neutral-400 object-cover shadow-md transition duration-300 md:h-72"
                         />

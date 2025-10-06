@@ -1,5 +1,5 @@
 import RenderAlbum from "@/components/Album/RenderAlbum";
-import { rockIt } from "@/lib/rockit";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export async function generateMetadata({
     params,
@@ -52,5 +52,5 @@ export default async function AlbumPage({
 
     const album = await rockIt.albumManager.getSpotifyAlbumAsync(publicId);
 
-    return <RenderAlbum album={album}></RenderAlbum>;
+    return <RenderAlbum albumResponse={album}></RenderAlbum>;
 }

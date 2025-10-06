@@ -1,5 +1,5 @@
 import { getSession, signOut } from "next-auth/react";
-import { rockIt } from "@/lib/rockit";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 interface ApiFetchOptions {
     headers?: HeadersInit;

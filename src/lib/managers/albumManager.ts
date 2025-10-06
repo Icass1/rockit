@@ -1,20 +1,24 @@
 import apiFetch from "@/lib/utils/apiFetch";
-import { rockIt } from "@/lib/rockit";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { RockItAlbumWithSongsResponse } from "@/responses/rockItAlbumWithSongsResponse";
 import { RockItSongWithAlbumResponse } from "@/responses/rockItSongWithAlbumResponse";
 
 export class AlbumManager {
+    // #region: Constructor
+
     constructor() {}
 
+    // #endregion: Constructor
+
     async getSpotifyAlbumAsync(publicId: string) {
-        const response = await apiFetch(`/spotify-album/${publicId}`, {
+        const response = await apiFetch(`/spotify/album/${publicId}`, {
             auth: false,
         });
         if (!response?.ok) {
             throw "Error fetching album.";
         }
 
-        const responseJson = await response?.json();
+        const responseJson = await response.json();
 
         return RockItAlbumWithSongsResponse.parse(responseJson);
     }

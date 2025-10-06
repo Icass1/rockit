@@ -143,8 +143,11 @@ class Spotify:
         """
         Searches for albums, artists or tracks in cache or via Spotify API.
         """
-        with open(f".spotify_cache/{data_name}s.json", "r") as f:
-            data = json.load(f)
+        try:
+            with open(f".spotify_cache/{data_name}s.json", "r") as f:
+                data = json.load(f)
+        except:
+            data = {}
 
         missing_data: List[str] = []
         result: List[Dict] = []
@@ -614,9 +617,27 @@ class Spotify:
             s.execute(
                 select(SongRow)
                 .options(
+                    #
+                    joinedload(SongRow.internal_image),
+                    #
                     joinedload(SongRow.artists),
+                    #
+                    joinedload(SongRow.artists).
+                    joinedload(ArtistRow.internal_image),
+                    #
                     joinedload(SongRow.album).
-                    joinedload(AlbumRow.artists)
+                    joinedload(AlbumRow.artists).
+                    joinedload(ArtistRow.genres),
+                    #
+                    joinedload(SongRow.album).
+                    joinedload(AlbumRow.artists).
+                    joinedload(ArtistRow.external_images),
+                    #
+                    joinedload(SongRow.album).
+                    joinedload(AlbumRow.internal_image),
+                    #
+                    joinedload(SongRow.album).
+                    joinedload(AlbumRow.external_images),
                 )
                 .where(
                     SongRow.public_id.in_(public_ids)

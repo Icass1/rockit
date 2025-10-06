@@ -4,7 +4,7 @@
 import { useState } from "react";
 
 import { LibraryFilters } from "@/components/Library/LibraryFilters";
-import { FeaturedLists } from "@/components/Library/FeaturedLists";
+// import { FeaturedLists } from "@/components/Library/FeaturedLists";
 import { LibraryLists } from "@/components/Library/LibraryLists";
 import { useLanguage } from "@/contexts/LanguageContext";
 

@@ -32,7 +32,7 @@ import "@/styles/CheckBox.css";
 import Image from "next/image";
 import { RockItSongWithAlbum } from "@/types/rockIt";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { rockIt } from "@/lib/rockit";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 function ListSubContextMenu({
     list,

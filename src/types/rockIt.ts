@@ -22,7 +22,6 @@ export type RockItQueueSong = z.infer<typeof RockItQueueSong>;
 
 // #endregion
 
-
 export const DynamicLyricsItem = z.object({
     lyrics: z.string(),
     seconds: z.number(),

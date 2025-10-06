@@ -19,7 +19,7 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Image from "next/image";
-import { rockIt } from "@/lib/rockit";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function Navigation() {
     const [open, setOpen] = useState(false);

@@ -1,10 +1,12 @@
-import { RockItSongWithAlbum } from "@/types/rockIt";
-import { atom } from "nanostores";
+import { createArrayAtom } from "@/lib/store";
+import apiFetch from "../utils/apiFetch";
+import { RockItSongWithAlbumResponse } from "@/responses/rockItSongWithAlbumResponse";
+import { RockItSongWithAlbum } from "../rockit/rockItSongWithAlbum";
 
 export class SongManager {
     // #region: Atoms
 
-    private _likedSongsAtom = atom<string[]>([]);
+    private _likedSongsAtom = createArrayAtom<string>([]);
 
     // #endregion: Atoms
 
@@ -13,6 +15,21 @@ export class SongManager {
     constructor() {}
 
     // #endregion: Constructor
+
+    // #region: Methods
+
+    async getSpotifySongAsync(publicId: string) {
+        const response = await apiFetch(`/spotify/song/${publicId}`, {
+            auth: false,
+        });
+        if (!response?.ok) {
+            throw "Error fetching album.";
+        }
+
+        const responseJson = await response.json();
+
+        return RockItSongWithAlbumResponse.parse(responseJson);
+    }
 
     toggleLikeSong(songPublicId: string) {
         //  if (rockIt.songManager.likedSongsAtom.get().includes(song.publicId)) {
@@ -130,6 +147,8 @@ export class SongManager {
         //     queue.set(songsToAdd);
         // }
     }
+
+    // #endregion: Constructor
 
     // #region: Getters
 

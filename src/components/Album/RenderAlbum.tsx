@@ -6,22 +6,25 @@ import { useRouter } from "next/navigation";
 import { getMinutes, getYear } from "@/lib/utils/getTime";
 import { Disc } from "lucide-react";
 import AlbumSong from "@/components/ListSongs/AlbumSong";
-import { RockItAlbumWithSongs } from "@/types/rockIt";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Image from "next/image";
 import { groupBy } from "lodash";
-import { rockIt } from "@/lib/rockit";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { useEffect, useState } from "react";
 import DownloadListButton from "../ListHeader/DownloadListButton";
 import DownloadAnimation from "./DownloadAnimation";
+import { RockItAlbumWithSongsResponse } from "@/responses/rockItAlbumWithSongsResponse";
+import { RockItAlbumWithSongs } from "@/lib/rockit/rockItAlbumWithSongs";
 
 export default function RenderAlbum({
-    album,
+    albumResponse,
 }: {
-    album: RockItAlbumWithSongs;
+    albumResponse: RockItAlbumWithSongsResponse;
 }) {
     const router = useRouter();
     const lang = useLanguage();
+
+    const album = RockItAlbumWithSongs.fromResponse(albumResponse);
 
     useEffect(() => {
         rockIt.currentListManager.setCurrentListSongs(

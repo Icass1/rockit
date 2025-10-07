@@ -32,6 +32,7 @@ import spotdl.providers.audio.base
 import requests
 from typing import Dict, List, Tuple
 from bs4 import BeautifulSoup
+import os
 
 from typing import Dict, List, Optional, Tuple
 
@@ -508,23 +509,23 @@ def search_and_download(  # pylint: disable=R0911
                     )
 
         # Find song lyrics and add them to the song object
-        try:
-            display_progress_tracker.update("Searching lyrics")
-            print(__file__, f"Searching lyrics", self.search_lyrics)
-            lyrics = self.search_lyrics(song)
-            print(__file__, f"Done", lyrics)
-            if lyrics is None:
-                logger.info(
-                    "No lyrics found for %s, lyrics providers: %s",
-                    song.display_name,
-                    ", ".join(
-                        [lprovider.name for lprovider in self.lyrics_providers]
-                    ),
-                )
-            else:
-                song.lyrics = lyrics
-        except Exception as exc:
-            logger.info("Could not search for lyrics: %s", exc)
+        # try:
+        #     display_progress_tracker.update("Searching lyrics")
+        #     # print(__file__, f"Searching lyrics", self.search_lyrics)
+        #     lyrics = self.search_lyrics(song)
+        #     # print(__file__, f"Done", lyrics)
+        #     if lyrics is None:
+        #         logger.info(
+        #             "No lyrics found for %s, lyrics providers: %s",
+        #             song.display_name,
+        #             ", ".join(
+        #                 [lprovider.name for lprovider in self.lyrics_providers]
+        #             ),
+        #         )
+        #     else:
+        #         song.lyrics = lyrics
+        # except Exception as exc:
+        #     logger.info("Could not search for lyrics: %s", exc)
 
         # If the file already exists and we want to overwrite the metadata,
         # we can skip the download
@@ -862,6 +863,7 @@ def get_download_metadata(self: spotdl.providers.audio.base.AudioProvider, url: 
 
     try:
         logger.debug("Clearing cache...")
+        os.system("yt-dlp --rm-cache-dir")
         self.audio_handler.cache.remove()
         data = self.audio_handler.extract_info(url, download=download)
 

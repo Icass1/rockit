@@ -48,8 +48,11 @@ class MessageHandler:
     def get_reader(self) -> MessageHandlderReader:
         return MessageHandlderReader(handler=self)
 
-    def add(self, message: Any) -> None:
-        self.logger.debug(message)
+    def add(self, message: Any, force=False) -> None:
+        # if completed is 100, do not add it. after the song has been moeved and updated in database, completed: 100 will be send.
+
+        if message["completed"] != 100 or message["message"] == "Skipped" or force:
+            self.logger.debug(message)
         self._messages.append(message)
 
     def finish(self) -> None:

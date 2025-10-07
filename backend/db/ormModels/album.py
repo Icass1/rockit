@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from backend.db.ormModels.copyright import CopyrightRow
     from backend.db.ormModels.internalImage import InternalImageRow
     from backend.db.ormModels.externalImage import ExternalImageRow
+    from backend.db.ormModels.downloadStatus import DownloadStatusRow
 
 
 class AlbumRow(Base, TableDateUpdated, TableDateAdded):

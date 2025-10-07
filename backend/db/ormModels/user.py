@@ -1,6 +1,6 @@
 from typing import List, TYPE_CHECKING
 
-from sqlalchemy import String, Integer, Enum, Boolean, Double
+from sqlalchemy import DOUBLE_PRECISION, String, Integer, Enum, Boolean
 from sqlalchemy.orm import mapped_column, relationship, Mapped
 from sqlalchemy.orm.properties import MappedColumn
 
@@ -37,9 +37,10 @@ class UserRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
         Boolean, nullable=False, default=False)
     repeat_song: Mapped[str] = mapped_column(Enum(
         "off", "one", "all", name="repeat_song_enum", schema="main"), nullable=False, default="off")
-    volume: Mapped[float] = mapped_column(Double, nullable=False, default=1)
+    volume: Mapped[float] = mapped_column(
+        DOUBLE_PRECISION, nullable=False, default=1)
     cross_fade: Mapped[float] = mapped_column(
-        Double, nullable=False, default=0)
+        DOUBLE_PRECISION, nullable=False, default=0)
     lang: Mapped[str] = mapped_column(String, nullable=False, default="en")
     image: MappedColumn[str | None] = mapped_column(String, nullable=True)
     admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)

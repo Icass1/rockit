@@ -161,8 +161,8 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         while True:
             data = await websocket.receive_text()
-            print(data)
-            await websocket.send_text(f"Message text was: {data}")
+            # print(data)
+            # await websockept.send_text(f"Message text was: {data}")
     except Exception as e:
         print(e)
     print("Web socket disconnected")

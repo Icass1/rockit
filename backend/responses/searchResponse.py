@@ -3,6 +3,7 @@ from pydantic import BaseModel
 
 from backend.responses.general.albumWithoutSongs import RockItAlbumWithoutSongsResponse
 from backend.responses.general.artist import RockItArtistResponse
+from backend.responses.general.playlist import RockItPlaylistResponse
 from backend.responses.general.songWithAlbum import RockItSongWithAlbumResponse
 from backend.spotifyApiTypes.RawSpotifyApiSearchResults import RawSpotifyApiSearchResults
 
@@ -11,6 +12,7 @@ class SpotifyResults(BaseModel):
     songs: List[RockItSongWithAlbumResponse]
     albums: List[RockItAlbumWithoutSongsResponse]
     artists: List[RockItArtistResponse]
+    playlists: List[RockItPlaylistResponse]
 
     @staticmethod
     def from_spotify_search(spotify_search: RawSpotifyApiSearchResults) -> "SpotifyResults":
@@ -34,7 +36,8 @@ class SpotifyResults(BaseModel):
         return SpotifyResults(
             songs=songs,
             albums=albums,
-            artists=[]
+            artists=[],
+            playlists=[]
         )
 
 

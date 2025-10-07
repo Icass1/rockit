@@ -63,7 +63,7 @@ class SpotifyQueueElement(QueueElement):
     def on_done(self):
 
         if not self._path:
-            self.logger.error(f"Path is not set. {self._song=}")
+            self.logger.error(f"Path is not set.")
 
             with self._rockit_db.session_scope() as s:
                 song_in_db: SongRow | None = s.execute(select(SongRow).where(
@@ -135,3 +135,6 @@ class SpotifyQueueElement(QueueElement):
         self._rockit_db.execute_with_session(_update)
 
         self.logger.info(f"Moved song to {final_song_path}")
+
+        self.get_message_handler().add(
+            message={"completed": 100, "message": "Done", "id": self._song.song_id}, force=True)

@@ -1,14 +1,15 @@
 from datetime import datetime
-from typing import TYPE_CHECKING, Literal, Final
+from typing import TYPE_CHECKING, Literal, Final, List
 
 from sqlalchemy.orm import relationship, mapped_column, Mapped
-from sqlalchemy import ForeignKey, String, Integer, DateTime, Enum, Boolean
+from sqlalchemy import TIMESTAMP, ForeignKey, String, Integer, Enum, Boolean
 
 from backend.db.base import Base
 from backend.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdated, TableAutoincrementId
 
 if TYPE_CHECKING:
     from backend.db.ormModels.user import UserRow
+    from backend.db.ormModels.downloadStatus import DownloadStatusRow
 
 
 DOWNLOAD_STATUSES: Final[tuple[str, ...]] = (
@@ -40,9 +41,9 @@ class DownloadRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey(
         'main.users.id'), nullable=False)
     date_started: Mapped[datetime] = mapped_column(
-        DateTime(timezone=False), nullable=False)
+        TIMESTAMP, nullable=False)
     date_ended: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=False), nullable=True)
+        TIMESTAMP, nullable=True)
     download_url: Mapped[str] = mapped_column(String, nullable=False)
     status: Mapped[STATUS_TYPE] = mapped_column(Enum(
         *DOWNLOAD_STATUSES, name="download_status_enum", schema="main"), nullable=False, default="pending")
@@ -52,6 +53,8 @@ class DownloadRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
 
     user: Mapped["UserRow"] = relationship("UserRow", back_populates="downloads",
                                            foreign_keys=[user_id])
+    downloads: Mapped[List["DownloadStatusRow"]] = relationship(
+        "DownloadStatusRow", back_populates="download")
 
     def __init__(self, public_id: str, user_id: int, date_started: datetime, download_url: str, date_ended: datetime | None = None, status: STATUS_TYPE = "pending", seen: bool = False, success: int | None = None, fail: int | None = None):
         kwargs = {}

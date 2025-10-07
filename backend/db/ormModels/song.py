@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from backend.db.ormModels.artist import ArtistRow
     from backend.db.ormModels.playlist import PlaylistRow
     from backend.db.ormModels.internalImage import InternalImageRow
+    from backend.db.ormModels.downloadStatus import DownloadStatusRow
 
 
 class SongRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
@@ -51,6 +52,8 @@ class SongRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
         'InternalImageRow', back_populates='songs', foreign_keys=[internal_image_id])
     album: Mapped["AlbumRow"] = relationship(
         "AlbumRow", back_populates="songs")
+    downloads: Mapped[List["DownloadStatusRow"]] = relationship(
+        "DownloadStatusRow", back_populates="song")
 
     # back_populates for users
     history_users: Mapped[List["UserRow"]] = relationship(

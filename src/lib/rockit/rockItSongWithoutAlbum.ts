@@ -1,17 +1,24 @@
 import { RockItSongWithoutAlbumResponse } from "@/responses/rockItSongWithoutAlbumResponse";
 import { RockItArtist } from "./rockItArtist";
+import { createAtom } from "../store";
+import apiFetch from "../utils/apiFetch";
+import { RockItSongWithAlbumResponse } from "@/responses/rockItSongWithAlbumResponse";
 
 export class RockItSongWithoutAlbum {
+    static #instance: RockItSongWithoutAlbum[] = [];
+
     // #region: Read-only properties
 
-    public readonly publicId: string;
-    public readonly name: string;
-    public readonly artists: RockItArtist[];
-    public readonly downloaded: boolean;
-    public readonly discNumber: number;
-    public readonly duration: number;
-    public readonly internalImageUrl: string | null;
-    public readonly audioUrl: string | null;
+    public readonly atom = createAtom<RockItSongWithoutAlbum[]>([this]);
+
+    public publicId: string;
+    public name: string;
+    public artists: RockItArtist[];
+    public downloaded: boolean;
+    public discNumber: number;
+    public duration: number;
+    public internalImageUrl: string | null;
+    public audioUrl: string | null;
 
     // #endregion
 
@@ -48,6 +55,34 @@ export class RockItSongWithoutAlbum {
 
     // #endregion
 
+    // #region: Methods
+
+    async updateAsync() {
+        console.log("(updateAsync)", this.publicId, this.name, this.downloaded);
+        const response = await apiFetch(`/spotify/song/${this.publicId}`);
+        if (!response) {
+            console.error("Response is undefined.");
+            return;
+        }
+        const responseParsed = RockItSongWithAlbumResponse.parse(
+            await response.json()
+        );
+
+        console.log("(updateAsync)", responseParsed, responseParsed.downloaded);
+
+        this.downloaded = responseParsed.downloaded;
+        this.audioUrl = responseParsed.audioUrl;
+        this.internalImageUrl = responseParsed.internalImageUrl;
+
+        console.log("(updateAsync)", this);
+        console.log("(updateAsync)", this.atom);
+
+        this.atom.set([]);
+        this.atom.set([{ ...this }]);
+    }
+
+    // #endregion
+
     // #region: Getters
 
     // #endregion
@@ -57,7 +92,13 @@ export class RockItSongWithoutAlbum {
     static fromResponse(
         response: RockItSongWithoutAlbumResponse
     ): RockItSongWithoutAlbum {
-        return new RockItSongWithoutAlbum({
+        for (const instance of RockItSongWithoutAlbum.#instance) {
+            if (instance.publicId == response.publicId) {
+                return instance;
+            }
+        }
+
+        const newInstance = new RockItSongWithoutAlbum({
             publicId: response.publicId,
             name: response.name,
             artists: response.artists.map((artist) =>
@@ -69,6 +110,18 @@ export class RockItSongWithoutAlbum {
             internalImageUrl: response.internalImageUrl,
             audioUrl: response.audioUrl,
         });
+
+        RockItSongWithoutAlbum.#instance.push(newInstance);
+
+        return newInstance;
+    }
+
+    static getExistingInstanceFromPublicId(publicId: string) {
+        for (const instance of RockItSongWithoutAlbum.#instance) {
+            if (instance.publicId == publicId) {
+                return instance;
+            }
+        }
     }
 
     // #endregion

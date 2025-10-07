@@ -5,6 +5,9 @@ import { StartDownloadResponse } from "@/responses/startDownloadResponse";
 import { DownloadStatusMessage } from "@/responses/downloadStatusMessage";
 import { DBListType, DownloadInfo } from "@/types/rockIt";
 import { DownloadsResponse } from "@/responses/downloadsResponse";
+import { RockItSongWithAlbum } from "../rockit/rockItSongWithAlbum";
+import { RockItSongWithoutAlbum } from "../rockit/rockItSongWithoutAlbum";
+import { RockItSongPlaylist } from "../rockit/rockItSongPlaylist";
 
 interface SongStatus {
     publicId: string;
@@ -121,6 +124,19 @@ export class DownloaderManager {
         };
     }
 
+    private async handleSpotifySongDownloaded(publicId: string) {
+        console.log("(handleSpotifySongDownloaded)", { publicId });
+        await RockItSongWithAlbum.getExistingInstanceFromPublicId(
+            publicId
+        )?.updateAsync();
+        await RockItSongWithoutAlbum.getExistingInstanceFromPublicId(
+            publicId
+        )?.updateAsync();
+        await RockItSongPlaylist.getExistingInstanceFromPublicId(
+            publicId
+        )?.updateAsync();
+    }
+
     // #endregion: Methods
 
     // #region: Handlers
@@ -142,15 +158,31 @@ export class DownloaderManager {
     ) {
         try {
             const data = DownloadStatusMessage.parse(JSON.parse(ev.data));
-            if (data.completed == 100) {
+            console.log(data);
+            if (data.completed == 100 && data.message != "Skipped") {
                 console.log("Song downloaded", data.id);
+                this.handleSpotifySongDownloaded(data.id);
             }
 
-            this._downloadingSongsStatusAtom.push({
-                publicId: data.id,
-                completed: data.completed,
-                message: data.message,
-            });
+            const currentStatus = this._downloadingSongsStatusAtom.get();
+            const index = currentStatus.findIndex(
+                (song) => song.publicId == data.id
+            );
+
+            if (index == -1) {
+                currentStatus.push({
+                    publicId: data.id,
+                    completed: data.completed,
+                    message: data.message,
+                });
+            } else {
+                currentStatus[index] = {
+                    publicId: data.id,
+                    completed: data.completed,
+                    message: data.message,
+                };
+            }
+            this._downloadingSongsStatusAtom.set(currentStatus);
         } catch (error) {
             console.error(error);
             console.error(`Error parsing message '${ev.data}'`);

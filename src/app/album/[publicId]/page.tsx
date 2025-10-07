@@ -52,5 +52,7 @@ export default async function AlbumPage({
 
     const album = await rockIt.albumManager.getSpotifyAlbumAsync(publicId);
 
+    album.songs.sort((a, b) => a.trackNumber - b.trackNumber);
+
     return <RenderAlbum albumResponse={album}></RenderAlbum>;
 }

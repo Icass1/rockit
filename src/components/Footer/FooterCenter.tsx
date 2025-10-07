@@ -44,13 +44,15 @@ export default function FooterCenter() {
                                     ? " text-[#ee1086]"
                                     : " text-gray-400")
                             }
-                            onClick={rockIt.userManager.toggleRandomQueue}
+                            onClick={() =>
+                                rockIt.userManager.toggleRandomQueue()
+                            }
                         />
                         <SkipBack
                             className={
                                 "h-[22px] w-[22px] cursor-pointer fill-current text-gray-400 md:hover:scale-105 md:hover:text-white"
                             }
-                            onClick={rockIt.audioManager.skipBack}
+                            onClick={() => rockIt.audioManager.skipBack()}
                         />
 
                         {$loading ? (
@@ -58,12 +60,12 @@ export default function FooterCenter() {
                         ) : $playing ? (
                             <CirclePause
                                 className="h-8 w-8 cursor-pointer text-gray-400 md:hover:scale-105 md:hover:text-white"
-                                onClick={rockIt.audioManager.pause}
+                                onClick={() => rockIt.audioManager.pause()}
                             />
                         ) : (
                             <CirclePlay
                                 className="h-8 w-8 cursor-pointer text-gray-400 md:hover:scale-105 md:hover:text-white"
-                                onClick={rockIt.audioManager.play}
+                                onClick={() => rockIt.audioManager.play()}
                             />
                         )}
 
@@ -71,7 +73,7 @@ export default function FooterCenter() {
                             className={
                                 "h-[22px] w-[22px] cursor-pointer fill-current text-gray-400 md:hover:scale-105 md:hover:text-white"
                             }
-                            onClick={rockIt.audioManager.skipForward}
+                            onClick={() => rockIt.audioManager.skipForward()}
                         />
                         {$repeatSong === "one" ? (
                             <Repeat1
@@ -79,7 +81,9 @@ export default function FooterCenter() {
                                     "h-[18px] w-[18px] cursor-pointer transition-colors md:hover:scale-105 " +
                                     "text-[#ee1086]"
                                 }
-                                onClick={rockIt.userManager.cyclerepeatSong}
+                                onClick={() =>
+                                    rockIt.userManager.cyclerepeatSong()
+                                }
                             />
                         ) : (
                             <Repeat
@@ -89,7 +93,9 @@ export default function FooterCenter() {
                                         ? "text-[#ee1086]"
                                         : "text-gray-400")
                                 }
-                                onClick={rockIt.userManager.cyclerepeatSong}
+                                onClick={() =>
+                                    rockIt.userManager.cyclerepeatSong()
+                                }
                             />
                         )}
                     </div>

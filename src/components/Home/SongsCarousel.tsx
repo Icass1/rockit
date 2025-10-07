@@ -65,15 +65,7 @@ function Song({
             publicId: "carousel",
         });
 
-        songHandleClick(
-            song,
-            songs.map((song) => {
-                return {
-                    ...song,
-                    path: "this path is not needed but cannot be empty",
-                };
-            })
-        );
+        songHandleClick(song, songs);
     };
 
     return (
@@ -295,7 +287,7 @@ function SongsCarousel() {
                 className="absolute left-24 z-[25] hidden h-10 w-10 rounded-full bg-white p-2 text-[#6d6d6d] shadow-md transition duration-300 md:flex md:hover:text-black"
                 onClick={prevSlide}
             />
-            <Version2 songs={songs} currentIndex={currentIndex} />
+            <Version2 songs={[]} currentIndex={currentIndex} />
             <ChevronRight
                 className="absolute right-24 z-[25] hidden h-10 w-10 rounded-full bg-white p-2 text-[#6d6d6d] shadow-md transition duration-300 md:flex md:hover:text-black"
                 onClick={nextSlide}

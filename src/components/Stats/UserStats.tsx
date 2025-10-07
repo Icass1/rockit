@@ -100,7 +100,7 @@ export default function UserStats() {
     const { langFile: lang } = useLanguage();
 
     if (!lang) return false;
-    if (!data) return <div>Loading...</div>;
+    if (!data) return <div>UserStats.data Loading...</div>;
 
     return (
         <div className="h-full">

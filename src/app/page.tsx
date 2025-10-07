@@ -61,7 +61,7 @@ export default function Home() {
         return (
             <div className="flex h-screen flex-row items-center justify-center gap-2 text-xl font-semibold">
                 <Spinner></Spinner>
-                <label>Loading...</label>
+                <label>Home.dataResponse Loading...</label>
             </div>
         );
     }
@@ -99,7 +99,7 @@ export default function Home() {
             fallback={
                 <div className="flex h-screen flex-row items-center justify-center gap-2 text-xl font-semibold">
                     <Spinner></Spinner>
-                    <label>Loading...</label>
+                    <label>Home.Suspense Loading...</label>
                 </div>
             }
         >

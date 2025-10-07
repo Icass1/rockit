@@ -2,6 +2,8 @@ import { createAtom } from "@/lib/store";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 export class AudioManager {
+    static #instance: AudioManager;
+
     private _audio?: HTMLAudioElement;
 
     // #region: Atoms
@@ -23,6 +25,11 @@ export class AudioManager {
     constructor() {
         if (typeof window === "undefined") return;
 
+        if (AudioManager.#instance) {
+            console.warn("Returning existing instance of AudioManager");
+            return AudioManager.#instance;
+        }
+
         this._audio = new Audio();
 
         this._audio.onplaying = (ev: Event) => {
@@ -43,6 +50,10 @@ export class AudioManager {
         this._audio.onplay = (ev: Event) => {
             this.handleAudioPlay(ev);
         };
+
+        AudioManager.#instance = this;
+
+        return AudioManager.#instance;
     }
 
     // #endregion: Constructor
@@ -89,7 +100,11 @@ export class AudioManager {
     }
 
     pause() {
-        throw new Error("(pause) Method not implemented.");
+        if (!this._audio) {
+            console.warn("(pause) Audio element not initialized");
+            return;
+        }
+        this._audio.pause();
     }
 
     mute() {

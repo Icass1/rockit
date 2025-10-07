@@ -16,6 +16,7 @@ import DownloadAnimation from "./DownloadAnimation";
 import { RockItAlbumWithSongsResponse } from "@/responses/rockItAlbumWithSongsResponse";
 import { RockItAlbumWithSongs } from "@/lib/rockit/rockItAlbumWithSongs";
 import { useStore } from "@nanostores/react";
+import { RockItSongWithAlbum } from "@/lib/rockit/rockItSongWithAlbum";
 
 export default function RenderAlbum({
     albumResponse,
@@ -34,7 +35,7 @@ export default function RenderAlbum({
     useEffect(() => {
         rockIt.currentListManager.setCurrentListSongs(
             album.songs.map((song) => {
-                return { ...song, album };
+                return new RockItSongWithAlbum({ ...song, album });
             })
         );
     }, [album]);
@@ -51,11 +52,6 @@ export default function RenderAlbum({
                             (albumSong) => albumSong.publicId == song.publicId
                         )
                     ) {
-                        console.log(
-                            song.publicId,
-                            song.message,
-                            song.completed
-                        );
                         if (song.message == "Error") {
                             completed += 100;
                         } else {
@@ -63,7 +59,6 @@ export default function RenderAlbum({
                         }
                     }
                 }
-                console.warn(completed, album.songs.length);
                 setProgress(Math.round(completed / album.songs.length));
             }
         );
@@ -182,7 +177,12 @@ export default function RenderAlbum({
                             {entry[1].map((song, songIndex) => (
                                 <AlbumSong
                                     key={song.publicId}
-                                    song={{ ...song, album }}
+                                    song={
+                                        new RockItSongWithAlbum({
+                                            ...song,
+                                            album,
+                                        })
+                                    }
                                     index={songIndex}
                                 />
                             ))}

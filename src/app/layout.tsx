@@ -63,7 +63,7 @@ export default async function RootLayout({
                 <link rel="manifest" href="/manifest.json" />
             </head>
             <body className="bg-black">
-                <Suspense fallback={<div>Loading...</div>}>
+                <Suspense fallback={<div>layout.Suspense Loading...</div>}>
                     <AddSessionProvider>
                         <LanguageProvider
                             langFile={language.langFile}

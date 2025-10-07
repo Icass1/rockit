@@ -158,7 +158,8 @@ export default function RenderSearchBarResults({
     //     setBestResult(bestResult);
     // }, [$searchResults, $searchQuery]);
 
-    if (!$searchResults) return <div>Loading...</div>;
+    if (!$searchResults)
+        return false;
 
     return (
         <div id="search-bar-results">

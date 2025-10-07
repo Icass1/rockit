@@ -299,7 +299,7 @@ export default function PiPContent() {
                             lineHeight: 1.2,
                         }}
                     >
-                        {$currentSong?.name || "Loading..."}
+                        {$currentSong?.name}
                     </div>
                     <div
                         style={{
@@ -308,8 +308,7 @@ export default function PiPContent() {
                             lineHeight: 1.2,
                         }}
                     >
-                        {$currentSong?.artists.map((a) => a.name).join(", ") ||
-                            "Loading..."}
+                        {$currentSong?.artists.map((a) => a.name).join(", ")}
                     </div>
                 </div>
                 {$currentSong && (

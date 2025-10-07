@@ -171,7 +171,7 @@ export function LibraryLists({
     const { langFile: lang } = useLanguage();
 
     const [listsResponse] = useFetch("/library/lists", LibraryListsResponse);
-    if (!listsResponse) return <div>Loading...</div>;
+    if (!listsResponse) return <div>LibraryLists.listsResponse Loading...</div>;
 
     const lists = {
         albums: listsResponse.albums.map((album) =>
@@ -184,7 +184,8 @@ export function LibraryLists({
 
     const filteredLists = lists;
 
-    if (!width || !lang || !filteredLists) return <div>Loading...</div>;
+    if (!width || !lang || !filteredLists)
+        return <div>LibraryLists.(width, lang, filteredLists) Loading...</div>;
 
     return (
         <section>

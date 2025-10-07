@@ -4,6 +4,8 @@ import { RockItArtist } from "./rockItArtist";
 import { RockItSongWithAlbum } from "./rockItSongWithAlbum";
 
 export class RockItSongPlaylist extends RockItSongWithAlbum {
+    static #instance: RockItSongPlaylist[] = [];
+
     // #region: Read-only properties
 
     public readonly addedAt: Date;
@@ -60,7 +62,13 @@ export class RockItSongPlaylist extends RockItSongWithAlbum {
     static fromResponse(
         response: RockItSongPlaylistResponse
     ): RockItSongPlaylist {
-        return new RockItSongPlaylist({
+        for (const instance of RockItSongPlaylist.#instance) {
+            if (instance.publicId == response.publicId) {
+                return instance;
+            }
+        }
+
+        const newInstance = new RockItSongPlaylist({
             publicId: response.publicId,
             name: response.name,
             artists: response.artists.map((artist) =>
@@ -74,6 +82,18 @@ export class RockItSongPlaylist extends RockItSongWithAlbum {
             internalImageUrl: response.internalImageUrl,
             audioUrl: response.audioUrl,
         });
+
+        RockItSongPlaylist.#instance.push(newInstance);
+
+        return newInstance;
+    }
+
+    static getExistingInstanceFromPublicId(publicId: string) {
+        for (const instance of RockItSongPlaylist.#instance) {
+            if (instance.publicId == publicId) {
+                return instance;
+            }
+        }
     }
 
     // #endregion

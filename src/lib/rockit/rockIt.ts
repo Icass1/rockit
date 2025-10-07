@@ -12,7 +12,7 @@ import { ServiceWorkerManager } from "@/lib/managers/serviceWorkerManager";
 import { SongManager } from "@/lib/managers/songManager";
 import { StationManager } from "@/lib/managers/stationManager";
 import { UserManager } from "@/lib/managers/userManager";
-import { WebSocketManager } from "@/lib/managers/webSockerManger";
+import { WebSocketManager } from "@/lib/managers/webSocketManger";
 import { ListManager } from "@/lib/managers/listManager";
 
 export const RESPONSE_UNDEFINED_MESSAGE = "Response is undefined.";

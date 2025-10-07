@@ -17,6 +17,7 @@ DROP TABLE IF EXISTS main.user_queue_songs CASCADE;
 DROP TABLE IF EXISTS main.user_pinned_lists CASCADE;
 DROP TABLE IF EXISTS main.user_liked_songs CASCADE;
 DROP TABLE IF EXISTS main.user_history_songs CASCADE;
+DROP TABLE IF EXISTS main.user_lists CASCADE;
 
 DROP TABLE IF EXISTS main.playlists CASCADE;
 DROP TABLE IF EXISTS main.playlist_songs CASCADE;
@@ -28,3 +29,5 @@ DROP TABLE IF EXISTS main.errors CASCADE;
 DROP TABLE IF EXISTS main.downloads CASCADE;
 DROP TABLE IF EXISTS main.internal_images CASCADE;
 DROP TABLE IF EXISTS main.external_images CASCADE;
+DROP TABLE IF EXISTS main.copyrights CASCADE;
+DROP TABLE IF EXISTS main.downloads_status CASCADE;

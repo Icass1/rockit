@@ -20,7 +20,7 @@ class PlaylistRow(Base, TableDateUpdated, TableDateAdded):
     __table_args__ = {'schema': 'main', 'extend_existing': True},
 
     id: Mapped[int] = mapped_column(
-        Integer, ForeignKey('lists.id'), primary_key=True)
+        Integer, ForeignKey('main.lists.id'), primary_key=True)
     public_id: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     internal_image_id: Mapped[int] = mapped_column(Integer, ForeignKey(
         'main.internal_images.id'), nullable=False)

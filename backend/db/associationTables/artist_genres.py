@@ -6,8 +6,8 @@ from backend.db.base import Base
 
 artist_genres = Table(
     'artist_genres', Base.metadata,
-    Column('artist_id', ForeignKey('artists.id'), primary_key=True),
-    Column('genre_id', ForeignKey(column='genres.id'), primary_key=True),
+    Column('artist_id', ForeignKey('main.artists.id'), primary_key=True),
+    Column('genre_id', ForeignKey(column='main.genres.id'), primary_key=True),
     date_added_column(),
     date_updated_column(),
     schema='main'

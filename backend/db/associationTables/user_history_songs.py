@@ -1,4 +1,4 @@
-from sqlalchemy import Table, Column, ForeignKey, DateTime
+from sqlalchemy import TIMESTAMP, Table, Column, ForeignKey
 
 from backend.db.base import Base
 
@@ -6,9 +6,9 @@ from backend.db.associationTables.generalColumns import date_added_column, date_
 
 user_history_songs = Table(
     'user_history_songs', Base.metadata,
-    Column('user_id', ForeignKey('users.id'), primary_key=True),
-    Column('song_id', ForeignKey('songs.id'), primary_key=True),
-    Column('played_at', DateTime(timezone=False),
+    Column('user_id', ForeignKey('main.users.id'), primary_key=True),
+    Column('song_id', ForeignKey('main.songs.id'), primary_key=True),
+    Column('played_at', TIMESTAMP,
            nullable=False, primary_key=True),
     date_added_column(),
     date_updated_column(),

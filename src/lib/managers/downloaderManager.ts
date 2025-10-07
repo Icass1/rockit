@@ -3,6 +3,8 @@ import apiFetch from "@/lib/utils/apiFetch";
 import { RESPONSE_UNDEFINED_MESSAGE, rockIt } from "@/lib/rockit/rockIt";
 import { StartDownloadResponse } from "@/responses/startDownloadResponse";
 import { DownloadStatusMessage } from "@/responses/downloadStatusMessage";
+import { DBListType, DownloadInfo } from "@/types/rockIt";
+import { DownloadsResponse } from "@/responses/downloadsResponse";
 
 interface SongStatus {
     publicId: string;
@@ -18,6 +20,7 @@ export class DownloaderManager {
     private _downloadingListsAtom = createArrayAtom<string>([]);
     private _downloadingSongsAtom = createArrayAtom<string>([]);
     private _downloadingSongsStatusAtom = createArrayAtom<SongStatus>([]);
+    private _downloadInfoAtom = createArrayAtom<DownloadInfo>([]);
 
     // #endregion: Getters
 
@@ -29,10 +32,7 @@ export class DownloaderManager {
 
     // #region: Methods
 
-    async downloadSpotifyListToDBAsync(
-        type: "album" | "playlist",
-        publicId: string
-    ) {
+    async downloadSpotifyListToDBAsync(type: DBListType, publicId: string) {
         const url = `https://open.spotify.com/${type}/${publicId}`;
 
         console.log("(downloadSpotifyListToDBAsync)", url);
@@ -132,15 +132,6 @@ export class DownloaderManager {
                 completed: data.completed,
                 message: data.message,
             });
-
-            // this._downloadingSongsStatusAtom.set([
-            //     ...this._downloadingSongsStatusAtom.get(),
-            //     {
-            //         publicId: data.id,
-            //         completed: data.completed,
-            //         message: data.message,
-            //     },
-            // ]);
         } catch (error) {
             console.error(error);
             console.error(`Error parsing message '${ev.data}'`);
@@ -149,6 +140,15 @@ export class DownloaderManager {
 
     private handleEventSourceOpen(eventSource: EventSource, ev: Event) {
         console.log(`Event source open ${eventSource.url} ${ev}`);
+    }
+
+    async getDownloadsAsync(): Promise<DownloadsResponse> {
+        throw "(getDownloadsAsync) Method not implemented.";
+        return DownloadsResponse.parse([]);
+    }
+    async startDownloadAsync(url: string) {
+        console.log(url);
+        throw "(startDownloadAsync) Method not implemented.";
     }
 
     // #endregion: Handlers
@@ -175,5 +175,8 @@ export class DownloaderManager {
         return this._downloadingSongsAtom.getReadonlyAtom();
     }
 
+    get downloadInfoAtom() {
+        return this._downloadInfoAtom.getReadonlyAtom();
+    }
     // #endregion: Getters
 }

@@ -312,7 +312,9 @@ export default function PiPContent() {
                             "Loading..."}
                     </div>
                 </div>
-                {$currentSong && <LikeButton song={$currentSong} />}
+                {$currentSong && (
+                    <LikeButton songPublicId={$currentSong.publicId} />
+                )}
             </div>
         </div>
     );

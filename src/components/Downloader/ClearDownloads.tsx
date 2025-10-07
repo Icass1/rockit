@@ -3,7 +3,7 @@
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function ClearDownloads() {
-    const lang = useLanguage();
+    const { langFile: lang } = useLanguage();
     if (!lang) return false;
 
     return (

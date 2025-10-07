@@ -1,3 +1,4 @@
+import { RockItExternalImage } from "./rockItExternalImage";
 import { RockItSongPlaylist } from "./rockItSongPlaylist";
 import { RockItPlaylistResponse } from "@/responses/rockItPlaylistResponse";
 
@@ -9,6 +10,8 @@ export class RockItPlaylist {
     public readonly publicId: string;
     public readonly owner: string;
     public readonly internalImageUrl: string | null;
+    public readonly type = "playlist";
+    public readonly externalImages: RockItExternalImage[];
 
     // #endregion
 
@@ -20,18 +23,21 @@ export class RockItPlaylist {
         songs,
         internalImageUrl,
         owner,
+        externalImages,
     }: {
         publicId: string;
         name: string;
         songs: RockItSongPlaylist[];
         internalImageUrl: string | null;
         owner: string;
+        externalImages: RockItExternalImage[];
     }) {
         this.songs = songs;
         this.name = name;
         this.publicId = publicId;
         this.internalImageUrl = internalImageUrl;
         this.owner = owner;
+        this.externalImages = externalImages;
     }
 
     // #endregion
@@ -47,6 +53,9 @@ export class RockItPlaylist {
                 RockItSongPlaylist.fromResponse(song)
             ),
             owner: response.owner,
+            externalImages: response.externalImages.map((externalImage) =>
+                RockItExternalImage.fromResponse(externalImage)
+            ),
         });
     }
     update() {

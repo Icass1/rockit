@@ -7,9 +7,9 @@ import { useStore } from "@nanostores/react";
 import { songHandleClick } from "@/components/ListSongs/HandleClick";
 import useFetch from "@/hooks/useFetch";
 import { StatsResponse } from "@/responses/stats/statsResponse";
-import { RockItSong } from "@/types/rockIt";
 import Image from "next/image";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { RockItSongWithoutAlbum } from "@/lib/rockit/rockItSongWithoutAlbum";
 
 function Song({
     index,
@@ -20,9 +20,9 @@ function Song({
 }: {
     index: number;
     currentIndex: number;
-    song: RockItSong;
+    song: RockItSongWithoutAlbum;
     songsLength: number;
-    songs: RockItSong[];
+    songs: RockItSongWithoutAlbum[];
 }) {
     let distanceFromCenter = Math.abs(index - currentIndex);
     let neg = index > currentIndex ? -1 : 1;
@@ -156,7 +156,7 @@ function Version2({
     songs,
     currentIndex,
 }: {
-    songs: RockItSong[];
+    songs: RockItSongWithoutAlbum[];
     currentIndex: number;
 }) {
     return (

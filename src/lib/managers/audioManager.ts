@@ -10,6 +10,7 @@ export class AudioManager {
     private _loadingAtom = createAtom<boolean>(false);
     private _currentTimeAtom = createAtom<number>(0);
     private _currentVolume = createAtom<number>(1);
+    private _crossFadeAtom = createAtom<number>(0);
 
     // #endregion: Atoms
 
@@ -171,12 +172,12 @@ export class AudioManager {
     }
 
     private handleAudioPause(ev: Event) {
-        this.playingAtom.set(false);
+        this._playingAtom.set(false);
         console.log("(handleAudioPause)", ev);
     }
 
     private handleAudioPlay(ev: Event) {
-        this.playingAtom.set(true);
+        this._playingAtom.set(true);
         console.log("(handleAudioPlay)", ev);
     }
     // #endregion: Handlers
@@ -203,18 +204,26 @@ export class AudioManager {
         return this._audio?.volume;
     }
     get playingAtom() {
-        return this._playingAtom;
+        return this._playingAtom.getReadonlyAtom();
     }
 
     get loadingAtom() {
-        return this._loadingAtom;
+        return this._loadingAtom.getReadonlyAtom();
     }
 
     get currentTimeAtom() {
-        return this._currentTimeAtom;
+        return this._currentTimeAtom.getReadonlyAtom();
     }
+
+    get currentTime() {
+        return this._currentTimeAtom.get();
+    }
+
     get volumeAtom() {
-        return this._currentVolume;
+        return this._currentVolume.getReadonlyAtom();
+    }
+    get crossFadeAtom() {
+        return this._crossFadeAtom.getReadonlyAtom();
     }
 
     // #endregion: Getters

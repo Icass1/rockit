@@ -1,7 +1,8 @@
+import { rockIt } from "@/lib/rockit/rockIt";
 import { useStore } from "@nanostores/react";
 
 export default function CrossFadeInput() {
-    const $crossFade = useStore(crossFade);
+    const $crossFade = useStore(rockIt.audioManager.crossFadeAtom);
 
     return (
         <input
@@ -9,7 +10,9 @@ export default function CrossFadeInput() {
             type="number"
             value={$crossFade}
             onChange={(e) => {
-                crossFade.set(Number(e.currentTarget.value));
+                rockIt.userManager.setCrossFadeAsync(
+                    Number(e.currentTarget.value)
+                );
             }}
             max="40"
             min="0"

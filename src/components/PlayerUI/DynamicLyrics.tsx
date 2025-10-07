@@ -1,11 +1,12 @@
 "use client";
 
+import { rockIt } from "@/lib/rockit/rockIt";
 import { useStore } from "@nanostores/react";
 import { useEffect, useState } from "react";
 
 export function DynamicLyrics() {
-    const $currentSong = useStore(currentSong);
-    const $currentTime = useStore(currentTime);
+    const $currentSong = useStore(rockIt.queueManager.currentSongAtom);
+    const $currentTime = useStore(rockIt.audioManager.currentTimeAtom);
 
     const [lyricsIndex, setLyricsIndex] = useState(0);
     const [lyrics, setLyrics] = useState<string[] | string>();
@@ -15,7 +16,7 @@ export function DynamicLyrics() {
     >([]);
 
     useEffect(() => {
-        if (!$currentSong?.id) {
+        if (!$currentSong?.publicId) {
             return;
         }
 
@@ -23,7 +24,7 @@ export function DynamicLyrics() {
         setLyricsTimeStamp([]);
         setLyricsIndex(0);
 
-        fetch(`/api/lyrics/${$currentSong?.id}`)
+        fetch(`/api/lyrics/${$currentSong?.publicId}`)
             .then((response) => response.json())
             .then(
                 (
@@ -66,15 +67,19 @@ export function DynamicLyrics() {
                     const index = Math.min(value + 1, lyrics.length - 1);
 
                     if (lyricsTimeStamp.length > 0)
-                        setTime(lyricsTimeStamp[index].time + 0.01);
+                        rockIt.audioManager.setCurrentTime(
+                            lyricsTimeStamp[index].time + 0.01
+                        );
                     return index;
                 });
-                console.log(currentTime.get(), lyricsIndex);
+                console.log(rockIt.audioManager.currentTime, lyricsIndex);
             } else if (event.code == "ArrowUp") {
                 setLyricsIndex((value) => {
                     const index = Math.max(value - 1, 0);
                     if (lyricsTimeStamp.length > 0)
-                        setTime(lyricsTimeStamp[index].time + 0.01);
+                        rockIt.audioManager.setCurrentTime(
+                            lyricsTimeStamp[index].time + 0.01
+                        );
                     return index;
                 });
             }
@@ -130,7 +135,7 @@ export function DynamicLyrics() {
                                 }
                                 onClick={() => {
                                     if (lyricsTimeStamp.length > 0)
-                                        setTime(
+                                        rockIt.audioManager.setCurrentTime(
                                             lyricsTimeStamp[index].time + 0.01
                                         );
                                 }}
@@ -159,7 +164,7 @@ export function DynamicLyrics() {
                                 }
                                 onClick={() => {
                                     if (lyricsTimeStamp.length > 0)
-                                        setTime(
+                                        rockIt.audioManager.setCurrentTime(
                                             lyricsTimeStamp[index].time + 0.01
                                         );
                                 }}
@@ -211,7 +216,7 @@ export function DynamicLyrics() {
                                 }
                                 onClick={() => {
                                     if (lyricsTimeStamp.length > 0)
-                                        setTime(
+                                        rockIt.audioManager.setCurrentTime(
                                             lyricsTimeStamp[index].time + 0.01
                                         );
                                 }}
@@ -241,7 +246,7 @@ export function DynamicLyrics() {
                                 }
                                 onClick={() => {
                                     if (lyricsTimeStamp.length > 0)
-                                        setTime(
+                                        rockIt.audioManager.setCurrentTime(
                                             lyricsTimeStamp[index].time + 0.01
                                         );
                                 }}
@@ -255,7 +260,7 @@ export function DynamicLyrics() {
                                     // scale: "0.4",
                                 }}
                             >
-                                {line.replace(/ /g, " ")}
+                                {line.replace(/ /g, " ")}
                             </div>
                         );
                 }

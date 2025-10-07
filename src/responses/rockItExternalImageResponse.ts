@@ -5,3 +5,7 @@ export const RockItExternalImageResponse = z.object({
     width: z.number().nullable(),
     height: z.number().nullable(),
 });
+
+export type RockItExternalImageResponse = z.infer<
+    typeof RockItExternalImageResponse
+>;

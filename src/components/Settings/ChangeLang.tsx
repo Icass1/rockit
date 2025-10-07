@@ -1,20 +1,19 @@
-import { useStore } from "@nanostores/react";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function ChangeLang() {
-    const $currentLang = useStore(currentLang);
-
-    const lang = useLanguage();
-    if (!lang) return false;
+    const { lang, langFile } = useLanguage();
+    if (!lang || !langFile) return false;
 
     return (
         <div>
             <label className="mb-2 block text-sm text-gray-300 md:text-lg">
-                {lang.language}
+                {langFile.language}
             </label>
             <select
-                value={$currentLang}
+                value={lang}
                 onChange={(event) => {
-                    currentLang.set(event.currentTarget.value);
+                    rockIt.userManager.setLangAsync(event.currentTarget.value);
                 }}
                 className="w-full rounded-lg border border-[#333] bg-[#1e1e1e] p-3 text-white focus:ring-2 focus:ring-[#ec5588] focus:outline-none"
             >

@@ -1,22 +1,30 @@
 import { createArrayAtom } from "@/lib/store";
 import apiFetch from "@/lib/utils/apiFetch";
 import { RESPONSE_UNDEFINED_MESSAGE, rockIt } from "@/lib/rockit/rockIt";
+import { DBListType } from "@/types/rockIt";
+import { RockItAlbumWithoutSongs } from "../rockit/rockItAlbumWithoutSongs";
+import { RockItPlaylist } from "../rockit/rockItPlaylist";
 
 export class ListManager {
     private _libraryListsAtom = createArrayAtom<{
         publicId: string;
-        type: "album" | "playlist";
+        type: DBListType;
     }>([]);
-    private _pinnedListsAtom = createArrayAtom<{
-        publicId: string;
-        type: "album" | "playlist";
-    }>([]);
+
+    // private _pinnedListsAtom = createArrayAtom<{
+    //     publicId: string;
+    //     type: DBListType;
+    // }>([]);
+
+    private _pinnedListsAtom = createArrayAtom<
+        RockItAlbumWithoutSongs | RockItPlaylist
+    >([]);
 
     constructor() {}
 
     // #region: Mehtods
 
-    async addListToLibraryAsync(type: "album" | "playlist", publicId: string) {
+    async addListToLibraryAsync(type: DBListType, publicId: string) {
         const response = await apiFetch(
             `/library/add-list/${type}/${publicId}`
         );
@@ -34,17 +42,10 @@ export class ListManager {
 
         this._libraryListsAtom.push({ publicId, type });
 
-        // this._libraryListsAtom.set([
-        //     ...this._libraryListsAtom.get(),
-        //     { publicId, type },
-        // ]);
         rockIt.notificationManager.notifyInfo("List added to library.");
     }
 
-    async removeListFromLibraryAsync(
-        type: "album" | "playlist",
-        publicId: string
-    ) {
+    async removeListFromLibraryAsync(type: DBListType, publicId: string) {
         const response = await apiFetch(
             `/library/remove-list/${type}/${publicId}`
         );
@@ -68,10 +69,7 @@ export class ListManager {
         rockIt.notificationManager.notifyInfo("List removed from library.");
     }
 
-    async toggleListInLibraryAsync(
-        type: "album" | "playlist",
-        publicId: string
-    ) {
+    async toggleListInLibraryAsync(type: DBListType, publicId: string) {
         if (this.listInLibrary(publicId))
             await this.removeListFromLibraryAsync(type, publicId);
         else await this.addListToLibraryAsync(type, publicId);
@@ -83,7 +81,7 @@ export class ListManager {
             .some((list) => list.publicId == publicId);
     }
 
-    async pinListAsync(type: "album" | "playlist", publicId: string) {
+    async pinListAsync(type: DBListType, publicId: string) {
         const response = await apiFetch(`/pin/${type}/${publicId}`, {
             headers: { method: "POST" },
         });
@@ -98,19 +96,22 @@ export class ListManager {
             );
             return;
         }
-        this._pinnedListsAtom.set([
-            ...this._pinnedListsAtom.get(),
-            { publicId, type },
-        ]);
+
+        throw "(pinListAsync) fetch list and add it to _pinnedListsAtom";
+
+        // this._pinnedListsAtom.set([
+        //     ...this._pinnedListsAtom.get(),
+        //     { publicId, type },
+        // ]);
         rockIt.notificationManager.notifyInfo("List pinned.");
     }
 
-    async unPinListAsync(type: "album" | "playlist", publicId: string) {
+    async unPinListAsync(type: DBListType, publicId: string) {
         console.log(type, publicId);
-        throw "Not implemented method";
+        throw "(unPinListAsync) Not implemented method";
     }
 
-    async togglePinListAsync(type: "album" | "playlist", publicId: string) {
+    async togglePinListAsync(type: DBListType, publicId: string) {
         if (this.listIsPinned(publicId))
             await this.removeListFromLibraryAsync(type, publicId);
         else await this.addListToLibraryAsync(type, publicId);
@@ -122,27 +123,24 @@ export class ListManager {
             .some((list) => list.publicId == publicId);
     }
 
-    async likeAllSongsAsync(type: "album" | "playlist", publicId: string) {
+    async likeAllSongsAsync(type: DBListType, publicId: string) {
         console.log(type, publicId);
-        throw "Not implemented method";
+        throw "(likeAllSongsAsync) Not implemented method";
     }
 
-    async addListToTopQueueAsync(type: "album" | "playlist", publicId: string) {
+    async addListToTopQueueAsync(type: DBListType, publicId: string) {
         console.log(type, publicId);
-        throw "Not implemented method";
+        throw "(addListToTopQueueAsync) Not implemented method";
     }
 
-    async addListToBottomQueueAsync(
-        type: "album" | "playlist",
-        publicId: string
-    ) {
+    async addListToBottomQueueAsync(type: DBListType, publicId: string) {
         console.log(type, publicId);
-        throw "Not implemented method";
+        throw "(addListToBottomQueueAsync) Not implemented method";
     }
 
-    async downloadListZipAsync(type: "album" | "playlist", publicId: string) {
+    async downloadListZipAsync(type: DBListType, publicId: string) {
         console.log(type, publicId);
-        throw "Not implemented method";
+        throw "(downloadListZipAsync) Not implemented method";
         // const response = await apiFetch(`/zip-list/${type}/${id}`);
 
         // if (!response) {
@@ -184,6 +182,15 @@ export class ListManager {
         //         clearInterval(interval);
         //     }
         // }, 2000);
+    }
+
+    async playAsync(type: DBListType, publicId: string) {
+        console.log(type, publicId);
+        throw "(playAsync) Not implemented method";
+    }
+    async downloadListToDeviceAsync(type: DBListType, publicId: string) {
+        console.log(type, publicId);
+        throw "(downloadListToDeviceAsync) Not implemented method";
     }
 
     // #endregion

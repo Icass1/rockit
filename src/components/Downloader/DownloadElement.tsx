@@ -1,15 +1,17 @@
 "use client";
 
-import { MouseEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import useDev from "@/hooks/useDev";
 import { EyeIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
+import { DownloadItem } from "@/types/rockIt";
 
 export default function DownloadElement({
     download,
 }: {
-    download: DownloadDB;
+    download: DownloadItem;
 }) {
     const [name, setName] = useState("");
     const [cover, setCover] = useState("");
@@ -20,6 +22,8 @@ export default function DownloadElement({
 
     const dev = useDev();
     const router = useRouter();
+
+    console.log("DownloadElement", { setSelected, router });
 
     useEffect(() => {
         if (download.downloadURL.includes("open.spotify.com/album")) {
@@ -81,56 +85,58 @@ export default function DownloadElement({
         }
     }, [download.downloadURL]);
 
-    const handleMarkSeen = (e: MouseEvent) => {
-        e.preventDefault();
-        fetch(`/api/downloads/mark-seen/${download.id}`).then((response) => {
-            if (response.ok) {
-                router.push("/downloader");
-            } else {
-                console.error("Error in mark as seen");
-            }
-        });
+    // const handleMarkSeen = (e: MouseEvent) => {
+    //     e.preventDefault();
+    //     fetch(`/api/downloads/mark-seen/${download.publicId}`).then(
+    //         (response) => {
+    //             if (response.ok) {
+    //                 router.push("/downloader");
+    //             } else {
+    //                 console.error("Error in mark as seen");
+    //             }
+    //         }
+    //     );
 
-        downloadInfo.set(
-            Object.fromEntries(
-                Object.entries(downloadInfo.get()).filter(
-                    (entry) => entry[1].downloadId == download.id
-                )
-            )
-        );
-    };
+    //     downloadInfo.set(
+    //         Object.fromEntries(
+    //             Object.entries(downloadInfo.get()).filter(
+    //                 (entry) => entry[1].downloadId == download.publicId
+    //             )
+    //         )
+    //     );
+    // };
 
-    const handleClick = () => {
-        if (selected) {
-            setSelected(false);
-            downloadInfo.set(
-                Object.fromEntries(
-                    Object.entries(downloadInfo.get()).map((entry) => {
-                        if (entry[1].downloadId == download.id) {
-                            entry[1].selected = false;
-                            return entry;
-                        } else {
-                            return entry;
-                        }
-                    })
-                )
-            );
-        } else {
-            setSelected(true);
-            downloadInfo.set(
-                Object.fromEntries(
-                    Object.entries(downloadInfo.get()).map((entry) => {
-                        if (entry[1].downloadId == download.id) {
-                            entry[1].selected = true;
-                            return entry;
-                        } else {
-                            return entry;
-                        }
-                    })
-                )
-            );
-        }
-    };
+    // const handleClick = () => {
+    //     if (selected) {
+    //         setSelected(false);
+    //         downloadInfo.set(
+    //             Object.fromEntries(
+    //                 Object.entries(downloadInfo.get()).map((entry) => {
+    //                     if (entry[1].downloadId == download.publicId) {
+    //                         entry[1].selected = false;
+    //                         return entry;
+    //                     } else {
+    //                         return entry;
+    //                     }
+    //                 })
+    //             )
+    //         );
+    //     } else {
+    //         setSelected(true);
+    //         downloadInfo.set(
+    //             Object.fromEntries(
+    //                 Object.entries(downloadInfo.get()).map((entry) => {
+    //                     if (entry[1].downloadId == download.publicId) {
+    //                         entry[1].selected = true;
+    //                         return entry;
+    //                     } else {
+    //                         return entry;
+    //                     }
+    //                 })
+    //             )
+    //         );
+    //     }
+    // };
 
     let link = "";
     if (download.downloadURL.includes("https://open.spotify.com")) {
@@ -147,7 +153,9 @@ export default function DownloadElement({
     return (
         <Link href={link}>
             <div
-                onClick={handleClick}
+                onClick={() => {
+                    console.log("DownloadElement handleClick");
+                }}
                 className={
                     "grid cursor-pointer grid-cols-[2.5rem_1fr_2rem] grid-rows-[min-content_1.5rem_1rem_1fr_min-content] items-center rounded bg-neutral-700 p-2 transition-colors hover:bg-neutral-800" +
                     (selected ? " bg-green-700" : "")
@@ -171,11 +179,7 @@ export default function DownloadElement({
                 >
                     {cover && (
                         <Image
-                            src={getImageUrl({
-                                imageId: cover,
-                                width: 40,
-                                height: 40,
-                            })}
+                            src={cover}
                             alt="cover"
                             className="relative h-full w-full rounded"
                         />
@@ -218,7 +222,9 @@ export default function DownloadElement({
                     style={{ gridArea: "download-element-mark-as-seen" }}
                     className="relative h-full max-h-full min-h-0 w-full max-w-full min-w-0"
                     title="Mark as seen"
-                    onClick={handleMarkSeen}
+                    onClick={() => {
+                        console.log("DownloadElement markSeen");
+                    }}
                 >
                     <EyeIcon className="absolute top-1/2 left-1/2 h-6 w-6 -translate-1/2"></EyeIcon>
                 </div>
@@ -237,7 +243,7 @@ export default function DownloadElement({
                         <div className="grid grid-cols-[1fr_2fr] gap-x-2">
                             <label className="text-right">id</label>
                             <label className="w-full max-w-full min-w-0 truncate">
-                                {download.id}
+                                {download.publicId}
                             </label>
                             <label className="text-right">userId</label>
                             <label className="w-full max-w-full min-w-0 truncate">
@@ -245,11 +251,11 @@ export default function DownloadElement({
                             </label>
                             <label className="text-right">dateStarted</label>
                             <label className="w-full max-w-full min-w-0 truncate">
-                                {download.dateStarted}
+                                {download.dateStarted.toDateString()}
                             </label>
                             <label className="text-right">dateEnded</label>
                             <label className="w-full max-w-full min-w-0 truncate">
-                                {download.dateEnded}
+                                {download.dateEnded.toDateString()}
                             </label>
                             <label className="text-right">status</label>
                             <label className="w-full max-w-full min-w-0 truncate">

@@ -1,15 +1,23 @@
 "use client";
 
+import { rockIt } from "@/lib/rockit/rockIt";
 import { RockItArtist } from "@/lib/rockit/rockItArtist";
+import { RockItSongWithAlbum } from "@/lib/rockit/rockItSongWithAlbum";
+import { getBestImage } from "@/lib/utils/getBestImage";
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 export default function SongPageTopArtistSongs({
     artist,
 }: {
     artist: RockItArtist;
 }) {
-    const artistSongs = undefined;
+    const [artistSongs, setArtistSongs] = useState<RockItSongWithAlbum[]>();
+
+    useEffect(() => {
+        console.log("(SongPageTopArtistSongs)", { setArtistSongs });
+    }, []);
 
     return (
         <section className="relative mx-auto w-full rounded-lg bg-[#3030306f] px-4 py-4 md:px-8">
@@ -17,30 +25,28 @@ export default function SongPageTopArtistSongs({
                 More songs from {artist.name}
             </h2>
             <div className="relative flex items-center gap-5 overflow-x-auto px-10 py-4 md:[scrollbar-gutter:stable]">
-                {artistSongs?.tracks
-                    .filter((t) => t.id !== id)
-                    .map((t) => (
-                        <Link
-                            key={t.id}
-                            href={`/song/${t.id}`}
-                            className="w-40 flex-none transition hover:scale-105 md:w-48"
-                        >
-                            <Image
-                                src={
-                                    t.album?.images[0]?.url ||
-                                    "/song-placeholder.png"
-                                }
-                                alt="Song Cover"
-                                className="aspect-square w-full rounded-lg object-cover"
-                            />
-                            <span className="mt-2 block truncate font-semibold">
-                                {t.name}
-                            </span>
-                            <span className="block truncate text-sm text-gray-400">
-                                {t.album.name}
-                            </span>
-                        </Link>
-                    ))}
+                {artistSongs?.map((song) => (
+                    <Link
+                        key={song.publicId}
+                        href={`/song/${song.publicId}`}
+                        className="w-40 flex-none transition hover:scale-105 md:w-48"
+                    >
+                        <Image
+                            src={
+                                getBestImage(song.album.externalImages)?.url ??
+                                rockIt.ALBUM_PLACEHOLDER_IMAGE_URL
+                            }
+                            alt="Song Cover"
+                            className="aspect-square w-full rounded-lg object-cover"
+                        />
+                        <span className="mt-2 block truncate font-semibold">
+                            {song.name}
+                        </span>
+                        <span className="block truncate text-sm text-gray-400">
+                            {song.album.name}
+                        </span>
+                    </Link>
+                ))}
             </div>
         </section>
     );

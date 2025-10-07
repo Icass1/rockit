@@ -1,6 +1,5 @@
 "use client";
 
-import { UserStats } from "@/app/api/stats/user/route";
 import { getDateDDMMYYYY } from "@/lib/utils/getTime";
 import { Dispatch, SetStateAction, useRef, useState } from "react";
 
@@ -13,7 +12,7 @@ function Bar({
     setOverlayData,
     setOverlayTitle,
 }: {
-    entry: UserStats["minutesListenedByRange"][number];
+    entry: { minutes: number; start: Date; end: Date };
     index: number;
     maxValue: number;
     dataLength: number;
@@ -83,7 +82,7 @@ export default function VerticalBarGraph({
     title,
 }: {
     title: string;
-    data: UserStats["minutesListenedByRange"];
+    data: { minutes: number; start: Date; end: Date }[];
 }) {
     const [overlayPos, setOverlayPos] = useState<[number, number]>([0, 0]);
     const [overlayTitle, setOverlayTitle] = useState("");

@@ -17,7 +17,7 @@ export default function PlaylistHeader({
     className: string;
     playlistResponse: RockItPlaylistResponse;
 }) {
-    const lang = useLanguage();
+    const { langFile: lang } = useLanguage();
     if (!lang) return false;
 
     const playlist = RockItPlaylist.fromResponse(playlistResponse);

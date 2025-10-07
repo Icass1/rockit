@@ -20,13 +20,17 @@ import useWindowSize from "@/hooks/useWindowSize";
 import MobilePlayerUIQueue from "@/components/PlayerUI/MobilePlayerUIQueue";
 import MobilePlayerUILyrics from "@/components/PlayerUI/MobilePlayerUILyrics";
 import SongPopupMenu from "@/components/ListSongs/SongPopupMenu";
+import Image from "next/image";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function MobilePlayerUI() {
-    const $playing = useStore(playing);
-    const $currentTime = useStore(currentTime);
-    const $currentSong = useStore(currentSong);
-    const $randomQueue = useStore(randomQueue);
-    const $isMobilePlayerUIVisible = useStore(isMobilePlayerUIVisible);
+    const $playing = useStore(rockIt.audioManager.playingAtom);
+    const $currentTime = useStore(rockIt.audioManager.currentTimeAtom);
+    const $currentSong = useStore(rockIt.queueManager.currentSongAtom);
+    const $randomQueue = useStore(rockIt.userManager.randomQueueAtom);
+    const $isMobilePlayerUIVisible = useStore(
+        rockIt.playerUIManager.visibleAtom
+    );
     const innerWidth = useWindowSize().width;
     const [playerUIhidden, setPlayerUIHidden] = useState(
         !$isMobilePlayerUIVisible
@@ -161,7 +165,7 @@ export default function MobilePlayerUI() {
                 setEnableTransition(true);
                 setTimeout(() => {
                     setPlayerUIHidden(true);
-                    isMobilePlayerUIVisible.set(false);
+                    rockIt.playerUIManager.hide();
                     setEnableTransition(false);
                     setTopOffset(0);
                 }, 300);
@@ -217,12 +221,7 @@ export default function MobilePlayerUI() {
             <div
                 className="absolute inset-0 -top-5 -right-5 -bottom-5 -left-5 bg-cover bg-center"
                 style={{
-                    backgroundImage: `url(${getImageUrl({
-                        imageId: $currentSong?.image,
-                        placeHolder: "/song-placeholder.png",
-                        height: 100,
-                        width: 100,
-                    })})`,
+                    backgroundImage: `url(${$currentSong?.internalImageUrl ?? rockIt.SONG_PLACEHOLDER_IMAGE_URL})`,
                     filter: "blur(10px) brightness(0.5)",
                 }}
             ></div>
@@ -231,7 +230,7 @@ export default function MobilePlayerUI() {
             <div className="absolute top-14 right-0 left-0 z-50 flex justify-between p-5">
                 <ChevronDown
                     className="h-8 w-8 text-neutral-300"
-                    onClick={() => isMobilePlayerUIVisible.set(false)}
+                    onClick={() => rockIt.playerUIManager.hide()}
                 />
                 {$currentSong ? (
                     <SongPopupMenu song={$currentSong}>
@@ -247,12 +246,10 @@ export default function MobilePlayerUI() {
                 {/* Imagen de la canción */}
                 {/* <div className="max-w-full min-w-0 w-auto max-h-full min-h-0 h-auto aspect-square left-1/2 relative -translate-x-1/2 bg-blue-400"> */}
                 <Image
-                    src={getImageUrl({
-                        imageId: $currentSong?.image,
-                        placeHolder: "/song-placeholder.png",
-                        height: 350,
-                        width: 350,
-                    })}
+                    src={
+                        $currentSong?.internalImageUrl ??
+                        rockIt.SONG_PLACEHOLDER_IMAGE_URL
+                    }
                     alt="Current song artwork"
                     className="relative left-1/2 aspect-square h-auto max-h-full min-h-0 w-auto max-w-full min-w-0 -translate-x-1/2 bg-blue-400"
                 />
@@ -270,7 +267,9 @@ export default function MobilePlayerUI() {
                                 .join(", ")}
                         </p>
                     </div>
-                    {$currentSong && <LikeButton song={$currentSong} />}
+                    {$currentSong && (
+                        <LikeButton songPublicId={$currentSong.publicId} />
+                    )}
                 </div>
 
                 {/* Slider de duración */}
@@ -282,7 +281,11 @@ export default function MobilePlayerUI() {
                         min={0}
                         max={$currentSong?.duration}
                         step={0.001}
-                        onChange={(e) => setTime(Number(e.target.value))}
+                        onChange={(e) =>
+                            rockIt.audioManager.setCurrentTime(
+                                Number(e.target.value)
+                            )
+                        }
                     ></Slider>
 
                     {/* <input
@@ -303,7 +306,7 @@ export default function MobilePlayerUI() {
                 <div className="relative left-1/2 flex w-fit -translate-x-1/2 items-center gap-3">
                     <button
                         className="flex h-12 w-12 items-center justify-center"
-                        onClick={() => randomQueue.set(!randomQueue.get())}
+                        onClick={() => rockIt.userManager.toggleRandomQueue()}
                     >
                         <Shuffle
                             className={
@@ -318,8 +321,7 @@ export default function MobilePlayerUI() {
                     <button
                         className="flex h-12 w-12 items-center justify-center"
                         onClick={async () => {
-                            await prev();
-                            play();
+                            rockIt.audioManager.skipBack();
                         }}
                     >
                         <SkipBack className="h-8 w-8 fill-current" />
@@ -329,12 +331,12 @@ export default function MobilePlayerUI() {
                         {$playing ? (
                             <Pause
                                 className="h-14 w-14 fill-current"
-                                onClick={() => pause()}
+                                onClick={() => rockIt.audioManager.pause()}
                             />
                         ) : (
                             <Play
                                 className="h-14 w-14 fill-current"
-                                onClick={() => play()}
+                                onClick={() => rockIt.audioManager.play()}
                             />
                         )}
                     </button>
@@ -342,8 +344,7 @@ export default function MobilePlayerUI() {
                     <button
                         className="flex h-12 w-12 items-center justify-center"
                         onClick={async () => {
-                            await next();
-                            play();
+                            rockIt.audioManager.skipForward();
                         }}
                     >
                         <SkipForward className="h-8 w-8 fill-current" />

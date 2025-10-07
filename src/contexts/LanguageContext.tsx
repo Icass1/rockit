@@ -3,19 +3,27 @@
 import { Lang } from "@/types/lang";
 import { createContext, useContext } from "react";
 
-const LanguageContext = createContext<Lang | null>(null);
+const LanguageContext = createContext<{
+    langFile: Lang | null;
+    lang: string | null;
+}>({
+    langFile: null,
+    lang: null,
+});
 
 export const useLanguage = () => useContext(LanguageContext);
 
 export function LanguageProvider({
-    value,
+    langFile,
+    lang,
     children,
 }: {
-    value: Lang;
+    langFile: Lang;
+    lang: string;
     children: React.ReactNode;
 }) {
     return (
-        <LanguageContext.Provider value={value}>
+        <LanguageContext.Provider value={{ langFile, lang }}>
             {children}
         </LanguageContext.Provider>
     );

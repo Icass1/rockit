@@ -64,7 +64,7 @@ export function getDateYYYYMMDD(date: string | number) {
     return yearNumber + "-" + monthString + "-" + dayString;
 }
 
-export function getDateDDMMYYYY(date: string | number) {
+export function getDateDDMMYYYY(date: string | number | Date) {
     const d = new Date(date);
     const yearNumber = d.getFullYear();
     const monthNumber = d.getMonth() + 1; // Months start at 0!

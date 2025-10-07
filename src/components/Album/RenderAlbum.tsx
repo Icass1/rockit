@@ -22,7 +22,7 @@ export default function RenderAlbum({
     albumResponse: RockItAlbumWithSongsResponse;
 }) {
     const router = useRouter();
-    const lang = useLanguage();
+    const { langFile: lang } = useLanguage();
 
     const album = RockItAlbumWithSongs.fromResponse(albumResponse);
 

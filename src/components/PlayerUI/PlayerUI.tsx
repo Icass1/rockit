@@ -19,8 +19,12 @@ import {
     Play,
     PlayCircle,
 } from "lucide-react";
-import { RockItSong } from "@/types/rockIt";
 import Image from "next/image";
+import { rockIt } from "@/lib/rockit/rockIt";
+import { RockItSongQueue } from "@/lib/rockit/rockItSongQueue";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { RockItSongWithAlbum } from "@/lib/rockit/rockItSongWithAlbum";
+import { RockItAlbumWithoutSongs } from "@/lib/rockit/rockItAlbumWithoutSongs";
 
 export default function PlayerUI() {
     // Estas dos cosas son para el mockup del related
@@ -29,12 +33,12 @@ export default function PlayerUI() {
 
     const [queueScroll, setQueueScroll] = useState(0);
 
-    const $currentSong = useStore(currentSong);
+    const $currentSong = useStore(rockIt.queueManager.currentSongAtom);
 
     const [currentTab, setCurrentTab] = useState("queue");
 
-    const $isPlayerUIVisible = useStore(isPlayerUIVisible);
-    const $queue = useStore(queue);
+    const $isPlayerUIVisible = useStore(rockIt.playerUIManager.visibleAtom);
+    const $queue = useStore(rockIt.queueManager.queueAtom);
 
     const divRef = useRef<HTMLDivElement>(null);
     const innerWidth = useWindowSize().width;
@@ -42,7 +46,7 @@ export default function PlayerUI() {
     const [draggingSong, setDraggingSong] = useState<
         | {
               list: string;
-              song: QueueElement;
+              song: RockItSongQueue;
               index: number;
           }
         | undefined
@@ -57,12 +61,12 @@ export default function PlayerUI() {
 
     const scrollContainerTopRef = useRef(0);
 
-    const $queueIndex = useStore(queueIndex);
-    const $playing = useStore(playing);
+    const $queueIndex = useStore(rockIt.queueManager.queueIndexAtom);
+    const $playing = useStore(rockIt.audioManager.playingAtom);
 
     const mouseDown = (
         event: React.MouseEvent,
-        song: QueueElement,
+        song: RockItSongQueue,
         index: number
     ) => {
         const scrollContainerTop =
@@ -74,44 +78,40 @@ export default function PlayerUI() {
         draggingPosYRef.current = event.clientY;
     };
 
-    const handleRemoveSong = (song: QueueElement) => {
-        if (song.index == queueIndex.get()) {
-            // Alert the user that the song is currently playing cannot be removed.
-            return;
-        }
-
-        const tempQueue = queue.get();
-        if (!tempQueue) return;
-
-        const index = tempQueue.findIndex((_song) => _song.index == song.index);
-        if (index === -1 || typeof index == "undefined") return;
-
-        queue.set([
-            ...tempQueue.slice(0, index),
-            ...tempQueue.slice(index + 1),
-        ]);
+    const handleRemoveSong = (song: RockItSongQueue) => {
+        console.warn("handleRemoveSong", { song });
+        // if (song.index == queueIndex.get()) {
+        //     // Alert the user that the song is currently playing cannot be removed.
+        //     return;
+        // }
+        // const tempQueue = queue.get();
+        // if (!tempQueue) return;
+        // const index = tempQueue.findIndex((_song) => _song.index == song.index);
+        // if (index === -1 || typeof index == "undefined") return;
+        // queue.set([
+        //     ...tempQueue.slice(0, index),
+        //     ...tempQueue.slice(index + 1),
+        // ]);
     };
 
-    const handlePlaySong = async (song: QueueElement) => {
-        const tempQueue = queue.get();
-        if (!tempQueue) return;
-
-        const currentSongIndexInQueue = tempQueue.findIndex(
-            (_song) => _song.index == song.index
-        );
-        queueIndex.set(tempQueue[currentSongIndexInQueue].index);
-
-        const newSongId = tempQueue.find(
-            (song) => song.index == queueIndex.get()
-        )?.song.publicId;
-        if (!newSongId) return;
-
-        await fetch(`/api/song/${newSongId}`)
-            .then((response) => response.json())
-            .then((data: RockItSong) => {
-                playWhenReady.set(true);
-                currentSong.set(data);
-            });
+    const handlePlaySong = async (song: RockItSongQueue) => {
+        console.warn("handlePlaySong", { song });
+        // const tempQueue = queue.get();
+        // if (!tempQueue) return;
+        // const currentSongIndexInQueue = tempQueue.findIndex(
+        //     (_song) => _song.index == song.index
+        // );
+        // queueIndex.set(tempQueue[currentSongIndexInQueue].index);
+        // const newSongId = tempQueue.find(
+        //     (song) => song.index == queueIndex.get()
+        // )?.song.publicId;
+        // if (!newSongId) return;
+        // await fetch(`/api/song/${newSongId}`)
+        //     .then((response) => response.json())
+        //     .then((data: RockItSong) => {
+        //         playWhenReady.set(true);
+        //         currentSong.set(data);
+        //     });
     };
 
     useEffect(() => {
@@ -122,39 +122,36 @@ export default function PlayerUI() {
         };
 
         const handleTouchEnd = () => {
-            setDraggingSong(undefined);
-
-            const tempQueue = queue.get();
-            if (!tempQueue) return;
-
-            if (typeof queueDivRef.current?.scrollTop != "number") return;
-            const indexInQueue = Math.floor(
-                (draggingPosYRef.current -
-                    185 +
-                    32 +
-                    queueDivRef.current?.scrollTop) /
-                    64
-            );
-
-            if (draggingSong.index == indexInQueue) return;
-            else if (draggingSong.index < indexInQueue) {
-                queue.set([
-                    ...tempQueue.slice(0, draggingSong.index),
-                    ...tempQueue.slice(
-                        draggingSong.index + 1,
-                        indexInQueue + 1
-                    ),
-                    draggingSong.song,
-                    ...tempQueue.slice(indexInQueue + 1),
-                ]);
-            } else {
-                queue.set([
-                    ...tempQueue.slice(0, indexInQueue),
-                    draggingSong.song,
-                    ...tempQueue.slice(indexInQueue, draggingSong.index),
-                    ...tempQueue.slice(draggingSong.index + 1),
-                ]);
-            }
+            // setDraggingSong(undefined);
+            // const tempQueue = queue.get();
+            // if (!tempQueue) return;
+            // if (typeof queueDivRef.current?.scrollTop != "number") return;
+            // const indexInQueue = Math.floor(
+            //     (draggingPosYRef.current -
+            //         185 +
+            //         32 +
+            //         queueDivRef.current?.scrollTop) /
+            //         64
+            // );
+            // if (draggingSong.index == indexInQueue) return;
+            // else if (draggingSong.index < indexInQueue) {
+            //     queue.set([
+            //         ...tempQueue.slice(0, draggingSong.index),
+            //         ...tempQueue.slice(
+            //             draggingSong.index + 1,
+            //             indexInQueue + 1
+            //         ),
+            //         draggingSong.song,
+            //         ...tempQueue.slice(indexInQueue + 1),
+            //     ]);
+            // } else {
+            //     queue.set([
+            //         ...tempQueue.slice(0, indexInQueue),
+            //         draggingSong.song,
+            //         ...tempQueue.slice(indexInQueue, draggingSong.index),
+            //         ...tempQueue.slice(draggingSong.index + 1),
+            //     ]);
+            // }
         };
 
         document.addEventListener("mousemove", handleTouchMove);
@@ -177,7 +174,7 @@ export default function PlayerUI() {
             const insideFooter = footerEl?.contains(target);
 
             if (!insidePlayer && !insideFooter) {
-                isPlayerUIVisible.set(false);
+                rockIt.playerUIManager.hide();
             }
         };
         document.addEventListener("click", handleDocumentClick);
@@ -189,9 +186,9 @@ export default function PlayerUI() {
     useEffect(() => {
         if (!$isPlayerUIVisible) return;
 
-        const index = queue
-            .get()
-            ?.findIndex((_song) => _song.index == queueIndex.get());
+        const index = rockIt.queueManager.queue?.findIndex(
+            (_song) => _song.index == rockIt.queueManager.queueIndex
+        );
 
         if (!index) return;
 
@@ -214,7 +211,7 @@ export default function PlayerUI() {
         return () => clearTimeout(t);
     }, [showIcon]);
 
-    const lang = useLanguage();
+    const { langFile: lang } = useLanguage();
 
     if (!lang || !$queue || !shouldRender) return null;
 
@@ -233,13 +230,11 @@ export default function PlayerUI() {
         >
             <div className="relative grid h-full w-full grid-cols-[1fr_1fr] gap-x-2 bg-black px-2 text-white lg:grid-cols-[30%_40%_30%]">
                 <Image
-                    alt={$currentSong?.name}
-                    src={getImageUrl({
-                        imageId: $currentSong?.image,
-                        width: 200,
-                        height: 200,
-                        placeHolder: "/song-placeholder.png",
-                    })}
+                    alt={$currentSong?.name ?? ""}
+                    src={
+                        $currentSong?.internalImageUrl ??
+                        rockIt.SONG_PLACEHOLDER_IMAGE_URL
+                    }
                     className="absolute top-1/2 h-auto w-full -translate-y-1/2 blur-md brightness-50 select-none"
                 />
 
@@ -256,18 +251,14 @@ export default function PlayerUI() {
                         className="relative aspect-square w-full max-w-[70%] overflow-hidden rounded-lg"
                         onClick={() => {
                             setShowIcon(true);
-                            if ($playing) {
-                                pause();
-                            } else {
-                                play();
-                            }
+                            rockIt.audioManager.togglePlayPause();
                         }}
                     >
                         <Image
-                            src={getImageUrl({
-                                imageId: $currentSong?.image,
-                                placeHolder: "/song-placeholder.png",
-                            })}
+                            src={
+                                $currentSong?.internalImageUrl ??
+                                rockIt.SONG_PLACEHOLDER_IMAGE_URL
+                            }
                             alt="Song Cover"
                             className="absolute h-full w-full rounded-xl select-none"
                         />
@@ -287,15 +278,15 @@ export default function PlayerUI() {
                         </h1>
                         <p className="mt-2 flex w-full items-center justify-center gap-1 text-xl font-medium text-gray-400">
                             <span className="max-w-[75%] truncate text-center md:hover:underline">
-                                {$currentSong?.albumName}
+                                {$currentSong?.album.name}
                             </span>
                             <span>•</span>
                             {$currentSong?.artists &&
                             $currentSong.artists.length > 0 ? (
                                 <Link
-                                    href={`/artist/${$currentSong.artists[0].id}`}
+                                    href={`/artist/${$currentSong.artists[0].publicId}`}
                                     className="truncate md:hover:underline"
-                                    key={$currentSong.artists[0].id}
+                                    key={$currentSong.artists[0].publicId}
                                 >
                                     {$currentSong.artists[0].name}
                                 </Link>
@@ -351,8 +342,8 @@ export default function PlayerUI() {
 
                                     let draggingTop: number | undefined;
                                     const isDragging =
-                                        draggingSong?.song.song.id ===
-                                        queueSong.song.id;
+                                        draggingSong?.song.song.publicId ===
+                                        queueSong.song.publicId;
 
                                     if (draggingSong)
                                         draggingTop = Math.max(
@@ -363,8 +354,8 @@ export default function PlayerUI() {
                                         );
 
                                     if (
-                                        draggingSong?.song.song.id ==
-                                            queueSong.song.id &&
+                                        draggingSong?.song.song.publicId ==
+                                            queueSong.song.publicId &&
                                         typeof draggingTop == "number"
                                     ) {
                                         top = draggingTop;
@@ -406,7 +397,7 @@ export default function PlayerUI() {
                                     }
                                     return (
                                         <div
-                                            key={`${queueSong.song.id}-${queueSong.index}`}
+                                            key={`${queueSong.song.publicId}-${queueSong.index}`}
                                             className={`absolute w-full ${isDragging ? "z-10" : "transition-[top] duration-200"}`}
                                             style={{
                                                 top: `${(typeof top === "number" ? top : 0) + 20}px`,
@@ -438,13 +429,13 @@ export default function PlayerUI() {
                                                     </div>
                                                 </ContextMenuTrigger>
                                                 <ContextMenuContent
-                                                    cover={getImageUrl({
-                                                        imageId:
-                                                            queueSong.song
-                                                                .image,
-                                                    })}
+                                                    cover={
+                                                        queueSong.song
+                                                            .internalImageUrl ??
+                                                        rockIt.SONG_PLACEHOLDER_IMAGE_URL
+                                                    }
                                                     title={queueSong.song.name}
-                                                    description={`${queueSong.song.albumName} • ${queueSong.song.artists
+                                                    description={`${queueSong.song.album.name} • ${queueSong.song.artists
                                                         .map((a) => a.name)
                                                         .join(", ")}`}
                                                 >
@@ -474,9 +465,8 @@ export default function PlayerUI() {
                                                     </ContextMenuOption>
                                                     <ContextMenuOption
                                                         onClick={() =>
-                                                            saveSongToIndexedDB(
-                                                                queueSong.song,
-                                                                true
+                                                            rockIt.indexedDBManager.saveSongToIndexedDB(
+                                                                queueSong.song
                                                             )
                                                         }
                                                     >
@@ -525,27 +515,33 @@ export default function PlayerUI() {
                                     ].map((mock, i) => {
                                         if (!queueDivRef.current) return;
 
-                                        const autoSong = {
-                                            song: {
-                                                id: mock.id,
+                                        const autoSong = new RockItSongQueue({
+                                            song: new RockItSongWithAlbum({
+                                                publicId: mock.id,
                                                 name: mock.title,
-                                                albumName: "Unknown Album",
-                                                artists: [
+                                                artists: [],
+                                                discNumber: 1,
+                                                duration: 123,
+                                                downloaded: true,
+                                                album: new RockItAlbumWithoutSongs(
                                                     {
-                                                        id: "unknown",
-                                                        name: mock.artist,
-                                                    },
-                                                ],
-                                                image: "song-placeholder.png",
-                                                duration: 0,
-                                                albumId: "",
-                                            },
-                                            list: {
-                                                type: "auto",
-                                                id: "auto-list",
-                                            },
+                                                        externalImages: [],
+                                                        name: "Ablum 1",
+                                                        publicId: "",
+                                                        artists: [],
+                                                        releaseDate: "",
+                                                        internalImageUrl: "",
+                                                    }
+                                                ),
+                                                internalImageUrl: null,
+                                                audioUrl: null,
+                                            }),
                                             index: i,
-                                        };
+                                            list: {
+                                                type: "auto-list",
+                                                publicId: "auto-list",
+                                            },
+                                        });
 
                                         return (
                                             <div
@@ -570,15 +566,15 @@ export default function PlayerUI() {
                                                         </div>
                                                     </ContextMenuTrigger>
                                                     <ContextMenuContent
-                                                        cover={getImageUrl({
-                                                            imageId:
-                                                                autoSong.song
-                                                                    .image,
-                                                        })}
+                                                        cover={
+                                                            autoSong.song
+                                                                .internalImageUrl ??
+                                                            rockIt.SONG_PLACEHOLDER_IMAGE_URL
+                                                        }
                                                         title={
                                                             autoSong.song.name
                                                         }
-                                                        description={`${autoSong.song.albumName} • ${autoSong.song.artists
+                                                        description={`${autoSong.song.album.name} • ${autoSong.song.artists
                                                             .map((a) => a.name)
                                                             .join(", ")}`}
                                                     >
@@ -610,9 +606,8 @@ export default function PlayerUI() {
                                                         </ContextMenuOption>
                                                         <ContextMenuOption
                                                             onClick={() =>
-                                                                saveSongToIndexedDB(
-                                                                    autoSong.song,
-                                                                    true
+                                                                rockIt.indexedDBManager.saveSongToIndexedDB(
+                                                                    autoSong.song
                                                                 )
                                                             }
                                                         >

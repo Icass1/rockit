@@ -23,12 +23,11 @@ import {
     Share2,
 } from "lucide-react";
 
-import { songHandleClick } from "./HandleClick";
 import { useRouter } from "next/navigation";
 import useDev from "@/hooks/useDev";
-import { RockItSongWithAlbum } from "@/types/rockIt";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { RockItSongWithAlbum } from "@/lib/rockit/rockItSongWithAlbum";
 
 export default function SongPopupMenu({
     children,
@@ -39,15 +38,13 @@ export default function SongPopupMenu({
 }) {
     const $likedSongs = useStore(rockIt.songManager.likedSongsAtom);
 
-    const lang = useLanguage();
+    const { langFile: lang } = useLanguage();
     const $networkStatus = useStore(networkStatus);
     const $playing = useStore(rockIt.audioManager.playingAtom);
 
     const router = useRouter();
 
     const offline = $networkStatus == "offline";
-
-    const disable = song.downloadUrl ? false : true;
 
     const dev = useDev();
 
@@ -58,7 +55,7 @@ export default function SongPopupMenu({
             <PopupMenuTrigger>{children}</PopupMenuTrigger>
             <PopupMenuContent>
                 <PopupMenuOption
-                    disable={disable}
+                    disable={!song.downloaded}
                     onClick={() => {
                         rockIt.audioManager.togglePlayPauseOrSetSong();
 
@@ -87,48 +84,10 @@ export default function SongPopupMenu({
                     )}
                 </PopupMenuOption>
                 <PopupMenuOption
-                    disable={offline || disable}
-                    onClick={() => {
-                        if (
-                            rockIt.songManager.likedSongsAtom
-                                .get()
-                                .includes(song.publicId)
-                        ) {
-                            fetch(`/api/like/${song.publicId}`, {
-                                method: "DELETE",
-                            }).then((response) => {
-                                if (response.ok) {
-                                    // Remove song to liked songs store
-                                    likedSongs.set(
-                                        likedSongs
-                                            .get()
-                                            .filter(
-                                                (likedSong) =>
-                                                    likedSong != song.id
-                                            )
-                                    );
-                                } else {
-                                    console.log("Error");
-                                    // Tell user like request was unsuccessful
-                                }
-                            });
-                        } else {
-                            fetch(`/api/like/${song.id}`, {
-                                method: "POST",
-                            }).then((response) => {
-                                if (response.ok) {
-                                    // Add song to liked songs store
-                                    likedSongs.set([
-                                        ...likedSongs.get(),
-                                        song.id,
-                                    ]);
-                                } else {
-                                    console.log("Error");
-                                    // Tell user like request was unsuccessful
-                                }
-                            });
-                        }
-                    }}
+                    disable={offline || !song.downloaded}
+                    onClick={() =>
+                        rockIt.songManager.toggleLikeSong(song.publicId)
+                    }
                 >
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -157,32 +116,14 @@ export default function SongPopupMenu({
                         <path d="M10 11V5a2 2 2 1 0-4 0v9"></path>
                         <path d="m7 15-1.76-1.76a2 2 0 0 0-2.83 2.82l3.6 3.6C7.5 21.14 9.2 22 12 22h2a8 8 0 0 0 8-8V7a2 2 0 1 0-4 0v5"></path>
                     </svg>
-                    {$likedSongs.includes(song.id)
+                    {$likedSongs.includes(song.publicId)
                         ? lang.remove_from_liked
                         : lang.add_to_liked}
                 </PopupMenuOption>
                 <PopupMenuOption
-                    disable={disable}
+                    disable={!song.downloaded}
                     onClick={() => {
-                        const tempQueue = queue.get();
-                        if (!tempQueue) return;
-
-                        const index = tempQueue.findIndex(
-                            (_song) => _song.index == queueIndex.get()
-                        );
-
-                        queue.set([
-                            ...tempQueue.slice(0, index + 1),
-                            {
-                                list: currentList.get(),
-                                index:
-                                    Math.max(
-                                        ...tempQueue.map((_song) => _song.index)
-                                    ) + 1,
-                                song: song,
-                            },
-                            ...tempQueue.slice(index + 1),
-                        ]);
+                        console.log("SongPopupMenu playNext");
                     }}
                 >
                     <ListStart className="h-5 w-5" />
@@ -190,30 +131,16 @@ export default function SongPopupMenu({
                 </PopupMenuOption>
 
                 <PopupMenuOption
-                    disable={disable}
+                    disable={!song.downloaded}
                     onClick={() => {
-                        const tempQueue = queue.get();
-                        if (!tempQueue) return;
-                        queue.set([
-                            ...tempQueue,
-                            {
-                                song: song,
-                                index:
-                                    Math.max(
-                                        ...tempQueue.map(
-                                            (queueSong) => queueSong.index
-                                        )
-                                    ) + 1,
-                                list: currentList.get(),
-                            },
-                        ]);
+                        console.log("SongPopupMenu add song to queue");
                     }}
                 >
                     <ListEnd className="h-5 w-5" />
                     {lang.add_to_queue}
                 </PopupMenuOption>
                 {/* <SubContextMenu>
-                    <SubContextMenuTrigger disable={offline || disable}>
+                    <SubContextMenuTrigger !song.downloaded={offline || !song.downloaded}>
                         <ListPlusIcon className="w-5 h-5" />
                         {lang.add_song_to_playlist}
                     </SubContextMenuTrigger>
@@ -251,10 +178,10 @@ export default function SongPopupMenu({
                     onClick={() => {
                         navigator.share({
                             title: "RockIt!",
-                            text: `${song.name} ${song.albumName} ${song.artists
+                            text: `${song.name} ${song.album.name} ${song.artists
                                 .map((artist) => artist.name)
                                 .join(", ")}`,
-                            url: `/song/${song.id}`,
+                            url: `/song/${song.publicId}`,
                         });
                     }}
                 >
@@ -264,7 +191,7 @@ export default function SongPopupMenu({
                 <PopupMenuOption
                     onClick={() => {
                         navigator.clipboard.writeText(
-                            location.origin + `/song/${song.id}`
+                            location.origin + `/song/${song.publicId}`
                         );
                     }}
                 >
@@ -274,47 +201,38 @@ export default function SongPopupMenu({
                 {/* <ContextMenuSplitter /> */}
                 <PopupMenuOption
                     className="hover:bg-red-700"
-                    disable={disable || true}
+                    disable={!song.downloaded || true}
                 >
                     <ListX className="h-5 w-5" />
                     {lang.remove_from_queue}
                 </PopupMenuOption>
                 <PopupMenuOption
                     className="hover:bg-red-700"
-                    disable={disable || true}
+                    disable={!song.downloaded || true}
                 >
                     <ListX className="h-5 w-5" />
                     {lang.remove_from_playlist}
                 </PopupMenuOption>
                 {/* <ContextMenuSplitter /> */}
-                <PopupMenuOption disable={disable || true}>
+                <PopupMenuOption disable={!song.downloaded || true}>
                     <Download className="h-5 w-5" />
                     {lang.download_mp3}
                 </PopupMenuOption>
                 <PopupMenuOption
-                    disable={offline || disable}
+                    disable={offline || !song.downloaded}
                     onClick={() => {
-                        saveSongToIndexedDB(song, true);
+                        rockIt.indexedDBManager.saveSongToIndexedDB(song);
                     }}
                 >
                     <HardDriveDownload className="h-5 w-5" />
                     {lang.download_song_to_device}
                 </PopupMenuOption>
-                {disable && (
+                {!song.downloaded && (
                     <PopupMenuOption
                         disable={offline}
                         onClick={() => {
-                            const url = `https://open.spotify.com/track/${song.id}`;
-
-                            fetch(`/api/start-download?url=${url}`).then(
-                                (response) => {
-                                    response.json().then((data) => {
-                                        downloads.set([
-                                            data.download_id,
-                                            ...downloads.get(),
-                                        ]);
-                                    });
-                                }
+                            rockIt.downloaderManager.startDownloadAsync(
+                                `https://open.spotify.com/track/${song.publicId}`
                             );
                         }}
                     >
@@ -325,7 +243,7 @@ export default function SongPopupMenu({
                 {/* <ContextMenuSplitter /> */}
                 <PopupMenuOption
                     onClick={() => {
-                        router.push(`/artist/${song.artists[0].id}`);
+                        router.push(`/artist/${song.artists[0].publicId}`);
                     }}
                 >
                     <Link className="h-5 w-5" />
@@ -333,7 +251,7 @@ export default function SongPopupMenu({
                 </PopupMenuOption>
                 <PopupMenuOption
                     onClick={() => {
-                        router.push(`/album/${song.albumId}`);
+                        router.push(`/album/${song.album.publicId}`);
                     }}
                 >
                     <Link className="h-5 w-5" />
@@ -342,7 +260,7 @@ export default function SongPopupMenu({
                 {dev && (
                     <PopupMenuOption
                         onClick={() => {
-                            send({ songEnded: song.id });
+                            console.log("(SongPopupMenu) Send song ended");
                         }}
                     >
                         <Pickaxe className="h-5 w-5" />

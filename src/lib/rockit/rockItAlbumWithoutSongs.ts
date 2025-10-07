@@ -1,5 +1,6 @@
 import { RockItAlbumWithoutSongsResponse } from "@/responses/rockItAlbumWithoutSongsResponse";
 import { RockItArtist } from "@/lib/rockit/rockItArtist";
+import { RockItExternalImage } from "@/lib/rockit/rockItExternalImage";
 
 export class RockItAlbumWithoutSongs {
     // #region: Read-only properties
@@ -9,6 +10,8 @@ export class RockItAlbumWithoutSongs {
     public readonly artists: RockItArtist[];
     public readonly releaseDate: string;
     public readonly internalImageUrl: string | null;
+    public readonly type = "album";
+    public readonly externalImages: RockItExternalImage[];
 
     // #endregion
 
@@ -20,18 +23,21 @@ export class RockItAlbumWithoutSongs {
         artists,
         releaseDate,
         internalImageUrl,
+        externalImages,
     }: {
         publicId: string;
         name: string;
         artists: RockItArtist[];
         internalImageUrl: string | null;
         releaseDate: string;
+        externalImages: RockItExternalImage[];
     }) {
         this.publicId = publicId;
         this.name = name;
         this.artists = artists;
         this.internalImageUrl = internalImageUrl;
         this.releaseDate = releaseDate;
+        this.externalImages = externalImages;
     }
 
     // #endregion
@@ -49,6 +55,9 @@ export class RockItAlbumWithoutSongs {
             ),
             releaseDate: response.releaseDate,
             internalImageUrl: response.internalImageUrl,
+            externalImages: response.externalImages.map((externalImage) =>
+                RockItExternalImage.fromResponse(externalImage)
+            ),
         });
     }
 

@@ -2,6 +2,7 @@ import { createAtom } from "@/lib/store";
 import { getSession, signOut } from "next-auth/react";
 import apiFetch from "@/lib/utils/apiFetch";
 import { RockItUserResponse } from "@/responses/rockItUserResponse";
+import { RockItUser } from "../rockit/rockItUser";
 
 export class UserManager {
     // #region: Atoms
@@ -9,7 +10,7 @@ export class UserManager {
     private _randomQueueAtom = createAtom<boolean>(false);
     private _repeatSongAtom = createAtom<"all" | "one" | "off">("off");
 
-    private _userAtom = createAtom<RockItUserResponse | undefined>();
+    private _userAtom = createAtom<RockItUser | undefined>();
 
     // #endregion
 
@@ -64,6 +65,16 @@ export class UserManager {
                   ? "one"
                   : "off"
         );
+    }
+
+    async setLangAsync(lang: string) {
+        console.log(lang);
+        throw "(setLangAsync) Method not implemented.";
+    }
+
+    async setCrossFadeAsync(crossFade: number) {
+        console.log(crossFade);
+        throw "(setCrossFadeAsync) Method not implemented.";
     }
 
     // #endregion

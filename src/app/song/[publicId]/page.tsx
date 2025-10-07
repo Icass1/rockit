@@ -8,6 +8,7 @@ import { rockIt } from "@/lib/rockit/rockIt";
 import Image from "next/image";
 import SongPageAlbum from "@/components/SongPage/SongPageAlbum";
 import SongPageTopArtistSongs from "@/components/SongPage/SongPageTopArtistSongs";
+import { RockItSongWithAlbum } from "@/lib/rockit/rockItSongWithAlbum";
 
 export async function generateMetadata({
     params,
@@ -58,7 +59,7 @@ export default async function SongPage({
 }) {
     const { publicId } = await params;
 
-    const song = await rockIt.songManager.getSpotifySongAsync(publicId);
+    const songResponse = await rockIt.songManager.getSpotifySongAsync(publicId);
 
     // const BACKEND_URL = ENV.BACKEND_URL;
 
@@ -85,6 +86,7 @@ export default async function SongPage({
     //     }
     // } catch {}
 
+    const song = RockItSongWithAlbum.fromResponse(songResponse);
     const artist = song.artists[0];
 
     return (

@@ -15,8 +15,8 @@ import Link from "next/link";
 import { rockIt } from "@/lib/rockit/rockIt";
 import Image from "next/image";
 import { Station } from "@/types/station";
-import { RockItSongWithAlbum } from "@/types/rockIt";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { RockItSongWithAlbum } from "@/lib/rockit/rockItSongWithAlbum";
 
 function FooterLeftForSong({
     currentSong,
@@ -171,7 +171,7 @@ function FooterLeftForStation({ currentStation }: { currentStation: Station }) {
     const [hover, setHover] = useState(false);
     const $playing = useStore(rockIt.audioManager.playingAtom);
 
-    const lang = useLanguage();
+    const { langFile: lang } = useLanguage();
 
     if (!lang) {
         return false;

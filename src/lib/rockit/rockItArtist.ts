@@ -1,4 +1,5 @@
 import { RockItArtistResponse } from "@/responses/rockItArtistResponse";
+import { RockItExternalImage } from "./rockItExternalImage";
 
 export class RockItArtist {
     // #region: Read-only properties
@@ -6,6 +7,7 @@ export class RockItArtist {
     public readonly publicId: string;
     public readonly name: string;
     public readonly internalImageUrl: string | null;
+    public readonly externalImages: RockItExternalImage[];
 
     // #endregion
 
@@ -15,14 +17,17 @@ export class RockItArtist {
         publicId,
         name,
         internalImageUrl,
+        externalImages,
     }: {
         publicId: string;
         name: string;
         internalImageUrl: string | null;
+        externalImages: RockItExternalImage[];
     }) {
         this.publicId = publicId;
         this.name = name;
         this.internalImageUrl = internalImageUrl;
+        this.externalImages = externalImages;
     }
 
     // #endregion
@@ -38,6 +43,9 @@ export class RockItArtist {
             publicId: response.publicId,
             name: response.name,
             internalImageUrl: response.internalImageUrl,
+            externalImages: response.externalImages.map((exteralImage) =>
+                RockItExternalImage.fromResponse(exteralImage)
+            ),
         });
     }
 

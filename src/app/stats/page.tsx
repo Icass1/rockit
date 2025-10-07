@@ -11,7 +11,7 @@ export default function StatsPage() {
         setSelectedSection(section);
     };
 
-    const lang = useLanguage();
+    const { langFile: lang } = useLanguage();
     if (!lang) return false;
 
     const pages: { [key: string]: string } = {

@@ -74,7 +74,7 @@ function ChangeUsername() {
 }
 
 export default function Settings() {
-    const lang = useLanguage();
+    const { langFile: lang } = useLanguage();
 
     if (!lang) return false;
 

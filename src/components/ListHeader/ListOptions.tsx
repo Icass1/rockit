@@ -20,6 +20,7 @@ import {
 } from "@/components/PopupMenu/PopupMenu";
 import { playListHandleClick } from "@/components/PlayList";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { DBListType } from "@/types/rockIt";
 
 export default function ListOptions({
     type,
@@ -27,7 +28,7 @@ export default function ListOptions({
     internalImageUrl,
     allSongsInDatabase,
 }: {
-    type: "album" | "playlist";
+    type: DBListType;
     publicId: string;
     internalImageUrl?: string;
     allSongsInDatabase: boolean;

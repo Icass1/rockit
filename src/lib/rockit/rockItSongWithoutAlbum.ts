@@ -10,6 +10,8 @@ export class RockItSongWithoutAlbum {
     public readonly downloaded: boolean;
     public readonly discNumber: number;
     public readonly duration: number;
+    public readonly internalImageUrl: string | null;
+    public readonly audioUrl: string | null;
 
     // #endregion
 
@@ -22,6 +24,8 @@ export class RockItSongWithoutAlbum {
         downloaded,
         discNumber,
         duration,
+        internalImageUrl,
+        audioUrl,
     }: {
         publicId: string;
         name: string;
@@ -29,6 +33,8 @@ export class RockItSongWithoutAlbum {
         discNumber: number;
         downloaded: boolean;
         duration: number;
+        internalImageUrl: string | null;
+        audioUrl: string | null;
     }) {
         this.publicId = publicId;
         this.name = name;
@@ -36,6 +42,8 @@ export class RockItSongWithoutAlbum {
         this.downloaded = downloaded;
         this.discNumber = discNumber;
         this.duration = duration;
+        this.internalImageUrl = internalImageUrl;
+        this.audioUrl = audioUrl;
     }
 
     // #endregion
@@ -58,6 +66,8 @@ export class RockItSongWithoutAlbum {
             duration: response.duration,
             discNumber: response.discNumber,
             downloaded: response.downloaded,
+            internalImageUrl: response.internalImageUrl,
+            audioUrl: response.audioUrl,
         });
     }
 

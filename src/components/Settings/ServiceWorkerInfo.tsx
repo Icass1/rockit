@@ -1,3 +1,4 @@
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useState } from "react";
 
 export default function ServiceWorkerInfo() {
@@ -23,12 +24,12 @@ export default function ServiceWorkerInfo() {
             setStatus("Your device doesn't support service worker");
             return;
         }
-        if (!serviceWorkerRegistration.get()) {
-            setStatus("No service worker registration found.");
-            return;
-        }
+        // if (!serviceWorkerRegistration.get()) {
+        //     setStatus("No service worker registration found.");
+        //     return;
+        // }
         setStatus("Updating.");
-        await serviceWorkerRegistration.get()?.update();
+        // await serviceWorkerRegistration.get()?.update();
         setStatus("Updated.");
     };
 
@@ -38,13 +39,13 @@ export default function ServiceWorkerInfo() {
             return;
         }
 
-        if (!serviceWorkerRegistration.get()) {
-            setStatus("No service worker registration found.");
-            return;
-        }
+        // if (!serviceWorkerRegistration.get()) {
+        //     setStatus("No service worker registration found.");
+        //     return;
+        // }
         setStatus("Unregistering.");
-        await serviceWorkerRegistration.get()?.unregister();
-        serviceWorkerRegistration.set(undefined);
+        // await serviceWorkerRegistration.get()?.unregister();
+        // serviceWorkerRegistration.set(undefined);
         setStatus("Unregistered.");
     };
 
@@ -56,18 +57,18 @@ export default function ServiceWorkerInfo() {
 
         setStatus("Registering.");
 
-        const registration = await navigator.serviceWorker.register(
-            "/service-worker.js",
-            {
-                scope: "/",
-                type: "module",
-            }
-        );
-        serviceWorkerRegistration.set(registration);
+        // const registration = await navigator.serviceWorker.register(
+        //     "/service-worker.js",
+        //     {
+        //         scope: "/",
+        //         type: "module",
+        //     }
+        // );
+        // serviceWorkerRegistration.set(registration);
         setStatus("Registering.");
     };
 
-    const lang = useLanguage();
+    const { langFile: lang } = useLanguage();
     if (!lang) return false;
 
     return (

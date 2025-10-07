@@ -13,8 +13,9 @@ import AddSessionProvider from "@/contexts/SessionContext";
 
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { Suspense } from "react";
+import { Lang } from "@/types/lang";
 
-async function getLanguage() {
+async function getLanguage(): Promise<{ lang: string; langFile: Lang }> {
     const res = await fetch("http://localhost:3000/api/lang", {
         cache: "no-store",
     });
@@ -64,7 +65,10 @@ export default async function RootLayout({
             <body className="bg-black">
                 <Suspense fallback={<div>Loading...</div>}>
                     <AddSessionProvider>
-                        <LanguageProvider value={language.langFile}>
+                        <LanguageProvider
+                            langFile={language.langFile}
+                            lang={language.lang}
+                        >
                             <div className="fixed top-0 right-0 bottom-0 left-0 bg-[#0b0b0b] md:top-0 md:right-0 md:bottom-0 md:left-12">
                                 {children}
                             </div>

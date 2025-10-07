@@ -1,14 +1,19 @@
 import SearchBar from "@/components/Search/SearchBar";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { RockItAlbumWithoutSongs } from "@/lib/rockit/rockItAlbumWithoutSongs";
+import { RockItSongWithAlbum } from "@/lib/rockit/rockItSongWithAlbum";
 import { getBestImage } from "@/lib/utils/getBestImage";
-import { RockItAlbum, RockItSong } from "@/types/rockIt";
 import { useStore } from "@nanostores/react";
 import Image from "next/image";
 import Link from "next/link";
 
-function AlbumsSection({ spotifyAlbums }: { spotifyAlbums: RockItAlbum[] }) {
-    const lang = useLanguage();
+function AlbumsSection({
+    spotifyAlbums,
+}: {
+    spotifyAlbums: RockItAlbumWithoutSongs[];
+}) {
+    const { langFile: lang } = useLanguage();
     if (!lang) return false;
     return (
         <section className="py-2 text-white md:py-6 md:pl-12">
@@ -66,8 +71,12 @@ function AlbumsSection({ spotifyAlbums }: { spotifyAlbums: RockItAlbum[] }) {
     );
 }
 
-function SongsSection({ spotifySongs }: { spotifySongs: RockItSong[] }) {
-    const lang = useLanguage();
+function SongsSection({
+    spotifySongs,
+}: {
+    spotifySongs: RockItSongWithAlbum[];
+}) {
+    const { langFile: lang } = useLanguage();
     if (!lang) return false;
 
     return (
@@ -131,7 +140,7 @@ function Results() {
     const $searchResults = useStore(rockIt.searchManager.searchResultsAtom);
     const $searching = useStore(rockIt.searchManager.searchingAtom);
     const $searchQuery = useStore(rockIt.searchManager.searchQueryAtom);
-    const lang = useLanguage();
+    const { langFile: lang } = useLanguage();
 
     if (!lang) return false;
 
@@ -183,7 +192,7 @@ function Results() {
 }
 
 export default function Search() {
-    const lang = useLanguage();
+    const { langFile: lang } = useLanguage();
 
     if (typeof window !== "undefined" && !window.navigator.onLine) {
         return <div>You are offline</div>;

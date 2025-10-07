@@ -1,14 +1,12 @@
-
-
 import * as z from "zod";
-import { RockItSongWithoutAlbumResponse } from "../rockItSongWithoutAlbumResponse";
+import { RockItSongWithAlbumResponse } from "@/responses/rockItSongWithAlbumResponse";
 
 export const HomeStatsResponse = z.object({
-    songsByTimePlayed: z.array(RockItSongWithoutAlbumResponse),
-    randomSongsLastMonth: z.array(RockItSongWithoutAlbumResponse),
-    nostalgicMix: z.array(RockItSongWithoutAlbumResponse),
-    hiddenGems: z.array(RockItSongWithoutAlbumResponse),
-    communityTop: z.array(RockItSongWithoutAlbumResponse),
-    monthlyTop: z.array(RockItSongWithoutAlbumResponse),
-    moodSongs: z.array(RockItSongWithoutAlbumResponse),
+    songsByTimePlayed: z.array(RockItSongWithAlbumResponse),
+    randomSongsLastMonth: z.array(RockItSongWithAlbumResponse),
+    nostalgicMix: z.array(RockItSongWithAlbumResponse),
+    hiddenGems: z.array(RockItSongWithAlbumResponse),
+    communityTop: z.array(RockItSongWithAlbumResponse),
+    monthlyTop: z.array(RockItSongWithAlbumResponse),
+    moodSongs: z.array(RockItSongWithAlbumResponse),
 });

@@ -1,4 +1,6 @@
 import { createArrayAtom } from "@/lib/store";
+import { DBListType } from "@/types/rockIt";
+import { RockItSongWithAlbum } from "../rockit/rockItSongWithAlbum";
 
 export class IndexedDBManager {
     // #region: Atoms
@@ -16,12 +18,17 @@ export class IndexedDBManager {
     // #region: Methods
 
     async downloadListToDeviceAsync(
-        type: "album" | "playlist",
+        type: DBListType,
         publicId: string,
         internalImageUrl?: string
     ) {
-        console.log(type, publicId, internalImageUrl);
-        throw "Not implemented method";
+        console.warn(type, publicId, internalImageUrl);
+        throw "(downloadListToDeviceAsync) Method not implemented";
+    }
+
+    saveSongToIndexedDB(song: RockItSongWithAlbum) {
+        console.warn(song);
+        throw "(downloadListToDeviceAsync) Method not implemented";
     }
 
     // #endregion: Methods
@@ -29,7 +36,11 @@ export class IndexedDBManager {
     // #region: Getters
 
     get songsInIndexedDBAtom() {
-        return this._songsInIndexedDBAtom;
+        return this._songsInIndexedDBAtom.getReadonlyAtom();
+    }
+
+    get songsInIndexedDB() {
+        return this._songsInIndexedDBAtom.get();
     }
 
     // #endregion: Getters

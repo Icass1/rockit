@@ -1,11 +1,12 @@
 "use client";
 
-import { Stats } from "@/lib/utils/stats";
 import { Disc3, Heart, History } from "lucide-react";
 import Link from "next/link";
 import useFetch from "@/hooks/useFetch";
-import { useRef } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import Image from "next/image";
+import { FeaturedListsResponse } from "@/responses/featuredListsResponse";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export function FeaturedLists({
     filterMode,
@@ -14,19 +15,11 @@ export function FeaturedLists({
     filterMode: "default" | "asc" | "desc";
     searchQuery: string;
 }) {
-    const lastMonthDate = useRef(
-        new Date(new Date().getTime() - 30 * 24 * 60 * 60 * 1000)
-    );
-
-    const lang = useLanguage;
-    const [data] = useFetch<Stats["albums"]>(
-        `/api/stats?type=albums&sortBy=timesPlayed&limit=4&start=${lastMonthDate.current}`,
-        { redis: true }
-    );
+    const { langFile: lang } = useLanguage();
+    const [data] = useFetch("/featured-lists", FeaturedListsResponse);
 
     if (!lang || !data) return false;
 
-    // Filtrar por búsqueda (por nombre de álbum o artista)
     let filtered = data.filter((album) => {
         const nameMatch = album.name
             .toLowerCase()
@@ -37,7 +30,6 @@ export function FeaturedLists({
         return nameMatch || artistMatch;
     });
 
-    // Ordenar según filterMode (ejemplo por nombre A–Z)
     if (filterMode === "asc") {
         filtered = filtered
             .slice()
@@ -57,7 +49,9 @@ export function FeaturedLists({
         .format(date)
         .toLowerCase();
 
-    let lastMonthName = new Intl.DateTimeFormat(lang.get(), {
+    const lastMonth = "en";
+
+    let lastMonthName = new Intl.DateTimeFormat(lastMonth, {
         month: "long",
     }).format(date);
 
@@ -163,23 +157,20 @@ export function FeaturedLists({
                     </label>
                 </Link>
 
-                {/* Tus álbumes filtrados/ordenados */}
                 {filtered.slice(0, 4).map((album) => (
                     <Link
-                        key={album.id}
-                        href={`/album/${album.id}`}
+                        key={album.publicId}
+                        href={`/album/${album.publicId}`}
                         className="library-item w-[calc(40%-10px)] flex-none transition md:w-48 md:hover:scale-105"
                     >
                         <Image
                             width={300}
                             height={300}
                             className="aspect-square w-full rounded-lg object-cover"
-                            src={getImageUrl({
-                                imageId: album.image,
-                                height: 300,
-                                width: 300,
-                                placeHolder: "/song-placeholder.png",
-                            })}
+                            src={
+                                album.internalImageUrl ??
+                                rockIt.ALBUM_PLACEHOLDER_IMAGE_URL
+                            }
                             alt={album.name}
                         />
                         <label className="mt-2 block truncate text-center font-semibold">
@@ -188,7 +179,7 @@ export function FeaturedLists({
                         <label className="block truncate text-center text-sm text-gray-400">
                             {album.artists.map((artist, i) => (
                                 <span
-                                    key={artist.id}
+                                    key={artist.publicId}
                                     className="md:hover:underline"
                                 >
                                     {artist.name}

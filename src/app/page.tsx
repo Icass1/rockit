@@ -10,11 +10,12 @@ import { useSession } from "next-auth/react";
 import { HomeStatsResponse } from "@/responses/stats/homeStatsResponse";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useRouter } from "next/navigation";
+import { RockItSongWithAlbum } from "@/lib/rockit/rockItSongWithAlbum";
 
 export default function Home() {
-    const [data] = useFetch("/stats/home", HomeStatsResponse);
+    const [dataResponse] = useFetch("/stats/home", HomeStatsResponse);
 
-    const lang = useLanguage();
+    const { langFile: lang } = useLanguage();
 
     const monthKeys = [
         "january",
@@ -56,10 +57,7 @@ export default function Home() {
         );
     }
 
-    console.log({ data });
-    console.warn({ data });
-
-    if (!data) {
+    if (!dataResponse) {
         return (
             <div className="flex h-screen flex-row items-center justify-center gap-2 text-xl font-semibold">
                 <Spinner></Spinner>
@@ -68,14 +66,23 @@ export default function Home() {
         );
     }
 
-    const {
-        songsByTimePlayed,
-        randomSongsLastMonth,
-        hiddenGems,
-        communityTop,
-        monthlyTop,
-        // moodSongs,
-    } = data;
+    const songsByTimePlayed = dataResponse.songsByTimePlayed.map((song) =>
+        RockItSongWithAlbum.fromResponse(song)
+    );
+
+    const randomSongsLastMonth = dataResponse.randomSongsLastMonth.map((song) =>
+        RockItSongWithAlbum.fromResponse(song)
+    );
+    const hiddenGems = dataResponse.hiddenGems.map((song) =>
+        RockItSongWithAlbum.fromResponse(song)
+    );
+    const communityTop = dataResponse.communityTop.map((song) =>
+        RockItSongWithAlbum.fromResponse(song)
+    );
+
+    const monthlyTop = dataResponse.monthlyTop.map((song) =>
+        RockItSongWithAlbum.fromResponse(song)
+    );
 
     if (
         songsByTimePlayed.length == 0 &&

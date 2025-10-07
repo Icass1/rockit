@@ -1,6 +1,8 @@
 "use client";
 
+import { useLanguage } from "@/contexts/LanguageContext";
 import useDev from "@/hooks/useDev";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { ArrowDownToLine } from "lucide-react";
 import { useState } from "react";
 
@@ -9,12 +11,11 @@ export default function InputBar() {
 
     const dev = useDev();
 
-    const lang = useLanguage();
+    const { langFile: lang } = useLanguage();
     if (!lang) return false;
 
     return (
         <div className="flex w-full flex-row items-center gap-2 px-2">
-            {/* Input */}
             <input
                 list="browsers"
                 type="search"
@@ -38,7 +39,7 @@ export default function InputBar() {
             <div
                 className="flex min-h-9 min-w-9 cursor-pointer items-center justify-center rounded-full bg-pink-700 hover:bg-pink-800"
                 onClick={() => {
-                    startDownload(url);
+                    rockIt.downloaderManager.startDownloadAsync(url);
                 }}
             >
                 <ArrowDownToLine className="h-5 w-5 text-white" />

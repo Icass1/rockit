@@ -9,7 +9,7 @@ import { LibraryLists } from "@/components/Library/LibraryLists";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function LibraryPage() {
-    const lang = useLanguage();
+    const { langFile: lang } = useLanguage();
     const [filterMode, setFilterMode] = useState<"default" | "asc" | "desc">(
         "default"
     );

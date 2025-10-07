@@ -1,15 +1,28 @@
 import { SearchResultsResponse } from "@/responses/searchResponse";
 import apiFetch from "@/lib/utils/apiFetch";
 import { createAtom } from "@/lib/store";
+import { RockItSongWithAlbum } from "../rockit/rockItSongWithAlbum";
+import { RockItAlbumWithoutSongs } from "../rockit/rockItAlbumWithoutSongs";
+import { RockItArtist } from "../rockit/rockItArtist";
+import { RockItPlaylist } from "../rockit/rockItPlaylist";
+
+type SpotifySearchResults = {
+    songs: RockItSongWithAlbum[];
+    albums: RockItAlbumWithoutSongs[];
+    artists: RockItArtist[];
+    playlists: RockItPlaylist[];
+};
+
+type SearchResults = {
+    spotifyResults: SpotifySearchResults;
+};
 
 export class SearchManager {
     // #region: Atoms
 
     private _searchQueryAtom = createAtom<string>("");
     private _searchingAtom = createAtom<boolean>(false);
-    private _searchResultsAtom = createAtom<
-        SearchResultsResponse | undefined
-    >();
+    private _searchResultsAtom = createAtom<SearchResults | undefined>();
 
     // #endregion: Atoms
 
@@ -37,7 +50,23 @@ export class SearchManager {
             data.json().then((json) => {
                 try {
                     const results = SearchResultsResponse.parse(json);
-                    this._searchResultsAtom.set(results);
+                    this._searchResultsAtom.set({
+                        spotifyResults: {
+                            albums: results.spotifyResults.albums.map((album) =>
+                                RockItAlbumWithoutSongs.fromResponse(album)
+                            ),
+                            songs: results.spotifyResults.songs.map((song) =>
+                                RockItSongWithAlbum.fromResponse(song)
+                            ),
+                            artists: results.spotifyResults.artists.map(
+                                (artist) => RockItArtist.fromResponse(artist)
+                            ),
+                            playlists: results.spotifyResults.playlists.map(
+                                (playlist) =>
+                                    RockItPlaylist.fromResponse(playlist)
+                            ),
+                        },
+                    });
                 } catch (e) {
                     console.error("Error parsing search results", e, json);
                 } finally {

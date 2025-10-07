@@ -1,33 +1,24 @@
 import { useStore } from "@nanostores/react";
 
-import { DownloadCloud } from "lucide-react";
-import { Dispatch, useState, type MouseEvent, type ReactNode } from "react";
-import stringSimilarity from "@/lib/utils/stringSimilarity";
+import { Dispatch, useState, type ReactNode } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { getBestImage } from "@/lib/utils/getBestImage";
 
 function Result({
     image,
     name,
     artistsOrOwner,
-    inDatabase,
     url,
     setOpen,
 }: {
     image: string;
     name: string;
     artistsOrOwner: string;
-    inDatabase: boolean;
     url: string;
     setOpen: Dispatch<React.SetStateAction<boolean>>;
 }) {
-    const handleClick = (
-        event: MouseEvent<HTMLDivElement, globalThis.MouseEvent>
-    ) => {
-        event.stopPropagation();
-        event.preventDefault();
-    };
     return (
         <Link
             onClick={() => setOpen(false)}
@@ -57,14 +48,6 @@ function Result({
                 </label>
                 <label className="truncate text-sm">{artistsOrOwner}</label>
             </div>
-            {!inDatabase && (
-                <div
-                    className="mr-2 h-6 w-6 text-blue-400 transition-transform md:hover:scale-105"
-                    onClick={handleClick}
-                >
-                    <DownloadCloud />
-                </div>
-            )}
         </Link>
     );
 }
@@ -97,6 +80,8 @@ export default function RenderSearchBarResults({
         | undefined
     >();
     const $searchQuery = useStore(rockIt.searchManager.searchQueryAtom);
+
+    console.log("RenderSearchBarResults", setBestResult, $searchQuery);
 
     // useEffect(() => {
     //     if (!$searchResults) return;
@@ -173,6 +158,8 @@ export default function RenderSearchBarResults({
     //     setBestResult(bestResult);
     // }, [$searchResults, $searchQuery]);
 
+    if (!$searchResults) return <div>Loading...</div>;
+
     return (
         <div id="search-bar-results">
             {open ? (
@@ -186,7 +173,6 @@ export default function RenderSearchBarResults({
                                 <Result
                                     name={bestResult.name}
                                     artistsOrOwner={bestResult.artistsOrOwner}
-                                    inDatabase={bestResult.inDatabase}
                                     image={bestResult.image}
                                     url={bestResult?.url}
                                     setOpen={setOpen}
@@ -194,148 +180,135 @@ export default function RenderSearchBarResults({
                             </div>
                         </>
                     )}
-                    {$searchResults.songs &&
-                        $searchResults.songs != "error" && (
-                            <>
-                                <label className="text-xl font-bold text-white">
-                                    Songs
-                                </label>
-                                <ResultsWrapper>
-                                    {$searchResults.songs
-                                        .slice(0, 2)
-                                        .map((song, index) => (
-                                            <div className="h-12" key={index}>
-                                                <Result
-                                                    key={"song" + index}
-                                                    name={song.name}
-                                                    artistsOrOwner={
-                                                        song.artists &&
-                                                        song.artists
-                                                            .map(
-                                                                (artist) =>
-                                                                    artist.name
-                                                            )
-                                                            .join(", ")
-                                                    }
-                                                    inDatabase={song.inDatabase}
-                                                    image={
-                                                        song.album.images[0]
-                                                            ?.url
-                                                    }
-                                                    url={
-                                                        song.external_urls
-                                                            .spotify
-                                                    }
-                                                    setOpen={setOpen}
-                                                />
-                                            </div>
-                                        ))}
-                                </ResultsWrapper>
-                            </>
-                        )}
-                    {$searchResults.albums &&
-                        $searchResults.albums != "error" && (
-                            <>
-                                <label className="text-xl font-bold text-white">
-                                    Albums
-                                </label>
-                                <ResultsWrapper>
-                                    {$searchResults.albums
-                                        .slice(0, 2)
-                                        .map((album, index) => (
-                                            <div className="h-12" key={index}>
-                                                <Result
-                                                    key={"album" + index}
-                                                    name={album.name}
-                                                    artistsOrOwner={
-                                                        album.artists &&
-                                                        album.artists
-                                                            .map(
-                                                                (artist) =>
-                                                                    artist.name
-                                                            )
-                                                            .join(", ")
-                                                    }
-                                                    inDatabase={
-                                                        album.inDatabase
-                                                    }
-                                                    image={album.images[0]?.url}
-                                                    url={
-                                                        album.external_urls
-                                                            .spotify
-                                                    }
-                                                    setOpen={setOpen}
-                                                />
-                                            </div>
-                                        ))}
-                                </ResultsWrapper>
-                            </>
-                        )}
-                    {$searchResults.playlists &&
-                        $searchResults.playlists != "error" && (
-                            <>
-                                <label className="text-xl font-bold text-white">
-                                    Playlists
-                                </label>
-                                <ResultsWrapper>
-                                    {$searchResults.playlists
-                                        .slice(0, 2)
-                                        .map((playlist, index) => (
-                                            <div className="h-12" key={index}>
-                                                <Result
-                                                    key={"playlist" + index}
-                                                    name={playlist.name}
-                                                    artistsOrOwner={
-                                                        playlist.owner
-                                                            .display_name
-                                                    }
-                                                    inDatabase={
-                                                        playlist.inDatabase
-                                                    }
-                                                    image={
-                                                        playlist.images[0]?.url
-                                                    }
-                                                    url={
-                                                        playlist.external_urls
-                                                            .spotify
-                                                    }
-                                                    setOpen={setOpen}
-                                                />
-                                            </div>
-                                        ))}
-                                </ResultsWrapper>
-                            </>
-                        )}
-                    {$searchResults.artists &&
-                        $searchResults.artists != "error" && (
-                            <>
-                                <label className="text-xl font-bold text-white">
-                                    Artists
-                                </label>
-                                <ResultsWrapper>
-                                    {$searchResults.artists
-                                        .slice(0, 2)
-                                        .map((artist, index) => (
-                                            <div className="h-12" key={index}>
-                                                <Result
-                                                    key={"playlist" + index}
-                                                    name={artist.name}
-                                                    artistsOrOwner=""
-                                                    inDatabase={true}
-                                                    image={
-                                                        artist.images[0]?.url
-                                                    }
-                                                    url={
-                                                        artist.external_urls
-                                                            .spotify
-                                                    }
-                                                    setOpen={setOpen}
-                                                />
-                                            </div>
-                                        ))}
-                                </ResultsWrapper>
-                            </>
-                        )}
+                    {$searchResults.spotifyResults.songs && (
+                        <>
+                            <label className="text-xl font-bold text-white">
+                                Songs
+                            </label>
+                            <ResultsWrapper>
+                                {$searchResults.spotifyResults.songs
+                                    .slice(0, 2)
+                                    .map((song, index) => (
+                                        <div className="h-12" key={index}>
+                                            <Result
+                                                key={"song" + index}
+                                                name={song.name}
+                                                artistsOrOwner={
+                                                    song.artists &&
+                                                    song.artists
+                                                        .map(
+                                                            (artist) =>
+                                                                artist.name
+                                                        )
+                                                        .join(", ")
+                                                }
+                                                image={
+                                                    getBestImage(
+                                                        song.album
+                                                            .externalImages
+                                                    )?.url ??
+                                                    rockIt.SONG_PLACEHOLDER_IMAGE_URL
+                                                }
+                                                url={"to do"}
+                                                setOpen={setOpen}
+                                            />
+                                        </div>
+                                    ))}
+                            </ResultsWrapper>
+                        </>
+                    )}
+                    {$searchResults.spotifyResults.albums && (
+                        <>
+                            <label className="text-xl font-bold text-white">
+                                Albums
+                            </label>
+                            <ResultsWrapper>
+                                {$searchResults.spotifyResults.albums
+                                    .slice(0, 2)
+                                    .map((album, index) => (
+                                        <div className="h-12" key={index}>
+                                            <Result
+                                                key={"album" + index}
+                                                name={album.name}
+                                                artistsOrOwner={
+                                                    album.artists &&
+                                                    album.artists
+                                                        .map(
+                                                            (artist) =>
+                                                                artist.name
+                                                        )
+                                                        .join(", ")
+                                                }
+                                                image={
+                                                    getBestImage(
+                                                        album.externalImages
+                                                    )?.url ??
+                                                    rockIt.ALBUM_PLACEHOLDER_IMAGE_URL
+                                                }
+                                                url={"to do"}
+                                                setOpen={setOpen}
+                                            />
+                                        </div>
+                                    ))}
+                            </ResultsWrapper>
+                        </>
+                    )}
+                    {$searchResults.spotifyResults.playlists && (
+                        <>
+                            <label className="text-xl font-bold text-white">
+                                Playlists
+                            </label>
+                            <ResultsWrapper>
+                                {$searchResults.spotifyResults.playlists
+                                    .slice(0, 2)
+                                    .map((playlist, index) => (
+                                        <div className="h-12" key={index}>
+                                            <Result
+                                                key={"playlist" + index}
+                                                name={playlist.name}
+                                                artistsOrOwner={playlist.owner}
+                                                image={
+                                                    getBestImage(
+                                                        playlist.externalImages
+                                                    )?.url ??
+                                                    rockIt.PLAYLIST_PLACEHOLDER_IMAGE_URL
+                                                }
+                                                url={"to do"}
+                                                setOpen={setOpen}
+                                            />
+                                        </div>
+                                    ))}
+                            </ResultsWrapper>
+                        </>
+                    )}
+                    {$searchResults.spotifyResults.artists && (
+                        <>
+                            <label className="text-xl font-bold text-white">
+                                Artists
+                            </label>
+                            <ResultsWrapper>
+                                {$searchResults.spotifyResults.artists
+                                    .slice(0, 2)
+                                    .map((artist, index) => (
+                                        <div className="h-12" key={index}>
+                                            <Result
+                                                key={"playlist" + index}
+                                                name={artist.name}
+                                                artistsOrOwner=""
+                                                image={
+                                                    getBestImage(
+                                                        artist.externalImages
+                                                    )?.url ??
+                                                    rockIt.ALBUM_PLACEHOLDER_IMAGE_URL
+                                                }
+                                                url={"to do"}
+                                                setOpen={setOpen}
+                                            />
+                                        </div>
+                                    ))}
+                            </ResultsWrapper>
+                        </>
+                    )}
                 </div>
             ) : (
                 <></>

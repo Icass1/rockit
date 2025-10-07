@@ -14,7 +14,7 @@ export function LibraryFilters({
     searchQuery: string;
     setSearchQuery: (q: string) => void;
 }) {
-    const lang = useLanguage();
+    const { langFile: lang } = useLanguage();
     if (!lang) return false;
 
     return (

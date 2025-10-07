@@ -1,74 +1,73 @@
-import { RockItSong } from "@/types/rockIt";
+import { RockItSongWithoutAlbum } from "@/lib/rockit/rockItSongWithoutAlbum";
 
 export function songHandleClick(
-    song: RockItSong,
-    currentListSongs: RockItSong[]
+    song: RockItSongWithoutAlbum,
+    currentListSongs: RockItSongWithoutAlbum[]
 ) {
-    const _currentList = currentList.get();
-    if (!song.path) {
-        console.warn("song.path is undefined. ( Song:", song, ")");
-        return;
-    }
+    console.log("songHandleClick", { song, currentListSongs });
+    throw "(songHandleClick) Method not implemented";
 
-    if (!_currentList) {
-        console.warn("Current list is undefined");
-        return;
-    }
+    // const _currentList = rockIt.queueManager.currentList;
 
-    if (_currentList.type == undefined || _currentList.id == undefined) {
-        console.warn("Current list type or id is undefined");
-        return;
-    }
+    // if (!_currentList) {
+    //     console.warn("Current list is undefined");
+    //     return;
+    // }
 
-    let songsToAdd = currentListSongs
-        .filter((song) => song?.path)
-        .map((song, index) => {
-            return {
-                song: song,
-                list: { type: _currentList.type, id: _currentList.id },
-                index: index,
-            };
-        });
+    // if (_currentList.type == undefined || _currentList.publicId == undefined) {
+    //     console.warn("Current list type or id is undefined");
+    //     return;
+    // }
 
-    if (!window.navigator.onLine) {
-        songsToAdd = songsToAdd.filter((song) =>
-            songsInIndexedDB.get()?.includes(song.song.id)
-        );
-    }
+    // let songsToAdd = currentListSongs
+    //     .filter((song) => song?.path)
+    //     .map((song, index) => {
+    //         return {
+    //             song: song,
+    //             list: { type: _currentList.type, id: _currentList.publicId },
+    //             index: index,
+    //         };
+    //     });
 
-    if (randomQueue.get()) {
-        const shuffled = [...songsToAdd].sort(() => Math.random() - 0.5);
+    // if (!window.navigator.onLine) {
+    //     songsToAdd = songsToAdd.filter((song) =>
+    //         songsInIndexedDB.get()?.includes(song.song.publicId)
+    //     );
+    // }
 
-        const firstSong = songsToAdd.find(
-            (dataSong) => dataSong.song.id == song.id
-        );
+    // if (randomQueue.get()) {
+    //     const shuffled = [...songsToAdd].sort(() => Math.random() - 0.5);
 
-        if (!firstSong) {
-            console.error("First song not found in songsToAdd in AlbumSong");
-            return;
-        }
+    //     const firstSong = songsToAdd.find(
+    //         (dataSong) => dataSong.song.id == song.id
+    //     );
 
-        // Move firstSong to the first position
-        const updatedQueue = [
-            firstSong,
-            ...shuffled.filter((s) => s.index !== firstSong.index),
-        ];
+    //     if (!firstSong) {
+    //         console.error("First song not found in songsToAdd in AlbumSong");
+    //         return;
+    //     }
 
-        playWhenReady.set(true);
-        currentSong.set(song);
-        queueIndex.set(firstSong.index); // Since firstSong is now at index 0
-        queue.set(updatedQueue);
-    } else {
-        const firstSong = songsToAdd.find(
-            (dataSong) => dataSong.song.id == song.id
-        );
-        if (!firstSong) {
-            console.error("First song not found in songsToAdd in AlbumSong");
-            return;
-        }
-        playWhenReady.set(true);
-        currentSong.set(song);
-        queueIndex.set(firstSong.index);
-        queue.set(songsToAdd);
-    }
+    //     // Move firstSong to the first position
+    //     const updatedQueue = [
+    //         firstSong,
+    //         ...shuffled.filter((s) => s.index !== firstSong.index),
+    //     ];
+
+    //     playWhenReady.set(true);
+    //     currentSong.set(song);
+    //     queueIndex.set(firstSong.index); // Since firstSong is now at index 0
+    //     queue.set(updatedQueue);
+    // } else {
+    //     const firstSong = songsToAdd.find(
+    //         (dataSong) => dataSong.song.id == song.id
+    //     );
+    //     if (!firstSong) {
+    //         console.error("First song not found in songsToAdd in AlbumSong");
+    //         return;
+    //     }
+    //     playWhenReady.set(true);
+    //     currentSong.set(song);
+    //     queueIndex.set(firstSong.index);
+    //     queue.set(songsToAdd);
+    // }
 }

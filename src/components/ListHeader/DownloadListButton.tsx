@@ -1,4 +1,5 @@
 import { rockIt } from "@/lib/rockit/rockIt";
+import { DBListType } from "@/types/rockIt";
 import { Download } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -61,7 +62,7 @@ export default function DownloadListButton({
     type,
 }: {
     publicId: string;
-    type: "album" | "playlist";
+    type: DBListType;
 }) {
     const divRef = useRef<HTMLDivElement>(null);
 

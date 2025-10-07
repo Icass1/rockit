@@ -5,7 +5,7 @@ import { Forward, Play } from "lucide-react";
 import Image from "next/image";
 
 export default function FriendsPage() {
-    const lang = useLanguage();
+    const { langFile: lang } = useLanguage();
 
     if (!lang) return false;
     return (

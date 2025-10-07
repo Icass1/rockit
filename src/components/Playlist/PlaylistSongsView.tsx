@@ -178,7 +178,7 @@ export default function PlaylistSongsView({
         }
     };
 
-    const lang = useLanguage();
+    const { langFile: lang } = useLanguage();
     if (!lang) return false;
 
     if (!innerWidth) return;

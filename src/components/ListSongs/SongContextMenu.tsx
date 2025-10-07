@@ -30,9 +30,9 @@ import useDev from "@/hooks/useDev";
 
 import "@/styles/CheckBox.css";
 import Image from "next/image";
-import { RockItSongWithAlbum } from "@/types/rockIt";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { RockItSongWithAlbum } from "@/lib/rockit/rockItSongWithAlbum";
 
 function ListSubContextMenu({
     list,
@@ -103,7 +103,7 @@ export default function SongContextMenu({
     const $currentListSongs = useStore(
         rockIt.currentListManager.currentListSongsAtom
     );
-    const lang = useLanguage();
+    const { langFile: lang } = useLanguage();
     const $networkStatus = useStore(networkStatus);
 
     const offline = $networkStatus == "offline";
@@ -181,25 +181,7 @@ export default function SongContextMenu({
                 </ContextMenuOption>
                 <ContextMenuOption
                     onClick={() => {
-                        const tempQueue = queue.get();
-                        if (!tempQueue) return;
-
-                        const index = tempQueue.findIndex(
-                            (_song) => _song.index == queueIndex.get()
-                        );
-
-                        queue.set([
-                            ...tempQueue.slice(0, index + 1),
-                            {
-                                list: currentList.get(),
-                                index:
-                                    Math.max(
-                                        ...tempQueue.map((_song) => _song.index)
-                                    ) + 1,
-                                song: song,
-                            },
-                            ...tempQueue.slice(index + 1),
-                        ]);
+                        console.warn("SongContextMenu playNext");
                     }}
                 >
                     <ListStart className="h-5 w-5" />
@@ -208,21 +190,7 @@ export default function SongContextMenu({
 
                 <ContextMenuOption
                     onClick={() => {
-                        const tempQueue = queue.get();
-                        if (!tempQueue) return;
-                        queue.set([
-                            ...tempQueue,
-                            {
-                                song: song,
-                                index:
-                                    Math.max(
-                                        ...tempQueue.map(
-                                            (queueSong) => queueSong.index
-                                        )
-                                    ) + 1,
-                                list: currentList.get(),
-                            },
-                        ]);
+                        console.warn("SongContextMenu addToQueue");
                     }}
                 >
                     <ListEnd className="h-5 w-5" />
@@ -300,7 +268,7 @@ export default function SongContextMenu({
                 <ContextMenuOption
                     disable={offline}
                     onClick={() => {
-                        saveSongToIndexedDB(song, true);
+                        rockIt.indexedDBManager.saveSongToIndexedDB(song);
                     }}
                 >
                     <HardDriveDownload className="h-5 w-5" />
@@ -327,7 +295,7 @@ export default function SongContextMenu({
                 {dev && (
                     <ContextMenuOption
                         onClick={() => {
-                            send({ songEnded: song.publicId });
+                            console.warn("(SongContextMenu) Send song ended");
                         }}
                     >
                         <Pickaxe className="h-5 w-5" />

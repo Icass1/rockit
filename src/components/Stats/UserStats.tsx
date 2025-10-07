@@ -7,7 +7,10 @@ import pkg from "lodash";
 import VerticalBarGraph from "./VerticalBarGraph";
 import Masonry from "@/components/Masonry/Masonry";
 import useDev from "@/hooks/useDev";
-const { debounce } = pkg;
+import { useLanguage } from "@/contexts/LanguageContext";
+import useFetch from "@/hooks/useFetch";
+import { UserStatsResponse } from "@/responses/stats/userStatsResponse";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function UserStats() {
     const today = new Date();
@@ -31,14 +34,18 @@ export default function UserStats() {
     const startDateInputRef = useRef<HTMLInputElement>(null);
     const endDateInputRef = useRef<HTMLInputElement>(null);
 
-    const [data, setData] = useState<UserStatsType>({
-        totalTimesPlayedSong: 0,
-        totalSecondsListened: 0,
-        minutesListenedByRange: [],
-        songs: [],
-        albums: [],
-        artists: [],
-    });
+    const [responseData, updateData] = useFetch("", UserStatsResponse);
+
+    // const [data, setData] = useState<UserStatsType>({
+    //     totalTimesPlayedSong: 0,
+    //     totalSecondsListened: 0,
+    //     minutesListenedByRange: [],
+    //     songs: [],
+    //     albums: [],
+    //     artists: [],
+    // });
+
+    const data = responseData;
 
     const dev = useDev();
 
@@ -57,19 +64,19 @@ export default function UserStats() {
         });
     }, []);
 
-    useEffect(() => {
-        fetchDebounce.current = debounce((endDate, startDate) => {
-            fetch(
-                `/api/stats/user?start=${new Date(startDate)}&end=${new Date(endDate)}`
-            ).then((response) => {
-                if (response.ok) {
-                    response.json().then((data) => {
-                        setData(data);
-                    });
-                }
-            });
-        }, 1000);
-    }, []);
+    // useEffect(() => {
+    //     fetchDebounce.current = debounce((endDate, startDate) => {
+    //         fetch(
+    //             `/api/stats/user?start=${new Date(startDate)}&end=${new Date(endDate)}`
+    //         ).then((response) => {
+    //             if (response.ok) {
+    //                 response.json().then((data) => {
+    //                     setData(data);
+    //                 });
+    //             }
+    //         });
+    //     }, 1000);
+    // }, []);
 
     useEffect(() => {
         fetchDebounce.current?.(endDate, startDate);
@@ -90,8 +97,10 @@ export default function UserStats() {
         return yearNumber + "-" + monthString + "-" + dayString;
     };
 
-    const lang = useLanguage();
+    const { langFile: lang } = useLanguage();
+
     if (!lang) return false;
+    if (!data) return <div>Loading...</div>;
 
     return (
         <div className="h-full">
@@ -177,15 +186,16 @@ export default function UserStats() {
                     <span
                         className="text-3xl text-yellow-400"
                         onClick={() =>
-                            fetch(
-                                `/api/stats/user?start=${new Date(startDate)}&end=${new Date(endDate)}`
-                            ).then((response) => {
-                                if (response.ok) {
-                                    response.json().then((data) => {
-                                        setData(data);
-                                    });
-                                }
-                            })
+                            // fetch(
+                            //     `/api/stats/user?start=${new Date(startDate)}&end=${new Date(endDate)}`
+                            // ).then((response) => {
+                            //     if (response.ok) {
+                            //         response.json().then((data) => {
+                            //             setData(data);
+                            //         });
+                            //     }
+                            // })
+                            updateData()
                         }
                     >
                         [Dev] refresh
@@ -225,12 +235,14 @@ export default function UserStats() {
                             type="value"
                             items={data.albums.map((album) => {
                                 return {
-                                    image: album.image,
+                                    image:
+                                        album.internalImageUrl ??
+                                        rockIt.ALBUM_PLACEHOLDER_IMAGE_URL,
                                     index: album.index,
-                                    id: album.id,
+                                    id: album.publicId,
                                     name: album.name,
                                     value: album.timesPlayed,
-                                    href: `/album/${album.id}`,
+                                    href: `/album/${album.publicId}`,
                                 };
                             })}
                         />
@@ -239,10 +251,10 @@ export default function UserStats() {
                             items={data.artists.map((artist) => {
                                 return {
                                     index: artist.index,
-                                    id: artist.id,
+                                    id: artist.publicId,
                                     name: artist.name,
                                     value: artist.timesPlayed,
-                                    href: `/artist/${artist.id}`,
+                                    href: `/artist/${artist.publicId}`,
                                 };
                             })}
                         />
@@ -251,12 +263,14 @@ export default function UserStats() {
                             type="value"
                             items={data.songs.map((song) => {
                                 return {
-                                    image: song.image,
+                                    image:
+                                        song.internalImageUrl ??
+                                        rockIt.SONG_PLACEHOLDER_IMAGE_URL,
                                     index: song.index,
-                                    id: song.id,
+                                    id: song.publicId,
                                     name: song.name,
                                     value: song.timesPlayed,
-                                    href: `/song/${song.id}`,
+                                    href: `/song/${song.publicId}`,
                                 };
                             })}
                         />

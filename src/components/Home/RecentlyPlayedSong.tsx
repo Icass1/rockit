@@ -1,32 +1,22 @@
-import { songHandleClick } from "@/components/ListSongs/HandleClick";
 import { redirect } from "next/navigation";
-import { RockItSong } from "@/types/rockIt";
 import Image from "next/image";
+import { RockItSongWithoutAlbum } from "@/lib/rockit/rockItSongWithoutAlbum";
 
 export default function RecentlyPlayedSong({
     song,
     songs,
 }: {
-    song: RockItSong;
-    songs: RockItSong[];
+    song: RockItSongWithoutAlbum;
+    songs: RockItSongWithoutAlbum[];
 }) {
-    const handleClick = () => {
-        currentList.set({ type: "recently-played", id: "recently-played" });
-        songHandleClick(
-            { ...song, path: "this path is not needed but cannot be empty" },
-            songs.map((song) => {
-                return {
-                    ...song,
-                    path: "this path is not needed but cannot be empty",
-                };
-            })
-        );
-    };
+    console.log("RecentlyPlayedSong", { songs });
 
     return (
         <div
             className="w-40 flex-none transition md:w-48 md:hover:scale-105"
-            onClick={handleClick}
+            onClick={() => {
+                console.warn("RecentlyPlayedSong handleClick");
+            }}
         >
             <Image
                 width={400}

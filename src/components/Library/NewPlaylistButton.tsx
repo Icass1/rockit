@@ -10,7 +10,7 @@ export default function NewPlaylistButton() {
     const [showCreatePlaylistMenu, setShowCreatePlaylistMenu] = useState(false);
     const [name, setName] = useState("");
     const [error, setError] = useState("");
-    const lang = useLanguage();
+    const { langFile: lang } = useLanguage();
 
     const router = useRouter();
 

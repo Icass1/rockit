@@ -28,5 +28,9 @@ export class CurrentListManager {
         return this._currentListSongsAtom;
     }
 
+    get currentListSongs() {
+        return this._currentListSongsAtom.get();
+    }
+
     // #endregion: Getters
 }

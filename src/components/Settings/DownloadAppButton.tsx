@@ -1,3 +1,4 @@
+import { useLanguage } from "@/contexts/LanguageContext";
 import {
     clearResources,
     downloadResources,
@@ -17,7 +18,7 @@ export default function DownloadAppButton() {
         console.log("Resources downloaded");
     };
 
-    const lang = useLanguage();
+    const { langFile: lang } = useLanguage();
     if (!lang) return false;
 
     return (

@@ -1,3 +1,4 @@
+import { rockIt } from "@/lib/rockit/rockIt";
 import { PlayCircle } from "lucide-react";
 
 export function playListHandleClick({
@@ -7,9 +8,8 @@ export function playListHandleClick({
     type: string;
     id: string;
 }) {
-    let songsToAdd = currentListSongs
-        .get()
-        .filter((song) => song?.path)
+    let songsToAdd = rockIt.currentListManager.currentListSongs
+        .filter((song) => song.downloaded)
         .map((song, index) => {
             return { song: song, list: { type, id }, index: index };
         });
@@ -21,24 +21,28 @@ export function playListHandleClick({
 
     if (!window.navigator.onLine) {
         songsToAdd = songsToAdd.filter((song) =>
-            songsInIndexedDB.get()?.includes(song.song.id)
+            rockIt.indexedDBManager.songsInIndexedDB.includes(
+                song.song.publicId
+            )
         );
     }
 
-    if (randomQueue.get()) {
-        const shuffled = [...songsToAdd].sort(() => Math.random() - 0.5);
-        playWhenReady.set(true);
+    console.warn("(playListHandleClick) Method not implemented.");
 
-        currentSong.set(shuffled[0].song);
-        queueIndex.set(shuffled[0].index);
-        queue.set(shuffled);
-    } else {
-        playWhenReady.set(true);
+    // if (randomQueue.get()) {
+    //     const shuffled = [...songsToAdd].sort(() => Math.random() - 0.5);
+    //     playWhenReady.set(true);
 
-        currentSong.set(songsToAdd[0].song);
-        queueIndex.set(0);
-        queue.set(songsToAdd);
-    }
+    //     currentSong.set(shuffled[0].song);
+    //     queueIndex.set(shuffled[0].index);
+    //     queue.set(shuffled);
+    // } else {
+    //     playWhenReady.set(true);
+
+    //     currentSong.set(songsToAdd[0].song);
+    //     queueIndex.set(0);
+    //     queue.set(songsToAdd);
+    // }
 }
 export default function PlayList({ id, type }: { type: string; id: string }) {
     return (

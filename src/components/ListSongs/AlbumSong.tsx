@@ -7,8 +7,8 @@ import { useEffect, useState } from "react";
 import { useStore } from "@nanostores/react";
 import SongContextMenu from "./SongContextMenu";
 import { networkStatus } from "@/stores/networkStatus";
-import { RockItSongWithAlbum } from "@/types/rockIt";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { RockItSongWithAlbum } from "@/lib/rockit/rockItSongWithAlbum";
 
 export default function AlbumSong({
     song,

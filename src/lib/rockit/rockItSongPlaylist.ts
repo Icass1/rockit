@@ -21,6 +21,8 @@ export class RockItSongPlaylist extends RockItSongWithAlbum {
         duration,
         album,
         addedAt,
+        audioUrl,
+        internalImageUrl,
     }: {
         publicId: string;
         name: string;
@@ -30,6 +32,8 @@ export class RockItSongPlaylist extends RockItSongWithAlbum {
         duration: number;
         album: RockItAlbumWithoutSongs;
         addedAt: Date;
+        audioUrl: string | null;
+        internalImageUrl: string | null;
     }) {
         super({
             publicId,
@@ -39,6 +43,8 @@ export class RockItSongPlaylist extends RockItSongWithAlbum {
             discNumber,
             duration,
             album,
+            audioUrl,
+            internalImageUrl,
         });
         this.addedAt = addedAt;
     }
@@ -65,6 +71,8 @@ export class RockItSongPlaylist extends RockItSongWithAlbum {
             downloaded: response.downloaded,
             album: RockItAlbumWithoutSongs.fromResponse(response.album),
             addedAt: response.addedAt,
+            internalImageUrl: response.internalImageUrl,
+            audioUrl: response.audioUrl,
         });
     }
 

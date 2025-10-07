@@ -86,7 +86,7 @@ export default function RadioStations() {
         }, 1000);
     }, [search]);
 
-    const lang = useLanguage();
+    const { langFile: lang } = useLanguage();
 
     const fetchStations = async (by: string, searchTerm: string) => {
         try {

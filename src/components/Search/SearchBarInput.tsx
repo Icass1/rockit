@@ -7,7 +7,7 @@ const { debounce } = pkg;
 
 export default function SearchBarInput() {
     const [value, setValue] = useState("");
-    const lang = useLanguage();
+    const { langFile: lang } = useLanguage();
 
     const searchDebounce =
         useRef<pkg.DebouncedFunc<(query: string) => void>>(null);

@@ -41,9 +41,9 @@ export default function Navigation() {
 
     const $downloads = [];
 
-    const $pinnedLists = [];
+    const $pinnedLists = useStore(rockIt.listManager.pinnedListsAtom);
 
-    const lang = useLanguage();
+    const { langFile: lang } = useLanguage();
 
     const activePage = usePathname();
 
@@ -181,8 +181,8 @@ export default function Navigation() {
                     {$pinnedLists.map((list) => {
                         return (
                             <Link
-                                key={list.id}
-                                href={`/${list.type}/${list.id}`}
+                                key={list.publicId}
+                                href={`/${list.type}/${list.publicId}`}
                                 title={list.name}
                                 className={`mr-2 ml-2 flex h-8 cursor-pointer items-center gap-3 rounded-md transition-all md:hover:bg-[#414141]`}
                             >
@@ -191,12 +191,12 @@ export default function Navigation() {
                                     width={32}
                                     height={32}
                                     className="flex h-8 min-h-8 w-8 min-w-8 items-center justify-center rounded-sm"
-                                    src={getImageUrl({
-                                        imageId: list.image,
-                                        width: 32,
-                                        height: 32,
-                                        placeHolder: "/song-placeholder.png",
-                                    })}
+                                    src={
+                                        list.internalImageUrl ??
+                                        (list.type == "album"
+                                            ? rockIt.ALBUM_PLACEHOLDER_IMAGE_URL
+                                            : rockIt.PLAYLIST_PLACEHOLDER_IMAGE_URL)
+                                    }
                                 />
                                 <label className="cursor-pointer truncate text-sm font-semibold">
                                     {list.name}

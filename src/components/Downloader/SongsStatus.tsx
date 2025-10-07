@@ -1,5 +1,6 @@
 "use client";
 
+import { useLanguage } from "@/contexts/LanguageContext";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { RockItSongWithAlbum } from "@/lib/rockit/rockItSongWithAlbum";
 import { useStore } from "@nanostores/react";
@@ -86,30 +87,28 @@ function SongDownload({
 }
 
 export default function SongsStatus() {
-    const $downloadInfo = useStore(downloadInfo);
+    const $downloadInfo = useStore(rockIt.downloaderManager.downloadInfoAtom);
 
-    const lang = useLanguage();
+    const { langFile: lang } = useLanguage();
     if (!lang) return false;
 
     let someSelected = false;
 
-    const downloadInfoSorted = Object.entries($downloadInfo).toSorted(
-        (a, b) => {
-            if (a[1].selected || b[1].selected) someSelected = true;
+    const downloadInfoSorted = $downloadInfo.toSorted((a, b) => {
+        if (a.selected || b.selected) someSelected = true;
 
-            let bCompleted: number = b[1].completed;
-            if (b[1].completed == 100) bCompleted = -2;
-            if (b[1].message == "Error") bCompleted = -2;
-            if (b[1].message == "In queue") bCompleted = -1;
+        let bCompleted: number = b.completed;
+        if (b.completed == 100) bCompleted = -2;
+        if (b.message == "Error") bCompleted = -2;
+        if (b.message == "In queue") bCompleted = -1;
 
-            let aCompleted: number = a[1].completed;
-            if (a[1].completed == 100) aCompleted = -2;
-            if (a[1].message == "Error") aCompleted = -2;
-            if (a[1].message == "In queue") aCompleted = -1;
+        let aCompleted: number = a.completed;
+        if (a.completed == 100) aCompleted = -2;
+        if (a.message == "Error") aCompleted = -2;
+        if (a.message == "In queue") aCompleted = -1;
 
-            return bCompleted - aCompleted;
-        }
-    );
+        return bCompleted - aCompleted;
+    });
 
     return (
         <>
@@ -120,29 +119,29 @@ export default function SongsStatus() {
                         minHeight: `${downloadInfoSorted.length * 50}px`,
                     }}
                 ></div>
-                {Object.entries($downloadInfo)
+                {$downloadInfo
                     .filter((entry) => {
                         if (someSelected) {
-                            return entry[1].selected;
+                            return entry.selected;
                         } else {
                             return true;
                         }
                     })
                     .map((entry) => {
                         const index = downloadInfoSorted.findIndex(
-                            (_entry) => _entry[0] == entry[0]
+                            (_entry) => _entry.publicId == entry.publicId
                         );
 
                         return (
                             <div
-                                key={entry[0]}
+                                key={entry.publicId}
                                 className="absolute w-full transition-[top] duration-500"
                                 style={{ top: `${index * 50}px` }}
                             >
                                 <SongDownload
-                                    id={entry[0]}
-                                    completed={entry[1].completed}
-                                    message={entry[1].message}
+                                    id={entry.publicId}
+                                    completed={entry.completed}
+                                    message={entry.message}
                                 />
                             </div>
                         );

@@ -13,6 +13,7 @@ import Image from "next/image";
 import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { useEffect, useState } from "react";
+import { RockItUser } from "@/lib/rockit/rockItUser";
 
 export default function HeaderUser() {
     const router = useRouter();

@@ -101,11 +101,11 @@ export default function PlayLibraryButton() {
             <div
                 onClick={() => {
                     if (playingLibrary && $playing) {
-                        pause();
+                        rockIt.audioManager.play();
                     } else if (playingLibrary) {
-                        play();
+                        rockIt.audioManager.pause();
                     } else {
-                        playLibraryHandler();
+                        console.warn("PlayLibraryButton playLibraryHandler");
                     }
                 }}
                 title="Play albums in library"

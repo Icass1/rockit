@@ -1,6 +1,5 @@
 "use client";
 
-import { useStore } from "@nanostores/react";
 import {
     Home,
     Library,
@@ -9,19 +8,21 @@ import {
     ShieldEllipsis,
     Settings,
 } from "lucide-react";
-import { langData } from "@/stores/lang";
-import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { rockIt } from "@/lib/rockit/rockIt";
+import { useStore } from "@nanostores/react";
 
 export default function NavigationMobile() {
-    const session = useSession();
-
-    const lang = useLanguage();
-
+    const { langFile: lang } = useLanguage();
     const activePage = usePathname();
 
+    const $user = useStore(rockIt.userManager.userAtom);
+
     if (!lang) return false;
+
+    if (!$user) return false;
 
     const pages = [
         {
@@ -51,7 +52,7 @@ export default function NavigationMobile() {
             disabled: true,
         },
 
-        session.data?.user.admin
+        $user.admin
             ? {
                   name: "Admin",
                   title: "Admin",

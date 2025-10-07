@@ -1,39 +1,26 @@
-import { songHandleClick } from "@/components/ListSongs/HandleClick";
 import SongContextMenu from "../ListSongs/SongContextMenu";
-import { RockItSong } from "@/types/rockIt";
 import Image from "next/image";
+import { RockItSongWithAlbum } from "@/lib/rockit/rockItSongWithAlbum";
 
 export default function QuickSelectionsSong({
     song,
     songs,
 }: {
-    song: RockItSong;
-    songs: RockItSong[];
+    song: RockItSongWithAlbum;
+    songs: RockItSongWithAlbum[];
 }) {
-    const handleClick = () => {
-        currentList.set({ type: "recently-played", id: "recently-played" });
-        songHandleClick(
-            { ...song, path: "this path is not needed but cannot be empty" },
-            songs.map((song) => {
-                return {
-                    ...song,
-                    path: "this path is not needed but cannot be empty",
-                };
-            })
-        );
-    };
+    console.log("QuickSelectionsSong", { songs });
 
     return (
         <SongContextMenu
-            onPlay={handleClick}
-            song={{
-                ...song,
-                path: "this path is not needed but cannot be empty",
+            onPlay={() => {
+                console.warn("QuickSelectionsSong handleClick");
             }}
+            song={song}
         >
             <div
                 className="flex h-fit cursor-pointer items-center gap-2 rounded-lg p-2 transition hover:bg-zinc-800"
-                onClick={handleClick}
+                onClick={() => console.warn("QuickSelectionsSong handleClick")}
             >
                 {/* Imagen de la canción */}
                 <Image

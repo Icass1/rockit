@@ -5,6 +5,7 @@ import { Play, Pause } from "lucide-react";
 import LikeButton from "@/components/LikeButton";
 import Slider from "@/components/Slider";
 import { rockIt } from "@/lib/rockit/rockIt";
+import Image from "next/image";
 
 export default function FooterMobile() {
     const $playing = useStore(rockIt.audioManager.playingAtom);
@@ -16,24 +17,23 @@ export default function FooterMobile() {
             <div
                 className="group grid h-full w-full grid-cols-[min-content_1fr_min-content_min-content] items-center gap-x-2 rounded-md bg-black/80 pr-2"
                 onClick={() => {
-                    if (isMobilePlayerUIVisible.get()) {
-                        isMobilePlayerUIVisible.set(false);
-                        setTimeout(() => {
-                            isMobilePlayerUIVisible.set(true);
-                        }, 500);
-                    } else {
-                        isMobilePlayerUIVisible.set(true);
-                    }
+                    rockIt.playerUIManager.toggle();
+                    // if (isMobilePlayerUIVisible.get()) {
+                    //     isMobilePlayerUIVisible.set(false);
+                    //     setTimeout(() => {
+                    //         isMobilePlayerUIVisible.set(true);
+                    //     }, 500);
+                    // } else {
+                    //     isMobilePlayerUIVisible.set(true);
+                    // }
                 }}
             >
                 <div className="aspect-square h-full w-auto">
                     <Image
-                        src={getImageUrl({
-                            imageId: $currentSong?.image,
-                            width: 42,
-                            height: 42,
-                            placeHolder: "/song-placeholder.png",
-                        })}
+                        src={
+                            $currentSong?.internalImageUrl ??
+                            rockIt.SONG_PLACEHOLDER_IMAGE_URL
+                        }
                         alt="Album Cover"
                         className="h-full w-full rounded-md p-1"
                     />
@@ -50,12 +50,14 @@ export default function FooterMobile() {
                     </label>
                 </div>
 
-                {$currentSong && <LikeButton song={$currentSong} />}
+                {$currentSong && (
+                    <LikeButton songPublicId={$currentSong.publicId} />
+                )}
                 {$playing ? (
                     <Pause
                         className="h-full fill-current text-white"
                         onClick={(event) => {
-                            pause();
+                            rockIt.audioManager.pause();
                             event.stopPropagation();
                         }}
                     />
@@ -63,7 +65,7 @@ export default function FooterMobile() {
                     <Play
                         className="h-full fill-current text-white"
                         onClick={(event) => {
-                            play();
+                            rockIt.audioManager.play();
                             event.stopPropagation();
                         }}
                     />

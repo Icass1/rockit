@@ -2,6 +2,7 @@ import { RockItArtist } from "@/lib/rockit/rockItArtist";
 import { RockItSongWithoutAlbum } from "./rockItSongWithoutAlbum";
 import { RockItAlbumWithoutSongs } from "./rockItAlbumWithoutSongs";
 import { RockItAlbumWithSongsResponse } from "@/responses/rockItAlbumWithSongsResponse";
+import { RockItExternalImage } from "./rockItExternalImage";
 
 export class RockItAlbumWithSongs extends RockItAlbumWithoutSongs {
     // #region: Read-only properties
@@ -19,6 +20,7 @@ export class RockItAlbumWithSongs extends RockItAlbumWithoutSongs {
         songs,
         internalImageUrl,
         releaseDate,
+        externalImages,
     }: {
         publicId: string;
         name: string;
@@ -26,8 +28,16 @@ export class RockItAlbumWithSongs extends RockItAlbumWithoutSongs {
         songs: RockItSongWithoutAlbum[];
         releaseDate: string;
         internalImageUrl: string | null;
+        externalImages: RockItExternalImage[];
     }) {
-        super({ publicId, name, artists, releaseDate, internalImageUrl });
+        super({
+            publicId,
+            name,
+            artists,
+            releaseDate,
+            internalImageUrl,
+            externalImages,
+        });
         this.songs = songs;
     }
 
@@ -48,6 +58,9 @@ export class RockItAlbumWithSongs extends RockItAlbumWithoutSongs {
             internalImageUrl: response.internalImageUrl,
             songs: response.songs.map((song) =>
                 RockItSongWithoutAlbum.fromResponse(song)
+            ),
+            externalImages: response.externalImages.map((externalImage) =>
+                RockItExternalImage.fromResponse(externalImage)
             ),
         });
     }

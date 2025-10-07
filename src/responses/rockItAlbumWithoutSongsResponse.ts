@@ -12,4 +12,7 @@ export const RockItAlbumWithoutSongsResponse = z.object({
     internalImageUrl: z.string().nullable(),
     releaseDate: z.string(),
 });
-export type RockItAlbumWithoutSongsResponse = z.infer<typeof RockItAlbumWithoutSongsResponse>;
+
+export type RockItAlbumWithoutSongsResponse = z.infer<
+    typeof RockItAlbumWithoutSongsResponse
+>;

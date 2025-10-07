@@ -1,54 +1,59 @@
 "use client";
 
+import { rockIt } from "@/lib/rockit/rockIt";
+import { RockItSongQueue } from "@/lib/rockit/rockItSongQueue";
 import { getTime } from "@/lib/utils/getTime";
 
 import { useStore } from "@nanostores/react";
 import { Pause, Play } from "lucide-react";
+import Image from "next/image";
 import React from "react";
 
-export function QueueSong({ song }: { song: QueueElement }) {
-    const $queueIndex = useStore(queueIndex);
+export function QueueSong({ song }: { song: RockItSongQueue }) {
+    const $queueIndex = useStore(rockIt.queueManager.queueIndexAtom);
 
-    const $playing = useStore(playing);
+    const $playing = useStore(rockIt.audioManager.playingAtom);
 
-    const handleClick = async () => {
-        if (song.index == queueIndex.get() && playing.get()) {
-            pause();
-            return;
-        }
-        if (song.index == queueIndex.get() && !playing.get()) {
-            play();
-            return;
-        }
+    // const handleClick = async () => {
+    //     if (song.index == queueIndex.get() && playing.get()) {
+    //         pause();
+    //         return;
+    //     }
+    //     if (song.index == queueIndex.get() && !playing.get()) {
+    //         play();
+    //         return;
+    //     }
 
-        const tempQueue = queue.get();
-        if (!tempQueue) return;
+    //     const tempQueue = queue.get();
+    //     if (!tempQueue) return;
 
-        const currentSongIndexInQueue = tempQueue.findIndex(
-            (_song) => _song.index == song.index
-        );
+    //     const currentSongIndexInQueue = tempQueue.findIndex(
+    //         (_song) => _song.index == song.index
+    //     );
 
-        queueIndex.set(tempQueue[currentSongIndexInQueue].index);
+    //     queueIndex.set(tempQueue[currentSongIndexInQueue].index);
 
-        const newSongId = tempQueue.find(
-            (song) => song.index == queueIndex.get()
-        )?.song.id;
-        if (!newSongId) {
-            return;
-        }
+    //     const newSongId = tempQueue.find(
+    //         (song) => song.index == queueIndex.get()
+    //     )?.song.id;
+    //     if (!newSongId) {
+    //         return;
+    //     }
 
-        await fetch(`/api/song/${newSongId}`)
-            .then((response) => response.json())
-            .then((data: SongDB) => {
-                playWhenReady.set(true);
-                currentSong.set(data);
-            });
-    };
+    //     await fetch(`/api/song/${newSongId}`)
+    //         .then((response) => response.json())
+    //         .then((data: SongDB) => {
+    //             playWhenReady.set(true);
+    //             currentSong.set(data);
+    //         });
+    // };
 
     return (
         <li
             // onClick={handleClick}
-            onClick={handleClick}
+            onClick={() => {
+                console.warn("QueueSong handleClick");
+            }}
             className={`group flex items-center gap-x-2 p-2 ${
                 song.index === $queueIndex
                     ? "bg-[rgba(50,50,50,0.75)]"
@@ -59,12 +64,10 @@ export function QueueSong({ song }: { song: QueueElement }) {
             <div className="relative">
                 {/* Imagen de portada */}
                 <Image
-                    src={getImageUrl({
-                        imageId: song.song.image,
-                        width: 48,
-                        height: 48,
-                        placeHolder: "/song-placeholder.png",
-                    })}
+                    src={
+                        song.song.internalImageUrl ??
+                        rockIt.SONG_PLACEHOLDER_IMAGE_URL
+                    }
                     alt={song.song.name}
                     className={`h-12 w-12 rounded object-cover ${
                         song.index === $queueIndex ? "brightness-50" : ""

@@ -15,6 +15,7 @@ import DownloadListButton from "../ListHeader/DownloadListButton";
 import DownloadAnimation from "./DownloadAnimation";
 import { RockItAlbumWithSongsResponse } from "@/responses/rockItAlbumWithSongsResponse";
 import { RockItAlbumWithSongs } from "@/lib/rockit/rockItAlbumWithSongs";
+import { useStore } from "@nanostores/react";
 
 export default function RenderAlbum({
     albumResponse,
@@ -23,6 +24,10 @@ export default function RenderAlbum({
 }) {
     const router = useRouter();
     const { langFile: lang } = useLanguage();
+
+    const $downloadingListsAtom = useStore(
+        rockIt.downloaderManager.downloadingListsAtom
+    );
 
     const album = RockItAlbumWithSongs.fromResponse(albumResponse);
 
@@ -46,7 +51,11 @@ export default function RenderAlbum({
                             (albumSong) => albumSong.publicId == song.publicId
                         )
                     ) {
-                        console.log(song.message, song.completed);
+                        console.log(
+                            song.publicId,
+                            song.message,
+                            song.completed
+                        );
                         if (song.message == "Error") {
                             completed += 100;
                         } else {
@@ -54,6 +63,7 @@ export default function RenderAlbum({
                         }
                     }
                 }
+                console.warn(completed, album.songs.length);
                 setProgress(Math.round(completed / album.songs.length));
             }
         );
@@ -87,10 +97,18 @@ export default function RenderAlbum({
                         src={album.internalImageUrl ?? "/song-placeholder.png"}
                         className="absolute h-full w-full object-fill"
                     />
-
-                    <div className="absolute top-10 right-10 bottom-10 left-10">
-                        <DownloadAnimation progress={progress} duration={2} />
-                    </div>
+                    {$downloadingListsAtom.find(
+                        (list) =>
+                            list.type == album.type &&
+                            list.publicId == list.publicId
+                    ) && (
+                        <div className="absolute top-10 right-10 bottom-10 left-10">
+                            <DownloadAnimation
+                                progress={progress}
+                                duration={2}
+                            />
+                        </div>
+                    )}
 
                     <div className="absolute right-3 bottom-3 flex h-16 w-auto flex-row gap-4 md:h-20">
                         {anySongDownloaded && (

@@ -17,7 +17,10 @@ export class DownloaderManager {
 
     private _downloadedListsAtom = createArrayAtom<string>([]);
     private _downloadedSongsAtom = createArrayAtom<string>([]);
-    private _downloadingListsAtom = createArrayAtom<string>([]);
+    private _downloadingListsAtom = createArrayAtom<{
+        type: DBListType;
+        publicId: string;
+    }>([]);
     private _downloadingSongsAtom = createArrayAtom<string>([]);
     private _downloadingSongsStatusAtom = createArrayAtom<SongStatus>([]);
     private _downloadInfoAtom = createArrayAtom<DownloadInfo>([]);
@@ -53,12 +56,22 @@ export class DownloaderManager {
         const responseJson = await response.json();
         const startDownload = StartDownloadResponse.parse(responseJson);
 
+        this._downloadingListsAtom.push({ type, publicId });
+
         const eventSource = new EventSource(
             `${rockIt.BACKEND_URL}/downloader/download-status?id=${startDownload.downloadId}`
         );
 
         eventSource.onerror = (ev: Event) => {
-            this.handleEventSourceError(eventSource, ev);
+            this.handleEventSourceError(eventSource, ev, () => {
+                const index = this._downloadingListsAtom
+                    .getReadonlyAtom()
+                    .findIndex(
+                        (item) => item.publicId == publicId && item.type == type
+                    );
+
+                this._downloadingListsAtom.splice(index, 1);
+            });
         };
 
         eventSource.onmessage = (ev: MessageEvent) => {
@@ -112,8 +125,14 @@ export class DownloaderManager {
 
     // #region: Handlers
 
-    private handleEventSourceError(eventSource: EventSource, ev: Event) {
+    private handleEventSourceError(
+        eventSource: EventSource,
+        ev: Event,
+        onEnd?: () => void
+    ) {
         eventSource.close();
+
+        if (onEnd) onEnd();
         console.log(`Error in ${eventSource.url} ${ev}`);
     }
 

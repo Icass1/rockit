@@ -1,13 +1,18 @@
+"use client";
+
 import { useEffect, useRef, useState } from "react";
 import pkg from "lodash";
 
 import { rockIt } from "@/lib/rockit/rockIt";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { usePathname, useRouter } from "next/navigation";
 const { debounce } = pkg;
 
 export default function SearchBarInput() {
     const [value, setValue] = useState("");
     const { langFile: lang } = useLanguage();
+    const pathname = usePathname();
+    const router = useRouter();
 
     const searchDebounce =
         useRef<pkg.DebouncedFunc<(query: string) => void>>(null);
@@ -29,6 +34,11 @@ export default function SearchBarInput() {
                 setValue(e.target.value);
                 if (searchDebounce.current)
                     searchDebounce.current(e.target.value);
+            }}
+            onClick={() => {
+                if (pathname != "/search") {
+                    router.push("/search");
+                }
             }}
             className="text-1xl relative top-1/2 z-10 mx-auto block h-10 w-full -translate-y-1/2 rounded-full bg-neutral-900 px-10 font-semibold shadow focus:outline-0 md:z-50"
             style={{

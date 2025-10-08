@@ -1,16 +1,37 @@
 import { RockItArtist } from "./rockItArtist";
-import { RockItSongWithoutAlbum } from "./rockItSongWithoutAlbum";
 import { RockItSongWithAlbumResponse } from "@/responses/rockItSongWithAlbumResponse";
 import { RockItAlbumWithoutSongs } from "./rockItAlbumWithoutSongs";
 import { createAtom } from "../store";
+import apiFetch from "@/lib/utils/apiFetch";
+import { RockItSongWithoutAlbum } from "./rockItSongWithoutAlbum";
 
-export class RockItSongWithAlbum extends RockItSongWithoutAlbum {
+type ConstructorArgs = {
+    publicId: string;
+    name: string;
+    artists: RockItArtist[];
+    discNumber: number;
+    downloaded: boolean;
+    duration: number;
+    album: RockItAlbumWithoutSongs;
+    internalImageUrl: string | null;
+    audioUrl: string | null;
+};
+
+export class RockItSongWithAlbum {
     static #instance: RockItSongWithAlbum[] = [];
 
     // #region: Read-only properties
 
-    public readonly atom = createAtom<RockItSongWithAlbum[]>([this]);
+    public readonly atom = createAtom<[RockItSongWithAlbum]>([this]);
 
+    public publicId: string;
+    public name: string;
+    public artists: RockItArtist[];
+    public downloaded: boolean;
+    public discNumber: number;
+    public duration: number;
+    public internalImageUrl: string | null;
+    public audioUrl: string | null;
     public readonly album: RockItAlbumWithoutSongs;
 
     // #endregion
@@ -27,29 +48,77 @@ export class RockItSongWithAlbum extends RockItSongWithoutAlbum {
         album,
         internalImageUrl,
         audioUrl,
-    }: {
-        publicId: string;
-        name: string;
-        artists: RockItArtist[];
-        discNumber: number;
-        downloaded: boolean;
-        duration: number;
-        album: RockItAlbumWithoutSongs;
-        internalImageUrl: string | null;
-        audioUrl: string | null;
-    }) {
-        super({
-            publicId,
-            name,
-            artists,
-            downloaded,
-            discNumber,
-            duration,
-            internalImageUrl,
-            audioUrl,
-        });
-
+    }: ConstructorArgs) {
         this.album = album;
+        this.publicId = publicId;
+        this.name = name;
+        this.artists = artists;
+        this.downloaded = downloaded;
+        this.discNumber = discNumber;
+        this.duration = duration;
+        this.internalImageUrl = internalImageUrl;
+        this.audioUrl = audioUrl;
+
+        for (const instance of RockItSongWithAlbum.#instance) {
+            if (instance.publicId == publicId) {
+                return instance;
+            }
+        }
+
+        // console.log("RockItSongWithAlbum.#instance.push(this)", this);
+
+        RockItSongWithAlbum.#instance.push(this);
+    }
+
+    // #endregion
+
+    // #region: Methods
+
+    async updateAsync() {
+        // console.log(
+        //     "(RockItSongWithAlbum.updateAsync)",
+        //     this.publicId,
+        //     this.name,
+        //     this.downloaded
+        // );
+        const response = await apiFetch(`/spotify/song/${this.publicId}`);
+        if (!response) {
+            console.error("Response is undefined.");
+            return;
+        }
+        const responseParsed = RockItSongWithAlbumResponse.parse(
+            await response.json()
+        );
+
+        // console.log(
+        //     "(RockItSongWithAlbum.updateAsync)",
+        //     responseParsed,
+        //     responseParsed.downloaded
+        // );
+
+        this.downloaded = responseParsed.downloaded;
+        this.audioUrl = responseParsed.audioUrl;
+        this.internalImageUrl = responseParsed.internalImageUrl;
+
+        this.duration = 999;
+
+        // console.log("(RockItSongWithAlbum.updateAsync)", this);
+        // console.log("(RockItSongWithAlbum.updateAsync)", this.atom);
+
+        this.atom.set([this]);
+    }
+
+    toRockItSongWithoutAlbum() {
+        return new RockItSongWithoutAlbum({
+            publicId: this.publicId,
+            name: this.publicId,
+            artists: this.artists,
+            downloaded: this.downloaded,
+            discNumber: this.discNumber,
+            duration: this.duration,
+            internalImageUrl: this.internalImageUrl,
+            audioUrl: this.audioUrl,
+        });
     }
 
     // #endregion
@@ -68,8 +137,7 @@ export class RockItSongWithAlbum extends RockItSongWithoutAlbum {
                 return instance;
             }
         }
-
-        const newInstance = new RockItSongWithAlbum({
+        return new RockItSongWithAlbum({
             publicId: response.publicId,
             name: response.name,
             artists: response.artists.map((artist) =>
@@ -82,13 +150,13 @@ export class RockItSongWithAlbum extends RockItSongWithoutAlbum {
             internalImageUrl: response.internalImageUrl,
             audioUrl: response.audioUrl,
         });
-
-        RockItSongWithAlbum.#instance.push(newInstance);
-
-        return newInstance;
     }
 
     static getExistingInstanceFromPublicId(publicId: string) {
+        // console.log(
+        //     "RockItSongWithAlbum instances",
+        //     RockItSongWithAlbum.#instance
+        // );
         for (const instance of RockItSongWithAlbum.#instance) {
             if (instance.publicId == publicId) {
                 return instance;

@@ -135,7 +135,12 @@ export default function SongContextMenu({
                         if (onPlay) {
                             onPlay();
                         } else {
-                            songHandleClick(song, $currentListSongs);
+                            songHandleClick(
+                                song.toRockItSongWithoutAlbum(),
+                                $currentListSongs.map((song) =>
+                                    song.toRockItSongWithoutAlbum()
+                                )
+                            );
                         }
                     }}
                 >

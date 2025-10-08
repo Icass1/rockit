@@ -172,8 +172,10 @@ export default function Home() {
                         {songsByTimePlayed?.map((song) => (
                             <RecentlyPlayedSong
                                 key={song.publicId}
-                                song={song}
-                                songs={songsByTimePlayed}
+                                song={song.toRockItSongWithoutAlbum()}
+                                songs={songsByTimePlayed.map((song) =>
+                                    song.toRockItSongWithoutAlbum()
+                                )}
                             />
                         ))}
                     </div>
@@ -188,8 +190,10 @@ export default function Home() {
                         {hiddenGems?.map((song) => (
                             <RecentlyPlayedSong
                                 key={song.publicId}
-                                song={song}
-                                songs={hiddenGems}
+                                song={song.toRockItSongWithoutAlbum()}
+                                songs={hiddenGems.map((song) =>
+                                    song.toRockItSongWithoutAlbum()
+                                )}
                             />
                         ))}
                     </div>
@@ -204,8 +208,10 @@ export default function Home() {
                         {communityTop?.map((song) => (
                             <RecentlyPlayedSong
                                 key={song.publicId}
-                                song={song}
-                                songs={communityTop}
+                                song={song.toRockItSongWithoutAlbum()}
+                                songs={communityTop.map((song) =>
+                                    song.toRockItSongWithoutAlbum()
+                                )}
                             />
                         ))}
                     </div>
@@ -237,8 +243,10 @@ export default function Home() {
                         {monthlyTop?.map((song) => (
                             <RecentlyPlayedSong
                                 key={song.publicId}
-                                song={song}
-                                songs={monthlyTop}
+                                song={song.toRockItSongWithoutAlbum()}
+                                songs={monthlyTop.map((song) =>
+                                    song.toRockItSongWithoutAlbum()
+                                )}
                             />
                         ))}
                     </div>

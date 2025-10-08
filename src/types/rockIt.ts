@@ -9,6 +9,14 @@ export type QueueListType =
     | "library"
     | "auto-list";
 
+export const QueueListTypes: QueueListType[] = [
+    "album",
+    "playlist",
+    "carousel",
+    "library",
+    "auto-list",
+];
+
 // #region: RockItQueueListSong
 
 export const RockItQueueListSong = z.object({

@@ -1,8 +1,8 @@
 import Link from "next/link";
-import SearchBar from "@/components/Search/SearchBar";
 import { headers } from "next/headers";
 import HeaderRight from "./HeaderRight";
 import Image from "next/image";
+import SearchBarInput from "../Search/SearchBarInput";
 
 export default async function Header() {
     const headerList = await headers();
@@ -32,7 +32,11 @@ export default async function Header() {
                 />
             </Link>
 
-            {pathname?.startsWith("/radio") ? <label></label> : <SearchBar />}
+            {pathname?.startsWith("/radio") ? (
+                <label></label>
+            ) : (
+                <SearchBarInput />
+            )}
 
             <HeaderRight />
         </header>

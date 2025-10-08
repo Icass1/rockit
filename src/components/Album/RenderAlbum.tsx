@@ -66,10 +66,7 @@ export default function RenderAlbum({
 
     if (!lang) return false;
 
-    const allSongsInDatabase = album.songs.every((song) => song.downloaded)
-        ? true
-        : false;
-
+    const allSongsInDatabase = album.songs.every((song) => song.downloaded);
     const anySongDownloaded = album.songs.some((song) => song.downloaded);
 
     const discs = groupBy(album.songs, (song) => song.discNumber);

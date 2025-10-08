@@ -7,7 +7,7 @@ export class RockItSongQueue {
     // #region: Read-only properties
 
     public readonly song: RockItSongWithAlbum;
-    public readonly index: number;
+    public readonly queueSongId: number;
     public readonly list: List;
 
     // #endregion
@@ -16,15 +16,15 @@ export class RockItSongQueue {
 
     constructor({
         song,
-        index,
+        queueSongId,
         list,
     }: {
         song: RockItSongWithAlbum;
-        index: number;
+        queueSongId: number;
         list: List;
     }) {
         this.song = song;
-        this.index = index;
+        this.queueSongId = queueSongId;
         this.list = list;
     }
 

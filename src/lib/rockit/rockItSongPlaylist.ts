@@ -89,6 +89,11 @@ export class RockItSongPlaylist extends RockItSongWithAlbum {
     }
 
     static getExistingInstanceFromPublicId(publicId: string) {
+        console.log(
+            "RockItSongPlaylist instances",
+            RockItSongPlaylist.#instance
+        );
+
         for (const instance of RockItSongPlaylist.#instance) {
             if (instance.publicId == publicId) {
                 return instance;

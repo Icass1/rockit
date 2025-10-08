@@ -1,4 +1,3 @@
-import SearchBar from "@/components/Search/SearchBar";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { RockItAlbumWithoutSongs } from "@/lib/rockit/rockItAlbumWithoutSongs";
@@ -7,6 +6,7 @@ import { getBestImage } from "@/lib/utils/getBestImage";
 import { useStore } from "@nanostores/react";
 import Image from "next/image";
 import Link from "next/link";
+import SearchBarInput from "./SearchBarInput";
 
 function AlbumsSection({
     spotifyAlbums,
@@ -203,7 +203,7 @@ export default function Search() {
     return (
         <>
             <section className="mt-20 block h-28 px-5 md:hidden">
-                <SearchBar />
+                <SearchBarInput />
             </section>
             <Results />
         </>

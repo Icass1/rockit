@@ -44,7 +44,7 @@ export default function MobilePlayerUIQueue({
         if (!scrollRef.current || !open) return;
 
         const currentSongIndexInQueue = rockIt.queueManager.queue?.findIndex(
-            (song) => song.index == rockIt.queueManager.queueIndex
+            (song) => song.queueSongId == rockIt.queueManager.currentQueueSongId
         );
 
         if (
@@ -238,7 +238,7 @@ export default function MobilePlayerUIQueue({
 
                             return (
                                 <div
-                                    key={`${song.song.publicId}-${song.index}`}
+                                    key={`${song.song.publicId}-${song.queueSongId}`}
                                     className={`absolute w-full ${isDragging ? "z-10" : "transition-[top] duration-500"}`}
                                     style={{
                                         top: `${top + 20}px`,
@@ -251,7 +251,7 @@ export default function MobilePlayerUIQueue({
                                             <div className="grid grid-cols-[1fr_45px] items-center">
                                                 <div className="w-full max-w-full min-w-0">
                                                     <QueueSong
-                                                        key={song.index}
+                                                        key={song.queueSongId}
                                                         song={song}
                                                     />
                                                 </div>

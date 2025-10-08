@@ -23,7 +23,9 @@ export default function PlaylistSong({ song }: { song: RockItSongPlaylist }) {
     const [hovered, setHovered] = useState(false);
 
     const $queue = useStore(rockIt.queueManager.queueAtom);
-    const $queueIndex = useStore(rockIt.queueManager.queueIndexAtom);
+    const $currentQueueSongId = useStore(
+        rockIt.queueManager.currentQueueSongIdAtom
+    );
     const $currentList = useStore(rockIt.queueManager.currentListAtom);
     const $networkStatus = useStore(networkStatus);
     const $songsInIndexedDB = useStore(
@@ -45,16 +47,21 @@ export default function PlaylistSong({ song }: { song: RockItSongPlaylist }) {
                         !song.downloaded) &&
                         "pointer-events-none opacity-40") +
                     // If the song is playing and is from this playlist, change color, if the song has been added to the queue clicking the album, it won't show the color
-                    ($queue.find((song) => song.index == $queueIndex)?.list
-                        ?.publicId == $currentList?.publicId &&
-                    $queue.find((song) => song.index == $queueIndex)?.list
-                        ?.type == $currentList?.type &&
-                    $queue.find((song) => song.index == $queueIndex)?.song
-                        .publicId == song.publicId
+                    ($queue.find(
+                        (song) => song.queueSongId == $currentQueueSongId
+                    )?.list?.publicId == $currentList?.publicId &&
+                    $queue.find(
+                        (song) => song.queueSongId == $currentQueueSongId
+                    )?.list?.type == $currentList?.type &&
+                    $queue.find(
+                        (song) => song.queueSongId == $currentQueueSongId
+                    )?.song.publicId == song.publicId
                         ? " text-[#ec5588]"
                         : "")
                 }
-                onClick={() => songHandleClick(song, [])}
+                onClick={() =>
+                    songHandleClick(song.toRockItSongWithoutAlbum(), [])
+                }
                 onMouseEnter={() => setHovered(true)}
                 onMouseLeave={() => setHovered(false)}
             >

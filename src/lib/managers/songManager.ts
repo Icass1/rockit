@@ -1,5 +1,5 @@
 import { createArrayAtom } from "@/lib/store";
-import apiFetch from "../utils/apiFetch";
+import apiFetch from "@/lib/utils/apiFetch";
 import { RockItSongWithAlbumResponse } from "@/responses/rockItSongWithAlbumResponse";
 import { RockItSongWithAlbum } from "../rockit/rockItSongWithAlbum";
 

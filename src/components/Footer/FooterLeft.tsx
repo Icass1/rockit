@@ -47,8 +47,6 @@ function FooterLeftForSong({
         return false;
     }
 
-    console.log(currentSong);
-
     return (
         <div className="grid w-full max-w-full min-w-0 grid-cols-[min-content_1fr_min-content] items-center gap-x-4 pr-2 md:w-1/3">
             {/* Imagen al inicio */}

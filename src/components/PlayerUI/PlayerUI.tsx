@@ -61,7 +61,9 @@ export default function PlayerUI() {
 
     const scrollContainerTopRef = useRef(0);
 
-    const $queueIndex = useStore(rockIt.queueManager.queueIndexAtom);
+    const $currentQueueSongId = useStore(
+        rockIt.queueManager.currentQueueSongIdAtom
+    );
     const $playing = useStore(rockIt.audioManager.playingAtom);
 
     const mouseDown = (
@@ -187,7 +189,8 @@ export default function PlayerUI() {
         if (!$isPlayerUIVisible) return;
 
         const index = rockIt.queueManager.queue?.findIndex(
-            (_song) => _song.index == rockIt.queueManager.queueIndex
+            (_song) =>
+                _song.queueSongId == rockIt.queueManager.currentQueueSongId
         );
 
         if (!index) return;
@@ -397,7 +400,7 @@ export default function PlayerUI() {
                                     }
                                     return (
                                         <div
-                                            key={`${queueSong.song.publicId}-${queueSong.index}`}
+                                            key={`${queueSong.song.publicId}-${queueSong.queueSongId}`}
                                             className={`absolute w-full ${isDragging ? "z-10" : "transition-[top] duration-200"}`}
                                             style={{
                                                 top: `${(typeof top === "number" ? top : 0) + 20}px`,
@@ -411,7 +414,7 @@ export default function PlayerUI() {
                                                         <div className="w-full max-w-full min-w-0">
                                                             <QueueSong
                                                                 key={
-                                                                    queueSong.index
+                                                                    queueSong.queueSongId
                                                                 }
                                                                 song={queueSong}
                                                             />
@@ -456,8 +459,8 @@ export default function PlayerUI() {
                                                             )
                                                         }
                                                         disable={
-                                                            $queueIndex ==
-                                                            queueSong.index
+                                                            $currentQueueSongId ==
+                                                            queueSong.queueSongId
                                                         }
                                                     >
                                                         <ListX className="h-5 w-5" />
@@ -536,7 +539,7 @@ export default function PlayerUI() {
                                                 internalImageUrl: null,
                                                 audioUrl: null,
                                             }),
-                                            index: i,
+                                            queueSongId: i,
                                             list: {
                                                 type: "auto-list",
                                                 publicId: "auto-list",
@@ -595,8 +598,8 @@ export default function PlayerUI() {
                                                                 )
                                                             }
                                                             disable={
-                                                                $queueIndex ===
-                                                                autoSong.index
+                                                                $currentQueueSongId ===
+                                                                autoSong.queueSongId
                                                             }
                                                         >
                                                             <ListX className="h-5 w-5" />

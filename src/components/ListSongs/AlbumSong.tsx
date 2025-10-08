@@ -17,18 +17,11 @@ export default function AlbumSong({
     song: RockItSongWithAlbum;
     index: number;
 }) {
-    console.log(
-        "(AlbumSong) update song",
-        song.name,
-        song.publicId,
-        song.downloaded,
-        song,
-        song.atom
-    );
-
     const [hovered, setHovered] = useState(false);
     const $queue = useStore(rockIt.queueManager.queueAtom);
-    const $queueIndex = useStore(rockIt.queueManager.queueIndexAtom);
+    const $currentQueueSongId = useStore(
+        rockIt.queueManager.currentQueueSongIdAtom
+    );
     const $currentList = useStore(rockIt.queueManager.currentListAtom);
     const $songsInIndexedDB = useStore(
         rockIt.indexedDBManager.songsInIndexedDBAtom
@@ -36,13 +29,6 @@ export default function AlbumSong({
     const $networkStatus = useStore(networkStatus);
 
     const [$songAtom] = useStore(song.atom);
-
-    console.log(
-        "(AlbumSong) update $songAtom",
-        $songAtom.name,
-        $songAtom.publicId,
-        $songAtom.downloaded
-    );
 
     const [songUnavaliable, setSongUnavaliable] = useState(true);
     const [songPlaying, setSongPlaying] = useState(false);
@@ -62,14 +48,14 @@ export default function AlbumSong({
 
     useEffect(() => {
         setSongPlaying(
-            $queue.find((song) => song.index == $queueIndex)?.list?.publicId ==
-                $currentList?.publicId &&
-                $queue.find((song) => song.index == $queueIndex)?.list?.type ==
-                    $currentList?.type &&
-                $queue.find((song) => song.index == $queueIndex)?.song
-                    .publicId == $songAtom.publicId
+            $queue.find((song) => song.queueSongId == $currentQueueSongId)?.list
+                ?.publicId == $currentList?.publicId &&
+                $queue.find((song) => song.queueSongId == $currentQueueSongId)
+                    ?.list?.type == $currentList?.type &&
+                $queue.find((song) => song.queueSongId == $currentQueueSongId)
+                    ?.song.publicId == $songAtom.publicId
         );
-    }, [$songAtom.publicId, $currentList, $queue, $queueIndex]);
+    }, [$songAtom.publicId, $currentList, $queue, $currentQueueSongId]);
 
     if (!$queue) return <div></div>;
 

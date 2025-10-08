@@ -10,7 +10,9 @@ import Image from "next/image";
 import React from "react";
 
 export function QueueSong({ song }: { song: RockItSongQueue }) {
-    const $queueIndex = useStore(rockIt.queueManager.queueIndexAtom);
+    const $currentQueueSongId = useStore(
+        rockIt.queueManager.currentQueueSongIdAtom
+    );
 
     const $playing = useStore(rockIt.audioManager.playingAtom);
 
@@ -55,14 +57,12 @@ export function QueueSong({ song }: { song: RockItSongQueue }) {
                 console.warn("QueueSong handleClick");
             }}
             className={`group flex items-center gap-x-2 p-2 ${
-                song.index === $queueIndex
+                song.queueSongId === $currentQueueSongId
                     ? "bg-[rgba(50,50,50,0.75)]"
                     : "md:hover:bg-[rgba(75,75,75,0.75)]"
             }`}
         >
-            {/* Cover */}
             <div className="relative">
-                {/* Imagen de portada */}
                 <Image
                     src={
                         song.song.internalImageUrl ??
@@ -70,26 +70,26 @@ export function QueueSong({ song }: { song: RockItSongQueue }) {
                     }
                     alt={song.song.name}
                     className={`h-12 w-12 rounded object-cover ${
-                        song.index === $queueIndex ? "brightness-50" : ""
+                        song.queueSongId === $currentQueueSongId
+                            ? "brightness-50"
+                            : ""
                     }`}
                 />
-                {/* Ícono Play */}
-                {song.index === $queueIndex && $playing && (
+                {song.queueSongId === $currentQueueSongId && $playing && (
                     <div className="absolute inset-0 flex items-center justify-center">
                         <Pause className="h-5 w-5 fill-current text-white" />
                     </div>
                 )}
-                {song.index === $queueIndex && !$playing && (
+                {song.queueSongId === $currentQueueSongId && !$playing && (
                     <div className="absolute inset-0 flex items-center justify-center">
                         <Play className="h-5 w-5 fill-current text-white" />
                     </div>
                 )}
             </div>
-            {/* Song Info */}
             <div className="max-w-full min-w-0 flex-1">
                 <p className="truncate text-base font-semibold text-white">
                     <label className="text-xs text-yellow-400">
-                        {song.index} -{" "}
+                        {song.queueSongId} -{" "}
                     </label>
                     {song.song.name}
                 </p>

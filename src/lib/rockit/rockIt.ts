@@ -57,3 +57,4 @@ export class RockIt {
 }
 
 export const rockIt = new RockIt();
+rockIt.queueManager.init();

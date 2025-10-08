@@ -41,7 +41,7 @@ export class DownloaderManager {
     async downloadSpotifyListToDBAsync(type: DBListType, publicId: string) {
         const url = `https://open.spotify.com/${type}/${publicId}`;
 
-        console.log("(downloadSpotifyListToDBAsync)", url);
+        // console.log("(downloadSpotifyListToDBAsync)", url);
 
         const response = await apiFetch(
             `/downloader/start-download?user=1&url=${url}`
@@ -89,7 +89,7 @@ export class DownloaderManager {
     async downloadSpotifySongToDBAsync(publicId: string) {
         const url = `https://open.spotify.com/track/${publicId}`;
 
-        console.log("(downloadSpotifySongToDBAsync)", url);
+        // console.log("(downloadSpotifySongToDBAsync)", url);
 
         const response = await apiFetch(
             `/downloader/start-download?user=1&url=${url}`
@@ -125,7 +125,9 @@ export class DownloaderManager {
     }
 
     private async handleSpotifySongDownloaded(publicId: string) {
-        console.log("(handleSpotifySongDownloaded)", { publicId });
+        // console.log("(handleSpotifySongDownloaded)", { publicId });
+
+
         await RockItSongWithAlbum.getExistingInstanceFromPublicId(
             publicId
         )?.updateAsync();
@@ -158,7 +160,7 @@ export class DownloaderManager {
     ) {
         try {
             const data = DownloadStatusMessage.parse(JSON.parse(ev.data));
-            console.log(data);
+            // console.log(data);
             if (data.completed == 100 && data.message != "Skipped") {
                 console.log("Song downloaded", data.id);
                 this.handleSpotifySongDownloaded(data.id);

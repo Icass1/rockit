@@ -3,6 +3,8 @@ import { RockItSongPlaylist } from "./rockItSongPlaylist";
 import { RockItPlaylistResponse } from "@/responses/rockItPlaylistResponse";
 
 export class RockItPlaylist {
+    static #instance: RockItPlaylist[] = [];
+
     // #region: Read-only properties
 
     public readonly songs: RockItSongPlaylist[];
@@ -38,6 +40,13 @@ export class RockItPlaylist {
         this.internalImageUrl = internalImageUrl;
         this.owner = owner;
         this.externalImages = externalImages;
+
+        for (const instance of RockItPlaylist.#instance) {
+            if (instance.publicId == publicId) {
+                return instance;
+            }
+        }
+        RockItPlaylist.#instance.push(this);
     }
 
     // #endregion
@@ -45,6 +54,11 @@ export class RockItPlaylist {
     // #region: Factories
 
     static fromResponse(response: RockItPlaylistResponse): RockItPlaylist {
+        for (const instance of RockItPlaylist.#instance) {
+            if (instance.publicId == response.publicId) {
+                return instance;
+            }
+        }
         return new RockItPlaylist({
             publicId: response.publicId,
             name: response.name,

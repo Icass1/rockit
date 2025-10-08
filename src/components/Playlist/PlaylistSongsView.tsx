@@ -21,6 +21,7 @@ export default function PlaylistSongsView({
     const playlist = RockItPlaylist.fromResponse(playlistResponse);
 
     useEffect(() => {
+        console.log("useEffect 3");
         rockIt.queueManager.setCurrentList({
             publicId: playlist.publicId,
             type: "playlist",
@@ -51,11 +52,13 @@ export default function PlaylistSongsView({
     };
 
     useEffect(() => {
+        console.log("useEffect 2");
         // console.warn("songsToRender", songsToRender);
         rockIt.currentListManager.setCurrentListSongs(songsToRender);
     }, [songsToRender]);
 
     useEffect(() => {
+        console.log("useEffect 1", filter, playlist.songs);
         switch (filter.column) {
             case "name":
                 setSongsToRender(
@@ -193,7 +196,10 @@ export default function PlaylistSongsView({
             }}
             className="relative h-full max-h-full min-h-0 overflow-auto md:w-full md:pr-6"
         >
-            <PlaylistHeader playlistResponse={playlistResponse} className="" />
+            <PlaylistHeader
+                playlistResponse={playlistResponse}
+                className="flex md:hidden"
+            />
             <div
                 className="hidden flex-row items-center gap-4 rounded px-2 text-sm text-stone-400 md:flex"
                 style={{ marginTop: `${marginTop}px` }}

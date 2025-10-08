@@ -133,6 +133,10 @@ class Spotify:
             headers = self.get_auth_header()
             result = requests.get(query_url, headers=headers)
 
+        if result.status_code != 200:
+            self.logger.error(
+                f"Error in api_call. URL: {result.url}, Status Code: {result.status_code}, Text: {result.text}")
+            return
         try:
             return json.loads(result.content)
         except:
@@ -149,15 +153,15 @@ class Spotify:
         except:
             self.logger.warning(
                 f"Unable to open .spotify_cache/{data_name}s.json")
-            data = {}
+            data = []
 
         missing_data: List[str] = []
         result: List[Dict] = []
 
         for public_id in public_ids:
-            for album in data:
-                if album["id"] == public_id:
-                    result.append(album)
+            for data_item in data:
+                if data_item["id"] == public_id:
+                    result.append(data_item)
                     break
             else:
                 missing_data.append(public_id)
@@ -172,20 +176,31 @@ class Spotify:
             max_data_per_call = 50
         elif data_name == "album":
             max_data_per_call = 20
+        elif data_name == "playlist":
+            max_data_per_call = 1
         else:
             self.logger.error(f"Unkown data type '{data_name}'.")
             return []
 
         for i in range(math.ceil(len(missing_data)/max_data_per_call)):
-            response = self.api_call(
-                path=f"{data_name}s", params={"ids": ",".join(missing_data[i*max_data_per_call:(i + 1)*max_data_per_call])})
+
+            if max_data_per_call == 1:
+                response = self.api_call(
+                    path=f"{data_name}s/{missing_data[0]}")
+            else:
+                response = self.api_call(
+                    path=f"{data_name}s", params={"ids": ",".join(missing_data[i*max_data_per_call:(i + 1)*max_data_per_call])})
 
             if not response:
                 self.logger.error("Response is None")
                 continue
 
-            result.extend(response[f"{data_name}s"])
-            data.extend(response[f"{data_name}s"])
+            if max_data_per_call == 1:
+                result.append(response)
+                data.append(response)
+            else:
+                result.extend(response[f"{data_name}s"])
+                data.extend(response[f"{data_name}s"])
 
             self.logger.debug(f"{data_name}s cache length: {len(data)}.")
 
@@ -815,6 +830,77 @@ class Spotify:
         result: List[PlaylistRow] = []
 
         self.logger.error("Not implemented error.")
+
+        spotify_playlists = self.get_playlists_from_spotify(
+            public_ids=public_ids)
+
+        with self.rockit_db.session_scope() as s:
+
+            lists_in_db: List[ListRow] = s.query(ListRow).\
+                where(ListRow.public_id.in_([spotify_playlist.id for spotify_playlist in spotify_playlists])).\
+                all()
+
+            internal_images_in_db: Sequence[InternalImageRow] = s.query(InternalImageRow).where(
+                InternalImageRow.url.in_([spotify_playlist.images[0].url for spotify_playlist in spotify_playlists if spotify_playlist.images and spotify_playlist.images[0].url])).all()
+
+            for spotify_playlist in spotify_playlists:
+
+                if not spotify_playlist.id or not spotify_playlist.name or not spotify_playlist.owner or not spotify_playlist.owner.display_name or not spotify_playlist.images or not spotify_playlist.images[0].url:
+                    self.logger.error(
+                        msg=f"Playlist is missing properties. {spotify_playlist=}")
+                    continue
+
+                playlist_row = s.query(PlaylistRow).where(
+                    PlaylistRow.public_id == spotify_playlist.id).first()
+
+                if playlist_row:
+                    result.append(playlist_row)
+                else:
+
+                    playlist_id: None | int = None
+                    for list_in_db in lists_in_db:
+                        if list_in_db.public_id == spotify_playlist.id:
+                            playlist_id = list_in_db.id
+                            break
+
+                    else:
+                        list_to_add = ListRow(
+                            type="playlist",
+                            public_id=spotify_playlist.id
+                        )
+                        list_to_add = s.merge(list_to_add)
+                        s.flush()
+                        playlist_id = list_to_add.id
+
+                    # Add album internal image.
+                    internal_image_id: int | None = None
+                    for internal_image_in_db in internal_images_in_db:
+                        if spotify_playlist.images[0].url == internal_image_in_db.url:
+                            internal_image_id = internal_image_in_db.id
+
+                    if not internal_image_id:
+                        internal_image_id = self.download_image(
+                            image_url=spotify_playlist.images[0].url,
+                            image_path_dir=os.path.join(
+                                "playlist", sanitize_folder_name(
+                                    name=spotify_playlist.owner.display_name),
+                                sanitize_folder_name(
+                                    name=spotify_playlist.name)
+                            )
+                        )
+
+                    playlist_to_add = PlaylistRow(
+                        id=playlist_id,
+                        public_id=spotify_playlist.id,
+                        internal_image_id=2,
+                        name=spotify_playlist.name,
+                        owner=spotify_playlist.owner.display_name
+                    )
+
+                    playlist_to_add = s.merge(playlist_to_add)
+                    s.commit()
+
+                    result.append(playlist_to_add)
 
         return result
 

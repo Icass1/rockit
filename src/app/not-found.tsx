@@ -1,7 +1,3 @@
-// src/app/not-found.tsx  (Con App Router)
-
-"use client";
-
 import Image from "next/image";
 import Link from "next/link";
 

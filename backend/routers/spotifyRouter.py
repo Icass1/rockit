@@ -4,6 +4,7 @@ from fastapi import APIRouter
 
 from backend.responses.general.albumWithSongs import RockItAlbumWithSongsResponse
 
+from backend.responses.general.playlist import RockItPlaylistResponse
 from backend.responses.general.songWithAlbum import RockItSongWithAlbumResponse
 from backend.utils.fastAPIRoute import fast_api_route
 from backend.utils.logger import getLogger
@@ -25,3 +26,9 @@ def get_spotify_album(album_public_id: str) -> RockItAlbumWithSongsResponse:
 def get_spotify_song(song_public_id: str) -> RockItSongWithAlbumResponse:
     """TODO"""
     return RockItSongWithAlbumResponse.from_row(song=downloader.spotify.get_song(public_id=song_public_id))
+
+
+@fast_api_route(app=router, path="/playlist/{playlist_public_id}")
+def get_spotify_playlist(playlist_public_id: str) -> RockItPlaylistResponse:
+    """TODO"""
+    return RockItPlaylistResponse.from_row(playlist=downloader.spotify.get_playlist(public_id=playlist_public_id))

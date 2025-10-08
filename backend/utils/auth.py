@@ -19,7 +19,23 @@ ACCESS_TOKEN_EXPIRE_MINUTES = -1
 logger = getLogger(__file__)
 
 
-def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+def get_current_user_from_token(token) -> UserRow:
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[ALGORITHM])
+        user_id = payload.get("user_id")
+        if user_id is None:
+            raise HTTPException(status_code=401, detail="Invalid token")
+    except JWTError:
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=401, detail="Invalid token")
+    with rockit_db.session_scope() as s:
+        user = get_user(s, user_id)
+        if not user:
+            raise HTTPException(status_code=401, detail="User not found")
+        return user
+
+
+def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> UserRow:
     token = credentials.credentials
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=[ALGORITHM])
@@ -36,7 +52,7 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
         return user
 
 
-def create_access_token(data: dict, expires_minutes: int = ACCESS_TOKEN_EXPIRE_MINUTES):
+def create_access_token(data: dict, expires_minutes: int = ACCESS_TOKEN_EXPIRE_MINUTES) -> str:
     to_encode = data.copy()
     if expires_minutes != -1:
         expire = datetime.now(UTC) + timedelta(minutes=expires_minutes)

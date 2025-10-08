@@ -147,6 +147,8 @@ class Spotify:
             with open(f".spotify_cache/{data_name}s.json", "r") as f:
                 data = json.load(f)
         except:
+            self.logger.warning(
+                f"Unable to open .spotify_cache/{data_name}s.json")
             data = {}
 
         missing_data: List[str] = []
@@ -160,8 +162,8 @@ class Spotify:
             else:
                 missing_data.append(public_id)
 
-        self.logger.info(f"{len(result)} {data_name}s found in cache.")
-        self.logger.info(f"Missing {data_name}s: {len(missing_data)}")
+        self.logger.debug(f"{len(result)} {data_name}s found in cache.")
+        self.logger.debug(f"Missing {data_name}s: {len(missing_data)}")
 
         max_data_per_call: int | None = None
         if data_name == "track":
@@ -185,7 +187,7 @@ class Spotify:
             result.extend(response[f"{data_name}s"])
             data.extend(response[f"{data_name}s"])
 
-            self.logger.info(f"{data_name}s cache length: {len(data)}.")
+            self.logger.debug(f"{data_name}s cache length: {len(data)}.")
 
             with open(f".spotify_cache/{data_name}s.json", "w") as f:
                 json.dump(data, f)

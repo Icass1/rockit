@@ -164,12 +164,12 @@ while len(list_dir) > 10:
     os.remove(os.path.join(LOGS_PATH, list_dir[0]))
     list_dir.pop(0)
 
-current_time = datetime.now().strftime('%Y-%m-%d_%H-%M')
+current_time = datetime.now().strftime('%Y-%m-%d')
 log_file = os.path.join(LOGS_PATH, f"log_{current_time}.log")
 
-if os.path.exists(log_file):
-    print("Removing previous log")
-    os.remove(log_file)
+# if os.path.exists(log_file):
+#     print("Removing previous log")
+#     os.remove(log_file)
 
 
 # Apply the custom handler to all new threads

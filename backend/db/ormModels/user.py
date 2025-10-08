@@ -31,8 +31,9 @@ class UserRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     provider_account_id: MappedColumn[str | None] = mapped_column(
         String, nullable=True)
     current_station: Mapped[str | None] = mapped_column(String, nullable=True)
-    current_time: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    queue_index: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    current_time: Mapped[float | None] = mapped_column(
+        DOUBLE_PRECISION, nullable=True)
+    queue_song_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     random_queue: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False)
     repeat_song: Mapped[str] = mapped_column(Enum(

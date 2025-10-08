@@ -63,7 +63,6 @@ class SpotifyDownloader:
         self.download_public_id = download_public_id
 
         self.rockit_db: RockitDB = downloader.rockit_db
-        self.message_handler = MessageHandler()
 
         self.queue_elements: List[QueueElement] = []
 
@@ -83,6 +82,8 @@ class SpotifyDownloader:
             self.download_id = download_to_add.id
 
         self.rockit_db.execute_with_session(_func)
+
+        self.message_handler = MessageHandler(self.download_id, self.rockit_db)
 
         asyncio.create_task(self.wait_for_download(
         ), name=f"wait_for_download {url=} {user_id=} {download_public_id=}")

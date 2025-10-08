@@ -3,6 +3,9 @@
 import asyncio
 from logging import Logger
 from typing import Any, List
+from backend.db.db import RockitDB
+from backend.db.ormModels.downloadStatus import DownloadStatusRow
+from backend.db.ormModels.song import SongRow
 from backend.utils.logger import getLogger
 
 
@@ -35,12 +38,14 @@ class MessageHandlderReader:
 
 
 class MessageHandler:
-    def __init__(self) -> None:
+    def __init__(self, download_id: int, rockit_db: RockitDB) -> None:
         self._messages: List[Any] = []
         self.logger: Logger = getLogger(
             name=__name__, class_name="MessageHandler")
 
         self._end = False
+        self._download_id = download_id
+        self._rockit_db = rockit_db
 
     def get_last_messge(self):
         return self._messages[-1]
@@ -53,7 +58,28 @@ class MessageHandler:
 
         if message["completed"] != 100 or message["message"] == "Skipped" or force:
             self.logger.debug(message)
-        self._messages.append(message)
+            self._messages.append(message)
+            try:
+                with self._rockit_db.session_scope() as s:
+
+                    song_row = s.query(SongRow).where(
+                        SongRow.public_id == message["id"]).first()
+
+                    if not song_row:
+                        self.logger.error(
+                            f"Error adding download status to db. Song id not found in DB. ({message=})")
+                    else:
+                        download_status_to_add = DownloadStatusRow(
+                            download_id=self._download_id,
+                            song_id=song_row.id,
+                            completed=float(message["completed"]),
+                            message=message["message"],
+                        )
+                        s.add(download_status_to_add)
+                        s.commit()
+            except Exception as e:
+                self.logger.error(
+                    f"Error adding download status to db {message=} {e=}")
 
     def finish(self) -> None:
         self._end = True

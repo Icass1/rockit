@@ -1,29 +1,34 @@
 import os
 import asyncio
 import threading
-from importlib import import_module
 from typing import Optional
+from importlib import import_module
 
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import FastAPI, HTTPException, Request, Response, WebSocket
+from fastapi import Depends, FastAPI, HTTPException, Request, Response, WebSocket
+from sqlalchemy import CursorResult, select
 
 from backend.constants import SONGS_PATH
-
-from backend.db.ormModels.song import SongRow
-
+from backend.db.ormModels.list import ListRow
 from backend.downloader import downloader
-
-from backend.responses.searchResponse import SearchResponse, SpotifyResults
-from backend.responses.general.albumWithSongs import RockItAlbumWithSongsResponse
-
+from backend.init import rockit_db, downloader
+from backend.responses.general.songWithAlbum import RockItSongWithAlbumResponse
 from backend.telegram.telegram_monitor import telegram_bot_task
 
+from backend.db.ormModels.user import UserRow
+from backend.db.ormModels.song import SongRow
+from backend.db.associationTables.user_queue_songs import user_queue_songs
+
+from backend.responses.queueResponse import QueueResponse, QueueResponseItem, QueueResponseItemList
+from backend.responses.searchResponse import SearchResponse, SpotifyResults
+
 from backend.utils.logger import getLogger
+from backend.utils.websocket import process_websocket
 from backend.utils.fastAPIRoute import fast_api_route
+from backend.utils.auth import get_current_user, get_current_user_from_token
 
 from backend.spotifyApiTypes.RawSpotifyApiSearchResults import RawSpotifyApiSearchResults
 
-from backend.init import rockit_db, downloader
 
 logger = getLogger(__file__, "main")
 
@@ -91,8 +96,7 @@ def search(query: str) -> SearchResponse:
     return SearchResponse(spotifyResults=SpotifyResults.from_spotify_search(spotify_search=spotify_search))
 
 
-
-@app.get("/audio/{publicId}")
+@fast_api_route(app=app, path="/audio/{publicId}")
 async def get_audio(request: Request, publicId: str) -> Response:
     """TODO"""
     song_row = rockit_db.execute_with_session(lambda s: s.query(
@@ -151,21 +155,59 @@ async def get_audio(request: Request, publicId: str) -> Response:
     )
 
 
+@fast_api_route(app=app, path="/queue")
+def get_queue(current_user: UserRow = Depends(get_current_user)) -> QueueResponse:
+
+    with rockit_db.session_scope() as s:
+        user_row = s.query(UserRow).where(
+            UserRow.id == current_user.id).first()
+
+        if not user_row:
+            logger.error("This should never happen. user_row is None.")
+            raise HTTPException(status_code=500, detail="Song not found")
+
+        stmt = select(user_queue_songs).where(
+            user_queue_songs.c.user_id == user_row.id
+        )
+
+        result = s.execute(stmt).mappings().all()
+
+        return QueueResponse(
+            currentQueueSongId=user_row.queue_song_id,
+            queue=[
+                QueueResponseItem(
+                    song=RockItSongWithAlbumResponse.from_row(
+                        s.query(SongRow).where(SongRow.id == row["song_id"]).first()),
+                    queueSongId=row["queue_song_id"],
+                    list=QueueResponseItemList(
+                        type=row["list_type"],
+                        publicId=s.query(ListRow).where(
+                            ListRow.id == row["list_id"]).first().public_id,
+                    )
+                ) for row in result
+            ]
+        )
+
+
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     token: Optional[str] = websocket.query_params.get(
         "token") or websocket.headers.get("Authorization")
 
-    print("Web socket connected", token)
+    user_row = get_current_user_from_token(token)
+
+    logger.debug("Web socket connected", user_row.id)
+
     await websocket.accept()
     try:
         while True:
-            data = await websocket.receive_text()
-            # print(data)
+            data: str = await websocket.receive_text()
+            process_websocket(user_row.id, data)
             # await websockept.send_text(f"Message text was: {data}")
     except Exception as e:
         print(e)
-    print("Web socket disconnected")
+
+    logger.debug("Web socket disconnected", user_row.id)
 
 
 @app.on_event('startup')

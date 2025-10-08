@@ -17,7 +17,7 @@ class DownloadStatusRow(Base, TableAutoincrementId, TableDateUpdated, TableDateA
 
     download_id: Mapped[int] = mapped_column(
         Integer, ForeignKey(
-            'main.downloads.id'), nullable=False, unique=True)
+            'main.downloads.id'), nullable=False, unique=False)
     song_id: Mapped[int] = mapped_column(Integer, ForeignKey(
         'main.songs.id'), nullable=False)
     message: Mapped[str] = mapped_column(String, nullable=False)

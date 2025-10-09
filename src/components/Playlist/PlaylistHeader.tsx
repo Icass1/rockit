@@ -17,9 +17,6 @@ export default function PlaylistHeader({
     className: string;
     playlistResponse: RockItPlaylistResponse;
 }) {
-    const { langFile: lang } = useLanguage();
-    if (!lang) return false;
-
     const playlist = RockItPlaylist.fromResponse(playlistResponse);
 
     let coverIcon;
@@ -43,6 +40,9 @@ export default function PlaylistHeader({
     const specialPlaylist = ["liked", "most-listened", "recent-mix"].includes(
         playlist.publicId
     );
+
+    const { langFile: lang } = useLanguage();
+    if (!lang) return false;
 
     return (
         <div

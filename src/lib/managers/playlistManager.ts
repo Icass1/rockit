@@ -20,6 +20,8 @@ export class PlaylistManager {
 
         const responseJson = await response.json();
 
+        console.log(responseJson)
+
         return RockItPlaylistResponse.parse(responseJson);
     }
     // #endregion

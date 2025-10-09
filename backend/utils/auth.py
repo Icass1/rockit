@@ -6,7 +6,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi import Depends, HTTPException
 
 from backend.utils.logger import getLogger
-from backend.db.ormModels.user import UserRow
+from backend.db.ormModels.main.user import UserRow
 from backend.constants import JWT_SECRET
 
 from backend.init import rockit_db
@@ -16,7 +16,7 @@ security = HTTPBearer()
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = -1
 
-logger = getLogger(__file__)
+logger = getLogger(__name__)
 
 
 def get_current_user_from_token(token) -> UserRow:

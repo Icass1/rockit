@@ -9,14 +9,14 @@ from fastapi import Depends, FastAPI, HTTPException, Request, Response, WebSocke
 from sqlalchemy import CursorResult, select
 
 from backend.constants import SONGS_PATH
-from backend.db.ormModels.list import ListRow
+from backend.db.ormModels.main.list import ListRow
 from backend.downloader import downloader
 from backend.init import rockit_db, downloader
 from backend.responses.general.songWithAlbum import RockItSongWithAlbumResponse
 from backend.telegram.telegram_monitor import telegram_bot_task
 
-from backend.db.ormModels.user import UserRow
-from backend.db.ormModels.song import SongRow
+from backend.db.ormModels.main.user import UserRow
+from backend.db.ormModels.main.song import SongRow
 from backend.db.associationTables.user_queue_songs import user_queue_songs
 
 from backend.responses.queueResponse import QueueResponse, QueueResponseItem, QueueResponseItemList
@@ -30,7 +30,7 @@ from backend.utils.auth import get_current_user, get_current_user_from_token
 from backend.spotifyApiTypes.RawSpotifyApiSearchResults import RawSpotifyApiSearchResults
 
 
-logger = getLogger(__file__, "main")
+logger = getLogger(__name__)
 
 app = FastAPI()
 

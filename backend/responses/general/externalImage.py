@@ -1,7 +1,7 @@
 from typing import List, Optional
 from pydantic import BaseModel
 
-from backend.db.ormModels.externalImage import ExternalImageRow
+from backend.db.ormModels.main.externalImage import ExternalImageRow
 from backend.spotifyApiTypes.RawSpotifyApiSearchResults import SpotifySearchResultsImages, SpotifySearchResultsImages1, SpotifySearchResultsImages2
 
 

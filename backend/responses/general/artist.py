@@ -1,7 +1,8 @@
 from typing import List, Optional
 from pydantic import BaseModel
 
-from backend.db.ormModels.artist import ArtistRow
+from backend.constants import BACKEND_URL
+from backend.db.ormModels.main.artist import ArtistRow
 from backend.responses.general.externalImage import RockItExternalImageResponse
 from backend.spotifyApiTypes.RawSpotifyApiSearchResults import SpotifySearchResultsArtists, SpotifySearchResultsArtists1, SpotifySearchResultsArtists3, SpotifySearchResultsItems1
 
@@ -34,6 +35,6 @@ class RockItArtistResponse(BaseModel):
             genres=[g.name for g in artist.genres],
             externalImages=[RockItExternalImageResponse.from_row(
                 image) for image in artist.external_images],
-            internalImageUrl=f"http://localhost:8000/image/{artist.internal_image.public_id}" if artist.internal_image else None
+            internalImageUrl=f"{BACKEND_URL }/image/{artist.internal_image.public_id}" if artist.internal_image else None
 
         )

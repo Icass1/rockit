@@ -20,8 +20,8 @@ from backend.constants import SONGS_PATH
 from backend.downloader.messageHandler import MessageHandlderReader, MessageHandler
 from backend.downloader.queueElement import QueueElement, SpotifyQueueElement
 
-from backend.db.ormModels.song import SongRow
-from backend.db.ormModels.download import STATUS_TYPE, DownloadRow
+from backend.db.ormModels.main.song import SongRow
+from backend.db.ormModels.main.download import STATUS_TYPE, DownloadRow
 
 from backend.spotifyApiTypes.RawSpotifyApiPlaylist import RawSpotifyApiPlaylist
 

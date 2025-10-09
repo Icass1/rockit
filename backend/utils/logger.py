@@ -27,13 +27,13 @@ class CustomLogger(logging.Logger):
         if extra is None:
             extra = {}
 
-        extra["classname"] = ""  # type: ignore
+        extra["extrainfo"] = ""  # type: ignore
 
         if "%20" in name:
             split_name = name.split("%20")
             name = split_name[0]
             class_name = split_name[1]
-            extra["classname"] = class_name + "."  # type: ignore
+            extra["extrainfo"] = f"{name}.{class_name}.{func} - "  # type: ignore
 
         return super().makeRecord(name, level, fn, lno, msg, args, exc_info, func, extra, sinfo)
 
@@ -119,12 +119,9 @@ def getLogger(name, class_name=None):
     if logger.hasHandlers():
         return logger
 
-    # Set logging level
-    logger.setLevel(console_level)
-
     # Define formatters
     plain_formatter = logging.Formatter(
-        '{asctime} [{levelname:^10}] {pathname}:{lineno} - {name}.{classname}{funcName} - {message}',
+        '{asctime} [{levelname:^10}] {pathname}:{lineno} - {extrainfo}{message}',
         style="{",
         datefmt='%Y-%m-%d %H:%M:%S'
     )
@@ -134,6 +131,8 @@ def getLogger(name, class_name=None):
         style="{",
         datefmt='%Y-%m-%d %H:%M:%S'
     )
+
+    logger.setLevel(logging.DEBUG)
 
     # Console handler with colors
     console_handler = logging.StreamHandler()

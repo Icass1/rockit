@@ -4,8 +4,8 @@ import asyncio
 from logging import Logger
 from typing import Any, List
 from backend.db.db import RockitDB
-from backend.db.ormModels.downloadStatus import DownloadStatusRow
-from backend.db.ormModels.song import SongRow
+from backend.db.ormModels.main.downloadStatus import DownloadStatusRow
+from backend.db.ormModels.main.song import SongRow
 from backend.utils.logger import getLogger
 
 

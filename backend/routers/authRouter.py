@@ -1,7 +1,7 @@
 from argon2 import PasswordHasher
 from fastapi import HTTPException, APIRouter, Depends
 
-from backend.db.ormModels.user import UserRow
+from backend.db.ormModels.main.user import UserRow
 
 from backend.utils.logger import getLogger
 from backend.utils.backendUtils import create_id
@@ -23,7 +23,7 @@ ph = PasswordHasher(
     parallelism=1,     # p=1
 )
 
-logger = getLogger(__file__)
+logger = getLogger(__name__)
 router = APIRouter(prefix="/auth")
 
 

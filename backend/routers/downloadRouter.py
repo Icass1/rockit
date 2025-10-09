@@ -13,7 +13,7 @@ from backend.utils.logger import getLogger
 from backend.init import downloader
 
 
-logger = getLogger(__file__)
+logger = getLogger(__name__)
 router = APIRouter(prefix="/downloader")
 
 

@@ -5,8 +5,8 @@ from sqlalchemy.orm import relationship, mapped_column, Mapped
 
 from backend.db.base import Base
 from backend.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdated
-from backend.db.associationTables.playlist_external_images import playlist_external_images
 from backend.db.associationTables.playlist_songs import playlist_songs
+from backend.db.associationTables.playlist_external_images import playlist_external_images
 
 if TYPE_CHECKING:
     from backend.db.ormModels.main.song import SongRow

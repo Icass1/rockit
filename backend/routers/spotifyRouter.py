@@ -13,7 +13,7 @@ from backend.init import downloader
 
 
 router = APIRouter(prefix="/spotify")
-logger: Logger = getLogger(__file__, "spotify")
+logger: Logger = getLogger(__name__)
 
 
 @fast_api_route(app=router, path="/album/{album_public_id}")
@@ -29,6 +29,7 @@ def get_spotify_song(song_public_id: str) -> RockItSongWithAlbumResponse:
 
 
 @fast_api_route(app=router, path="/playlist/{playlist_public_id}")
-def get_spotify_playlist(playlist_public_id: str) -> RockItPlaylistResponse:
+def get_spotify_playlist(playlist_public_id: str, update: str | None = None) -> RockItPlaylistResponse:
     """TODO"""
-    return RockItPlaylistResponse.from_row(playlist=downloader.spotify.get_playlist(public_id=playlist_public_id))
+    print(update)
+    return RockItPlaylistResponse.from_row(playlist=downloader.spotify.get_playlist(public_id=playlist_public_id, update=False))

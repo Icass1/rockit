@@ -5,19 +5,25 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from backend.db.base import Base
 
-from backend.db.ormModels.downloadStatus import DownloadStatusRow
-from backend.db.ormModels.externalImage import ExternalImageRow
-from backend.db.ormModels.internalImage import InternalImageRow
-from backend.db.ormModels.copyright import CopyrightRow
-from backend.db.ormModels.download import DownloadRow
-from backend.db.ormModels.playlist import PlaylistRow
-from backend.db.ormModels.artist import ArtistRow
-from backend.db.ormModels.album import AlbumRow
-from backend.db.ormModels.genre import GenreRow
-from backend.db.ormModels.error import ErrorRow
-from backend.db.ormModels.song import SongRow
-from backend.db.ormModels.list import ListRow
-from backend.db.ormModels.user import UserRow
+from backend.db.ormModels.main.downloadStatus import DownloadStatusRow
+from backend.db.ormModels.main.externalImage import ExternalImageRow
+from backend.db.ormModels.main.internalImage import InternalImageRow
+from backend.db.ormModels.main.copyright import CopyrightRow
+from backend.db.ormModels.main.download import DownloadRow
+from backend.db.ormModels.main.playlist import PlaylistRow
+from backend.db.ormModels.main.artist import ArtistRow
+from backend.db.ormModels.main.album import AlbumRow
+from backend.db.ormModels.main.genre import GenreRow
+from backend.db.ormModels.main.error import ErrorRow
+from backend.db.ormModels.main.song import SongRow
+from backend.db.ormModels.main.list import ListRow
+from backend.db.ormModels.main.user import UserRow
+
+from backend.db.ormModels.spotify_cache.playlist import SpotifyCachePlaylistRow
+from backend.db.ormModels.spotify_cache.artist import SpotifyCacheArtistRow
+from backend.db.ormModels.spotify_cache.album import SpotifyCacheAlbumRow
+from backend.db.ormModels.spotify_cache.track import SpotifyCacheTrackRow
+
 from backend.utils.logger import getLogger
 
 T = TypeVar("T")

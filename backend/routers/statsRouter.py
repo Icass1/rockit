@@ -9,8 +9,8 @@ from backend.init import rockit_db
 from backend.utils.auth import get_current_user
 from backend.responses.general.songWithAlbum import RockItSongWithAlbumResponse
 
-from backend.db.ormModels.song import SongRow
-from backend.db.ormModels.user import UserRow
+from backend.db.ormModels.main.song import SongRow
+from backend.db.ormModels.main.user import UserRow
 
 from backend.db.associationTables.user_history_songs import user_history_songs
 

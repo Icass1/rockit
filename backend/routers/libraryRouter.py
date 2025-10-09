@@ -9,10 +9,10 @@ from sqlalchemy.dialects.postgresql.dml import Insert
 
 from backend.db.associationTables.user_library_lists import user_library_lists
 
-from backend.db.ormModels.list import ListRow
-from backend.db.ormModels.user import UserRow
-from backend.db.ormModels.album import AlbumRow
-from backend.db.ormModels.playlist import PlaylistRow
+from backend.db.ormModels.main.list import ListRow
+from backend.db.ormModels.main.user import UserRow
+from backend.db.ormModels.main.album import AlbumRow
+from backend.db.ormModels.main.playlist import PlaylistRow
 
 from backend.responses.general.albumWithoutSongs import RockItAlbumWithoutSongsResponse
 from backend.responses.general.playlist import RockItPlaylistResponse
@@ -26,7 +26,7 @@ from backend.init import rockit_db
 
 
 router = APIRouter(prefix="/library")
-logger: Logger = getLogger(__file__, "library")
+logger: Logger = getLogger(__name__, "library")
 
 
 @router.get("/add-list/{type}/{publicId}")

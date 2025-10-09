@@ -7,14 +7,14 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.dialects.postgresql.dml import Insert
 
 from backend.db.associationTables.user_queue_songs import user_queue_songs
-from backend.db.ormModels.list import ListRow
-from backend.db.ormModels.song import SongRow
-from backend.db.ormModels.user import UserRow
+from backend.db.ormModels.main.list import ListRow
+from backend.db.ormModels.main.song import SongRow
+from backend.db.ormModels.main.user import UserRow
 from backend.utils.logger import getLogger
 
 from backend.init import rockit_db
 
-logger = getLogger(__file__)
+logger = getLogger(__name__)
 
 
 class QueueItemList(BaseModel):

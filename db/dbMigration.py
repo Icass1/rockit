@@ -35,17 +35,17 @@ from backend.db.associationTables.artist_genres import artist_genres
 from backend.db.associationTables.song_artists import song_artists
 from backend.db.associationTables.user_library_lists import user_library_lists
 
-from backend.db.ormModels.externalImage import ExternalImageRow
-from backend.db.ormModels.internalImage import InternalImageRow
-from backend.db.ormModels.download import DownloadRow
-from backend.db.ormModels.playlist import PlaylistRow
-from backend.db.ormModels.artist import ArtistRow
-from backend.db.ormModels.album import AlbumRow
-from backend.db.ormModels.genre import GenreRow
-from backend.db.ormModels.error import ErrorRow
-from backend.db.ormModels.song import SongRow
-from backend.db.ormModels.list import ListRow
-from backend.db.ormModels.user import UserRow
+from backend.db.ormModels.main.externalImage import ExternalImageRow
+from backend.db.ormModels.main.internalImage import InternalImageRow
+from backend.db.ormModels.main.download import DownloadRow
+from backend.db.ormModels.main.playlist import PlaylistRow
+from backend.db.ormModels.main.artist import ArtistRow
+from backend.db.ormModels.main.album import AlbumRow
+from backend.db.ormModels.main.genre import GenreRow
+from backend.db.ormModels.main.error import ErrorRow
+from backend.db.ormModels.main.song import SongRow
+from backend.db.ormModels.main.list import ListRow
+from backend.db.ormModels.main.user import UserRow
 
 from backend.init import rockit_db
 

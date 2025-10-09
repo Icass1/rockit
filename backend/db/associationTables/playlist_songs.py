@@ -1,4 +1,4 @@
-from sqlalchemy import Table, Column, ForeignKey, Boolean, String
+from sqlalchemy import TIMESTAMP, Table, Column, ForeignKey, Boolean, String
 
 from backend.db.base import Base
 
@@ -10,6 +10,7 @@ playlist_songs = Table(
     Column('playlist_id', ForeignKey('main.playlists.id'), primary_key=True),
     Column('song_id', ForeignKey('main.songs.id'), primary_key=True),
     Column("added_by", String, nullable=True),
+    Column("added_at", TIMESTAMP, nullable=False),
     Column("disabled", Boolean, nullable=False),
     date_added_column(),
     date_updated_column(),

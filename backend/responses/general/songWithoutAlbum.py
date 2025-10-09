@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 
 from backend.constants import SONGS_PATH
-from backend.db.ormModels.song import SongRow
+from backend.db.ormModels.main.song import SongRow
 from backend.responses.general.artist import RockItArtistResponse
 from backend.spotifyApiTypes.RawSpotifyApiSearchResults import SpotifySearchResultsItems
 
@@ -57,11 +57,11 @@ class RockItSongWithoutAlbumResponse(BaseModel):
             duration=song.duration,
             trackNumber=song.track_number,
             discNumber=song.disc_number,
-            internalImageUrl=f"http://localhost:8000/image/{song.internal_image.public_id}" if song.internal_image else None,
+            internalImageUrl=f"{BACKEND_URL}/image/{song.internal_image.public_id}" if song.internal_image else None,
             downloadUrl=song.download_url,
             popularity=song.popularity,
             dateAdded=song.date_added,
             isrc=song.isrc,
             downloaded=downloaded,
-            audioUrl=f"http://localhost:8000/audio/{song.public_id}" if downloaded else None
+            audioUrl=f"{BACKEND_URL}/audio/{song.public_id}" if downloaded else None
         )

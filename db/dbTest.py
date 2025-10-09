@@ -9,7 +9,7 @@ from sqlalchemy.engine.row import Row
 sys.path.append(os.getcwd())  # noqa
 sys.path.append(os.getcwd() + "/backend")  # noqa
 
-from backend.db.ormModels.playlist import PlaylistRow
+from backend.db.ormModels.main.playlist import PlaylistRow
 from backend.utils.logger import getLogger
 
 from backend.db.associationTables.song_artists import song_artists
@@ -19,7 +19,7 @@ from backend.db.db import RockitDB, UserRow, AlbumRow, ArtistRow, SongRow, ListR
 rockit_db = RockitDB(verbose=False)
 session = rockit_db.get_session()
 
-logger = getLogger("dbTest")
+logger = getLogger(__file__)
 
 # album_id = 1
 

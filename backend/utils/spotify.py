@@ -5,32 +5,39 @@ import math
 import base64
 import requests
 from logging import Logger
+from datetime import datetime
 from spotdl.types.song import Song as SpotdlSong
 from typing import Any, Dict, List, Literal, Sequence, Set
 
-from sqlalchemy import and_, select
+from sqlalchemy import Delete, and_, delete, select
+from sqlalchemy.dialects.postgresql.dml import Insert
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.dialects.postgresql import insert
 
+from backend.db.ormModels.spotify_cache.album import SpotifyCacheAlbumRow
+from backend.db.ormModels.spotify_cache.artist import SpotifyCacheArtistRow
+from backend.db.ormModels.spotify_cache.playlist import SpotifyCachePlaylistRow
+from backend.db.ormModels.spotify_cache.track import SpotifyCacheTrackRow
 from backend.spotifyApiTypes.RawSpotifyApiSearchResults import RawSpotifyApiSearchResults
 from backend.utils.logger import getLogger
 from backend.db.db import RockitDB
 from backend.constants import IMAGES_PATH
 from backend.utils.backendUtils import create_id, download_image, sanitize_folder_name
 
-from backend.db.ormModels.list import ListRow
-from backend.db.ormModels.song import SongRow
-from backend.db.ormModels.genre import GenreRow
-from backend.db.ormModels.album import AlbumRow
-from backend.db.ormModels.artist import ArtistRow
-from backend.db.ormModels.playlist import PlaylistRow
-from backend.db.ormModels.copyright import CopyrightRow
-from backend.db.ormModels.externalImage import ExternalImageRow
-from backend.db.ormModels.internalImage import InternalImageRow
+from backend.db.ormModels.main.list import ListRow
+from backend.db.ormModels.main.song import SongRow
+from backend.db.ormModels.main.genre import GenreRow
+from backend.db.ormModels.main.album import AlbumRow
+from backend.db.ormModels.main.artist import ArtistRow
+from backend.db.ormModels.main.playlist import PlaylistRow
+from backend.db.ormModels.main.copyright import CopyrightRow
+from backend.db.ormModels.main.externalImage import ExternalImageRow
+from backend.db.ormModels.main.internalImage import InternalImageRow
 
 from backend.db.associationTables.song_artists import song_artists
 from backend.db.associationTables.album_artists import album_artists
 from backend.db.associationTables.artist_genres import artist_genres
+from backend.db.associationTables.playlist_songs import playlist_songs
 from backend.db.associationTables.album_copyrights import album_copyrights
 from backend.db.associationTables.album_external_images import album_external_images
 from backend.db.associationTables.artist_external_images import artist_external_images
@@ -38,7 +45,7 @@ from backend.db.associationTables.artist_external_images import artist_external_
 from backend.spotifyApiTypes.RawSpotifyApiAlbum import RawSpotifyApiAlbum
 from backend.spotifyApiTypes.RawSpotifyApiArtist import RawSpotifyApiArtist
 from backend.spotifyApiTypes.RawSpotifyApiTrack import RawSpotifyApiTrack
-from backend.spotifyApiTypes.RawSpotifyApiPlaylist import RawSpotifyApiPlaylist
+from backend.spotifyApiTypes.RawSpotifyApiPlaylist import PlaylistItems, PlaylistTracks, RawSpotifyApiPlaylist
 
 
 class Spotify:
@@ -143,69 +150,95 @@ class Spotify:
             self.logger.critical(
                 f"Unable to load json. {result.content=}, {result.text=} {result.status_code=}")
 
-    def get_spotify_data(self, public_ids: List[str], data_name: Literal["album"] | Literal["artist"] | Literal["track"] | Literal["playlist"]) -> List[Dict]:
+    def get_spotify_data(self, public_ids: List[str], data_name: Literal["album", "artist", "track", "playlist"]) -> List[Dict]:
         """
         Searches for albums, artists or tracks in cache or via Spotify API.
         """
-        try:
-            with open(f".spotify_cache/{data_name}s.json", "r") as f:
-                data = json.load(f)
-        except:
-            self.logger.warning(
-                f"Unable to open .spotify_cache/{data_name}s.json")
-            data = []
 
-        missing_data: List[str] = []
-        result: List[Dict] = []
+        with self.rockit_db.session_scope() as s:
+            max_data_per_call: int | None = None
+            data: List[SpotifyCacheAlbumRow] | List[SpotifyCachePlaylistRow] | List[SpotifyCacheTrackRow] | List[SpotifyCacheArtistRow]
+            match data_name:
+                case "album":
+                    max_data_per_call = 20
+                    data = s.query(SpotifyCacheAlbumRow).where(
+                        SpotifyCacheAlbumRow.id.in_(public_ids)).all()
+                case "playlist":
+                    max_data_per_call = 1
+                    data = s.query(SpotifyCachePlaylistRow).where(
+                        SpotifyCachePlaylistRow.id.in_(public_ids)).all()
+                case "track":
+                    max_data_per_call = 100
+                    data = s.query(SpotifyCacheTrackRow).where(
+                        SpotifyCacheTrackRow.id.in_(public_ids)).all()
+                case "artist":
+                    max_data_per_call = 50
+                    data = s.query(SpotifyCacheArtistRow).where(
+                        SpotifyCacheArtistRow.id.in_(public_ids)).all()
+                case _:
+                    self.logger.warning(
+                        f"Unkown data type {data_name}")
+                    return
 
-        for public_id in public_ids:
-            for data_item in data:
-                if data_item["id"] == public_id:
-                    result.append(data_item)
-                    break
-            else:
-                missing_data.append(public_id)
+            missing_data: List[str] = []
+            result: List[Dict] = []
 
-        self.logger.debug(f"{len(result)} {data_name}s found in cache.")
-        self.logger.debug(f"Missing {data_name}s: {len(missing_data)}")
+            for public_id in public_ids:
+                for data_item in data:
+                    if data_item.id == public_id:
+                        result.append(data_item.json)
+                        break
+                else:
+                    missing_data.append(public_id)
 
-        max_data_per_call: int | None = None
-        if data_name == "track":
-            max_data_per_call = 100
-        elif data_name == "artist":
-            max_data_per_call = 50
-        elif data_name == "album":
-            max_data_per_call = 20
-        elif data_name == "playlist":
-            max_data_per_call = 1
-        else:
-            self.logger.error(f"Unkown data type '{data_name}'.")
-            return []
+            self.logger.debug(f"{len(result)} {data_name}s found in cache.")
+            self.logger.debug(f"Missing {data_name}s: {len(missing_data)}")
 
-        for i in range(math.ceil(len(missing_data)/max_data_per_call)):
+            new_data_to_add = []
 
-            if max_data_per_call == 1:
-                response = self.api_call(
-                    path=f"{data_name}s/{missing_data[0]}")
-            else:
-                response = self.api_call(
-                    path=f"{data_name}s", params={"ids": ",".join(missing_data[i*max_data_per_call:(i + 1)*max_data_per_call])})
+            for i in range(math.ceil(len(missing_data)/max_data_per_call)):
 
-            if not response:
-                self.logger.error("Response is None")
-                continue
+                if max_data_per_call == 1:
+                    response = self.api_call(
+                        path=f"{data_name}s/{missing_data[0]}")
+                else:
+                    response = self.api_call(
+                        path=f"{data_name}s", params={"ids": ",".join(missing_data[i*max_data_per_call:(i + 1)*max_data_per_call])})
 
-            if max_data_per_call == 1:
-                result.append(response)
-                data.append(response)
-            else:
-                result.extend(response[f"{data_name}s"])
-                data.extend(response[f"{data_name}s"])
+                if not response:
+                    self.logger.error("Response is None")
+                    continue
 
-            self.logger.debug(f"{data_name}s cache length: {len(data)}.")
+                if max_data_per_call == 1:
+                    result.append(response)
+                    new_data_to_add.append(response)
+                else:
+                    result.extend(response[f"{data_name}s"])
+                    new_data_to_add.extend(response[f"{data_name}s"])
 
-            with open(f".spotify_cache/{data_name}s.json", "w") as f:
-                json.dump(data, f)
+                self.logger.debug(f"{data_name}s cache length: {len(data)}.")
+
+            for new_data in new_data_to_add:
+                match data_name:
+                    case "album":
+                        data_to_add = SpotifyCacheAlbumRow(
+                            id=new_data["id"], json=new_data)
+                    case "playlist":
+                        data_to_add = SpotifyCachePlaylistRow(
+                            id=new_data["id"], json=new_data)
+                    case "track":
+                        data_to_add = SpotifyCacheTrackRow(
+                            id=new_data["id"], json=new_data)
+                    case "artist":
+                        data_to_add = SpotifyCacheArtistRow(
+                            id=new_data["id"], json=new_data)
+                    case _:
+                        self.logger.warning(
+                            f"Unkown data type {data_name}")
+                        return
+
+                s.merge(data_to_add)
+            s.commit()
 
         return result
 
@@ -222,6 +255,7 @@ class Spotify:
 
     def download_image(self, image_url: str, image_path_dir: str):
         """TODO"""
+        self.logger.debug(f"{image_url=} {image_path_dir=}")
 
         image_path = os.path.join(image_path_dir, "image.png")
 
@@ -263,6 +297,7 @@ class Spotify:
 
     def get_spotdl_song_from_song_row(self, song_row: SongRow) -> SpotdlSong:
         """TODO"""
+        self.logger.debug(f"{song_row=}")
 
         if len(song_row.artists) == 0:
             self.logger.error(
@@ -301,6 +336,7 @@ class Spotify:
     # ***********************
     def get_albums_from_spotify(self, public_ids: List[str]) -> List[RawSpotifyApiAlbum]:
         """Fetches Spotify API for albums given the IDs."""
+        self.logger.debug(f"{public_ids=}")
 
         result: List[RawSpotifyApiAlbum] = []
 
@@ -311,7 +347,7 @@ class Spotify:
 
         return result
 
-    def get_albums_from_db(self, public_ids: List[str]) -> Sequence[AlbumRow]:
+    def get_albums_with_songs_from_db(self, public_ids: List[str]) -> Sequence[AlbumRow]:
         return self.rockit_db.execute_with_session(
             lambda s:
             s.execute(
@@ -369,8 +405,39 @@ class Spotify:
                 .all()
         )
 
+    def get_albums_without_songs_from_db(self, public_ids: List[str]) -> Sequence[AlbumRow]:
+        return self.rockit_db.execute_with_session(
+            lambda s:
+            s.execute(
+                select(AlbumRow)
+                .options(
+                    # Load album artists and album artists genres.
+                    joinedload(AlbumRow.artists).
+                    joinedload(ArtistRow.genres),
+                    # Load album artists and album artists external images.
+                    joinedload(AlbumRow.artists).
+                    joinedload(ArtistRow.external_images),
+                    # Load album artists and album internal external image.
+                    joinedload(AlbumRow.artists).
+                    joinedload(ArtistRow.internal_image),
+                    # Load album external images.
+                    joinedload(AlbumRow.external_images),
+                    # Load album internal image.
+                    joinedload(AlbumRow.internal_image),
+                    # Load album copyrights.
+                    joinedload(AlbumRow.copyrights),
+                )
+                .where(
+                    AlbumRow.public_id.in_(public_ids)
+                ))
+                .unique()
+                .scalars()
+                .all()
+        )
+
     def add_spotify_albums_to_db(self, albums: List[RawSpotifyApiAlbum]) -> None:
         """Adds Spotify albums to database."""
+        self.logger.debug(f"{albums=}")
 
         with self.rockit_db.session_scope() as s:
             # Get all artists in album and songs.
@@ -406,8 +473,20 @@ class Spotify:
                 AlbumRow.public_id.in_([album.id for album in albums]))).scalars().all()
 
             for album in albums:
-
-                if not album.id or not album.name or not album.release_date or not album.tracks or not album.tracks or not album.tracks or not album.tracks.items or not album.images or not album.images[0].url or not album.artists or not album.artists[0].name or not album.popularity or not album.copyrights:
+                if \
+                        album.id is None or \
+                        album.name is None or \
+                        album.release_date is None or \
+                        album.tracks is None or \
+                        album.tracks is None or \
+                        album.tracks is None or \
+                        album.tracks.items is None or \
+                        album.images is None or \
+                        album.images[0].url is None or \
+                        album.artists is None or \
+                        album.artists[0].name is None or \
+                        album.popularity is None or \
+                        album.copyrights is None:
                     self.logger.error(f"Album is missing properties. {album=}")
                     continue
 
@@ -554,10 +633,11 @@ class Spotify:
 
     def get_albums(self, public_ids: List[str]) -> List[AlbumRow]:
         """TODO"""
+        self.logger.debug(f"{public_ids=}")
 
         result: List[AlbumRow] = []
 
-        albums_in_db: Sequence[AlbumRow] = self.get_albums_from_db(
+        albums_in_db: Sequence[AlbumRow] = self.get_albums_without_songs_from_db(
             public_ids=public_ids)
 
         have_to_update = False
@@ -575,7 +655,7 @@ class Spotify:
 
         # If an album with no artists was found, the artists should be now in database so update all albums.
         if have_to_update:
-            albums_in_db: Sequence[AlbumRow] = self.get_albums_from_db(
+            albums_in_db: Sequence[AlbumRow] = self.get_albums_without_songs_from_db(
                 public_ids=public_ids)
 
         albums_in_db_public_ids: List[str] = [
@@ -594,7 +674,8 @@ class Spotify:
             spotify_albums = self.get_albums_from_spotify(missing_albums)
             self.add_spotify_albums_to_db(spotify_albums)
 
-        new_albums_in_db = self.get_albums_from_db(missing_albums)
+        new_albums_in_db = self.get_albums_without_songs_from_db(
+            missing_albums)
 
         if len(new_albums_in_db) != len(missing_albums):
             self.logger.error(
@@ -618,6 +699,7 @@ class Spotify:
     # **********************
     def get_songs_from_spotify(self, public_ids: List[str]) -> List[RawSpotifyApiTrack]:
         """Fetches Spotify API for songs given the IDs."""
+        self.logger.debug(f"{public_ids=}")
 
         result: List[RawSpotifyApiTrack] = []
 
@@ -666,6 +748,7 @@ class Spotify:
 
     def add_spotify_songs_to_db(self, songs: List[RawSpotifyApiTrack]) -> None:
         """Adds Spotify songs to database."""
+        self.logger.debug(f"{songs=}")
 
         with self.rockit_db.session_scope() as s:
 
@@ -750,6 +833,7 @@ class Spotify:
 
     def get_songs(self, public_ids: List[str]) -> List[SongRow]:
         """TODO"""
+        self.logger.debug(f"{public_ids=}")
 
         result: List[SongRow] = []
 
@@ -809,6 +893,7 @@ class Spotify:
     # **************************
     def get_playlists_from_spotify(self, public_ids: List[str]) -> List[RawSpotifyApiPlaylist]:
         """Fetches Spotify API for playlists given the IDs."""
+        self.logger.debug(f"{public_ids=}")
 
         result: List[RawSpotifyApiPlaylist] = []
 
@@ -821,11 +906,172 @@ class Spotify:
 
     def add_spotify_playlists_to_db(self, playlists: List[RawSpotifyApiPlaylist]) -> None:
         """Adds Spotify playlists to database."""
+        self.logger.debug(f"{playlists=}")
 
         self.logger.error("Not implemented error.")
 
-    def get_playlists(self, public_ids: List[str]) -> List[PlaylistRow]:
+    def get_playlists_from_db(self, public_ids) -> Sequence[PlaylistRow]:
         """TODO"""
+        self.logger.debug(f"{public_ids=}")
+
+        return self.rockit_db.execute_with_session(
+            lambda s:
+            s.execute(
+                select(PlaylistRow)
+                .options(
+                    #
+                    joinedload(PlaylistRow.external_images),
+                    joinedload(PlaylistRow.internal_image),
+                )
+                .where(
+                    PlaylistRow.public_id.in_(public_ids)
+                ))
+                .unique()
+                .scalars()
+                .all()
+        )
+
+    def get_playlists_with_songs_from_db(self, public_ids) -> Sequence[PlaylistRow]:
+        """TODO"""
+        self.logger.debug(f"{public_ids=}")
+
+        return self.rockit_db.execute_with_session(
+            lambda s:
+            s.execute(
+                select(PlaylistRow)
+                .options(
+                    #
+                    joinedload(PlaylistRow.external_images),
+                    joinedload(PlaylistRow.internal_image),
+                    #
+                    #
+                    joinedload(PlaylistRow.songs).
+                    joinedload(SongRow.internal_image),
+                    #
+                    joinedload(PlaylistRow.songs).
+                    joinedload(SongRow.artists),
+                    #
+                    joinedload(PlaylistRow.songs).
+                    joinedload(SongRow.artists).
+                    joinedload(ArtistRow.internal_image),
+                    #
+                    joinedload(PlaylistRow.songs).
+                    joinedload(SongRow.artists).
+                    joinedload(ArtistRow.genres),
+                    #
+                    joinedload(PlaylistRow.songs).
+                    joinedload(SongRow.artists).
+                    joinedload(ArtistRow.external_images),
+                    #
+                    joinedload(PlaylistRow.songs).
+                    joinedload(SongRow.album).
+                    joinedload(AlbumRow.artists).
+                    joinedload(ArtistRow.genres),
+                    #
+                    joinedload(PlaylistRow.songs).
+                    joinedload(SongRow.album).
+                    joinedload(AlbumRow.artists).
+                    joinedload(ArtistRow.external_images),
+                    #
+                    joinedload(PlaylistRow.songs).
+                    joinedload(SongRow.album).
+                    joinedload(AlbumRow.artists).
+                    joinedload(ArtistRow.internal_image),
+                    #
+                    joinedload(PlaylistRow.songs).
+                    joinedload(SongRow.album).
+                    joinedload(AlbumRow.internal_image),
+                    #
+                    joinedload(PlaylistRow.songs).
+                    joinedload(SongRow.album).
+                    joinedload(AlbumRow.external_images),
+
+                )
+                .where(
+                    PlaylistRow.public_id.in_(public_ids)
+                ))
+                .unique()
+                .scalars()
+                .all()
+        )
+
+    def add_or_update_playlist_songs_to_db(self, playlist_id: int, href: str | None):
+        """TODO"""
+        self.logger.debug(f"{playlist_id=} {href=}")
+
+        next_tracks = href
+
+        items: List[PlaylistItems] = []
+
+        while next_tracks:
+            raw_playlist_tracks: PlaylistTracks | None = PlaylistTracks.from_dict(self.api_call(
+                path=next_tracks.replace("https://api.spotify.com/v1/", "")))
+
+            if raw_playlist_tracks is None or raw_playlist_tracks.items is None:
+                self.logger.error(
+                    f"Playlist tracks is missing properties. {raw_playlist_tracks=}")
+                continue
+
+            items.extend(
+                raw_playlist_tracks.items)
+
+            next_tracks = raw_playlist_tracks.next
+
+        # Add all albums to database.
+        albums_public_id: Set[str] = set()
+
+        for item in items:
+            if item.track is None or item.track.album is None or item.track.album.id is None:
+                self.logger.error(
+                    f"Playlist item is missing properties. {item=}")
+                continue
+            albums_public_id.add(item.track.album.id)
+
+        self.get_albums(list(albums_public_id))
+
+        # Add all songs to database.
+        song_rows: List[SongRow] = self.get_songs(
+            [item.track.id for item in items if item.track and item.track.id])
+
+        playlist_songs_values = []
+        for item in items:
+            if item.track is None or item.track.id is None or item.added_at is None:
+                self.logger.error(
+                    f"Item tracks is missing properties. {item=}")
+                continue
+
+            song_in_db: SongRow | None = None
+            for song_row in song_rows:
+                if song_row.public_id == item.track.id:
+                    song_in_db = song_row
+                    break
+            else:
+                self.logger.error(
+                    f"Spotify playlist item not in db. {item.track.id=}")
+                continue
+
+            playlist_songs_values.append({
+                "playlist_id": playlist_id,
+                "song_id": song_in_db.id,
+                "added_by": None,
+                "added_at": datetime.fromisoformat(item.added_at),
+                "disabled": False
+            })
+
+        with self.rockit_db.session_scope() as s:
+            delete_stmt: Delete = delete(playlist_songs).where(
+                playlist_songs.c.playlist_id == playlist_id
+            )
+            s.execute(delete_stmt)
+
+            insert_stmt: Insert = insert(playlist_songs).values(
+                playlist_songs_values
+            )
+            s.execute(insert_stmt)
+
+    def get_playlists(self, public_ids: List[str], update: bool) -> List[PlaylistRow]:
+        """TODO"""
+        self.logger.debug(f"{public_ids=}")
 
         result: List[PlaylistRow] = []
 
@@ -843,26 +1089,38 @@ class Spotify:
             internal_images_in_db: Sequence[InternalImageRow] = s.query(InternalImageRow).where(
                 InternalImageRow.url.in_([spotify_playlist.images[0].url for spotify_playlist in spotify_playlists if spotify_playlist.images and spotify_playlist.images[0].url])).all()
 
-            for spotify_playlist in spotify_playlists:
+            playlists_in_db: Sequence[PlaylistRow] = self.get_playlists_from_db(
+                public_ids=public_ids)
 
-                if not spotify_playlist.id or not spotify_playlist.name or not spotify_playlist.owner or not spotify_playlist.owner.display_name or not spotify_playlist.images or not spotify_playlist.images[0].url:
+            for spotify_playlist in spotify_playlists:
+                if spotify_playlist.id is None \
+                        or spotify_playlist.name is None \
+                        or spotify_playlist.owner is None \
+                        or spotify_playlist.owner.display_name is None  \
+                        or spotify_playlist.images is None  \
+                        or spotify_playlist.tracks is None \
+                        or spotify_playlist.tracks.next is None  \
+                        or spotify_playlist.tracks.items is None:
                     self.logger.error(
                         msg=f"Playlist is missing properties. {spotify_playlist=}")
                     continue
 
-                playlist_row = s.query(PlaylistRow).where(
-                    PlaylistRow.public_id == spotify_playlist.id).first()
+                playlist_row: None | PlaylistRow = None
+                for playlist_in_db in playlists_in_db:
+                    if playlist_in_db.public_id == spotify_playlist.id:
+                        playlist_row = playlist_in_db
+                        break
 
                 if playlist_row:
-                    result.append(playlist_row)
+                    if update:
+                        self.add_or_update_playlist_songs_to_db(
+                            playlist_row.id, spotify_playlist.tracks.href)
                 else:
-
                     playlist_id: None | int = None
                     for list_in_db in lists_in_db:
                         if list_in_db.public_id == spotify_playlist.id:
                             playlist_id = list_in_db.id
                             break
-
                     else:
                         list_to_add = ListRow(
                             type="playlist",
@@ -874,46 +1132,54 @@ class Spotify:
 
                     # Add album internal image.
                     internal_image_id: int | None = None
-                    for internal_image_in_db in internal_images_in_db:
-                        if spotify_playlist.images[0].url == internal_image_in_db.url:
-                            internal_image_id = internal_image_in_db.id
 
-                    if not internal_image_id:
-                        internal_image_id = self.download_image(
-                            image_url=spotify_playlist.images[0].url,
-                            image_path_dir=os.path.join(
-                                "playlist", sanitize_folder_name(
-                                    name=spotify_playlist.owner.display_name),
-                                sanitize_folder_name(
-                                    name=spotify_playlist.name)
+                    if len(spotify_playlist.images) > 0 and spotify_playlist.images[0].url:
+                        for internal_image_in_db in internal_images_in_db:
+                            if spotify_playlist.images[0].url == internal_image_in_db.url:
+                                internal_image_id = internal_image_in_db.id
+
+                        if not internal_image_id:
+                            internal_image_id = self.download_image(
+                                image_url=spotify_playlist.images[0].url,
+                                image_path_dir=os.path.join(
+                                    "playlist", sanitize_folder_name(
+                                        name=spotify_playlist.owner.display_name),
+                                    sanitize_folder_name(
+                                        name=spotify_playlist.name)
+                                )
                             )
-                        )
 
                     playlist_to_add = PlaylistRow(
                         id=playlist_id,
                         public_id=spotify_playlist.id,
-                        internal_image_id=2,
+                        internal_image_id=internal_image_id,
                         name=spotify_playlist.name,
                         owner=spotify_playlist.owner.display_name
                     )
 
-                    playlist_to_add = s.merge(playlist_to_add)
+                    playlist_to_add: PlaylistRow = s.merge(playlist_to_add)
                     s.commit()
 
-                    result.append(playlist_to_add)
+                    self.add_or_update_playlist_songs_to_db(
+                        playlist_to_add.id, spotify_playlist.tracks.href
+                    )
+
+            result.extend(self.get_playlists_with_songs_from_db(
+                public_ids=public_ids))
 
         return result
 
-    def get_playlist(self, public_id: str) -> PlaylistRow:
+    def get_playlist(self, public_id: str, update: bool) -> PlaylistRow:
         """Get a single playlist given the public ID."""
 
-        return self.get_playlists([public_id])[0]
+        return self.get_playlists(public_ids=[public_id], update=update)[0]
 
     # ************************
     # **** Artist methods ****
     # ************************
     def get_artists_from_spotify(self, public_ids: List[str]) -> List[RawSpotifyApiArtist]:
         """Fetches Spotify API for artists given the IDs."""
+        self.logger.debug(f"{public_ids=}")
 
         result: List[RawSpotifyApiArtist] = []
 
@@ -926,6 +1192,7 @@ class Spotify:
 
     def add_spotify_artists_to_db(self, artists: List[RawSpotifyApiArtist]) -> None:
         """Adds Spotify artists to database."""
+        self.logger.debug(f"{artists=}")
 
         def _func(s: Session):
 
@@ -933,24 +1200,29 @@ class Spotify:
 
             for artist in artists:
                 if \
-                        not artist.name or \
-                        not artist.id or \
-                        not artist.followers or\
-                        not artist.followers.total or\
-                        not artist.popularity or \
-                        not artist.images or\
-                        not artist.images[0].url or \
+                        artist.name is None or \
+                        artist.id is None or \
+                        artist.followers is None or \
+                        artist.followers.total is None or \
+                        artist.popularity is None or \
+                        artist.images is None or \
                         artist.genres is None:
                     self.logger.error(
                         f"Artist is missing properties. {artist=}")
                     continue
 
-                internal_image_id: int = self.download_image(
-                    image_url=artist.images[0].url,
-                    image_path_dir=os.path.join(
-                        "artist", sanitize_folder_name(artist.name)
+                internal_image_id: int | None = None
+
+                if len(artist.images) > 0 and artist.images[0].url:
+                    internal_image_id = self.download_image(
+                        image_url=artist.images[0].url,
+                        image_path_dir=os.path.join(
+                            "artist", sanitize_folder_name(artist.name)
+                        )
                     )
-                )
+                else:
+                    self.logger.warning(
+                        f"Artist {artist.id} is missing external images.")
 
                 artist_to_add = ArtistRow(
                     name=artist.name,
@@ -1021,6 +1293,7 @@ class Spotify:
 
     def get_artists(self, public_ids: List[str]) -> List[ArtistRow]:
         """TODO"""
+        self.logger.debug(f"{public_ids=}")
 
         result: List[ArtistRow] = []
 

@@ -11,7 +11,7 @@ from sqlalchemy.orm.session import Session
 from backend.constants import SONGS_PATH, TEMP_PATH
 from backend.utils.backendUtils import get_output_file, sanitize_folder_name
 from backend.db.db import RockitDB
-from backend.db.ormModels.song import SongRow
+from backend.db.ormModels.main.song import SongRow
 from backend.utils.logger import getLogger
 from backend.downloader.messageHandler import MessageHandler
 

@@ -4,7 +4,7 @@ import os
 from fastapi.responses import FileResponse
 
 from backend.constants import IMAGES_PATH
-from backend.db.ormModels.internalImage import InternalImageRow
+from backend.db.ormModels.main.internalImage import InternalImageRow
 
 from backend.init import rockit_db
 

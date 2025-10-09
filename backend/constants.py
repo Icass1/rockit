@@ -29,6 +29,7 @@ def get_env_int(name: str) -> int:
 
 SONGS_PATH = get_env_str("SONGS_PATH")
 IMAGES_PATH = get_env_str("IMAGES_PATH")
+BACKEND_URL = get_env_str("BACKEND_URL")
 TEMP_PATH = get_env_str("TEMP_PATH")
 LOGS_PATH = get_env_str("LOGS_PATH")
 LOG_DUMP_LEVEL = get_env_str("LOG_DUMP_LEVEL")

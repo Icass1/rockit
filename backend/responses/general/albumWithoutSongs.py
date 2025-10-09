@@ -1,7 +1,8 @@
 from typing import List
 from pydantic import BaseModel
 
-from backend.db.ormModels.album import AlbumRow
+from backend.constants import BACKEND_URL
+from backend.db.ormModels.main.album import AlbumRow
 from backend.responses.general.artist import RockItArtistResponse
 from backend.responses.general.copyright import RockItCopyrightResponse
 from backend.responses.general.externalImage import RockItExternalImageResponse
@@ -41,6 +42,6 @@ class RockItAlbumWithoutSongsResponse(BaseModel):
                 image) for image in album.external_images],
             artists=[RockItArtistResponse.from_row(
                 artist) for artist in album.artists],
-            internalImageUrl=f"http://localhost:8000/image/{album.internal_image.public_id}" if album.internal_image else None,
+            internalImageUrl=f"{BACKEND_URL}/image/{album.internal_image.public_id}" if album.internal_image else None,
             releaseDate=album.release_date
         )

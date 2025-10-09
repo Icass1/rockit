@@ -50,7 +50,7 @@ __all__ = ["AudioProviderError", "AudioProvider", "ISRC_REGEX", "YTDLLogger"]
 
 from backend.utils.logger import getLogger
 
-logger = getLogger(__name__, "patches")
+logger = getLogger(__name__)
 
 
 def get_best_result(self, results: Dict[Result, float], song: Song) -> Tuple[Result, float]:

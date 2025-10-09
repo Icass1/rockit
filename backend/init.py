@@ -4,7 +4,7 @@ from backend.constants import DB_DATABASE, DB_HOST, DB_PASSWORD, DB_PORT, DB_USE
 from backend.downloader.downloader import Downloader
 from backend.utils.logger import getLogger
 
-logger = getLogger(__file__)
+logger = getLogger(__name__)
 
 rockit_db = RockitDB(DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_DATABASE)
 

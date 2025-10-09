@@ -14,6 +14,7 @@ from sqlalchemy.dialects.postgresql.dml import Insert
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.dialects.postgresql import insert
 
+from backend.db.associationTables.playlist_songs import PlaylistSongLink
 from backend.db.ormModels.spotify_cache.album import SpotifyCacheAlbumRow
 from backend.db.ormModels.spotify_cache.artist import SpotifyCacheArtistRow
 from backend.db.ormModels.spotify_cache.playlist import SpotifyCachePlaylistRow
@@ -37,7 +38,6 @@ from backend.db.ormModels.main.internalImage import InternalImageRow
 from backend.db.associationTables.song_artists import song_artists
 from backend.db.associationTables.album_artists import album_artists
 from backend.db.associationTables.artist_genres import artist_genres
-from backend.db.associationTables.playlist_songs import playlist_songs
 from backend.db.associationTables.album_copyrights import album_copyrights
 from backend.db.associationTables.album_external_images import album_external_images
 from backend.db.associationTables.artist_external_images import artist_external_images
@@ -927,44 +927,54 @@ class Spotify:
                         joinedload(PlaylistRow.internal_image),
                         #
                         #
-                        joinedload(PlaylistRow.songs).
+                        joinedload(PlaylistRow.playlist_song_links).
+                        joinedload(PlaylistSongLink.song).
                         joinedload(SongRow.internal_image),
                         #
-                        joinedload(PlaylistRow.songs).
+                        joinedload(PlaylistRow.playlist_song_links).
+                        joinedload(PlaylistSongLink.song).
                         joinedload(SongRow.artists),
                         #
-                        joinedload(PlaylistRow.songs).
+                        joinedload(PlaylistRow.playlist_song_links).
+                        joinedload(PlaylistSongLink.song).
                         joinedload(SongRow.artists).
                         joinedload(ArtistRow.internal_image),
                         #
-                        joinedload(PlaylistRow.songs).
+                        joinedload(PlaylistRow.playlist_song_links).
+                        joinedload(PlaylistSongLink.song).
                         joinedload(SongRow.artists).
                         joinedload(ArtistRow.genres),
                         #
-                        joinedload(PlaylistRow.songs).
+                        joinedload(PlaylistRow.playlist_song_links).
+                        joinedload(PlaylistSongLink.song).
                         joinedload(SongRow.artists).
                         joinedload(ArtistRow.external_images),
                         #
-                        joinedload(PlaylistRow.songs).
+                        joinedload(PlaylistRow.playlist_song_links).
+                        joinedload(PlaylistSongLink.song).
                         joinedload(SongRow.album).
                         joinedload(AlbumRow.artists).
                         joinedload(ArtistRow.genres),
                         #
-                        joinedload(PlaylistRow.songs).
+                        joinedload(PlaylistRow.playlist_song_links).
+                        joinedload(PlaylistSongLink.song).
                         joinedload(SongRow.album).
                         joinedload(AlbumRow.artists).
                         joinedload(ArtistRow.external_images),
                         #
-                        joinedload(PlaylistRow.songs).
+                        joinedload(PlaylistRow.playlist_song_links).
+                        joinedload(PlaylistSongLink.song).
                         joinedload(SongRow.album).
                         joinedload(AlbumRow.artists).
                         joinedload(ArtistRow.internal_image),
                         #
-                        joinedload(PlaylistRow.songs).
+                        joinedload(PlaylistRow.playlist_song_links).
+                        joinedload(PlaylistSongLink.song).
                         joinedload(SongRow.album).
                         joinedload(AlbumRow.internal_image),
                         #
-                        joinedload(PlaylistRow.songs).
+                        joinedload(PlaylistRow.playlist_song_links).
+                        joinedload(PlaylistSongLink.song).
                         joinedload(SongRow.album).
                         joinedload(AlbumRow.external_images),
 
@@ -1032,49 +1042,44 @@ class Spotify:
         song_rows: List[SongRow] = self.get_songs(
             [item.track.id for item in items if item.track and item.track.id])
 
-        playlist_songs_values = []
-        for item in items:
-            if item.track is None or item.track.id is None or item.added_at is None:
-                self.logger.error(
-                    f"Item tracks is missing properties. {item=}")
-                continue
-
-            song_in_db: SongRow | None = None
-            for song_row in song_rows:
-                if song_row.public_id == item.track.id:
-                    song_in_db = song_row
-                    break
-            else:
-                self.logger.error(
-                    f"Spotify playlist item not in db. {item.track.id=}")
-                continue
-
-            playlist_songs_values.append({
-                "playlist_id": playlist_id,
-                "song_id": song_in_db.id,
-                "added_by": None,
-                "added_at": datetime.fromisoformat(item.added_at),
-                "disabled": False
-            })
-
         with self.rockit_db.session_scope() as s:
-            delete_stmt: Delete = delete(playlist_songs).where(
-                playlist_songs.c.playlist_id == playlist_id
+            
+            s.execute(
+                delete(PlaylistSongLink).where(PlaylistSongLink.playlist_id == playlist_id)
             )
-            s.execute(delete_stmt)
+            s.flush()
+            for item in items:
+                if item.track is None or item.track.id is None or item.added_at is None:
+                    self.logger.error(
+                        f"Item tracks is missing properties. {item=}")
+                    continue
 
-            insert_stmt: Insert = insert(playlist_songs).values(
-                playlist_songs_values
-            )
-            s.execute(insert_stmt)
+                song_in_db: SongRow | None = None
+                for song_row in song_rows:
+                    if song_row.public_id == item.track.id:
+                        song_in_db = song_row
+                        break
+                else:
+                    self.logger.error(
+                        f"Spotify playlist item not in db. {item.track.id=}")
+                    continue
+
+                playlist_song_link_to_add = PlaylistSongLink(
+                    playlist_id=playlist_id,
+                    song_id=song_in_db.id,
+                    added_by=None,
+                    added_at=datetime.fromisoformat(item.added_at),
+                    disabled=False
+                )
+                s.merge(playlist_song_link_to_add)
+
+            s.commit()
 
     def get_playlists(self, public_ids: List[str], update: bool) -> List[PlaylistRow]:
         """TODO"""
         self.logger.debug(f"{public_ids=}")
 
         result: List[PlaylistRow] = []
-
-        self.logger.error("Not implemented error.")
 
         spotify_playlists = self.get_playlists_from_spotify(
             public_ids=public_ids)

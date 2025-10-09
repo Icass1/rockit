@@ -24,5 +24,5 @@ class RockItPlaylistResponse(BaseModel):
                 image) for image in playlist.external_images],
             internalImageUrl=f"{BACKEND_URL}/image/{playlist.internal_image.public_id}" if playlist.internal_image else None,
             songs=[RockItSongPlaylistResponse.from_row(
-                song) for song in playlist.songs]
+                song) for song in playlist.playlist_song_links]
         )

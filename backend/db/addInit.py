@@ -3,9 +3,11 @@ import os
 from typing import List
 
 skip_files: List[str] = [
-    "__ini__.py",
+    "__init__.py",
     "declarativeMixin.py",
     "addInit.py"
+    "base.py"
+    "db.py"
 ]
 
 path: str = os.path.dirname(__file__)
@@ -33,7 +35,6 @@ for dirpath, dirnames, filenames in os.walk(path):
             continue
 
         file_path = os.path.join(path, k)
-        print(file_path)
 
         with open(file_path, "r") as f:
             content: List[str] = f.readlines()

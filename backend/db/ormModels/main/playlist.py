@@ -5,14 +5,14 @@ from sqlalchemy.orm import relationship, mapped_column, Mapped
 
 from backend.db.base import Base
 from backend.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdated
-from backend.db.associationTables.playlist_songs import playlist_songs
 from backend.db.associationTables.playlist_external_images import playlist_external_images
 
 if TYPE_CHECKING:
-    from backend.db.ormModels.main.song import SongRow
     from backend.db.ormModels.main.list import ListRow
     from backend.db.ormModels.main.internalImage import InternalImageRow
     from backend.db.ormModels.main.externalImage import ExternalImageRow
+
+    from backend.db.associationTables.playlist_songs import PlaylistSongLink
 
 
 class PlaylistRow(Base, TableDateUpdated, TableDateAdded):
@@ -37,10 +37,9 @@ class PlaylistRow(Base, TableDateUpdated, TableDateAdded):
         secondary=playlist_external_images,
         back_populates="playlists"
     )
-    songs: Mapped[List["SongRow"]] = relationship(
-        "SongRow",
-        secondary=playlist_songs,
-        back_populates="playlists"
+    playlist_song_links: Mapped[List["PlaylistSongLink"]] = relationship(
+        "PlaylistSongLink",
+        back_populates="playlist"
     )
 
     list: Mapped["ListRow"] = relationship(

@@ -1,7 +1,7 @@
 from typing import List
 from pydantic import BaseModel
 
-from backend.responses.general.songWithAlbum import RockItSongWithAlbumResponse
+from backend.responses.rockItSongWithAlbumResponse import RockItSongWithAlbumResponse
 
 
 

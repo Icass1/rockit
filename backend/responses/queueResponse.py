@@ -2,7 +2,7 @@ from typing import List
 from pydantic import BaseModel
 
 from backend.db.associationTables.user_queue_songs import QUEUE_LIST_TYPE_TYPE
-from backend.responses.general.songWithAlbum import RockItSongWithAlbumResponse
+from backend.responses.rockItSongWithAlbumResponse import RockItSongWithAlbumResponse
 
 
 class QueueResponseItemList(BaseModel):

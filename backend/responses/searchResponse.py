@@ -1,10 +1,10 @@
 from typing import List
 from pydantic import BaseModel
 
-from backend.responses.general.albumWithoutSongs import RockItAlbumWithoutSongsResponse
-from backend.responses.general.artist import RockItArtistResponse
-from backend.responses.general.playlist import RockItPlaylistResponse
-from backend.responses.general.songWithAlbum import RockItSongWithAlbumResponse
+from backend.responses.rockItAlbumWithoutSongsResponse import RockItAlbumWithoutSongsResponse
+from backend.responses.rockItArtistResponse import RockItArtistResponse
+from backend.responses.rockItPlaylistResponse import RockItPlaylistResponse
+from backend.responses.rockItSongWithAlbumResponse import RockItSongWithAlbumResponse
 from backend.spotifyApiTypes.RawSpotifyApiSearchResults import RawSpotifyApiSearchResults
 
 

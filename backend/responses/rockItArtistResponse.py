@@ -3,7 +3,7 @@ from pydantic import BaseModel
 
 from backend.constants import BACKEND_URL
 from backend.db.ormModels.main.artist import ArtistRow
-from backend.responses.general.externalImage import RockItExternalImageResponse
+from backend.responses.rockItExternalImageResponse import RockItExternalImageResponse
 from backend.spotifyApiTypes.RawSpotifyApiSearchResults import SpotifySearchResultsArtists, SpotifySearchResultsArtists1, SpotifySearchResultsArtists3, SpotifySearchResultsItems1
 
 

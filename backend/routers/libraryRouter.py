@@ -14,8 +14,8 @@ from backend.db.ormModels.main.user import UserRow
 from backend.db.ormModels.main.album import AlbumRow
 from backend.db.ormModels.main.playlist import PlaylistRow
 
-from backend.responses.general.albumWithoutSongs import RockItAlbumWithoutSongsResponse
-from backend.responses.general.playlist import RockItPlaylistResponse
+from backend.responses.rockItAlbumWithoutSongsResponse import RockItAlbumWithoutSongsResponse
+from backend.responses.rockItPlaylistResponse import RockItPlaylistResponse
 from backend.responses.libraryListsResponse import LibraryListsResponse
 
 from backend.utils.logger import getLogger

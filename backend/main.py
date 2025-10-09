@@ -12,7 +12,7 @@ from backend.constants import SONGS_PATH
 from backend.db.ormModels.main.list import ListRow
 from backend.downloader import downloader
 from backend.init import rockit_db, downloader
-from backend.responses.general.songWithAlbum import RockItSongWithAlbumResponse
+from backend.responses.rockItSongWithAlbumResponse import RockItSongWithAlbumResponse
 from backend.telegram.telegram_monitor import telegram_bot_task
 
 from backend.db.ormModels.main.user import UserRow

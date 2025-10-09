@@ -4,9 +4,9 @@ from datetime import datetime
 from backend.db.ormModels.main.song import SongRow
 from backend.constants import BACKEND_URL, SONGS_PATH
 
-from backend.responses.general.artist import RockItArtistResponse
-from backend.responses.general.albumWithoutSongs import RockItAlbumWithoutSongsResponse
-from backend.responses.general.songWithoutAlbum import RockItSongWithoutAlbumResponse
+from backend.responses.rockItArtistResponse import RockItArtistResponse
+from backend.responses.rockItAlbumWithoutSongsResponse import RockItAlbumWithoutSongsResponse
+from backend.responses.rockItSongWithoutAlbumResponse import RockItSongWithoutAlbumResponse
 
 from backend.spotifyApiTypes.RawSpotifyApiSearchResults import SpotifySearchResultsItems
 

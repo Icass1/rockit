@@ -3,8 +3,8 @@ from typing import List, Optional
 
 from backend.constants import BACKEND_URL
 from backend.db.ormModels.main.playlist import PlaylistRow
-from backend.responses.general.externalImage import RockItExternalImageResponse
-from backend.responses.general.songWithAlbum import RockItSongWithAlbumResponse
+from backend.responses.rockItExternalImageResponse import RockItExternalImageResponse
+from backend.responses.rockItSongWithAlbumResponse import RockItSongWithAlbumResponse
 
 
 class RockItPlaylistResponse(BaseModel):

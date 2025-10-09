@@ -7,7 +7,7 @@ from sqlalchemy.sql.expression import func
 
 from backend.init import rockit_db
 from backend.utils.auth import get_current_user
-from backend.responses.general.songWithAlbum import RockItSongWithAlbumResponse
+from backend.responses.rockItSongWithAlbumResponse import RockItSongWithAlbumResponse
 
 from backend.db.ormModels.main.song import SongRow
 from backend.db.ormModels.main.user import UserRow

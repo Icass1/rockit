@@ -1,8 +1,8 @@
 from typing import List
 from pydantic import BaseModel
 
-from backend.responses.general.albumWithoutSongs import RockItAlbumWithoutSongsResponse
-from backend.responses.general.playlist import RockItPlaylistResponse
+from backend.responses.rockItAlbumWithoutSongsResponse import RockItAlbumWithoutSongsResponse
+from backend.responses.rockItPlaylistResponse import RockItPlaylistResponse
 
 
 class LibraryListsResponse(BaseModel):

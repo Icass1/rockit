@@ -2,10 +2,10 @@ from logging import Logger
 
 from fastapi import APIRouter
 
-from backend.responses.general.albumWithSongs import RockItAlbumWithSongsResponse
+from backend.responses.rockItAlbumWithSongsResponse import RockItAlbumWithSongsResponse
 
-from backend.responses.general.playlist import RockItPlaylistResponse
-from backend.responses.general.songWithAlbum import RockItSongWithAlbumResponse
+from backend.responses.rockItPlaylistResponse import RockItPlaylistResponse
+from backend.responses.rockItSongWithAlbumResponse import RockItSongWithAlbumResponse
 from backend.utils.fastAPIRoute import fast_api_route
 from backend.utils.logger import getLogger
 

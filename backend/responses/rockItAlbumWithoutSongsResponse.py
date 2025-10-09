@@ -3,9 +3,9 @@ from pydantic import BaseModel
 
 from backend.constants import BACKEND_URL
 from backend.db.ormModels.main.album import AlbumRow
-from backend.responses.general.artist import RockItArtistResponse
-from backend.responses.general.copyright import RockItCopyrightResponse
-from backend.responses.general.externalImage import RockItExternalImageResponse
+from backend.responses.rockItArtistResponse import RockItArtistResponse
+from backend.responses.rockItCopyrightResponse import RockItCopyrightResponse
+from backend.responses.rockItExternalImageResponse import RockItExternalImageResponse
 from backend.spotifyApiTypes.RawSpotifyApiSearchResults import SpotifySearchResultsAlbum, SpotifySearchResultsItems2
 
 

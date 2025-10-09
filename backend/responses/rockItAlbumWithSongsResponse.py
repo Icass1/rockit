@@ -2,11 +2,11 @@ from typing import List
 from pydantic import BaseModel
 
 from backend.db.ormModels.main.album import AlbumRow
-from backend.responses.general.albumWithoutSongs import RockItAlbumWithoutSongsResponse
-from backend.responses.general.artist import RockItArtistResponse
-from backend.responses.general.copyright import RockItCopyrightResponse
-from backend.responses.general.externalImage import RockItExternalImageResponse
-from backend.responses.general.songWithoutAlbum import RockItSongWithoutAlbumResponse
+from backend.responses.rockItAlbumWithoutSongsResponse import RockItAlbumWithoutSongsResponse
+from backend.responses.rockItArtistResponse import RockItArtistResponse
+from backend.responses.rockItCopyrightResponse import RockItCopyrightResponse
+from backend.responses.rockItExternalImageResponse import RockItExternalImageResponse
+from backend.responses.rockItSongWithoutAlbumResponse import RockItSongWithoutAlbumResponse
 from backend.spotifyApiTypes.RawSpotifyApiSearchResults import SpotifySearchResultsAlbum, SpotifySearchResultsItems2
 
 

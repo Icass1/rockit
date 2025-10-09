@@ -8,8 +8,8 @@ from backend.db.base import Base
 from backend.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdated, TableAutoincrementId
 
 if TYPE_CHECKING:
-    from backend.db.ormModels.user import UserRow
-    from backend.db.ormModels.downloadStatus import DownloadStatusRow
+    from backend.db.ormModels.main.user import UserRow
+    from backend.db.ormModels.main.downloadStatus import DownloadStatusRow
 
 
 DOWNLOAD_STATUSES: Final[tuple[str, ...]] = (

@@ -7,10 +7,10 @@ from backend.db.base import Base
 from backend.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdated, TableAutoincrementId
 
 if TYPE_CHECKING:
-    from backend.db.ormModels.song import SongRow
-    from backend.db.ormModels.album import AlbumRow
-    from backend.db.ormModels.playlist import PlaylistRow
-    from backend.db.ormModels.artist import ArtistRow
+    from backend.db.ormModels.main.song import SongRow
+    from backend.db.ormModels.main.album import AlbumRow
+    from backend.db.ormModels.main.playlist import PlaylistRow
+    from backend.db.ormModels.main.artist import ArtistRow
 
 
 class InternalImageRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):

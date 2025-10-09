@@ -7,7 +7,7 @@ from backend.db.base import Base
 from backend.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdated, TableAutoincrementId
 
 if TYPE_CHECKING:
-    from backend.db.ormModels.user import UserRow
+    from backend.db.ormModels.main.user import UserRow
 
 
 class ErrorRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):

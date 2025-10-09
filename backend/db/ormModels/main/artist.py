@@ -11,11 +11,11 @@ from backend.db.associationTables.artist_genres import artist_genres
 from backend.db.associationTables.artist_external_images import artist_external_images
 
 if TYPE_CHECKING:
-    from backend.db.ormModels.song import SongRow
-    from backend.db.ormModels.album import AlbumRow
-    from backend.db.ormModels.genre import GenreRow
-    from backend.db.ormModels.internalImage import InternalImageRow
-    from backend.db.ormModels.externalImage import ExternalImageRow
+    from backend.db.ormModels.main.song import SongRow
+    from backend.db.ormModels.main.album import AlbumRow
+    from backend.db.ormModels.main.genre import GenreRow
+    from backend.db.ormModels.main.internalImage import InternalImageRow
+    from backend.db.ormModels.main.externalImage import ExternalImageRow
 
 
 class ArtistRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
@@ -26,8 +26,8 @@ class ArtistRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     name: Mapped[str] = mapped_column(String, nullable=False)
     followers: Mapped[int] = mapped_column(Integer, nullable=False)
     popularity: Mapped[int] = mapped_column(Integer, nullable=False)
-    internal_image_id: Mapped[int] = mapped_column(Integer, ForeignKey(
-        'main.internal_images.id'), nullable=False)
+    internal_image_id: Mapped[int | None] = mapped_column(Integer, ForeignKey(
+        'main.internal_images.id'), nullable=True)
 
     songs: Mapped[List["SongRow"]] = relationship("SongRow", secondary=song_artists,
                                                   back_populates="artists")
@@ -48,7 +48,7 @@ class ArtistRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
         back_populates="artists"
     )
 
-    def __init__(self, public_id: str, name: str, followers: int, popularity: int, internal_image_id: int):
+    def __init__(self, public_id: str, name: str, followers: int, popularity: int, internal_image_id: int | None = None):
         kwargs = {}
         kwargs['public_id'] = public_id
         kwargs['name'] = name

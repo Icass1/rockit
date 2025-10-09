@@ -8,7 +8,7 @@ from backend.db.ormModels.declarativeMixin import TableAutoincrementId, TableDat
 from backend.db.associationTables.album_copyrights import album_copyrights
 
 if TYPE_CHECKING:
-    from backend.db.ormModels.album import AlbumRow
+    from backend.db.ormModels.main.album import AlbumRow
 
 COPYRIGHT_TYPES: Final[tuple[str, ...]] = (
     "C",

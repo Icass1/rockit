@@ -8,7 +8,7 @@ from backend.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdat
 from backend.db.associationTables.artist_genres import artist_genres
 
 if TYPE_CHECKING:
-    from backend.db.ormModels.artist import ArtistRow
+    from backend.db.ormModels.main.artist import ArtistRow
 
 
 class GenreRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):

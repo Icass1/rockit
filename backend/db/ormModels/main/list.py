@@ -9,9 +9,9 @@ from backend.db.associationTables.user_library_lists import user_library_lists
 from backend.db.associationTables.user_pinned_lists import user_pinned_lists
 
 if TYPE_CHECKING:
-    from backend.db.ormModels.user import UserRow
-    from backend.db.ormModels.album import AlbumRow
-    from backend.db.ormModels.playlist import PlaylistRow
+    from backend.db.ormModels.main.user import UserRow
+    from backend.db.ormModels.main.album import AlbumRow
+    from backend.db.ormModels.main.playlist import PlaylistRow
 
 
 LIST_TYPES: Final[tuple[str, ...]] = (

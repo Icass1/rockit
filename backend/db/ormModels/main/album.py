@@ -10,13 +10,13 @@ from backend.db.associationTables.album_copyrights import album_copyrights
 from backend.db.associationTables.album_external_images import album_external_images
 
 if TYPE_CHECKING:
-    from backend.db.ormModels.song import SongRow
-    from backend.db.ormModels.list import ListRow
-    from backend.db.ormModels.artist import ArtistRow
-    from backend.db.ormModels.copyright import CopyrightRow
-    from backend.db.ormModels.internalImage import InternalImageRow
-    from backend.db.ormModels.externalImage import ExternalImageRow
-    from backend.db.ormModels.downloadStatus import DownloadStatusRow
+    from backend.db.ormModels.main.song import SongRow
+    from backend.db.ormModels.main.list import ListRow
+    from backend.db.ormModels.main.artist import ArtistRow
+    from backend.db.ormModels.main.copyright import CopyrightRow
+    from backend.db.ormModels.main.internalImage import InternalImageRow
+    from backend.db.ormModels.main.externalImage import ExternalImageRow
+    from backend.db.ormModels.main.downloadStatus import DownloadStatusRow
 
 
 class AlbumRow(Base, TableDateUpdated, TableDateAdded):

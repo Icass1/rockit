@@ -12,12 +12,12 @@ from backend.db.associationTables.user_queue_songs import user_queue_songs
 from backend.db.associationTables.user_history_songs import user_history_songs
 
 if TYPE_CHECKING:
-    from backend.db.ormModels.user import UserRow
-    from backend.db.ormModels.album import AlbumRow
-    from backend.db.ormModels.artist import ArtistRow
-    from backend.db.ormModels.playlist import PlaylistRow
-    from backend.db.ormModels.internalImage import InternalImageRow
-    from backend.db.ormModels.downloadStatus import DownloadStatusRow
+    from backend.db.ormModels.main.user import UserRow
+    from backend.db.ormModels.main.album import AlbumRow
+    from backend.db.ormModels.main.artist import ArtistRow
+    from backend.db.ormModels.main.playlist import PlaylistRow
+    from backend.db.ormModels.main.internalImage import InternalImageRow
+    from backend.db.ormModels.main.downloadStatus import DownloadStatusRow
 
 
 class SongRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):

@@ -10,9 +10,9 @@ from backend.db.associationTables.artist_external_images import artist_external_
 from backend.db.associationTables.playlist_external_images import playlist_external_images
 
 if TYPE_CHECKING:
-    from backend.db.ormModels.album import AlbumRow
-    from backend.db.ormModels.artist import ArtistRow
-    from backend.db.ormModels.playlist import PlaylistRow
+    from backend.db.ormModels.main.album import AlbumRow
+    from backend.db.ormModels.main.artist import ArtistRow
+    from backend.db.ormModels.main.playlist import PlaylistRow
 
 
 class ExternalImageRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):

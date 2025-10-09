@@ -347,93 +347,95 @@ class Spotify:
 
         return result
 
-    def get_albums_with_songs_from_db(self, public_ids: List[str]) -> Sequence[AlbumRow]:
-        return self.rockit_db.execute_with_session(
-            lambda s:
-            s.execute(
-                select(AlbumRow)
-                .options(
-                    # Load album artists and album artists genres.
-                    joinedload(AlbumRow.artists).
-                    joinedload(ArtistRow.genres),
-                    # Load album artists and album artists external images.
-                    joinedload(AlbumRow.artists).
-                    joinedload(ArtistRow.external_images),
-                    # Load album artists and album internal external image.
-                    joinedload(AlbumRow.artists).
-                    joinedload(ArtistRow.internal_image),
-                    # Load song artists.
-                    joinedload(AlbumRow.songs).
-                    joinedload(SongRow.artists),
-                    # Load song artists genres.
-                    joinedload(AlbumRow.songs).
-                    joinedload(SongRow.artists).
-                    joinedload(ArtistRow.genres),
-                    # Load song artists external images.
-                    joinedload(AlbumRow.songs).
-                    joinedload(SongRow.artists).
-                    joinedload(ArtistRow.external_images),
-                    # Load song artists intenral image.
-                    joinedload(AlbumRow.songs).
-                    joinedload(SongRow.artists).
-                    joinedload(ArtistRow.internal_image),
-                    # Load song artists.
-                    joinedload(AlbumRow.songs).
-                    joinedload(SongRow.internal_image),
-                    # Load song album, song album artists and song album artists genres.
-                    joinedload(AlbumRow.songs).
-                    joinedload(SongRow.album).
-                    joinedload(AlbumRow.artists).
-                    joinedload(ArtistRow.genres),
-                    # Load song album artists external_images.
-                    joinedload(AlbumRow.songs).
-                    joinedload(SongRow.album).
-                    joinedload(AlbumRow.artists).
-                    joinedload(ArtistRow.external_images),
-                    # Load album external images.
-                    joinedload(AlbumRow.external_images),
-                    # Load album internal image.
-                    joinedload(AlbumRow.internal_image),
-                    # Load album copyrights.
-                    joinedload(AlbumRow.copyrights),
-                )
-                .where(
-                    AlbumRow.public_id.in_(public_ids)
-                ))
-                .unique()
-                .scalars()
-                .all()
-        )
+    def get_albums_from_db(self, public_ids: List[str], songs: bool) -> Sequence[AlbumRow]:
+        """"""
 
-    def get_albums_without_songs_from_db(self, public_ids: List[str]) -> Sequence[AlbumRow]:
-        return self.rockit_db.execute_with_session(
-            lambda s:
-            s.execute(
-                select(AlbumRow)
-                .options(
-                    # Load album artists and album artists genres.
-                    joinedload(AlbumRow.artists).
-                    joinedload(ArtistRow.genres),
-                    # Load album artists and album artists external images.
-                    joinedload(AlbumRow.artists).
-                    joinedload(ArtistRow.external_images),
-                    # Load album artists and album internal external image.
-                    joinedload(AlbumRow.artists).
-                    joinedload(ArtistRow.internal_image),
-                    # Load album external images.
-                    joinedload(AlbumRow.external_images),
-                    # Load album internal image.
-                    joinedload(AlbumRow.internal_image),
-                    # Load album copyrights.
-                    joinedload(AlbumRow.copyrights),
-                )
-                .where(
-                    AlbumRow.public_id.in_(public_ids)
-                ))
-                .unique()
-                .scalars()
-                .all()
-        )
+        if songs:
+            return self.rockit_db.execute_with_session(
+                lambda s:
+                s.execute(
+                    select(AlbumRow)
+                    .options(
+                        # Load album artists and album artists genres.
+                        joinedload(AlbumRow.artists).
+                        joinedload(ArtistRow.genres),
+                        # Load album artists and album artists external images.
+                        joinedload(AlbumRow.artists).
+                        joinedload(ArtistRow.external_images),
+                        # Load album artists and album internal external image.
+                        joinedload(AlbumRow.artists).
+                        joinedload(ArtistRow.internal_image),
+                        # Load song artists.
+                        joinedload(AlbumRow.songs).
+                        joinedload(SongRow.artists),
+                        # Load song artists genres.
+                        joinedload(AlbumRow.songs).
+                        joinedload(SongRow.artists).
+                        joinedload(ArtistRow.genres),
+                        # Load song artists external images.
+                        joinedload(AlbumRow.songs).
+                        joinedload(SongRow.artists).
+                        joinedload(ArtistRow.external_images),
+                        # Load song artists intenral image.
+                        joinedload(AlbumRow.songs).
+                        joinedload(SongRow.artists).
+                        joinedload(ArtistRow.internal_image),
+                        # Load song artists.
+                        joinedload(AlbumRow.songs).
+                        joinedload(SongRow.internal_image),
+                        # Load song album, song album artists and song album artists genres.
+                        joinedload(AlbumRow.songs).
+                        joinedload(SongRow.album).
+                        joinedload(AlbumRow.artists).
+                        joinedload(ArtistRow.genres),
+                        # Load song album artists external_images.
+                        joinedload(AlbumRow.songs).
+                        joinedload(SongRow.album).
+                        joinedload(AlbumRow.artists).
+                        joinedload(ArtistRow.external_images),
+                        # Load album external images.
+                        joinedload(AlbumRow.external_images),
+                        # Load album internal image.
+                        joinedload(AlbumRow.internal_image),
+                        # Load album copyrights.
+                        joinedload(AlbumRow.copyrights),
+                    )
+                    .where(
+                        AlbumRow.public_id.in_(public_ids)
+                    ))
+                    .unique()
+                    .scalars()
+                    .all()
+            )
+        else:
+            return self.rockit_db.execute_with_session(
+                lambda s:
+                s.execute(
+                    select(AlbumRow)
+                    .options(
+                        # Load album artists and album artists genres.
+                        joinedload(AlbumRow.artists).
+                        joinedload(ArtistRow.genres),
+                        # Load album artists and album artists external images.
+                        joinedload(AlbumRow.artists).
+                        joinedload(ArtistRow.external_images),
+                        # Load album artists and album internal external image.
+                        joinedload(AlbumRow.artists).
+                        joinedload(ArtistRow.internal_image),
+                        # Load album external images.
+                        joinedload(AlbumRow.external_images),
+                        # Load album internal image.
+                        joinedload(AlbumRow.internal_image),
+                        # Load album copyrights.
+                        joinedload(AlbumRow.copyrights),
+                    )
+                    .where(
+                        AlbumRow.public_id.in_(public_ids)
+                    ))
+                    .unique()
+                    .scalars()
+                    .all()
+            )
 
     def add_spotify_albums_to_db(self, albums: List[RawSpotifyApiAlbum]) -> None:
         """Adds Spotify albums to database."""
@@ -631,14 +633,14 @@ class Spotify:
                 self.get_songs(
                     [song.id for song in album.tracks.items if song.id])
 
-    def get_albums(self, public_ids: List[str]) -> List[AlbumRow]:
+    def get_albums(self, public_ids: List[str], songs: bool) -> List[AlbumRow]:
         """TODO"""
         self.logger.debug(f"{public_ids=}")
 
         result: List[AlbumRow] = []
 
-        albums_in_db: Sequence[AlbumRow] = self.get_albums_without_songs_from_db(
-            public_ids=public_ids)
+        albums_in_db: Sequence[AlbumRow] = self.get_albums_from_db(
+            public_ids=public_ids, songs=songs)
 
         have_to_update = False
 
@@ -655,8 +657,8 @@ class Spotify:
 
         # If an album with no artists was found, the artists should be now in database so update all albums.
         if have_to_update:
-            albums_in_db: Sequence[AlbumRow] = self.get_albums_without_songs_from_db(
-                public_ids=public_ids)
+            albums_in_db: Sequence[AlbumRow] = self.get_albums_from_db(
+                public_ids=public_ids, songs=songs)
 
         albums_in_db_public_ids: List[str] = [
             album.public_id for album in albums_in_db]
@@ -674,8 +676,8 @@ class Spotify:
             spotify_albums = self.get_albums_from_spotify(missing_albums)
             self.add_spotify_albums_to_db(spotify_albums)
 
-        new_albums_in_db = self.get_albums_without_songs_from_db(
-            missing_albums)
+        new_albums_in_db = self.get_albums_from_db(
+            missing_albums, songs=songs)
 
         if len(new_albums_in_db) != len(missing_albums):
             self.logger.error(
@@ -689,10 +691,10 @@ class Spotify:
 
         return result
 
-    def get_album(self, public_id: str) -> AlbumRow:
+    def get_album(self, public_id: str, songs: bool) -> AlbumRow:
         """Get a single album given the public ID."""
 
-        return self.get_albums([public_id])[0]
+        return self.get_albums(public_ids=[public_id], songs=songs)[0]
 
     # **********************
     # **** Song methods ****
@@ -1027,7 +1029,7 @@ class Spotify:
                 continue
             albums_public_id.add(item.track.album.id)
 
-        self.get_albums(list(albums_public_id))
+        self.get_albums(public_ids=list(albums_public_id), songs=False)
 
         # Add all songs to database.
         song_rows: List[SongRow] = self.get_songs(

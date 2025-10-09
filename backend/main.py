@@ -196,7 +196,7 @@ async def websocket_endpoint(websocket: WebSocket):
 
     user_row = get_current_user_from_token(token)
 
-    logger.debug("Web socket connected", user_row.id)
+    logger.debug(f"Web socket connected {user_row.id}")
 
     await websocket.accept()
     try:
@@ -207,7 +207,7 @@ async def websocket_endpoint(websocket: WebSocket):
     except Exception as e:
         print(e)
 
-    logger.debug("Web socket disconnected", user_row.id)
+    logger.debug(f"Web socket disconnected {user_row.id}")
 
 
 @app.on_event('startup')

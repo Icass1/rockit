@@ -912,90 +912,87 @@ class Spotify:
 
         self.logger.error("Not implemented error.")
 
-    def get_playlists_from_db(self, public_ids) -> Sequence[PlaylistRow]:
+    def get_playlists_from_db(self, public_ids, songs: bool) -> Sequence[PlaylistRow]:
         """TODO"""
         self.logger.debug(f"{public_ids=}")
 
-        return self.rockit_db.execute_with_session(
-            lambda s:
-            s.execute(
-                select(PlaylistRow)
-                .options(
-                    #
-                    joinedload(PlaylistRow.external_images),
-                    joinedload(PlaylistRow.internal_image),
-                )
-                .where(
-                    PlaylistRow.public_id.in_(public_ids)
-                ))
-                .unique()
-                .scalars()
-                .all()
-        )
+        if songs:
+            return self.rockit_db.execute_with_session(
+                lambda s:
+                s.execute(
+                    select(PlaylistRow)
+                    .options(
+                        #
+                        joinedload(PlaylistRow.external_images),
+                        joinedload(PlaylistRow.internal_image),
+                        #
+                        #
+                        joinedload(PlaylistRow.songs).
+                        joinedload(SongRow.internal_image),
+                        #
+                        joinedload(PlaylistRow.songs).
+                        joinedload(SongRow.artists),
+                        #
+                        joinedload(PlaylistRow.songs).
+                        joinedload(SongRow.artists).
+                        joinedload(ArtistRow.internal_image),
+                        #
+                        joinedload(PlaylistRow.songs).
+                        joinedload(SongRow.artists).
+                        joinedload(ArtistRow.genres),
+                        #
+                        joinedload(PlaylistRow.songs).
+                        joinedload(SongRow.artists).
+                        joinedload(ArtistRow.external_images),
+                        #
+                        joinedload(PlaylistRow.songs).
+                        joinedload(SongRow.album).
+                        joinedload(AlbumRow.artists).
+                        joinedload(ArtistRow.genres),
+                        #
+                        joinedload(PlaylistRow.songs).
+                        joinedload(SongRow.album).
+                        joinedload(AlbumRow.artists).
+                        joinedload(ArtistRow.external_images),
+                        #
+                        joinedload(PlaylistRow.songs).
+                        joinedload(SongRow.album).
+                        joinedload(AlbumRow.artists).
+                        joinedload(ArtistRow.internal_image),
+                        #
+                        joinedload(PlaylistRow.songs).
+                        joinedload(SongRow.album).
+                        joinedload(AlbumRow.internal_image),
+                        #
+                        joinedload(PlaylistRow.songs).
+                        joinedload(SongRow.album).
+                        joinedload(AlbumRow.external_images),
 
-    def get_playlists_with_songs_from_db(self, public_ids) -> Sequence[PlaylistRow]:
-        """TODO"""
-        self.logger.debug(f"{public_ids=}")
-
-        return self.rockit_db.execute_with_session(
-            lambda s:
-            s.execute(
-                select(PlaylistRow)
-                .options(
-                    #
-                    joinedload(PlaylistRow.external_images),
-                    joinedload(PlaylistRow.internal_image),
-                    #
-                    #
-                    joinedload(PlaylistRow.songs).
-                    joinedload(SongRow.internal_image),
-                    #
-                    joinedload(PlaylistRow.songs).
-                    joinedload(SongRow.artists),
-                    #
-                    joinedload(PlaylistRow.songs).
-                    joinedload(SongRow.artists).
-                    joinedload(ArtistRow.internal_image),
-                    #
-                    joinedload(PlaylistRow.songs).
-                    joinedload(SongRow.artists).
-                    joinedload(ArtistRow.genres),
-                    #
-                    joinedload(PlaylistRow.songs).
-                    joinedload(SongRow.artists).
-                    joinedload(ArtistRow.external_images),
-                    #
-                    joinedload(PlaylistRow.songs).
-                    joinedload(SongRow.album).
-                    joinedload(AlbumRow.artists).
-                    joinedload(ArtistRow.genres),
-                    #
-                    joinedload(PlaylistRow.songs).
-                    joinedload(SongRow.album).
-                    joinedload(AlbumRow.artists).
-                    joinedload(ArtistRow.external_images),
-                    #
-                    joinedload(PlaylistRow.songs).
-                    joinedload(SongRow.album).
-                    joinedload(AlbumRow.artists).
-                    joinedload(ArtistRow.internal_image),
-                    #
-                    joinedload(PlaylistRow.songs).
-                    joinedload(SongRow.album).
-                    joinedload(AlbumRow.internal_image),
-                    #
-                    joinedload(PlaylistRow.songs).
-                    joinedload(SongRow.album).
-                    joinedload(AlbumRow.external_images),
-
-                )
-                .where(
-                    PlaylistRow.public_id.in_(public_ids)
-                ))
-                .unique()
-                .scalars()
-                .all()
-        )
+                    )
+                    .where(
+                        PlaylistRow.public_id.in_(public_ids)
+                    ))
+                    .unique()
+                    .scalars()
+                    .all()
+            )
+        else:
+            return self.rockit_db.execute_with_session(
+                lambda s:
+                s.execute(
+                    select(PlaylistRow)
+                    .options(
+                        #
+                        joinedload(PlaylistRow.external_images),
+                        joinedload(PlaylistRow.internal_image),
+                    )
+                    .where(
+                        PlaylistRow.public_id.in_(public_ids)
+                    ))
+                    .unique()
+                    .scalars()
+                    .all()
+            )
 
     def add_or_update_playlist_songs_to_db(self, playlist_id: int, href: str | None):
         """TODO"""
@@ -1092,7 +1089,7 @@ class Spotify:
                 InternalImageRow.url.in_([spotify_playlist.images[0].url for spotify_playlist in spotify_playlists if spotify_playlist.images and spotify_playlist.images[0].url])).all()
 
             playlists_in_db: Sequence[PlaylistRow] = self.get_playlists_from_db(
-                public_ids=public_ids)
+                public_ids=public_ids, songs=False)
 
             for spotify_playlist in spotify_playlists:
                 if spotify_playlist.id is None \
@@ -1166,8 +1163,8 @@ class Spotify:
                         playlist_to_add.id, spotify_playlist.tracks.href
                     )
 
-            result.extend(self.get_playlists_with_songs_from_db(
-                public_ids=public_ids))
+            result.extend(self.get_playlists_from_db(
+                public_ids=public_ids, songs=True))
 
         return result
 

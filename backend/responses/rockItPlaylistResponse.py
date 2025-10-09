@@ -4,6 +4,7 @@ from typing import List, Optional
 from backend.constants import BACKEND_URL
 from backend.db.ormModels.main.playlist import PlaylistRow
 from backend.responses.rockItExternalImageResponse import RockItExternalImageResponse
+from backend.responses.rockItSongPlaylistResponse import RockItSongPlaylistResponse
 from backend.responses.rockItSongWithAlbumResponse import RockItSongWithAlbumResponse
 
 
@@ -12,7 +13,7 @@ class RockItPlaylistResponse(BaseModel):
     name: str
     externalImages: List[RockItExternalImageResponse]
     internalImageUrl: Optional[str]
-    songs: List[RockItSongWithAlbumResponse]
+    songs: List[RockItSongPlaylistResponse]
 
     @staticmethod
     def from_row(playlist: PlaylistRow) -> "RockItPlaylistResponse":
@@ -22,5 +23,6 @@ class RockItPlaylistResponse(BaseModel):
             externalImages=[RockItExternalImageResponse.from_row(
                 image) for image in playlist.external_images],
             internalImageUrl=f"{BACKEND_URL}/image/{playlist.internal_image.public_id}" if playlist.internal_image else None,
-            songs=[RockItSongWithAlbumResponse.from_row(song) for song in playlist.songs]
+            songs=[RockItSongPlaylistResponse.from_row(
+                song) for song in playlist.songs]
         )

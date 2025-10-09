@@ -3,6 +3,7 @@ import { RockItSongWithAlbumResponse } from "./rockItSongWithAlbumResponse";
 
 export const RockItSongPlaylistResponse = RockItSongWithAlbumResponse.extend({
     addedAt: z.date(),
+    song: RockItSongWithAlbumResponse,
 });
 
 export type RockItSongPlaylistResponse = z.infer<

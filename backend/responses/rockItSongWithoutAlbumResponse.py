@@ -3,7 +3,7 @@ from datetime import datetime
 from pydantic import BaseModel
 from typing import List, Optional
 
-from backend.constants import SONGS_PATH
+from backend.constants import BACKEND_URL, SONGS_PATH
 from backend.db.ormModels.main.song import SongRow
 from backend.responses.rockItArtistResponse import RockItArtistResponse
 from backend.spotifyApiTypes.RawSpotifyApiSearchResults import SpotifySearchResultsItems

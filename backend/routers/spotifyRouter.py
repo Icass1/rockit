@@ -19,7 +19,7 @@ logger: Logger = getLogger(__name__)
 @fast_api_route(app=router, path="/album/{album_public_id}")
 def get_spotify_album(album_public_id: str) -> RockItAlbumWithSongsResponse:
     """TODO"""
-    return RockItAlbumWithSongsResponse.from_row(album=downloader.spotify.get_album(public_id=album_public_id))
+    return RockItAlbumWithSongsResponse.from_row(album=downloader.spotify.get_album(public_id=album_public_id, songs=True))
 
 
 @fast_api_route(app=router, path="/song/{song_public_id}")

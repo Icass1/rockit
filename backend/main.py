@@ -1,19 +1,19 @@
 import os
 import asyncio
 import threading
-from typing import Optional
+from sqlalchemy import select
+from typing import List, Optional
 from importlib import import_module
 
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Depends, FastAPI, HTTPException, Request, Response, WebSocket
-from sqlalchemy import CursorResult, select
 
 from backend.constants import SONGS_PATH
-from backend.db.ormModels.main.list import ListRow
 from backend.downloader import downloader
 from backend.init import rockit_db, downloader
-from backend.responses.rockItSongWithAlbumResponse import RockItSongWithAlbumResponse
+from backend.db.ormModels.main.list import ListRow
 from backend.telegram.telegram_monitor import telegram_bot_task
+from backend.responses.rockItSongWithAlbumResponse import RockItSongWithAlbumResponse
 
 from backend.db.ormModels.main.user import UserRow
 from backend.db.ormModels.main.song import SongRow
@@ -172,20 +172,32 @@ def get_queue(current_user: UserRow = Depends(get_current_user)) -> QueueRespons
 
         result = s.execute(stmt).mappings().all()
 
-        return QueueResponse(
-            currentQueueSongId=user_row.queue_song_id,
-            queue=[
+        queue_items: List[QueueResponseItem] = []
+
+        for row in result:
+            list_row: ListRow | None = s.query(ListRow).where(
+                ListRow.id == row["list_id"]).first()
+
+            if not list_row:
+                logger.error(f"list_row is None. List id: {row['list_id']}")
+                continue
+
+            queue_items.append(
                 QueueResponseItem(
                     song=RockItSongWithAlbumResponse.from_row(
                         s.query(SongRow).where(SongRow.id == row["song_id"]).first()),
                     queueSongId=row["queue_song_id"],
                     list=QueueResponseItemList(
                         type=row["list_type"],
-                        publicId=s.query(ListRow).where(
-                            ListRow.id == row["list_id"]).first().public_id,
+                        publicId=list_row.public_id,
                     )
-                ) for row in result
-            ]
+                )
+
+            )
+
+        return QueueResponse(
+            currentQueueSongId=user_row.queue_song_id,
+            queue=queue_items
         )
 
 

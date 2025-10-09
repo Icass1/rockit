@@ -1,6 +1,7 @@
 from typing import List
 from pydantic import BaseModel
 
+from backend.constants import BACKEND_URL
 from backend.db.ormModels.main.album import AlbumRow
 from backend.responses.rockItAlbumWithoutSongsResponse import RockItAlbumWithoutSongsResponse
 from backend.responses.rockItArtistResponse import RockItArtistResponse

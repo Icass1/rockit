@@ -21,12 +21,6 @@ pip install -r requirements.txt
 pnpm i
 ```
 
-If better-sqlite returns an error run:
-
-```bash
-sudo apt install build-essential
-```
-
 ## Setup .env file
 
 Create .env file from tamplate.
@@ -42,21 +36,12 @@ Then, fill all the settings.
 RockIt needs two separate servers to run, frontend and backend.
 
 - Server 1
-    ```bash
-    python3 backend/main.py
-    ```
-- Server 2
-    ```bash
-    pnpm run dev
-    ```
-
-## Build Astro JS Node adapter
-
 ```bash
-cd adapters--astrojs-node-8.3.4/packages/node
-pnpm install
-pnpm run build
-pnpm pack
+fastapi run backend/main.py
+```
+- Server 2
+```bash
+pnpm run dev
 ```
 
 # Docker
@@ -65,9 +50,9 @@ pnpm pack
 
 ```bash
 # Backend base image image
-docker build -f Dockerfile.backend.base -t rockit-nextjs-fastapi-base .
+docker build -f Dockerfile.backend.base -t rockit-backend-base .
 # Frontend base image image
-docker build -f Dockerfile.frontend.base -t rockit-nextjs-base .
+docker build -f Dockerfile.frontend.base -t rockit-frontend-base .
 ```
 
 ## Docker compose

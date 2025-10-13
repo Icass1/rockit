@@ -42,22 +42,6 @@ services:
       - <path to songs dir>:/app/songs
       - <path to images dir>:/app/images
 
-  websocket-server:
-    container_name: "RockItWebSocket"
-    build:
-      context: .
-      dockerfile: Dockerfile.websocket
-
-    ports:
-      - "<Port to access WebSocket>:3001"
-    restart: unless-stopped
-    networks:
-      - rockit
-    env_file:
-      - .env.production
-    volumes:
-      - <path to database dir>:/app/database
-
 networks:
   app-network:
     driver: bridge

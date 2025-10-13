@@ -1,12 +1,8 @@
 const REQUIRED_ENV_VARS = [
     "ENVIRONMENT",
-    // "CLIENT_ID",
-    // "CLIENT_SECRET",
     "BACKEND_URL",
-    // "FRONTEND_URL",
     "SONGS_PATH",
     "TEMP_PATH",
-    // "LOGS_PATH",
     "IMAGES_PATH",
     "INSECURE_DB_MODE",
     "NEXTAUTH_URL",

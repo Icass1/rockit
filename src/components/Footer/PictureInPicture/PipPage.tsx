@@ -103,7 +103,7 @@ export default function PiPContent() {
                                 <Shuffle style={responsiveIcon} color="white" />
                             </button>
                             <button
-                                onClick={() => rockIt.audioManager.skipBack()}
+                                onClick={() => rockIt.queueManager.skipBack()}
                                 style={iconButton}
                             >
                                 <SkipBack
@@ -143,7 +143,7 @@ export default function PiPContent() {
                             </button>
                             <button
                                 onClick={() =>
-                                    rockIt.audioManager.skipForward()
+                                    rockIt.queueManager.skipForward()
                                 }
                                 style={iconButton}
                             >

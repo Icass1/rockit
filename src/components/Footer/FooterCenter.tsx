@@ -52,7 +52,7 @@ export default function FooterCenter() {
                             className={
                                 "h-[22px] w-[22px] cursor-pointer fill-current text-gray-400 md:hover:scale-105 md:hover:text-white"
                             }
-                            onClick={() => rockIt.audioManager.skipBack()}
+                            onClick={() => rockIt.queueManager.skipBack()}
                         />
 
                         {$loading ? (
@@ -73,7 +73,7 @@ export default function FooterCenter() {
                             className={
                                 "h-[22px] w-[22px] cursor-pointer fill-current text-gray-400 md:hover:scale-105 md:hover:text-white"
                             }
-                            onClick={() => rockIt.audioManager.skipForward()}
+                            onClick={() => rockIt.queueManager.skipForward()}
                         />
                         {$repeatSong === "one" ? (
                             <Repeat1

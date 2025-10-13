@@ -62,6 +62,10 @@ export class QueueManager {
 
     // #region: Methods
 
+    skipBack() {}
+
+    skipForward() {}
+    
     setSongs(
         songs: RockItSongWithAlbum[],
         listType: QueueListType,

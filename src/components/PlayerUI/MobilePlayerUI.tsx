@@ -321,7 +321,7 @@ export default function MobilePlayerUI() {
                     <button
                         className="flex h-12 w-12 items-center justify-center"
                         onClick={async () => {
-                            rockIt.audioManager.skipBack();
+                            rockIt.queueManager.skipBack();
                         }}
                     >
                         <SkipBack className="h-8 w-8 fill-current" />
@@ -344,7 +344,7 @@ export default function MobilePlayerUI() {
                     <button
                         className="flex h-12 w-12 items-center justify-center"
                         onClick={async () => {
-                            rockIt.audioManager.skipForward();
+                            rockIt.queueManager.skipForward();
                         }}
                     >
                         <SkipForward className="h-8 w-8 fill-current" />

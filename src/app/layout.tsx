@@ -14,6 +14,7 @@ import AddSessionProvider from "@/contexts/SessionContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { Suspense } from "react";
 import { Lang } from "@/types/lang";
+import PlayerUI from "@/components/PlayerUI/PlayerUI";
 
 async function getLanguage(): Promise<{ lang: string; langFile: Lang }> {
     const res = await fetch("http://localhost:3000/api/lang", {
@@ -73,11 +74,11 @@ export default async function RootLayout({
                                 {children}
                             </div>
 
-                            {/* 
-                    <div className="hidden md:block">
-                        <PlayerUI />
-                    </div>
-                    */}
+                            <div className="hidden md:block">
+                                <PlayerUI />
+                            </div>
+                            {/*
+                             */}
                             <div className="fixed right-0 bottom-0 left-0 z-40 hidden h-24 md:block">
                                 <Footer></Footer>
                             </div>

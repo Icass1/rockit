@@ -60,34 +60,45 @@ export class AudioManager {
 
     // #region: Methods
 
-    skipBack() {
-        throw new Error("(skipBack) Method not implemented.");
-    }
-
-    skipForward() {
-        throw new Error("(skipForward) Method not implemented.");
-    }
-
     togglePlayPause() {
-        throw new Error("(togglePlayPause) Method not implemented.");
+        if (!this._audio) {
+            console.warn("(togglePlayPause) Audio element not initialized");
+            return;
+        }
+        if (this._audio.paused) {
+            this._audio.play();
+        } else {
+            this._audio.pause();
+        }
     }
 
     togglePlayPauseOrSetSong() {
-        throw new Error("(togglePlayPauseOrSetSong) Method not implemented.");
-    }
-
-    play() {
         if (!this._audio) {
-            console.warn("(play) Audio element not initialized");
+            console.warn(
+                "(togglePlayPauseOrSetSong) Audio element not initialized"
+            );
             return;
         }
+        this.setSong();
 
+        if (this._audio.paused) {
+            this._audio.play();
+        } else {
+            this._audio.pause();
+        }
+    }
+
+    setSong() {
+        if (!this._audio) {
+            console.warn("(setSong) Audio element not initialized");
+            return;
+        }
         if (
             rockIt.queueManager.currentSong?.audioUrl &&
             this._audio.src != rockIt.queueManager.currentSong.audioUrl
         ) {
             console.log(
-                `(play) Setting audio src to ${rockIt.queueManager.currentSong.audioUrl}`
+                `(setSong) Setting audio src to ${rockIt.queueManager.currentSong.audioUrl}`
             );
             this._audio.volume = this._currentVolume.get();
             this._audio.src = rockIt.queueManager.currentSong.audioUrl;
@@ -96,6 +107,16 @@ export class AudioManager {
                 currentSong: rockIt.queueManager.currentSong.publicId,
             });
         }
+    }
+
+    play() {
+        if (!this._audio) {
+            console.warn("(play) Audio element not initialized");
+            return;
+        }
+
+        this.setSong();
+
         this._audio.play();
     }
 

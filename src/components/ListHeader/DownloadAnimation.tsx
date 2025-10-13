@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from "react";
 
-const DownloadAnimation = ({ progress = 0, duration = 2 }) => {
+const DownloadAnimation = ({ progress = 0 }) => {
     const [isAnimating, setIsAnimating] = useState(false);
-
-    console.warn("DownloadAnimation", { duration });
 
     useEffect(() => {
         setIsAnimating(true);
@@ -144,7 +142,7 @@ const DownloadAnimation = ({ progress = 0, duration = 2 }) => {
                         fontWeight="bold"
                         className={`opacity-0 ${isAnimating ? "animate-fadeIn" : ""}`}
                     >
-                        {circleProgress}%
+                        {Math.round(circleProgress * 100) / 100}%
                     </text>
                 </svg>
             </div>

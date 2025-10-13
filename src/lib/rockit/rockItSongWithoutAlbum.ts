@@ -73,6 +73,7 @@ export class RockItSongWithoutAlbum {
     // #region: Methods
 
     async updateAsync() {
+        if (this.downloaded) return;
         // console.log(
         //     "(RockItSongWithoutAlbum.updateAsync)",
         //     this.publicId,

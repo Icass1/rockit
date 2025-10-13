@@ -8,7 +8,10 @@ export default function TogglePlayerUI() {
     return (
         <div
             className="relative h-6 w-6 rounded border-[2.4px] border-solid border-gray-400 text-gray-400 transition-all md:hover:border-white md:hover:text-white"
-            onClick={rockIt.playerUIManager.toggle}
+            onClick={() => {
+                console.log("(TogglePlayerUI)");
+                rockIt.playerUIManager.toggle();
+            }}
         >
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
                 <ChevronUp

@@ -16,6 +16,7 @@ import { useStore } from "@nanostores/react";
 import LikeButton from "@/components/LikeButton";
 import { getTime } from "@/lib/utils/getTime";
 import { rockIt } from "@/lib/rockit/rockIt";
+import Image from "next/image";
 
 export default function PiPContent() {
     const $currentSong = useStore(rockIt.queueManager.currentSongAtom);
@@ -54,7 +55,7 @@ export default function PiPContent() {
             >
                 {/* Cover */}
                 {$currentSong?.internalImageUrl && (
-                    <img
+                    <Image
                         src={`/api/image/${$currentSong.internalImageUrl}`}
                         alt="Cover"
                         style={{
@@ -94,13 +95,15 @@ export default function PiPContent() {
                             }}
                         >
                             <button
-                                onClick={rockIt.userManager.toggleRandomQueue}
+                                onClick={() =>
+                                    rockIt.userManager.toggleRandomQueue()
+                                }
                                 style={iconButton}
                             >
                                 <Shuffle style={responsiveIcon} color="white" />
                             </button>
                             <button
-                                onClick={rockIt.audioManager.skipBack}
+                                onClick={() => rockIt.audioManager.skipBack()}
                                 style={iconButton}
                             >
                                 <SkipBack
@@ -110,7 +113,9 @@ export default function PiPContent() {
                                 />
                             </button>
                             <button
-                                onClick={rockIt.audioManager.togglePlayPause}
+                                onClick={() =>
+                                    rockIt.audioManager.togglePlayPauseOrSetSong()
+                                }
                                 style={iconButton}
                                 aria-label={$playing ? "Pause" : "Play"}
                             >
@@ -137,7 +142,9 @@ export default function PiPContent() {
                                 )}
                             </button>
                             <button
-                                onClick={rockIt.audioManager.skipForward}
+                                onClick={() =>
+                                    rockIt.audioManager.skipForward()
+                                }
                                 style={iconButton}
                             >
                                 <SkipForward
@@ -147,7 +154,9 @@ export default function PiPContent() {
                                 />
                             </button>
                             <button
-                                onClick={rockIt.userManager.cyclerepeatSong}
+                                onClick={() =>
+                                    rockIt.userManager.cyclerepeatSong()
+                                }
                                 style={iconButton}
                             >
                                 {$repeatSong === "one" ? (

@@ -1,5 +1,4 @@
 import { getSession, signOut } from "next-auth/react";
-import { rockIt } from "@/lib/rockit/rockIt";
 
 interface ApiFetchOptions {
     headers?: HeadersInit;
@@ -10,6 +9,8 @@ export default async function apiFetch(
     path: string,
     options?: ApiFetchOptions
 ): Promise<Response | undefined> {
+    const { rockIt } = await import("@/lib/rockit/rockIt");
+
     let token;
 
     const auth = options?.auth ?? true;
@@ -34,6 +35,7 @@ export default async function apiFetch(
         authHeaders.Authorization = `Bearer ${token}`;
     }
 
+    console.log("(apiFetch)", { rockIt, path });
     return fetch(`${rockIt.BACKEND_URL}${path}`, {
         headers: { ...options?.headers, ...authHeaders },
     });

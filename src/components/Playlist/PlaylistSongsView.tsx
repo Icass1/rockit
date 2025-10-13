@@ -11,7 +11,7 @@ import { RockItSongPlaylist } from "@/lib/rockit/rockItSongPlaylist";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { RockItPlaylistResponse } from "@/responses/rockItPlaylistResponse";
 
-type columnsType = "name" | "album" | "artist" | "addedAt" | "duration";
+type ColumnsType = "name" | "album" | "artist" | "addedAt" | "duration";
 
 export default function PlaylistSongsView({
     playlistResponse,
@@ -21,7 +21,7 @@ export default function PlaylistSongsView({
     const playlist = RockItPlaylist.fromResponse(playlistResponse);
 
     useEffect(() => {
-        console.log("useEffect 3");
+        // console.log("useEffect 3");
         rockIt.queueManager.setCurrentList({
             publicId: playlist.publicId,
             type: "playlist",
@@ -29,7 +29,7 @@ export default function PlaylistSongsView({
     }, [playlist.publicId]);
 
     const [filter, setFilter] = useState<{
-        column: columnsType;
+        column: ColumnsType;
         ascending: boolean;
     }>({ column: "addedAt", ascending: false });
 
@@ -41,7 +41,7 @@ export default function PlaylistSongsView({
     const [scroll, setScroll] = useState(0);
     const innerWidth = useWindowSize().width;
 
-    const toggleFilter = (column: columnsType) => {
+    const toggleFilter = (column: ColumnsType) => {
         setFilter((value) => {
             if (value.column == column) {
                 return { column: column, ascending: !value.ascending };
@@ -52,13 +52,13 @@ export default function PlaylistSongsView({
     };
 
     useEffect(() => {
-        console.log("useEffect 2");
+        // console.log("useEffect 2");
         // console.warn("songsToRender", songsToRender);
         rockIt.currentListManager.setCurrentListSongs(songsToRender);
     }, [songsToRender]);
 
     useEffect(() => {
-        console.log("useEffect 1", filter, playlist.songs);
+        // console.log("useEffect 1", filter, playlist.songs);
         switch (filter.column) {
             case "name":
                 setSongsToRender(
@@ -142,7 +142,7 @@ export default function PlaylistSongsView({
         }
     }, [filter, playlist.songs]);
 
-    const renderColumn = (column: columnsType) => {
+    const renderColumn = (column: ColumnsType) => {
         if (!lang) return false;
         const columnNames = {
             name: lang.name,
@@ -168,7 +168,7 @@ export default function PlaylistSongsView({
         );
     };
 
-    const renderArrow = (column: columnsType) => {
+    const renderArrow = (column: ColumnsType) => {
         if (filter.column == column) {
             return (
                 <ArrowUp

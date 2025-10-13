@@ -1,3 +1,4 @@
+"use client";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { DBListType } from "@/types/rockIt";
 import { Download } from "lucide-react";

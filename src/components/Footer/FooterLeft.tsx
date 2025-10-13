@@ -52,7 +52,7 @@ function FooterLeftForSong({
             {/* Imagen al inicio */}
             <div
                 className="group relative h-9 w-9 cursor-pointer rounded-md md:h-16 md:w-16"
-                onClick={rockIt.audioManager.togglePlayPause}
+                onClick={() => rockIt.audioManager.togglePlayPauseOrSetSong()}
             >
                 {/* Imagen del álbum */}
                 <div className="relative h-9 w-9 rounded-md md:h-16 md:w-16">
@@ -73,12 +73,12 @@ function FooterLeftForSong({
                     {$playing ? (
                         <Pause
                             className="h-6 w-6 fill-current text-white md:h-8 md:w-8"
-                            onClick={rockIt.audioManager.pause}
+                            onClick={() => rockIt.audioManager.pause()}
                         />
                     ) : (
                         <Play
                             className="h-6 w-6 fill-current text-white md:h-8 md:w-8"
-                            onClick={rockIt.audioManager.play}
+                            onClick={() => rockIt.audioManager.play()}
                         />
                     )}
                 </div>
@@ -105,7 +105,7 @@ function FooterLeftForSong({
                         <span className="flex flex-row items-center gap-3 font-semibold">
                             <Link
                                 href={`/song/${currentSong?.publicId}`}
-                                onClick={rockIt.playerUIManager.hide}
+                                onClick={() => rockIt.playerUIManager.hide()}
                                 className="w-full max-w-full min-w-0 truncate md:hover:underline"
                             >
                                 {currentSong?.name || "Canción desconocida :("}
@@ -113,7 +113,7 @@ function FooterLeftForSong({
                         </span>
                         <span
                             className="flex w-full flex-row gap-x-1 text-sm text-gray-400"
-                            onClick={rockIt.playerUIManager.hide}
+                            onClick={() => rockIt.playerUIManager.hide()}
                         >
                             <div className="truncate">
                                 {currentSong?.artists ? (
@@ -192,7 +192,7 @@ function FooterLeftForStation({ currentStation }: { currentStation: Station }) {
                 />
                 {$playing ? (
                     <PauseIcon
-                        onClick={rockIt.audioManager.pause}
+                        onClick={() => rockIt.audioManager.pause()}
                         className="absolute bg-neutral-500/70 p-4 transition-all"
                         style={{
                             display: hover ? "" : "none",
@@ -202,7 +202,7 @@ function FooterLeftForStation({ currentStation }: { currentStation: Station }) {
                     />
                 ) : (
                     <PlayIcon
-                        onClick={rockIt.audioManager.play}
+                        onClick={() => rockIt.audioManager.play()}
                         className="absolute bg-neutral-500/70 p-4 transition-all"
                         style={{
                             display: hover ? "" : "none",

@@ -2,6 +2,10 @@ import { RockItSongPlaylistResponse } from "@/responses/rockItSongPlaylistRespon
 import { RockItAlbumWithoutSongs } from "./rockItAlbumWithoutSongs";
 import { RockItArtist } from "./rockItArtist";
 import { createAtom } from "../store";
+import { RockItSongWithoutAlbum } from "./rockItSongWithoutAlbum";
+import { RockItSongWithAlbum } from "./rockItSongWithAlbum";
+import apiFetch from "../utils/apiFetch";
+import { RockItSongWithAlbumResponse } from "@/responses/rockItSongWithAlbumResponse";
 
 export class RockItSongPlaylist {
     static #instance: RockItSongPlaylist[] = [];
@@ -63,6 +67,58 @@ export class RockItSongPlaylist {
 
     // #endregion
 
+    async updateAsync() {
+        console.log("(updateAsync)", this.publicId, this.name);
+        if (this.downloaded) {
+            console.log("(updateAsync) skiping", this.name);
+            this.atom.set([this]);
+            return;
+        }
+        const response = await apiFetch(`/spotify/song/${this.publicId}`);
+        if (!response) {
+            console.error("Response is undefined.");
+            return;
+        }
+        const responseParsed = RockItSongWithAlbumResponse.parse(
+            await response.json()
+        );
+
+        console.log("(updateAsync)", this.publicId, this.name, responseParsed);
+
+        this.downloaded = responseParsed.downloaded;
+        this.audioUrl = responseParsed.audioUrl;
+        this.internalImageUrl = responseParsed.internalImageUrl;
+
+        this.atom.set([this]);
+    }
+
+    toRockItSongWithoutAlbum() {
+        return new RockItSongWithoutAlbum({
+            publicId: this.publicId,
+            name: this.publicId,
+            artists: this.artists,
+            downloaded: this.downloaded,
+            discNumber: this.discNumber,
+            duration: this.duration,
+            internalImageUrl: this.internalImageUrl,
+            audioUrl: this.audioUrl,
+        });
+    }
+
+    toRockItSongWithAlbum() {
+        return new RockItSongWithAlbum({
+            publicId: this.publicId,
+            name: this.publicId,
+            artists: this.artists,
+            downloaded: this.downloaded,
+            discNumber: this.discNumber,
+            duration: this.duration,
+            internalImageUrl: this.internalImageUrl,
+            audioUrl: this.audioUrl,
+            album: this.album,
+        });
+    }
+
     // #region: Getters
 
     // #endregion
@@ -99,11 +155,6 @@ export class RockItSongPlaylist {
     }
 
     static getExistingInstanceFromPublicId(publicId: string) {
-        console.log(
-            "RockItSongPlaylist instances",
-            RockItSongPlaylist.#instance
-        );
-
         for (const instance of RockItSongPlaylist.#instance) {
             if (instance.publicId == publicId) {
                 return instance;

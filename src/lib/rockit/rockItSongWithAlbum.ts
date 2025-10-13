@@ -75,12 +75,7 @@ export class RockItSongWithAlbum {
     // #region: Methods
 
     async updateAsync() {
-        // console.log(
-        //     "(RockItSongWithAlbum.updateAsync)",
-        //     this.publicId,
-        //     this.name,
-        //     this.downloaded
-        // );
+        if (this.downloaded) return
         const response = await apiFetch(`/spotify/song/${this.publicId}`);
         if (!response) {
             console.error("Response is undefined.");
@@ -90,20 +85,11 @@ export class RockItSongWithAlbum {
             await response.json()
         );
 
-        // console.log(
-        //     "(RockItSongWithAlbum.updateAsync)",
-        //     responseParsed,
-        //     responseParsed.downloaded
-        // );
-
         this.downloaded = responseParsed.downloaded;
         this.audioUrl = responseParsed.audioUrl;
         this.internalImageUrl = responseParsed.internalImageUrl;
 
         this.duration = 999;
-
-        // console.log("(RockItSongWithAlbum.updateAsync)", this);
-        // console.log("(RockItSongWithAlbum.updateAsync)", this.atom);
 
         this.atom.set([this]);
     }

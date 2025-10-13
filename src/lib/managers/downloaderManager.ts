@@ -34,6 +34,42 @@ export class DownloaderManager {
 
     constructor() {}
 
+    init() {
+        return;
+        if (typeof window == "undefined") {
+            return;
+        }
+        const type = "playlist";
+        const publicId = "7h6r9ScqSjCHH3QozfBdIq";
+        const downloadId = "IMZPc5DVyEq3sBwN";
+
+        this._downloadingListsAtom.push({ type, publicId });
+
+        const eventSource = new EventSource(
+            `${rockIt.BACKEND_URL}/downloader/download-status?id=${downloadId}`
+        );
+
+        eventSource.onerror = (ev: Event) => {
+            this.handleEventSourceError(eventSource, ev, () => {
+                const index = this._downloadingListsAtom
+                    .getReadonlyAtom()
+                    .findIndex(
+                        (item) => item.publicId == publicId && item.type == type
+                    );
+
+                this._downloadingListsAtom.splice(index, 1);
+            });
+        };
+
+        eventSource.onmessage = (ev: MessageEvent) => {
+            this.handleEventSourceMessage(eventSource, ev);
+        };
+
+        eventSource.onopen = (ev: Event) => {
+            this.handleEventSourceOpen(eventSource, ev);
+        };
+    }
+
     // #endregion
 
     // #region: Methods
@@ -127,7 +163,6 @@ export class DownloaderManager {
     private async handleSpotifySongDownloaded(publicId: string) {
         // console.log("(handleSpotifySongDownloaded)", { publicId });
 
-
         await RockItSongWithAlbum.getExistingInstanceFromPublicId(
             publicId
         )?.updateAsync();
@@ -162,7 +197,7 @@ export class DownloaderManager {
             const data = DownloadStatusMessage.parse(JSON.parse(ev.data));
             // console.log(data);
             if (data.completed == 100 && data.message != "Skipped") {
-                console.log("Song downloaded", data.id);
+                console.log("Song downloaded", data.id, data.message);
                 this.handleSpotifySongDownloaded(data.id);
             }
 

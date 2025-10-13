@@ -5,7 +5,6 @@ import LikeButton from "@/components/LikeButton";
 import { EllipsisVertical, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
 import { useStore } from "@nanostores/react";
-import { songHandleClick } from "./HandleClick";
 import SongContextMenu from "@/components/ListSongs/SongContextMenu";
 import { networkStatus } from "@/stores/networkStatus";
 import {
@@ -33,18 +32,19 @@ export default function PlaylistSong({ song }: { song: RockItSongPlaylist }) {
     );
 
     const router = useRouter();
+    const [$songAtom] = useStore(song.atom);
 
     if (!$queue) return <div className="skeleton h-10 w-full rounded"></div>;
 
     return (
-        <SongContextMenu song={song}>
+        <SongContextMenu song={$songAtom}>
             <div
                 className={
                     "flex flex-row items-center gap-2 rounded px-2 py-[0.5rem] transition-colors select-none md:gap-4 md:select-text " +
                     // If offline and the song is not saved to indexedDB or the song is not in the server database, disable that song
                     ((($networkStatus == "offline" &&
-                        !$songsInIndexedDB?.includes(song.publicId)) ||
-                        !song.downloaded) &&
+                        !$songsInIndexedDB?.includes($songAtom.publicId)) ||
+                        !$songAtom.downloaded) &&
                         "pointer-events-none opacity-40") +
                     // If the song is playing and is from this playlist, change color, if the song has been added to the queue clicking the album, it won't show the color
                     ($queue.find(
@@ -60,7 +60,12 @@ export default function PlaylistSong({ song }: { song: RockItSongPlaylist }) {
                         : "")
                 }
                 onClick={() =>
-                    songHandleClick(song.toRockItSongWithoutAlbum(), [])
+                    rockIt.playlistManager.playPlaylist(
+                        rockIt.currentListManager.currentListSongsAtom.get(),
+                        "album",
+                        $songAtom.album.publicId,
+                        $songAtom.publicId
+                    )
                 }
                 onMouseEnter={() => setHovered(true)}
                 onMouseLeave={() => setHovered(false)}
@@ -68,11 +73,11 @@ export default function PlaylistSong({ song }: { song: RockItSongPlaylist }) {
                 {/* Imagen */}
                 <div className="relative aspect-square h-10 w-auto rounded">
                     <Image
-                        alt={song.name}
+                        alt={$songAtom.name}
                         width={40}
                         height={40}
                         src={
-                            song.internalImageUrl ??
+                            $songAtom.internalImageUrl ??
                             rockIt.SONG_PLACEHOLDER_IMAGE_URL
                         }
                         className="absolute top-0 right-0 bottom-0 left-0 rounded"
@@ -90,13 +95,13 @@ export default function PlaylistSong({ song }: { song: RockItSongPlaylist }) {
                             //     event.stopPropagation();
                             // }}
                         >
-                            {song.name}
+                            {$songAtom.name}
                         </span>
                     </div>
                     <div className="flex h-full w-full max-w-full min-w-0 flex-row items-center">
                         <div className="hidden flex-1 flex-row gap-2 truncate pr-2 md:flex">
                             <label className="text-md max-w-[50%] truncate">
-                                {song.artists.map((artist, index) => (
+                                {$songAtom.artists.map((artist, index) => (
                                     <span
                                         className="cursor-pointer md:hover:underline"
                                         key={index}
@@ -108,7 +113,7 @@ export default function PlaylistSong({ song }: { song: RockItSongPlaylist }) {
                                         }}
                                     >
                                         {artist.name}
-                                        {index < song.artists.length - 1
+                                        {index < $songAtom.artists.length - 1
                                             ? ", "
                                             : ""}
                                     </span>
@@ -120,23 +125,25 @@ export default function PlaylistSong({ song }: { song: RockItSongPlaylist }) {
                                 className="text-md cursor-pointer truncate md:hover:underline"
                                 onClick={(event) => {
                                     router.push(
-                                        `/album/${song.album.publicId}`
+                                        `/album/${$songAtom.album.publicId}`
                                     );
                                     event.stopPropagation();
                                 }}
                             >
-                                {song.album.name}
+                                {$songAtom.album.name}
                             </span>
                         </div>
 
                         {/* Botones y tiempo (alineados a la derecha) */}
                         <div className="ml-auto flex w-fit items-center gap-x-2 md:gap-4">
-                            {$songsInIndexedDB?.includes(song.publicId) && (
+                            {$songsInIndexedDB?.includes(
+                                $songAtom.publicId
+                            ) && (
                                 <div className="min-h-6 min-w-6">
                                     <CheckCircle2 className="flex h-full w-full text-[#ec5588]" />
                                 </div>
                             )}
-                            <LikeButton songPublicId={song.publicId} />
+                            <LikeButton songPublicId={$songAtom.publicId} />
                             {/* <EllipsisVertical className="text-gray-400 flex md:hidden md:hover:text-white md:hover:scale-105" /> */}
 
                             <label className="flex min-w-7 items-center justify-center text-sm text-white/80 select-none">
@@ -148,7 +155,7 @@ export default function PlaylistSong({ song }: { song: RockItSongPlaylist }) {
                                         <PopupMenuContent></PopupMenuContent>
                                     </PopupMenu>
                                 ) : (
-                                    getTime(song.duration)
+                                    getTime($songAtom.duration)
                                 )}
                             </label>
                         </div>

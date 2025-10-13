@@ -30,7 +30,7 @@ export class PlayerUIManager {
     // #region: Getters
 
     get visibleAtom() {
-        return this._visibleAtom;
+        return this._visibleAtom.getReadonlyAtom();
     }
 
     // #endregion: Getters

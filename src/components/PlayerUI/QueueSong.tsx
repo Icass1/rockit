@@ -74,6 +74,8 @@ export function QueueSong({ song }: { song: RockItSongQueue }) {
                             ? "brightness-50"
                             : ""
                     }`}
+                    width={100}
+                    height={100}
                 />
                 {song.queueSongId === $currentQueueSongId && $playing && (
                     <div className="absolute inset-0 flex items-center justify-center">

@@ -238,6 +238,8 @@ export default function PlayerUI() {
                         $currentSong?.internalImageUrl ??
                         rockIt.SONG_PLACEHOLDER_IMAGE_URL
                     }
+                    width={600}
+                    height={600}
                     className="absolute top-1/2 h-auto w-full -translate-y-1/2 blur-md brightness-50 select-none"
                 />
 
@@ -254,7 +256,7 @@ export default function PlayerUI() {
                         className="relative aspect-square w-full max-w-[70%] overflow-hidden rounded-lg"
                         onClick={() => {
                             setShowIcon(true);
-                            rockIt.audioManager.togglePlayPause();
+                            rockIt.audioManager.togglePlayPauseOrSetSong();
                         }}
                     >
                         <Image
@@ -262,6 +264,8 @@ export default function PlayerUI() {
                                 $currentSong?.internalImageUrl ??
                                 rockIt.SONG_PLACEHOLDER_IMAGE_URL
                             }
+                            height={600}
+                            width={600}
                             alt="Song Cover"
                             className="absolute h-full w-full rounded-xl select-none"
                         />

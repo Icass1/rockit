@@ -12,7 +12,7 @@ import { groupBy } from "lodash";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { useEffect, useState } from "react";
 import DownloadListButton from "../ListHeader/DownloadListButton";
-import DownloadAnimation from "./DownloadAnimation";
+import DownloadAnimation from "../ListHeader/DownloadAnimation";
 import { RockItAlbumWithSongsResponse } from "@/responses/rockItAlbumWithSongsResponse";
 import { RockItAlbumWithSongs } from "@/lib/rockit/rockItAlbumWithSongs";
 import { useStore } from "@nanostores/react";
@@ -59,7 +59,7 @@ export default function RenderAlbum({
                         }
                     }
                 }
-                setProgress(Math.round(completed / album.songs.length));
+                setProgress(completed / album.songs.length);
             }
         );
     }, [album.songs]);
@@ -95,10 +95,7 @@ export default function RenderAlbum({
                             list.publicId == list.publicId
                     ) && (
                         <div className="absolute top-10 right-10 bottom-10 left-10">
-                            <DownloadAnimation
-                                progress={progress}
-                                duration={2}
-                            />
+                            <DownloadAnimation progress={progress} />
                         </div>
                     )}
 

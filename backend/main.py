@@ -34,6 +34,14 @@ logger = getLogger(__name__)
 
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 # Search and initialize all routers.
 for file_name in os.listdir("backend/routers"):
     if not file_name.endswith(".py"):
@@ -51,14 +59,6 @@ for file_name in os.listdir("backend/routers"):
         app.include_router(module.router)
     except Exception as e:
         logger.error(f"Error including router {module_name}. ({e})")
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 
 def get_status():
@@ -217,7 +217,7 @@ async def websocket_endpoint(websocket: WebSocket):
             process_websocket(user_row.id, data)
             # await websockept.send_text(f"Message text was: {data}")
     except Exception as e:
-        print(e)
+        print("Web socket exception", e)
 
     logger.debug(f"Web socket disconnected {user_row.id}")
 

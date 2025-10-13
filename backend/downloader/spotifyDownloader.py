@@ -15,6 +15,8 @@ from sqlalchemy import update
 from sqlalchemy.orm import Session
 
 from backend.db.db import RockitDB
+from backend.db.ormModels.main.album import AlbumRow
+from backend.db.ormModels.main.playlist import PlaylistRow
 from backend.utils.logger import getLogger
 from backend.constants import SONGS_PATH
 from backend.downloader.messageHandler import MessageHandlderReader, MessageHandler
@@ -114,7 +116,7 @@ class SpotifyDownloader:
                 self.logger.info(f"Fetching song {self.url=}")
                 self.update_status_db(new_status="fetching")
 
-                song_row = self.downloader.spotify.get_song(
+                song_row: SongRow = self.downloader.spotify.get_song(
                     self.url.replace("https://open.spotify.com/track/", ""))
 
                 if not song_row:
@@ -130,8 +132,8 @@ class SpotifyDownloader:
                 self.logger.info(f"Fetching album {self.url=}")
                 self.update_status_db(new_status="fetching")
 
-                album = self.downloader.spotify.get_album(
-                    self.url.replace("https://open.spotify.com/album/", ""))
+                album: AlbumRow = self.downloader.spotify.get_album(
+                    self.url.replace("https://open.spotify.com/album/", ""), songs=True)
 
                 for song_row in album.songs:
                     song_rows.append(song_row)
@@ -143,46 +145,14 @@ class SpotifyDownloader:
                 self.logger.info(f"Fetching playlist {self.url=}")
                 self.update_status_db(new_status="fetching")
 
-                playlist: RawSpotifyApiPlaylist | None = self.downloader.spotify.get_playlist(
-                    self.url.replace("https://open.spotify.com/playlist/", ""))
+                playlist: PlaylistRow = self.downloader.spotify.get_playlist(
+                    public_id=self.url.replace("https://open.spotify.com/playlist/", ""), update=False)
 
-                if not playlist:
-                    self.error = True
-                    self.update_status_db(new_status="failed")
-                    self.logger.error(
-                        f"playlist is None {self.url}")
-                    return
-
-                if not playlist.tracks:
-                    self.error = True
-                    self.update_status_db(new_status="failed")
-                    self.logger.error(
-                        f"playlist.tracks is None {self.url}")
-                    return
-
-                if not playlist.tracks.items:
-                    self.error = True
-                    self.update_status_db(new_status="failed")
-                    self.logger.error(
-                        f"playlist.tracks.items is None {self.url}")
-                    return
-
-                out = self.downloader.spotify.get_songs(
-                    public_ids=[a.track.id for a in playlist.tracks.items if a and a.track and a.track.id])
-
-                if not out:
-                    self.error = True
-                    self.update_status_db(new_status="failed")
-                    self.logger.error("out is None")
-                    return
-
-                for k in out:
-
-                    spotdl_song, song = k
-                    spotdl_songs.append(spotdl_song)
+                for link in playlist.playlist_song_links:
+                    song_rows.append(link.song)
 
                     self.message_handler.add(
-                        {'id': spotdl_song.song_id, 'completed': 0, 'message': 'Starting'})
+                        {'id': link.song.public_id, 'completed': 0, 'message': 'Starting'})
 
             else:
                 self.error = True
@@ -215,7 +185,6 @@ class SpotifyDownloader:
 
             self._queue_set = True
 
-            # Fetch spotify https://open.spotify.com/intl-es/track/5EvLXXAKicvIF3LegVMlJj?si=f22cd441145541a9
         except Exception as e:
             self.logger.error(f"Error fetching and adding to queue. ({e})")
             self.logger.error(traceback.format_exc())

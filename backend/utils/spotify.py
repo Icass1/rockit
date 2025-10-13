@@ -721,10 +721,14 @@ class Spotify:
                     #
                     joinedload(SongRow.internal_image),
                     #
-                    joinedload(SongRow.artists),
+                    joinedload(SongRow.artists).
+                    joinedload(ArtistRow.genres),
                     #
                     joinedload(SongRow.artists).
                     joinedload(ArtistRow.internal_image),
+                    #
+                    joinedload(SongRow.artists).
+                    joinedload(ArtistRow.external_images),
                     #
                     joinedload(SongRow.album).
                     joinedload(AlbumRow.artists).
@@ -733,6 +737,10 @@ class Spotify:
                     joinedload(SongRow.album).
                     joinedload(AlbumRow.artists).
                     joinedload(ArtistRow.external_images),
+                    #
+                    joinedload(SongRow.album).
+                    joinedload(AlbumRow.artists).
+                    joinedload(ArtistRow.internal_image),
                     #
                     joinedload(SongRow.album).
                     joinedload(AlbumRow.internal_image),
@@ -1043,9 +1051,10 @@ class Spotify:
             [item.track.id for item in items if item.track and item.track.id])
 
         with self.rockit_db.session_scope() as s:
-            
+
             s.execute(
-                delete(PlaylistSongLink).where(PlaylistSongLink.playlist_id == playlist_id)
+                delete(PlaylistSongLink).where(
+                    PlaylistSongLink.playlist_id == playlist_id)
             )
             s.flush()
             for item in items:

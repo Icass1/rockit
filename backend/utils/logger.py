@@ -166,6 +166,8 @@ while len(list_dir) > 10:
 current_time = datetime.now().strftime('%Y-%m-%d')
 log_file = os.path.join(LOGS_PATH, f"log_{current_time}.log")
 
+print(log_file)
+
 # if os.path.exists(log_file):
 #     print("Removing previous log")
 #     os.remove(log_file)

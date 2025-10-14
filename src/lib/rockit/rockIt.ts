@@ -21,7 +21,8 @@ export class RockIt {
     // #region: Constants
 
     public readonly VERSION = "0.1.0";
-    public readonly BACKEND_URL = "http://localhost:8000";
+    public readonly BACKEND_URL =
+        process.env.NEXT_PUBLIC_BACKEND_URL || "undefined";
     public readonly PLAYLIST_PLACEHOLDER_IMAGE_URL = "/song-placeholder.png";
     public readonly ALBUM_PLACEHOLDER_IMAGE_URL = "/song-placeholder.png";
     public readonly SONG_PLACEHOLDER_IMAGE_URL = "/song-placeholder.png";
@@ -59,4 +60,3 @@ export class RockIt {
 export const rockIt = new RockIt();
 rockIt.queueManager.init();
 rockIt.downloaderManager.init();
-console.log("Init RockIt!");

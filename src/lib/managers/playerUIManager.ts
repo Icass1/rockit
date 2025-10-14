@@ -3,7 +3,7 @@ import { createAtom } from "@/lib/store";
 export class PlayerUIManager {
     // #region: Atoms
 
-    private _visibleAtom = createAtom<boolean>(true);
+    private _visibleAtom = createAtom<boolean>(false);
 
     // #endregion: Atoms
 

@@ -11,9 +11,14 @@ async function update<T extends ZodType>(
     const res = await apiFetch(path);
 
     if (!res) {
-        console.warn("useFetch.update 1 -> /login");
-        signOut();
-        window.location.pathname = "/login";
+        if (
+            window.location.pathname != "/login" &&
+            window.location.pathname != "/signup"
+        ) {
+            console.warn("useFetch.update 1 -> /login");
+            signOut();
+            window.location.pathname = "/login";
+        }
         return;
     }
 
@@ -22,9 +27,14 @@ async function update<T extends ZodType>(
         const parsed = schema.parse(json);
         setData(parsed);
     } else if (res.status === 401) {
-        console.warn("useFetch.update 2 -> /login");
-        signOut();
-        window.location.pathname = "/login";
+        if (
+            window.location.pathname != "/login" &&
+            window.location.pathname != "/signup"
+        ) {
+            console.warn("useFetch.update 2 -> /login");
+            signOut();
+            window.location.pathname = "/login";
+        }
     }
 }
 

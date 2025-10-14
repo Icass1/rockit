@@ -20,9 +20,14 @@ export default async function apiFetch(
     if (!token && auth) {
         const session = await getSession();
         if (!session?.user.access_token) {
-            console.warn("apiFetch -> /login");
-            signOut();
-            window.location.pathname = "/login";
+            if (
+                window.location.pathname != "/login" &&
+                window.location.pathname != "/signup"
+            ) {
+                console.warn("apiFetch -> /login");
+                signOut();
+                window.location.pathname = "/login";
+            }
             return;
         }
         token = session?.user.access_token;

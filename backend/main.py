@@ -8,7 +8,7 @@ from importlib import import_module
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Depends, FastAPI, HTTPException, Request, Response, WebSocket
 
-from backend.constants import SONGS_PATH
+from backend.constants import SONGS_PATH, env_vars
 from backend.downloader import downloader
 from backend.init import rockit_db, downloader
 from backend.db.ormModels.main.list import ListRow
@@ -71,6 +71,7 @@ def get_status():
         "numberOfThreads": len(threading.enumerate()),
         "threads": [thread.name for thread in threading.enumerate()],
         "asyncioTasks": [task.get_name() for task in asyncio.all_tasks()],
+        "env": env_vars,
         "fastapiVersion": app.version,
     }
 

@@ -1,26 +1,42 @@
+from typing import Dict
 from spotdl.types.options import DownloaderOptions
 from dotenv import load_dotenv
 import os
 import sys
 
-os.system("bash -c 'set -a && source .env && set +a'")
+print(os.listdir())
 
-load_dotenv()
+env_files = [".env", ".env.production", ".dockerenv"]
 
+for file in env_files:
+    if os.path.exists(file):
+        with open(file, "r") as f:
+            print(f"{file:=^50}")
+            print(f.read())
+            print("="*50)
+
+        print(f"Loading {file}...")
+        os.system(f"bash -c 'set -a && source {file} && set +a'")
+        load_dotenv(file)
+    else:
+        print(f"{file} not found.")
+
+env_vars: Dict[str, str | int] = {}
 
 def get_env_str(name: str) -> str:
     var = os.getenv(name)
     if not var:
         print(f"Environment variable '{name}' is not set")
         sys.exit(1)
+    env_vars[name] = var
+
     return var
 
 
 def get_env_int(name: str) -> int:
-
     env_str = get_env_str(name)
-
     try:
+        env_vars[name] = int(env_str)
         return int(env_str)
     except:
         print(f"Environment variable '{name}' must be a number, '{env_str}'")
@@ -36,6 +52,8 @@ LOG_DUMP_LEVEL = get_env_str("LOG_DUMP_LEVEL")
 CONSOLE_DUMP_LEVEL = get_env_str("CONSOLE_DUMP_LEVEL")
 DOWNLOAD_THREADS = get_env_int("DOWNLOAD_THREADS")
 JWT_SECRET = get_env_str("JWT_SECRET")
+CLIENT_ID = get_env_str("CLIENT_ID")
+CLIENT_SECRET = get_env_str("CLIENT_SECRET")
 
 DB_HOST = get_env_str("DB_HOST")
 DB_USER = get_env_str("DB_USER")

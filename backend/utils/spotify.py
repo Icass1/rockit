@@ -22,7 +22,7 @@ from backend.db.ormModels.spotify_cache.track import SpotifyCacheTrackRow
 from backend.spotifyApiTypes.RawSpotifyApiSearchResults import RawSpotifyApiSearchResults
 from backend.utils.logger import getLogger
 from backend.db.db import RockitDB
-from backend.constants import IMAGES_PATH
+from backend.constants import CLIENT_ID, CLIENT_SECRET, IMAGES_PATH
 from backend.utils.backendUtils import create_id, download_image, sanitize_folder_name
 
 from backend.db.ormModels.main.list import ListRow
@@ -61,8 +61,8 @@ class Spotify:
 
         self.rockit_db: RockitDB = rockit_db
 
-        self.client_id = os.getenv('CLIENT_ID')
-        self.client_secret = os.getenv('CLIENT_SECRET')
+        self.client_id = CLIENT_ID
+        self.client_secret = CLIENT_SECRET
 
         self.token: str | None = None
         self.get_token(from_file=True)
@@ -105,8 +105,11 @@ class Spotify:
         result = requests.post(url, headers=headers, data=data)
         json_response = json.loads(result.content)
 
-        self.token = json_response["access_token"]
-
+        try: self.token = json_response["access_token"]
+        except Exception as e:
+            self.logger.critical("Unable to get access_token")
+            self.logger.critical(f"Received response code {result.status_code} from Spotify API")
+        
         if self.token:
             with open(".spotify_cache/token", "w") as f:
                 f.write(self.token)

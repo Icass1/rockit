@@ -1,5 +1,4 @@
 # Flask Dockerfile
-# FROM python:3.10-slim
 
 FROM rockit-backend-beta-base
     

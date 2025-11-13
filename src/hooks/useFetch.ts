@@ -15,7 +15,10 @@ async function update<T extends ZodType>(
             window.location.pathname != "/login" &&
             window.location.pathname != "/signup"
         ) {
-            console.warn("useFetch.update 1 -> /login");
+            console.warn(
+                "useFetch.update 1 -> /login",
+                window.location.pathname
+            );
             signOut();
             window.location.pathname = "/login";
         }

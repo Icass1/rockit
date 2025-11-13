@@ -22,8 +22,12 @@ function DisplayName() {
             </h2>
         );
     if (session.status == "unauthenticated") {
-        console.warn("DisplayName -> /login");
-        location.href = "/login";
+        console.warn("DisplayName -> /login", window.location.pathname);
+        if (
+            window.location.pathname != "/login" &&
+            window.location.pathname != "/signup"
+        )
+            window.location.pathname = "/login";
     }
 
     return (
@@ -39,8 +43,12 @@ function Username() {
     if (session.status == "loading")
         return <p className="text-base text-gray-500 md:text-lg">Loading</p>;
     if (session.status == "unauthenticated") {
-        console.warn("Username -> /login");
-        location.href = "/login";
+        console.warn("Username -> /login", window.location.pathname);
+        if (
+            window.location.pathname != "/login" &&
+            window.location.pathname != "/signup"
+        )
+            window.location.pathname = "/login";
     }
 
     return (
@@ -57,8 +65,12 @@ function ChangeUsername() {
         return <p className="text-base text-gray-500 md:text-lg">Loading</p>;
 
     if (session.status == "unauthenticated") {
-        console.warn("ChangeUsername -> /login");
-        location.href = "/login";
+        console.warn("ChangeUsername -> /login", window.location.pathname);
+        if (
+            window.location.pathname != "/login" &&
+            window.location.pathname != "/signup"
+        )
+            window.location.pathname = "/login";
     }
 
     return (

@@ -24,7 +24,7 @@ export default async function apiFetch(
                 window.location.pathname != "/login" &&
                 window.location.pathname != "/signup"
             ) {
-                console.warn("apiFetch -> /login");
+                console.warn("apiFetch -> /login", window.location.pathname);
                 signOut();
                 window.location.pathname = "/login";
             }

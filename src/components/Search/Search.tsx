@@ -53,7 +53,8 @@ function AlbumsSection({
                                     onClick={(event) => {
                                         event.preventDefault();
                                         event.stopPropagation();
-                                        location.href = "/artist/${artist.id}";
+                                        window.location.pathname =
+                                            "/artist/${artist.id}";
                                     }}
                                 >
                                     {`${artist.name}${
@@ -118,7 +119,8 @@ function SongsSection({
                                     onClick={(event) => {
                                         event.preventDefault();
                                         event.stopPropagation();
-                                        location.href = "/artist/${artist.id}";
+                                        window.location.pathname =
+                                            "/artist/${artist.id}";
                                     }}
                                 >
                                     {`${artist.name}${

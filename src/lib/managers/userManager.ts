@@ -1,5 +1,5 @@
 import { createAtom } from "@/lib/store";
-import { getSession, signOut } from "next-auth/react";
+import { getSession } from "next-auth/react";
 import apiFetch from "@/lib/utils/apiFetch";
 import { RockItUserResponse } from "@/responses/rockItUserResponse";
 import { RockItUser } from "../rockit/rockItUser";

@@ -38,12 +38,7 @@ export default function Home() {
     const router = useRouter();
 
     if (session.status == "unauthenticated") {
-        console.warn("Home -> /login", window.location.pathname);
-        if (
-            window.location.pathname != "/login" &&
-            window.location.pathname != "/signup"
-        )
-            window.location.pathname = "/login";
+        return null;
     }
 
     // const [mounted, setMounted] = useState(false);

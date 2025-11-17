@@ -29,19 +29,7 @@ export class UserManager {
 
         const response = await apiFetch("/auth/me");
         if (!response?.ok) {
-            console.log(window.location.pathname);
-            if (
-                window.location.pathname == "/login" ||
-                window.location.pathname == "/signup"
-            ) {
-                return;
-            } else {
-                console.warn("No response from /auth/me");
-                console.warn("UserManager.init -> /login");
-                signOut();
-                window.location.pathname = "/login";
-                return;
-            }
+            return;
         }
 
         const responseJson = await response.json();

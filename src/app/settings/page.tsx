@@ -22,12 +22,7 @@ function DisplayName() {
             </h2>
         );
     if (session.status == "unauthenticated") {
-        console.warn("DisplayName -> /login", window.location.pathname);
-        if (
-            window.location.pathname != "/login" &&
-            window.location.pathname != "/signup"
-        )
-            window.location.pathname = "/login";
+        return null;
     }
 
     return (
@@ -42,14 +37,7 @@ function Username() {
 
     if (session.status == "loading")
         return <p className="text-base text-gray-500 md:text-lg">Loading</p>;
-    if (session.status == "unauthenticated") {
-        console.warn("Username -> /login", window.location.pathname);
-        if (
-            window.location.pathname != "/login" &&
-            window.location.pathname != "/signup"
-        )
-            window.location.pathname = "/login";
-    }
+    if (session.status == "unauthenticated") return null;
 
     return (
         <p className="text-base text-gray-500 md:text-lg">
@@ -64,14 +52,7 @@ function ChangeUsername() {
     if (session.status == "loading")
         return <p className="text-base text-gray-500 md:text-lg">Loading</p>;
 
-    if (session.status == "unauthenticated") {
-        console.warn("ChangeUsername -> /login", window.location.pathname);
-        if (
-            window.location.pathname != "/login" &&
-            window.location.pathname != "/signup"
-        )
-            window.location.pathname = "/login";
-    }
+    if (session.status == "unauthenticated") return null;
 
     return (
         <input

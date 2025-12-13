@@ -1,7 +1,7 @@
 # Flask Dockerfile
 # FROM python:3.10-slim
 
-FROM rockit-nextjs-fastapi-base
+FROM rockit-backend-base
     
 COPY backend backend
 

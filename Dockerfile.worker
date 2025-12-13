@@ -1,7 +1,7 @@
 # Dockerfile.worker
 # FROM node:20.18.3-bullseye 
 
-FROM rockit-nextjs-base
+FROM rockit-frontend-base
 
 
 WORKDIR /app

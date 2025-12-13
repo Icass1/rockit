@@ -46,7 +46,9 @@ export async function GET(
             .resize({ width: 160, height: 90 })
             .webp();
 
-        return new NextResponse(await out.toBuffer(), {
+        const finalImageBuffer = await out.toBuffer();
+
+        return new NextResponse(new Uint8Array(finalImageBuffer), {
             headers: {
                 "Content-Type": "image/png",
                 "Content-Disposition": "inline",

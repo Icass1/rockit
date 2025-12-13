@@ -28,7 +28,11 @@ export default function Image(
         let isMounted = true;
         let objectUrlRef: string;
 
-        if (src) {
+        if (src instanceof Blob) {
+            objectUrlRef = URL.createObjectURL(src);
+            setObjectUrl(objectUrlRef);
+            setLoaded(true);
+        } else if (src) {
             setLoaded(false);
 
             fetch(src, { priority: "low" }).then((res) => {

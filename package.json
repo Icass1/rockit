@@ -60,7 +60,8 @@
             "better-sqlite3",
             "esbuild",
             "msgpackr-extract",
-            "sharp"
+            "sharp",
+            "unrs-resolver"
         ]
     }
 }

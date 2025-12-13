@@ -1,5 +1,5 @@
 # Astro Dockerfile
-FROM rockit-nextjs-base
+FROM rockit-frontend-base
 
 WORKDIR /app
 

@@ -1,6 +1,6 @@
 services:
-    fastapi-backend:
-        container_name: "RockIt Backend"
+    rockit-backend:
+        container_name: "rockit-backend"
         build:
             context: .
             dockerfile: Dockerfile.backend
@@ -26,8 +26,8 @@ services:
             - <path to images dir>:/images
             - <path to images dir>:/database
 
-    nextjs-frontend:
-        container_name: "RockIt Frontend"
+    rockit-frontend:
+        container_name: "rockit-frontend"
         build:
             context: .
         ports:
@@ -42,8 +42,8 @@ services:
             - <path to songs dir>:/app/songs
             - <path to images dir>:/app/images
 
-    websocket-server:
-        container_name: "RockItWebSocket"
+    rockit-websocket-server:
+        container_name: "rockit-websocket-server"
         build:
             context: .
             dockerfile: Dockerfile.websocket
@@ -58,9 +58,9 @@ services:
         volumes:
             - <path to database dir>:/app/database
 
-    redis:
+    rockit-redis:
+        container_name: rockit-redis
         image: redis:7
-        container_name: RockItRedis
         ports:
             - "6379:6379"
         volumes:
@@ -69,8 +69,8 @@ services:
             - rockit
         restart: unless-stopped
 
-    worker:
-        container_name: RockItWorker
+    rockit-worker:
+        container_name: rockit-worker
         build:
             context: .
             dockerfile: Dockerfile.worker

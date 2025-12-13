@@ -89,3 +89,4 @@ backend/json.json
 backend/types.out.py
 
 .spotify_cache/*
+redis-data/*

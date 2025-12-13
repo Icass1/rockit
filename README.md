@@ -65,9 +65,9 @@ pnpm pack
 
 ```bash
 # Backend base image image
-docker build -f Dockerfile.backend.base -t rockit-nextjs-fastapi-base .
+docker build -f Dockerfile.backend.base -t rockit-backend-base .
 # Frontend base image image
-docker build -f Dockerfile.frontend.base -t rockit-nextjs-base .
+docker build -f Dockerfile.frontend.base -t rockit-frontend-base .
 ```
 
 ## Docker compose

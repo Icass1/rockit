@@ -1,5 +1,5 @@
 # Astro Dockerfile
-FROM rockit-frontend-beta-base
+FROM rockit-beta-frontend-base
 
 WORKDIR /app
 

@@ -50,9 +50,9 @@ pnpm run dev
 
 ```bash
 # Backend base image image
-docker build -f Dockerfile.backend.base -t rockit-backend-base .
+docker build -f Dockerfile.backend.base -t rockit-beta-backend-base .
 # Frontend base image image
-docker build -f Dockerfile.frontend.base -t rockit-frontend-base .
+docker build -f Dockerfile.frontend.base -t rockit-beta-frontend-base .
 ```
 
 ## Docker compose

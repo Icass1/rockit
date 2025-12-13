@@ -1,6 +1,6 @@
 # Flask Dockerfile
 
-FROM rockit-backend-beta-base
+FROM rockit-beta-backend-base
     
 COPY backend backend
 

@@ -74,6 +74,7 @@ rest
 *.db
 
 backend/logs
+logs/*
 
 adapters--astrojs-node-8.3.4
 docker-compose.yml

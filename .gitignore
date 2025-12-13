@@ -90,3 +90,4 @@ backend/types.out.py
 
 .spotify_cache/*
 redis-data/*
+database/*

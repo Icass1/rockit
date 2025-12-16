@@ -512,22 +512,22 @@ def search_and_download(  # pylint: disable=R0911
                     )
 
         # Find song lyrics and add them to the song object
-        try:
-            display_progress_tracker.update("Searching lyrics")
+        # try:
+        #     display_progress_tracker.update("Searching lyrics")
 
-            lyrics = self.search_lyrics(song)
-            if lyrics is None:
-                logger.debug(
-                    "No lyrics found for %s, lyrics providers: %s",
-                    song.display_name,
-                    ", ".join(
-                        [lprovider.name for lprovider in self.lyrics_providers]
-                    ),
-                )
-            else:
-                song.lyrics = lyrics
-        except Exception as exc:
-            logger.debug("Could not search for lyrics: %s", exc)
+        #     lyrics = self.search_lyrics(song)
+        #     if lyrics is None:
+        #         logger.debug(
+        #             "No lyrics found for %s, lyrics providers: %s",
+        #             song.display_name,
+        #             ", ".join(
+        #                 [lprovider.name for lprovider in self.lyrics_providers]
+        #             ),
+        #         )
+        #     else:
+        #         song.lyrics = lyrics
+        # except Exception as exc:
+        #     logger.debug("Could not search for lyrics: %s", exc)
 
         # If the file already exists and we want to overwrite the metadata,
         # we can skip the download

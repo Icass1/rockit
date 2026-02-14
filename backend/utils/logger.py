@@ -9,6 +9,7 @@ from colorama import Fore, Style, init
 # Import inspect module
 from backend.constants import CONSOLE_DUMP_LEVEL, LOG_DUMP_LEVEL, LOGS_PATH
 
+
 LEVELS = {
     "debug": logging.DEBUG,
     "info": logging.INFO,
@@ -33,7 +34,8 @@ class CustomLogger(logging.Logger):
             split_name = name.split("%20")
             name = split_name[0]
             class_name = split_name[1]
-            extra["extrainfo"] = f"{name}.{class_name}.{func} - "  # type: ignore
+            # type: ignore
+            extra["extrainfo"] = f"{name}.{class_name}.{func} - "
 
         return super().makeRecord(name, level, fn, lno, msg, args, exc_info, func, extra, sinfo)
 

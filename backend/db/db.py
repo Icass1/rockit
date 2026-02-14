@@ -11,6 +11,7 @@ from backend.db.ormModels.main.internalImage import InternalImageRow
 from backend.db.ormModels.main.copyright import CopyrightRow
 from backend.db.ormModels.main.download import DownloadRow
 from backend.db.ormModels.main.playlist import PlaylistRow
+from backend.db.ormModels.main.session import SessionRow
 from backend.db.ormModels.main.artist import ArtistRow
 from backend.db.ormModels.main.album import AlbumRow
 from backend.db.ormModels.main.genre import GenreRow

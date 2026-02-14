@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from backend.db.ormModels.main.list import ListRow
     from backend.db.ormModels.main.error import ErrorRow
     from backend.db.ormModels.main.download import DownloadRow
+    from backend.db.ormModels.main.session import SessionRow
 
 
 class UserRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
@@ -65,6 +66,8 @@ class UserRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     # one-to-many
     downloads: Mapped[List["DownloadRow"]] = relationship(
         "DownloadRow", back_populates="user")
+    sessions: Mapped[List["SessionRow"]] = relationship(
+        "SessionRow", back_populates="user")
     errors: Mapped[List["ErrorRow"]] = relationship(
         "ErrorRow", back_populates="user")
 

@@ -1,7 +1,8 @@
 from spotdl.utils.formatter import create_file_name
 from PIL import Image, ImageDraw, ImageFilter
 from spotdl.utils.static import BAD_CHARS
-from datetime import UTC, datetime
+from datetime import datetime
+from datetime import timezone
 from collections import Counter
 from functools import wraps
 from typing import List
@@ -38,7 +39,7 @@ def time_it(func):
 
 
 def get_utc_date():
-    return datetime.now(UTC).strftime('%Y-%m-%d %H:%M:%S')
+    return datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
 
 
 def get_output_file(song):

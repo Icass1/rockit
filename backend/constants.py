@@ -43,15 +43,17 @@ def get_env_int(name: str) -> int:
         exit()
 
 
+BACKEND_URL = get_env_str("BACKEND_URL")
+SESSION_COOKIE = get_env_str("SESSION_COOKIE")
+SESSION_DURATION = get_env_int("SESSION_DURATION")
+ENVIRONMENT = get_env_str("ENVIRONMENT")
 SONGS_PATH = get_env_str("SONGS_PATH")
 IMAGES_PATH = get_env_str("IMAGES_PATH")
-BACKEND_URL = get_env_str("BACKEND_URL")
 TEMP_PATH = get_env_str("TEMP_PATH")
 LOGS_PATH = get_env_str("LOGS_PATH")
 LOG_DUMP_LEVEL = get_env_str("LOG_DUMP_LEVEL")
 CONSOLE_DUMP_LEVEL = get_env_str("CONSOLE_DUMP_LEVEL")
 DOWNLOAD_THREADS = get_env_int("DOWNLOAD_THREADS")
-JWT_SECRET = get_env_str("JWT_SECRET")
 CLIENT_ID = get_env_str("CLIENT_ID")
 CLIENT_SECRET = get_env_str("CLIENT_SECRET")
 
@@ -110,4 +112,5 @@ DOWNLOADER_OPTIONS: DownloaderOptions = {
     "create_skip_file": False,
     "respect_skip_file": False,
     "sync_remove_lrc": False,
+    "playlist_retain_track_cover": False
 }

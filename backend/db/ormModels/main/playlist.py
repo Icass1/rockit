@@ -6,13 +6,12 @@ from sqlalchemy.orm import relationship, mapped_column, Mapped
 from backend.db.base import Base
 from backend.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdated
 from backend.db.associationTables.playlist_external_images import playlist_external_images
+from backend.db.associationTables.playlist_songs import PlaylistSongLink
 
 if TYPE_CHECKING:
     from backend.db.ormModels.main.list import ListRow
     from backend.db.ormModels.main.internalImage import InternalImageRow
     from backend.db.ormModels.main.externalImage import ExternalImageRow
-
-    from backend.db.associationTables.playlist_songs import PlaylistSongLink
 
 
 class PlaylistRow(Base, TableDateUpdated, TableDateAdded):

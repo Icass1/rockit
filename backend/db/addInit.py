@@ -10,7 +10,7 @@ skip_files: List[str] = [
     "db.py"
 ]
 
-path: str = os.path.dirname(__file__)
+path: str = os.path.join(os.path.dirname(__file__), "ormModels")
 
 
 @dataclass

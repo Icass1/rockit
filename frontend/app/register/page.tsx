@@ -1,8 +1,8 @@
 "use client";
 
-import SignupModal from "@/components/Auth/SignupModal";
+import RegisterModal from "@/components/Auth/RegisterModal";
 
-export default function SignupPage() {
+export default function RegisterPage() {
     return (
         <div
             className="relative h-full w-full"
@@ -13,7 +13,7 @@ export default function SignupPage() {
                 backgroundPositionY: "bottom",
             }}
         >
-            <SignupModal />
+            <RegisterModal />
         </div>
     );
 }

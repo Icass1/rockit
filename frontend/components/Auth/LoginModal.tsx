@@ -92,7 +92,7 @@ export default function LoginModal() {
                 <p className="mt-2 text-sm">
                     Or{" "}
                     <Link
-                        href="/signup"
+                        href="/register"
                         className="text-primary font-bold md:hover:text-primary/80"
                     >
                         create a new account

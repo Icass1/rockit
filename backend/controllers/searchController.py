@@ -15,7 +15,7 @@ router = APIRouter(prefix="/search")
 
 
 @router.get("/")
-async def serach(query: str, user: UserRow = Depends(dependency=User.get_current_user)) -> SearchResponse:
+async def serach(query: str, user: UserRow = Depends(dependency=User.get_user_from_session)) -> SearchResponse:
 
     spotify_search: RawSpotifyApiSearchResults = downloader.spotify.search(
         q=query, limit=6)

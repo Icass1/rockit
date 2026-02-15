@@ -12,7 +12,7 @@ router = APIRouter(prefix="/stats")
 
 
 @router.get("/home")
-async def me(user: UserRow = Depends(dependency=User.get_current_user)) -> HomeStatsResponse:
+async def me(user: UserRow = Depends(dependency=User.get_user_from_session)) -> HomeStatsResponse:
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 

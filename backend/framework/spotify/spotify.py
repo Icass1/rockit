@@ -9,21 +9,15 @@ from datetime import datetime
 from spotdl.types.song import Song as SpotdlSong
 from typing import Any, Dict, List, Literal, Sequence, Set
 
-from sqlalchemy import Delete, and_, delete, select
-from sqlalchemy.dialects.postgresql.dml import Insert
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import and_, delete, select
+from sqlalchemy.orm import Session, selectinload
 from sqlalchemy.dialects.postgresql import insert
 
-from backend.db.associationTables.playlist_songs import PlaylistSongLink
-from backend.db.ormModels.spotify_cache.album import SpotifyCacheAlbumRow
-from backend.db.ormModels.spotify_cache.artist import SpotifyCacheArtistRow
-from backend.db.ormModels.spotify_cache.playlist import SpotifyCachePlaylistRow
-from backend.db.ormModels.spotify_cache.track import SpotifyCacheTrackRow
-from backend.spotifyApiTypes.rawSpotifyApiSearchResults import RawSpotifyApiSearchResults
-from backend.utils.logger import getLogger
 from backend.db.db import RockitDB
-from backend.constants import CLIENT_ID, CLIENT_SECRET, IMAGES_PATH
+
+from backend.utils.logger import getLogger
 from backend.utils.backendUtils import create_id, download_image, sanitize_folder_name
+from backend.constants import CLIENT_ID, CLIENT_SECRET, IMAGES_PATH
 
 from backend.db.ormModels.main.list import ListRow
 from backend.db.ormModels.main.song import SongRow
@@ -35,16 +29,23 @@ from backend.db.ormModels.main.copyright import CopyrightRow
 from backend.db.ormModels.main.externalImage import ExternalImageRow
 from backend.db.ormModels.main.internalImage import InternalImageRow
 
+from backend.db.ormModels.spotify_cache.album import SpotifyCacheAlbumRow
+from backend.db.ormModels.spotify_cache.track import SpotifyCacheTrackRow
+from backend.db.ormModels.spotify_cache.artist import SpotifyCacheArtistRow
+from backend.db.ormModels.spotify_cache.playlist import SpotifyCachePlaylistRow
+
 from backend.db.associationTables.song_artists import song_artists
 from backend.db.associationTables.album_artists import album_artists
 from backend.db.associationTables.artist_genres import artist_genres
+from backend.db.associationTables.playlist_songs import PlaylistSongLink
 from backend.db.associationTables.album_copyrights import album_copyrights
 from backend.db.associationTables.album_external_images import album_external_images
 from backend.db.associationTables.artist_external_images import artist_external_images
 
 from backend.spotifyApiTypes.rawSpotifyApiAlbum import RawSpotifyApiAlbum
-from backend.spotifyApiTypes.rawSpotifyApiArtist import RawSpotifyApiArtist
 from backend.spotifyApiTypes.rawSpotifyApiTrack import RawSpotifyApiTrack
+from backend.spotifyApiTypes.rawSpotifyApiArtist import RawSpotifyApiArtist
+from backend.spotifyApiTypes.rawSpotifyApiSearchResults import RawSpotifyApiSearchResults
 from backend.spotifyApiTypes.rawSpotifyApiPlaylist import PlaylistItems, PlaylistTracks, RawSpotifyApiPlaylist
 
 
@@ -356,58 +357,64 @@ class Spotify:
         """"""
 
         if songs:
+
+            stmt = select(AlbumRow)\
+                .options(
+                # Load album artists and album artists genres.
+                selectinload(AlbumRow.artists).
+                selectinload(ArtistRow.genres),
+                # Load album artists and album artists external images.
+                selectinload(AlbumRow.artists).
+                selectinload(ArtistRow.external_images),
+                # Load album artists and album internal external image.
+                selectinload(AlbumRow.artists).
+                selectinload(ArtistRow.internal_image),
+                # Load song artists.
+                selectinload(AlbumRow.songs).
+                selectinload(SongRow.artists),
+                # Load song artists genres.
+                selectinload(AlbumRow.songs).
+                selectinload(SongRow.artists).
+                selectinload(ArtistRow.genres),
+                # Load song artists external images.
+                selectinload(AlbumRow.songs).
+                selectinload(SongRow.artists).
+                selectinload(ArtistRow.external_images),
+                # Load song artists intenral image.
+                selectinload(AlbumRow.songs).
+                selectinload(SongRow.artists).
+                selectinload(ArtistRow.internal_image),
+                # Load song artists.
+                selectinload(AlbumRow.songs).
+                selectinload(SongRow.internal_image),
+                # Load song album, song album artists and song album artists genres.
+                selectinload(AlbumRow.songs).
+                selectinload(SongRow.album).
+                selectinload(AlbumRow.artists).
+                selectinload(ArtistRow.genres),
+                # Load song album artists external_images.
+                selectinload(AlbumRow.songs).
+                selectinload(SongRow.album).
+                selectinload(AlbumRow.artists).
+                selectinload(ArtistRow.external_images),
+                # Load album external images.
+                selectinload(AlbumRow.external_images),
+                # Load album internal image.
+                selectinload(AlbumRow.internal_image),
+                # Load album copyrights.
+                selectinload(AlbumRow.copyrights),
+            )\
+                .where(
+                AlbumRow.public_id.in_(public_ids)
+            )
+
+            sql = stmt.compile(compile_kwargs={"literal_binds": True})
+
+            print(str(sql))
+
             return self.rockit_db.execute_with_session(
                 lambda s:
-                s.execute(
-                    select(AlbumRow)
-                    .options(
-                        # Load album artists and album artists genres.
-                        joinedload(AlbumRow.artists).
-                        joinedload(ArtistRow.genres),
-                        # Load album artists and album artists external images.
-                        joinedload(AlbumRow.artists).
-                        joinedload(ArtistRow.external_images),
-                        # Load album artists and album internal external image.
-                        joinedload(AlbumRow.artists).
-                        joinedload(ArtistRow.internal_image),
-                        # Load song artists.
-                        joinedload(AlbumRow.songs).
-                        joinedload(SongRow.artists),
-                        # Load song artists genres.
-                        joinedload(AlbumRow.songs).
-                        joinedload(SongRow.artists).
-                        joinedload(ArtistRow.genres),
-                        # Load song artists external images.
-                        joinedload(AlbumRow.songs).
-                        joinedload(SongRow.artists).
-                        joinedload(ArtistRow.external_images),
-                        # Load song artists intenral image.
-                        joinedload(AlbumRow.songs).
-                        joinedload(SongRow.artists).
-                        joinedload(ArtistRow.internal_image),
-                        # Load song artists.
-                        joinedload(AlbumRow.songs).
-                        joinedload(SongRow.internal_image),
-                        # Load song album, song album artists and song album artists genres.
-                        joinedload(AlbumRow.songs).
-                        joinedload(SongRow.album).
-                        joinedload(AlbumRow.artists).
-                        joinedload(ArtistRow.genres),
-                        # Load song album artists external_images.
-                        joinedload(AlbumRow.songs).
-                        joinedload(SongRow.album).
-                        joinedload(AlbumRow.artists).
-                        joinedload(ArtistRow.external_images),
-                        # Load album external images.
-                        joinedload(AlbumRow.external_images),
-                        # Load album internal image.
-                        joinedload(AlbumRow.internal_image),
-                        # Load album copyrights.
-                        joinedload(AlbumRow.copyrights),
-                    )
-                    .where(
-                        AlbumRow.public_id.in_(public_ids)
-                    ))
+                s.execute(stmt)
                     .unique()
                     .scalars()
                     .all()
@@ -419,20 +426,20 @@ class Spotify:
                     select(AlbumRow)
                     .options(
                         # Load album artists and album artists genres.
-                        joinedload(AlbumRow.artists).
-                        joinedload(ArtistRow.genres),
+                        selectinload(AlbumRow.artists).
+                        selectinload(ArtistRow.genres),
                         # Load album artists and album artists external images.
-                        joinedload(AlbumRow.artists).
-                        joinedload(ArtistRow.external_images),
+                        selectinload(AlbumRow.artists).
+                        selectinload(ArtistRow.external_images),
                         # Load album artists and album internal external image.
-                        joinedload(AlbumRow.artists).
-                        joinedload(ArtistRow.internal_image),
+                        selectinload(AlbumRow.artists).
+                        selectinload(ArtistRow.internal_image),
                         # Load album external images.
-                        joinedload(AlbumRow.external_images),
+                        selectinload(AlbumRow.external_images),
                         # Load album internal image.
-                        joinedload(AlbumRow.internal_image),
+                        selectinload(AlbumRow.internal_image),
                         # Load album copyrights.
-                        joinedload(AlbumRow.copyrights),
+                        selectinload(AlbumRow.copyrights),
                     )
                     .where(
                         AlbumRow.public_id.in_(public_ids)
@@ -724,34 +731,34 @@ class Spotify:
                 select(SongRow)
                 .options(
                     #
-                    joinedload(SongRow.internal_image),
+                    selectinload(SongRow.internal_image),
                     #
-                    joinedload(SongRow.artists).
-                    joinedload(ArtistRow.genres),
+                    selectinload(SongRow.artists).
+                    selectinload(ArtistRow.genres),
                     #
-                    joinedload(SongRow.artists).
-                    joinedload(ArtistRow.internal_image),
+                    selectinload(SongRow.artists).
+                    selectinload(ArtistRow.internal_image),
                     #
-                    joinedload(SongRow.artists).
-                    joinedload(ArtistRow.external_images),
+                    selectinload(SongRow.artists).
+                    selectinload(ArtistRow.external_images),
                     #
-                    joinedload(SongRow.album).
-                    joinedload(AlbumRow.artists).
-                    joinedload(ArtistRow.genres),
+                    selectinload(SongRow.album).
+                    selectinload(AlbumRow.artists).
+                    selectinload(ArtistRow.genres),
                     #
-                    joinedload(SongRow.album).
-                    joinedload(AlbumRow.artists).
-                    joinedload(ArtistRow.external_images),
+                    selectinload(SongRow.album).
+                    selectinload(AlbumRow.artists).
+                    selectinload(ArtistRow.external_images),
                     #
-                    joinedload(SongRow.album).
-                    joinedload(AlbumRow.artists).
-                    joinedload(ArtistRow.internal_image),
+                    selectinload(SongRow.album).
+                    selectinload(AlbumRow.artists).
+                    selectinload(ArtistRow.internal_image),
                     #
-                    joinedload(SongRow.album).
-                    joinedload(AlbumRow.internal_image),
+                    selectinload(SongRow.album).
+                    selectinload(AlbumRow.internal_image),
                     #
-                    joinedload(SongRow.album).
-                    joinedload(AlbumRow.external_images),
+                    selectinload(SongRow.album).
+                    selectinload(AlbumRow.external_images),
                 )
                 .where(
                     SongRow.public_id.in_(public_ids)
@@ -876,21 +883,6 @@ class Spotify:
         spotify_songs: List[RawSpotifyApiTrack] = self.get_songs_from_spotify(
             public_ids=missing_songs)
 
-        albums_ids: List[str] = []
-        for song in spotify_songs:
-            if not song.album:
-                self.logger.error("song.album is None")
-                continue
-
-            if not song.album.id:
-                self.logger.error("song.album.id is None")
-                continue
-
-            if song.album.id not in albums_ids:
-                albums_ids.append(song.album.id)
-
-        self.get_albums(public_ids=albums_ids, songs=False)
-
         self.add_spotify_songs_to_db(spotify_songs)
 
         new_songs_in_db: Sequence[SongRow] = self.get_songs_from_db(
@@ -952,60 +944,60 @@ class Spotify:
                     select(PlaylistRow)
                     .options(
                         #
-                        joinedload(PlaylistRow.external_images),
-                        joinedload(PlaylistRow.internal_image),
+                        selectinload(PlaylistRow.external_images),
+                        selectinload(PlaylistRow.internal_image),
                         #
                         #
-                        joinedload(PlaylistRow.playlist_song_links).
-                        joinedload(PlaylistSongLink.song).
-                        joinedload(SongRow.internal_image),
+                        selectinload(PlaylistRow.playlist_song_links).
+                        selectinload(PlaylistSongLink.song).
+                        selectinload(SongRow.internal_image),
                         #
-                        joinedload(PlaylistRow.playlist_song_links).
-                        joinedload(PlaylistSongLink.song).
-                        joinedload(SongRow.artists),
+                        selectinload(PlaylistRow.playlist_song_links).
+                        selectinload(PlaylistSongLink.song).
+                        selectinload(SongRow.artists),
                         #
-                        joinedload(PlaylistRow.playlist_song_links).
-                        joinedload(PlaylistSongLink.song).
-                        joinedload(SongRow.artists).
-                        joinedload(ArtistRow.internal_image),
+                        selectinload(PlaylistRow.playlist_song_links).
+                        selectinload(PlaylistSongLink.song).
+                        selectinload(SongRow.artists).
+                        selectinload(ArtistRow.internal_image),
                         #
-                        joinedload(PlaylistRow.playlist_song_links).
-                        joinedload(PlaylistSongLink.song).
-                        joinedload(SongRow.artists).
-                        joinedload(ArtistRow.genres),
+                        selectinload(PlaylistRow.playlist_song_links).
+                        selectinload(PlaylistSongLink.song).
+                        selectinload(SongRow.artists).
+                        selectinload(ArtistRow.genres),
                         #
-                        joinedload(PlaylistRow.playlist_song_links).
-                        joinedload(PlaylistSongLink.song).
-                        joinedload(SongRow.artists).
-                        joinedload(ArtistRow.external_images),
+                        selectinload(PlaylistRow.playlist_song_links).
+                        selectinload(PlaylistSongLink.song).
+                        selectinload(SongRow.artists).
+                        selectinload(ArtistRow.external_images),
                         #
-                        joinedload(PlaylistRow.playlist_song_links).
-                        joinedload(PlaylistSongLink.song).
-                        joinedload(SongRow.album).
-                        joinedload(AlbumRow.artists).
-                        joinedload(ArtistRow.genres),
+                        selectinload(PlaylistRow.playlist_song_links).
+                        selectinload(PlaylistSongLink.song).
+                        selectinload(SongRow.album).
+                        selectinload(AlbumRow.artists).
+                        selectinload(ArtistRow.genres),
                         #
-                        joinedload(PlaylistRow.playlist_song_links).
-                        joinedload(PlaylistSongLink.song).
-                        joinedload(SongRow.album).
-                        joinedload(AlbumRow.artists).
-                        joinedload(ArtistRow.external_images),
+                        selectinload(PlaylistRow.playlist_song_links).
+                        selectinload(PlaylistSongLink.song).
+                        selectinload(SongRow.album).
+                        selectinload(AlbumRow.artists).
+                        selectinload(ArtistRow.external_images),
                         #
-                        joinedload(PlaylistRow.playlist_song_links).
-                        joinedload(PlaylistSongLink.song).
-                        joinedload(SongRow.album).
-                        joinedload(AlbumRow.artists).
-                        joinedload(ArtistRow.internal_image),
+                        selectinload(PlaylistRow.playlist_song_links).
+                        selectinload(PlaylistSongLink.song).
+                        selectinload(SongRow.album).
+                        selectinload(AlbumRow.artists).
+                        selectinload(ArtistRow.internal_image),
                         #
-                        joinedload(PlaylistRow.playlist_song_links).
-                        joinedload(PlaylistSongLink.song).
-                        joinedload(SongRow.album).
-                        joinedload(AlbumRow.internal_image),
+                        selectinload(PlaylistRow.playlist_song_links).
+                        selectinload(PlaylistSongLink.song).
+                        selectinload(SongRow.album).
+                        selectinload(AlbumRow.internal_image),
                         #
-                        joinedload(PlaylistRow.playlist_song_links).
-                        joinedload(PlaylistSongLink.song).
-                        joinedload(SongRow.album).
-                        joinedload(AlbumRow.external_images),
+                        selectinload(PlaylistRow.playlist_song_links).
+                        selectinload(PlaylistSongLink.song).
+                        selectinload(SongRow.album).
+                        selectinload(AlbumRow.external_images),
 
                     )
                     .where(
@@ -1022,8 +1014,8 @@ class Spotify:
                     select(PlaylistRow)
                     .options(
                         #
-                        joinedload(PlaylistRow.external_images),
-                        joinedload(PlaylistRow.internal_image),
+                        selectinload(PlaylistRow.external_images),
+                        selectinload(PlaylistRow.internal_image),
                     )
                     .where(
                         PlaylistRow.public_id.in_(public_ids)

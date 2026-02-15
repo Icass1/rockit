@@ -1,14 +1,18 @@
 from spotdl.utils.formatter import create_file_name
 from PIL import Image, ImageDraw, ImageFilter
 from spotdl.utils.static import BAD_CHARS
+from contextvars import ContextVar
+from collections import Counter
 from datetime import datetime
 from datetime import timezone
-from collections import Counter
 from functools import wraps
 from typing import List
 from io import BytesIO
+
 import requests
+import random
 import numpy
+import time
 import math
 import cv2
 import re
@@ -16,17 +20,10 @@ import re
 from backend.constants import DOWNLOADER_OPTIONS
 from backend.utils.logger import getLogger
 
-if __name__ != "__main__":
-    logger = getLogger(__name__)
-
-import random
+logger = getLogger(__name__)
 
 
 def time_it(func):
-    import time
-
-    logger = getLogger(__name__)
-
     @wraps(func)
     def wrapper(*args, **kwargs):
         start = time.time()
@@ -35,6 +32,34 @@ def time_it(func):
             f'Time taken by {func.__name__} is {round(time.time()-start, 3)}s')
 
         return result
+    return wrapper
+
+
+call_depth = ContextVar("call_depth", default=0)
+
+
+def track_call(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        # Increase depth
+        depth = call_depth.get()
+        call_depth.set(depth + 1)
+        start = time.time()
+
+        indent = "  " * depth
+        logger.info(f"{indent}→ Enter {func.__name__}")
+
+        try:
+            result = func(*args, **kwargs)
+            return result
+        finally:
+            # Important: fetch depth again (for correct exit indentation)
+            depth = call_depth.get() - 1
+            indent = "  " * depth
+            logger.debug(
+                f"{indent}← Exit {func.__name__} after {round(time.time()-start, 3)}s")
+            call_depth.set(depth)
+
     return wrapper
 
 

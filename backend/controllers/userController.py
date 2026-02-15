@@ -1,8 +1,6 @@
 from argon2 import PasswordHasher
-from fastapi import Depends, HTTPException, APIRouter, Request, Response
+from fastapi import Depends, APIRouter, Request
 from logging import Logger
-
-from backend.db.ormModels.main.user import UserRow
 
 from backend.responses.okResponse import OkResponse
 from backend.utils.logger import getLogger

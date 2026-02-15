@@ -7,7 +7,7 @@ from backend.db.ormModels.main.user import UserRow
 pwd = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-async def verify_password(plain, hashed):
+async def verify_password(plain: str, hashed: str):
     return pwd.verify(plain, hashed)
 
 

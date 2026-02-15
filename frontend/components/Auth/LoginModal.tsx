@@ -1,34 +1,76 @@
 "use client";
 
-import { signIn } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function LoginModal() {
-    const [password, setPassword] = useState("");
+    const router = useRouter();
+
     const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
 
-    const handleSubmit = useCallback(() => {
-        signIn("credentials", {
-            password,
-            username,
-            redirect: true,
-            callbackUrl: "/",
-        });
-    }, [password, username]);
+    const handleSubmit = useCallback(async () => {
+        if (loading) return;
 
+        setError("");
+
+        if (!username || !password) {
+            setError("Username and password are required");
+            return;
+        }
+
+        try {
+            setLoading(true);
+
+            const res = await fetch(`${rockIt.BACKEND_URL}/auth/login`, {
+                method: "POST",
+                credentials: "include", // 🔴 CLAVE → guarda la cookie de sesión
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ username, password }),
+            });
+
+            if (!res.ok) {
+                let message = "Login failed";
+
+                try {
+                    const data = await res.json();
+                    message = data.detail || data.error || message;
+                } catch {
+                    message = await res.text();
+                }
+
+                setError(message);
+                setLoading(false);
+                return;
+            }
+
+            // ✅ Ya estás autenticado (cookie creada)
+            router.push("/");
+            router.refresh(); // sincroniza Server Components con la nueva sesión
+        } catch (err) {
+            console.error(err);
+            setError("Network error");
+            setLoading(false);
+        }
+    }, [username, password, router, loading]);
+
+    // Permitir Enter para enviar (como antes)
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key == "Enter") {
+            if (event.key === "Enter") {
                 handleSubmit();
             }
         };
 
         document.addEventListener("keydown", handleKeyDown);
-        return () => {
-            document.removeEventListener("keydown", handleKeyDown);
-        };
+        return () => document.removeEventListener("keydown", handleKeyDown);
     }, [handleSubmit]);
 
     return (
@@ -46,54 +88,68 @@ export default function LoginModal() {
                         alt="Rock It!"
                     />
                 </div>
-                <p className="text-fo mt-2 text-sm">
+
+                <p className="mt-2 text-sm">
                     Or{" "}
                     <Link
                         href="/signup"
-                        className="text-primary md:hover:text-primary/80 font-bold"
+                        className="text-primary font-bold md:hover:text-primary/80"
                     >
                         create a new account
                     </Link>
                 </p>
+
                 <div className="mt-5 space-y-6">
                     <div className="space-y-4">
-                        <div>
-                            <input
-                                type="text"
-                                placeholder="Username"
-                                className="text-1xl mt-1 w-4/5 rounded-full bg-[#202020] px-5 py-1 text-white"
-                                autoComplete="username"
-                                required
-                                value={username}
-                                onChange={(e) => {
-                                    setUsername(e.currentTarget.value);
-                                }}
-                            />
-                        </div>
-                        <div>
-                            <input
-                                type="password"
-                                placeholder="Password"
-                                className="text-1xl mt-1 w-4/5 rounded-full bg-[#202020] px-5 py-1 text-white"
-                                autoComplete="current-password"
-                                required
-                                value={password}
-                                onChange={(e) => {
-                                    setPassword(e.currentTarget.value);
-                                }}
-                            />
-                        </div>
+                        <input
+                            type="text"
+                            placeholder="Username"
+                            className="text-1xl mt-1 w-4/5 rounded-full bg-[#202020] px-5 py-1 text-white"
+                            autoComplete="username"
+                            value={username}
+                            onChange={(e) =>
+                                setUsername(e.currentTarget.value)
+                            }
+                        />
+
+                        <input
+                            type="password"
+                            placeholder="Password"
+                            className="text-1xl mt-1 w-4/5 rounded-full bg-[#202020] px-5 py-1 text-white"
+                            autoComplete="current-password"
+                            value={password}
+                            onChange={(e) =>
+                                setPassword(e.currentTarget.value)
+                            }
+                        />
                     </div>
-                    <p className="w-full rounded-md bg-[#ed4337] leading-8 text-white"></p>
+
+                    {error && (
+                        <p className="mx-auto w-fit rounded-md bg-[#ed4337] px-3 py-1 text-white">
+                            {error}
+                        </p>
+                    )}
+
                     <div className="flex justify-center">
                         <button
-                            type="submit"
+                            type="button"
+                            disabled={loading}
                             onClick={handleSubmit}
-                            className="flex h-8 w-1/3 items-center justify-center rounded-md bg-green-600 font-bold md:hover:bg-green-800"
+                            className="flex h-8 w-1/3 items-center justify-center rounded-md bg-green-600 font-bold md:hover:bg-green-800 disabled:opacity-50"
                         >
-                            Log in
+                            {loading ? "Logging in..." : "Log in"}
                         </button>
                     </div>
+
+                    {/* OAuth sigue funcionando porque redirige al backend
+                    <div className="pt-2">
+                        <a
+                            href={`${rockIt.BACKEND_URL}/auth/google`}
+                            className="text-sm text-blue-400 hover:underline"
+                        >
+                            Login with Google
+                        </a>
+                    </div> */}
                 </div>
             </div>
         </div>

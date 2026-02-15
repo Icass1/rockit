@@ -7,25 +7,28 @@ from backend.constants import SESSION_COOKIE
 from backend.responses.queueResponse import QueueResponse
 
 
-def get_current_user(request: Request) -> UserRow:
-    session_id: str | None = request.cookies.get(SESSION_COOKIE)
+class User:
 
-    if not session_id:
-        raise HTTPException(status_code=401, detail="Not logged in")
+    @staticmethod
+    def get_current_user(request: Request) -> UserRow:
+        session_id: str | None = request.cookies.get(SESSION_COOKIE)
 
-    user_id: int | None = get_user_id_from_session(session_id=session_id)
-    if not user_id:
-        raise HTTPException(status_code=401, detail="Session expired")
+        if not session_id:
+            raise HTTPException(status_code=401, detail="Not logged in")
 
-    user: UserRow | None = UserAccess.get_user_from_id(user_id=user_id)
+        user_id: int | None = get_user_id_from_session(session_id=session_id)
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Session expired")
 
-    if not user:
-        raise HTTPException(
-            status_code=404, detail="User not found in database")
+        user: UserRow | None = UserAccess.get_user_from_id(user_id=user_id)
 
-    return user
+        if not user:
+            raise HTTPException(
+                status_code=404, detail="User not found in database")
 
+        return user
 
-def get_user_queue(user_id: int) -> QueueResponse:
+    @staticmethod
+    def get_user_queue(user_id: int) -> QueueResponse:
 
-    return UserAccess.get_queue(user_id)
+        return UserAccess.get_queue(user_id)

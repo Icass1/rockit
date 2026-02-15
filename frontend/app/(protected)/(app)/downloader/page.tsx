@@ -2,28 +2,33 @@ import ClearDownloads from "@/components/Downloader/ClearDownloads";
 import DownloadElement from "@/components/Downloader/DownloadElement";
 import InputBar from "@/components/Downloader/InputBar";
 import SongsStatus from "@/components/Downloader/SongsStatus";
-import Image from "@/components/Image";
-import { getSession } from "@/lib/auth/getSession";
-import { db } from "@/lib/db/db";
-import { parseDownload, RawDownloadDB } from "@/lib/db/download";
-import { getLang } from "@/lib/getLang";
+import { rockIt } from "@/lib/rockit/rockIt";
+import { getSession } from "@/lib/utils/auth/getSession";
+import { Lang } from "@/types/lang";
 import { RotateCw } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+
+async function getLanguage(): Promise<{ lang: string; langFile: Lang }> {
+    const res = await fetch("http://localhost:3000/api/lang", {
+        cache: "no-store",
+    });
+    return res.json();
+}
 
 export default async function Downloads() {
     const session = await getSession();
 
     if (!session?.user) {
+        console.warn("Downloads -> /login");
         redirect("/login");
     }
 
-    const lang = await getLang(session?.user?.lang || "en");
+    const language = await getLanguage();
+    const lang = language.langFile;
 
-    const downloads = db
-        .prepare("SELECT * FROM download WHERE userId = ? AND seen = 0")
-        .all(session.user.id)
-        .map((entry) => parseDownload(entry as RawDownloadDB));
+    const downloads = await rockIt.downloaderManager.getDownloadsAsync();
 
     return (
         <div className="grid h-full grid-cols-2 gap-x-10 overflow-y-auto px-10 md:pt-24 md:pb-24">
@@ -67,7 +72,7 @@ export default async function Downloads() {
 
                         return (
                             <DownloadElement
-                                key={download.id}
+                                key={download.publicId}
                                 download={download}
                             />
                         );

@@ -1,10 +1,12 @@
 import os
+import asyncio
 from importlib import import_module
 
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
 
 from backend.utils.logger import getLogger
+from backend.init import downloader
 
 
 logger = getLogger(__name__)
@@ -36,3 +38,10 @@ for file_name in os.listdir("backend/controllers"):
         app.include_router(module.router)
     except Exception as e:
         logger.error(f"Error including router {module_name}. ({e})")
+
+
+@app.on_event('startup')
+async def app_startup():
+    """TODO"""
+    asyncio.create_task(downloader.download_manager(), name="Download Manager")
+    # asyncio.create_task(telegram_bot_task(), name="Rockit Telegram Bot")

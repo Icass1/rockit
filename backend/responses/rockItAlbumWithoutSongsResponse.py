@@ -6,7 +6,7 @@ from backend.db.ormModels.main.album import AlbumRow
 from backend.responses.rockItArtistResponse import RockItArtistResponse
 from backend.responses.rockItCopyrightResponse import RockItCopyrightResponse
 from backend.responses.rockItExternalImageResponse import RockItExternalImageResponse
-from backend.spotifyApiTypes.RawSpotifyApiSearchResults import SpotifySearchResultsAlbum, SpotifySearchResultsItems2
+from backend.spotifyApiTypes.rawSpotifyApiSearchResults import SpotifySearchResultsAlbum, SpotifySearchResultsItems2
 
 
 class RockItAlbumWithoutSongsResponse(BaseModel):

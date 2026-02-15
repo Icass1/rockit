@@ -52,11 +52,9 @@ export class RockIt {
     // #endregion: Managers
 
     constructor() {
-        if (typeof window === "undefined") return;
-
         this.BACKEND_URL = "http://localhost:8000";
 
-        console.log(this.BACKEND_URL);
+        if (typeof window === "undefined") return;
 
         this.webSocketManager.init(this.BACKEND_URL);
     }

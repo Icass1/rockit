@@ -170,7 +170,7 @@ export function LibraryLists({
     const { width } = useWindowSize();
     const { langFile: lang } = useLanguage();
 
-    const [listsResponse] = useFetch("/library/lists", LibraryListsResponse);
+    const [listsResponse] = useFetch("/user/library/lists", LibraryListsResponse);
     if (!listsResponse) return <div>LibraryLists.listsResponse Loading...</div>;
 
     const lists = {

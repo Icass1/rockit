@@ -1,8 +1,8 @@
 "use client";
 
 import { useLanguage } from "@/contexts/LanguageContext";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { LogOut } from "lucide-react";
-import { signOut } from "next-auth/react";
 
 export default function LogOutButton() {
     const { langFile: lang } = useLanguage();
@@ -11,7 +11,7 @@ export default function LogOutButton() {
 
     const handleLogOut = () => {
         console.warn("LogOutButton signOut");
-        signOut();
+        rockIt.userManager.signOut();
     };
 
     return (

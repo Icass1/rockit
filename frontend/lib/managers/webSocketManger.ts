@@ -1,5 +1,3 @@
-import { getUserInClient } from "@/lib/getUserInClient";
-
 export class WebSocketManager {
     static #instance: WebSocketManager;
 
@@ -25,7 +23,7 @@ export class WebSocketManager {
         this.BACKEND_URL = BACKEND_URL;
         if (this._init) return;
 
-        this.webSocket = new WebSocket(`${BACKEND_URL}/ws`);
+        // this.webSocket = new WebSocket(`${BACKEND_URL}/ws`);
         console.log(this.webSocket);
         this._init = true;
     }

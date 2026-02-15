@@ -8,7 +8,7 @@ from backend.responses.rockItArtistResponse import RockItArtistResponse
 from backend.responses.rockItAlbumWithoutSongsResponse import RockItAlbumWithoutSongsResponse
 from backend.responses.rockItSongWithoutAlbumResponse import RockItSongWithoutAlbumResponse
 
-from backend.spotifyApiTypes.RawSpotifyApiSearchResults import SpotifySearchResultsItems
+from backend.spotifyApiTypes.rawSpotifyApiSearchResults import SpotifySearchResultsItems
 
 
 class RockItSongWithAlbumResponse(RockItSongWithoutAlbumResponse):

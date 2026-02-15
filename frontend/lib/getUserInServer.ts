@@ -4,10 +4,11 @@ import { cookies } from "next/headers";
 export async function getUserInServer(): Promise<
     RockItUserResponse | undefined
 > {
+    const { rockIt } = await import("@/lib/rockit/rockIt");
     const cookieStore = await cookies();
     const session = cookieStore.get("session_id")?.value;
 
-    const res = await fetch("http://localhost:8000/user/session", {
+    const res = await fetch(`${rockIt.BACKEND_URL}/user/session`, {
         headers: {
             Cookie: `session_id=${session}`,
         },

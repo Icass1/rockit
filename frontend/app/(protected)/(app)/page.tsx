@@ -41,13 +41,6 @@ export default function Home() {
         return null;
     }
 
-    // const [mounted, setMounted] = useState(false);
-    // useEffect(() => setMounted(true), []);
-
-    // if (!mounted) {
-    //     return null; // or a lightweight loader
-    // }
-
     if (!lang) {
         return (
             <div className="flex h-screen flex-row items-center justify-center gap-2 text-xl font-semibold">

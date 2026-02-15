@@ -2,10 +2,10 @@ import apiFetch from "@/lib/utils/apiFetch";
 import { RockItUserResponse } from "@/responses/rockItUserResponse";
 import { useState, useEffect } from "react";
 
-interface Session {
-    status: "loading" | "authenticated" | "unauthenticated";
-    user: RockItUserResponse | null;
-}
+type Session =
+    | { status: "authenticated"; user: RockItUserResponse }
+    | { status: "loading"; user: null }
+    | { status: "unauthenticated"; user: null };
 
 async function update(setData: React.Dispatch<React.SetStateAction<Session>>) {
     const res = await apiFetch("/user/session");

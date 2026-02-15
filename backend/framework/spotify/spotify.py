@@ -19,11 +19,11 @@ from backend.db.ormModels.spotify_cache.album import SpotifyCacheAlbumRow
 from backend.db.ormModels.spotify_cache.artist import SpotifyCacheArtistRow
 from backend.db.ormModels.spotify_cache.playlist import SpotifyCachePlaylistRow
 from backend.db.ormModels.spotify_cache.track import SpotifyCacheTrackRow
-from spotifyApiTypes.RawSpotifyApiSearchResults import RawSpotifyApiSearchResults
-from utils.logger import getLogger
+from backend.spotifyApiTypes.rawSpotifyApiSearchResults import RawSpotifyApiSearchResults
+from backend.utils.logger import getLogger
 from backend.db.db import RockitDB
-from constants import CLIENT_ID, CLIENT_SECRET, IMAGES_PATH
-from utils.backendUtils import create_id, download_image, sanitize_folder_name
+from backend.constants import CLIENT_ID, CLIENT_SECRET, IMAGES_PATH
+from backend.utils.backendUtils import create_id, download_image, sanitize_folder_name
 
 from backend.db.ormModels.main.list import ListRow
 from backend.db.ormModels.main.song import SongRow
@@ -42,10 +42,10 @@ from backend.db.associationTables.album_copyrights import album_copyrights
 from backend.db.associationTables.album_external_images import album_external_images
 from backend.db.associationTables.artist_external_images import artist_external_images
 
-from spotifyApiTypes.RawSpotifyApiAlbum import RawSpotifyApiAlbum
-from spotifyApiTypes.RawSpotifyApiArtist import RawSpotifyApiArtist
-from spotifyApiTypes.RawSpotifyApiTrack import RawSpotifyApiTrack
-from spotifyApiTypes.RawSpotifyApiPlaylist import PlaylistItems, PlaylistTracks, RawSpotifyApiPlaylist
+from backend.spotifyApiTypes.rawSpotifyApiAlbum import RawSpotifyApiAlbum
+from backend.spotifyApiTypes.rawSpotifyApiArtist import RawSpotifyApiArtist
+from backend.spotifyApiTypes.rawSpotifyApiTrack import RawSpotifyApiTrack
+from backend.spotifyApiTypes.rawSpotifyApiPlaylist import PlaylistItems, PlaylistTracks, RawSpotifyApiPlaylist
 
 
 class Spotify:
@@ -105,11 +105,13 @@ class Spotify:
         result = requests.post(url, headers=headers, data=data)
         json_response = json.loads(result.content)
 
-        try: self.token = json_response["access_token"]
+        try:
+            self.token = json_response["access_token"]
         except Exception as e:
             self.logger.critical("Unable to get access_token")
-            self.logger.critical(f"Received response code {result.status_code} from Spotify API")
-        
+            self.logger.critical(
+                f"Received response code {result.status_code} from Spotify API")
+
         if self.token:
             with open(".spotify_cache/token", "w") as f:
                 f.write(self.token)
@@ -872,7 +874,23 @@ class Spotify:
             f"{len(songs_in_db_public_ids)} songs in database, {len(missing_songs)} songs missing.")
 
         spotify_songs: List[RawSpotifyApiTrack] = self.get_songs_from_spotify(
-            missing_songs)
+            public_ids=missing_songs)
+
+        albums_ids: List[str] = []
+        for song in spotify_songs:
+            if not song.album:
+                self.logger.error("song.album is None")
+                continue
+
+            if not song.album.id:
+                self.logger.error("song.album.id is None")
+                continue
+
+            if song.album.id not in albums_ids:
+                albums_ids.append(song.album.id)
+
+        self.get_albums(public_ids=albums_ids, songs=False)
+
         self.add_spotify_songs_to_db(spotify_songs)
 
         new_songs_in_db: Sequence[SongRow] = self.get_songs_from_db(

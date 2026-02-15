@@ -2,36 +2,32 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { ListPlus, Play, SearchX } from "lucide-react";
-import { currentStation, play, type Station } from "@/stores/audio";
 import pkg from "lodash";
 import useWindowSize from "@/hooks/useWindowSize";
-import { langData } from "@/stores/lang";
-import { useStore } from "@nanostores/react";
-import Image from "@/components/Image";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
+import { Station } from "@/types/station";
+import { rockIt } from "@/lib/rockit/rockIt";
+import Image from "next/image";
+import { useLanguage } from "@/contexts/LanguageContext";
 const { debounce } = pkg;
 
 function StationCard({ station }: { station: Station }) {
-    const handleClick = () => {
-        currentStation.set(station);
-        play();
-    };
-
     return (
         <div
             className="flex h-32 cursor-pointer items-center gap-2 rounded-md bg-neutral-800 px-4 py-2 shadow-md transition hover:bg-neutral-700"
-            onClick={handleClick}
+            onClick={() => {
+                rockIt.stationManager.setAndPlayStation(station);
+            }}
         >
             {/* Imagen de la estación */}
             <Image
                 src={
                     station.favicon
                         ? "/api/proxy?url=" + station.favicon
-                        : "/radio-placeholder.png"
+                        : rockIt.STATION_PLACEHOLDER_IMAGE_URL
                 }
                 alt={`${station.name} cover`}
                 className="aspect-square min-h-14 min-w-14 rounded-md object-cover md:h-24 md:min-h-24 md:w-24 md:min-w-24"
-                fallback="/radio-placeholder.png"
             />
             {/* Información de la estación */}
             <div className="min-w-0 flex-1">
@@ -60,7 +56,7 @@ function StationCard({ station }: { station: Station }) {
             {/* Botón de reproducción */}
             <button
                 className="hidden rounded-full bg-pink-500 p-3 text-white hover:bg-pink-600 md:flex"
-                onClick={handleClick}
+                onClick={() => rockIt.stationManager.setAndPlayStation(station)}
             >
                 <Play className="h-5 w-5 fill-current" />
             </button>
@@ -90,7 +86,7 @@ export default function RadioStations() {
         }, 1000);
     }, [search]);
 
-    const $lang = useStore(langData);
+    const { langFile: lang } = useLanguage();
 
     const fetchStations = async (by: string, searchTerm: string) => {
         try {
@@ -143,7 +139,7 @@ export default function RadioStations() {
         }
     };
 
-    if (!$lang) return false;
+    if (!lang) return false;
 
     if (!window.navigator.onLine) {
         return <div>You are offline</div>;
@@ -155,12 +151,12 @@ export default function RadioStations() {
         return (
             <div className="h-full overflow-y-auto p-2 pt-16 pb-16 text-white md:mt-0 md:mb-0 md:pt-24 md:pb-24">
                 <h1 className="my-6 text-center text-3xl font-bold select-none">
-                    {$lang.radio_stations} 📻
+                    {lang.radio_stations} 📻
                 </h1>
                 <div className="mb-4 flex items-center justify-between">
                     <input
                         type="search"
-                        placeholder={$lang.radio_search}
+                        placeholder={lang.radio_search}
                         value={searchQuery}
                         onChange={handleSearch}
                         className="mx-auto my-3 w-full max-w-md rounded-full border border-neutral-700 bg-neutral-800 px-5 py-2 text-white select-none"
@@ -178,10 +174,10 @@ export default function RadioStations() {
                         <div className="col-span-full flex h-36 flex-col items-center justify-center">
                             <SearchX className="mb-4 h-16 w-16" />
                             <p className="text-2xl font-semibold text-white">
-                                {$lang.radio_empty1}
+                                {lang.radio_empty1}
                             </p>
                             <p className="mt-2 text-lg text-neutral-400">
-                                {$lang.radio_empty2}
+                                {lang.radio_empty2}
                             </p>
                         </div>
                     )}
@@ -193,7 +189,7 @@ export default function RadioStations() {
         return (
             <div className="mt-20 p-4 text-white">
                 <h1 className="mb-4 text-center text-2xl font-bold">
-                    {$lang.radio_stations} 📻
+                    {lang.radio_stations} 📻
                 </h1>
                 <div className="mb-4">
                     <input
@@ -216,10 +212,10 @@ export default function RadioStations() {
                         <div className="col-span-full mt-10 flex h-fit flex-col items-center justify-center text-center">
                             <SearchX className="mb-4 h-16 w-16" />
                             <p className="text-2xl font-semibold text-white">
-                                {$lang.radio_empty1}
+                                {lang.radio_empty1}
                             </p>
                             <p className="mt-2 text-lg text-neutral-400">
-                                {$lang.radio_empty2}
+                                {lang.radio_empty2}
                             </p>
                         </div>
                     )}

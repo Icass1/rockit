@@ -5,7 +5,7 @@ from backend.responses.rockItAlbumWithoutSongsResponse import RockItAlbumWithout
 from backend.responses.rockItArtistResponse import RockItArtistResponse
 from backend.responses.rockItPlaylistResponse import RockItPlaylistResponse
 from backend.responses.rockItSongWithAlbumResponse import RockItSongWithAlbumResponse
-from backend.spotifyApiTypes.RawSpotifyApiSearchResults import RawSpotifyApiSearchResults
+from backend.spotifyApiTypes.rawSpotifyApiSearchResults import RawSpotifyApiSearchResults
 
 
 class SpotifyResults(BaseModel):

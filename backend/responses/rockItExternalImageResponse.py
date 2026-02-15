@@ -2,7 +2,7 @@ from typing import List, Optional
 from pydantic import BaseModel
 
 from backend.db.ormModels.main.externalImage import ExternalImageRow
-from backend.spotifyApiTypes.RawSpotifyApiSearchResults import SpotifySearchResultsImages, SpotifySearchResultsImages1, SpotifySearchResultsImages2
+from backend.spotifyApiTypes.rawSpotifyApiSearchResults import SpotifySearchResultsImages, SpotifySearchResultsImages1, SpotifySearchResultsImages2
 
 
 class RockItExternalImageResponse(BaseModel):

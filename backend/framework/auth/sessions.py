@@ -5,14 +5,16 @@ from datetime import timedelta, datetime, timezone
 from backend.access.sessionAccess import SessionAccess
 from backend.db.ormModels.main.session import SessionRow
 
-from backend.constants import ENVIRONMENT, SESSION_COOKIE, SESSION_DURATION
+from backend.constants import ENVIRONMENT, SESSION_DURATION, SESSION_COOKIE
 
 
 def create_session(response: Response, user_id: int) -> None:
     session_id = str(uuid.uuid4())
-    expires_at: datetime = datetime.now(tz=timezone.utc) + timedelta(seconds=SESSION_DURATION)
+    expires_at: datetime = datetime.now(
+        tz=timezone.utc) + timedelta(seconds=SESSION_DURATION)
 
-    SessionAccess.create_session(session_id=session_id, user_id=user_id, expires_at=expires_at)
+    SessionAccess.create_session(
+        session_id=session_id, user_id=user_id, expires_at=expires_at)
 
     if ENVIRONMENT == "DEV":
         secure = False

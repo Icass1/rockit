@@ -15,6 +15,8 @@
         "lucide-react": "^0.487.0",
         "nanostores": "^0.11.4",
         "@nanostores/react": "^0.8.4",
+        "@types/lodash": "^4.17.21",
+        "lodash": "^4.17.21",
         "zod": "^4.1.13"
     },
     "devDependencies": {

@@ -32,9 +32,5 @@ async def me(user: UserRow = Depends(get_current_user)) -> SessionResponse:
 
 @router.get(path="/queue")
 def get_queue(user: UserRow = Depends(get_current_user)) -> QueueResponse:
-    get_user_queue(user_id=user.id)
+    return get_user_queue(user_id=user.id)
 
-    return QueueResponse(
-        currentQueueSongId=1,
-        queue=[]
-    )

@@ -44,7 +44,6 @@ def get_env_int(name: str) -> int:
 
 
 BACKEND_URL = get_env_str("BACKEND_URL")
-SESSION_COOKIE = get_env_str("SESSION_COOKIE")
 SESSION_DURATION = get_env_int("SESSION_DURATION")
 ENVIRONMENT = get_env_str("ENVIRONMENT")
 SONGS_PATH = get_env_str("SONGS_PATH")
@@ -62,6 +61,8 @@ DB_USER = get_env_str("DB_USER")
 DB_PASSWORD = get_env_str("DB_PASSWORD")
 DB_PORT = get_env_int("DB_PORT")
 DB_DATABASE = get_env_str("DB_DATABASE")
+
+SESSION_COOKIE = "session_id"
 
 
 DOWNLOADER_OPTIONS: DownloaderOptions = {

@@ -1,36 +1,68 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# RockIt!
 
-## Getting Started
-
-First, run the development server:
+## Installation
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/Icass1/rockit.git
+cd rockit
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Setup venv
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip install -r backend/requirements.txt
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Install node dependencies
 
-## Learn More
+```bash
+pnpm i
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Setup .env file
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Create .env file from tamplate.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+cp example.env .env
+```
 
-## Deploy on Vercel
+Then, fill all the settings.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Start server
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+RockIt needs two separate servers to run, frontend and backend.
+
+- Backend (in the root folder)
+    ```bash
+    fastapi dev backend/main.py
+    ```
+- Frontend (in the frontend folder)
+    ```bash
+    pnpm run dev
+    ```
+
+# Docker
+
+## Docker base images
+
+```bash
+# Backend base image image
+docker build -f Dockerfile.backend.base -t rockit-backend-base .
+# Frontend base image image
+docker build -f Dockerfile.frontend.base -t rockit-frontend-base .
+```
+
+## Docker compose
+
+Build Docker Images and start containers
+
+```bash
+docker compose up -d --build
+```
+
+## Paleta oficial:
+
+from-[#ee1086] to-[#fb6467]

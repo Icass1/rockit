@@ -18,6 +18,7 @@ pip install -r backend/requirements.txt
 ## Install node dependencies
 
 ```bash
+cd frontend
 pnpm i
 ```
 

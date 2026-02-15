@@ -48,6 +48,8 @@ from backend.spotifyApiTypes.rawSpotifyApiArtist import RawSpotifyApiArtist
 from backend.spotifyApiTypes.rawSpotifyApiSearchResults import RawSpotifyApiSearchResults
 from backend.spotifyApiTypes.rawSpotifyApiPlaylist import PlaylistItems, PlaylistTracks, RawSpotifyApiPlaylist
 
+from backend.aResult import AResult
+
 
 class Spotify:
     """Class to interact with Spotify API"""
@@ -75,7 +77,7 @@ class Spotify:
 
         return {"Authorization": "Bearer " + self.token}
 
-    def get_token(self, from_file=False):
+    def get_token(self, from_file: bool = False):
 
         if not self.client_id:
             self.logger.critical("client_id not set")
@@ -156,7 +158,7 @@ class Spotify:
             self.logger.critical(
                 f"Unable to load json. {result.content=}, {result.text=} {result.status_code=}")
 
-    def get_spotify_data(self, public_ids: List[str], data_name: Literal["album", "artist", "track", "playlist"]) -> List[Dict]:
+    def get_spotify_data(self, public_ids: List[str], data_name: Literal["album", "artist", "track", "playlist"]) -> List[Dict[str, str | int | float | None]]:
         """
         Searches for albums, artists or tracks in cache or via Spotify API.
         """
@@ -187,7 +189,7 @@ class Spotify:
                     return
 
             missing_data: List[str] = []
-            result: List[Dict] = []
+            result: List[Dict[str, str | int | float | None]] = []
 
             for public_id in public_ids:
                 for data_item in data:
@@ -408,10 +410,6 @@ class Spotify:
                 AlbumRow.public_id.in_(public_ids)
             )
 
-            sql = stmt.compile(compile_kwargs={"literal_binds": True})
-
-            print(str(sql))
-
             return self.rockit_db.execute_with_session(
                 lambda s:
                 s.execute(stmt)
@@ -491,8 +489,6 @@ class Spotify:
                         album.id is None or \
                         album.name is None or \
                         album.release_date is None or \
-                        album.tracks is None or \
-                        album.tracks is None or \
                         album.tracks is None or \
                         album.tracks.items is None or \
                         album.images is None or \
@@ -724,7 +720,7 @@ class Spotify:
 
         return result
 
-    def get_songs_from_db(self, public_ids) -> Sequence[SongRow]:
+    def get_songs_from_db(self, public_ids: List[str]) -> Sequence[SongRow]:
         return self.rockit_db.execute_with_session(
             lambda s:
             s.execute(
@@ -791,7 +787,7 @@ class Spotify:
                 [song.album.id for song in songs if song.album and song.album.id]))).scalars().all()
 
             songs_in_db = self.get_songs_from_db(
-                public_ids=[song.id for song in songs])
+                public_ids=[song.id for song in songs if song.id])
 
             for song in songs:
                 if not song.id or not song.name or not song.duration_ms or not song.track_number or not song.disc_number or not song.external_ids or not song.external_ids.isrc or not song.album or not song.album.id or not song.artists:
@@ -933,7 +929,7 @@ class Spotify:
 
         self.logger.error("Not implemented error.")
 
-    def get_playlists_from_db(self, public_ids, songs: bool) -> Sequence[PlaylistRow]:
+    def get_playlists_from_db(self, public_ids: List[str], songs: bool) -> Sequence[PlaylistRow]:
         """TODO"""
         self.logger.debug(f"{public_ids=}")
 
@@ -1029,7 +1025,7 @@ class Spotify:
         """TODO"""
         self.logger.debug(f"{playlist_id=} {href=}")
 
-        next_tracks = href
+        next_tracks: str | None = href
 
         items: List[PlaylistItems] = []
 
@@ -1037,7 +1033,7 @@ class Spotify:
             raw_playlist_tracks: PlaylistTracks | None = PlaylistTracks.from_dict(self.api_call(
                 path=next_tracks.replace("https://api.spotify.com/v1/", "")))
 
-            if raw_playlist_tracks is None or raw_playlist_tracks.items is None:
+            if raw_playlist_tracks.items is None:
                 self.logger.error(
                     f"Playlist tracks is missing properties. {raw_playlist_tracks=}")
                 continue
@@ -1097,7 +1093,7 @@ class Spotify:
 
             s.commit()
 
-    def get_playlists(self, public_ids: List[str], update: bool) -> List[PlaylistRow]:
+    def get_playlists(self, public_ids: List[str], update: bool) -> AResult[List[PlaylistRow]]:
         """TODO"""
         self.logger.debug(f"{public_ids=}")
 
@@ -1193,12 +1189,20 @@ class Spotify:
             result.extend(self.get_playlists_from_db(
                 public_ids=public_ids, songs=True))
 
-        return result
+        return AResult(AResult.OK, "OK", result)
 
-    def get_playlist(self, public_id: str, update: bool) -> PlaylistRow:
+    def get_playlist(self, public_id: str, update: bool) -> AResult[PlaylistRow]:
         """Get a single playlist given the public ID."""
 
-        return self.get_playlists(public_ids=[public_id], update=update)[0]
+        a_result_playlist: AResult[List[PlaylistRow]] = self.get_playlists(
+            public_ids=[public_id], update=update)
+
+        if a_result_playlist.is_not_ok():
+            return AResult(code=a_result_playlist.code, message=a_result_playlist.message)
+
+        playlist = a_result_playlist.result[0]
+
+        return AResult(code=AResult.OK, result=playlist, message=a_result_playlist.message)
 
     # ************************
     # **** Artist methods ****

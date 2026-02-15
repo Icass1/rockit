@@ -1,6 +1,8 @@
 from fastapi import Depends, APIRouter
 from logging import Logger
 
+from backend.aResult import AResult
+from backend.db.ormModels.main.playlist import PlaylistRow
 from backend.db.ormModels.main.user import UserRow
 
 from backend.init import downloader
@@ -31,4 +33,8 @@ def get_spotify_album(album_public_id: str, user: UserRow = Depends(dependency=U
 def get_spotify_playlist(playlist_public_id: str, update: str | None = None, user: UserRow = Depends(dependency=User.get_user_from_session)) -> RockItPlaylistResponse:
     """TODO"""
     print(update)
-    return RockItPlaylistResponse.from_row(playlist=downloader.spotify.get_playlist(public_id=playlist_public_id, update=False))
+
+    aResultPlaylist: AResult[PlaylistRow] = downloader.spotify.get_playlist(
+        public_id=playlist_public_id, update=False)
+
+    return RockItPlaylistResponse.from_row(playlist=aResultPlaylist.result)

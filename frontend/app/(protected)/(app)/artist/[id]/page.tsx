@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
-import { ENV } from "@/rockitEnv";
 import type { SpotifyArtist, SpotifyArtistTopTracks } from "@/types/spotify";
 import { Play } from "lucide-react";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export default async function ArtistPage({
     params,
@@ -10,7 +10,7 @@ export default async function ArtistPage({
 }) {
     const { id } = await params;
     // 1) Fetch artist data
-    const artistRes = await fetch(`${ENV.BACKEND_URL}/artist/${id}`, {
+    const artistRes = await fetch(`${rockIt.BACKEND_URL}/artist/${id}`, {
         cache: "no-store",
     });
     if (!artistRes.ok) {
@@ -23,7 +23,7 @@ export default async function ArtistPage({
     const artistImage = artistData.images[0]?.url ?? "";
 
     // 3) Fetch top songs
-    const topRes = await fetch(`${ENV.BACKEND_URL}/artist-top-songs/${id}`, {
+    const topRes = await fetch(`${rockIt.BACKEND_URL}/artist-top-songs/${id}`, {
         signal: AbortSignal.timeout(2000),
         cache: "no-store",
     });

@@ -95,7 +95,7 @@ def custom_thread_excepthook(args):
     log_uncaught_exceptions(exc_type, exc_value, exc_traceback)
 
 
-def getLogger(name, class_name=None):
+def getLogger(name: str, class_name: str | None = None) -> logging.Logger:
     """Create or retrieve a logger with console and file handlers."""
 
     if class_name:

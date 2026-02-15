@@ -65,6 +65,8 @@ export class UserManager {
         throw "(setCrossFadeAsync) Method not implemented.";
     }
 
+    signOut() {}
+
     // #endregion
 
     // #region: Getters

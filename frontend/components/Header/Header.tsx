@@ -1,12 +1,11 @@
 import Link from "next/link";
-import { headers } from "next/headers";
 import HeaderRight from "./HeaderRight";
 import Image from "next/image";
 import SearchBarInput from "../Search/SearchBarInput";
+import { usePathname } from "next/navigation";
 
-export default async function Header() {
-    const headerList = await headers();
-    const pathname = headerList.get("x-current-path");
+export default function Header() {
+    const pathname = usePathname();
 
     return (
         <header className="relative z-50 grid w-full grid-cols-[33%_33%_32%] justify-between bg-gradient-to-b from-black/100 via-black/60 via-70% to-black/0 px-4 py-4 text-white">

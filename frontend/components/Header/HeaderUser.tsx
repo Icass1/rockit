@@ -7,7 +7,6 @@ import {
     PopupMenuOption,
     PopupMenuTrigger,
 } from "@/components/PopupMenu/PopupMenu";
-import { signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
@@ -27,7 +26,7 @@ export default function HeaderUser() {
 
     const handleLogOut = () => {
         console.warn("HeaderUser signOut");
-        signOut();
+        rockIt.userManager.signOut();
     };
 
     return (

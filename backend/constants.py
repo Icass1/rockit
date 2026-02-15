@@ -4,17 +4,10 @@ from dotenv import load_dotenv
 import os
 import sys
 
-print(os.listdir())
-
 env_files = [".env", ".env.production", ".dockerenv"]
 
 for file in env_files:
     if os.path.exists(file):
-        with open(file, "r") as f:
-            print(f"{file:=^50}")
-            print(f.read())
-            print("="*50)
-
         print(f"Loading {file}...")
         os.system(f"bash -c 'set -a && source {file} && set +a'")
         load_dotenv(file)
@@ -22,6 +15,7 @@ for file in env_files:
         print(f"{file} not found.")
 
 env_vars: Dict[str, str | int] = {}
+
 
 def get_env_str(name: str) -> str:
     var = os.getenv(name)

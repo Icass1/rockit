@@ -1,4 +1,4 @@
-from typing import List, TYPE_CHECKING
+from typing import List, TYPE_CHECKING, Dict
 
 from sqlalchemy import String, ForeignKey, Text, Integer
 from sqlalchemy.orm import relationship, mapped_column, Mapped
@@ -14,7 +14,6 @@ if TYPE_CHECKING:
     from backend.db.ormModels.main.user import UserRow
     from backend.db.ormModels.main.album import AlbumRow
     from backend.db.ormModels.main.artist import ArtistRow
-    from backend.db.ormModels.main.playlist import PlaylistRow
     from backend.db.ormModels.main.internalImage import InternalImageRow
     from backend.db.ormModels.main.downloadStatus import DownloadStatusRow
 
@@ -65,8 +64,8 @@ class SongRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
         back_populates="song"
     )
 
-    def __init__(self, public_id: str, name: str, duration: int, track_number: int, disc_number: int, internal_image_id: int, album_id: int, isrc: str, popularity: int | None = None, path: str | None = None, download_url: str | None = None, lyrics: str | None = None, dynamic_lyrics: str | None = None, preview_url: str | None = None):
-        kwargs = {}
+    def __init__(self, public_id: str, name: str, duration: int, track_number: int, disc_number: int, internal_image_id: int, album_id: int, isrc: str, popularity: int  |  None = None, path: str  |  None = None, download_url: str  |  None = None, lyrics: str  |  None = None, dynamic_lyrics: str  |  None = None, preview_url: str  |  None = None):
+        kwargs: Dict[str, str | int  |  None | int | str  |  None] = {}
         kwargs['public_id'] = public_id
         kwargs['name'] = name
         kwargs['duration'] = duration

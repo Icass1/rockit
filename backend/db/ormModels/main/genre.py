@@ -1,4 +1,4 @@
-from typing import List, TYPE_CHECKING
+from typing import List, TYPE_CHECKING, Dict
 
 from sqlalchemy import String
 from sqlalchemy.orm import relationship, mapped_column, Mapped
@@ -22,7 +22,7 @@ class GenreRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
         "ArtistRow", secondary=artist_genres, back_populates="genres")
 
     def __init__(self, public_id: str, name: str):
-        kwargs = {}
+        kwargs: Dict[str, str] = {}
         kwargs['public_id'] = public_id
         kwargs['name'] = name
         for k, v in kwargs.items():

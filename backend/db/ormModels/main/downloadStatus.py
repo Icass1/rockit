@@ -1,4 +1,4 @@
-from typing import List, TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict
 
 from sqlalchemy import DOUBLE_PRECISION, ForeignKey, String, Integer
 from sqlalchemy.orm import relationship, mapped_column, Mapped
@@ -30,7 +30,7 @@ class DownloadStatusRow(Base, TableAutoincrementId, TableDateUpdated, TableDateA
         "DownloadRow", back_populates="downloads")
 
     def __init__(self, download_id: int, song_id: int, message: str, completed: float):
-        kwargs = {}
+        kwargs: Dict[str, str | float | int] = {}
         kwargs['download_id'] = download_id
         kwargs['song_id'] = song_id
         kwargs['message'] = message

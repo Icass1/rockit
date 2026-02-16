@@ -20,7 +20,7 @@ class PlaylistSongLink(Base, TableDateUpdated, TableDateAdded):
     song_id: Mapped[int] = mapped_column(
         ForeignKey('main.songs.id'), primary_key=True)
     added_by: Mapped[str | None] = mapped_column(String, nullable=True)
-    added_at: Mapped[datetime] = mapped_column(TIMESTAMP, nullable=False)
+    added_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=False)
     disabled: Mapped[bool] = mapped_column(Boolean, nullable=False)
 
     playlist: Mapped["PlaylistRow"] = relationship(

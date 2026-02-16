@@ -1,4 +1,4 @@
-from typing import List, TYPE_CHECKING
+from typing import List, TYPE_CHECKING, Dict
 
 from sqlalchemy import String
 from sqlalchemy.orm import relationship, mapped_column, Mapped
@@ -31,7 +31,7 @@ class InternalImageRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAd
         "ArtistRow", back_populates="internal_image")
 
     def __init__(self, public_id: str, url: str, path: str):
-        kwargs = {}
+        kwargs: Dict[str, str] = {}
         kwargs['public_id'] = public_id
         kwargs['url'] = url
         kwargs['path'] = path

@@ -1,7 +1,7 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict
 
 from sqlalchemy.orm import relationship, mapped_column, Mapped
-from sqlalchemy import ForeignKey, String, Integer, Text, ForeignKey
+from sqlalchemy import ForeignKey, String, Integer, Text
 
 from backend.db.base import Base
 from backend.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdated, TableAutoincrementId
@@ -28,8 +28,8 @@ class ErrorRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     user: Mapped["UserRow | None"] = relationship("UserRow", back_populates="errors",
                                                   foreign_keys=[user_id])
 
-    def __init__(self, user_id: int | None = None, message: str | None = None, source: str | None = None, line_no: int | None = None, column_no: int | None = None, error_message: str | None = None, error_cause: str | None = None, error_name: str | None = None, error_stack: str | None = None):
-        kwargs = {}
+    def __init__(self, user_id: int  |  None = None, message: str  |  None = None, source: str  |  None = None, line_no: int  |  None = None, column_no: int  |  None = None, error_message: str  |  None = None, error_cause: str  |  None = None, error_name: str  |  None = None, error_stack: str  |  None = None):
+        kwargs: Dict[str, int  |  None | str  |  None] = {}
         kwargs['user_id'] = user_id
         kwargs['message'] = message
         kwargs['source'] = source

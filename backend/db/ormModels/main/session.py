@@ -1,7 +1,7 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict
 from datetime import datetime
 
-from sqlalchemy import TIMESTAMP, ForeignKey,  String, Integer
+from sqlalchemy import TIMESTAMP, Boolean, ForeignKey,  String, Integer
 from sqlalchemy.orm import mapped_column, relationship, Mapped
 
 from backend.db.base import Base
@@ -19,16 +19,19 @@ class SessionRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
         String, nullable=False, unique=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey(
         'main.users.id'), nullable=False)
+    disabled: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False)
     expires_at: Mapped[datetime] = mapped_column(
-        TIMESTAMP, nullable=False, unique=True)
+        TIMESTAMP(timezone=True), nullable=False, unique=True)
 
     user: Mapped["UserRow"] = relationship("UserRow", back_populates="sessions",
                                            foreign_keys=[user_id])
 
-    def __init__(self, session_id: str, user_id: int, expires_at: datetime):
-        kwargs = {}
+    def __init__(self, session_id: str, user_id: int, expires_at: datetime, disabled: bool = False):
+        kwargs: Dict[str, str | int | datetime | bool] = {}
         kwargs['session_id'] = session_id
         kwargs['user_id'] = user_id
         kwargs['expires_at'] = expires_at
+        kwargs['disabled'] = disabled
         for k, v in kwargs.items():
             setattr(self, k, v)

@@ -1,4 +1,4 @@
-from typing import Final, Literal, TYPE_CHECKING
+from typing import Final, Literal, TYPE_CHECKING, Dict
 
 from sqlalchemy import Enum, String
 from sqlalchemy.orm import relationship, mapped_column, Mapped
@@ -46,7 +46,7 @@ class ListRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
         "UserRow", secondary=user_library_lists, back_populates="lists")
 
     def __init__(self, type: LIST_TYPE_TYPE, public_id: str):
-        kwargs = {}
+        kwargs: Dict[str, str | LIST_TYPE_TYPE] = {}
         kwargs['type'] = type
         kwargs['public_id'] = public_id
         for k, v in kwargs.items():

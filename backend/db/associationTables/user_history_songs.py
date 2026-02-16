@@ -8,7 +8,7 @@ user_history_songs = Table(
     'user_history_songs', Base.metadata,
     Column('user_id', ForeignKey('main.users.id'), primary_key=True),
     Column('song_id', ForeignKey('main.songs.id'), primary_key=True),
-    Column('played_at', TIMESTAMP,
+    Column('played_at', TIMESTAMP(timezone=True),
            nullable=False, primary_key=True),
     date_added_column(),
     date_updated_column(),

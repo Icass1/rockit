@@ -1,4 +1,4 @@
-from typing import List, TYPE_CHECKING
+from typing import List, TYPE_CHECKING, Dict
 
 from sqlalchemy import String, Integer, ForeignKey
 from sqlalchemy.orm import relationship, mapped_column, Mapped
@@ -48,8 +48,8 @@ class ArtistRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
         back_populates="artists"
     )
 
-    def __init__(self, public_id: str, name: str, followers: int, popularity: int, internal_image_id: int | None = None):
-        kwargs = {}
+    def __init__(self, public_id: str, name: str, followers: int, popularity: int, internal_image_id: int  |  None = None):
+        kwargs: Dict[str, str | int  |  None | int] = {}
         kwargs['public_id'] = public_id
         kwargs['name'] = name
         kwargs['followers'] = followers

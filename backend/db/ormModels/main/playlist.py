@@ -1,4 +1,4 @@
-from typing import List, TYPE_CHECKING
+from typing import List, TYPE_CHECKING, Dict
 
 from sqlalchemy import String, ForeignKey, Text, Integer
 from sqlalchemy.orm import relationship, mapped_column, Mapped
@@ -44,8 +44,8 @@ class PlaylistRow(Base, TableDateUpdated, TableDateAdded):
     list: Mapped["ListRow"] = relationship(
         "ListRow", back_populates="playlist", uselist=False)
 
-    def __init__(self, id: int, public_id: str, name: str, owner: str, internal_image_id: int | None = None, followers: int = 0, description: str | None = None):
-        kwargs = {}
+    def __init__(self, id: int, public_id: str, name: str, owner: str, internal_image_id: int  |  None = None, followers: int = 0, description: str  |  None = None):
+        kwargs: Dict[str, str | int  |  None | int | str  |  None] = {}
         kwargs['id'] = id
         kwargs['public_id'] = public_id
         kwargs['name'] = name

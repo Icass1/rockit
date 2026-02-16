@@ -76,9 +76,10 @@ class RockitDB:
 
         # --- Column existence ---
         for col in orm_columns.keys() - db_columns.keys():
-            self.logger.error(f"ORM-only column: {col}")
+            self.logger.error(
+                f"ORM-only column: {col} in table '{table.name}'")
         for col in db_columns.keys() - orm_columns.keys():
-            self.logger.error(f"DB-only column: {col}")
+            self.logger.error(f"DB-only column: {col} in table '{table.name}'")
 
         # --- Column type ---
         for col in orm_columns.keys() & db_columns.keys():
@@ -86,7 +87,7 @@ class RockitDB:
             db_type = str(db_columns[col]["type"])
             if orm_type.lower() != db_type.lower():
                 self.logger.error(
-                    f"Type mismatch on {col}: ORM={orm_type}, DB={db_type}")
+                    f"Type mismatch on {col}: ORM={orm_type}, DB={db_type} in table '{table.name}'")
 
         # --- Foreign keys ---
         orm_fks = set()

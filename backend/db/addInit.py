@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 import os
-from typing import List
+from typing import List, Set
 
 skip_files: List[str] = [
     "__init__.py",
@@ -51,7 +51,7 @@ for dirpath, dirnames, filenames in os.walk(path):
         parameters: List[Parameter] = []
 
         for index, line in enumerate(content):
-            line: str = line.replace("\n", "").replace(" ", "")
+            line: str = line.replace("\n", "").replace("    ", "")
             if not "mapped_column" in line:
                 continue
 
@@ -65,7 +65,7 @@ for dirpath, dirnames, filenames in os.walk(path):
 
             i = 1
             while not line.endswith(")"):
-                line += content[index+i].replace("\n", "").replace(" ", "")
+                line += content[index+i].replace("\n", "").replace("    ", "")
                 i += 1
 
             if "nullable=False" in line:
@@ -82,7 +82,21 @@ for dirpath, dirnames, filenames in os.walk(path):
                 optional = False
 
             name = line.split(":")[0]
-            type = line.split("[")[1].split("]")[0]
+
+            type = ""
+
+            bracket_count = 0
+
+            for char in line:
+
+                if char == "]":
+                    bracket_count -= 1
+
+                if bracket_count > 0:
+                    type += char
+
+                if char == "[":
+                    bracket_count += 1
 
             parameters.append(Parameter(name=name, type=type,
                                         optional=optional, nullable=nullable, default_value=default_value))
@@ -100,8 +114,12 @@ for dirpath, dirnames, filenames in os.walk(path):
             if (not k.default_value and k.nullable) or k.default_value:
                 sort_parameters.append(k)
 
+        types: Set[str] = set()
+
         for k in sort_parameters:
             init_stmt += ", "
+
+            types.add(k.type)
 
             init_stmt += f"{k.name}: {k.type}"
 
@@ -111,7 +129,8 @@ for dirpath, dirnames, filenames in os.walk(path):
                 init_stmt += "=None"
 
         init_stmt += "):\n"
-        init_stmt += "        kwargs={}\n"
+        init_stmt += f"        kwargs: Dict[str, " + \
+            "|".join(list(types)) + "]={}\n"
 
         for k in sort_parameters:
             init_stmt += f"        kwargs['{k.name}']={k.name}\n"

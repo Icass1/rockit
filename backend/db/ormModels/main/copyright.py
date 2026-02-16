@@ -1,4 +1,4 @@
-from typing import Final, TYPE_CHECKING, Literal
+from typing import Final, TYPE_CHECKING, Literal, Dict
 
 from sqlalchemy import Enum, String, UniqueConstraint
 from sqlalchemy.orm import relationship, mapped_column, Mapped
@@ -39,7 +39,7 @@ class CopyrightRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded)
         "AlbumRow", secondary=album_copyrights, back_populates="copyrights")
 
     def __init__(self, public_id: str, text: str, type: COPYRIGHT_TYPE_TYPE):
-        kwargs = {}
+        kwargs: Dict[str, str | COPYRIGHT_TYPE_TYPE] = {}
         kwargs['public_id'] = public_id
         kwargs['text'] = text
         kwargs['type'] = type

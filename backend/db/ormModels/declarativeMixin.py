@@ -7,7 +7,7 @@ from sqlalchemy.orm import mapped_column, declarative_mixin, Mapped
 @declarative_mixin
 class TableDateUpdated:
     date_updated: Mapped[datetime] = mapped_column(
-        TIMESTAMP,
+        TIMESTAMP(timezone=True),
         nullable=False,
         default=func.now(),
         onupdate=func.now()
@@ -17,7 +17,7 @@ class TableDateUpdated:
 @declarative_mixin
 class TableDateAdded:
     date_added: Mapped[datetime] = mapped_column(
-        TIMESTAMP,
+        TIMESTAMP(timezone=True),
         nullable=False,
         default=func.now(),
     )

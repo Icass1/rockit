@@ -1,4 +1,4 @@
-from typing import List, TYPE_CHECKING
+from typing import List, TYPE_CHECKING, Dict
 
 from sqlalchemy import ForeignKey, String, Integer
 from sqlalchemy.orm import relationship, mapped_column, Mapped
@@ -16,7 +16,6 @@ if TYPE_CHECKING:
     from backend.db.ormModels.main.copyright import CopyrightRow
     from backend.db.ormModels.main.internalImage import InternalImageRow
     from backend.db.ormModels.main.externalImage import ExternalImageRow
-    from backend.db.ormModels.main.downloadStatus import DownloadStatusRow
 
 
 class AlbumRow(Base, TableDateUpdated, TableDateAdded):
@@ -59,7 +58,7 @@ class AlbumRow(Base, TableDateUpdated, TableDateAdded):
     )
 
     def __init__(self, id: int, public_id: str, internal_image_id: int, name: str, release_date: str, popularity: int, disc_count: int):
-        kwargs = {}
+        kwargs: Dict[str, str | int] = {}
         kwargs['id'] = id
         kwargs['public_id'] = public_id
         kwargs['internal_image_id'] = internal_image_id

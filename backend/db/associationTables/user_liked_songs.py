@@ -8,7 +8,7 @@ user_liked_songs = Table(
     'user_liked_songs', Base.metadata,
     Column('user_id', ForeignKey('main.users.id'), primary_key=True),
     Column('song_id', ForeignKey('main.songs.id'), primary_key=True),
-    Column("added_at", TIMESTAMP, nullable=False),
+    Column("added_at", TIMESTAMP(timezone=True), nullable=False),
     date_added_column(),
     date_updated_column(),
     schema='main'

@@ -1,4 +1,4 @@
-from typing import List, TYPE_CHECKING
+from typing import List, TYPE_CHECKING, Dict
 
 from sqlalchemy import DOUBLE_PRECISION, String, Integer, Enum, Boolean
 from sqlalchemy.orm import mapped_column, relationship, Mapped
@@ -72,7 +72,8 @@ class UserRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
         "ErrorRow", back_populates="user")
 
     def __init__(self, public_id: str, username: str | None, password_hash: str | None = None, provider: str | None = None, provider_account_id: str | None = None, current_station: str | None = None, current_time: float | None = None, queue_song_id: int | None = None, random_queue: bool = False, repeat_song: str = "off", volume: float = 1, cross_fade: float = 0, lang: str = "en", image: str | None = None, admin: bool = False, super_admin: bool = False):
-        kwargs = {}
+        kwargs: Dict[str, int | None | str | bool |
+                     float | None | float | str | None] = {}
         kwargs['public_id'] = public_id
         kwargs['username'] = username
         kwargs['password_hash'] = password_hash

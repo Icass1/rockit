@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import TYPE_CHECKING, Literal, Final, List
+from typing import TYPE_CHECKING, Literal, Final, List, Dict
 
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 from sqlalchemy import TIMESTAMP, ForeignKey, String, Integer, Enum, Boolean
@@ -41,9 +41,9 @@ class DownloadRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey(
         'main.users.id'), nullable=False)
     date_started: Mapped[datetime] = mapped_column(
-        TIMESTAMP, nullable=False)
+        TIMESTAMP(timezone=True), nullable=False)
     date_ended: Mapped[datetime | None] = mapped_column(
-        TIMESTAMP, nullable=True)
+        TIMESTAMP(timezone=True), nullable=True)
     download_url: Mapped[str] = mapped_column(String, nullable=False)
     status: Mapped[STATUS_TYPE] = mapped_column(Enum(
         *DOWNLOAD_STATUSES, name="download_status_enum", schema="main"), nullable=False, default="pending")
@@ -56,8 +56,8 @@ class DownloadRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     downloads: Mapped[List["DownloadStatusRow"]] = relationship(
         "DownloadStatusRow", back_populates="download")
 
-    def __init__(self, public_id: str, user_id: int, date_started: datetime, download_url: str, date_ended: datetime | None = None, status: STATUS_TYPE = "pending", seen: bool = False, success: int | None = None, fail: int | None = None):
-        kwargs = {}
+    def __init__(self, public_id: str, user_id: int, date_started: datetime, download_url: str, date_ended: datetime  |  None = None, status: STATUS_TYPE = "pending", seen: bool = False, success: int  |  None = None, fail: int  |  None = None):
+        kwargs: Dict[str, int  |  None | datetime  |  None | str | datetime | bool | STATUS_TYPE | int] = {}
         kwargs['public_id'] = public_id
         kwargs['user_id'] = user_id
         kwargs['date_started'] = date_started

@@ -1,4 +1,4 @@
-from typing import List, TYPE_CHECKING
+from typing import List, TYPE_CHECKING, Dict
 
 from sqlalchemy import String, Integer
 from sqlalchemy.orm import relationship, mapped_column, Mapped
@@ -40,8 +40,8 @@ class ExternalImageRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAd
         back_populates="external_images"
     )
 
-    def __init__(self, public_id: str, url: str, width: int | None = None, height: int | None = None):
-        kwargs = {}
+    def __init__(self, public_id: str, url: str, width: int  |  None = None, height: int  |  None = None):
+        kwargs: Dict[str, str | int  |  None] = {}
         kwargs['public_id'] = public_id
         kwargs['url'] = url
         kwargs['width'] = width

@@ -41,7 +41,7 @@ class CopyrightRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded)
         "AlbumRow", secondary=album_copyrights, back_populates="copyrights")
 
     def __init__(self, public_id: str, text: str, type: COPYRIGHT_TYPE_TYPE):
-        kwargs: Dict[str, str | COPYRIGHT_TYPE_TYPE] = {}
+        kwargs: Dict[str, COPYRIGHT_TYPE_TYPE | str] = {}
         kwargs['public_id'] = public_id
         kwargs['text'] = text
         kwargs['type'] = type

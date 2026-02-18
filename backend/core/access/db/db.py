@@ -8,6 +8,6 @@ from backend.core.access.db.ormModels.error import ErrorRow  # type: ignore
 from backend.core.access.db.ormModels.user import UserRow  # type: ignore
 
 # ENUMS
-from backend.core.access.db.enums.repeatSongEnum import RepeatSongEnumRow  # type: ignore
+from backend.core.access.db.ormEnums.repeatSongEnum import RepeatSongEnumRow  # type: ignore
 
 schema = "core"

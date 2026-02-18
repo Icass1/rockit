@@ -5,16 +5,6 @@ from typing import List, Set
 skip_files: List[str] = [
     "__init__.py",
     "declarativeMixin.py",
-    "addInit.py"
-    "base.py"
-    "db.py"
-]
-
-paths: List[str] = [
-    os.path.join(os.path.dirname(__file__), "ormModels"),
-    os.path.join(os.path.dirname(__file__), "enums"),
-    os.path.join("backend", "spotify", "access", "db", "ormModels"),
-    os.path.join("backend", "spotify", "access", "db", "enums")
 ]
 
 
@@ -27,8 +17,15 @@ class Parameter:
     default_value: str | None
 
 
-for path in paths:
-    for dirpath, dirnames, filenames in os.walk(path):
+def add_init_to_orm():
+
+    for dirpath, _, filenames in os.walk("."):
+
+        dirpaths = dirpath.split("/")
+
+        if dirpaths[-1] != "ormModels" and dirpaths[-1] != "ormEnums":
+            continue
+
         for filename in filenames:
             k = os.path.join(dirpath, filename)
 
@@ -40,15 +37,14 @@ for path in paths:
                 print("Skipping", k)
                 continue
 
-
             file_path = k
 
             with open(file_path, "r") as f:
-                content: List[str] = f.readlines()
+                initial_content: List[str] = f.readlines()
 
             content_without_init: List[str] = []
 
-            for k in content:
+            for k in initial_content:
                 if "def __init__" in k:
                     break
                 content_without_init.append(k)
@@ -109,6 +105,10 @@ for path in paths:
                 parameters.append(Parameter(name=name, type=type,
                                             optional=optional, nullable=nullable, default_value=default_value))
 
+            if len(parameters) == 0:
+                print(f"{file_path} has no parameters.")
+                continue
+
             init_stmt = "\n"
             init_stmt = "    def __init__(self"
 
@@ -122,7 +122,7 @@ for path in paths:
                 if (not k.default_value and k.nullable) or k.default_value:
                     sort_parameters.append(k)
 
-            types: Set[str] = set()
+            types_set: Set[str] = set()
 
             for k in sort_parameters:
                 init_stmt += ", "
@@ -130,7 +130,7 @@ for path in paths:
                 k_types = k.type.replace(" ", "").split("|")
 
                 for k_type in k_types:
-                    types.add(k_type)
+                    types_set.add(k_type.replace(",", ", "))
 
                 init_stmt += f"{k.name}: {k.type}"
 
@@ -139,9 +139,12 @@ for path in paths:
                 elif k.nullable:
                     init_stmt += "=None"
 
+            types_list = list(types_set)
+            types_list.sort()
+
             init_stmt += "):\n"
             init_stmt += f"        kwargs: Dict[str, " + \
-                "|".join(list(types)) + "]={}\n"
+                " | ".join(types_list) + "]={}\n"
 
             for k in sort_parameters:
                 init_stmt += f"        kwargs['{k.name}']={k.name}\n"
@@ -150,9 +153,19 @@ for path in paths:
             init_stmt += "            setattr(self, k, v)"
             init_stmt += "\n"
 
-            init_stmt = init_stmt.replace("|", " | ")
-            init_stmt = init_stmt.replace("=", " = ")
+            # init_stmt = init_stmt.replace("|", " | ")
+            init_stmt: str = init_stmt.replace("=", " = ")
+
+            output_content: str = "".join(content) + init_stmt
+
+            if output_content == "".join(initial_content):
+                continue
+
+            print("Updating contents of", file_path)
 
             with open(file_path, "w") as f:
-                f.writelines(content)
-                f.write(init_stmt)
+                f.write(output_content)
+
+
+if __name__ == "__main__":
+    add_init_to_orm()

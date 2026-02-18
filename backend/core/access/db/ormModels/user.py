@@ -2,7 +2,6 @@ from typing import List, TYPE_CHECKING, Dict
 
 from sqlalchemy import DOUBLE_PRECISION, ForeignKey, String, Integer, Boolean
 from sqlalchemy.orm import mapped_column, relationship, Mapped
-from sqlalchemy.orm.properties import MappedColumn
 
 from backend.core.access.db.base import Base
 from backend.core.access.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdated, TableAutoincrementId
@@ -10,7 +9,7 @@ from backend.core.access.db.ormModels.declarativeMixin import TableDateAdded, Ta
 if TYPE_CHECKING:
     from backend.core.access.db.ormModels.error import ErrorRow
     from backend.core.access.db.ormModels.session import SessionRow
-    from backend.core.access.db.enums.repeatSongEnum import RepeatSongEnumRow
+    from backend.core.access.db.ormEnums.repeatSongEnum import RepeatSongEnumRow
 
 
 class UserRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
@@ -23,8 +22,8 @@ class UserRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
         nullable=False,
         unique=True)
     password_hash: Mapped[str | None] = mapped_column(String, nullable=True)
-    provider: MappedColumn[str | None] = mapped_column(String, nullable=True)
-    provider_account_id: MappedColumn[str | None] = mapped_column(
+    provider: Mapped[str | None] = mapped_column(String, nullable=True)
+    provider_account_id: Mapped[str | None] = mapped_column(
         String,
         nullable=True)
     current_station: Mapped[str | None] = mapped_column(String, nullable=True)
@@ -49,7 +48,7 @@ class UserRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
         nullable=False,
         default=0)
     lang: Mapped[str] = mapped_column(String, nullable=False, default="en")
-    image: MappedColumn[str | None] = mapped_column(String, nullable=True)
+    image: Mapped[str | None] = mapped_column(String, nullable=True)
     admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     super_admin: Mapped[bool] = mapped_column(
         Boolean,
@@ -59,7 +58,7 @@ class UserRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     repeat_song_enum: Mapped["RepeatSongEnumRow"] = relationship(
         "RepeatSongEnumRow",
         back_populates="user",
-        uselist=False  
+        uselist=False
     )
 
     # one-to-many
@@ -69,7 +68,7 @@ class UserRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
         "ErrorRow", back_populates="user")
 
     def __init__(self, public_id: str, username: str | None, repeat_song_key: int, password_hash: str | None = None, provider: str | None = None, provider_account_id: str | None = None, current_station: str | None = None, current_time: float | None = None, queue_song_id: int | None = None, random_queue: bool = False, volume: float = 1, cross_fade: float = 0, lang: str = "en", image: str | None = None, admin: bool = False, super_admin: bool = False):
-        kwargs: Dict[str, float | None | bool | str | int] = {}
+        kwargs: Dict[str, None | bool | float | int | str] = {}
         kwargs['public_id'] = public_id
         kwargs['username'] = username
         kwargs['repeat_song_key'] = repeat_song_key

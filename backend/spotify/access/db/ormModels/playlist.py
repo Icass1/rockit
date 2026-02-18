@@ -40,7 +40,7 @@ class PlaylistRow(Base, TableDateUpdated, TableDateAdded):
     )
 
     def __init__(self, id: int, public_id: str, name: str, owner: str, internal_image_id: int | None = None, followers: int = 0, description: str | None = None):
-        kwargs: Dict[str, str | int | None] = {}
+        kwargs: Dict[str, None | int | str] = {}
         kwargs['id'] = id
         kwargs['public_id'] = public_id
         kwargs['name'] = name

@@ -41,7 +41,7 @@ class ExternalImageRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAd
     )
 
     def __init__(self, public_id: str, url: str, width: int | None = None, height: int | None = None):
-        kwargs: Dict[str, str | int | None] = {}
+        kwargs: Dict[str, None | int | str] = {}
         kwargs['public_id'] = public_id
         kwargs['url'] = url
         kwargs['width'] = width

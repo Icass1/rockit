@@ -30,7 +30,7 @@ class DownloadStatusRow(Base, TableAutoincrementId, TableDateUpdated, TableDateA
         "DownloadRow", back_populates="downloads")
 
     def __init__(self, download_id: int, song_id: int, message: str, completed: float):
-        kwargs: Dict[str, str | float | int] = {}
+        kwargs: Dict[str, float | int | str] = {}
         kwargs['download_id'] = download_id
         kwargs['song_id'] = song_id
         kwargs['message'] = message

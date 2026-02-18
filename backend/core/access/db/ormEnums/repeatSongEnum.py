@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 
 from backend.core.access.db.base import Base
-from backend.core.access.db.enums.baseEnum import BaseEnumRow
+from backend.core.access.db.ormEnums.baseEnum import BaseEnumRow
 
 from sqlalchemy.orm import Mapped, relationship
 

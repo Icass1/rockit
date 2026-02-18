@@ -49,7 +49,7 @@ class ArtistRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     )
 
     def __init__(self, public_id: str, name: str, followers: int, popularity: int, internal_image_id: int | None = None):
-        kwargs: Dict[str, str | int | None] = {}
+        kwargs: Dict[str, None | int | str] = {}
         kwargs['public_id'] = public_id
         kwargs['name'] = name
         kwargs['followers'] = followers

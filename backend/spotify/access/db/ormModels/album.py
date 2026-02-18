@@ -59,7 +59,7 @@ class AlbumRow(Base, TableDateUpdated, TableDateAdded):
     )
 
     def __init__(self, id: int, public_id: str, internal_image_id: int, name: str, release_date: str, popularity: int, disc_count: int):
-        kwargs: Dict[str, str | int] = {}
+        kwargs: Dict[str, int | str] = {}
         kwargs['id'] = id
         kwargs['public_id'] = public_id
         kwargs['internal_image_id'] = internal_image_id

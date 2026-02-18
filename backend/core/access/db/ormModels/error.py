@@ -33,7 +33,7 @@ class ErrorRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
         foreign_keys=[user_id])
 
     def __init__(self, user_id: int | None = None, message: str | None = None, source: str | None = None, line_no: int | None = None, column_no: int | None = None, error_message: str | None = None, error_cause: str | None = None, error_name: str | None = None, error_stack: str | None = None):
-        kwargs: Dict[str, str | int | None] = {}
+        kwargs: Dict[str, None | int | str] = {}
         kwargs['user_id'] = user_id
         kwargs['message'] = message
         kwargs['source'] = source

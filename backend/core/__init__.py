@@ -1,6 +1,6 @@
 from logging import Logger
 
-from backend.core.access.db.enums.repeatSongEnum import RepeatSongEnumRow
+from backend.core.access.db.ormEnums.repeatSongEnum import RepeatSongEnumRow
 from backend.core.access.enumAccess import EnumAccess
 from backend.core.enums.repeatSongEnum import RepeatSongEnum
 from backend.utils.logger import getLogger

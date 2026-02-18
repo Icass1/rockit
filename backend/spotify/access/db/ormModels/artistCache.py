@@ -16,7 +16,7 @@ class SpotifyCacheArtistRow(Base, TableDateUpdated, TableDateAdded):
     json: Mapped[Dict[str, Any]] = mapped_column(JSON, nullable=False)
 
     def __init__(self, id: str, json: Dict[str, Any]):
-        kwargs: Dict[str, str | Dict[str, Any]] = {}
+        kwargs: Dict[str, Dict[str, Any] | str] = {}
         kwargs['id'] = id
         kwargs['json'] = json
         for k, v in kwargs.items():

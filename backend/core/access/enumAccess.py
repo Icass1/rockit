@@ -1,7 +1,7 @@
 from typing import Type
 from enum import Enum
 from backend.core.access.db import rockit_db
-from backend.core.access.db.enums.baseEnum import BaseEnumRow
+from backend.core.access.db.ormEnums.baseEnum import BaseEnumRow
 
 
 class EnumAccess:

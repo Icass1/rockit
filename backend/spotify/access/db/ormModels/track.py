@@ -53,7 +53,7 @@ class TrackRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     )
 
     def __init__(self, public_id: str, name: str, duration: int, track_number: int, disc_number: int, internal_image_id: int, album_id: int, isrc: str, popularity: int | None = None, path: str | None = None, download_url: str | None = None, lyrics: str | None = None, dynamic_lyrics: str | None = None, preview_url: str | None = None):
-        kwargs: Dict[str, str | int | None] = {}
+        kwargs: Dict[str, None | int | str] = {}
         kwargs['public_id'] = public_id
         kwargs['name'] = name
         kwargs['duration'] = duration

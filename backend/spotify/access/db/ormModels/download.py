@@ -56,8 +56,7 @@ class DownloadRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
         "DownloadStatusRow", back_populates="download")
 
     def __init__(self, public_id: str, user_id: int, date_started: datetime, download_url: str, date_ended: datetime | None = None, status: STATUS_TYPE = "pending", seen: bool = False, success: int | None = None, fail: int | None = None):
-        kwargs: Dict[str, STATUS_TYPE | datetime |
-                     None | bool | str | int] = {}
+        kwargs: Dict[str, None | STATUS_TYPE | bool | datetime | int | str] = {}
         kwargs['public_id'] = public_id
         kwargs['user_id'] = user_id
         kwargs['date_started'] = date_started

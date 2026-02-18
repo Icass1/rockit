@@ -89,4 +89,5 @@ raw_yt_song.json
 backend/json.json
 backend/types.out.py
 
+.spotify
 .spotify_cache

@@ -38,7 +38,7 @@ class SessionRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
         foreign_keys=[user_id])
 
     def __init__(self, session_id: str, user_id: int, expires_at: datetime, disabled: bool = False):
-        kwargs: Dict[str, str | int | datetime | bool] = {}
+        kwargs: Dict[str, str | bool | int | datetime] = {}
         kwargs['session_id'] = session_id
         kwargs['user_id'] = user_id
         kwargs['expires_at'] = expires_at

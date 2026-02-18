@@ -1,0 +1,2 @@
+class SpotifyCacheAccess:
+    pass

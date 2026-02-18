@@ -12,7 +12,9 @@ skip_files: List[str] = [
 
 paths: List[str] = [
     os.path.join(os.path.dirname(__file__), "ormModels"),
-    os.path.join(os.path.dirname(__file__), "enums")
+    os.path.join(os.path.dirname(__file__), "enums"),
+    os.path.join("backend", "spotify", "access", "db", "ormModels"),
+    os.path.join("backend", "spotify", "access", "db", "enums")
 ]
 
 
@@ -38,7 +40,8 @@ for path in paths:
                 print("Skipping", k)
                 continue
 
-            file_path = os.path.join(path, k)
+
+            file_path = k
 
             with open(file_path, "r") as f:
                 content: List[str] = f.readlines()
@@ -135,8 +138,6 @@ for path in paths:
                     init_stmt += f"={k.default_value}"
                 elif k.nullable:
                     init_stmt += "=None"
-
-            print(types)
 
             init_stmt += "):\n"
             init_stmt += f"        kwargs: Dict[str, " + \

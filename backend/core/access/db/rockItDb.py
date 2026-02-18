@@ -19,8 +19,6 @@ for dirpath, dirnames, filenames in os.walk("backend"):
     if not dirpath.endswith("/db"):
         continue
 
-    print(dirpath, dirnames, filenames)
-
     if "db.py" not in filenames:
         logger.warning(f"db.py not found inside db folder in {dirpath}")
         continue
@@ -104,9 +102,9 @@ class RockItDB:
 
         # Compare both directions
         for fk in orm_fks - db_fks:
-            self.logger.error(f"ForeignKey in ORM but missing in DB: {fk}")
+            self.logger.error(f"ForeignKey in ORM but missing in DB: {fk} in table '{table.name}'")
         for fk in db_fks - orm_fks:
-            self.logger.error(f"ForeignKey in DB but missing in ORM: {fk}")
+            self.logger.error(f"ForeignKey in DB but missing in ORM: {fk} in table '{table.name}'")
 
     def get_session(self) -> Session:
         """

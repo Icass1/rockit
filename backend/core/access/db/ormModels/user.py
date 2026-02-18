@@ -68,7 +68,7 @@ class UserRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
         "ErrorRow", back_populates="user")
 
     def __init__(self, public_id: str, username: str | None, repeat_song_key: int, password_hash: str | None = None, provider: str | None = None, provider_account_id: str | None = None, current_station: str | None = None, current_time: float | None = None, queue_song_id: int | None = None, random_queue: bool = False, volume: float = 1, cross_fade: float = 0, lang: str = "en", image: str | None = None, admin: bool = False, super_admin: bool = False):
-        kwargs: Dict[str, str | int | bool | float | None] = {}
+        kwargs: Dict[str, float | None | bool | str | int] = {}
         kwargs['public_id'] = public_id
         kwargs['username'] = username
         kwargs['repeat_song_key'] = repeat_song_key

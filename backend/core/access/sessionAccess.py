@@ -5,7 +5,7 @@ from sqlalchemy.future import select
 
 from backend.core.aResult import AResult, AResultCode
 from backend.core.access.db.ormModels.session import SessionRow
-from backend.core import rockit_db
+from backend.core.access.db import rockit_db
 from backend.utils.logger import getLogger
 
 logger: Logger = getLogger(name=__name__)

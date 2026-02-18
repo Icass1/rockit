@@ -4,7 +4,7 @@ from logging import Logger
 from sqlalchemy.future import select
 from passlib.context import CryptContext
 
-from backend.core import rockit_db
+from backend.core.access.db import rockit_db
 from backend.core.access.db.ormModels.user import UserRow
 from backend.utils.backendUtils import create_id
 from backend.utils.logger import getLogger

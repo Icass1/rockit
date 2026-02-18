@@ -14,3 +14,5 @@ from backend.spotify.access.db.ormModels.artist import ArtistRow  # type: ignore
 from backend.spotify.access.db.ormModels.album import AlbumRow  # type: ignore
 from backend.spotify.access.db.ormModels.genre import GenreRow  # type: ignore
 from backend.spotify.access.db.ormModels.track import TrackRow  # type: ignore
+
+schema = "spotify"

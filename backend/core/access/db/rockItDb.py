@@ -2,9 +2,9 @@ import os
 from importlib import import_module
 
 from contextlib import contextmanager
-from typing import Generator, Callable, Set, TypeVar
+from typing import Generator, Callable, List, Set, TypeVar
 
-from sqlalchemy import Table, create_engine, inspect
+from sqlalchemy import Table, create_engine, inspect, text
 from sqlalchemy.orm import Session, sessionmaker
 
 from backend.core.access.db.base import Base
@@ -14,6 +14,8 @@ T = TypeVar("T")
 
 logger = getLogger(__name__)
 
+
+schemas: List[str] = []
 
 for dirpath, dirnames, filenames in os.walk("backend"):
     if not dirpath.endswith("/db"):
@@ -27,6 +29,11 @@ for dirpath, dirnames, filenames in os.walk("backend"):
     module = f"{base}.db"
     logger.info(f"Importing module {module}")
     module = import_module(module)
+
+    try:
+        schemas.append(module.schema)
+    except:
+        logger.warning(f"{module} doesn't have an schema variable declared.")
 
 
 class RockItDB:
@@ -43,6 +50,12 @@ class RockItDB:
 
         self.engine = create_engine(
             connection_string, echo=verbose)
+
+        with self.engine.connect() as conn:
+            for schema in schemas:
+                conn.execute(text(f"CREATE SCHEMA IF NOT EXISTS {schema}"))
+            conn.commit()
+
         Base.metadata.create_all(self.engine)
 
         self.SessionLocal = sessionmaker(
@@ -98,13 +111,15 @@ class RockItDB:
         for fk in inspector.get_foreign_keys(table_name, schema=schema):
             for local, remote in zip(fk["constrained_columns"], fk["referred_columns"]):
                 db_fks.add(
-                    f"{table_name}.{local} -> {schema}.{fk['referred_table']}.{remote}")
+                    f"{table_name}.{local} -> {fk['referred_schema']}.{fk['referred_table']}.{remote}")
 
         # Compare both directions
         for fk in orm_fks - db_fks:
-            self.logger.error(f"ForeignKey in ORM but missing in DB: {fk} in table '{table.name}'")
+            self.logger.error(
+                f"ForeignKey in ORM but missing in DB: {fk} in table '{table.name}'")
         for fk in db_fks - orm_fks:
-            self.logger.error(f"ForeignKey in DB but missing in ORM: {fk} in table '{table.name}'")
+            self.logger.error(
+                f"ForeignKey in DB but missing in ORM: {fk} in table '{table.name}'")
 
     def get_session(self) -> Session:
         """

@@ -30,12 +30,3 @@ class TableAutoincrementId:
         primary_key=True,
         autoincrement=True,
     )
-
-
-@declarative_mixin
-class TableAutoincrementKey:
-    key: Mapped[int] = mapped_column(
-        Integer,
-        primary_key=True,
-        autoincrement=True,
-    )

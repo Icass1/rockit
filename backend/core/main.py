@@ -29,8 +29,6 @@ for dirpath, dirnames, filenames in os.walk("backend"):
     if not dirpath.endswith("/controllers"):
         continue
 
-    print(dirpath, dirnames, filenames)
-
     for file_name in filenames:
         if not file_name.endswith(".py"):
             continue

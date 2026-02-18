@@ -3,8 +3,8 @@ from datetime import datetime, timezone
 
 from fastapi import HTTPException, Request
 
-from backend.core.access.db.ormModels.main.session import SessionRow
-from backend.core.access.db.ormModels.main.user import UserRow
+from backend.core.access.db.ormModels.session import SessionRow
+from backend.core.access.db.ormModels.user import UserRow
 from backend.core.aResult import AResult, AResultCode
 from backend.core.access.userAccess import UserAccess
 from backend.constants import SESSION_COOKIE

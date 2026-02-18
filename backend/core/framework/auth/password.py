@@ -2,7 +2,7 @@ from fastapi import HTTPException
 from passlib.context import CryptContext
 
 from backend.core.access.userAccess import UserAccess
-from backend.core.access.db.ormModels.main.user import UserRow
+from backend.core.access.db.ormModels.user import UserRow
 
 pwd = CryptContext(schemes=["bcrypt"], deprecated="auto")
 

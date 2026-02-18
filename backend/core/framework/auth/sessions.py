@@ -5,7 +5,7 @@ from datetime import timedelta, datetime, timezone
 
 from backend.core.aResult import AResult, AResultCode
 from backend.core.access.sessionAccess import SessionAccess
-from backend.core.access.db.ormModels.main.session import SessionRow
+from backend.core.access.db.ormModels.session import SessionRow
 
 from backend.constants import ENVIRONMENT, SESSION_DURATION, SESSION_COOKIE
 from backend.utils.logger import getLogger

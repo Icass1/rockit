@@ -7,15 +7,17 @@ from backend.core.access.db.base import Base
 from backend.core.access.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdated, TableAutoincrementId
 
 if TYPE_CHECKING:
-    from backend.core.access.db.ormModels.main.user import UserRow
+    from backend.core.access.db.ormModels.user import UserRow
 
 
 class ErrorRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
-    __tablename__ = 'errors'
-    __table_args__ = {'schema': 'main', 'extend_existing': True},
+    __tablename__ = 'error'
+    __table_args__ = {'schema': 'core', 'extend_existing': True},
 
-    user_id: Mapped[int | None] = mapped_column(Integer, ForeignKey(
-        'main.users.id'), nullable=True)
+    user_id: Mapped[int | None] = mapped_column(
+        Integer,
+        ForeignKey('core.user.id'),
+        nullable=True)
     message: Mapped[str | None] = mapped_column(Text, nullable=True)
     source: Mapped[str | None] = mapped_column(String, nullable=True)
     line_no: Mapped[int | None] = mapped_column(Integer, nullable=True)
@@ -25,11 +27,13 @@ class ErrorRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     error_name: Mapped[str | None] = mapped_column(String, nullable=True)
     error_stack: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    user: Mapped["UserRow | None"] = relationship("UserRow", back_populates="errors",
-                                                  foreign_keys=[user_id])
+    user: Mapped["UserRow | None"] = relationship(
+        "UserRow",
+        back_populates="errors",
+        foreign_keys=[user_id])
 
-    def __init__(self, user_id: int  |  None = None, message: str  |  None = None, source: str  |  None = None, line_no: int  |  None = None, column_no: int  |  None = None, error_message: str  |  None = None, error_cause: str  |  None = None, error_name: str  |  None = None, error_stack: str  |  None = None):
-        kwargs: Dict[str, int  |  None | str  |  None] = {}
+    def __init__(self, user_id: int | None = None, message: str | None = None, source: str | None = None, line_no: int | None = None, column_no: int | None = None, error_message: str | None = None, error_cause: str | None = None, error_name: str | None = None, error_stack: str | None = None):
+        kwargs: Dict[str, int | None | str | None] = {}
         kwargs['user_id'] = user_id
         kwargs['message'] = message
         kwargs['source'] = source

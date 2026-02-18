@@ -11,7 +11,7 @@ from backend.core.framework.auth.sessions import Session
 from backend.core.middlewares.authMiddleware import AuthMiddleware
 from backend.utils.logger import getLogger
 
-from backend.core.access.db.ormModels.main.user import UserRow
+from backend.core.access.db.ormModels.user import UserRow
 
 
 from backend.core.requests.logInRequest import LoginRequest

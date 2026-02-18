@@ -1,6 +1,6 @@
 from typing import List, TYPE_CHECKING, Dict
 
-from sqlalchemy import DOUBLE_PRECISION, String, Integer, Enum, Boolean
+from sqlalchemy import DOUBLE_PRECISION, ForeignKey, String, Integer, Boolean
 from sqlalchemy.orm import mapped_column, relationship, Mapped
 from sqlalchemy.orm.properties import MappedColumn
 
@@ -8,38 +8,58 @@ from backend.core.access.db.base import Base
 from backend.core.access.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdated, TableAutoincrementId
 
 if TYPE_CHECKING:
-    from backend.core.access.db.ormModels.main.error import ErrorRow
-    from backend.core.access.db.ormModels.main.session import SessionRow
+    from backend.core.access.db.ormModels.error import ErrorRow
+    from backend.core.access.db.ormModels.session import SessionRow
+    from backend.core.access.db.enums.repeatSongEnum import RepeatSongEnumRow
 
 
 class UserRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
-    __tablename__ = 'users'
-    __table_args__ = {'schema': 'main', 'extend_existing': True},
+    __tablename__ = 'user'
+    __table_args__ = {'schema': 'core', 'extend_existing': True},
 
     public_id: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     username: Mapped[str | None] = mapped_column(
-        String, nullable=False, unique=True)
+        String,
+        nullable=False,
+        unique=True)
     password_hash: Mapped[str | None] = mapped_column(String, nullable=True)
     provider: MappedColumn[str | None] = mapped_column(String, nullable=True)
     provider_account_id: MappedColumn[str | None] = mapped_column(
-        String, nullable=True)
+        String,
+        nullable=True)
     current_station: Mapped[str | None] = mapped_column(String, nullable=True)
     current_time: Mapped[float | None] = mapped_column(
-        DOUBLE_PRECISION, nullable=True)
+        DOUBLE_PRECISION,
+        nullable=True)
     queue_song_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     random_queue: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, default=False)
-    repeat_song: Mapped[str] = mapped_column(Enum(
-        "off", "one", "all", name="repeat_song_enum", schema="main"), nullable=False, default="off")
+        Boolean,
+        nullable=False,
+        default=False)
+    repeat_song_key: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey('core.repeat_song_enum.key'),
+        nullable=False)
     volume: Mapped[float] = mapped_column(
-        DOUBLE_PRECISION, nullable=False, default=1)
+        DOUBLE_PRECISION,
+        nullable=False,
+        default=1)
     cross_fade: Mapped[float] = mapped_column(
-        DOUBLE_PRECISION, nullable=False, default=0)
+        DOUBLE_PRECISION,
+        nullable=False,
+        default=0)
     lang: Mapped[str] = mapped_column(String, nullable=False, default="en")
     image: MappedColumn[str | None] = mapped_column(String, nullable=True)
     admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     super_admin: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, default=False)
+        Boolean,
+        nullable=False,
+        default=False)
+
+    repeat_song_enum: Mapped[List["RepeatSongEnumRow"]] = relationship(
+        "RepeatSongEnumRow",
+        back_populates="user"
+    )
 
     # one-to-many
     sessions: Mapped[List["SessionRow"]] = relationship(

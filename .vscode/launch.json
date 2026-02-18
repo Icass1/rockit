@@ -30,7 +30,7 @@
       "request": "launch",
       "module": "uvicorn",
       "args": [
-        "backend.main:app",
+        "backend.core.main:app",
       ],
       "cwd": "${workspaceFolder}",
       "justMyCode": true
@@ -56,7 +56,7 @@
       "request": "launch",
       "module": "uvicorn",
       "args": [
-        "backend.main:app",
+        "backend.core.main:app",
         "--reload"
       ],
       "cwd": "${workspaceFolder}",

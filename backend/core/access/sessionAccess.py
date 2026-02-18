@@ -4,8 +4,8 @@ from sqlalchemy import update
 from sqlalchemy.future import select
 
 from backend.core.aResult import AResult, AResultCode
-from backend.core.access.db.ormModels.main.session import SessionRow
-from backend.core.init import rockit_db
+from backend.core.access.db.ormModels.session import SessionRow
+from backend.core import rockit_db
 from backend.utils.logger import getLogger
 
 logger: Logger = getLogger(name=__name__)
@@ -39,7 +39,6 @@ class SessionAccess:
     @staticmethod
     def get_session_from_id(session_id: str) -> AResult[SessionRow]:
         try:
-
             session = rockit_db.session_scope()
 
             with session as s:
@@ -62,10 +61,10 @@ class SessionAccess:
                     result=result)
 
         except Exception as e:
-            logger.error("Error ")
+            logger.error(f"Failed to get session: {e}.")
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
-                message=f"Failed to get session: {e}.")
+                message=f"Failed to get session.")
 
     @staticmethod
     def disable_session_from_session_id(session_id: str) -> AResultCode:

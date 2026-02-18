@@ -3,7 +3,7 @@ from typing import List, TYPE_CHECKING, Dict
 from sqlalchemy import String, Integer
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 
-from backend.core.access.db.base import Base
+from backend.spotify.access.db.base import SpotifyBase
 from backend.core.access.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdated, TableAutoincrementId
 from backend.spotify.access.db.associationTables.album_external_images import album_external_images
 from backend.spotify.access.db.associationTables.artist_external_images import artist_external_images
@@ -12,10 +12,10 @@ from backend.spotify.access.db.associationTables.playlist_external_images import
 if TYPE_CHECKING:
     from backend.spotify.access.db.ormModels.album import AlbumRow
     from backend.spotify.access.db.ormModels.artist import ArtistRow
-    from backend.spotify.access.db.ormModels.playlist import PlaylistRow
+    from backend.spotify.access.db.ormModels.playlist import SpotifyPlaylistRow
 
 
-class ExternalImageRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
+class ExternalImageRow(SpotifyBase, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     __tablename__ = 'external_image'
     __table_args__ = {'schema': 'spotify', 'extend_existing': True},
 
@@ -29,8 +29,8 @@ class ExternalImageRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAd
         secondary=album_external_images,
         back_populates="external_images"
     )
-    playlists: Mapped[List["PlaylistRow"]] = relationship(
-        "PlaylistRow",
+    playlists: Mapped[List["SpotifyPlaylistRow"]] = relationship(
+        "SpotifyPlaylistRow",
         secondary=playlist_external_images,
         back_populates="external_images"
     )

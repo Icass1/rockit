@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Dict
 from sqlalchemy import DOUBLE_PRECISION, ForeignKey, String, Integer
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 
-from backend.core.access.db.base import Base
+from backend.spotify.access.db.base import SpotifyBase
 from backend.core.access.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdated, TableAutoincrementId
 
 if TYPE_CHECKING:
@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from backend.spotify.access.db.ormModels.download import DownloadRow
 
 
-class DownloadStatusRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
+class DownloadStatusRow(SpotifyBase, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     __tablename__ = 'downloads_status'
     __table_args__ = {'schema': 'spotify', 'extend_existing': True},
 

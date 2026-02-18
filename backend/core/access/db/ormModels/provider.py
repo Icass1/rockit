@@ -1,13 +1,16 @@
-from typing import Dict
+from typing import TYPE_CHECKING, Dict, List
 
 from sqlalchemy import String
-from sqlalchemy.orm import mapped_column, Mapped
+from sqlalchemy.orm import mapped_column, Mapped, relationship
 
-from backend.core.access.db.base import Base
+from backend.core.access.db.base import CoreBase
 from backend.core.access.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdated, TableAutoincrementId
 
+if TYPE_CHECKING:
+    from backend.core.access.db.ormModels.song import CoreSongRow
 
-class ProviderRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
+
+class ProviderRow(CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     __tablename__ = 'provider'
     __table_args__ = {'schema': 'core', 'extend_existing': True},
 
@@ -20,6 +23,12 @@ class ProviderRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
         String,
         nullable=False,
         unique=True)
+
+    songs: Mapped[List["CoreSongRow"]] = relationship(
+        "ProviderRow",
+        back_populates="provider",
+        uselist=True
+    )
 
     def __init__(self, name: str, module: str):
         kwargs: Dict[str, str] = {}

@@ -3,7 +3,7 @@ from typing import List, TYPE_CHECKING, Dict
 from sqlalchemy import DOUBLE_PRECISION, ForeignKey, String, Integer, Boolean
 from sqlalchemy.orm import mapped_column, relationship, Mapped
 
-from backend.core.access.db.base import Base
+from backend.core.access.db.base import CoreBase
 from backend.core.access.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdated, TableAutoincrementId
 
 if TYPE_CHECKING:
@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from backend.core.access.db.ormEnums.repeatSongEnum import RepeatSongEnumRow
 
 
-class UserRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
+class UserRow(CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     __tablename__ = 'user'
     __table_args__ = {'schema': 'core', 'extend_existing': True},
 

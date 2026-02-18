@@ -4,14 +4,14 @@ from datetime import datetime
 from sqlalchemy import TIMESTAMP, Boolean, ForeignKey,  String, Integer
 from sqlalchemy.orm import mapped_column, relationship, Mapped
 
-from backend.core.access.db.base import Base
+from backend.core.access.db.base import CoreBase
 from backend.core.access.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdated, TableAutoincrementId
 
 if TYPE_CHECKING:
     from backend.core.access.db.ormModels.user import UserRow
 
 
-class SessionRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
+class SessionRow(CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     __tablename__ = 'session'
     __table_args__ = {'schema': 'core', 'extend_existing': True},
 

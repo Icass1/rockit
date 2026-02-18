@@ -3,8 +3,9 @@ from typing import List, TYPE_CHECKING, Dict
 from sqlalchemy import String, ForeignKey, Text, Integer
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 
-from backend.core.access.db.base import Base
 from backend.core.access.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdated, TableAutoincrementId
+
+from backend.spotify.access.db.base import SpotifyBase
 from backend.spotify.access.db.associationTables.song_artists import song_artists
 
 if TYPE_CHECKING:
@@ -16,10 +17,14 @@ if TYPE_CHECKING:
     from backend.spotify.access.db.ormModels.playlist_tracks import PlaylistTrackRow
 
 
-class TrackRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
+class TrackRow(SpotifyBase, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     __tablename__ = "track"
     __table_args__ = {'schema': 'spotify', 'extend_existing': True},
 
+    id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey('core.song.id'),
+        primary_key=True)
     public_id: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     name: Mapped[str] = mapped_column(String, nullable=False)
     duration: Mapped[int] = mapped_column(Integer, nullable=False)
@@ -52,8 +57,9 @@ class TrackRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
         back_populates="track"
     )
 
-    def __init__(self, public_id: str, name: str, duration: int, track_number: int, disc_number: int, internal_image_id: int, album_id: int, isrc: str, popularity: int | None = None, path: str | None = None, download_url: str | None = None, lyrics: str | None = None, dynamic_lyrics: str | None = None, preview_url: str | None = None):
+    def __init__(self, id: int, public_id: str, name: str, duration: int, track_number: int, disc_number: int, internal_image_id: int, album_id: int, isrc: str, popularity: int | None = None, path: str | None = None, download_url: str | None = None, lyrics: str | None = None, dynamic_lyrics: str | None = None, preview_url: str | None = None):
         kwargs: Dict[str, None | int | str] = {}
+        kwargs['id'] = id
         kwargs['public_id'] = public_id
         kwargs['name'] = name
         kwargs['duration'] = duration

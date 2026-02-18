@@ -3,7 +3,7 @@ from typing import List, TYPE_CHECKING, Dict
 from sqlalchemy import ForeignKey, String, Integer
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 
-from backend.core.access.db.base import Base
+from backend.spotify.access.db.base import SpotifyBase
 from backend.core.access.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdated
 from backend.spotify.access.db.associationTables.album_artists import album_artists
 from backend.spotify.access.db.associationTables.album_copyrights import album_copyrights
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from backend.spotify.access.db.ormModels.externalImage import ExternalImageRow
 
 
-class AlbumRow(Base, TableDateUpdated, TableDateAdded):
+class AlbumRow(SpotifyBase, TableDateUpdated, TableDateAdded):
     __tablename__ = "album"
     __table_args__ = {'schema': 'spotify', 'extend_existing': True},
 

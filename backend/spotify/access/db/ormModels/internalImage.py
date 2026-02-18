@@ -3,17 +3,17 @@ from typing import List, TYPE_CHECKING, Dict
 from sqlalchemy import String
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 
-from backend.core.access.db.base import Base
 from backend.core.access.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdated, TableAutoincrementId
+from backend.spotify.access.db.base import SpotifyBase
 
 if TYPE_CHECKING:
     from backend.spotify.access.db.ormModels.track import TrackRow
     from backend.spotify.access.db.ormModels.album import AlbumRow
-    from backend.spotify.access.db.ormModels.playlist import PlaylistRow
+    from backend.spotify.access.db.ormModels.playlist import SpotifyPlaylistRow
     from backend.spotify.access.db.ormModels.artist import ArtistRow
 
 
-class InternalImageRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
+class InternalImageRow(SpotifyBase, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     __tablename__ = 'internal_image'
     __table_args__ = {'schema': 'spotify', 'extend_existing': True},
 
@@ -25,8 +25,8 @@ class InternalImageRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAd
         "TrackRow", back_populates="internal_image")
     albums: Mapped[List["AlbumRow"]] = relationship(
         "AlbumRow", back_populates="internal_image")
-    playlists: Mapped[List["PlaylistRow"]] = relationship(
-        "PlaylistRow", back_populates="internal_image")
+    playlists: Mapped[List["SpotifyPlaylistRow"]] = relationship(
+        "SpotifyPlaylistRow", back_populates="internal_image")
     artists: Mapped[List["ArtistRow"]] = relationship(
         "ArtistRow", back_populates="internal_image")
 

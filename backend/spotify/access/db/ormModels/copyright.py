@@ -3,7 +3,7 @@ from typing import Final, TYPE_CHECKING, Literal, Dict
 from sqlalchemy import Enum, String, UniqueConstraint
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 
-from backend.core.access.db.base import Base
+from backend.spotify.access.db.base import SpotifyBase
 from backend.core.access.db.ormModels.declarativeMixin import TableAutoincrementId, TableDateAdded, TableDateUpdated
 from backend.spotify.access.db.associationTables.album_copyrights import album_copyrights
 
@@ -21,7 +21,7 @@ COPYRIGHT_TYPE_TYPE = Literal[
 ]
 
 
-class CopyrightRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
+class CopyrightRow(SpotifyBase, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     __tablename__ = "copyright"
 
     __table_args__ = (

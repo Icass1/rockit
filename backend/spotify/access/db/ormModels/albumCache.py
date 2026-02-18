@@ -4,11 +4,11 @@ from sqlalchemy import String
 from sqlalchemy.orm import mapped_column, Mapped
 from sqlalchemy.dialects.postgresql import JSON
 
-from backend.core.access.db.base import Base
+from backend.spotify.access.db.base import SpotifyBase
 from backend.core.access.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdated
 
 
-class SpotifyCacheAlbumRow(Base, TableDateUpdated, TableDateAdded):
+class SpotifyCacheAlbumRow(SpotifyBase, TableDateUpdated, TableDateAdded):
     __tablename__ = 'cache_album'
     __table_args__ = {'schema': 'spotify', 'extend_existing': True},
 

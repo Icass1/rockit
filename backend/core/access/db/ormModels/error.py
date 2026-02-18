@@ -3,14 +3,14 @@ from typing import TYPE_CHECKING, Dict
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 from sqlalchemy import ForeignKey, String, Integer, Text
 
-from backend.core.access.db.base import Base
+from backend.core.access.db.base import CoreBase
 from backend.core.access.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdated, TableAutoincrementId
 
 if TYPE_CHECKING:
     from backend.core.access.db.ormModels.user import UserRow
 
 
-class ErrorRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
+class ErrorRow(CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     __tablename__ = 'error'
     __table_args__ = {'schema': 'core', 'extend_existing': True},
 

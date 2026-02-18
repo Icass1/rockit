@@ -1,17 +1,18 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict
 from datetime import datetime
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import ForeignKey, TIMESTAMP, Boolean, String
-from backend.core.access.db.base import Base
+
 from backend.core.access.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdated
+from backend.spotify.access.db.base import SpotifyBase
 
 if TYPE_CHECKING:
-    from backend.spotify.access.db.ormModels.playlist import PlaylistRow
+    from backend.spotify.access.db.ormModels.playlist import SpotifyPlaylistRow
     from backend.spotify.access.db.ormModels.track import TrackRow
 
 
-class PlaylistTrackRow(Base, TableDateUpdated, TableDateAdded):
+class PlaylistTrackRow(SpotifyBase, TableDateUpdated, TableDateAdded):
     __tablename__ = 'playlist_track'
     __table_args__ = {'schema': 'spotify'}
 
@@ -25,8 +26,8 @@ class PlaylistTrackRow(Base, TableDateUpdated, TableDateAdded):
         nullable=False)
     disabled: Mapped[bool] = mapped_column(Boolean, nullable=False)
 
-    playlist: Mapped["PlaylistRow"] = relationship(
-        "PlaylistRow", back_populates="playlist_song_links")
+    playlist: Mapped["SpotifyPlaylistRow"] = relationship(
+        "SpotifyPlaylistRow", back_populates="playlist_song_links")
     track: Mapped["TrackRow"] = relationship(
         "TrackRow", back_populates="playlist_song_links")
 

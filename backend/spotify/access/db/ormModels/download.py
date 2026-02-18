@@ -4,14 +4,14 @@ from typing import TYPE_CHECKING,  List, Dict
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 from sqlalchemy import TIMESTAMP, ForeignKey, String, Integer, Boolean
 
-from backend.core.access.db.base import Base
+from backend.spotify.access.db.base import SpotifyBase
 from backend.core.access.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdated, TableAutoincrementId
 
 if TYPE_CHECKING:
     from backend.spotify.access.db.ormModels.downloadStatus import DownloadStatusRow
 
 
-class DownloadRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
+class DownloadRow(SpotifyBase, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     __tablename__ = 'download'
     __table_args__ = {'schema': 'spotify', 'extend_existing': True},
 

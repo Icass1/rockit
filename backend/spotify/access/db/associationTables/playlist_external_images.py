@@ -1,11 +1,12 @@
 from sqlalchemy import Table, Column, ForeignKey
 
+from backend.spotify.access.db.base import SpotifyBase
+
 from backend.core.access.db.associationTables.generalColumns import date_added_column, date_updated_column
-from backend.core.access.db.base import Base
 
 playlist_external_images = Table(
     'playlist_external_image',
-    Base.metadata,
+    SpotifyBase.metadata,
     Column[int](
         'playlist_id',
         ForeignKey('spotify.playlist.id'),

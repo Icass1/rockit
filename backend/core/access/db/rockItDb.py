@@ -1,13 +1,14 @@
+from dataclasses import dataclass
 import os
 from importlib import import_module
 
 from contextlib import contextmanager
-from typing import Generator, Callable, List, Set, TypeVar
+from typing import Any, Generator, Callable, List, Set, TypeVar
 
 from sqlalchemy import Table, create_engine, inspect, text
 from sqlalchemy.orm import Session, sessionmaker
 
-from backend.core.access.db.base import Base
+from backend.core.access.db.base import CoreBase
 from backend.utils.logger import getLogger
 
 T = TypeVar("T")
@@ -15,7 +16,13 @@ T = TypeVar("T")
 logger = getLogger(__name__)
 
 
-schemas: List[str] = []
+@dataclass
+class SchemaInfo:
+    name: str
+    base: Any
+
+
+schemas: List[SchemaInfo] = []
 
 for dirpath, dirnames, filenames in os.walk("backend"):
     if not dirpath.endswith("/db"):
@@ -31,7 +38,7 @@ for dirpath, dirnames, filenames in os.walk("backend"):
     module = import_module(module)
 
     try:
-        schemas.append(module.schema)
+        schemas.append(SchemaInfo(name=module.schema, base=module.base))
     except:
         logger.warning(f"{module} doesn't have an schema variable declared.")
 
@@ -43,29 +50,30 @@ class RockItDB:
         """
         self.database: str = database
 
-        self.logger = getLogger(__name__, "RockItDB")
-
         connection_string = f"postgresql://{username}:{password}@{host}:{port}/{self.database}?sslmode=disable"
-        self.logger.info(f"Using connection string: '{connection_string}'")
+        logger.info(f"Using connection string: '{connection_string}'")
 
         self.engine = create_engine(
             connection_string, echo=verbose)
 
+        # Create all schemas in database.
         with self.engine.connect() as conn:
             for schema in schemas:
-                conn.execute(text(f"CREATE SCHEMA IF NOT EXISTS {schema}"))
+                conn.execute(
+                    text(f"CREATE SCHEMA IF NOT EXISTS {schema.name}"))
             conn.commit()
 
-        Base.metadata.create_all(self.engine)
+        for schema in schemas:
+            schema.base.metadata.create_all(self.engine)
 
         self.SessionLocal = sessionmaker(
             bind=self.engine, expire_on_commit=False)
 
-        for mapper in Base.registry.mappers:
+        for mapper in CoreBase.registry.mappers:
             self.check_table_schema(mapper.class_.__table__)
 
-        for table in Base.metadata.tables.values():
-            if not any(mapper.class_.__table__ is table for mapper in Base.registry.mappers):
+        for table in CoreBase.metadata.tables.values():
+            if not any(mapper.class_.__table__ is table for mapper in CoreBase.registry.mappers):
                 self.check_table_schema(table)
 
     def check_table_schema(self, table: Table):
@@ -80,7 +88,7 @@ class RockItDB:
             db_columns = {col['name']: col for col in inspector.get_columns(
                 table_name, schema=schema)}
         except Exception as e:
-            self.logger.error(
+            logger.error(
                 f"Table not found in DB: {schema}.{table_name} ({e})")
             return
 
@@ -88,17 +96,17 @@ class RockItDB:
 
         # --- Column existence ---
         for col in orm_columns.keys() - db_columns.keys():
-            self.logger.error(
+            logger.error(
                 f"ORM-only column: {col} in table '{table.name}'")
         for col in db_columns.keys() - orm_columns.keys():
-            self.logger.error(f"DB-only column: {col} in table '{table.name}'")
+            logger.error(f"DB-only column: {col} in table '{table.name}'")
 
         # --- Column type ---
         for col in orm_columns.keys() & db_columns.keys():
             orm_type = str(orm_columns[col].type)
             db_type = str(db_columns[col]["type"])
             if orm_type.lower() != db_type.lower():
-                self.logger.error(
+                logger.error(
                     f"Type mismatch on {col}: ORM={orm_type}, DB={db_type} in table '{table.name}'")
 
         # --- Foreign keys ---
@@ -115,10 +123,10 @@ class RockItDB:
 
         # Compare both directions
         for fk in orm_fks - db_fks:
-            self.logger.error(
+            logger.error(
                 f"ForeignKey in ORM but missing in DB: {fk} in table '{table.name}'")
         for fk in db_fks - orm_fks:
-            self.logger.error(
+            logger.error(
                 f"ForeignKey in DB but missing in ORM: {fk} in table '{table.name}'")
 
     def get_session(self) -> Session:
@@ -142,7 +150,7 @@ class RockItDB:
             yield session
             session.commit()
         except Exception as e:
-            self.logger.error(f"Error executing query ({e}). Rolling back...")
+            logger.error(f"Error executing query ({e}). Rolling back...")
             session.rollback()
             raise
         finally:

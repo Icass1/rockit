@@ -56,9 +56,10 @@ class UserRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
         nullable=False,
         default=False)
 
-    repeat_song_enum: Mapped[List["RepeatSongEnumRow"]] = relationship(
+    repeat_song_enum: Mapped["RepeatSongEnumRow"] = relationship(
         "RepeatSongEnumRow",
-        back_populates="user"
+        back_populates="user",
+        uselist=False  
     )
 
     # one-to-many

@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 
 class ExternalImageRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
-    __tablename__ = 'external_images'
+    __tablename__ = 'external_image'
     __table_args__ = {'schema': 'spotify', 'extend_existing': True},
 
     public_id: Mapped[str] = mapped_column(String, nullable=False, unique=True)

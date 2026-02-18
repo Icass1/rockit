@@ -5,9 +5,9 @@ from backend.core.access.db.base import Base
 
 
 artist_genres = Table(
-    'artist_genres', Base.metadata,
-    Column[int]('artist_id', ForeignKey('spotify.artists.id'), primary_key=True),
-    Column[int]('genre_id', ForeignKey(column='spotify.genres.id'), primary_key=True),
+    'artist_genre', Base.metadata,
+    Column[int]('artist_id', ForeignKey('spotify.artist.id'), primary_key=True),
+    Column[int]('genre_id', ForeignKey(column='spotify.genre.id'), primary_key=True),
     date_added_column(),
     date_updated_column(),
     schema='spotify'

@@ -22,7 +22,7 @@ COPYRIGHT_TYPE_TYPE = Literal[
 
 
 class CopyrightRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
-    __tablename__ = "copyrights"
+    __tablename__ = "copyright"
 
     __table_args__ = (
         UniqueConstraint(

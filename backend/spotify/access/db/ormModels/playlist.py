@@ -6,7 +6,7 @@ from sqlalchemy.orm import relationship, mapped_column, Mapped
 from backend.core.access.db.base import Base
 from backend.core.access.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdated
 from backend.spotify.access.db.associationTables.playlist_external_images import playlist_external_images
-from backend.spotify.access.db.associationTables.playlist_tracks import PlaylistTrackLink
+from backend.spotify.access.db.ormModels.playlist_tracks import PlaylistTrackRow
 
 if TYPE_CHECKING:
     from backend.spotify.access.db.ormModels.internalImage import InternalImageRow
@@ -14,13 +14,13 @@ if TYPE_CHECKING:
 
 
 class PlaylistRow(Base, TableDateUpdated, TableDateAdded):
-    __tablename__ = 'playlists'
+    __tablename__ = 'playlist'
     __table_args__ = {'schema': 'spotify', 'extend_existing': True},
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     public_id: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     internal_image_id: Mapped[int | None] = mapped_column(Integer, ForeignKey(
-        'spotify.internal_images.id'), nullable=True)
+        'spotify.internal_image.id'), nullable=True)
     name: Mapped[str] = mapped_column(String, nullable=False)
     owner: Mapped[str] = mapped_column(String, nullable=False)
     followers: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
@@ -34,8 +34,8 @@ class PlaylistRow(Base, TableDateUpdated, TableDateAdded):
         secondary=playlist_external_images,
         back_populates="playlists"
     )
-    playlist_song_links: Mapped[List["PlaylistTrackLink"]] = relationship(
-        "PlaylistTrackLink",
+    playlist_song_links: Mapped[List["PlaylistTrackRow"]] = relationship(
+        "PlaylistTrackRow",
         back_populates="playlist"
     )
 

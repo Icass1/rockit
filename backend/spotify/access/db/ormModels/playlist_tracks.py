@@ -11,14 +11,14 @@ if TYPE_CHECKING:
     from backend.spotify.access.db.ormModels.track import TrackRow
 
 
-class PlaylistTrackLink(Base, TableDateUpdated, TableDateAdded):
-    __tablename__ = 'playlist_tracks'
+class PlaylistTrackRow(Base, TableDateUpdated, TableDateAdded):
+    __tablename__ = 'playlist_track'
     __table_args__ = {'schema': 'spotify'}
 
     playlist_id: Mapped[int] = mapped_column(
-        ForeignKey('spotify.playlists.id'), primary_key=True)
+        ForeignKey('spotify.playlist.id'), primary_key=True)
     song_id: Mapped[int] = mapped_column(
-        ForeignKey('spotify.tracks.id'), primary_key=True)
+        ForeignKey('spotify.track.id'), primary_key=True)
     added_by: Mapped[str | None] = mapped_column(String, nullable=True)
     added_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True),
@@ -31,7 +31,7 @@ class PlaylistTrackLink(Base, TableDateUpdated, TableDateAdded):
         "TrackRow", back_populates="playlist_song_links")
 
     def __init__(self, playlist_id: int, song_id: int, added_at: datetime, disabled: bool, added_by: str | None = None):
-        kwargs = {}
+        kwargs: Dict[str, None | bool | datetime | int | str] = {}
         kwargs['playlist_id'] = playlist_id
         kwargs['song_id'] = song_id
         kwargs['added_at'] = added_at

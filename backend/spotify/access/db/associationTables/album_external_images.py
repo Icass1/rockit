@@ -6,11 +6,11 @@ from backend.core.access.db.associationTables.generalColumns import date_added_c
 
 
 album_external_images = Table(
-    'album_external_images',
+    'album_external_image',
     Base.metadata,
-    Column[int]('album_id', ForeignKey('spotify.albums.id'), primary_key=True),
+    Column[int]('album_id', ForeignKey('spotify.album.id'), primary_key=True),
     Column[int]('external_image_id', ForeignKey(
-        column='spotify.external_images.id'), primary_key=True),
+        column='spotify.external_image.id'), primary_key=True),
     date_added_column(),
     date_updated_column(),
     schema='spotify'

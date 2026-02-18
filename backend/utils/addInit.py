@@ -2,6 +2,11 @@ from dataclasses import dataclass
 import os
 from typing import List, Set
 
+from backend.utils.logger import getLogger
+
+
+logger = getLogger(__name__)
+
 skip_files: List[str] = [
     "__init__.py",
     "declarativeMixin.py",
@@ -20,7 +25,8 @@ class Parameter:
 def add_init_to_orm():
 
     for dirpath, _, filenames in os.walk("."):
-
+        dirpath = dirpath.replace("./", "")
+        
         dirpaths = dirpath.split("/")
 
         if dirpaths[-1] != "ormModels" and dirpaths[-1] != "ormEnums":
@@ -30,11 +36,11 @@ def add_init_to_orm():
             k = os.path.join(dirpath, filename)
 
             if not k.endswith(".py"):
-                print("Skipping", k)
+                logger.info(f"Skipping {k}")
                 continue
 
             if filename in skip_files:
-                print("Skipping", k)
+                logger.info(f"Skipping {k}")
                 continue
 
             file_path = k
@@ -106,7 +112,7 @@ def add_init_to_orm():
                                             optional=optional, nullable=nullable, default_value=default_value))
 
             if len(parameters) == 0:
-                print(f"{file_path} has no parameters.")
+                logger.info(f"{file_path} has no parameters.")
                 continue
 
             init_stmt = "\n"
@@ -161,7 +167,7 @@ def add_init_to_orm():
             if output_content == "".join(initial_content):
                 continue
 
-            print("Updating contents of", file_path)
+            logger.info(f"Updating contents of {file_path}")
 
             with open(file_path, "w") as f:
                 f.write(output_content)

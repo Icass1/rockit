@@ -13,11 +13,11 @@ if TYPE_CHECKING:
     from backend.spotify.access.db.ormModels.internalImage import InternalImageRow
     from backend.spotify.access.db.ormModels.downloadStatus import DownloadStatusRow
 
-    from backend.spotify.access.db.associationTables.playlist_tracks import PlaylistTrackLink
+    from backend.spotify.access.db.ormModels.playlist_tracks import PlaylistTrackRow
 
 
 class TrackRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
-    __tablename__ = "tracks"
+    __tablename__ = "track"
     __table_args__ = {'schema': 'spotify', 'extend_existing': True},
 
     public_id: Mapped[str] = mapped_column(String, nullable=False, unique=True)
@@ -27,10 +27,10 @@ class TrackRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     disc_number: Mapped[int] = mapped_column(Integer, nullable=False)
     popularity: Mapped[int | None] = mapped_column(Integer, nullable=True)
     internal_image_id: Mapped[int] = mapped_column(Integer, ForeignKey(
-        'spotify.internal_images.id'), nullable=False)
+        'spotify.internal_image.id'), nullable=False)
     path: Mapped[str | None] = mapped_column(String, nullable=True)
     album_id: Mapped[int] = mapped_column(Integer, ForeignKey(
-        'spotify.albums.id'), nullable=False)
+        'spotify.album.id'), nullable=False)
     isrc: Mapped[str] = mapped_column(String, nullable=False, unique=False)
     download_url: Mapped[str | None] = mapped_column(String, nullable=True)
     lyrics: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -47,8 +47,8 @@ class TrackRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     downloads: Mapped[List["DownloadStatusRow"]] = relationship(
         "DownloadStatusRow", back_populates="song")
 
-    playlist_song_links: Mapped[List["PlaylistTrackLink"]] = relationship(
-        "PlaylistTrackLink",
+    playlist_song_links: Mapped[List["PlaylistTrackRow"]] = relationship(
+        "PlaylistTrackRow",
         back_populates="track"
     )
 

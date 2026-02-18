@@ -11,13 +11,19 @@ class ProviderRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     __tablename__ = 'provider'
     __table_args__ = {'schema': 'core', 'extend_existing': True},
 
-    provider_name: Mapped[str] = mapped_column(
+    name: Mapped[str] = mapped_column(
         String,
         nullable=False,
         unique=True)
 
-    def __init__(self, provider_name: str):
+    module: Mapped[str] = mapped_column(
+        String,
+        nullable=False,
+        unique=True)
+
+    def __init__(self, name: str, module: str):
         kwargs: Dict[str, str] = {}
-        kwargs['provider_name'] = provider_name
+        kwargs['name'] = name
+        kwargs['module'] = module
         for k, v in kwargs.items():
             setattr(self, k, v)

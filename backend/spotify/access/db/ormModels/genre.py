@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 
 class GenreRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
-    __tablename__ = 'genres'
+    __tablename__ = 'genre'
     __table_args__ = {'schema': 'spotify', 'extend_existing': True},
 
     public_id: Mapped[str] = mapped_column(String, nullable=False, unique=True)

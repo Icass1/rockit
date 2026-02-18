@@ -18,14 +18,14 @@ if TYPE_CHECKING:
 
 
 class AlbumRow(Base, TableDateUpdated, TableDateAdded):
-    __tablename__ = "albums"
+    __tablename__ = "album"
     __table_args__ = {'schema': 'spotify', 'extend_existing': True},
 
     id: Mapped[int] = mapped_column(Integer,  primary_key=True)
     public_id: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     internal_image_id: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("spotify.internal_images.id"),
+        ForeignKey("spotify.internal_image.id"),
         nullable=False)
     name: Mapped[str] = mapped_column(String, nullable=False)
     release_date: Mapped[str] = mapped_column(String, nullable=False)

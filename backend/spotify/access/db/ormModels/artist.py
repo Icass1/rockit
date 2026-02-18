@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 
 
 class ArtistRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
-    __tablename__ = 'artists'
+    __tablename__ = 'artist'
     __table_args__ = {'schema': 'spotify', 'extend_existing': True},
 
     public_id: Mapped[str] = mapped_column(String, nullable=False, unique=True)
@@ -27,7 +27,7 @@ class ArtistRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     followers: Mapped[int] = mapped_column(Integer, nullable=False)
     popularity: Mapped[int] = mapped_column(Integer, nullable=False)
     internal_image_id: Mapped[int | None] = mapped_column(Integer, ForeignKey(
-        'spotify.internal_images.id'), nullable=True)
+        'spotify.internal_image.id'), nullable=True)
 
     songs: Mapped[List["TrackRow"]] = relationship("TrackRow", secondary=song_artists,
                                                    back_populates="artists")

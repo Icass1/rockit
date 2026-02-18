@@ -17,11 +17,8 @@ class ProviderRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
         nullable=False,
         unique=True)
 
-    def __init__(self, session_id: str, user_id: int, expires_at: datetime, disabled: bool = False):
-        kwargs: Dict[str, str | int | datetime | bool] = {}
-        kwargs['session_id'] = session_id
-        kwargs['user_id'] = user_id
-        kwargs['expires_at'] = expires_at
-        kwargs['disabled'] = disabled
+    def __init__(self, provider_name: str):
+        kwargs: Dict[str, str] = {}
+        kwargs['provider_name'] = provider_name
         for k, v in kwargs.items():
             setattr(self, k, v)

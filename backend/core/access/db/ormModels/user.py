@@ -67,11 +67,11 @@ class UserRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     errors: Mapped[List["ErrorRow"]] = relationship(
         "ErrorRow", back_populates="user")
 
-    def __init__(self, public_id: str, username: str | None, password_hash: str | None = None, provider: str | None = None, provider_account_id: str | None = None, current_station: str | None = None, current_time: float | None = None, queue_song_id: int | None = None, random_queue: bool = False, repeat_song: str = "off", volume: float = 1, cross_fade: float = 0, lang: str = "en", image: str | None = None, admin: bool = False, super_admin: bool = False):
-        kwargs: Dict[str, int | None | str | bool |
-                     float | None | float | str | None] = {}
+    def __init__(self, public_id: str, username: str | None, repeat_song_key: int, password_hash: str | None = None, provider: str | None = None, provider_account_id: str | None = None, current_station: str | None = None, current_time: float | None = None, queue_song_id: int | None = None, random_queue: bool = False, volume: float = 1, cross_fade: float = 0, lang: str = "en", image: str | None = None, admin: bool = False, super_admin: bool = False):
+        kwargs: Dict[str, str | int | bool | float | None] = {}
         kwargs['public_id'] = public_id
         kwargs['username'] = username
+        kwargs['repeat_song_key'] = repeat_song_key
         kwargs['password_hash'] = password_hash
         kwargs['provider'] = provider
         kwargs['provider_account_id'] = provider_account_id
@@ -79,7 +79,6 @@ class UserRow(Base, TableAutoincrementId, TableDateUpdated, TableDateAdded):
         kwargs['current_time'] = current_time
         kwargs['queue_song_id'] = queue_song_id
         kwargs['random_queue'] = random_queue
-        kwargs['repeat_song'] = repeat_song
         kwargs['volume'] = volume
         kwargs['cross_fade'] = cross_fade
         kwargs['lang'] = lang

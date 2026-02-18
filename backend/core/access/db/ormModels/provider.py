@@ -25,7 +25,7 @@ class ProviderRow(CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdd
         unique=True)
 
     songs: Mapped[List["CoreSongRow"]] = relationship(
-        "ProviderRow",
+        "CoreSongRow",
         back_populates="provider",
         uselist=True
     )

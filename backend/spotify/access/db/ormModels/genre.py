@@ -15,15 +15,13 @@ class GenreRow(SpotifyBase, TableAutoincrementId, TableDateUpdated, TableDateAdd
     __tablename__ = 'genre'
     __table_args__ = {'schema': 'spotify', 'extend_existing': True},
 
-    public_id: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     name: Mapped[str] = mapped_column(String, nullable=False, unique=True)
 
     artists: Mapped[List["ArtistRow"]] = relationship(
         "ArtistRow", secondary=artist_genres, back_populates="genres")
 
-    def __init__(self, public_id: str, name: str):
+    def __init__(self, name: str):
         kwargs: Dict[str, str] = {}
-        kwargs['public_id'] = public_id
         kwargs['name'] = name
         for k, v in kwargs.items():
             setattr(self, k, v)

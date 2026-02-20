@@ -4,7 +4,7 @@ from sqlalchemy import String, Integer
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 
 from backend.spotify.access.db.base import SpotifyBase
-from backend.core.access.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdated, TableAutoincrementId
+from backend.core.access.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdated, TableAutoincrementId, TablePublicId
 from backend.spotify.access.db.associationTables.album_external_images import album_external_images
 from backend.spotify.access.db.associationTables.artist_external_images import artist_external_images
 from backend.spotify.access.db.associationTables.playlist_external_images import playlist_external_images
@@ -15,11 +15,10 @@ if TYPE_CHECKING:
     from backend.spotify.access.db.ormModels.playlist import SpotifyPlaylistRow
 
 
-class ExternalImageRow(SpotifyBase, TableAutoincrementId, TableDateUpdated, TableDateAdded):
+class ExternalImageRow(SpotifyBase, TableAutoincrementId, TablePublicId, TableDateUpdated, TableDateAdded):
     __tablename__ = 'external_image'
     __table_args__ = {'schema': 'spotify', 'extend_existing': True},
 
-    public_id: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     url: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     width: Mapped[int | None] = mapped_column(Integer, nullable=True)
     height: Mapped[int | None] = mapped_column(Integer, nullable=True)

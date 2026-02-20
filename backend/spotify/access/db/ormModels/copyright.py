@@ -17,7 +17,6 @@ class CopyrightRow(SpotifyBase, TableAutoincrementId, TableDateUpdated, TableDat
 
     __table_args__ = {"schema": "spotify", "extend_existing": True}
 
-    public_id: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     text: Mapped[str] = mapped_column(String, nullable=False)
     type_key: Mapped[int] = mapped_column(
         Integer,
@@ -30,9 +29,8 @@ class CopyrightRow(SpotifyBase, TableAutoincrementId, TableDateUpdated, TableDat
     type: Mapped["CopyrightTypeEnumRow"] = relationship(
         "CopyrightTypeEnumRow")
     
-    def __init__(self, public_id: str, text: str, type_key: int):
+    def __init__(self, text: str, type_key: int):
         kwargs: Dict[str, int | str] = {}
-        kwargs['public_id'] = public_id
         kwargs['text'] = text
         kwargs['type_key'] = type_key
         for k, v in kwargs.items():

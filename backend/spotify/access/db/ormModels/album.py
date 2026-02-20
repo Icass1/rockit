@@ -25,7 +25,6 @@ class AlbumRow(SpotifyBase, TableDateUpdated, TableDateAdded):
         Integer,
         ForeignKey('core.album.id'),
         primary_key=True)
-    public_id: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     internal_image_id: Mapped[int] = mapped_column(
         Integer,
         ForeignKey("spotify.internal_image.id"),
@@ -61,10 +60,9 @@ class AlbumRow(SpotifyBase, TableDateUpdated, TableDateAdded):
         back_populates="albums"
     )
 
-    def __init__(self, id: int, public_id: str, internal_image_id: int, name: str, release_date: str, popularity: int, disc_count: int):
+    def __init__(self, id: int, internal_image_id: int, name: str, release_date: str, popularity: int, disc_count: int):
         kwargs: Dict[str, int | str] = {}
         kwargs['id'] = id
-        kwargs['public_id'] = public_id
         kwargs['internal_image_id'] = internal_image_id
         kwargs['name'] = name
         kwargs['release_date'] = release_date

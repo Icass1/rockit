@@ -5,17 +5,16 @@ from sqlalchemy.orm import relationship, mapped_column, Mapped
 from sqlalchemy import TIMESTAMP, ForeignKey, String, Integer, Boolean
 
 from backend.spotify.access.db.base import SpotifyBase
-from backend.core.access.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdated, TableAutoincrementId
+from backend.core.access.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdated, TableAutoincrementId, TablePublicId
 
 if TYPE_CHECKING:
     from backend.spotify.access.db.ormModels.downloadStatus import DownloadStatusRow
 
 
-class DownloadRow(SpotifyBase, TableAutoincrementId, TableDateUpdated, TableDateAdded):
+class DownloadRow(SpotifyBase, TableAutoincrementId, TablePublicId, TableDateUpdated, TableDateAdded):
     __tablename__ = 'download'
     __table_args__ = {'schema': 'spotify', 'extend_existing': True},
 
-    public_id: Mapped[str] = mapped_column(String, nullable=False)
     user_id: Mapped[int] = mapped_column(
         Integer,
         ForeignKey('core.user.id'),

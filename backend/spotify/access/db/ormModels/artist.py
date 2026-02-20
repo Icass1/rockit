@@ -26,7 +26,6 @@ class ArtistRow(SpotifyBase, TableDateUpdated, TableDateAdded):
         Integer,
         ForeignKey('core.artist.id'),
         primary_key=True)
-    public_id: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     name: Mapped[str] = mapped_column(String, nullable=False)
     followers: Mapped[int] = mapped_column(Integer, nullable=False)
     popularity: Mapped[int] = mapped_column(Integer, nullable=False)
@@ -52,10 +51,9 @@ class ArtistRow(SpotifyBase, TableDateUpdated, TableDateAdded):
         back_populates="artists"
     )
 
-    def __init__(self, id: int, public_id: str, name: str, followers: int, popularity: int, internal_image_id: int | None = None):
+    def __init__(self, id: int, name: str, followers: int, popularity: int, internal_image_id: int | None = None):
         kwargs: Dict[str, None | int | str] = {}
         kwargs['id'] = id
-        kwargs['public_id'] = public_id
         kwargs['name'] = name
         kwargs['followers'] = followers
         kwargs['popularity'] = popularity

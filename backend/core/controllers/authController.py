@@ -35,7 +35,7 @@ router = APIRouter(prefix="/auth")
 async def login(response: Response, payload: LoginRequest) -> LoginResponse:
     user: UserRow = await login_user(username=payload.username, password=payload.password)
     Session.create_session(response=response, user_id=user.id)
-    return LoginResponse(user_id=user.public_id)
+    return LoginResponse(userId=user.public_id)
 
 
 @router.post("/register")
@@ -47,7 +47,7 @@ async def register(
 
     Session.create_session(response=response, user_id=user.id)
 
-    return RegisterResponse(user_id=user.public_id)
+    return RegisterResponse(userId=user.public_id)
 
 
 @router.get(path="/logout")

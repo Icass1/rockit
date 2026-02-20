@@ -21,7 +21,6 @@ class SpotifyPlaylistRow(SpotifyBase, TableDateUpdated, TableDateAdded):
         Integer,
         ForeignKey('core.playlist.id'),
         primary_key=True)
-    public_id: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     internal_image_id: Mapped[int | None] = mapped_column(
         Integer,
         ForeignKey('spotify.internal_image.id'),
@@ -44,10 +43,9 @@ class SpotifyPlaylistRow(SpotifyBase, TableDateUpdated, TableDateAdded):
         back_populates="playlist"
     )
 
-    def __init__(self, id: int, public_id: str, name: str, owner: str, internal_image_id: int | None = None, followers: int = 0, description: str | None = None):
+    def __init__(self, id: int, name: str, owner: str, internal_image_id: int | None = None, followers: int = 0, description: str | None = None):
         kwargs: Dict[str, None | int | str] = {}
         kwargs['id'] = id
-        kwargs['public_id'] = public_id
         kwargs['name'] = name
         kwargs['owner'] = owner
         kwargs['internal_image_id'] = internal_image_id

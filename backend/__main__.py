@@ -12,6 +12,7 @@ while True:
     command = input("> ")
 
     if command == "exit":
+        print("Bye!")
         break
     elif command == "reinit":
         rockit_db.reinit()

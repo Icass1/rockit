@@ -4,7 +4,7 @@ from sqlalchemy import DOUBLE_PRECISION, ForeignKey, String, Integer, Boolean
 from sqlalchemy.orm import mapped_column, relationship, Mapped
 
 from backend.core.access.db.base import CoreBase
-from backend.core.access.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdated, TableAutoincrementId
+from backend.core.access.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdated, TableAutoincrementId, TablePublicId
 
 if TYPE_CHECKING:
     from backend.core.access.db.ormModels.error import ErrorRow
@@ -12,11 +12,10 @@ if TYPE_CHECKING:
     from backend.core.access.db.ormEnums.repeatSongEnum import RepeatSongEnumRow
 
 
-class UserRow(CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdded):
+class UserRow(CoreBase, TableAutoincrementId, TablePublicId, TableDateUpdated, TableDateAdded):
     __tablename__ = 'user'
     __table_args__ = {'schema': 'core', 'extend_existing': True},
 
-    public_id: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     username: Mapped[str | None] = mapped_column(
         String,
         nullable=False,

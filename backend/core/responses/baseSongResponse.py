@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
 
-class BaseAlbumResponse(BaseModel):
+class BaseSongResponse(BaseModel):
     provder: str
     publicId: str

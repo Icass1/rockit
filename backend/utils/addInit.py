@@ -26,7 +26,7 @@ def add_init_to_orm():
 
     for dirpath, _, filenames in os.walk("."):
         dirpath = dirpath.replace("./", "")
-        
+
         dirpaths = dirpath.split("/")
 
         if dirpaths[-1] != "ormModels" and dirpaths[-1] != "ormEnums":
@@ -50,14 +50,28 @@ def add_init_to_orm():
 
             content_without_init: List[str] = []
 
+            parameters: List[Parameter] = []
+
             for k in initial_content:
+                if k.startswith("class"):
+                    parsed_line: str = k.replace(
+                        "\n", "").replace("class ", "")
+                    parsed_line = parsed_line.split("(")[1].split(")")[
+                        0].replace(" ", "")
+                    print(parsed_line)
+
+                    classes = parsed_line.split(",")
+
+                    if "TablePublicId" in classes:
+                        print(k, "TablePublicId")
+                        parameters.append(
+                            Parameter(name="public_id", nullable=False, optional=False, type="str", default_value=None))
+
                 if "def __init__" in k:
                     break
                 content_without_init.append(k)
 
-            content = content_without_init
-
-            parameters: List[Parameter] = []
+            content: List[str] = content_without_init
 
             for index, line in enumerate(content):
                 line: str = line.replace("\n", "").replace("    ", "")

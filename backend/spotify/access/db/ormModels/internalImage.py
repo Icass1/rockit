@@ -3,7 +3,7 @@ from typing import List, TYPE_CHECKING, Dict
 from sqlalchemy import String
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 
-from backend.core.access.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdated, TableAutoincrementId
+from backend.core.access.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdated, TableAutoincrementId, TablePublicId
 from backend.spotify.access.db.base import SpotifyBase
 
 if TYPE_CHECKING:
@@ -13,11 +13,10 @@ if TYPE_CHECKING:
     from backend.spotify.access.db.ormModels.artist import ArtistRow
 
 
-class InternalImageRow(SpotifyBase, TableAutoincrementId, TableDateUpdated, TableDateAdded):
+class InternalImageRow(SpotifyBase, TableAutoincrementId, TablePublicId, TableDateUpdated, TableDateAdded):
     __tablename__ = 'internal_image'
     __table_args__ = {'schema': 'spotify', 'extend_existing': True},
 
-    public_id: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     url: Mapped[str] = mapped_column(String, nullable=False)
     path: Mapped[str] = mapped_column(String, nullable=False, unique=True)
 

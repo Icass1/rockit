@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import TIMESTAMP, Integer, func
+from sqlalchemy import TIMESTAMP, Integer, String, func
 from sqlalchemy.orm import mapped_column, declarative_mixin, Mapped
 
 
@@ -30,6 +30,11 @@ class TableAutoincrementId:
         primary_key=True,
         autoincrement=True,
     )
+
+
+@declarative_mixin
+class TablePublicId:
+    public_id: Mapped[str] = mapped_column(String, nullable=False)
 
 
 @declarative_mixin

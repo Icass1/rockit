@@ -25,7 +25,6 @@ class TrackRow(SpotifyBase, TableAutoincrementId, TableDateUpdated, TableDateAdd
         Integer,
         ForeignKey('core.song.id'),
         primary_key=True)
-    public_id: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     name: Mapped[str] = mapped_column(String, nullable=False)
     duration: Mapped[int] = mapped_column(Integer, nullable=False)
     track_number: Mapped[int] = mapped_column(Integer, nullable=False)
@@ -57,10 +56,9 @@ class TrackRow(SpotifyBase, TableAutoincrementId, TableDateUpdated, TableDateAdd
         back_populates="track"
     )
 
-    def __init__(self, id: int, public_id: str, name: str, duration: int, track_number: int, disc_number: int, internal_image_id: int, album_id: int, isrc: str, popularity: int | None = None, path: str | None = None, download_url: str | None = None, lyrics: str | None = None, dynamic_lyrics: str | None = None, preview_url: str | None = None):
+    def __init__(self, id: int, name: str, duration: int, track_number: int, disc_number: int, internal_image_id: int, album_id: int, isrc: str, popularity: int | None = None, path: str | None = None, download_url: str | None = None, lyrics: str | None = None, dynamic_lyrics: str | None = None, preview_url: str | None = None):
         kwargs: Dict[str, None | int | str] = {}
         kwargs['id'] = id
-        kwargs['public_id'] = public_id
         kwargs['name'] = name
         kwargs['duration'] = duration
         kwargs['track_number'] = track_number

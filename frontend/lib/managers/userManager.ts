@@ -1,6 +1,4 @@
 import { createAtom } from "@/lib/store";
-import apiFetch from "@/lib/utils/apiFetch";
-import { RockItUserResponse } from "@/responses/rockItUserResponse";
 import { RockItUser } from "../rockit/rockItUser";
 import { getUserInClient } from "@/lib/getUserInClient";
 
@@ -27,15 +25,7 @@ export class UserManager {
             console.warn("No session found in UserManager");
         }
 
-        const response = await apiFetch("/user/session");
-        if (!response?.ok) {
-            return;
-        }
-
-        const responseJson = await response.json();
-        const user = RockItUserResponse.parse(responseJson);
-
-        this._userAtom.set(user);
+        this._userAtom.set(session);
     }
 
     // #endregion

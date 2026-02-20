@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -16,7 +16,7 @@ export default function SignupModal() {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
-    const handleSubmit = async () => {
+    const handleSubmit = useCallback(async () => {
         setError("");
 
         if (loading) return;
@@ -58,16 +58,27 @@ export default function SignupModal() {
             }
 
             router.push("/");
-            router.refresh();     // fuerza sync del estado en layouts/server components
+            router.refresh(); // fuerza sync del estado en layouts/server components
         } catch (err) {
             console.error(err);
             setError("Network error");
             setLoading(false);
         }
-    };
+    }, [loading, password, repeatPassword, router, username]);
+
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Enter") {
+                handleSubmit();
+            }
+        };
+
+        document.addEventListener("keydown", handleKeyDown);
+        return () => document.removeEventListener("keydown", handleKeyDown);
+    }, [handleSubmit]);
 
     return (
-        <div className="bg-opacity-[.92] absolute top-1/2 left-1/2 w-[90%] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-xl bg-black p-8 text-center shadow-lg md:w-full">
+        <div className="absolute left-1/2 top-1/2 w-[90%] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-xl bg-black bg-opacity-[.92] p-8 text-center shadow-lg md:w-full">
             <Image
                 width={2028}
                 height={614}
@@ -84,7 +95,7 @@ export default function SignupModal() {
                 Or{" "}
                 <Link
                     href="/login"
-                    className="text-primary font-bold md:hover:text-primary/80"
+                    className="text-primary md:hover:text-primary/80 font-bold"
                 >
                     log in with an existing account
                 </Link>
@@ -128,7 +139,7 @@ export default function SignupModal() {
                     <button
                         onClick={handleSubmit}
                         disabled={loading}
-                        className="flex h-8 w-1/3 items-center justify-center rounded-md bg-blue-600 font-bold md:hover:bg-blue-800 disabled:opacity-50"
+                        className="flex h-8 w-1/3 items-center justify-center rounded-md bg-blue-600 font-bold disabled:opacity-50 md:hover:bg-blue-800"
                     >
                         {loading ? "Creating..." : "Sign up"}
                     </button>

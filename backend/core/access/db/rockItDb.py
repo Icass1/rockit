@@ -56,12 +56,7 @@ class RockItDB:
         self.engine = create_engine(
             connection_string, echo=verbose)
 
-        # Create all schemas in database.
-        with self.engine.connect() as conn:
-            for schema in schemas:
-                conn.execute(
-                    text(f"CREATE SCHEMA IF NOT EXISTS {schema.name}"))
-            conn.commit()
+        self.create_schemas()
 
         for schema in schemas:
             schema.base.metadata.create_all(self.engine)
@@ -75,6 +70,22 @@ class RockItDB:
         for table in CoreBase.metadata.tables.values():
             if not any(mapper.class_.__table__ is table for mapper in CoreBase.registry.mappers):
                 self.check_table_schema(table)
+
+    def create_schemas(self):
+        # Create all schemas in database.
+        with self.engine.connect() as conn:
+            for schema in schemas:
+                conn.execute(
+                    text(f"CREATE SCHEMA IF NOT EXISTS {schema.name}"))
+            conn.commit()
+
+    def drop_schemas(self):
+        # Create all schemas in database.
+        with self.engine.connect() as conn:
+            for schema in schemas:
+                conn.execute(
+                    text(f"DROP SCHEMA IF EXISTS {schema.name} CASCADE"))
+            conn.commit()
 
     def check_table_schema(self, table: Table):
         inspector = inspect(self.engine)
@@ -160,3 +171,15 @@ class RockItDB:
         """Execute a function with a session, auto-closing and rolling back on errors."""
         with self.session_scope() as session:
             return func(session)
+
+    def reinit(self):
+        logger.info("Dropping schemas...")
+        self.drop_schemas()
+        logger.info("All schemas dropped")
+
+        logger.info("Creating schemas...")
+        self.create_schemas()
+        logger.info("All schemas created.")
+
+        for schema in schemas:
+            schema.base.metadata.create_all(self.engine)

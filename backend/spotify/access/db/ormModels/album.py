@@ -21,7 +21,10 @@ class AlbumRow(SpotifyBase, TableDateUpdated, TableDateAdded):
     __tablename__ = "album"
     __table_args__ = {'schema': 'spotify', 'extend_existing': True},
 
-    id: Mapped[int] = mapped_column(Integer,  primary_key=True)
+    id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey('core.album.id'),
+        primary_key=True)
     public_id: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     internal_image_id: Mapped[int] = mapped_column(
         Integer,

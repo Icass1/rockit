@@ -11,38 +11,32 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { useEffect, useState } from "react";
-import { RockItUser } from "@/lib/rockit/rockItUser";
 
 export default function HeaderUser() {
     const router = useRouter();
     const $user = useStore(rockIt.userManager.userAtom);
-
-    const [user, setUser] = useState<RockItUser | undefined>();
-
-    useEffect(() => {
-        setUser($user);
-    }, [$user]);
 
     const handleLogOut = () => {
         console.warn("HeaderUser signOut");
         rockIt.userManager.signOut();
     };
 
+    if (!$user) return;
+
     return (
         <PopupMenu>
             <PopupMenuTrigger>
                 <div className="relative grid grid-cols-[1fr_40px] items-center gap-x-2 rounded-lg p-3 md:hover:cursor-pointer md:hover:bg-[#272727]">
-                    <span className="w-full max-w-full min-w-0 truncate font-medium">
-                        {user?.username}
+                    <span className="w-full min-w-0 max-w-full truncate font-medium">
+                        {$user.username}
                     </span>
                     <div className="flex min-h-10 min-w-10 items-center justify-center overflow-hidden rounded-full bg-neutral-400">
                         <Image
                             width={40}
                             height={40}
-                            src="/user-placeholder.png"
+                            src={$user.image}
                             alt="User avatar"
-                            className="h-full w-full object-cover select-none"
+                            className="h-full w-full select-none object-cover"
                         />
                     </div>
                 </div>

@@ -27,7 +27,7 @@ class DownloadStatusRow(SpotifyBase, TableAutoincrementId, TableDateUpdated, Tab
         "TrackRow", back_populates="downloads")
 
     download: Mapped["DownloadRow"] = relationship(
-        "DownloadRow", back_populates="downloads")
+        "DownloadRow", back_populates="download_status_history")
 
     def __init__(self, download_id: int, song_id: int, message: str, completed: float):
         kwargs: Dict[str, float | int | str] = {}

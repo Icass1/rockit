@@ -4,7 +4,7 @@ from sqlalchemy import String, Integer, ForeignKey
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 
 from backend.spotify.access.db.base import SpotifyBase
-from backend.core.access.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdated, TableAutoincrementId
+from backend.core.access.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdated
 from backend.spotify.access.db.associationTables.song_artists import song_artists
 from backend.spotify.access.db.associationTables.album_artists import album_artists
 from backend.spotify.access.db.associationTables.artist_genres import artist_genres
@@ -18,10 +18,14 @@ if TYPE_CHECKING:
     from backend.spotify.access.db.ormModels.externalImage import ExternalImageRow
 
 
-class ArtistRow(SpotifyBase, TableAutoincrementId, TableDateUpdated, TableDateAdded):
+class ArtistRow(SpotifyBase, TableDateUpdated, TableDateAdded):
     __tablename__ = 'artist'
     __table_args__ = {'schema': 'spotify', 'extend_existing': True},
 
+    id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey('core.artist.id'),
+        primary_key=True)
     public_id: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     name: Mapped[str] = mapped_column(String, nullable=False)
     followers: Mapped[int] = mapped_column(Integer, nullable=False)
@@ -48,8 +52,9 @@ class ArtistRow(SpotifyBase, TableAutoincrementId, TableDateUpdated, TableDateAd
         back_populates="artists"
     )
 
-    def __init__(self, public_id: str, name: str, followers: int, popularity: int, internal_image_id: int | None = None):
+    def __init__(self, id: int, public_id: str, name: str, followers: int, popularity: int, internal_image_id: int | None = None):
         kwargs: Dict[str, None | int | str] = {}
+        kwargs['id'] = id
         kwargs['public_id'] = public_id
         kwargs['name'] = name
         kwargs['followers'] = followers

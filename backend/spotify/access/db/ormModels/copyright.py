@@ -1,6 +1,6 @@
-from typing import Final, TYPE_CHECKING, Literal, Dict
+from typing import TYPE_CHECKING, Dict
 
-from sqlalchemy import Enum, String, UniqueConstraint
+from sqlalchemy import String, Integer, ForeignKey
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 
 from backend.spotify.access.db.base import SpotifyBase
@@ -9,41 +9,31 @@ from backend.spotify.access.db.associationTables.album_copyrights import album_c
 
 if TYPE_CHECKING:
     from backend.spotify.access.db.ormModels.album import AlbumRow
-
-COPYRIGHT_TYPES: Final[tuple[str, ...]] = (
-    "C",
-    "P"
-)
-
-COPYRIGHT_TYPE_TYPE = Literal[
-    "C",
-    "P"
-]
+    from backend.spotify.access.db.ormEnums.copyrightTypeEnum import CopyrightTypeEnumRow
 
 
 class CopyrightRow(SpotifyBase, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     __tablename__ = "copyright"
 
-    __table_args__ = (
-        UniqueConstraint(
-            "text", "type", name="copyrights_unique_group_text_type"),
-        {"schema": "spotify", "extend_existing": True},
-    )
+    __table_args__ = {"schema": "spotify", "extend_existing": True}
 
     public_id: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     text: Mapped[str] = mapped_column(String, nullable=False)
-    type: Mapped[COPYRIGHT_TYPE_TYPE] = mapped_column(
-        Enum(*COPYRIGHT_TYPES,
-              name="copyrights_type_enum",
-                                                      schema="spotify"), nullable=False)
-
+    type_key: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey('spotify.copyright_type_enum.key'),
+        nullable=False)
     albums: Mapped["AlbumRow"] = relationship(
-        "AlbumRow", secondary=album_copyrights, back_populates="copyrights")
+        "AlbumRow",
+        secondary=album_copyrights)
 
-    def __init__(self, public_id: str, text: str, type: COPYRIGHT_TYPE_TYPE):
-        kwargs: Dict[str, COPYRIGHT_TYPE_TYPE | str] = {}
+    type: Mapped["CopyrightTypeEnumRow"] = relationship(
+        "CopyrightTypeEnumRow")
+    
+    def __init__(self, public_id: str, text: str, type_key: int):
+        kwargs: Dict[str, int | str] = {}
         kwargs['public_id'] = public_id
         kwargs['text'] = text
-        kwargs['type'] = type
+        kwargs['type_key'] = type_key
         for k, v in kwargs.items():
             setattr(self, k, v)

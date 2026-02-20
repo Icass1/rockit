@@ -1,9 +1,19 @@
 export class RockItUser {
     public readonly username: string;
     public readonly admin: boolean;
+    public readonly image: string;
 
-    constructor({ username, admin }: { username: string; admin: boolean }) {
+    constructor({
+        username,
+        admin,
+        image,
+    }: {
+        username: string;
+        admin: boolean;
+        image: string;
+    }) {
         this.username = username;
         this.admin = admin;
+        this.image = image;
     }
 }

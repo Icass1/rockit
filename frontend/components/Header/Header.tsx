@@ -21,7 +21,7 @@ export default function Header() {
             ></div>
 
             {/* Actual content */}
-            <Link href="/" className="flex flex-row items-center select-none">
+            <Link href="/" className="flex select-none flex-row items-center">
                 <Image
                     width={2048}
                     height={614}

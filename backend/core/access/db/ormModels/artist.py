@@ -11,8 +11,8 @@ if TYPE_CHECKING:
     from backend.core.access.db.ormModels.provider import ProviderRow
 
 
-class CorePlaylistRow(CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdded):
-    __tablename__ = 'playlist'
+class CoreArtistRow(CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdded):
+    __tablename__ = 'artist'
     __table_args__ = {'schema': 'core', 'extend_existing': True},
 
     provider_id: Mapped[int] = mapped_column(
@@ -21,7 +21,7 @@ class CorePlaylistRow(CoreBase, TableAutoincrementId, TableDateUpdated, TableDat
 
     provider: Mapped["ProviderRow"] = relationship(
         "ProviderRow",
-        back_populates="playlists",
+        back_populates="artists",
         uselist=False
     )
 

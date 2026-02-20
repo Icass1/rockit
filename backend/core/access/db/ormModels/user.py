@@ -39,7 +39,7 @@ class UserRow(CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdded):
         Integer,
         ForeignKey('core.repeat_song_enum.key'),
         nullable=False,
-        default=0)
+        default=1)
     volume: Mapped[float] = mapped_column(
         DOUBLE_PRECISION,
         nullable=False,
@@ -49,7 +49,10 @@ class UserRow(CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdded):
         nullable=False,
         default=0)
     lang: Mapped[str] = mapped_column(String, nullable=False, default="en")
-    image: Mapped[str | None] = mapped_column(String, nullable=True)
+    image: Mapped[str | None] = mapped_column(
+        String,
+        nullable=True,
+        default="user-placeholder.png")
     admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     super_admin: Mapped[bool] = mapped_column(
         Boolean,
@@ -68,7 +71,7 @@ class UserRow(CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     errors: Mapped[List["ErrorRow"]] = relationship(
         "ErrorRow", back_populates="user")
 
-    def __init__(self, public_id: str, username: str | None, password_hash: str | None = None, provider: str | None = None, provider_account_id: str | None = None, current_station: str | None = None, current_time: float | None = None, queue_song_id: int | None = None, random_queue: bool = False, repeat_song_key: int = 0, volume: float = 1, cross_fade: float = 0, lang: str = "en", image: str | None = None, admin: bool = False, super_admin: bool = False):
+    def __init__(self, public_id: str, username: str | None, password_hash: str | None = None, provider: str | None = None, provider_account_id: str | None = None, current_station: str | None = None, current_time: float | None = None, queue_song_id: int | None = None, random_queue: bool = False, repeat_song_key: int = 1, volume: float = 1, cross_fade: float = 0, lang: str = "en", image: str | None = None, admin: bool = False, super_admin: bool = False):
         kwargs: Dict[str, None | bool | float | int | str] = {}
         kwargs['public_id'] = public_id
         kwargs['username'] = username

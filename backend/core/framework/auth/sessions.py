@@ -46,7 +46,8 @@ class Session:
             session_id=session_id)
 
         if a_result_session.is_not_ok():
-            logger.error("Error getting session from id.")
+            logger.error(
+                f"Error getting session from id. {a_result_session.info()}")
             return AResult[SessionRow](code=a_result_session.code(), message=a_result_session.message())
 
         return AResult[SessionRow](code=AResultCode.OK, message=a_result_session.message(), result=a_result_session.result())

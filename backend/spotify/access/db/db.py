@@ -9,6 +9,7 @@ from backend.spotify.access.db.ormModels.trackCache import SpotifyCacheTrackRow 
 
 # ENUMS
 from backend.spotify.access.db.ormEnums.downloadStatusEnum import DownloadStatusEnumRow  # type: ignore
+from backend.spotify.access.db.ormEnums.copyrightTypeEnum import CopyrightTypeEnumRow  # type: ignore
 
 # GENERAL TABLES
 from backend.spotify.access.db.ormModels.downloadStatus import DownloadStatusRow  # type: ignore

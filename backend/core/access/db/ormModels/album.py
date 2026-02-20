@@ -1,3 +1,4 @@
+
 from typing import TYPE_CHECKING, Dict
 
 from sqlalchemy import ForeignKey, Integer
@@ -6,13 +7,12 @@ from sqlalchemy.orm import mapped_column, relationship, Mapped
 from backend.core.access.db.base import CoreBase
 from backend.core.access.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdated, TableAutoincrementId
 
-
 if TYPE_CHECKING:
     from backend.core.access.db.ormModels.provider import ProviderRow
 
 
-class CorePlaylistRow(CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdded):
-    __tablename__ = 'playlist'
+class CoreAlbumRow(CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdded):
+    __tablename__ = 'album'
     __table_args__ = {'schema': 'core', 'extend_existing': True},
 
     provider_id: Mapped[int] = mapped_column(
@@ -21,7 +21,7 @@ class CorePlaylistRow(CoreBase, TableAutoincrementId, TableDateUpdated, TableDat
 
     provider: Mapped["ProviderRow"] = relationship(
         "ProviderRow",
-        back_populates="playlists",
+        back_populates="albums",
         uselist=False
     )
 

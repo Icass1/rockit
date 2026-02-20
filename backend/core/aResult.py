@@ -37,6 +37,16 @@ class AResultCode:
     def code(self) -> int:
         return self._code
 
+    def code_str(self) -> str:
+        if self._code == AResultCode.OK:
+            return "OK"
+        if self._code == AResultCode.GENERAL_ERROR:
+            return "GENERAL_ERROR"
+        if self._code == AResultCode.NOT_FOUND:
+            return "NOT_FOUND"
+
+        raise Exception(f"Code {self._code} not implemented")
+
 
 class AResult(Generic[T]):
     _code: AResultCode
@@ -68,3 +78,9 @@ class AResult(Generic[T]):
 
     def code(self) -> int:
         return self._code.code()
+
+    def code_str(self) -> str:
+        return self._code.code_str()
+
+    def info(self) -> str:
+        return f"Message: {self.message()}, Code: {self.code_str()}"

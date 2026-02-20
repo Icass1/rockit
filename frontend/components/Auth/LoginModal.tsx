@@ -74,7 +74,7 @@ export default function LoginModal() {
     }, [handleSubmit]);
 
     return (
-        <div className="bg-opacity-[.92] absolute top-1/2 left-1/2 w-[90%] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-xl bg-black p-8 text-center shadow-lg md:w-full">
+        <div className="absolute left-1/2 top-1/2 w-[90%] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-xl bg-black bg-opacity-[.92] p-8 text-center shadow-lg md:w-full">
             <div id="login-form">
                 <div className="flex items-center justify-center space-x-2">
                     <h2 className="text-foreground text-3xl font-extrabold">
@@ -93,7 +93,7 @@ export default function LoginModal() {
                     Or{" "}
                     <Link
                         href="/register"
-                        className="text-primary font-bold md:hover:text-primary/80"
+                        className="text-primary md:hover:text-primary/80 font-bold"
                     >
                         create a new account
                     </Link>
@@ -107,9 +107,7 @@ export default function LoginModal() {
                             className="text-1xl mt-1 w-4/5 rounded-full bg-[#202020] px-5 py-1 text-white"
                             autoComplete="username"
                             value={username}
-                            onChange={(e) =>
-                                setUsername(e.currentTarget.value)
-                            }
+                            onChange={(e) => setUsername(e.currentTarget.value)}
                         />
 
                         <input
@@ -118,9 +116,7 @@ export default function LoginModal() {
                             className="text-1xl mt-1 w-4/5 rounded-full bg-[#202020] px-5 py-1 text-white"
                             autoComplete="current-password"
                             value={password}
-                            onChange={(e) =>
-                                setPassword(e.currentTarget.value)
-                            }
+                            onChange={(e) => setPassword(e.currentTarget.value)}
                         />
                     </div>
 
@@ -135,7 +131,7 @@ export default function LoginModal() {
                             type="button"
                             disabled={loading}
                             onClick={handleSubmit}
-                            className="flex h-8 w-1/3 items-center justify-center rounded-md bg-green-600 font-bold md:hover:bg-green-800 disabled:opacity-50"
+                            className="flex h-8 w-1/3 items-center justify-center rounded-md bg-green-600 font-bold disabled:opacity-50 md:hover:bg-green-800"
                         >
                             {loading ? "Logging in..." : "Log in"}
                         </button>

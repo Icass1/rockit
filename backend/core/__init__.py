@@ -19,4 +19,6 @@ logger.info("$$ |  $$ |\\$$$$$$  |\\$$$$$$$\\ $$ | \\$$\\ $$$$$$\\ \\$$$$  |")
 logger.info("\\__|  \\__| \\______/  \\_______|\\__|  \\__|\\______| \\____/")
 logger.info("")
 
-EnumAccess.check_enum_contents(RepeatSongEnum, RepeatSongEnumRow)
+logger.critical("TODO")
+async def add_initial_content():
+    await EnumAccess.check_enum_contents_async(RepeatSongEnum, RepeatSongEnumRow)

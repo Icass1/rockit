@@ -58,12 +58,10 @@ def add_init_to_orm():
                         "\n", "").replace("class ", "")
                     parsed_line = parsed_line.split("(")[1].split(")")[
                         0].replace(" ", "")
-                    print(parsed_line)
 
                     classes = parsed_line.split(",")
 
                     if "TablePublicId" in classes:
-                        print(k, "TablePublicId")
                         parameters.append(
                             Parameter(name="public_id", nullable=False, optional=False, type="str", default_value=None))
 

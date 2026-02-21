@@ -1,12 +1,14 @@
-from dataclasses import dataclass
 import os
+import json
+import asyncio
+from dataclasses import dataclass
+from urllib.parse import urlencode
 from importlib import import_module
+from contextlib import asynccontextmanager
+from typing import Any, AsyncGenerator, Awaitable, Callable, List, Set, TypeVar, Dict
 
-from contextlib import contextmanager
-from typing import Any, Generator, Callable, List, Set, TypeVar
-
-from sqlalchemy import Table, create_engine, inspect, text
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy import Inspector, Table, text, inspect
 
 from backend.core.access.db.base import CoreBase
 from backend.utils.logger import getLogger
@@ -50,136 +52,157 @@ class RockItDB:
         """
         self.database: str = database
 
-        connection_string = f"postgresql://{username}:{password}@{host}:{port}/{self.database}?sslmode=disable"
-        logger.info(f"Using connection string: '{connection_string}'")
+        # server_settings: Dict[str, str] = {"sslmode": "disable"}
+        # query_string = urlencode(
+        #     {"server_settings": json.dumps(server_settings)}, doseq=True)
+        # connection_string = f"postgresql+asyncpg://{username}:{password}@{host}:{port}/{self.database}?{query_string}"
 
-        self.engine = create_engine(
-            connection_string, echo=verbose)
+        # logger.info(f"Using connection string: '{connection_string}'")
 
-        self.create_schemas()
+        self.engine: AsyncEngine = create_async_engine(
+            f"postgresql+asyncpg://{username}:{password}@{host}:{port}/{self.database}",
+            echo=verbose
+        )
 
-        for schema in schemas:
-            schema.base.metadata.create_all(self.engine)
+        # Run async init
+        asyncio.create_task(self._async_init())
 
-        self.SessionLocal = sessionmaker(
-            bind=self.engine, expire_on_commit=False)
+    async def _async_init(self):
+        await self.create_schemas()
 
+        # Create tables with run_sync
+        async with self.engine.begin() as conn:
+            for schema_info in schemas:
+                await conn.run_sync(schema_info.base.metadata.create_all)
+
+        # Now set SessionLocal AFTER tables are created
+        self.SessionLocal = async_sessionmaker(
+            bind=self.engine, expire_on_commit=False
+        )
+
+        logger.info("SessionLocal initialized.")
+
+        # Check schemas (run sync for simplicity during init)
         for mapper in CoreBase.registry.mappers:
-            self.check_table_schema(mapper.class_.__table__)
+            await self.check_table_schema_async(mapper.class_.__table__)
 
         for table in CoreBase.metadata.tables.values():
             if not any(mapper.class_.__table__ is table for mapper in CoreBase.registry.mappers):
-                self.check_table_schema(table)
+                await self.check_table_schema_async(table)
 
-    def create_schemas(self):
-        # Create all schemas in database.
-        with self.engine.connect() as conn:
+    async def create_schemas(self):
+        async with self.engine.begin() as conn:
             for schema in schemas:
-                conn.execute(
-                    text(f"CREATE SCHEMA IF NOT EXISTS {schema.name}"))
-            conn.commit()
+                await conn.execute(text(f"CREATE SCHEMA IF NOT EXISTS {schema.name}"))
+            await conn.commit()
 
-    def drop_schemas(self):
-        # Create all schemas in database.
-        with self.engine.connect() as conn:
+    async def drop_schemas(self):
+        async with self.engine.begin() as conn:
             for schema in schemas:
-                conn.execute(
-                    text(f"DROP SCHEMA IF EXISTS {schema.name} CASCADE"))
-            conn.commit()
+                await conn.execute(text(f"DROP SCHEMA IF EXISTS {schema.name} CASCADE"))
+            await conn.commit()
 
-    def check_table_schema(self, table: Table):
-        inspector = inspect(self.engine)
+    async def check_table_schema_async(self, table: Table):
+        """Compare ORM Table definition vs actual database table for async engine."""
 
-        """Compare ORM Table definition vs actual database table."""
-        schema = table.schema or "main"
-        table_name = table.name
+        async with self.engine.begin() as conn:
 
-        # Get DB table info
-        try:
-            db_columns = {col['name']: col for col in inspector.get_columns(
-                table_name, schema=schema)}
-        except Exception as e:
-            logger.error(
-                f"Table not found in DB: {schema}.{table_name} ({e})")
-            return
+            def do_check(sync_conn):
+                inspector: Inspector = inspect(sync_conn)
 
-        orm_columns = {col.name: col for col in table.columns}
+                schema = table.schema
+                if not schema:
+                    logger.critical(f"Schema of table {table.name} is None.")
+                    return
 
-        # --- Column existence ---
-        for col in orm_columns.keys() - db_columns.keys():
-            logger.error(
-                f"ORM-only column: {col} in table '{table.name}'")
-        for col in db_columns.keys() - orm_columns.keys():
-            logger.error(f"DB-only column: {col} in table '{table.name}'")
+                table_name = table.name
 
-        # --- Column type ---
-        for col in orm_columns.keys() & db_columns.keys():
-            orm_type = str(orm_columns[col].type)
-            db_type = str(db_columns[col]["type"])
-            if orm_type.lower() != db_type.lower():
-                logger.error(
-                    f"Type mismatch on {col}: ORM={orm_type}, DB={db_type} in table '{table.name}'")
+                # --- Columns ---
+                try:
+                    db_columns = {col['name']: col for col in inspector.get_columns(
+                        table_name, schema=schema)}
+                except Exception as e:
+                    logger.error(
+                        f"Table not found in DB: {schema}.{table_name} ({e})")
+                    return
 
-        # --- Foreign keys ---
-        orm_fks: Set[str] = set()
-        for col in table.columns:
-            for fk in col.foreign_keys:
-                orm_fks.add(f"{table_name}.{col.name} -> {fk.target_fullname}")
+                orm_columns = {col.name: col for col in table.columns}
 
-        db_fks: Set[str] = set()
-        for fk in inspector.get_foreign_keys(table_name, schema=schema):
-            for local, remote in zip(fk["constrained_columns"], fk["referred_columns"]):
-                db_fks.add(
-                    f"{table_name}.{local} -> {fk['referred_schema']}.{fk['referred_table']}.{remote}")
+                # Column existence
+                for col in orm_columns.keys() - db_columns.keys():
+                    logger.error(
+                        f"ORM-only column: {col} in table '{table.name}'")
+                for col in db_columns.keys() - orm_columns.keys():
+                    logger.error(
+                        f"DB-only column: {col} in table '{table.name}'")
 
-        # Compare both directions
-        for fk in orm_fks - db_fks:
-            logger.error(
-                f"ForeignKey in ORM but missing in DB: {fk} in table '{table.name}'")
-        for fk in db_fks - orm_fks:
-            logger.error(
-                f"ForeignKey in DB but missing in ORM: {fk} in table '{table.name}'")
+                # Type mismatch
+                for col in orm_columns.keys() & db_columns.keys():
+                    orm_type = str(orm_columns[col].type)
+                    db_type = str(db_columns[col]["type"])
+                    if orm_type.lower() != db_type.lower():
+                        logger.error(
+                            f"Type mismatch on {col}: ORM={orm_type}, DB={db_type} in table '{table.name}'")
 
-    def get_session(self) -> Session:
-        """
-        Create a new database session. 
-        Must be closed by the caller.
-        """
+                # Foreign keys
+                orm_fks: Set[str] = set()
+                for col in table.columns:
+                    for fk in col.foreign_keys:
+                        orm_fks.add(
+                            f"{table_name}.{col.name} -> {fk.target_fullname}")
+
+                db_fks: Set[str] = set()
+                for fk in inspector.get_foreign_keys(table_name, schema=schema):
+                    for local, remote in zip(fk["constrained_columns"], fk["referred_columns"]):
+                        db_fks.add(
+                            f"{table_name}.{local} -> {fk['referred_schema']}.{fk['referred_table']}.{remote}"
+                        )
+
+                for fk in orm_fks - db_fks:
+                    logger.error(
+                        f"ForeignKey in ORM but missing in DB: {fk} in table '{table.name}'")
+                for fk in db_fks - orm_fks:
+                    logger.error(
+                        f"ForeignKey in DB but missing in ORM: {fk} in table '{table.name}'")
+
+            # Run sync inspection inside async connection
+            await conn.run_sync(do_check)
+
+    def get_session(self) -> AsyncSession:
+        """Create a new async database session. Must be closed by the caller."""
         return self.SessionLocal()
 
-    def close(self) -> None:
-        """
-        Dispose of the engine (optional cleanup).
-        """
-        self.engine.dispose()
+    async def close(self) -> None:
+        """Dispose of the async engine."""
+        await self.engine.dispose()
 
-    @contextmanager
-    def session_scope(self) -> Generator[Session, None, None]:
-        """Provide a transactional scope around a series of operations."""
-        session = self.get_session()
+    @asynccontextmanager
+    async def session_scope(self) -> AsyncGenerator[AsyncSession, None]:
+        """Provide a transactional scope around async operations."""
+        session: AsyncSession = self.get_session()
         try:
             yield session
-            session.commit()
+            await session.commit()
         except Exception as e:
             logger.error(f"Error executing query ({e}). Rolling back...")
-            session.rollback()
+            await session.rollback()
             raise
         finally:
-            session.close()
+            await session.close()
 
-    def execute_with_session(self, func: Callable[[Session], T]) -> T:
-        """Execute a function with a session, auto-closing and rolling back on errors."""
-        with self.session_scope() as session:
-            return func(session)
+    async def execute_with_session(self, func: Callable[[AsyncSession], Awaitable[T]]) -> T:
+        """Execute a function with an async session, auto-closing and rolling back on errors."""
+        async with self.session_scope() as session:
+            return await func(session)
 
-    def reinit(self):
+    async def reinit(self):
         logger.info("Dropping schemas...")
-        self.drop_schemas()
+        await self.drop_schemas()
         logger.info("All schemas dropped")
 
         logger.info("Creating schemas...")
-        self.create_schemas()
-        logger.info("All schemas created.")
+        await self.create_schemas()
+        logger.info("All schemas created")
 
         for schema in schemas:
-            schema.base.metadata.create_all(self.engine)
+            await schema.base.metadata.create_all(self.engine)

@@ -16,13 +16,16 @@ logger: Logger = getLogger(name=__name__)
 
 class Session:
     @staticmethod
-    def create_session(response: Response, user_id: int) -> None:
+    async def create_session_async(response: Response, user_id: int) -> AResultCode:
         session_id = str(uuid.uuid4())
         expires_at: datetime = datetime.now(
             tz=timezone.utc) + timedelta(seconds=SESSION_DURATION)
 
-        SessionAccess.create_session(
+        a_result_sesion: AResult[SessionRow] = await SessionAccess.create_session_async(
             session_id=session_id, user_id=user_id, expires_at=expires_at)
+        if a_result_sesion.is_not_ok():
+            logger.error(f"Error creating session {a_result_sesion.info()}")
+            return AResultCode(code=a_result_sesion.code(), message=a_result_sesion.message())
 
         if ENVIRONMENT == "DEV":
             secure = False
@@ -40,9 +43,11 @@ class Session:
             secure=secure
         )
 
+        return AResultCode(code=AResultCode.OK, message="OK")
+
     @staticmethod
-    def get_user_id_from_session(session_id: str) -> AResult[SessionRow]:
-        a_result_session: AResult[SessionRow] = SessionAccess.get_session_from_id(
+    async def get_user_id_from_session_async(session_id: str) -> AResult[SessionRow]:
+        a_result_session: AResult[SessionRow] = await SessionAccess.get_session_from_id_async(
             session_id=session_id)
 
         if a_result_session.is_not_ok():
@@ -53,8 +58,8 @@ class Session:
         return AResult[SessionRow](code=AResultCode.OK, message=a_result_session.message(), result=a_result_session.result())
 
     @staticmethod
-    def end_session(session_id: str) -> AResultCode:
-        a_result_code: AResultCode = SessionAccess.disable_session_from_session_id(
+    async def end_session_async(session_id: str) -> AResultCode:
+        a_result_code: AResultCode = await SessionAccess.disable_session_from_session_id_async(
             session_id=session_id)
 
         if a_result_code.is_not_ok():

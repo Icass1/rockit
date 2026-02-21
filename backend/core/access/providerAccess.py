@@ -1,45 +1,47 @@
 from typing import List, Tuple
 from sqlalchemy import Select, select
+from sqlalchemy.sql import Select
 
 from backend.core.aResult import AResult, AResultCode
-
 from backend.core.access.db import rockit_db
 from backend.core.access.db.ormModels.provider import ProviderRow
+from backend.utils.logger import getLogger
+
+logger = getLogger(__name__)
 
 
 class ProviderAccess:
     @staticmethod
-    def get_providers() -> AResult[List[ProviderRow]]:
+    async def get_providers() -> AResult[List[ProviderRow]]:
         try:
-            with rockit_db.session_scope() as s:
+            async with rockit_db.session_scope() as s:
                 stmt: Select[Tuple[ProviderRow]] = select(ProviderRow)
-                rows: List[ProviderRow] = list(s.scalars(stmt).all())
+                result = await s.execute(stmt)
+                rows: List[ProviderRow] = list(result.scalars().all())
 
                 for row in rows:
                     s.expunge(row)
 
                 return AResult(code=AResultCode.OK, message="OK", result=rows)
 
-        except Exception:
+        except Exception as e:
+            logger.error(f"Error getting providers: {e}")
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
                 message="Error getting providers"
             )
 
     @staticmethod
-    def add_provider(name: str, module: str) -> AResult[ProviderRow]:
+    async def add_provider(name: str, module: str) -> AResult[ProviderRow]:
         try:
-            with rockit_db.session_scope() as s:
-                provider = ProviderRow(
-                    name=name,
-                    module=module
-                )
-
+            async with rockit_db.session_scope() as s:
+                provider = ProviderRow(name=name, module=module)
                 s.add(provider)
-                s.commit()
-                s.refresh(provider)
+                await s.commit()
+                await s.refresh(provider)
                 s.expunge(provider)
 
                 return AResult(code=AResultCode.OK, message="OK", result=provider)
-        except:
+        except Exception as e:
+            logger.error(f"Unable to add provider: {e}")
             return AResult(code=AResultCode.GENERAL_ERROR, message="Unable to add new provider to database.")

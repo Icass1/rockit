@@ -2,8 +2,8 @@ from logging import Logger
 
 from backend.utils.logger import getLogger
 
-from backend.core.framework.provider.baseProvider import BaseProvider
 from backend.core.access.enumAccess import EnumAccess
+from backend.core.framework.provider.baseProvider import BaseProvider
 
 from backend.spotify.enums.copyrightTypeEnum import CopyrightTypeEnum
 from backend.spotify.enums.downloadStatusEnum import DownloadStatusEnum
@@ -17,13 +17,14 @@ logger: Logger = getLogger(__name__)
 class SpotifyProvider(BaseProvider):
     def __init__(self) -> None:
         super().__init__()
-        self.add_enums_initial_content()
 
-    def add_enums_initial_content(self):
-        EnumAccess.check_enum_contents(
-            DownloadStatusEnum, DownloadStatusEnumRow)
-        EnumAccess.check_enum_contents(
-            CopyrightTypeEnum, CopyrightTypeEnumRow)
+    async def add_enum_contents(self):
+        await EnumAccess.check_enum_contents_async(
+            enum_class=DownloadStatusEnum,
+            table=DownloadStatusEnumRow)
+        await EnumAccess.check_enum_contents_async(
+            enum_class=CopyrightTypeEnum,
+            table=CopyrightTypeEnumRow)
 
 
 provider = SpotifyProvider()

@@ -7,6 +7,7 @@ class AResultCode:
     OK = 0x1
     GENERAL_ERROR = 0x2
     NOT_FOUND = 0x3
+    BAD_REQUEST = 0x4
 
     _code: int
     _message: str
@@ -28,6 +29,8 @@ class AResultCode:
             return 500
         if self._code == AResultCode.NOT_FOUND:
             return 404
+        if self._code == AResultCode.BAD_REQUEST:
+            return 400
 
         raise Exception(f"Code {self._code} not implemented")
 
@@ -44,8 +47,13 @@ class AResultCode:
             return "GENERAL_ERROR"
         if self._code == AResultCode.NOT_FOUND:
             return "NOT_FOUND"
+        if self._code == AResultCode.BAD_REQUEST:
+            return "BAD_REQUEST"
 
         raise Exception(f"Code {self._code} not implemented")
+
+    def info(self) -> str:
+        return f"Message: {self.message()}, Code: {self.code_str()}"
 
 
 class AResult(Generic[T]):

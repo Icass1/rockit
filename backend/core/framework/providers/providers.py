@@ -1,4 +1,5 @@
 import os
+import asyncio
 from typing import List
 from logging import Logger
 from types import ModuleType
@@ -19,7 +20,6 @@ logger: Logger = getLogger(__name__)
 
 
 class Providers:
-
     @dataclass
     class ProviderData:
         provider: BaseProvider
@@ -29,15 +29,15 @@ class Providers:
     _providers: List[BaseProvider] = []
 
     def __init__(self) -> None:
+        asyncio.create_task(self._async_init())
 
-        logger.info("Providers.__init__")
-
-        a_result_search_providers = self.search_providers()
+    async def _async_init(self):
+        a_result_search_providers: AResultCode = await self.search_providers()
         if a_result_search_providers.is_not_ok():
             logger.error(
-                f"Error searching providers. Code {a_result_search_providers.code()}")
+                f"Error searching providers. {a_result_search_providers.info()}")
 
-    def search_providers(self) -> AResultCode:
+    async def search_providers(self) -> AResultCode:
         logger.info("Searching providers...")
 
         providers_found_data: List[Providers.ProviderData] = []
@@ -77,11 +77,11 @@ class Providers:
 
         a_result_providers_in_db: AResult[
             List[ProviderRow]
-        ] = ProviderAccess.get_providers()
+        ] = await ProviderAccess.get_providers()
 
         if a_result_providers_in_db.is_not_ok():
             logger.error(
-                f"Error getting providers in database. Code {a_result_providers_in_db.code()}")
+                f"Error getting providers in database. {a_result_providers_in_db.info()}")
             return AResultCode(code=a_result_providers_in_db.code(), message=a_result_providers_in_db.message())
 
         providers_in_db: List[ProviderRow] = a_result_providers_in_db.result()
@@ -102,7 +102,7 @@ class Providers:
         for index, provider_data in enumerate(providers_found_data):
             self._providers.append(provider_data.provider)
 
-            a_result_provider: AResult[ProviderRow] = ProviderAccess.add_provider(
+            a_result_provider: AResult[ProviderRow] = await ProviderAccess.add_provider(
                 name=provider_data.name, module=provider_data.module_path)
 
             if a_result_provider.is_not_ok():

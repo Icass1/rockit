@@ -1,6 +1,7 @@
 from datetime import datetime
 from logging import Logger
-from sqlalchemy import update
+from typing import Tuple
+from sqlalchemy import Result, Select, Update, update
 from sqlalchemy.future import select
 
 from backend.core.aResult import AResult, AResultCode
@@ -14,9 +15,9 @@ logger: Logger = getLogger(name=__name__)
 class SessionAccess:
 
     @staticmethod
-    def create_session(session_id: str, user_id: int, expires_at: datetime) -> AResult[SessionRow]:
+    async def create_session_async(session_id: str, user_id: int, expires_at: datetime) -> AResult[SessionRow]:
         try:
-            with rockit_db.session_scope() as s:
+            async with rockit_db.session_scope() as s:
                 session = SessionRow(
                     session_id=session_id,
                     user_id=user_id,
@@ -24,8 +25,8 @@ class SessionAccess:
                 )
 
                 s.add(session)
-                s.commit()
-                s.refresh(session)
+                await s.commit()
+                await s.refresh(session)
                 s.expunge(session)
 
                 return AResult(
@@ -37,28 +38,26 @@ class SessionAccess:
             return AResult(code=AResultCode.GENERAL_ERROR, message=f"Failed to create session: {e}")
 
     @staticmethod
-    def get_session_from_id(session_id: str) -> AResult[SessionRow]:
+    async def get_session_from_id_async(session_id: str) -> AResult[SessionRow]:
         try:
-            session = rockit_db.session_scope()
+            async with rockit_db.session_scope() as s:
+                stmt: Select[Tuple[SessionRow]] = select(SessionRow).where(
+                    SessionRow.session_id == session_id)
 
-            with session as s:
-                stmt = select(SessionRow).where(
-                    SessionRow.session_id == session_id
-                )
-                result: SessionRow | None = s.execute(
-                    stmt).scalar_one_or_none()
+                result: Result[Tuple[SessionRow]] = await s.execute(stmt)
+                session: SessionRow | None = result.scalar_one_or_none()
 
-                if not result:
+                if not session:
                     logger.error("Error ")
                     return AResult(
                         code=AResultCode.NOT_FOUND,
                         message="Session not found")
 
-                s.expunge(result)
+                s.expunge(session)
                 return AResult(
                     code=AResultCode.OK,
                     message="Session retrieved successfully.",
-                    result=result)
+                    result=session)
 
         except Exception as e:
             logger.error(f"Failed to get session: {e}.")
@@ -67,23 +66,23 @@ class SessionAccess:
                 message=f"Failed to get session.")
 
     @staticmethod
-    def disable_session_from_session_id(session_id: str) -> AResultCode:
+    async def disable_session_from_session_id_async(session_id: str) -> AResultCode:
         try:
-            with rockit_db.session_scope() as s:
-                stmt = (
+            async with rockit_db.session_scope() as s:
+                stmt: Update = (
                     update(SessionRow)
                     .where(SessionRow.session_id == session_id)
                     .values(disabled=True)
                 )
 
-                result = s.execute(stmt)
+                result = await s.execute(stmt)
 
                 if result.rowcount == 0:
                     return AResultCode(
                         code=AResultCode.NOT_FOUND,
                         message="Session not found")
 
-                s.commit()
+                await s.commit()
                 return AResultCode(
                     code=AResultCode.OK,
                     message="Session disabled")

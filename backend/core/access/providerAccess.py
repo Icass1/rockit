@@ -14,7 +14,7 @@ class ProviderAccess:
     @staticmethod
     async def get_providers() -> AResult[List[ProviderRow]]:
         try:
-            async with rockit_db.session_scope() as s:
+            async with rockit_db.session_scope_async() as s:
                 stmt: Select[Tuple[ProviderRow]] = select(ProviderRow)
                 result = await s.execute(stmt)
                 rows: List[ProviderRow] = list(result.scalars().all())
@@ -34,7 +34,7 @@ class ProviderAccess:
     @staticmethod
     async def add_provider(name: str, module: str) -> AResult[ProviderRow]:
         try:
-            async with rockit_db.session_scope() as s:
+            async with rockit_db.session_scope_async() as s:
                 provider = ProviderRow(name=name, module=module)
                 s.add(provider)
                 await s.commit()

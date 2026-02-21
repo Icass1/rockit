@@ -8,7 +8,7 @@ from backend.spotify.access.db.base import SpotifyBase
 from backend.core.access.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdated
 
 
-class SpotifyCacheAlbumRow(SpotifyBase, TableDateUpdated, TableDateAdded):
+class CacheAlbumRow(SpotifyBase, TableDateUpdated, TableDateAdded):
     __tablename__ = 'cache_album'
     __table_args__ = {'schema': 'spotify', 'extend_existing': True},
 

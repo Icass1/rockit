@@ -2,5 +2,5 @@ from pydantic import BaseModel
 
 
 class BaseAlbumResponse(BaseModel):
-    provder: str
+    provider: str
     publicId: str

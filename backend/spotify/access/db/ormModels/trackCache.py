@@ -9,7 +9,7 @@ from backend.core.access.db.ormModels.declarativeMixin import TableDateAdded, Ta
 from backend.spotify.access.db.base import SpotifyBase
 
 
-class SpotifyCacheTrackRow(SpotifyBase, TableDateUpdated, TableDateAdded):
+class CacheTrackRow(SpotifyBase, TableDateUpdated, TableDateAdded):
     __tablename__ = 'cache_track'
     __table_args__ = {'schema': 'spotify', 'extend_existing': True},
 

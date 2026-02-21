@@ -2,10 +2,10 @@
 from backend.spotify.access.db.base import SpotifyBase
 
 # CACHE TABLES
-from backend.spotify.access.db.ormModels.playlistCache import SpotifyCachePlaylistRow  # type: ignore
-from backend.spotify.access.db.ormModels.artistCache import SpotifyCacheArtistRow  # type: ignore
-from backend.spotify.access.db.ormModels.albumCache import SpotifyCacheAlbumRow  # type: ignore
-from backend.spotify.access.db.ormModels.trackCache import SpotifyCacheTrackRow  # type: ignore
+from backend.spotify.access.db.ormModels.playlistCache import CachePlaylistRow  # type: ignore
+from backend.spotify.access.db.ormModels.artistCache import CacheArtistRow  # type: ignore
+from backend.spotify.access.db.ormModels.albumCache import CacheAlbumRow  # type: ignore
+from backend.spotify.access.db.ormModels.trackCache import CacheTrackRow  # type: ignore
 
 # ENUMS
 from backend.spotify.access.db.ormEnums.downloadStatusEnum import DownloadStatusEnumRow  # type: ignore

@@ -1,9 +1,9 @@
 
 
-from logging import Logger
 from typing import Tuple
-from sqlalchemy import Result, Select
+from logging import Logger
 from sqlalchemy.future import select
+from sqlalchemy import Result, Select
 from passlib.context import CryptContext
 
 from backend.core.aResult import AResult, AResultCode
@@ -21,7 +21,7 @@ class UserAccess:
     @staticmethod
     async def get_user_from_id(user_id: int) -> AResult[UserRow]:
         try:
-            async with rockit_db.session_scope() as s:
+            async with rockit_db.session_scope_async() as s:
                 result: UserRow | None = await s.get(entity=UserRow, ident=user_id)
 
                 if not result:
@@ -39,7 +39,7 @@ class UserAccess:
     @staticmethod
     async def get_user_from_username_async(username: str) -> AResult[UserRow]:
         try:
-            async with rockit_db.session_scope() as s:
+            async with rockit_db.session_scope_async() as s:
                 stmt: Select[Tuple[UserRow]] = select(
                     UserRow).where(UserRow.username == username)
                 result: Result[Tuple[UserRow]] = await s.execute(statement=stmt)
@@ -64,7 +64,7 @@ class UserAccess:
         try:
             password_hash: str = pwd.hash(secret=password)
 
-            async with rockit_db.session_scope() as s:
+            async with rockit_db.session_scope_async() as s:
                 user = UserRow(
                     public_id=create_id(),
                     username=username,

@@ -17,7 +17,7 @@ class SessionAccess:
     @staticmethod
     async def create_session_async(session_id: str, user_id: int, expires_at: datetime) -> AResult[SessionRow]:
         try:
-            async with rockit_db.session_scope() as s:
+            async with rockit_db.session_scope_async() as s:
                 session = SessionRow(
                     session_id=session_id,
                     user_id=user_id,
@@ -40,7 +40,7 @@ class SessionAccess:
     @staticmethod
     async def get_session_from_id_async(session_id: str) -> AResult[SessionRow]:
         try:
-            async with rockit_db.session_scope() as s:
+            async with rockit_db.session_scope_async() as s:
                 stmt: Select[Tuple[SessionRow]] = select(SessionRow).where(
                     SessionRow.session_id == session_id)
 
@@ -68,7 +68,7 @@ class SessionAccess:
     @staticmethod
     async def disable_session_from_session_id_async(session_id: str) -> AResultCode:
         try:
-            async with rockit_db.session_scope() as s:
+            async with rockit_db.session_scope_async() as s:
                 stmt: Update = (
                     update(SessionRow)
                     .where(SessionRow.session_id == session_id)

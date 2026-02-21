@@ -177,7 +177,7 @@ class RockItDB:
         await self.engine.dispose()
 
     @asynccontextmanager
-    async def session_scope(self) -> AsyncGenerator[AsyncSession, None]:
+    async def session_scope_async(self) -> AsyncGenerator[AsyncSession, None]:
         """Provide a transactional scope around async operations."""
         session: AsyncSession = self.get_session()
         try:
@@ -192,7 +192,7 @@ class RockItDB:
 
     async def execute_with_session(self, func: Callable[[AsyncSession], Awaitable[T]]) -> T:
         """Execute a function with an async session, auto-closing and rolling back on errors."""
-        async with self.session_scope() as session:
+        async with self.session_scope_async() as session:
             return await func(session)
 
     async def reinit(self):

@@ -18,7 +18,7 @@ class EnumAccess:
         - DB entry names match enum names.
         - DB must contain a prefix of the enum; only additions allowed.
         """
-        async with rockit_db.session_scope() as s:
+        async with rockit_db.session_scope_async() as s:
             stmt: Select[Tuple[BaseEnumRow]] = select(
                 table).order_by(asc(table.key))
             result: Result[Tuple[BaseEnumRow]] = await s.execute(stmt)

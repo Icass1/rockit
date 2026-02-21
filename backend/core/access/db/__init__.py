@@ -1,3 +1,5 @@
+print(__file__)  # nopep8
+
 from logging import Logger
 
 from backend.constants import DB_NAME, DB_HOST, DB_PASSWORD, DB_PORT, DB_USER

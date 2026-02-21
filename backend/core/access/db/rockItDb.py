@@ -1,17 +1,17 @@
+print(__file__)  # nopep8
+
+
 import os
-import json
-import asyncio
 from dataclasses import dataclass
-from urllib.parse import urlencode
 from importlib import import_module
 from contextlib import asynccontextmanager
-from typing import Any, AsyncGenerator, Awaitable, Callable, List, Set, TypeVar, Dict
+from typing import Any, AsyncGenerator, Awaitable, Callable, List, Set, TypeVar
 
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy import Inspector, Table, text, inspect
 
-from backend.core.access.db.base import CoreBase
 from backend.utils.logger import getLogger
+from backend.core.access.db.base import CoreBase
 
 T = TypeVar("T")
 
@@ -52,22 +52,16 @@ class RockItDB:
         """
         self.database: str = database
 
-        # server_settings: Dict[str, str] = {"sslmode": "disable"}
-        # query_string = urlencode(
-        #     {"server_settings": json.dumps(server_settings)}, doseq=True)
-        # connection_string = f"postgresql+asyncpg://{username}:{password}@{host}:{port}/{self.database}?{query_string}"
-
-        # logger.info(f"Using connection string: '{connection_string}'")
-
         self.engine: AsyncEngine = create_async_engine(
             f"postgresql+asyncpg://{username}:{password}@{host}:{port}/{self.database}",
             echo=verbose
         )
 
-        # Run async init
-        asyncio.create_task(self._async_init())
+        # Run async init.
+        # loop = asyncio.get_event_loop()
+        # loop.run_until_complete(self._async_init())
 
-    async def _async_init(self):
+    async def async_init(self):
         await self.create_schemas()
 
         # Create tables with run_sync

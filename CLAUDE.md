@@ -1,4 +1,4 @@
-# rockit - Architecture Overview
+# Rockit — Architecture Overview
 
 This is a **music player called Rockit**.
 
@@ -23,7 +23,7 @@ Inside the `backend` directory there are **five businesses**:
 * **youtube**
 * **rockit**
 
-### ❗ Critical Rule About Core
+### Critical Rule About Core
 
 **There cannot be anything from any other business inside `core`.**
 No providers, no references, nothing.
@@ -99,12 +99,6 @@ backend
 
 All files in **framework** and **access** contain **static classes**.
 All methods use `@staticmethod`.
-Each method must contain a docstring:
-
-```python
-def function() -> str:
-    """..."""
-```
 
 ### Everything is async
 
@@ -114,7 +108,7 @@ All functions must be async.
 
 All variables must include types:
 
-```
+```python
 number: int = 3
 text: str = "hello"
 a_result_text: AResult[str]
@@ -129,39 +123,54 @@ Only **controllers and middleware** may raise `HTTPException`.
 
 ```python
 from backend.utils.logger import getLogger
-logger = getLogger(__main__)
+logger = getLogger(__name__)
 ```
 
-### Checking AResult
+### Docstrings
 
-Example:
+The first line of every function or method body must be a triple-quoted docstring.
+Leave one blank line between the docstring and the first line of actual code.
+
+```python
+def some_function():
+    """Brief description of what this function does."""
+
+    actual_code_here()
+```
+
+### Comments
+
+- All inline comments must start with a capital letter and end with a period.
+- Do not use numbered steps in comments (e.g. `# 1. Check DB` → `# Check DB.`).
+
+### Checking AResult
 
 ```python
 from backend.utils.logger import getLogger
 from backend.core.aResult import AResult, AResultCode
 
-logger = getLogger(__main__)
+logger = getLogger(__name__)
 
 class Example:
     @staticmethod
     async def function() -> AResult[str]:
-        """..."""
+        """Brief description."""
 
-        a_result_example_string_variable: AResult[str] = await method_that_returns_a_string()
-        if a_result_example_string_variable.is_not_ok():
-            logger.error(f"Error getting user from database. {a_result_example_string_variable.info()}")
-            return AResult(code=AResultCode.GENERAL_ERROR, message=a_result_example_string_variable.message())
+        a_result_example: AResult[str] = await method_that_returns_a_string()
+        if a_result_example.is_not_ok():
+            logger.error(f"Error getting string. {a_result_example.info()}")
+            return AResult(code=AResultCode.GENERAL_ERROR, message=a_result_example.message())
 
         return AResult(
             code=AResultCode.OK,
             message="OK",
-            result=a_result_example_string_variable.result()
+            result=a_result_example.result()
         )
 ```
 
 If you use the result multiple times:
 
-```
+```python
 user: UserRow = a_result_user.result()
 ```
 
@@ -169,13 +178,13 @@ user: UserRow = a_result_user.result()
 
 Always write:
 
-```
+```python
 AResult(code=AResultCode.OK, message="OK", result="text")
 ```
 
 Not:
 
-```
+```python
 AResult(AResultCode.OK, "OK", "text")
 ```
 
@@ -184,19 +193,12 @@ AResult(AResultCode.OK, "OK", "text")
 ## Import Order
 
 1. External imports (shortest → longest)
-
 2. `backend.utils`
-
 3. `from backend.core.aResult import AResult, AResultCode`
-
 4. `backend.core.access`
-
 5. `backend.core.framework`
-
 6. `backend.core.middleware`
-
 7. `backend.core.responses`
-
 8. `backend.core.requests`
 
 For another business, use the equivalent order under that business.
@@ -209,7 +211,7 @@ For another business, use the equivalent order under that business.
 
 Table definitions look like:
 
-```
+```python
 class ErrorRow(CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     ...
 ```
@@ -233,4 +235,47 @@ Used for many-to-many relations.
 
 ---
 
-This file defines the full technical rules and architecture constraints for the **Rockit music player backend and frontend structure**.
+## SpotifyApiTypes — Pydantic BaseModel
+
+All types in `backend/spotify/spotifyApiTypes/` must inherit from pydantic `BaseModel`, not `dataclass`.
+
+Rules:
+- No `_json: dict` field.
+- No `__getitem__` method.
+- All `Optional` fields must have a default of `None` (e.g. `spotify: Optional[str] = None`).
+- Provide a `from_dict` classmethod that wraps `model_validate` for backward-compatible call sites.
+- Pydantic handles nested model parsing automatically — no manual field extraction needed.
+
+```python
+from typing import Any, Optional
+from pydantic import BaseModel
+
+class ExampleModel(BaseModel):
+    field: Optional[str] = None
+
+    @classmethod
+    def from_dict(cls, obj: Any) -> 'ExampleModel':
+        """Parse from a raw Spotify API dictionary."""
+
+        return cls.model_validate(obj)
+```
+
+---
+
+## Session Scope Pattern
+
+The framework layer (e.g. `Spotify` class in `spotify.py`) is responsible for opening a single database session and passing it to multiple access functions. Access functions (e.g. `SpotifyAccess.get_or_create_*`) must accept a `session: AsyncSession` parameter instead of opening their own session.
+
+This keeps all related writes in one transaction and avoids opening redundant sessions.
+
+```python
+# Framework opens the session scope.
+async with rockit_db.session_scope_async() as session:
+    artist_map = {}
+    for raw_artist in raw_artists:
+        a = await SpotifyAccess.get_or_create_artist(raw_artist, session, provider_id)
+        if a.is_ok():
+            artist_map[raw_artist.id] = a.result()
+
+    await SpotifyAccess.get_or_create_album(raw_album, artist_map, session, provider_id)
+```

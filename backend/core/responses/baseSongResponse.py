@@ -2,5 +2,5 @@ from pydantic import BaseModel
 
 
 class BaseSongResponse(BaseModel):
-    provder: str
+    provider: str
     publicId: str

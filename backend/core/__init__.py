@@ -1,9 +1,18 @@
+print(__file__)  # nopep8
+
+import asyncio
+
 from logging import Logger
+
+from backend.utils.logger import getLogger
 
 from backend.core.access.db.ormEnums.repeatSongEnum import RepeatSongEnumRow
 from backend.core.access.enumAccess import EnumAccess
+from backend.core.access.db import rockit_db
+from backend.core.framework import providers
+
 from backend.core.enums.repeatSongEnum import RepeatSongEnum
-from backend.utils.logger import getLogger
+
 
 logger: Logger = getLogger(__name__)
 
@@ -19,6 +28,12 @@ logger.info("$$ |  $$ |\\$$$$$$  |\\$$$$$$$\\ $$ | \\$$\\ $$$$$$\\ \\$$$$  |")
 logger.info("\\__|  \\__| \\______/  \\_______|\\__|  \\__|\\______| \\____/")
 logger.info("")
 
-logger.critical("TODO")
+
 async def add_initial_content():
+    await rockit_db.async_init()
+    await providers.async_init()
+
     await EnumAccess.check_enum_contents_async(RepeatSongEnum, RepeatSongEnumRow)
+
+
+asyncio.create_task(add_initial_content())

@@ -9,6 +9,9 @@ from backend.core.middlewares.authMiddleware import AuthMiddleware
 from backend.spotify.framework.spotify import Spotify
 
 from backend.spotify.responses.albumResponse import AlbumResponse
+from backend.spotify.responses.songResponse import SongResponse
+from backend.spotify.responses.artistResponse import ArtistResponse
+from backend.spotify.responses.playlistResponse import PlaylistResponse
 
 
 logger: Logger = getLogger(name=__name__)
@@ -28,3 +31,39 @@ async def get_album_async(public_id: str) -> AlbumResponse:
             detail=a_result_album.message())
 
     return a_result_album.result()
+
+
+@router.get("/song/{public_id}")
+async def get_song_async(public_id: str) -> SongResponse:
+    a_result: AResult[SongResponse] = await Spotify.get_track_async(id=public_id)
+    if a_result.is_not_ok():
+        logger.error(f"Error getting song. {a_result.info()}")
+        raise HTTPException(
+            status_code=a_result.get_http_code(),
+            detail=a_result.message())
+
+    return a_result.result()
+
+
+@router.get("/artist/{public_id}")
+async def get_artist_async(public_id: str) -> ArtistResponse:
+    a_result: AResult[ArtistResponse] = await Spotify.get_artist_async(id=public_id)
+    if a_result.is_not_ok():
+        logger.error(f"Error getting artist. {a_result.info()}")
+        raise HTTPException(
+            status_code=a_result.get_http_code(),
+            detail=a_result.message())
+
+    return a_result.result()
+
+
+@router.get("/playlist/{public_id}")
+async def get_playlist_async(public_id: str) -> PlaylistResponse:
+    a_result: AResult[PlaylistResponse] = await Spotify.get_playlist_async(id=public_id)
+    if a_result.is_not_ok():
+        logger.error(f"Error getting playlist. {a_result.info()}")
+        raise HTTPException(
+            status_code=a_result.get_http_code(),
+            detail=a_result.message())
+
+    return a_result.result()

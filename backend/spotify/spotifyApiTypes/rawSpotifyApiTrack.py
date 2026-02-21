@@ -1,362 +1,161 @@
 from typing import List, Any, Optional
-from dataclasses import dataclass
+from pydantic import BaseModel
 
 
-@dataclass
-class TrackExternalUrls:
-    spotify: Optional[str]
-    _json: dict
+class TrackExternalUrls(BaseModel):
+    spotify: Optional[str] = None
 
-    def from_dict(obj: Any) -> 'TrackExternalUrls':
-        _spotify = obj.get('spotify') if obj and 'spotify' in obj else None
-        return TrackExternalUrls(_spotify, obj)
+    @classmethod
+    def from_dict(cls, obj: Any) -> 'TrackExternalUrls':
+        """Parse from a raw Spotify API dictionary."""
 
-    def __getitem__(self, item):
-        if item == 'spotify':
-            return self.spotify
-        return None
+        return cls.model_validate(obj)
 
 
-@dataclass
-class TrackImages:
-    url: Optional[str]
-    height: Optional[int]
-    width: Optional[int]
-    _json: dict
+class TrackImages(BaseModel):
+    url: Optional[str] = None
+    height: Optional[int] = None
+    width: Optional[int] = None
 
-    def from_dict(obj: Any) -> 'TrackImages':
-        _url = obj.get('url') if obj and 'url' in obj else None
-        _height = obj.get('height') if obj and 'height' in obj else None
-        _width = obj.get('width') if obj and 'width' in obj else None
-        return TrackImages(_url, _height, _width, obj)
+    @classmethod
+    def from_dict(cls, obj: Any) -> 'TrackImages':
+        """Parse from a raw Spotify API dictionary."""
 
-    def __getitem__(self, item):
-        if item == 'url':
-            return self.url
-        elif item == 'height':
-            return self.height
-        elif item == 'width':
-            return self.width
-        return None
+        return cls.model_validate(obj)
 
 
-@dataclass
-class TrackRestrictions:
-    reason: Optional[str]
-    _json: dict
+class TrackRestrictions(BaseModel):
+    reason: Optional[str] = None
 
-    def from_dict(obj: Any) -> 'TrackRestrictions':
-        _reason = obj.get('reason') if obj and 'reason' in obj else None
-        return TrackRestrictions(_reason, obj)
+    @classmethod
+    def from_dict(cls, obj: Any) -> 'TrackRestrictions':
+        """Parse from a raw Spotify API dictionary."""
 
-    def __getitem__(self, item):
-        if item == 'reason':
-            return self.reason
-        return None
+        return cls.model_validate(obj)
 
 
-@dataclass
-class TrackExternalUrls1:
-    spotify: Optional[str]
-    _json: dict
+class TrackExternalUrls1(BaseModel):
+    spotify: Optional[str] = None
 
-    def from_dict(obj: Any) -> 'TrackExternalUrls1':
-        _spotify = obj.get('spotify') if obj and 'spotify' in obj else None
-        return TrackExternalUrls1(_spotify, obj)
+    @classmethod
+    def from_dict(cls, obj: Any) -> 'TrackExternalUrls1':
+        """Parse from a raw Spotify API dictionary."""
 
-    def __getitem__(self, item):
-        if item == 'spotify':
-            return self.spotify
-        return None
+        return cls.model_validate(obj)
 
 
-@dataclass
-class TrackArtists:
-    external_urls: Optional[TrackExternalUrls1]
-    href: Optional[str]
-    id: Optional[str]
-    name: Optional[str]
-    type: Optional[str]
-    uri: Optional[str]
-    _json: dict
+class TrackArtists(BaseModel):
+    external_urls: Optional[TrackExternalUrls1] = None
+    href: Optional[str] = None
+    id: Optional[str] = None
+    name: Optional[str] = None
+    type: Optional[str] = None
+    uri: Optional[str] = None
 
-    def from_dict(obj: Any) -> 'TrackArtists':
-        _external_urls = TrackExternalUrls1.from_dict(
-            obj.get('external_urls')) if obj and 'external_urls' in obj else None
-        _href = obj.get('href') if obj and 'href' in obj else None
-        _id = obj.get('id') if obj and 'id' in obj else None
-        _name = obj.get('name') if obj and 'name' in obj else None
-        _type = obj.get('type') if obj and 'type' in obj else None
-        _uri = obj.get('uri') if obj and 'uri' in obj else None
-        return TrackArtists(_external_urls, _href, _id, _name, _type, _uri, obj)
+    @classmethod
+    def from_dict(cls, obj: Any) -> 'TrackArtists':
+        """Parse from a raw Spotify API dictionary."""
 
-    def __getitem__(self, item):
-        if item == 'external_urls':
-            return self.external_urls
-        elif item == 'href':
-            return self.href
-        elif item == 'id':
-            return self.id
-        elif item == 'name':
-            return self.name
-        elif item == 'type':
-            return self.type
-        elif item == 'uri':
-            return self.uri
-        return None
+        return cls.model_validate(obj)
 
 
-@dataclass
-class TrackAlbum:
-    album_type: Optional[str]
-    total_tracks: Optional[int]
-    available_markets: Optional[List[str]]
-    external_urls: Optional[TrackExternalUrls]
-    href: Optional[str]
-    id: Optional[str]
-    images: Optional[List[TrackImages]]
-    name: Optional[str]
-    release_date: Optional[str]
-    release_date_precision: Optional[str]
-    restrictions: Optional[TrackRestrictions]
-    type: Optional[str]
-    uri: Optional[str]
-    artists: Optional[List[TrackArtists]]
-    _json: dict
+class TrackAlbum(BaseModel):
+    album_type: Optional[str] = None
+    total_tracks: Optional[int] = None
+    available_markets: Optional[List[str]] = None
+    external_urls: Optional[TrackExternalUrls] = None
+    href: Optional[str] = None
+    id: Optional[str] = None
+    images: Optional[List[TrackImages]] = None
+    name: Optional[str] = None
+    release_date: Optional[str] = None
+    release_date_precision: Optional[str] = None
+    restrictions: Optional[TrackRestrictions] = None
+    type: Optional[str] = None
+    uri: Optional[str] = None
+    artists: Optional[List[TrackArtists]] = None
 
-    def from_dict(obj: Any) -> 'TrackAlbum':
-        _album_type = obj.get(
-            'album_type') if obj and 'album_type' in obj else None
-        _total_tracks = obj.get(
-            'total_tracks') if obj and 'total_tracks' in obj else None
-        _available_markets = obj.get(
-            'available_markets') if obj and 'available_markets' in obj else None
-        _external_urls = TrackExternalUrls.from_dict(
-            obj.get('external_urls')) if obj and 'external_urls' in obj else None
-        _href = obj.get('href') if obj and 'href' in obj else None
-        _id = obj.get('id') if obj and 'id' in obj else None
-        _images = [TrackImages.from_dict(k) for k in obj.get(
-            'images')] if obj and 'images' in obj else None
-        _name = obj.get('name') if obj and 'name' in obj else None
-        _release_date = obj.get(
-            'release_date') if obj and 'release_date' in obj else None
-        _release_date_precision = obj.get(
-            'release_date_precision') if obj and 'release_date_precision' in obj else None
-        _restrictions = TrackRestrictions.from_dict(
-            obj.get('restrictions')) if obj and 'restrictions' in obj else None
-        _type = obj.get('type') if obj and 'type' in obj else None
-        _uri = obj.get('uri') if obj and 'uri' in obj else None
-        _artists = [TrackArtists.from_dict(k) for k in obj.get(
-            'artists')] if obj and 'artists' in obj else None
-        return TrackAlbum(_album_type, _total_tracks, _available_markets, _external_urls, _href, _id, _images, _name, _release_date, _release_date_precision, _restrictions, _type, _uri, _artists, obj)
+    @classmethod
+    def from_dict(cls, obj: Any) -> 'TrackAlbum':
+        """Parse from a raw Spotify API dictionary."""
 
-    def __getitem__(self, item):
-        if item == 'album_type':
-            return self.album_type
-        elif item == 'total_tracks':
-            return self.total_tracks
-        elif item == 'available_markets':
-            return self.available_markets
-        elif item == 'external_urls':
-            return self.external_urls
-        elif item == 'href':
-            return self.href
-        elif item == 'id':
-            return self.id
-        elif item == 'images':
-            return self.images
-        elif item == 'name':
-            return self.name
-        elif item == 'release_date':
-            return self.release_date
-        elif item == 'release_date_precision':
-            return self.release_date_precision
-        elif item == 'restrictions':
-            return self.restrictions
-        elif item == 'type':
-            return self.type
-        elif item == 'uri':
-            return self.uri
-        elif item == 'artists':
-            return self.artists
-        return None
+        return cls.model_validate(obj)
 
 
-@dataclass
-class TrackExternalUrls2:
-    spotify: Optional[str]
-    _json: dict
+class TrackExternalUrls2(BaseModel):
+    spotify: Optional[str] = None
 
-    def from_dict(obj: Any) -> 'TrackExternalUrls2':
-        _spotify = obj.get('spotify') if obj and 'spotify' in obj else None
-        return TrackExternalUrls2(_spotify, obj)
+    @classmethod
+    def from_dict(cls, obj: Any) -> 'TrackExternalUrls2':
+        """Parse from a raw Spotify API dictionary."""
 
-    def __getitem__(self, item):
-        if item == 'spotify':
-            return self.spotify
-        return None
+        return cls.model_validate(obj)
 
 
-@dataclass
-class TrackExternalIds:
-    isrc: Optional[str]
-    ean: Optional[str]
-    upc: Optional[str]
-    _json: dict
+class TrackExternalIds(BaseModel):
+    isrc: Optional[str] = None
+    ean: Optional[str] = None
+    upc: Optional[str] = None
 
-    def from_dict(obj: Any) -> 'TrackExternalIds':
-        _isrc = obj.get('isrc') if obj and 'isrc' in obj else None
-        _ean = obj.get('ean') if obj and 'ean' in obj else None
-        _upc = obj.get('upc') if obj and 'upc' in obj else None
-        return TrackExternalIds(_isrc, _ean, _upc, obj)
+    @classmethod
+    def from_dict(cls, obj: Any) -> 'TrackExternalIds':
+        """Parse from a raw Spotify API dictionary."""
 
-    def __getitem__(self, item):
-        if item == 'isrc':
-            return self.isrc
-        elif item == 'ean':
-            return self.ean
-        elif item == 'upc':
-            return self.upc
-        return None
+        return cls.model_validate(obj)
 
 
-@dataclass
-class TrackExternalUrls3:
-    spotify: Optional[str]
-    _json: dict
+class TrackExternalUrls3(BaseModel):
+    spotify: Optional[str] = None
 
-    def from_dict(obj: Any) -> 'TrackExternalUrls3':
-        _spotify = obj.get('spotify') if obj and 'spotify' in obj else None
-        return TrackExternalUrls3(_spotify, obj)
+    @classmethod
+    def from_dict(cls, obj: Any) -> 'TrackExternalUrls3':
+        """Parse from a raw Spotify API dictionary."""
 
-    def __getitem__(self, item):
-        if item == 'spotify':
-            return self.spotify
-        return None
+        return cls.model_validate(obj)
 
 
-@dataclass
-class TrackLinkedFrom:
-    _json: dict
+class TrackLinkedFrom(BaseModel):
+    @classmethod
+    def from_dict(cls, obj: Any) -> 'TrackLinkedFrom':
+        """Parse from a raw Spotify API dictionary."""
 
-    def from_dict(obj: Any) -> 'TrackLinkedFrom':
-        return TrackLinkedFrom(obj)
-
-
-@dataclass
-class TrackRestrictions1:
-    reason: Optional[str]
-    _json: dict
-
-    def from_dict(obj: Any) -> 'TrackRestrictions1':
-        _reason = obj.get('reason') if obj and 'reason' in obj else None
-        return TrackRestrictions1(_reason, obj)
-
-    def __getitem__(self, item):
-        if item == 'reason':
-            return self.reason
-        return None
+        return cls.model_validate(obj)
 
 
-@dataclass
-class RawSpotifyApiTrack:
-    album: Optional[TrackAlbum]
-    artists: Optional[List[TrackArtists]]
-    available_markets: Optional[List[str]]
-    disc_number: Optional[int]
-    duration_ms: Optional[int]
-    explicit: Optional[bool]
-    external_ids: Optional[TrackExternalIds]
-    external_urls: Optional[TrackExternalUrls3]
-    href: Optional[str]
-    id: Optional[str]
-    is_playable: Optional[bool]
-    linked_from: Optional[TrackLinkedFrom]
-    restrictions: Optional[TrackRestrictions1]
-    name: Optional[str]
-    popularity: Optional[int]
-    preview_url: Optional[str]
-    track_number: Optional[int]
-    type: Optional[str]
-    uri: Optional[str]
-    is_local: Optional[bool]
-    _json: dict
+class TrackRestrictions1(BaseModel):
+    reason: Optional[str] = None
 
-    def from_dict(obj: Any) -> 'RawSpotifyApiTrack':
-        _album = TrackAlbum.from_dict(
-            obj.get('album')) if obj and 'album' in obj else None
-        _artists = [TrackArtists.from_dict(k) for k in obj.get(
-            'artists')] if obj and 'artists' in obj else None
-        _available_markets = obj.get(
-            'available_markets') if obj and 'available_markets' in obj else None
-        _disc_number = obj.get(
-            'disc_number') if obj and 'disc_number' in obj else None
-        _duration_ms = obj.get(
-            'duration_ms') if obj and 'duration_ms' in obj else None
-        _explicit = obj.get('explicit') if obj and 'explicit' in obj else None
-        _external_ids = TrackExternalIds.from_dict(
-            obj.get('external_ids')) if obj and 'external_ids' in obj else None
-        _external_urls = TrackExternalUrls3.from_dict(
-            obj.get('external_urls')) if obj and 'external_urls' in obj else None
-        _href = obj.get('href') if obj and 'href' in obj else None
-        _id = obj.get('id') if obj and 'id' in obj else None
-        _is_playable = obj.get(
-            'is_playable') if obj and 'is_playable' in obj else None
-        _linked_from = TrackLinkedFrom.from_dict(
-            obj.get('linked_from')) if obj and 'linked_from' in obj else None
-        _restrictions = TrackRestrictions1.from_dict(
-            obj.get('restrictions')) if obj and 'restrictions' in obj else None
-        _name = obj.get('name') if obj and 'name' in obj else None
-        _popularity = obj.get(
-            'popularity') if obj and 'popularity' in obj else None
-        _preview_url = obj.get(
-            'preview_url') if obj and 'preview_url' in obj else None
-        _track_number = obj.get(
-            'track_number') if obj and 'track_number' in obj else None
-        _type = obj.get('type') if obj and 'type' in obj else None
-        _uri = obj.get('uri') if obj and 'uri' in obj else None
-        _is_local = obj.get('is_local') if obj and 'is_local' in obj else None
-        return RawSpotifyApiTrack(_album, _artists, _available_markets, _disc_number, _duration_ms, _explicit, _external_ids, _external_urls, _href, _id, _is_playable, _linked_from, _restrictions, _name, _popularity, _preview_url, _track_number, _type, _uri, _is_local, obj)
+    @classmethod
+    def from_dict(cls, obj: Any) -> 'TrackRestrictions1':
+        """Parse from a raw Spotify API dictionary."""
 
-    def __getitem__(self, item):
-        if item == 'album':
-            return self.album
-        elif item == 'artists':
-            return self.artists
-        elif item == 'available_markets':
-            return self.available_markets
-        elif item == 'disc_number':
-            return self.disc_number
-        elif item == 'duration_ms':
-            return self.duration_ms
-        elif item == 'explicit':
-            return self.explicit
-        elif item == 'external_ids':
-            return self.external_ids
-        elif item == 'external_urls':
-            return self.external_urls
-        elif item == 'href':
-            return self.href
-        elif item == 'id':
-            return self.id
-        elif item == 'is_playable':
-            return self.is_playable
-        elif item == 'linked_from':
-            return self.linked_from
-        elif item == 'restrictions':
-            return self.restrictions
-        elif item == 'name':
-            return self.name
-        elif item == 'popularity':
-            return self.popularity
-        elif item == 'preview_url':
-            return self.preview_url
-        elif item == 'track_number':
-            return self.track_number
-        elif item == 'type':
-            return self.type
-        elif item == 'uri':
-            return self.uri
-        elif item == 'is_local':
-            return self.is_local
-        return None
+        return cls.model_validate(obj)
+
+
+class RawSpotifyApiTrack(BaseModel):
+    album: Optional[TrackAlbum] = None
+    artists: Optional[List[TrackArtists]] = None
+    available_markets: Optional[List[str]] = None
+    disc_number: Optional[int] = None
+    duration_ms: Optional[int] = None
+    explicit: Optional[bool] = None
+    external_ids: Optional[TrackExternalIds] = None
+    external_urls: Optional[TrackExternalUrls3] = None
+    href: Optional[str] = None
+    id: Optional[str] = None
+    is_playable: Optional[bool] = None
+    linked_from: Optional[TrackLinkedFrom] = None
+    restrictions: Optional[TrackRestrictions1] = None
+    name: Optional[str] = None
+    popularity: Optional[int] = None
+    preview_url: Optional[str] = None
+    track_number: Optional[int] = None
+    type: Optional[str] = None
+    uri: Optional[str] = None
+    is_local: Optional[bool] = None
+
+    @classmethod
+    def from_dict(cls, obj: Any) -> 'RawSpotifyApiTrack':
+        """Parse a raw Spotify API track response from a dictionary."""
+
+        return cls.model_validate(obj)

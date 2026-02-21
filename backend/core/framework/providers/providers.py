@@ -1,5 +1,6 @@
+print(__file__)  # nopep8
+
 import os
-import asyncio
 from typing import List
 from logging import Logger
 from types import ModuleType
@@ -28,10 +29,7 @@ class Providers:
 
     _providers: List[BaseProvider] = []
 
-    def __init__(self) -> None:
-        asyncio.create_task(self._async_init())
-
-    async def _async_init(self):
+    async def async_init(self):
         a_result_search_providers: AResultCode = await self.search_providers()
         if a_result_search_providers.is_not_ok():
             logger.error(

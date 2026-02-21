@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
 
-class BasePlaylistResponse(BaseModel):
+class BaseArtistResponse(BaseModel):
     provider: str
     publicId: str

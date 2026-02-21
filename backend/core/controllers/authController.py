@@ -3,12 +3,13 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from logging import Logger
 
 from backend.core.aResult import AResult, AResultCode
-from backend.core.framework.auth.password import login_user_async
-from backend.core.framework.auth.register import register_user_async
-from backend.core.framework.auth.sessions import Session
+from backend.core.framework.auth.password import Password
+from backend.core.framework.auth.register import Register
+from backend.core.framework.auth.session import Session
+
+from backend.utils.logger import getLogger
 
 from backend.core.middlewares.authMiddleware import AuthMiddleware
-from backend.utils.logger import getLogger
 
 from backend.core.access.db.ormModels.user import UserRow
 
@@ -31,7 +32,7 @@ router = APIRouter(prefix="/auth")
 
 @router.post("/login")
 async def login(response: Response, payload: LoginRequest) -> LoginResponse:
-    a_result_user: AResult[UserRow] = await login_user_async(username=payload.username, password=payload.password)
+    a_result_user: AResult[UserRow] = await Password.login_user_async(username=payload.username, password=payload.password)
     if a_result_user.is_not_ok():
         logger.error(f"Error loging in user. {a_result_user.info()}")
         raise HTTPException(
@@ -54,7 +55,7 @@ async def register(
     response: Response,
     payload: RegisterRequest
 ) -> RegisterResponse:
-    a_result_user: AResult[UserRow] = await register_user_async(username=payload.username, password=payload.password)
+    a_result_user: AResult[UserRow] = await Register.register_user_async(username=payload.username, password=payload.password)
     if a_result_user.is_not_ok():
         logger.error(f"Error registering user. {a_result_user.info()}")
         raise HTTPException(

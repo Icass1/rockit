@@ -2,11 +2,13 @@ from argon2 import PasswordHasher
 from fastapi import Depends, APIRouter, HTTPException, Request
 from logging import Logger
 
-from backend.core.aResult import AResult
-from backend.core.access.db.ormModels.user import UserRow
-from backend.core.middlewares.authMiddleware import AuthMiddleware
-from backend.core.framework.user.user import User
 from backend.utils.logger import getLogger
+
+from backend.core.aResult import AResult
+
+from backend.core.access.db.ormModels.user import UserRow
+from backend.core.framework.user.user import User
+from backend.core.middlewares.authMiddleware import AuthMiddleware
 
 from backend.core.responses.libraryListsResponse import LibraryListsResponse
 from backend.core.responses.queueResponse import QueueResponse

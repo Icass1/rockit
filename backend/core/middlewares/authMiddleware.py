@@ -8,7 +8,7 @@ from backend.core.access.db.ormModels.user import UserRow
 from backend.core.aResult import AResult, AResultCode
 from backend.core.access.userAccess import UserAccess
 from backend.constants import SESSION_COOKIE
-from backend.core.framework.auth.sessions import Session
+from backend.core.framework.auth.session import Session
 from backend.utils.logger import getLogger
 
 

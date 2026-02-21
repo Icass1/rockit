@@ -35,6 +35,10 @@ class BaseProvider:
             logger.error("Error getting provider id.")
             return AResult(code=AResultCode.GENERAL_ERROR, message="Error getting provider id")
 
+    def get_name(self):
+        """TODO"""
+        return self._name
+
     async def search_async(self, query: str) -> AResult[List[BaseSearchItem]]:
         """TODO"""
         logger.warning(

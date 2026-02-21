@@ -1,12 +1,17 @@
 from typing import Dict, List, Set, TYPE_CHECKING
 
-from backend.spotify.spotifyApiTypes.rawSpotifyApiPlaylist import RawSpotifyApiPlaylist
 from backend.utils.logger import getLogger
 
-from backend.core.aResult import AResult, AResultCode
 from backend.constants import BACKEND_URL
-from backend.core.responses.searchResponse import BaseSearchItem
+from backend.core.aResult import AResult, AResultCode
+
 from backend.core.access.db import rockit_db
+
+from backend.core.responses.baseAlbumResponse import BaseAlbumResponse
+from backend.core.responses.baseArtistResponse import BaseArtistResponse
+from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
+from backend.core.responses.baseSongResponse import BaseSongResponse
+from backend.core.responses.searchResponse import BaseSearchItem
 
 from backend.spotify.access.spotifyAccess import SpotifyAccess
 from backend.spotify.access.db.ormModels.album import AlbumRow
@@ -18,16 +23,11 @@ from backend.spotify.framework.spotifyApi import spotify_api
 from backend.spotify.spotifyApiTypes.rawSpotifyApiAlbum import RawSpotifyApiAlbum
 from backend.spotify.spotifyApiTypes.rawSpotifyApiTrack import RawSpotifyApiTrack
 from backend.spotify.spotifyApiTypes.rawSpotifyApiArtist import RawSpotifyApiArtist
+from backend.spotify.spotifyApiTypes.rawSpotifyApiPlaylist import RawSpotifyApiPlaylist
 from backend.spotify.spotifyApiTypes.rawSpotifyApiSearchResults import RawSpotifyApiSearchResults
-
-from backend.spotify.responses.albumResponse import AlbumResponse
-from backend.spotify.responses.songResponse import SongResponse
-from backend.spotify.responses.artistResponse import ArtistResponse
-from backend.spotify.responses.playlistResponse import PlaylistResponse
 
 if TYPE_CHECKING:
     from backend.spotify.framework.provider.spotifyProvider import SpotifyProvider
-
 
 logger = getLogger(__name__)
 
@@ -97,7 +97,7 @@ class Spotify:
         return AResult(code=AResultCode.OK, message="OK", result=items)
 
     @staticmethod
-    async def get_album_async(id: str) -> AResult[AlbumResponse]:
+    async def get_album_async(id: str) -> AResult[BaseAlbumResponse]:
         """Get an album by ID, fetching from Spotify API and populating the database if not found."""
 
         # Check DB.
@@ -107,7 +107,7 @@ class Spotify:
             return AResult(
                 code=AResultCode.OK,
                 message="OK",
-                result=AlbumResponse(
+                result=BaseAlbumResponse(
                     provider=Spotify.provider_name,
                     publicId=id,
                     name=album_row.name))
@@ -192,12 +192,12 @@ class Spotify:
 
         return AResult(code=AResultCode.OK,
                        message="OK",
-                       result=AlbumResponse(
+                       result=BaseAlbumResponse(
                            provider=Spotify.provider_name, publicId=id,
                            name=raw_album.name or ""))
 
     @staticmethod
-    async def get_track_async(id: str) -> AResult[SongResponse]:
+    async def get_track_async(id: str) -> AResult[BaseSongResponse]:
         """Get a track by ID, fetching from Spotify API and populating the database if not found."""
 
         # Check DB.
@@ -207,7 +207,7 @@ class Spotify:
             return AResult(
                 code=AResultCode.OK,
                 message="OK",
-                result=SongResponse(
+                result=BaseSongResponse(
                     provider=Spotify.provider_name,
                     publicId=id,
                     name=track_row.name))
@@ -295,13 +295,13 @@ class Spotify:
         return AResult(
             code=AResultCode.OK,
             message="OK",
-            result=SongResponse(
+            result=BaseSongResponse(
                 provider=Spotify.provider_name,
                 publicId=id,
                 name=raw_track.name))
 
     @staticmethod
-    async def get_artist_async(id: str) -> AResult[ArtistResponse]:
+    async def get_artist_async(id: str) -> AResult[BaseArtistResponse]:
         """Get an artist by ID, fetching from Spotify API and populating the database if not found."""
 
         # Check DB.
@@ -309,8 +309,8 @@ class Spotify:
         if a_result_artist.is_ok():
             artist_row = a_result_artist.result()
             return AResult(code=AResultCode.OK, message="OK",
-                           result=ArtistResponse(publicId=id, provider=Spotify.provider_name,
-                                                 name=artist_row.name))
+                           result=BaseArtistResponse(publicId=id, provider=Spotify.provider_name,
+                                                     name=artist_row.name))
         if a_result_artist.code() != AResultCode.NOT_FOUND:
             return AResult(code=a_result_artist.code(), message=a_result_artist.message())
 
@@ -348,11 +348,11 @@ class Spotify:
                            message=f"Failed to populate artist in DB: {e}")
 
         return AResult(code=AResultCode.OK, message="OK",
-                       result=ArtistResponse(publicId=id, provider=Spotify.provider_name,
-                                             name=raw_artist.name or ""))
+                       result=BaseArtistResponse(publicId=id, provider=Spotify.provider_name,
+                                                 name=raw_artist.name or ""))
 
     @staticmethod
-    async def get_playlist_async(id: str) -> AResult[PlaylistResponse]:
+    async def get_playlist_async(id: str) -> AResult[BasePlaylistResponse]:
         """Get a playlist by ID, fetching from Spotify API and populating the database if not found."""
 
         # Check DB.
@@ -363,7 +363,7 @@ class Spotify:
             return AResult(
                 code=AResultCode.OK,
                 message="OK",
-                result=PlaylistResponse(
+                result=BasePlaylistResponse(
                     provider=Spotify.provider_name,
                     publicId=id,
                     name=playlist_row.name))
@@ -491,7 +491,7 @@ class Spotify:
         return AResult(
             code=AResultCode.OK,
             message="OK",
-            result=PlaylistResponse(
+            result=BasePlaylistResponse(
                 provider=Spotify.provider_name,
                 publicId=id,
                 name=raw_playlist.name))

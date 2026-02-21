@@ -34,7 +34,7 @@ class TableAutoincrementId:
 
 @declarative_mixin
 class TablePublicId:
-    public_id: Mapped[str] = mapped_column(String, nullable=False)
+    public_id: Mapped[str] = mapped_column(String, unique=True, nullable=False)
 
 
 @declarative_mixin

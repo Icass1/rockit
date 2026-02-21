@@ -34,7 +34,7 @@ No providers, no references, nothing.
 
 Each business has **3 layers**:
 
-* **controller** → only interacts with **framework**
+* **controllers** → only interacts with **framework** (directory is named `controllers/`, plural)
 * **framework** → only interacts with **access**
 * **access** → only interacts with **database**
 
@@ -43,6 +43,7 @@ Rules:
 * The **controller never calls access** or database directly.
 * The **framework never calls controller**.
 * The **access layer never calls framework**.
+* All controller files must live in the `controllers/` folder (plural), not `controller/`.
 
 ---
 
@@ -61,7 +62,7 @@ backend
         db.py            # imports all tables in ormModels and ormEnums
         base.py          # contains declarative_base
 
-    controller
+    controllers
       userController.py  # routes for user and session info
       authController.py  # login, register, logout
 

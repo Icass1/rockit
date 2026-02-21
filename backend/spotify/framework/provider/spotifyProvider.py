@@ -5,6 +5,10 @@ from backend.utils.logger import getLogger
 
 from backend.core.aResult import AResult, AResultCode
 from backend.core.responses.searchResponse import BaseSearchItem
+from backend.core.responses.baseSongResponse import BaseSongResponse
+from backend.core.responses.baseAlbumResponse import BaseAlbumResponse
+from backend.core.responses.baseArtistResponse import BaseArtistResponse
+from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
 
 from backend.core.access.enumAccess import EnumAccess
 
@@ -48,6 +52,46 @@ class SpotifyProvider(BaseProvider):
         a_result: AResult[List[BaseSearchItem]] = await Spotify.search_async(query)
         if a_result.is_not_ok():
             logger.error(f"Error searching Spotify. {a_result.info()}")
+            return AResult(code=a_result.code(), message=a_result.message())
+
+        return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+
+    async def get_song_async(self, public_id: str) -> AResult[BaseSongResponse]:
+        """Get a Spotify track by public_id."""
+
+        a_result: AResult[BaseSongResponse] = await Spotify.get_track_async(public_id)
+        if a_result.is_not_ok():
+            logger.error(f"Error getting Spotify track. {a_result.info()}")
+            return AResult(code=a_result.code(), message=a_result.message())
+
+        return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+
+    async def get_album_async(self, public_id: str) -> AResult[BaseAlbumResponse]:
+        """Get a Spotify album by public_id."""
+
+        a_result: AResult[BaseAlbumResponse] = await Spotify.get_album_async(public_id)
+        if a_result.is_not_ok():
+            logger.error(f"Error getting Spotify album. {a_result.info()}")
+            return AResult(code=a_result.code(), message=a_result.message())
+
+        return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+
+    async def get_artist_async(self, public_id: str) -> AResult[BaseArtistResponse]:
+        """Get a Spotify artist by public_id."""
+
+        a_result: AResult[BaseArtistResponse] = await Spotify.get_artist_async(public_id)
+        if a_result.is_not_ok():
+            logger.error(f"Error getting Spotify artist. {a_result.info()}")
+            return AResult(code=a_result.code(), message=a_result.message())
+
+        return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+
+    async def get_playlist_async(self, public_id: str) -> AResult[BasePlaylistResponse]:
+        """Get a Spotify playlist by public_id."""
+
+        a_result: AResult[BasePlaylistResponse] = await Spotify.get_playlist_async(public_id)
+        if a_result.is_not_ok():
+            logger.error(f"Error getting Spotify playlist. {a_result.info()}")
             return AResult(code=a_result.code(), message=a_result.message())
 
         return AResult(code=AResultCode.OK, message="OK", result=a_result.result())

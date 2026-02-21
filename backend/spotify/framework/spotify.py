@@ -219,23 +219,41 @@ class Spotify:
 
         raw_tracks: List[RawSpotifyApiTrack] = a_result_api_tracks.result()
         if not raw_tracks:
+            logger.error(f"Track {id} not found on Spotify")
             return AResult(code=AResultCode.NOT_FOUND, message="Track not found on Spotify")
 
-        raw_track = raw_tracks[0]
+        raw_track: RawSpotifyApiTrack = raw_tracks[0]
 
-        # Fetch album.
+        # Fetch full album to get all its tracks.
         album_id: str = raw_track.album.id
-        album_ids: List[str] = [album_id]
 
         a_result_albums: AResult[List[RawSpotifyApiAlbum]] = \
-            await spotify_api.get_albums_async(album_ids)
+            await spotify_api.get_albums_async([album_id])
         raw_albums: List[RawSpotifyApiAlbum] = a_result_albums.result(
         ) if a_result_albums.is_ok() else []
 
-        # Collect artist IDs.
+        if len(raw_albums) != 1:
+            logger.error(f"Received {len(raw_albums)} instead of 1.")
+            return AResult(code=AResultCode.GENERAL_ERROR, message=f"Received {len(raw_albums)} instead of 1.")
+
+        raw_album: RawSpotifyApiAlbum = raw_albums[0]
+
+        # Fetch all tracks of the album (same process as get_album_async).
+        album_track_ids: List[str] = []
+        if raw_album and raw_album.tracks and raw_album.tracks.items:
+            album_track_ids = [
+                item.id for item in raw_album.tracks.items if item.id]
+
+        a_result_album_tracks: AResult[List[RawSpotifyApiTrack]] = \
+            await spotify_api.get_tracks_async(album_track_ids)
+        raw_album_tracks: List[RawSpotifyApiTrack] = a_result_album_tracks.result(
+        ) if a_result_album_tracks.is_ok() else []
+
+        # Collect artist IDs from all album tracks and the album itself.
         artist_ids = list({
             a.id
-            for a in (raw_track.artists or [])
+            for t in raw_album_tracks
+            for a in (t.artists or [])
             if a.id
         } | {
             a.id
@@ -269,7 +287,7 @@ class Spotify:
                         artist_map[raw_artist.id] = a.result()
 
                 a_result_album: AResult[AlbumRow] = await SpotifyAccess.get_or_create_album(
-                    raw=raw_albums[0],
+                    raw=raw_album,
                     artist_map=artist_map,
                     session=session,
                     provider_id=provider_id)
@@ -278,12 +296,13 @@ class Spotify:
 
                 album_row: AlbumRow = a_result_album.result()
 
-                await SpotifyAccess.get_or_create_track(
-                    raw=raw_track,
-                    artist_map=artist_map,
-                    album_row=album_row,
-                    session=session,
-                    provider_id=provider_id)
+                for t in raw_album_tracks:
+                    await SpotifyAccess.get_or_create_track(
+                        raw=t,
+                        artist_map=artist_map,
+                        album_row=album_row,
+                        session=session,
+                        provider_id=provider_id)
 
         except Exception as e:
             return AResult(code=AResultCode.GENERAL_ERROR,

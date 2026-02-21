@@ -2,7 +2,7 @@ import os
 import uuid
 import requests as req
 from datetime import datetime, timezone
-from typing import Dict, List, Tuple
+from typing import Dict, Tuple
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -338,6 +338,7 @@ class SpotifyAccess:
             return AResult(code=AResultCode.OK, message="OK", result=album_row)
 
         except Exception as e:
+            logger.error(f"Failed to get/create album: {e}")
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
                 message=f"Failed to get/create album: {e}")

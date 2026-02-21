@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 
 class DownloadStatusRow(SpotifyBase, TableAutoincrementId, TableDateUpdated, TableDateAdded):
-    __tablename__ = 'downloads_status'
+    __tablename__ = 'download_status'
     __table_args__ = {'schema': 'spotify', 'extend_existing': True},
 
     download_id: Mapped[int] = mapped_column(

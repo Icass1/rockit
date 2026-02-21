@@ -65,6 +65,10 @@ def add_init_to_orm():
                         parameters.append(
                             Parameter(name="public_id", nullable=False, optional=False, type="str", default_value=None))
 
+                    if "TableAutoincrementKey" in classes:
+                        parameters.append(
+                            Parameter(name="key", nullable=False, optional=False, type="int", default_value=None))
+
                 if "def __init__" in k:
                     break
                 content_without_init.append(k)

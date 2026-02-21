@@ -17,6 +17,9 @@ class BaseProvider:
     def set_id(self, provider_id: int):
         self._id = provider_id
 
+    async def async_init(self):
+        pass
+
     def get_id(self) -> AResult[int]:
         try:
             return AResult(AResultCode.OK, "OK", self._id)

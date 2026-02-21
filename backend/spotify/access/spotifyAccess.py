@@ -252,7 +252,7 @@ class SpotifyAccess:
                 for genre_name in raw.genres:
                     a_genre = await SpotifyAccess._get_or_create_genre(genre_name, session)
                     if a_genre.is_ok():
-                        artist_row.genres.append(a_genre.result())
+                        artist_row.genres.add(a_genre.result())
 
             # Link external images
             if raw.images:
@@ -261,7 +261,7 @@ class SpotifyAccess:
                         a_ext = await SpotifyAccess._get_or_create_external_image(
                             img.url, img.width, img.height, session)
                         if a_ext.is_ok():
-                            artist_row.external_images.append(a_ext.result())
+                            artist_row.external_images.add(a_ext.result())
 
             await session.flush()
             return AResult(code=AResultCode.OK, message="OK", result=artist_row)
@@ -325,7 +325,7 @@ class SpotifyAccess:
             if raw.artists:
                 for a in raw.artists:
                     if a.id and a.id in artist_map:
-                        album_row.artists.append(artist_map[a.id])
+                        album_row.artists.add(artist_map[a.id])
 
             # Link copyrights
             if raw.copyrights:
@@ -335,7 +335,7 @@ class SpotifyAccess:
                         cr = CopyrightRow(text=c.text or "", type_key=type_key)
                         session.add(cr)
                         await session.flush()
-                        album_row.copyrights.append(cr)
+                        album_row.copyrights.add(cr)
 
             # Link external images
             if raw.images:
@@ -344,7 +344,7 @@ class SpotifyAccess:
                         a_ext = await SpotifyAccess._get_or_create_external_image(
                             img.url, img.width, img.height, session)
                         if a_ext.is_ok():
-                            album_row.external_images.append(a_ext.result())
+                            album_row.external_images.add(a_ext.result())
 
             await session.flush()
             return AResult(code=AResultCode.OK, message="OK", result=album_row)
@@ -397,7 +397,7 @@ class SpotifyAccess:
             if raw.artists:
                 for a in raw.artists:
                     if a.id and a.id in artist_map:
-                        track_row.artists.append(artist_map[a.id])
+                        track_row.artists.add(artist_map[a.id])
 
             await session.flush()
             return AResult(code=AResultCode.OK, message="OK", result=track_row)
@@ -459,7 +459,7 @@ class SpotifyAccess:
                         a_ext = await SpotifyAccess._get_or_create_external_image(
                             img.url, img.width, img.height, session)
                         if a_ext.is_ok():
-                            playlist_row.external_images.append(a_ext.result())
+                            playlist_row.external_images.add(a_ext.result())
 
             # Create PlaylistTrackRow links
             if raw.tracks and raw.tracks.items:

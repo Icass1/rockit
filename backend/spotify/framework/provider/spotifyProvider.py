@@ -18,6 +18,9 @@ class SpotifyProvider(BaseProvider):
     def __init__(self) -> None:
         super().__init__()
 
+    async def async_init(self):
+        await self.add_enum_contents()
+
     async def add_enum_contents(self):
         await EnumAccess.check_enum_contents_async(
             enum_class=DownloadStatusEnum,

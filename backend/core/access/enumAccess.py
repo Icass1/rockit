@@ -59,6 +59,6 @@ class EnumAccess:
             missing_count = len(enum_keys) - len(db_keys)
             if missing_count > 0:
                 for i in range(len(db_keys), len(enum_keys)):
-                    new_row = table(value=enum_values[i])
+                    new_row = table(value=enum_values[i], key=enum_keys[i])
                     s.add(new_row)
                 await s.commit()

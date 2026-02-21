@@ -65,6 +65,8 @@ class Providers:
                     else:
                         logger.info(f"Adding provider {module_path}")
 
+                        await provider.async_init()
+
                         providers_found_data.append(Providers.ProviderData(
                             provider=provider,
                             module_path=module_path,

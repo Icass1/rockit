@@ -11,8 +11,9 @@ class BaseEnumRow(TableAutoincrementKey, TableDateUpdated, TableDateAdded):
 
     value: Mapped[str] = mapped_column(String, nullable=False, unique=True)
 
-    def __init__(self, value: str):
-        kwargs: Dict[str, str] = {}
+    def __init__(self, key: int, value: str):
+        kwargs: Dict[str, int | str] = {}
+        kwargs['key'] = key
         kwargs['value'] = value
         for k, v in kwargs.items():
             setattr(self, k, v)

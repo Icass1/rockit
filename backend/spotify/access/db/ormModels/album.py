@@ -1,7 +1,7 @@
 from typing import List, TYPE_CHECKING, Dict
 
 from sqlalchemy import ForeignKey, String, Integer
-from sqlalchemy.orm import relationship, mapped_column, Mapped
+from sqlalchemy.orm import relationship, mapped_column, Mapped, WriteOnlyMapped
 
 from backend.spotify.access.db.base import SpotifyBase
 from backend.core.access.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdated
@@ -43,21 +43,24 @@ class AlbumRow(SpotifyBase, TableDateUpdated, TableDateAdded):
         "TrackRow",
         back_populates="album")
 
-    artists: Mapped[List["ArtistRow"]] = relationship(
+    artists: WriteOnlyMapped[List["ArtistRow"]] = relationship(
         "ArtistRow",
         secondary=album_artists,
-        back_populates="albums")
+        back_populates="albums",
+        lazy="write_only")
 
-    external_images: Mapped[List["ExternalImageRow"]] = relationship(
+    external_images: WriteOnlyMapped[List["ExternalImageRow"]] = relationship(
         "ExternalImageRow",
         secondary=album_external_images,
-        back_populates="albums"
+        back_populates="albums",
+        lazy="write_only"
     )
 
-    copyrights: Mapped[List["CopyrightRow"]] = relationship(
+    copyrights: WriteOnlyMapped[List["CopyrightRow"]] = relationship(
         "CopyrightRow",
         secondary=album_copyrights,
-        back_populates="albums"
+        back_populates="albums",
+        lazy="write_only"
     )
 
     def __init__(self, id: int, internal_image_id: int, name: str, release_date: str, popularity: int, disc_count: int):

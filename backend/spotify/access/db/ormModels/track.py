@@ -1,7 +1,7 @@
 from typing import List, TYPE_CHECKING, Dict
 
 from sqlalchemy import String, ForeignKey, Text, Integer
-from sqlalchemy.orm import relationship, mapped_column, Mapped
+from sqlalchemy.orm import relationship, mapped_column, Mapped, WriteOnlyMapped
 
 from backend.core.access.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdated, TableAutoincrementId
 
@@ -41,8 +41,9 @@ class TrackRow(SpotifyBase, TableAutoincrementId, TableDateUpdated, TableDateAdd
     dynamic_lyrics: Mapped[str | None] = mapped_column(Text, nullable=True)
     preview_url: Mapped[str | None] = mapped_column(String, nullable=True)
 
-    artists: Mapped[List["ArtistRow"]] = relationship(
-        "ArtistRow", secondary=song_artists, back_populates="songs")
+    artists: WriteOnlyMapped[List["ArtistRow"]] = relationship(
+        "ArtistRow", secondary=song_artists, back_populates="songs",
+        lazy="write_only")
 
     internal_image: Mapped["InternalImageRow | None"] = relationship(
         'InternalImageRow', back_populates='songs', foreign_keys=[internal_image_id])

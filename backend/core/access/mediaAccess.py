@@ -1,5 +1,3 @@
-print(__file__)  # nopep8
-
 from typing import Tuple
 
 from sqlalchemy import select

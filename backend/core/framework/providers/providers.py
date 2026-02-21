@@ -1,5 +1,3 @@
-print(__file__)  # nopep8
-
 import os
 from typing import List
 from logging import Logger

@@ -1,5 +1,3 @@
-print(__file__)  # nopep8
-
 from logging import Logger
 from typing import List
 from backend.core.aResult import AResult, AResultCode

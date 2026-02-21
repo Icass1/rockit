@@ -1,6 +1,3 @@
-print(__file__)  # nopep8
-
-
 import os
 from dataclasses import dataclass
 from importlib import import_module
@@ -56,10 +53,6 @@ class RockItDB:
             f"postgresql+asyncpg://{username}:{password}@{host}:{port}/{self.database}",
             echo=verbose
         )
-
-        # Run async init.
-        # loop = asyncio.get_event_loop()
-        # loop.run_until_complete(self._async_init())
 
     async def async_init(self):
         await self.create_schemas()

@@ -1,5 +1,3 @@
-print(__file__)  # nopep8
-
 import asyncio
 
 from logging import Logger

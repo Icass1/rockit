@@ -273,7 +273,7 @@ class RawSpotifyApiPlaylist(BaseModel):
     href: Optional[str] = None
     id: str
     images: List[RawSpotifyApiImage]
-    name: Optional[str] = None
+    name: str
     owner: Optional[PlaylistOwner] = None
     public: Optional[bool] = None
     snapshot_id: Optional[str] = None

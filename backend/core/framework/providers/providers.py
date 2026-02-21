@@ -71,9 +71,9 @@ class Providers:
                             provider=provider,
                             module_path=module_path,
                             name=provider_name))
-                except:
+                except Exception as e:
                     logger.warning(
-                        f"{module_path} doesn't have 'provider' or 'name' variable")
+                        f"{module_path} doesn't have 'provider' or 'name' variable. Error {e}.")
 
         a_result_providers_in_db: AResult[
             List[ProviderRow]
@@ -91,26 +91,31 @@ class Providers:
             for index, provider_data in enumerate(providers_found_data):
                 if provider.module == provider_data.module_path:
                     providers_found_data.pop(index)
-                    provider_data.provider.set_id(provider_id=provider.id)
+                    provider_data.provider.set_info(
+                        provider_id=provider.id, provider_name=provider.name)
                     self._providers.append(provider_data.provider)
                     break
 
             # Handle provider in database not found.
             else:
-                raise Exception("A provider in database couldn't be found.")
+                logger.error(
+                    f"Provider in database {provider.name} couldn't be found.")
+                return AResultCode(code=AResultCode.GENERAL_ERROR, message="A provider in database couldn't be found.")
 
         for index, provider_data in enumerate(providers_found_data):
             self._providers.append(provider_data.provider)
 
             a_result_provider: AResult[ProviderRow] = await ProviderAccess.add_provider(
-                name=provider_data.name, module=provider_data.module_path)
+                name=provider_data.name,
+                module=provider_data.module_path)
 
             if a_result_provider.is_not_ok():
                 logger.error(
                     f"Error adding provider to database. Code {a_result_provider.code()}")
                 continue
 
-            provider_data.provider.set_id(
-                provider_id=a_result_provider.result().id)
+            provider_data.provider.set_info(
+                provider_id=a_result_provider.result().id,
+                provider_name=a_result_provider.result().name)
 
         return AResultCode(code=AResultCode.OK, message="OK")

@@ -12,5 +12,4 @@ class YoutubeProvider(BaseProvider):
 
 
 provider = YoutubeProvider()
-
 name = "YouTube"

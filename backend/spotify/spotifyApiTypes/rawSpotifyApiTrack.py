@@ -55,7 +55,7 @@ class TrackAlbum(BaseModel):
     available_markets: Optional[List[str]] = None
     external_urls: Optional[TrackExternalUrls] = None
     href: Optional[str] = None
-    id: Optional[str] = None
+    id: str
     images: List[RawSpotifyApiImage]
     name: Optional[str] = None
     release_date: Optional[str] = None
@@ -123,7 +123,7 @@ class TrackRestrictions1(BaseModel):
 
 
 class RawSpotifyApiTrack(BaseModel):
-    album: Optional[TrackAlbum] = None
+    album: TrackAlbum
     artists: Optional[List[TrackArtists]] = None
     available_markets: Optional[List[str]] = None
     disc_number: Optional[int] = None
@@ -136,7 +136,7 @@ class RawSpotifyApiTrack(BaseModel):
     is_playable: Optional[bool] = None
     linked_from: Optional[TrackLinkedFrom] = None
     restrictions: Optional[TrackRestrictions1] = None
-    name: Optional[str] = None
+    name: str 
     popularity: Optional[int] = None
     preview_url: Optional[str] = None
     track_number: Optional[int] = None

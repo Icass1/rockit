@@ -8,6 +8,7 @@ class AResultCode:
     GENERAL_ERROR = 0x2
     NOT_FOUND = 0x3
     BAD_REQUEST = 0x4
+    NOT_IMPLEMENTED = 0x5
 
     _code: int
     _message: str
@@ -31,6 +32,8 @@ class AResultCode:
             return 404
         if self._code == AResultCode.BAD_REQUEST:
             return 400
+        if self._code == AResultCode.NOT_IMPLEMENTED:
+            return 501
 
         raise Exception(f"Code {self._code} not implemented")
 
@@ -49,6 +52,8 @@ class AResultCode:
             return "NOT_FOUND"
         if self._code == AResultCode.BAD_REQUEST:
             return "BAD_REQUEST"
+        if self._code == AResultCode.NOT_IMPLEMENTED:
+            return "NOT_IMPLEMENTED"
 
         raise Exception(f"Code {self._code} not implemented")
 

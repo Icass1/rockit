@@ -1,10 +1,12 @@
 from fastapi import Depends, APIRouter, HTTPException
 from logging import Logger
 
+from backend.utils.logger import getLogger
+
 from backend.core.aResult import AResult
 from backend.core.middlewares.authMiddleware import AuthMiddleware
+
 from backend.spotify.framework.spotify import Spotify
-from backend.utils.logger import getLogger
 
 from backend.spotify.responses.albumResponse import AlbumResponse
 

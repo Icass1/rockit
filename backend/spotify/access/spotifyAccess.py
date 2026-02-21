@@ -2,12 +2,13 @@ from typing import Tuple
 from sqlalchemy.future import select
 from sqlalchemy import Result, Select
 
+from backend.utils.logger import getLogger
+
 from backend.core.aResult import AResult, AResultCode
 from backend.core.access.db import rockit_db
-
 from backend.core.access.db.ormModels.album import CoreAlbumRow
+
 from backend.spotify.access.db.ormModels.album import AlbumRow
-from backend.utils.logger import getLogger
 
 
 logger = getLogger(__name__)
@@ -18,7 +19,6 @@ class SpotifyAccess:
     async def get_album_async(id: str) -> AResult[AlbumRow]:
         try:
             async with rockit_db.session_scope_async() as s:
-
                 stmt: Select[Tuple[AlbumRow]] = (
                     select(AlbumRow)
                     .join(CoreAlbumRow, CoreAlbumRow.id == AlbumRow.id)

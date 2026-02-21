@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from backend.utils.logger import getLogger
 
@@ -13,16 +13,16 @@ logger = getLogger(__name__)
 
 class SpotifyCache:
     @staticmethod
-    async def get_album_from_cache_async(id: str) -> AResult[RawSpotifyApiAlbum]:
+    async def get_albums_async(id: List[str]) -> AResult[RawSpotifyApiAlbum]:
         pass
 
     @staticmethod
-    async def check_album_in_cache_async(id: str) -> AResult[bool]:
+    async def check_album_async(id: str) -> AResult[bool]:
         pass
 
     @staticmethod
-    async def add_album_to_cache_async(id: str, json: Dict[str, Any]) -> AResultCode:
-        a_result: AResultCode = await SpotifyCacheAccess.add_album_async(id, json)
+    async def add_album_async(id: str, json: Dict[str, Any]) -> AResultCode:
+
 
         if a_result.is_not_ok():
             logger.info(f"Error adding album to cache. {a_result.info()}")

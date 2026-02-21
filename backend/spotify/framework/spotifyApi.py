@@ -7,6 +7,7 @@ from typing import Any, Dict, List
 
 from backend.core.aResult import AResult, AResultCode
 from backend.constants import CLIENT_ID, CLIENT_SECRET
+from backend.spotify.framework.spotifyCache import SpotifyCache
 from backend.utils.logger import getLogger
 
 from backend.spotify.spotifyApiTypes.rawSpotifyApiAlbum import RawSpotifyApiAlbum
@@ -111,6 +112,9 @@ class SpotifyApi:
             return AResult(code=AResultCode.GENERAL_ERROR, message="Unable to parse json")
 
     async def get_albums_async(self, ids: List[str]) -> AResult[List[RawSpotifyApiAlbum]]:
+
+        a_result: AResultCode = await SpotifyCache.get_albums_async()json=
+
         max_data_per_call = 20
 
         out_albums: List[RawSpotifyApiAlbum] = []

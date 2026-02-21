@@ -1,4 +1,5 @@
 from typing import List
+from backend.spotify.framework.spotifyCache import SpotifyCache
 from backend.spotify.spotifyApiTypes.rawSpotifyApiAlbum import RawSpotifyApiAlbum
 from backend.utils.logger import getLogger
 
@@ -7,9 +8,7 @@ from backend.core.aResult import AResult, AResultCode
 from backend.spotify.framework.spotifyApi import spotify_api
 
 from backend.spotify.access.db.ormModels.album import AlbumRow
-from backend.spotify.access.db.ormModels.albumCache import CacheAlbumRow
 from backend.spotify.access.spotifyAccess import SpotifyAccess
-from backend.spotify.access.spotifyCacheAccess import SpotifyCacheAccess
 
 from backend.spotify.responses.albumResponse import AlbumResponse
 
@@ -21,7 +20,6 @@ class Spotify:
     async def get_album_async(id: str) -> AResult[AlbumResponse]:
         a_result_album: AResult[AlbumRow] = await SpotifyAccess.get_album_async(id)
         if a_result_album.code() == AResultCode.NOT_FOUND:
-            a_result_cache_album: AResult[CacheAlbumRow] = await SpotifyCacheAccess.get_album_async(id)
             if a_result_cache_album.code() == AResultCode.NOT_FOUND:
                 # Get album from Spotify, add response to cache and add Spotify album to database.
                 a_result_api_album: AResult[List[RawSpotifyApiAlbum]] = await spotify_api.get_albums_async([id])
@@ -34,7 +32,7 @@ class Spotify:
                         f"get_albums_async didn't return 1 album. Albums returned: {len(a_result_api_album.result())}.")
                     return AResult(code=AResultCode.GENERAL_ERROR, message=f"{len(a_result_api_album.result())} albums received instead of 1.")
 
-                a_result_add_album_cache: AResultCode = await SpotifyCacheAccess.add_album_async(id, a_result_api_album.result()[0]._json)
+                a_result_add_album_cache: AResultCode = await SpotifyCache.add_album_async(id, a_result_api_album.result()[0]._json)
                 if a_result_add_album_cache.is_not_ok():
                     logger.error("Error adding album to cache")
 

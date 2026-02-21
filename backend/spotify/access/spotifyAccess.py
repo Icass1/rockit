@@ -62,6 +62,7 @@ class SpotifyAccess:
                 return AResult(code=AResultCode.OK, message="OK", result=album)
 
         except Exception as e:
+            logger.error(f"Failed to get album from id {id}: {e}")
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
                 message=f"Failed to get album from id {id}: {e}")
@@ -86,6 +87,7 @@ class SpotifyAccess:
                 return AResult(code=AResultCode.OK, message="OK", result=track)
 
         except Exception as e:
+            logger.error(f"Failed to get track from id {id}: {e}")
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
                 message=f"Failed to get track from id {id}: {e}")
@@ -110,6 +112,7 @@ class SpotifyAccess:
                 return AResult(code=AResultCode.OK, message="OK", result=artist)
 
         except Exception as e:
+            logger.error(f"Failed to get artist from id {id}: {e}")
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
                 message=f"Failed to get artist from id {id}: {e}")
@@ -134,6 +137,7 @@ class SpotifyAccess:
                 return AResult(code=AResultCode.OK, message="OK", result=playlist)
 
         except Exception as e:
+            logger.error(f"Failed to get playlist from id {id}: {e}")
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
                 message=f"Failed to get playlist from id {id}: {e}")
@@ -151,11 +155,13 @@ class SpotifyAccess:
             full_path = os.path.join(IMAGES_PATH, filename)
             with open(full_path, 'wb') as f:
                 f.write(response.content)
-            img = InternalImageRow(public_id=str(uuid.uuid4()), url=url, path=filename)
+            img = InternalImageRow(public_id=str(
+                uuid.uuid4()), url=url, path=filename)
             session.add(img)
             await session.flush()
             return AResult(code=AResultCode.OK, message="OK", result=img)
         except Exception as e:
+            logger.error(f"Failed to download/create internal image: {e}")
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
                 message=f"Failed to download/create internal image: {e}")
@@ -170,11 +176,13 @@ class SpotifyAccess:
             row: ExternalImageRow | None = result.scalar_one_or_none()
             if row:
                 return AResult(code=AResultCode.OK, message="OK", result=row)
-            row = ExternalImageRow(public_id=str(uuid.uuid4()), url=url, width=width, height=height)
+            row = ExternalImageRow(public_id=str(
+                uuid.uuid4()), url=url, width=width, height=height)
             session.add(row)
             await session.flush()
             return AResult(code=AResultCode.OK, message="OK", result=row)
         except Exception as e:
+            logger.error(f"Failed to get/create external image: {e}")
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
                 message=f"Failed to get/create external image: {e}")
@@ -192,6 +200,7 @@ class SpotifyAccess:
             await session.flush()
             return AResult(code=AResultCode.OK, message="OK", result=row)
         except Exception as e:
+            logger.error(f"Failed to get/create genre: {e}")
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
                 message=f"Failed to get/create genre: {e}")
@@ -221,7 +230,8 @@ class SpotifyAccess:
                 if a_img.is_ok():
                     internal_image_id = a_img.result().id
 
-            core_artist = CoreArtistRow(public_id=raw.id, provider_id=provider_id)
+            core_artist = CoreArtistRow(
+                public_id=raw.id, provider_id=provider_id)
             session.add(core_artist)
             await session.flush()
 
@@ -257,6 +267,7 @@ class SpotifyAccess:
             return AResult(code=AResultCode.OK, message="OK", result=artist_row)
 
         except Exception as e:
+            logger.error(f"Failed to get/create artist: {e}")
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
                 message=f"Failed to get/create artist: {e}")
@@ -285,7 +296,7 @@ class SpotifyAccess:
             # Download highest-res image
             internal_image_id: int | None = None
             if raw.images:
-                a_img = await SpotifyAccess._download_and_create_internal_image(
+                a_img: AResult[InternalImageRow] = await SpotifyAccess._download_and_create_internal_image(
                     raw.images[0].url, session)
                 if a_img.is_ok():
                     internal_image_id = a_img.result().id
@@ -295,7 +306,8 @@ class SpotifyAccess:
                     code=AResultCode.GENERAL_ERROR,
                     message="Failed to create internal image for album")
 
-            core_album = CoreAlbumRow(public_id=raw.id, provider_id=provider_id)
+            core_album = CoreAlbumRow(
+                public_id=raw.id, provider_id=provider_id)
             session.add(core_album)
             await session.flush()
 
@@ -304,7 +316,7 @@ class SpotifyAccess:
                 internal_image_id=internal_image_id,
                 name=raw.name or "",
                 release_date=raw.release_date or "",
-                popularity=raw.popularity if raw.popularity is not None else 0,
+                popularity=raw.popularity,
                 disc_count=disc_count)
             session.add(album_row)
             await session.flush()
@@ -391,6 +403,7 @@ class SpotifyAccess:
             return AResult(code=AResultCode.OK, message="OK", result=track_row)
 
         except Exception as e:
+            logger.error(f"Failed to get/create track: {e}")
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
                 message=f"Failed to get/create track: {e}")
@@ -424,7 +437,8 @@ class SpotifyAccess:
             if raw.owner:
                 owner = raw.owner.display_name or raw.owner.id or ""
 
-            core_playlist = CorePlaylistRow(public_id=raw.id, provider_id=provider_id)
+            core_playlist = CorePlaylistRow(
+                public_id=raw.id, provider_id=provider_id)
             session.add(core_playlist)
             await session.flush()
 
@@ -475,6 +489,7 @@ class SpotifyAccess:
             return AResult(code=AResultCode.OK, message="OK", result=playlist_row)
 
         except Exception as e:
+            logger.error(f"Failed to get/create playlist: {e}")
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
                 message=f"Failed to get/create playlist: {e}")

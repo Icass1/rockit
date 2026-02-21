@@ -34,29 +34,33 @@ class Spotify:
         # Check DB.
         a_result_album: AResult[AlbumRow] = await SpotifyAccess.get_album_async(id)
         if a_result_album.is_ok():
-            album_row = a_result_album.result()
-            return AResult(code=AResultCode.OK, message="OK",
-                           result=AlbumResponse(provider="Spotify", publicId=id,
-                                                name=album_row.name))
+            album_row: AlbumRow = a_result_album.result()
+            return AResult(
+                code=AResultCode.OK,
+                message="OK",
+                result=AlbumResponse(
+                    provider="Spotify",
+                    publicId=id,
+                    name=album_row.name))
+
         if a_result_album.code() != AResultCode.NOT_FOUND:
             logger.error("Error getting album from database.")
             return AResult(code=a_result_album.code(), message=a_result_album.message())
 
         # Fetch album from Spotify API (cache-first internally).
-        a_result_api_albums: AResult[List[RawSpotifyApiAlbum]] = \
-            await spotify_api.get_albums_async([id])
+        a_result_api_albums: AResult[List[RawSpotifyApiAlbum]] = await spotify_api.get_albums_async([id])
         if a_result_api_albums.is_not_ok():
             logger.error("Error getting album from Spotify API.")
             return AResult(code=a_result_api_albums.code(), message=a_result_api_albums.message())
 
-        raw_albums = a_result_api_albums.result()
+        raw_albums: List[RawSpotifyApiAlbum] = a_result_api_albums.result()
         if not raw_albums:
             return AResult(code=AResultCode.NOT_FOUND, message="Album not found on Spotify")
 
-        raw_album = raw_albums[0]
+        raw_album: RawSpotifyApiAlbum = raw_albums[0]
 
         # Fetch tracks.
-        track_ids = []
+        track_ids: List[str] = []
         if raw_album.tracks and raw_album.tracks.items:
             track_ids = [item.id for item in raw_album.tracks.items if item.id]
 
@@ -78,7 +82,7 @@ class Spotify:
 
         a_result_artists: AResult[List[RawSpotifyApiArtist]] = \
             await spotify_api.get_artists_async(artist_ids)
-        raw_artists = a_result_artists.result() if a_result_artists.is_ok() else []
+        raw_artists: List[RawSpotifyApiArtist] = a_result_artists.result() if a_result_artists.is_ok() else []
 
         # Populate DB in a single session.
         a_result_provider_id: AResult[int] = provider.get_id()
@@ -96,12 +100,12 @@ class Spotify:
                 for raw_artist in raw_artists:
                     if not raw_artist.id:
                         continue
-                    a = await SpotifyAccess.get_or_create_artist(raw_artist, session, provider_id)
+                    a = await SpotifyAccess.get_or_create_artist(raw=raw_artist, session=session, provider_id=provider_id)
                     if a.is_ok():
                         artist_map[raw_artist.id] = a.result()
 
                 a_album = await SpotifyAccess.get_or_create_album(
-                    raw_album, artist_map, session, provider_id)
+                    raw=raw_album, artist_map=artist_map, session=session, provider_id=provider_id)
                 if a_album.is_not_ok():
                     return AResult(code=a_album.code(), message=a_album.message())
 
@@ -109,15 +113,18 @@ class Spotify:
 
                 for raw_track in raw_tracks:
                     await SpotifyAccess.get_or_create_track(
-                        raw_track, artist_map, album_row, session, provider_id)
+                        raw=raw_track, artist_map=artist_map, album_row=album_row, session=session, provider_id=provider_id)
 
         except Exception as e:
-            return AResult(code=AResultCode.GENERAL_ERROR,
-                           message=f"Failed to populate album in DB: {e}")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to populate album in DB: {e}")
 
-        return AResult(code=AResultCode.OK, message="OK",
-                       result=AlbumResponse(provider="Spotify", publicId=id,
-                                            name=raw_album.name or ""))
+        return AResult(code=AResultCode.OK,
+                       message="OK",
+                       result=AlbumResponse(
+                           provider="Spotify", publicId=id,
+                           name=raw_album.name or ""))
 
     @staticmethod
     async def get_track_async(id: str) -> AResult[SongResponse]:
@@ -327,9 +334,6 @@ class Spotify:
         ) if a_result_full_tracks.is_ok() else []
         full_track_map: Dict[str, RawSpotifyApiTrack] = {
             t.id: t for t in raw_full_tracks if t.id
-        }
-        raw_album_map: Dict[str, RawSpotifyApiAlbum] = {
-            a.id: a for a in raw_albums if a.id
         }
 
         # Populate DB in a single session.

@@ -1,24 +1,14 @@
 from typing import List, Any, Optional
 from pydantic import BaseModel
 
+from backend.spotify.spotifyApiTypes.rawSpotifyApiImage import RawSpotifyApiImage
+
 
 class AlbumExternalUrls(BaseModel):
     spotify: Optional[str] = None
 
     @classmethod
     def from_dict(cls, obj: Any) -> 'AlbumExternalUrls':
-        """Parse from a raw Spotify API dictionary."""
-
-        return cls.model_validate(obj)
-
-
-class AlbumImages(BaseModel):
-    url: Optional[str] = None
-    height: Optional[int] = None
-    width: Optional[int] = None
-
-    @classmethod
-    def from_dict(cls, obj: Any) -> 'AlbumImages':
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -118,16 +108,6 @@ class AlbumLinkedFrom(BaseModel):
         return cls.model_validate(obj)
 
 
-class AlbumRestrictions1(BaseModel):
-    reason: Optional[str] = None
-
-    @classmethod
-    def from_dict(cls, obj: Any) -> 'AlbumRestrictions1':
-        """Parse from a raw Spotify API dictionary."""
-
-        return cls.model_validate(obj)
-
-
 class AlbumItems(BaseModel):
     artists: Optional[List[AlbumArtists1]] = None
     available_markets: Optional[List[str]] = None
@@ -139,7 +119,7 @@ class AlbumItems(BaseModel):
     id: Optional[str] = None
     is_playable: Optional[bool] = None
     linked_from: Optional[AlbumLinkedFrom] = None
-    restrictions: Optional[AlbumRestrictions1] = None
+    restrictions: Optional[AlbumRestrictions] = None
     name: Optional[str] = None
     preview_url: Optional[str] = None
     track_number: Optional[int] = None
@@ -155,13 +135,13 @@ class AlbumItems(BaseModel):
 
 
 class AlbumTracks(BaseModel):
-    href: Optional[str] = None
-    limit: Optional[int] = None
-    next: Optional[str] = None
-    offset: Optional[int] = None
-    previous: Optional[str] = None
-    total: Optional[int] = None
-    items: Optional[List[AlbumItems]] = None
+    href: str
+    limit: int
+    next: str | None
+    offset: int
+    previous: str | None
+    total: int
+    items: List[AlbumItems]
 
     @classmethod
     def from_dict(cls, obj: Any) -> 'AlbumTracks':
@@ -194,26 +174,26 @@ class AlbumExternalIds(BaseModel):
 
 
 class RawSpotifyApiAlbum(BaseModel):
-    album_type: Optional[str] = None
-    total_tracks: Optional[int] = None
-    available_markets: Optional[List[str]] = None
-    external_urls: Optional[AlbumExternalUrls] = None
-    href: Optional[str] = None
-    id: Optional[str] = None
-    images: Optional[List[AlbumImages]] = None
-    name: Optional[str] = None
-    release_date: Optional[str] = None
-    release_date_precision: Optional[str] = None
-    restrictions: Optional[AlbumRestrictions] = None
-    type: Optional[str] = None
-    uri: Optional[str] = None
-    artists: Optional[List[AlbumArtists]] = None
-    tracks: Optional[AlbumTracks] = None
-    copyrights: Optional[List[AlbumCopyrights]] = None
-    external_ids: Optional[AlbumExternalIds] = None
-    genres: Optional[List[Any]] = None
-    label: Optional[str] = None
-    popularity: Optional[int] = None
+    album_type: str
+    total_tracks: int
+    available_markets: List[str]
+    external_urls: AlbumExternalUrls
+    href: str
+    id: str
+    images: List[RawSpotifyApiImage]
+    name: str
+    release_date: str
+    release_date_precision: str
+    restrictions: Optional[AlbumRestrictions] = None # Field can be missing.
+    type: str
+    uri: str
+    artists: List[AlbumArtists]
+    tracks: AlbumTracks
+    copyrights: List[AlbumCopyrights]
+    external_ids: AlbumExternalIds
+    genres: List[Any]
+    label: str
+    popularity: int
 
     @classmethod
     def from_dict(cls, obj: Any) -> 'RawSpotifyApiAlbum':

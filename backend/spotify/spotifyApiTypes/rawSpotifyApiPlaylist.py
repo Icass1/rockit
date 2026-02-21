@@ -1,24 +1,14 @@
 from typing import List, Any, Optional
 from pydantic import BaseModel
 
+from backend.spotify.spotifyApiTypes.rawSpotifyApiImage import RawSpotifyApiImage
+
 
 class PlaylistExternalUrls(BaseModel):
     spotify: Optional[str] = None
 
     @classmethod
     def from_dict(cls, obj: Any) -> 'PlaylistExternalUrls':
-        """Parse from a raw Spotify API dictionary."""
-
-        return cls.model_validate(obj)
-
-
-class PlaylistImages(BaseModel):
-    url: Optional[str] = None
-    height: Optional[int] = None
-    width: Optional[int] = None
-
-    @classmethod
-    def from_dict(cls, obj: Any) -> 'PlaylistImages':
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -281,13 +271,13 @@ class RawSpotifyApiPlaylist(BaseModel):
     description: Optional[str] = None
     external_urls: Optional[PlaylistExternalUrls] = None
     href: Optional[str] = None
-    id: Optional[str] = None
-    images: Optional[List[PlaylistImages]] = None
+    id: str
+    images: List[RawSpotifyApiImage]
     name: Optional[str] = None
     owner: Optional[PlaylistOwner] = None
     public: Optional[bool] = None
     snapshot_id: Optional[str] = None
-    tracks: Optional[PlaylistTracks] = None
+    tracks: PlaylistTracks
     type: Optional[str] = None
     uri: Optional[str] = None
 

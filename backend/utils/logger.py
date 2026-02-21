@@ -117,7 +117,9 @@ def getLogger(name: str, class_name: str | None = None) -> logging.Logger:
             f"LOG_DUMP_LEVEL can only be 'debug', 'info', 'warning', 'error' or 'critical' found '{LOG_DUMP_LEVEL}'")
         exit()
 
-    # Avoid adding duplicate handlers
+    logger.propagate = False
+
+    # Avoid adding duplicate handlers.
     if logger.hasHandlers():
         return logger
 

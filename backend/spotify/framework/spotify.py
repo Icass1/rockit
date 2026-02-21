@@ -53,8 +53,7 @@ class Spotify:
             for track in raw.tracks.items:
                 if not track.id or not track.name:
                     continue
-                artist_names: str = ", ".join(
-                    a.name for a in (track.artists or []) if a.name)
+                artist_names: str = ", ".join(a.name for a in track.artists)
                 items.append(BaseSearchItem(
                     type="track",
                     title=track.name,
@@ -65,8 +64,7 @@ class Spotify:
             for album in raw.albums.items:
                 if not album.id or not album.name:
                     continue
-                artist_names = ", ".join(
-                    a.name for a in (album.artists or []) if a.name)
+                artist_names = ", ".join(a.name for a in album.artists)
                 items.append(BaseSearchItem(
                     type="album",
                     title=album.name,
@@ -85,13 +83,12 @@ class Spotify:
 
         if raw.playlists and raw.playlists.items:
             for playlist in raw.playlists.items:
-                if not playlist.id or not playlist.name:
+                if not playlist:
                     continue
-                owner_name: str = playlist.owner.display_name if playlist.owner and playlist.owner.display_name else ""
                 items.append(BaseSearchItem(
                     type="playlist",
                     title=playlist.name,
-                    subTitle=owner_name,
+                    subTitle=playlist.owner.display_name,
                     url=f"{BACKEND_URL}/spotify/playlist/{playlist.id}"))
 
         return AResult(code=AResultCode.OK, message="OK", result=items)

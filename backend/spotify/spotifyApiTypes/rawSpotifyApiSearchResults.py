@@ -86,7 +86,7 @@ class SpotifySearchResultsArtists1(BaseModel):
     external_urls: Optional[SpotifySearchResultsExternalUrls2] = None
     href: Optional[str] = None
     id: Optional[str] = None
-    name: Optional[str] = None
+    name: str
     type: Optional[str] = None
     uri: Optional[str] = None
 
@@ -119,7 +119,7 @@ class SpotifySearchResultsExternalUrls3(BaseModel):
 
 class SpotifySearchResultsItems(BaseModel):
     album: Optional[SpotifySearchResultsAlbum] = None
-    artists: Optional[List[SpotifySearchResultsArtists1]] = None
+    artists: List[SpotifySearchResultsArtists1]
     available_markets: Optional[List[str]] = None
     disc_number: Optional[int] = None
     duration_ms: Optional[int] = None
@@ -264,7 +264,7 @@ class SpotifySearchResultsArtists3(BaseModel):
     external_urls: Optional[SpotifySearchResultsExternalUrls6] = None
     href: Optional[str] = None
     id: Optional[str] = None
-    name: Optional[str] = None
+    name: str
     type: Optional[str] = None
     uri: Optional[str] = None
 
@@ -288,7 +288,7 @@ class SpotifySearchResultsItems2(BaseModel):
     release_date_precision: Optional[str] = None
     type: Optional[str] = None
     uri: Optional[str] = None
-    artists: Optional[List[SpotifySearchResultsArtists3]] = None
+    artists: List[SpotifySearchResultsArtists3]
 
     @classmethod
     def from_dict(cls, obj: Any) -> 'SpotifySearchResultsItems2':
@@ -346,7 +346,7 @@ class SpotifySearchResultsExternalUrls8(BaseModel):
 
 
 class SpotifySearchResultsOwner(BaseModel):
-    display_name: Optional[str] = None
+    display_name: str
     external_urls: Optional[SpotifySearchResultsExternalUrls8] = None
     href: Optional[str] = None
     id: Optional[str] = None
@@ -378,8 +378,8 @@ class SpotifySearchResultsItems3(BaseModel):
     href: Optional[str] = None
     id: Optional[str] = None
     images: Optional[List[SpotifySearchResultsImages3]] = None
-    name: Optional[str] = None
-    owner: Optional[SpotifySearchResultsOwner] = None
+    name: str
+    owner: SpotifySearchResultsOwner
     primary_color: Optional[Any] = None
     public: Optional[bool] = None
     snapshot_id: Optional[str] = None
@@ -401,7 +401,7 @@ class SpotifySearchResultsPlaylists(BaseModel):
     offset: Optional[int] = None
     previous: Optional[Any] = None
     total: Optional[int] = None
-    items: Optional[List[SpotifySearchResultsItems3]] = None
+    items: List[Optional[SpotifySearchResultsItems3]]
 
     @classmethod
     def from_dict(cls, obj: Any) -> 'SpotifySearchResultsPlaylists':

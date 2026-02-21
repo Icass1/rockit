@@ -1,3 +1,4 @@
+import asyncio
 import os
 from importlib import import_module
 
@@ -5,6 +6,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
 
 from backend.utils.logger import getLogger
+
+from backend.core.framework.downloader import downloads_manager
 
 
 os.environ["PYTHONIOENCODING"] = "utf-8"
@@ -47,8 +50,10 @@ for dirpath, dirnames, filenames in os.walk("backend"):
             logger.error(f"Error including router {module_name}. ({e})")
 
 
-# @app.on_event('startup')
-# async def app_startup():
-#     """TODO"""
-#     asyncio.create_task(downloader.download_manager(), name="Download Manager")
-#     # asyncio.create_task(telegram_bot_task(), name="Rockit Telegram Bot")
+@app.on_event('startup')
+async def app_startup():
+    """Initialize core enums and start background tasks."""
+
+    asyncio.create_task(downloads_manager.download_manager(),
+                        name="Download Manager")
+    # asyncio.create_task(telegram_bot_task(), name="Rockit Telegram Bot")

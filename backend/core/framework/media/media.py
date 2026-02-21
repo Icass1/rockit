@@ -26,7 +26,7 @@ logger: Logger = getLogger(__name__)
 
 class Media:
     @staticmethod
-    def _find_provider(provider_id: int, providers: Providers) -> BaseProvider | None:
+    def find_provider(provider_id: int, providers: Providers) -> BaseProvider | None:
         """Find a provider instance matching a database provider ID."""
 
         for p in providers.get_providers():
@@ -39,13 +39,13 @@ class Media:
     async def get_song_async(public_id: str, providers: Providers) -> AResult[BaseSongResponse]:
         """Get a song by public_id, dispatching to the matched provider."""
 
-        a_result_song: AResult[CoreSongRow] = await MediaAccess.get_song_async(public_id)
+        a_result_song: AResult[CoreSongRow] = await MediaAccess.get_song_from_public_id_async(public_id)
         if a_result_song.is_not_ok():
             logger.error(f"Error getting song from database. {a_result_song.info()}")
             return AResult(code=a_result_song.code(), message=a_result_song.message())
 
         song: CoreSongRow = a_result_song.result()
-        provider: BaseProvider | None = Media._find_provider(song.provider_id, providers)
+        provider: BaseProvider | None = Media.find_provider(provider_id=song.provider_id, providers=providers)
         if provider is None:
             logger.error(f"No provider found for provider_id {song.provider_id}.")
             return AResult(code=AResultCode.NOT_FOUND, message="Provider not found for song")
@@ -61,13 +61,13 @@ class Media:
     async def get_album_async(public_id: str, providers: Providers) -> AResult[BaseAlbumResponse]:
         """Get an album by public_id, dispatching to the matched provider."""
 
-        a_result_album: AResult[CoreAlbumRow] = await MediaAccess.get_album_async(public_id)
+        a_result_album: AResult[CoreAlbumRow] = await MediaAccess.get_album_from_public_id_async(public_id)
         if a_result_album.is_not_ok():
             logger.error(f"Error getting album from database. {a_result_album.info()}")
             return AResult(code=a_result_album.code(), message=a_result_album.message())
 
         album: CoreAlbumRow = a_result_album.result()
-        provider: BaseProvider | None = Media._find_provider(album.provider_id, providers)
+        provider: BaseProvider | None = Media.find_provider(album.provider_id, providers)
         if provider is None:
             logger.error(f"No provider found for provider_id {album.provider_id}.")
             return AResult(code=AResultCode.NOT_FOUND, message="Provider not found for album")
@@ -83,13 +83,13 @@ class Media:
     async def get_artist_async(public_id: str, providers: Providers) -> AResult[BaseArtistResponse]:
         """Get an artist by public_id, dispatching to the matched provider."""
 
-        a_result_artist: AResult[CoreArtistRow] = await MediaAccess.get_artist_async(public_id)
+        a_result_artist: AResult[CoreArtistRow] = await MediaAccess.get_artist_from_public_id_async(public_id)
         if a_result_artist.is_not_ok():
             logger.error(f"Error getting artist from database. {a_result_artist.info()}")
             return AResult(code=a_result_artist.code(), message=a_result_artist.message())
 
         artist: CoreArtistRow = a_result_artist.result()
-        provider: BaseProvider | None = Media._find_provider(artist.provider_id, providers)
+        provider: BaseProvider | None = Media.find_provider(artist.provider_id, providers)
         if provider is None:
             logger.error(f"No provider found for provider_id {artist.provider_id}.")
             return AResult(code=AResultCode.NOT_FOUND, message="Provider not found for artist")
@@ -105,13 +105,13 @@ class Media:
     async def get_playlist_async(public_id: str, providers: Providers) -> AResult[BasePlaylistResponse]:
         """Get a playlist by public_id, dispatching to the matched provider."""
 
-        a_result_playlist: AResult[CorePlaylistRow] = await MediaAccess.get_playlist_async(public_id)
+        a_result_playlist: AResult[CorePlaylistRow] = await MediaAccess.get_playlist_from_public_id_async(public_id)
         if a_result_playlist.is_not_ok():
             logger.error(f"Error getting playlist from database. {a_result_playlist.info()}")
             return AResult(code=a_result_playlist.code(), message=a_result_playlist.message())
 
         playlist: CorePlaylistRow = a_result_playlist.result()
-        provider: BaseProvider | None = Media._find_provider(playlist.provider_id, providers)
+        provider: BaseProvider | None = Media.find_provider(playlist.provider_id, providers)
         if provider is None:
             logger.error(f"No provider found for provider_id {playlist.provider_id}.")
             return AResult(code=AResultCode.NOT_FOUND, message="Provider not found for playlist")

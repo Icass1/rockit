@@ -9,17 +9,19 @@ from backend.core.responses.baseSongResponse import BaseSongResponse
 from backend.core.responses.baseAlbumResponse import BaseAlbumResponse
 from backend.core.responses.baseArtistResponse import BaseArtistResponse
 from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
+from backend.core.framework.downloader.baseDownload import BaseDownload
 
 from backend.core.access.enumAccess import EnumAccess
 
 from backend.core.framework.provider.baseProvider import BaseProvider
 from backend.spotify.framework.spotify import Spotify
+from backend.spotify.framework.download.spotifyDownload import SpotifyDownload
 
 from backend.spotify.enums.copyrightTypeEnum import CopyrightTypeEnum
-from backend.spotify.enums.downloadStatusEnum import DownloadStatusEnum
 
 from backend.spotify.access.db.ormEnums.copyrightTypeEnum import CopyrightTypeEnumRow
-from backend.spotify.access.db.ormEnums.downloadStatusEnum import DownloadStatusEnumRow
+from backend.spotify.access.spotifyAccess import SpotifyAccess
+from backend.spotify.access.db.ormModels.track import TrackRow
 
 logger: Logger = getLogger(__name__)
 
@@ -39,9 +41,8 @@ class SpotifyProvider(BaseProvider):
         await self.add_enum_contents()
 
     async def add_enum_contents(self) -> None:
-        await EnumAccess.check_enum_contents_async(
-            enum_class=DownloadStatusEnum,
-            table=DownloadStatusEnumRow)
+        """Populate provider-owned enum tables in the database."""
+
         await EnumAccess.check_enum_contents_async(
             enum_class=CopyrightTypeEnum,
             table=CopyrightTypeEnumRow)
@@ -95,6 +96,26 @@ class SpotifyProvider(BaseProvider):
             return AResult(code=a_result.code(), message=a_result.message())
 
         return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+
+    async def start_download_async(self, public_id: str, download_id: int) -> AResult[BaseDownload]:
+        """Create a SpotifyDownload for the given track public_id."""
+
+        a_result: AResult[TrackRow] = await SpotifyAccess.get_track_public_id_async(public_id)
+        if a_result.is_not_ok():
+            logger.error(f"Error getting track for download. {a_result.info()}")
+            return AResult(code=a_result.code(), message=a_result.message())
+
+        track: TrackRow = a_result.result()
+        return AResult(
+            code=AResultCode.OK,
+            message="OK",
+            result=SpotifyDownload(
+                public_id=public_id,
+                download_id=download_id,
+                track_id=track.id,
+                download_url=track.download_url,
+            ),
+        )
 
 
 provider = SpotifyProvider()

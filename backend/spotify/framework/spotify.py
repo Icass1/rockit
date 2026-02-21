@@ -7,11 +7,11 @@ from backend.core.aResult import AResult, AResultCode
 
 from backend.core.access.db import rockit_db
 
+from backend.core.responses.searchResponse import BaseSearchItem
+from backend.core.responses.baseSongResponse import BaseSongResponse
 from backend.core.responses.baseAlbumResponse import BaseAlbumResponse
 from backend.core.responses.baseArtistResponse import BaseArtistResponse
 from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
-from backend.core.responses.baseSongResponse import BaseSongResponse
-from backend.core.responses.searchResponse import BaseSearchItem
 
 from backend.spotify.access.spotifyAccess import SpotifyAccess
 from backend.spotify.access.db.ormModels.album import AlbumRow
@@ -98,7 +98,7 @@ class Spotify:
         """Get an album by ID, fetching from Spotify API and populating the database if not found."""
 
         # Check DB.
-        a_result_album: AResult[AlbumRow] = await SpotifyAccess.get_album_async(id)
+        a_result_album: AResult[AlbumRow] = await SpotifyAccess.get_album_public_id_async(id)
         if a_result_album.is_ok():
             album_row: AlbumRow = a_result_album.result()
             return AResult(
@@ -198,7 +198,7 @@ class Spotify:
         """Get a track by ID, fetching from Spotify API and populating the database if not found."""
 
         # Check DB.
-        a_result_track: AResult[TrackRow] = await SpotifyAccess.get_track_async(id)
+        a_result_track: AResult[TrackRow] = await SpotifyAccess.get_track_public_id_async(id)
         if a_result_track.is_ok():
             track_row: TrackRow = a_result_track.result()
             return AResult(
@@ -321,7 +321,7 @@ class Spotify:
         """Get an artist by ID, fetching from Spotify API and populating the database if not found."""
 
         # Check DB.
-        a_result_artist: AResult[ArtistRow] = await SpotifyAccess.get_artist_async(id)
+        a_result_artist: AResult[ArtistRow] = await SpotifyAccess.get_artist_public_id_async(id)
         if a_result_artist.is_ok():
             artist_row = a_result_artist.result()
             return AResult(code=AResultCode.OK, message="OK",
@@ -373,7 +373,7 @@ class Spotify:
 
         # Check DB.
         from backend.spotify.access.db.ormModels.playlist import SpotifyPlaylistRow
-        a_result_playlist = await SpotifyAccess.get_playlist_async(id)
+        a_result_playlist: AResult[SpotifyPlaylistRow] = await SpotifyAccess.get_playlist_public_id_async(id)
         if a_result_playlist.is_ok():
             playlist_row: SpotifyPlaylistRow = a_result_playlist.result()
             return AResult(
@@ -489,7 +489,7 @@ class Spotify:
                     if a_result_track.is_ok():
                         track_row_map[raw_track.id] = a_result_track.result()
 
-                a_result_playlist: AResult[SpotifyPlaylistRow] = await SpotifyAccess.get_or_create_playlist(
+                a_result_playlist = await SpotifyAccess.get_or_create_playlist(
                     raw=raw_playlist,
                     track_row_map=track_row_map,
                     session=session,

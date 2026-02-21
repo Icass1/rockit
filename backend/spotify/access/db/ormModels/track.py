@@ -12,8 +12,6 @@ if TYPE_CHECKING:
     from backend.spotify.access.db.ormModels.album import AlbumRow
     from backend.spotify.access.db.ormModels.artist import ArtistRow
     from backend.spotify.access.db.ormModels.internalImage import InternalImageRow
-    from backend.spotify.access.db.ormModels.downloadStatus import DownloadStatusRow
-
     from backend.spotify.access.db.ormModels.playlist_tracks import PlaylistTrackRow
 
 
@@ -49,8 +47,6 @@ class TrackRow(SpotifyBase, TableAutoincrementId, TableDateUpdated, TableDateAdd
         'InternalImageRow', back_populates='songs', foreign_keys=[internal_image_id])
     album: Mapped["AlbumRow"] = relationship(
         "AlbumRow", back_populates="songs")
-    downloads: Mapped[List["DownloadStatusRow"]] = relationship(
-        "DownloadStatusRow", back_populates="song")
 
     playlist_song_links: Mapped[List["PlaylistTrackRow"]] = relationship(
         "PlaylistTrackRow",

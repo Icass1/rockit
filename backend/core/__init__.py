@@ -2,6 +2,8 @@ import asyncio
 
 from logging import Logger
 
+from backend.core.access.db.ormEnums.downloadStatusEnum import DownloadStatusEnumRow
+from backend.core.enums.downloadStatusEnum import DownloadStatusEnum
 from backend.utils.logger import getLogger
 
 from backend.core.access.db.ormEnums.repeatSongEnum import RepeatSongEnumRow
@@ -31,6 +33,9 @@ async def add_initial_content():
     await rockit_db.async_init()
     await providers.async_init()
 
+    await EnumAccess.check_enum_contents_async(
+        enum_class=DownloadStatusEnum,
+        table=DownloadStatusEnumRow)
     await EnumAccess.check_enum_contents_async(RepeatSongEnum, RepeatSongEnumRow)
 
 

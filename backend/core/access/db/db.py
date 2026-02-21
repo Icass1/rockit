@@ -14,6 +14,10 @@ from backend.core.access.db.ormModels.song import CoreSongRow  # type: ignore
 
 # ENUMS
 from backend.core.access.db.ormEnums.repeatSongEnum import RepeatSongEnumRow  # type: ignore
+from backend.core.access.db.ormEnums.downloadStatusEnum import DownloadStatusEnumRow  # type: ignore
+
+from backend.core.access.db.ormModels.downloadGroup import DownloadGroupRow  # type: ignore
+from backend.core.access.db.ormModels.download import DownloadRow  # type: ignore
 
 schema = "core"
 base = CoreBase

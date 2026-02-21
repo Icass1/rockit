@@ -2,11 +2,11 @@ import os
 import uuid
 import requests as req
 from datetime import datetime, timezone
-from typing import Dict, Tuple
+from typing import Dict, List, Tuple, cast
 
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import Result, Select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.utils.logger import getLogger
 
@@ -19,13 +19,15 @@ from backend.core.access.db.ormModels.playlist import CorePlaylistRow
 
 from backend.spotify.access.db.ormModels.album import AlbumRow
 from backend.spotify.access.db.ormModels.track import TrackRow
+from backend.spotify.access.db.ormModels.genre import GenreRow
 from backend.spotify.access.db.ormModels.artist import ArtistRow
+from backend.spotify.access.db.ormModels.copyright import CopyrightRow
 from backend.spotify.access.db.ormModels.playlist import SpotifyPlaylistRow
-from backend.spotify.access.db.ormModels.playlist_tracks import PlaylistTrackRow
 from backend.spotify.access.db.ormModels.internalImage import InternalImageRow
 from backend.spotify.access.db.ormModels.externalImage import ExternalImageRow
-from backend.spotify.access.db.ormModels.genre import GenreRow
-from backend.spotify.access.db.ormModels.copyright import CopyrightRow
+from backend.spotify.access.db.ormModels.playlist_tracks import PlaylistTrackRow
+
+from backend.spotify.access.db.associationTables.album_artists import album_artists
 
 from backend.spotify.spotifyApiTypes.rawSpotifyApiAlbum import RawSpotifyApiAlbum
 from backend.spotify.spotifyApiTypes.rawSpotifyApiTrack import RawSpotifyApiTrack
@@ -42,13 +44,38 @@ logger = getLogger(__name__)
 
 class SpotifyAccess:
     @staticmethod
-    async def get_album_async(id: str) -> AResult[AlbumRow]:
+    async def get_album_public_id_async(public_id: str) -> AResult[AlbumRow]:
         try:
             async with rockit_db.session_scope_async() as s:
                 stmt: Select[Tuple[AlbumRow]] = (
                     select(AlbumRow)
                     .join(CoreAlbumRow, CoreAlbumRow.id == AlbumRow.id)
-                    .where(CoreAlbumRow.public_id == id)
+                    .where(CoreAlbumRow.public_id == public_id)
+                )
+                result: Result[Tuple[AlbumRow]] = await s.execute(stmt)
+                album: AlbumRow | None = result.scalar_one_or_none()
+
+                if not album:
+                    logger.error("Album not found")
+                    return AResult(code=AResultCode.NOT_FOUND, message="Album not found")
+
+                # Detach from session BEFORE closing session.
+                s.expunge(instance=album)
+                return AResult(code=AResultCode.OK, message="OK", result=album)
+
+        except Exception as e:
+            logger.error(f"Failed to get album from id {public_id}: {e}")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to get album from id {public_id}: {e}")
+
+    @staticmethod
+    async def get_album_id_async(id: int) -> AResult[AlbumRow]:
+        try:
+            async with rockit_db.session_scope_async() as s:
+                stmt: Select[Tuple[AlbumRow]] = (
+                    select(AlbumRow)
+                    .where(AlbumRow.id == id)
                 )
                 result: Result[Tuple[AlbumRow]] = await s.execute(stmt)
                 album: AlbumRow | None = result.scalar_one_or_none()
@@ -68,13 +95,13 @@ class SpotifyAccess:
                 message=f"Failed to get album from id {id}: {e}")
 
     @staticmethod
-    async def get_track_async(id: str) -> AResult[TrackRow]:
+    async def get_track_public_id_async(public_id: str) -> AResult[TrackRow]:
         try:
             async with rockit_db.session_scope_async() as s:
                 stmt = (
                     select(TrackRow)
                     .join(CoreSongRow, CoreSongRow.id == TrackRow.id)
-                    .where(CoreSongRow.public_id == id)
+                    .where(CoreSongRow.public_id == public_id)
                 )
                 result = await s.execute(stmt)
                 track: TrackRow | None = result.scalar_one_or_none()
@@ -93,13 +120,37 @@ class SpotifyAccess:
                 message=f"Failed to get track from id {id}: {e}")
 
     @staticmethod
-    async def get_artist_async(id: str) -> AResult[ArtistRow]:
+    async def get_track_id_async(id: int) -> AResult[TrackRow]:
+        try:
+            async with rockit_db.session_scope_async() as s:
+                stmt = (
+                    select(TrackRow)
+                    .where(TrackRow.id == id)
+                )
+                result = await s.execute(stmt)
+                track: TrackRow | None = result.scalar_one_or_none()
+
+                if not track:
+                    logger.error("Track not found")
+                    return AResult(code=AResultCode.NOT_FOUND, message="Track not found")
+
+                s.expunge(instance=track)
+                return AResult(code=AResultCode.OK, message="OK", result=track)
+
+        except Exception as e:
+            logger.error(f"Failed to get track from id {id}: {e}")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to get track from id {id}: {e}")
+
+    @staticmethod
+    async def get_artist_public_id_async(public_id: str) -> AResult[ArtistRow]:
         try:
             async with rockit_db.session_scope_async() as s:
                 stmt = (
                     select(ArtistRow)
                     .join(CoreArtistRow, CoreArtistRow.id == ArtistRow.id)
-                    .where(CoreArtistRow.public_id == id)
+                    .where(CoreArtistRow.public_id == public_id)
                 )
                 result = await s.execute(stmt)
                 artist: ArtistRow | None = result.scalar_one_or_none()
@@ -118,13 +169,13 @@ class SpotifyAccess:
                 message=f"Failed to get artist from id {id}: {e}")
 
     @staticmethod
-    async def get_playlist_async(id: str) -> AResult[SpotifyPlaylistRow]:
+    async def get_playlist_public_id_async(public_id: str) -> AResult[SpotifyPlaylistRow]:
         try:
             async with rockit_db.session_scope_async() as s:
                 stmt = (
                     select(SpotifyPlaylistRow)
                     .join(CorePlaylistRow, CorePlaylistRow.id == SpotifyPlaylistRow.id)
-                    .where(CorePlaylistRow.public_id == id)
+                    .where(CorePlaylistRow.public_id == public_id)
                 )
                 result = await s.execute(stmt)
                 playlist: SpotifyPlaylistRow | None = result.scalar_one_or_none()
@@ -493,3 +544,62 @@ class SpotifyAccess:
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
                 message=f"Failed to get/create playlist: {e}")
+
+    @staticmethod
+    async def get_artists_from_track_row_async(track_row: TrackRow) -> AResult[List[ArtistRow]]:
+        try:
+            async with rockit_db.session_scope_async() as session:
+                # or proper select() query
+                stmt: Select[Tuple[List[ArtistRow]]
+                             ] = track_row.artists.select()
+                result: Result[Tuple[List[ArtistRow]]] = await session.execute(stmt)
+                artists: List[ArtistRow] = cast(
+                    List[ArtistRow], result.scalars().all())
+
+                if not artists:
+                    logger.error("Error getting artists from track row.")
+                    return AResult(code=AResultCode.NOT_FOUND, message="Error getting artists from track row.")
+
+                for artist in artists:
+                    session.expunge(artist)
+
+                return AResult(code=AResultCode.OK, message="OK", result=artists)
+
+        except Exception as e:
+            logger.error(f"Failed to get artists from track row: {e}")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to get artists from track row: {e}"
+            )
+
+    @staticmethod
+    async def get_artists_from_album_id_async(album_id: int) -> AResult[List[ArtistRow]]:
+        try:
+            async with rockit_db.session_scope_async() as session:
+                stmt = (
+                    select(ArtistRow)
+                    .join(album_artists)
+                    .join(AlbumRow)
+                    .filter(AlbumRow.id == album_id)
+                )
+                result: Result[Tuple[ArtistRow]] = await session.execute(stmt)
+                artists_list: List[ArtistRow] = cast(
+                    List[ArtistRow], result.scalars().all())
+
+                if not artists_list:
+                    logger.error(f"No artists found for album id {album_id}")
+                    return AResult(code=AResultCode.NOT_FOUND, message="No artists found for this album.")
+
+                # Detach from session
+                for artist in artists_list:
+                    session.expunge(artist)
+
+                return AResult(code=AResultCode.OK, message="OK", result=artists_list)
+
+        except Exception as e:
+            logger.error(
+                f"Failed to get artists from album id {album_id}: {e}")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to get artists from album id {album_id}: {e}"
+            )

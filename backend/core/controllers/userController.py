@@ -41,7 +41,7 @@ async def get_session(request: Request) -> SessionResponse:
     image: str | None = a_result_user.result().image
 
     if image:
-        image = BACKEND_URL + "/" + image
+        image = BACKEND_URL + "/image/" + image
 
     return SessionResponse(username=a_result_user.result().username, image=image, admin=a_result_user.result().admin)
 

@@ -21,5 +21,3 @@ class BaseDownload:
 
         return AResultCode(AResultCode.NOT_IMPLEMENTED, f"download_method_async not implemented in {self}")
 
-    def get_message_handler(self) -> MessageHandler:
-        return self._message_handler

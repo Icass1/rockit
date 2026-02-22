@@ -35,11 +35,10 @@ class MessageHandlderReader:
 
 
 class MessageHandler:
-    def __init__(self, download_id: int) -> None:
+    def __init__(self) -> None:
         self._messages: List[Any] = []
 
         self._end = False
-        self._download_id = download_id
 
     def get_messages(self):
         return self._messages

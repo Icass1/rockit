@@ -1,6 +1,7 @@
 from spotdl.types.song import Song as SpotdlSong  # type: ignore
 
-from backend.utils.backendUtils import get_song_name
+from backend.spotify.framework.download.messageHandler import MessageHandler
+from backend.spotify.utils.utils import get_song_name
 from backend.utils.logger import getLogger
 from backend.core.aResult import AResult, AResultCode
 
@@ -19,6 +20,7 @@ logger = getLogger(__name__)
 class SpotifyDownload(BaseDownload):
     track_id: int
     download_url: str | None
+    _message_handler: MessageHandler
 
     def __init__(
         self,
@@ -32,6 +34,11 @@ class SpotifyDownload(BaseDownload):
         super().__init__(public_id=public_id, download_id=download_id)
         self.track_id = track_id
         self.download_url = download_url
+
+        self._message_handler = MessageHandler()
+
+    def get_message_handler(self) -> MessageHandler:
+        return self._message_handler
 
     async def get_spotdl_song_async(self) -> AResult[SpotdlSong]:
 
@@ -62,8 +69,10 @@ class SpotifyDownload(BaseDownload):
 
         spotdl_song = a_result_spotdl_song.result()
 
-        spotify_downloader.progress_handler.downloads_ids_dict[get_song_name(spotdl_song)] = spotdl_song.song_id
-        spotify_downloader.progress_handler.downloads_dict[spotdl_song] = queue_element.get_message_handler()
+        spotify_downloader.progress_handler.downloads_ids_dict[get_song_name(
+            spotdl_song)] = spotdl_song.song_id
+        spotify_downloader.progress_handler.downloads_dict[spotdl_song.song_id] = self.get_message_handler(
+        )
 
         out_song, path = spotify_downloader.spotdl_downloader.search_and_download(
             a_result_spotdl_song.result())

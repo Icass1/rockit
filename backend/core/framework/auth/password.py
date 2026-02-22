@@ -1,4 +1,3 @@
-from fastapi import HTTPException
 from passlib.context import CryptContext
 
 from backend.core.aResult import AResult, AResultCode
@@ -24,7 +23,7 @@ class Password:
         if a_result_user.is_not_ok():
             logger.error(
                 f"Error getting user from username. {a_result_user.info()}")
-            raise HTTPException(400, "Invalid credentials")
+            return AResult(code=a_result_user.code(), message=a_result_user.message())
 
         user: UserRow = a_result_user.result()
 
@@ -34,4 +33,4 @@ class Password:
         if not await Password.verify_password(password, user.password_hash):
             return AResult(code=AResultCode.BAD_REQUEST, message="Invalid credentials")
 
-        return user
+        return AResult(code=AResultCode.OK, message="OK", result=user)

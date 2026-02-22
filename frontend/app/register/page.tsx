@@ -1,5 +1,3 @@
-"use client";
-
 import RegisterModal from "@/components/Auth/RegisterModal";
 
 export default function RegisterPage() {

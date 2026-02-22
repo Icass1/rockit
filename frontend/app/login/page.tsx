@@ -1,5 +1,3 @@
-"use client";
-
 import LoginModal from "@/components/Auth/LoginModal";
 
 export default function LoginPage() {

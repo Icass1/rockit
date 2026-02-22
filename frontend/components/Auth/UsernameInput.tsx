@@ -2,6 +2,15 @@
 
 import { ChangeEvent, useEffect, useState } from "react";
 
+function validateUsername(value: string): string | null {
+    if (value === "") return null;
+    if (value.length < 3 || value.length > 30) 
+        return "Username must be between 3 and 30 characters";
+    if (!/^[a-zA-Z0-9_-]+$/.test(value)) 
+        return "Only letters, numbers, _ and - are allowed";
+    return null;
+}
+
 export default function UsernameInput({
     value,
     onChange,
@@ -9,29 +18,17 @@ export default function UsernameInput({
     value: string;
     onChange: (e: ChangeEvent<HTMLInputElement>) => void;
 }) {
-    // const [username, setUsername] = useState("");
-    const [error, setError] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        setError(false);
-        if (value == "") return;
-        if (
-            typeof value !== "string" ||
-            value.length < 3 ||
-            value.length > 31 ||
-            !/^[a-z0-9A-Z_-]+$/.test(value)
-        ) {
-            setError(true);
-            console.log("error");
-        }
+        setError(validateUsername(value));
     }, [value]);
 
     return (
         <div className="mx-auto flex w-4/5 flex-col">
             {error && (
                 <label className="text-left text-xs text-red-500">
-                    Username must be between 4 and 30 characters long and
-                    contain only A-Z, a-z and 0-9
+                    {error}
                 </label>
             )}
             <input

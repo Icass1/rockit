@@ -3,7 +3,7 @@ import DownloadElement from "@/components/Downloader/DownloadElement";
 import InputBar from "@/components/Downloader/InputBar";
 import SongsStatus from "@/components/Downloader/SongsStatus";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { getSession } from "@/lib/utils/auth/getSession";
+import { getUserInServer } from "@/lib/getUserInServer";
 import { Lang } from "@/types/lang";
 import { RotateCw } from "lucide-react";
 import Image from "next/image";
@@ -18,9 +18,9 @@ async function getLanguage(): Promise<{ lang: string; langFile: Lang }> {
 }
 
 export default async function Downloads() {
-    const session = await getSession();
+    const user = await getUserInServer();
 
-    if (!session?.user) {
+    if (!user) {
         console.warn("Downloads -> /login");
         redirect("/login");
     }

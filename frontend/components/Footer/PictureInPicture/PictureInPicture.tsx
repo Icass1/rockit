@@ -5,79 +5,109 @@ import { createPortal } from "react-dom";
 import { PictureInPicture2 } from "lucide-react";
 import PiPContent from "./PipPage";
 
-export default function MiniplayerPiP() {
-    const [pipWindow, setPiPWindow] = useState<Window | null>(null);
+type DocumentPiP = {
+    requestWindow: (opts: { width: number; height: number }) => Promise<Window>;
+};
 
-    // Alterna la ventana PiP
-    const togglePiP = useCallback(async () => {
-        // Detección robusta de la API
-        const docPiP =
-            (document as { pictureInPicture?: { requestWindow?: object } })
-                .pictureInPicture ??
-            (
-                window as {
-                    documentPictureInPicture?: { requestWindow?: object };
-                }
-            ).documentPictureInPicture;
+function getDocumentPiP(): DocumentPiP | null {
+    if (typeof window === "undefined") return null;
 
-        if (!docPiP || typeof docPiP.requestWindow !== "function") {
-            console.warn("Document PiP no soportado, usando canvas hack…");
-            // Aquí podrías llamar a tu fallback de canvas si lo tienes
-            return;
-        }
+    const pip =
+        (window as unknown as { documentPictureInPicture?: DocumentPiP })
+            .documentPictureInPicture;
 
-        if (pipWindow) {
-            pipWindow.close();
-            setPiPWindow(null);
-        } else {
-            try {
-                const newWin = await docPiP.requestWindow({
-                    width: 320,
-                    height: 380,
-                });
-                Object.assign(newWin.document.body.style, {
-                    margin: "0", // elimina márgenes por defecto
-                    width: "100vw", // ocupa todo el viewport
-                    height: "100vh",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    boxSizing: "border-box",
-                    fontFamily: "sans-serif",
-                    backgroundImage:
-                        "linear-gradient(to bottom, #202124, #121212)",
-                    overflow: "hidden",
-                    position: "relative",
-                });
-                setPiPWindow(newWin);
-            } catch (err) {
-                console.error("Error al abrir PiP:", err);
+    if (pip && typeof pip.requestWindow === "function") return pip;
+    return null;
+}
+
+function copyStylesToPiPWindow(pipWin: Window) {
+    // Copy all stylesheets from the main document to the PiP window
+    // This makes Tailwind and any other CSS available inside PiP
+    [...document.styleSheets].forEach((sheet) => {
+        try {
+            const styleEl = document.createElement("style");
+            const rules = [...sheet.cssRules].map((r) => r.cssText).join("");
+            styleEl.textContent = rules;
+            pipWin.document.head.appendChild(styleEl);
+        } catch {
+            // Cross-origin stylesheets can't be read — link them instead
+            if (sheet.href) {
+                const link = document.createElement("link");
+                link.rel = "stylesheet";
+                link.href = sheet.href;
+                pipWin.document.head.appendChild(link);
             }
         }
+    });
+}
+
+export default function PictureInPicture() {
+    const [pipWindow, setPipWindow] = useState<Window | null>(null);
+    const isSupported = !!getDocumentPiP();
+
+    const openPiP = useCallback(async () => {
+        const pip = getDocumentPiP();
+        if (!pip) return;
+
+        try {
+            const newWin = await pip.requestWindow({ width: 320, height: 400 });
+
+            // Reset default browser styles
+            Object.assign(newWin.document.body.style, {
+                margin: "0",
+                padding: "0",
+                width: "100vw",
+                height: "100vh",
+                overflow: "hidden",
+            });
+
+            copyStylesToPiPWindow(newWin);
+            setPipWindow(newWin);
+        } catch (err) {
+            console.error("PiP failed to open:", err);
+        }
+    }, []);
+
+    const closePiP = useCallback(() => {
+        pipWindow?.close();
+        setPipWindow(null);
     }, [pipWindow]);
 
-    // Detectar cierre de la ventana PiP
+    const togglePiP = useCallback(() => {
+        if (pipWindow) {
+            closePiP();
+        } else {
+            openPiP();
+        }
+    }, [pipWindow, closePiP, openPiP]);
+
+    // Detect when the user closes the PiP window manually
     useEffect(() => {
-        const onClose = () => setPiPWindow(null);
-        pipWindow?.addEventListener("pagehide", onClose);
-        return () => pipWindow?.removeEventListener("pagehide", onClose);
+        if (!pipWindow) return;
+        const onClose = () => setPipWindow(null);
+        pipWindow.addEventListener("pagehide", onClose);
+        return () => pipWindow.removeEventListener("pagehide", onClose);
     }, [pipWindow]);
+
+    // Not supported — don't render the button at all
+    if (!isSupported) return null;
 
     return (
-        <div className="flex items-center space-x-2">
+        <>
             <button
                 onClick={togglePiP}
                 className="rounded-full p-2 text-gray-400 transition hover:text-white"
-                aria-label={
-                    pipWindow ? "Cerrar Miniplayer" : "Abrir Miniplayer"
-                }
+                aria-label={pipWindow ? "Close miniplayer" : "Open miniplayer"}
+                title={pipWindow ? "Close miniplayer" : "Open miniplayer"}
             >
-                <PictureInPicture2 size={24} />
+                <PictureInPicture2
+                    size={24}
+                    className={pipWindow ? "text-[#ee1086]" : ""}
+                />
             </button>
 
-            {/* Si la ventana está abierta, hacemos portal de los contenidos */}
-            {pipWindow && createPortal(<PiPContent />, pipWindow.document.body)}
-        </div>
+            {pipWindow &&
+                createPortal(<PiPContent />, pipWindow.document.body)}
+        </>
     );
 }

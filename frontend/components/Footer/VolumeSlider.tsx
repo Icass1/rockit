@@ -1,50 +1,36 @@
+"use client";
+
 import { useStore } from "@nanostores/react";
 import { Volume1, Volume2, VolumeOff } from "lucide-react";
 import Slider from "@/components/Slider";
 import { rockIt } from "@/lib/rockit/rockIt";
 
+function VolumeIcon({ volume }: { volume: number }) {
+    const className = "h-5.5 w-5.5 cursor-pointer text-gray-400 md:hover:text-white";
+    const onClick = () => rockIt.audioManager.toggleMute();
+
+    if (volume === 0) return <VolumeOff className={className} onClick={onClick} />;
+    if (volume < 0.5) return <Volume1 className={className} onClick={onClick} />;
+    return <Volume2 className={className} onClick={onClick} />;
+}
+
 export default function VolumeSlider() {
     const $volume = useStore(rockIt.audioManager.volumeAtom);
-
-    let volumeIcon;
-    if ($volume === 0) {
-        volumeIcon = (
-            <VolumeOff
-                className="h-[22px] w-[22px] cursor-pointer text-gray-400 md:hover:text-white"
-                onClick={() => rockIt.audioManager.toggleMute()}
-            />
-        );
-    } else if ($volume && $volume < 0.5) {
-        volumeIcon = (
-            <Volume1
-                className="h-[22px] w-[22px] cursor-pointer text-gray-400 md:hover:text-white"
-                onClick={() => rockIt.audioManager.toggleMute()}
-            />
-        );
-    } else {
-        volumeIcon = (
-            <Volume2
-                className="h-[22px] w-[22px] cursor-pointer text-gray-400 md:hover:text-white"
-                onClick={() => rockIt.audioManager.toggleMute()}
-            />
-        );
-    }
+    const volume = $volume ?? 0;
 
     return (
         <div className="flex h-full flex-row items-center gap-x-2">
-            {volumeIcon}
-
+            <VolumeIcon volume={volume} />
             <Slider
-                id="default-slider"
+                id="volume-slider"
                 className="h-1 w-16 bg-neutral-700"
-                value={Math.sqrt($volume || 0)}
+                value={Math.sqrt(volume)}
                 min={0}
                 max={1}
                 step={0.001}
-                onChange={(event) =>
-                    (rockIt.audioManager.volume =
-                        Number(event.target.value) ** 2)
-                }
+                onChange={(e) => {
+                    rockIt.audioManager.volume = Number(e.target.value) ** 2;
+                }}
             />
         </div>
     );

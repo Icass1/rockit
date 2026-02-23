@@ -1,22 +1,130 @@
-// components/PiPContent.tsx
 "use client";
 
 import { useState } from "react";
 import {
-    SkipBack,
-    SkipForward,
-    CirclePlay,
-    CirclePause,
-    Shuffle,
-    Repeat1,
-    Repeat,
+    SkipBack, SkipForward, CirclePlay, CirclePause,
+    Shuffle, Repeat1, Repeat,
 } from "lucide-react";
 import { useStore } from "@nanostores/react";
-
 import LikeButton from "@/components/LikeButton";
 import { getTime } from "@/lib/utils/getTime";
 import { rockIt } from "@/lib/rockit/rockIt";
-import Image from "next/image";
+
+// Inline styles are intentional here — PiP runs in a separate browsing context
+// and Tailwind classes may not be reliably available.
+const S = {
+    root: {
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        fontFamily: "sans-serif",
+        backgroundImage: "linear-gradient(to bottom, #202124, #121212)",
+        overflow: "hidden",
+        padding: "10px",
+        boxSizing: "border-box",
+    },
+    coverWrapper: {
+        position: "relative",
+        width: "100%",
+        aspectRatio: "1 / 1",
+        userSelect: "none",
+    },
+    cover: {
+        width: "100%",
+        height: "100%",
+        objectFit: "cover",
+        borderRadius: "0.5rem",
+        boxShadow: "0 0 10px rgba(0,0,0,0.5)",
+        display: "block",
+    },
+    overlay: {
+        position: "absolute",
+        inset: 0,
+        backgroundColor: "rgba(0,0,0,0.55)",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        borderRadius: "0.5rem",
+        padding: "1rem",
+        boxSizing: "border-box",
+    },
+    controls: {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-around",
+        width: "100%",
+        marginBottom: "1rem",
+    },
+    iconBtn: {
+        background: "transparent",
+        border: "none",
+        cursor: "pointer",
+        padding: 0,
+    } as React.CSSProperties,
+    icon: {
+        width: "5vw",
+        height: "5vw",
+        minWidth: "24px",
+        minHeight: "24px",
+        maxWidth: "50px",
+        maxHeight: "50px",
+    } as React.CSSProperties,
+    playIcon: {
+        width: "10vw",
+        height: "10vw",
+        minWidth: "35px",
+        minHeight: "35px",
+    } as React.CSSProperties,
+    progressRow: {
+        display: "flex",
+        alignItems: "center",
+        width: "100%",
+        height: "1.5rem",
+        gap: "0.5rem",
+    },
+    timeLabel: {
+        minWidth: "1.5rem",
+        fontSize: "0.75rem",
+        fontWeight: 600,
+        color: "white",
+    },
+    infoRow: {
+        marginTop: "10px",
+        display: "flex",
+        width: "100%",
+        maxWidth: "300px",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: "0.5rem",
+        boxSizing: "border-box",
+    },
+    infoText: {
+        color: "white",
+        overflow: "hidden",
+        flex: 1,
+        paddingRight: "0.5rem",
+    },
+    songName: {
+        fontSize: "1rem",
+        fontWeight: 600,
+        lineHeight: 1.2,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+    },
+    artistName: {
+        fontSize: "0.875rem",
+        opacity: 0.75,
+        lineHeight: 1.2,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+    },
+} satisfies Record<string, React.CSSProperties>;
 
 export default function PiPContent() {
     const $currentSong = useStore(rockIt.queueManager.currentSongAtom);
@@ -25,323 +133,138 @@ export default function PiPContent() {
     const $repeatSong = useStore(rockIt.userManager.repeatSongAtom);
     const [hover, setHover] = useState(false);
 
+    const progress = (($currentTime ?? 0) / ($currentSong?.duration ?? 1)) * 100;
+
     return (
         <div
+            style={S.root as React.CSSProperties}
             onMouseEnter={() => setHover(true)}
             onMouseLeave={() => setHover(false)}
-            style={{
-                width: "100%",
-                height: "100%",
-                position: "relative",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                boxSizing: "border-box",
-                fontFamily: "sans-serif",
-                backgroundImage: "linear-gradient(to bottom, #202124, #121212)",
-                overflow: "hidden",
-                padding: "10px",
-            }}
         >
-            {/* Contenedor de la portada */}
-            <div
-                style={{
-                    position: "relative",
-                    userSelect: "none",
-                    width: "100%",
-                    aspectRatio: "1 / 1",
-                }}
-            >
-                {/* Cover */}
+            {/* Cover + controls overlay */}
+            <div style={S.coverWrapper as React.CSSProperties}>
                 {$currentSong?.internalImageUrl && (
-                    <Image
+                    // img nativo — next/image no funciona en browsing contexts separados
+                    <img
                         src={`/api/image/${$currentSong.internalImageUrl}`}
-                        alt="Cover"
-                        style={{
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "cover",
-                            borderRadius: "0.5rem",
-                            boxShadow: "0 0 10px rgba(0,0,0,0.5)",
-                        }}
+                        alt={`Cover of ${$currentSong.name}`}
+                        style={S.cover as React.CSSProperties}
                     />
                 )}
 
-                {/* Overlay de controles */}
                 {hover && (
-                    <div
-                        style={{
-                            position: "absolute",
-                            inset: 0,
-                            backgroundColor: "rgba(0,0,0,0.5)",
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            borderRadius: "0.5rem",
-                            padding: "1rem",
-                            boxSizing: "border-box",
-                        }}
-                    >
-                        {/* Fila de iconos */}
-                        <div
-                            style={{
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "space-around",
-                                width: "100%",
-                                marginBottom: "1rem",
-                            }}
-                        >
-                            <button
-                                onClick={() =>
-                                    rockIt.userManager.toggleRandomQueue()
-                                }
-                                style={iconButton}
-                            >
-                                <Shuffle style={responsiveIcon} color="white" />
+                    <div style={S.overlay as React.CSSProperties}>
+                        {/* Controls */}
+                        <div style={S.controls as React.CSSProperties}>
+                            <button style={S.iconBtn} onClick={() => rockIt.userManager.toggleRandomQueue()}>
+                                <Shuffle style={S.icon} color="white" />
+                            </button>
+                            <button style={S.iconBtn} onClick={() => rockIt.queueManager.skipBack()}>
+                                <SkipBack style={S.icon} color="white" fill="white" />
                             </button>
                             <button
-                                onClick={() => rockIt.queueManager.skipBack()}
-                                style={iconButton}
-                            >
-                                <SkipBack
-                                    style={responsiveIcon}
-                                    color="white"
-                                    fill="white"
-                                />
-                            </button>
-                            <button
-                                onClick={() =>
-                                    rockIt.audioManager.togglePlayPauseOrSetSong()
-                                }
-                                style={iconButton}
+                                style={S.iconBtn}
+                                onClick={() => rockIt.audioManager.togglePlayPauseOrSetSong()}
                                 aria-label={$playing ? "Pause" : "Play"}
                             >
-                                {$playing ? (
-                                    <CirclePause
-                                        style={{
-                                            width: "10vw",
-                                            minWidth: "35px",
-                                            height: "10vw",
-                                            minHeight: "35px",
-                                        }}
-                                        color="white"
-                                    />
-                                ) : (
-                                    <CirclePlay
-                                        style={{
-                                            width: "10vw",
-                                            minWidth: "35px",
-                                            height: "10vw",
-                                            minHeight: "35px",
-                                        }}
-                                        color="white"
-                                    />
-                                )}
-                            </button>
-                            <button
-                                onClick={() =>
-                                    rockIt.queueManager.skipForward()
+                                {$playing
+                                    ? <CirclePause style={S.playIcon} color="white" />
+                                    : <CirclePlay style={S.playIcon} color="white" />
                                 }
-                                style={iconButton}
-                            >
-                                <SkipForward
-                                    style={responsiveIcon}
-                                    color="white"
-                                    fill="white"
-                                />
                             </button>
-                            <button
-                                onClick={() =>
-                                    rockIt.userManager.cyclerepeatSong()
+                            <button style={S.iconBtn} onClick={() => rockIt.queueManager.skipForward()}>
+                                <SkipForward style={S.icon} color="white" fill="white" />
+                            </button>
+                            <button style={S.iconBtn} onClick={() => rockIt.userManager.cyclerepeatSong()}>
+                                {$repeatSong === "one"
+                                    ? <Repeat1 style={S.icon} color="white" />
+                                    : <Repeat style={S.icon} color="white" />
                                 }
-                                style={iconButton}
-                            >
-                                {$repeatSong === "one" ? (
-                                    <Repeat1
-                                        style={responsiveIcon}
-                                        color="white"
-                                    />
-                                ) : (
-                                    <Repeat
-                                        style={responsiveIcon}
-                                        color="white"
-                                    />
-                                )}
                             </button>
                         </div>
 
-                        {/* Slider de tiempo */}
-                        <div
-                            style={{
-                                display: "flex",
-                                alignItems: "center",
-                                width: "100%",
-                                height: "1.5rem",
-                                gap: "0.5rem",
-                            }}
-                        >
-                            {/* Tiempo actual */}
-                            <span
-                                id="current-time"
-                                style={{
-                                    minWidth: "1.5rem",
-                                    fontSize: "0.75rem",
-                                    fontWeight: 600,
-                                    color: "white",
-                                }}
-                            >
-                                {getTime($currentTime || 0)}
+                        {/* Progress */}
+                        <div style={S.progressRow as React.CSSProperties}>
+                            <span style={S.timeLabel as React.CSSProperties}>
+                                {getTime($currentTime ?? 0)}
                             </span>
-
-                            {/* Slider */}
                             <input
                                 type="range"
-                                id="default-slider"
+                                className="pip-slider"
                                 value={$currentTime ?? 0}
                                 min={0}
                                 max={$currentSong?.duration ?? 0}
                                 step={0.001}
+                                style={{ flexGrow: 1 }}
                                 onChange={(e) =>
-                                    rockIt.audioManager.setCurrentTime(
-                                        Number(e.target.value)
-                                    )
+                                    rockIt.audioManager.setCurrentTime(Number(e.target.value))
                                 }
-                                style={{
-                                    flexGrow: 1,
-                                    height: "4px",
-                                    backgroundColor: "#707070",
-                                    borderRadius: "2px",
-                                    WebkitAppearance: "none",
-                                }}
                             />
-                            {/* Thumb styling */}
                             <style>{`
-                            /* WebKit */
-                            #default-slider::-webkit-slider-runnable-track {
-                                height: 4px;
-                                background: linear-gradient(
-                                to right,
-                                #ee1086 0%,
-                                #fb6467 ${(($currentTime ?? 0) / ($currentSong?.duration ?? 1)) * 100}%,
-                                #707070 ${(($currentTime ?? 0) / ($currentSong?.duration ?? 1)) * 100}%,
-                                #707070 100%
-                                );
-                                border-radius: 2px;
-                            }
-                            #default-slider::-webkit-slider-thumb {
-                                -webkit-appearance: none;
-                                appearance: none;
-                                width: 12px;
-                                height: 12px;
-                                margin-top: -4px;
-                                border-radius: 50%;
-                                background: white;
-                                cursor: pointer;
-                            }
-
-                            /* Firefox */
-                            #default-slider::-moz-range-track {
-                                height: 4px;
-                                background: #707070;
-                                border-radius: 2px;
-                            }
-                            #default-slider::-moz-range-progress {
-                                background: linear-gradient(to right, #ee1086, #fb6467);
-                                height: 4px;
-                                border-radius: 2px;
-                            }
-                            #default-slider::-moz-range-thumb {
-                                width: 12px;
-                                height: 12px;
-                                border-radius: 50%;
-                                background: white;
-                                cursor: pointer;
-                            }
+                                .pip-slider {
+                                    -webkit-appearance: none;
+                                    height: 4px;
+                                    background: #707070;
+                                    border-radius: 2px;
+                                    cursor: pointer;
+                                }
+                                .pip-slider::-webkit-slider-runnable-track {
+                                    height: 4px;
+                                    border-radius: 2px;
+                                    background: linear-gradient(
+                                        to right,
+                                        #ee1086 0%,
+                                        #fb6467 ${progress}%,
+                                        #707070 ${progress}%,
+                                        #707070 100%
+                                    );
+                                }
+                                .pip-slider::-webkit-slider-thumb {
+                                    -webkit-appearance: none;
+                                    width: 12px;
+                                    height: 12px;
+                                    margin-top: -4px;
+                                    border-radius: 50%;
+                                    background: white;
+                                    cursor: pointer;
+                                }
+                                .pip-slider::-moz-range-track {
+                                    height: 4px;
+                                    background: #707070;
+                                    border-radius: 2px;
+                                }
+                                .pip-slider::-moz-range-progress {
+                                    height: 4px;
+                                    border-radius: 2px;
+                                    background: linear-gradient(to right, #ee1086, #fb6467);
+                                }
+                                .pip-slider::-moz-range-thumb {
+                                    width: 12px;
+                                    height: 12px;
+                                    border-radius: 50%;
+                                    background: white;
+                                    border: none;
+                                    cursor: pointer;
+                                }
                             `}</style>
-
-                            {/* Tiempo total */}
-                            <span
-                                id="total-time"
-                                style={{
-                                    minWidth: "1.5rem",
-                                    fontSize: "0.75rem",
-                                    fontWeight: 600,
-                                    color: "white",
-                                }}
-                            >
-                                {getTime($currentSong?.duration || 0)}
+                            <span style={S.timeLabel as React.CSSProperties}>
+                                {getTime($currentSong?.duration ?? 0)}
                             </span>
                         </div>
                     </div>
                 )}
             </div>
 
-            {/* Info y botón de like */}
-            <div
-                style={{
-                    marginTop: "10px",
-                    display: "flex",
-                    width: "80vw",
-                    maxWidth: "300px",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    boxSizing: "border-box",
-                }}
-            >
-                <div
-                    style={{
-                        color: "white",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                        flex: 1,
-                        paddingRight: "0.5rem",
-                    }}
-                >
-                    <div
-                        style={{
-                            fontSize: "1rem",
-                            fontWeight: 600,
-                            lineHeight: 1.2,
-                        }}
-                    >
-                        {$currentSong?.name}
-                    </div>
-                    <div
-                        style={{
-                            fontSize: "0.875rem",
-                            opacity: 0.75,
-                            lineHeight: 1.2,
-                        }}
-                    >
+            {/* Song info + like */}
+            <div style={S.infoRow as React.CSSProperties}>
+                <div style={S.infoText as React.CSSProperties}>
+                    <p style={S.songName as React.CSSProperties}>{$currentSong?.name}</p>
+                    <p style={S.artistName as React.CSSProperties}>
                         {$currentSong?.artists.map((a) => a.name).join(", ")}
-                    </div>
+                    </p>
                 </div>
-                {$currentSong && (
-                    <LikeButton songPublicId={$currentSong.publicId} />
-                )}
+                {$currentSong && <LikeButton songPublicId={$currentSong.publicId} />}
             </div>
         </div>
     );
 }
-
-// Estilos reutilizables
-const iconButton: React.CSSProperties = {
-    background: "transparent",
-    border: "none",
-    cursor: "pointer",
-    padding: 0,
-};
-
-const responsiveIcon: React.CSSProperties = {
-    maxWidth: "50px",
-    maxHeight: "50px",
-    minWidth: "24px",
-    minHeight: "24px",
-    width: "5vw",
-    height: "5vw",
-    backgroundColor: "transparent",
-};

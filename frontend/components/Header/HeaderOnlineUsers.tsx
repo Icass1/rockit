@@ -1,18 +1,18 @@
 "use client";
 
 import { User } from "lucide-react";
+//import { useStore } from "@nanostores/react";
+//import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function OnlineUserIndicator() {
-    const $users = 1653;
+    const $onlineUsers = 1263; // useStore(rockIt.userManager.onlineUsersAtom);
+
+    if (!$onlineUsers || $onlineUsers <= 0) return null;
 
     return (
-        <>
-            {$users > 0 && (
-                <div className="flex items-center gap-1 text-green-500">
-                    <span className="text-md font-semibold">{$users}</span>
-                    <User className="h-6 w-6" />
-                </div>
-            )}
-        </>
+        <div className="flex items-center gap-1 text-green-500" title={`${$onlineUsers} users online`}>
+            <span className="text-sm font-semibold tabular-nums">{$onlineUsers}</span>
+            <User className="h-5 w-5" />
+        </div>
     );
 }

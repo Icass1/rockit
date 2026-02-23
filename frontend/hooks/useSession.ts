@@ -1,5 +1,5 @@
 import apiFetch from "@/lib/utils/apiFetch";
-import { RockItUserResponse } from "@/responses/rockItUserResponse";
+import { RockItUserResponse } from "@/dto/rockItUserResponse";
 import { useState, useEffect } from "react";
 
 type Session =

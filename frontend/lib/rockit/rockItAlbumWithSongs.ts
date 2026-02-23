@@ -1,7 +1,7 @@
 import { RockItArtist } from "@/lib/rockit/rockItArtist";
 import { RockItSongWithoutAlbum } from "./rockItSongWithoutAlbum";
 import { RockItAlbumWithoutSongs } from "./rockItAlbumWithoutSongs";
-import { RockItAlbumWithSongsResponse } from "@/responses/rockItAlbumWithSongsResponse";
+import { RockItAlbumWithSongsResponse } from "@/dto/rockItAlbumWithSongsResponse";
 import { RockItExternalImage } from "./rockItExternalImage";
 
 export class RockItAlbumWithSongs extends RockItAlbumWithoutSongs {

@@ -1,4 +1,4 @@
-import { RockItAlbumWithoutSongsResponse } from "@/responses/rockItAlbumWithoutSongsResponse";
+import { RockItAlbumWithoutSongsResponse } from "@/dto/rockItAlbumWithoutSongsResponse";
 import { RockItArtist } from "@/lib/rockit/rockItArtist";
 import { RockItExternalImage } from "@/lib/rockit/rockItExternalImage";
 

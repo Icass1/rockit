@@ -1,4 +1,4 @@
-import { RockItExternalImageResponse } from "@/responses/rockItExternalImageResponse";
+import { RockItExternalImageResponse } from "@/dto/rockItExternalImageResponse";
 
 export class RockItExternalImage {
     // #region: Read-only properties

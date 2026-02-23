@@ -1,11 +1,11 @@
-import { RockItSongPlaylistResponse } from "@/responses/rockItSongPlaylistResponse";
+import { RockItSongPlaylistResponse } from "@/dto/rockItSongPlaylistResponse";
 import { RockItAlbumWithoutSongs } from "./rockItAlbumWithoutSongs";
 import { RockItArtist } from "./rockItArtist";
 import { createAtom } from "../store";
 import { RockItSongWithoutAlbum } from "./rockItSongWithoutAlbum";
 import { RockItSongWithAlbum } from "./rockItSongWithAlbum";
 import apiFetch from "../utils/apiFetch";
-import { RockItSongWithAlbumResponse } from "@/responses/rockItSongWithAlbumResponse";
+import { RockItSongWithAlbumResponse } from "@/dto/rockItSongWithAlbumResponse";
 
 export class RockItSongPlaylist {
     static #instance: RockItSongPlaylist[] = [];

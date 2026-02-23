@@ -1,6 +1,6 @@
 import { RockItExternalImage } from "./rockItExternalImage";
 import { RockItSongPlaylist } from "./rockItSongPlaylist";
-import { RockItPlaylistResponse } from "@/responses/rockItPlaylistResponse";
+import { RockItPlaylistResponse } from "@/dto/rockItPlaylistResponse";
 
 export class RockItPlaylist {
     static #instance: RockItPlaylist[] = [];

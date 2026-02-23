@@ -13,7 +13,7 @@ import { rockIt } from "@/lib/rockit/rockIt";
 import { useEffect, useState } from "react";
 import DownloadListButton from "../ListHeader/DownloadListButton";
 import DownloadAnimation from "../ListHeader/DownloadAnimation";
-import { RockItAlbumWithSongsResponse } from "@/responses/rockItAlbumWithSongsResponse";
+import { RockItAlbumWithSongsResponse } from "@/dto/rockItAlbumWithSongsResponse";
 import { RockItAlbumWithSongs } from "@/lib/rockit/rockItAlbumWithSongs";
 import { useStore } from "@nanostores/react";
 import { RockItSongWithAlbum } from "@/lib/rockit/rockItSongWithAlbum";

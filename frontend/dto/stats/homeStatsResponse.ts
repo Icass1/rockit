@@ -1,5 +1,5 @@
 import * as z from "zod";
-import { RockItSongWithAlbumResponse } from "@/responses/rockItSongWithAlbumResponse";
+import { RockItSongWithAlbumResponse } from "@/dto/rockItSongWithAlbumResponse";
 
 export const HomeStatsResponse = z.object({
     songsByTimePlayed: z.array(RockItSongWithAlbumResponse),

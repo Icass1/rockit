@@ -6,7 +6,7 @@ import { EllipsisVertical, CheckCircle2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useStore } from "@nanostores/react";
 import SongContextMenu from "./SongContextMenu";
-import { networkStatus } from "@/stores/networkStatus";
+import { networkStatus } from "@/lib/stores/networkStatus";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { RockItSongWithAlbum } from "@/lib/rockit/rockItSongWithAlbum";
 

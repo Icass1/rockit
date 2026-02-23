@@ -1,5 +1,5 @@
 import useFetch from "@/hooks/useFetch";
-import { HomeStatsResponse } from "@/responses/stats/homeStatsResponse";
+import { HomeStatsResponse } from "@/dto/stats/homeStatsResponse";
 import { RockItSongWithAlbum } from "@/lib/rockit/rockItSongWithAlbum";
 import { RockItSongWithoutAlbum } from "@/lib/rockit/rockItSongWithoutAlbum";
 

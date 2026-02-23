@@ -8,7 +8,7 @@ import useFetch from "@/hooks/useFetch";
 import useWindowSize from "@/hooks/useWindowSize";
 import { useCarousel } from "@/components/Home/hooks/useCarousel";
 import { songHandleClick } from "@/components/ListSongs/HandleClick";
-import { StatsResponse } from "@/responses/stats/statsResponse";
+import { StatsResponse } from "@/dto/stats/statsResponse";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { RockItSongWithoutAlbum } from "@/lib/rockit/rockItSongWithoutAlbum";
 
@@ -64,14 +64,20 @@ function CarouselSong({
     const $playing = useStore(rockIt.audioManager.playingAtom);
 
     const { scale, left, brightness, zIndex } = getSongLayout(
-        index, currentIndex, total, isMobile
+        index,
+        currentIndex,
+        total,
+        isMobile
     );
 
     const isCenter = index === currentIndex;
     const isPlaying = $currentSong?.publicId === song.publicId && $playing;
 
     const handlePlay = () => {
-        rockIt.queueManager.setCurrentList({ type: "carousel", publicId: "carousel" });
+        rockIt.queueManager.setCurrentList({
+            type: "carousel",
+            publicId: "carousel",
+        });
         songHandleClick(song, songs);
     };
 
@@ -144,7 +150,9 @@ export default function SongsCarousel() {
     const isMobile = (width ?? 0) < 768;
     const containerRef = useRef<HTMLDivElement>(null);
 
-    const songs = rawSongs ? (rawSongs as unknown as RockItSongWithoutAlbum[]) : null;
+    const songs = rawSongs
+        ? (rawSongs as unknown as RockItSongWithoutAlbum[])
+        : null;
 
     const { currentIndex, next, prev, onTouchStart, onTouchMove, onTouchEnd } =
         useCarousel(songs?.length ?? 0);
@@ -172,7 +180,10 @@ export default function SongsCarousel() {
             ref={containerRef}
             className="relative flex h-64 min-h-64 items-center justify-center overflow-x-hidden text-white select-none md:min-h-92"
             // GPU acceleration para iOS
-            style={{ willChange: "transform", WebkitOverflowScrolling: "touch" }}
+            style={{
+                willChange: "transform",
+                WebkitOverflowScrolling: "touch",
+            }}
         >
             <ChevronLeft
                 className="absolute left-24 z-25 hidden h-10 w-10 cursor-pointer rounded-full bg-white p-2 text-[#6d6d6d] shadow-md transition duration-300 md:flex md:hover:text-black"

@@ -9,7 +9,7 @@ import Masonry from "@/components/Masonry/Masonry";
 import useDev from "@/hooks/useDev";
 import { useLanguage } from "@/contexts/LanguageContext";
 import useFetch from "@/hooks/useFetch";
-import { UserStatsResponse } from "@/responses/stats/userStatsResponse";
+import { UserStatsResponse } from "@/dto/stats/userStatsResponse";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function UserStats() {

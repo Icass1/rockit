@@ -24,7 +24,7 @@ import ContextMenuSplitter from "../ContextMenu/Splitter";
 import PlayLibraryButton from "./PlayLibraryButton";
 
 import { useLanguage } from "@/contexts/LanguageContext";
-import { LibraryListsResponse } from "@/responses/libraryListsResponse";
+import { LibraryListsResponse } from "@/dto/libraryListsResponse";
 import Image from "next/image";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { RockItPlaylist } from "@/lib/rockit/rockItPlaylist";
@@ -170,7 +170,10 @@ export function LibraryLists({
     const { width } = useWindowSize();
     const { langFile: lang } = useLanguage();
 
-    const [listsResponse] = useFetch("/user/library/lists", LibraryListsResponse);
+    const [listsResponse] = useFetch(
+        "/user/library/lists",
+        LibraryListsResponse
+    );
     if (!listsResponse) return <div>LibraryLists.listsResponse Loading...</div>;
 
     const lists = {

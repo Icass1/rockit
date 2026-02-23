@@ -1,4 +1,4 @@
-import { RockItArtistResponse } from "@/responses/rockItArtistResponse";
+import { RockItArtistResponse } from "@/dto/rockItArtistResponse";
 import { RockItExternalImage } from "./rockItExternalImage";
 
 export class RockItArtist {

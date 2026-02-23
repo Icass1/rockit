@@ -1,5 +1,5 @@
 import apiFetch from "@/lib/utils/apiFetch";
-import { RockItPlaylistResponse } from "@/responses/rockItPlaylistResponse";
+import { RockItPlaylistResponse } from "@/dto/rockItPlaylistResponse";
 import { QueueListType } from "@/types/rockIt";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { RockItSongWithAlbum } from "../rockit/rockItSongWithAlbum";

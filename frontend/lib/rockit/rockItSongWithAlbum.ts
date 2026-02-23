@@ -1,5 +1,5 @@
 import { RockItArtist } from "./rockItArtist";
-import { RockItSongWithAlbumResponse } from "@/responses/rockItSongWithAlbumResponse";
+import { RockItSongWithAlbumResponse } from "@/dto/rockItSongWithAlbumResponse";
 import { RockItAlbumWithoutSongs } from "./rockItAlbumWithoutSongs";
 import { createAtom } from "../store";
 import apiFetch from "@/lib/utils/apiFetch";
@@ -75,7 +75,7 @@ export class RockItSongWithAlbum {
     // #region: Methods
 
     async updateAsync() {
-        if (this.downloaded) return
+        if (this.downloaded) return;
         const response = await apiFetch(`/spotify/song/${this.publicId}`);
         if (!response) {
             console.error("Response is undefined.");

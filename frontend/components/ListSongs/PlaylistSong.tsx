@@ -6,7 +6,7 @@ import { EllipsisVertical, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
 import { useStore } from "@nanostores/react";
 import SongContextMenu from "@/components/ListSongs/SongContextMenu";
-import { networkStatus } from "@/stores/networkStatus";
+import { networkStatus } from "@/lib/stores/networkStatus";
 import {
     PopupMenu,
     PopupMenuContent,

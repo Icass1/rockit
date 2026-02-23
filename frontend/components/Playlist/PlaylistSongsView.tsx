@@ -9,7 +9,7 @@ import { rockIt } from "@/lib/rockit/rockIt";
 import { RockItPlaylist } from "@/lib/rockit/rockItPlaylist";
 import { RockItSongPlaylist } from "@/lib/rockit/rockItSongPlaylist";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { RockItPlaylistResponse } from "@/responses/rockItPlaylistResponse";
+import { RockItPlaylistResponse } from "@/dto/rockItPlaylistResponse";
 
 type ColumnsType = "name" | "album" | "artist" | "addedAt" | "duration";
 

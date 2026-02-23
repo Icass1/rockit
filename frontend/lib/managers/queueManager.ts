@@ -5,7 +5,7 @@ import { DBListType, QueueListType } from "@/types/rockIt";
 import { RockItSongWithAlbum } from "../rockit/rockItSongWithAlbum";
 import { RockItSongQueue } from "../rockit/rockItSongQueue";
 import apiFetch from "@/lib/utils/apiFetch";
-import { QueueResponse } from "@/responses/queueResponse";
+import { QueueResponse } from "@/dto/queueResponse";
 
 export class QueueManager {
     // #region: Atoms
@@ -65,7 +65,7 @@ export class QueueManager {
     skipBack() {}
 
     skipForward() {}
-    
+
     setSongs(
         songs: RockItSongWithAlbum[],
         listType: QueueListType,

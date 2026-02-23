@@ -22,7 +22,7 @@ export default function VolumeSlider() {
         <div className="flex h-full flex-row items-center gap-x-2">
             <VolumeIcon volume={volume} />
             <Slider
-                id="volume-slider"
+                id="default-slider"
                 className="h-1 w-16 bg-neutral-700"
                 value={Math.sqrt(volume)}
                 min={0}

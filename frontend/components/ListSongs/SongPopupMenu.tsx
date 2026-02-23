@@ -1,6 +1,6 @@
 "use client";
 
-import { networkStatus } from "@/stores/networkStatus";
+import { networkStatus } from "@/lib/stores/networkStatus";
 import { useStore } from "@nanostores/react";
 import { type ReactNode } from "react";
 import {

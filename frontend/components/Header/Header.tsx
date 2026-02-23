@@ -34,7 +34,7 @@ export default function Header() {
 
             {/* Search bar hidden on radio page */}
             {!isRadio && (
-                <div className="flex items-center justify-center">
+                <div className="flex h-3/4 items-center justify-center">
                     <SearchBarInput />
                 </div>
             )}

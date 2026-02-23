@@ -1,8 +1,8 @@
-import { RockItSongWithoutAlbumResponse } from "@/responses/rockItSongWithoutAlbumResponse";
+import { RockItSongWithoutAlbumResponse } from "@/dto/rockItSongWithoutAlbumResponse";
 import { RockItArtist } from "./rockItArtist";
 import { createAtom } from "../store";
 import apiFetch from "@/lib/utils/apiFetch";
-import { RockItSongWithAlbumResponse } from "@/responses/rockItSongWithAlbumResponse";
+import { RockItSongWithAlbumResponse } from "@/dto/rockItSongWithAlbumResponse";
 
 type ConstructorArgs = {
     publicId: string;

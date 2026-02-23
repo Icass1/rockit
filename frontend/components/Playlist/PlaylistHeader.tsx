@@ -8,7 +8,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import Image from "next/image";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { RockItPlaylist } from "@/lib/rockit/rockItPlaylist";
-import { RockItPlaylistResponse } from "@/responses/rockItPlaylistResponse";
+import { RockItPlaylistResponse } from "@/dto/rockItPlaylistResponse";
 import { useStore } from "@nanostores/react";
 import { useEffect, useState } from "react";
 import DownloadAnimation from "@/components/ListHeader/DownloadAnimation";
@@ -89,7 +89,7 @@ export default function PlaylistHeader({
     return (
         <div
             className={
-                "relative top-24 flex h-[26rem] flex-col gap-1 px-10 md:top-1/2 md:h-fit md:max-h-none md:w-full md:max-w-96 md:-translate-y-1/2 md:px-0 " +
+                "relative top-24 flex h-104 flex-col gap-1 px-10 md:top-1/2 md:h-fit md:max-h-none md:w-full md:max-w-96 md:-translate-y-1/2 md:px-0 " +
                 className
             }
         >

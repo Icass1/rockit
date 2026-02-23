@@ -24,7 +24,7 @@ import { songHandleClick } from "./HandleClick";
 import SubContextMenu from "@/components/ContextMenu/SubContextMenu/ContextMenu";
 import SubContextMenuTrigger from "@/components/ContextMenu/SubContextMenu/Trigger";
 import SubContextMenuContent from "@/components/ContextMenu/SubContextMenu/Content";
-import { networkStatus } from "@/stores/networkStatus";
+import { networkStatus } from "@/lib/stores/networkStatus";
 import { useRouter } from "next/navigation";
 import useDev from "@/hooks/useDev";
 

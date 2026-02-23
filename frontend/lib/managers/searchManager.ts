@@ -1,4 +1,4 @@
-import { SearchResultsResponse } from "@/responses/searchResponse";
+import { SearchResultsResponse } from "@/dto/searchResponse";
 import apiFetch from "@/lib/utils/apiFetch";
 import { createAtom } from "@/lib/store";
 import { RockItSongWithAlbum } from "../rockit/rockItSongWithAlbum";
@@ -50,11 +50,12 @@ export class SearchManager {
                             albums: results.spotifyResults.albums.map((album) =>
                                 RockItAlbumWithoutSongs.fromResponse(album)
                             ),
-                            artists: results.spotifyResults.artists.map((artist) =>
-                                RockItArtist.fromResponse(artist)
+                            artists: results.spotifyResults.artists.map(
+                                (artist) => RockItArtist.fromResponse(artist)
                             ),
-                            playlists: results.spotifyResults.playlists.map((playlist) =>
-                                RockItPlaylist.fromResponse(playlist)
+                            playlists: results.spotifyResults.playlists.map(
+                                (playlist) =>
+                                    RockItPlaylist.fromResponse(playlist)
                             ),
                         },
                     });

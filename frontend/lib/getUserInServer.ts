@@ -1,4 +1,4 @@
-import { RockItUserResponse } from "@/responses/rockItUserResponse";
+import { RockItUserResponse } from "@/dto/rockItUserResponse";
 import { cookies } from "next/headers";
 
 export async function getUserInServer(): Promise<

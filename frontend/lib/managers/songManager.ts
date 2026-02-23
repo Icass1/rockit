@@ -1,6 +1,6 @@
 import { createArrayAtom } from "@/lib/store";
 import apiFetch from "@/lib/utils/apiFetch";
-import { RockItSongWithAlbumResponse } from "@/responses/rockItSongWithAlbumResponse";
+import { RockItSongWithAlbumResponse } from "@/dto/rockItSongWithAlbumResponse";
 import { RockItSongWithAlbum } from "../rockit/rockItSongWithAlbum";
 
 export class SongManager {

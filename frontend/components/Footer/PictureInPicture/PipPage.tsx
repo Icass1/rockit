@@ -1,9 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import {
-    SkipBack, SkipForward, CirclePlay, CirclePause,
-    Shuffle, Repeat1, Repeat,
+    SkipBack,
+    SkipForward,
+    CirclePlay,
+    CirclePause,
+    Shuffle,
+    Repeat1,
+    Repeat,
 } from "lucide-react";
 import { useStore } from "@nanostores/react";
 import LikeButton from "@/components/LikeButton";
@@ -133,7 +139,8 @@ export default function PiPContent() {
     const $repeatSong = useStore(rockIt.userManager.repeatSongAtom);
     const [hover, setHover] = useState(false);
 
-    const progress = (($currentTime ?? 0) / ($currentSong?.duration ?? 1)) * 100;
+    const progress =
+        (($currentTime ?? 0) / ($currentSong?.duration ?? 1)) * 100;
 
     return (
         <div
@@ -144,11 +151,12 @@ export default function PiPContent() {
             {/* Cover + controls overlay */}
             <div style={S.coverWrapper as React.CSSProperties}>
                 {$currentSong?.internalImageUrl && (
-                    // img nativo — next/image no funciona en browsing contexts separados
-                    <img
+                    <Image
                         src={`/api/image/${$currentSong.internalImageUrl}`}
                         alt={`Cover of ${$currentSong.name}`}
-                        style={S.cover as React.CSSProperties}
+                        fill
+                        style={{ objectFit: "cover" }}
+                        className="rounded-lg"
                     />
                 )}
 
@@ -156,30 +164,66 @@ export default function PiPContent() {
                     <div style={S.overlay as React.CSSProperties}>
                         {/* Controls */}
                         <div style={S.controls as React.CSSProperties}>
-                            <button style={S.iconBtn} onClick={() => rockIt.userManager.toggleRandomQueue()}>
+                            <button
+                                style={S.iconBtn}
+                                onClick={() =>
+                                    rockIt.userManager.toggleRandomQueue()
+                                }
+                            >
                                 <Shuffle style={S.icon} color="white" />
-                            </button>
-                            <button style={S.iconBtn} onClick={() => rockIt.queueManager.skipBack()}>
-                                <SkipBack style={S.icon} color="white" fill="white" />
                             </button>
                             <button
                                 style={S.iconBtn}
-                                onClick={() => rockIt.audioManager.togglePlayPauseOrSetSong()}
+                                onClick={() => rockIt.queueManager.skipBack()}
+                            >
+                                <SkipBack
+                                    style={S.icon}
+                                    color="white"
+                                    fill="white"
+                                />
+                            </button>
+                            <button
+                                style={S.iconBtn}
+                                onClick={() =>
+                                    rockIt.audioManager.togglePlayPauseOrSetSong()
+                                }
                                 aria-label={$playing ? "Pause" : "Play"}
                             >
-                                {$playing
-                                    ? <CirclePause style={S.playIcon} color="white" />
-                                    : <CirclePlay style={S.playIcon} color="white" />
-                                }
+                                {$playing ? (
+                                    <CirclePause
+                                        style={S.playIcon}
+                                        color="white"
+                                    />
+                                ) : (
+                                    <CirclePlay
+                                        style={S.playIcon}
+                                        color="white"
+                                    />
+                                )}
                             </button>
-                            <button style={S.iconBtn} onClick={() => rockIt.queueManager.skipForward()}>
-                                <SkipForward style={S.icon} color="white" fill="white" />
-                            </button>
-                            <button style={S.iconBtn} onClick={() => rockIt.userManager.cyclerepeatSong()}>
-                                {$repeatSong === "one"
-                                    ? <Repeat1 style={S.icon} color="white" />
-                                    : <Repeat style={S.icon} color="white" />
+                            <button
+                                style={S.iconBtn}
+                                onClick={() =>
+                                    rockIt.queueManager.skipForward()
                                 }
+                            >
+                                <SkipForward
+                                    style={S.icon}
+                                    color="white"
+                                    fill="white"
+                                />
+                            </button>
+                            <button
+                                style={S.iconBtn}
+                                onClick={() =>
+                                    rockIt.userManager.cyclerepeatSong()
+                                }
+                            >
+                                {$repeatSong === "one" ? (
+                                    <Repeat1 style={S.icon} color="white" />
+                                ) : (
+                                    <Repeat style={S.icon} color="white" />
+                                )}
                             </button>
                         </div>
 
@@ -197,7 +241,9 @@ export default function PiPContent() {
                                 step={0.001}
                                 style={{ flexGrow: 1 }}
                                 onChange={(e) =>
-                                    rockIt.audioManager.setCurrentTime(Number(e.target.value))
+                                    rockIt.audioManager.setCurrentTime(
+                                        Number(e.target.value)
+                                    )
                                 }
                             />
                             <style>{`
@@ -258,12 +304,16 @@ export default function PiPContent() {
             {/* Song info + like */}
             <div style={S.infoRow as React.CSSProperties}>
                 <div style={S.infoText as React.CSSProperties}>
-                    <p style={S.songName as React.CSSProperties}>{$currentSong?.name}</p>
+                    <p style={S.songName as React.CSSProperties}>
+                        {$currentSong?.name}
+                    </p>
                     <p style={S.artistName as React.CSSProperties}>
                         {$currentSong?.artists.map((a) => a.name).join(", ")}
                     </p>
                 </div>
-                {$currentSong && <LikeButton songPublicId={$currentSong.publicId} />}
+                {$currentSong && (
+                    <LikeButton songPublicId={$currentSong.publicId} />
+                )}
             </div>
         </div>
     );

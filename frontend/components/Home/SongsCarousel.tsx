@@ -92,7 +92,8 @@ function CarouselSong({
                     className="relative top-1/2 aspect-square h-auto w-full -translate-y-1/2 transition-all duration-300"
                     style={{ filter: `brightness(${brightness})` }}
                     // Precarga las canciones adyacentes
-                    loading={Math.abs(index - currentIndex) <= 1 ? "eager" : "lazy"}
+                    priority={Math.abs(index - currentIndex) <= 1}
+                    loading={undefined} // no mezclar priority con loading
                 />
 
                 {/* Gradiente + info — solo visible en centro */}

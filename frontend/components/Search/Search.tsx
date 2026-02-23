@@ -1,213 +1,73 @@
-import { useLanguage } from "@/contexts/LanguageContext";
-import { rockIt } from "@/lib/rockit/rockIt";
-import { RockItAlbumWithoutSongs } from "@/lib/rockit/rockItAlbumWithoutSongs";
-import { RockItSongWithAlbum } from "@/lib/rockit/rockItSongWithAlbum";
-import { getBestImage } from "@/lib/utils/getBestImage";
-import { useStore } from "@nanostores/react";
+"use client";
+
 import Image from "next/image";
-import Link from "next/link";
 import SearchBarInput from "./SearchBarInput";
+import SongsSection from "./sections/SongsSection";
+import AlbumsSection from "./sections/AlbumsSection";
+import { useSearchResults } from "./hooks/useSearchResults";
+import { useLanguage } from "@/contexts/LanguageContext";
 
-function AlbumsSection({
-    spotifyAlbums,
-}: {
-    spotifyAlbums: RockItAlbumWithoutSongs[];
-}) {
+function EmptyState() {
     const { langFile: lang } = useLanguage();
-    if (!lang) return false;
+    if (!lang) return null;
+
     return (
-        <section className="py-2 text-white md:py-6 md:pl-12">
-            <h2 className="px-5 text-left text-2xl font-bold md:px-0 md:text-3xl">
-                {lang.albums}
+        <section className="flex flex-col items-center justify-center px-7 py-36 text-center text-white md:pl-12">
+            <h2 className="text-2xl font-bold md:text-3xl">
+                {lang.search_empty1}
             </h2>
-            <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pr-14 md:pl-4">
-                {spotifyAlbums?.map((album) => (
-                    <Link
-                        href={`/album/${album.publicId}`}
-                        className="w-36 flex-none transition md:w-48 md:hover:scale-105"
-                        key={"album" + album.publicId}
-                    >
-                        <Image
-                            width={
-                                getBestImage(album.externalImages)?.width ?? 350
-                            }
-                            height={
-                                getBestImage(album.externalImages)?.height ??
-                                350
-                            }
-                            className="aspect-square w-full rounded-lg object-cover"
-                            src={
-                                getBestImage(album.externalImages)?.url ||
-                                "/song-placeholder.png"
-                            }
-                            alt="Song Cover"
-                        />
-                        <label className="mt-2 block truncate text-center font-semibold">
-                            {album.name}
-                        </label>
-                        <label className="block truncate text-center text-sm text-gray-400">
-                            {album.artists.map((artist, index) => (
-                                <label
-                                    key={album.publicId + artist.publicId}
-                                    className="md:hover:underline"
-                                    onClick={(event) => {
-                                        event.preventDefault();
-                                        event.stopPropagation();
-                                        window.location.pathname =
-                                            "/artist/${artist.id}";
-                                    }}
-                                >
-                                    {`${artist.name}${
-                                        index < album.artists.length - 1
-                                            ? ","
-                                            : ""
-                                    }`}
-                                </label>
-                            ))}{" "}
-                        </label>
-                    </Link>
-                ))}
-            </div>
+            <p className="mt-10 text-lg md:mt-2 md:text-xl">
+                {lang.search_empty2}
+            </p>
+            <Image
+                width={144}
+                height={144}
+                className="mt-10 w-36"
+                src="/logo-banner.png"
+                alt="Rockit Logo"
+            />
         </section>
     );
 }
 
-function SongsSection({
-    spotifySongs,
-}: {
-    spotifySongs: RockItSongWithAlbum[];
-}) {
-    const { langFile: lang } = useLanguage();
-    if (!lang) return false;
+function SearchResults() {
+    const { results, searching, query } = useSearchResults();
+
+    if (!query) return <EmptyState />;
+
+    if (searching) {
+        return (
+            <div className="flex h-full items-center justify-center text-white">
+                <span className="animate-pulse text-lg font-semibold">
+                    Searching...
+                </span>
+            </div>
+        );
+    }
+
+    if (!results?.spotifyResults) {
+        return (
+            <p className="mx-10 block text-center text-sm font-bold text-red-500">
+                It seems there was an error searching your music.
+            </p>
+        );
+    }
 
     return (
-        <section className="py-2 text-white md:py-6 md:pl-12">
-            <h2 className="px-5 text-left text-2xl font-bold md:px-0 md:text-3xl">
-                {lang.songs}
-            </h2>
-            <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pr-14 md:pl-4">
-                {spotifySongs?.map((song) => (
-                    <Link
-                        href={`/song/${song.publicId}`}
-                        className="w-36 flex-none transition md:w-48 md:hover:scale-105"
-                        key={"song" + song.publicId}
-                    >
-                        <Image
-                            width={
-                                getBestImage(song.album.externalImages)
-                                    ?.width ?? 350
-                            }
-                            height={
-                                getBestImage(song.album.externalImages)
-                                    ?.height ?? 350
-                            }
-                            className="aspect-square w-full rounded-lg object-cover"
-                            src={
-                                getBestImage(song.album.externalImages)?.url ||
-                                "/song-placeholder.png"
-                            }
-                            alt="Song Cover"
-                        />
-                        <label className="mt-2 block truncate text-center font-semibold">
-                            {song.name}
-                        </label>
-                        <label className="block truncate text-center text-sm text-gray-400">
-                            {song.artists.map((artist, index) => (
-                                <label
-                                    key={song.publicId + artist.publicId}
-                                    className="md:hover:underline"
-                                    onClick={(event) => {
-                                        event.preventDefault();
-                                        event.stopPropagation();
-                                        window.location.pathname =
-                                            "/artist/${artist.id}";
-                                    }}
-                                >
-                                    {`${artist.name}${
-                                        index < song.artists.length - 1
-                                            ? ","
-                                            : ""
-                                    }`}
-                                </label>
-                            ))}{" "}
-                        </label>
-                    </Link>
-                ))}
-            </div>
-        </section>
+        <div className="overflow-y-auto pt-0 md:pt-24">
+            <SongsSection songs={results.spotifyResults.songs} />
+            <AlbumsSection albums={results.spotifyResults.albums} />
+        </div>
     );
-}
-
-function Results() {
-    const $searchResults = useStore(rockIt.searchManager.searchResultsAtom);
-    const $searching = useStore(rockIt.searchManager.searchingAtom);
-    const $searchQuery = useStore(rockIt.searchManager.searchQueryAtom);
-    const { langFile: lang } = useLanguage();
-
-    if (!lang) return false;
-
-    if (!$searchResults?.spotifyResults && !$searching && $searchQuery) {
-        return (
-            <label className="mx-10 block text-center text-sm font-bold text-wrap text-red-500">
-                It seems to be an error searching your music
-            </label>
-        );
-    }
-
-    if ($searching) {
-    }
-
-    if (!$searchQuery) {
-        return (
-            <section className="flex flex-col items-center justify-center px-7 py-36 text-center text-white md:pl-12">
-                <h2 className="text-2xl font-bold md:text-3xl">
-                    {lang.search_empty1}
-                </h2>
-                <p className="mt-10 text-lg md:mt-2 md:text-xl">
-                    {lang.search_empty2}
-                </p>
-                <Image
-                    width={144}
-                    height={144}
-                    className="mt-10 w-36"
-                    src="/logo-banner.png"
-                    alt="Rockit Logo"
-                />
-            </section>
-        );
-    }
-
-    if ($searchResults?.spotifyResults) {
-        return (
-            <div className="overflow-y-auto pt-0 md:pt-24">
-                <SongsSection
-                    spotifySongs={$searchResults.spotifyResults.songs}
-                />
-                <AlbumsSection
-                    spotifyAlbums={$searchResults.spotifyResults.albums}
-                />
-            </div>
-        );
-    }
-
-    return;
 }
 
 export default function Search() {
-    const { langFile: lang } = useLanguage();
-
-    if (typeof window !== "undefined" && !window.navigator.onLine) {
-        return <div>You are offline</div>;
-    }
-
-    if (!lang) return false;
-
     return (
         <>
             <section className="mt-20 block h-28 px-5 md:hidden">
                 <SearchBarInput />
             </section>
-            <Results />
+            <SearchResults />
         </>
     );
 }

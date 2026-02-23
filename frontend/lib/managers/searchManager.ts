@@ -24,19 +24,11 @@ export class SearchManager {
     private _searchingAtom = createAtom<boolean>(false);
     private _searchResultsAtom = createAtom<SearchResults | undefined>();
 
-    // #endregion: Atoms
-
-    // #region: Constructor
-
-    constructor() {}
-
     // #endregion
 
     // #region: Methods
 
     search(query: string) {
-        // `/api/radio/stations/${by}/${searchTerm}?limit=10&offset=0`
-
         this._searchQueryAtom.set(query);
         this._searchingAtom.set(true);
 
@@ -52,18 +44,17 @@ export class SearchManager {
                     const results = SearchResultsResponse.parse(json);
                     this._searchResultsAtom.set({
                         spotifyResults: {
-                            albums: results.spotifyResults.albums.map((album) =>
-                                RockItAlbumWithoutSongs.fromResponse(album)
-                            ),
                             songs: results.spotifyResults.songs.map((song) =>
                                 RockItSongWithAlbum.fromResponse(song)
                             ),
-                            artists: results.spotifyResults.artists.map(
-                                (artist) => RockItArtist.fromResponse(artist)
+                            albums: results.spotifyResults.albums.map((album) =>
+                                RockItAlbumWithoutSongs.fromResponse(album)
                             ),
-                            playlists: results.spotifyResults.playlists.map(
-                                (playlist) =>
-                                    RockItPlaylist.fromResponse(playlist)
+                            artists: results.spotifyResults.artists.map((artist) =>
+                                RockItArtist.fromResponse(artist)
+                            ),
+                            playlists: results.spotifyResults.playlists.map((playlist) =>
+                                RockItPlaylist.fromResponse(playlist)
                             ),
                         },
                     });
@@ -74,6 +65,12 @@ export class SearchManager {
                 }
             });
         });
+    }
+
+    clearResults() {
+        this._searchQueryAtom.set("");
+        this._searchResultsAtom.set(undefined);
+        this._searchingAtom.set(false);
     }
 
     // #endregion
@@ -92,5 +89,5 @@ export class SearchManager {
         return this._searchingAtom;
     }
 
-    // #endregion: Getters
+    // #endregion
 }

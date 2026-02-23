@@ -1,12 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import pkg from "lodash";
-
-import { rockIt } from "@/lib/rockit/rockIt";
+import debounce from "lodash/debounce";
+import type { DebouncedFunc } from "lodash";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { usePathname, useRouter } from "next/navigation";
-const { debounce } = pkg;
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function SearchBarInput() {
     const [value, setValue] = useState("");
@@ -14,16 +13,17 @@ export default function SearchBarInput() {
     const pathname = usePathname();
     const router = useRouter();
 
-    const searchDebounce =
-        useRef<pkg.DebouncedFunc<(query: string) => void>>(null);
+    const searchDebounce = useRef<DebouncedFunc<(q: string) => void> | null>(null);
 
     useEffect(() => {
         searchDebounce.current = debounce((query: string) => {
             rockIt.searchManager.search(query);
-        }, 1000);
+        }, 300);
+
+        return () => searchDebounce.current?.cancel();
     }, []);
 
-    if (!lang) return false;
+    if (!lang) return null;
 
     return (
         <input
@@ -31,16 +31,20 @@ export default function SearchBarInput() {
             id="search-bar"
             value={value}
             onChange={(e) => {
-                setValue(e.target.value);
-                if (searchDebounce.current)
-                    searchDebounce.current(e.target.value);
-            }}
-            onClick={() => {
-                if (pathname != "/search") {
-                    router.push("/search");
+                const query = e.target.value;
+                setValue(query);
+
+                if (query === "") {
+                    searchDebounce.current?.cancel();
+                    rockIt.searchManager.clearResults();
+                } else {
+                    searchDebounce.current?.(query);
                 }
             }}
-            className="text-1xl relative top-1/2 z-10 mx-auto block h-10 w-full -translate-y-1/2 rounded-full bg-neutral-900 px-10 font-semibold shadow focus:outline-0 md:z-50"
+            onClick={() => {
+                if (pathname !== "/search") router.push("/search");
+            }}
+            className="relative top-1/2 z-10 mx-auto block h-10 w-full -translate-y-1/2 rounded-full bg-neutral-900 px-10 text-base font-semibold shadow focus:outline-0 md:z-50"
             style={{
                 backgroundImage: "url(/search-icon.png)",
                 backgroundPosition: "15px center",
@@ -48,7 +52,6 @@ export default function SearchBarInput() {
                 backgroundRepeat: "no-repeat",
             }}
             placeholder={lang.search_bar}
-            suppressHydrationWarning
         />
     );
 }

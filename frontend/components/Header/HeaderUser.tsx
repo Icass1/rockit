@@ -5,12 +5,13 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
+
 import {
     PopupMenu,
     PopupMenuContent,
     PopupMenuOption,
     PopupMenuTrigger,
-} from "@/components/PopupMenu/PopupMenu";
+} from "@/components/PopupMenu";
 
 export default function HeaderUser() {
     const router = useRouter();
@@ -24,25 +25,28 @@ export default function HeaderUser() {
         <PopupMenu>
             <PopupMenuTrigger>
                 <div className="relative grid grid-cols-[1fr_40px] items-center gap-x-2 rounded-lg p-2 transition md:hover:cursor-pointer md:hover:bg-[#272727]">
-                    <span className="w-full min-w-0 max-w-full truncate text-sm font-medium">
+                    <span className="w-full min-w-0 truncate text-sm font-medium">
                         {$user.username}
                     </span>
+
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-neutral-400">
                         <Image
                             width={40}
                             height={40}
                             src={$user.image}
                             alt={`${$user.username}'s avatar`}
-                            className="h-full w-full select-none object-cover"
+                            className="h-full w-full object-cover"
                         />
                     </div>
                 </div>
             </PopupMenuTrigger>
+
             <PopupMenuContent>
                 <PopupMenuOption onClick={() => router.push("/settings")}>
                     <Settings className="h-5 w-5" />
                     <span>Settings</span>
                 </PopupMenuOption>
+
                 <PopupMenuOption onClick={handleLogOut}>
                     <LogOut className="h-5 w-5" />
                     <span>Log Out</span>

@@ -1,39 +1,19 @@
-import React, { RefObject, useRef, useState, type ReactNode } from "react";
-import PopupMenuOption from "@/components/PopupMenu/Option";
-import PopupMenuContent from "@/components/PopupMenu/Content";
-import PopupMenuTrigger from "@/components/PopupMenu/Trigger";
-import type PopupMenuProps from "./Props";
+"use client";
 
-function PopupMenu({ children }: { children: ReactNode[] }) {
-    const [_popupMenuOpen, _setPopupMenuOpen] = useState(false);
-    const [_popupMenuPos, _setPopupMenuPos] = useState<[number, number]>([
-        0, 0,
-    ]);
+import { useRef, useState, type ReactNode } from "react";
+import { PopupMenuContext } from "./context";
 
-    const _popupMenuContentRef = useRef<HTMLDivElement>(
-        null
-    ) as RefObject<HTMLDivElement>;
-    const _popupMenuTriggerRef = useRef<HTMLDivElement>(
-        null
-    ) as RefObject<HTMLDivElement>;
+export default function PopupMenu({ children }: { children: ReactNode }) {
+    const [open, setOpen] = useState(false);
+    const [pos, setPos] = useState<[number, number]>([0, 0]);
+    const contentRef = useRef<HTMLDivElement>(null) as React.RefObject<HTMLDivElement>;
+    const triggerRef = useRef<HTMLDivElement>(null) as React.RefObject<HTMLDivElement>;
 
-    const childrenWithProps = React.Children.map(children, (child) => {
-        if (React.isValidElement(child)) {
-            const props: PopupMenuProps = {
-                _popupMenuOpen,
-                _setPopupMenuOpen,
-                _popupMenuPos,
-                _setPopupMenuPos,
-                _popupMenuContentRef,
-                _popupMenuTriggerRef,
-            };
-
-            return React.cloneElement(child, props);
-        }
-        return child;
-    });
-
-    return childrenWithProps;
+    return (
+        <PopupMenuContext.Provider
+            value={{ open, setOpen, pos, setPos, contentRef, triggerRef }}
+        >
+            {children}
+        </PopupMenuContext.Provider>
+    );
 }
-
-export { PopupMenu, PopupMenuContent, PopupMenuOption, PopupMenuTrigger };

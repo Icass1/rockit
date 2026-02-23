@@ -1,126 +1,114 @@
+"use client";
+
 import type { ReactNode } from "react";
-import PosAfterRenderDiv from "@/components/PosAfterRenderDiv";
-import React, { useEffect, useState } from "react";
-import type PopupMenuProps from "./Props";
 import { createPortal } from "react-dom";
+import { usePopupMenu } from "./context";
+import PosAfterRenderDiv from "@/components/PosAfterRenderDiv";
 
-export default function PopupMenuContent({
-    children,
-    _popupMenuOpen,
-    _setPopupMenuOpen,
-    _popupMenuPos,
-    _setPopupMenuPos,
-    _popupMenuContentRef,
-    _popupMenuTriggerRef,
-}: PopupMenuProps & { children?: ReactNode }) {
-    const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(
-        null
-    );
+// Margen de seguridad respecto al footer (96px) y bordes
+const FOOTER_HEIGHT = 96;
+const EDGE_MARGIN = 4;
 
-    useEffect(() => {
-        let portalDiv = document.querySelector("#popup-menu-portal");
-        if (portalDiv) {
-            setPortalContainer(portalDiv as HTMLElement);
-            return;
-        }
+function calcPosition(
+    pos: [number, number],
+    width: number,
+    height: number,
+    triggerRect: DOMRect | undefined,
+    attempt = 1
+): [number, number] {
+    let [x, y] = pos;
 
-        portalDiv = document.createElement("div");
-        portalDiv.id = "popup-menu-portal";
-        document.body.appendChild(portalDiv);
-        setPortalContainer(portalDiv as HTMLElement);
-    }, []);
+    if (y + height > document.body.offsetHeight - FOOTER_HEIGHT) {
+        y = document.body.offsetHeight - FOOTER_HEIGHT - height - EDGE_MARGIN;
+    }
 
-    if (!portalContainer) return null;
+    if (x + width > document.body.offsetWidth) {
+        x = document.body.offsetWidth - EDGE_MARGIN - width;
+    }
 
-    if (!children) return;
+    if (triggerRect) {
+        const overlapsX = x + width > triggerRect.x && x < triggerRect.x + triggerRect.width;
+        const overlapsY = y + height > triggerRect.y && y < triggerRect.y + triggerRect.height;
 
-    const updatePos = (
-        _popupMenuPos: [number, number],
-        width: number,
-        height: number,
-        n = 1
-    ) => {
-        const tempPos = [..._popupMenuPos] as [number, number];
-
-        if (
-            height &&
-            _popupMenuPos[1] + height > document.body.offsetHeight - 96
-        ) {
-            tempPos[1] = document.body.offsetHeight - 100 - height;
-        }
-
-        if (width && _popupMenuPos[0] + width > document.body.offsetWidth) {
-            tempPos[0] = document.body.offsetWidth - 4 - width;
-        }
-
-        const triggerBoundaries =
-            _popupMenuTriggerRef?.current?.getBoundingClientRect();
-        if (!triggerBoundaries) return tempPos;
-
-        // Check if trigger and container intersect
-        if (
-            tempPos[0] + width > triggerBoundaries.x &&
-            tempPos[0] < triggerBoundaries.x + triggerBoundaries.width &&
-            tempPos[1] + height > triggerBoundaries.y &&
-            tempPos[1] < triggerBoundaries.y + triggerBoundaries.height
-        ) {
-            if (n == 1) {
-                tempPos[0] = triggerBoundaries.x;
-                tempPos[1] =
-                    triggerBoundaries.y + triggerBoundaries.height + 10;
-            } else if (n == 2) {
-                tempPos[0] = triggerBoundaries.x - width - 10;
-                tempPos[1] = triggerBoundaries.y;
-            } else {
-                console.warn("Could not find a suitable position for the menu");
-                return tempPos;
+        if (overlapsX && overlapsY) {
+            if (attempt === 1) {
+                return calcPosition(
+                    [triggerRect.x, triggerRect.y + triggerRect.height + 10],
+                    width,
+                    height,
+                    triggerRect,
+                    2
+                );
+            } else if (attempt === 2) {
+                return calcPosition(
+                    [triggerRect.x - width - 10, triggerRect.y],
+                    width,
+                    height,
+                    triggerRect,
+                    3
+                );
             }
-            updatePos(tempPos, width, height, n + 1);
         }
+    }
 
-        return tempPos;
-    };
+    return [x, y];
+}
 
-    const childrenWithProps = React.Children.map(children, (child) => {
-        if (React.isValidElement(child)) {
-            const props: PopupMenuProps = {
-                _popupMenuOpen,
-                _setPopupMenuOpen,
-                _popupMenuPos,
-                _setPopupMenuPos,
-                _popupMenuContentRef,
-                _popupMenuTriggerRef,
-            };
+// Portal singleton (module-level). Solo para entorno cliente.
+let portalSingleton: HTMLElement | null = null;
+function getOrCreatePortalClient(): HTMLElement | null {
+    if (typeof document === "undefined") return null;
+    if (portalSingleton) return portalSingleton;
 
-            return React.cloneElement(child, props);
-        }
-        return child;
-    });
+    const existing = document.getElementById("popup-menu-portal");
+    if (existing) {
+        portalSingleton = existing;
+        return existing;
+    }
 
-    if (!_popupMenuPos) return;
-    if (_popupMenuPos[0] == 0 && _popupMenuPos[1] == 0) return;
+    const div = document.createElement("div");
+    div.id = "popup-menu-portal";
+    document.body.appendChild(div);
+    portalSingleton = div;
+    return div;
+}
 
-    if (!portalContainer) return null;
+export default function PopupMenuContent({ children }: { children?: ReactNode }) {
+    const { open, setOpen, pos, contentRef, triggerRef } = usePopupMenu();
+
+    // Safety: this component is client-only (`"use client"`), pero reafirmamos.
+    if (typeof window === "undefined") return null;
+
+    // Obtener portal (module-level singleton). NO es un ref y NO leemos ref.current.
+    const portal = getOrCreatePortalClient();
+    if (!portal || !children) return null;
+
+    const isMobile = window.innerWidth < 768;
+    const isValidPos = pos[0] !== 0 || pos[1] !== 0;
+    if (!isMobile && !isValidPos) return null;
+
+    // Nota: triggerRef.current solo se accede cuando handleDimensions se ejecuta
+    // (PosAfterRenderDiv lo llamará después del render), por lo que NO leemos refs aquí.
+    const handleDimensions = isMobile
+        ? undefined
+        : (width: number, height: number) => {
+              const triggerRect = triggerRef.current?.getBoundingClientRect();
+              return calcPosition(pos, width, height, triggerRect);
+          };
 
     return createPortal(
         <PosAfterRenderDiv
-            divRef={_popupMenuContentRef}
-            onDimensionsCalculated={
-                innerWidth > 768
-                    ? (width, height) => updatePos(_popupMenuPos, width, height)
-                    : undefined
-            }
-            onClick={() => _setPopupMenuOpen && _setPopupMenuOpen(false)}
-            className="fixed top-0 left-0 z-50 h-[calc(100%_-_4rem)] w-full overflow-auto rounded-md bg-neutral-800/90 px-10 md:h-auto md:w-max md:p-1 md:shadow-[0px_0px_20px_3px_#0e0e0e]"
-            style={{
-                display: _popupMenuOpen ? "block" : "none",
-            }}
+            divRef={contentRef}
+            onDimensionsCalculated={handleDimensions}
+            onClick={() => setOpen(false)}
+            style={{ display: open ? "block" : "none" }}
+            className="fixed top-0 left-0 z-50 h-[calc(100%-4rem)] w-full overflow-auto rounded-md bg-neutral-800/90 px-10 md:h-auto md:w-max md:p-1 md:shadow-[0px_0px_20px_3px_#0e0e0e]"
         >
             <div className="flex h-full flex-col gap-y-1 overflow-y-auto py-20 md:py-0">
-                {childrenWithProps}
-                <div className="min-h-2 md:hidden"></div>
+                {children}
+                <div className="min-h-2 md:hidden" />
             </div>
         </PosAfterRenderDiv>,
-        portalContainer
+        portal
     );
 }

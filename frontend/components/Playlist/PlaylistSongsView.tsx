@@ -246,7 +246,7 @@ export default function PlaylistSongsView({
                     return (
                         <div
                             key={song.publicId + index}
-                            className="absolute right-0 left-0 h-[56px]"
+                            className="absolute right-0 left-0 h-14"
                             style={{ top: `${top}px` }}
                         >
                             <PlaylistSong song={song} />

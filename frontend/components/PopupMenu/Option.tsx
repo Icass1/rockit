@@ -1,38 +1,38 @@
+"use client";
+
 import type { MouseEventHandler, ReactNode } from "react";
-import type PopupMenuProps from "./Props";
+import { usePopupMenu } from "./context";
 
 export default function PopupMenuOption({
     children,
     onClick,
     closeOnClick = true,
-    disable = false,
-    _setPopupMenuOpen,
+    disabled = false,
     className,
-}: PopupMenuProps & {
+}: {
     children: ReactNode;
     onClick?: MouseEventHandler;
-    disable?: boolean;
+    disabled?: boolean;
     closeOnClick?: boolean;
     className?: string;
 }) {
+    const { setOpen } = usePopupMenu();
+
     return (
         <div
             onClick={(e) => {
-                if (disable) return;
+                if (disabled) return;
                 e.stopPropagation();
-                if (onClick) {
-                    onClick(e);
-                }
-                if (closeOnClick && _setPopupMenuOpen) {
-                    _setPopupMenuOpen(false);
-                }
+                onClick?.(e);
+                if (closeOnClick) setOpen(false);
             }}
-            className={
-                (className ?? "") +
-                " context-menu-option flex cursor-pointer flex-row items-center gap-2 rounded-sm p-2 text-sm font-semibold md:hover:bg-neutral-700" +
-                (className ?? "") +
-                (disable || !onClick ? " pointer-events-none opacity-50" : "")
-            }
+            className={[
+                "flex cursor-pointer flex-row items-center gap-2 rounded-sm p-2 text-sm font-semibold md:hover:bg-neutral-700",
+                disabled || !onClick ? "pointer-events-none opacity-50" : "",
+                className ?? "",
+            ]
+                .filter(Boolean)
+                .join(" ")}
         >
             {children}
         </div>

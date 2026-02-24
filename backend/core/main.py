@@ -17,7 +17,7 @@ os.environ["COLUMNS"] = "120"
 
 logger = getLogger(__name__)
 
-app = FastAPI()
+app = FastAPI(docs_url="/docs")
 
 app.add_middleware(
     CORSMiddleware,

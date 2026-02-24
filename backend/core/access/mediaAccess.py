@@ -1,7 +1,8 @@
 from typing import Tuple
 
-from sqlalchemy import Result, select
 from sqlalchemy.sql import Select
+from sqlalchemy import Result, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.utils.logger import getLogger
 
@@ -18,11 +19,11 @@ logger = getLogger(__name__)
 
 class MediaAccess:
     @staticmethod
-    async def get_song_from_public_id_async(public_id: str) -> AResult[CoreSongRow]:
+    async def get_song_from_public_id_async(public_id: str, session: AsyncSession | None = None) -> AResult[CoreSongRow]:
         """Get a CoreSongRow by public_id."""
 
         try:
-            async with rockit_db.session_scope_async() as s:
+            async with rockit_db.session_scope_or_session_async(session) as s:
                 stmt: Select[Tuple[CoreSongRow]] = select(CoreSongRow).where(
                     CoreSongRow.public_id == public_id)
                 result = await s.execute(stmt)
@@ -39,11 +40,11 @@ class MediaAccess:
             return AResult(code=AResultCode.GENERAL_ERROR, message="Error getting song")
 
     @staticmethod
-    async def get_song_from_id_async(id: int) -> AResult[CoreSongRow]:
+    async def get_song_from_id_async(id: int, session: AsyncSession | None = None) -> AResult[CoreSongRow]:
         """Get a CoreSongRow by id."""
 
         try:
-            async with rockit_db.session_scope_async() as s:
+            async with rockit_db.session_scope_or_session_async(session) as s:
                 stmt: Select[Tuple[CoreSongRow]] = select(CoreSongRow).where(
                     CoreSongRow.id == id)
                 result: Result[Tuple[CoreSongRow]] = await s.execute(stmt)
@@ -60,11 +61,11 @@ class MediaAccess:
             return AResult(code=AResultCode.GENERAL_ERROR, message="Error getting song")
 
     @staticmethod
-    async def get_album_from_public_id_async(public_id: str) -> AResult[CoreAlbumRow]:
+    async def get_album_from_public_id_async(public_id: str, session: AsyncSession | None = None) -> AResult[CoreAlbumRow]:
         """Get a CoreAlbumRow by public_id."""
 
         try:
-            async with rockit_db.session_scope_async() as s:
+            async with rockit_db.session_scope_or_session_async(session) as s:
                 stmt: Select[Tuple[CoreAlbumRow]] = select(CoreAlbumRow).where(
                     CoreAlbumRow.public_id == public_id)
                 result = await s.execute(stmt)
@@ -81,11 +82,11 @@ class MediaAccess:
             return AResult(code=AResultCode.GENERAL_ERROR, message="Error getting album")
 
     @staticmethod
-    async def get_album_from_id_async(id: int) -> AResult[CoreAlbumRow]:
+    async def get_album_from_id_async(id: int, session: AsyncSession | None = None) -> AResult[CoreAlbumRow]:
         """Get a CoreAlbumRow by id."""
 
         try:
-            async with rockit_db.session_scope_async() as s:
+            async with rockit_db.session_scope_or_session_async(session) as s:
                 stmt: Select[Tuple[CoreAlbumRow]] = select(CoreAlbumRow).where(
                     CoreAlbumRow.id == id)
                 result: Result[Tuple[CoreAlbumRow]] = await s.execute(stmt)
@@ -102,11 +103,11 @@ class MediaAccess:
             return AResult(code=AResultCode.GENERAL_ERROR, message="Error getting album")
 
     @staticmethod
-    async def get_artist_from_public_id_async(public_id: str) -> AResult[CoreArtistRow]:
+    async def get_artist_from_public_id_async(public_id: str, session: AsyncSession | None = None) -> AResult[CoreArtistRow]:
         """Get a CoreArtistRow by public_id."""
 
         try:
-            async with rockit_db.session_scope_async() as s:
+            async with rockit_db.session_scope_or_session_async(session) as s:
                 stmt: Select[Tuple[CoreArtistRow]] = select(CoreArtistRow).where(
                     CoreArtistRow.public_id == public_id)
                 result = await s.execute(stmt)
@@ -123,11 +124,11 @@ class MediaAccess:
             return AResult(code=AResultCode.GENERAL_ERROR, message="Error getting artist")
 
     @staticmethod
-    async def get_playlist_from_public_id_async(public_id: str) -> AResult[CorePlaylistRow]:
+    async def get_playlist_from_public_id_async(public_id: str, session: AsyncSession | None = None) -> AResult[CorePlaylistRow]:
         """Get a CorePlaylistRow by public_id."""
 
         try:
-            async with rockit_db.session_scope_async() as s:
+            async with rockit_db.session_scope_or_session_async(session) as s:
                 stmt: Select[Tuple[CorePlaylistRow]] = select(CorePlaylistRow).where(
                     CorePlaylistRow.public_id == public_id)
                 result = await s.execute(stmt)

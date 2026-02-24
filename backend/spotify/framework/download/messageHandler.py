@@ -2,6 +2,7 @@
 
 import asyncio
 from typing import Any, List
+from backend.core.access.downloadAccess import DownloadAccess
 from backend.utils.logger import getLogger
 
 
@@ -35,10 +36,13 @@ class MessageHandlderReader:
 
 
 class MessageHandler:
-    def __init__(self) -> None:
+    def __init__(self, download_id: int, loop: asyncio.AbstractEventLoop) -> None:
         self._messages: List[Any] = []
 
+        self._download_id: int = download_id
+
         self._end = False
+        self._loop = loop
 
     def get_messages(self):
         return self._messages
@@ -50,9 +54,17 @@ class MessageHandler:
         return MessageHandlderReader(handler=self)
 
     def add(self, message: Any, force: bool = False) -> None:
-        # if completed is 100, do not add it. after the song has been moeved and updated in database, completed: 100 will be send.
+        completed: float = message['completed']
+        status: str = message['message']
 
-        logger.info(f"add {message} {force}")
+        async def _save_status():
+            await DownloadAccess.create_download_status(
+                download_id=self._download_id,
+                completed=completed,
+                message=status
+            )
+
+        asyncio.run_coroutine_threadsafe(_save_status(), self._loop)
 
     def finish(self) -> None:
         self._end = True

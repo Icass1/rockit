@@ -35,9 +35,9 @@ class Downloader:
 
         async with rockit_db.session_scope_async() as session:
             a_result_group: AResult[DownloadGroupRow] = await DownloadAccess.create_download_group(
+                session=session,
                 user_id=user_id,
                 title=title,
-                session=session,
             )
             if a_result_group.is_not_ok():
                 logger.error(f"Error creating download group. {a_result_group.info()}")
@@ -62,9 +62,9 @@ class Downloader:
                     continue
 
                 a_result_download: AResult[DownloadRow] = await DownloadAccess.create_download(
+                    session=session,
                     download_group_id=group.id,
                     song_id=song.id,
-                    session=session,
                 )
                 if a_result_download.is_not_ok():
                     logger.error(f"Error creating download row for {public_id}. {a_result_download.info()}")
@@ -85,5 +85,5 @@ class Downloader:
         return AResult(
             code=AResultCode.OK,
             message="OK",
-            result=StartDownloadResponse(downloadId=group.public_id),
+            result=StartDownloadResponse(downloadGroupId=group.public_id),
         )

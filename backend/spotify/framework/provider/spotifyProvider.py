@@ -100,7 +100,7 @@ class SpotifyProvider(BaseProvider):
     async def start_download_async(self, public_id: str, download_id: int) -> AResult[BaseDownload]:
         """Create a SpotifyDownload for the given track public_id."""
 
-        a_result: AResult[TrackRow] = await SpotifyAccess.get_track_public_id_async(public_id)
+        a_result: AResult[TrackRow] = await SpotifyAccess.get_track_spotfy_id_async(public_id)
         if a_result.is_not_ok():
             logger.error(f"Error getting track for download. {a_result.info()}")
             return AResult(code=a_result.code(), message=a_result.message())

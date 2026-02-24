@@ -1,20 +1,26 @@
-DELETE FROM spotify.album;
-DELETE FROM spotify.album_artist;
-DELETE FROM spotify.album_copyright;
-DELETE FROM spotify.album_external_image;
-DELETE FROM spotify.artist;
-DELETE FROM spotify.artist_external_image;
-DELETE FROM spotify.artist_genre;
-DELETE FROM spotify.copyright;
-DELETE FROM spotify.copyright_type_enum;
-DELETE FROM spotify.download;
-DELETE FROM spotify.download_status_enum;
-DELETE FROM spotify.download_status;
-DELETE FROM spotify.external_image;
-DELETE FROM spotify.genre;
-DELETE FROM spotify.internal_image;
-DELETE FROM spotify.playlist;
-DELETE FROM spotify.playlist_external_image;
-DELETE FROM spotify.playlist_track;
-DELETE FROM spotify.track;
-DELETE FROM spotify.track_artist;
+SET session_replication_role = 'replica';
+
+TRUNCATE TABLE
+    spotify.album,
+    spotify.album_artist,
+    spotify.album_copyright,
+    spotify.album_external_image,
+    spotify.artist,
+    spotify.artist_external_image,
+    spotify.artist_genre,
+    spotify.copyright,
+    spotify.copyright_type_enum,
+    spotify.download,
+    spotify.download_status_enum,
+    spotify.download_status,
+    spotify.external_image,
+    spotify.genre,
+    spotify.internal_image,
+    spotify.playlist,
+    spotify.playlist_external_image,
+    spotify.playlist_track,
+    spotify.track,
+    spotify.track_artist
+RESTART IDENTITY CASCADE;
+
+SET session_replication_role = 'origin';

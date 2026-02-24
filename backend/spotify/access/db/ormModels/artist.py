@@ -26,36 +26,45 @@ class ArtistRow(SpotifyBase, TableDateUpdated, TableDateAdded):
         Integer,
         ForeignKey('core.artist.id'),
         primary_key=True)
+    spotify_id: Mapped[str] = mapped_column(
+        String,
+        unique=True,
+        nullable=False)
     name: Mapped[str] = mapped_column(String, nullable=False)
     followers: Mapped[int] = mapped_column(Integer, nullable=False)
     popularity: Mapped[int] = mapped_column(Integer, nullable=False)
-    internal_image_id: Mapped[int | None] = mapped_column(Integer, ForeignKey(
-        'spotify.internal_image.id'), nullable=True)
+    internal_image_id: Mapped[int | None] = mapped_column(
+        Integer,
+        ForeignKey('spotify.internal_image.id'),
+        nullable=True)
 
-    songs: Mapped[List["TrackRow"]] = relationship("TrackRow", secondary=song_artists,
-                                                   back_populates="artists")
-    albums: Mapped[List["AlbumRow"]] = relationship("AlbumRow", secondary=album_artists,
-                                                    back_populates="artists")
+    songs: Mapped[List["TrackRow"]] = relationship(
+        "TrackRow",
+        secondary=song_artists,
+        back_populates="artists")
+    albums: Mapped[List["AlbumRow"]] = relationship(
+        "AlbumRow",
+        secondary=album_artists,
+        back_populates="artists")
     internal_image: Mapped["InternalImageRow"] = relationship(
-        'InternalImageRow', back_populates='artists', foreign_keys=[internal_image_id])
-
+        'InternalImageRow',
+        back_populates='artists',
+        foreign_keys=[internal_image_id])
     genres: WriteOnlyMapped[List["GenreRow"]] = relationship(
         "GenreRow",
         secondary=artist_genres,
         back_populates="artists",
-        lazy="write_only"
-    )
-
+        lazy="write_only")
     external_images: WriteOnlyMapped[List["ExternalImageRow"]] = relationship(
         "ExternalImageRow",
         secondary=artist_external_images,
         back_populates="artists",
-        lazy="write_only"
-    )
+        lazy="write_only")
 
-    def __init__(self, id: int, name: str, followers: int, popularity: int, internal_image_id: int | None = None):
+    def __init__(self, id: int, spotify_id: str, name: str, followers: int, popularity: int, internal_image_id: int | None = None):
         kwargs: Dict[str, None | int | str] = {}
         kwargs['id'] = id
+        kwargs['spotify_id'] = spotify_id
         kwargs['name'] = name
         kwargs['followers'] = followers
         kwargs['popularity'] = popularity

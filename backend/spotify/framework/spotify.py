@@ -1,5 +1,8 @@
-from typing import Dict, List, Set, TYPE_CHECKING
+from typing import Dict, List, Set, TYPE_CHECKING, Tuple
 
+from backend.core.access.db.ormModels.song import CoreSongRow
+from backend.core.access.mediaAccess import MediaAccess
+from backend.spotify.responses.songResponse import SongResponse
 from backend.utils.logger import getLogger
 
 from backend.constants import BACKEND_URL
@@ -8,7 +11,6 @@ from backend.core.aResult import AResult, AResultCode
 from backend.core.access.db import rockit_db
 
 from backend.core.responses.searchResponse import BaseSearchItem
-from backend.core.responses.baseSongResponse import BaseSongResponse
 from backend.core.responses.baseAlbumResponse import BaseAlbumResponse
 from backend.core.responses.baseArtistResponse import BaseArtistResponse
 from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
@@ -94,19 +96,20 @@ class Spotify:
         return AResult(code=AResultCode.OK, message="OK", result=items)
 
     @staticmethod
-    async def get_album_async(id: str) -> AResult[BaseAlbumResponse]:
+    async def get_album_async(spotify_id: str) -> AResult[BaseAlbumResponse]:
         """Get an album by ID, fetching from Spotify API and populating the database if not found."""
 
         # Check DB.
-        a_result_album: AResult[AlbumRow] = await SpotifyAccess.get_album_public_id_async(id)
+        a_result_album: AResult[AlbumRow] = await SpotifyAccess.get_album_public_id_async(spotify_id=spotify_id)
         if a_result_album.is_ok():
             album_row: AlbumRow = a_result_album.result()
+            logger.critical("TODO")
             return AResult(
                 code=AResultCode.OK,
                 message="OK",
                 result=BaseAlbumResponse(
                     provider=Spotify.provider_name,
-                    publicId=id,
+                    publicId=spotify_id,
                     name=album_row.name))
 
         if a_result_album.code() != AResultCode.NOT_FOUND:
@@ -114,7 +117,7 @@ class Spotify:
             return AResult(code=a_result_album.code(), message=a_result_album.message())
 
         # Fetch album from Spotify API (cache-first internally).
-        a_result_api_albums: AResult[List[RawSpotifyApiAlbum]] = await spotify_api.get_albums_async([id])
+        a_result_api_albums: AResult[List[RawSpotifyApiAlbum]] = await spotify_api.get_albums_async([spotify_id])
         if a_result_api_albums.is_not_ok():
             logger.error("Error getting album from Spotify API.")
             return AResult(code=a_result_api_albums.code(), message=a_result_api_albums.message())
@@ -187,33 +190,46 @@ class Spotify:
                 code=AResultCode.GENERAL_ERROR,
                 message=f"Failed to populate album in DB: {e}")
 
+        logger.critical("TODO")
+
         return AResult(code=AResultCode.OK,
                        message="OK",
                        result=BaseAlbumResponse(
-                           provider=Spotify.provider_name, publicId=id,
+                           provider=Spotify.provider_name, publicId=spotify_id,
                            name=raw_album.name or ""))
 
     @staticmethod
-    async def get_track_async(id: str) -> AResult[BaseSongResponse]:
+    async def get_track_async(spotify_id: str) -> AResult[SongResponse]:
         """Get a track by ID, fetching from Spotify API and populating the database if not found."""
 
         # Check DB.
-        a_result_track: AResult[TrackRow] = await SpotifyAccess.get_track_public_id_async(id)
+        a_result_track: AResult[TrackRow] = await SpotifyAccess.get_track_spotfy_id_async(spotify_id=spotify_id)
         if a_result_track.is_ok():
             track_row: TrackRow = a_result_track.result()
+
+            a_result_core_song: AResult[CoreSongRow] = await MediaAccess.get_song_from_id_async(id=track_row.id)
+            if a_result_core_song.is_not_ok():
+                logger.error(
+                    f"Error getting core song for id {track_row.id}. {a_result_core_song.info()}")
+                return AResult(code=a_result_core_song.code(), message=a_result_core_song.message())
+
+            core_song: CoreSongRow = a_result_core_song.result()
+
             return AResult(
                 code=AResultCode.OK,
                 message="OK",
-                result=BaseSongResponse(
+                result=SongResponse(
                     provider=Spotify.provider_name,
-                    publicId=id,
+                    publicId=core_song.public_id,
+                    spotifyId=track_row.spotify_id,
                     name=track_row.name))
+
         if a_result_track.code() != AResultCode.NOT_FOUND:
             return AResult(code=a_result_track.code(), message=a_result_track.message())
 
         # Fetch track from Spotify API.
         a_result_api_tracks: AResult[List[RawSpotifyApiTrack]] = \
-            await spotify_api.get_tracks_async([id])
+            await spotify_api.get_tracks_async([spotify_id])
         if a_result_api_tracks.is_not_ok():
             return AResult(code=a_result_api_tracks.code(), message=a_result_api_tracks.message())
 
@@ -275,6 +291,7 @@ class Spotify:
                 f"Error getting provider id. {a_result_provider_id.info()}")
             return AResult(code=a_result_provider_id.code(), message=a_result_provider_id.message())
 
+        created_core_song: CoreSongRow | None = None
         provider_id: int = a_result_provider_id.result()
         try:
             async with rockit_db.session_scope_async() as session:
@@ -282,7 +299,7 @@ class Spotify:
                 for raw_artist in raw_artists:
                     if not raw_artist.id:
                         continue
-                    a = await SpotifyAccess.get_or_create_artist(raw_artist, session, provider_id)
+                    a = await SpotifyAccess.get_or_create_artist(raw=raw_artist, provider_id=provider_id, session=session)
                     if a.is_ok():
                         artist_map[raw_artist.id] = a.result()
 
@@ -297,42 +314,61 @@ class Spotify:
                 album_row: AlbumRow = a_result_album.result()
 
                 for t in raw_album_tracks:
-                    await SpotifyAccess.get_or_create_track(
+                    a_result_create_track: AResult[Tuple[TrackRow, CoreSongRow]] = await SpotifyAccess.get_or_create_track(
                         raw=t,
                         artist_map=artist_map,
                         album_row=album_row,
-                        session=session,
-                        provider_id=provider_id)
+                        provider_id=provider_id,
+                        session=session)
+
+                    if a_result_create_track.is_not_ok():
+                        logger.error(
+                            f"Error creating spotify track. {a_result_create_track.info()}")
+                        continue
+
+                    if t.id == spotify_id:
+                        created_core_song = a_result_create_track.result()[1]
 
         except Exception as e:
-            return AResult(code=AResultCode.GENERAL_ERROR,
-                           message=f"Failed to populate track in DB: {e}")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to populate track in DB: {e}")
+
+        if not created_core_song:
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"core_song is None")
 
         return AResult(
             code=AResultCode.OK,
             message="OK",
-            result=BaseSongResponse(
+            result=SongResponse(
                 provider=Spotify.provider_name,
-                publicId=id,
+                publicId=created_core_song.public_id,
+                spotifyId=spotify_id,
                 name=raw_track.name))
 
     @staticmethod
-    async def get_artist_async(id: str) -> AResult[BaseArtistResponse]:
+    async def get_artist_async(spotify_id: str) -> AResult[BaseArtistResponse]:
         """Get an artist by ID, fetching from Spotify API and populating the database if not found."""
 
         # Check DB.
-        a_result_artist: AResult[ArtistRow] = await SpotifyAccess.get_artist_public_id_async(id)
+        a_result_artist: AResult[ArtistRow] = await SpotifyAccess.get_artist_public_id_async(spotify_id=spotify_id)
         if a_result_artist.is_ok():
             artist_row = a_result_artist.result()
-            return AResult(code=AResultCode.OK, message="OK",
-                           result=BaseArtistResponse(publicId=id, provider=Spotify.provider_name,
-                                                     name=artist_row.name))
+            return AResult(
+                code=AResultCode.OK,
+                message="OK",
+                result=BaseArtistResponse(
+                    publicId=spotify_id,
+                    provider=Spotify.provider_name,
+                    name=artist_row.name))
         if a_result_artist.code() != AResultCode.NOT_FOUND:
             return AResult(code=a_result_artist.code(), message=a_result_artist.message())
 
         # Fetch from Spotify API.
         a_result_api_artists: AResult[List[RawSpotifyApiArtist]] = \
-            await spotify_api.get_artists_async([id])
+            await spotify_api.get_artists_async([spotify_id])
         if a_result_api_artists.is_not_ok():
             return AResult(code=a_result_api_artists.code(),
                            message=a_result_api_artists.message())
@@ -348,14 +384,14 @@ class Spotify:
 
         if a_result_provider_id.is_not_ok():
             logger.error(
-                f"Error getting provider id. {a_result_provider_id.info()}")
+                f"Error getting provider. {a_result_provider_id.info()}")
             return AResult(code=a_result_provider_id.code(), message=a_result_provider_id.message())
 
         provider_id = a_result_provider_id.result()
 
         try:
             async with rockit_db.session_scope_async() as session:
-                a = await SpotifyAccess.get_or_create_artist(raw_artist, session, provider_id)
+                a = await SpotifyAccess.get_or_create_artist(raw=raw_artist, provider_id=provider_id, session=session)
                 if a.is_not_ok():
                     return AResult(code=a.code(), message=a.message())
 
@@ -363,31 +399,33 @@ class Spotify:
             return AResult(code=AResultCode.GENERAL_ERROR,
                            message=f"Failed to populate artist in DB: {e}")
 
+        logger.critical("TODO")
         return AResult(code=AResultCode.OK, message="OK",
-                       result=BaseArtistResponse(publicId=id, provider=Spotify.provider_name,
+                       result=BaseArtistResponse(publicId=spotify_id, provider=Spotify.provider_name,
                                                  name=raw_artist.name or ""))
 
     @staticmethod
-    async def get_playlist_async(id: str) -> AResult[BasePlaylistResponse]:
+    async def get_playlist_async(spotify_id: str) -> AResult[BasePlaylistResponse]:
         """Get a playlist by ID, fetching from Spotify API and populating the database if not found."""
 
         # Check DB.
         from backend.spotify.access.db.ormModels.playlist import SpotifyPlaylistRow
-        a_result_playlist: AResult[SpotifyPlaylistRow] = await SpotifyAccess.get_playlist_public_id_async(id)
+        a_result_playlist: AResult[SpotifyPlaylistRow] = await SpotifyAccess.get_playlist_public_id_async(spotify_id=spotify_id)
         if a_result_playlist.is_ok():
             playlist_row: SpotifyPlaylistRow = a_result_playlist.result()
+            logger.critical("TODO")
             return AResult(
                 code=AResultCode.OK,
                 message="OK",
                 result=BasePlaylistResponse(
                     provider=Spotify.provider_name,
-                    publicId=id,
+                    publicId=spotify_id,
                     name=playlist_row.name))
         if a_result_playlist.code() != AResultCode.NOT_FOUND:
             return AResult(code=a_result_playlist.code(), message=a_result_playlist.message())
 
         # Fetch playlist from Spotify API.
-        a_result_api_playlist: AResult[RawSpotifyApiPlaylist] = await spotify_api.get_playlist_async(id)
+        a_result_api_playlist: AResult[RawSpotifyApiPlaylist] = await spotify_api.get_playlist_async(spotify_id)
         if a_result_api_playlist.is_not_ok():
             return AResult(code=a_result_api_playlist.code(),
                            message=a_result_api_playlist.message())
@@ -454,7 +492,7 @@ class Spotify:
                 for raw_artist in raw_artists:
                     if not raw_artist.id:
                         continue
-                    a: AResult[ArtistRow] = await SpotifyAccess.get_or_create_artist(raw_artist, session, provider_id)
+                    a: AResult[ArtistRow] = await SpotifyAccess.get_or_create_artist(raw=raw_artist, provider_id=provider_id, session=session)
                     if a.is_ok():
                         artist_map[raw_artist.id] = a.result()
 
@@ -480,14 +518,15 @@ class Spotify:
                     album_row: AlbumRow = album_row_map.get(album_id)
                     if album_row is None:
                         continue
-                    a_result_track: AResult[TrackRow] = await SpotifyAccess.get_or_create_track(
+                    a_result_track: AResult[Tuple[TrackRow, CoreSongRow]] = await SpotifyAccess.get_or_create_track(
                         raw=raw_track,
                         artist_map=artist_map,
                         album_row=album_row,
                         session=session,
                         provider_id=provider_id)
                     if a_result_track.is_ok():
-                        track_row_map[raw_track.id] = a_result_track.result()
+                        track_row_map[raw_track.id] = a_result_track.result()[
+                            0]
 
                 a_result_playlist = await SpotifyAccess.get_or_create_playlist(
                     raw=raw_playlist,
@@ -504,10 +543,11 @@ class Spotify:
                 code=AResultCode.GENERAL_ERROR,
                 message=f"Failed to populate playlist in DB: {e}")
 
+        logger.critical("TODO")
         return AResult(
             code=AResultCode.OK,
             message="OK",
             result=BasePlaylistResponse(
                 provider=Spotify.provider_name,
-                publicId=id,
+                publicId=spotify_id,
                 name=raw_playlist.name))

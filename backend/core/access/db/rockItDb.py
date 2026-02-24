@@ -177,6 +177,30 @@ class RockItDB:
         finally:
             await session.close()
 
+    @asynccontextmanager
+    async def session_scope_or_session_async(self, possible_session: AsyncSession | None) -> AsyncGenerator[AsyncSession, None]:
+        """Provide a transactional scope around async operations."""
+
+        if possible_session:
+            try:
+                yield possible_session
+            except Exception as e:
+                logger.error(f"Error executing query from a given session ({e}). Rolling back...")
+                await possible_session.rollback()
+                await possible_session.close()
+                raise e
+        else:
+            session: AsyncSession = self.get_session() 
+            try:
+                yield session
+                await session.commit()
+            except Exception as e:
+                logger.error(f"Error executing query ({e}). Rolling back...")
+                await session.rollback()
+                raise e
+            finally:
+                await session.close()
+
     async def execute_with_session(self, func: Callable[[AsyncSession], Awaitable[T]]) -> T:
         """Execute a function with an async session, auto-closing and rolling back on errors."""
         async with self.session_scope_async() as session:

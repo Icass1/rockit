@@ -600,8 +600,11 @@ def search_and_download(  # pylint: disable=R0911
         if song.download_url is None:
             display_progress_tracker.update("Getting download URL")
             download_url = self.search(song, display_progress_tracker)
+            song.download_url = download_url
         else:
             download_url = song.download_url
+
+        display_progress_tracker.update(f"Found download URL: {download_url}")
 
         # Initialize audio downloader
         audio_downloader: Union[AudioProvider, Piped]
@@ -737,10 +740,6 @@ def search_and_download(  # pylint: disable=R0911
             )
 
         download_info["filepath"] = str(output_file)
-
-        # Set the song's download url
-        if song.download_url is None:
-            song.download_url = download_url
 
         display_progress_tracker.notify_conversion_complete()
 

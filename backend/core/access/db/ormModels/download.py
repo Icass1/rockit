@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Dict
+from typing import TYPE_CHECKING, Dict, List
 
 from sqlalchemy import DOUBLE_PRECISION, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -9,6 +9,7 @@ from backend.core.access.db.ormModels.declarativeMixin import (
 
 if TYPE_CHECKING:
     from backend.core.access.db.ormModels.downloadGroup import DownloadGroupRow
+    from backend.core.access.db.ormModels.downloadStatus import DownloadStatusRow
 
 
 class DownloadRow(CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdded):
@@ -29,7 +30,14 @@ class DownloadRow(CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdd
         DOUBLE_PRECISION, nullable=False, default=0.0)
 
     download_group: Mapped["DownloadGroupRow"] = relationship(
-        "DownloadGroupRow", back_populates="downloads")
+        "DownloadGroupRow",
+        back_populates="downloads")
+
+    download_status_list: Mapped[List["DownloadStatusRow"]] = relationship(
+        "DownloadStatusRow",
+        back_populates="download",
+        order_by="DownloadStatusRow.id"
+    )
 
     def __init__(self, download_group_id: int, song_id: int, status_key: int = 1, message: str | None = None, completed: float = 0.0):
         kwargs: Dict[str, None | float | int | str] = {}

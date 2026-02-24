@@ -39,8 +39,8 @@ class ProgressHandler:
         refresh: bool = False,
         **fields: Any,
     ):
-        logger.info({'id': task_id, 'completed': completed,
-                    'message': fields['message']})
+        # logger.info({'id': task_id, 'completed': completed,
+        #             'message': fields['message']})
         self.downloads_dict[task_id].add(
             message={'id': task_id, 'completed': completed, 'message': fields['message']})
 

@@ -61,7 +61,6 @@ class SpotDL:
 
         core_album: CoreAlbumRow = a_result_core_album.result()
 
-        print("AAAAAAA")
         song = SpotdlSong(
             name=track_row.name,
             artists=[artist.name for artist in track_artists],
@@ -78,7 +77,7 @@ class SpotDL:
             date="date",
             track_number=1,
             tracks_count=1,
-            song_id=core_song.public_id,
+            song_id=track_row.spotify_id,
             explicit=False,
             publisher="publisher",
             url=f"https://open.spotify.com/track/{core_song.public_id}",

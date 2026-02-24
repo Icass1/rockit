@@ -1,6 +1,6 @@
 from typing import List, Tuple
-from sqlalchemy import Select, select
 from sqlalchemy.sql import Select
+from sqlalchemy import Select, select
 
 from backend.utils.logger import getLogger
 

@@ -25,6 +25,10 @@ class AlbumRow(SpotifyBase, TableDateUpdated, TableDateAdded):
         Integer,
         ForeignKey('core.album.id'),
         primary_key=True)
+    spotify_id: Mapped[str] = mapped_column(
+        String,
+        unique=True,
+        nullable=False)
     internal_image_id: Mapped[int] = mapped_column(
         Integer,
         ForeignKey("spotify.internal_image.id"),
@@ -63,9 +67,10 @@ class AlbumRow(SpotifyBase, TableDateUpdated, TableDateAdded):
         lazy="write_only"
     )
 
-    def __init__(self, id: int, internal_image_id: int, name: str, release_date: str, popularity: int, disc_count: int):
+    def __init__(self, id: int, spotify_id: str, internal_image_id: int, name: str, release_date: str, popularity: int, disc_count: int):
         kwargs: Dict[str, int | str] = {}
         kwargs['id'] = id
+        kwargs['spotify_id'] = spotify_id
         kwargs['internal_image_id'] = internal_image_id
         kwargs['name'] = name
         kwargs['release_date'] = release_date

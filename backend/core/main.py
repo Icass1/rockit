@@ -17,7 +17,7 @@ os.environ["COLUMNS"] = "120"
 
 logger = getLogger(__name__)
 
-app = FastAPI(docs_url="/docs")
+app = FastAPI(title="RockIt!", summary="The best music player in the world.", version="0.0.1", docs_url="/docs")
 
 app.add_middleware(
     CORSMiddleware,

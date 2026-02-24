@@ -1,3 +1,5 @@
+from typing import List
+
 from argon2 import PasswordHasher
 from fastapi import Depends, APIRouter, HTTPException, Request
 from logging import Logger
@@ -14,6 +16,7 @@ from backend.core.middlewares.authMiddleware import AuthMiddleware
 from backend.core.responses.libraryListsResponse import LibraryListsResponse
 from backend.core.responses.queueResponse import QueueResponse
 from backend.core.responses.sessionResponse import SessionResponse
+from backend.core.responses.baseAlbumResponse import BaseAlbumResponse
 
 
 ph = PasswordHasher(
@@ -68,3 +71,24 @@ def get_queue(request: Request) -> QueueResponse:
 def get_library_lists(request: Request) -> LibraryListsResponse:
 
     return LibraryListsResponse(albums=[], playlists=[])
+
+
+@router.get(path="/library/albums")
+async def get_user_albums(request: Request) -> List[BaseAlbumResponse]:
+    """Get all albums in the user's library."""
+
+    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
+    if a_result_user.is_not_ok():
+        logger.error(f"Error getting current user. {a_result_user.info()}")
+        raise HTTPException(
+            status_code=a_result_user.get_http_code(), detail=a_result_user.message())
+
+    a_result_albums: AResult[List[BaseAlbumResponse]] = await User.get_user_albums(
+        user_id=a_result_user.result().id)
+
+    if a_result_albums.is_not_ok():
+        logger.error(f"Error getting user albums. {a_result_albums.info()}")
+        raise HTTPException(
+            status_code=a_result_albums.get_http_code(), detail=a_result_albums.message())
+
+    return a_result_albums.result()

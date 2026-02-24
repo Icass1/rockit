@@ -11,6 +11,7 @@ from backend.core.access.db.ormModels.playlist import CorePlaylistRow  # type: i
 from backend.core.access.db.ormModels.artist import CoreArtistRow  # type: ignore
 from backend.core.access.db.ormModels.album import CoreAlbumRow  # type: ignore
 from backend.core.access.db.ormModels.song import CoreSongRow  # type: ignore
+from backend.core.access.db.ormModels.user_album import UserAlbumRow  # type: ignore
 
 # ENUMS
 from backend.core.access.db.ormEnums.repeatSongEnum import RepeatSongEnumRow  # type: ignore

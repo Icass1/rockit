@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from backend.core.access.db.ormModels.error import ErrorRow
     from backend.core.access.db.ormModels.session import SessionRow
     from backend.core.access.db.ormEnums.repeatSongEnum import RepeatSongEnumRow
+    from backend.core.access.db.ormModels.user_album import UserAlbumRow
 
 
 class UserRow(CoreBase, TableAutoincrementId, TablePublicId, TableDateUpdated, TableDateAdded):
@@ -69,6 +70,8 @@ class UserRow(CoreBase, TableAutoincrementId, TablePublicId, TableDateUpdated, T
         "SessionRow", back_populates="user")
     errors: Mapped[List["ErrorRow"]] = relationship(
         "ErrorRow", back_populates="user")
+    user_albums: Mapped[List["UserAlbumRow"]] = relationship(
+        "UserAlbumRow", back_populates="user")
 
     def __init__(self, public_id: str, username: str | None, password_hash: str | None = None, provider: str | None = None, provider_account_id: str | None = None, current_station: str | None = None, current_time: float | None = None, queue_song_id: int | None = None, random_queue: bool = False, repeat_song_key: int = 1, volume: float = 1, cross_fade: float = 0, lang: str = "en", image: str | None = None, admin: bool = False, super_admin: bool = False):
         kwargs: Dict[str, None | bool | float | int | str] = {}

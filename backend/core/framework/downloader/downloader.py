@@ -14,7 +14,6 @@ from backend.core.access.db.ormModels.download import DownloadRow
 
 from backend.core.framework.provider.baseProvider import BaseProvider
 from backend.core.framework.providers.providers import Providers
-from backend.core.framework.media.media import Media
 from backend.core.framework.downloader import downloads_manager
 from backend.core.framework.downloader.baseDownload import BaseDownload
 
@@ -53,9 +52,8 @@ class Downloader:
                     continue
 
                 song: CoreSongRow = a_result_song.result()
-                provider: BaseProvider | None = Media.find_provider(
-                    provider_id=song.provider_id,
-                    providers=providers,
+                provider: BaseProvider | None = providers.find_provider(
+                    provider_id=song.provider_id
                 )
                 if provider is None:
                     logger.error(f"No provider found for song {public_id}.")

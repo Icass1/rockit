@@ -10,7 +10,7 @@ from backend.core.access.db.ormModels.declarativeMixin import TableDateAdded, Ta
 
 class CacheAlbumRow(SpotifyBase, TableDateUpdated, TableDateAdded):
     __tablename__ = 'cache_album'
-    __table_args__ = {'schema': 'spotify', 'extend_existing': True},
+    __table_args__ = {'schema': 'spotify_cache', 'extend_existing': True},
 
     id: Mapped[str] = mapped_column(String, primary_key=True)
     json: Mapped[Dict[str, Any]] = mapped_column(JSON, nullable=False)

@@ -13,7 +13,6 @@ if TYPE_CHECKING:
     from backend.spotify.access.db.ormModels.track import TrackRow
     from backend.spotify.access.db.ormModels.artist import ArtistRow
     from backend.spotify.access.db.ormModels.copyright import CopyrightRow
-    from backend.spotify.access.db.ormModels.internalImage import InternalImageRow
     from backend.spotify.access.db.ormModels.externalImage import ExternalImageRow
 
 
@@ -31,7 +30,7 @@ class AlbumRow(SpotifyBase, TableDateUpdated, TableDateAdded):
         nullable=False)
     internal_image_id: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("spotify.internal_image.id"),
+        ForeignKey("core.image.id"),
         nullable=False)
     name: Mapped[str] = mapped_column(String, nullable=False)
     release_date: Mapped[str] = mapped_column(String, nullable=False)
@@ -39,10 +38,6 @@ class AlbumRow(SpotifyBase, TableDateUpdated, TableDateAdded):
     disc_count: Mapped[int] = mapped_column(Integer, nullable=False)
 
     # ORM relationship
-    internal_image: Mapped["InternalImageRow"] = relationship(
-        "InternalImageRow",
-        back_populates="albums")
-
     songs: Mapped[List["TrackRow"]] = relationship(
         "TrackRow",
         back_populates="album")

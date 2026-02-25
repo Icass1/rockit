@@ -1,6 +1,8 @@
 from logging import Logger
 from typing import List
 
+from backend.spotify.responses.albumResponse import AlbumResponse
+from backend.spotify.responses.songResponse import SongResponse
 from backend.utils.logger import getLogger
 
 from backend.core.aResult import AResult, AResultCode
@@ -60,7 +62,7 @@ class SpotifyProvider(BaseProvider):
     async def get_song_async(self, public_id: str) -> AResult[BaseSongResponse]:
         """Get a Spotify track by public_id."""
 
-        a_result: AResult[BaseSongResponse] = await Spotify.get_track_async(public_id)
+        a_result: AResult[SongResponse] = await Spotify.get_track_async(public_id)
         if a_result.is_not_ok():
             logger.error(f"Error getting Spotify track. {a_result.info()}")
             return AResult(code=a_result.code(), message=a_result.message())
@@ -70,7 +72,14 @@ class SpotifyProvider(BaseProvider):
     async def get_album_async(self, public_id: str) -> AResult[BaseAlbumResponse]:
         """Get a Spotify album by public_id."""
 
-        a_result: AResult[BaseAlbumResponse] = await Spotify.get_album_async(public_id)
+        a_result_spotify_id: AResult[str] = await SpotifyAccess.get_spotify_id_from_public_id_async(public_id=public_id)
+        if a_result_spotify_id.is_not_ok():
+            logger.error(f"Error getting spotify_id from public_id. {a_result_spotify_id.info()}")
+            return AResult(code=a_result_spotify_id.code(), message=a_result_spotify_id.message())
+
+        spotify_id: str = a_result_spotify_id.result()
+
+        a_result: AResult[AlbumResponse] = await Spotify.get_album_async(spotify_id)
         if a_result.is_not_ok():
             logger.error(f"Error getting Spotify album. {a_result.info()}")
             return AResult(code=a_result.code(), message=a_result.message())
@@ -100,7 +109,7 @@ class SpotifyProvider(BaseProvider):
     async def start_download_async(self, public_id: str, download_id: int) -> AResult[BaseDownload]:
         """Create a SpotifyDownload for the given track public_id."""
 
-        a_result: AResult[TrackRow] = await SpotifyAccess.get_track_spotfy_id_async(public_id)
+        a_result: AResult[TrackRow] = await SpotifyAccess.get_track_spotify_id_async(spotify_id=public_id)
         if a_result.is_not_ok():
             logger.error(f"Error getting track for download. {a_result.info()}")
             return AResult(code=a_result.code(), message=a_result.message())

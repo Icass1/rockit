@@ -26,7 +26,8 @@ async def get_song(public_id: str) -> BaseSongResponse:
     """Get a song by its public_id."""
 
     a_result: AResult[BaseSongResponse] = await Media.get_song_async(
-        public_id=public_id, providers=providers)
+        public_id=public_id,
+        providers=providers)
     if a_result.is_not_ok():
         raise HTTPException(
             status_code=a_result.get_http_code(),
@@ -40,7 +41,8 @@ async def get_album(public_id: str) -> BaseAlbumResponse:
     """Get an album by its public_id."""
 
     a_result: AResult[BaseAlbumResponse] = await Media.get_album_async(
-        public_id=public_id, providers=providers)
+        public_id=public_id,
+        providers=providers)
     if a_result.is_not_ok():
         raise HTTPException(
             status_code=a_result.get_http_code(),
@@ -54,7 +56,8 @@ async def get_artist(public_id: str) -> BaseArtistResponse:
     """Get an artist by its public_id."""
 
     a_result: AResult[BaseArtistResponse] = await Media.get_artist_async(
-        public_id=public_id, providers=providers)
+        public_id=public_id,
+        providers=providers)
     if a_result.is_not_ok():
         raise HTTPException(
             status_code=a_result.get_http_code(),
@@ -68,7 +71,8 @@ async def get_playlist(public_id: str) -> BasePlaylistResponse:
     """Get a playlist by its public_id."""
 
     a_result: AResult[BasePlaylistResponse] = await Media.get_playlist_async(
-        public_id=public_id, providers=providers)
+        public_id=public_id,
+        providers=providers)
     if a_result.is_not_ok():
         raise HTTPException(
             status_code=a_result.get_http_code(),
@@ -82,7 +86,8 @@ async def search(q: str) -> List[ProviderSearchResponse]:
     """Search all providers and return aggregated results."""
 
     a_result: AResult[List[ProviderSearchResponse]] = await Media.search_async(
-        query=q, providers=providers)
+        query=q,
+        providers=providers)
     if a_result.is_not_ok():
         raise HTTPException(
             status_code=a_result.get_http_code(),

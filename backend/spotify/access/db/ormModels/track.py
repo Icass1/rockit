@@ -11,7 +11,6 @@ from backend.spotify.access.db.associationTables.song_artists import song_artist
 if TYPE_CHECKING:
     from backend.spotify.access.db.ormModels.album import AlbumRow
     from backend.spotify.access.db.ormModels.artist import ArtistRow
-    from backend.spotify.access.db.ormModels.internalImage import InternalImageRow
     from backend.spotify.access.db.ormModels.playlist_tracks import PlaylistTrackRow
 
 
@@ -33,7 +32,7 @@ class TrackRow(SpotifyBase, TableAutoincrementId, TableDateUpdated, TableDateAdd
     disc_number: Mapped[int] = mapped_column(Integer, nullable=False)
     popularity: Mapped[int | None] = mapped_column(Integer, nullable=True)
     internal_image_id: Mapped[int] = mapped_column(Integer, ForeignKey(
-        'spotify.internal_image.id'), nullable=False)
+        'core.image.id'), nullable=False)
     path: Mapped[str | None] = mapped_column(String, nullable=True)
     album_id: Mapped[int] = mapped_column(Integer, ForeignKey(
         'spotify.album.id'), nullable=False)
@@ -47,8 +46,6 @@ class TrackRow(SpotifyBase, TableAutoincrementId, TableDateUpdated, TableDateAdd
         "ArtistRow", secondary=song_artists, back_populates="songs",
         lazy="write_only")
 
-    internal_image: Mapped["InternalImageRow | None"] = relationship(
-        'InternalImageRow', back_populates='songs', foreign_keys=[internal_image_id])
     album: Mapped["AlbumRow"] = relationship(
         "AlbumRow", back_populates="songs")
 

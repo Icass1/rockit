@@ -1,9 +1,9 @@
-import uuid
 from logging import Logger
 from datetime import datetime, timezone
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from backend.utils.backendUtils import create_id
 from backend.utils.logger import getLogger
 
 from backend.core.aResult import AResult, AResultCode
@@ -28,7 +28,7 @@ class DownloadAccess:
         try:
             async with rockit_db.session_scope_or_session_async(possible_session=session) as session:
                 row: DownloadGroupRow = DownloadGroupRow(
-                    public_id=str(uuid.uuid4()),
+                    public_id=create_id(32),
                     user_id=user_id,
                     title=title,
                     date_started=datetime.now(timezone.utc),

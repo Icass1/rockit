@@ -1,17 +1,16 @@
 from typing import Dict, List, Set, TYPE_CHECKING, Tuple
 
-from backend.core.access.db.ormModels.song import CoreSongRow
-from backend.core.access.mediaAccess import MediaAccess
-from backend.spotify.responses.songResponse import SongResponse
-from backend.utils.logger import getLogger
-
 from backend.constants import BACKEND_URL
+from backend.spotify.responses.externalImageResponse import ExternalImageResponse
+from backend.utils.logger import getLogger
 from backend.core.aResult import AResult, AResultCode
 
 from backend.core.access.db import rockit_db
+from backend.core.access.db.ormModels.album import CoreAlbumRow
+from backend.core.access.db.ormModels.song import CoreSongRow
+from backend.core.access.mediaAccess import MediaAccess
 
 from backend.core.responses.searchResponse import BaseSearchItem
-from backend.core.responses.baseAlbumResponse import BaseAlbumResponse
 from backend.core.responses.baseArtistResponse import BaseArtistResponse
 from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
 
@@ -19,8 +18,12 @@ from backend.spotify.access.spotifyAccess import SpotifyAccess
 from backend.spotify.access.db.ormModels.album import AlbumRow
 from backend.spotify.access.db.ormModels.track import TrackRow
 from backend.spotify.access.db.ormModels.artist import ArtistRow
+from backend.spotify.access.db.ormModels.externalImage import ExternalImageRow
 
 from backend.spotify.framework.spotifyApi import spotify_api
+
+from backend.spotify.responses.songResponse import SongResponse
+from backend.spotify.responses.albumResponse import AlbumResponse
 
 from backend.spotify.spotifyApiTypes.rawSpotifyApiAlbum import RawSpotifyApiAlbum
 from backend.spotify.spotifyApiTypes.rawSpotifyApiTrack import RawSpotifyApiTrack
@@ -96,21 +99,80 @@ class Spotify:
         return AResult(code=AResultCode.OK, message="OK", result=items)
 
     @staticmethod
-    async def get_album_async(spotify_id: str) -> AResult[BaseAlbumResponse]:
+    async def get_album_async(spotify_id: str) -> AResult[AlbumResponse]:
         """Get an album by ID, fetching from Spotify API and populating the database if not found."""
 
-        # Check DB.
+        song_responses: List[SongResponse]
+
         a_result_album: AResult[AlbumRow] = await SpotifyAccess.get_album_public_id_async(spotify_id=spotify_id)
         if a_result_album.is_ok():
             album_row: AlbumRow = a_result_album.result()
-            logger.critical("TODO")
+
+            a_result_core_album: AResult[CoreAlbumRow] = await MediaAccess.get_album_from_id_async(id=album_row.id)
+            if a_result_core_album.is_not_ok():
+                logger.error(
+                    f"Error getting core album. {a_result_core_album.info()}")
+                return AResult(code=a_result_core_album.code(), message=a_result_core_album.message())
+
+            core_album: CoreAlbumRow = a_result_core_album.result()
+
+            a_result_artists: AResult[List[ArtistRow]] = await SpotifyAccess.get_artists_from_album_id_async(album_id=album_row.id)
+            artists: List[ArtistRow] = a_result_artists.result(
+            ) if a_result_artists.is_ok() else []
+
+            a_result_tracks: AResult[List[Tuple[TrackRow, CoreSongRow]]] = await SpotifyAccess.get_tracks_with_core_song_from_album_async(album_id=album_row.id)
+            tracks_with_core: List[Tuple[TrackRow, CoreSongRow]] = a_result_tracks.result(
+            ) if a_result_tracks.is_ok() else []
+
+            a_result_external_images: AResult[List[ExternalImageRow]] = await SpotifyAccess.get_external_images_from_album_id_async(album_id=album_row.id)
+            external_images: List[ExternalImageRow] = a_result_external_images.result(
+            ) if a_result_external_images.is_ok() else []
+
+            internal_image_url: str = ""
+            if album_row.internal_image:
+                internal_image_url = BACKEND_URL + "/" + album_row.internal_image.path
+
+            artist_responses: List[BaseArtistResponse] = [
+                BaseArtistResponse(
+                    provider=Spotify.provider_name,
+                    publicId=a.spotify_id,
+                    name=a.name
+                )
+                for a in artists
+            ]
+
+            song_responses = [
+                SongResponse(
+                    provider=Spotify.provider_name,
+                    publicId=core_song.public_id,
+                    name=track_row.name,
+                    spotifyId=track_row.spotify_id
+                )
+                for track_row, core_song in tracks_with_core
+            ]
+
+            external_image_responses: List[ExternalImageResponse] = [
+                ExternalImageResponse(
+                    url=img.url,
+                    width=img.width,
+                    height=img.height
+                )
+                for img in external_images
+            ]
+
             return AResult(
                 code=AResultCode.OK,
                 message="OK",
-                result=BaseAlbumResponse(
+                result=AlbumResponse(
                     provider=Spotify.provider_name,
-                    publicId=spotify_id,
-                    name=album_row.name))
+                    publicId=core_album.public_id,
+                    spotifyId=spotify_id,
+                    name=album_row.name,
+                    artists=artist_responses,
+                    songs=song_responses,
+                    releaseDate=album_row.release_date,
+                    externalImages=external_image_responses,
+                    internalImageUrl=internal_image_url))
 
         if a_result_album.code() != AResultCode.NOT_FOUND:
             logger.error("Error getting album from database.")
@@ -133,26 +195,27 @@ class Spotify:
         if raw_album.tracks and raw_album.tracks.items:
             track_ids = [item.id for item in raw_album.tracks.items if item.id]
 
-        a_result_tracks: AResult[List[RawSpotifyApiTrack]] = \
+        a_result_api_tracks: AResult[List[RawSpotifyApiTrack]] = \
             await spotify_api.get_tracks_async(track_ids)
-        raw_tracks = a_result_tracks.result() if a_result_tracks.is_ok() else []
+        api_tracks: List[RawSpotifyApiTrack] = a_result_api_tracks.result(
+        ) if a_result_api_tracks.is_ok() else []
 
         # Collect unique artist IDs.
-        artist_ids = list({
+        artist_ids: List[str] = list({
             a.id
             for a in (raw_album.artists or [])
             if a.id
         } | {
             a.id
-            for t in raw_tracks
+            for t in api_tracks
             for a in (t.artists or [])
             if a.id
         })
 
-        a_result_artists: AResult[List[RawSpotifyApiArtist]] = \
+        a_result_api_artists: AResult[List[RawSpotifyApiArtist]] = \
             await spotify_api.get_artists_async(artist_ids)
-        raw_artists: List[RawSpotifyApiArtist] = a_result_artists.result(
-        ) if a_result_artists.is_ok() else []
+        api_artists: List[RawSpotifyApiArtist] = a_result_api_artists.result(
+        ) if a_result_api_artists.is_ok() else []
 
         # Populate DB in a single session.
         a_result_provider_id: AResult[int] = Spotify.provider.get_id()
@@ -167,12 +230,12 @@ class Spotify:
         try:
             async with rockit_db.session_scope_async() as session:
                 artist_map: Dict[str, ArtistRow] = {}
-                for raw_artist in raw_artists:
+                for raw_artist in api_artists:
                     if not raw_artist.id:
                         continue
-                    a: AResult[ArtistRow] = await SpotifyAccess.get_or_create_artist(raw=raw_artist, session=session, provider_id=provider_id)
-                    if a.is_ok():
-                        artist_map[raw_artist.id] = a.result()
+                    a_result_create_artist: AResult[ArtistRow] = await SpotifyAccess.get_or_create_artist(raw=raw_artist, session=session, provider_id=provider_id)
+                    if a_result_create_artist.is_ok():
+                        artist_map[raw_artist.id] = a_result_create_artist.result()
 
                 a_album: AResult[AlbumRow] = await SpotifyAccess.get_or_create_album(
                     raw=raw_album, artist_map=artist_map, session=session, provider_id=provider_id)
@@ -181,7 +244,7 @@ class Spotify:
 
                 album_row = a_album.result()
 
-                for raw_track in raw_tracks:
+                for raw_track in api_tracks:
                     await SpotifyAccess.get_or_create_track(
                         raw=raw_track, artist_map=artist_map, album_row=album_row, session=session, provider_id=provider_id)
 
@@ -190,20 +253,78 @@ class Spotify:
                 code=AResultCode.GENERAL_ERROR,
                 message=f"Failed to populate album in DB: {e}")
 
-        logger.critical("TODO")
+        a_result_core_album: AResult[CoreAlbumRow] = await MediaAccess.get_album_from_id_async(id=album_row.id)
+        if a_result_core_album.is_not_ok():
+            logger.error(
+                f"Error getting core album. {a_result_core_album.info()}")
+            return AResult(code=a_result_core_album.code(), message=a_result_core_album.message())
 
-        return AResult(code=AResultCode.OK,
-                       message="OK",
-                       result=BaseAlbumResponse(
-                           provider=Spotify.provider_name, publicId=spotify_id,
-                           name=raw_album.name or ""))
+        core_album: CoreAlbumRow = a_result_core_album.result()
+
+        a_result_db_artists: AResult[List[ArtistRow]] = await SpotifyAccess.get_artists_from_album_id_async(album_id=album_row.id)
+        artists: List[ArtistRow] = a_result_db_artists.result(
+        ) if a_result_db_artists.is_ok() else []
+
+        a_result_db_tracks: AResult[List[Tuple[TrackRow, CoreSongRow]]] = await SpotifyAccess.get_tracks_with_core_song_from_album_async(album_id=album_row.id)
+        tracks_with_core: List[Tuple[TrackRow, CoreSongRow]] = a_result_db_tracks.result(
+        ) if a_result_db_tracks.is_ok() else []
+
+        a_result_external_images: AResult[List[ExternalImageRow]] = await SpotifyAccess.get_external_images_from_album_id_async(album_id=album_row.id)
+        external_images: List[ExternalImageRow] = a_result_external_images.result(
+        ) if a_result_external_images.is_ok() else []
+
+        internal_image_url: str = ""
+        if album_row.internal_image:
+            internal_image_url = BACKEND_URL + "/media-image" + "" + album_row.internal_image.path
+
+        artist_responses: List[BaseArtistResponse] = [
+            BaseArtistResponse(
+                provider=Spotify.provider_name,
+                publicId=a.spotify_id,
+                name=a.name
+            )
+            for a in artists
+        ]
+
+        song_responses = [
+            SongResponse(
+                provider=Spotify.provider_name,
+                publicId=core_song.public_id,
+                name=track_row.name,
+                spotifyId=track_row.spotify_id
+            )
+            for track_row, core_song in tracks_with_core
+        ]
+
+        external_image_responses: List[ExternalImageResponse] = [
+            ExternalImageResponse(
+                url=img.url,
+                width=img.width,
+                height=img.height
+            )
+            for img in external_images
+        ]
+
+        return AResult(
+            code=AResultCode.OK,
+            message="OK",
+            result=AlbumResponse(
+                provider=Spotify.provider_name,
+                publicId=core_album.public_id,
+                spotifyId=spotify_id,
+                name=raw_album.name or "",
+                artists=artist_responses,
+                songs=song_responses,
+                releaseDate=raw_album.release_date or "",
+                externalImages=external_image_responses,
+                internalImageUrl=internal_image_url))
 
     @staticmethod
     async def get_track_async(spotify_id: str) -> AResult[SongResponse]:
         """Get a track by ID, fetching from Spotify API and populating the database if not found."""
 
         # Check DB.
-        a_result_track: AResult[TrackRow] = await SpotifyAccess.get_track_spotfy_id_async(spotify_id=spotify_id)
+        a_result_track: AResult[TrackRow] = await SpotifyAccess.get_track_spotify_id_async(spotify_id=spotify_id)
         if a_result_track.is_ok():
             track_row: TrackRow = a_result_track.result()
 

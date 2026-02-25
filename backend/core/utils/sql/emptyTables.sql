@@ -8,7 +8,7 @@ TRUNCATE TABLE
     core.download_group,
     core.download,
     core.download_status,
-    core.error,
+    core.error
 RESTART IDENTITY CASCADE;
 
 SET session_replication_role = 'origin';

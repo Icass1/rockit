@@ -5,13 +5,13 @@ from backend.utils.logger import getLogger
 from backend.core.aResult import AResult
 from backend.core.middlewares.authMiddleware import AuthMiddleware
 
-from backend.core.responses.baseAlbumResponse import BaseAlbumResponse
 from backend.core.responses.baseArtistResponse import BaseArtistResponse
 from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
 
 from backend.spotify.framework.spotify import Spotify
 
 from backend.spotify.responses.songResponse import SongResponse
+from backend.spotify.responses.albumResponse import AlbumResponse
 
 
 logger: Logger = getLogger(name=__name__)
@@ -22,8 +22,8 @@ router = APIRouter(
 
 
 @router.get("/album/{spotify_id}")
-async def get_album_async(spotify_id: str) -> BaseAlbumResponse:
-    a_result_album: AResult[BaseAlbumResponse] = await Spotify.get_album_async(spotify_id=spotify_id)
+async def get_album_async(spotify_id: str) -> AlbumResponse:
+    a_result_album: AResult[AlbumResponse] = await Spotify.get_album_async(spotify_id=spotify_id)
     if a_result_album.is_not_ok():
         logger.error(f"Error getting album. {a_result_album.info()}")
         raise HTTPException(

@@ -14,7 +14,6 @@ if TYPE_CHECKING:
     from backend.spotify.access.db.ormModels.track import TrackRow
     from backend.spotify.access.db.ormModels.album import AlbumRow
     from backend.spotify.access.db.ormModels.genre import GenreRow
-    from backend.spotify.access.db.ormModels.internalImage import InternalImageRow
     from backend.spotify.access.db.ormModels.externalImage import ExternalImageRow
 
 
@@ -35,7 +34,7 @@ class ArtistRow(SpotifyBase, TableDateUpdated, TableDateAdded):
     popularity: Mapped[int] = mapped_column(Integer, nullable=False)
     internal_image_id: Mapped[int | None] = mapped_column(
         Integer,
-        ForeignKey('spotify.internal_image.id'),
+        ForeignKey('core.image.id'),
         nullable=True)
 
     songs: Mapped[List["TrackRow"]] = relationship(
@@ -46,10 +45,6 @@ class ArtistRow(SpotifyBase, TableDateUpdated, TableDateAdded):
         "AlbumRow",
         secondary=album_artists,
         back_populates="artists")
-    internal_image: Mapped["InternalImageRow"] = relationship(
-        'InternalImageRow',
-        back_populates='artists',
-        foreign_keys=[internal_image_id])
     genres: WriteOnlyMapped[List["GenreRow"]] = relationship(
         "GenreRow",
         secondary=artist_genres,

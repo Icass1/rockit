@@ -1,16 +1,14 @@
-from typing import List, TYPE_CHECKING, Dict
+from typing import List, Dict
 
 from sqlalchemy import String, ForeignKey, Text, Integer
 from sqlalchemy.orm import relationship, mapped_column, Mapped, WriteOnlyMapped
 
-from backend.spotify.access.db.base import SpotifyBase
 from backend.core.access.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdated
+
+from backend.spotify.access.db.base import SpotifyBase
 from backend.spotify.access.db.associationTables.playlist_external_images import playlist_external_images
 from backend.spotify.access.db.ormModels.playlist_tracks import PlaylistTrackRow
-
-if TYPE_CHECKING:
-    from backend.spotify.access.db.ormModels.internalImage import InternalImageRow
-    from backend.spotify.access.db.ormModels.externalImage import ExternalImageRow
+from backend.spotify.access.db.ormModels.externalImage import ExternalImageRow
 
 
 class SpotifyPlaylistRow(SpotifyBase, TableDateUpdated, TableDateAdded):
@@ -27,18 +25,15 @@ class SpotifyPlaylistRow(SpotifyBase, TableDateUpdated, TableDateAdded):
         nullable=False)
     internal_image_id: Mapped[int | None] = mapped_column(
         Integer,
-        ForeignKey('spotify.internal_image.id'),
+        ForeignKey('core.image.id'),
         nullable=True)
     name: Mapped[str] = mapped_column(String, nullable=False)
     owner: Mapped[str] = mapped_column(String, nullable=False)
     followers: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    internal_image: Mapped["InternalImageRow | None"] = relationship(
-        'InternalImageRow', back_populates='playlists', foreign_keys=[internal_image_id])
-
-    external_images: WriteOnlyMapped[List["ExternalImageRow"]] = relationship(
-        "ExternalImageRow",
+    external_images: WriteOnlyMapped[List[ExternalImageRow]] = relationship(
+        ExternalImageRow,
         secondary=playlist_external_images,
         back_populates="playlists",
         lazy="write_only"

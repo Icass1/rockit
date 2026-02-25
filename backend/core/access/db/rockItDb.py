@@ -37,9 +37,10 @@ for dirpath, dirnames, filenames in os.walk("backend"):
     module = import_module(module)
 
     try:
-        schemas.append(SchemaInfo(name=module.schema, base=module.base))
+        for schema in module.schemas:
+            schemas.append(SchemaInfo(name=schema, base=module.base))
     except:
-        logger.warning(f"{module} doesn't have an schema variable declared.")
+        logger.warning(f"{module} doesn't have an schemas variable declared.")
 
 
 class RockItDB:

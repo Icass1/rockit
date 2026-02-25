@@ -36,6 +36,15 @@ class Providers:
             logger.error(
                 f"Error searching providers. {a_result_search_providers.info()}")
 
+    def find_provider(self, provider_id: int) -> BaseProvider | None:
+        """Find a provider instance matching a database provider ID."""
+
+        for p in self._providers:
+            a_result_id: AResult[int] = p.get_id()
+            if a_result_id.is_ok() and a_result_id.result() == provider_id:
+                return p
+        return None
+
     async def search_providers(self) -> AResultCode:
         logger.info("Searching providers...")
 

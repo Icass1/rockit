@@ -209,6 +209,7 @@ async def generate_zod_schemas() -> None:
         output_lines = import_lines + ["", schema]
 
         output_path = output_dir / f"{file_name}.ts"
+
         output_path.write_text("\n".join(output_lines))
         logger.info(f"Written {output_path}")
 
@@ -224,7 +225,14 @@ async def generate_zod_schemas() -> None:
     # Execute prettier on the generated files.
     try:
         import subprocess
-        subprocess.run(["prettier", "--write", str(output_dir)], cwd="frontend", check=True)
+        subprocess.run(
+            [
+                "prettier",
+                "--write",
+                str(output_dir)
+            ],
+            cwd="frontend",
+            check=True)
         logger.info("Formatted generated files with Prettier")
     except Exception as e:
         logger.warning(f"Could not format files with Prettier: {e}")

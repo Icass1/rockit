@@ -104,7 +104,7 @@ function CarouselSong({
 
                 {/* Gradiente + info — solo visible en centro */}
                 <div
-                    className={`bg-linear-to-b absolute inset-x-0 bottom-0 rounded-none from-transparent to-black transition-all duration-300 ${
+                    className={`absolute inset-x-0 bottom-0 rounded-none bg-linear-to-b from-transparent to-black transition-all duration-300 ${
                         isCenter ? "h-52" : "h-0"
                     }`}
                 />
@@ -126,7 +126,7 @@ function CarouselSong({
                 {isCenter && (
                     <button
                         aria-label={isPlaying ? "Pause" : "Play"}
-                        className="absolute bottom-4 right-4 rounded-full p-3 text-white backdrop-blur-sm transition duration-300 md:hover:bg-black/40"
+                        className="absolute right-4 bottom-4 rounded-full p-3 text-white backdrop-blur-sm transition duration-300 md:hover:bg-black/40"
                         onClick={handlePlay}
                     >
                         {isPlaying ? (
@@ -178,7 +178,7 @@ export default function SongsCarousel() {
     return (
         <div
             ref={containerRef}
-            className="md:min-h-92 relative flex h-64 min-h-64 select-none items-center justify-center overflow-x-hidden text-white"
+            className="relative flex h-64 min-h-64 items-center justify-center overflow-x-hidden text-white select-none md:min-h-92"
             // GPU acceleration para iOS
             style={{
                 willChange: "transform",
@@ -186,11 +186,11 @@ export default function SongsCarousel() {
             }}
         >
             <ChevronLeft
-                className="z-25 absolute left-24 hidden h-10 w-10 cursor-pointer rounded-full bg-white p-2 text-[#6d6d6d] shadow-md transition duration-300 md:flex md:hover:text-black"
+                className="absolute left-24 z-25 hidden h-10 w-10 cursor-pointer rounded-full bg-white p-2 text-[#6d6d6d] shadow-md transition duration-300 md:flex md:hover:text-black"
                 onClick={prev}
             />
 
-            <div className="md:max-h-75 relative h-64 w-64 md:h-full md:w-full">
+            <div className="relative h-64 w-64 md:h-full md:max-h-75 md:w-full">
                 {songs.map((song, index) => (
                     <CarouselSong
                         key={song.publicId}
@@ -205,7 +205,7 @@ export default function SongsCarousel() {
             </div>
 
             <ChevronRight
-                className="z-25 absolute right-24 hidden h-10 w-10 cursor-pointer rounded-full bg-white p-2 text-[#6d6d6d] shadow-md transition duration-300 md:flex md:hover:text-black"
+                className="absolute right-24 z-25 hidden h-10 w-10 cursor-pointer rounded-full bg-white p-2 text-[#6d6d6d] shadow-md transition duration-300 md:flex md:hover:text-black"
                 onClick={next}
             />
         </div>

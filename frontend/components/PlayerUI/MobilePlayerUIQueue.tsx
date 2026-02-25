@@ -2,7 +2,7 @@
 
 import { useStore } from "@nanostores/react";
 import { QueueSong } from "@/components/PlayerUI/QueueSong";
-import { useQueueDrag } from "@/components/PlayerUI/hooks/useQueueDrag";
+import { useQueueDrag } from "@/components/PlayerUI/hooks/Usequeuedrag";
 import useWindowSize from "@/hooks/useWindowSize";
 import React, { useEffect, useRef, useState } from "react";
 import ContextMenu from "@/components/ContextMenu/ContextMenu";
@@ -52,7 +52,9 @@ export default function MobilePlayerUIQueue({
     };
 
     // TODO: implement when queueManager supports reorder/remove
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const handleRemoveSong = (_song: RockItSongQueue) => {};
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const handlePlaySong = async (_song: RockItSongQueue) => {};
 
     const { langFile: lang } = useLanguage();
@@ -61,7 +63,7 @@ export default function MobilePlayerUIQueue({
     return (
         <div
             id="MobilePlayerUIQueue"
-            className="absolute top-[80px] z-50 grid h-[calc(100%_-_5rem)] w-full select-none grid-rows-[40px_1fr] rounded-t-lg bg-gray-700 pl-2 pt-4 transition-[top] duration-300 md:select-text"
+            className="absolute top-20 z-50 grid h-[calc(100%-5rem)] w-full grid-rows-[40px_1fr] rounded-t-lg bg-gray-700 pt-4 pl-2 transition-[top] duration-300 select-none md:select-text"
             style={{ top: open ? "80px" : height + "px" }}
         >
             <label
@@ -71,7 +73,7 @@ export default function MobilePlayerUIQueue({
                 Queue
             </label>
 
-            <div className="absolute bottom-0 left-0 right-0 top-12">
+            <div className="absolute top-12 right-0 bottom-0 left-0">
                 <div
                     ref={scrollRef}
                     onScroll={(e) => setQueueScroll(e.currentTarget.scrollTop)}
@@ -80,22 +82,13 @@ export default function MobilePlayerUIQueue({
                     <div className="min-h-5" />
                     <div style={{ height: $queue.length * 64 }}>
                         {$queue.map((song, index) => {
-                            if (!scrollRef.current) return null;
-
-                            const top = calcItemTop(
-                                index,
-                                song,
-                                scrollRef.current.scrollTop
-                            );
+                            const top = calcItemTop(index, song, queueScroll);
                             const isDragging =
                                 draggingSong?.song.song.publicId ===
                                 song.song.publicId;
 
-                            // Virtual scroll: skip off-screen items
-                            const containerHeight =
-                                scrollRef.current.offsetHeight;
                             if (
-                                top > containerHeight + queueScroll ||
+                                top > height + queueScroll ||
                                 top < queueScroll - 74
                             ) {
                                 return null;
@@ -114,7 +107,7 @@ export default function MobilePlayerUIQueue({
                                     <ContextMenu>
                                         <ContextMenuTrigger>
                                             <div className="grid grid-cols-[1fr_45px] items-center">
-                                                <div className="w-full min-w-0 max-w-full">
+                                                <div className="w-full max-w-full min-w-0">
                                                     <QueueSong song={song} />
                                                 </div>
                                                 <GripVertical
@@ -171,8 +164,8 @@ export default function MobilePlayerUIQueue({
                     </div>
                     <div className="min-h-10" />
                 </div>
-                <div className="absolute -top-1 h-10 w-full bg-gradient-to-t from-transparent to-gray-700" />
-                <div className="absolute bottom-0 h-10 w-full bg-gradient-to-b from-transparent to-gray-700" />
+                <div className="absolute -top-1 h-10 w-full bg-linear-to-t from-transparent to-gray-700" />
+                <div className="absolute bottom-0 h-10 w-full bg-linear-to-b from-transparent to-gray-700" />
             </div>
         </div>
     );

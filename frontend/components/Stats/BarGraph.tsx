@@ -122,7 +122,7 @@ export default function BarGraph({
                                 >
                                     {item.name}
                                 </Link>
-                                <div className="relative ml-auto flex w-full min-w-0 max-w-full flex-row items-center">
+                                <div className="relative ml-auto flex w-full max-w-full min-w-0 flex-row items-center">
                                     <div
                                         className="block h-1 rounded bg-gradient-to-r from-[#ee1086] to-[#fb6467] transition-[width] duration-1000"
                                         style={{

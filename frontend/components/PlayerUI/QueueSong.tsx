@@ -49,7 +49,7 @@ export function QueueSong({ song }: { song: RockItSongQueue }) {
                 )}
             </div>
 
-            <div className="min-w-0 max-w-full flex-1">
+            <div className="max-w-full min-w-0 flex-1">
                 <p className="truncate text-base font-semibold text-white">
                     {song.song.name}
                 </p>

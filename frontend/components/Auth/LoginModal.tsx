@@ -74,7 +74,7 @@ export default function LoginModal() {
     }, [handleSubmit]);
 
     return (
-        <div className="absolute left-1/2 top-1/2 w-[90%] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-xl bg-black bg-opacity-[.92] p-8 text-center shadow-lg md:w-full">
+        <div className="bg-opacity-[.92] absolute top-1/2 left-1/2 w-[90%] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-xl bg-black p-8 text-center shadow-lg md:w-full">
             <div id="login-form">
                 <div className="flex items-center justify-center space-x-2">
                     <h2 className="text-foreground text-3xl font-extrabold">

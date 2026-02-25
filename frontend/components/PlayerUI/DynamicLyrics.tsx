@@ -8,21 +8,25 @@ export function DynamicLyrics() {
     const $currentSong = useStore(rockIt.queueManager.currentSongAtom);
     const $currentTime = useStore(rockIt.audioManager.currentTimeAtom);
 
-    const [lyricsIndex, setLyricsIndex] = useState(0);
+    const [manualLyricsIndex, setLyricsIndex] = useState(0);
     const [lyrics, setLyrics] = useState<string[] | string>();
 
     const [lyricsTimeStamp, setLyricsTimeStamp] = useState<
         { time: number; index: number }[]
     >([]);
 
+    const computedLyricsIndex =
+        $currentSong && $currentTime && lyricsTimeStamp.length > 0
+            ? (lyricsTimeStamp
+                  .toSorted((a, b) => b.time - a.time)
+                  .find((timeStamp) => timeStamp.time < $currentTime + 0.5)
+                  ?.index ?? 0)
+            : manualLyricsIndex;
+
     useEffect(() => {
         if (!$currentSong?.publicId) {
             return;
         }
-
-        setLyrics("");
-        setLyricsTimeStamp([]);
-        setLyricsIndex(0);
 
         fetch(`/api/lyrics/${$currentSong?.publicId}`)
             .then((response) => response.json())
@@ -72,7 +76,6 @@ export function DynamicLyrics() {
                         );
                     return index;
                 });
-                console.log(rockIt.audioManager.currentTime, lyricsIndex);
             } else if (event.code == "ArrowUp") {
                 setLyricsIndex((value) => {
                     const index = Math.max(value - 1, 0);
@@ -90,22 +93,7 @@ export function DynamicLyrics() {
         return () => {
             document.removeEventListener("keyup", handleKey);
         };
-    }, [lyrics, lyricsIndex, lyricsTimeStamp]);
-
-    useEffect(() => {
-        if (!$currentSong || !$currentTime || lyricsTimeStamp.length == 0) {
-            return;
-        }
-
-        let index = lyricsTimeStamp
-            .toSorted((a, b) => b.time - a.time)
-            .find((timeStamp) => timeStamp.time < $currentTime + 0.5)?.index;
-        if (typeof index != "number") {
-            index = 0;
-        }
-
-        setLyricsIndex(index);
-    }, [$currentTime, $currentSong, lyricsTimeStamp]);
+    }, [lyrics, computedLyricsIndex, lyricsTimeStamp]);
 
     if (typeof lyrics == "string" || typeof lyrics == "undefined") {
         return (
@@ -121,7 +109,7 @@ export function DynamicLyrics() {
     return (
         <div className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden px-4">
             {lyrics.map((line, index) => {
-                switch (index - lyricsIndex) {
+                switch (index - computedLyricsIndex) {
                     case -2:
                         return (
                             <div
@@ -265,7 +253,7 @@ export function DynamicLyrics() {
                         );
                 }
 
-                if (index - lyricsIndex > 0) {
+                if (index - computedLyricsIndex > 0) {
                     return (
                         <div
                             key={index}
@@ -303,7 +291,7 @@ export function DynamicLyrics() {
             })}
             {lyricsTimeStamp.length == 0 && (
                 <div
-                    className="dynamic-lyrics-scroll hide-scroll-track hide-scroll-thumb absolute block h-full w-full min-w-0 max-w-full overflow-auto"
+                    className="dynamic-lyrics-scroll hide-scroll-track hide-scroll-thumb absolute block h-full w-full max-w-full min-w-0 overflow-auto"
                     onScroll={(e) => {
                         setLyricsIndex(
                             Math.floor(e.currentTarget.scrollTop / 100)

@@ -5,12 +5,13 @@ import ContextMenu from "@/components/ContextMenu/ContextMenu";
 import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
 import ContextMenuContent from "@/components/ContextMenu/Content";
 import ContextMenuOption from "@/components/ContextMenu/Option";
-import { useQueueDrag } from "@/components/PlayerUI/hooks/useQueueDrag";
+import { useQueueDrag } from "@/components/PlayerUI/hooks/Usequeuedrag";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { RockItAlbumWithoutSongs } from "@/lib/rockit/rockItAlbumWithoutSongs";
 import { RockItSongQueue } from "@/lib/rockit/rockItSongQueue";
 import { RockItSongWithAlbum } from "@/lib/rockit/rockItSongWithAlbum";
 import { useStore } from "@nanostores/react";
+import { Lang } from "@/types/lang";
 import {
     GripVertical,
     HardDriveDownload,
@@ -18,8 +19,6 @@ import {
     ListX,
     PlayCircle,
 } from "lucide-react";
-import type { RefObject } from "react";
-import { useState } from "react";
 
 // Placeholder songs shown below the real queue (mockup until autoplay is implemented)
 const AUTO_PLAY_MOCKS = [
@@ -58,14 +57,12 @@ function buildAutoSong(mock: (typeof AUTO_PLAY_MOCKS)[number], idx: number) {
 interface PlayerUIQueueListProps {
     queue: RockItSongQueue[];
     queueScroll: number;
-    queueDivRef: RefObject<HTMLDivElement | null>;
-    lang: Record<string, string>;
+    lang: Lang;
 }
 
 export function PlayerUIQueueList({
     queue,
     queueScroll,
-    queueDivRef,
     lang,
 }: PlayerUIQueueListProps) {
     const $currentQueueSongId = useStore(
@@ -74,7 +71,9 @@ export function PlayerUIQueueList({
     const { draggingSong, startDrag, calcItemTop } = useQueueDrag();
 
     // TODO: implement when queueManager.reorderQueue is available
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const handleRemoveSong = (_song: RockItSongQueue) => {};
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const handlePlaySong = async (_song: RockItSongQueue) => {};
 
     return (
@@ -82,23 +81,12 @@ export function PlayerUIQueueList({
             <div style={{ height: queue.length * 64 }} />
 
             {queue.map((queueSong, index) => {
-                if (!queueDivRef.current) return null;
-
-                const top = calcItemTop(
-                    index,
-                    queueSong,
-                    queueDivRef.current.scrollTop
-                );
+                const top = calcItemTop(index, queueSong, queueScroll);
                 const isDragging =
                     draggingSong?.song.song.publicId ===
                     queueSong.song.publicId;
 
-                // Virtual scroll: skip items outside visible area
-                const containerHeight = queueDivRef.current.offsetHeight;
-                if (
-                    top > containerHeight + queueScroll ||
-                    top < queueScroll - 74
-                ) {
+                if (top > queueScroll + 500 || top < queueScroll - 500) {
                     return null;
                 }
 
@@ -115,7 +103,7 @@ export function PlayerUIQueueList({
                         <ContextMenu>
                             <ContextMenuTrigger>
                                 <div className="grid grid-cols-[1fr_45px] items-center">
-                                    <div className="w-full min-w-0 max-w-full">
+                                    <div className="w-full max-w-full min-w-0">
                                         <QueueSong song={queueSong} />
                                     </div>
                                     <GripVertical
@@ -172,7 +160,7 @@ export function PlayerUIQueueList({
 
             {/* Auto-play section */}
             <div>
-                <div className="mt-5 h-[1px] w-full bg-neutral-400" />
+                <div className="mt-5 h-px w-full bg-neutral-400" />
                 <h2 className="text-md my-2 px-4 font-semibold text-neutral-400">
                     Reproducciones automáticas a continuación
                 </h2>
@@ -191,7 +179,7 @@ export function PlayerUIQueueList({
                             <ContextMenu>
                                 <ContextMenuTrigger>
                                     <div className="grid grid-cols-[1fr_45px] items-center">
-                                        <div className="w-full min-w-0 max-w-full">
+                                        <div className="w-full max-w-full min-w-0">
                                             <QueueSong song={autoSong} />
                                         </div>
                                         <ListPlus className="h-full w-full p-1 pr-4" />

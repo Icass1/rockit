@@ -57,7 +57,7 @@ export function ChangeUsernameInput() {
                 console.warn("TO DO");
             }}
             type="search"
-            className="w-full rounded-lg border border-[#333] bg-[#1e1e1e] p-3 text-white focus:outline-none focus:ring-2 focus:ring-[#ec5588]"
+            className="w-full rounded-lg border border-[#333] bg-[#1e1e1e] p-3 text-white focus:ring-2 focus:ring-[#ec5588] focus:outline-none"
             value={username}
         />
     );

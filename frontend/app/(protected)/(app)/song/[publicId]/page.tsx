@@ -94,7 +94,7 @@ export default async function SongPage({
             <div className="mx-auto grid w-full grid-cols-1 items-center gap-4 px-10 md:grid-cols-3 md:p-6">
                 <div className="hidden flex-col items-center justify-center md:flex">
                     <div className="flex w-full max-w-sm items-center rounded-lg bg-neutral-200 p-4 shadow-md">
-                        <div className="h-32 w-32 flex-shrink-0 overflow-hidden rounded-full bg-neutral-300">
+                        <div className="h-32 w-32 shrink-0 overflow-hidden rounded-full bg-neutral-300">
                             <Image
                                 src={
                                     artist.internalImageUrl ??

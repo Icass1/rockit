@@ -24,14 +24,14 @@ export default function PlayLibraryButton() {
     if (playingLibrary && $playing) {
         icon = (
             <Pause
-                className="relative left-1/2 top-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2"
+                className="relative top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2"
                 fill="white"
             />
         );
     } else {
         icon = (
             <Play
-                className="relative left-1/2 top-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2"
+                className="relative top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2"
                 fill="white"
             />
         );

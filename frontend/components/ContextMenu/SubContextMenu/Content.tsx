@@ -61,7 +61,7 @@ export default function SubContextMenuContent({
 
     return (
         <PosAfterRenderDiv
-            className="fixed left-0 top-0 h-[calc(100%_-_4rem)] w-full rounded-md bg-neutral-800/90 px-10 md:h-fit md:w-max md:p-1 md:shadow-[0px_0px_20px_3px_#0e0e0e]"
+            className="fixed top-0 left-0 h-[calc(100%_-_4rem)] w-full rounded-md bg-neutral-800/90 px-10 md:h-fit md:w-max md:p-1 md:shadow-[0px_0px_20px_3px_#0e0e0e]"
             onDimensionsCalculated={
                 innerWidth > 768
                     ? (width, height) => updatePos(width, height)

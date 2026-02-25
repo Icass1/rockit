@@ -51,7 +51,7 @@ export default function HomeClient() {
     const previousMonthKey = getPreviousMonthKey();
 
     return (
-        <div className="relative flex h-full flex-col overflow-y-auto pb-24 pt-24">
+        <div className="relative flex h-full flex-col overflow-y-auto pt-24 pb-24">
             <SongsCarousel />
 
             <QuickSelectionsSection

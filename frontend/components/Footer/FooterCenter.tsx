@@ -108,7 +108,7 @@ export default function FooterCenter() {
                 </span>
                 <Slider
                     id="default-slider"
-                    className="relative h-1 w-full min-w-0 max-w-full rounded bg-neutral-700"
+                    className="relative h-1 w-full max-w-full min-w-0 rounded bg-neutral-700"
                     value={$currentTime ?? 0}
                     min={0}
                     max={$currentSong?.duration}

@@ -7,4 +7,4 @@ export { PlayerUICoverColumn } from "@/components/PlayerUI/PlayerUICoverColumn";
 export { PlayerUIQueueColumn } from "@/components/PlayerUI/PlayerUIQueueColumn";
 export { PlayerUIQueueList } from "@/components/PlayerUI/PlayerUIQueueList";
 export { PlayerUIRelatedTab } from "@/components/PlayerUI/PlayerUIRelatedTab";
-export { useQueueDrag } from "@/components/PlayerUI/Usequeuedrag";
+export { useQueueDrag } from "@/components/PlayerUI/hooks/Usequeuedrag";

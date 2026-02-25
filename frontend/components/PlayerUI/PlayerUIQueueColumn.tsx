@@ -19,7 +19,7 @@ export function PlayerUIQueueColumn({ queue, lang }: PlayerUIQueueColumnProps) {
     const queueDivRef = useRef<HTMLDivElement>(null);
 
     return (
-        <div className="z-10 flex h-full flex-col overflow-hidden bg-gradient-to-r from-[rgba(0,0,0,0)] to-[rgba(0,0,0,0.5)] select-none">
+        <div className="z-10 flex h-full flex-col overflow-hidden bg-linear-to-r from-[rgba(0,0,0,0)] to-[rgba(0,0,0,0.5)] select-none">
             {/* Tab selector */}
             <div className="relative flex items-center justify-center gap-10 border-b border-white pt-6 pb-4">
                 <TabButton
@@ -44,7 +44,6 @@ export function PlayerUIQueueColumn({ queue, lang }: PlayerUIQueueColumnProps) {
                     <PlayerUIQueueList
                         queue={queue}
                         queueScroll={queueScroll}
-                        queueDivRef={queueDivRef}
                         lang={lang}
                     />
                 ) : (

@@ -29,19 +29,21 @@ export default function MobilePlayerUIQueue({
     const $queue = useStore(rockIt.queueManager.queueAtom);
     const { height } = useWindowSize();
     const scrollRef = useRef<HTMLDivElement>(null);
+    // queueScroll state is only used for the virtual-scroll culling check.
+    // calcItemTop uses scrollRef.current.scrollTop directly (sync, not stale).
     const [queueScroll, setQueueScroll] = useState(0);
 
     const { draggingSong, startDrag, calcItemTop } = useQueueDrag();
 
-    // Scroll to current song when queue opens
+    // Scroll to current song when queue panel opens
     useEffect(() => {
         if (!scrollRef.current || !open) return;
         const currentIdx = rockIt.queueManager.queue?.findIndex(
             (s) => s.queueSongId === rockIt.queueManager.currentQueueSongId
         );
         if (currentIdx == null || currentIdx === -1) return;
-        scrollRef.current.scrollTo(0, currentIdx * 64 - 100);
-    }, [scrollRef, open]);
+        scrollRef.current.scrollTo({ top: currentIdx * 64 - 100 });
+    }, [open]);
 
     const touchStart = (
         e: React.TouchEvent,
@@ -51,44 +53,61 @@ export default function MobilePlayerUIQueue({
         startDrag(e.touches[0].clientY, song, index);
     };
 
-    // TODO: implement when queueManager supports reorder/remove
+    // TODO: implement when queueManager supports reorder / remove
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const handleRemoveSong = (_song: SongQueue) => {};
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const handlePlaySong = async (_song: SongQueue) => {};
 
     const { langFile: lang } = useLanguage();
-    if (!lang || !$queue || !height) return null;
+    const hasQueue = $queue && $queue.length > 0;
+    if (!lang || !hasQueue || !height) return null;
+
+    // Use queueScroll state (updated via onScroll) instead of accessing ref during render
+    const currentScrollTop = queueScroll;
 
     return (
         <div
             id="MobilePlayerUIQueue"
-            className="absolute top-20 z-50 grid h-[calc(100%-5rem)] w-full grid-rows-[40px_1fr] rounded-t-lg bg-gray-700 pt-4 pl-2 transition-[top] duration-300 select-none md:select-text"
-            style={{ top: open ? "80px" : height + "px" }}
+            className="absolute z-50 grid h-[calc(100%-5rem)] w-full grid-rows-[40px_1fr] rounded-t-lg bg-gray-700 pt-4 pl-2 transition-[top] duration-300 select-none md:select-text"
+            style={{ top: open ? "80px" : `${height}px` }}
         >
-            <label
+            {/* Header */}
+            <button
                 className="h-full text-center text-xl font-semibold"
                 onClick={() => setOpen(false)}
             >
                 Queue
-            </label>
+            </button>
 
             <div className="absolute top-12 right-0 bottom-0 left-0">
                 <div
                     ref={scrollRef}
                     onScroll={(e) => setQueueScroll(e.currentTarget.scrollTop)}
                     className={`relative h-full ${!draggingSong ? "overflow-y-auto" : "overflow-y-hidden"}`}
+                    // iOS momentum scrolling
+                    style={
+                        {
+                            WebkitOverflowScrolling: "touch",
+                        } as React.CSSProperties
+                    }
                 >
                     <div className="min-h-5" />
                     <div style={{ height: $queue.length * 64 }}>
                         {$queue.map((song, index) => {
-                            const top = calcItemTop(index, song, queueScroll);
+                            // Use queueScroll state for calcItemTop
+                            const top = calcItemTop(
+                                index,
+                                song,
+                                currentScrollTop
+                            );
                             const isDragging =
                                 draggingSong?.song.song.publicId ===
                                 song.song.publicId;
 
+                            // Virtual scroll: skip off-screen items
                             if (
-                                top > height + queueScroll ||
+                                top > queueScroll + height ||
                                 top < queueScroll - 74
                             ) {
                                 return null;
@@ -102,6 +121,7 @@ export default function MobilePlayerUIQueue({
                                         top: `${top + 20}px`,
                                         transitionTimingFunction:
                                             "cubic-bezier(0.4, 0, 0.2, 1)",
+                                        willChange: isDragging ? "top" : "auto",
                                     }}
                                 >
                                     <ContextMenu>
@@ -164,8 +184,10 @@ export default function MobilePlayerUIQueue({
                     </div>
                     <div className="min-h-10" />
                 </div>
-                <div className="absolute -top-1 h-10 w-full bg-linear-to-t from-transparent to-gray-700" />
-                <div className="absolute bottom-0 h-10 w-full bg-linear-to-b from-transparent to-gray-700" />
+
+                {/* Fade overlays */}
+                <div className="pointer-events-none absolute -top-1 h-10 w-full bg-linear-to-t from-transparent to-gray-700" />
+                <div className="pointer-events-none absolute bottom-0 h-10 w-full bg-linear-to-b from-transparent to-gray-700" />
             </div>
         </div>
     );

@@ -1,12 +1,11 @@
 "use client";
 
+import { useState } from "react";
+import Image from "next/image";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { RockItSongWithAlbum } from "@/lib/rockit/rockItSongWithAlbum";
-
 import { useStore } from "@nanostores/react";
 import { Download, Pause, Play } from "lucide-react";
-import Image from "next/image";
-import { useState } from "react";
 
 function SongPageCoverIcon({
     song,

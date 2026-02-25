@@ -1,20 +1,20 @@
 "use client";
 
-import { useStore } from "@nanostores/react";
+import Image from "next/image";
+import Link from "next/link";
+import { rockIt } from "@/lib/rockit/rockIt";
+import { RockItSongWithAlbum } from "@/lib/rockit/rockItSongWithAlbum";
 import LikeButton from "@/components/LikeButton";
+import SongPopupMenu from "@/components/ListSongs/SongPopupMenu";
+import { Station } from "@/types/station";
+import { useStore } from "@nanostores/react";
 import {
     EllipsisVertical,
-    PauseIcon,
-    PlayIcon,
     Pause,
+    PauseIcon,
     Play,
+    PlayIcon,
 } from "lucide-react";
-import SongPopupMenu from "@/components/ListSongs/SongPopupMenu";
-import Link from "next/link";
-import Image from "next/image";
-import { rockIt } from "@/lib/rockit/rockIt";
-import { Station } from "@/types/station";
-import { RockItSongWithAlbum } from "@/lib/rockit/rockItSongWithAlbum";
 
 function FooterLeftForSong({
     currentSong,

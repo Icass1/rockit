@@ -1,8 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { useStore } from "@nanostores/react";
-import { useEffect, useState } from "react";
 
 export function DynamicLyrics() {
     const $currentSong = useStore(rockIt.queueManager.currentSongAtom);

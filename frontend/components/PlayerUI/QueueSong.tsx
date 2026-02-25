@@ -1,11 +1,11 @@
 "use client";
 
+import Image from "next/image";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { RockItSongQueue } from "@/lib/rockit/rockItSongQueue";
 import { getTime } from "@/lib/utils/getTime";
 import { useStore } from "@nanostores/react";
 import { Pause, Play } from "lucide-react";
-import Image from "next/image";
 
 export function QueueSong({ song }: { song: RockItSongQueue }) {
     const $currentQueueSongId = useStore(

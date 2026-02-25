@@ -1,14 +1,14 @@
 "use client";
 
-import { getTime } from "@/lib/utils/getTime";
-import LikeButton from "@/components/LikeButton";
-import { EllipsisVertical, CheckCircle2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useStore } from "@nanostores/react";
-import SongContextMenu from "./SongContextMenu";
-import { networkStatus } from "@/lib/stores/networkStatus";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { RockItSongWithAlbum } from "@/lib/rockit/rockItSongWithAlbum";
+import { networkStatus } from "@/lib/stores/networkStatus";
+import { getTime } from "@/lib/utils/getTime";
+import LikeButton from "@/components/LikeButton";
+import { useStore } from "@nanostores/react";
+import { CheckCircle2, EllipsisVertical } from "lucide-react";
+import SongContextMenu from "./SongContextMenu";
 
 export default function AlbumSong({
     song,

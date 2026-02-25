@@ -1,27 +1,26 @@
 "use client";
 
-import { useStore } from "@nanostores/react";
-import {
-    Play,
-    Pause,
-    SkipBack,
-    SkipForward,
-    Repeat,
-    Shuffle,
-    ChevronDown,
-    Ellipsis,
-} from "lucide-react";
-import { getTime } from "@/lib/utils/getTime";
-
-import LikeButton from "@/components/LikeButton";
-import Slider from "@/components/Slider";
 import { useEffect, useRef, useState } from "react";
-import useWindowSize from "@/hooks/useWindowSize";
-import MobilePlayerUIQueue from "@/components/PlayerUI/MobilePlayerUIQueue";
-import MobilePlayerUILyrics from "@/components/PlayerUI/MobilePlayerUILyrics";
-import SongPopupMenu from "@/components/ListSongs/SongPopupMenu";
 import Image from "next/image";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { getTime } from "@/lib/utils/getTime";
+import LikeButton from "@/components/LikeButton";
+import SongPopupMenu from "@/components/ListSongs/SongPopupMenu";
+import MobilePlayerUILyrics from "@/components/PlayerUI/MobilePlayerUILyrics";
+import MobilePlayerUIQueue from "@/components/PlayerUI/MobilePlayerUIQueue";
+import Slider from "@/components/Slider";
+import useWindowSize from "@/hooks/useWindowSize";
+import { useStore } from "@nanostores/react";
+import {
+    ChevronDown,
+    Ellipsis,
+    Pause,
+    Play,
+    Repeat,
+    Shuffle,
+    SkipBack,
+    SkipForward,
+} from "lucide-react";
 
 export default function MobilePlayerUI() {
     const $playing = useStore(rockIt.audioManager.playingAtom);

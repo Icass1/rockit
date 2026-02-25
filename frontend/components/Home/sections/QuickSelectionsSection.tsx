@@ -1,5 +1,5 @@
-import QuickSelectionsSong from "@/components/Home/QuickSelectionsSong";
 import { RockItSongWithAlbum } from "@/lib/rockit/rockItSongWithAlbum";
+import QuickSelectionsSong from "@/components/Home/QuickSelectionsSong";
 
 const COLUMNS = 10;
 const SONGS_PER_COLUMN = 4;

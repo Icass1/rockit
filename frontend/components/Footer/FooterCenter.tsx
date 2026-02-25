@@ -1,19 +1,19 @@
 "use client";
 
+import { rockIt } from "@/lib/rockit/rockIt";
+import { getTime } from "@/lib/utils/getTime";
+import Slider from "@/components/Slider";
+import Spinner from "@/components/Spinner";
 import { useStore } from "@nanostores/react";
 import {
+    CirclePause,
+    CirclePlay,
+    Repeat,
+    Repeat1,
     Shuffle,
     SkipBack,
     SkipForward,
-    CirclePlay,
-    CirclePause,
-    Repeat,
-    Repeat1,
 } from "lucide-react";
-import Slider from "@/components/Slider";
-import Spinner from "@/components/Spinner";
-import { getTime } from "@/lib/utils/getTime";
-import { rockIt } from "@/lib/rockit/rockIt";
 
 const ICON_BTN =
     "cursor-pointer text-gray-400 transition-all md:hover:scale-105 md:hover:text-white";

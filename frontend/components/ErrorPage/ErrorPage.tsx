@@ -1,5 +1,5 @@
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 
 type ErrorCode = 404 | 500 | 403 | 401;
 

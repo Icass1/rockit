@@ -1,16 +1,16 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { ChevronLeft, ChevronRight, Play, Pause } from "lucide-react";
-import { useStore } from "@nanostores/react";
 import Image from "next/image";
-import useFetch from "@/hooks/useFetch";
-import useWindowSize from "@/hooks/useWindowSize";
+import { rockIt } from "@/lib/rockit/rockIt";
+import { RockItSongWithoutAlbum } from "@/lib/rockit/rockItSongWithoutAlbum";
 import { useCarousel } from "@/components/Home/hooks/useCarousel";
 import { songHandleClick } from "@/components/ListSongs/HandleClick";
 import { StatsResponse } from "@/dto/stats/statsResponse";
-import { rockIt } from "@/lib/rockit/rockIt";
-import { RockItSongWithoutAlbum } from "@/lib/rockit/rockItSongWithoutAlbum";
+import useFetch from "@/hooks/useFetch";
+import useWindowSize from "@/hooks/useWindowSize";
+import { useStore } from "@nanostores/react";
+import { ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
 
 // Constantes de layout
 const MOBILE_OFFSET = 15;

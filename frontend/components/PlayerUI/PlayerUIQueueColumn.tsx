@@ -1,10 +1,10 @@
 "use client";
 
+import { useRef, useState } from "react";
+import { RockItSongQueue } from "@/lib/rockit/rockItSongQueue";
 import { PlayerUIQueueList } from "@/components/PlayerUI/PlayerUIQueueList";
 import { PlayerUIRelatedTab } from "@/components/PlayerUI/PlayerUIRelatedTab";
-import { RockItSongQueue } from "@/lib/rockit/rockItSongQueue";
 import { Lang } from "@/types/lang";
-import { useRef, useState } from "react";
 
 interface PlayerUIQueueColumnProps {
     queue: RockItSongQueue[];

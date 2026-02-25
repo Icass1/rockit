@@ -1,19 +1,19 @@
 "use client";
 
+import Image from "next/image";
+import Link from "next/link";
+import { rockIt } from "@/lib/rockit/rockIt";
 import ChangeLang from "@/components/Settings/ChangeLang";
 import CrossFadeInput from "@/components/Settings/CrossFadeInput";
 import DownloadAppButton from "@/components/Settings/DownloadAppButton";
+import {
+    ChangeUsernameInput,
+    UserProfileSection,
+} from "@/components/Settings/hooks/useSettingsUser";
 import LogOutButton from "@/components/Settings/LogOutButton";
 import ServiceWorkerInfo from "@/components/Settings/ServiceWorkerInfo";
-import {
-    UserProfileSection,
-    ChangeUsernameInput,
-} from "@/components/Settings/hooks/useSettingsUser";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { rockIt } from "@/lib/rockit/rockIt";
 import { ChartLine, ImageUp } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
 
 export default function SettingsClient() {
     const { langFile: lang } = useLanguage();

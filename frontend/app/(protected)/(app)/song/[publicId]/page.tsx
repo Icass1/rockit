@@ -1,14 +1,14 @@
+import Image from "next/image";
 import Link from "next/link";
+import { rockIt } from "@/lib/rockit/rockIt";
+import { RockItSongWithAlbum } from "@/lib/rockit/rockItSongWithAlbum";
 import LikeButton from "@/components/LikeButton";
 import SongPopupMenu from "@/components/ListSongs/SongPopupMenu";
-import { EllipsisVertical } from "lucide-react";
+import SongPageAlbum from "@/components/SongPage/SongPageAlbum";
 import SongPageCover from "@/components/SongPage/SongPageCover";
 import LyricsSection from "@/components/SongPage/SongPageLyrics";
-import { rockIt } from "@/lib/rockit/rockIt";
-import Image from "next/image";
-import SongPageAlbum from "@/components/SongPage/SongPageAlbum";
 import SongPageTopArtistSongs from "@/components/SongPage/SongPageTopArtistSongs";
-import { RockItSongWithAlbum } from "@/lib/rockit/rockItSongWithAlbum";
+import { EllipsisVertical } from "lucide-react";
 
 export async function generateMetadata({
     params,

@@ -2,8 +2,8 @@
 
 import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { usePopupMenu } from "./context";
 import PosAfterRenderDiv from "@/components/PosAfterRenderDiv";
+import { usePopupMenu } from "./context";
 
 // Margen de seguridad respecto al footer (96px) y bordes
 const FOOTER_HEIGHT = 96;

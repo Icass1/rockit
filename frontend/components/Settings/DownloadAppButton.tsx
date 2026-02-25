@@ -1,10 +1,10 @@
-import { useLanguage } from "@/contexts/LanguageContext";
+import { useState } from "react";
 import {
     clearResources,
     downloadResources,
 } from "@/lib/utils/downloadResources";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Download } from "lucide-react";
-import { useState } from "react";
 
 export default function DownloadAppButton() {
     const [resources, setResources] = useState<string[]>([]);

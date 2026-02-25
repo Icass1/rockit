@@ -1,11 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
 import Image from "next/image";
-import UsernameInput from "./UsernameInput";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { rockIt } from "@/lib/rockit/rockIt";
+import UsernameInput from "./UsernameInput";
 
 export default function SignupModal() {
     const router = useRouter();

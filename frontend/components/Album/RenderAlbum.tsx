@@ -1,22 +1,22 @@
 "use client";
 
-import PlayListButton from "@/components/ListHeader/PlayListButton";
-import ListOptions from "@/components/ListHeader/ListOptions";
+import { useEffect, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { rockIt } from "@/lib/rockit/rockIt";
+import { RockItAlbumWithSongs } from "@/lib/rockit/rockItAlbumWithSongs";
+import { RockItSongWithAlbum } from "@/lib/rockit/rockItSongWithAlbum";
 import { getMinutes, getYear } from "@/lib/utils/getTime";
-import { Disc } from "lucide-react";
+import ListOptions from "@/components/ListHeader/ListOptions";
+import PlayListButton from "@/components/ListHeader/PlayListButton";
 import AlbumSong from "@/components/ListSongs/AlbumSong";
 import { useLanguage } from "@/contexts/LanguageContext";
-import Image from "next/image";
-import { groupBy } from "lodash";
-import { rockIt } from "@/lib/rockit/rockIt";
-import { useEffect, useState } from "react";
-import DownloadListButton from "../ListHeader/DownloadListButton";
-import DownloadAnimation from "../ListHeader/DownloadAnimation";
 import { RockItAlbumWithSongsResponse } from "@/dto/rockItAlbumWithSongsResponse";
-import { RockItAlbumWithSongs } from "@/lib/rockit/rockItAlbumWithSongs";
 import { useStore } from "@nanostores/react";
-import { RockItSongWithAlbum } from "@/lib/rockit/rockItSongWithAlbum";
+import { groupBy } from "lodash";
+import { Disc } from "lucide-react";
+import DownloadAnimation from "../ListHeader/DownloadAnimation";
+import DownloadListButton from "../ListHeader/DownloadListButton";
 
 export default function RenderAlbum({
     albumResponse,

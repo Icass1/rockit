@@ -1,14 +1,16 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import { useStore } from "@nanostores/react";
+import { rockIt } from "@/lib/rockit/rockIt";
+import { RockItAlbumWithoutSongs } from "@/lib/rockit/rockItAlbumWithoutSongs";
+import { RockItPlaylist } from "@/lib/rockit/rockItPlaylist";
 import NewPlaylistButton from "@/components/Library/NewPlaylistButton";
-import useWindowSize from "@/hooks/useWindowSize";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { LibraryListsResponse } from "@/dto/libraryListsResponse";
 import useFetch from "@/hooks/useFetch";
-import ContextMenu from "../ContextMenu/ContextMenu";
-import ContextMenuTrigger from "../ContextMenu/Trigger";
-import ContextMenuContent from "../ContextMenu/Content";
-import ContextMenuOption from "../ContextMenu/Option";
+import useWindowSize from "@/hooks/useWindowSize";
+import { useStore } from "@nanostores/react";
 import {
     HardDriveDownload,
     Library,
@@ -19,16 +21,12 @@ import {
     PlayCircle,
     Shuffle,
 } from "lucide-react";
-
+import ContextMenuContent from "../ContextMenu/Content";
+import ContextMenu from "../ContextMenu/ContextMenu";
+import ContextMenuOption from "../ContextMenu/Option";
 import ContextMenuSplitter from "../ContextMenu/Splitter";
+import ContextMenuTrigger from "../ContextMenu/Trigger";
 import PlayLibraryButton from "./PlayLibraryButton";
-
-import { useLanguage } from "@/contexts/LanguageContext";
-import { LibraryListsResponse } from "@/dto/libraryListsResponse";
-import Image from "next/image";
-import { rockIt } from "@/lib/rockit/rockIt";
-import { RockItPlaylist } from "@/lib/rockit/rockItPlaylist";
-import { RockItAlbumWithoutSongs } from "@/lib/rockit/rockItAlbumWithoutSongs";
 
 function AddListContextMenu({
     children,

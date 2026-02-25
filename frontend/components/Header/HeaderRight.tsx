@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
-import { Bell } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { useClickOutside } from "@/components/Header/hooks/useClickOutside";
-import HeaderUser from "./HeaderUser";
+import { useStore } from "@nanostores/react";
+import { Bell } from "lucide-react";
 import NotificationMenu from "./HeaderNotificationMenu";
 import OnlineUserIndicator from "./HeaderOnlineUsers";
+import HeaderUser from "./HeaderUser";
 
 export default function HeaderRight() {
     const [showNotifications, setShowNotifications] = useState(false);

@@ -1,5 +1,5 @@
-import { useLanguage } from "@/contexts/LanguageContext";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function ChangeLang() {
     const { lang, langFile } = useLanguage();

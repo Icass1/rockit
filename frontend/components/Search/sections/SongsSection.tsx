@@ -3,9 +3,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useLanguage } from "@/contexts/LanguageContext";
-import { getBestImage } from "@/lib/utils/getBestImage";
 import { RockItSongWithAlbum } from "@/lib/rockit/rockItSongWithAlbum";
+import { getBestImage } from "@/lib/utils/getBestImage";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function SongsSection({
     songs,

@@ -1,5 +1,5 @@
-import { ChevronRight } from "lucide-react";
 import type { ReactNode } from "react";
+import { ChevronRight } from "lucide-react";
 import type SubContextMenuProps from "./Props";
 
 export default function SubContextMenuTrigger({

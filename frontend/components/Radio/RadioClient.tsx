@@ -1,15 +1,16 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import { ListPlus, Play, SearchX } from "lucide-react";
-import pkg from "lodash";
-import useWindowSize from "@/hooks/useWindowSize";
-import { usePathname, useSearchParams, useRouter } from "next/navigation";
-import { Station } from "@/types/station";
-import { rockIt } from "@/lib/rockit/rockIt";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { useLanguage } from "@/contexts/LanguageContext";
+import useWindowSize from "@/hooks/useWindowSize";
+import { Station } from "@/types/station";
+import pkg from "lodash";
+import { ListPlus, Play, SearchX } from "lucide-react";
 import { z } from "zod";
+
 const { debounce } = pkg;
 
 const StationResponseSchema = z.array(

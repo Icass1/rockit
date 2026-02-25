@@ -1,8 +1,7 @@
+import { useRef } from "react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { useStore } from "@nanostores/react";
-
 import { Pause, Play } from "lucide-react";
-import { useRef } from "react";
 
 export default function PlayListButton({
     id,

@@ -1,12 +1,12 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { RockItSongWithAlbum } from "@/lib/rockit/rockItSongWithAlbum";
 import { useStore } from "@nanostores/react";
 import { Pause, Play } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { useEffect, useState } from "react";
 
 interface PlayerUICoverColumnProps {
     currentSong: RockItSongWithAlbum | undefined;

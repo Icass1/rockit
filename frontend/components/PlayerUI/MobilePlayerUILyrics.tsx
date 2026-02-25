@@ -1,8 +1,8 @@
 "use client";
 
-import useWindowSize from "@/hooks/useWindowSize";
 import type React from "react";
 import { DynamicLyrics } from "@/components/PlayerUI/DynamicLyrics";
+import useWindowSize from "@/hooks/useWindowSize";
 
 export default function MobilePlayerUILyrics({
     open,

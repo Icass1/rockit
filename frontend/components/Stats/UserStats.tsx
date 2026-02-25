@@ -1,16 +1,16 @@
 "use client";
 
-import { getDate, getDateYYYYMMDD, getMinutes } from "@/lib/utils/getTime";
-import BarGraph from "./BarGraph";
 import { useEffect, useRef, useState } from "react";
-import pkg from "lodash";
-import VerticalBarGraph from "./VerticalBarGraph";
-import Masonry from "@/components/Masonry/Masonry";
-import useDev from "@/hooks/useDev";
-import { useLanguage } from "@/contexts/LanguageContext";
-import useFetch from "@/hooks/useFetch";
-import { UserStatsResponse } from "@/dto/stats/userStatsResponse";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { getDate, getDateYYYYMMDD, getMinutes } from "@/lib/utils/getTime";
+import Masonry from "@/components/Masonry/Masonry";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { UserStatsResponse } from "@/dto/stats/userStatsResponse";
+import useDev from "@/hooks/useDev";
+import useFetch from "@/hooks/useFetch";
+import pkg from "lodash";
+import BarGraph from "./BarGraph";
+import VerticalBarGraph from "./VerticalBarGraph";
 
 export default function UserStats() {
     const today = new Date();

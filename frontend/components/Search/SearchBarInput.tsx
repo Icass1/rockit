@@ -13,7 +13,9 @@ export default function SearchBarInput() {
     const pathname = usePathname();
     const router = useRouter();
 
-    const searchDebounce = useRef<DebouncedFunc<(q: string) => void> | null>(null);
+    const searchDebounce = useRef<DebouncedFunc<(q: string) => void> | null>(
+        null
+    );
 
     useEffect(() => {
         searchDebounce.current = debounce((query: string) => {

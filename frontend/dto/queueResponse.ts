@@ -1,5 +1,5 @@
-import { z } from 'zod';
-import { QueueResponseItemSchema } from './queueResponseItem';
+import { z } from "zod";
+import { QueueResponseItemSchema } from "./queueResponseItem";
 
 export const QueueResponseSchema = z.object({
     currentQueueSongId: z.any(),

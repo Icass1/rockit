@@ -31,8 +31,8 @@ export default async function Downloads() {
     const downloads = await rockIt.downloaderManager.getDownloadsAsync();
 
     return (
-        <div className="grid h-full grid-cols-2 gap-x-10 overflow-y-auto px-10 md:pt-24 md:pb-24">
-            <div className="sticky top-0 h-fit w-full max-w-full min-w-0 rounded bg-neutral-900 p-2">
+        <div className="grid h-full grid-cols-2 gap-x-10 overflow-y-auto px-10 md:pb-24 md:pt-24">
+            <div className="sticky top-0 h-fit w-full min-w-0 max-w-full rounded bg-neutral-900 p-2">
                 <div className="mt-5 flex justify-center gap-6">
                     <Image
                         width={30}
@@ -85,7 +85,7 @@ export default async function Downloads() {
                 )}
                 <div className="min-h-10" />
             </div>
-            <div className="sticky top-0 h-fit w-full max-w-full min-w-0 rounded bg-neutral-900 p-2">
+            <div className="sticky top-0 h-fit w-full min-w-0 max-w-full rounded bg-neutral-900 p-2">
                 <SongsStatus />
             </div>
         </div>

@@ -21,7 +21,8 @@ export default function PopupMenuTrigger({
 
     useEffect(() => {
         // Solo cerramos con click externo en desktop
-        if (!open || typeof window === "undefined" || window.innerWidth < 768) return;
+        if (!open || typeof window === "undefined" || window.innerWidth < 768)
+            return;
 
         const handleClose = (e: MouseEvent | WheelEvent) => {
             if (contentRef.current?.contains(e.target as Node)) return;

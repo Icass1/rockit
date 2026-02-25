@@ -52,7 +52,7 @@ function DownloadFlyAnimation({
             }
             className="download-fly-animation rounded-full bg-gradient-to-r from-[#ee1086] to-[#fb6467]"
         >
-            <Download className="relative top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2" />
+            <Download className="relative left-1/2 top-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2" />
         </div>,
         document.body
     );
@@ -84,7 +84,7 @@ export default function DownloadListButton({
                 }}
                 className="h-16 w-16 cursor-pointer rounded-full bg-gradient-to-r from-[#ee1086] to-[#fb6467] shadow-[0px_0px_20px_3px_#0e0e0e] transition-transform md:h-20 md:w-20 md:hover:scale-105"
             >
-                <Download className="relative top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2" />
+                <Download className="relative left-1/2 top-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2" />
             </div>
             {flyAnim && (
                 <DownloadFlyAnimation

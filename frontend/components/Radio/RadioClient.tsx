@@ -71,7 +71,7 @@ function StationCard({ station }: { station: StationResponse[number] }) {
                         : rockIt.STATION_PLACEHOLDER_IMAGE_URL
                 }
                 alt={`${station.name} cover`}
-                className="aspect-square h-14 w-14 rounded-md object-cover min-h-14 min-w-14 md:h-24 md:w-24 md:min-h-24 md:min-w-24"
+                className="aspect-square h-14 min-h-14 w-14 min-w-14 rounded-md object-cover md:h-24 md:min-h-24 md:w-24 md:min-w-24"
             />
             <div className="min-w-0 flex-1">
                 <h3 className="line-clamp-2 text-lg font-semibold text-white">
@@ -104,11 +104,17 @@ function StationCard({ station }: { station: StationResponse[number] }) {
     );
 }
 
-function EmptyState({ lang }: { lang: { radio_empty1: string; radio_empty2: string } }) {
+function EmptyState({
+    lang,
+}: {
+    lang: { radio_empty1: string; radio_empty2: string };
+}) {
     return (
         <div className="col-span-full flex h-36 flex-col items-center justify-center md:h-36">
             <SearchX className="mb-4 h-16 w-16" />
-            <p className="text-2xl font-semibold text-white">{lang.radio_empty1}</p>
+            <p className="text-2xl font-semibold text-white">
+                {lang.radio_empty1}
+            </p>
             <p className="mt-2 text-lg text-neutral-400">{lang.radio_empty2}</p>
         </div>
     );
@@ -139,7 +145,9 @@ export default function RadioClient() {
     }, [search]);
 
     useEffect(() => {
-        setIsOnline(typeof window !== "undefined" ? window.navigator.onLine : true);
+        setIsOnline(
+            typeof window !== "undefined" ? window.navigator.onLine : true
+        );
     }, []);
 
     const { langFile: lang } = useLanguage();
@@ -177,7 +185,7 @@ export default function RadioClient() {
 
     if (error) {
         return (
-            <div className="p-2 pt-16 pb-16 text-white md:mt-0 md:mb-0 md:pt-24 md:pb-24">
+            <div className="p-2 pb-16 pt-16 text-white md:mb-0 md:mt-0 md:pb-24 md:pt-24">
                 Error: {error}
             </div>
         );
@@ -209,21 +217,27 @@ export default function RadioClient() {
         <div
             className={`h-full overflow-y-auto p-2 text-white ${
                 isDesktop
-                    ? "pt-16 pb-16 md:mt-0 md:mb-0 md:pt-24 md:pb-24"
+                    ? "pb-16 pt-16 md:mb-0 md:mt-0 md:pb-24 md:pt-24"
                     : "pt-20"
             }`}
         >
             <h1
-                className={`text-center font-bold select-none ${
+                className={`select-none text-center font-bold ${
                     isDesktop ? "my-6 text-3xl" : "mb-4 text-2xl"
                 }`}
             >
                 {lang.radio_stations} 📻
             </h1>
-            <div className={`mb-4 ${isDesktop ? "flex items-center justify-between" : ""}`}>
+            <div
+                className={`mb-4 ${isDesktop ? "flex items-center justify-between" : ""}`}
+            >
                 <input
                     type="search"
-                    placeholder={isDesktop ? lang.radio_search : "Search for stations, tags, countries..."}
+                    placeholder={
+                        isDesktop
+                            ? lang.radio_search
+                            : "Search for stations, tags, countries..."
+                    }
                     value={searchQuery}
                     onChange={handleSearch}
                     className={`w-full rounded-full border border-neutral-700 bg-neutral-800 px-4 py-2 text-white ${
@@ -231,7 +245,9 @@ export default function RadioClient() {
                     }`}
                 />
             </div>
-            <div className={`${isDesktop ? "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3" : "space-y-4"}`}>
+            <div
+                className={`${isDesktop ? "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3" : "space-y-4"}`}
+            >
                 {filteredStations.length > 0 ? (
                     filteredStations.map((station) => (
                         <StationCard

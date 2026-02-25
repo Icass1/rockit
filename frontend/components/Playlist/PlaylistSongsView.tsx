@@ -155,7 +155,7 @@ export default function PlaylistSongsView({
         return (
             <label
                 className={
-                    "flex cursor-pointer flex-row items-center font-semibold select-none hover:underline " +
+                    "flex cursor-pointer select-none flex-row items-center font-semibold hover:underline " +
                     (filter.column == column ? "text-[#ec5588]" : "")
                 }
                 onClick={() => {
@@ -246,7 +246,7 @@ export default function PlaylistSongsView({
                     return (
                         <div
                             key={song.publicId + index}
-                            className="absolute right-0 left-0 h-14"
+                            className="absolute left-0 right-0 h-14"
                             style={{ top: `${top}px` }}
                         >
                             <PlaylistSong song={song} />

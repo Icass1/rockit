@@ -44,7 +44,7 @@ export default async function ArtistPage({
             >
                 <div className="relative z-10 flex h-screen flex-col">
                     {/* Header con nombre */}
-                    <div className="flex h-1/4 min-h-1/2 w-full items-end bg-gradient-to-b from-transparent to-black/50 p-4 md:h-1/2 md:p-8">
+                    <div className="min-h-1/2 flex h-1/4 w-full items-end bg-gradient-to-b from-transparent to-black/50 p-4 md:h-1/2 md:p-8">
                         <h1 className="text-4xl font-extrabold md:text-8xl">
                             {artistData.name}
                         </h1>
@@ -170,7 +170,7 @@ export default async function ArtistPage({
                     </section>
 
                     {/* Related Artists */}
-                    <section className="bg-[#171717] pt-3 pb-10 text-white md:px-32">
+                    <section className="bg-[#171717] pb-10 pt-3 text-white md:px-32">
                         <h2 className="px-5 text-2xl font-bold">
                             Related Artists
                         </h2>

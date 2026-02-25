@@ -19,7 +19,7 @@ export class CurrentListManager {
 
     // #region: Methods
 
-    setCurrentListSongs(songs: (RockItSongWithAlbum)[]) {
+    setCurrentListSongs(songs: RockItSongWithAlbum[]) {
         this._currentListSongsAtom.set(songs);
     }
 

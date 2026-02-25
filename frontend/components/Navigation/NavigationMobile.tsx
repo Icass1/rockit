@@ -74,7 +74,7 @@ export default function NavigationMobile() {
                         key={page.href}
                         href={page.href}
                         title={page.title}
-                        className={`mr-2 ml-2 flex h-full w-full items-center justify-center gap-2 rounded-md transition-all ${
+                        className={`ml-2 mr-2 flex h-full w-full items-center justify-center gap-2 rounded-md transition-all ${
                             activePage === page.href
                                 ? "bg-white text-black"
                                 : "text-white"
@@ -92,7 +92,7 @@ export default function NavigationMobile() {
             <Link
                 href="/settings"
                 title="Settings"
-                className={`mr-2 ml-2 flex h-full w-full items-center justify-center gap-2 rounded-md transition-all ${
+                className={`ml-2 mr-2 flex h-full w-full items-center justify-center gap-2 rounded-md transition-all ${
                     activePage === "/settings"
                         ? "bg-white text-black"
                         : "text-white"

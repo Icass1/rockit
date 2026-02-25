@@ -13,7 +13,7 @@ export default function TogglePlayerUI() {
             className="relative h-6 w-6 rounded border-[2.4px] border-gray-400 text-gray-400 transition-all md:hover:border-white md:hover:text-white"
             onClick={() => rockIt.playerUIManager.toggle()}
         >
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
                 <ChevronUp
                     className="h-6 w-5 cursor-pointer transition-all duration-500 ease-in-out"
                     style={{ rotate: $visible ? "-180deg" : "0deg" }}
@@ -22,4 +22,3 @@ export default function TogglePlayerUI() {
         </button>
     );
 }
-

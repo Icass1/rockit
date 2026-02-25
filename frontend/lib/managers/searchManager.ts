@@ -32,40 +32,47 @@ export class SearchManager {
         this._searchQueryAtom.set(query);
         this._searchingAtom.set(true);
 
-        apiFetch("/media/search?q=" + encodeURIComponent(query)).then((data) => {
-            if (!data?.ok) {
-                console.warn("No response from /search");
-                this._searchingAtom.set(false);
-                return;
-            }
-
-            data.json().then((json) => {
-                try {
-                    const results = SearchResultsResponse.parse(json);
-                    this._searchResultsAtom.set({
-                        spotifyResults: {
-                            songs: results.spotifyResults.songs.map((song) =>
-                                RockItSongWithAlbum.fromResponse(song)
-                            ),
-                            albums: results.spotifyResults.albums.map((album) =>
-                                RockItAlbumWithoutSongs.fromResponse(album)
-                            ),
-                            artists: results.spotifyResults.artists.map(
-                                (artist) => RockItArtist.fromResponse(artist)
-                            ),
-                            playlists: results.spotifyResults.playlists.map(
-                                (playlist) =>
-                                    RockItPlaylist.fromResponse(playlist)
-                            ),
-                        },
-                    });
-                } catch (e) {
-                    console.error("Error parsing search results", e, json);
-                } finally {
+        apiFetch("/media/search?q=" + encodeURIComponent(query)).then(
+            (data) => {
+                if (!data?.ok) {
+                    console.warn("No response from /search");
                     this._searchingAtom.set(false);
+                    return;
                 }
-            });
-        });
+
+                data.json().then((json) => {
+                    try {
+                        const results = SearchResultsResponse.parse(json);
+                        this._searchResultsAtom.set({
+                            spotifyResults: {
+                                songs: results.spotifyResults.songs.map(
+                                    (song) =>
+                                        RockItSongWithAlbum.fromResponse(song)
+                                ),
+                                albums: results.spotifyResults.albums.map(
+                                    (album) =>
+                                        RockItAlbumWithoutSongs.fromResponse(
+                                            album
+                                        )
+                                ),
+                                artists: results.spotifyResults.artists.map(
+                                    (artist) =>
+                                        RockItArtist.fromResponse(artist)
+                                ),
+                                playlists: results.spotifyResults.playlists.map(
+                                    (playlist) =>
+                                        RockItPlaylist.fromResponse(playlist)
+                                ),
+                            },
+                        });
+                    } catch (e) {
+                        console.error("Error parsing search results", e, json);
+                    } finally {
+                        this._searchingAtom.set(false);
+                    }
+                });
+            }
+        );
     }
 
     clearResults() {

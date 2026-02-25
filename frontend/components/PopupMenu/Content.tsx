@@ -27,8 +27,11 @@ function calcPosition(
     }
 
     if (triggerRect) {
-        const overlapsX = x + width > triggerRect.x && x < triggerRect.x + triggerRect.width;
-        const overlapsY = y + height > triggerRect.y && y < triggerRect.y + triggerRect.height;
+        const overlapsX =
+            x + width > triggerRect.x && x < triggerRect.x + triggerRect.width;
+        const overlapsY =
+            y + height > triggerRect.y &&
+            y < triggerRect.y + triggerRect.height;
 
         if (overlapsX && overlapsY) {
             if (attempt === 1) {
@@ -73,7 +76,11 @@ function getOrCreatePortalClient(): HTMLElement | null {
     return div;
 }
 
-export default function PopupMenuContent({ children }: { children?: ReactNode }) {
+export default function PopupMenuContent({
+    children,
+}: {
+    children?: ReactNode;
+}) {
     const { open, setOpen, pos, contentRef, triggerRef } = usePopupMenu();
 
     // Safety: this component is client-only (`"use client"`), pero reafirmamos.
@@ -102,7 +109,7 @@ export default function PopupMenuContent({ children }: { children?: ReactNode })
             onDimensionsCalculated={handleDimensions}
             onClick={() => setOpen(false)}
             style={{ display: open ? "block" : "none" }}
-            className="fixed top-0 left-0 z-50 h-[calc(100%-4rem)] w-full overflow-auto rounded-md bg-neutral-800/90 px-10 md:h-auto md:w-max md:p-1 md:shadow-[0px_0px_20px_3px_#0e0e0e]"
+            className="fixed left-0 top-0 z-50 h-[calc(100%-4rem)] w-full overflow-auto rounded-md bg-neutral-800/90 px-10 md:h-auto md:w-max md:p-1 md:shadow-[0px_0px_20px_3px_#0e0e0e]"
         >
             <div className="flex h-full flex-col gap-y-1 overflow-y-auto py-20 md:py-0">
                 {children}

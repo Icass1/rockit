@@ -25,12 +25,13 @@ export default function QuickSelectionsSection({
                 {Array.from({ length: COLUMNS }).map((_, columnIndex) => (
                     <div
                         key={columnIndex}
-                        className="flex w-[51%] max-w-50 flex-none snap-center flex-col gap-1 md:w-[calc(25%-10px)] md:max-w-87.5"
+                        className="max-w-50 md:max-w-87.5 flex w-[51%] flex-none snap-center flex-col gap-1 md:w-[calc(25%-10px)]"
                     >
                         {songs
                             .slice(
                                 columnIndex * SONGS_PER_COLUMN,
-                                columnIndex * SONGS_PER_COLUMN + SONGS_PER_COLUMN
+                                columnIndex * SONGS_PER_COLUMN +
+                                    SONGS_PER_COLUMN
                             )
                             .map((song) => (
                                 <QuickSelectionsSong

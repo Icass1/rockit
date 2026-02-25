@@ -89,7 +89,7 @@ export default function PlaylistHeader({
     return (
         <div
             className={
-                "relative top-24 flex h-104 flex-col gap-1 px-10 md:top-1/2 md:h-fit md:max-h-none md:w-full md:max-w-96 md:-translate-y-1/2 md:px-0 " +
+                "h-104 relative top-24 flex flex-col gap-1 px-10 md:top-1/2 md:h-fit md:max-h-none md:w-full md:max-w-96 md:-translate-y-1/2 md:px-0 " +
                 className
             }
         >
@@ -107,12 +107,12 @@ export default function PlaylistHeader({
                         list.type == playlist.type &&
                         list.publicId == list.publicId
                 ) && (
-                    <div className="absolute top-10 right-10 bottom-10 left-10">
+                    <div className="absolute bottom-10 left-10 right-10 top-10">
                         <DownloadAnimation progress={progress} />
                     </div>
                 )}
 
-                <div className="absolute right-3 bottom-3 flex h-16 w-auto flex-row gap-4 md:h-20">
+                <div className="absolute bottom-3 right-3 flex h-16 w-auto flex-row gap-4 md:h-20">
                     {anySongDownloaded && (
                         <PlayListButton type="album" id={playlist.publicId} />
                     )}
@@ -127,7 +127,7 @@ export default function PlaylistHeader({
 
             {/* Nombre de la playlist */}
             <div className="mx-auto flex w-fit flex-row items-center gap-3">
-                <label className="text-2xl font-semibold text-balance">
+                <label className="text-balance text-2xl font-semibold">
                     {playlist.name}
                 </label>
                 <ListOptions

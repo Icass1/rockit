@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 export const SessionResponseSchema = z.object({
     username: z.any(),

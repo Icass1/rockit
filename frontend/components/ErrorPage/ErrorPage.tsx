@@ -3,7 +3,10 @@ import Image from "next/image";
 
 type ErrorCode = 404 | 500 | 403 | 401;
 
-const ERROR_CONTENT: Record<ErrorCode, { title: string; subtitle: string; description: string }> = {
+const ERROR_CONTENT: Record<
+    ErrorCode,
+    { title: string; subtitle: string; description: string }
+> = {
     401: {
         title: "401",
         subtitle: "🎵 Backstage pass required",
@@ -17,26 +20,29 @@ const ERROR_CONTENT: Record<ErrorCode, { title: string; subtitle: string; descri
     404: {
         title: "404",
         subtitle: "🎵 This track doesn't exist",
-        description: "We couldn't find what you were looking for, but don't worry — Rock It! still plays on.",
+        description:
+            "We couldn't find what you were looking for, but don't worry — Rock It! still plays on.",
     },
     500: {
         title: "500",
         subtitle: "🎵 Whoops! Looks like this track is off-key",
-        description: "Something went wrong on our end. Give it another spin in a moment.",
+        description:
+            "Something went wrong on our end. Give it another spin in a moment.",
     },
 };
 
 export default function ErrorPage({ code }: { code: ErrorCode }) {
-    const { title, subtitle, description } = ERROR_CONTENT[code] ?? ERROR_CONTENT[500];
+    const { title, subtitle, description } =
+        ERROR_CONTENT[code] ?? ERROR_CONTENT[500];
 
     return (
-        <div className="relative flex h-screen w-full flex-col items-center justify-center select-none bg-linear-to-r from-[#d185ca] to-[#ffbb9e]">
+        <div className="bg-linear-to-r relative flex h-screen w-full select-none flex-col items-center justify-center from-[#d185ca] to-[#ffbb9e]">
             <div className="flex h-auto flex-col items-center gap-8 md:flex-row">
                 <div className="w-full text-center text-black">
                     <h1 className="mb-4 text-6xl font-bold md:text-9xl">
                         {title}
                     </h1>
-                    <p className="mb-2 text-xl font-semibold text-balance md:text-3xl">
+                    <p className="mb-2 text-balance text-xl font-semibold md:text-3xl">
                         {subtitle}
                     </p>
                     <p className="text-sm font-medium md:text-base">
@@ -58,7 +64,7 @@ export default function ErrorPage({ code }: { code: ErrorCode }) {
                         height={500}
                         src="/brazovinilo.png"
                         alt="Vinyl Arm"
-                        className="absolute top-0 right-0 z-20 h-[70%] w-[70%] translate-x-10 -translate-y-2 rotate-[-20deg]"
+                        className="absolute right-0 top-0 z-20 h-[70%] w-[70%] -translate-y-2 translate-x-10 rotate-[-20deg]"
                     />
                 </div>
             </div>

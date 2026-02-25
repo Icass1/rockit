@@ -10,6 +10,7 @@
 OpenCode is an open-source agentic coding tool (like Claude Code but model-agnostic). It runs in the terminal with a TUI and can read, write, and execute code across the project.
 
 ### ✅ Strengths
+
 - **Model-agnostic** — works with any provider: Anthropic, OpenAI, Gemini, Ollama (local)
 - **Privacy** — does not store code or context data on external servers (when using local models, 100% private)
 - **Multi-agent system** — has specialized agents: `Build` (full access), `Plan` (read-only analysis), `Explore` (codebase navigation)
@@ -18,6 +19,7 @@ OpenCode is an open-source agentic coding tool (like Claude Code but model-agnos
 - **MCP support** — can connect to external tools via Model Context Protocol
 
 ### ❌ Weaknesses
+
 - **Local models struggle with long-context agentic tasks** — Ollama defaults to 4096 token context, which breaks tool use. Must manually set `num_ctx` to at least 16k-32k
 - **Quality gap with local models** — Qwen3-Coder or similar are good but not on par with Claude Sonnet/Opus for complex refactors
 - **Non-deterministic** — results vary between runs, especially with smaller models
@@ -26,27 +28,30 @@ OpenCode is an open-source agentic coding tool (like Claude Code but model-agnos
 ### 🆓 Free / Local model setup (no API cost)
 
 **Option A — Ollama local (full privacy, needs GPU):**
+
 ```json
 // ~/.config/opencode/opencode.json
 {
-  "$schema": "https://opencode.ai/config.json",
-  "model": "ollama/qwen3-coder:30b-16k",
-  "provider": {
-    "ollama": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "Ollama (local)",
-      "options": { "baseURL": "http://localhost:11434/v1" },
-      "models": {
-        "qwen3-coder:30b-16k": { "name": "Qwen3 Coder 30B" }
-      }
+    "$schema": "https://opencode.ai/config.json",
+    "model": "ollama/qwen3-coder:30b-16k",
+    "provider": {
+        "ollama": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "Ollama (local)",
+            "options": { "baseURL": "http://localhost:11434/v1" },
+            "models": {
+                "qwen3-coder:30b-16k": { "name": "Qwen3 Coder 30B" }
+            }
+        }
     }
-  }
 }
 ```
+
 > ⚠️ Critical: set context window to at least 16k or tools won't work:
 > `ollama run qwen3-coder:30b` → `/set parameter num_ctx 32768` → `/save qwen3-coder:30b-16k` → `/bye`
 
 **Option B — Gemini Flash (free tier, API key required but free):**
+
 ```bash
 export GEMINI_API_KEY=your_key_here
 # Then in opencode, /models → select gemini-2.0-flash
@@ -56,6 +61,7 @@ export GEMINI_API_KEY=your_key_here
 Run `/connect` in OpenCode TUI → select OpenCode Zen → sign in at opencode.ai/auth. Includes tested models like `big-pickle` at no cost.
 
 ### 🧠 Recommended workflow
+
 - Use **`Plan` agent** (Tab to switch) to analyze before making changes — it's read-only and won't touch files
 - Use **`Build` agent** for actual implementation
 - Use **`Explore` agent** to navigate the codebase before asking for changes
@@ -69,27 +75,28 @@ Run `/connect` in OpenCode TUI → select OpenCode Zen → sign in at opencode.a
 
 **The most important rule in this codebase.**
 
-| Rule | Detail |
-|---|---|
-| `page.tsx` files NEVER have `"use client"` | Pages are always Server Components |
-| `"use client"` only on components that use hooks or browser APIs | useState, useEffect, useRouter, event handlers, etc. |
-| Data fetching in pages happens on the server | Using `getLang`, `getUserInServer`, direct fetch with `next: { revalidate }` |
-| Interactive logic is isolated in a `*Client.tsx` component | The page imports and renders it |
+| Rule                                                             | Detail                                                                       |
+| ---------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `page.tsx` files NEVER have `"use client"`                       | Pages are always Server Components                                           |
+| `"use client"` only on components that use hooks or browser APIs | useState, useEffect, useRouter, event handlers, etc.                         |
+| Data fetching in pages happens on the server                     | Using `getLang`, `getUserInServer`, direct fetch with `next: { revalidate }` |
+| Interactive logic is isolated in a `*Client.tsx` component       | The page imports and renders it                                              |
 
 **Pattern to always follow:**
+
 ```tsx
 // app/(protected)/(app)/somefeature/page.tsx — Server Component
 import SomeFeatureClient from "@/components/SomeFeature/SomeFeatureClient";
 
 export default async function SomeFeaturePage() {
-  const data = await fetchSomething(); // server-side
-  return <SomeFeatureClient initialData={data} />;
+    const data = await fetchSomething(); // server-side
+    return <SomeFeatureClient initialData={data} />;
 }
 
 // components/SomeFeature/SomeFeatureClient.tsx — Client Component
-"use client";
+("use client");
 export default function SomeFeatureClient({ initialData }) {
-  // hooks, state, interactivity here
+    // hooks, state, interactivity here
 }
 ```
 
@@ -116,15 +123,16 @@ All API responses MUST be validated with Zod before use. Never trust raw fetch r
 import { z } from "zod";
 
 export const HomeStatsResponse = z.object({
-  songsByTimePlayed: z.array(RockItSongWithAlbumResponseSchema),
-  randomSongsLastMonth: z.array(RockItSongWithAlbumResponseSchema),
-  // ...
+    songsByTimePlayed: z.array(RockItSongWithAlbumResponseSchema),
+    randomSongsLastMonth: z.array(RockItSongWithAlbumResponseSchema),
+    // ...
 });
 
 export type HomeStatsResponse = z.infer<typeof HomeStatsResponse>;
 ```
 
 The `useFetch` hook receives the Zod schema as second argument and validates automatically:
+
 ```ts
 const [data] = useFetch("/stats/home", HomeStatsResponse);
 // data is typed and validated — if backend sends garbage, it fails fast
@@ -145,15 +153,16 @@ lib/managers/
 ```
 
 Components call managers, they don't implement logic:
+
 ```ts
 // ✅ Correct
 const handlePlay = () => rockIt.audioManager.play(song);
 
 // ❌ Wrong — logic in component
 const handlePlay = () => {
-  audioRef.current.src = song.url;
-  audioRef.current.play();
-  setPlaying(true);
+    audioRef.current.src = song.url;
+    audioRef.current.play();
+    setPlaying(true);
 };
 ```
 
@@ -189,6 +198,7 @@ export { useHomeData } from "./hooks/useHomeData";
 ```
 
 This means imports in other files use:
+
 ```ts
 import { HomeClient } from "@/components/Home";
 // not: import HomeClient from "@/components/Home/HomeClient";
@@ -202,22 +212,22 @@ Components that need to share state between sub-components (like PopupMenu, Cont
 // context.ts
 export const PopupMenuContext = createContext<PopupMenuContext | null>(null);
 export function usePopupMenu() {
-  const ctx = useContext(PopupMenuContext);
-  if (!ctx) throw new Error("usePopupMenu must be used inside <PopupMenu>");
-  return ctx;
+    const ctx = useContext(PopupMenuContext);
+    if (!ctx) throw new Error("usePopupMenu must be used inside <PopupMenu>");
+    return ctx;
 }
 ```
 
 ### Naming conventions
 
-| Type | Convention | Example |
-|---|---|---|
-| Pages | `page.tsx` | `app/(app)/library/page.tsx` |
-| Client wrappers | `*Client.tsx` | `HomeClient.tsx` |
-| Feature hooks | `use*` camelCase | `useHomeData.ts` |
-| Managers | `*Manager.ts` | `audioManager.ts` |
-| DTOs / Responses | `*Response.ts` | `homeStatsResponse.ts` |
-| Types | PascalCase | `RockItSong`, `Lang` |
+| Type             | Convention       | Example                      |
+| ---------------- | ---------------- | ---------------------------- |
+| Pages            | `page.tsx`       | `app/(app)/library/page.tsx` |
+| Client wrappers  | `*Client.tsx`    | `HomeClient.tsx`             |
+| Feature hooks    | `use*` camelCase | `useHomeData.ts`             |
+| Managers         | `*Manager.ts`    | `audioManager.ts`            |
+| DTOs / Responses | `*Response.ts`   | `homeStatsResponse.ts`       |
+| Types            | PascalCase       | `RockItSong`, `Lang`         |
 
 ---
 

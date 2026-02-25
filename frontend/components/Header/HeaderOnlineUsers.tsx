@@ -10,8 +10,13 @@ export default function OnlineUserIndicator() {
     if (!$onlineUsers || $onlineUsers <= 0) return null;
 
     return (
-        <div className="flex items-center gap-1 text-green-500" title={`${$onlineUsers} users online`}>
-            <span className="text-sm font-semibold tabular-nums">{$onlineUsers}</span>
+        <div
+            className="flex items-center gap-1 text-green-500"
+            title={`${$onlineUsers} users online`}
+        >
+            <span className="text-sm font-semibold tabular-nums">
+                {$onlineUsers}
+            </span>
             <User className="h-5 w-5" />
         </div>
     );

@@ -1,5 +1,5 @@
-import { z } from 'zod';
-import { BaseSongResponseSchema } from './baseSongResponse';
+import { z } from "zod";
+import { BaseSongResponseSchema } from "./baseSongResponse";
 
 export const HomeStatsResponseSchema = z.object({
     songsByTimePlayed: z.array(z.lazy(() => BaseSongResponseSchema)),

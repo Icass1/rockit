@@ -1,4 +1,4 @@
 ignoredBuiltDependencies:
-  - unrs-resolver
+    - unrs-resolver
 onlyBuiltDependencies:
-  - sharp
+    - sharp

@@ -15,7 +15,9 @@ interface DraggingSong {
  *   Translates raw clientY into a position relative to the list. Default: 185.
  */
 export function useQueueDrag(containerOffsetFromTop = 185) {
-    const [draggingSong, setDraggingSong] = useState<DraggingSong | undefined>();
+    const [draggingSong, setDraggingSong] = useState<
+        DraggingSong | undefined
+    >();
     const [draggingPosY, setDraggingPosY] = useState(0);
     const draggingPosYRef = useRef(0);
 

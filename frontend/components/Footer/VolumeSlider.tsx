@@ -6,11 +6,14 @@ import Slider from "@/components/Slider";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 function VolumeIcon({ volume }: { volume: number }) {
-    const className = "h-5.5 w-5.5 cursor-pointer text-gray-400 md:hover:text-white";
+    const className =
+        "h-5.5 w-5.5 cursor-pointer text-gray-400 md:hover:text-white";
     const onClick = () => rockIt.audioManager.toggleMute();
 
-    if (volume === 0) return <VolumeOff className={className} onClick={onClick} />;
-    if (volume < 0.5) return <Volume1 className={className} onClick={onClick} />;
+    if (volume === 0)
+        return <VolumeOff className={className} onClick={onClick} />;
+    if (volume < 0.5)
+        return <Volume1 className={className} onClick={onClick} />;
     return <Volume2 className={className} onClick={onClick} />;
 }
 

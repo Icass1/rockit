@@ -12,9 +12,9 @@ type DocumentPiP = {
 function getDocumentPiP(): DocumentPiP | null {
     if (typeof window === "undefined") return null;
 
-    const pip =
-        (window as unknown as { documentPictureInPicture?: DocumentPiP })
-            .documentPictureInPicture;
+    const pip = (
+        window as unknown as { documentPictureInPicture?: DocumentPiP }
+    ).documentPictureInPicture;
 
     if (pip && typeof pip.requestWindow === "function") return pip;
     return null;
@@ -111,8 +111,7 @@ export default function PictureInPicture() {
                 />
             </button>
 
-            {pipWindow &&
-                createPortal(<PiPContent />, pipWindow.document.body)}
+            {pipWindow && createPortal(<PiPContent />, pipWindow.document.body)}
         </>
     );
 }

@@ -94,12 +94,12 @@ export default function RenderAlbum({
                             list.type == album.type &&
                             list.publicId == list.publicId
                     ) && (
-                        <div className="absolute top-10 right-10 bottom-10 left-10">
+                        <div className="absolute bottom-10 left-10 right-10 top-10">
                             <DownloadAnimation progress={progress} />
                         </div>
                     )}
 
-                    <div className="absolute right-3 bottom-3 flex h-16 w-auto flex-row gap-4 md:h-20">
+                    <div className="absolute bottom-3 right-3 flex h-16 w-auto flex-row gap-4 md:h-20">
                         {anySongDownloaded && (
                             <PlayListButton type="album" id={album.publicId} />
                         )}
@@ -113,7 +113,7 @@ export default function RenderAlbum({
                 </div>
 
                 <div className="z-50 mx-auto flex w-fit flex-row items-center gap-2">
-                    <label className="text-center text-2xl font-semibold text-balance">
+                    <label className="text-balance text-center text-2xl font-semibold">
                         {album.name}
                     </label>
 

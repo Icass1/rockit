@@ -4,9 +4,9 @@ import { ChangeEvent, useEffect, useState } from "react";
 
 function validateUsername(value: string): string | null {
     if (value === "") return null;
-    if (value.length < 3 || value.length > 30) 
+    if (value.length < 3 || value.length > 30)
         return "Username must be between 3 and 30 characters";
-    if (!/^[a-zA-Z0-9_-]+$/.test(value)) 
+    if (!/^[a-zA-Z0-9_-]+$/.test(value))
         return "Only letters, numbers, _ and - are allowed";
     return null;
 }

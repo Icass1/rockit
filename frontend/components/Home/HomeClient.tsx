@@ -10,9 +10,18 @@ import QuickSelectionsSection from "@/components/Home/sections/QuickSelectionsSe
 import Spinner from "@/components/Spinner";
 
 const MONTH_KEYS = [
-    "january", "february", "march", "april",
-    "may", "june", "july", "august",
-    "september", "october", "november", "december",
+    "january",
+    "february",
+    "march",
+    "april",
+    "may",
+    "june",
+    "july",
+    "august",
+    "september",
+    "october",
+    "november",
+    "december",
 ] as const;
 
 function getPreviousMonthKey() {
@@ -42,7 +51,7 @@ export default function HomeClient() {
     const previousMonthKey = getPreviousMonthKey();
 
     return (
-        <div className="relative flex h-full flex-col overflow-y-auto pt-24 pb-24">
+        <div className="relative flex h-full flex-col overflow-y-auto pb-24 pt-24">
             <SongsCarousel />
 
             <QuickSelectionsSection

@@ -63,7 +63,7 @@ export default function AlbumSong({
         <SongContextMenu song={$songAtom}>
             <div
                 className={
-                    "grid grid-cols-[min-content_1fr_min-content_min-content_40px] items-center gap-2 rounded py-[0.5rem] transition-colors select-none md:gap-4 md:px-2 md:py-[0.65rem] md:select-text " +
+                    "grid select-none grid-cols-[min-content_1fr_min-content_min-content_40px] items-center gap-2 rounded py-[0.5rem] transition-colors md:select-text md:gap-4 md:px-2 md:py-[0.65rem] " +
                     (songUnavaliable ? " pointer-events-none opacity-40" : "") +
                     (songPlaying ? " text-[#ec5588]" : "")
                 }
@@ -87,11 +87,11 @@ export default function AlbumSong({
                 </label>
                 <div
                     className={
-                        "grid w-full max-w-full min-w-0 grid-cols-[1fr_max-content] items-center gap-1 truncate text-base font-semibold md:text-clip" +
+                        "grid w-full min-w-0 max-w-full grid-cols-[1fr_max-content] items-center gap-1 truncate text-base font-semibold md:text-clip" +
                         (songPlaying ? " text-[#ec5588]" : "")
                     }
                 >
-                    <label className="w-auto max-w-full min-w-0 truncate">
+                    <label className="w-auto min-w-0 max-w-full truncate">
                         {$songAtom.name}
                     </label>
                 </div>
@@ -104,7 +104,7 @@ export default function AlbumSong({
                 )}
                 <LikeButton songPublicId={$songAtom.publicId} />
 
-                <label className="flex min-w-7 items-center justify-center text-sm text-white/80 select-none">
+                <label className="flex min-w-7 select-none items-center justify-center text-sm text-white/80">
                     {hovered && window.innerWidth > 768 ? (
                         <EllipsisVertical
                             className="h-5 w-5 text-gray-400 md:hover:scale-105 md:hover:text-white"

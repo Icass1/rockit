@@ -13,7 +13,10 @@ export default function QuickSelectionsSong({
     songs: RockItSongWithAlbum[];
 }) {
     const handleClick = () => {
-        songHandleClick(song.toRockItSongWithoutAlbum(), songs.map(s => s.toRockItSongWithoutAlbum()));
+        songHandleClick(
+            song.toRockItSongWithoutAlbum(),
+            songs.map((s) => s.toRockItSongWithoutAlbum())
+        );
     };
 
     return (

@@ -90,7 +90,7 @@ export default async function SongPage({
     const artist = song.artists[0];
 
     return (
-        <div className="h-full w-full overflow-y-scroll p-2 pt-16 pb-16 md:mt-0 md:mb-0 md:pt-24 md:pb-24">
+        <div className="h-full w-full overflow-y-scroll p-2 pb-16 pt-16 md:mb-0 md:mt-0 md:pb-24 md:pt-24">
             <div className="mx-auto grid w-full grid-cols-1 items-center gap-4 px-10 md:grid-cols-3 md:p-6">
                 <div className="hidden flex-col items-center justify-center md:flex">
                     <div className="flex w-full max-w-sm items-center rounded-lg bg-neutral-200 p-4 shadow-md">
@@ -163,7 +163,7 @@ export default async function SongPage({
                     </div>
 
                     <div className="mt-4 flex flex-row justify-center gap-4">
-                        <div className="flex flex-row items-center gap-2 rounded bg-[#3030306f] p-2 select-none hover:bg-[#313131]">
+                        <div className="flex select-none flex-row items-center gap-2 rounded bg-[#3030306f] p-2 hover:bg-[#313131]">
                             <LikeButton songPublicId={song.publicId} />
                             <span>Like</span>
                         </div>

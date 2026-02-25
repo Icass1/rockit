@@ -38,10 +38,10 @@ export default function SubContextMenuTrigger({
             }
         >
             <div className="grid grid-cols-[1fr_20px] items-center">
-                <div className="flex w-full max-w-full min-w-0 flex-row items-center gap-2">
+                <div className="flex w-full min-w-0 max-w-full flex-row items-center gap-2">
                     {children}
                 </div>
-                <ChevronRight className="aspect-square h-auto w-full max-w-full min-w-0" />
+                <ChevronRight className="aspect-square h-auto w-full min-w-0 max-w-full" />
             </div>
         </div>
     );

@@ -80,7 +80,7 @@ export function FeaturedLists({
                         }}
                     >
                         <Heart
-                            className="absolute top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2"
+                            className="absolute left-1/2 top-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2"
                             fill="white"
                         />
                     </div>
@@ -104,7 +104,7 @@ export function FeaturedLists({
                             backgroundSize: "cover",
                         }}
                     >
-                        <Disc3 className="absolute top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2" />
+                        <Disc3 className="absolute left-1/2 top-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2" />
                     </div>
                     <label className="mt-2 block truncate text-center font-semibold">
                         {lang.most_listened}
@@ -126,7 +126,7 @@ export function FeaturedLists({
                             backgroundSize: "cover",
                         }}
                     >
-                        <History className="absolute top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2" />
+                        <History className="absolute left-1/2 top-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2" />
                     </div>
                     <label className="mt-2 block truncate text-center font-semibold">
                         {lang.recent_mix}
@@ -147,7 +147,7 @@ export function FeaturedLists({
                             backgroundSize: "cover",
                         }}
                     >
-                        <div className="absolute top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2"></div>
+                        <div className="absolute left-1/2 top-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2"></div>
                     </div>
                     <label className="mt-2 block truncate text-center font-semibold">
                         {lastMonthName} Recap

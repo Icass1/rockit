@@ -303,7 +303,7 @@ export function DynamicLyrics() {
             })}
             {lyricsTimeStamp.length == 0 && (
                 <div
-                    className="dynamic-lyrics-scroll hide-scroll-track hide-scroll-thumb absolute block h-full w-full max-w-full min-w-0 overflow-auto"
+                    className="dynamic-lyrics-scroll hide-scroll-track hide-scroll-thumb absolute block h-full w-full min-w-0 max-w-full overflow-auto"
                     onScroll={(e) => {
                         setLyricsIndex(
                             Math.floor(e.currentTarget.scrollTop / 100)

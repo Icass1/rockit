@@ -7,7 +7,11 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { getBestImage } from "@/lib/utils/getBestImage";
 import { RockItAlbumWithoutSongs } from "@/lib/rockit/rockItAlbumWithoutSongs";
 
-export default function AlbumsSection({ albums }: { albums: RockItAlbumWithoutSongs[] }) {
+export default function AlbumsSection({
+    albums,
+}: {
+    albums: RockItAlbumWithoutSongs[];
+}) {
     const { langFile: lang } = useLanguage();
     const router = useRouter();
 
@@ -18,7 +22,7 @@ export default function AlbumsSection({ albums }: { albums: RockItAlbumWithoutSo
             <h2 className="px-5 text-left text-2xl font-bold md:px-0 md:text-3xl">
                 {lang.albums}
             </h2>
-            <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pr-14 md:pl-4">
+            <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pl-4 md:pr-14">
                 {albums.map((album) => {
                     const image = getBestImage(album.externalImages);
                     return (
@@ -46,10 +50,15 @@ export default function AlbumsSection({ albums }: { albums: RockItAlbumWithoutSo
                                         onClick={(e) => {
                                             e.preventDefault();
                                             e.stopPropagation();
-                                            router.push(`/artist/${artist.publicId}`);
+                                            router.push(
+                                                `/artist/${artist.publicId}`
+                                            );
                                         }}
                                     >
-                                        {artist.name}{i < album.artists.length - 1 ? ", " : ""}
+                                        {artist.name}
+                                        {i < album.artists.length - 1
+                                            ? ", "
+                                            : ""}
                                     </button>
                                 ))}
                             </span>

@@ -16,7 +16,8 @@ const MOCK_NOTIFICATIONS: Notification[] = [
 ];
 
 export default function NotificationMenu() {
-    const [notifications, setNotifications] = useState<Notification[]>(MOCK_NOTIFICATIONS);
+    const [notifications, setNotifications] =
+        useState<Notification[]>(MOCK_NOTIFICATIONS);
 
     const remove = (id: number) =>
         setNotifications((prev) => prev.filter((n) => n.id !== id));

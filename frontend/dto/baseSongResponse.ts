@@ -1,5 +1,5 @@
-import { z } from 'zod';
-import { BaseSongAlbumResponseSchema } from './baseSongAlbumResponse';
+import { z } from "zod";
+import { BaseSongAlbumResponseSchema } from "./baseSongAlbumResponse";
 
 export const BaseSongResponseSchema = z.object({
     provider: z.string(),

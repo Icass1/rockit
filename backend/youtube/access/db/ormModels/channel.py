@@ -1,7 +1,7 @@
 from typing import List, TYPE_CHECKING, Dict
 
 from sqlalchemy import String, Integer, ForeignKey
-from sqlalchemy.orm import relationship, mapped_column, Mapped, WriteOnlyMapped
+from sqlalchemy.orm import relationship, mapped_column, Mapped
 
 from backend.youtube.access.db.base import YoutubeBase
 from backend.core.access.db.ormModels.declarativeMixin import TableDateAdded, TableDateUpdated

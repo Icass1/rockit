@@ -37,7 +37,7 @@ class VideoRow(YoutubeBase, TableAutoincrementId, TableDateUpdated, TableDateAdd
     channel_id: Mapped[int] = mapped_column(Integer, ForeignKey(
         'youtube.channel.id'), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
-    youtube_url: Mapped[str] = mapped_column(String, nullable=True)
+    youtube_url: Mapped[str | None] = mapped_column(String, nullable=True)
     tags: Mapped[str | None] = mapped_column(String, nullable=True)
     published_at: Mapped[str | None] = mapped_column(String, nullable=True)
 
@@ -50,7 +50,7 @@ class VideoRow(YoutubeBase, TableAutoincrementId, TableDateUpdated, TableDateAdd
         back_populates="video"
     )
 
-    def __init__(self, id: int, youtube_id: str, name: str, duration: int, internal_image_id: int, channel_id: int, view_count: int = 0, like_count: int = 0, comment_count: int = 0, path: str | None = None, description: str | None = None, youtube_url: str = None, tags: str | None = None, published_at: str | None = None):
+    def __init__(self, id: int, youtube_id: str, name: str, duration: int, internal_image_id: int, channel_id: int, view_count: int = 0, like_count: int = 0, comment_count: int = 0, path: str | None = None, description: str | None = None, youtube_url: str | None = None, tags: str | None = None, published_at: str | None = None):
         kwargs: Dict[str, None | int | str] = {}
         kwargs['id'] = id
         kwargs['youtube_id'] = youtube_id

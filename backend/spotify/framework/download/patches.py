@@ -1,3 +1,5 @@
+# type: ignore
+
 from spotdl.download.downloader import DownloaderError, SPONSOR_BLOCK_CATEGORIES
 from spotdl.utils.search import reinit_song
 from spotdl.utils.metadata import embed_metadata

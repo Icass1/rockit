@@ -1,4 +1,4 @@
-from typing import Dict, List, TYPE_CHECKING
+from typing import Any, List
 
 from backend.constants import BACKEND_URL
 from backend.utils.logger import getLogger
@@ -110,7 +110,7 @@ class YouTube:
 
         raw_video: RawYoutubeVideo = a_result_api_video.result()
 
-        snippet: dict = raw_video.snippet or {}
+        snippet: dict[str, Any] = raw_video.snippet or {}
         channel_id: str = snippet.get("channelId", "")
 
         a_result_api_channel: AResult[RawYoutubeChannel] = await youtube_api.get_channel_async(channel_id)

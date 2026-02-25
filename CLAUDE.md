@@ -280,3 +280,13 @@ async with rockit_db.session_scope_async() as session:
 
     await SpotifyAccess.get_or_create_album(raw_album, artist_map, session, provider_id)
 ```
+
+---
+
+## Development Tools
+
+To get pylance errors, execute:
+
+```bash
+.venv/bin/python3 -m pyright
+```

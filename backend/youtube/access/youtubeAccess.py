@@ -1,7 +1,7 @@
 import os
 import uuid
 import requests as req
-from typing import Dict, List, Optional
+from typing import Any, List, Optional, Tuple
 from urllib.parse import parse_qs, urlparse
 
 from sqlalchemy.future import select
@@ -17,7 +17,6 @@ from backend.core.access.db import rockit_db
 from backend.core.access.db.ormModels.image import ImageRow
 from backend.core.access.db.ormModels.video import CoreVideoRow
 from backend.core.access.db.ormModels.artist import CoreArtistRow
-from backend.core.access.mediaAccess import MediaAccess
 
 from backend.youtube.access.db.ormModels.video import VideoRow
 from backend.youtube.access.db.ormModels.channel import ChannelRow
@@ -35,7 +34,7 @@ logger = getLogger(__name__)
 def parse_duration_to_seconds(duration: str) -> int:
     """Parse YouTube ISO 8601 duration to seconds."""
     try:
-        parsed: dict = parse_qs(urlparse(f"?{duration}").query)
+        parsed: dict[str, list[str]] = parse_qs(urlparse(f"?{duration}").query)
         hours: int = int(parsed.get('H', ['0'])[0])
         minutes: int = int(parsed.get('M', ['0'])[0])
         seconds: int = int(parsed.get('S', ['0'])[0])
@@ -189,8 +188,8 @@ class YouTubeAccess:
                     return AResult(code=AResultCode.OK, message="OK", result=existing)
 
                 internal_image_id: int | None = None
-                snippet: dict = raw.snippet or {}
-                thumbnails: dict = snippet.get("thumbnails", {})
+                snippet: dict[str, Any] = raw.snippet or {}
+                thumbnails: dict[str, Any] = snippet.get("thumbnails", {})
                 
                 thumbnail_url: str = ""
                 if "high" in thumbnails:
@@ -212,7 +211,7 @@ class YouTubeAccess:
                 session.add(core_artist)
                 await session.flush()
 
-                statistics: dict = raw.statistics or {}
+                statistics: dict[str, Any] = raw.statistics or {}
                 subscriber_count: int = 0
                 try:
                     subscriber_count = int(statistics.get("subscriberCount", 0))
@@ -271,12 +270,12 @@ class YouTubeAccess:
                 if existing:
                     return AResult(code=AResultCode.OK, message="OK", result=existing)
 
-                snippet: dict = raw.snippet or {}
-                content_details: dict = raw.contentDetails or {}
-                statistics: dict = raw.statistics or {}
+                snippet: dict[str, Any] = raw.snippet or {}
+                content_details: dict[str, Any] = raw.contentDetails or {}
+                statistics: dict[str, Any] = raw.statistics or {}
 
                 thumbnail_url: str = ""
-                thumbnails: dict = snippet.get("thumbnails", {})
+                thumbnails: dict[str, Any] = snippet.get("thumbnails", {})
                 if "high" in thumbnails:
                     thumbnail_url = thumbnails["high"].get("url", "")
                 elif "medium" in thumbnails:

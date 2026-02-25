@@ -119,10 +119,10 @@ class RockItDB:
                 # Column existence
                 for col in orm_columns.keys() - db_columns.keys():
                     logger.error(
-                        f"ORM-only column: {col} in table '{table.name}'")
+                        f"ORM-only column: {col} in table '{table.schema}.{table.name}'")
                 for col in db_columns.keys() - orm_columns.keys():
                     logger.error(
-                        f"DB-only column: {col} in table '{table.name}'")
+                        f"DB-only column: {col} in table '{table.schema}.{table.name}'")
 
                 # Type mismatch
                 for col in orm_columns.keys() & db_columns.keys():
@@ -130,7 +130,7 @@ class RockItDB:
                     db_type = str(db_columns[col]["type"])
                     if orm_type.lower() != db_type.lower():
                         logger.error(
-                            f"Type mismatch on {col}: ORM={orm_type}, DB={db_type} in table '{table.name}'")
+                            f"Type mismatch on {col}: ORM={orm_type}, DB={db_type} in table '{table.schema}.{table.name}'")
 
                 # Foreign keys
                 orm_fks: Set[str] = set()
@@ -148,10 +148,10 @@ class RockItDB:
 
                 for fk in orm_fks - db_fks:
                     logger.error(
-                        f"ForeignKey in ORM but missing in DB: {fk} in table '{table.name}'")
+                        f"ForeignKey in ORM but missing in DB: {fk} in table '{table.schema}.{table.name}'")
                 for fk in db_fks - orm_fks:
                     logger.error(
-                        f"ForeignKey in DB but missing in ORM: {fk} in table '{table.name}'")
+                        f"ForeignKey in DB but missing in ORM: {fk} in table '{table.schema}.{table.name}'")
 
             # Run sync inspection inside async connection
             await conn.run_sync(do_check)

@@ -65,6 +65,7 @@ CONSOLE_DUMP_LEVEL = get_env_str(
 DOWNLOAD_THREADS = get_env_int("DOWNLOAD_THREADS")
 CLIENT_ID = get_env_str("CLIENT_ID")
 CLIENT_SECRET = get_env_str("CLIENT_SECRET")
+YOUTUBE_API_KEY = get_env_str("YOUTUBE_API_KEY")
 
 DB_HOST = get_env_str("DB_HOST")
 DB_USER = get_env_str("DB_USER")

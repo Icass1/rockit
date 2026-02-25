@@ -14,6 +14,7 @@ from backend.core.access.db.ormModels.album import CoreAlbumRow
 from backend.core.access.db.ormModels.artist import CoreArtistRow
 from backend.core.access.db.ormModels.playlist import CorePlaylistRow
 from backend.core.access.db.ormModels.image import ImageRow
+from backend.core.access.db.ormModels.video import CoreVideoRow
 
 logger = getLogger(__name__)
 
@@ -165,3 +166,24 @@ class MediaAccess:
         except Exception as e:
             logger.error(f"Error getting image: {e}")
             return AResult(code=AResultCode.GENERAL_ERROR, message="Error getting image")
+
+    @staticmethod
+    async def get_video_from_id_async(id: int, session: AsyncSession | None = None) -> AResult[CoreVideoRow]:
+        """Get a CoreVideoRow by id."""
+
+        try:
+            async with rockit_db.session_scope_or_session_async(session) as s:
+                stmt: Select[Tuple[CoreVideoRow]] = select(CoreVideoRow).where(
+                    CoreVideoRow.id == id)
+                result: Result[Tuple[CoreVideoRow]] = await s.execute(stmt)
+                row: CoreVideoRow | None = result.scalar_one_or_none()
+
+                if row is None:
+                    return AResult(code=AResultCode.NOT_FOUND, message="Video not found")
+
+                s.expunge(row)
+                return AResult(code=AResultCode.OK, message="OK", result=row)
+
+        except Exception as e:
+            logger.error(f"Error getting video: {e}")
+            return AResult(code=AResultCode.GENERAL_ERROR, message="Error getting video")

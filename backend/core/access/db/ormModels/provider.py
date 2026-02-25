@@ -11,6 +11,7 @@ if TYPE_CHECKING:
     from backend.core.access.db.ormModels.album import CoreAlbumRow
     from backend.core.access.db.ormModels.artist import CoreArtistRow
     from backend.core.access.db.ormModels.playlist import CorePlaylistRow
+    from backend.core.access.db.ormModels.video import CoreVideoRow
 
 
 class ProviderRow(CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdded):
@@ -47,6 +48,12 @@ class ProviderRow(CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdd
 
     playlists: Mapped[List["CorePlaylistRow"]] = relationship(
         "CorePlaylistRow",
+        back_populates="provider",
+        uselist=True
+    )
+
+    videos: Mapped[List["CoreVideoRow"]] = relationship(
+        "CoreVideoRow",
         back_populates="provider",
         uselist=True
     )

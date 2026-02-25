@@ -52,7 +52,7 @@ function SongDownload({
 
             <div
                 style={{ gridArea: "name" }}
-                className="h-full w-full min-w-0 max-w-full"
+                className="h-full w-full max-w-full min-w-0"
             >
                 {song?.name ? (
                     <label>{song.name}</label>
@@ -63,12 +63,12 @@ function SongDownload({
             <div
                 title={message}
                 style={{ gridArea: "message" }}
-                className="w-full min-w-0 max-w-full truncate"
+                className="w-full max-w-full min-w-0 truncate"
             >
                 {message}
             </div>
 
-            <div className="flex w-full min-w-0 max-w-full flex-row items-center gap-2">
+            <div className="flex w-full max-w-full min-w-0 flex-row items-center gap-2">
                 <label className="min-w-[30px] text-right text-xs font-semibold text-neutral-300">
                     {Math.round(completed)}%
                 </label>

@@ -75,7 +75,7 @@ export default function FooterMobile() {
                 <Slider
                     readOnly
                     id="default-slider"
-                    className="group relative bottom-[0.15rem] ml-1 mr-1 h-[0.15rem] w-auto rounded bg-neutral-700"
+                    className="group relative bottom-[0.15rem] mr-1 ml-1 h-[0.15rem] w-auto rounded bg-neutral-700"
                     value={$currentTime ?? 0}
                     min={0}
                     max={$currentSong?.duration}

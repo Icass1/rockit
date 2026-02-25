@@ -109,7 +109,7 @@ export default function PopupMenuContent({
             onDimensionsCalculated={handleDimensions}
             onClick={() => setOpen(false)}
             style={{ display: open ? "block" : "none" }}
-            className="fixed left-0 top-0 z-50 h-[calc(100%-4rem)] w-full overflow-auto rounded-md bg-neutral-800/90 px-10 md:h-auto md:w-max md:p-1 md:shadow-[0px_0px_20px_3px_#0e0e0e]"
+            className="fixed top-0 left-0 z-50 h-[calc(100%-4rem)] w-full overflow-auto rounded-md bg-neutral-800/90 px-10 md:h-auto md:w-max md:p-1 md:shadow-[0px_0px_20px_3px_#0e0e0e]"
         >
             <div className="flex h-full flex-col gap-y-1 overflow-y-auto py-20 md:py-0">
                 {children}

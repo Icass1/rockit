@@ -77,7 +77,7 @@ export default function SongPageCover({ song }: { song: RockItSongWithAlbum }) {
     return (
         <div className="relative h-full w-full max-w-md">
             <div
-                className="relative aspect-square h-auto w-full max-w-md cursor-pointer select-none overflow-hidden rounded-lg object-cover"
+                className="relative aspect-square h-auto w-full max-w-md cursor-pointer overflow-hidden rounded-lg object-cover select-none"
                 onMouseEnter={() => setHover(true)}
                 onMouseLeave={() => setHover(false)}
                 onClick={() => console.log("(SongPageCover) handleClick")}

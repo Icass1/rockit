@@ -173,7 +173,7 @@ export default function DownloadElement({
                 <div
                     style={{ gridArea: "download-element-cover" }}
                     className={
-                        "h-full max-h-full min-h-0 w-full min-w-0 max-w-full" +
+                        "h-full max-h-full min-h-0 w-full max-w-full min-w-0" +
                         (cover ? "" : " skeleton")
                     }
                 >
@@ -220,13 +220,13 @@ export default function DownloadElement({
                 </label>
                 <div
                     style={{ gridArea: "download-element-mark-as-seen" }}
-                    className="relative h-full max-h-full min-h-0 w-full min-w-0 max-w-full"
+                    className="relative h-full max-h-full min-h-0 w-full max-w-full min-w-0"
                     title="Mark as seen"
                     onClick={() => {
                         console.log("DownloadElement markSeen");
                     }}
                 >
-                    <EyeIcon className="-translate-1/2 absolute left-1/2 top-1/2 h-6 w-6"></EyeIcon>
+                    <EyeIcon className="absolute top-1/2 left-1/2 h-6 w-6 -translate-1/2"></EyeIcon>
                 </div>
                 <label
                     style={{ gridArea: "download-element-download-url" }}
@@ -236,37 +236,37 @@ export default function DownloadElement({
                 </label>
                 {dev && (
                     <div
-                        className="w-full min-w-0 max-w-full text-yellow-500"
+                        className="w-full max-w-full min-w-0 text-yellow-500"
                         style={{ gridArea: "download-element-dev-data" }}
                     >
                         <label>[DEV]</label>
                         <div className="grid grid-cols-[1fr_2fr] gap-x-2">
                             <label className="text-right">id</label>
-                            <label className="w-full min-w-0 max-w-full truncate">
+                            <label className="w-full max-w-full min-w-0 truncate">
                                 {download.publicId}
                             </label>
                             <label className="text-right">userId</label>
-                            <label className="w-full min-w-0 max-w-full truncate">
+                            <label className="w-full max-w-full min-w-0 truncate">
                                 {download.userId}
                             </label>
                             <label className="text-right">dateStarted</label>
-                            <label className="w-full min-w-0 max-w-full truncate">
+                            <label className="w-full max-w-full min-w-0 truncate">
                                 {download.dateStarted.toDateString()}
                             </label>
                             <label className="text-right">dateEnded</label>
-                            <label className="w-full min-w-0 max-w-full truncate">
+                            <label className="w-full max-w-full min-w-0 truncate">
                                 {download.dateEnded.toDateString()}
                             </label>
                             <label className="text-right">status</label>
-                            <label className="w-full min-w-0 max-w-full truncate">
+                            <label className="w-full max-w-full min-w-0 truncate">
                                 {download.status}
                             </label>
                             <label className="text-right">fail</label>
-                            <label className="w-full min-w-0 max-w-full truncate">
+                            <label className="w-full max-w-full min-w-0 truncate">
                                 {download.fail}
                             </label>
                             <label className="text-right">success</label>
-                            <label className="w-full min-w-0 max-w-full truncate">
+                            <label className="w-full max-w-full min-w-0 truncate">
                                 {download.success}
                             </label>
                         </div>

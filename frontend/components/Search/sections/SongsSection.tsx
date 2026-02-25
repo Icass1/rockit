@@ -22,7 +22,7 @@ export default function SongsSection({
             <h2 className="px-5 text-left text-2xl font-bold md:px-0 md:text-3xl">
                 {lang.songs}
             </h2>
-            <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pl-4 md:pr-14">
+            <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pr-14 md:pl-4">
                 {songs.map((song) => {
                     const image = getBestImage(song.album.externalImages);
                     return (

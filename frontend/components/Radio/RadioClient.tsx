@@ -185,7 +185,7 @@ export default function RadioClient() {
 
     if (error) {
         return (
-            <div className="p-2 pb-16 pt-16 text-white md:mb-0 md:mt-0 md:pb-24 md:pt-24">
+            <div className="p-2 pt-16 pb-16 text-white md:mt-0 md:mb-0 md:pt-24 md:pb-24">
                 Error: {error}
             </div>
         );
@@ -217,12 +217,12 @@ export default function RadioClient() {
         <div
             className={`h-full overflow-y-auto p-2 text-white ${
                 isDesktop
-                    ? "pb-16 pt-16 md:mb-0 md:mt-0 md:pb-24 md:pt-24"
+                    ? "pt-16 pb-16 md:mt-0 md:mb-0 md:pt-24 md:pb-24"
                     : "pt-20"
             }`}
         >
             <h1
-                className={`select-none text-center font-bold ${
+                className={`text-center font-bold select-none ${
                     isDesktop ? "my-6 text-3xl" : "mb-4 text-2xl"
                 }`}
             >

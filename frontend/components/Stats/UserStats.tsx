@@ -217,7 +217,7 @@ export default function UserStats() {
                                 {getMinutes(data.totalSecondsListened)}{" "}
                                 {lang.minutes_listend}
                             </label>
-                            <label className="w-full min-w-0 max-w-full truncate">
+                            <label className="w-full max-w-full min-w-0 truncate">
                                 {Math.round(
                                     (data.totalSecondsListened * 1000) /
                                         (data.totalTimesPlayedSong * 60)

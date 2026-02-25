@@ -216,7 +216,7 @@ export function LibraryLists({
                     >
                         <Link
                             href={`/playlist/${playlist.publicId}`}
-                            className="library-item flex h-auto w-full min-w-0 max-w-full flex-col transition-transform md:hover:scale-110"
+                            className="library-item flex h-auto w-full max-w-full min-w-0 flex-col transition-transform md:hover:scale-110"
                         >
                             <Image
                                 alt={playlist.name}
@@ -243,7 +243,7 @@ export function LibraryLists({
                         <Link
                             key={"album" + index}
                             href={`/album/${album.publicId}`}
-                            className="library-item flex h-auto w-full min-w-0 max-w-full flex-col transition-transform md:hover:scale-110"
+                            className="library-item flex h-auto w-full max-w-full min-w-0 flex-col transition-transform md:hover:scale-110"
                         >
                             <Image
                                 alt={album.name}

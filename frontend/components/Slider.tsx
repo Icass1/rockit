@@ -42,7 +42,7 @@ export default function Slider({
             {/* Barra de progreso */}
             <div
                 className={
-                    "absolute left-0 top-0 block h-full max-w-full rounded-full " +
+                    "absolute top-0 left-0 block h-full max-w-full rounded-full " +
                     barClassName
                 }
                 style={{ width: `${widthPercentage}%` }}

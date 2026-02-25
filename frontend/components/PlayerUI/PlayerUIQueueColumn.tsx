@@ -3,11 +3,12 @@
 import { PlayerUIQueueList } from "@/components/PlayerUI/PlayerUIQueueList";
 import { PlayerUIRelatedTab } from "@/components/PlayerUI/PlayerUIRelatedTab";
 import { RockItSongQueue } from "@/lib/rockit/rockItSongQueue";
+import { Lang } from "@/types/lang";
 import { useRef, useState } from "react";
 
 interface PlayerUIQueueColumnProps {
     queue: RockItSongQueue[];
-    lang: Record<string, string>;
+    lang: Lang;
 }
 
 export function PlayerUIQueueColumn({ queue, lang }: PlayerUIQueueColumnProps) {
@@ -18,9 +19,9 @@ export function PlayerUIQueueColumn({ queue, lang }: PlayerUIQueueColumnProps) {
     const queueDivRef = useRef<HTMLDivElement>(null);
 
     return (
-        <div className="z-10 flex h-full select-none flex-col overflow-hidden bg-gradient-to-r from-[rgba(0,0,0,0)] to-[rgba(0,0,0,0.5)]">
+        <div className="z-10 flex h-full flex-col overflow-hidden bg-gradient-to-r from-[rgba(0,0,0,0)] to-[rgba(0,0,0,0.5)] select-none">
             {/* Tab selector */}
-            <div className="relative flex items-center justify-center gap-10 border-b border-white pb-4 pt-6">
+            <div className="relative flex items-center justify-center gap-10 border-b border-white pt-6 pb-4">
                 <TabButton
                     label="Queue"
                     active={currentTab === "queue"}
@@ -35,7 +36,7 @@ export function PlayerUIQueueColumn({ queue, lang }: PlayerUIQueueColumnProps) {
 
             {/* Scrollable content */}
             <div
-                className="relative flex-1 overflow-auto scroll-smooth pb-7 pt-3"
+                className="relative flex-1 overflow-auto scroll-smooth pt-3 pb-7"
                 ref={queueDivRef}
                 onScroll={(e) => setQueueScroll(e.currentTarget.scrollTop)}
             >

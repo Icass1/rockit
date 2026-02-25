@@ -31,7 +31,9 @@ export default function MobilePlayerUI() {
     const $isMobilePlayerUIVisible = useStore(
         rockIt.playerUIManager.visibleAtom
     );
-    const innerWidth = useWindowSize().width;
+    const { width: innerWidth } = useWindowSize();
+    const shouldRender = innerWidth !== undefined && innerWidth < 768;
+
     const [playerUIhidden, setPlayerUIHidden] = useState(
         !$isMobilePlayerUIVisible
     );
@@ -47,8 +49,6 @@ export default function MobilePlayerUI() {
 
     const [queueOpen, setQueueOpen] = useState(false);
     const [lyricsOpen, setLyricsOpen] = useState(false);
-
-    const [shouldRender, setShouldRender] = useState(false);
 
     useEffect(() => {
         if (!divRef.current) {
@@ -75,23 +75,31 @@ export default function MobilePlayerUI() {
     }, [divRef, shouldRender]);
 
     useEffect(() => {
-        setEnableTransition(true);
-        if ($isMobilePlayerUIVisible) {
-            setPlayerUIHidden(false);
-            setTimeout(() => {
-                setPlayerUITop0(true);
-            }, 10);
-        } else {
-            setTimeout(() => {
-                setPlayerUITop0(false);
+        const animate = () => {
+            setEnableTransition(true);
+            if ($isMobilePlayerUIVisible) {
+                setPlayerUIHidden(false);
                 setTimeout(() => {
-                    setPlayerUIHidden(!$isMobilePlayerUIVisible);
-                }, 300);
-            }, 10);
-        }
-        setTimeout(() => {
-            setEnableTransition(false);
-        }, 310);
+                    setPlayerUITop0(true);
+                }, 10);
+            } else {
+                setTimeout(() => {
+                    setPlayerUITop0(false);
+                    setTimeout(() => {
+                        setPlayerUIHidden(!$isMobilePlayerUIVisible);
+                    }, 300);
+                }, 10);
+            }
+            setTimeout(() => {
+                setEnableTransition(false);
+            }, 310);
+        };
+
+        const animationFrameId = requestAnimationFrame(animate);
+
+        return () => {
+            cancelAnimationFrame(animationFrameId);
+        };
     }, [$isMobilePlayerUIVisible]);
 
     useEffect(() => {
@@ -198,19 +206,13 @@ export default function MobilePlayerUI() {
         shouldRender,
     ]);
 
-    useEffect(() => {
-        // Only run this on client
-        if (!innerWidth) return;
-        setShouldRender(innerWidth < 768);
-    }, [innerWidth]);
-
     if (!shouldRender) return;
 
     return (
         <div
             ref={divRef}
             className={
-                "fixed left-0 right-0 top-0 z-40 flex h-[calc(100%_-_3rem)] w-screen overflow-hidden md:hidden " +
+                "fixed top-0 right-0 left-0 z-40 flex h-[calc(100%-3rem)] w-screen overflow-hidden md:hidden " +
                 (playerUITop0 ? " top-0" : " top-full") +
                 (playerUIhidden ? " hidden" : "") +
                 (enableTransition ? " transition-[top] duration-300" : " ")
@@ -219,7 +221,7 @@ export default function MobilePlayerUI() {
         >
             {/* Fondo blurreado */}
             <div
-                className="absolute inset-0 -bottom-5 -left-5 -right-5 -top-5 bg-cover bg-center"
+                className="absolute inset-0 -top-5 -right-5 -bottom-5 -left-5 bg-cover bg-center"
                 style={{
                     backgroundImage: `url(${$currentSong?.internalImageUrl ?? rockIt.SONG_PLACEHOLDER_IMAGE_URL})`,
                     filter: "blur(10px) brightness(0.5)",
@@ -227,7 +229,7 @@ export default function MobilePlayerUI() {
             ></div>
 
             {/* Iconos en la parte superior */}
-            <div className="absolute left-0 right-0 top-14 z-50 flex justify-between p-5">
+            <div className="absolute top-14 right-0 left-0 z-50 flex justify-between p-5">
                 <ChevronDown
                     className="h-8 w-8 text-neutral-300"
                     onClick={() => rockIt.playerUIManager.hide()}
@@ -242,7 +244,7 @@ export default function MobilePlayerUI() {
             </div>
 
             {/* Contenido principal */}
-            <div className="relative z-30 grid h-full w-full grid-rows-[1fr_min-content_min-content_min-content] items-center justify-center gap-y-2 px-4 pb-20 pt-32 text-white">
+            <div className="relative z-30 grid h-full w-full grid-rows-[1fr_min-content_min-content_min-content] items-center justify-center gap-y-2 px-4 pt-32 pb-20 text-white">
                 {/* Imagen de la canción */}
                 {/* <div className="max-w-full min-w-0 w-auto max-h-full min-h-0 h-auto aspect-square left-1/2 relative -translate-x-1/2 bg-blue-400"> */}
                 <Image
@@ -251,12 +253,12 @@ export default function MobilePlayerUI() {
                         rockIt.SONG_PLACEHOLDER_IMAGE_URL
                     }
                     alt="Current song artwork"
-                    className="relative left-1/2 aspect-square h-auto max-h-full min-h-0 w-auto min-w-0 max-w-full -translate-x-1/2 bg-blue-400"
+                    className="relative left-1/2 aspect-square h-auto max-h-full min-h-0 w-auto max-w-full min-w-0 -translate-x-1/2 bg-blue-400"
                 />
                 {/* </div> */}
 
                 {/* Título, artista y LikeButton */}
-                <div className="flex w-full max-w-md items-center justify-between pl-5 pr-7">
+                <div className="flex w-full max-w-md items-center justify-between pr-7 pl-5">
                     <div className="text-left">
                         <h2 className="text-xl font-[650]">
                             {$currentSong?.name}
@@ -356,7 +358,7 @@ export default function MobilePlayerUI() {
                 </div>
 
                 {/* Otros Botones */}
-                <div className="absolute bottom-0 left-0 right-0 flex items-center justify-around bg-gradient-to-t from-black/50 to-black/0 px-4 py-7 font-bold text-white">
+                <div className="absolute right-0 bottom-0 left-0 flex items-center justify-around bg-linear-to-t from-black/50 to-black/0 px-4 py-7 font-bold text-white">
                     <button
                         className="text-lg"
                         onClick={() => {

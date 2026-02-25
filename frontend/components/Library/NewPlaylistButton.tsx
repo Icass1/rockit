@@ -17,7 +17,7 @@ export default function NewPlaylistButton() {
     return (
         <>
             <div
-                className="library-item flex h-full w-full min-w-0 max-w-full flex-col transition-transform md:hover:scale-110"
+                className="library-item flex h-full w-full max-w-full min-w-0 flex-col transition-transform md:hover:scale-110"
                 onClick={() => {
                     setShowCreatePlaylistMenu(true);
                 }}
@@ -25,20 +25,20 @@ export default function NewPlaylistButton() {
                 <div className="cover relative aspect-square h-auto w-full">
                     <Image
                         alt=""
-                        className="cover absolute left-0 top-0 aspect-square h-auto w-full rounded-md"
+                        className="cover absolute top-0 left-0 aspect-square h-auto w-full rounded-md"
                         src="/rockit-background.png"
                         width={600}
                         height={600}
                     />
-                    <Plus className="cover absolute left-0 top-0 aspect-square h-auto w-full rounded-md p-6" />
+                    <Plus className="cover absolute top-0 left-0 aspect-square h-auto w-full rounded-md p-6" />
                 </div>
                 <label className="min-h-6 truncate text-center font-semibold">
                     {lang?.newplaylist}
                 </label>
             </div>
             {showCreatePlaylistMenu && (
-                <div className="z-90 fixed bottom-0 left-0 right-0 top-0 bg-[#0b0b0b]">
-                    <div className="relative left-1/2 top-1/2 flex h-fit w-1/2 -translate-x-1/2 -translate-y-1/2 flex-col gap-y-4">
+                <div className="fixed top-0 right-0 bottom-0 left-0 z-90 bg-[#0b0b0b]">
+                    <div className="relative top-1/2 left-1/2 flex h-fit w-1/2 -translate-x-1/2 -translate-y-1/2 flex-col gap-y-4">
                         <label className="font-semibold">
                             {lang?.newplaylistname}
                             {error && (
@@ -67,7 +67,7 @@ export default function NewPlaylistButton() {
                                 {lang?.cancel}
                             </button>
                             <button
-                                className="rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                                className="rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:outline-none"
                                 onClick={() => {
                                     if (name == "") {
                                         setError(

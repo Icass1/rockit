@@ -38,7 +38,7 @@ export default function DownloadAppButton() {
                 {resources.map((resource) => (
                     <span
                         key={resource}
-                        className="w-full min-w-0 max-w-full truncate text-xs"
+                        className="w-full max-w-full min-w-0 truncate text-xs"
                     >
                         {resource}
                     </span>

@@ -17,7 +17,7 @@ export default function StatsClient() {
     };
 
     return (
-        <div className="mb-20 mt-24 flex h-full w-full flex-col overflow-y-auto px-6 pt-24 md:mb-0 md:mt-3 md:px-12">
+        <div className="mt-24 mb-20 flex h-full w-full flex-col overflow-y-auto px-6 pt-24 md:mt-3 md:mb-0 md:px-12">
             <div className="flex flex-col items-center justify-between space-y-4 md:flex-row md:space-y-0">
                 <h2 className="text-center text-2xl font-bold md:text-left">
                     {selectedSection === "user" && lang.user_stats}

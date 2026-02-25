@@ -1,20 +1,9 @@
-import * as z from "zod";
-import { RockItSongWithAlbumResponse } from "./rockItSongWithAlbumResponse";
+import { z } from 'zod';
+import { QueueResponseItemSchema } from './queueResponseItem';
 
-import { QueueListTypes } from "@/types/rockIt";
-
-export const QueueResponse = z.object({
-    currentQueueSongId: z.number().nullable(),
-    queue: z.array(
-        z.object({
-            song: RockItSongWithAlbumResponse,
-            queueSongId: z.number(),
-            list: z.object({
-                type: z.enum(QueueListTypes),
-                publicId: z.string(),
-            }),
-        })
-    ),
+export const QueueResponseSchema = z.object({
+    currentQueueSongId: z.any(),
+    queue: z.array(z.lazy(() => QueueResponseItemSchema)),
 });
 
-export type QueueResponse = z.infer<typeof QueueResponse>;
+export type QueueResponse = z.infer<typeof QueueResponseSchema>;

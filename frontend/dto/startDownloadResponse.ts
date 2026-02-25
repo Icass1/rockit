@@ -1,7 +1,7 @@
-import * as z from "zod";
+import { z } from 'zod';
 
-export const StartDownloadResponse = z.object({
-    downloadId: z.string(),
+export const StartDownloadResponseSchema = z.object({
+    downloadGroupId: z.string(),
 });
 
-export type StartDownloadResponse = z.infer<typeof StartDownloadResponse>;
+export type StartDownloadResponse = z.infer<typeof StartDownloadResponseSchema>;

@@ -1,4 +1,5 @@
 import asyncio
+import os
 
 from logging import Logger
 
@@ -39,4 +40,5 @@ async def add_initial_content():
     await EnumAccess.check_enum_contents_async(RepeatSongEnum, RepeatSongEnumRow)
 
 
-asyncio.create_task(add_initial_content())
+if not os.environ.get("SKIP_INITIAL_CONTENT"):
+    asyncio.create_task(add_initial_content())

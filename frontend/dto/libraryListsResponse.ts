@@ -1,10 +1,10 @@
-import * as z from "zod";
-import { RockItAlbumWithoutSongsResponse } from "./rockItAlbumWithoutSongsResponse";
-import { RockItPlaylistResponse } from "./rockItPlaylistResponse";
+import { z } from 'zod';
+import { BaseAlbumResponseSchema } from './baseAlbumResponse';
+import { BasePlaylistResponseSchema } from './basePlaylistResponse';
 
-export const LibraryListsResponse = z.object({
-    albums: z.array(RockItAlbumWithoutSongsResponse),
-    playlists: z.array(RockItPlaylistResponse),
+export const LibraryListsResponseSchema = z.object({
+    albums: z.array(z.lazy(() => BaseAlbumResponseSchema)),
+    playlists: z.array(z.lazy(() => BasePlaylistResponseSchema)),
 });
 
-export type LibraryListsResponse = z.infer<typeof LibraryListsResponse>;
+export type LibraryListsResponse = z.infer<typeof LibraryListsResponseSchema>;

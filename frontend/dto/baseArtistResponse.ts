@@ -5,7 +5,7 @@ export const BaseArtistResponseSchema = z.object({
     publicId: z.string(),
     name: z.string(),
     internalImageUrl: z.string(),
-    genres: z.any(),
+    genres: z.array(z.string()),
 });
 
 export type BaseArtistResponse = z.infer<typeof BaseArtistResponseSchema>;

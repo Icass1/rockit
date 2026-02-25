@@ -1,11 +1,11 @@
-import { BaseSongAlbumResponseSchema } from "@/dto/baseSongAlbumResponse";
 import { z } from "zod";
+import { BaseArtistResponseSchema, BaseSongAlbumResponseSchema } from "@/dto";
 
 export const BaseSongResponseSchema = z.object({
     provider: z.string(),
     publicId: z.string(),
     name: z.string(),
-    artists: z.any(),
+    artists: z.array(z.lazy(() => BaseArtistResponseSchema)),
     audioSrc: z.any(),
     downloaded: z.boolean(),
     internalImageUrl: z.string(),

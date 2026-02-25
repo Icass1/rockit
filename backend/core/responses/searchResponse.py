@@ -12,3 +12,7 @@ class BaseSearchItem(BaseModel):
 class ProviderSearchResponse(BaseModel):
     provider: str
     items: List[BaseSearchItem]
+
+
+class SearchResponse(BaseModel):
+    results: List[ProviderSearchResponse]

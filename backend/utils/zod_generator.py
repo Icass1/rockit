@@ -2,6 +2,7 @@ import os
 import importlib
 import inspect
 import re
+from collections.abc import Sequence as ABCSequence
 from pathlib import Path
 from typing import get_args, get_origin, Literal, Optional, Sequence
 
@@ -84,7 +85,7 @@ def convert_type_to_zod(
             return f"z.lazy(() => {field_type.__name__}Schema)"
         return "z.any()"
 
-    if origin is list or origin is Sequence:
+    if origin is list or origin is Sequence or origin is ABCSequence:
         if args:
             inner_type = convert_type_to_zod(
                 args[0], known_types, current_file, schema_refs)
@@ -194,7 +195,7 @@ async def generate_zod_schemas() -> None:
         file_name = to_camel_case(model_name)
         schema, refs = generate_zod_schema(model, known_types, file_name)
 
-        import_lines: list[str] = ["import { z } from 'zod';"]
+        import_lines: list[str] = ['import { z } from "zod";']
         schema_names_imported: set[str] = set()
 
         for ref_file in refs:
@@ -202,7 +203,7 @@ async def generate_zod_schemas() -> None:
                 type_name = type_name_to_file.get(ref_file, "")
                 if type_name:
                     import_lines.append(
-                        f"import {{ {type_name}Schema }} from './{ref_file}';")
+                        f"import {{ {type_name}Schema }} from '@/dto';")
                     schema_names_imported.add(type_name)
 
         output_lines = import_lines + ["", schema]
@@ -215,7 +216,15 @@ async def generate_zod_schemas() -> None:
     for model_name in all_models:
         file_name = to_camel_case(model_name)
         index_lines.append(
-            f"export {{ {model_name}Schema, type {model_name} }} from './{file_name}';")
+            f"export {{ {model_name}Schema, type {model_name} }} from '@/dto/{file_name}';")
 
     (output_dir / "index.ts").write_text("\n".join(index_lines))
     logger.info(f"Written index.ts")
+
+    # Execute prettier on the generated files.
+    try:
+        import subprocess
+        subprocess.run(["prettier", "--write", str(output_dir)], cwd="frontend", check=True)
+        logger.info("Formatted generated files with Prettier")
+    except Exception as e:
+        logger.warning(f"Could not format files with Prettier: {e}")

@@ -1,5 +1,5 @@
-import { BaseSearchItemSchema } from "@/dto/baseSearchItem";
 import { z } from "zod";
+import { BaseSearchItemSchema } from "@/dto";
 
 export const ProviderSearchResponseSchema = z.object({
     provider: z.string(),

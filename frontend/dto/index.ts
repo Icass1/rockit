@@ -25,6 +25,10 @@ export {
     type ProviderSearchResponse,
 } from "@/dto/providerSearchResponse";
 export {
+    SearchResponseSchema,
+    type SearchResponse,
+} from "@/dto/searchResponse";
+export {
     HomeStatsResponseSchema,
     type HomeStatsResponse,
 } from "@/dto/homeStatsResponse";

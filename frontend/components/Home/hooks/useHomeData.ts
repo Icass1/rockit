@@ -1,14 +1,14 @@
-import { RockItSongWithAlbum } from "@/lib/rockit/rockItSongWithAlbum";
-import { RockItSongWithoutAlbum } from "@/lib/rockit/rockItSongWithoutAlbum";
+import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
+import { SongWithoutAlbum } from "@/lib/rockit/songWithoutAlbum";
 import { HomeStatsResponse } from "@/dto/stats/homeStatsResponse";
 import useFetch from "@/hooks/useFetch";
 
 export interface HomeData {
-    songsByTimePlayed: RockItSongWithoutAlbum[];
-    randomSongsLastMonth: RockItSongWithAlbum[];
-    hiddenGems: RockItSongWithoutAlbum[];
-    communityTop: RockItSongWithoutAlbum[];
-    monthlyTop: RockItSongWithoutAlbum[];
+    songsByTimePlayed: SongWithoutAlbum[];
+    randomSongsLastMonth: SongWithAlbum[];
+    hiddenGems: SongWithoutAlbum[];
+    communityTop: SongWithoutAlbum[];
+    monthlyTop: SongWithoutAlbum[];
     isEmpty: boolean;
 }
 
@@ -18,19 +18,19 @@ export function useHomeData(): HomeData | null {
     if (!dataResponse) return null;
 
     const songsByTimePlayed = dataResponse.songsByTimePlayed.map((song) =>
-        RockItSongWithAlbum.fromResponse(song).toRockItSongWithoutAlbum()
+        SongWithAlbum.fromResponse(song).toSongWithoutAlbum()
     );
     const randomSongsLastMonth = dataResponse.randomSongsLastMonth.map((song) =>
-        RockItSongWithAlbum.fromResponse(song)
+        SongWithAlbum.fromResponse(song)
     );
     const hiddenGems = dataResponse.hiddenGems.map((song) =>
-        RockItSongWithAlbum.fromResponse(song).toRockItSongWithoutAlbum()
+        SongWithAlbum.fromResponse(song).toSongWithoutAlbum()
     );
     const communityTop = dataResponse.communityTop.map((song) =>
-        RockItSongWithAlbum.fromResponse(song).toRockItSongWithoutAlbum()
+        SongWithAlbum.fromResponse(song).toSongWithoutAlbum()
     );
     const monthlyTop = dataResponse.monthlyTop.map((song) =>
-        RockItSongWithAlbum.fromResponse(song).toRockItSongWithoutAlbum()
+        SongWithAlbum.fromResponse(song).toSongWithoutAlbum()
     );
 
     const isEmpty =

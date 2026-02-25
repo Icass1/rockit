@@ -4,16 +4,16 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { RockItArtist } from "@/lib/rockit/rockItArtist";
-import { RockItSongWithAlbum } from "@/lib/rockit/rockItSongWithAlbum";
+import { Artist } from "@/lib/rockit/artist";
+import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
 import { getBestImage } from "@/lib/utils/getBestImage";
 
 export default function SongPageTopArtistSongs({
     artist,
 }: {
-    artist: RockItArtist;
+    artist: Artist;
 }) {
-    const [artistSongs, setArtistSongs] = useState<RockItSongWithAlbum[]>();
+    const [artistSongs, setArtistSongs] = useState<SongWithAlbum[]>();
 
     useEffect(() => {
         console.log("(SongPageTopArtistSongs)", { setArtistSongs });

@@ -4,12 +4,12 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { RockItSongWithAlbum } from "@/lib/rockit/rockItSongWithAlbum";
+import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
 import { useStore } from "@nanostores/react";
 import { Pause, Play } from "lucide-react";
 
 interface PlayerUICoverColumnProps {
-    currentSong: RockItSongWithAlbum | undefined;
+    currentSong: SongWithAlbum | undefined;
 }
 
 export function PlayerUICoverColumn({ currentSong }: PlayerUICoverColumnProps) {

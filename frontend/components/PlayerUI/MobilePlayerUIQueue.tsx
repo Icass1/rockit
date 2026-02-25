@@ -1,14 +1,6 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { rockIt } from "@/lib/rockit/rockIt";
-import { RockItSongQueue } from "@/lib/rockit/rockItSongQueue";
-import ContextMenuContent from "@/components/ContextMenu/Content";
-import ContextMenu from "@/components/ContextMenu/ContextMenu";
-import ContextMenuOption from "@/components/ContextMenu/Option";
-import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
-import { useQueueDrag } from "@/components/PlayerUI/hooks/Usequeuedrag";
-import { QueueSong } from "@/components/PlayerUI/QueueSong";
 import { useLanguage } from "@/contexts/LanguageContext";
 import useWindowSize from "@/hooks/useWindowSize";
 import { useStore } from "@nanostores/react";
@@ -18,6 +10,14 @@ import {
     ListX,
     PlayCircle,
 } from "lucide-react";
+import { rockIt } from "@/lib/rockit/rockIt";
+import { SongQueue } from "@/lib/rockit/songQueue";
+import ContextMenuContent from "@/components/ContextMenu/Content";
+import ContextMenu from "@/components/ContextMenu/ContextMenu";
+import ContextMenuOption from "@/components/ContextMenu/Option";
+import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
+import { useQueueDrag } from "@/components/PlayerUI/hooks/useQueueDrag";
+import { QueueSong } from "@/components/PlayerUI/QueueSong";
 
 export default function MobilePlayerUIQueue({
     open,
@@ -45,7 +45,7 @@ export default function MobilePlayerUIQueue({
 
     const touchStart = (
         e: React.TouchEvent,
-        song: RockItSongQueue,
+        song: SongQueue,
         index: number
     ) => {
         startDrag(e.touches[0].clientY, song, index);
@@ -53,9 +53,9 @@ export default function MobilePlayerUIQueue({
 
     // TODO: implement when queueManager supports reorder/remove
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const handleRemoveSong = (_song: RockItSongQueue) => {};
+    const handleRemoveSong = (_song: SongQueue) => {};
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const handlePlaySong = async (_song: RockItSongQueue) => {};
+    const handlePlaySong = async (_song: SongQueue) => {};
 
     const { langFile: lang } = useLanguage();
     if (!lang || !$queue || !height) return null;

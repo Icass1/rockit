@@ -1,13 +1,8 @@
+import { BaseSongResponseSchema, StartDownloadResponseSchema } from "@/dto";
+import { DBListType, DownloadInfo } from "@/types/rockIt";
 import { RESPONSE_UNDEFINED_MESSAGE, rockIt } from "@/lib/rockit/rockIt";
 import { createArrayAtom } from "@/lib/store";
 import apiFetch from "@/lib/utils/apiFetch";
-import { DownloadsResponse } from "@/dto/downloadsResponse";
-import { DownloadStatusMessage } from "@/dto/downloadStatusMessage";
-import { StartDownloadResponse } from "@/dto/startDownloadResponse";
-import { DBListType, DownloadInfo } from "@/types/rockIt";
-import { RockItSongPlaylist } from "../rockit/rockItSongPlaylist";
-import { RockItSongWithAlbum } from "../rockit/rockItSongWithAlbum";
-import { RockItSongWithoutAlbum } from "../rockit/rockItSongWithoutAlbum";
 
 interface SongStatus {
     publicId: string;
@@ -93,12 +88,12 @@ export class DownloaderManager {
         }
 
         const responseJson = await response.json();
-        const startDownload = StartDownloadResponse.parse(responseJson);
+        const startDownload = StartDownloadResponseSchema.parse(responseJson);
 
         this._downloadingListsAtom.push({ type, publicId });
 
         const eventSource = new EventSource(
-            `${rockIt.BACKEND_URL}/downloader/download-status?id=${startDownload.downloadId}`
+            `${rockIt.BACKEND_URL}/downloader/download-status?id=${startDownload.downloadGroupId}`
         );
 
         eventSource.onerror = (ev: Event) => {
@@ -141,10 +136,10 @@ export class DownloaderManager {
         }
 
         const responseJson = await response.json();
-        const startDownload = StartDownloadResponse.parse(responseJson);
+        const startDownload = StartDownloadResponseSchema.parse(responseJson);
 
         const eventSource = new EventSource(
-            `${rockIt.BACKEND_URL}/downloader/download-status?id=${startDownload.downloadId}`
+            `${rockIt.BACKEND_URL}/downloader/download-status?id=${startDownload.downloadGroupId}`
         );
 
         eventSource.onerror = (ev: Event) => {
@@ -163,13 +158,13 @@ export class DownloaderManager {
     private async handleSpotifySongDownloaded(publicId: string) {
         // console.log("(handleSpotifySongDownloaded)", { publicId });
 
-        await RockItSongWithAlbum.getExistingInstanceFromPublicId(
+        await BaseSongResponseSchema.getExistingInstanceFromPublicId(
             publicId
         )?.updateAsync();
-        await RockItSongWithoutAlbum.getExistingInstanceFromPublicId(
+        await SongWithoutAlbum.getExistingInstanceFromPublicId(
             publicId
         )?.updateAsync();
-        await RockItSongPlaylist.getExistingInstanceFromPublicId(
+        await SongPlaylist.getExistingInstanceFromPublicId(
             publicId
         )?.updateAsync();
     }

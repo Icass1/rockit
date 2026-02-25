@@ -2,11 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { RockItPlaylist } from "@/lib/rockit/rockItPlaylist";
-import { RockItSongPlaylist } from "@/lib/rockit/rockItSongPlaylist";
+import { Playlist } from "@/lib/rockit/playlist";
+import { SongPlaylist } from "@/lib/rockit/songPlaylist";
 import PlaylistSong from "@/components/ListSongs/PlaylistSong";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { RockItPlaylistResponse } from "@/dto/rockItPlaylistResponse";
 import useWindowSize from "@/hooks/useWindowSize";
 import { ArrowUp } from "lucide-react";
 import PlaylistHeader from "./PlaylistHeader";
@@ -16,9 +15,9 @@ type ColumnsType = "name" | "album" | "artist" | "addedAt" | "duration";
 export default function PlaylistSongsView({
     playlistResponse,
 }: {
-    playlistResponse: RockItPlaylistResponse;
+    playlistResponse: Parameters<typeof Playlist.fromResponse>[0];
 }) {
-    const playlist = RockItPlaylist.fromResponse(playlistResponse);
+    const playlist = Playlist.fromResponse(playlistResponse);
 
     useEffect(() => {
         // console.log("useEffect 3");
@@ -33,7 +32,7 @@ export default function PlaylistSongsView({
         ascending: boolean;
     }>({ column: "addedAt", ascending: false });
 
-    const [songsToRender, setSongsToRender] = useState<RockItSongPlaylist[]>(
+    const [songsToRender, setSongsToRender] = useState<SongPlaylist[]>(
         []
     );
 

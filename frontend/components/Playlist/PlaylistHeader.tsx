@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { RockItPlaylist } from "@/lib/rockit/rockItPlaylist";
+import { Playlist } from "@/lib/rockit/playlist";
 import { getMinutes } from "@/lib/utils/getTime";
 import DownloadAnimation from "@/components/ListHeader/DownloadAnimation";
 import DownloadListButton from "@/components/ListHeader/DownloadListButton";
@@ -11,7 +11,6 @@ import ListOptions from "@/components/ListHeader/ListOptions";
 // import { Disc3, Heart, History } from "lucide-react";
 import PlayListButton from "@/components/ListHeader/PlayListButton";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { RockItPlaylistResponse } from "@/dto/rockItPlaylistResponse";
 import { useStore } from "@nanostores/react";
 
 export default function PlaylistHeader({
@@ -19,9 +18,9 @@ export default function PlaylistHeader({
     playlistResponse,
 }: {
     className: string;
-    playlistResponse: RockItPlaylistResponse;
+    playlistResponse: Parameters<typeof Playlist.fromResponse>[0];
 }) {
-    const playlist = RockItPlaylist.fromResponse(playlistResponse);
+    const playlist = Playlist.fromResponse(playlistResponse);
 
     const $downloadingListsAtom = useStore(
         rockIt.downloaderManager.downloadingListsAtom

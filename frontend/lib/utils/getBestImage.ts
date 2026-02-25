@@ -1,6 +1,6 @@
-import { RockItExternalImage } from "../rockit/rockItExternalImage";
+import { ExternalImage } from "../rockit/rockItExternalImage";
 
-export function getBestImage(images: RockItExternalImage[]) {
+export function getBestImage(images: ExternalImage[]) {
     if (images.length === 0) {
         return null;
     }

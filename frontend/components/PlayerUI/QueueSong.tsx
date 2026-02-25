@@ -2,12 +2,12 @@
 
 import Image from "next/image";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { RockItSongQueue } from "@/lib/rockit/rockItSongQueue";
+import { SongQueue } from "@/lib/rockit/songQueue";
 import { getTime } from "@/lib/utils/getTime";
 import { useStore } from "@nanostores/react";
 import { Pause, Play } from "lucide-react";
 
-export function QueueSong({ song }: { song: RockItSongQueue }) {
+export function QueueSong({ song }: { song: SongQueue }) {
     const $currentQueueSongId = useStore(
         rockIt.queueManager.currentQueueSongIdAtom
     );

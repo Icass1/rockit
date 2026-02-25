@@ -281,6 +281,48 @@ frontend/
 - Never fetch without Zod validation
 - Never use `console.log` or `console.warn` in production code — remove before committing
 - Never use `innerWidth` or `document` directly without SSR guard (`typeof window !== "undefined"`)
+- Never use relative imports — always use absolute imports with `@/`
+
+---
+
+## 📦 Imports
+
+**Always use absolute imports with `@/`.**
+
+```ts
+// ✅ Correct
+import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
+import { useFetch } from "@/hooks/useFetch";
+
+// ❌ Wrong — relative imports
+import { SongWithAlbum } from "../../lib/rockit/songWithAlbum";
+```
+
+---
+
+## 📡 DTO Responses
+
+**DTO responses are generated automatically from the backend responses.**
+
+Do not manually create new DTO files. The backend generates TypeScript schemas from its response models. Use the existing base DTOs in `dto/` folder:
+
+- `BaseSongResponse` — for songs without album
+- `BaseArtistResponse` — for artists
+- `BaseAlbumResponse` — for albums
+- `BaseSongAlbumResponse` — for album info inside song
+- `BasePlaylistResponse` — for playlists
+- `ExternalImageResponse` — for external images
+
+```ts
+// ✅ Use existing base DTOs
+import { BaseSongResponseSchema } from "@/dto/baseSongResponse";
+import { Artist } from "@/lib/rockit/artist";
+
+export class SongWithoutAlbum {
+    static fromResponse(response: BaseSongResponseSchema) { ... }
+}
+
+// ❌ Don't create new response files like rockItSongResponse.ts
 
 ---
 

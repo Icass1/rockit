@@ -16,9 +16,9 @@ import { CheckCircle2, EllipsisVertical } from "lucide-react";
 import "@/styles/Skeleton.css";
 import Image from "next/image";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { RockItSongPlaylist } from "@/lib/rockit/rockItSongPlaylist";
+import { SongPlaylist } from "@/lib/rockit/songPlaylist";
 
-export default function PlaylistSong({ song }: { song: RockItSongPlaylist }) {
+export default function PlaylistSong({ song }: { song: SongPlaylist }) {
     const [hovered, setHovered] = useState(false);
 
     const $queue = useStore(rockIt.queueManager.queueAtom);

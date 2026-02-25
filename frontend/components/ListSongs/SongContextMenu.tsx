@@ -30,7 +30,7 @@ import {
 import "@/styles/CheckBox.css";
 import Image from "next/image";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { RockItSongWithAlbum } from "@/lib/rockit/rockItSongWithAlbum";
+import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 function ListSubContextMenu({
@@ -95,7 +95,7 @@ export default function SongContextMenu({
     onPlay,
 }: {
     children: ReactNode;
-    song: RockItSongWithAlbum;
+    song: SongWithAlbum;
     onPlay?: () => void;
 }) {
     const $likedSongs = useStore(rockIt.songManager.likedSongsAtom);
@@ -135,9 +135,9 @@ export default function SongContextMenu({
                             onPlay();
                         } else {
                             songHandleClick(
-                                song.toRockItSongWithoutAlbum(),
+                                song.toSongWithoutAlbum(),
                                 $currentListSongs.map((song) =>
-                                    song.toRockItSongWithoutAlbum()
+                                    song.toSongWithoutAlbum()
                                 )
                             );
                         }

@@ -1,6 +1,6 @@
 import { getUserInClient } from "@/lib/getUserInClient";
 import { createAtom } from "@/lib/store";
-import { RockItUser } from "../rockit/rockItUser";
+import { User } from "../rockit/rockItUser";
 
 export class UserManager {
     // #region: Atoms
@@ -8,7 +8,7 @@ export class UserManager {
     private _randomQueueAtom = createAtom<boolean>(false);
     private _repeatSongAtom = createAtom<"all" | "one" | "off">("off");
 
-    private _userAtom = createAtom<RockItUser | undefined>();
+    private _userAtom = createAtom<User | undefined>();
 
     // #endregion
 

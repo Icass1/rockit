@@ -2,8 +2,8 @@ import { RESPONSE_UNDEFINED_MESSAGE, rockIt } from "@/lib/rockit/rockIt";
 import { createArrayAtom } from "@/lib/store";
 import apiFetch from "@/lib/utils/apiFetch";
 import { DBListType } from "@/types/rockIt";
-import { RockItAlbumWithoutSongs } from "../rockit/rockItAlbumWithoutSongs";
-import { RockItPlaylist } from "../rockit/rockItPlaylist";
+import { AlbumWithoutSongs } from "../rockit/rockItAlbumWithoutSongs";
+import { Playlist } from "../rockit/rockItPlaylist";
 
 export class ListManager {
     private _libraryListsAtom = createArrayAtom<{
@@ -17,7 +17,7 @@ export class ListManager {
     // }>([]);
 
     private _pinnedListsAtom = createArrayAtom<
-        RockItAlbumWithoutSongs | RockItPlaylist
+        AlbumWithoutSongs | Playlist
     >([]);
 
     constructor() {}

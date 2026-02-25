@@ -3,8 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { RockItAlbumWithoutSongs } from "@/lib/rockit/rockItAlbumWithoutSongs";
-import { RockItPlaylist } from "@/lib/rockit/rockItPlaylist";
+import { AlbumWithoutSongs } from "@/lib/rockit/albumWithoutSongs";
+import { Playlist } from "@/lib/rockit/playlist";
 import NewPlaylistButton from "@/components/Library/NewPlaylistButton";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LibraryListsResponse } from "@/dto/libraryListsResponse";
@@ -33,7 +33,7 @@ function AddListContextMenu({
     list,
 }: {
     children: React.ReactNode;
-    list: RockItPlaylist | RockItAlbumWithoutSongs;
+    list: Playlist | AlbumWithoutSongs;
 }) {
     const $pinnedLists = useStore(rockIt.listManager.pinnedListsAtom);
 
@@ -176,10 +176,10 @@ export function LibraryLists({
 
     const lists = {
         albums: listsResponse.albums.map((album) =>
-            RockItAlbumWithoutSongs.fromResponse(album)
+            AlbumWithoutSongs.fromResponse(album)
         ),
         playlists: listsResponse.playlists.map((playlist) =>
-            RockItPlaylist.fromResponse(playlist)
+            Playlist.fromResponse(playlist)
         ),
     };
 

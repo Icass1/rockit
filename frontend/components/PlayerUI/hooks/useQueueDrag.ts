@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { RockItSongQueue } from "@/lib/rockit/rockItSongQueue";
+import { SongQueue } from "@/lib/rockit/songQueue";
 
 interface DraggingSong {
     list: string;
-    song: RockItSongQueue;
+    song: SongQueue;
     index: number;
 }
 
@@ -23,7 +23,7 @@ export function useQueueDrag(containerOffsetFromTop = 185) {
 
     const startDrag = (
         clientY: number,
-        song: RockItSongQueue,
+        song: SongQueue,
         index: number,
         list = "queue"
     ) => {
@@ -68,7 +68,7 @@ export function useQueueDrag(containerOffsetFromTop = 185) {
      */
     const calcItemTop = (
         index: number,
-        song: RockItSongQueue,
+        song: SongQueue,
         scrollTop: number
     ): number => {
         if (!draggingSong) return index * 64;

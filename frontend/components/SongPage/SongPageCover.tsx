@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { RockItSongWithAlbum } from "@/lib/rockit/rockItSongWithAlbum";
+import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
 import { useStore } from "@nanostores/react";
 import { Download, Pause, Play } from "lucide-react";
 
@@ -11,7 +11,7 @@ function SongPageCoverIcon({
     song,
     hover,
 }: {
-    song: RockItSongWithAlbum;
+    song: SongWithAlbum;
     hover: boolean;
 }) {
     const $currentSong = useStore(rockIt.queueManager.currentSongAtom);
@@ -41,7 +41,7 @@ function SongPageCoverIcon({
     }
 }
 
-export default function SongPageCover({ song }: { song: RockItSongWithAlbum }) {
+export default function SongPageCover({ song }: { song: SongWithAlbum }) {
     const [hover, setHover] = useState(false);
 
     // const handleClick = () => {

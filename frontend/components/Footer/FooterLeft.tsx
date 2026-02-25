@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { RockItSongWithAlbum } from "@/lib/rockit/rockItSongWithAlbum";
+import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
 import LikeButton from "@/components/LikeButton";
 import SongPopupMenu from "@/components/ListSongs/SongPopupMenu";
 import { Station } from "@/types/station";
@@ -19,7 +19,7 @@ import {
 function FooterLeftForSong({
     currentSong,
 }: {
-    currentSong: RockItSongWithAlbum;
+    currentSong: SongWithAlbum;
 }) {
     const $playing = useStore(rockIt.audioManager.playingAtom);
     const $queue = useStore(rockIt.queueManager.queueAtom);

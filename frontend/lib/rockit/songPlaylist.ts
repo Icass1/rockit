@@ -1,53 +1,34 @@
-import { RockItSongPlaylistResponse } from "@/dto/rockItSongPlaylistResponse";
-import { RockItSongWithAlbumResponse } from "@/dto/rockItSongWithAlbumResponse";
 import { createAtom } from "../store";
 import apiFetch from "../utils/apiFetch";
-import { RockItAlbumWithoutSongs } from "./rockItAlbumWithoutSongs";
-import { RockItArtist } from "./rockItArtist";
-import { RockItSongWithAlbum } from "./rockItSongWithAlbum";
-import { RockItSongWithoutAlbum } from "./rockItSongWithoutAlbum";
+import { AlbumWithoutSongs } from "./albumWithoutSongs";
+import { Artist } from "./artist";
+import { SongWithAlbum } from "./songWithAlbum";
+import { SongWithoutAlbum } from "./songWithoutAlbum";
 
-export class RockItSongPlaylist {
-    static #instance: RockItSongPlaylist[] = [];
+export class SongPlaylist {
+    static #instance: SongPlaylist[] = [];
 
-    // #region: Read-only properties
-    public readonly atom = createAtom<[RockItSongPlaylist]>([this]);
+    public readonly atom = createAtom<[SongPlaylist]>([this]);
 
     public publicId: string;
     public name: string;
-    public artists: RockItArtist[];
+    public artists: Artist[];
     public downloaded: boolean;
     public discNumber: number;
     public duration: number;
     public internalImageUrl: string | null;
     public audioUrl: string | null;
-    public readonly album: RockItAlbumWithoutSongs;
-
+    public readonly album: AlbumWithoutSongs;
     public readonly addedAt: Date;
 
-    // #endregion
-
-    // #region: Constructor
-
-    constructor({
-        publicId,
-        name,
-        artists,
-        downloaded,
-        discNumber,
-        duration,
-        album,
-        addedAt,
-        audioUrl,
-        internalImageUrl,
-    }: {
+    constructor({ publicId, name, artists, downloaded, discNumber, duration, album, addedAt, audioUrl, internalImageUrl }: {
         publicId: string;
         name: string;
-        artists: RockItArtist[];
+        artists: Artist[];
         discNumber: number;
         downloaded: boolean;
         duration: number;
-        album: RockItAlbumWithoutSongs;
+        album: AlbumWithoutSongs;
         addedAt: Date;
         audioUrl: string | null;
         internalImageUrl: string | null;
@@ -61,39 +42,25 @@ export class RockItSongPlaylist {
         this.duration = duration;
         this.internalImageUrl = internalImageUrl;
         this.audioUrl = audioUrl;
-
         this.addedAt = addedAt;
     }
 
-    // #endregion
-
     async updateAsync() {
-        console.log("(updateAsync)", this.publicId, this.name);
         if (this.downloaded) {
-            console.log("(updateAsync) skiping", this.name);
             this.atom.set([this]);
             return;
         }
         const response = await apiFetch(`/spotify/song/${this.publicId}`);
-        if (!response) {
-            console.error("Response is undefined.");
-            return;
-        }
-        const responseParsed = RockItSongWithAlbumResponse.parse(
-            await response.json()
-        );
-
-        console.log("(updateAsync)", this.publicId, this.name, responseParsed);
-
+        if (!response) return;
+        const responseParsed = await response.json();
         this.downloaded = responseParsed.downloaded;
         this.audioUrl = responseParsed.audioUrl;
         this.internalImageUrl = responseParsed.internalImageUrl;
-
         this.atom.set([this]);
     }
 
-    toRockItSongWithoutAlbum() {
-        return new RockItSongWithoutAlbum({
+    toSongWithoutAlbum() {
+        return new SongWithoutAlbum({
             publicId: this.publicId,
             name: this.publicId,
             artists: this.artists,
@@ -105,8 +72,8 @@ export class RockItSongPlaylist {
         });
     }
 
-    toRockItSongWithAlbum() {
-        return new RockItSongWithAlbum({
+    toSongWithAlbum() {
+        return new SongWithAlbum({
             publicId: this.publicId,
             name: this.publicId,
             artists: this.artists,
@@ -119,48 +86,46 @@ export class RockItSongPlaylist {
         });
     }
 
-    // #region: Getters
+    static fromResponse(response: {
+        song: Parameters<typeof Artist.fromResponse>[];
+        addedAt: string;
+    } & {
+        song: {
+            publicId: string;
+            name: string;
+            artists: Parameters<typeof Artist.fromResponse>[];
+            duration: number;
+            discNumber: number;
+            downloaded: boolean;
+            album: Parameters<typeof AlbumWithoutSongs.fromResponse>;
+            internalImageUrl: string | null;
+            audioUrl: string | null;
+        };
+        addedAt: string;
+    }): SongPlaylist {
+        const existing = SongPlaylist.#instance.find((s) => s.publicId === response.song.publicId);
+        if (existing) return existing;
 
-    // #endregion
-
-    // #region: Factories
-
-    static fromResponse(
-        response: RockItSongPlaylistResponse
-    ): RockItSongPlaylist {
-        for (const instance of RockItSongPlaylist.#instance) {
-            if (instance.publicId == response.song.publicId) {
-                return instance;
-            }
-        }
-
-        const newInstance = new RockItSongPlaylist({
+        const newInstance = new SongPlaylist({
             publicId: response.song.publicId,
             name: response.song.name,
             artists: response.song.artists.map((artist) =>
-                RockItArtist.fromResponse(artist)
+                Artist.fromResponse(artist as Parameters<typeof Artist.fromResponse>[0])
             ),
             duration: response.song.duration,
             discNumber: response.song.discNumber,
             downloaded: response.song.downloaded,
-            album: RockItAlbumWithoutSongs.fromResponse(response.song.album),
-            addedAt: response.addedAt,
+            album: AlbumWithoutSongs.fromResponse(response.song.album as Parameters<typeof AlbumWithoutSongs.fromResponse>[0]),
+            addedAt: new Date(response.addedAt),
             internalImageUrl: response.song.internalImageUrl,
             audioUrl: response.song.audioUrl,
         });
 
-        RockItSongPlaylist.#instance.push(newInstance);
-
+        SongPlaylist.#instance.push(newInstance);
         return newInstance;
     }
 
     static getExistingInstanceFromPublicId(publicId: string) {
-        for (const instance of RockItSongPlaylist.#instance) {
-            if (instance.publicId == publicId) {
-                return instance;
-            }
-        }
+        return SongPlaylist.#instance.find((s) => s.publicId === publicId);
     }
-
-    // #endregion
 }

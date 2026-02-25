@@ -1,15 +1,5 @@
 "use client";
 
-import { rockIt } from "@/lib/rockit/rockIt";
-import { RockItAlbumWithoutSongs } from "@/lib/rockit/rockItAlbumWithoutSongs";
-import { RockItSongQueue } from "@/lib/rockit/rockItSongQueue";
-import { RockItSongWithAlbum } from "@/lib/rockit/rockItSongWithAlbum";
-import ContextMenuContent from "@/components/ContextMenu/Content";
-import ContextMenu from "@/components/ContextMenu/ContextMenu";
-import ContextMenuOption from "@/components/ContextMenu/Option";
-import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
-import { useQueueDrag } from "@/components/PlayerUI/hooks/Usequeuedrag";
-import { QueueSong } from "@/components/PlayerUI/QueueSong";
 import { Lang } from "@/types/lang";
 import { useStore } from "@nanostores/react";
 import {
@@ -19,6 +9,16 @@ import {
     ListX,
     PlayCircle,
 } from "lucide-react";
+import { AlbumWithoutSongs } from "@/lib/rockit/albumWithoutSongs";
+import { rockIt } from "@/lib/rockit/rockIt";
+import { SongQueue } from "@/lib/rockit/songQueue";
+import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
+import ContextMenuContent from "@/components/ContextMenu/Content";
+import ContextMenu from "@/components/ContextMenu/ContextMenu";
+import ContextMenuOption from "@/components/ContextMenu/Option";
+import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
+import { useQueueDrag } from "@/components/PlayerUI/hooks/useQueueDrag";
+import { QueueSong } from "@/components/PlayerUI/QueueSong";
 
 // Placeholder songs shown below the real queue (mockup until autoplay is implemented)
 const AUTO_PLAY_MOCKS = [
@@ -30,15 +30,15 @@ const AUTO_PLAY_MOCKS = [
 ];
 
 function buildAutoSong(mock: (typeof AUTO_PLAY_MOCKS)[number], idx: number) {
-    return new RockItSongQueue({
-        song: new RockItSongWithAlbum({
+    return new SongQueue({
+        song: new SongWithAlbum({
             publicId: mock.id,
             name: mock.title,
             artists: [],
             discNumber: 1,
             duration: 123,
             downloaded: true,
-            album: new RockItAlbumWithoutSongs({
+            album: new AlbumWithoutSongs({
                 externalImages: [],
                 name: "Album 1",
                 publicId: "",
@@ -55,7 +55,7 @@ function buildAutoSong(mock: (typeof AUTO_PLAY_MOCKS)[number], idx: number) {
 }
 
 interface PlayerUIQueueListProps {
-    queue: RockItSongQueue[];
+    queue: SongQueue[];
     queueScroll: number;
     lang: Lang;
 }
@@ -72,9 +72,9 @@ export function PlayerUIQueueList({
 
     // TODO: implement when queueManager.reorderQueue is available
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const handleRemoveSong = (_song: RockItSongQueue) => {};
+    const handleRemoveSong = (_song: SongQueue) => {};
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const handlePlaySong = async (_song: RockItSongQueue) => {};
+    const handlePlaySong = async (_song: SongQueue) => {};
 
     return (
         <>

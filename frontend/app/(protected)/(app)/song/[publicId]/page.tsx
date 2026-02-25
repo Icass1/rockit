@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { RockItSongWithAlbum } from "@/lib/rockit/rockItSongWithAlbum";
+import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
 import LikeButton from "@/components/LikeButton";
 import SongPopupMenu from "@/components/ListSongs/SongPopupMenu";
 import SongPageAlbum from "@/components/SongPage/SongPageAlbum";
@@ -86,7 +86,7 @@ export default async function SongPage({
     //     }
     // } catch {}
 
-    const song = RockItSongWithAlbum.fromResponse(songResponse);
+    const song = SongWithAlbum.fromResponse(songResponse);
     const artist = song.artists[0];
 
     return (

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { RockItSongWithAlbum } from "@/lib/rockit/rockItSongWithAlbum";
+import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
 import { networkStatus } from "@/lib/stores/networkStatus";
 import { getTime } from "@/lib/utils/getTime";
 import LikeButton from "@/components/LikeButton";
@@ -14,7 +14,7 @@ export default function AlbumSong({
     song,
     index,
 }: {
-    song: RockItSongWithAlbum;
+    song: SongWithAlbum;
     index: number;
 }) {
     const [hovered, setHovered] = useState(false);

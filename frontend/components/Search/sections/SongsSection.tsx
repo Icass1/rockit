@@ -3,14 +3,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { RockItSongWithAlbum } from "@/lib/rockit/rockItSongWithAlbum";
+import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
 import { getBestImage } from "@/lib/utils/getBestImage";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function SongsSection({
     songs,
 }: {
-    songs: RockItSongWithAlbum[];
+    songs: SongWithAlbum[];
 }) {
     const { langFile: lang } = useLanguage();
     const router = useRouter();

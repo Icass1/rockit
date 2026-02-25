@@ -3,7 +3,7 @@
 import { type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { RockItSongWithAlbum } from "@/lib/rockit/rockItSongWithAlbum";
+import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
 import { networkStatus } from "@/lib/stores/networkStatus";
 import {
     PopupMenu,
@@ -33,7 +33,7 @@ export default function SongPopupMenu({
     song,
 }: {
     children: ReactNode;
-    song: RockItSongWithAlbum;
+    song: SongWithAlbum;
 }) {
     const { langFile: lang } = useLanguage();
     const router = useRouter();

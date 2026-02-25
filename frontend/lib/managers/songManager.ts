@@ -1,7 +1,7 @@
 import { createArrayAtom } from "@/lib/store";
 import apiFetch from "@/lib/utils/apiFetch";
-import { RockItSongWithAlbumResponse } from "@/dto/rockItSongWithAlbumResponse";
-import { RockItSongWithAlbum } from "../rockit/rockItSongWithAlbum";
+import { SongWithAlbumResponse } from "@/dto/rockItSongWithAlbumResponse";
+import { SongWithAlbum } from "../rockit/rockItSongWithAlbum";
 
 export class SongManager {
     // #region: Atoms
@@ -28,7 +28,7 @@ export class SongManager {
 
         const responseJson = await response.json();
 
-        return RockItSongWithAlbumResponse.parse(responseJson);
+        return SongWithAlbumResponse.parse(responseJson);
     }
 
     toggleLikeSong(songPublicId: string) {
@@ -72,7 +72,7 @@ export class SongManager {
         throw new Error("Method not implemented.");
     }
 
-    playSong(song: RockItSongWithAlbum) {
+    playSong(song: SongWithAlbum) {
         console.log(song);
         throw new Error("Method not implemented.");
         // const _currentList = currentList.get();

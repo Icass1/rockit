@@ -3,18 +3,18 @@ import { createArrayAtom, createAtom } from "@/lib/store";
 import apiFetch from "@/lib/utils/apiFetch";
 import { QueueResponse } from "@/dto/queueResponse";
 import { DBListType, QueueListType } from "@/types/rockIt";
-import { RockItSongQueue } from "../rockit/rockItSongQueue";
-import { RockItSongWithAlbum } from "../rockit/rockItSongWithAlbum";
+import { SongQueue } from "../rockit/rockItSongQueue";
+import { SongWithAlbum } from "../rockit/rockItSongWithAlbum";
 
 export class QueueManager {
     // #region: Atoms
 
-    private _currentSongAtom = createAtom<RockItSongWithAlbum | undefined>();
+    private _currentSongAtom = createAtom<SongWithAlbum | undefined>();
     private _currentListAtom = createAtom<
         { type: QueueListType; publicId: string } | undefined
     >();
 
-    private _queueAtom = createArrayAtom<RockItSongQueue>([]);
+    private _queueAtom = createArrayAtom<SongQueue>([]);
     private _currentQueueSongIdAtom = createAtom<number | null>(0);
 
     // #endregion: Atoms
@@ -42,9 +42,9 @@ export class QueueManager {
 
         this._currentQueueSongIdAtom.set(responseParsed.currentQueueSongId);
         this._queueAtom.set(
-            responseParsed.queue.map((queueElement): RockItSongQueue => {
+            responseParsed.queue.map((queueElement): SongQueue => {
                 return {
-                    song: RockItSongWithAlbum.fromResponse(queueElement.song),
+                    song: SongWithAlbum.fromResponse(queueElement.song),
                     queueSongId: queueElement.queueSongId,
                     list: queueElement.list,
                 };
@@ -70,7 +70,7 @@ export class QueueManager {
     skipForward() {}
 
     setSongs(
-        songs: RockItSongWithAlbum[],
+        songs: SongWithAlbum[],
         listType: QueueListType,
         listPublicId: string
     ) {

@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { RockItSongWithoutAlbum } from "@/lib/rockit/rockItSongWithoutAlbum";
+import { SongWithoutAlbum } from "@/lib/rockit/songWithoutAlbum";
 import { useCarousel } from "@/components/Home/hooks/useCarousel";
 import { songHandleClick } from "@/components/ListSongs/HandleClick";
 import { StatsResponse } from "@/dto/stats/statsResponse";
@@ -55,8 +55,8 @@ function CarouselSong({
 }: {
     index: number;
     currentIndex: number;
-    song: RockItSongWithoutAlbum;
-    songs: RockItSongWithoutAlbum[];
+    song: SongWithoutAlbum;
+    songs: SongWithoutAlbum[];
     total: number;
     isMobile: boolean;
 }) {
@@ -151,7 +151,7 @@ export default function SongsCarousel() {
     const containerRef = useRef<HTMLDivElement>(null);
 
     const songs = rawSongs
-        ? (rawSongs as unknown as RockItSongWithoutAlbum[])
+        ? (rawSongs as unknown as SongWithoutAlbum[])
         : null;
 
     const { currentIndex, next, prev, onTouchStart, onTouchMove, onTouchEnd } =

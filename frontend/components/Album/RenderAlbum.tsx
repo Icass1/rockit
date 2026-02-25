@@ -4,14 +4,13 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { RockItAlbumWithSongs } from "@/lib/rockit/rockItAlbumWithSongs";
-import { RockItSongWithAlbum } from "@/lib/rockit/rockItSongWithAlbum";
+import { AlbumWithSongs } from "@/lib/rockit/albumWithSongs";
+import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
 import { getMinutes, getYear } from "@/lib/utils/getTime";
 import ListOptions from "@/components/ListHeader/ListOptions";
 import PlayListButton from "@/components/ListHeader/PlayListButton";
 import AlbumSong from "@/components/ListSongs/AlbumSong";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { RockItAlbumWithSongsResponse } from "@/dto/rockItAlbumWithSongsResponse";
 import { useStore } from "@nanostores/react";
 import { groupBy } from "lodash";
 import { Disc } from "lucide-react";
@@ -21,7 +20,7 @@ import DownloadListButton from "../ListHeader/DownloadListButton";
 export default function RenderAlbum({
     albumResponse,
 }: {
-    albumResponse: RockItAlbumWithSongsResponse;
+    albumResponse: Parameters<typeof AlbumWithSongs.fromResponse>[0];
 }) {
     const router = useRouter();
     const { langFile: lang } = useLanguage();
@@ -30,12 +29,12 @@ export default function RenderAlbum({
         rockIt.downloaderManager.downloadingListsAtom
     );
 
-    const album = RockItAlbumWithSongs.fromResponse(albumResponse);
+    const album = AlbumWithSongs.fromResponse(albumResponse);
 
     useEffect(() => {
         rockIt.currentListManager.setCurrentListSongs(
             album.songs.map((song) => {
-                return new RockItSongWithAlbum({ ...song, album });
+                return new SongWithAlbum({ ...song, album });
             })
         );
     }, [album]);
@@ -172,7 +171,7 @@ export default function RenderAlbum({
                                 <AlbumSong
                                     key={song.publicId}
                                     song={
-                                        new RockItSongWithAlbum({
+                                        new SongWithAlbum({
                                             ...song,
                                             album,
                                         })

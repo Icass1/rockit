@@ -1,8 +1,8 @@
 import { rockIt } from "@/lib/rockit/rockIt";
 import apiFetch from "@/lib/utils/apiFetch";
-import { RockItPlaylistResponse } from "@/dto/rockItPlaylistResponse";
+import { PlaylistResponse } from "@/dto/rockItPlaylistResponse";
 import { QueueListType } from "@/types/rockIt";
-import { RockItSongWithAlbum } from "../rockit/rockItSongWithAlbum";
+import { SongWithAlbum } from "../rockit/rockItSongWithAlbum";
 
 export class PlaylistManager {
     // #region: Constructor
@@ -23,11 +23,11 @@ export class PlaylistManager {
 
         const responseJson = await response.json();
 
-        return RockItPlaylistResponse.parse(responseJson);
+        return PlaylistResponse.parse(responseJson);
     }
 
     async playPlaylist(
-        songs: RockItSongWithAlbum[],
+        songs: SongWithAlbum[],
         listType: QueueListType,
         listPublicId: string,
         startSongPublicId?: string

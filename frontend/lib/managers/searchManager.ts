@@ -31,21 +31,21 @@ export class SearchManager {
                             spotifyResults: {
                                 songs: results.spotifyResults.songs.map(
                                     (song) =>
-                                        RockItSongWithAlbum.fromResponse(song)
+                                        SongWithAlbum.fromResponse(song)
                                 ),
                                 albums: results.spotifyResults.albums.map(
                                     (album) =>
-                                        RockItAlbumWithoutSongs.fromResponse(
+                                        AlbumWithoutSongs.fromResponse(
                                             album
                                         )
                                 ),
                                 artists: results.spotifyResults.artists.map(
                                     (artist) =>
-                                        RockItArtist.fromResponse(artist)
+                                        Artist.fromResponse(artist)
                                 ),
                                 playlists: results.spotifyResults.playlists.map(
                                     (playlist) =>
-                                        RockItPlaylist.fromResponse(playlist)
+                                        Playlist.fromResponse(playlist)
                                 ),
                             },
                         });

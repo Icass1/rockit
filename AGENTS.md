@@ -14,7 +14,6 @@ Rockit is a music player with:
 frontend/   → Next.js frontend
 backend/    → FastAPI backend
   core/     → Core business (auth, users, sessions)
-  default/  → Default provider
   spotify/  → Spotify integration
   youtube/  → YouTube integration
   rockit/   → Rockit main business
@@ -28,6 +27,7 @@ cd frontend
 npm run dev          # Start development server
 npm run build        # Build for production
 npm run lint         # Run ESLint
+npx tsc --noEmit     # TypeScript type checking
 ```
 
 ### Backend
@@ -35,33 +35,26 @@ npm run lint         # Run ESLint
 cd backend
 .venv/bin/python -m pytest                         # Run all tests
 .venv/bin/python -m pytest path/to/test_file.py   # Run specific test file
-.venv/bin/python -m pytest -k "test_name"         # Run tests matching pattern
-.venv/bin/python -m pytest --tb=short             # Run with shorter traceback
-
-# Type checking
-.venv/bin/python -m pyright
+.venv/bin/python -m pytest -k "test_name"        # Run tests matching pattern
+.venv/bin/python -m pyright                       # Type checking
 ```
 
 ## Architecture
 
-### Business Structure (5 layers per business)
+### Business Structure
 Each business has exactly 3 layers:
 1. **controllers/** (plural) → Only interacts with **framework**
 2. **framework/** → Only interacts with **access**
 3. **access/** → Only interacts with **database**
 
-### Critical Rule About Core
-**There cannot be anything from any other business inside `core`.**
-No providers, no references, nothing.
-
 ### Layer Rules
 - The **controller never calls access** or database directly.
 - The **framework never calls controller**.
 - The **access layer never calls framework**.
-- All controller files must live in `controllers/` folder (plural), not `controller/`.
+- All controller files must live in `controllers/` folder (plural).
 
 ### Session Scope Pattern
-The framework layer opens a single database session and passes it to multiple access functions. Access functions must accept a `session: AsyncSession` parameter instead of opening their own session.
+The framework layer opens a single database session and passes it to multiple access functions.
 
 ```python
 async with rockit_db.session_scope_async() as session:
@@ -72,7 +65,7 @@ async with rockit_db.session_scope_async() as session:
             artist_map[raw_artist.id] = a.result()
 ```
 
-## Code Style
+## Backend Code Style
 
 ### Static Classes
 All files in **framework** and **access** contain **static classes**.
@@ -85,7 +78,6 @@ All functions must be `async`.
 All variables must include types:
 ```python
 number: int = 3
-text: str = "hello"
 a_result_text: AResult[str]
 ```
 
@@ -120,32 +112,16 @@ logger = getLogger(__name__)
 ```
 
 ### Docstrings
-The first line of every function or method body must be a triple-quoted docstring.
+The first line of every function must be a triple-quoted docstring.
 Leave one blank line between the docstring and the first line of actual code.
 
-```python
-def some_function():
-    """Brief description of what this function does."""
-
-    actual_code_here()
-```
-
-### Comments
-- All inline comments must start with a capital letter and end with a period.
-- Do not use numbered steps in comments (e.g. `# 1. Check DB` → `# Check DB.`).
-
 ### Keyword Arguments Required
-Always write:
+Always write keyword arguments:
 ```python
 AResult(code=AResultCode.OK, message="OK", result="text")
 ```
-Not:
-```python
-AResult(AResultCode.OK, "OK", "text")
-```
 
-## Import Order
-
+### Import Order
 1. External imports (shortest → longest)
 2. `backend.utils`
 3. `from backend.core.aResult import AResult, AResultCode`
@@ -155,12 +131,67 @@ AResult(AResultCode.OK, "OK", "text")
 7. `backend.core.responses`
 8. `backend.core.requests`
 
-For another business, use the equivalent order under that business.
+## Frontend Code Style
+
+### Server vs Client Components
+**The most important rule in this codebase.**
+
+| Rule | Detail |
+|---|---|
+| `page.tsx` files NEVER have `"use client"` | Pages are always Server Components |
+| `"use client"` only on components that use hooks or browser APIs | useState, useEffect, useRouter, event handlers |
+| Data fetching in pages happens on the server | Using `getLang`, `getUserInServer`, direct fetch |
+| Interactive logic is isolated in a `*Client.tsx` component | The page imports and renders it |
+
+### Error Handling
+All backend errors must be thrown as `AppError`:
+```ts
+const res = await fetch("...");
+if (!res.ok) throw new AppError(res.status);
+```
+
+### Data Fetching — Zod Validation
+All API responses MUST be validated with Zod before use:
+```ts
+export const HomeStatsResponse = z.object({
+  songsByTimePlayed: z.array(RockItSongWithAlbumResponseSchema),
+});
+
+export type HomeStatsResponse = z.infer<typeof HomeStatsResponse>;
+const [data] = useFetch("/stats/home", HomeStatsResponse);
+```
+
+### Business Logic — Managers
+All logic lives in managers, never in components:
+```ts
+// ✅ Correct
+const handlePlay = () => rockIt.audioManager.play(song);
+
+// ❌ Wrong — logic in component
+const handlePlay = () => {
+  audioRef.current.src = song.url;
+  audioRef.current.play();
+};
+```
+
+### Naming Conventions
+| Type | Convention | Example |
+|---|---|---|
+| Pages | `page.tsx` | `app/(app)/library/page.tsx` |
+| Client wrappers | `*Client.tsx` | `HomeClient.tsx` |
+| Feature hooks | `use*` camelCase | `useHomeData.ts` |
+| Managers | `*Manager.ts` | `audioManager.ts` |
+
+### Barrel Exports
+Every folder in `components/` must have an `index.ts`:
+```ts
+export { default as HomeClient } from "./HomeClient";
+export { default as SongsCarousel } from "./SongsCarousel";
+```
 
 ## Database
 
-### ORM Models and Enums
-Table definitions use:
+### ORM Models
 ```python
 class ErrorRow(CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     ...
@@ -170,45 +201,30 @@ class ErrorRow(CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdded)
 - Database names → **snake_case**
 - Table names → **singular** (`user`, not `users`)
 
-### Association Tables
-Example: playlists ↔ songs
-```
-playlist_songs
-  playlist_id
-  song_id
-```
+## Things to Never Do
 
-## SpotifyApiTypes (Pydantic)
+### Backend
+- Never raise exceptions in framework or access layers
+- Never call access directly from controller
+- Never create database sessions in access functions
 
-All types in `backend/spotify/spotifyApiTypes/` must inherit from pydantic `BaseModel`, not `dataclass`.
+### Frontend
+- Never add `"use client"` to a `page.tsx`
+- Never call `redirect()` from Next.js inside an `onClick` handler — use `useRouter().push()`
+- Never use `React.cloneElement` to pass props to children — use Context
+- Never put business logic inside a component — put it in a manager
+- Never use `<label>` without a `for`/`htmlFor` attribute — use `<span>`
+- Never fetch without Zod validation
+- Never use `console.log` or `console.warn` in production code
 
-Rules:
-- No `_json: dict` field.
-- No `__getitem__` method.
-- All `Optional` fields must have a default of `None` (e.g. `spotify: Optional[str] = None`).
-- Provide a `from_dict` classmethod that wraps `model_validate` for backward-compatible call sites.
-- Pydantic handles nested model parsing automatically — no manual field extraction needed.
+## Before Submitting Changes
 
-```python
-from typing import Any, Optional
-from pydantic import BaseModel
-
-class ExampleModel(BaseModel):
-    field: Optional[str] = None
-
-    @classmethod
-    def from_dict(cls, obj: Any) -> 'ExampleModel':
-        """Parse from a raw Spotify API dictionary."""
-
-        return cls.model_validate(obj)
-```
-
-## Development Tools
-
-To get pylance errors, execute:
-```bash
-.venv/bin/python3 -m pyright
-```
+1. **Backend**: Run pyright type checking (`.venv/bin/python -m pyright`)
+2. **Frontend**: Run `npx tsc --noEmit` for TypeScript errors
+3. **Frontend**: Run `npm run lint` for ESLint errors
+4. Does the modified `page.tsx` still have no `"use client"`?
+5. Is new business logic in a manager, not in the component?
+6. Is the new API response validated with Zod?
 
 ## No Additional Files
 

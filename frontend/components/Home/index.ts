@@ -1,6 +1,6 @@
-export { default as HomeClient } from "./HomeClient";
-export { default as SongsCarousel } from "./SongsCarousel";
-export { default as QuickSelectionsSong } from "./QuickSelectionsSong";
-export { default as RecentlyPlayedSong } from "./RecentlyPlayedSong";
-export { default as SongScrollSection } from "./sections/SongScrollSection";
-export { default as QuickSelectionsSection } from "./sections/QuickSelectionsSection";
+export { default as HomeClient } from "@/components/Home/HomeClient";
+export { default as SongsCarousel } from "@/components/Home/SongsCarousel";
+export { default as QuickSelectionsSong } from "@/components/Home/QuickSelectionsSong";
+export { default as RecentlyPlayedSong } from "@/components/Home/RecentlyPlayedSong";
+export { default as SongScrollSection } from "@/components/Home/sections/SongScrollSection";
+export { default as QuickSelectionsSection } from "@/components/Home/sections/QuickSelectionsSection";

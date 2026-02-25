@@ -1,7 +1,7 @@
 "use client";
 
-import ErrorPage from "@/components/ErrorPage/ErrorPage";
 import { AppError } from "@/lib/errors/AppError";
+import ErrorPage from "@/components/ErrorPage/ErrorPage";
 
 export default function Error({ error }: { error: Error; reset: () => void }) {
     const status = error instanceof AppError ? error.status : 500;

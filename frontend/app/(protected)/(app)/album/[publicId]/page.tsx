@@ -1,5 +1,5 @@
-import RenderAlbum from "@/components/Album/RenderAlbum";
 import { rockIt } from "@/lib/rockit/rockIt";
+import RenderAlbum from "@/components/Album/RenderAlbum";
 
 export async function generateMetadata({
     params,

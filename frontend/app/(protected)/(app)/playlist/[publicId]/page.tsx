@@ -1,6 +1,6 @@
+import { rockIt } from "@/lib/rockit/rockIt";
 import PlaylistHeader from "@/components/Playlist/PlaylistHeader";
 import PlaylistSongsView from "@/components/Playlist/PlaylistSongsView";
-import { rockIt } from "@/lib/rockit/rockIt";
 
 export async function generateMetadata({
     params,

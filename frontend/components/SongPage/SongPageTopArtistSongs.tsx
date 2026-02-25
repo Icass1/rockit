@@ -1,12 +1,12 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { RockItArtist } from "@/lib/rockit/rockItArtist";
 import { RockItSongWithAlbum } from "@/lib/rockit/rockItSongWithAlbum";
 import { getBestImage } from "@/lib/utils/getBestImage";
-import Image from "next/image";
-import Link from "next/link";
-import { useEffect, useState } from "react";
 
 export default function SongPageTopArtistSongs({
     artist,

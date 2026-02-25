@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, type ReactNode } from "react";
-import type ContextMenuProps from "./Props";
+import type ContextMenuProps from "@/components/ContextMenu/Props";
 
 export default function ContextMenuTrigger({
     children,

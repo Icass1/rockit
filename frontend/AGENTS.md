@@ -201,6 +201,7 @@ This means imports in other files use:
 
 ```ts
 import { HomeClient } from "@/components/Home";
+
 // not: import HomeClient from "@/components/Home/HomeClient";
 ```
 

@@ -1,7 +1,7 @@
-import useFetch from "@/hooks/useFetch";
-import { HomeStatsResponse } from "@/dto/stats/homeStatsResponse";
 import { RockItSongWithAlbum } from "@/lib/rockit/rockItSongWithAlbum";
 import { RockItSongWithoutAlbum } from "@/lib/rockit/rockItSongWithoutAlbum";
+import { HomeStatsResponse } from "@/dto/stats/homeStatsResponse";
+import useFetch from "@/hooks/useFetch";
 
 export interface HomeData {
     songsByTimePlayed: RockItSongWithoutAlbum[];

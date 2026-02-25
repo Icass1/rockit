@@ -1,7 +1,7 @@
 "use client";
 
-import { Trash2, BellOff } from "lucide-react";
 import { useState } from "react";
+import { BellOff, Trash2 } from "lucide-react";
 
 interface Notification {
     id: number;

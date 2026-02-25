@@ -1,11 +1,10 @@
-import { createArrayAtom, createAtom } from "@/lib/store";
 import { rockIt } from "@/lib/rockit/rockIt";
-
-import { DBListType, QueueListType } from "@/types/rockIt";
-import { RockItSongWithAlbum } from "../rockit/rockItSongWithAlbum";
-import { RockItSongQueue } from "../rockit/rockItSongQueue";
+import { createArrayAtom, createAtom } from "@/lib/store";
 import apiFetch from "@/lib/utils/apiFetch";
 import { QueueResponse } from "@/dto/queueResponse";
+import { DBListType, QueueListType } from "@/types/rockIt";
+import { RockItSongQueue } from "../rockit/rockItSongQueue";
+import { RockItSongWithAlbum } from "../rockit/rockItSongWithAlbum";
 
 export class QueueManager {
     // #region: Atoms

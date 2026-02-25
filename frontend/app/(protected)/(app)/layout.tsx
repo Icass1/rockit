@@ -1,5 +1,6 @@
-import AppClientLayout from "@/components/Layout/AppClientLayout";
 import { getLang } from "@/lib/utils/getLang";
+import AppClientLayout from "@/components/Layout/AppClientLayout";
+
 //import { getUserInServer } from "@/lib/getUserInServer";
 
 export default async function AppLayout({

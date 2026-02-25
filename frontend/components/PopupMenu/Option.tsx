@@ -1,7 +1,7 @@
 "use client";
 
 import type { MouseEventHandler, ReactNode } from "react";
-import { usePopupMenu } from "./context";
+import { usePopupMenu } from "@/components/PopupMenu/context";
 
 export default function PopupMenuOption({
     children,

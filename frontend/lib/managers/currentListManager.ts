@@ -1,6 +1,6 @@
 import { createArrayAtom } from "@/lib/store";
-import { RockItSongWithAlbum } from "../rockit/rockItSongWithAlbum";
 import { RockItSongPlaylist } from "../rockit/rockItSongPlaylist";
+import { RockItSongWithAlbum } from "../rockit/rockItSongWithAlbum";
 
 export class CurrentListManager {
     // #region: Atoms

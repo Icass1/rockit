@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, type ReactNode } from "react";
-import { PopupMenuContext } from "./context";
+import { PopupMenuContext } from "@/components/PopupMenu/context";
 
 export default function PopupMenu({ children }: { children: ReactNode }) {
     const [open, setOpen] = useState(false);

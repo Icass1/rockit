@@ -1,4 +1,4 @@
-export { default as Search } from "./Search";
-export { default as SearchBarInput } from "./SearchBarInput";
-export { default as SongsSection } from "./sections/SongsSection";
-export { default as AlbumsSection } from "./sections/AlbumsSection";
+export { default as Search } from "@/components/Search/Search";
+export { default as SearchBarInput } from "@/components/Search/SearchBarInput";
+export { default as SongsSection } from "@/components/Search/sections/SongsSection";
+export { default as AlbumsSection } from "@/components/Search/sections/AlbumsSection";

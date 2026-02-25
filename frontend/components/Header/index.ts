@@ -1,5 +1,5 @@
-export { default as Header } from "./Header";
-export { default as HeaderRight } from "./HeaderRight";
-export { default as HeaderUser } from "./HeaderUser";
-export { default as OnlineUserIndicator } from "./HeaderOnlineUsers";
-export { default as NotificationMenu } from "./HeaderNotificationMenu";
+export { default as Header } from "@/components/Header/Header";
+export { default as HeaderRight } from "@/components/Header/HeaderRight";
+export { default as HeaderUser } from "@/components/Header/HeaderUser";
+export { default as OnlineUserIndicator } from "@/components/Header/HeaderOnlineUsers";
+export { default as NotificationMenu } from "@/components/Header/HeaderNotificationMenu";

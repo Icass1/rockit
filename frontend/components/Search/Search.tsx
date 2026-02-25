@@ -1,10 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import SearchBarInput from "./SearchBarInput";
-import SongsSection from "./sections/SongsSection";
-import AlbumsSection from "./sections/AlbumsSection";
-import { useSearchResults } from "./hooks/useSearchResults";
+import { useSearchResults } from "@/components/Search/hooks/useSearchResults";
+import SearchBarInput from "@/components/Search/SearchBarInput";
+import AlbumsSection from "@/components/Search/sections/AlbumsSection";
+import SongsSection from "@/components/Search/sections/SongsSection";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 function EmptyState() {

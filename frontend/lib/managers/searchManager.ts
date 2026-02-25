@@ -1,10 +1,10 @@
-import { SearchResultsResponse } from "@/dto/searchResponse";
-import apiFetch from "@/lib/utils/apiFetch";
 import { createAtom } from "@/lib/store";
-import { RockItSongWithAlbum } from "../rockit/rockItSongWithAlbum";
+import apiFetch from "@/lib/utils/apiFetch";
+import { SearchResultsResponse } from "@/dto/searchResponse";
 import { RockItAlbumWithoutSongs } from "../rockit/rockItAlbumWithoutSongs";
 import { RockItArtist } from "../rockit/rockItArtist";
 import { RockItPlaylist } from "../rockit/rockItPlaylist";
+import { RockItSongWithAlbum } from "../rockit/rockItSongWithAlbum";
 
 type SpotifySearchResults = {
     songs: RockItSongWithAlbum[];

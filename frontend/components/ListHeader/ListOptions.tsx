@@ -1,3 +1,12 @@
+import { rockIt } from "@/lib/rockit/rockIt";
+import { playListHandleClick } from "@/components/PlayList";
+import {
+    PopupMenu,
+    PopupMenuContent,
+    PopupMenuOption,
+    PopupMenuTrigger,
+} from "@/components/PopupMenu/PopupMenu";
+import { DBListType } from "@/types/rockIt";
 import { useStore } from "@nanostores/react";
 import {
     Download,
@@ -12,15 +21,6 @@ import {
     PinOff,
     Play,
 } from "lucide-react";
-import {
-    PopupMenu,
-    PopupMenuContent,
-    PopupMenuOption,
-    PopupMenuTrigger,
-} from "@/components/PopupMenu/PopupMenu";
-import { playListHandleClick } from "@/components/PlayList";
-import { rockIt } from "@/lib/rockit/rockIt";
-import { DBListType } from "@/types/rockIt";
 
 export default function ListOptions({
     type,

@@ -1,5 +1,5 @@
-import RecentlyPlayedSong from "@/components/Home/RecentlyPlayedSong";
 import { RockItSongWithoutAlbum } from "@/lib/rockit/rockItSongWithoutAlbum";
+import RecentlyPlayedSong from "@/components/Home/RecentlyPlayedSong";
 
 interface SongScrollSectionProps {
     title: string;

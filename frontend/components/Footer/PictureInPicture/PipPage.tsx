@@ -2,19 +2,19 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { rockIt } from "@/lib/rockit/rockIt";
+import { getTime } from "@/lib/utils/getTime";
+import LikeButton from "@/components/LikeButton";
+import { useStore } from "@nanostores/react";
 import {
+    CirclePause,
+    CirclePlay,
+    Repeat,
+    Repeat1,
+    Shuffle,
     SkipBack,
     SkipForward,
-    CirclePlay,
-    CirclePause,
-    Shuffle,
-    Repeat1,
-    Repeat,
 } from "lucide-react";
-import { useStore } from "@nanostores/react";
-import LikeButton from "@/components/LikeButton";
-import { getTime } from "@/lib/utils/getTime";
-import { rockIt } from "@/lib/rockit/rockIt";
 
 // Inline styles are intentional here — PiP runs in a separate browsing context
 // and Tailwind classes may not be reliably available.

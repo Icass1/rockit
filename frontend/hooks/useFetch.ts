@@ -1,5 +1,5 @@
+import { useEffect, useState } from "react";
 import apiFetch from "@/lib/utils/apiFetch";
-import { useState, useEffect } from "react";
 import { z, ZodType } from "zod";
 
 async function update<T extends ZodType>(

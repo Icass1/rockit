@@ -1,5 +1,5 @@
-import { useLanguage } from "@/contexts/LanguageContext";
 import { useState } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function ServiceWorkerInfo() {
     const [status, setStatus] = useState<string>("No data");

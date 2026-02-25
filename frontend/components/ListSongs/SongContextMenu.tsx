@@ -1,5 +1,19 @@
 "use client";
 
+import { useState, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
+import { networkStatus } from "@/lib/stores/networkStatus";
+import ContextMenuContent from "@/components/ContextMenu/Content";
+import ContextMenu from "@/components/ContextMenu/ContextMenu";
+import ContextMenuOption from "@/components/ContextMenu/Option";
+import ContextMenuSplitter from "@/components/ContextMenu/Splitter";
+import SubContextMenuContent from "@/components/ContextMenu/SubContextMenu/Content";
+import SubContextMenu from "@/components/ContextMenu/SubContextMenu/ContextMenu";
+import SubContextMenuTrigger from "@/components/ContextMenu/SubContextMenu/Trigger";
+import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
+import { songHandleClick } from "@/components/ListSongs/HandleClick";
+import useDev from "@/hooks/useDev";
+import { useStore } from "@nanostores/react";
 import {
     Copy,
     Download,
@@ -13,26 +27,11 @@ import {
     PlayCircle,
     Share2,
 } from "lucide-react";
-import ContextMenuContent from "@/components/ContextMenu/Content";
-import ContextMenu from "@/components/ContextMenu/ContextMenu";
-import ContextMenuOption from "@/components/ContextMenu/Option";
-import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
-import { useState, type ReactNode } from "react";
-import { useStore } from "@nanostores/react";
-import ContextMenuSplitter from "@/components/ContextMenu/Splitter";
-import { songHandleClick } from "./HandleClick";
-import SubContextMenu from "@/components/ContextMenu/SubContextMenu/ContextMenu";
-import SubContextMenuTrigger from "@/components/ContextMenu/SubContextMenu/Trigger";
-import SubContextMenuContent from "@/components/ContextMenu/SubContextMenu/Content";
-import { networkStatus } from "@/lib/stores/networkStatus";
-import { useRouter } from "next/navigation";
-import useDev from "@/hooks/useDev";
-
 import "@/styles/CheckBox.css";
 import Image from "next/image";
-import { useLanguage } from "@/contexts/LanguageContext";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { RockItSongWithAlbum } from "@/lib/rockit/rockItSongWithAlbum";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 function ListSubContextMenu({
     list,

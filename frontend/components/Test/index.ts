@@ -1,1 +1,1 @@
-export { default as TestClient } from "./TestClient";
+export { default as TestClient } from "@/components/Test/TestClient";

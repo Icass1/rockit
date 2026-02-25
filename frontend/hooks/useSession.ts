@@ -1,6 +1,6 @@
+import { useEffect, useState } from "react";
 import apiFetch from "@/lib/utils/apiFetch";
 import { RockItUserResponse } from "@/dto/rockItUserResponse";
-import { useState, useEffect } from "react";
 
 type Session =
     | { status: "authenticated"; user: RockItUserResponse }

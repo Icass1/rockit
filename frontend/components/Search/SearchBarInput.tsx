@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import debounce from "lodash/debounce";
-import type { DebouncedFunc } from "lodash";
-import { useLanguage } from "@/contexts/LanguageContext";
 import { usePathname, useRouter } from "next/navigation";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { useLanguage } from "@/contexts/LanguageContext";
+import type { DebouncedFunc } from "lodash";
+import debounce from "lodash/debounce";
 
 export default function SearchBarInput() {
     const [value, setValue] = useState("");

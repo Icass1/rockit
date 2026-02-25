@@ -1,1 +1,1 @@
-export { default as FriendsClient } from "./FriendsClient";
+export { default as FriendsClient } from "@/components/Friends/FriendsClient";

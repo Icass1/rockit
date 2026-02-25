@@ -1,6 +1,6 @@
+import { getUserInClient } from "@/lib/getUserInClient";
 import { createAtom } from "@/lib/store";
 import { RockItUser } from "../rockit/rockItUser";
-import { getUserInClient } from "@/lib/getUserInClient";
 
 export class UserManager {
     // #region: Atoms

@@ -1,9 +1,7 @@
-import { RockItUserResponse } from "@/dto/rockItUserResponse";
 import { cookies } from "next/headers";
+import { SessionResponse, SessionResponseSchema } from "@/dto";
 
-export async function getUserInServer(): Promise<
-    RockItUserResponse | undefined
-> {
+export async function getUserInServer(): Promise<SessionResponse | undefined> {
     const { rockIt } = await import("@/lib/rockit/rockIt");
     const cookieStore = await cookies();
     const session = cookieStore.get("session_id")?.value;
@@ -18,7 +16,7 @@ export async function getUserInServer(): Promise<
     if (!res.ok) return undefined;
 
     const json = await res.json();
-    const parsed = RockItUserResponse.parse(json);
+    const parsed = SessionResponseSchema.parse(json);
 
     return parsed;
 }

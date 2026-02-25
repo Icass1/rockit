@@ -1,5 +1,5 @@
+import { QueueResponseItemListSchema } from "@/dto/queueResponseItemList";
 import { z } from "zod";
-import { QueueResponseItemListSchema } from "./queueResponseItemList";
 
 export const QueueResponseItemSchema = z.object({
     queueSongId: z.number(),

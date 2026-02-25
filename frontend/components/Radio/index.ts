@@ -1,1 +1,1 @@
-export { default as RadioClient } from "./RadioClient";
+export { default as RadioClient } from "@/components/Radio/RadioClient";

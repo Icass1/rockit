@@ -1,8 +1,8 @@
 import { RockItArtist } from "@/lib/rockit/rockItArtist";
-import { RockItSongWithoutAlbum } from "./rockItSongWithoutAlbum";
-import { RockItAlbumWithoutSongs } from "./rockItAlbumWithoutSongs";
 import { RockItAlbumWithSongsResponse } from "@/dto/rockItAlbumWithSongsResponse";
+import { RockItAlbumWithoutSongs } from "./rockItAlbumWithoutSongs";
 import { RockItExternalImage } from "./rockItExternalImage";
+import { RockItSongWithoutAlbum } from "./rockItSongWithoutAlbum";
 
 export class RockItAlbumWithSongs extends RockItAlbumWithoutSongs {
     // #region: Read-only properties

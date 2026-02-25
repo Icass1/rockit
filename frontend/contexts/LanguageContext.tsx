@@ -1,7 +1,8 @@
 // lib/LanguageContext.tsx
 "use client";
-import { Lang } from "@/types/lang";
+
 import { createContext, useContext } from "react";
+import { Lang } from "@/types/lang";
 
 const LanguageContext = createContext<{
     langFile: Lang | null;

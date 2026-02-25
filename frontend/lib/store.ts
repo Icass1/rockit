@@ -1,4 +1,5 @@
 import { atom } from "nanostores";
+
 type Primitive = boolean | number | string;
 
 export type ReadonlyIfObject<Value> = Value extends undefined

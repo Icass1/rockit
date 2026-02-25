@@ -1,1 +1,1 @@
-export { default as StatsClient } from "./StatsClient";
+export { default as StatsClient } from "@/components/Stats/StatsClient";

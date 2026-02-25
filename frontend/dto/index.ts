@@ -1,65 +1,74 @@
 export {
     BaseAlbumResponseSchema,
     type BaseAlbumResponse,
-} from "./baseAlbumResponse";
+} from "@/dto/baseAlbumResponse";
 export {
     LibraryListsResponseSchema,
     type LibraryListsResponse,
-} from "./libraryListsResponse";
+} from "@/dto/libraryListsResponse";
 export {
     BaseSongAlbumResponseSchema,
     type BaseSongAlbumResponse,
-} from "./baseSongAlbumResponse";
-export { LoginResponseSchema, type LoginResponse } from "./loginResponse";
-export { OkResponseSchema, type OkResponse } from "./okResponse";
-export { SessionResponseSchema, type SessionResponse } from "./sessionResponse";
-export { BaseSearchItemSchema, type BaseSearchItem } from "./baseSearchItem";
+} from "@/dto/baseSongAlbumResponse";
+export { LoginResponseSchema, type LoginResponse } from "@/dto/loginResponse";
+export { OkResponseSchema, type OkResponse } from "@/dto/okResponse";
+export {
+    SessionResponseSchema,
+    type SessionResponse,
+} from "@/dto/sessionResponse";
+export {
+    BaseSearchItemSchema,
+    type BaseSearchItem,
+} from "@/dto/baseSearchItem";
 export {
     ProviderSearchResponseSchema,
     type ProviderSearchResponse,
-} from "./providerSearchResponse";
+} from "@/dto/providerSearchResponse";
 export {
     HomeStatsResponseSchema,
     type HomeStatsResponse,
-} from "./homeStatsResponse";
-export { QueueResponseSchema, type QueueResponse } from "./queueResponse";
+} from "@/dto/homeStatsResponse";
+export { QueueResponseSchema, type QueueResponse } from "@/dto/queueResponse";
 export {
     QueueResponseItemSchema,
     type QueueResponseItem,
-} from "./queueResponseItem";
+} from "@/dto/queueResponseItem";
 export {
     QueueResponseItemListSchema,
     type QueueResponseItemList,
-} from "./queueResponseItemList";
+} from "@/dto/queueResponseItemList";
 export {
     BaseSongResponseSchema,
     type BaseSongResponse,
-} from "./baseSongResponse";
+} from "@/dto/baseSongResponse";
 export {
     BaseAlbumSongResponseSchema,
     type BaseAlbumSongResponse,
-} from "./baseAlbumSongResponse";
+} from "@/dto/baseAlbumSongResponse";
 export {
     RegisterResponseSchema,
     type RegisterResponse,
-} from "./registerResponse";
+} from "@/dto/registerResponse";
 export {
     BaseArtistResponseSchema,
     type BaseArtistResponse,
-} from "./baseArtistResponse";
+} from "@/dto/baseArtistResponse";
 export {
     BasePlaylistResponseSchema,
     type BasePlaylistResponse,
-} from "./basePlaylistResponse";
+} from "@/dto/basePlaylistResponse";
 export {
     StartDownloadResponseSchema,
     type StartDownloadResponse,
-} from "./startDownloadResponse";
+} from "@/dto/startDownloadResponse";
 export {
     ExternalImageResponseSchema,
     type ExternalImageResponse,
-} from "./externalImageResponse";
-export { AlbumResponseSchema, type AlbumResponse } from "./albumResponse";
-export { SongResponseSchema, type SongResponse } from "./songResponse";
-export { VideoResponseSchema, type VideoResponse } from "./videoResponse";
-export { ChannelResponseSchema, type ChannelResponse } from "./channelResponse";
+} from "@/dto/externalImageResponse";
+export { AlbumResponseSchema, type AlbumResponse } from "@/dto/albumResponse";
+export { SongResponseSchema, type SongResponse } from "@/dto/songResponse";
+export { VideoResponseSchema, type VideoResponse } from "@/dto/videoResponse";
+export {
+    ChannelResponseSchema,
+    type ChannelResponse,
+} from "@/dto/channelResponse";

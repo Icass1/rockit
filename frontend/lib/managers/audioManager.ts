@@ -1,5 +1,5 @@
-import { createAtom } from "@/lib/store";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { createAtom } from "@/lib/store";
 
 export class AudioManager {
     static #instance: AudioManager;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, type ReactNode } from "react";
-import { usePopupMenu } from "./context";
+import { usePopupMenu } from "@/components/PopupMenu/context";
 
 export default function PopupMenuTrigger({
     children,

@@ -1,10 +1,10 @@
 "use client";
 
-import PictureInPicture from "@/components/Footer/PictureInPicture/PictureInPicture";
-import FooterLeft from "@/components/Footer/FooterLeft";
 import FooterCenter from "@/components/Footer/FooterCenter";
-import VolumeSlider from "@/components/Footer/VolumeSlider";
+import FooterLeft from "@/components/Footer/FooterLeft";
+import PictureInPicture from "@/components/Footer/PictureInPicture/PictureInPicture";
 import TogglePlayerUI from "@/components/Footer/TogglePlayerUI";
+import VolumeSlider from "@/components/Footer/VolumeSlider";
 
 export default function Footer() {
     return (

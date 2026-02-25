@@ -1,5 +1,5 @@
-import { Station } from "@/types/station";
 import { createAtom } from "@/lib/store";
+import { Station } from "@/types/station";
 
 export class StationManager {
     // #region: Atoms

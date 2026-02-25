@@ -35,6 +35,9 @@ importers:
                 specifier: ^4.1.13
                 version: 4.3.6
         devDependencies:
+            "@ianvs/prettier-plugin-sort-imports":
+                specifier: ^4.7.1
+                version: 4.7.1(prettier@3.8.1)
             "@tailwindcss/postcss":
                 specifier: ^4
                 version: 4.1.18
@@ -55,7 +58,7 @@ importers:
                 version: 16.1.6(@typescript-eslint/parser@8.55.0(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
             prettier-plugin-tailwindcss:
                 specifier: ^0.6.14
-                version: 0.6.14(prettier@3.8.1)
+                version: 0.6.14(@ianvs/prettier-plugin-sort-imports@4.7.1(prettier@3.8.1))(prettier@3.8.1)
             tailwindcss:
                 specifier: ^4
                 version: 4.1.18
@@ -297,6 +300,27 @@ packages:
             }
         engines: { node: ">=18.18" }
 
+    "@ianvs/prettier-plugin-sort-imports@4.7.1":
+        resolution:
+            {
+                integrity: sha512-jmTNYGlg95tlsoG3JLCcuC4BrFELJtLirLAkQW/71lXSyOhVt/Xj7xWbbGcuVbNq1gwWgSyMrPjJc9Z30hynVw==,
+            }
+        peerDependencies:
+            "@prettier/plugin-oxc": ^0.0.4 || ^0.1.0
+            "@vue/compiler-sfc": 2.7.x || 3.x
+            content-tag: ^4.0.0
+            prettier: 2 || 3 || ^4.0.0-0
+            prettier-plugin-ember-template-tag: ^2.1.0
+        peerDependenciesMeta:
+            "@prettier/plugin-oxc":
+                optional: true
+            "@vue/compiler-sfc":
+                optional: true
+            content-tag:
+                optional: true
+            prettier-plugin-ember-template-tag:
+                optional: true
+
     "@img/colour@1.0.0":
         resolution:
             {
@@ -345,7 +369,6 @@ packages:
             }
         cpu: [arm64]
         os: [linux]
-        libc: [glibc]
 
     "@img/sharp-libvips-linux-arm@1.2.4":
         resolution:
@@ -354,7 +377,6 @@ packages:
             }
         cpu: [arm]
         os: [linux]
-        libc: [glibc]
 
     "@img/sharp-libvips-linux-ppc64@1.2.4":
         resolution:
@@ -363,7 +385,6 @@ packages:
             }
         cpu: [ppc64]
         os: [linux]
-        libc: [glibc]
 
     "@img/sharp-libvips-linux-riscv64@1.2.4":
         resolution:
@@ -372,7 +393,6 @@ packages:
             }
         cpu: [riscv64]
         os: [linux]
-        libc: [glibc]
 
     "@img/sharp-libvips-linux-s390x@1.2.4":
         resolution:
@@ -381,7 +401,6 @@ packages:
             }
         cpu: [s390x]
         os: [linux]
-        libc: [glibc]
 
     "@img/sharp-libvips-linux-x64@1.2.4":
         resolution:
@@ -390,7 +409,6 @@ packages:
             }
         cpu: [x64]
         os: [linux]
-        libc: [glibc]
 
     "@img/sharp-libvips-linuxmusl-arm64@1.2.4":
         resolution:
@@ -399,7 +417,6 @@ packages:
             }
         cpu: [arm64]
         os: [linux]
-        libc: [musl]
 
     "@img/sharp-libvips-linuxmusl-x64@1.2.4":
         resolution:
@@ -408,7 +425,6 @@ packages:
             }
         cpu: [x64]
         os: [linux]
-        libc: [musl]
 
     "@img/sharp-linux-arm64@0.34.5":
         resolution:
@@ -418,7 +434,6 @@ packages:
         engines: { node: ^18.17.0 || ^20.3.0 || >=21.0.0 }
         cpu: [arm64]
         os: [linux]
-        libc: [glibc]
 
     "@img/sharp-linux-arm@0.34.5":
         resolution:
@@ -428,7 +443,6 @@ packages:
         engines: { node: ^18.17.0 || ^20.3.0 || >=21.0.0 }
         cpu: [arm]
         os: [linux]
-        libc: [glibc]
 
     "@img/sharp-linux-ppc64@0.34.5":
         resolution:
@@ -438,7 +452,6 @@ packages:
         engines: { node: ^18.17.0 || ^20.3.0 || >=21.0.0 }
         cpu: [ppc64]
         os: [linux]
-        libc: [glibc]
 
     "@img/sharp-linux-riscv64@0.34.5":
         resolution:
@@ -448,7 +461,6 @@ packages:
         engines: { node: ^18.17.0 || ^20.3.0 || >=21.0.0 }
         cpu: [riscv64]
         os: [linux]
-        libc: [glibc]
 
     "@img/sharp-linux-s390x@0.34.5":
         resolution:
@@ -458,7 +470,6 @@ packages:
         engines: { node: ^18.17.0 || ^20.3.0 || >=21.0.0 }
         cpu: [s390x]
         os: [linux]
-        libc: [glibc]
 
     "@img/sharp-linux-x64@0.34.5":
         resolution:
@@ -468,7 +479,6 @@ packages:
         engines: { node: ^18.17.0 || ^20.3.0 || >=21.0.0 }
         cpu: [x64]
         os: [linux]
-        libc: [glibc]
 
     "@img/sharp-linuxmusl-arm64@0.34.5":
         resolution:
@@ -478,7 +488,6 @@ packages:
         engines: { node: ^18.17.0 || ^20.3.0 || >=21.0.0 }
         cpu: [arm64]
         os: [linux]
-        libc: [musl]
 
     "@img/sharp-linuxmusl-x64@0.34.5":
         resolution:
@@ -488,7 +497,6 @@ packages:
         engines: { node: ^18.17.0 || ^20.3.0 || >=21.0.0 }
         cpu: [x64]
         os: [linux]
-        libc: [musl]
 
     "@img/sharp-wasm32@0.34.5":
         resolution:
@@ -610,7 +618,6 @@ packages:
         engines: { node: ">= 10" }
         cpu: [arm64]
         os: [linux]
-        libc: [glibc]
 
     "@next/swc-linux-arm64-musl@16.1.6":
         resolution:
@@ -620,7 +627,6 @@ packages:
         engines: { node: ">= 10" }
         cpu: [arm64]
         os: [linux]
-        libc: [musl]
 
     "@next/swc-linux-x64-gnu@16.1.6":
         resolution:
@@ -630,7 +636,6 @@ packages:
         engines: { node: ">= 10" }
         cpu: [x64]
         os: [linux]
-        libc: [glibc]
 
     "@next/swc-linux-x64-musl@16.1.6":
         resolution:
@@ -640,7 +645,6 @@ packages:
         engines: { node: ">= 10" }
         cpu: [x64]
         os: [linux]
-        libc: [musl]
 
     "@next/swc-win32-arm64-msvc@16.1.6":
         resolution:
@@ -759,7 +763,6 @@ packages:
         engines: { node: ">= 10" }
         cpu: [arm64]
         os: [linux]
-        libc: [glibc]
 
     "@tailwindcss/oxide-linux-arm64-musl@4.1.18":
         resolution:
@@ -769,7 +772,6 @@ packages:
         engines: { node: ">= 10" }
         cpu: [arm64]
         os: [linux]
-        libc: [musl]
 
     "@tailwindcss/oxide-linux-x64-gnu@4.1.18":
         resolution:
@@ -779,7 +781,6 @@ packages:
         engines: { node: ">= 10" }
         cpu: [x64]
         os: [linux]
-        libc: [glibc]
 
     "@tailwindcss/oxide-linux-x64-musl@4.1.18":
         resolution:
@@ -789,7 +790,6 @@ packages:
         engines: { node: ">= 10" }
         cpu: [x64]
         os: [linux]
-        libc: [musl]
 
     "@tailwindcss/oxide-wasm32-wasi@4.1.18":
         resolution:
@@ -1039,7 +1039,6 @@ packages:
             }
         cpu: [arm64]
         os: [linux]
-        libc: [glibc]
 
     "@unrs/resolver-binding-linux-arm64-musl@1.11.1":
         resolution:
@@ -1048,7 +1047,6 @@ packages:
             }
         cpu: [arm64]
         os: [linux]
-        libc: [musl]
 
     "@unrs/resolver-binding-linux-ppc64-gnu@1.11.1":
         resolution:
@@ -1057,7 +1055,6 @@ packages:
             }
         cpu: [ppc64]
         os: [linux]
-        libc: [glibc]
 
     "@unrs/resolver-binding-linux-riscv64-gnu@1.11.1":
         resolution:
@@ -1066,7 +1063,6 @@ packages:
             }
         cpu: [riscv64]
         os: [linux]
-        libc: [glibc]
 
     "@unrs/resolver-binding-linux-riscv64-musl@1.11.1":
         resolution:
@@ -1075,7 +1071,6 @@ packages:
             }
         cpu: [riscv64]
         os: [linux]
-        libc: [musl]
 
     "@unrs/resolver-binding-linux-s390x-gnu@1.11.1":
         resolution:
@@ -1084,7 +1079,6 @@ packages:
             }
         cpu: [s390x]
         os: [linux]
-        libc: [glibc]
 
     "@unrs/resolver-binding-linux-x64-gnu@1.11.1":
         resolution:
@@ -1093,7 +1087,6 @@ packages:
             }
         cpu: [x64]
         os: [linux]
-        libc: [glibc]
 
     "@unrs/resolver-binding-linux-x64-musl@1.11.1":
         resolution:
@@ -1102,7 +1095,6 @@ packages:
             }
         cpu: [x64]
         os: [linux]
-        libc: [musl]
 
     "@unrs/resolver-binding-wasm32-wasi@1.11.1":
         resolution:
@@ -2374,7 +2366,6 @@ packages:
         engines: { node: ">= 12.0.0" }
         cpu: [arm64]
         os: [linux]
-        libc: [glibc]
 
     lightningcss-linux-arm64-musl@1.30.2:
         resolution:
@@ -2384,7 +2375,6 @@ packages:
         engines: { node: ">= 12.0.0" }
         cpu: [arm64]
         os: [linux]
-        libc: [musl]
 
     lightningcss-linux-x64-gnu@1.30.2:
         resolution:
@@ -2394,7 +2384,6 @@ packages:
         engines: { node: ">= 12.0.0" }
         cpu: [x64]
         os: [linux]
-        libc: [glibc]
 
     lightningcss-linux-x64-musl@1.30.2:
         resolution:
@@ -2404,7 +2393,6 @@ packages:
         engines: { node: ">= 12.0.0" }
         cpu: [x64]
         os: [linux]
-        libc: [musl]
 
     lightningcss-win32-arm64-msvc@1.30.2:
         resolution:
@@ -3506,6 +3494,17 @@ snapshots:
     "@humanwhocodes/module-importer@1.0.1": {}
 
     "@humanwhocodes/retry@0.4.3": {}
+
+    "@ianvs/prettier-plugin-sort-imports@4.7.1(prettier@3.8.1)":
+        dependencies:
+            "@babel/generator": 7.29.1
+            "@babel/parser": 7.29.0
+            "@babel/traverse": 7.29.0
+            "@babel/types": 7.29.0
+            prettier: 3.8.1
+            semver: 7.7.4
+        transitivePeerDependencies:
+            - supports-color
 
     "@img/colour@1.0.0":
         optional: true
@@ -5022,9 +5021,11 @@ snapshots:
 
     prelude-ls@1.2.1: {}
 
-    prettier-plugin-tailwindcss@0.6.14(prettier@3.8.1):
+    prettier-plugin-tailwindcss@0.6.14(@ianvs/prettier-plugin-sort-imports@4.7.1(prettier@3.8.1))(prettier@3.8.1):
         dependencies:
             prettier: 3.8.1
+        optionalDependencies:
+            "@ianvs/prettier-plugin-sort-imports": 4.7.1(prettier@3.8.1)
 
     prettier@3.8.1: {}
 

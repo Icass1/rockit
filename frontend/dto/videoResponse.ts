@@ -1,5 +1,5 @@
+import { ChannelResponseSchema } from "@/dto/channelResponse";
 import { z } from "zod";
-import { ChannelResponseSchema } from "./channelResponse";
 
 export const VideoResponseSchema = z.object({
     provider: z.string(),

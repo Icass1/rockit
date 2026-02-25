@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
+import { rockIt } from "@/lib/rockit/rockIt";
 import type { SpotifyArtist, SpotifyArtistTopTracks } from "@/types/spotify";
 import { Play } from "lucide-react";
-import { rockIt } from "@/lib/rockit/rockIt";
 
 export default async function ArtistPage({
     params,

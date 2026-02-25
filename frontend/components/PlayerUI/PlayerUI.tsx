@@ -1,226 +1,62 @@
 "use client";
 
-import { useStore } from "@nanostores/react";
-import { useEffect, useRef, useState } from "react";
-import useWindowSize from "@/hooks/useWindowSize";
-import { QueueSong } from "./QueueSong";
-import { DynamicLyrics } from "./DynamicLyrics";
-import Link from "next/link";
-import ContextMenuContent from "@/components/ContextMenu/Content";
-import ContextMenuOption from "@/components/ContextMenu/Option";
-import ContextMenu from "@/components/ContextMenu/ContextMenu";
-import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
-import {
-    GripVertical,
-    HardDriveDownload,
-    ListPlus,
-    ListX,
-    Pause,
-    Play,
-    PlayCircle,
-} from "lucide-react";
-import Image from "next/image";
+import { PlayerUICoverColumn } from "@/components/PlayerUI/PlayerUICoverColumn";
+import { PlayerUILyricsColumn } from "@/components/PlayerUI/PlayerUILyricsColumn";
+import { PlayerUIQueueColumn } from "@/components/PlayerUI/PlayerUIQueueColumn";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { RockItSongQueue } from "@/lib/rockit/rockItSongQueue";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { RockItSongWithAlbum } from "@/lib/rockit/rockItSongWithAlbum";
-import { RockItAlbumWithoutSongs } from "@/lib/rockit/rockItAlbumWithoutSongs";
+import { useStore } from "@nanostores/react";
+import useWindowSize from "@/hooks/useWindowSize";
+import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
 
 export default function PlayerUI() {
-    // Estas dos cosas son para el mockup del related
-    const columns = Array.from({ length: 5 });
-    const songsPerColumn = 3;
-
-    const [queueScroll, setQueueScroll] = useState(0);
-
     const $currentSong = useStore(rockIt.queueManager.currentSongAtom);
-
-    const [currentTab, setCurrentTab] = useState("queue");
-
     const $isPlayerUIVisible = useStore(rockIt.playerUIManager.visibleAtom);
     const $queue = useStore(rockIt.queueManager.queueAtom);
 
     const divRef = useRef<HTMLDivElement>(null);
     const innerWidth = useWindowSize().width;
-
-    const [draggingSong, setDraggingSong] = useState<
-        | {
-              list: string;
-              song: RockItSongQueue;
-              index: number;
-          }
-        | undefined
-    >();
-
-    const [draggingPosY, setDraggingPosY] = useState(0);
-    const draggingPosYRef = useRef(0);
-
-    const queueDivRef = useRef<HTMLDivElement>(null);
-
     const [shouldRender, setShouldRender] = useState(false);
 
-    const scrollContainerTopRef = useRef(0);
+    const { langFile: lang } = useLanguage();
 
-    const $currentQueueSongId = useStore(
-        rockIt.queueManager.currentQueueSongIdAtom
-    );
-    const $playing = useStore(rockIt.audioManager.playingAtom);
-
-    const mouseDown = (
-        event: React.MouseEvent,
-        song: RockItSongQueue,
-        index: number
-    ) => {
-        const scrollContainerTop =
-            queueDivRef.current?.getBoundingClientRect().top || 0;
-        scrollContainerTopRef.current = scrollContainerTop;
-
-        setDraggingSong({ list: "queue", song, index });
-        setDraggingPosY(event.clientY);
-        draggingPosYRef.current = event.clientY;
-    };
-
-    const handleRemoveSong = (song: RockItSongQueue) => {
-        console.warn("handleRemoveSong", { song });
-        // if (song.index == queueIndex.get()) {
-        //     // Alert the user that the song is currently playing cannot be removed.
-        //     return;
-        // }
-        // const tempQueue = queue.get();
-        // if (!tempQueue) return;
-        // const index = tempQueue.findIndex((_song) => _song.index == song.index);
-        // if (index === -1 || typeof index == "undefined") return;
-        // queue.set([
-        //     ...tempQueue.slice(0, index),
-        //     ...tempQueue.slice(index + 1),
-        // ]);
-    };
-
-    const handlePlaySong = async (song: RockItSongQueue) => {
-        console.warn("handlePlaySong", { song });
-        // const tempQueue = queue.get();
-        // if (!tempQueue) return;
-        // const currentSongIndexInQueue = tempQueue.findIndex(
-        //     (_song) => _song.index == song.index
-        // );
-        // queueIndex.set(tempQueue[currentSongIndexInQueue].index);
-        // const newSongId = tempQueue.find(
-        //     (song) => song.index == queueIndex.get()
-        // )?.song.publicId;
-        // if (!newSongId) return;
-        // await fetch(`/api/song/${newSongId}`)
-        //     .then((response) => response.json())
-        //     .then((data: RockItSong) => {
-        //         playWhenReady.set(true);
-        //         currentSong.set(data);
-        //     });
-    };
-
+    // SSR guard — only render on desktop
     useEffect(() => {
-        if (!draggingSong) return;
-        const handleTouchMove = (event: MouseEvent) => {
-            setDraggingPosY(Math.round(event.clientY * 100) / 100);
-            draggingPosYRef.current = Math.round(event.clientY * 100) / 100;
-        };
+        if (!innerWidth) return;
+        setShouldRender(innerWidth > 768);
+    }, [innerWidth]);
 
-        const handleTouchEnd = () => {
-            // setDraggingSong(undefined);
-            // const tempQueue = queue.get();
-            // if (!tempQueue) return;
-            // if (typeof queueDivRef.current?.scrollTop != "number") return;
-            // const indexInQueue = Math.floor(
-            //     (draggingPosYRef.current -
-            //         185 +
-            //         32 +
-            //         queueDivRef.current?.scrollTop) /
-            //         64
-            // );
-            // if (draggingSong.index == indexInQueue) return;
-            // else if (draggingSong.index < indexInQueue) {
-            //     queue.set([
-            //         ...tempQueue.slice(0, draggingSong.index),
-            //         ...tempQueue.slice(
-            //             draggingSong.index + 1,
-            //             indexInQueue + 1
-            //         ),
-            //         draggingSong.song,
-            //         ...tempQueue.slice(indexInQueue + 1),
-            //     ]);
-            // } else {
-            //     queue.set([
-            //         ...tempQueue.slice(0, indexInQueue),
-            //         draggingSong.song,
-            //         ...tempQueue.slice(indexInQueue, draggingSong.index),
-            //         ...tempQueue.slice(draggingSong.index + 1),
-            //     ]);
-            // }
-        };
-
-        document.addEventListener("mousemove", handleTouchMove);
-        document.addEventListener("mouseup", handleTouchEnd);
-        return () => {
-            document.removeEventListener("mousemove", handleTouchMove);
-            document.removeEventListener("mouseup", handleTouchEnd);
-        };
-    }, [draggingSong]);
-
+    // Close player when clicking outside
     useEffect(() => {
-        const handleDocumentClick = (event: MouseEvent) => {
-            const target = event.target as Node;
-
-            // Comprueba si está dentro del player
+        const handleDocumentClick = (e: MouseEvent) => {
+            const target = e.target as Node;
             const insidePlayer = divRef.current?.contains(target);
-
-            // Comprueba si está dentro del footer
-            const footerEl = document.getElementById("app-footer");
-            const insideFooter = footerEl?.contains(target);
-
+            const insideFooter = document
+                .getElementById("app-footer")
+                ?.contains(target);
             if (!insidePlayer && !insideFooter) {
                 rockIt.playerUIManager.hide();
             }
         };
         document.addEventListener("click", handleDocumentClick);
-        return () => {
-            document.removeEventListener("click", handleDocumentClick);
-        };
-    }, [divRef, shouldRender]);
+        return () => document.removeEventListener("click", handleDocumentClick);
+    }, []);
 
+    // Scroll queue to current song when player opens
     useEffect(() => {
         if (!$isPlayerUIVisible) return;
-
         const index = rockIt.queueManager.queue?.findIndex(
-            (_song) =>
-                _song.queueSongId == rockIt.queueManager.currentQueueSongId
+            (s) => s.queueSongId === rockIt.queueManager.currentQueueSongId
         );
-
-        if (!index) return;
-
-        if (queueDivRef.current) {
-            queueDivRef.current.scrollTop = index * 64;
-        }
-    }, [$isPlayerUIVisible, queueDivRef, shouldRender]);
-
-    useEffect(() => {
-        // Only run this on client
-        if (!innerWidth) return;
-        setShouldRender(innerWidth > 768);
-    }, [innerWidth]);
-
-    const [showIcon, setShowIcon] = useState(false);
-
-    useEffect(() => {
-        if (!showIcon) return;
-        const t = setTimeout(() => setShowIcon(false), 800); // dura 0.8 s
-        return () => clearTimeout(t);
-    }, [showIcon]);
-
-    const { langFile: lang } = useLanguage();
+        if (index == null || index === -1) return;
+        const queueEl = divRef.current?.querySelector(
+            "[data-queue-scroll]"
+        ) as HTMLDivElement | null;
+        if (queueEl) queueEl.scrollTop = index * 64;
+    }, [$isPlayerUIVisible]);
 
     if (!lang || !$queue || !shouldRender) return null;
-
-    const iconClassName =
-        "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 z-20 transition-all z-20 p-5 duration-500" +
-        (showIcon ? " opacity-100" : " opacity-0");
 
     return (
         <div
@@ -232,6 +68,7 @@ export default function PlayerUI() {
             }}
         >
             <div className="relative grid h-full w-full grid-cols-[1fr_1fr] gap-x-2 bg-black px-2 text-white lg:grid-cols-[30%_40%_30%]">
+                {/* Background blurred cover */}
                 <Image
                     alt={$currentSong?.name ?? ""}
                     src={
@@ -243,510 +80,9 @@ export default function PlayerUI() {
                     className="absolute top-1/2 h-auto w-full -translate-y-1/2 blur-md brightness-50 select-none"
                 />
 
-                <div className="relative z-10 hidden h-full w-full lg:block">
-                    <h2 className="absolute mx-auto block w-full p-14 text-center text-3xl font-bold select-none">
-                        Lyrics
-                    </h2>
-                    <DynamicLyrics />
-                </div>
-
-                {/* Middle Column: Cover & Info */}
-                <div className="z-10 flex h-full w-full flex-col items-center justify-center">
-                    <div
-                        className="relative aspect-square w-full max-w-[70%] overflow-hidden rounded-lg"
-                        onClick={() => {
-                            setShowIcon(true);
-                            rockIt.audioManager.togglePlayPauseOrSetSong();
-                        }}
-                    >
-                        <Image
-                            src={
-                                $currentSong?.internalImageUrl ??
-                                rockIt.SONG_PLACEHOLDER_IMAGE_URL
-                            }
-                            height={600}
-                            width={600}
-                            alt="Song Cover"
-                            className="absolute h-full w-full rounded-xl select-none"
-                        />
-                        <div
-                            className={`h-20 w-20 rounded-full bg-[#1a1a1a]/60 ${iconClassName}`}
-                        >
-                            {$playing ? (
-                                <Pause className={iconClassName} fill="white" />
-                            ) : (
-                                <Play className={iconClassName} fill="white" />
-                            )}
-                        </div>
-                    </div>
-                    <div className="flex w-full flex-col items-center justify-center px-2 text-center">
-                        <h1 className="line-clamp-2 text-4xl leading-normal font-bold text-balance">
-                            {$currentSong?.name}
-                        </h1>
-                        <p className="mt-2 flex w-full items-center justify-center gap-1 text-xl font-medium text-gray-400">
-                            <span className="max-w-[75%] truncate text-center md:hover:underline">
-                                {$currentSong?.album.name}
-                            </span>
-                            <span>•</span>
-                            {$currentSong?.artists &&
-                            $currentSong.artists.length > 0 ? (
-                                <Link
-                                    href={`/artist/${$currentSong.artists[0].publicId}`}
-                                    className="truncate md:hover:underline"
-                                    key={$currentSong.artists[0].publicId}
-                                >
-                                    {$currentSong.artists[0].name}
-                                </Link>
-                            ) : (
-                                <span>Artista desconocido</span>
-                            )}
-                        </p>
-                    </div>
-                </div>
-
-                {/* Right Column: Queue */}
-                <div className="z-10 flex h-full flex-col overflow-hidden bg-gradient-to-r from-[rgba(0,0,0,0)] to-[rgba(0,0,0,0.5)] select-none">
-                    {/* Selector */}
-                    <div className="relative flex items-center justify-center gap-10 border-b border-white pt-6 pb-4">
-                        <button
-                            className={`text-lg font-semibold transition ${
-                                currentTab === "queue"
-                                    ? "border-b-2 border-white text-white"
-                                    : "text-gray-400 md:hover:text-white"
-                            }`}
-                            onClick={() => setCurrentTab("queue")}
-                        >
-                            Queue
-                        </button>
-                        <button
-                            className={`text-lg font-semibold transition ${
-                                currentTab === "recommended"
-                                    ? "border-b-2 border-white text-white"
-                                    : "text-gray-400 md:hover:text-white"
-                            }`}
-                            onClick={() => setCurrentTab("recommended")}
-                        >
-                            Related
-                        </button>
-                    </div>
-                    {/* Contenido dinámico */}
-                    <div
-                        className="relative flex-1 overflow-auto scroll-smooth pt-3 pb-7"
-                        ref={queueDivRef}
-                        onScroll={(e) =>
-                            setQueueScroll(e.currentTarget.scrollTop)
-                        }
-                    >
-                        {currentTab === "queue" && $queue ? (
-                            <>
-                                <div
-                                    style={{ height: $queue.length * 64 }}
-                                ></div>
-                                {$queue.map((queueSong, index) => {
-                                    if (!queueDivRef.current) return;
-
-                                    let top: number;
-
-                                    let draggingTop: number | undefined;
-                                    const isDragging =
-                                        draggingSong?.song.song.publicId ===
-                                        queueSong.song.publicId;
-
-                                    if (draggingSong)
-                                        draggingTop = Math.max(
-                                            draggingPosY -
-                                                185 +
-                                                queueDivRef.current.scrollTop,
-                                            0
-                                        );
-
-                                    if (
-                                        draggingSong?.song.song.publicId ==
-                                            queueSong.song.publicId &&
-                                        typeof draggingTop == "number"
-                                    ) {
-                                        top = draggingTop;
-                                    } else {
-                                        top = index * 64;
-                                    }
-
-                                    if (
-                                        typeof draggingTop == "number" &&
-                                        typeof draggingSong?.index ==
-                                            "number" &&
-                                        draggingSong?.index != index &&
-                                        draggingTop - 32 < top &&
-                                        draggingSong?.index * 64 > top
-                                    ) {
-                                        top += 64;
-                                    }
-
-                                    if (
-                                        typeof draggingTop == "number" &&
-                                        typeof draggingSong?.index ==
-                                            "number" &&
-                                        draggingSong?.index != index &&
-                                        draggingTop + 32 > top &&
-                                        draggingSong?.index * 64 < top
-                                    ) {
-                                        top -= 64;
-                                    }
-
-                                    if (
-                                        (queueDivRef.current?.offsetHeight &&
-                                            top >
-                                                queueDivRef.current
-                                                    ?.offsetHeight +
-                                                    queueScroll) ||
-                                        top < queueScroll - 74
-                                    ) {
-                                        return;
-                                    }
-                                    return (
-                                        <div
-                                            key={`${queueSong.song.publicId}-${queueSong.queueSongId}`}
-                                            className={`absolute w-full ${isDragging ? "z-10" : "transition-[top] duration-200"}`}
-                                            style={{
-                                                top: `${(typeof top === "number" ? top : 0) + 20}px`,
-                                                transitionTimingFunction:
-                                                    "cubic-bezier(0.4, 0, 0.2, 1)",
-                                            }}
-                                        >
-                                            <ContextMenu>
-                                                <ContextMenuTrigger>
-                                                    <div className="grid grid-cols-[1fr_45px] items-center">
-                                                        <div className="w-full max-w-full min-w-0">
-                                                            <QueueSong
-                                                                key={
-                                                                    queueSong.queueSongId
-                                                                }
-                                                                song={queueSong}
-                                                            />
-                                                        </div>
-                                                        <GripVertical
-                                                            className="h-full w-full p-1 pr-3"
-                                                            onMouseDown={(e) =>
-                                                                mouseDown(
-                                                                    e,
-                                                                    queueSong,
-                                                                    index
-                                                                )
-                                                            }
-                                                        />
-                                                    </div>
-                                                </ContextMenuTrigger>
-                                                <ContextMenuContent
-                                                    cover={
-                                                        queueSong.song
-                                                            .internalImageUrl ??
-                                                        rockIt.SONG_PLACEHOLDER_IMAGE_URL
-                                                    }
-                                                    title={queueSong.song.name}
-                                                    description={`${queueSong.song.album.name} • ${queueSong.song.artists
-                                                        .map((a) => a.name)
-                                                        .join(", ")}`}
-                                                >
-                                                    <ContextMenuOption
-                                                        onClick={() =>
-                                                            handlePlaySong(
-                                                                queueSong
-                                                            )
-                                                        }
-                                                    >
-                                                        <PlayCircle className="h-5 w-5" />
-                                                        {lang.play_song}
-                                                    </ContextMenuOption>
-                                                    <ContextMenuOption
-                                                        onClick={() =>
-                                                            handleRemoveSong(
-                                                                queueSong
-                                                            )
-                                                        }
-                                                        disable={
-                                                            $currentQueueSongId ==
-                                                            queueSong.queueSongId
-                                                        }
-                                                    >
-                                                        <ListX className="h-5 w-5" />
-                                                        {lang.remove_from_queue}
-                                                    </ContextMenuOption>
-                                                    <ContextMenuOption
-                                                        onClick={() =>
-                                                            rockIt.indexedDBManager.saveSongToIndexedDB(
-                                                                queueSong.song
-                                                            )
-                                                        }
-                                                    >
-                                                        <HardDriveDownload className="h-5 w-5" />
-                                                        {
-                                                            lang.download_song_to_device
-                                                        }
-                                                    </ContextMenuOption>
-                                                </ContextMenuContent>
-                                            </ContextMenu>
-                                        </div>
-                                    );
-                                })}
-                                <div>
-                                    <div className="mt-5 h-[1px] w-full bg-neutral-400" />
-                                    <h2 className="text-md my-2 px-4 font-semibold text-neutral-400">
-                                        Reproducciones automáticas a
-                                        continuación
-                                    </h2>
-                                    {[
-                                        {
-                                            id: "auto1",
-                                            title: "Neon Nights",
-                                            artist: "Synthwave Dreams",
-                                        },
-                                        {
-                                            id: "auto2",
-                                            title: "Midnight Ride",
-                                            artist: "Retro Driver",
-                                        },
-                                        {
-                                            id: "auto3",
-                                            title: "Digital Sunset",
-                                            artist: "Pixel Horizons",
-                                        },
-                                        {
-                                            id: "auto4",
-                                            title: "Electric Pulse",
-                                            artist: "Voltage",
-                                        },
-                                        {
-                                            id: "auto5",
-                                            title: "Echoes in the Dark",
-                                            artist: "Shadow Sound",
-                                        },
-                                    ].map((mock, i) => {
-                                        if (!queueDivRef.current) return;
-
-                                        const autoSong = new RockItSongQueue({
-                                            song: new RockItSongWithAlbum({
-                                                publicId: mock.id,
-                                                name: mock.title,
-                                                artists: [],
-                                                discNumber: 1,
-                                                duration: 123,
-                                                downloaded: true,
-                                                album: new RockItAlbumWithoutSongs(
-                                                    {
-                                                        externalImages: [],
-                                                        name: "Ablum 1",
-                                                        publicId: "",
-                                                        artists: [],
-                                                        releaseDate: "",
-                                                        internalImageUrl: "",
-                                                    }
-                                                ),
-                                                internalImageUrl: null,
-                                                audioUrl: null,
-                                            }),
-                                            queueSongId: i,
-                                            list: {
-                                                type: "auto-list",
-                                                publicId: "auto-list",
-                                            },
-                                        });
-
-                                        return (
-                                            <div
-                                                key={`auto-${mock.id}`}
-                                                className="relative w-full transition-[top] duration-200"
-                                                style={{
-                                                    transitionTimingFunction:
-                                                        "cubic-bezier(0.4, 0, 0.2, 1)",
-                                                }}
-                                            >
-                                                <ContextMenu>
-                                                    <ContextMenuTrigger>
-                                                        <div className="grid grid-cols-[1fr_45px] items-center">
-                                                            <div className="w-full max-w-full min-w-0">
-                                                                <QueueSong
-                                                                    song={
-                                                                        autoSong
-                                                                    }
-                                                                />
-                                                            </div>
-                                                            <ListPlus className="h-full w-full p-1 pr-4" />
-                                                        </div>
-                                                    </ContextMenuTrigger>
-                                                    <ContextMenuContent
-                                                        cover={
-                                                            autoSong.song
-                                                                .internalImageUrl ??
-                                                            rockIt.SONG_PLACEHOLDER_IMAGE_URL
-                                                        }
-                                                        title={
-                                                            autoSong.song.name
-                                                        }
-                                                        description={`${autoSong.song.album.name} • ${autoSong.song.artists
-                                                            .map((a) => a.name)
-                                                            .join(", ")}`}
-                                                    >
-                                                        <ContextMenuOption
-                                                            onClick={() =>
-                                                                handlePlaySong(
-                                                                    autoSong
-                                                                )
-                                                            }
-                                                        >
-                                                            <PlayCircle className="h-5 w-5" />
-                                                            {lang.play_song}
-                                                        </ContextMenuOption>
-                                                        <ContextMenuOption
-                                                            onClick={() =>
-                                                                handleRemoveSong(
-                                                                    autoSong
-                                                                )
-                                                            }
-                                                            disable={
-                                                                $currentQueueSongId ===
-                                                                autoSong.queueSongId
-                                                            }
-                                                        >
-                                                            <ListX className="h-5 w-5" />
-                                                            {
-                                                                lang.remove_from_queue
-                                                            }
-                                                        </ContextMenuOption>
-                                                        <ContextMenuOption
-                                                            onClick={() =>
-                                                                rockIt.indexedDBManager.saveSongToIndexedDB(
-                                                                    autoSong.song
-                                                                )
-                                                            }
-                                                        >
-                                                            <HardDriveDownload className="h-5 w-5" />
-                                                            {
-                                                                lang.download_song_to_device
-                                                            }
-                                                        </ContextMenuOption>
-                                                    </ContextMenuContent>
-                                                </ContextMenu>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </>
-                        ) : (
-                            <>
-                                <section>
-                                    <h2 className="text-left text-2xl font-bold">
-                                        Similar Songs
-                                    </h2>
-                                    <div className="scrollbar-hide flex snap-x snap-mandatory gap-4 overflow-x-auto px-2 py-2 md:[scrollbar-gutter:stable]">
-                                        {/* Aquí creamos las columnas */}
-                                        {columns.map((_, columnIndex) => (
-                                            <div
-                                                key={columnIndex}
-                                                className="flex w-[calc(50%-10px)] max-w-[300px] flex-none snap-center flex-col gap-1"
-                                            >
-                                                {Array.from({
-                                                    length: songsPerColumn,
-                                                }).map((_, songIndex) => (
-                                                    <Link
-                                                        href="#"
-                                                        key={songIndex}
-                                                        className="flex h-fit items-center gap-2 rounded-lg p-2 transition hover:bg-zinc-800"
-                                                    >
-                                                        {/* Imagen de la canción */}
-                                                        <Image
-                                                            className="h-12 w-12 rounded-sm object-cover"
-                                                            src="/song-placeholder.png"
-                                                            alt={`Song ${
-                                                                columnIndex *
-                                                                    songsPerColumn +
-                                                                songIndex +
-                                                                1
-                                                            }`}
-                                                        />
-
-                                                        {/* Información de la canción */}
-                                                        <div className="flex min-w-0 flex-col justify-center">
-                                                            {/* Nombre de la canción */}
-                                                            <span className="text-md truncate font-semibold text-white">
-                                                                Song{" "}
-                                                                {columnIndex *
-                                                                    songsPerColumn +
-                                                                    songIndex +
-                                                                    1}
-                                                            </span>
-
-                                                            {/* Artista y álbum */}
-                                                            <span className="truncate text-sm text-gray-400">
-                                                                Artist{" "}
-                                                                {columnIndex *
-                                                                    songsPerColumn +
-                                                                    songIndex +
-                                                                    1}{" "}
-                                                                • Album{" "}
-                                                                {columnIndex *
-                                                                    songsPerColumn +
-                                                                    songIndex +
-                                                                    1}
-                                                            </span>
-                                                        </div>
-                                                    </Link>
-                                                ))}
-                                            </div>
-                                        ))}
-                                    </div>
-                                </section>
-                                <section>
-                                    <h2 className="pt-7 text-left text-2xl font-bold">
-                                        Artists you may like
-                                    </h2>
-                                    <div className="scrollbar-hide flex snap-x snap-mandatory gap-7 overflow-x-auto px-2 py-4">
-                                        {/* Aquí creamos las columnas de artistas */}
-                                        {columns.map((_, artistIndex) => (
-                                            <div
-                                                key={artistIndex}
-                                                className="flex flex-none snap-center flex-col items-center gap-2"
-                                            >
-                                                {/* Imagen del artista */}
-                                                <Image
-                                                    className="h-28 w-28 rounded-full object-cover"
-                                                    src="/user-placeholder.png"
-                                                    alt={`Artist ${
-                                                        artistIndex + 1
-                                                    }`}
-                                                />
-                                                {/* Nombre del artista */}
-                                                <span className="text-md truncate text-center font-semibold text-white">
-                                                    Artist {artistIndex + 1}
-                                                </span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </section>
-                                <section>
-                                    <h2 className="pt-7 text-left text-2xl font-bold">
-                                        Song / Artist Description
-                                    </h2>
-                                    <Link
-                                        href=""
-                                        className="line-clamp-4 px-5 pt-2 text-justify"
-                                    >
-                                        Lorem ipsum dolor sit amet, consectetur
-                                        adipiscing elit, sed do eiusmod tempor
-                                        incididunt ut labore et dolore magna
-                                        aliqua. Ut enim ad minim veniam, quis
-                                        nostrud exercitation ullamco laboris
-                                        nisi ut aliquip ex ea commodo consequat.
-                                        Duis aute irure dolor in reprehenderit
-                                        in voluptate velit esse cillum dolore eu
-                                        fugiat nulla pariatur. Excepteur sint
-                                        occaecat cupidatat non proident, sunt in
-                                        culpa qui officia deserunt mollit anim
-                                        id est laborum.
-                                    </Link>
-                                </section>
-                            </>
-                        )}
-                    </div>
-                </div>
+                <PlayerUILyricsColumn />
+                <PlayerUICoverColumn currentSong={$currentSong} />
+                <PlayerUIQueueColumn queue={$queue} lang={lang} />
             </div>
         </div>
     );

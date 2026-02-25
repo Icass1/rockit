@@ -172,6 +172,11 @@ async def generate_zod_schemas() -> None:
     output_dir = BASE_DIR / "frontend" / "dto"
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    # Clean up old files.
+    for file in output_dir.glob("*"):
+        if file.name != "index.ts":
+            file.unlink()
+
     for file_path in output_dir.glob("*.ts"):
         if file_path.name != "index.ts":
             file_path.unlink()

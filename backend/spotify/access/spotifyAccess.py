@@ -7,37 +7,47 @@ from typing import Dict, List, Tuple, cast
 from sqlalchemy.future import select
 from sqlalchemy import Result, Select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload
 
+# UTILS
 from backend.utils.backendUtils import create_id
 from backend.utils.logger import getLogger
 
 from backend.core.aResult import AResult, AResultCode
+
+# CORE DB
 from backend.core.access.db import rockit_db
-from backend.core.access.db.ormModels.album import CoreAlbumRow
+
+# CORE ORM MODELS
+from backend.core.access.db.ormModels.image import ImageRow
 from backend.core.access.db.ormModels.song import CoreSongRow
+from backend.core.access.db.ormModels.album import CoreAlbumRow
 from backend.core.access.db.ormModels.artist import CoreArtistRow
 from backend.core.access.db.ormModels.playlist import CorePlaylistRow
 
+# SPOTIFY ENUMS
+from backend.spotify.enums.copyrightTypeEnum import CopyrightTypeEnum
+
+# SPOTIFY ORM MODELS
 from backend.spotify.access.db.ormModels.album import AlbumRow
 from backend.spotify.access.db.ormModels.track import TrackRow
 from backend.spotify.access.db.ormModels.genre import GenreRow
 from backend.spotify.access.db.ormModels.artist import ArtistRow
 from backend.spotify.access.db.ormModels.copyright import CopyrightRow
 from backend.spotify.access.db.ormModels.playlist import SpotifyPlaylistRow
-from backend.core.access.db.ormModels.image import ImageRow
 from backend.spotify.access.db.ormModels.externalImage import ExternalImageRow
 from backend.spotify.access.db.ormModels.playlist_tracks import PlaylistTrackRow
 
+# SPOTIFY ASSOCIATION TABLES
 from backend.spotify.access.db.associationTables.album_artists import album_artists
+from backend.spotify.access.db.associationTables.artist_genres import artist_genres
 from backend.spotify.access.db.associationTables.album_external_images import album_external_images
 
+# SPOTIFY TYPES
 from backend.spotify.spotifyApiTypes.rawSpotifyApiAlbum import RawSpotifyApiAlbum
 from backend.spotify.spotifyApiTypes.rawSpotifyApiTrack import RawSpotifyApiTrack
 from backend.spotify.spotifyApiTypes.rawSpotifyApiArtist import RawSpotifyApiArtist
 from backend.spotify.spotifyApiTypes.rawSpotifyApiPlaylist import RawSpotifyApiPlaylist
 
-from backend.spotify.enums.copyrightTypeEnum import CopyrightTypeEnum
 
 from backend.constants import IMAGES_PATH
 
@@ -54,7 +64,6 @@ class SpotifyAccess:
                     select(AlbumRow)
                     .join(CoreAlbumRow, CoreAlbumRow.id == AlbumRow.id)
                     .where(AlbumRow.spotify_id == spotify_id)
-                    .options(joinedload(AlbumRow.internal_image))
                 )
                 result: Result[Tuple[AlbumRow]] = await s.execute(stmt)
                 album: AlbumRow | None = result.scalar_one_or_none()
@@ -749,4 +758,49 @@ class SpotifyAccess:
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
                 message=f"Failed to get tracks with core song from album id {album_id}: {e}"
+            )
+
+    @staticmethod
+    async def get_genres_from_artist_id_async(artist_id: int, session: AsyncSession | None = None) -> AResult[List[str]]:
+        try:
+            async with rockit_db.session_scope_or_session_async(session) as session:
+                stmt = (
+                    select(GenreRow)
+                    .join(artist_genres)
+                    .join(ArtistRow)
+                    .filter(ArtistRow.id == artist_id)
+                )
+                result: Result[Tuple[GenreRow]] = await session.execute(stmt)
+                genres: List[GenreRow] = cast(List[GenreRow], result.scalars().all())
+
+                genre_names: List[str] = [g.name for g in genres]
+                return AResult(code=AResultCode.OK, message="OK", result=genre_names)
+
+        except Exception as e:
+            logger.error(f"Failed to get genres from artist id {artist_id}: {e}")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to get genres from artist id {artist_id}: {e}"
+            )
+
+    @staticmethod
+    async def get_genres_from_artist_async(artist: ArtistRow, session: AsyncSession | None = None) -> AResult[List[str]]:
+        try:
+            async with rockit_db.session_scope_or_session_async(session) as session:
+                stmt = (
+                    select(GenreRow)
+                    .join(artist_genres)
+                    .filter(artist_genres.c.artist_id == artist.id)
+                )
+                result: Result[Tuple[GenreRow]] = await session.execute(stmt)
+                genres: List[GenreRow] = cast(List[GenreRow], result.scalars().all())
+
+                genre_names: List[str] = [g.name for g in genres]
+                return AResult(code=AResultCode.OK, message="OK", result=genre_names)
+
+        except Exception as e:
+            logger.error(f"Failed to get genres from artist: {e}")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to get genres from artist: {e}"
             )

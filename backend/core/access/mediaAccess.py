@@ -13,6 +13,7 @@ from backend.core.access.db.ormModels.song import CoreSongRow
 from backend.core.access.db.ormModels.album import CoreAlbumRow
 from backend.core.access.db.ormModels.artist import CoreArtistRow
 from backend.core.access.db.ormModels.playlist import CorePlaylistRow
+from backend.core.access.db.ormModels.image import ImageRow
 
 logger = getLogger(__name__)
 
@@ -143,3 +144,24 @@ class MediaAccess:
         except Exception as e:
             logger.error(f"Error getting playlist: {e}")
             return AResult(code=AResultCode.GENERAL_ERROR, message="Error getting playlist")
+
+    @staticmethod
+    async def get_image_from_id_async(id: int, session: AsyncSession | None = None) -> AResult[ImageRow]:
+        """Get an ImageRow by id."""
+
+        try:
+            async with rockit_db.session_scope_or_session_async(session) as s:
+                stmt: Select[Tuple[ImageRow]] = select(ImageRow).where(
+                    ImageRow.id == id)
+                result: Result[Tuple[ImageRow]] = await s.execute(stmt)
+                row: ImageRow | None = result.scalar_one_or_none()
+
+                if row is None:
+                    return AResult(code=AResultCode.NOT_FOUND, message="Image not found")
+
+                s.expunge(row)
+                return AResult(code=AResultCode.OK, message="OK", result=row)
+
+        except Exception as e:
+            logger.error(f"Error getting image: {e}")
+            return AResult(code=AResultCode.GENERAL_ERROR, message="Error getting image")

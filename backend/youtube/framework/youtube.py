@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any, List, TYPE_CHECKING
 
 from backend.constants import BACKEND_URL
 from backend.utils.logger import getLogger
@@ -14,13 +14,15 @@ from backend.youtube.access.db.ormModels.video import VideoRow
 from backend.youtube.access.db.ormModels.channel import ChannelRow
 
 from backend.youtube.framework.youtubeApi import youtube_api
-from backend.youtube.framework.provider.yotubeProvider import YoutubeProvider
 
 from backend.youtube.responses.videoResponse import VideoResponse
 from backend.youtube.responses.channelResponse import ChannelResponse
 
 from backend.youtube.youtubeApiTypes.rawYoutubeApiVideo import RawYoutubeVideo
 from backend.youtube.youtubeApiTypes.rawYoutubeApiChannel import RawYoutubeChannel
+
+if TYPE_CHECKING:
+    from backend.youtube.framework.provider.yotubeProvider import YoutubeProvider
 
 
 logger = getLogger(__name__)
@@ -40,7 +42,8 @@ class YouTube:
 
             a_result_core_video: AResult[CoreVideoRow] = await MediaAccess.get_video_from_id_async(id=video_row.id)
             if a_result_core_video.is_not_ok():
-                logger.error(f"Error getting core video. {a_result_core_video.info()}")
+                logger.error(
+                    f"Error getting core video. {a_result_core_video.info()}")
                 return AResult(code=a_result_core_video.code(), message=a_result_core_video.message())
 
             core_video: CoreVideoRow = a_result_core_video.result()
@@ -105,7 +108,8 @@ class YouTube:
 
         a_result_api_video: AResult[RawYoutubeVideo] = await youtube_api.get_video_async(youtube_id)
         if a_result_api_video.is_not_ok():
-            logger.error(f"Error getting video from YouTube API. {a_result_api_video.info()}")
+            logger.error(
+                f"Error getting video from YouTube API. {a_result_api_video.info()}")
             return AResult(code=a_result_api_video.code(), message=a_result_api_video.message())
 
         raw_video: RawYoutubeVideo = a_result_api_video.result()
@@ -115,14 +119,16 @@ class YouTube:
 
         a_result_api_channel: AResult[RawYoutubeChannel] = await youtube_api.get_channel_async(channel_id)
         if a_result_api_channel.is_not_ok():
-            logger.error(f"Error getting channel from YouTube API. {a_result_api_channel.info()}")
+            logger.error(
+                f"Error getting channel from YouTube API. {a_result_api_channel.info()}")
             return AResult(code=a_result_api_channel.code(), message=a_result_api_channel.message())
 
         raw_channel: RawYoutubeChannel = a_result_api_channel.result()
 
         a_result_provider_id: AResult[int] = YouTube.provider.get_id()
         if a_result_provider_id.is_not_ok():
-            logger.error(f"Error getting provider id. {a_result_provider_id.info()}")
+            logger.error(
+                f"Error getting provider id. {a_result_provider_id.info()}")
             return AResult(code=a_result_provider_id.code(), message=a_result_provider_id.message())
 
         provider_id: int = a_result_provider_id.result()
@@ -156,14 +162,16 @@ class YouTube:
 
         a_result_core_video: AResult[CoreVideoRow] = await MediaAccess.get_video_from_id_async(id=video_row.id)
         if a_result_core_video.is_not_ok():
-            logger.error(f"Error getting core video. {a_result_core_video.info()}")
+            logger.error(
+                f"Error getting core video. {a_result_core_video.info()}")
             return AResult(code=a_result_core_video.code(), message=a_result_core_video.message())
 
         core_video: CoreVideoRow = a_result_core_video.result()
 
         a_result_fetched_channel: AResult[ChannelRow] = await YouTubeAccess.get_channel_youtube_id_async(
             youtube_id=channel_id)
-        fetched_channel: ChannelRow = a_result_fetched_channel.result() if a_result_fetched_channel.is_ok() else None
+        fetched_channel: ChannelRow = a_result_fetched_channel.result(
+        ) if a_result_fetched_channel.is_ok() else None
 
         a_result_internal_image: AResult[ImageRow] = await MediaAccess.get_image_from_id_async(
             id=video_row.internal_image_id)

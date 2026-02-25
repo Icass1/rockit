@@ -31,7 +31,11 @@ export class QueueManager {
         const response = await apiFetch("/user/queue");
 
         if (!response) {
-            console.error("Queue response is undefined");
+            rockIt.notificationManager.notifyError("Failed to load queue.");
+            return;
+        }
+        if (response.status != 200) {
+            rockIt.notificationManager.notifyError("Failed to load queue.");
             return;
         }
 
@@ -93,8 +97,6 @@ export class QueueManager {
     }
 
     moveToSong(publicId: string) {
-        // console.log(this._queueAtom.get());
-
         const song = this._queueAtom
             .get()
             .find((song) => song.song.publicId == publicId);

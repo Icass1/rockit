@@ -43,7 +43,12 @@ function copyStylesToPiPWindow(pipWin: Window) {
 
 export default function PictureInPicture() {
     const [pipWindow, setPipWindow] = useState<Window | null>(null);
-    const isSupported = !!getDocumentPiP();
+    const [isSupported, setIsSupported] = useState<boolean | null>(null);
+
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setIsSupported(!!getDocumentPiP());
+    }, []);
 
     const openPiP = useCallback(async () => {
         const pip = getDocumentPiP();
@@ -90,7 +95,7 @@ export default function PictureInPicture() {
     }, [pipWindow]);
 
     // Not supported — don't render the button at all
-    if (!isSupported) return null;
+    if (isSupported === null || !isSupported) return null;
 
     return (
         <>

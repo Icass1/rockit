@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { Bell } from "lucide-react";
 import Link from "next/link";
 import { useStore } from "@nanostores/react";
@@ -12,13 +12,22 @@ import OnlineUserIndicator from "./HeaderOnlineUsers";
 
 export default function HeaderRight() {
     const [showNotifications, setShowNotifications] = useState(false);
+    const [isUserLoaded, setIsUserLoaded] = useState(false);
     const bellRef = useRef<HTMLDivElement>(null);
     const $user = useStore(rockIt.userManager.userAtom);
 
-    // TODO: replace with real atom when notification backend is ready
-    const notificationCount = 3;
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setIsUserLoaded(true);
+    }, []);
 
-    const closeNotifications = useCallback(() => setShowNotifications(false), []);
+    const notificationCount =
+        rockIt.notificationManager.notifycationsAtom.get().length;
+
+    const closeNotifications = useCallback(
+        () => setShowNotifications(false),
+        []
+    );
     useClickOutside(bellRef, closeNotifications);
 
     return (
@@ -36,7 +45,7 @@ export default function HeaderRight() {
                     <Bell className="h-6 w-6" />
                     {notificationCount > 0 && (
                         <span
-                            className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white"
+                            className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white"
                             aria-hidden
                         >
                             {notificationCount > 9 ? "9+" : notificationCount}
@@ -48,7 +57,7 @@ export default function HeaderRight() {
             </div>
 
             {/* User / Login */}
-            {$user ? (
+            {!isUserLoaded ? null : $user ? (
                 <HeaderUser />
             ) : (
                 <Link

@@ -32,7 +32,7 @@ export class SearchManager {
         this._searchQueryAtom.set(query);
         this._searchingAtom.set(true);
 
-        apiFetch("/search?query=" + encodeURIComponent(query)).then((data) => {
+        apiFetch("/media/search?q=" + encodeURIComponent(query)).then((data) => {
             if (!data?.ok) {
                 console.warn("No response from /search");
                 this._searchingAtom.set(false);

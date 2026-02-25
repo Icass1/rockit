@@ -1,7 +1,6 @@
 from typing import Dict, List, Set, TYPE_CHECKING, Tuple
 
 from backend.constants import BACKEND_URL
-from backend.spotify.responses.externalImageResponse import ExternalImageResponse
 from backend.utils.logger import getLogger
 from backend.core.aResult import AResult, AResultCode
 
@@ -26,6 +25,7 @@ from backend.spotify.framework.spotifyApi import spotify_api
 
 from backend.spotify.responses.songResponse import SongResponse
 from backend.spotify.responses.albumResponse import AlbumResponse
+from backend.spotify.responses.externalImageResponse import ExternalImageResponse
 
 from backend.spotify.spotifyApiTypes.rawSpotifyApiAlbum import RawSpotifyApiAlbum
 from backend.spotify.spotifyApiTypes.rawSpotifyApiTrack import RawSpotifyApiTrack
@@ -845,7 +845,7 @@ class Spotify:
                 provider=Spotify.provider_name,
                 name=raw_artist.name or "",
                 internalImageUrl=fetched_artist_image_url,
-                  genres=fetched_genres))
+                genres=fetched_genres))
 
     @staticmethod
     async def get_playlist_async(spotify_id: str) -> AResult[BasePlaylistResponse]:

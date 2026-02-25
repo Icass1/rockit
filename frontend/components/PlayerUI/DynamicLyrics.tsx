@@ -1,316 +1,160 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { useStore } from "@nanostores/react";
+import { useLyrics } from "@/components/PlayerUI/hooks/useLyrics";
 
+// --------------------------------------------------------------------------
+// Position lookup — eliminates the 7-case switch/case.
+// Keys are the offset from the active line (index - computedIndex).
+// --------------------------------------------------------------------------
+type LineStyle = {
+    top: string;
+    scale: string;
+    fontWeight: number;
+    color: string;
+};
+
+const VISIBLE_OFFSETS: Record<number, LineStyle> = {
+    [-2]: {
+        top: "25%",
+        scale: "scale-[.4]",
+        fontWeight: 500,
+        color: "rgb(200,200,200)",
+    },
+    [-1]: {
+        top: "35%",
+        scale: "scale-[.6]",
+        fontWeight: 500,
+        color: "rgb(200,200,200)",
+    },
+    [0]: { top: "50%", scale: "", fontWeight: 600, color: "rgb(230,230,230)" },
+    [1]: {
+        top: "63%",
+        scale: "scale-[.6]",
+        fontWeight: 500,
+        color: "rgb(200,200,200)",
+    },
+    [2]: {
+        top: "75%",
+        scale: "scale-[.4]",
+        fontWeight: 500,
+        color: "rgb(200,200,200)",
+    },
+};
+
+// --------------------------------------------------------------------------
+// Component
+// --------------------------------------------------------------------------
 export function DynamicLyrics() {
-    const $currentSong = useStore(rockIt.queueManager.currentSongAtom);
-    const $currentTime = useStore(rockIt.audioManager.currentTimeAtom);
-
-    const [manualLyricsIndex, setLyricsIndex] = useState(0);
-    const [lyrics, setLyrics] = useState<string[] | string>();
-
-    const [lyricsTimeStamp, setLyricsTimeStamp] = useState<
-        { time: number; index: number }[]
-    >([]);
-
-    const computedLyricsIndex =
-        $currentSong && $currentTime && lyricsTimeStamp.length > 0
-            ? (lyricsTimeStamp
-                  .toSorted((a, b) => b.time - a.time)
-                  .find((timeStamp) => timeStamp.time < $currentTime + 0.5)
-                  ?.index ?? 0)
-            : manualLyricsIndex;
+    const { lyricsState, setManualIndex, computedIndex } = useLyrics();
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const [containerHeight, setContainerHeight] = useState(0);
 
     useEffect(() => {
-        if (!$currentSong?.publicId) {
-            return;
+        if (scrollContainerRef.current) {
+            setContainerHeight(scrollContainerRef.current.offsetHeight);
         }
+    }, []);
 
-        fetch(`/api/lyrics/${$currentSong?.publicId}`)
-            .then((response) => response.json())
-            .then(
-                (
-                    data:
-                        | { dynamicLyrics: false; lyrics: string }
-                        | {
-                              dynamicLyrics: true;
-                              lyrics: { seconds: number; lyrics: string }[];
-                          }
-                ) => {
-                    if (!data.lyrics) {
-                        setLyrics("");
-                        setLyricsTimeStamp([]);
-                        return;
-                    }
-                    if (data.dynamicLyrics == true) {
-                        setLyrics(data.lyrics.map((line) => line.lyrics));
-                        setLyricsTimeStamp(
-                            data.lyrics.map((line, index) => {
-                                return { time: line.seconds, index: index };
-                            })
-                        );
-                    } else if (data.dynamicLyrics == false) {
-                        setLyricsTimeStamp([]);
-                        setLyrics(data.lyrics.split("\n") || "");
-                    }
-                }
-            )
-            .catch((error) => console.log("Error loading lyrics", error));
-    }, [$currentSong]);
-
-    useEffect(() => {
-        if (!lyrics) {
-            return;
-        }
-
-        const handleKey = (event: KeyboardEvent) => {
-            if (event.code == "ArrowDown") {
-                setLyricsIndex((value) => {
-                    const index = Math.min(value + 1, lyrics.length - 1);
-
-                    if (lyricsTimeStamp.length > 0)
-                        rockIt.audioManager.setCurrentTime(
-                            lyricsTimeStamp[index].time + 0.01
-                        );
-                    return index;
-                });
-            } else if (event.code == "ArrowUp") {
-                setLyricsIndex((value) => {
-                    const index = Math.max(value - 1, 0);
-                    if (lyricsTimeStamp.length > 0)
-                        rockIt.audioManager.setCurrentTime(
-                            lyricsTimeStamp[index].time + 0.01
-                        );
-                    return index;
-                });
-            }
-        };
-
-        document.addEventListener("keyup", handleKey);
-
-        return () => {
-            document.removeEventListener("keyup", handleKey);
-        };
-    }, [lyrics, computedLyricsIndex, lyricsTimeStamp]);
-
-    if (typeof lyrics == "string" || typeof lyrics == "undefined") {
+    // Early returns for non-renderable states
+    if (
+        lyricsState.status === "idle" ||
+        lyricsState.status === "loading" ||
+        lyricsState.status === "empty"
+    ) {
         return (
-            <div className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden px-4">
-                No lyrics found
+            <div className="relative flex h-full w-full items-center justify-center px-4">
+                {lyricsState.status === "loading"
+                    ? "Loading lyrics…"
+                    : "No lyrics found"}
             </div>
         );
     }
 
-    const commonSyles =
+    const { lines } = lyricsState;
+    const timestamps =
+        lyricsState.status === "dynamic" ? lyricsState.timestamps : [];
+    const hasDynamicTimestamps = timestamps.length > 0;
+
+    const commonStyles =
         "absolute text-center left-1/2 -translate-x-1/2 w-full -translate-y-1/2 transition-all duration-500 text-balance origin-center";
+    const clickableClass = hasDynamicTimestamps
+        ? " cursor-pointer hover:brightness-150"
+        : "";
+
+    const seekTo = (lineIndex: number) => {
+        if (!hasDynamicTimestamps) return;
+        rockIt.audioManager.setCurrentTime(timestamps[lineIndex].time + 0.01);
+    };
 
     return (
         <div className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden px-4">
-            {lyrics.map((line, index) => {
-                switch (index - computedLyricsIndex) {
-                    case -2:
-                        return (
-                            <div
-                                key={index}
-                                className={
-                                    commonSyles +
-                                    " scale-[.4]" +
-                                    (lyricsTimeStamp.length > 0
-                                        ? " cursor-pointer hover:brightness-150"
-                                        : "")
-                                }
-                                onClick={() => {
-                                    if (lyricsTimeStamp.length > 0)
-                                        rockIt.audioManager.setCurrentTime(
-                                            lyricsTimeStamp[index].time + 0.01
-                                        );
-                                }}
-                                style={{
-                                    top: "25%",
-                                    fontSize: "4vh",
-                                    fontWeight: 500,
-                                    lineHeight: "4vh",
-                                    maxWidth: "100%",
-                                    color: "rgb(200, 200, 200)",
-                                }}
-                            >
-                                {line.replace(/ /g, " ")}
-                            </div>
-                        );
-                    case -1:
-                        return (
-                            <div
-                                key={index}
-                                className={
-                                    commonSyles +
-                                    " scale-[.6]" +
-                                    (lyricsTimeStamp.length > 0
-                                        ? " cursor-pointer hover:brightness-150"
-                                        : "")
-                                }
-                                onClick={() => {
-                                    if (lyricsTimeStamp.length > 0)
-                                        rockIt.audioManager.setCurrentTime(
-                                            lyricsTimeStamp[index].time + 0.01
-                                        );
-                                }}
-                                style={{
-                                    top: "35%",
-                                    fontSize: "4vh",
-                                    fontWeight: 500,
-                                    lineHeight: "4vh",
-                                    maxWidth: "100%",
-                                    color: "rgb(200, 200, 200)",
-                                    // scale: "0.6",
-                                }}
-                            >
-                                {line.replace(/ /g, " ")}
-                            </div>
-                        );
-                    case 0:
-                        return (
-                            <div
-                                key={index}
-                                className={
-                                    commonSyles +
-                                    (lyricsTimeStamp.length > 0
-                                        ? " cursor-pointer hover:brightness-150"
-                                        : "")
-                                }
-                                style={{
-                                    top: "50%",
-                                    fontSize: "4vh",
-                                    fontWeight: 600,
-                                    lineHeight: "4vh",
-                                    maxWidth: "100%",
-                                    color: "rgb(230, 230, 230)",
-                                }}
-                            >
-                                {line.replace(/ /g, " ")}
-                            </div>
-                        );
-                    case 1:
-                        return (
-                            <div
-                                key={index}
-                                className={
-                                    commonSyles +
-                                    " scale-[.6]" +
-                                    (lyricsTimeStamp.length > 0
-                                        ? " cursor-pointer hover:brightness-150"
-                                        : "")
-                                }
-                                onClick={() => {
-                                    if (lyricsTimeStamp.length > 0)
-                                        rockIt.audioManager.setCurrentTime(
-                                            lyricsTimeStamp[index].time + 0.01
-                                        );
-                                }}
-                                style={{
-                                    top: "63%",
-                                    fontSize: "4vh",
-                                    fontWeight: 500,
-                                    lineHeight: "4vh",
-                                    maxWidth: "100%",
-                                    color: "rgb(200, 200, 200)",
-                                    // scale: "0.6",
-                                }}
-                            >
-                                {line.replace(/ /g, " ")}
-                            </div>
-                        );
-                    case 2:
-                        return (
-                            <div
-                                key={index}
-                                className={
-                                    commonSyles +
-                                    " scale-[.4]" +
-                                    (lyricsTimeStamp.length > 0
-                                        ? " cursor-pointer hover:brightness-150"
-                                        : "")
-                                }
-                                onClick={() => {
-                                    if (lyricsTimeStamp.length > 0)
-                                        rockIt.audioManager.setCurrentTime(
-                                            lyricsTimeStamp[index].time + 0.01
-                                        );
-                                }}
-                                style={{
-                                    top: "75%",
-                                    fontSize: "4vh",
-                                    fontWeight: 500,
-                                    lineHeight: "4vh",
-                                    maxWidth: "100%",
-                                    color: "rgb(200, 200, 200)",
-                                    // scale: "0.4",
-                                }}
-                            >
-                                {line.replace(/ /g, " ")}
-                            </div>
-                        );
+            {lines.map((line, index) => {
+                const offset = index - computedIndex;
+                const config = VISIBLE_OFFSETS[offset];
+
+                // Lines outside the ±2 window collapse to invisible
+                if (!config) {
+                    return (
+                        <div
+                            key={index}
+                            className={`${commonStyles} scale-[0]`}
+                            aria-hidden
+                            style={{
+                                top: offset > 0 ? "75%" : "25%",
+                                fontSize: "4vh",
+                                fontWeight: 500,
+                                lineHeight: "4vh",
+                                maxWidth: "100%",
+                                color: "rgb(200,200,200)",
+                            }}
+                        >
+                            {line}
+                        </div>
+                    );
                 }
 
-                if (index - computedLyricsIndex > 0) {
-                    return (
-                        <div
-                            key={index}
-                            className={commonSyles + " scale-[0]"}
-                            style={{
-                                top: "75%",
-                                fontSize: "4vh",
-                                fontWeight: 500,
-                                lineHeight: "4vh",
-                                maxWidth: "100%",
-                                color: "rgb(200, 200, 200)",
-                            }}
-                        >
-                            {line.replace(/ /g, " ")}
-                        </div>
-                    );
-                } else {
-                    return (
-                        <div
-                            key={index}
-                            className={commonSyles + " scale-[0]"}
-                            style={{
-                                top: "25%",
-                                fontSize: "4vh",
-                                fontWeight: 500,
-                                lineHeight: "4vh",
-                                maxWidth: "100%",
-                                color: "rgb(200, 200, 200)",
-                            }}
-                        >
-                            {line.replace(/ /g, " ")}
-                        </div>
-                    );
-                }
+                return (
+                    <div
+                        key={index}
+                        className={`${commonStyles} ${config.scale}${clickableClass}`}
+                        onClick={() => seekTo(index)}
+                        style={{
+                            top: config.top,
+                            fontSize: "4vh",
+                            fontWeight: config.fontWeight,
+                            lineHeight: "4vh",
+                            maxWidth: "100%",
+                            color: config.color,
+                        }}
+                    >
+                        {line}
+                    </div>
+                );
             })}
-            {lyricsTimeStamp.length == 0 && (
+
+            {/* Invisible scroll layer for static lyrics — scroll position drives the active line */}
+            {!hasDynamicTimestamps && (
                 <div
-                    className="dynamic-lyrics-scroll hide-scroll-track hide-scroll-thumb absolute block h-full w-full max-w-full min-w-0 overflow-auto"
-                    onScroll={(e) => {
-                        setLyricsIndex(
+                    ref={scrollContainerRef}
+                    className="hide-scroll-track hide-scroll-thumb absolute block h-full w-full max-w-full min-w-0 overflow-auto"
+                    onScroll={(e) =>
+                        setManualIndex(
                             Math.floor(e.currentTarget.scrollTop / 100)
-                        );
-                    }}
+                        )
+                    }
                 >
                     <div
                         className="w-full"
                         style={{
+                            // Each "line slot" is 100px; the last slot fills the container
                             height:
-                                (lyrics.length - 1) * 100 +
-                                ((
-                                    document.querySelector(
-                                        ".dynamic-lyrics-scroll"
-                                    ) as HTMLDivElement | undefined
-                                )?.offsetHeight ?? 0) +
+                                (lines.length - 1) * 100 +
+                                containerHeight +
                                 "px",
                         }}
-                    ></div>
+                    />
                 </div>
             )}
         </div>

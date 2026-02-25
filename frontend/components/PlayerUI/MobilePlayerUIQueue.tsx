@@ -2,6 +2,7 @@
 
 import { useStore } from "@nanostores/react";
 import { QueueSong } from "@/components/PlayerUI/QueueSong";
+import { useQueueDrag } from "@/components/PlayerUI/hooks/useQueueDrag";
 import useWindowSize from "@/hooks/useWindowSize";
 import React, { useEffect, useRef, useState } from "react";
 import ContextMenu from "@/components/ContextMenu/ContextMenu";
@@ -29,131 +30,30 @@ export default function MobilePlayerUIQueue({
     const { height } = useWindowSize();
     const scrollRef = useRef<HTMLDivElement>(null);
     const [queueScroll, setQueueScroll] = useState(0);
-    const [draggingSong, setDraggingSong] = useState<
-        | {
-              song: RockItSongQueue;
-              index: number;
-          }
-        | undefined
-    >();
-    const [draggingPosY, setDraggingPosY] = useState(0);
-    const draggingPosYRef = useRef(0);
-    const scrollContainerTopRef = useRef(0);
 
+    const { draggingSong, startDrag, calcItemTop } = useQueueDrag();
+
+    // Scroll to current song when queue opens
     useEffect(() => {
         if (!scrollRef.current || !open) return;
-
-        const currentSongIndexInQueue = rockIt.queueManager.queue?.findIndex(
-            (song) => song.queueSongId == rockIt.queueManager.currentQueueSongId
+        const currentIdx = rockIt.queueManager.queue?.findIndex(
+            (s) => s.queueSongId === rockIt.queueManager.currentQueueSongId
         );
-
-        if (
-            currentSongIndexInQueue === -1 ||
-            typeof currentSongIndexInQueue == "undefined"
-        )
-            return;
-
-        scrollRef.current.scrollTo(0, currentSongIndexInQueue * 64 - 100);
+        if (currentIdx == null || currentIdx === -1) return;
+        scrollRef.current.scrollTo(0, currentIdx * 64 - 100);
     }, [scrollRef, open]);
 
-    const handleRemoveSong = (song: RockItSongQueue) => {
-        console.warn("handleRemoveSong", song);
-        // if (song.index == rockIt.queueManager.queueIndex) {
-        //     // Alert the user that the song is currently playing cannot be removed.
-        //     return;
-        // }
-        // const tempQueue = rockIt.queueManager.queue;
-        // if (!tempQueue) return;
-        // const index = tempQueue.findIndex((_song) => _song.index == song.index);
-        // if (index === -1 || typeof index == "undefined") return;
-        // queue.set([
-        //     ...tempQueue.slice(0, index),
-        //     ...tempQueue.slice(index + 1),
-        // ]);
-    };
-
-    const handlePlaySong = async (song: RockItSongQueue) => {
-        console.warn("handlePlaySong", song);
-        // const tempQueue = queue.get();
-        // if (!tempQueue) return;
-        // const currentSongIndexInQueue = tempQueue.findIndex(
-        //     (_song) => _song.index == song.index
-        // );
-        // queueIndex.set(tempQueue[currentSongIndexInQueue].index);
-        // const newSongId = tempQueue.find(
-        //     (song) => song.index == queueIndex.get()
-        // )?.song.id;
-        // if (!newSongId) return;
-        // await fetch(`/api/song/${newSongId}`)
-        //     .then((response) => response.json())
-        //     .then((data: SongDB) => {
-        //         playWhenReady.set(true);
-        //         currentSong.set(data);
-        //     });
-    };
-
     const touchStart = (
-        event: React.TouchEvent,
+        e: React.TouchEvent,
         song: RockItSongQueue,
         index: number
     ) => {
-        const scrollContainerTop =
-            scrollRef.current?.getBoundingClientRect().top || 0;
-        scrollContainerTopRef.current = scrollContainerTop;
-
-        setDraggingSong({ song, index });
-        setDraggingPosY(event.touches[0].clientY);
-        draggingPosYRef.current = event.touches[0].clientY;
+        startDrag(e.touches[0].clientY, song, index);
     };
 
-    useEffect(() => {
-        if (!draggingSong) return;
-        const handleTouchMove = (event: TouchEvent) => {
-            setDraggingPosY(Math.round(event.touches[0].clientY * 100) / 100);
-            draggingPosYRef.current =
-                Math.round(event.touches[0].clientY * 100) / 100;
-        };
-
-        const handleTouchEnd = () => {
-            // setDraggingSong(undefined);
-            // const tempQueue = queue.get();
-            // if (!tempQueue) return;
-            // if (typeof scrollRef.current?.scrollTop != "number") return;
-            // const indexInQueue = Math.floor(
-            //     (draggingPosYRef.current -
-            //         185 +
-            //         32 +
-            //         scrollRef.current?.scrollTop) /
-            //         64
-            // );
-            // if (draggingSong.index == indexInQueue) return;
-            // else if (draggingSong.index < indexInQueue) {
-            //     queue.set([
-            //         ...tempQueue.slice(0, draggingSong.index),
-            //         ...tempQueue.slice(
-            //             draggingSong.index + 1,
-            //             indexInQueue + 1
-            //         ),
-            //         draggingSong.song,
-            //         ...tempQueue.slice(indexInQueue + 1),
-            //     ]);
-            // } else {
-            //     queue.set([
-            //         ...tempQueue.slice(0, indexInQueue),
-            //         draggingSong.song,
-            //         ...tempQueue.slice(indexInQueue, draggingSong.index),
-            //         ...tempQueue.slice(draggingSong.index + 1),
-            //     ]);
-            // }
-        };
-
-        document.addEventListener("touchmove", handleTouchMove);
-        document.addEventListener("touchend", handleTouchEnd);
-        return () => {
-            document.removeEventListener("touchmove", handleTouchMove);
-            document.removeEventListener("touchend", handleTouchEnd);
-        };
-    }, [draggingSong]);
+    // TODO: implement when queueManager supports reorder/remove
+    const handleRemoveSong = (_song: RockItSongQueue) => {};
+    const handlePlaySong = async (_song: RockItSongQueue) => {};
 
     const { langFile: lang } = useLanguage();
     if (!lang || !$queue || !height) return null;
@@ -170,70 +70,37 @@ export default function MobilePlayerUIQueue({
             >
                 Queue
             </label>
+
             <div className="absolute top-12 right-0 bottom-0 left-0">
                 <div
                     ref={scrollRef}
-                    onScroll={(e) => setQueueScroll(e.currentTarget.scrollTop)}
+                    onScroll={(e) =>
+                        setQueueScroll(e.currentTarget.scrollTop)
+                    }
                     className={`relative h-full ${!draggingSong ? "overflow-y-auto" : "overflow-y-hidden"}`}
                 >
                     <div className="min-h-5" />
                     <div style={{ height: $queue.length * 64 }}>
                         {$queue.map((song, index) => {
-                            if (!scrollRef.current) return;
+                            if (!scrollRef.current) return null;
 
-                            let top: number;
-
-                            let draggingTop: number | undefined;
+                            const top = calcItemTop(
+                                index,
+                                song,
+                                scrollRef.current.scrollTop
+                            );
                             const isDragging =
                                 draggingSong?.song.song.publicId ===
                                 song.song.publicId;
 
-                            if (draggingSong)
-                                draggingTop = Math.max(
-                                    draggingPosY -
-                                        185 +
-                                        scrollRef.current.scrollTop,
-                                    0
-                                );
-
+                            // Virtual scroll: skip off-screen items
+                            const containerHeight =
+                                scrollRef.current.offsetHeight;
                             if (
-                                draggingSong?.song.song.publicId ==
-                                    song.song.publicId &&
-                                typeof draggingTop == "number"
-                            ) {
-                                top = draggingTop;
-                            } else {
-                                top = index * 64;
-                            }
-
-                            if (
-                                typeof draggingTop == "number" &&
-                                typeof draggingSong?.index == "number" &&
-                                draggingSong?.index != index &&
-                                draggingTop - 32 < top &&
-                                draggingSong?.index * 64 > top
-                            ) {
-                                top += 64;
-                            }
-
-                            if (
-                                typeof draggingTop == "number" &&
-                                typeof draggingSong?.index == "number" &&
-                                draggingSong?.index != index &&
-                                draggingTop + 32 > top &&
-                                draggingSong?.index * 64 < top
-                            ) {
-                                top -= 64;
-                            }
-
-                            if (
-                                (scrollRef.current?.offsetHeight &&
-                                    top >
-                                        scrollRef.current?.offsetHeight +
-                                            queueScroll) ||
+                                top > containerHeight + queueScroll ||
                                 top < queueScroll - 74
                             ) {
-                                return;
+                                return null;
                             }
 
                             return (
@@ -250,10 +117,7 @@ export default function MobilePlayerUIQueue({
                                         <ContextMenuTrigger>
                                             <div className="grid grid-cols-[1fr_45px] items-center">
                                                 <div className="w-full max-w-full min-w-0">
-                                                    <QueueSong
-                                                        key={song.queueSongId}
-                                                        song={song}
-                                                    />
+                                                    <QueueSong song={song} />
                                                 </div>
                                                 <GripVertical
                                                     className="h-full w-full p-1 pr-3"
@@ -273,9 +137,7 @@ export default function MobilePlayerUIQueue({
                                                 rockIt.SONG_PLACEHOLDER_IMAGE_URL
                                             }
                                             title={song.song.name}
-                                            description={`${song.song.album.name} • ${song.song.artists
-                                                .map((a) => a.name)
-                                                .join(", ")}`}
+                                            description={`${song.song.album.name} • ${song.song.artists.map((a) => a.name).join(", ")}`}
                                         >
                                             <ContextMenuOption
                                                 onClick={() =>

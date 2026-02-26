@@ -15,3 +15,7 @@ Controller (Logica muy basica o sin logica) > Framework (Toda la logica) > Acces
 |
 v
 Database (PosgreSQL, PgAdmin4)
+
+
+
+pre-commit instal

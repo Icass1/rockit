@@ -10,7 +10,7 @@ from backend.core.access.db.ormModels.song import CoreSongRow
 from backend.core.access.db.ormModels.image import ImageRow
 from backend.core.access.mediaAccess import MediaAccess
 
-from backend.core.responses.searchResponse import BaseSearchResultsItem
+from backend.core.responses.searchResponse import BaseSearchResultsItem, ArtistSearchResultsItem
 from backend.core.responses.baseArtistResponse import BaseArtistResponse
 from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
 from backend.core.responses.baseSongAlbumResponse import BaseSongAlbumResponse
@@ -66,13 +66,23 @@ class Spotify:
             for track in raw.tracks.items:
                 if not track.id or not track.name:
                     continue
-                artist_names: str = ", ".join(a.name for a in track.artists)
+                track_image_url: str = ""
+                if track.album and track.album.images and track.album.images[0].url:
+                    track_image_url = track.album.images[0].url
+                track_artists: List[ArtistSearchResultsItem] = [
+                    ArtistSearchResultsItem(
+                        name=a.name, url=f"{BACKEND_URL}/spotify/artist/{a.id}"
+                    )
+                    for a in track.artists
+                    if a.id
+                ]
                 items.append(
                     BaseSearchResultsItem(
-                        type="track",
+                        type="song",
                         title=track.name,
-                        subTitle=artist_names,
                         url=f"{BACKEND_URL}/spotify/song/{track.id}",
+                        imageUrl=track_image_url,
+                        artists=track_artists,
                     )
                 )
 
@@ -80,13 +90,23 @@ class Spotify:
             for album in raw.albums.items:
                 if not album.id or not album.name:
                     continue
-                artist_names = ", ".join(a.name for a in album.artists)
+                album_image_url: str = ""
+                if album.images and album.images[0].url:
+                    album_image_url = album.images[0].url
+                album_artists: List[ArtistSearchResultsItem] = [
+                    ArtistSearchResultsItem(
+                        name=a.name, url=f"{BACKEND_URL}/spotify/artist/{a.id}"
+                    )
+                    for a in album.artists
+                    if a.id
+                ]
                 items.append(
                     BaseSearchResultsItem(
                         type="album",
                         title=album.name,
-                        subTitle=artist_names,
                         url=f"{BACKEND_URL}/spotify/album/{album.id}",
+                        imageUrl=album_image_url,
+                        artists=album_artists,
                     )
                 )
 
@@ -94,12 +114,16 @@ class Spotify:
             for artist in raw.artists.items:
                 if not artist.id or not artist.name:
                     continue
+                artist_image_url: str = ""
+                if artist.images and artist.images[0].url:
+                    artist_image_url = artist.images[0].url
                 items.append(
                     BaseSearchResultsItem(
                         type="artist",
                         title=artist.name,
-                        subTitle="Artist",
                         url=f"{BACKEND_URL}/spotify/artist/{artist.id}",
+                        imageUrl=artist_image_url,
+                        artists=[],
                     )
                 )
 
@@ -107,12 +131,16 @@ class Spotify:
             for playlist in raw.playlists.items:
                 if not playlist:
                     continue
+                playlist_image_url: str = ""
+                if playlist.images and playlist.images[0].url:
+                    playlist_image_url = playlist.images[0].url
                 items.append(
                     BaseSearchResultsItem(
                         type="playlist",
                         title=playlist.name,
-                        subTitle=playlist.owner.display_name,
                         url=f"{BACKEND_URL}/spotify/playlist/{playlist.id}",
+                        imageUrl=playlist_image_url,
+                        artists=[],
                     )
                 )
 
@@ -276,6 +304,9 @@ class Spotify:
                         audioSrc=audio_src,
                         downloaded=is_downloaded,
                         internalImageUrl=track_internal_image_url,
+                        duration=track_row.duration,
+                        discNumber=track_row.disc_number,
+                        trackNumber=track_row.track_number,
                         album=BaseSongAlbumResponse(
                             provider=Spotify.provider_name,
                             publicId=album_row.spotify_id,
@@ -543,6 +574,9 @@ class Spotify:
                     audioSrc=audio_src,
                     downloaded=is_downloaded,
                     internalImageUrl=track_internal_image_url,
+                    duration=track_row.duration,
+                    discNumber=track_row.disc_number,
+                    trackNumber=track_row.track_number,
                     album=BaseSongAlbumResponse(
                         provider=Spotify.provider_name,
                         publicId=album_row.spotify_id,
@@ -713,6 +747,9 @@ class Spotify:
                     audioSrc=audio_src,
                     downloaded=is_downloaded,
                     internalImageUrl=track_internal_image_url,
+                    duration=track_row.duration,
+                    discNumber=track_row.disc_number,
+                    trackNumber=track_row.track_number,
                     album=BaseSongAlbumResponse(
                         provider=Spotify.provider_name,
                         publicId=album_row.spotify_id,
@@ -977,6 +1014,9 @@ class Spotify:
                 audioSrc=audio_src,
                 downloaded=is_downloaded,
                 internalImageUrl=track_internal_image_url,
+                duration=fetched_track_row.duration,
+                discNumber=fetched_track_row.disc_number,
+                trackNumber=fetched_track_row.track_number,
                 album=BaseSongAlbumResponse(
                     provider=Spotify.provider_name,
                     publicId=fetched_album_row.spotify_id,

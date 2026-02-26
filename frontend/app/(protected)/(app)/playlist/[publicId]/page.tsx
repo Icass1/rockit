@@ -1,6 +1,15 @@
+import { cache } from "react";
+import { notFound } from "next/navigation";
 import { rockIt } from "@/lib/rockit/rockIt";
 import PlaylistHeader from "@/components/Playlist/PlaylistHeader";
 import PlaylistSongsView from "@/components/Playlist/PlaylistSongsView";
+
+const getPlaylist = cache(async (publicId: string) => {
+    const playlist = await rockIt.playlistManager
+        .getSpotifyPlaylistAsync(publicId)
+        .catch(() => null); // ← normaliza errores de red / 5xx / timeouts
+    return playlist;
+});
 
 export async function generateMetadata({
     params,
@@ -9,15 +18,14 @@ export async function generateMetadata({
 }) {
     const { publicId } = await params;
 
-    const playlistResponse =
-        await rockIt.playlistManager.getSpotifyPlaylistAsync(publicId);
+    const playlist = await getPlaylist(publicId);
 
-    if (!playlistResponse) {
+    if (!playlist) {
         return {};
     }
 
     return {
-        title: playlistResponse.name,
+        title: playlist.name,
     };
 }
 
@@ -28,12 +36,9 @@ export default async function PlaylistPage({
 }) {
     const { publicId } = await params;
 
-    const playlistResponse =
-        await rockIt.playlistManager.getSpotifyPlaylistAsync(publicId);
+    const playlistResponse = await getPlaylist(publicId);
 
-    if (!playlistResponse) {
-        return null;
-    }
+    if (!playlistResponse) notFound();
 
     const playlistWithSongs = {
         ...playlistResponse,

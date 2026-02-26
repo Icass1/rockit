@@ -1,5 +1,7 @@
+import { cache } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { EllipsisVertical } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
@@ -10,13 +12,19 @@ import SongPageCover from "@/components/SongPage/SongPageCover";
 import LyricsSection from "@/components/SongPage/SongPageLyrics";
 import SongPageTopArtistSongs from "@/components/SongPage/SongPageTopArtistSongs";
 
+const getSong = cache(async (publicId: string) => {
+    return rockIt.songManager.getSpotifySongAsync(publicId);
+});
+
 export async function generateMetadata({
     params,
 }: {
     params: Promise<{ publicId: string }>;
 }) {
     const { publicId } = await params;
-    const song = await rockIt.songManager.getSpotifySongAsync(publicId);
+    const song = await getSong(publicId);
+
+    if (!song) return {};
 
     return {
         title: `${song.name} by ${song.artists[0].name}`,
@@ -36,6 +44,7 @@ export async function generateMetadata({
             ],
         },
         twitter: {
+            card: "summary_large_image",
             title: `${song.name} by ${song.artists[0].name}`,
             description: `Listen to ${song.name} by ${song.artists[0].name}`,
             images: [
@@ -57,14 +66,15 @@ export default async function SongPage({
 }) {
     const { publicId } = await params;
 
-    const songResponse = await rockIt.songManager.getSpotifySongAsync(publicId);
+    const songResponse = await getSong(publicId);
+    if (!songResponse) notFound();
+
     const song = SongWithAlbum.fromResponse(songResponse);
     const artist = song.artists[0];
 
     return (
         <div className="h-full w-full overflow-y-scroll p-2 pb-16 pt-16 md:mb-0 md:mt-0 md:pb-24 md:pt-24">
             <div className="mx-auto grid w-full grid-cols-1 items-center gap-4 px-10 md:grid-cols-3 md:p-6">
-                {/* Left: artist card (desktop only) */}
                 <div className="hidden flex-col items-center justify-center md:flex">
                     <div className="flex w-full max-w-sm items-center rounded-lg bg-neutral-200 p-4 shadow-md">
                         <div className="h-32 w-32 shrink-0 overflow-hidden rounded-full bg-neutral-300">
@@ -107,20 +117,17 @@ export default async function SongPage({
                     </div>
                 </div>
 
-                {/* Center: cover + title + actions */}
                 <div className="flex flex-col items-center justify-center">
                     <SongPageCover song={song} />
                     <h1 className="mt-4 line-clamp-3 text-center text-3xl font-bold">
                         {song.name}
                     </h1>
 
-                    {/* Mobile: album + artists below title */}
                     <div className="flex flex-col items-center md:hidden">
                         <Link
                             href={`/album/${song.album.publicId}`}
                             className="py-2 text-center text-2xl font-semibold text-neutral-300 hover:underline"
                         >
-                            {/* Fixed: was song.album.publicId (shows ID not name) */}
                             {song.album.name}
                         </Link>
                         <p className="text-center text-lg font-semibold text-neutral-400">
@@ -149,7 +156,6 @@ export default async function SongPage({
                     </div>
                 </div>
 
-                {/* Right: album card (desktop only) */}
                 <div className="hidden flex-col items-center justify-center md:flex">
                     <div className="flex w-full max-w-sm items-center rounded-lg bg-neutral-200 p-4 shadow-md">
                         <div className="ml-4">
@@ -171,7 +177,6 @@ export default async function SongPage({
                 </div>
             </div>
 
-            {/* Fixed: was bg-red-500 debug class */}
             <div className="flex flex-col gap-8 px-4">
                 <LyricsSection songPublicId={song.publicId} />
                 <SongPageAlbum albumPublicId={song.album.publicId} />

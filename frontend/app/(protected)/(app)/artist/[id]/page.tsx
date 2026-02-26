@@ -1,7 +1,7 @@
 import Image from "next/image";
+import { notFound } from "next/navigation";
 import type { SpotifyArtist, SpotifyArtistTopTracks } from "@/types/spotify";
 import { Play } from "lucide-react";
-import { AppError } from "@/lib/errors/AppError";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 export default async function ArtistPage({
@@ -14,8 +14,7 @@ export default async function ArtistPage({
     const artistRes = await fetch(`${rockIt.BACKEND_URL}/artist/${id}`, {
         cache: "no-store",
     });
-    // Fixed: was redirect("/404"), should throw AppError so error.tsx handles it
-    if (!artistRes.ok) throw new AppError(artistRes.status);
+    if (!artistRes.ok) notFound();
 
     const artistData = (await artistRes.json()) as SpotifyArtist;
     artistData.images.sort((a, b) => b.width + b.height - (a.width + a.height));

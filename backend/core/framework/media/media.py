@@ -22,6 +22,7 @@ from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
 from backend.core.responses.searchResponse import (
     BaseSearchResultsItem,
     ProviderSearchResultsResponse,
+    SearchResultsResponse,
 )
 
 logger: Logger = getLogger(__name__)
@@ -159,7 +160,7 @@ class Media:
     @staticmethod
     async def search_async(
         query: str, providers: Providers
-    ) -> AResult[List[ProviderSearchResultsResponse]]:
+    ) -> AResult[SearchResultsResponse]:
         """Search all providers and aggregate results into a ProviderSearchResultsResponse list."""
 
         results: List[ProviderSearchResultsResponse] = []
@@ -184,4 +185,8 @@ class Media:
                 )
             )
 
-        return AResult(code=AResultCode.OK, message="OK", result=results)
+        return AResult(
+            code=AResultCode.OK,
+            message="OK",
+            result=SearchResultsResponse(results=results),
+        )

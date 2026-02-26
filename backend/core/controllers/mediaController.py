@@ -1,5 +1,3 @@
-from typing import List
-
 from logging import Logger
 
 from fastapi import APIRouter, HTTPException
@@ -15,7 +13,7 @@ from backend.core.responses.baseSongResponse import BaseSongResponse
 from backend.core.responses.baseAlbumResponse import BaseAlbumResponse
 from backend.core.responses.baseArtistResponse import BaseArtistResponse
 from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
-from backend.core.responses.searchResponse import ProviderSearchResultsResponse
+from backend.core.responses.searchResponse import SearchResultsResponse
 
 logger: Logger = getLogger(__name__)
 router = APIRouter(prefix="/media")
@@ -82,10 +80,10 @@ async def get_playlist(public_id: str) -> BasePlaylistResponse:
 
 
 @router.get("/search")
-async def search(q: str) -> List[ProviderSearchResultsResponse]:
+async def search(q: str) -> SearchResultsResponse:
     """Search all providers and return aggregated results."""
 
-    a_result: AResult[List[ProviderSearchResultsResponse]] = await Media.search_async(
+    a_result: AResult[SearchResultsResponse] = await Media.search_async(
         query=q, providers=providers
     )
     if a_result.is_not_ok():

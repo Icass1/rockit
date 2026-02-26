@@ -48,7 +48,7 @@ export default function PlayList({ id, type }: { type: string; id: string }) {
     return (
         <PlayCircle
             strokeWidth={1.2}
-            className="h-[1.95rem] w-[1.95rem] -translate-y-[1px] cursor-pointer hover:scale-105"
+            className="h-[1.95rem] w-[1.95rem] -translate-y-px cursor-pointer hover:scale-105"
             onClick={() => playListHandleClick({ type, id })}
         />
     );

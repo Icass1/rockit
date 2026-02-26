@@ -91,7 +91,7 @@ export default function SongPageCover({ song }: { song: SongWithAlbum }) {
                     alt="Carátula de la canción"
                     className={
                         "absolute z-10 h-full w-full transition-all " +
-                        (hover ? "brightness-[60%]" : "")
+                        (hover ? "brightness-60" : "")
                     }
                 />
 

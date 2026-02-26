@@ -92,7 +92,7 @@ function StationCard({ station }: { station: StationResponse[number] }) {
                         .join(", ")}
                 </p>
             </div>
-            <button className="rounded-full bg-neutral-700 p-[10px] text-white hover:bg-neutral-500">
+            <button className="rounded-full bg-neutral-700 p-2.5 text-white hover:bg-neutral-500">
                 <ListPlus className="h-6 w-6 fill-current" />
             </button>
             <button
@@ -182,7 +182,7 @@ export default function RadioClient() {
         if (searchDebounce.current) {
             searchDebounce.current(searchQuery);
         }
-    }, []);
+    }, [searchQuery]);
 
     if (error) {
         return (

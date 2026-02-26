@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { LibraryListsResponse } from "@/dto/libraryListsResponse";
+import { LibraryListsResponseSchema } from "@/dto/libraryListsResponse";
 import useFetch from "@/hooks/useFetch";
 import useWindowSize from "@/hooks/useWindowSize";
 import { useStore } from "@nanostores/react";
@@ -170,7 +170,7 @@ export function LibraryLists({
 
     const [listsResponse] = useFetch(
         "/user/library/lists",
-        LibraryListsResponse
+        LibraryListsResponseSchema
     );
     if (!listsResponse) return <div>LibraryLists.listsResponse Loading...</div>;
 

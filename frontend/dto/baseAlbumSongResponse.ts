@@ -9,6 +9,9 @@ export const BaseAlbumSongResponseSchema = z.object({
     audioSrc: z.any(),
     downloaded: z.boolean(),
     internalImageUrl: z.string(),
+    duration: z.number(),
+    discNumber: z.number(),
+    trackNumber: z.number(),
 });
 
 export type BaseAlbumSongResponse = z.infer<typeof BaseAlbumSongResponseSchema>;

@@ -10,7 +10,7 @@ from backend.core.access.db.ormModels.song import CoreSongRow
 from backend.core.access.db.ormModels.image import ImageRow
 from backend.core.access.mediaAccess import MediaAccess
 
-from backend.core.responses.searchResponse import BaseSearchItem
+from backend.core.responses.searchResponse import BaseSearchResultsItem
 from backend.core.responses.baseArtistResponse import BaseArtistResponse
 from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
 from backend.core.responses.baseSongAlbumResponse import BaseSongAlbumResponse
@@ -45,8 +45,8 @@ class Spotify:
     provider_name: str
 
     @staticmethod
-    async def search_async(query: str) -> AResult[List[BaseSearchItem]]:
-        """Search Spotify and map results to BaseSearchItem list."""
+    async def search_async(query: str) -> AResult[List[BaseSearchResultsItem]]:
+        """Search Spotify and map results to BaseSearchResultsItem list."""
 
         a_result_search: AResult[RawSpotifyApiSearchResults] = await spotify_api.search_async(query)
         if a_result_search.is_not_ok():
@@ -54,14 +54,14 @@ class Spotify:
             return AResult(code=a_result_search.code(), message=a_result_search.message())
 
         raw: RawSpotifyApiSearchResults = a_result_search.result()
-        items: List[BaseSearchItem] = []
+        items: List[BaseSearchResultsItem] = []
 
         if raw.tracks and raw.tracks.items:
             for track in raw.tracks.items:
                 if not track.id or not track.name:
                     continue
                 artist_names: str = ", ".join(a.name for a in track.artists)
-                items.append(BaseSearchItem(
+                items.append(BaseSearchResultsItem(
                     type="track",
                     title=track.name,
                     subTitle=artist_names,
@@ -72,7 +72,7 @@ class Spotify:
                 if not album.id or not album.name:
                     continue
                 artist_names = ", ".join(a.name for a in album.artists)
-                items.append(BaseSearchItem(
+                items.append(BaseSearchResultsItem(
                     type="album",
                     title=album.name,
                     subTitle=artist_names,
@@ -82,7 +82,7 @@ class Spotify:
             for artist in raw.artists.items:
                 if not artist.id or not artist.name:
                     continue
-                items.append(BaseSearchItem(
+                items.append(BaseSearchResultsItem(
                     type="artist",
                     title=artist.name,
                     subTitle="Artist",
@@ -92,7 +92,7 @@ class Spotify:
             for playlist in raw.playlists.items:
                 if not playlist:
                     continue
-                items.append(BaseSearchItem(
+                items.append(BaseSearchResultsItem(
                     type="playlist",
                     title=playlist.name,
                     subTitle=playlist.owner.display_name,

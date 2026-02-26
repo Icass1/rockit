@@ -1,17 +1,20 @@
 "use client";
 
 import { useEffect, useRef, type ReactNode } from "react";
-import type ContextMenuProps from "@/components/ContextMenu/Props";
+import { useContextMenu } from "@/components/ContextMenu/context";
 
 export default function ContextMenuTrigger({
     children,
-    _setContextMenuOpen,
-    _setContextMenuPos,
-    _contextMenuOpen,
-    _contextMenuDivRef,
 }: {
     children: ReactNode;
-} & ContextMenuProps) {
+}) {
+    const {
+        _setContextMenuOpen,
+        _setContextMenuPos,
+        _contextMenuOpen,
+        _contextMenuDivRef,
+    } = useContextMenu();
+
     const divRef = useRef<HTMLDivElement>(null);
 
     const handleContextMenu = (

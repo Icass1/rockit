@@ -1,8 +1,8 @@
 import { BaseSongResponseSchema } from "@/dto/baseSongResponse";
-import { Artist } from "./artist";
-import { AlbumWithoutSongs } from "./albumWithoutSongs";
-import { ExternalImage } from "./externalImage";
-import { SongWithoutAlbum } from "./songWithoutAlbum";
+import { Artist } from "@/lib/rockit/artist";
+import { AlbumWithoutSongs } from "@/lib/rockit/albumWithoutSongs";
+import { ExternalImage } from "@/lib/rockit/externalImage";
+import { SongWithoutAlbum } from "@/lib/rockit/songWithoutAlbum";
 
 export class AlbumWithSongs extends AlbumWithoutSongs {
     public readonly songs: SongWithoutAlbum[];

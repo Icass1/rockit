@@ -1,27 +1,24 @@
 import type { ReactNode } from "react";
 import React, { useEffect, useRef, useState } from "react";
-import type ContextMenuProps from "@/components/ContextMenu/Props";
+import { useContextMenu } from "@/components/ContextMenu/context";
+import { SubContextMenuContext } from "@/components/ContextMenu/SubContextMenu/context";
 import type SubContextMenuProps from "@/components/ContextMenu/SubContextMenu/Props";
 
 export default function SubContextMenu({
     children,
     onOpen,
     onClose,
-    _setContextMenuOpen,
-    _setContextMenuPos,
-    _contextMenuDivRef,
-    _contextMenuOpen,
-    _contextMenuPos,
-}: ContextMenuProps & {
+}: {
     children: ReactNode[];
     onOpen?: () => void;
     onClose?: () => void;
 }) {
+    const { _setContextMenuOpen, _setContextMenuPos, _contextMenuDivRef, _contextMenuOpen, _contextMenuPos } = useContextMenu();
+
     const _triggerRef = useRef<HTMLDivElement>(null);
 
     const [_hover, setHover] = useState(false);
-
-    let timeout: NodeJS.Timeout;
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
         if (_hover && onOpen) {
@@ -35,31 +32,25 @@ export default function SubContextMenu({
     const _setHover = (value: boolean) => {
         if (value) {
             setHover(true);
-            clearTimeout(timeout);
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
         } else {
-            timeout = setTimeout(() => {
+            timeoutRef.current = setTimeout(() => {
                 setHover(false);
             }, 100);
         }
     };
 
-    const childrenWithProps = React.Children.map(children, (child) => {
-        if (React.isValidElement(child)) {
-            const props: ContextMenuProps & SubContextMenuProps = {
-                _contextMenuOpen,
-                _setContextMenuOpen,
-                _contextMenuPos,
-                _setContextMenuPos,
-                _contextMenuDivRef,
-                _triggerRef,
-                _hover,
-                _setHover,
-            };
+    const subContextMenuValue: SubContextMenuProps = {
+        _triggerRef,
+        _hover,
+        _setHover,
+    };
 
-            return React.cloneElement(child, props);
-        }
-        return child;
-    });
-
-    return childrenWithProps;
+    return (
+        <SubContextMenuContext.Provider value={subContextMenuValue}>
+            {children}
+        </SubContextMenuContext.Provider>
+    );
 }

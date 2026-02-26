@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import SearchBarInput from "@/components/Search/SearchBarInput";
-import HeaderRight from "./HeaderRight";
+import HeaderRight from "@/components/Header/HeaderRight";
 
 export default function Header() {
     const pathname = usePathname();

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -22,18 +22,19 @@ export default function BarGraph({
     name: string;
     type?: "percentage" | "value";
 }) {
-    const [localItems, setLocalItems] =
-        useState<Array<Item & { isExiting?: boolean; isEntering?: boolean }>>(
-            propItems
-        );
-    const totalValue = localItems.reduce((sum, item) => sum + item.value, 0);
-    const maxValue = Math.max(...localItems.map((item) => item.value));
+    const [animatedItems, setAnimatedItems] = useState<Array<Item & { isExiting?: boolean; isEntering?: boolean }>>([]);
+
+    const baseItems = useMemo(() => {
+        return propItems.map((item) => ({
+            ...item,
+            isEntering: false,
+        }));
+    }, [propItems]);
 
     useEffect(() => {
-        const prevItems = localItems;
+        const prevItems = animatedItems.length > 0 ? animatedItems : baseItems;
         const nextItems = propItems;
 
-        // Identify exiting and entering items
         const exitingItems = prevItems.filter(
             (prevItem) =>
                 !nextItems.some((nextItem) => nextItem.id === prevItem.id)
@@ -43,8 +44,11 @@ export default function BarGraph({
                 !prevItems.some((prevItem) => prevItem.id === nextItem.id)
         );
 
-        // Prepare new local items with flags
-        const newLocalItems = [
+        if (exitingItems.length === 0 && enteringItems.length === 0) {
+            return;
+        }
+
+        const newLocalItems: Array<Item & { isExiting?: boolean; isEntering?: boolean }> = [
             ...nextItems.map((item) => ({
                 ...item,
                 isEntering: enteringItems.some((e) => e.id === item.id),
@@ -55,18 +59,17 @@ export default function BarGraph({
             })),
         ];
 
-        setLocalItems(newLocalItems);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setAnimatedItems(newLocalItems);
 
-        // Clear entering flags after a short delay
         const enteringTimeout = setTimeout(() => {
-            setLocalItems((current) =>
+            setAnimatedItems((current) =>
                 current.map((item) => ({ ...item, isEntering: false }))
             );
         }, 50);
 
-        // Remove exiting items after animation
         const exitingTimeout = setTimeout(() => {
-            setLocalItems((current) =>
+            setAnimatedItems((current) =>
                 current.filter((item) => !item.isExiting)
             );
         }, 1000);
@@ -75,8 +78,11 @@ export default function BarGraph({
             clearTimeout(enteringTimeout);
             clearTimeout(exitingTimeout);
         };
-        // eslint-disable-next-line
-    }, [propItems]);
+    }, [baseItems, propItems, animatedItems]);
+
+    const localItems: Array<Item & { isExiting?: boolean; isEntering?: boolean }> = animatedItems.length > 0 ? animatedItems : baseItems;
+    const totalValue = localItems.reduce((sum, item) => sum + item.value, 0);
+    const maxValue = Math.max(...localItems.map((item) => item.value));
 
     return (
         <div className="h-[525px] overflow-hidden rounded-lg bg-neutral-800 p-2">

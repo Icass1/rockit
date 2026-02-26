@@ -14,8 +14,8 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useStore } from "@nanostores/react";
 import { groupBy } from "lodash";
 import { Disc } from "lucide-react";
-import DownloadAnimation from "../ListHeader/DownloadAnimation";
-import DownloadListButton from "../ListHeader/DownloadListButton";
+import DownloadAnimation from "@/components/ListHeader/DownloadAnimation";
+import DownloadListButton from "@/components/ListHeader/DownloadListButton";
 
 export default function RenderAlbum({
     albumResponse,

@@ -6,9 +6,9 @@ import { rockIt } from "@/lib/rockit/rockIt";
 import { useClickOutside } from "@/components/Header/hooks/useClickOutside";
 import { useStore } from "@nanostores/react";
 import { Bell } from "lucide-react";
-import NotificationMenu from "./HeaderNotificationMenu";
-import OnlineUserIndicator from "./HeaderOnlineUsers";
-import HeaderUser from "./HeaderUser";
+import NotificationMenu from "@/components/Header/HeaderNotificationMenu";
+import OnlineUserIndicator from "@/components/Header/HeaderOnlineUsers";
+import HeaderUser from "@/components/Header/HeaderUser";
 
 export default function HeaderRight() {
     const [showNotifications, setShowNotifications] = useState(false);

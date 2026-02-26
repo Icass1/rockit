@@ -3,14 +3,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
-import { getBestImage } from "@/lib/utils/getBestImage";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { SearchResponse } from "@/dto";
+import { getBestImage } from "@/lib/utils/getBestImage";
 
 export default function SongsSection({
     songs,
 }: {
-    songs: SongWithAlbum[];
+    songs: SearchResponse["results"][number]["items"];
 }) {
     const { langFile: lang } = useLanguage();
     const router = useRouter();
@@ -24,23 +24,22 @@ export default function SongsSection({
             </h2>
             <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pr-14 md:pl-4">
                 {songs.map((song) => {
-                    const image = getBestImage(song.album.externalImages);
                     return (
                         <Link
-                            href={`/song/${song.publicId}`}
+                            href={song.url}
                             prefetch={false}
                             className="w-36 flex-none transition md:w-48 md:hover:scale-105"
                             key={song.publicId}
                         >
                             <Image
-                                width={image?.width ?? 350}
-                                height={image?.height ?? 350}
+                                width={350}
+                                height={350}
                                 className="aspect-square w-full rounded-lg object-cover"
-                                src={image?.url ?? "/song-placeholder.png"}
-                                alt={`Cover of ${song.name}`}
+                                src={song.imageUrl}
+                                alt={`Cover of ${song.title}`}
                             />
                             <span className="mt-2 block truncate text-center font-semibold">
-                                {song.name}
+                                {song.title}
                             </span>
                             <span className="block truncate text-center text-sm text-gray-400">
                                 {song.artists.map((artist, i) => (

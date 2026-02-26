@@ -1,16 +1,18 @@
-import { SongWithAlbum } from "./songWithAlbum";
-
-type List = { type: string; publicId: string };
+import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
 
 export class SongQueue {
     public readonly song: SongWithAlbum;
     public readonly queueSongId: number;
-    public readonly list: List;
+    public readonly list: string;
 
-    constructor({ song, queueSongId, list }: {
+    constructor({
+        song,
+        queueSongId,
+        list,
+    }: {
         song: SongWithAlbum;
         queueSongId: number;
-        list: List;
+        list: string;
     }) {
         this.song = song;
         this.queueSongId = queueSongId;

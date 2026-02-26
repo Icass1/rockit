@@ -1,8 +1,8 @@
-import { createAtom } from "../store";
+import { createAtom } from "@/lib/store";
 import { BaseSongResponseSchema } from "@/dto/baseSongResponse";
-import { AlbumWithoutSongs } from "./albumWithoutSongs";
-import { Artist } from "./artist";
-import { SongWithoutAlbum } from "./songWithoutAlbum";
+import { AlbumWithoutSongs } from "@/lib/rockit/albumWithoutSongs";
+import { Artist } from "@/lib/rockit/artist";
+import { SongWithoutAlbum } from "@/lib/rockit/songWithoutAlbum";
 
 export class SongWithAlbum {
     static #instance: SongWithAlbum[] = [];

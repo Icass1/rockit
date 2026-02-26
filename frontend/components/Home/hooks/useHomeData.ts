@@ -1,7 +1,7 @@
+import { HomeStatsResponseSchema } from "@/dto";
+import useFetch from "@/hooks/useFetch";
 import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
 import { SongWithoutAlbum } from "@/lib/rockit/songWithoutAlbum";
-import { HomeStatsResponse } from "@/dto/stats/homeStatsResponse";
-import useFetch from "@/hooks/useFetch";
 
 export interface HomeData {
     songsByTimePlayed: SongWithoutAlbum[];
@@ -13,7 +13,7 @@ export interface HomeData {
 }
 
 export function useHomeData(): HomeData | null {
-    const [dataResponse] = useFetch("/stats/home", HomeStatsResponse);
+    const [dataResponse] = useFetch("/stats/home", HomeStatsResponseSchema);
 
     if (!dataResponse) return null;
 

@@ -1,9 +1,9 @@
-import { createAtom } from "../store";
-import apiFetch from "../utils/apiFetch";
-import { AlbumWithoutSongs } from "./albumWithoutSongs";
-import { Artist } from "./artist";
-import { SongWithAlbum } from "./songWithAlbum";
-import { SongWithoutAlbum } from "./songWithoutAlbum";
+import { createAtom } from "@/lib/store";
+import apiFetch from "@/lib/utils/apiFetch";
+import { AlbumWithoutSongs } from "@/lib/rockit/albumWithoutSongs";
+import { Artist } from "@/lib/rockit/artist";
+import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
+import { SongWithoutAlbum } from "@/lib/rockit/songWithoutAlbum";
 
 export class SongPlaylist {
     static #instance: SongPlaylist[] = [];

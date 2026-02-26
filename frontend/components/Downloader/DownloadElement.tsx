@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -16,7 +16,17 @@ export default function DownloadElement({
     const [name, setName] = useState("");
     const [cover, setCover] = useState("");
     const [artistOwner, setArtistOwner] = useState("");
-    const [type, setType] = useState("");
+
+    const type = useMemo(() => {
+        if (download.downloadURL.includes("open.spotify.com/album")) {
+            return "Spotify Album";
+        } else if (download.downloadURL.includes("open.spotify.com/playlist")) {
+            return "Spotify Playlist";
+        } else if (download.downloadURL.includes("open.spotify.com/track")) {
+            return "Spotify Song";
+        }
+        return "";
+    }, [download.downloadURL]);
 
     const [selected, setSelected] = useState(false);
 
@@ -31,8 +41,6 @@ export default function DownloadElement({
                 "https://open.spotify.com/album/",
                 ""
             );
-
-            setType("Spotify Album");
 
             fetch(`/api/album/${albumId}?p=name,image,artists`)
                 .then((response) => response.json())
@@ -53,8 +61,6 @@ export default function DownloadElement({
                 ""
             );
 
-            setType("Spotify Playlist");
-
             fetch(`/api/playlist/${playlistId}?p=name,image,owner`)
                 .then((response) => response.json())
                 .then((data) => {
@@ -69,7 +75,6 @@ export default function DownloadElement({
                 "https://open.spotify.com/track/",
                 ""
             );
-            setType("Spotify Song");
 
             fetch(`/api/song/${songId}?q=name,image,artists`)
                 .then((response) => response.json())

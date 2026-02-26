@@ -1,3 +1,4 @@
+import { SearchResponse, SearchResponseSchema } from "@/dto";
 import { createAtom } from "@/lib/store";
 import apiFetch from "@/lib/utils/apiFetch";
 
@@ -6,7 +7,7 @@ export class SearchManager {
 
     private _searchQueryAtom = createAtom<string>("");
     private _searchingAtom = createAtom<boolean>(false);
-    private _searchResultsAtom = createAtom<SearchResults | undefined>();
+    private _searchResultsAtom = createAtom<SearchResponse | undefined>();
 
     // #endregion
 
@@ -26,29 +27,8 @@ export class SearchManager {
 
                 data.json().then((json) => {
                     try {
-                        const results = SearchResultsResponse.parse(json);
-                        this._searchResultsAtom.set({
-                            spotifyResults: {
-                                songs: results.spotifyResults.songs.map(
-                                    (song) =>
-                                        SongWithAlbum.fromResponse(song)
-                                ),
-                                albums: results.spotifyResults.albums.map(
-                                    (album) =>
-                                        AlbumWithoutSongs.fromResponse(
-                                            album
-                                        )
-                                ),
-                                artists: results.spotifyResults.artists.map(
-                                    (artist) =>
-                                        Artist.fromResponse(artist)
-                                ),
-                                playlists: results.spotifyResults.playlists.map(
-                                    (playlist) =>
-                                        Playlist.fromResponse(playlist)
-                                ),
-                            },
-                        });
+                        const results = SearchResponseSchema.parse(json);
+                        this._searchResultsAtom.set(results);
                     } catch (e) {
                         console.error("Error parsing search results", e, json);
                     } finally {

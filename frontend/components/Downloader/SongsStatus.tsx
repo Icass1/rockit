@@ -92,10 +92,9 @@ export default function SongsStatus() {
     const { langFile: lang } = useLanguage();
     if (!lang) return false;
 
-    let someSelected = false;
+    const someSelected = $downloadInfo.some((item) => item.selected);
 
     const downloadInfoSorted = $downloadInfo.toSorted((a, b) => {
-        if (a.selected || b.selected) someSelected = true;
 
         let bCompleted: number = b.completed;
         if (b.completed == 100) bCompleted = -2;

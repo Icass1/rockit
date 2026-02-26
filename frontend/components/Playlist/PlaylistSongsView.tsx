@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { Playlist } from "@/lib/rockit/playlist";
 import { SongPlaylist } from "@/lib/rockit/songPlaylist";
@@ -8,7 +8,7 @@ import PlaylistSong from "@/components/ListSongs/PlaylistSong";
 import { useLanguage } from "@/contexts/LanguageContext";
 import useWindowSize from "@/hooks/useWindowSize";
 import { ArrowUp } from "lucide-react";
-import PlaylistHeader from "./PlaylistHeader";
+import PlaylistHeader from "@/components/Playlist/PlaylistHeader";
 
 type ColumnsType = "name" | "album" | "artist" | "addedAt" | "duration";
 
@@ -20,7 +20,6 @@ export default function PlaylistSongsView({
     const playlist = Playlist.fromResponse(playlistResponse);
 
     useEffect(() => {
-        // console.log("useEffect 3");
         rockIt.queueManager.setCurrentList({
             publicId: playlist.publicId,
             type: "playlist",
@@ -36,9 +35,94 @@ export default function PlaylistSongsView({
         []
     );
 
+    const sortedSongs = useMemo(() => {
+        switch (filter.column) {
+            case "name":
+                return playlist.songs.toSorted((a, b) => {
+                    const nameA = a.name.toLowerCase();
+                    const nameB = b.name.toLowerCase();
+                    if (nameA < nameB) {
+                        return filter.ascending ? 1 : -1;
+                    }
+                    if (nameA > nameB) {
+                        return filter.ascending ? -1 : 1;
+                    }
+                    return 0;
+                });
+            case "addedAt":
+                return playlist.songs.toSorted((a, b) => {
+                    if (!a.addedAt || !b.addedAt) {
+                        return 0;
+                    }
+                    return (
+                        (new Date(a?.addedAt).getTime() -
+                            new Date(b?.addedAt).getTime()) *
+                        (filter.ascending ? 1 : -1)
+                    );
+                });
+            case "album":
+                return playlist.songs.toSorted((a, b) => {
+                    const albumNameA = a.album.name.toLowerCase();
+                    const albumNameB = b.album.name.toLowerCase();
+                    if (albumNameA < albumNameB) {
+                        return filter.ascending ? 1 : -1;
+                    }
+                    if (albumNameA > albumNameB) {
+                        return filter.ascending ? -1 : 1;
+                    }
+                    return 0;
+                });
+            case "artist":
+                return playlist.songs.toSorted((a, b) => {
+                    const artistsA = a.artists
+                        .map((artist) => artist.name)
+                        .join("")
+                        .toLowerCase();
+                    const artistsB = b.artists
+                        .map((artist) => artist.name)
+                        .join("")
+                        .toLowerCase();
+                    if (artistsA < artistsB) {
+                        return filter.ascending ? 1 : -1;
+                    }
+                    if (artistsA > artistsB) {
+                        return filter.ascending ? -1 : 1;
+                    }
+                    return 0;
+                });
+            case "duration":
+                return playlist.songs.toSorted((a, b) => {
+                    if (a.duration < b.duration) {
+                        return filter.ascending ? 1 : -1;
+                    }
+                    if (a.duration > b.duration) {
+                        return filter.ascending ? -1 : 1;
+                    }
+                    return 0;
+                });
+            default:
+                return playlist.songs;
+        }
+    }, [filter, playlist.songs]);
+
+    useEffect(() => {
+        setSongsToRender(sortedSongs);
+    }, [sortedSongs]);
+
+    useEffect(() => {
+        rockIt.currentListManager.setCurrentListSongs(songsToRender);
+    }, [songsToRender]);
+
     const divRef = useRef<HTMLDivElement>(null);
     const [scroll, setScroll] = useState(0);
+    const [boundaries, setBoundaries] = useState<DOMRect | null>(null);
     const innerWidth = useWindowSize().width;
+
+    useLayoutEffect(() => {
+        if (divRef.current) {
+            setBoundaries(divRef.current.getBoundingClientRect());
+        }
+    }, [innerWidth, songsToRender]);
 
     const toggleFilter = (column: ColumnsType) => {
         setFilter((value) => {
@@ -49,97 +133,6 @@ export default function PlaylistSongsView({
             }
         });
     };
-
-    useEffect(() => {
-        // console.log("useEffect 2");
-        // console.warn("songsToRender", songsToRender);
-        rockIt.currentListManager.setCurrentListSongs(songsToRender);
-    }, [songsToRender]);
-
-    useEffect(() => {
-        // console.log("useEffect 1", filter, playlist.songs);
-        switch (filter.column) {
-            case "name":
-                setSongsToRender(
-                    playlist.songs.toSorted((a, b) => {
-                        const nameA = a.name.toLowerCase();
-                        const nameB = b.name.toLowerCase();
-                        if (nameA < nameB) {
-                            return filter.ascending ? 1 : -1;
-                        }
-                        if (nameA > nameB) {
-                            return filter.ascending ? -1 : 1;
-                        }
-                        return 0;
-                    })
-                );
-                return;
-            case "addedAt":
-                setSongsToRender(
-                    playlist.songs.toSorted((a, b) => {
-                        if (!a.addedAt || !b.addedAt) {
-                            return 0;
-                        }
-                        return (
-                            (new Date(a?.addedAt).getTime() -
-                                new Date(b?.addedAt).getTime()) *
-                            (filter.ascending ? 1 : -1)
-                        );
-                    })
-                );
-                return;
-            case "album":
-                setSongsToRender(
-                    playlist.songs.toSorted((a, b) => {
-                        const albumNameA = a.album.name.toLowerCase();
-                        const albumNameB = b.album.name.toLowerCase();
-                        if (albumNameA < albumNameB) {
-                            return filter.ascending ? 1 : -1;
-                        }
-                        if (albumNameA > albumNameB) {
-                            return filter.ascending ? -1 : 1;
-                        }
-                        return 0;
-                    })
-                );
-                return;
-            case "artist":
-                setSongsToRender(
-                    playlist.songs.toSorted((a, b) => {
-                        const artistsA = a.artists
-                            .map((artist) => artist.name)
-                            .join("")
-                            .toLowerCase();
-                        const artistsB = b.artists
-                            .map((artist) => artist.name)
-                            .join("")
-                            .toLowerCase();
-                        if (artistsA < artistsB) {
-                            return filter.ascending ? 1 : -1;
-                        }
-                        if (artistsA > artistsB) {
-                            return filter.ascending ? -1 : 1;
-                        }
-                        return 0;
-                    })
-                );
-                return;
-            case "duration":
-                setSongsToRender(
-                    playlist.songs.toSorted((a, b) => {
-                        if (a.duration < b.duration) {
-                            return filter.ascending ? 1 : -1;
-                        }
-                        if (a.duration > b.duration) {
-                            return filter.ascending ? -1 : 1;
-                        }
-                        return 0;
-                    })
-                );
-
-                return;
-        }
-    }, [filter, playlist.songs]);
 
     const renderColumn = (column: ColumnsType) => {
         if (!lang) return false;
@@ -231,10 +224,7 @@ export default function PlaylistSongsView({
                         marginTop;
                     if (innerWidth < 768) top += innerWidth;
 
-                    if (divRef.current) {
-                        const boundaries =
-                            divRef.current.getBoundingClientRect();
-
+                    if (boundaries) {
                         if (
                             top > boundaries.height + scroll ||
                             top < scroll - (56 + 4)

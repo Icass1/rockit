@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
 import { networkStatus } from "@/lib/stores/networkStatus";
@@ -8,7 +8,7 @@ import { getTime } from "@/lib/utils/getTime";
 import LikeButton from "@/components/LikeButton";
 import { useStore } from "@nanostores/react";
 import { CheckCircle2, EllipsisVertical } from "lucide-react";
-import SongContextMenu from "./SongContextMenu";
+import SongContextMenu from "@/components/ListSongs/SongContextMenu";
 
 export default function AlbumSong({
     song,
@@ -30,30 +30,22 @@ export default function AlbumSong({
 
     const [$songAtom] = useStore(song.atom);
 
-    const [songUnavaliable, setSongUnavaliable] = useState(true);
-    const [songPlaying, setSongPlaying] = useState(false);
-
-    useEffect(() => {
-        setSongUnavaliable(
+    const songUnavaliable = useMemo(() => {
+        return (
             ($networkStatus == "offline" &&
                 !$songsInIndexedDB?.includes($songAtom.publicId)) ||
-                !$songAtom.downloaded
+            !$songAtom.downloaded
         );
-    }, [
-        $songsInIndexedDB,
-        $networkStatus,
-        $songAtom.downloaded,
-        $songAtom.publicId,
-    ]);
+    }, [$songsInIndexedDB, $networkStatus, $songAtom.downloaded, $songAtom.publicId]);
 
-    useEffect(() => {
-        setSongPlaying(
+    const songPlaying = useMemo(() => {
+        return (
             $queue.find((song) => song.queueSongId == $currentQueueSongId)?.list
                 ?.publicId == $currentList?.publicId &&
-                $queue.find((song) => song.queueSongId == $currentQueueSongId)
-                    ?.list?.type == $currentList?.type &&
-                $queue.find((song) => song.queueSongId == $currentQueueSongId)
-                    ?.song.publicId == $songAtom.publicId
+            $queue.find((song) => song.queueSongId == $currentQueueSongId)
+                ?.list?.type == $currentList?.type &&
+            $queue.find((song) => song.queueSongId == $currentQueueSongId)
+                ?.song.publicId == $songAtom.publicId
         );
     }, [$songAtom.publicId, $currentList, $queue, $currentQueueSongId]);
 

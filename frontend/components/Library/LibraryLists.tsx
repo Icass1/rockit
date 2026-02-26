@@ -21,12 +21,12 @@ import {
     PlayCircle,
     Shuffle,
 } from "lucide-react";
-import ContextMenuContent from "../ContextMenu/Content";
-import ContextMenu from "../ContextMenu/ContextMenu";
-import ContextMenuOption from "../ContextMenu/Option";
-import ContextMenuSplitter from "../ContextMenu/Splitter";
-import ContextMenuTrigger from "../ContextMenu/Trigger";
-import PlayLibraryButton from "./PlayLibraryButton";
+import ContextMenuContent from "@/components/ContextMenu/Content";
+import ContextMenu from "@/components/ContextMenu/ContextMenu";
+import ContextMenuOption from "@/components/ContextMenu/Option";
+import ContextMenuSplitter from "@/components/ContextMenu/Splitter";
+import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
+import PlayLibraryButton from "@/components/Library/PlayLibraryButton";
 
 function AddListContextMenu({
     children,

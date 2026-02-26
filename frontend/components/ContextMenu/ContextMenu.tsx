@@ -5,6 +5,7 @@ import React, {
     useState,
     type ReactNode,
 } from "react";
+import { ContextMenuContext } from "@/components/ContextMenu/context";
 import type ContextMenuProps from "@/components/ContextMenu/Props";
 
 export default function ContextMenu({
@@ -21,10 +22,13 @@ export default function ContextMenu({
         0, 0,
     ]);
 
-    if (closeRef)
-        closeRef.current = () => {
-            _setContextMenuOpen(false);
-        };
+    useEffect(() => {
+        if (closeRef) {
+            closeRef.current = () => {
+                _setContextMenuOpen(false);
+            };
+        }
+    }, [closeRef]);
 
     useEffect(() => {
         if (onOpen) {
@@ -36,20 +40,17 @@ export default function ContextMenu({
         null
     ) as RefObject<HTMLDivElement>;
 
-    const childrenWithProps = React.Children.map(children, (child) => {
-        if (React.isValidElement(child)) {
-            const props: ContextMenuProps = {
-                _contextMenuOpen,
-                _setContextMenuOpen,
-                _contextMenuPos,
-                _setContextMenuPos,
-                _contextMenuDivRef,
-            };
+    const contextValue: ContextMenuProps = {
+        _contextMenuOpen,
+        _setContextMenuOpen,
+        _contextMenuPos,
+        _setContextMenuPos,
+        _contextMenuDivRef,
+    };
 
-            return React.cloneElement(child, props);
-        }
-        return child;
-    });
-
-    return childrenWithProps;
+    return (
+        <ContextMenuContext.Provider value={contextValue}>
+            {children}
+        </ContextMenuContext.Provider>
+    );
 }

@@ -1,6 +1,6 @@
 import { createArrayAtom } from "@/lib/store";
 import { DBListType } from "@/types/rockIt";
-import { SongWithAlbum } from "../rockit/rockItSongWithAlbum";
+import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
 
 export class IndexedDBManager {
     // #region: Atoms

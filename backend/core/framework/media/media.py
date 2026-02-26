@@ -19,7 +19,7 @@ from backend.core.responses.baseSongResponse import BaseSongResponse
 from backend.core.responses.baseAlbumResponse import BaseAlbumResponse
 from backend.core.responses.baseArtistResponse import BaseArtistResponse
 from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
-from backend.core.responses.searchResponse import BaseSearchItem, ProviderSearchResponse
+from backend.core.responses.searchResponse import BaseSearchResultsItem, ProviderSearchResultsResponse
 
 logger: Logger = getLogger(__name__)
 
@@ -114,10 +114,10 @@ class Media:
         return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
 
     @staticmethod
-    async def search_async(query: str, providers: Providers) -> AResult[List[ProviderSearchResponse]]:
-        """Search all providers and aggregate results into a ProviderSearchResponse list."""
+    async def search_async(query: str, providers: Providers) -> AResult[List[ProviderSearchResultsResponse]]:
+        """Search all providers and aggregate results into a ProviderSearchResultsResponse list."""
 
-        results: List[ProviderSearchResponse] = []
+        results: List[ProviderSearchResultsResponse] = []
 
         for provider in providers.get_providers():
             a_result_id: AResult[int] = provider.get_id()
@@ -125,13 +125,13 @@ class Media:
                 logger.error(f"Skipping provider with no id. {a_result_id.info()}")
                 continue
 
-            a_result: AResult[List[BaseSearchItem]] = await provider.search_async(query)
+            a_result: AResult[List[BaseSearchResultsItem]] = await provider.search_async(query)
             if a_result.is_not_ok():
                 if a_result.code() != AResultCode.NOT_IMPLEMENTED:
                     logger.error(f"Provider search error. {a_result.info()}")
                 continue
 
-            results.append(ProviderSearchResponse(
+            results.append(ProviderSearchResultsResponse(
                 provider=provider.get_name(),
                 items=a_result.result()))
 

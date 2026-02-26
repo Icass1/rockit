@@ -9,6 +9,9 @@ export const BaseSongResponseSchema = z.object({
     audioSrc: z.any(),
     downloaded: z.boolean(),
     internalImageUrl: z.string(),
+    duration: z.number(),
+    discNumber: z.number(),
+    trackNumber: z.number(),
     album: z.lazy(() => BaseSongAlbumResponseSchema),
 });
 

@@ -1,5 +1,5 @@
-import { ExternalImage } from "./externalImage";
-import { SongPlaylist } from "./songPlaylist";
+import { ExternalImage } from "@/lib/rockit/externalImage";
+import { SongPlaylist } from "@/lib/rockit/songPlaylist";
 
 export class Playlist {
     static #instance: Playlist[] = [];

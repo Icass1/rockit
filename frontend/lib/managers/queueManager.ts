@@ -1,18 +1,16 @@
+import { QueueResponseSchema } from "@/dto";
+import { DBListType, QueueListType } from "@/types/rockIt";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { SongQueue } from "@/lib/rockit/songQueue";
+import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
 import { createArrayAtom, createAtom } from "@/lib/store";
 import apiFetch from "@/lib/utils/apiFetch";
-import { QueueResponse } from "@/dto/queueResponse";
-import { DBListType, QueueListType } from "@/types/rockIt";
-import { SongQueue } from "../rockit/rockItSongQueue";
-import { SongWithAlbum } from "../rockit/rockItSongWithAlbum";
 
 export class QueueManager {
     // #region: Atoms
 
     private _currentSongAtom = createAtom<SongWithAlbum | undefined>();
-    private _currentListAtom = createAtom<
-        { type: QueueListType; publicId: string } | undefined
-    >();
+    private _currentListAtom = createAtom<string | undefined>();
 
     private _queueAtom = createArrayAtom<SongQueue>([]);
     private _currentQueueSongIdAtom = createAtom<number | null>(0);
@@ -38,7 +36,7 @@ export class QueueManager {
             return;
         }
 
-        const responseParsed = QueueResponse.parse(await response.json());
+        const responseParsed = QueueResponseSchema.parse(await response.json());
 
         this._currentQueueSongIdAtom.set(responseParsed.currentQueueSongId);
         this._queueAtom.set(
@@ -46,7 +44,7 @@ export class QueueManager {
                 return {
                     song: SongWithAlbum.fromResponse(queueElement.song),
                     queueSongId: queueElement.queueSongId,
-                    list: queueElement.list,
+                    list: queueElement.list.publicId,
                 };
             })
         );
@@ -87,7 +85,7 @@ export class QueueManager {
         this._queueAtom.set(
             songs.map((song, index) => {
                 return {
-                    list: { type: listType, publicId: listPublicId },
+                    list: listPublicId,
                     song,
                     queueSongId: index,
                 };
@@ -129,7 +127,7 @@ export class QueueManager {
         this._currentListAtom.set(song.list);
     }
 
-    setCurrentList(currentList: { type: QueueListType; publicId: string }) {
+    setCurrentList(currentList: string | undefined) {
         this._currentListAtom.set(currentList);
     }
 

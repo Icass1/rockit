@@ -15,7 +15,7 @@ from backend.core.responses.baseSongResponse import BaseSongResponse
 from backend.core.responses.baseAlbumResponse import BaseAlbumResponse
 from backend.core.responses.baseArtistResponse import BaseArtistResponse
 from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
-from backend.core.responses.searchResponse import ProviderSearchResponse
+from backend.core.responses.searchResponse import ProviderSearchResultsResponse
 
 logger: Logger = getLogger(__name__)
 router = APIRouter(prefix="/media")
@@ -82,10 +82,10 @@ async def get_playlist(public_id: str) -> BasePlaylistResponse:
 
 
 @router.get("/search")
-async def search(q: str) -> List[ProviderSearchResponse]:
+async def search(q: str) -> List[ProviderSearchResultsResponse]:
     """Search all providers and return aggregated results."""
 
-    a_result: AResult[List[ProviderSearchResponse]] = await Media.search_async(
+    a_result: AResult[List[ProviderSearchResultsResponse]] = await Media.search_async(
         query=q,
         providers=providers)
     if a_result.is_not_ok():

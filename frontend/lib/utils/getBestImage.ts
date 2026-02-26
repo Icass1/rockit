@@ -1,4 +1,4 @@
-import { ExternalImage } from "../rockit/rockItExternalImage";
+import { ExternalImage } from "@/lib/rockit/externalImage";
 
 export function getBestImage(images: ExternalImage[]) {
     if (images.length === 0) {

@@ -1,13 +1,12 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export default function useDev() {
-    const [dev, setDev] = useState(false);
-
-    useEffect(() => {
-        setDev(
+    const [dev] = useState(() => {
+        if (typeof window === "undefined") return false;
+        return (
             window.location.hostname == "localhost" ||
-                window.location.hostname == ""
+            window.location.hostname == ""
         );
-    }, []);
+    });
     return dev;
 }

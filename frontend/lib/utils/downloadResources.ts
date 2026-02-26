@@ -1,5 +1,5 @@
 import type { Dispatch, SetStateAction } from "react";
-import { openRockItIndexedDB } from "./indexedDB";
+import { openRockItIndexedDB } from "@/lib/utils/indexedDB";
 
 export async function downloadFile(
     url: string,

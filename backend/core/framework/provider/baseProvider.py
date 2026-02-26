@@ -6,7 +6,7 @@ from backend.core.responses.baseAlbumResponse import BaseAlbumResponse
 from backend.core.responses.baseArtistResponse import BaseArtistResponse
 from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
 from backend.core.responses.baseSongResponse import BaseSongResponse
-from backend.core.responses.searchResponse import BaseSearchItem
+from backend.core.responses.searchResponse import BaseSearchResultsItem
 from backend.utils.logger import getLogger
 
 
@@ -49,7 +49,7 @@ class BaseProvider:
         logger.warning(f"Provider '{self._name}' doesn't implement start_download_async method.")
         return AResult(code=AResultCode.NOT_IMPLEMENTED, message=f"Provider '{self._name}' doesn't implement start_download_async method.")
 
-    async def search_async(self, query: str) -> AResult[List[BaseSearchItem]]:
+    async def search_async(self, query: str) -> AResult[List[BaseSearchResultsItem]]:
         """TODO"""
         logger.warning(
             f"Provider '{self._name} doesn't implement search method.'")

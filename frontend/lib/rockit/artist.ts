@@ -1,5 +1,5 @@
 import { BaseArtistResponseSchema } from "@/dto/baseArtistResponse";
-import { ExternalImage } from "./externalImage";
+import { ExternalImage } from "@/lib/rockit/externalImage";
 
 export class Artist {
     public readonly publicId: string;

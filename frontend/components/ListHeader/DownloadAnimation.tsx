@@ -1,11 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
 const DownloadAnimation = ({ progress = 0 }) => {
-    const [isAnimating, setIsAnimating] = useState(false);
-
-    useEffect(() => {
-        setIsAnimating(true);
-    }, []);
+    const [isAnimating] = useState(true);
 
     const circleProgress = Math.min(Math.max(progress, 0), 100);
     const circumference = 2 * Math.PI * 45;

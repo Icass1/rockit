@@ -1,37 +1,15 @@
 import type { ReactNode } from "react";
-import React from "react";
-import type ContextMenuProps from "@/components/ContextMenu/Props";
+import { useContextMenu } from "@/components/ContextMenu/context";
+import { useSubContextMenu } from "@/components/ContextMenu/SubContextMenu/context";
 import PosAfterRenderDiv from "@/components/PosAfterRenderDiv";
-import type SubContextMenuProps from "./Props";
 
 export default function SubContextMenuContent({
     children,
-    _contextMenuPos,
-    _contextMenuDivRef,
-    _setContextMenuOpen,
-    _setContextMenuPos,
-    _contextMenuOpen,
-    _triggerRef,
-    _hover,
-    _setHover,
-}: ContextMenuProps &
-    SubContextMenuProps & {
-        children: ReactNode[] | ReactNode;
-    }) {
-    const childrenWithProps = React.Children.map(children, (child) => {
-        if (React.isValidElement(child)) {
-            const props: ContextMenuProps = {
-                _contextMenuOpen,
-                _setContextMenuOpen,
-                _contextMenuPos,
-                _setContextMenuPos,
-                _contextMenuDivRef,
-            };
-
-            return React.cloneElement(child, props);
-        }
-        return child;
-    });
+}: {
+    children: ReactNode[] | ReactNode;
+}) {
+    const { _contextMenuPos, _contextMenuDivRef, _setContextMenuOpen, _setContextMenuPos, _contextMenuOpen } = useContextMenu();
+    const { _triggerRef, _hover, _setHover } = useSubContextMenu();
 
     const updatePos: (width: number, height: number) => [number, number] = (
         width: number
@@ -81,7 +59,7 @@ export default function SubContextMenuContent({
             }}
         >
             <div className="flex flex-col gap-y-1 overflow-y-auto py-20 md:h-fit md:py-0">
-                {childrenWithProps}
+                {children}
             </div>
         </PosAfterRenderDiv>
     );

@@ -6,7 +6,7 @@ from backend.spotify.responses.songResponse import SongResponse
 from backend.utils.logger import getLogger
 
 from backend.core.aResult import AResult, AResultCode
-from backend.core.responses.searchResponse import BaseSearchItem
+from backend.core.responses.searchResponse import BaseSearchResultsItem
 from backend.core.responses.baseSongResponse import BaseSongResponse
 from backend.core.responses.baseAlbumResponse import BaseAlbumResponse
 from backend.core.responses.baseArtistResponse import BaseArtistResponse
@@ -49,10 +49,10 @@ class SpotifyProvider(BaseProvider):
             enum_class=CopyrightTypeEnum,
             table=CopyrightTypeEnumRow)
 
-    async def search_async(self, query: str) -> AResult[List[BaseSearchItem]]:
+    async def search_async(self, query: str) -> AResult[List[BaseSearchResultsItem]]:
         """Search Spotify and return a list of search items."""
 
-        a_result: AResult[List[BaseSearchItem]] = await Spotify.search_async(query)
+        a_result: AResult[List[BaseSearchResultsItem]] = await Spotify.search_async(query)
         if a_result.is_not_ok():
             logger.error(f"Error searching Spotify. {a_result.info()}")
             return AResult(code=a_result.code(), message=a_result.message())

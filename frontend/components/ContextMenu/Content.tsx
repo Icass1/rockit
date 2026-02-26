@@ -3,26 +3,29 @@
 import type { ReactNode } from "react";
 import React from "react";
 import Image from "next/image";
+import { useContextMenu } from "@/components/ContextMenu/context";
 import PosAfterRenderDiv from "@/components/PosAfterRenderDiv";
 import useWindowSize from "@/hooks/useWindowSize";
-import type ContextMenuProps from "./Props";
 
 export default function ContextMenuContent({
     children,
-    _contextMenuOpen,
-    _contextMenuPos,
-    _contextMenuDivRef,
-    _setContextMenuOpen,
-    _setContextMenuPos,
     cover,
     title,
     description,
-}: ContextMenuProps & {
+}: {
     children?: ReactNode;
     cover?: string | undefined;
     title?: string | undefined;
     description?: string | undefined;
 }) {
+    const {
+        _contextMenuOpen,
+        _contextMenuPos,
+        _contextMenuDivRef,
+        _setContextMenuOpen,
+        _setContextMenuPos,
+    } = useContextMenu();
+
     const updatePos = (
         contextMenuPos: [number, number],
         width: number,
@@ -45,21 +48,6 @@ export default function ContextMenuContent({
     };
 
     const innerWidth = useWindowSize().width;
-
-    const childrenWithProps = React.Children.map(children, (child) => {
-        if (React.isValidElement(child)) {
-            const props: ContextMenuProps = {
-                _contextMenuOpen,
-                _setContextMenuOpen,
-                _contextMenuPos,
-                _setContextMenuPos,
-                _contextMenuDivRef,
-            };
-
-            return React.cloneElement(child, props);
-        }
-        return child;
-    });
 
     if (!_contextMenuPos) return;
     if (!_contextMenuOpen) return;
@@ -101,7 +89,7 @@ export default function ContextMenuContent({
                         {description}
                     </label>
                 )}
-                {childrenWithProps}
+                {children}
                 <div className="min-h-2 md:hidden"></div>
             </div>
         </PosAfterRenderDiv>

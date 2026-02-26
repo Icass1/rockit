@@ -1,8 +1,8 @@
 import { BaseArtistResponseSchema } from "@/dto/baseArtistResponse";
 import { BaseSongAlbumResponseSchema } from "@/dto/baseSongAlbumResponse";
 import { ExternalImageResponseSchema } from "@/dto/externalImageResponse";
-import { Artist } from "./artist";
-import { ExternalImage } from "./externalImage";
+import { Artist } from "@/lib/rockit/artist";
+import { ExternalImage } from "@/lib/rockit/externalImage";
 
 export class AlbumWithoutSongs {
     public readonly publicId: string;

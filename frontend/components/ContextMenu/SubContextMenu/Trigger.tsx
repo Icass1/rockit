@@ -1,18 +1,19 @@
 import type { ReactNode } from "react";
 import { ChevronRight } from "lucide-react";
-import type SubContextMenuProps from "./Props";
+import type SubContextMenuProps from "@/components/ContextMenu/SubContextMenu/Props";
+import { useSubContextMenu } from "@/components/ContextMenu/SubContextMenu/context";
 
 export default function SubContextMenuTrigger({
     children,
     className,
     disable,
-    _triggerRef,
-    _setHover,
 }: SubContextMenuProps & {
     children: ReactNode[];
     className?: string;
     disable?: boolean;
 }) {
+    const { _triggerRef, _setHover } = useSubContextMenu();
+
     return (
         <div
             ref={_triggerRef}

@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { rockIt } from "@/lib/rockit/rockIt";
-import UsernameInput from "./UsernameInput";
+import UsernameInput from "@/components/Auth/UsernameInput";
 
 export default function SignupModal() {
     const router = useRouter();

@@ -1,11 +1,11 @@
 "use client";
 
 import Image from "next/image";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useSearchResults } from "@/components/Search/hooks/useSearchResults";
 import SearchBarInput from "@/components/Search/SearchBarInput";
 import AlbumsSection from "@/components/Search/sections/AlbumsSection";
 import SongsSection from "@/components/Search/sections/SongsSection";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 function EmptyState() {
     const { langFile: lang } = useLanguage();
@@ -45,7 +45,7 @@ function SearchResults() {
         );
     }
 
-    if (!results?.spotifyResults) {
+    if (!results?.results) {
         return (
             <p className="mx-10 block text-center text-sm font-bold text-red-500">
                 It seems there was an error searching your music.
@@ -55,8 +55,8 @@ function SearchResults() {
 
     return (
         <div className="overflow-y-auto pt-0 md:pt-24">
-            <SongsSection songs={results.spotifyResults.songs} />
-            <AlbumsSection albums={results.spotifyResults.albums} />
+            <SongsSection songs={[]} />
+            <AlbumsSection albums={[]} />
         </div>
     );
 }

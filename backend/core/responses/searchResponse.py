@@ -2,17 +2,24 @@ from typing import List, Literal
 from pydantic import BaseModel
 
 
-class BaseSearchItem(BaseModel):
-    type: Literal["album", "playlist", "artist", "track"]
-    title: str
-    subTitle: str
+class ArtistSearchResultsItem(BaseModel):
+    name: str
     url: str
 
 
-class ProviderSearchResponse(BaseModel):
+class BaseSearchResultsItem(BaseModel):
+    type: Literal["album", "playlist", "artist", "song"]
+    title: str
+    url: str
+    imageUrl: str
+    publicId: str
+    artists: List[ArtistSearchResultsItem]
+
+
+class ProviderSearchResultsResponse(BaseModel):
     provider: str
-    items: List[BaseSearchItem]
+    items: List[BaseSearchResultsItem]
 
 
-class SearchResponse(BaseModel):
-    results: List[ProviderSearchResponse]
+class SearchResultsResponse(BaseModel):
+    results: List[ProviderSearchResultsResponse]

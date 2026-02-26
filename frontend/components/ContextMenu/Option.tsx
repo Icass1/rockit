@@ -1,10 +1,9 @@
 import type { MouseEventHandler, ReactNode } from "react";
-import type ContextMenuProps from "@/components/ContextMenu/Props";
+import { useContextMenu } from "@/components/ContextMenu/context";
 
 export default function ContextMenuOption({
     children,
     onClick,
-    _setContextMenuOpen,
     className,
     closeOnClick = true,
     disable = false,
@@ -14,7 +13,9 @@ export default function ContextMenuOption({
     closeOnClick?: boolean;
     className?: string;
     disable?: boolean;
-} & ContextMenuProps) {
+}) {
+    const { _setContextMenuOpen } = useContextMenu();
+
     return (
         <div
             onClick={(e) => {

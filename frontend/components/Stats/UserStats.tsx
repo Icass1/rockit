@@ -9,8 +9,8 @@ import { UserStatsResponse } from "@/dto/stats/userStatsResponse";
 import useDev from "@/hooks/useDev";
 import useFetch from "@/hooks/useFetch";
 import pkg from "lodash";
-import BarGraph from "./BarGraph";
-import VerticalBarGraph from "./VerticalBarGraph";
+import BarGraph from "@/components/Stats/BarGraph";
+import VerticalBarGraph from "@/components/Stats/VerticalBarGraph";
 
 export default function UserStats() {
     const today = new Date();

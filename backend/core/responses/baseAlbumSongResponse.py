@@ -12,4 +12,6 @@ class BaseAlbumSongResponse(BaseModel):
     audioSrc: str | None
     downloaded: bool
     internalImageUrl: str
-    
+    duration: int
+    discNumber: int
+    trackNumber: int

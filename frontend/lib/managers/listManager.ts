@@ -2,8 +2,8 @@ import { RESPONSE_UNDEFINED_MESSAGE, rockIt } from "@/lib/rockit/rockIt";
 import { createArrayAtom } from "@/lib/store";
 import apiFetch from "@/lib/utils/apiFetch";
 import { DBListType } from "@/types/rockIt";
-import { AlbumWithoutSongs } from "../rockit/rockItAlbumWithoutSongs";
-import { Playlist } from "../rockit/rockItPlaylist";
+import { AlbumWithoutSongs } from "@/lib/rockit/albumWithoutSongs";
+import { Playlist } from "@/lib/rockit/playlist";
 
 export class ListManager {
     private _libraryListsAtom = createArrayAtom<{

@@ -2,15 +2,15 @@
 
 import { useEffect, useRef } from "react";
 import Image from "next/image";
-import { rockIt } from "@/lib/rockit/rockIt";
-import { SongWithoutAlbum } from "@/lib/rockit/songWithoutAlbum";
-import { useCarousel } from "@/components/Home/hooks/useCarousel";
-import { songHandleClick } from "@/components/ListSongs/HandleClick";
-import { StatsResponse } from "@/dto/stats/statsResponse";
+import { StatsResponseSchema } from "@/dto";
 import useFetch from "@/hooks/useFetch";
 import useWindowSize from "@/hooks/useWindowSize";
 import { useStore } from "@nanostores/react";
 import { ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
+import { rockIt } from "@/lib/rockit/rockIt";
+import { SongWithoutAlbum } from "@/lib/rockit/songWithoutAlbum";
+import { useCarousel } from "@/components/Home/hooks/useCarousel";
+import { songHandleClick } from "@/components/ListSongs/HandleClick";
 
 // Constantes de layout
 const MOBILE_OFFSET = 15;
@@ -74,10 +74,7 @@ function CarouselSong({
     const isPlaying = $currentSong?.publicId === song.publicId && $playing;
 
     const handlePlay = () => {
-        rockIt.queueManager.setCurrentList({
-            type: "carousel",
-            publicId: "carousel",
-        });
+        rockIt.queueManager.setCurrentList("carousel");
         songHandleClick(song, songs);
     };
 
@@ -144,15 +141,13 @@ function CarouselSong({
 export default function SongsCarousel() {
     const [rawSongs] = useFetch(
         "/stats?type=songs&limit=20&sortBy=random&noRepeat=true",
-        StatsResponse
+        StatsResponseSchema
     );
     const { width } = useWindowSize();
     const isMobile = (width ?? 0) < 768;
     const containerRef = useRef<HTMLDivElement>(null);
 
-    const songs = rawSongs
-        ? (rawSongs as unknown as SongWithoutAlbum[])
-        : null;
+    const songs = rawSongs?.songs;
 
     const { currentIndex, next, prev, onTouchStart, onTouchMove, onTouchEnd } =
         useCarousel(songs?.length ?? 0);

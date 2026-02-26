@@ -4,9 +4,7 @@ import { redirect } from "next/navigation";
 import { Lang } from "@/types/lang";
 import { RotateCw } from "lucide-react";
 import { getUserInServer } from "@/lib/getUserInServer";
-import { rockIt } from "@/lib/rockit/rockIt";
 import ClearDownloads from "@/components/Downloader/ClearDownloads";
-import DownloadElement from "@/components/Downloader/DownloadElement";
 import InputBar from "@/components/Downloader/InputBar";
 import SongsStatus from "@/components/Downloader/SongsStatus";
 
@@ -28,7 +26,7 @@ export default async function Downloads() {
     const language = await getLanguage();
     const lang = language.langFile;
 
-    const downloads = await rockIt.downloaderManager.getDownloadsAsync();
+    // const downloads = await rockIt.downloaderManager.getDownloadsAsync();
 
     return (
         <div className="grid h-full grid-cols-2 gap-x-10 overflow-y-auto px-10 md:pb-24 md:pt-24">
@@ -67,7 +65,8 @@ export default async function Downloads() {
                     <ClearDownloads></ClearDownloads>
                 </div>
                 <div className="flex flex-col gap-2">
-                    {downloads.map((download) => {
+                    <label>TODO</label>
+                    {/* {downloads.map((download) => {
                         if (!download) return false;
 
                         return (
@@ -76,13 +75,13 @@ export default async function Downloads() {
                                 download={download}
                             />
                         );
-                    })}
+                    })}*/}
                 </div>
-                {downloads.length == 0 && (
+                {/* {downloads.length == 0 && (
                     <label className="mx-auto block w-fit text-xl font-semibold text-neutral-300">
                         There is nothing to show here
                     </label>
-                )}
+                )} */}
                 <div className="min-h-10" />
             </div>
             <div className="sticky top-0 h-fit w-full min-w-0 max-w-full rounded bg-neutral-900 p-2">

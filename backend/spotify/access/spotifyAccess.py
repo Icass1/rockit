@@ -881,3 +881,34 @@ class SpotifyAccess:
                 code=AResultCode.GENERAL_ERROR,
                 message=f"Failed to get genres from artist: {e}",
             )
+
+    @staticmethod
+    async def get_playlist_track_links_async(
+        playlist_id: int, session: AsyncSession | None = None
+    ) -> AResult[List[Tuple[PlaylistTrackRow, TrackRow]]]:
+        try:
+            async with rockit_db.session_scope_or_session_async(session) as session:
+                stmt = select(PlaylistTrackRow).where(
+                    PlaylistTrackRow.playlist_id == playlist_id
+                )
+                result: Result[Tuple[PlaylistTrackRow]] = await session.execute(stmt)
+                playlist_track_rows: List[PlaylistTrackRow] = cast(
+                    List[PlaylistTrackRow], result.scalars().all()
+                )
+
+                track_links: List[Tuple[PlaylistTrackRow, TrackRow]] = []
+                for ptr in playlist_track_rows:
+                    track_stmt = select(TrackRow).where(TrackRow.id == ptr.song_id)
+                    track_result = await session.execute(track_stmt)
+                    track_row: TrackRow | None = track_result.scalar_one_or_none()
+                    if track_row:
+                        track_links.append((ptr, track_row))
+
+                return AResult(code=AResultCode.OK, message="OK", result=track_links)
+
+        except Exception as e:
+            logger.error(f"Failed to get playlist track links: {e}")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to get playlist track links: {e}",
+            )

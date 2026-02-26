@@ -25,7 +25,7 @@ export class UserManager {
             console.warn("No session found in UserManager");
         }
 
-        this._userAtom.set(session);
+        this._userAtom.set(User.fromResponse(session));
     }
 
     // #endregion

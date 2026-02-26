@@ -20,7 +20,7 @@ import {
     PopupMenuContent,
     PopupMenuOption,
     PopupMenuTrigger,
-} from "@/components/PopupMenu/PopupMenu";
+} from "@/components/PopupMenu";
 
 export default function ListOptions({
     type,

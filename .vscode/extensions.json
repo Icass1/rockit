@@ -10,6 +10,7 @@
         "ms-python.autopep8",
         "usernamehw.errorlens",
         "ms-python.black-formatter",
+        "yoavbls.pretty-ts-errors",
     ],
     "unwantedRecommendations": []
 }

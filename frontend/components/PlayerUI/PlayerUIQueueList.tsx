@@ -39,7 +39,6 @@ function buildAutoSong(mock: (typeof AUTO_PLAY_MOCKS)[number], idx: number) {
             duration: 123,
             downloaded: true,
             album: new AlbumWithoutSongs({
-                externalImages: [],
                 name: "Album 1",
                 publicId: "",
                 artists: [],
@@ -50,7 +49,7 @@ function buildAutoSong(mock: (typeof AUTO_PLAY_MOCKS)[number], idx: number) {
             audioUrl: null,
         }),
         queueSongId: idx,
-        list: { type: "auto-list", publicId: "auto-list" },
+        list: "auto-list",
     });
 }
 

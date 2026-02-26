@@ -24,7 +24,7 @@ class UserRow(
     __tablename__ = "user"
     __table_args__ = ({"schema": "core", "extend_existing": True},)
 
-    username: Mapped[str | None] = mapped_column(String, nullable=False, unique=True)
+    username: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     password_hash: Mapped[str | None] = mapped_column(String, nullable=True)
     provider: Mapped[str | None] = mapped_column(String, nullable=True)
     provider_account_id: Mapped[str | None] = mapped_column(String, nullable=True)
@@ -40,8 +40,8 @@ class UserRow(
         DOUBLE_PRECISION, nullable=False, default=0
     )
     lang: Mapped[str] = mapped_column(String, nullable=False, default="en")
-    image: Mapped[str | None] = mapped_column(
-        String, nullable=True, default="user-placeholder.png"
+    image: Mapped[str] = mapped_column(
+        String, nullable=False, default="user-placeholder.png"
     )
     admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     super_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
@@ -62,7 +62,7 @@ class UserRow(
     def __init__(
         self,
         public_id: str,
-        username: str | None,
+        username: str,
         password_hash: str | None = None,
         provider: str | None = None,
         provider_account_id: str | None = None,
@@ -74,7 +74,7 @@ class UserRow(
         volume: float = 1,
         cross_fade: float = 0,
         lang: str = "en",
-        image: str | None = None,
+        image: str = "user-placeholder.png",
         admin: bool = False,
         super_admin: bool = False,
     ):

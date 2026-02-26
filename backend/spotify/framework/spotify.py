@@ -10,16 +10,22 @@ from backend.core.access.db.ormModels.song import CoreSongRow
 from backend.core.access.db.ormModels.image import ImageRow
 from backend.core.access.mediaAccess import MediaAccess
 
-from backend.core.responses.searchResponse import BaseSearchResultsItem, ArtistSearchResultsItem
+from backend.core.responses.searchResponse import (
+    BaseSearchResultsItem,
+    ArtistSearchResultsItem,
+)
 from backend.core.responses.baseArtistResponse import BaseArtistResponse
 from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
 from backend.core.responses.baseSongAlbumResponse import BaseSongAlbumResponse
+from backend.core.responses.baseSongPlaylistResponse import BaseSongPlaylistResponse
+from backend.core.responses.baseSongResponse import BaseSongResponse
 
 from backend.spotify.access.spotifyAccess import SpotifyAccess
 from backend.spotify.access.db.ormModels.album import AlbumRow
 from backend.spotify.access.db.ormModels.track import TrackRow
 from backend.spotify.access.db.ormModels.artist import ArtistRow
 from backend.spotify.access.db.ormModels.externalImage import ExternalImageRow
+from backend.spotify.access.db.ormModels.playlist_tracks import PlaylistTrackRow
 
 from backend.spotify.framework.spotifyApi import spotify_api
 
@@ -1168,7 +1174,168 @@ class Spotify:
         )
         if a_result_playlist.is_ok():
             playlist_row: SpotifyPlaylistRow = a_result_playlist.result()
-            logger.critical("TODO")
+
+            internal_image_url: str = ""
+            if playlist_row.internal_image_id:
+                a_result_image: AResult[ImageRow] = (
+                    await MediaAccess.get_image_from_id_async(
+                        id=playlist_row.internal_image_id
+                    )
+                )
+                if a_result_image.is_ok():
+                    internal_image_url = (
+                        f"{BACKEND_URL}/media/image/{a_result_image.result().public_id}"
+                    )
+
+            playlist_track_links: List[Tuple[PlaylistTrackRow, TrackRow]] = []
+            a_result_track_links = await SpotifyAccess.get_playlist_track_links_async(
+                playlist_id=playlist_row.id
+            )
+            if a_result_track_links.is_ok():
+                playlist_track_links = a_result_track_links.result()
+
+            song_responses: List[BaseSongPlaylistResponse] = []
+            for playlist_track_row, track_row in playlist_track_links:
+                a_result_core_song: AResult[CoreSongRow] = (
+                    await MediaAccess.get_song_from_id_async(id=track_row.id)
+                )
+                if a_result_core_song.is_not_ok():
+                    continue
+
+                core_song: CoreSongRow = a_result_core_song.result()
+
+                track_artists: List[ArtistRow] = []
+                a_result_track_artists: AResult[List[ArtistRow]] = (
+                    await SpotifyAccess.get_artists_from_track_row_async(
+                        track_row=track_row
+                    )
+                )
+                if a_result_track_artists.is_ok():
+                    track_artists = a_result_track_artists.result()
+
+                track_artist_responses: List[BaseArtistResponse] = []
+                for ta in track_artists:
+                    ta_image_url: str = ""
+                    if ta.internal_image_id:
+                        a_result_ta_image: AResult[ImageRow] = (
+                            await MediaAccess.get_image_from_id_async(
+                                id=ta.internal_image_id
+                            )
+                        )
+                        if a_result_ta_image.is_ok():
+                            ta_image_url = f"{BACKEND_URL}/media/image/{a_result_ta_image.result().public_id}"
+
+                    a_result_ta_genres: AResult[List[str]] = (
+                        await SpotifyAccess.get_genres_from_artist_async(artist=ta)
+                    )
+                    ta_genres: List[str] = (
+                        a_result_ta_genres.result()
+                        if a_result_ta_genres.is_ok()
+                        else []
+                    )
+
+                    track_artist_responses.append(
+                        BaseArtistResponse(
+                            provider=Spotify.provider_name,
+                            publicId=ta.spotify_id,
+                            name=ta.name,
+                            internalImageUrl=ta_image_url,
+                            genres=ta_genres,
+                        )
+                    )
+
+                track_internal_image_url: str = ""
+                if track_row.internal_image_id:
+                    a_result_track_image: AResult[ImageRow] = (
+                        await MediaAccess.get_image_from_id_async(
+                            id=track_row.internal_image_id
+                        )
+                    )
+                    if a_result_track_image.is_ok():
+                        track_internal_image_url = f"{BACKEND_URL}/media/image/{a_result_track_image.result().public_id}"
+
+                is_downloaded: bool = track_row.path is not None
+                audio_src: str | None = None
+                if is_downloaded:
+                    audio_src = f"{BACKEND_URL}/spotify/audio/{track_row.spotify_id}"
+
+                album_row: AlbumRow = track_row.album
+                album_internal_image_url: str = ""
+                if album_row.internal_image_id:
+                    a_result_album_image: AResult[ImageRow] = (
+                        await MediaAccess.get_image_from_id_async(
+                            id=album_row.internal_image_id
+                        )
+                    )
+                    if a_result_album_image.is_ok():
+                        album_internal_image_url = f"{BACKEND_URL}/media/image/{a_result_album_image.result().public_id}"
+
+                album_artists: List[ArtistRow] = []
+                a_result_album_artists: AResult[List[ArtistRow]] = (
+                    await SpotifyAccess.get_artists_from_album_id_async(
+                        album_id=album_row.id
+                    )
+                )
+                if a_result_album_artists.is_ok():
+                    album_artists = a_result_album_artists.result()
+
+                album_artist_responses: List[BaseArtistResponse] = []
+                for aa in album_artists:
+                    aa_image_url: str = ""
+                    if aa.internal_image_id:
+                        a_result_aa_image: AResult[ImageRow] = (
+                            await MediaAccess.get_image_from_id_async(
+                                id=aa.internal_image_id
+                            )
+                        )
+                        if a_result_aa_image.is_ok():
+                            aa_image_url = f"{BACKEND_URL}/media/image/{a_result_aa_image.result().public_id}"
+
+                    a_result_aa_genres: AResult[List[str]] = (
+                        await SpotifyAccess.get_genres_from_artist_async(artist=aa)
+                    )
+                    aa_genres: List[str] = (
+                        a_result_aa_genres.result()
+                        if a_result_aa_genres.is_ok()
+                        else []
+                    )
+
+                    album_artist_responses.append(
+                        BaseArtistResponse(
+                            provider=Spotify.provider_name,
+                            publicId=aa.spotify_id,
+                            name=aa.name,
+                            internalImageUrl=aa_image_url,
+                            genres=aa_genres,
+                        )
+                    )
+
+                song_responses.append(
+                    BaseSongPlaylistResponse(
+                        song=BaseSongResponse(
+                            provider=Spotify.provider_name,
+                            publicId=core_song.public_id,
+                            name=track_row.name,
+                            artists=track_artist_responses,
+                            audioSrc=audio_src,
+                            downloaded=is_downloaded,
+                            internalImageUrl=track_internal_image_url,
+                            duration=track_row.duration,
+                            discNumber=track_row.disc_number,
+                            trackNumber=track_row.track_number,
+                            album=BaseSongAlbumResponse(
+                                provider=Spotify.provider_name,
+                                publicId=album_row.spotify_id,
+                                name=album_row.name,
+                                artists=album_artist_responses,
+                                releaseDate=album_row.release_date,
+                                internalImageUrl=album_internal_image_url,
+                            ),
+                        ),
+                        addedAt=playlist_track_row.added_at,
+                    )
+                )
+
             return AResult(
                 code=AResultCode.OK,
                 message="OK",
@@ -1176,6 +1343,9 @@ class Spotify:
                     provider=Spotify.provider_name,
                     publicId=spotify_id,
                     name=playlist_row.name,
+                    songs=song_responses,
+                    internalImageUrl=internal_image_url,
+                    owner=playlist_row.owner,
                 ),
             )
         if a_result_playlist.code() != AResultCode.NOT_FOUND:
@@ -1322,7 +1492,174 @@ class Spotify:
                 message=f"Failed to populate playlist in DB: {e}",
             )
 
-        logger.critical("TODO")
+        a_result_fetched_playlist: AResult[SpotifyPlaylistRow] = (
+            await SpotifyAccess.get_playlist_public_id_async(spotify_id=spotify_id)
+        )
+        if a_result_fetched_playlist.is_not_ok():
+            return AResult(
+                code=a_result_fetched_playlist.code(),
+                message=a_result_fetched_playlist.message(),
+            )
+
+        fetched_playlist_row: SpotifyPlaylistRow = a_result_fetched_playlist.result()
+
+        fetched_internal_image_url: str = ""
+        if fetched_playlist_row.internal_image_id:
+            a_result_fetched_image: AResult[ImageRow] = (
+                await MediaAccess.get_image_from_id_async(
+                    id=fetched_playlist_row.internal_image_id
+                )
+            )
+            if a_result_fetched_image.is_ok():
+                fetched_internal_image_url = f"{BACKEND_URL}/media/image/{a_result_fetched_image.result().public_id}"
+
+        fetched_playlist_track_links: List[Tuple[PlaylistTrackRow, TrackRow]] = []
+        a_result_fetched_track_links = (
+            await SpotifyAccess.get_playlist_track_links_async(
+                playlist_id=fetched_playlist_row.id
+            )
+        )
+        if a_result_fetched_track_links.is_ok():
+            fetched_playlist_track_links = a_result_fetched_track_links.result()
+
+        fetched_song_responses: List[BaseSongPlaylistResponse] = []
+        for playlist_track_row, track_row in fetched_playlist_track_links:
+            a_result_core_song: AResult[CoreSongRow] = (
+                await MediaAccess.get_song_from_id_async(id=track_row.id)
+            )
+            if a_result_core_song.is_not_ok():
+                continue
+
+            core_song: CoreSongRow = a_result_core_song.result()
+
+            track_artists: List[ArtistRow] = []
+            a_result_track_artists: AResult[List[ArtistRow]] = (
+                await SpotifyAccess.get_artists_from_track_row_async(
+                    track_row=track_row
+                )
+            )
+            if a_result_track_artists.is_ok():
+                track_artists = a_result_track_artists.result()
+
+            track_artist_responses: List[BaseArtistResponse] = []
+            for ta in track_artists:
+                ta_image_url: str = ""
+                if ta.internal_image_id:
+                    a_result_ta_image: AResult[ImageRow] = (
+                        await MediaAccess.get_image_from_id_async(
+                            id=ta.internal_image_id
+                        )
+                    )
+                    if a_result_ta_image.is_ok():
+                        ta_image_url = f"{BACKEND_URL}/media/image/{a_result_ta_image.result().public_id}"
+
+                a_result_ta_genres: AResult[List[str]] = (
+                    await SpotifyAccess.get_genres_from_artist_async(artist=ta)
+                )
+                ta_genres: List[str] = (
+                    a_result_ta_genres.result() if a_result_ta_genres.is_ok() else []
+                )
+
+                track_artist_responses.append(
+                    BaseArtistResponse(
+                        provider=Spotify.provider_name,
+                        publicId=ta.spotify_id,
+                        name=ta.name,
+                        internalImageUrl=ta_image_url,
+                        genres=ta_genres,
+                    )
+                )
+
+            track_internal_image_url: str = ""
+            if track_row.internal_image_id:
+                a_result_track_image: AResult[ImageRow] = (
+                    await MediaAccess.get_image_from_id_async(
+                        id=track_row.internal_image_id
+                    )
+                )
+                if a_result_track_image.is_ok():
+                    track_internal_image_url = f"{BACKEND_URL}/media/image/{a_result_track_image.result().public_id}"
+
+            is_downloaded: bool = track_row.path is not None
+            audio_src: str | None = None
+            if is_downloaded:
+                audio_src = f"{BACKEND_URL}/spotify/audio/{track_row.spotify_id}"
+
+            album_row: AlbumRow = track_row.album
+            album_internal_image_url: str = ""
+            if album_row.internal_image_id:
+                a_result_album_image: AResult[ImageRow] = (
+                    await MediaAccess.get_image_from_id_async(
+                        id=album_row.internal_image_id
+                    )
+                )
+                if a_result_album_image.is_ok():
+                    album_internal_image_url = f"{BACKEND_URL}/media/image/{a_result_album_image.result().public_id}"
+
+            album_artists: List[ArtistRow] = []
+            a_result_album_artists: AResult[List[ArtistRow]] = (
+                await SpotifyAccess.get_artists_from_album_id_async(
+                    album_id=album_row.id
+                )
+            )
+            if a_result_album_artists.is_ok():
+                album_artists = a_result_album_artists.result()
+
+            album_artist_responses: List[BaseArtistResponse] = []
+            for aa in album_artists:
+                aa_image_url: str = ""
+                if aa.internal_image_id:
+                    a_result_aa_image: AResult[ImageRow] = (
+                        await MediaAccess.get_image_from_id_async(
+                            id=aa.internal_image_id
+                        )
+                    )
+                    if a_result_aa_image.is_ok():
+                        aa_image_url = f"{BACKEND_URL}/media/image/{a_result_aa_image.result().public_id}"
+
+                a_result_aa_genres: AResult[List[str]] = (
+                    await SpotifyAccess.get_genres_from_artist_async(artist=aa)
+                )
+                aa_genres: List[str] = (
+                    a_result_aa_genres.result() if a_result_aa_genres.is_ok() else []
+                )
+
+                album_artist_responses.append(
+                    BaseArtistResponse(
+                        provider=Spotify.provider_name,
+                        publicId=aa.spotify_id,
+                        name=aa.name,
+                        internalImageUrl=aa_image_url,
+                        genres=aa_genres,
+                    )
+                )
+
+            fetched_song_responses.append(
+                BaseSongPlaylistResponse(
+                    song=BaseSongResponse(
+                        provider=Spotify.provider_name,
+                        publicId=core_song.public_id,
+                        name=track_row.name,
+                        artists=track_artist_responses,
+                        audioSrc=audio_src,
+                        downloaded=is_downloaded,
+                        internalImageUrl=track_internal_image_url,
+                        duration=track_row.duration,
+                        discNumber=track_row.disc_number,
+                        trackNumber=track_row.track_number,
+                        album=BaseSongAlbumResponse(
+                            provider=Spotify.provider_name,
+                            publicId=album_row.spotify_id,
+                            name=album_row.name,
+                            artists=album_artist_responses,
+                            releaseDate=album_row.release_date,
+                            internalImageUrl=album_internal_image_url,
+                        ),
+                    ),
+                    addedAt=playlist_track_row.added_at,
+                )
+            )
+
         return AResult(
             code=AResultCode.OK,
             message="OK",
@@ -1330,5 +1667,8 @@ class Spotify:
                 provider=Spotify.provider_name,
                 publicId=spotify_id,
                 name=raw_playlist.name,
+                songs=fetched_song_responses,
+                internalImageUrl=fetched_internal_image_url,
+                owner=fetched_playlist_row.owner,
             ),
         )

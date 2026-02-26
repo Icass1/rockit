@@ -7,11 +7,11 @@ export const BaseSearchResultsItemSchema = z.object({
         z.literal("playlist"),
         z.literal("artist"),
         z.literal("song"),
+        z.literal("video"),
     ]),
     title: z.string(),
     url: z.string(),
     imageUrl: z.string(),
-    publicId: z.string(),
     artists: z.array(z.lazy(() => ArtistSearchResultsItemSchema)),
 });
 

@@ -1,10 +1,12 @@
 import os
+import types
+import datetime
 import importlib
 import inspect
 import re
 from collections.abc import Sequence as ABCSequence
 from pathlib import Path
-from typing import get_args, get_origin, Literal, Optional, Sequence
+from typing import Union, get_args, get_origin, Literal, Optional, Sequence
 
 from pydantic import BaseModel
 
@@ -27,6 +29,8 @@ PYTHON_TYPE_TO_ZOD = {
     int: "z.number()",
     float: "z.number()",
     bool: "z.boolean()",
+    datetime.datetime: "z.iso.datetime()",
+    datetime.date: "z.iso.date()",
 }
 
 
@@ -105,7 +109,12 @@ def convert_type_to_zod(
             return f"z.union([{', '.join(literal_parts)}])"
         return "z.string()"
 
-    if hasattr(origin, "__name__") and origin.__name__ == "Union":
+    is_union = (
+        origin is Union
+        or origin is types.UnionType
+        or (hasattr(origin, "__name__") and origin.__name__ == "Union")
+    )
+    if is_union:
         if args:
             non_none_args = [arg for arg in args if arg is not type(None)]
             if len(non_none_args) == 1:
@@ -115,7 +124,12 @@ def convert_type_to_zod(
                     )
                     + ".nullable()"
                 )
-            return "z.any()"
+            if len(non_none_args) > 1:
+                union_parts = [
+                    convert_type_to_zod(arg, known_types, current_file, schema_refs)
+                    for arg in non_none_args
+                ]
+                return f"z.union([{', '.join(union_parts)}]).nullable()"
         return "z.any()"
 
     return "z.any()"

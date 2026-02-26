@@ -13,7 +13,7 @@ export default function PlayLibraryButton() {
     const playingLibrary = $queue?.find(
         (queueSong) =>
             queueSong.queueSongId == $currentQueueSongId &&
-            queueSong?.list?.type == "library"
+            queueSong?.list == "library"
     )
         ? true
         : false;

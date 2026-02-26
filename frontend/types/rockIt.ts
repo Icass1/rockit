@@ -1,5 +1,5 @@
 import * as z from "zod";
-import { SongWithAlbumResponse } from "@/dto/rockItSongWithAlbumResponse";
+import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
 
 export type DBListType = "album" | "playlist";
 export type QueueListType =
@@ -32,7 +32,7 @@ export type RockItQueueListSong = z.infer<typeof RockItQueueListSong>;
 export const RockItQueueSong = z.object({
     index: z.number(),
     list: RockItQueueListSong,
-    song: SongWithAlbumResponse,
+    song: SongWithAlbum,
 });
 export type RockItQueueSong = z.infer<typeof RockItQueueSong>;
 

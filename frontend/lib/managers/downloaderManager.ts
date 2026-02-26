@@ -155,19 +155,19 @@ export class DownloaderManager {
         };
     }
 
-    private async handleSpotifySongDownloaded(publicId: string) {
-        // console.log("(handleSpotifySongDownloaded)", { publicId });
+    // private async handleSpotifySongDownloaded(publicId: string) {
+    //     // console.log("(handleSpotifySongDownloaded)", { publicId });
 
-        await BaseSongResponseSchema.getExistingInstanceFromPublicId(
-            publicId
-        )?.updateAsync();
-        await SongWithoutAlbum.getExistingInstanceFromPublicId(
-            publicId
-        )?.updateAsync();
-        await SongPlaylist.getExistingInstanceFromPublicId(
-            publicId
-        )?.updateAsync();
-    }
+    //     await BaseSongResponseSchema.getExistingInstanceFromPublicId(
+    //         publicId
+    //     )?.updateAsync();
+    //     await SongWithoutAlbum.getExistingInstanceFromPublicId(
+    //         publicId
+    //     )?.updateAsync();
+    //     await SongPlaylist.getExistingInstanceFromPublicId(
+    //         publicId
+    //     )?.updateAsync();
+    // }
 
     // #endregion: Methods
 
@@ -187,48 +187,17 @@ export class DownloaderManager {
     private handleEventSourceMessage(
         eventSource: EventSource,
         ev: MessageEvent
-    ) {
-        try {
-            const data = DownloadStatusMessage.parse(JSON.parse(ev.data));
-            // console.log(data);
-            if (data.completed == 100 && data.message != "Skipped") {
-                console.log("Song downloaded", data.id, data.message);
-                this.handleSpotifySongDownloaded(data.id);
-            }
-
-            const currentStatus = this._downloadingSongsStatusAtom.get();
-            const index = currentStatus.findIndex(
-                (song) => song.publicId == data.id
-            );
-
-            if (index == -1) {
-                currentStatus.push({
-                    publicId: data.id,
-                    completed: data.completed,
-                    message: data.message,
-                });
-            } else {
-                currentStatus[index] = {
-                    publicId: data.id,
-                    completed: data.completed,
-                    message: data.message,
-                };
-            }
-            this._downloadingSongsStatusAtom.set(currentStatus);
-        } catch (error) {
-            console.error(error);
-            console.error(`Error parsing message '${ev.data}'`);
-        }
-    }
+    ) {}
 
     private handleEventSourceOpen(eventSource: EventSource, ev: Event) {
         console.log(`Event source open ${eventSource.url} ${ev}`);
     }
 
-    async getDownloadsAsync(): Promise<DownloadsResponse> {
-        throw "(getDownloadsAsync) Method not implemented.";
-        return DownloadsResponse.parse([]);
-    }
+    // async getDownloadsAsync(): Promise<DownloadsResponse> {
+    //     throw "(getDownloadsAsync) Method not implemented.";
+    //     // return DownloadsResponse.parse([]);
+    // }
+
     async startDownloadAsync(url: string) {
         console.log(url);
         throw "(startDownloadAsync) Method not implemented.";

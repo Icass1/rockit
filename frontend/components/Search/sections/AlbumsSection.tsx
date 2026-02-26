@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { AlbumWithoutSongs } from "@/lib/rockit/albumWithoutSongs";
-import { getBestImage } from "@/lib/utils/getBestImage";
 
 export default function AlbumsSection({
     albums,
@@ -24,7 +23,6 @@ export default function AlbumsSection({
             </h2>
             <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pr-14 md:pl-4">
                 {albums.map((album) => {
-                    const image = getBestImage(album.externalImages);
                     return (
                         <Link
                             href={`/album/${album.publicId}`}
@@ -33,10 +31,10 @@ export default function AlbumsSection({
                             key={album.publicId}
                         >
                             <Image
-                                width={image?.width ?? 350}
-                                height={image?.height ?? 350}
+                                width={350}
+                                height={350}
                                 className="aspect-square w-full rounded-lg object-cover"
-                                src={image?.url ?? "/song-placeholder.png"}
+                                src={album.internalImageUrl}
                                 alt={`Cover of ${album.name}`}
                             />
                             <span className="mt-2 block truncate text-center font-semibold">

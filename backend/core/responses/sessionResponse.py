@@ -2,6 +2,6 @@ from pydantic import BaseModel
 
 
 class SessionResponse(BaseModel):
-    username: str | None
-    image: str | None
+    username: str
+    image: str
     admin: bool

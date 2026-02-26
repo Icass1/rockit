@@ -8,15 +8,15 @@ import { networkStatus } from "@/lib/stores/networkStatus";
 import { getTime } from "@/lib/utils/getTime";
 import LikeButton from "@/components/LikeButton";
 import SongContextMenu from "@/components/ListSongs/SongContextMenu";
-import {
-    PopupMenu,
-    PopupMenuContent,
-    PopupMenuTrigger,
-} from "@/components/PopupMenu/PopupMenu";
 import "@/styles/Skeleton.css";
 import Image from "next/image";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { SongPlaylist } from "@/lib/rockit/songPlaylist";
+import {
+    PopupMenu,
+    PopupMenuContent,
+    PopupMenuTrigger,
+} from "@/components/PopupMenu";
 
 export default function PlaylistSong({ song }: { song: SongPlaylist }) {
     const [hovered, setHovered] = useState(false);
@@ -49,10 +49,7 @@ export default function PlaylistSong({ song }: { song: SongPlaylist }) {
                     // If the song is playing and is from this playlist, change color, if the song has been added to the queue clicking the album, it won't show the color
                     ($queue.find(
                         (song) => song.queueSongId == $currentQueueSongId
-                    )?.list?.publicId == $currentList?.publicId &&
-                    $queue.find(
-                        (song) => song.queueSongId == $currentQueueSongId
-                    )?.list?.type == $currentList?.type &&
+                    )?.list == $currentList &&
                     $queue.find(
                         (song) => song.queueSongId == $currentQueueSongId
                     )?.song.publicId == song.publicId

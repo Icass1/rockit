@@ -6,7 +6,7 @@ export const SongResponseSchema = z.object({
     publicId: z.string(),
     name: z.string(),
     artists: z.array(z.lazy(() => BaseArtistResponseSchema)),
-    audioSrc: z.any(),
+    audioSrc: z.string().nullable(),
     downloaded: z.boolean(),
     internalImageUrl: z.string(),
     duration: z.number(),

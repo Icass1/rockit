@@ -4,9 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Artist } from "@/lib/rockit/artist";
-import { rockIt } from "@/lib/rockit/rockIt";
 import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
-import { getBestImage } from "@/lib/utils/getBestImage";
 
 export default function SongPageTopArtistSongs({ artist }: { artist: Artist }) {
     const [artistSongs, setArtistSongs] = useState<SongWithAlbum[]>();
@@ -28,10 +26,7 @@ export default function SongPageTopArtistSongs({ artist }: { artist: Artist }) {
                         className="w-40 flex-none transition hover:scale-105 md:w-48"
                     >
                         <Image
-                            src={
-                                getBestImage(song.album.externalImages)?.url ??
-                                rockIt.ALBUM_PLACEHOLDER_IMAGE_URL
-                            }
+                            src={song.album.internalImageUrl}
                             alt="Song Cover"
                             className="aspect-square w-full rounded-lg object-cover"
                         />

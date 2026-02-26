@@ -4,13 +4,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { SearchResponse } from "@/dto";
-import { getBestImage } from "@/lib/utils/getBestImage";
+import { BaseSearchResultsItem } from "@/dto";
 
 export default function SongsSection({
     songs,
 }: {
-    songs: SearchResponse["results"][number]["items"];
+    songs: BaseSearchResultsItem[];
 }) {
     const { langFile: lang } = useLanguage();
     const router = useRouter();
@@ -29,7 +28,7 @@ export default function SongsSection({
                             href={song.url}
                             prefetch={false}
                             className="w-36 flex-none transition md:w-48 md:hover:scale-105"
-                            key={song.publicId}
+                            key={song.url}
                         >
                             <Image
                                 width={350}
@@ -44,14 +43,12 @@ export default function SongsSection({
                             <span className="block truncate text-center text-sm text-gray-400">
                                 {song.artists.map((artist, i) => (
                                     <button
-                                        key={artist.publicId}
+                                        key={artist.url}
                                         className="md:hover:underline"
                                         onClick={(e) => {
                                             e.preventDefault();
                                             e.stopPropagation();
-                                            router.push(
-                                                `/artist/${artist.publicId}`
-                                            );
+                                            router.push(artist.url);
                                         }}
                                     >
                                         {artist.name}

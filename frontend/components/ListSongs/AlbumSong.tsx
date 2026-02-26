@@ -45,10 +45,8 @@ export default function AlbumSong({
 
     const songPlaying = useMemo(() => {
         return (
-            $queue.find((song) => song.queueSongId == $currentQueueSongId)?.list
-                ?.publicId == $currentList?.publicId &&
-            $queue.find((song) => song.queueSongId == $currentQueueSongId)?.list
-                ?.type == $currentList?.type &&
+            $queue.find((song) => song.queueSongId == $currentQueueSongId)
+                ?.list == $currentList &&
             $queue.find((song) => song.queueSongId == $currentQueueSongId)?.song
                 .publicId == $songAtom.publicId
         );

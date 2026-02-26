@@ -1,8 +1,8 @@
 import { z } from "zod";
 
 export const SessionResponseSchema = z.object({
-    username: z.any(),
-    image: z.any(),
+    username: z.string(),
+    image: z.string(),
     admin: z.boolean(),
 });
 

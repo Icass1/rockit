@@ -1,4 +1,7 @@
-import { BaseSongResponseSchema } from "@/dto/baseSongResponse";
+import {
+    BaseSongResponse,
+    BaseSongResponseSchema,
+} from "@/dto/baseSongResponse";
 import { AlbumWithoutSongs } from "@/lib/rockit/albumWithoutSongs";
 import { Artist } from "@/lib/rockit/artist";
 import { SongWithoutAlbum } from "@/lib/rockit/songWithoutAlbum";
@@ -66,7 +69,7 @@ export class SongWithAlbum {
         });
     }
 
-    static fromResponse(response: BaseSongResponseSchema): SongWithAlbum {
+    static fromResponse(response: BaseSongResponse): SongWithAlbum {
         const existing = SongWithAlbum.#instance.find(
             (s) => s.publicId === response.publicId
         );

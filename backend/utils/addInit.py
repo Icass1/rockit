@@ -51,16 +51,14 @@ def add_init_to_orm():
 
             parameters: List[Parameter] = []
 
+            after_class_definition = False
+
             for k in initial_content:
-                if k.startswith("class"):
-                    parsed_line: str = k.replace("\n", "").replace("class ", "")
-                    parsed_line = (
-                        parsed_line.split("(")[1].split(")")[0].replace(" ", "")
-                    )
+                if k.startswith("class "):
+                    after_class_definition = True
 
-                    classes = parsed_line.split(",")
-
-                    if "TablePublicId" in classes:
+                if after_class_definition:
+                    if "TablePublicId" in k:
                         parameters.append(
                             Parameter(
                                 name="public_id",
@@ -71,7 +69,7 @@ def add_init_to_orm():
                             )
                         )
 
-                    if "TableAutoincrementKey" in classes:
+                    if "TableAutoincrementKey" in k:
                         parameters.append(
                             Parameter(
                                 name="key",
@@ -207,6 +205,15 @@ def add_init_to_orm():
 
             with open(file_path, "w") as f:
                 f.write(output_content)
+
+    # Execute prettier on the generated files.
+    try:
+        import subprocess
+
+        subprocess.run([".venv/bin/black", "backend"], check=True)
+        logger.info("Formatted generated files with Prettier")
+    except Exception as e:
+        logger.warning(f"Could not format files with Prettier: {e}")
 
 
 if __name__ == "__main__":

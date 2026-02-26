@@ -1,3 +1,4 @@
+import { BaseSongPlaylistResponse, BaseSongResponse } from "@/dto";
 import { AlbumWithoutSongs } from "@/lib/rockit/albumWithoutSongs";
 import { Artist } from "@/lib/rockit/artist";
 import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
@@ -97,25 +98,7 @@ export class SongPlaylist {
         });
     }
 
-    static fromResponse(
-        response: {
-            song: Parameters<typeof Artist.fromResponse>[];
-            addedAt: string;
-        } & {
-            song: {
-                publicId: string;
-                name: string;
-                artists: Parameters<typeof Artist.fromResponse>[];
-                duration: number;
-                discNumber: number;
-                downloaded: boolean;
-                album: Parameters<typeof AlbumWithoutSongs.fromResponse>;
-                internalImageUrl: string | null;
-                audioUrl: string | null;
-            };
-            addedAt: string;
-        }
-    ): SongPlaylist {
+    static fromResponse(response: BaseSongPlaylistResponse): SongPlaylist {
         const existing = SongPlaylist.#instance.find(
             (s) => s.publicId === response.song.publicId
         );
@@ -124,22 +107,14 @@ export class SongPlaylist {
         const newInstance = new SongPlaylist({
             publicId: response.song.publicId,
             name: response.song.name,
-            artists: response.song.artists.map((artist) =>
-                Artist.fromResponse(
-                    artist as Parameters<typeof Artist.fromResponse>[0]
-                )
-            ),
+            artists: response.song.artists,
             duration: response.song.duration,
             discNumber: response.song.discNumber,
             downloaded: response.song.downloaded,
-            album: AlbumWithoutSongs.fromResponse(
-                response.song.album as Parameters<
-                    typeof AlbumWithoutSongs.fromResponse
-                >[0]
-            ),
+            album: AlbumWithoutSongs.fromResponse(response.song.album),
             addedAt: new Date(response.addedAt),
             internalImageUrl: response.song.internalImageUrl,
-            audioUrl: response.song.audioUrl,
+            audioUrl: response.song.audioSrc,
         });
 
         SongPlaylist.#instance.push(newInstance);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { StatsResponseSchema } from "@/dto";
 import useFetch from "@/hooks/useFetch";
@@ -152,6 +152,11 @@ export default function SongsCarousel() {
     const { currentIndex, next, prev, onTouchStart, onTouchMove, onTouchEnd } =
         useCarousel(songs?.length ?? 0);
 
+    const parsedSongs = useMemo(() => {
+        if (!songs) return [];
+        return songs.map((song) => SongWithoutAlbum.fromResponse(song));
+    }, [songs]);
+
     // Touch events con passive: true para iOS
     useEffect(() => {
         const el = containerRef.current;
@@ -191,8 +196,8 @@ export default function SongsCarousel() {
                         key={song.publicId}
                         index={index}
                         currentIndex={currentIndex}
-                        song={song}
-                        songs={songs}
+                        song={SongWithoutAlbum.fromResponse(song)}
+                        songs={parsedSongs}
                         total={songs.length}
                         isMobile={isMobile}
                     />

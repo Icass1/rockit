@@ -20,10 +20,7 @@ export default function PlaylistSongsView({
     const playlist = Playlist.fromResponse(playlistResponse);
 
     useEffect(() => {
-        rockIt.queueManager.setCurrentList({
-            publicId: playlist.publicId,
-            type: "playlist",
-        });
+        rockIt.queueManager.setCurrentList(playlist.publicId);
     }, [playlist.publicId]);
 
     const [filter, setFilter] = useState<{

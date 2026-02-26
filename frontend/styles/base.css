@@ -1,0 +1,52 @@
+/* ─────────────────────────────────────────────
+   base.css — Reset y variables globales
+   ───────────────────────────────────────────── */
+
+:root {
+    color-scheme: dark;
+
+    /* Paleta de acento */
+    --accent: 136, 58, 234;
+    --accent-light: 224, 204, 250;
+    --accent-dark: 49, 10, 101;
+    --accent-gradient: linear-gradient(
+        45deg,
+        rgb(var(--accent)),
+        rgb(var(--accent-light)) 30%,
+        white 60%
+    );
+
+    /* Branding rockit */
+    --rockit-pink: #ee1086;
+    --rockit-pink-mid: #f53a76;
+    --rockit-pink-light: #fb6467;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+
+    /*
+     * dvh (dynamic viewport height) respeta la barra de dirección retráctil
+     * de Safari iOS y Chrome Android — a diferencia de 100vh que la ignora.
+     */
+    height: 100dvh;
+    overflow: hidden;
+    background: #0b0b0b;
+    font-family: system-ui, sans-serif;
+
+    /*
+     * overscroll-behavior: none evita pull-to-refresh y scroll chaining.
+     * NO usamos position: fixed en body — causa saltos con el teclado virtual
+     * en iOS Safari y rompe el layout de inputs en modales.
+     */
+    overscroll-behavior: none;
+}
+
+code {
+    font-family:
+        Menlo, Monaco, "Lucida Console", "Liberation Mono", "DejaVu Sans Mono",
+        "Bitstream Vera Sans Mono", "Courier New", monospace;
+}

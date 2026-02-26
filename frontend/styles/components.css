@@ -1,0 +1,147 @@
+/* ─────────────────────────────────────────────
+   components.css — Utilidades y estilos de componentes globales
+   ───────────────────────────────────────────── */
+
+/* ── Scrollbar global ─────────────────────────
+   Mobile: oculto (0px) para no consumir espacio táctil.
+   Desktop (≥768px): 7px, sutil y consistente.
+   ─────────────────────────────────────────── */
+*::-webkit-scrollbar {
+    width: 0;
+    min-width: 0;
+    height: 0;
+    min-height: 0;
+}
+
+@media (min-width: 768px) {
+    *::-webkit-scrollbar {
+        width: 7px;
+        min-width: 7px;
+        height: 7px;
+        min-height: 7px;
+    }
+}
+
+/* Track */
+*::-webkit-scrollbar-track {
+    background-color: transparent;
+    border-radius: 100px;
+}
+*:hover::-webkit-scrollbar-track {
+    background-color: rgba(20, 20, 20, 0.5);
+    border-radius: 100px;
+}
+
+/* Thumb */
+*::-webkit-scrollbar-thumb {
+    background-color: rgb(100, 100, 100);
+    border-radius: 10px;
+}
+*::-webkit-scrollbar-thumb:horizontal {
+    background-color: transparent;
+    border-radius: 10px;
+}
+*:hover::-webkit-scrollbar-thumb:horizontal {
+    background-color: rgb(100, 100, 100);
+    border-radius: 10px;
+}
+*::-webkit-scrollbar-thumb:hover {
+    background-color: #aaa;
+}
+*::-webkit-scrollbar-thumb:horizontal:hover {
+    background-color: #aaa;
+}
+
+/* ── Scrollbar oculto (hide-scroll-*) ─────────
+   Usar en paneles que deben scrollar sin mostrar barra,
+   p.e. la cola del player móvil o los lyrics.
+   ─────────────────────────────────────────── */
+.hide-scroll-track::-webkit-scrollbar-track,
+.hide-scroll-track:hover::-webkit-scrollbar-track {
+    background-color: transparent;
+    border-radius: 100px;
+}
+
+.hide-scroll-thumb::-webkit-scrollbar-thumb,
+.hide-scroll-thumb:hover::-webkit-scrollbar-thumb,
+.hide-scroll-thumb::-webkit-scrollbar-thumb:horizontal,
+.hide-scroll-thumb:hover::-webkit-scrollbar-thumb:horizontal,
+.hide-scroll-thumb::-webkit-scrollbar-thumb:hover,
+.hide-scroll-thumb::-webkit-scrollbar-thumb:horizontal:hover {
+    background-color: transparent;
+}
+
+/* ── Slider de progreso ───────────────────────
+   Slider custom usado en FooterCenter y MobilePlayerUI.
+   El thumb es invisible por defecto y aparece al hacer hover
+   para dar sensación de "barra limpia" tipo Spotify.
+   ─────────────────────────────────────────── */
+#default-slider,
+#mobile-player-slider {
+    position: absolute;
+    inset: 0;
+    height: 100%;
+    width: 100%;
+    appearance: none;
+    background-color: transparent;
+    border-radius: 9999px;
+}
+
+#default-slider::-webkit-slider-thumb,
+#mobile-player-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 10px;
+    width: 10px;
+    background-color: transparent;
+    border-radius: 100%;
+}
+
+#default-slider:hover::-webkit-slider-thumb,
+#mobile-player-slider:hover::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 13px;
+    width: 13px;
+    background-color: white;
+}
+
+#default-slider::-moz-range-thumb,
+#mobile-player-slider::-moz-range-thumb {
+    border: none;
+    appearance: none;
+    height: 10px;
+    width: 10px;
+    background-color: transparent;
+    border-radius: 100%;
+}
+
+#default-slider:hover::-moz-range-thumb,
+#mobile-player-slider:hover::-moz-range-thumb {
+    border: none;
+    appearance: none;
+    height: 13px;
+    width: 13px;
+    background-color: white;
+}
+
+/* ── Checkbox custom ──────────────────────────
+   Alternativa a importar CheckBox.css en cada componente.
+   Mismas propiedades, centralizadas aquí.
+   ─────────────────────────────────────────── */
+.rockit-checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    border-radius: 6px;
+    border: 2px solid #6a7282;
+    background-color: transparent;
+    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.rockit-checkbox:checked {
+    border-color: oklch(0.592 0.249 0.584);
+    background-color: oklch(0.592 0.249 0.584);
+}
+
+.rockit-checkbox:hover {
+    border-color: #f6339a;
+}

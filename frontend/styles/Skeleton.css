@@ -1,3 +1,10 @@
+/* ─────────────────────────────────────────────
+   Skeleton.css — Loader de contenido pendiente
+   Importar directamente donde se use el skeleton:
+     import "@/styles/Skeleton.css";
+   El @keyframes wave-diagonal está en animations.css.
+   ───────────────────────────────────────────── */
+
 .skeleton {
     background: linear-gradient(
         135deg,
@@ -5,15 +12,6 @@
         rgba(130, 130, 130, 0.3) 18%,
         rgba(130, 130, 130, 0.2) 33%
     );
-    background-size: 400% 400%; /* larger to accommodate a full wave across 400px */
+    background-size: 400% 400%;
     animation: wave-diagonal 10s infinite ease-out;
-}
-
-@keyframes wave-diagonal {
-    0% {
-        background-position: -400% -400%;
-    }
-    100% {
-        background-position: 400% 400%;
-    }
 }

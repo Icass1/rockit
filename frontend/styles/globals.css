@@ -1,1 +1,18 @@
+/**
+ * globals.css — único archivo CSS importado en app/layout.tsx
+ *
+ * Estructura:
+ *   base.css        → reset, html/body, color-scheme, fuentes
+ *   animations.css  → @keyframes y clases de animación
+ *   components.css  → scrollbars, slider, utilidades reutilizables
+ *
+ * CSS de componente que se importa directamente en su TSX:
+ *   LikeButton.css  → components/LikeButton.tsx
+ *   Skeleton.css    → donde se use el skeleton loader
+ *   CheckBox.css    → donde se use .rockit-checkbox
+ */
+
 @import "tailwindcss";
+@import "./base.css";
+@import "./animations.css";
+@import "./components.css";

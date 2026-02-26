@@ -1,4 +1,12 @@
-/* Animación de la llama */
+/* ─────────────────────────────────────────────
+   LikeButton.css — Animación de llama
+   Importar directamente en LikeButton.tsx:
+     import "@/styles/LikeButton.css";
+   Los @keyframes flicker, rise y hand-rotate
+   están definidos en animations.css (global).
+   ───────────────────────────────────────────── */
+
+/* Contenedor principal — aplica el parpadeo global */
 .container {
     margin: auto;
     width: 20px;
@@ -13,6 +21,7 @@
     animation-direction: alternate;
 }
 
+/* Forma base de cada capa de llama */
 .flame {
     bottom: 0;
     position: absolute;
@@ -22,28 +31,29 @@
     transform: rotate(-45deg) scale(1.5, 1.5);
 }
 
-.yellow {
-    left: 5px;
-    width: 10px;
-    height: 10px;
-    background: #fb6467; /*gold;*/
-    box-shadow: 0px 0px 3px 1.3px #fb6467; /*gold;*/
+/* Capas de color de la llama (de exterior a interior) */
+.red {
+    left: 1.7px;
+    width: 16.7px;
+    height: 16.7px;
+    background: #ee1086;
+    box-shadow: 0px 0px 1.7px 1.3px #ee1086;
 }
 
 .orange {
     left: 3.3px;
     width: 13.3px;
     height: 13.3px;
-    background: #f53a76; /*orange;*/
-    box-shadow: 0px 0px 3px 1.3px #f53a76; /*orange;*/
+    background: #f53a76;
+    box-shadow: 0px 0px 3px 1.3px #f53a76;
 }
 
-.red {
-    left: 1.7px;
-    width: 16.7px;
-    height: 16.7px;
-    background: #ee1086; /*OrangeRed;*/
-    box-shadow: 0px 0px 1.7px 1.3px #ee1086; /*OrangeRed;*/
+.yellow {
+    left: 5px;
+    width: 10px;
+    height: 10px;
+    background: #fb6467;
+    box-shadow: 0px 0px 3px 1.3px #fb6467;
 }
 
 .white {
@@ -51,10 +61,11 @@
     bottom: -1.3px;
     width: 10px;
     height: 10px;
-    background: #fb6467; /*white; */
-    box-shadow: 0px 0px 3px 1.3px #fb6467; /*white; */
+    background: #fb6467;
+    box-shadow: 0px 0px 3px 1.3px #fb6467;
 }
 
+/* Círculo base (brasa) */
 .circle {
     border-radius: 50%;
     position: absolute;
@@ -65,123 +76,6 @@
     height: 3.3px;
     left: 8.3px;
     bottom: -8.3px;
-    background: white; /*SlateBlue;*/
-    box-shadow: 0px 0px 5px 3.3px white; /*SlateBlue;*/
-}
-
-/*.black {
-    width: 13.3px; 
-    height: 13.3px; 
-    left: 3.3px; 
-    bottom: -20px; 
-    background: black;
-    box-shadow: 0px 0px 5px 3.3px black; 
-}*/
-
-.flame-container {
-    position: relative;
-    width: 18px;
-    height: 18px;
-}
-
-.flame {
-    position: absolute;
-    bottom: 0;
-    width: 4px;
-    height: 8px;
-    border-radius: 2px 2px 0 0;
-    animation: flicker 1s infinite ease-in-out;
-}
-
-.flame.red {
-    background: #f00;
-    left: 2px;
-    animation-delay: 0s;
-}
-.flame.orange {
-    background: #f60;
-    left: 4px;
-    animation-delay: 0.1s;
-}
-.flame.yellow {
-    background: #ff0;
-    left: 6px;
-    animation-delay: 0.2s;
-}
-.flame.white {
-    background: #fff;
-    left: 8px;
-    animation-delay: 0.3s;
-}
-
-.circle {
-    position: absolute;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    bottom: 2px;
-    animation: rise 2s infinite ease-in-out;
-}
-
-.circle.blue {
-    background: #00f;
-    left: 5px;
-    animation-delay: 0s;
-}
-.circle.black {
-    background: #000;
-    left: 9px;
-    animation-delay: 0.5s;
-}
-
-@keyframes rise {
-    0% {
-        transform: translateY(0) scale(1);
-        opacity: 1;
-    }
-    100% {
-        transform: translateY(-10px) scale(0.5);
-        opacity: 0;
-    }
-}
-
-@keyframes flicker {
-    0% {
-        transform: rotate(-4deg);
-    }
-    20% {
-        transform: rotate(4deg);
-    }
-    40% {
-        transform: rotate(-4deg);
-    }
-    60% {
-        transform: rotate(4deg) scaleY(1.04);
-    }
-    80% {
-        transform: rotate(-8deg) scaleY(0.92);
-    }
-    100% {
-        transform: rotate(4deg);
-    }
-}
-
-/* Animación de la mano */
-.hand-rotate {
-    animation: hand-tilt 0.5s ease-in-out;
-}
-
-@keyframes hand-tilt {
-    0% {
-        transform: rotate(0deg);
-    }
-    25% {
-        transform: rotate(-20deg);
-    }
-    50% {
-        transform: rotate(20deg);
-    }
-    100% {
-        transform: rotate(0deg);
-    }
+    background: white;
+    box-shadow: 0px 0px 5px 3.3px white;
 }

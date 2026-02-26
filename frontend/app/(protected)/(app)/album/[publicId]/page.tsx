@@ -1,5 +1,6 @@
+import { RenderAlbum } from "@/components/Album";
+import { AppError } from "@/lib/errors/AppError";
 import { rockIt } from "@/lib/rockit/rockIt";
-import RenderAlbum from "@/components/Album/RenderAlbum";
 
 export async function generateMetadata({
     params,
@@ -7,38 +8,18 @@ export async function generateMetadata({
     params: Promise<{ publicId: string }>;
 }) {
     const { publicId } = await params;
+    const album = await rockIt.albumManager
+        .getSpotifyAlbumAsync(publicId)
+        .catch(() => null);
 
-    const album = await rockIt.albumManager.getSpotifyAlbumAsync(publicId);
+    if (!album) return {};
 
     return {
-        title: `${album.name} by ${album.artists[0].name}`,
-        description: `Listen to ${album.name} by ${album.artists[0].name}`,
+        title: album.name,
         openGraph: {
-            title: `${album.name} by ${album.artists[0].name}`,
-            description: `Listen to ${album.name} by ${album.artists[0].name}`,
+            title: album.name,
             type: "music.album",
-            url: `https://rockit.rockhosting.org/album/${publicId}`,
-            images: [
-                {
-                    url: album.internalImageUrl,
-                    width: 600,
-                    height: 600,
-                    alt: album.name,
-                },
-            ],
-        },
-        twitter: {
-            card: "",
-            title: `${album.name} by ${album.artists[0].name}`,
-            description: `Listen to ${album.name} by ${album.artists[0].name}`,
-            images: [
-                {
-                    url: album.internalImageUrl,
-                    width: 600,
-                    height: 600,
-                    alt: album.name,
-                },
-            ],
+            images: [{ url: album.internalImageUrl, width: 600, height: 600 }],
         },
     };
 }
@@ -50,9 +31,16 @@ export default async function AlbumPage({
 }) {
     const { publicId } = await params;
 
-    const album = await rockIt.albumManager.getSpotifyAlbumAsync(publicId);
+    const albumResponse = await rockIt.albumManager
+        .getSpotifyAlbumAsync(publicId)
+        .catch(() => null);
 
-    album.songs.sort((a, b) => a.trackNumber - b.trackNumber);
+    if (!albumResponse) throw new AppError(404);
 
-    return <RenderAlbum albumResponse={album}></RenderAlbum>;
+    const albumWithSongs = {
+        ...albumResponse,
+        externalImages: [],
+    };
+
+    return <RenderAlbum albumResponse={albumWithSongs as unknown as Parameters<typeof RenderAlbum>[0]["albumResponse"]} />;
 }

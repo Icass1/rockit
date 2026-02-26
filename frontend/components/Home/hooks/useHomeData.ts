@@ -1,7 +1,7 @@
 import { HomeStatsResponseSchema } from "@/dto";
-import useFetch from "@/hooks/useFetch";
 import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
 import { SongWithoutAlbum } from "@/lib/rockit/songWithoutAlbum";
+import useFetch from "@/hooks/useFetch";
 
 export interface HomeData {
     songsByTimePlayed: SongWithoutAlbum[];
@@ -12,11 +12,9 @@ export interface HomeData {
     isEmpty: boolean;
 }
 
-export function useHomeData(): HomeData | null {
-    const [dataResponse] = useFetch("/stats/home", HomeStatsResponseSchema);
-
-    if (!dataResponse) return null;
-
+function transformStats(
+    dataResponse: NonNullable<ReturnType<typeof HomeStatsResponseSchema.parse>>
+): HomeData {
     const songsByTimePlayed = dataResponse.songsByTimePlayed.map((song) =>
         SongWithAlbum.fromResponse(song).toSongWithoutAlbum()
     );
@@ -48,4 +46,18 @@ export function useHomeData(): HomeData | null {
         monthlyTop,
         isEmpty,
     };
+}
+
+export function useHomeData(
+    initialStats?: Awaited<
+        ReturnType<typeof HomeStatsResponseSchema.parse>
+    > | null
+): HomeData | null {
+    const [dataResponse] = useFetch("/stats/home", HomeStatsResponseSchema);
+
+    const stats = dataResponse ?? initialStats;
+
+    if (!stats) return null;
+
+    return transformStats(stats);
 }

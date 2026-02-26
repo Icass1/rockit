@@ -1,4 +1,5 @@
-// pyrightconfig.json
 {
-  "typeCheckingMode": "strict"
+  "typeCheckingMode": "strict",
+  "venvPath": ".",
+  "venv": ".venv"
 }

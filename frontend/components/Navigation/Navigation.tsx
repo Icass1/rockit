@@ -5,7 +5,6 @@ import { useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useLanguage } from "@/contexts/LanguageContext";
 import { useStore } from "@nanostores/react";
 import {
     ChartLine,
@@ -20,6 +19,7 @@ import {
     Users,
 } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Navigation() {
     const [open, setOpen] = useState(false);

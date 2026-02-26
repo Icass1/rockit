@@ -3,8 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useLanguage } from "@/contexts/LanguageContext";
 import { BaseSearchResultsItem } from "@/dto";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function SongsSection({
     songs,

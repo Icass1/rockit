@@ -1,6 +1,8 @@
-from dataclasses import dataclass
 import os
+import black
 from typing import List, Set
+from dataclasses import dataclass
+
 
 from backend.utils.logger import getLogger
 
@@ -196,7 +198,9 @@ def add_init_to_orm():
             # init_stmt = init_stmt.replace("|", " | ")
             init_stmt: str = init_stmt.replace("=", " = ")
 
-            output_content: str = "".join(content) + init_stmt
+            output_content: str = black.format_str(
+                "".join(content) + init_stmt, mode=black.Mode()
+            )
 
             if output_content == "".join(initial_content):
                 continue
@@ -205,15 +209,6 @@ def add_init_to_orm():
 
             with open(file_path, "w") as f:
                 f.write(output_content)
-
-    # Execute prettier on the generated files.
-    try:
-        import subprocess
-
-        subprocess.run([".venv/bin/black", "backend"], check=True)
-        logger.info("Formatted generated files with Prettier")
-    except Exception as e:
-        logger.warning(f"Could not format files with Prettier: {e}")
 
 
 if __name__ == "__main__":

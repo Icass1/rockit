@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import useWindowSize from "@/hooks/useWindowSize";
 import { useStore } from "@nanostores/react";
 import {
     ChevronDown,
@@ -16,6 +15,7 @@ import {
 } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
+import useWindowSize from "@/hooks/useWindowSize";
 import LikeButton from "@/components/LikeButton";
 import SongPopupMenu from "@/components/ListSongs/SongPopupMenu";
 import { useMobilePlayerVisibility } from "@/components/PlayerUI/hooks/useMobilePlayerVisibility";

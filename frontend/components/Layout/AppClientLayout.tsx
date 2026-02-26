@@ -1,7 +1,7 @@
 "use client";
 
-import { LanguageProvider } from "@/contexts/LanguageContext";
 import type { Lang } from "@/types/lang";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 import Footer from "@/components/Footer/Footer";
 import Header from "@/components/Header/Header";
 import Navigation from "@/components/Navigation/Navigation";

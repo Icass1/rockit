@@ -1,8 +1,8 @@
 "use client";
 
-import { useLanguage } from "@/contexts/LanguageContext";
 import { LogOut } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function LogOutButton() {
     const { langFile: lang } = useLanguage();

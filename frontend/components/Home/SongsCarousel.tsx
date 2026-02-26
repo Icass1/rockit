@@ -3,12 +3,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { StatsResponseSchema } from "@/dto";
-import useFetch from "@/hooks/useFetch";
-import useWindowSize from "@/hooks/useWindowSize";
 import { useStore } from "@nanostores/react";
 import { ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { SongWithoutAlbum } from "@/lib/rockit/songWithoutAlbum";
+import useFetch from "@/hooks/useFetch";
+import useWindowSize from "@/hooks/useWindowSize";
 import { useCarousel } from "@/components/Home/hooks/useCarousel";
 import { songHandleClick } from "@/components/ListSongs/HandleClick";
 

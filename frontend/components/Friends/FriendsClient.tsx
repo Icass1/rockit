@@ -1,8 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useLanguage } from "@/contexts/LanguageContext";
 import { Forward, Play } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function FriendsClient() {
     const { langFile: lang } = useLanguage();

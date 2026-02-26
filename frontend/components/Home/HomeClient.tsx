@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
+import { HomeStatsResponse } from "@/dto";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useHomeData } from "@/components/Home/hooks/useHomeData";
 import QuickSelectionsSection from "@/components/Home/sections/QuickSelectionsSection";
@@ -28,10 +29,28 @@ function getPreviousMonthKey() {
     return MONTH_KEYS[(new Date().getMonth() + 11) % 12];
 }
 
-export default function HomeClient() {
+function useOnClient<T>(fn: () => T, initialValue: T): T {
+    const [value, setValue] = useState(initialValue);
+    useSyncExternalStore(
+        () => () => {},
+        () => {
+            setValue(fn());
+            return fn();
+        },
+        () => initialValue
+    );
+    return value;
+}
+
+interface HomeClientProps {
+    initialStats?: HomeStatsResponse | null;
+}
+
+export default function HomeClient({ initialStats }: HomeClientProps) {
     const { langFile: lang } = useLanguage();
-    const data = useHomeData();
+    const data = useHomeData(initialStats);
     const router = useRouter();
+    const previousMonthKey = useOnClient(getPreviousMonthKey, null);
 
     useEffect(() => {
         if (data?.isEmpty) router.push("/search");
@@ -48,7 +67,13 @@ export default function HomeClient() {
 
     if (!lang) return null;
 
-    const previousMonthKey = getPreviousMonthKey();
+    if (!previousMonthKey) {
+        return (
+            <div className="flex h-screen flex-row items-center justify-center gap-2 text-xl font-semibold">
+                <Spinner />
+            </div>
+        );
+    }
 
     return (
         <div className="relative flex h-full flex-col overflow-y-auto pt-24 pb-24">
@@ -77,7 +102,7 @@ export default function HomeClient() {
             />
 
             <SongScrollSection
-                title={`${lang[previousMonthKey]} Recap`}
+                title={`${lang[previousMonthKey as keyof typeof lang]} Recap`}
                 songs={data.monthlyTop}
             />
         </div>

@@ -12,7 +12,11 @@
         "^next(/.*)?$",
         "^zod$",
         "<THIRD_PARTY_MODULES>",
+        "^@/styles/(.*)$",
         "^@/lib/(.*)$",
+        "^@/dto/(.*)$",
+        "^@/hooks/(.*)$",
+        "^@/contexts/(.*)$",
         "^@/components/(.*)$",
         "^[./]"
     ]

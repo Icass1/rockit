@@ -2,9 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useLanguage } from "@/contexts/LanguageContext";
 import { ChartLine, ImageUp } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { useLanguage } from "@/contexts/LanguageContext";
 import ChangeLang from "@/components/Settings/ChangeLang";
 import CrossFadeInput from "@/components/Settings/CrossFadeInput";
 import DownloadAppButton from "@/components/Settings/DownloadAppButton";

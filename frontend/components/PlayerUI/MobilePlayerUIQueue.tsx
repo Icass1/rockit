@@ -1,8 +1,6 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { useLanguage } from "@/contexts/LanguageContext";
-import useWindowSize from "@/hooks/useWindowSize";
 import { useStore } from "@nanostores/react";
 import {
     GripVertical,
@@ -12,6 +10,8 @@ import {
 } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { SongQueue } from "@/lib/rockit/songQueue";
+import useWindowSize from "@/hooks/useWindowSize";
+import { useLanguage } from "@/contexts/LanguageContext";
 import ContextMenuContent from "@/components/ContextMenu/Content";
 import ContextMenu from "@/components/ContextMenu/ContextMenu";
 import ContextMenuOption from "@/components/ContextMenu/Option";

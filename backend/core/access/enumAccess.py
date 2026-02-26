@@ -11,8 +11,8 @@ class EnumAccess:
     @staticmethod
     async def check_enum_contents_async(
         enum_class: Type[Enum],
-        table: type[BaseEnumRow], 
-        session: AsyncSession | None = None
+        table: type[BaseEnumRow],
+        session: AsyncSession | None = None,
     ) -> None:
         """
         Ensures full DB-Enum consistency:
@@ -20,9 +20,10 @@ class EnumAccess:
         - DB entry names match enum names.
         - DB must contain a prefix of the enum; only additions allowed.
         """
-        async with rockit_db.session_scope_or_session_async(possible_session=session) as s:
-            stmt: Select[Tuple[BaseEnumRow]] = select(
-                table).order_by(asc(table.key))
+        async with rockit_db.session_scope_or_session_async(
+            possible_session=session
+        ) as s:
+            stmt: Select[Tuple[BaseEnumRow]] = select(table).order_by(asc(table.key))
             result: Result[Tuple[BaseEnumRow]] = await s.execute(stmt)
             db_rows: Sequence[BaseEnumRow] = result.scalars().all()
 
@@ -42,7 +43,7 @@ class EnumAccess:
                 )
 
             # --- CHECK 1: Prefix match of keys ---
-            if db_keys != enum_keys[:len(db_keys)]:
+            if db_keys != enum_keys[: len(db_keys)]:
                 raise ValueError(
                     f"Key mismatch for {table.__name__}. "
                     f"DB keys={db_keys} do not match enum keys prefix={enum_keys[:len(db_keys)]}. "
@@ -50,7 +51,7 @@ class EnumAccess:
                 )
 
             # --- CHECK 2: Prefix match of names ---
-            if db_values != enum_values[:len(db_values)]:
+            if db_values != enum_values[: len(db_values)]:
                 raise ValueError(
                     f"Enum name mismatch for {table.__name__}. "
                     f"DB values={db_values} do not match enum names prefix={enum_values[:len(db_values)]}. "

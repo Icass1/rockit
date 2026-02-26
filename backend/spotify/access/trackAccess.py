@@ -16,7 +16,7 @@ class TrackAccess:
         track_id: int,
         path: Optional[str],
         download_url: Optional[str],
-        session: AsyncSession | None = None
+        session: AsyncSession | None = None,
     ) -> AResultCode:
         try:
             async with rockit_db.session_scope_or_session_async(session) as s:
@@ -28,8 +28,7 @@ class TrackAccess:
                 if not track:
                     logger.error(f"Track with id {track_id} not found.")
                     return AResultCode(
-                        code=AResultCode.NOT_FOUND,
-                        message="Track not found."
+                        code=AResultCode.NOT_FOUND, message="Track not found."
                     )
 
                 # Update fields
@@ -48,6 +47,5 @@ class TrackAccess:
         except Exception as e:
             logger.error(f"Failed to update track path: {e}")
             return AResultCode(
-                code=AResultCode.GENERAL_ERROR,
-                message=f"Failed to update track: {e}"
+                code=AResultCode.GENERAL_ERROR, message=f"Failed to update track: {e}"
             )

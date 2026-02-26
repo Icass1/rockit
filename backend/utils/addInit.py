@@ -4,7 +4,6 @@ from typing import List, Set
 
 from backend.utils.logger import getLogger
 
-
 logger = getLogger(__name__)
 
 skip_files: List[str] = [
@@ -54,20 +53,34 @@ def add_init_to_orm():
 
             for k in initial_content:
                 if k.startswith("class"):
-                    parsed_line: str = k.replace(
-                        "\n", "").replace("class ", "")
-                    parsed_line = parsed_line.split("(")[1].split(")")[
-                        0].replace(" ", "")
+                    parsed_line: str = k.replace("\n", "").replace("class ", "")
+                    parsed_line = (
+                        parsed_line.split("(")[1].split(")")[0].replace(" ", "")
+                    )
 
                     classes = parsed_line.split(",")
 
                     if "TablePublicId" in classes:
                         parameters.append(
-                            Parameter(name="public_id", nullable=False, optional=False, type="str", default_value=None))
+                            Parameter(
+                                name="public_id",
+                                nullable=False,
+                                optional=False,
+                                type="str",
+                                default_value=None,
+                            )
+                        )
 
                     if "TableAutoincrementKey" in classes:
                         parameters.append(
-                            Parameter(name="key", nullable=False, optional=False, type="int", default_value=None))
+                            Parameter(
+                                name="key",
+                                nullable=False,
+                                optional=False,
+                                type="int",
+                                default_value=None,
+                            )
+                        )
 
                 if "def __init__" in k:
                     break
@@ -90,8 +103,7 @@ def add_init_to_orm():
 
                 i = 1
                 while not line.endswith(")"):
-                    line += content[index +
-                                    i].replace("\n", "").replace("    ", "")
+                    line += content[index + i].replace("\n", "").replace("    ", "")
                     i += 1
 
                 if "nullable=False" in line:
@@ -124,8 +136,15 @@ def add_init_to_orm():
                     if char == "[":
                         bracket_count += 1
 
-                parameters.append(Parameter(name=name, type=type,
-                                            optional=optional, nullable=nullable, default_value=default_value))
+                parameters.append(
+                    Parameter(
+                        name=name,
+                        type=type,
+                        optional=optional,
+                        nullable=nullable,
+                        default_value=default_value,
+                    )
+                )
 
             if len(parameters) == 0:
                 logger.info(f"{file_path} has no parameters.")
@@ -165,8 +184,9 @@ def add_init_to_orm():
             types_list.sort()
 
             init_stmt += "):\n"
-            init_stmt += f"        kwargs: Dict[str, " + \
-                " | ".join(types_list) + "]={}\n"
+            init_stmt += (
+                f"        kwargs: Dict[str, " + " | ".join(types_list) + "]={}\n"
+            )
 
             for k in sort_parameters:
                 init_stmt += f"        kwargs['{k.name}']={k.name}\n"

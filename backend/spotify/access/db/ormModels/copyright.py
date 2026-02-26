@@ -4,12 +4,20 @@ from sqlalchemy import String, Integer, ForeignKey
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 
 from backend.spotify.access.db.base import SpotifyBase
-from backend.core.access.db.ormModels.declarativeMixin import TableAutoincrementId, TableDateAdded, TableDateUpdated
-from backend.spotify.access.db.associationTables.album_copyrights import album_copyrights
+from backend.core.access.db.ormModels.declarativeMixin import (
+    TableAutoincrementId,
+    TableDateAdded,
+    TableDateUpdated,
+)
+from backend.spotify.access.db.associationTables.album_copyrights import (
+    album_copyrights,
+)
 
 if TYPE_CHECKING:
     from backend.spotify.access.db.ormModels.album import AlbumRow
-    from backend.spotify.access.db.ormEnums.copyrightTypeEnum import CopyrightTypeEnumRow
+    from backend.spotify.access.db.ormEnums.copyrightTypeEnum import (
+        CopyrightTypeEnumRow,
+    )
 
 
 class CopyrightRow(SpotifyBase, TableAutoincrementId, TableDateUpdated, TableDateAdded):
@@ -19,19 +27,15 @@ class CopyrightRow(SpotifyBase, TableAutoincrementId, TableDateUpdated, TableDat
 
     text: Mapped[str] = mapped_column(String, nullable=False)
     type_key: Mapped[int] = mapped_column(
-        Integer,
-        ForeignKey('spotify.copyright_type_enum.key'),
-        nullable=False)
-    albums: Mapped["AlbumRow"] = relationship(
-        "AlbumRow",
-        secondary=album_copyrights)
+        Integer, ForeignKey("spotify.copyright_type_enum.key"), nullable=False
+    )
+    albums: Mapped["AlbumRow"] = relationship("AlbumRow", secondary=album_copyrights)
 
-    type: Mapped["CopyrightTypeEnumRow"] = relationship(
-        "CopyrightTypeEnumRow")
-    
+    type: Mapped["CopyrightTypeEnumRow"] = relationship("CopyrightTypeEnumRow")
+
     def __init__(self, text: str, type_key: int):
         kwargs: Dict[str, int | str] = {}
-        kwargs['text'] = text
-        kwargs['type_key'] = type_key
+        kwargs["text"] = text
+        kwargs["type_key"] = type_key
         for k, v in kwargs.items():
             setattr(self, k, v)

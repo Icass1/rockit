@@ -7,7 +7,9 @@ export class SearchManager {
 
     private _searchQueryAtom = createAtom<string>("");
     private _searchingAtom = createAtom<boolean>(false);
-    private _searchResultsAtom = createAtom<SearchResultsResponse | undefined>();
+    private _searchResultsAtom = createAtom<
+        SearchResultsResponse | undefined
+    >();
 
     // #endregion
 

@@ -14,7 +14,6 @@ from backend.core.access.db.ormModels.provider import ProviderRow
 
 from backend.core.framework.provider.baseProvider import BaseProvider
 
-
 logger: Logger = getLogger(__name__)
 
 
@@ -34,7 +33,8 @@ class Providers:
         a_result_search_providers: AResultCode = await self.search_providers()
         if a_result_search_providers.is_not_ok():
             logger.error(
-                f"Error searching providers. {a_result_search_providers.info()}")
+                f"Error searching providers. {a_result_search_providers.info()}"
+            )
 
     def find_provider(self, provider_id: int) -> BaseProvider | None:
         """Find a provider instance matching a database provider ID."""
@@ -68,31 +68,41 @@ class Providers:
                     provider_name = module.name
                     if not isinstance(provider, BaseProvider):
                         logger.error(
-                            f"Variable provider in module {module_path} is not a BaseProvider instance")
+                            f"Variable provider in module {module_path} is not a BaseProvider instance"
+                        )
                     if not isinstance(provider_name, str):
                         logger.error(
-                            f"Variable name in module {module_path} is not a str instance")
+                            f"Variable name in module {module_path} is not a str instance"
+                        )
                     else:
                         logger.info(f"Adding provider {module_path}")
 
                         await provider.async_init()
 
-                        providers_found_data.append(Providers.ProviderData(
-                            provider=provider,
-                            module_path=module_path,
-                            name=provider_name))
+                        providers_found_data.append(
+                            Providers.ProviderData(
+                                provider=provider,
+                                module_path=module_path,
+                                name=provider_name,
+                            )
+                        )
                 except Exception as e:
                     logger.warning(
-                        f"{module_path} doesn't have 'provider' or 'name' variable. Error {e}.")
+                        f"{module_path} doesn't have 'provider' or 'name' variable. Error {e}."
+                    )
 
-        a_result_providers_in_db: AResult[
-            List[ProviderRow]
-        ] = await ProviderAccess.get_providers()
+        a_result_providers_in_db: AResult[List[ProviderRow]] = (
+            await ProviderAccess.get_providers()
+        )
 
         if a_result_providers_in_db.is_not_ok():
             logger.error(
-                f"Error getting providers in database. {a_result_providers_in_db.info()}")
-            return AResultCode(code=a_result_providers_in_db.code(), message=a_result_providers_in_db.message())
+                f"Error getting providers in database. {a_result_providers_in_db.info()}"
+            )
+            return AResultCode(
+                code=a_result_providers_in_db.code(),
+                message=a_result_providers_in_db.message(),
+            )
 
         providers_in_db: List[ProviderRow] = a_result_providers_in_db.result()
 
@@ -102,30 +112,35 @@ class Providers:
                 if provider.module == provider_data.module_path:
                     providers_found_data.pop(index)
                     provider_data.provider.set_info(
-                        provider_id=provider.id, provider_name=provider.name)
+                        provider_id=provider.id, provider_name=provider.name
+                    )
                     self._providers.append(provider_data.provider)
                     break
 
             # Handle provider in database not found.
             else:
-                logger.error(
-                    f"Provider in database {provider.name} couldn't be found.")
-                return AResultCode(code=AResultCode.GENERAL_ERROR, message="A provider in database couldn't be found.")
+                logger.error(f"Provider in database {provider.name} couldn't be found.")
+                return AResultCode(
+                    code=AResultCode.GENERAL_ERROR,
+                    message="A provider in database couldn't be found.",
+                )
 
         for index, provider_data in enumerate(providers_found_data):
             self._providers.append(provider_data.provider)
 
             a_result_provider: AResult[ProviderRow] = await ProviderAccess.add_provider(
-                name=provider_data.name,
-                module=provider_data.module_path)
+                name=provider_data.name, module=provider_data.module_path
+            )
 
             if a_result_provider.is_not_ok():
                 logger.error(
-                    f"Error adding provider to database. Code {a_result_provider.code()}")
+                    f"Error adding provider to database. Code {a_result_provider.code()}"
+                )
                 continue
 
             provider_data.provider.set_info(
                 provider_id=a_result_provider.result().id,
-                provider_name=a_result_provider.result().name)
+                provider_name=a_result_provider.result().name,
+            )
 
         return AResultCode(code=AResultCode.OK, message="OK")

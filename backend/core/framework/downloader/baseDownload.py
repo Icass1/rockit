@@ -19,5 +19,7 @@ class BaseDownload:
     async def download_method_async(self) -> AResultCode:
         """Return a descriptive thread name for this download."""
 
-        return AResultCode(AResultCode.NOT_IMPLEMENTED, f"download_method_async not implemented in {self}")
-
+        return AResultCode(
+            AResultCode.NOT_IMPLEMENTED,
+            f"download_method_async not implemented in {self}",
+        )

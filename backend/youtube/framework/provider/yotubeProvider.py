@@ -3,7 +3,6 @@ from backend.core.framework.provider.baseProvider import BaseProvider
 from backend.utils.logger import getLogger
 from backend.youtube.framework.youtube import YouTube
 
-
 logger: Logger = getLogger(__name__)
 
 
@@ -17,6 +16,7 @@ class YoutubeProvider(BaseProvider):
 
         self._id = provider_id
         self._name = provider_name
+
 
 provider = YoutubeProvider()
 name = "YouTube"

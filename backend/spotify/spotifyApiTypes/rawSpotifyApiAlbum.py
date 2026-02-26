@@ -8,7 +8,7 @@ class AlbumExternalUrls(BaseModel):
     spotify: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'AlbumExternalUrls':
+    def from_dict(cls, obj: Any) -> "AlbumExternalUrls":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -18,7 +18,7 @@ class AlbumRestrictions(BaseModel):
     reason: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'AlbumRestrictions':
+    def from_dict(cls, obj: Any) -> "AlbumRestrictions":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -28,7 +28,7 @@ class AlbumExternalUrls1(BaseModel):
     spotify: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'AlbumExternalUrls1':
+    def from_dict(cls, obj: Any) -> "AlbumExternalUrls1":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -43,7 +43,7 @@ class AlbumArtists(BaseModel):
     uri: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'AlbumArtists':
+    def from_dict(cls, obj: Any) -> "AlbumArtists":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -53,7 +53,7 @@ class AlbumExternalUrls2(BaseModel):
     spotify: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'AlbumExternalUrls2':
+    def from_dict(cls, obj: Any) -> "AlbumExternalUrls2":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -68,7 +68,7 @@ class AlbumArtists1(BaseModel):
     uri: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'AlbumArtists1':
+    def from_dict(cls, obj: Any) -> "AlbumArtists1":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -78,7 +78,7 @@ class AlbumExternalUrls3(BaseModel):
     spotify: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'AlbumExternalUrls3':
+    def from_dict(cls, obj: Any) -> "AlbumExternalUrls3":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -88,7 +88,7 @@ class AlbumExternalUrls4(BaseModel):
     spotify: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'AlbumExternalUrls4':
+    def from_dict(cls, obj: Any) -> "AlbumExternalUrls4":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -102,7 +102,7 @@ class AlbumLinkedFrom(BaseModel):
     uri: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'AlbumLinkedFrom':
+    def from_dict(cls, obj: Any) -> "AlbumLinkedFrom":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -128,7 +128,7 @@ class AlbumItems(BaseModel):
     is_local: Optional[bool] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'AlbumItems':
+    def from_dict(cls, obj: Any) -> "AlbumItems":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -144,7 +144,7 @@ class AlbumTracks(BaseModel):
     items: List[AlbumItems]
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'AlbumTracks':
+    def from_dict(cls, obj: Any) -> "AlbumTracks":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -155,7 +155,7 @@ class AlbumCopyrights(BaseModel):
     type: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'AlbumCopyrights':
+    def from_dict(cls, obj: Any) -> "AlbumCopyrights":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -167,7 +167,7 @@ class AlbumExternalIds(BaseModel):
     upc: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'AlbumExternalIds':
+    def from_dict(cls, obj: Any) -> "AlbumExternalIds":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -184,7 +184,7 @@ class RawSpotifyApiAlbum(BaseModel):
     name: str
     release_date: str
     release_date_precision: str
-    restrictions: Optional[AlbumRestrictions] = None # Field can be missing.
+    restrictions: Optional[AlbumRestrictions] = None  # Field can be missing.
     type: str
     uri: str
     artists: List[AlbumArtists]
@@ -196,7 +196,7 @@ class RawSpotifyApiAlbum(BaseModel):
     popularity: int
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'RawSpotifyApiAlbum':
+    def from_dict(cls, obj: Any) -> "RawSpotifyApiAlbum":
         """Parse a raw Spotify API album response from a dictionary."""
 
         return cls.model_validate(obj)

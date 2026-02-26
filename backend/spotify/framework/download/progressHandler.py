@@ -23,7 +23,13 @@ class ProgressHandler:
     ):
 
         self.downloads_dict[self.downloads_ids_dict[description]].add(
-            message={'id': self.downloads_ids_dict[description], 'completed': completed, 'total': total, 'message': fields['message']})
+            message={
+                "id": self.downloads_ids_dict[description],
+                "completed": completed,
+                "total": total,
+                "message": fields["message"],
+            }
+        )
 
         return self.downloads_ids_dict[description]
 
@@ -42,7 +48,12 @@ class ProgressHandler:
         # logger.info({'id': task_id, 'completed': completed,
         #             'message': fields['message']})
         self.downloads_dict[task_id].add(
-            message={'id': task_id, 'completed': completed, 'message': fields['message']})
+            message={
+                "id": task_id,
+                "completed": completed,
+                "message": fields["message"],
+            }
+        )
 
     def start_task(self, task_id: str):
         # logger.info(task_id)

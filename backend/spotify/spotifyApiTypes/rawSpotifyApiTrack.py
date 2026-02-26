@@ -8,7 +8,7 @@ class TrackExternalUrls(BaseModel):
     spotify: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'TrackExternalUrls':
+    def from_dict(cls, obj: Any) -> "TrackExternalUrls":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -18,7 +18,7 @@ class TrackRestrictions(BaseModel):
     reason: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'TrackRestrictions':
+    def from_dict(cls, obj: Any) -> "TrackRestrictions":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -28,7 +28,7 @@ class TrackExternalUrls1(BaseModel):
     spotify: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'TrackExternalUrls1':
+    def from_dict(cls, obj: Any) -> "TrackExternalUrls1":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -43,7 +43,7 @@ class TrackArtists(BaseModel):
     uri: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'TrackArtists':
+    def from_dict(cls, obj: Any) -> "TrackArtists":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -66,7 +66,7 @@ class TrackAlbum(BaseModel):
     artists: Optional[List[TrackArtists]] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'TrackAlbum':
+    def from_dict(cls, obj: Any) -> "TrackAlbum":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -76,7 +76,7 @@ class TrackExternalUrls2(BaseModel):
     spotify: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'TrackExternalUrls2':
+    def from_dict(cls, obj: Any) -> "TrackExternalUrls2":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -88,7 +88,7 @@ class TrackExternalIds(BaseModel):
     upc: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'TrackExternalIds':
+    def from_dict(cls, obj: Any) -> "TrackExternalIds":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -98,7 +98,7 @@ class TrackExternalUrls3(BaseModel):
     spotify: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'TrackExternalUrls3':
+    def from_dict(cls, obj: Any) -> "TrackExternalUrls3":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -106,7 +106,7 @@ class TrackExternalUrls3(BaseModel):
 
 class TrackLinkedFrom(BaseModel):
     @classmethod
-    def from_dict(cls, obj: Any) -> 'TrackLinkedFrom':
+    def from_dict(cls, obj: Any) -> "TrackLinkedFrom":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -116,7 +116,7 @@ class TrackRestrictions1(BaseModel):
     reason: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'TrackRestrictions1':
+    def from_dict(cls, obj: Any) -> "TrackRestrictions1":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -136,7 +136,7 @@ class RawSpotifyApiTrack(BaseModel):
     is_playable: Optional[bool] = None
     linked_from: Optional[TrackLinkedFrom] = None
     restrictions: Optional[TrackRestrictions1] = None
-    name: str 
+    name: str
     popularity: Optional[int] = None
     preview_url: Optional[str] = None
     track_number: Optional[int] = None
@@ -145,7 +145,7 @@ class RawSpotifyApiTrack(BaseModel):
     is_local: Optional[bool] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'RawSpotifyApiTrack':
+    def from_dict(cls, obj: Any) -> "RawSpotifyApiTrack":
         """Parse a raw Spotify API track response from a dictionary."""
 
         return cls.model_validate(obj)

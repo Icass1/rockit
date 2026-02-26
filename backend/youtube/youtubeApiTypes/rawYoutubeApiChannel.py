@@ -10,5 +10,5 @@ class RawYoutubeChannel(BaseModel):
     statistics: Optional[dict[str, Any]] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'RawYoutubeChannel':
+    def from_dict(cls, obj: Any) -> "RawYoutubeChannel":
         return cls.model_validate(obj)

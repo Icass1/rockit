@@ -1,4 +1,3 @@
-
 from datetime import datetime, timezone
 
 from fastapi import HTTPException, Request
@@ -11,7 +10,6 @@ from backend.constants import SESSION_COOKIE
 from backend.core.framework.auth.session import Session
 from backend.utils.logger import getLogger
 
-
 logger = getLogger(__name__)
 
 
@@ -22,11 +20,14 @@ class AuthMiddleware:
         if not session_id:
             raise HTTPException(status_code=401, detail="Not logged in.")
 
-        a_result_session: AResult[SessionRow] = await Session.get_user_id_from_session_async(
-            session_id=session_id)
+        a_result_session: AResult[SessionRow] = (
+            await Session.get_user_id_from_session_async(session_id=session_id)
+        )
         if a_result_session.is_not_ok():
             raise HTTPException(
-                status_code=a_result_session.get_http_code(), detail=a_result_session.message())
+                status_code=a_result_session.get_http_code(),
+                detail=a_result_session.message(),
+            )
 
         if a_result_session.result().expires_at < datetime.now(timezone.utc):
             raise HTTPException(401, "Session has expired.")
@@ -35,10 +36,13 @@ class AuthMiddleware:
             raise HTTPException(401, "Session is disabled.")
 
         a_result_user: AResult[UserRow] = await UserAccess.get_user_from_id(
-            user_id=a_result_session.result().user_id)
+            user_id=a_result_session.result().user_id
+        )
         if a_result_user.is_not_ok():
             raise HTTPException(
-                status_code=a_result_session.get_http_code(), detail=a_result_user.message())
+                status_code=a_result_session.get_http_code(),
+                detail=a_result_user.message(),
+            )
 
         user: UserRow = a_result_user.result()
 
@@ -54,12 +58,18 @@ class AuthMiddleware:
             return AResult(code=AResultCode.OK, message="OK", result=request.state.user)
         except:
             logger.error("User not in request state")
-            return AResult(AResultCode.GENERAL_ERROR, message="User not in request state")
+            return AResult(
+                AResultCode.GENERAL_ERROR, message="User not in request state"
+            )
 
     @staticmethod
     def get_current_session_id(request: Request) -> AResult[str]:
         try:
-            return AResult(code=AResultCode.OK, message="OK", result=request.state.session_id)
+            return AResult(
+                code=AResultCode.OK, message="OK", result=request.state.session_id
+            )
         except:
             logger.error("Session id not in request state")
-            return AResult(AResultCode.GENERAL_ERROR, message="Session id not in request state")
+            return AResult(
+                AResultCode.GENERAL_ERROR, message="Session id not in request state"
+            )

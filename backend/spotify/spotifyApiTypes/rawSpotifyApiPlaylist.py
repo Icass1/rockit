@@ -8,7 +8,7 @@ class PlaylistExternalUrls(BaseModel):
     spotify: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'PlaylistExternalUrls':
+    def from_dict(cls, obj: Any) -> "PlaylistExternalUrls":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -18,7 +18,7 @@ class PlaylistExternalUrls1(BaseModel):
     spotify: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'PlaylistExternalUrls1':
+    def from_dict(cls, obj: Any) -> "PlaylistExternalUrls1":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -33,7 +33,7 @@ class PlaylistOwner(BaseModel):
     display_name: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'PlaylistOwner':
+    def from_dict(cls, obj: Any) -> "PlaylistOwner":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -43,7 +43,7 @@ class PlaylistExternalUrls2(BaseModel):
     spotify: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'PlaylistExternalUrls2':
+    def from_dict(cls, obj: Any) -> "PlaylistExternalUrls2":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -57,7 +57,7 @@ class PlaylistAddedBy(BaseModel):
     uri: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'PlaylistAddedBy':
+    def from_dict(cls, obj: Any) -> "PlaylistAddedBy":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -67,7 +67,7 @@ class PlaylistExternalUrls3(BaseModel):
     spotify: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'PlaylistExternalUrls3':
+    def from_dict(cls, obj: Any) -> "PlaylistExternalUrls3":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -79,7 +79,7 @@ class PlaylistImages1(BaseModel):
     width: Optional[int] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'PlaylistImages1':
+    def from_dict(cls, obj: Any) -> "PlaylistImages1":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -89,7 +89,7 @@ class PlaylistRestrictions(BaseModel):
     reason: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'PlaylistRestrictions':
+    def from_dict(cls, obj: Any) -> "PlaylistRestrictions":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -99,7 +99,7 @@ class PlaylistExternalUrls4(BaseModel):
     spotify: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'PlaylistExternalUrls4':
+    def from_dict(cls, obj: Any) -> "PlaylistExternalUrls4":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -114,7 +114,7 @@ class PlaylistArtists(BaseModel):
     uri: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'PlaylistArtists':
+    def from_dict(cls, obj: Any) -> "PlaylistArtists":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -137,7 +137,7 @@ class PlaylistAlbum(BaseModel):
     artists: Optional[List[PlaylistArtists]] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'PlaylistAlbum':
+    def from_dict(cls, obj: Any) -> "PlaylistAlbum":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -147,7 +147,7 @@ class PlaylistExternalUrls5(BaseModel):
     spotify: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'PlaylistExternalUrls5':
+    def from_dict(cls, obj: Any) -> "PlaylistExternalUrls5":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -162,7 +162,7 @@ class PlaylistArtists1(BaseModel):
     uri: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'PlaylistArtists1':
+    def from_dict(cls, obj: Any) -> "PlaylistArtists1":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -174,7 +174,7 @@ class PlaylistExternalIds(BaseModel):
     upc: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'PlaylistExternalIds':
+    def from_dict(cls, obj: Any) -> "PlaylistExternalIds":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -184,7 +184,7 @@ class PlaylistExternalUrls6(BaseModel):
     spotify: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'PlaylistExternalUrls6':
+    def from_dict(cls, obj: Any) -> "PlaylistExternalUrls6":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -192,7 +192,7 @@ class PlaylistExternalUrls6(BaseModel):
 
 class PlaylistLinkedFrom(BaseModel):
     @classmethod
-    def from_dict(cls, obj: Any) -> 'PlaylistLinkedFrom':
+    def from_dict(cls, obj: Any) -> "PlaylistLinkedFrom":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -202,7 +202,7 @@ class PlaylistRestrictions1(BaseModel):
     reason: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'PlaylistRestrictions1':
+    def from_dict(cls, obj: Any) -> "PlaylistRestrictions1":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -231,7 +231,7 @@ class PlaylistTrack(BaseModel):
     is_local: Optional[bool] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'PlaylistTrack':
+    def from_dict(cls, obj: Any) -> "PlaylistTrack":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -244,7 +244,7 @@ class PlaylistItems(BaseModel):
     track: Optional[PlaylistTrack] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'PlaylistItems':
+    def from_dict(cls, obj: Any) -> "PlaylistItems":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -260,7 +260,7 @@ class PlaylistTracks(BaseModel):
     items: Optional[List[PlaylistItems]] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'PlaylistTracks':
+    def from_dict(cls, obj: Any) -> "PlaylistTracks":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -282,7 +282,7 @@ class RawSpotifyApiPlaylist(BaseModel):
     uri: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'RawSpotifyApiPlaylist':
+    def from_dict(cls, obj: Any) -> "RawSpotifyApiPlaylist":
         """Parse a raw Spotify API playlist response from a dictionary."""
 
         return cls.model_validate(obj)

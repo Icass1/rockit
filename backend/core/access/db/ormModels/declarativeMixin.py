@@ -10,7 +10,7 @@ class TableDateUpdated:
         TIMESTAMP(timezone=True),
         nullable=False,
         default=func.now(),
-        onupdate=func.now()
+        onupdate=func.now(),
     )
 
 

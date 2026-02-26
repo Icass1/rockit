@@ -10,7 +10,6 @@ from backend.spotify.spotifyApiTypes.rawSpotifyApiTrack import RawSpotifyApiTrac
 from backend.spotify.spotifyApiTypes.rawSpotifyApiArtist import RawSpotifyApiArtist
 from backend.spotify.spotifyApiTypes.rawSpotifyApiPlaylist import RawSpotifyApiPlaylist
 
-
 logger = getLogger(__name__)
 
 
@@ -25,8 +24,11 @@ class SpotifyCache:
         if a_result.is_not_ok():
             return AResult(code=a_result.code(), message=a_result.message())
         rows = a_result.result()
-        return AResult(code=AResultCode.OK, message="OK",
-                       result=[RawSpotifyApiAlbum.from_dict(r.json) for r in rows])
+        return AResult(
+            code=AResultCode.OK,
+            message="OK",
+            result=[RawSpotifyApiAlbum.from_dict(r.json) for r in rows],
+        )
 
     @staticmethod
     async def add_track_async(id: str, json: Dict[str, Any]) -> AResultCode:
@@ -38,8 +40,11 @@ class SpotifyCache:
         if a_result.is_not_ok():
             return AResult(code=a_result.code(), message=a_result.message())
         rows = a_result.result()
-        return AResult(code=AResultCode.OK, message="OK",
-                       result=[RawSpotifyApiTrack.from_dict(r.json) for r in rows])
+        return AResult(
+            code=AResultCode.OK,
+            message="OK",
+            result=[RawSpotifyApiTrack.from_dict(r.json) for r in rows],
+        )
 
     @staticmethod
     async def add_artist_async(id: str, json: Dict[str, Any]) -> AResultCode:
@@ -51,8 +56,11 @@ class SpotifyCache:
         if a_result.is_not_ok():
             return AResult(code=a_result.code(), message=a_result.message())
         rows = a_result.result()
-        return AResult(code=AResultCode.OK, message="OK",
-                       result=[RawSpotifyApiArtist.from_dict(r.json) for r in rows])
+        return AResult(
+            code=AResultCode.OK,
+            message="OK",
+            result=[RawSpotifyApiArtist.from_dict(r.json) for r in rows],
+        )
 
     @staticmethod
     async def add_playlist_async(id: str, json: Dict[str, Any]) -> AResultCode:
@@ -64,5 +72,8 @@ class SpotifyCache:
         if a_result.is_not_ok():
             return AResult(code=a_result.code(), message=a_result.message())
         row = a_result.result()
-        return AResult(code=AResultCode.OK, message="OK",
-                       result=RawSpotifyApiPlaylist.from_dict(row.json))
+        return AResult(
+            code=AResultCode.OK,
+            message="OK",
+            result=RawSpotifyApiPlaylist.from_dict(row.json),
+        )

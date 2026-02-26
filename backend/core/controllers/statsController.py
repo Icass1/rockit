@@ -8,8 +8,7 @@ from backend.core.middlewares.authMiddleware import AuthMiddleware
 
 logger: Logger = getLogger(name=__name__)
 router = APIRouter(
-    prefix="/stats",
-    dependencies=[Depends(dependency=AuthMiddleware.auth_dependency)]
+    prefix="/stats", dependencies=[Depends(dependency=AuthMiddleware.auth_dependency)]
 )
 
 
@@ -24,4 +23,5 @@ async def get_home_stats(request: Request) -> HomeStatsResponse:
         hiddenGems=[],
         communityTop=[],
         monthlyTop=[],
-        moodSongs=[])
+        moodSongs=[],
+    )

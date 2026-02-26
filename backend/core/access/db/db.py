@@ -22,6 +22,5 @@ from backend.core.access.db.ormModels.video import CoreVideoRow  # type: ignore
 from backend.core.access.db.ormEnums.downloadStatusEnum import DownloadStatusEnumRow  # type: ignore
 from backend.core.access.db.ormEnums.repeatSongEnum import RepeatSongEnumRow  # type: ignore
 
-
 schemas = ["core"]
 base = CoreBase

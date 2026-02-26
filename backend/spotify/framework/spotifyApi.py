@@ -18,7 +18,9 @@ from backend.spotify.spotifyApiTypes.rawSpotifyApiAlbum import RawSpotifyApiAlbu
 from backend.spotify.spotifyApiTypes.rawSpotifyApiTrack import RawSpotifyApiTrack
 from backend.spotify.spotifyApiTypes.rawSpotifyApiArtist import RawSpotifyApiArtist
 from backend.spotify.spotifyApiTypes.rawSpotifyApiPlaylist import RawSpotifyApiPlaylist
-from backend.spotify.spotifyApiTypes.rawSpotifyApiSearchResults import RawSpotifyApiSearchResults
+from backend.spotify.spotifyApiTypes.rawSpotifyApiSearchResults import (
+    RawSpotifyApiSearchResults,
+)
 
 logger = getLogger(__name__)
 
@@ -49,19 +51,18 @@ class SpotifyApi:
 
             return
 
-        auth_string = self.client_id + ':' + self.client_secret
-        auth_bytes = auth_string.encode('utf-8')
+        auth_string = self.client_id + ":" + self.client_secret
+        auth_bytes = auth_string.encode("utf-8")
         auth_base64 = str(base64.b64encode(auth_bytes), "utf-8")
 
         url = "https://accounts.spotify.com/api/token"
         headers = {
             "Authorization": "Basic " + auth_base64,
-            "Content-Type": "application/x-www-form-urlencoded"
+            "Content-Type": "application/x-www-form-urlencoded",
         }
         data: Dict[str, str] = {"grant_type": "client_credentials"}
 
-        result: requests.Response = requests.post(
-            url, headers=headers, data=data)
+        result: requests.Response = requests.post(url, headers=headers, data=data)
         json_response = json.loads(result.content)
 
         try:
@@ -69,7 +70,8 @@ class SpotifyApi:
         except Exception as e:
             logger.critical(f"Unable to get access_token {e}.")
             logger.critical(
-                f"Received response code {result.status_code} from Spotify API")
+                f"Received response code {result.status_code} from Spotify API"
+            )
 
         if self.token:
             with open(".spotify_cache/token", "w") as f:
@@ -84,7 +86,9 @@ class SpotifyApi:
 
         return {"Authorization": "Bearer " + self.token}
 
-    def api_call(self, path: str, params: Dict[str, str] = {}) -> AResult[Dict[str, Any]]:
+    def api_call(
+        self, path: str, params: Dict[str, str] = {}
+    ) -> AResult[Dict[str, Any]]:
 
         parsed_params = ""
 
@@ -96,8 +100,7 @@ class SpotifyApi:
         url = f"https://api.spotify.com/v1/{path}"
         headers = self.get_auth_header()
 
-        query_url = url + \
-            ("?" + parsed_params if len(parsed_params) > 0 else "")
+        query_url = url + ("?" + parsed_params if len(parsed_params) > 0 else "")
 
         logger.warning(f"Spotify api call: {query_url}")
 
@@ -110,37 +113,54 @@ class SpotifyApi:
 
         if result.status_code != 200:
             logger.error(
-                f"Error in api_call. URL: {result.url}, Status Code: {result.status_code}, Text: {result.text}")
-            return AResult(code=AResultCode.GENERAL_ERROR, message=f"Call to url {result.url} resulted in status sode {result.status_code}, text received: {result.text}")
+                f"Error in api_call. URL: {result.url}, Status Code: {result.status_code}, Text: {result.text}"
+            )
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Call to url {result.url} resulted in status sode {result.status_code}, text received: {result.text}",
+            )
         try:
-            return AResult(code=AResultCode.OK, message="OK", result=json.loads(result.content))
+            return AResult(
+                code=AResultCode.OK, message="OK", result=json.loads(result.content)
+            )
         except:
             logger.critical(
-                f"Unable to load json. {result.content=}, {result.text=} {result.status_code=}")
-            return AResult(code=AResultCode.GENERAL_ERROR, message="Unable to parse json")
+                f"Unable to load json. {result.content=}, {result.text=} {result.status_code=}"
+            )
+            return AResult(
+                code=AResultCode.GENERAL_ERROR, message="Unable to parse json"
+            )
 
-    async def get_albums_async(self, ids: List[str]) -> AResult[List[RawSpotifyApiAlbum]]:
+    async def get_albums_async(
+        self, ids: List[str]
+    ) -> AResult[List[RawSpotifyApiAlbum]]:
         if not ids:
             return AResult(code=AResultCode.OK, message="OK", result=[])
 
         # Cache-first: fetch cached rows
-        a_result_cached: AResult[List[CacheAlbumRow]] = await SpotifyCacheAccess.get_albums_by_ids_async(ids)
-        cached_rows: List[CacheAlbumRow] = a_result_cached.result(
-        ) if a_result_cached.is_ok() else []
+        a_result_cached: AResult[List[CacheAlbumRow]] = (
+            await SpotifyCacheAccess.get_albums_by_ids_async(ids)
+        )
+        cached_rows: List[CacheAlbumRow] = (
+            a_result_cached.result() if a_result_cached.is_ok() else []
+        )
         cached_ids: set[str] = {row.id for row in cached_rows}
         cached_albums: List[RawSpotifyApiAlbum] = [
-            RawSpotifyApiAlbum.from_dict(row.json) for row in cached_rows]
+            RawSpotifyApiAlbum.from_dict(row.json) for row in cached_rows
+        ]
 
         missing_ids: List[str] = [id for id in ids if id not in cached_ids]
 
         fresh_albums: List[RawSpotifyApiAlbum] = []
         max_data_per_call = 20
 
-        for i in range(math.ceil(len(missing_ids) / max_data_per_call) if missing_ids else 0):
-            batch = missing_ids[i *
-                                max_data_per_call:(i + 1) * max_data_per_call]
+        for i in range(
+            math.ceil(len(missing_ids) / max_data_per_call) if missing_ids else 0
+        ):
+            batch = missing_ids[i * max_data_per_call : (i + 1) * max_data_per_call]
             a_result_response = self.api_call(
-                path="albums", params={"ids": ",".join(batch)})
+                path="albums", params={"ids": ",".join(batch)}
+            )
 
             if a_result_response.is_not_ok():
                 logger.error(f"Error in api_call. {a_result_response.info()}")
@@ -154,33 +174,45 @@ class SpotifyApi:
                     await SpotifyCacheAccess.add_album_async(album_id, album)
                 fresh_albums.append(RawSpotifyApiAlbum.from_dict(album))
 
-        return AResult(AResultCode.OK, message="OK", result=cached_albums + fresh_albums)
+        return AResult(
+            AResultCode.OK, message="OK", result=cached_albums + fresh_albums
+        )
 
-    async def get_tracks_async(self, ids: List[str]) -> AResult[List[RawSpotifyApiTrack]]:
+    async def get_tracks_async(
+        self, ids: List[str]
+    ) -> AResult[List[RawSpotifyApiTrack]]:
         if not ids:
             return AResult(code=AResultCode.OK, message="OK", result=[])
 
         # Cache-first
-        a_result_cached: AResult[List[CacheTrackRow]] = await SpotifyCacheAccess.get_tracks_by_ids_async(ids)
+        a_result_cached: AResult[List[CacheTrackRow]] = (
+            await SpotifyCacheAccess.get_tracks_by_ids_async(ids)
+        )
         cached_rows = a_result_cached.result() if a_result_cached.is_ok() else []
         cached_ids: set[str] = {row.id for row in cached_rows}
         cached_tracks: List[RawSpotifyApiTrack] = [
-            RawSpotifyApiTrack.from_dict(row.json) for row in cached_rows]
+            RawSpotifyApiTrack.from_dict(row.json) for row in cached_rows
+        ]
 
         missing_ids: List[str] = [id for id in ids if id not in cached_ids]
 
         fresh_tracks: List[RawSpotifyApiTrack] = []
         max_data_per_call = 50
 
-        for i in range(math.ceil(len(missing_ids) / max_data_per_call) if missing_ids else 0):
-            batch: List[str] = missing_ids[i *
-                                           max_data_per_call:(i + 1) * max_data_per_call]
+        for i in range(
+            math.ceil(len(missing_ids) / max_data_per_call) if missing_ids else 0
+        ):
+            batch: List[str] = missing_ids[
+                i * max_data_per_call : (i + 1) * max_data_per_call
+            ]
             a_result_response = self.api_call(
-                path="tracks", params={"ids": ",".join(batch)})
+                path="tracks", params={"ids": ",".join(batch)}
+            )
 
             if a_result_response.is_not_ok():
                 logger.error(
-                    f"Error in get_tracks_async api_call. {a_result_response.info()}")
+                    f"Error in get_tracks_async api_call. {a_result_response.info()}"
+                )
                 continue
 
             tracks: List[Dict[str, Any]] = a_result_response.result()["tracks"]
@@ -191,38 +223,48 @@ class SpotifyApi:
                     await SpotifyCacheAccess.add_track_async(track_id, track)
                 fresh_tracks.append(RawSpotifyApiTrack.from_dict(track))
 
-        return AResult(AResultCode.OK, message="OK", result=cached_tracks + fresh_tracks)
+        return AResult(
+            AResultCode.OK, message="OK", result=cached_tracks + fresh_tracks
+        )
 
-    async def get_artists_async(self, ids: List[str]) -> AResult[List[RawSpotifyApiArtist]]:
+    async def get_artists_async(
+        self, ids: List[str]
+    ) -> AResult[List[RawSpotifyApiArtist]]:
         if not ids:
             return AResult(code=AResultCode.OK, message="OK", result=[])
 
         # Cache-first
-        a_result_cached: AResult[List[CacheArtistRow]] = await SpotifyCacheAccess.get_artists_by_ids_async(ids)
-        cached_rows: List[CacheArtistRow] = a_result_cached.result(
-        ) if a_result_cached.is_ok() else []
+        a_result_cached: AResult[List[CacheArtistRow]] = (
+            await SpotifyCacheAccess.get_artists_by_ids_async(ids)
+        )
+        cached_rows: List[CacheArtistRow] = (
+            a_result_cached.result() if a_result_cached.is_ok() else []
+        )
         cached_ids = {row.id for row in cached_rows}
         cached_artists: List[RawSpotifyApiArtist] = [
-            RawSpotifyApiArtist.from_dict(row.json) for row in cached_rows]
+            RawSpotifyApiArtist.from_dict(row.json) for row in cached_rows
+        ]
 
         missing_ids: List[str] = [id for id in ids if id not in cached_ids]
 
         fresh_artists: List[RawSpotifyApiArtist] = []
         max_data_per_call = 50
 
-        for i in range(math.ceil(len(missing_ids) / max_data_per_call) if missing_ids else 0):
-            batch = missing_ids[i *
-                                max_data_per_call:(i + 1) * max_data_per_call]
+        for i in range(
+            math.ceil(len(missing_ids) / max_data_per_call) if missing_ids else 0
+        ):
+            batch = missing_ids[i * max_data_per_call : (i + 1) * max_data_per_call]
             a_result_response = self.api_call(
-                path="artists", params={"ids": ",".join(batch)})
+                path="artists", params={"ids": ",".join(batch)}
+            )
 
             if a_result_response.is_not_ok():
                 logger.error(
-                    f"Error in get_artists_async api_call. {a_result_response.info()}")
+                    f"Error in get_artists_async api_call. {a_result_response.info()}"
+                )
                 continue
 
-            artists: List[Dict[str, Any]] = a_result_response.result()[
-                "artists"]
+            artists: List[Dict[str, Any]] = a_result_response.result()["artists"]
 
             for artist in artists:
                 artist_id = artist.get("id")
@@ -230,42 +272,61 @@ class SpotifyApi:
                     await SpotifyCacheAccess.add_artist_async(artist_id, artist)
                 fresh_artists.append(RawSpotifyApiArtist.from_dict(artist))
 
-        return AResult(AResultCode.OK, message="OK", result=cached_artists + fresh_artists)
+        return AResult(
+            AResultCode.OK, message="OK", result=cached_artists + fresh_artists
+        )
 
     async def get_playlist_async(self, id: str) -> AResult[RawSpotifyApiPlaylist]:
         # Cache-first
         a_result_cached = await SpotifyCacheAccess.get_playlist_async(id)
         if a_result_cached.is_ok():
-            return AResult(code=AResultCode.OK, message="OK",
-                           result=RawSpotifyApiPlaylist.from_dict(a_result_cached.result().json))
+            return AResult(
+                code=AResultCode.OK,
+                message="OK",
+                result=RawSpotifyApiPlaylist.from_dict(a_result_cached.result().json),
+            )
 
         a_result_response = self.api_call(path=f"playlists/{id}")
         if a_result_response.is_not_ok():
             logger.error(
-                f"Error in get_playlist_async api_call. {a_result_response.info()}")
-            return AResult(code=a_result_response.code(), message=a_result_response.message())
+                f"Error in get_playlist_async api_call. {a_result_response.info()}"
+            )
+            return AResult(
+                code=a_result_response.code(), message=a_result_response.message()
+            )
 
         playlist_json = a_result_response.result()
         await SpotifyCacheAccess.add_playlist_async(id, playlist_json)
 
-        return AResult(code=AResultCode.OK, message="OK",
-                       result=RawSpotifyApiPlaylist.from_dict(playlist_json))
-
+        return AResult(
+            code=AResultCode.OK,
+            message="OK",
+            result=RawSpotifyApiPlaylist.from_dict(playlist_json),
+        )
 
     async def search_async(self, query: str) -> AResult[RawSpotifyApiSearchResults]:
         """Search Spotify for tracks, albums, artists, and playlists matching the query."""
 
         a_result_response = self.api_call(
             path="search",
-            params={"q": quote_plus(query), "type": "track,album,artist,playlist", "limit": "10"})
+            params={
+                "q": quote_plus(query),
+                "type": "track,album,artist,playlist",
+                "limit": "10",
+            },
+        )
 
         if a_result_response.is_not_ok():
             logger.error(f"Error in search_async api_call. {a_result_response.info()}")
-            return AResult(code=a_result_response.code(), message=a_result_response.message())
+            return AResult(
+                code=a_result_response.code(), message=a_result_response.message()
+            )
 
         return AResult(
             code=AResultCode.OK,
             message="OK",
-            result=RawSpotifyApiSearchResults.from_dict(a_result_response.result()))
+            result=RawSpotifyApiSearchResults.from_dict(a_result_response.result()),
+        )
+
 
 spotify_api = SpotifyApi()

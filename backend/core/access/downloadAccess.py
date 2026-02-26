@@ -26,7 +26,9 @@ class DownloadAccess:
         """Create a new download group row and flush so its id is available."""
 
         try:
-            async with rockit_db.session_scope_or_session_async(possible_session=session) as session:
+            async with rockit_db.session_scope_or_session_async(
+                possible_session=session
+            ) as session:
                 row: DownloadGroupRow = DownloadGroupRow(
                     public_id=create_id(32),
                     user_id=user_id,
@@ -38,7 +40,9 @@ class DownloadAccess:
                 return AResult(code=AResultCode.OK, message="OK", result=row)
         except Exception as e:
             logger.error(f"Error creating download group. {e}")
-            return AResult(code=AResultCode.GENERAL_ERROR, message="Error creating download group")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR, message="Error creating download group"
+            )
 
     @staticmethod
     async def create_download(
@@ -49,7 +53,9 @@ class DownloadAccess:
         """Create a new download row for a single song and flush so its id is available."""
 
         try:
-            async with rockit_db.session_scope_or_session_async(possible_session=session) as session:
+            async with rockit_db.session_scope_or_session_async(
+                possible_session=session
+            ) as session:
                 row: DownloadRow = DownloadRow(
                     download_group_id=download_group_id,
                     song_id=song_id,
@@ -59,7 +65,9 @@ class DownloadAccess:
                 return AResult(code=AResultCode.OK, message="OK", result=row)
         except Exception as e:
             logger.error(f"Error creating download. {e}")
-            return AResult(code=AResultCode.GENERAL_ERROR, message="Error creating download")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR, message="Error creating download"
+            )
 
     @staticmethod
     async def create_download_status(
@@ -71,7 +79,9 @@ class DownloadAccess:
         """Insert a new row in DownloadStatusRow and flush so its id is available."""
 
         try:
-            async with rockit_db.session_scope_or_session_async(possible_session=session) as session:
+            async with rockit_db.session_scope_or_session_async(
+                possible_session=session
+            ) as session:
                 row: DownloadStatusRow = DownloadStatusRow(
                     download_id=download_id,
                     completed=round(float(completed), 2),
@@ -84,6 +94,5 @@ class DownloadAccess:
         except Exception as e:
             logger.error(f"Error creating download status. {e}")
             return AResult(
-                code=AResultCode.GENERAL_ERROR,
-                message="Error creating download status"
+                code=AResultCode.GENERAL_ERROR, message="Error creating download status"
             )

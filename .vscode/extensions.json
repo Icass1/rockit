@@ -7,9 +7,9 @@
         "ms-python.vscode-pylance",
         "ms-python.python",
         "ms-python.debugpy",
-        "esbenp.prettier-vscode",
         "ms-python.autopep8",
         "usernamehw.errorlens",
+        "ms-python.black-formatter",
     ],
     "unwantedRecommendations": []
 }

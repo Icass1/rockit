@@ -33,22 +33,29 @@ class Downloader:
         """Create a download group, queue a BaseDownload per song, and return the group's public_id."""
 
         async with rockit_db.session_scope_async() as session:
-            a_result_group: AResult[DownloadGroupRow] = await DownloadAccess.create_download_group(
-                session=session,
-                user_id=user_id,
-                title=title,
+            a_result_group: AResult[DownloadGroupRow] = (
+                await DownloadAccess.create_download_group(
+                    session=session,
+                    user_id=user_id,
+                    title=title,
+                )
             )
             if a_result_group.is_not_ok():
                 logger.error(f"Error creating download group. {a_result_group.info()}")
-                return AResult(code=a_result_group.code(), message=a_result_group.message())
+                return AResult(
+                    code=a_result_group.code(), message=a_result_group.message()
+                )
 
             group: DownloadGroupRow = a_result_group.result()
 
             for public_id in public_ids:
-                a_result_song: AResult[CoreSongRow] = await MediaAccess.get_song_from_public_id_async(
-                    public_id=public_id)
+                a_result_song: AResult[CoreSongRow] = (
+                    await MediaAccess.get_song_from_public_id_async(public_id=public_id)
+                )
                 if a_result_song.is_not_ok():
-                    logger.error(f"Error getting song {public_id}. {a_result_song.info()}")
+                    logger.error(
+                        f"Error getting song {public_id}. {a_result_song.info()}"
+                    )
                     continue
 
                 song: CoreSongRow = a_result_song.result()
@@ -59,23 +66,31 @@ class Downloader:
                     logger.error(f"No provider found for song {public_id}.")
                     continue
 
-                a_result_download: AResult[DownloadRow] = await DownloadAccess.create_download(
-                    session=session,
-                    download_group_id=group.id,
-                    song_id=song.id,
+                a_result_download: AResult[DownloadRow] = (
+                    await DownloadAccess.create_download(
+                        session=session,
+                        download_group_id=group.id,
+                        song_id=song.id,
+                    )
                 )
                 if a_result_download.is_not_ok():
-                    logger.error(f"Error creating download row for {public_id}. {a_result_download.info()}")
+                    logger.error(
+                        f"Error creating download row for {public_id}. {a_result_download.info()}"
+                    )
                     continue
 
                 download_row: DownloadRow = a_result_download.result()
 
-                a_result_base_download: AResult[BaseDownload] = await provider.start_download_async(
-                    public_id=public_id,
-                    download_id=download_row.id,
+                a_result_base_download: AResult[BaseDownload] = (
+                    await provider.start_download_async(
+                        public_id=public_id,
+                        download_id=download_row.id,
+                    )
                 )
                 if a_result_base_download.is_not_ok():
-                    logger.error(f"Provider could not create download for {public_id}. {a_result_base_download.info()}")
+                    logger.error(
+                        f"Provider could not create download for {public_id}. {a_result_base_download.info()}"
+                    )
                     continue
 
                 downloads_manager.add_download(a_result_base_download.result())

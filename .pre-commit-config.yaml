@@ -1,0 +1,41 @@
+repos:
+  - repo: local
+    hooks:
+      - id: pyright
+        name: pyright
+        entry: .venv/bin/pyright
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+        files: ^backend/
+
+      - id: lint
+        name: pnpm lint
+        entry: bash
+        args: ["-c", "cd frontend && pnpm run lint"]
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+        files: ^frontend/
+
+      - id: black
+        name: black
+        entry: .venv/bin/black
+        args: ["backend"]
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+        files: ^backend/
+
+      - id: prettier
+        name: prettier
+        entry: bash
+        args: ["-c", "cd frontend && npx prettier -w ."]
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+        files: ^frontend/

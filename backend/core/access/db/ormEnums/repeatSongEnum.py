@@ -10,10 +10,7 @@ if TYPE_CHECKING:
 
 
 class RepeatSongEnumRow(CoreBase, BaseEnumRow):
-    __tablename__ = 'repeat_song_enum'
-    __table_args__ = {'schema': 'core', 'extend_existing': True},
+    __tablename__ = "repeat_song_enum"
+    __table_args__ = ({"schema": "core", "extend_existing": True},)
 
-    user: Mapped["UserRow"] = relationship(
-        "UserRow",
-        back_populates="repeat_song_enum"
-    )
+    user: Mapped["UserRow"] = relationship("UserRow", back_populates="repeat_song_enum")

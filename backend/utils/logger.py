@@ -1,4 +1,4 @@
-# type:ignore
+# type: ignore
 
 import os
 import sys
@@ -11,18 +11,29 @@ from colorama import Fore, Style, init
 # Import inspect module
 from backend.constants import CONSOLE_DUMP_LEVEL, LOG_DUMP_LEVEL, LOGS_PATH
 
-
 LEVELS = {
     "debug": logging.DEBUG,
     "info": logging.INFO,
     "warning": logging.WARNING,
     "error": logging.ERROR,
-    "critical": logging.CRITICAL
+    "critical": logging.CRITICAL,
 }
 
 
 class CustomLogger(logging.Logger):
-    def makeRecord(self, name, level, fn, lno, msg, args, exc_info, func=None, extra=None, sinfo=None):
+    def makeRecord(
+        self,
+        name,
+        level,
+        fn,
+        lno,
+        msg,
+        args,
+        exc_info,
+        func=None,
+        extra=None,
+        sinfo=None,
+    ):
         """Automatically extract the correct class name and function name."""
 
         # print(name, level, fn, lno, msg, args, exc_info, func, extra, sinfo)
@@ -39,7 +50,9 @@ class CustomLogger(logging.Logger):
             # type: ignore
             extra["extrainfo"] = f"{name}.{class_name}.{func} - "
 
-        return super().makeRecord(name, level, fn, lno, msg, args, exc_info, func, extra, sinfo)
+        return super().makeRecord(
+            name, level, fn, lno, msg, args, exc_info, func, extra, sinfo
+        )
 
 
 # Override the default logger class
@@ -48,12 +61,13 @@ logging.setLoggerClass(CustomLogger)
 
 class ColorFormatter(logging.Formatter):
     """Custom formatter to add colors to log levels."""
+
     COLORS = {
-        'DEBUG': Fore.BLUE,
-        'INFO': Fore.GREEN,
-        'WARNING': Fore.YELLOW,
-        'ERROR': Fore.RED,
-        'CRITICAL': Fore.MAGENTA + Style.BRIGHT
+        "DEBUG": Fore.BLUE,
+        "INFO": Fore.GREEN,
+        "WARNING": Fore.YELLOW,
+        "ERROR": Fore.RED,
+        "CRITICAL": Fore.MAGENTA + Style.BRIGHT,
     }
 
     def format(self, record):
@@ -78,7 +92,7 @@ def log_uncaught_exceptions(exc_type, exc_value, exc_traceback):
     tb_lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
 
     # Combine the traceback into a single string
-    error_message = ''.join(tb_lines)
+    error_message = "".join(tb_lines)
 
     # Optionally, you can also include the exception type and value
     formatted_message = "\n"
@@ -109,14 +123,16 @@ def getLogger(name: str, class_name: str | None = None) -> logging.Logger:
         file_level = LEVELS[LOG_DUMP_LEVEL]
     except:
         print(
-            f"LOG_DUMP_LEVEL can only be 'debug', 'info', 'warning', 'error' or 'critical' found '{LOG_DUMP_LEVEL}'")
+            f"LOG_DUMP_LEVEL can only be 'debug', 'info', 'warning', 'error' or 'critical' found '{LOG_DUMP_LEVEL}'"
+        )
         exit()
 
     try:
         console_level = LEVELS[CONSOLE_DUMP_LEVEL]
     except:
         print(
-            f"LOG_DUMP_LEVEL can only be 'debug', 'info', 'warning', 'error' or 'critical' found '{LOG_DUMP_LEVEL}'")
+            f"LOG_DUMP_LEVEL can only be 'debug', 'info', 'warning', 'error' or 'critical' found '{LOG_DUMP_LEVEL}'"
+        )
         exit()
 
     logger.propagate = False
@@ -127,15 +143,15 @@ def getLogger(name: str, class_name: str | None = None) -> logging.Logger:
 
     # Define formatters
     plain_formatter = logging.Formatter(
-        '{asctime} [{levelname:^10}] {pathname}:{lineno} - {extrainfo}{message}',
+        "{asctime} [{levelname:^10}] {pathname}:{lineno} - {extrainfo}{message}",
         style="{",
-        datefmt='%Y-%m-%d %H:%M:%S'
+        datefmt="%Y-%m-%d %H:%M:%S",
     )
 
     color_formatter = ColorFormatter(
-        '{asctime} [{levelname:^10}] {pathname}:{lineno} - {message}',
+        "{asctime} [{levelname:^10}] {pathname}:{lineno} - {message}",
         style="{",
-        datefmt='%Y-%m-%d %H:%M:%S'
+        datefmt="%Y-%m-%d %H:%M:%S",
     )
 
     logger.setLevel(logging.DEBUG)
@@ -169,7 +185,7 @@ while len(list_dir) > 10:
     os.remove(os.path.join(LOGS_PATH, list_dir[0]))
     list_dir.pop(0)
 
-current_time = datetime.now().strftime('%Y-%m-%d')
+current_time = datetime.now().strftime("%Y-%m-%d")
 log_file = os.path.join(LOGS_PATH, f"log_{current_time}.log")
 
 print(log_file)

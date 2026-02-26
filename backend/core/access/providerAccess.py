@@ -29,8 +29,7 @@ class ProviderAccess:
         except Exception as e:
             logger.error(f"Error getting providers: {e}")
             return AResult(
-                code=AResultCode.GENERAL_ERROR,
-                message="Error getting providers"
+                code=AResultCode.GENERAL_ERROR, message="Error getting providers"
             )
 
     @staticmethod
@@ -46,4 +45,7 @@ class ProviderAccess:
                 return AResult(code=AResultCode.OK, message="OK", result=provider)
         except Exception as e:
             logger.error(f"Unable to add provider: {e}")
-            return AResult(code=AResultCode.GENERAL_ERROR, message="Unable to add new provider to database.")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message="Unable to add new provider to database.",
+            )

@@ -31,7 +31,7 @@ PYTHON_TYPE_TO_ZOD = {
 
 
 def to_camel_case(name: str) -> str:
-    result = re.sub(r'(?<!^)(?=[A-Z])', '', name)
+    result = re.sub(r"(?<!^)(?=[A-Z])", "", name)
     if result and result[0].isupper():
         result = result[0].lower() + result[1:]
     return result
@@ -52,10 +52,10 @@ def get_base_models_from_folder(folder: str) -> list[type[BaseModel]]:
 
         try:
             module = importlib.import_module(
-                f"backend.{folder.split('backend/')[1].replace('/', '.')}.{module_name}")
+                f"backend.{folder.split('backend/')[1].replace('/', '.')}.{module_name}"
+            )
         except Exception as e:
-            logger.warning(
-                f"Could not import {module_name} from {folder}: {e}")
+            logger.warning(f"Could not import {module_name} from {folder}: {e}")
             continue
 
         for _name, obj in inspect.getmembers(module, inspect.isclass):
@@ -88,14 +88,14 @@ def convert_type_to_zod(
     if origin is list or origin is Sequence or origin is ABCSequence:
         if args:
             inner_type = convert_type_to_zod(
-                args[0], known_types, current_file, schema_refs)
+                args[0], known_types, current_file, schema_refs
+            )
             return f"z.array({inner_type})"
         return "z.array(z.any())"
 
     if origin is Optional:
         if args:
-            inner = convert_type_to_zod(
-                args[0], known_types, current_file, schema_refs)
+            inner = convert_type_to_zod(args[0], known_types, current_file, schema_refs)
             return f"{inner}.nullable()"
         return "z.string().nullable()"
 
@@ -109,8 +109,12 @@ def convert_type_to_zod(
         if args:
             non_none_args = [arg for arg in args if arg is not type(None)]
             if len(non_none_args) == 1:
-                return convert_type_to_zod(
-                    non_none_args[0], known_types, current_file, schema_refs) + ".nullable()"
+                return (
+                    convert_type_to_zod(
+                        non_none_args[0], known_types, current_file, schema_refs
+                    )
+                    + ".nullable()"
+                )
             return "z.any()"
         return "z.any()"
 
@@ -133,7 +137,8 @@ def generate_zod_schema(
             fields[field_name] = "z.any()"
             continue
         zod_type = convert_type_to_zod(
-            field_type, known_types, current_file, schema_refs)
+            field_type, known_types, current_file, schema_refs
+        )
         fields[field_name] = zod_type
 
     if not fields:
@@ -144,8 +149,7 @@ def generate_zod_schema(
         lines.append(f"    {field_name}: {zod_type},")
     lines.append("});")
 
-    lines.append(
-        f"\nexport type {class_name} = z.infer<typeof {class_name}Schema>;")
+    lines.append(f"\nexport type {class_name} = z.infer<typeof {class_name}Schema>;")
 
     return ("\n".join(lines), schema_refs)
 
@@ -202,8 +206,7 @@ async def generate_zod_schemas() -> None:
             if ref_file != file_name:
                 type_name = type_name_to_file.get(ref_file, "")
                 if type_name:
-                    import_lines.append(
-                        f"import {{ {type_name}Schema }} from '@/dto';")
+                    import_lines.append(f"import {{ {type_name}Schema }} from '@/dto';")
                     schema_names_imported.add(type_name)
 
         output_lines = import_lines + ["", schema]
@@ -217,7 +220,8 @@ async def generate_zod_schemas() -> None:
     for model_name in all_models:
         file_name = to_camel_case(model_name)
         index_lines.append(
-            f"export {{ {model_name}Schema, type {model_name} }} from '@/dto/{file_name}';")
+            f"export {{ {model_name}Schema, type {model_name} }} from '@/dto/{file_name}';"
+        )
 
     (output_dir / "index.ts").write_text("\n".join(index_lines))
     logger.info(f"Written index.ts")
@@ -225,14 +229,10 @@ async def generate_zod_schemas() -> None:
     # Execute prettier on the generated files.
     try:
         import subprocess
+
         subprocess.run(
-            [
-                "prettier",
-                "--write",
-                str(output_dir)
-            ],
-            cwd="frontend",
-            check=True)
+            ["prettier", "--write", str(output_dir)], cwd="frontend", check=True
+        )
         logger.info("Formatted generated files with Prettier")
     except Exception as e:
         logger.warning(f"Could not format files with Prettier: {e}")

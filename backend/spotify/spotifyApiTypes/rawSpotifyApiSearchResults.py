@@ -6,7 +6,7 @@ class SpotifySearchResultsExternalUrls(BaseModel):
     spotify: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'SpotifySearchResultsExternalUrls':
+    def from_dict(cls, obj: Any) -> "SpotifySearchResultsExternalUrls":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -21,7 +21,7 @@ class SpotifySearchResultsArtists(BaseModel):
     uri: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'SpotifySearchResultsArtists':
+    def from_dict(cls, obj: Any) -> "SpotifySearchResultsArtists":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -31,7 +31,7 @@ class SpotifySearchResultsExternalUrls1(BaseModel):
     spotify: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'SpotifySearchResultsExternalUrls1':
+    def from_dict(cls, obj: Any) -> "SpotifySearchResultsExternalUrls1":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -43,7 +43,7 @@ class SpotifySearchResultsImages(BaseModel):
     url: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'SpotifySearchResultsImages':
+    def from_dict(cls, obj: Any) -> "SpotifySearchResultsImages":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -66,7 +66,7 @@ class SpotifySearchResultsAlbum(BaseModel):
     uri: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'SpotifySearchResultsAlbum':
+    def from_dict(cls, obj: Any) -> "SpotifySearchResultsAlbum":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -76,7 +76,7 @@ class SpotifySearchResultsExternalUrls2(BaseModel):
     spotify: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'SpotifySearchResultsExternalUrls2':
+    def from_dict(cls, obj: Any) -> "SpotifySearchResultsExternalUrls2":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -91,7 +91,7 @@ class SpotifySearchResultsArtists1(BaseModel):
     uri: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'SpotifySearchResultsArtists1':
+    def from_dict(cls, obj: Any) -> "SpotifySearchResultsArtists1":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -101,7 +101,7 @@ class SpotifySearchResultsExternalIds(BaseModel):
     isrc: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'SpotifySearchResultsExternalIds':
+    def from_dict(cls, obj: Any) -> "SpotifySearchResultsExternalIds":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -111,7 +111,7 @@ class SpotifySearchResultsExternalUrls3(BaseModel):
     spotify: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'SpotifySearchResultsExternalUrls3':
+    def from_dict(cls, obj: Any) -> "SpotifySearchResultsExternalUrls3":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -138,7 +138,7 @@ class SpotifySearchResultsItems(BaseModel):
     uri: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'SpotifySearchResultsItems':
+    def from_dict(cls, obj: Any) -> "SpotifySearchResultsItems":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -154,7 +154,7 @@ class SpotifySearchResultsTracks(BaseModel):
     items: Optional[List[SpotifySearchResultsItems]] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'SpotifySearchResultsTracks':
+    def from_dict(cls, obj: Any) -> "SpotifySearchResultsTracks":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -164,7 +164,7 @@ class SpotifySearchResultsExternalUrls4(BaseModel):
     spotify: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'SpotifySearchResultsExternalUrls4':
+    def from_dict(cls, obj: Any) -> "SpotifySearchResultsExternalUrls4":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -175,7 +175,7 @@ class SpotifySearchResultsFollowers(BaseModel):
     total: Optional[int] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'SpotifySearchResultsFollowers':
+    def from_dict(cls, obj: Any) -> "SpotifySearchResultsFollowers":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -187,7 +187,7 @@ class SpotifySearchResultsImages1(BaseModel):
     width: Optional[int] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'SpotifySearchResultsImages1':
+    def from_dict(cls, obj: Any) -> "SpotifySearchResultsImages1":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -206,7 +206,7 @@ class SpotifySearchResultsItems1(BaseModel):
     uri: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'SpotifySearchResultsItems1':
+    def from_dict(cls, obj: Any) -> "SpotifySearchResultsItems1":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -222,7 +222,7 @@ class SpotifySearchResultsArtists2(BaseModel):
     items: Optional[List[SpotifySearchResultsItems1]] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'SpotifySearchResultsArtists2':
+    def from_dict(cls, obj: Any) -> "SpotifySearchResultsArtists2":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -232,7 +232,7 @@ class SpotifySearchResultsExternalUrls5(BaseModel):
     spotify: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'SpotifySearchResultsExternalUrls5':
+    def from_dict(cls, obj: Any) -> "SpotifySearchResultsExternalUrls5":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -244,7 +244,7 @@ class SpotifySearchResultsImages2(BaseModel):
     width: Optional[int] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'SpotifySearchResultsImages2':
+    def from_dict(cls, obj: Any) -> "SpotifySearchResultsImages2":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -254,7 +254,7 @@ class SpotifySearchResultsExternalUrls6(BaseModel):
     spotify: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'SpotifySearchResultsExternalUrls6':
+    def from_dict(cls, obj: Any) -> "SpotifySearchResultsExternalUrls6":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -269,7 +269,7 @@ class SpotifySearchResultsArtists3(BaseModel):
     uri: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'SpotifySearchResultsArtists3':
+    def from_dict(cls, obj: Any) -> "SpotifySearchResultsArtists3":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -291,7 +291,7 @@ class SpotifySearchResultsItems2(BaseModel):
     artists: List[SpotifySearchResultsArtists3]
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'SpotifySearchResultsItems2':
+    def from_dict(cls, obj: Any) -> "SpotifySearchResultsItems2":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -307,7 +307,7 @@ class SpotifySearchResultsAlbums(BaseModel):
     items: Optional[List[SpotifySearchResultsItems2]] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'SpotifySearchResultsAlbums':
+    def from_dict(cls, obj: Any) -> "SpotifySearchResultsAlbums":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -317,7 +317,7 @@ class SpotifySearchResultsExternalUrls7(BaseModel):
     spotify: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'SpotifySearchResultsExternalUrls7':
+    def from_dict(cls, obj: Any) -> "SpotifySearchResultsExternalUrls7":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -329,7 +329,7 @@ class SpotifySearchResultsImages3(BaseModel):
     width: Optional[Any] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'SpotifySearchResultsImages3':
+    def from_dict(cls, obj: Any) -> "SpotifySearchResultsImages3":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -339,7 +339,7 @@ class SpotifySearchResultsExternalUrls8(BaseModel):
     spotify: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'SpotifySearchResultsExternalUrls8':
+    def from_dict(cls, obj: Any) -> "SpotifySearchResultsExternalUrls8":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -354,7 +354,7 @@ class SpotifySearchResultsOwner(BaseModel):
     uri: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'SpotifySearchResultsOwner':
+    def from_dict(cls, obj: Any) -> "SpotifySearchResultsOwner":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -365,7 +365,7 @@ class SpotifySearchResultsTracks1(BaseModel):
     total: Optional[int] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'SpotifySearchResultsTracks1':
+    def from_dict(cls, obj: Any) -> "SpotifySearchResultsTracks1":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -388,7 +388,7 @@ class SpotifySearchResultsItems3(BaseModel):
     uri: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'SpotifySearchResultsItems3':
+    def from_dict(cls, obj: Any) -> "SpotifySearchResultsItems3":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -404,7 +404,7 @@ class SpotifySearchResultsPlaylists(BaseModel):
     items: List[Optional[SpotifySearchResultsItems3]]
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'SpotifySearchResultsPlaylists':
+    def from_dict(cls, obj: Any) -> "SpotifySearchResultsPlaylists":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -417,7 +417,7 @@ class RawSpotifyApiSearchResults(BaseModel):
     playlists: Optional[SpotifySearchResultsPlaylists] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'RawSpotifyApiSearchResults':
+    def from_dict(cls, obj: Any) -> "RawSpotifyApiSearchResults":
         """Parse a raw Spotify API search results response from a dictionary."""
 
         return cls.model_validate(obj)

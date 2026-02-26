@@ -4,7 +4,7 @@ from collections import Counter
 from datetime import datetime
 from datetime import timezone
 from functools import wraps
-from typing import List
+from typing import Any, Callable, List, TypeVar
 from io import BytesIO
 
 import requests
@@ -20,25 +20,27 @@ from backend.utils.logger import getLogger
 logger = getLogger(__name__)
 
 
-def time_it(func):
+T = TypeVar("T")
+
+
+def time_it(func: Callable[..., T]) -> Callable[..., T]:
     @wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: Any, **kwargs: Any) -> T:
         start = time.time()
-        result = func(*args, **kwargs)
-        logger.info(
-            f'Time taken by {func.__name__} is {round(time.time()-start, 3)}s')
+        result: T = func(*args, **kwargs)
+        logger.info(f"Time taken by {func.__name__} is {round(time.time()-start, 3)}s")
 
         return result
+
     return wrapper
 
 
-call_depth = ContextVar("call_depth", default=0)
+call_depth = ContextVar[int]("call_depth", default=0)
 
 
-def track_call(func):
+def track_call(func: Callable[..., T]) -> Callable[..., T]:
     @wraps(func)
-    def wrapper(*args, **kwargs):
-        # Increase depth
+    def wrapper(*args: Any, **kwargs: Any) -> T:
         depth = call_depth.get()
         call_depth.set(depth + 1)
         start = time.time()
@@ -47,29 +49,88 @@ def track_call(func):
         logger.info(f"{indent}→ Enter {func.__name__}")
 
         try:
-            result = func(*args, **kwargs)
+            result: T = func(*args, **kwargs)
             return result
         finally:
-            # Important: fetch depth again (for correct exit indentation)
             depth = call_depth.get() - 1
             indent = "  " * depth
             logger.debug(
-                f"{indent}← Exit {func.__name__} after {round(time.time()-start, 3)}s")
+                f"{indent}← Exit {func.__name__} after {round(time.time()-start, 3)}s"
+            )
             call_depth.set(depth)
 
     return wrapper
 
 
 def get_utc_date():
-    return datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
+    return datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
 
 
 def create_id(length: int = 16):
 
     alphabet = [
-        'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
-        'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
-        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
+        "a",
+        "b",
+        "c",
+        "d",
+        "e",
+        "f",
+        "g",
+        "h",
+        "i",
+        "j",
+        "k",
+        "l",
+        "m",
+        "n",
+        "o",
+        "p",
+        "q",
+        "r",
+        "s",
+        "t",
+        "u",
+        "v",
+        "w",
+        "x",
+        "y",
+        "z",
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G",
+        "H",
+        "I",
+        "J",
+        "K",
+        "L",
+        "M",
+        "N",
+        "O",
+        "P",
+        "Q",
+        "R",
+        "S",
+        "T",
+        "U",
+        "V",
+        "W",
+        "X",
+        "Y",
+        "Z",
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
     ]
 
     random.shuffle(alphabet)
@@ -79,7 +140,7 @@ def create_id(length: int = 16):
 def sanitize_folder_name(name: str, max_length: int = 255) -> str:
     # Replace any invalid characters with underscores
     # On Windows, the following characters are invalid in folder names: <>:"/\\|?*
-    sanitized_name = re.sub(r'[<>:"/\\|?*]', '_', name)
+    sanitized_name = re.sub(r'[<>:"/\\|?*]', "_", name)
 
     # Remove any leading/trailing whitespace
     sanitized_name = sanitized_name.strip()
@@ -98,7 +159,7 @@ def download_image(url: str, path: str):
         response.raise_for_status()  # Check for HTTP request errors
 
         # Open the file in binary write mode and save the content
-        with open(path, 'wb') as file:
+        with open(path, "wb") as file:
             # Download in chunks of 1KB
             for chunk in response.iter_content(1024):
                 file.write(chunk)
@@ -107,7 +168,9 @@ def download_image(url: str, path: str):
         logger.error(f"An error occurred: {e}")
 
 
-def get_transfromed_image(image: Image.Image, base_1, base_2):
+def get_transfromed_image(
+    image: Image.Image, base_1: tuple[float, float], base_2: tuple[float, float]
+) -> Image.Image:
 
     image = image.convert("RGBA").resize((640, 640))
     blur_radius = 0
@@ -118,32 +181,25 @@ def get_transfromed_image(image: Image.Image, base_1, base_2):
     mask = Image.new("L", image.size, 0)
     draw = ImageDraw.Draw(mask)
     draw.rounded_rectangle(
-        (offset, offset, image.size[0] - offset, image.size[1] - offset), border_radius,  fill=255)
+        (offset, offset, image.size[0] - offset, image.size[1] - offset),
+        border_radius,
+        fill=255,
+    )
     mask = mask.filter(ImageFilter.GaussianBlur(blur_radius))
 
     image = Image.composite(image, back_color, mask)
 
     image_np = numpy.array(image)
 
-    translate_1 = numpy.matrix([
-        [1, 0, -320],
-        [0, 1, -320],
-        [0, 0, 1]
-    ])
+    translate_1 = numpy.matrix([[1, 0, -320], [0, 1, -320], [0, 0, 1]])
 
-    shear = numpy.matrix([
-        [base_1[0], -base_2[0], 0],
-        [-base_1[1], base_2[1], 0],
-        [0, 0, 1]
-    ])
+    shear = numpy.matrix(
+        [[base_1[0], -base_2[0], 0], [-base_1[1], base_2[1], 0], [0, 0, 1]]
+    )
 
-    translate_2 = numpy.matrix([
-        [1, 0, 320],
-        [0, 1, 320],
-        [0, 0, 1]
-    ])
+    translate_2 = numpy.matrix([[1, 0, 320], [0, 1, 320], [0, 0, 1]])
 
-    transform_matrix = translate_2*shear*translate_1
+    transform_matrix = translate_2 * shear * translate_1
 
     # Apply the affine transformation using OpenCV
     transformed_image_np = cv2.warpAffine(
@@ -162,7 +218,7 @@ def get_transfromed_image(image: Image.Image, base_1, base_2):
 
 
 @time_it
-def create_playlist_collage(output_path, urls: List[str] = []):
+def create_playlist_collage(output_path: str, urls: List[str] = []) -> None:
 
     # https://www.desmos.com/calculator/pao5byd69d?lang=es
 
@@ -173,17 +229,18 @@ def create_playlist_collage(output_path, urls: List[str] = []):
 
     gap = 20
 
-    abs_base_1: float = math.sqrt(base_1[0]**2 + base_1[1]**2)
-    abs_base_2: float = math.sqrt(base_2[0]**2 + base_2[1]**2)
+    abs_base_1: float = math.sqrt(base_1[0] ** 2 + base_1[1] ** 2)
+    abs_base_2: float = math.sqrt(base_2[0] ** 2 + base_2[1] ** 2)
 
-    x_space: float = (gap + 640*abs_base_2) / \
-        (math.sqrt(1 + (base_2[1]/base_2[0])**2))
-    y_space: float = -base_2[1]/base_2[0]*x_space
+    x_space: float = (gap + 640 * abs_base_2) / (
+        math.sqrt(1 + (base_2[1] / base_2[0]) ** 2)
+    )
+    y_space: float = -base_2[1] / base_2[0] * x_space
 
-    d: float = (640*abs_base_1 + gap)/abs_base_1
+    d: float = (640 * abs_base_1 + gap) / abs_base_1
 
-    column_x_space: float = base_1[0]*d - base_2[0]*640*abs_base_2/2 + gap/2
-    column_y_space: float = base_1[1]*d - base_2[1]*640*abs_base_2/2 + gap/2
+    column_x_space: float = base_1[0] * d - base_2[0] * 640 * abs_base_2 / 2 + gap / 2
+    column_y_space: float = base_1[1] * d - base_2[1] * 640 * abs_base_2 / 2 + gap / 2
 
     url_counts = Counter(urls)
     sorted_urls: List[str] = [url for url, _ in url_counts.most_common(7)]
@@ -224,19 +281,25 @@ def create_playlist_collage(output_path, urls: List[str] = []):
     for k in range(3):
         image = get_transfromed_image(images[k], base_1=base_1, base_2=base_2)
         k -= 1
-        out.paste(image, (int(x_space*k), int(y_space*k)), image)
+        out.paste(image, (int(x_space * k), int(y_space * k)), image)
 
     for k in range(3, 5):
         image = get_transfromed_image(images[k], base_1=base_1, base_2=base_2)
         k -= 3
-        out.paste(image, (int(x_space*k-column_x_space),
-                  int(y_space*k + column_y_space)), image)
+        out.paste(
+            image,
+            (int(x_space * k - column_x_space), int(y_space * k + column_y_space)),
+            image,
+        )
 
     for k in range(5, 7):
         image = get_transfromed_image(images[k], base_1=base_1, base_2=base_2)
         k -= 6
-        out.paste(image, (int(x_space*k + column_x_space),
-                  int(y_space*k - column_y_space)), image)
+        out.paste(
+            image,
+            (int(x_space * k + column_x_space), int(y_space * k - column_y_space)),
+            image,
+        )
 
     out.save(output_path)
 
@@ -248,15 +311,18 @@ if __name__ == "__main__":
 
     # exit()
 
-    create_playlist_collage(output_path="backend/temp/test.png", urls=[
-        # "http://localhost:4321/api/image/630242b7f511492720b85cbab809b03c9c5d1d72",
-        # "http://localhost:4321/api/image/85530b18c84d2f112d9a7db27bec795d850c01ba",
-        # "https://music.rockhosting.org/_next/image?url=https%3A%2F%2Fapi.music.rockhosting.org%2Fapi%2Flist%2Fimage%2FV0XHQF4ASvt7Yf2y_300x300&w=384&q=75",
-        "https://i.scdn.co/image/ab67616d0000b2735405ef9e393f5f1e53b4b42e",
-        "https://i.scdn.co/image/ab67616d0000b273093c6e7d6069b3c958071f73",
-        "https://i.scdn.co/image/ab67616d0000b2736ca5c90113b30c3c43ffb8f4",
-        "https://i.scdn.co/image/ab67616d0000b273eec04d194051bbdb926922b0",
-        "https://i.scdn.co/image/ab67616d0000b273726d48d93d02e1271774f023",
-        "https://i.scdn.co/image/ab67616d0000b27351c02a77d09dfcd53c8676d0",
-        "https://i.scdn.co/image/ab67616d0000b2738399047ff71200928f5b6508",
-    ])
+    create_playlist_collage(
+        output_path="backend/temp/test.png",
+        urls=[
+            # "http://localhost:4321/api/image/630242b7f511492720b85cbab809b03c9c5d1d72",
+            # "http://localhost:4321/api/image/85530b18c84d2f112d9a7db27bec795d850c01ba",
+            # "https://music.rockhosting.org/_next/image?url=https%3A%2F%2Fapi.music.rockhosting.org%2Fapi%2Flist%2Fimage%2FV0XHQF4ASvt7Yf2y_300x300&w=384&q=75",
+            "https://i.scdn.co/image/ab67616d0000b2735405ef9e393f5f1e53b4b42e",
+            "https://i.scdn.co/image/ab67616d0000b273093c6e7d6069b3c958071f73",
+            "https://i.scdn.co/image/ab67616d0000b2736ca5c90113b30c3c43ffb8f4",
+            "https://i.scdn.co/image/ab67616d0000b273eec04d194051bbdb926922b0",
+            "https://i.scdn.co/image/ab67616d0000b273726d48d93d02e1271774f023",
+            "https://i.scdn.co/image/ab67616d0000b27351c02a77d09dfcd53c8676d0",
+            "https://i.scdn.co/image/ab67616d0000b2738399047ff71200928f5b6508",
+        ],
+    )

@@ -8,6 +8,5 @@ from backend.youtube.access.db.ormModels.playlist import YoutubePlaylistRow  # t
 from backend.youtube.access.db.ormModels.channel import ChannelRow  # type: ignore
 from backend.youtube.access.db.ormModels.video import VideoRow  # type: ignore
 
-
 schemas = ["youtube"]
 base = YoutubeBase

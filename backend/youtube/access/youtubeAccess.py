@@ -27,7 +27,6 @@ from backend.youtube.youtubeApiTypes.rawYoutubeApiChannel import RawYoutubeChann
 
 from backend.constants import IMAGES_PATH
 
-
 logger = getLogger(__name__)
 
 
@@ -35,9 +34,9 @@ def parse_duration_to_seconds(duration: str) -> int:
     """Parse YouTube ISO 8601 duration to seconds."""
     try:
         parsed: dict[str, list[str]] = parse_qs(urlparse(f"?{duration}").query)
-        hours: int = int(parsed.get('H', ['0'])[0])
-        minutes: int = int(parsed.get('M', ['0'])[0])
-        seconds: int = int(parsed.get('S', ['0'])[0])
+        hours: int = int(parsed.get("H", ["0"])[0])
+        minutes: int = int(parsed.get("M", ["0"])[0])
+        seconds: int = int(parsed.get("S", ["0"])[0])
         return hours * 3600 + minutes * 60 + seconds
     except Exception:
         return 0
@@ -45,19 +44,22 @@ def parse_duration_to_seconds(duration: str) -> int:
 
 class YouTubeAccess:
     @staticmethod
-    async def get_video_youtube_id_async(youtube_id: str, session: AsyncSession | None = None) -> AResult[VideoRow]:
+    async def get_video_youtube_id_async(
+        youtube_id: str, session: AsyncSession | None = None
+    ) -> AResult[VideoRow]:
         try:
             async with rockit_db.session_scope_or_session_async(session) as s:
-                stmt: Select[Tuple[VideoRow]] = (
-                    select(VideoRow)
-                    .where(VideoRow.youtube_id == youtube_id)
+                stmt: Select[Tuple[VideoRow]] = select(VideoRow).where(
+                    VideoRow.youtube_id == youtube_id
                 )
                 result: Result[Tuple[VideoRow]] = await s.execute(stmt)
                 video: VideoRow | None = result.scalar_one_or_none()
 
                 if not video:
                     logger.error("Video not found")
-                    return AResult(code=AResultCode.NOT_FOUND, message="Video not found")
+                    return AResult(
+                        code=AResultCode.NOT_FOUND, message="Video not found"
+                    )
 
                 s.expunge(instance=video)
                 return AResult(code=AResultCode.OK, message="OK", result=video)
@@ -66,22 +68,26 @@ class YouTubeAccess:
             logger.error(f"Failed to get video from youtube_id {youtube_id}: {e}")
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
-                message=f"Failed to get video from youtube_id {youtube_id}: {e}")
+                message=f"Failed to get video from youtube_id {youtube_id}: {e}",
+            )
 
     @staticmethod
-    async def get_channel_youtube_id_async(youtube_id: str, session: AsyncSession | None = None) -> AResult[ChannelRow]:
+    async def get_channel_youtube_id_async(
+        youtube_id: str, session: AsyncSession | None = None
+    ) -> AResult[ChannelRow]:
         try:
             async with rockit_db.session_scope_or_session_async(session) as s:
-                stmt: Select[Tuple[ChannelRow]] = (
-                    select(ChannelRow)
-                    .where(ChannelRow.youtube_id == youtube_id)
+                stmt: Select[Tuple[ChannelRow]] = select(ChannelRow).where(
+                    ChannelRow.youtube_id == youtube_id
                 )
                 result: Result[Tuple[ChannelRow]] = await s.execute(stmt)
                 channel: ChannelRow | None = result.scalar_one_or_none()
 
                 if not channel:
                     logger.error("Channel not found")
-                    return AResult(code=AResultCode.NOT_FOUND, message="Channel not found")
+                    return AResult(
+                        code=AResultCode.NOT_FOUND, message="Channel not found"
+                    )
 
                 s.expunge(instance=channel)
                 return AResult(code=AResultCode.OK, message="OK", result=channel)
@@ -90,22 +96,26 @@ class YouTubeAccess:
             logger.error(f"Failed to get channel from youtube_id {youtube_id}: {e}")
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
-                message=f"Failed to get channel from youtube_id {youtube_id}: {e}")
+                message=f"Failed to get channel from youtube_id {youtube_id}: {e}",
+            )
 
     @staticmethod
-    async def get_channel_id_async(id: int, session: AsyncSession | None = None) -> AResult[ChannelRow]:
+    async def get_channel_id_async(
+        id: int, session: AsyncSession | None = None
+    ) -> AResult[ChannelRow]:
         try:
             async with rockit_db.session_scope_or_session_async(session) as s:
-                stmt: Select[Tuple[ChannelRow]] = (
-                    select(ChannelRow)
-                    .where(ChannelRow.id == id)
+                stmt: Select[Tuple[ChannelRow]] = select(ChannelRow).where(
+                    ChannelRow.id == id
                 )
                 result: Result[Tuple[ChannelRow]] = await s.execute(stmt)
                 channel: ChannelRow | None = result.scalar_one_or_none()
 
                 if not channel:
                     logger.error("Channel not found")
-                    return AResult(code=AResultCode.NOT_FOUND, message="Channel not found")
+                    return AResult(
+                        code=AResultCode.NOT_FOUND, message="Channel not found"
+                    )
 
                 s.expunge(instance=channel)
                 return AResult(code=AResultCode.OK, message="OK", result=channel)
@@ -114,26 +124,25 @@ class YouTubeAccess:
             logger.error(f"Failed to get channel from id {id}: {e}")
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
-                message=f"Failed to get channel from id {id}: {e}")
+                message=f"Failed to get channel from id {id}: {e}",
+            )
 
     @staticmethod
     async def _download_and_create_internal_image(
-        url: str,
-        session: AsyncSession | None = None
+        url: str, session: AsyncSession | None = None
     ) -> AResult[ImageRow]:
         try:
             async with rockit_db.session_scope_or_session_async(session) as session:
                 response = req.get(url, timeout=10)
                 if response.status_code != 200:
-                    return AResult(code=AResultCode.GENERAL_ERROR, message="Image download failed")
+                    return AResult(
+                        code=AResultCode.GENERAL_ERROR, message="Image download failed"
+                    )
                 filename = str(uuid.uuid4()) + ".jpg"
                 full_path = os.path.join(IMAGES_PATH, filename)
-                with open(full_path, 'wb') as f:
+                with open(full_path, "wb") as f:
                     f.write(response.content)
-                img = ImageRow(
-                    public_id=create_id(32),
-                    url=url,
-                    path=filename)
+                img = ImageRow(public_id=create_id(32), url=url, path=filename)
                 session.add(img)
                 await session.flush()
                 return AResult(code=AResultCode.OK, message="OK", result=img)
@@ -141,25 +150,26 @@ class YouTubeAccess:
             logger.error(f"Failed to download/create internal image: {e}")
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
-                message=f"Failed to download/create internal image: {e}")
+                message=f"Failed to download/create internal image: {e}",
+            )
 
     @staticmethod
     async def _get_or_create_external_image(
-            url: str,
-            width: Optional[int],
-            height: Optional[int],
-            session: AsyncSession | None = None
+        url: str,
+        width: Optional[int],
+        height: Optional[int],
+        session: AsyncSession | None = None,
     ) -> AResult[ExternalImageRow]:
         try:
             async with rockit_db.session_scope_or_session_async(session) as session:
-                stmt = select(ExternalImageRow).where(
-                    ExternalImageRow.url == url)
+                stmt = select(ExternalImageRow).where(ExternalImageRow.url == url)
                 result = await session.execute(stmt)
                 row: ExternalImageRow | None = result.scalar_one_or_none()
                 if row:
                     return AResult(code=AResultCode.OK, message="OK", result=row)
-                row = ExternalImageRow(public_id=str(
-                    uuid.uuid4()), url=url, width=width, height=height)
+                row = ExternalImageRow(
+                    public_id=str(uuid.uuid4()), url=url, width=width, height=height
+                )
                 session.add(row)
                 await session.flush()
                 return AResult(code=AResultCode.OK, message="OK", result=row)
@@ -167,13 +177,12 @@ class YouTubeAccess:
             logger.error(f"Failed to get/create external image: {e}")
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
-                message=f"Failed to get/create external image: {e}")
+                message=f"Failed to get/create external image: {e}",
+            )
 
     @staticmethod
     async def get_or_create_channel(
-        raw: RawYoutubeChannel,
-        provider_id: int,
-        session: AsyncSession | None = None
+        raw: RawYoutubeChannel, provider_id: int, session: AsyncSession | None = None
     ) -> AResult[ChannelRow]:
         try:
             async with rockit_db.session_scope_or_session_async(session) as session:
@@ -190,7 +199,7 @@ class YouTubeAccess:
                 internal_image_id: int | None = None
                 snippet: dict[str, Any] = raw.snippet or {}
                 thumbnails: dict[str, Any] = snippet.get("thumbnails", {})
-                
+
                 thumbnail_url: str = ""
                 if "high" in thumbnails:
                     thumbnail_url = thumbnails["high"].get("url", "")
@@ -201,13 +210,14 @@ class YouTubeAccess:
 
                 if thumbnail_url:
                     a_img = await YouTubeAccess._download_and_create_internal_image(
-                        thumbnail_url, session)
+                        thumbnail_url, session
+                    )
                     if a_img.is_ok():
                         internal_image_id = a_img.result().id
 
                 core_artist = CoreArtistRow(
-                    public_id=create_id(32),
-                    provider_id=provider_id)
+                    public_id=create_id(32), provider_id=provider_id
+                )
                 session.add(core_artist)
                 await session.flush()
 
@@ -240,7 +250,8 @@ class YouTubeAccess:
                     view_count=view_count,
                     video_count=video_count,
                     internal_image_id=internal_image_id,
-                    description=snippet.get("description"))
+                    description=snippet.get("description"),
+                )
                 session.add(channel_row)
                 await session.flush()
 
@@ -250,21 +261,19 @@ class YouTubeAccess:
             logger.error(f"Failed to get/create channel: {e}")
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
-                message=f"Failed to get/create channel: {e}")
+                message=f"Failed to get/create channel: {e}",
+            )
 
     @staticmethod
     async def get_or_create_video(
         raw: RawYoutubeVideo,
         channel_id: int,
         provider_id: int,
-        session: AsyncSession | None = None
+        session: AsyncSession | None = None,
     ) -> AResult[VideoRow]:
         try:
             async with rockit_db.session_scope_or_session_async(session) as session:
-                stmt = (
-                    select(VideoRow)
-                    .where(VideoRow.youtube_id == raw.id)
-                )
+                stmt = select(VideoRow).where(VideoRow.youtube_id == raw.id)
                 result = await session.execute(stmt)
                 existing: VideoRow | None = result.scalar_one_or_none()
                 if existing:
@@ -286,21 +295,24 @@ class YouTubeAccess:
                 internal_image_id: int | None = None
                 if thumbnail_url:
                     a_img = await YouTubeAccess._download_and_create_internal_image(
-                        thumbnail_url, session)
+                        thumbnail_url, session
+                    )
                     if a_img.is_ok():
                         internal_image_id = a_img.result().id
 
                 if internal_image_id is None:
                     return AResult(
                         code=AResultCode.GENERAL_ERROR,
-                        message="Failed to create internal image for video")
+                        message="Failed to create internal image for video",
+                    )
 
                 core_video = CoreVideoRow(
                     public_id=create_id(32),
                     name=snippet.get("title", ""),
                     view_type="video",
                     description=snippet.get("description"),
-                    provider_id=provider_id)
+                    provider_id=provider_id,
+                )
                 session.add(core_video)
                 await session.flush()
 
@@ -344,7 +356,8 @@ class YouTubeAccess:
                     description=snippet.get("description"),
                     youtube_url=f"https://www.youtube.com/watch?v={raw.id}",
                     tags=tags_str,
-                    published_at=snippet.get("publishedAt"))
+                    published_at=snippet.get("publishedAt"),
+                )
                 session.add(video_row)
                 await session.flush()
 
@@ -354,4 +367,5 @@ class YouTubeAccess:
             logger.error(f"Failed to get/create video: {e}")
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
-                message=f"Failed to get/create video: {e}")
+                message=f"Failed to get/create video: {e}",
+            )

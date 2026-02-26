@@ -7,10 +7,8 @@ from backend.constants import IMAGES_PATH
 
 from backend.core.middlewares.authMiddleware import AuthMiddleware
 
-
 router = APIRouter(
-    prefix="/image",
-    dependencies=[Depends(dependency=AuthMiddleware.auth_dependency)]
+    prefix="/image", dependencies=[Depends(dependency=AuthMiddleware.auth_dependency)]
 )
 
 

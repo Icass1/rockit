@@ -8,7 +8,7 @@ class ArtistExternalUrls(BaseModel):
     spotify: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'ArtistExternalUrls':
+    def from_dict(cls, obj: Any) -> "ArtistExternalUrls":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -19,7 +19,7 @@ class ArtistFollowers(BaseModel):
     total: Optional[int] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'ArtistFollowers':
+    def from_dict(cls, obj: Any) -> "ArtistFollowers":
         """Parse from a raw Spotify API dictionary."""
 
         return cls.model_validate(obj)
@@ -38,7 +38,7 @@ class RawSpotifyApiArtist(BaseModel):
     uri: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, obj: Any) -> 'RawSpotifyApiArtist':
+    def from_dict(cls, obj: Any) -> "RawSpotifyApiArtist":
         """Parse a raw Spotify API artist response from a dictionary."""
 
         return cls.model_validate(obj)

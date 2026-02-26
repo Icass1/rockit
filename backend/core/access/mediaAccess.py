@@ -21,13 +21,16 @@ logger = getLogger(__name__)
 
 class MediaAccess:
     @staticmethod
-    async def get_song_from_public_id_async(public_id: str, session: AsyncSession | None = None) -> AResult[CoreSongRow]:
+    async def get_song_from_public_id_async(
+        public_id: str, session: AsyncSession | None = None
+    ) -> AResult[CoreSongRow]:
         """Get a CoreSongRow by public_id."""
 
         try:
             async with rockit_db.session_scope_or_session_async(session) as s:
                 stmt: Select[Tuple[CoreSongRow]] = select(CoreSongRow).where(
-                    CoreSongRow.public_id == public_id)
+                    CoreSongRow.public_id == public_id
+                )
                 result = await s.execute(stmt)
                 row: CoreSongRow | None = result.scalar_one_or_none()
 
@@ -42,13 +45,16 @@ class MediaAccess:
             return AResult(code=AResultCode.GENERAL_ERROR, message="Error getting song")
 
     @staticmethod
-    async def get_song_from_id_async(id: int, session: AsyncSession | None = None) -> AResult[CoreSongRow]:
+    async def get_song_from_id_async(
+        id: int, session: AsyncSession | None = None
+    ) -> AResult[CoreSongRow]:
         """Get a CoreSongRow by id."""
 
         try:
             async with rockit_db.session_scope_or_session_async(session) as s:
                 stmt: Select[Tuple[CoreSongRow]] = select(CoreSongRow).where(
-                    CoreSongRow.id == id)
+                    CoreSongRow.id == id
+                )
                 result: Result[Tuple[CoreSongRow]] = await s.execute(stmt)
                 row: CoreSongRow | None = result.scalar_one_or_none()
 
@@ -63,127 +69,169 @@ class MediaAccess:
             return AResult(code=AResultCode.GENERAL_ERROR, message="Error getting song")
 
     @staticmethod
-    async def get_album_from_public_id_async(public_id: str, session: AsyncSession | None = None) -> AResult[CoreAlbumRow]:
+    async def get_album_from_public_id_async(
+        public_id: str, session: AsyncSession | None = None
+    ) -> AResult[CoreAlbumRow]:
         """Get a CoreAlbumRow by public_id."""
 
         try:
             async with rockit_db.session_scope_or_session_async(session) as s:
                 stmt: Select[Tuple[CoreAlbumRow]] = select(CoreAlbumRow).where(
-                    CoreAlbumRow.public_id == public_id)
+                    CoreAlbumRow.public_id == public_id
+                )
                 result = await s.execute(stmt)
                 row: CoreAlbumRow | None = result.scalar_one_or_none()
 
                 if row is None:
-                    return AResult(code=AResultCode.NOT_FOUND, message="Album not found")
+                    return AResult(
+                        code=AResultCode.NOT_FOUND, message="Album not found"
+                    )
 
                 s.expunge(row)
                 return AResult(code=AResultCode.OK, message="OK", result=row)
 
         except Exception as e:
             logger.error(f"Error getting album: {e}")
-            return AResult(code=AResultCode.GENERAL_ERROR, message="Error getting album")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR, message="Error getting album"
+            )
 
     @staticmethod
-    async def get_album_from_id_async(id: int, session: AsyncSession | None = None) -> AResult[CoreAlbumRow]:
+    async def get_album_from_id_async(
+        id: int, session: AsyncSession | None = None
+    ) -> AResult[CoreAlbumRow]:
         """Get a CoreAlbumRow by id."""
 
         try:
             async with rockit_db.session_scope_or_session_async(session) as s:
                 stmt: Select[Tuple[CoreAlbumRow]] = select(CoreAlbumRow).where(
-                    CoreAlbumRow.id == id)
+                    CoreAlbumRow.id == id
+                )
                 result: Result[Tuple[CoreAlbumRow]] = await s.execute(stmt)
                 row: CoreAlbumRow | None = result.scalar_one_or_none()
 
                 if row is None:
-                    return AResult(code=AResultCode.NOT_FOUND, message="Album not found")
+                    return AResult(
+                        code=AResultCode.NOT_FOUND, message="Album not found"
+                    )
 
                 s.expunge(row)
                 return AResult(code=AResultCode.OK, message="OK", result=row)
 
         except Exception as e:
             logger.error(f"Error getting album: {e}")
-            return AResult(code=AResultCode.GENERAL_ERROR, message="Error getting album")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR, message="Error getting album"
+            )
 
     @staticmethod
-    async def get_artist_from_public_id_async(public_id: str, session: AsyncSession | None = None) -> AResult[CoreArtistRow]:
+    async def get_artist_from_public_id_async(
+        public_id: str, session: AsyncSession | None = None
+    ) -> AResult[CoreArtistRow]:
         """Get a CoreArtistRow by public_id."""
 
         try:
             async with rockit_db.session_scope_or_session_async(session) as s:
                 stmt: Select[Tuple[CoreArtistRow]] = select(CoreArtistRow).where(
-                    CoreArtistRow.public_id == public_id)
+                    CoreArtistRow.public_id == public_id
+                )
                 result = await s.execute(stmt)
                 row: CoreArtistRow | None = result.scalar_one_or_none()
 
                 if row is None:
-                    return AResult(code=AResultCode.NOT_FOUND, message="Artist not found")
+                    return AResult(
+                        code=AResultCode.NOT_FOUND, message="Artist not found"
+                    )
 
                 s.expunge(row)
                 return AResult(code=AResultCode.OK, message="OK", result=row)
 
         except Exception as e:
             logger.error(f"Error getting artist: {e}")
-            return AResult(code=AResultCode.GENERAL_ERROR, message="Error getting artist")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR, message="Error getting artist"
+            )
 
     @staticmethod
-    async def get_playlist_from_public_id_async(public_id: str, session: AsyncSession | None = None) -> AResult[CorePlaylistRow]:
+    async def get_playlist_from_public_id_async(
+        public_id: str, session: AsyncSession | None = None
+    ) -> AResult[CorePlaylistRow]:
         """Get a CorePlaylistRow by public_id."""
 
         try:
             async with rockit_db.session_scope_or_session_async(session) as s:
                 stmt: Select[Tuple[CorePlaylistRow]] = select(CorePlaylistRow).where(
-                    CorePlaylistRow.public_id == public_id)
+                    CorePlaylistRow.public_id == public_id
+                )
                 result = await s.execute(stmt)
                 row: CorePlaylistRow | None = result.scalar_one_or_none()
 
                 if row is None:
-                    return AResult(code=AResultCode.NOT_FOUND, message="Playlist not found")
+                    return AResult(
+                        code=AResultCode.NOT_FOUND, message="Playlist not found"
+                    )
 
                 s.expunge(row)
                 return AResult(code=AResultCode.OK, message="OK", result=row)
 
         except Exception as e:
             logger.error(f"Error getting playlist: {e}")
-            return AResult(code=AResultCode.GENERAL_ERROR, message="Error getting playlist")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR, message="Error getting playlist"
+            )
 
     @staticmethod
-    async def get_image_from_id_async(id: int, session: AsyncSession | None = None) -> AResult[ImageRow]:
+    async def get_image_from_id_async(
+        id: int, session: AsyncSession | None = None
+    ) -> AResult[ImageRow]:
         """Get an ImageRow by id."""
 
         try:
             async with rockit_db.session_scope_or_session_async(session) as s:
                 stmt: Select[Tuple[ImageRow]] = select(ImageRow).where(
-                    ImageRow.id == id)
+                    ImageRow.id == id
+                )
                 result: Result[Tuple[ImageRow]] = await s.execute(stmt)
                 row: ImageRow | None = result.scalar_one_or_none()
 
                 if row is None:
-                    return AResult(code=AResultCode.NOT_FOUND, message="Image not found")
+                    return AResult(
+                        code=AResultCode.NOT_FOUND, message="Image not found"
+                    )
 
                 s.expunge(row)
                 return AResult(code=AResultCode.OK, message="OK", result=row)
 
         except Exception as e:
             logger.error(f"Error getting image: {e}")
-            return AResult(code=AResultCode.GENERAL_ERROR, message="Error getting image")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR, message="Error getting image"
+            )
 
     @staticmethod
-    async def get_video_from_id_async(id: int, session: AsyncSession | None = None) -> AResult[CoreVideoRow]:
+    async def get_video_from_id_async(
+        id: int, session: AsyncSession | None = None
+    ) -> AResult[CoreVideoRow]:
         """Get a CoreVideoRow by id."""
 
         try:
             async with rockit_db.session_scope_or_session_async(session) as s:
                 stmt: Select[Tuple[CoreVideoRow]] = select(CoreVideoRow).where(
-                    CoreVideoRow.id == id)
+                    CoreVideoRow.id == id
+                )
                 result: Result[Tuple[CoreVideoRow]] = await s.execute(stmt)
                 row: CoreVideoRow | None = result.scalar_one_or_none()
 
                 if row is None:
-                    return AResult(code=AResultCode.NOT_FOUND, message="Video not found")
+                    return AResult(
+                        code=AResultCode.NOT_FOUND, message="Video not found"
+                    )
 
                 s.expunge(row)
                 return AResult(code=AResultCode.OK, message="OK", result=row)
 
         except Exception as e:
             logger.error(f"Error getting video: {e}")
-            return AResult(code=AResultCode.GENERAL_ERROR, message="Error getting video")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR, message="Error getting video"
+            )

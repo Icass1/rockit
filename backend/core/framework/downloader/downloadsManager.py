@@ -47,13 +47,16 @@ class DownloadsManager:
                 ongoing_tasks = [t for t in ongoing_tasks if not t.done()]
 
                 # Start new downloads if under limit
-                while len(ongoing_tasks) < self.max_download_threads and len(self.queue) > 0:
+                while (
+                    len(ongoing_tasks) < self.max_download_threads
+                    and len(self.queue) > 0
+                ):
                     download: BaseDownload = self.queue.pop(0)
-                    logger.info(
-                        f"Starting new async download: {download.public_id}")
+                    logger.info(f"Starting new async download: {download.public_id}")
 
                     task: asyncio.Task[AResultCode] = asyncio.create_task(
-                        download.download_method_async())
+                        download.download_method_async()
+                    )
                     ongoing_tasks.append(task)
 
         except Exception as e:

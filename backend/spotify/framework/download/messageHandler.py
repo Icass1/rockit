@@ -1,10 +1,7 @@
-
-
 import asyncio
 from typing import Any, List
 from backend.core.access.downloadAccess import DownloadAccess
 from backend.utils.logger import getLogger
-
 
 logger = getLogger(__name__)
 
@@ -32,7 +29,9 @@ class MessageHandlderReader:
 
     def get_finish(self) -> bool:
 
-        return self.handler.get_finish() and self.len_last_get_messages >= len(self.handler.get_messages())
+        return self.handler.get_finish() and self.len_last_get_messages >= len(
+            self.handler.get_messages()
+        )
 
 
 class MessageHandler:
@@ -54,14 +53,12 @@ class MessageHandler:
         return MessageHandlderReader(handler=self)
 
     def add(self, message: Any, force: bool = False) -> None:
-        completed: float = message['completed']
-        status: str = message['message']
+        completed: float = message["completed"]
+        status: str = message["message"]
 
         async def _save_status():
             await DownloadAccess.create_download_status(
-                download_id=self._download_id,
-                completed=completed,
-                message=status
+                download_id=self._download_id, completed=completed, message=status
             )
 
         asyncio.run_coroutine_threadsafe(_save_status(), self._loop)

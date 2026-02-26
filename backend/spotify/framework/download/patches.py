@@ -16,7 +16,7 @@ from spotdl.providers.audio import (
     AudioProviderError,
     Piped,
     YTDLLogger,
-    ISRC_REGEX
+    ISRC_REGEX,
 )
 from yt_dlp.postprocessor.sponsorblock import SponsorBlockPP
 from yt_dlp.postprocessor.modify_chapters import ModifyChaptersPP
@@ -55,7 +55,9 @@ from backend.utils.logger import getLogger
 logger = getLogger(__name__)
 
 
-def get_best_result(self, results: Dict[Result, float], song: Song) -> Tuple[Result, float]:
+def get_best_result(
+    self, results: Dict[Result, float], song: Song
+) -> Tuple[Result, float]:
     """
     Get the best match from the results
     using views and average match
@@ -107,34 +109,33 @@ def get_best_result(self, results: Dict[Result, float], song: Song) -> Tuple[Res
 
                     if best_result[0].album != None and song.album_name != None:
                         album_ratio = SequenceMatcher(
-                            a=best_result[0].album, b=song.album_name).ratio()
+                            a=best_result[0].album, b=song.album_name
+                        ).ratio()
                     else:
                         album_ratio = 0
 
                     if best_result[0].name != None and song.name != None:
                         name_ratio = SequenceMatcher(
-                            a=best_result[0].name, b=song.name).ratio()
+                            a=best_result[0].name, b=song.name
+                        ).ratio()
                     else:
                         name_ratio = 0
 
                     if len(best_result[0].artists) != 0 and len(song.artists) != 0:
-                        artists_ratio = SequenceMatcher(a=" ".join(
-                            best_result[0].artists), b=" ".join(song.artists)).ratio()
+                        artists_ratio = SequenceMatcher(
+                            a=" ".join(best_result[0].artists), b=" ".join(song.artists)
+                        ).ratio()
                     else:
                         name_ratio = 0
 
-                    duration_ratio = - \
-                        abs(best_result[0].duration - song.duration)/20
+                    duration_ratio = -abs(best_result[0].duration - song.duration) / 20
 
                     # album_ratio = SequenceMatcher(a=best_result[0].album, b=song.album_name).ratio() if (best_result[0].album != None and song.album_name != None) else 0
                     # name_ratio = SequenceMatcher(a=best_result[0].name, b=song.name).ratio() if (best_result[0].name != None and song.name != None) else 0
                     # artists_ratio = SequenceMatcher(a=" ".join(best_result[0].artists), b=" ".join(song.artists)).ratio() if (len(best_result[0].artists) != 0 and len(song.artists) != 0) else 0
 
                     views.append(
-                        album_ratio +
-                        name_ratio +
-                        artists_ratio +
-                        duration_ratio
+                        album_ratio + name_ratio + artists_ratio + duration_ratio
                     )
                 else:
                     print()
@@ -144,9 +145,10 @@ def get_best_result(self, results: Dict[Result, float], song: Song) -> Tuple[Res
                     print()
 
                     response = requests.get(best_result[0].url)
-                    soup = BeautifulSoup(response.content, 'html.parser')
+                    soup = BeautifulSoup(response.content, "html.parser")
                     interaction_count_meta = soup.find(
-                        "meta", itemprop="interactionCount")
+                        "meta", itemprop="interactionCount"
+                    )
                     if interaction_count_meta and "content" in interaction_count_meta:
                         _views = int(interaction_count_meta["content"])
                         views.append(_views)
@@ -180,7 +182,9 @@ def get_best_result(self, results: Dict[Result, float], song: Song) -> Tuple[Res
     return best_result[0], best_result[1]
 
 
-def AudioProvider_search(self, song: Song, only_verified: bool = False) -> Optional[str]:
+def AudioProvider_search(
+    self, song: Song, only_verified: bool = False
+) -> Optional[str]:
     """
     Search for a song and return best match.
 
@@ -194,9 +198,7 @@ def AudioProvider_search(self, song: Song, only_verified: bool = False) -> Optio
     # Create initial search query
     search_query = create_song_title(song.name, song.artists).lower()
     if self.search_query:
-        search_query = create_search_query(
-            song, self.search_query, False, None, True
-        )
+        search_query = create_search_query(song, self.search_query, False, None, True)
 
     logger.debug("[%s] Searching for %s", song.song_id, search_query)
 
@@ -207,8 +209,7 @@ def AudioProvider_search(self, song: Song, only_verified: bool = False) -> Optio
         isrc_results = self.get_results(song.isrc)
 
         if only_verified:
-            isrc_results = [
-                result for result in isrc_results if result.verified]
+            isrc_results = [result for result in isrc_results if result.verified]
             logger.debug(
                 "[%s] Filtered to %s verified ISRC results",
                 song.song_id,
@@ -235,9 +236,7 @@ def AudioProvider_search(self, song: Song, only_verified: bool = False) -> Optio
             return isrc_results[0].url
 
         if len(isrc_results) > 0:
-            sorted_isrc_results = order_results(
-                isrc_results, song, self.search_query
-            )
+            sorted_isrc_results = order_results(isrc_results, song, self.search_query)
 
             # get the best result, if the score is above 80 return it
             best_isrc_results = sorted(
@@ -269,9 +268,7 @@ def AudioProvider_search(self, song: Song, only_verified: bool = False) -> Optio
         search_results = self.get_results(search_query, **options)
 
         if only_verified:
-            search_results = [
-                result for result in search_results if result.verified
-            ]
+            search_results = [result for result in search_results if result.verified]
 
         logger.debug(
             "[%s] Found %s results for search query %s with options %s",
@@ -290,9 +287,7 @@ def AudioProvider_search(self, song: Song, only_verified: bool = False) -> Optio
         )
 
         if isrc_result:
-            logger.debug(
-                "[%s] Best ISRC result is %s", song.song_id, isrc_result.url
-            )
+            logger.debug("[%s] Best ISRC result is %s", song.song_id, isrc_result.url)
 
             return isrc_result.url
 
@@ -302,15 +297,13 @@ def AudioProvider_search(self, song: Song, only_verified: bool = False) -> Optio
 
         if self.filter_results:
             # Order results
-            new_results = order_results(
-                search_results, song, self.search_query)
+            new_results = order_results(search_results, song, self.search_query)
         else:
             new_results = {}
             if len(search_results) > 0:
                 new_results = {search_results[0]: 100.0}
 
-        logger.debug("[%s] Filtered to %s results",
-                     song.song_id, len(new_results))
+        logger.debug("[%s] Filtered to %s results", song.song_id, len(new_results))
 
         # song type results are always more accurate than video type,
         # so if we get score of 80 or above
@@ -376,8 +369,7 @@ def search_and_download(  # pylint: disable=R0911
         song.url or song.song_id
     ):
         logger.error("Song is missing required fields: %s", song.display_name)
-        self.errors.append(
-            f"Song is missing required fields: {song.display_name}")
+        self.errors.append(f"Song is missing required fields: {song.display_name}")
 
         return song, None
 
@@ -547,8 +539,7 @@ def search_and_download(  # pylint: disable=R0911
                         continue
 
                     try:
-                        logger.info("Removing duplicate file: %s",
-                                    old_song_path)
+                        logger.info("Removing duplicate file: %s", old_song_path)
                         old_song_path.unlink()
                     except (PermissionError, OSError) as exc:
                         logger.debug(
@@ -627,8 +618,7 @@ def search_and_download(  # pylint: disable=R0911
                 yt_dlp_args=self.settings["yt_dlp_args"],
             )
 
-        logger.debug("Downloading %s using %s",
-                     song.display_name, download_url)
+        logger.debug("Downloading %s using %s", song.display_name, download_url)
 
         # Add progress hook to the audio provider
         audio_downloader.audio_handler.add_progress_hook(
@@ -639,9 +629,7 @@ def search_and_download(  # pylint: disable=R0911
             download_url, download=True
         )
 
-        temp_file = Path(
-            temp_folder / f"{download_info['id']}.{download_info['ext']}"
-        )
+        temp_file = Path(temp_folder / f"{download_info['id']}.{download_info['ext']}")
 
         if download_info is None:
             logger.debug(
@@ -697,9 +685,7 @@ def search_and_download(  # pylint: disable=R0911
             )
 
             if self.settings["create_skip_file"]:
-                with open(
-                    str(output_file) + ".skip", mode="w", encoding="utf-8"
-                ) as _:
+                with open(str(output_file) + ".skip", mode="w", encoding="utf-8") as _:
                     pass
 
         # Remove the temp file
@@ -772,8 +758,7 @@ def search_and_download(  # pylint: disable=R0911
 
                 # Run the post processor to remove the sponsor segments
                 # this returns a list of files to delete
-                files_to_delete, download_info = modify_chapters.run(
-                    download_info)
+                files_to_delete, download_info = modify_chapters.run(download_info)
 
                 # Delete the files that were created by the post processor
                 for file_to_delete in files_to_delete:
@@ -802,8 +787,7 @@ def search_and_download(  # pylint: disable=R0911
         # Add the song to the known songs
         self.known_songs.get(song.url, []).append(output_file)
 
-        logger.info('Downloaded "%s": %s',
-                    song.display_name, song.download_url)
+        logger.info('Downloaded "%s": %s', song.display_name, song.download_url)
 
         return song, output_file
     except (Exception, UnicodeEncodeError) as exception:
@@ -815,16 +799,14 @@ def search_and_download(  # pylint: disable=R0911
 
             exception.__cause__ = exception_cause
 
-        display_progress_tracker.notify_error(
-            traceback.format_exc(), exception, True
-        )
-        self.errors.append(
-            f"{song.url} - {exception.__class__.__name__}: {exception}"
-        )
+        display_progress_tracker.notify_error(traceback.format_exc(), exception, True)
+        self.errors.append(f"{song.url} - {exception.__class__.__name__}: {exception}")
         return song, None
 
 
-def Downloader_search(self: spotdl.download.downloader.Downloader, song: Song, display_progress_tracker) -> str:
+def Downloader_search(
+    self: spotdl.download.downloader.Downloader, song: Song, display_progress_tracker
+) -> str:
     """
     Search for a song using all available providers.
 
@@ -838,18 +820,18 @@ def Downloader_search(self: spotdl.download.downloader.Downloader, song: Song, d
     for audio_provider in self.audio_providers:
         display_progress_tracker.update(f"Searching in {audio_provider.name}")
 
-        url = audio_provider.search(
-            song, self.settings["only_verified_results"])
+        url = audio_provider.search(song, self.settings["only_verified_results"])
         if url:
             return url
 
-        logger.debug("%s failed to find %s",
-                     audio_provider.name, song.display_name)
+        logger.debug("%s failed to find %s", audio_provider.name, song.display_name)
 
     raise LookupError(f"No results found for song: {song.display_name}")
 
 
-def get_download_metadata(self: spotdl.providers.audio.base.AudioProvider, url: str, download: bool = False) -> Dict:
+def get_download_metadata(
+    self: spotdl.providers.audio.base.AudioProvider, url: str, download: bool = False
+) -> Dict:
     """
     Get metadata for a download using yt-dlp.
 
@@ -873,8 +855,7 @@ def get_download_metadata(self: spotdl.providers.audio.base.AudioProvider, url: 
     except Exception as exception:
         logger.error(traceback.format_exc())
 
-        raise AudioProviderError(
-            f"YT-DLP download error - {url}") from exception
+        raise AudioProviderError(f"YT-DLP download error - {url}") from exception
 
     raise AudioProviderError(f"No metadata found for the provided url {url}")
 

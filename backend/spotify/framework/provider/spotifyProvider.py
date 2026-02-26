@@ -46,13 +46,15 @@ class SpotifyProvider(BaseProvider):
         """Populate provider-owned enum tables in the database."""
 
         await EnumAccess.check_enum_contents_async(
-            enum_class=CopyrightTypeEnum,
-            table=CopyrightTypeEnumRow)
+            enum_class=CopyrightTypeEnum, table=CopyrightTypeEnumRow
+        )
 
     async def search_async(self, query: str) -> AResult[List[BaseSearchResultsItem]]:
         """Search Spotify and return a list of search items."""
 
-        a_result: AResult[List[BaseSearchResultsItem]] = await Spotify.search_async(query)
+        a_result: AResult[List[BaseSearchResultsItem]] = await Spotify.search_async(
+            query
+        )
         if a_result.is_not_ok():
             logger.error(f"Error searching Spotify. {a_result.info()}")
             return AResult(code=a_result.code(), message=a_result.message())
@@ -72,10 +74,16 @@ class SpotifyProvider(BaseProvider):
     async def get_album_async(self, public_id: str) -> AResult[BaseAlbumResponse]:
         """Get a Spotify album by public_id."""
 
-        a_result_spotify_id: AResult[str] = await SpotifyAccess.get_spotify_id_from_public_id_async(public_id=public_id)
+        a_result_spotify_id: AResult[str] = (
+            await SpotifyAccess.get_spotify_id_from_public_id_async(public_id=public_id)
+        )
         if a_result_spotify_id.is_not_ok():
-            logger.error(f"Error getting spotify_id from public_id. {a_result_spotify_id.info()}")
-            return AResult(code=a_result_spotify_id.code(), message=a_result_spotify_id.message())
+            logger.error(
+                f"Error getting spotify_id from public_id. {a_result_spotify_id.info()}"
+            )
+            return AResult(
+                code=a_result_spotify_id.code(), message=a_result_spotify_id.message()
+            )
 
         spotify_id: str = a_result_spotify_id.result()
 
@@ -89,7 +97,9 @@ class SpotifyProvider(BaseProvider):
     async def get_artist_async(self, public_id: str) -> AResult[BaseArtistResponse]:
         """Get a Spotify artist by public_id."""
 
-        a_result: AResult[BaseArtistResponse] = await Spotify.get_artist_async(public_id)
+        a_result: AResult[BaseArtistResponse] = await Spotify.get_artist_async(
+            public_id
+        )
         if a_result.is_not_ok():
             logger.error(f"Error getting Spotify artist. {a_result.info()}")
             return AResult(code=a_result.code(), message=a_result.message())
@@ -99,17 +109,23 @@ class SpotifyProvider(BaseProvider):
     async def get_playlist_async(self, public_id: str) -> AResult[BasePlaylistResponse]:
         """Get a Spotify playlist by public_id."""
 
-        a_result: AResult[BasePlaylistResponse] = await Spotify.get_playlist_async(public_id)
+        a_result: AResult[BasePlaylistResponse] = await Spotify.get_playlist_async(
+            public_id
+        )
         if a_result.is_not_ok():
             logger.error(f"Error getting Spotify playlist. {a_result.info()}")
             return AResult(code=a_result.code(), message=a_result.message())
 
         return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
 
-    async def start_download_async(self, public_id: str, download_id: int) -> AResult[BaseDownload]:
+    async def start_download_async(
+        self, public_id: str, download_id: int
+    ) -> AResult[BaseDownload]:
         """Create a SpotifyDownload for the given track public_id."""
 
-        a_result: AResult[TrackRow] = await SpotifyAccess.get_track_spotify_id_async(spotify_id=public_id)
+        a_result: AResult[TrackRow] = await SpotifyAccess.get_track_spotify_id_async(
+            spotify_id=public_id
+        )
         if a_result.is_not_ok():
             logger.error(f"Error getting track for download. {a_result.info()}")
             return AResult(code=a_result.code(), message=a_result.message())

@@ -8,8 +8,5 @@ logger: Logger = getLogger(__name__)
 
 
 rockit_db = RockItDB(
-    username=DB_USER,
-    password=DB_PASSWORD,
-    host=DB_HOST,
-    port=DB_PORT,
-    database=DB_NAME)
+    username=DB_USER, password=DB_PASSWORD, host=DB_HOST, port=DB_PORT, database=DB_NAME
+)

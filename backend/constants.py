@@ -1,5 +1,5 @@
 from typing import Dict
-from spotdl.types.options import DownloaderOptions # type: ignore
+from spotdl.types.options import DownloaderOptions  # type: ignore
 from dotenv import load_dotenv
 from typing import List
 import os
@@ -45,8 +45,7 @@ def get_env_int(name: str) -> int:
         env_vars[name] = int(env_str)
         return int(env_str)
     except:
-        print(
-            f"Environment variable '{name}' must be a number, found '{env_str}'")
+        print(f"Environment variable '{name}' must be a number, found '{env_str}'")
         error = True
         return 0
 
@@ -58,10 +57,10 @@ SONGS_PATH = get_env_str("SONGS_PATH")
 IMAGES_PATH = get_env_str("IMAGES_PATH")
 TEMP_PATH = get_env_str("TEMP_PATH")
 LOGS_PATH = get_env_str("LOGS_PATH")
-LOG_DUMP_LEVEL = get_env_str(
-    "LOG_DUMP_LEVEL", ['debug', 'info', 'warning', 'error'])
+LOG_DUMP_LEVEL = get_env_str("LOG_DUMP_LEVEL", ["debug", "info", "warning", "error"])
 CONSOLE_DUMP_LEVEL = get_env_str(
-    "CONSOLE_DUMP_LEVEL", ['debug', 'info', 'warning', 'error'])
+    "CONSOLE_DUMP_LEVEL", ["debug", "info", "warning", "error"]
+)
 DOWNLOAD_THREADS = get_env_int("DOWNLOAD_THREADS")
 CLIENT_ID = get_env_str("CLIENT_ID")
 CLIENT_SECRET = get_env_str("CLIENT_SECRET")
@@ -127,5 +126,5 @@ DOWNLOADER_OPTIONS: DownloaderOptions = {
     "create_skip_file": False,
     "respect_skip_file": False,
     "sync_remove_lrc": False,
-    "playlist_retain_track_cover": False
+    "playlist_retain_track_cover": False,
 }

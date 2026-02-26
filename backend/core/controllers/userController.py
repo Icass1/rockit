@@ -18,7 +18,6 @@ from backend.core.responses.queueResponse import QueueResponse
 from backend.core.responses.sessionResponse import SessionResponse
 from backend.core.responses.baseAlbumResponse import BaseAlbumResponse
 
-
 ph = PasswordHasher(
     time_cost=2,
     memory_cost=19456,
@@ -27,8 +26,7 @@ ph = PasswordHasher(
 
 logger: Logger = getLogger(name=__name__)
 router = APIRouter(
-    prefix="/user",
-    dependencies=[Depends(dependency=AuthMiddleware.auth_dependency)]
+    prefix="/user", dependencies=[Depends(dependency=AuthMiddleware.auth_dependency)]
 )
 
 
@@ -39,14 +37,19 @@ async def get_session(request: Request) -> SessionResponse:
     if a_result_user.is_not_ok():
         logger.error("Error getting current user.")
         raise HTTPException(
-            status_code=a_result_user.get_http_code(), detail=a_result_user.message())
+            status_code=a_result_user.get_http_code(), detail=a_result_user.message()
+        )
 
     image: str | None = a_result_user.result().image
 
     if image:
         image = BACKEND_URL + "/image/" + image
 
-    return SessionResponse(username=a_result_user.result().username, image=image, admin=a_result_user.result().admin)
+    return SessionResponse(
+        username=a_result_user.result().username,
+        image=image,
+        admin=a_result_user.result().admin,
+    )
 
 
 @router.get(path="/queue")
@@ -55,14 +58,17 @@ def get_queue(request: Request) -> QueueResponse:
     if a_result_user.is_not_ok():
         logger.error(f"Error getting current user. {a_result_user.info()}")
         raise HTTPException(
-            status_code=a_result_user.get_http_code(), detail=a_result_user.message())
+            status_code=a_result_user.get_http_code(), detail=a_result_user.message()
+        )
 
     a_result_queue: AResult[QueueResponse] = User.get_user_queue(
-        user_id=a_result_user.result().id)
+        user_id=a_result_user.result().id
+    )
     if a_result_queue.is_not_ok():
         logger.error(f"Error getting user queue. {a_result_queue.info()}")
         raise HTTPException(
-            status_code=a_result_queue.get_http_code(), detail=a_result_queue.message())
+            status_code=a_result_queue.get_http_code(), detail=a_result_queue.message()
+        )
 
     return a_result_queue.result()
 
@@ -81,14 +87,18 @@ async def get_user_albums(request: Request) -> List[BaseAlbumResponse]:
     if a_result_user.is_not_ok():
         logger.error(f"Error getting current user. {a_result_user.info()}")
         raise HTTPException(
-            status_code=a_result_user.get_http_code(), detail=a_result_user.message())
+            status_code=a_result_user.get_http_code(), detail=a_result_user.message()
+        )
 
     a_result_albums: AResult[List[BaseAlbumResponse]] = await User.get_user_albums(
-        user_id=a_result_user.result().id)
+        user_id=a_result_user.result().id
+    )
 
     if a_result_albums.is_not_ok():
         logger.error(f"Error getting user albums. {a_result_albums.info()}")
         raise HTTPException(
-            status_code=a_result_albums.get_http_code(), detail=a_result_albums.message())
+            status_code=a_result_albums.get_http_code(),
+            detail=a_result_albums.message(),
+        )
 
     return a_result_albums.result()

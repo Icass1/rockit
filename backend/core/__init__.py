@@ -14,7 +14,6 @@ from backend.core.framework import providers
 
 from backend.core.enums.repeatSongEnum import RepeatSongEnum
 
-
 logger: Logger = getLogger(__name__)
 
 
@@ -35,8 +34,8 @@ async def add_initial_content():
     await providers.async_init()
 
     await EnumAccess.check_enum_contents_async(
-        enum_class=DownloadStatusEnum,
-        table=DownloadStatusEnumRow)
+        enum_class=DownloadStatusEnum, table=DownloadStatusEnumRow
+    )
     await EnumAccess.check_enum_contents_async(RepeatSongEnum, RepeatSongEnumRow)
 
 

@@ -1,13 +1,21 @@
 import { BaseSongResponseSchema } from "@/dto/baseSongResponse";
-import { Artist } from "@/lib/rockit/artist";
 import { AlbumWithoutSongs } from "@/lib/rockit/albumWithoutSongs";
+import { Artist } from "@/lib/rockit/artist";
 import { ExternalImage } from "@/lib/rockit/externalImage";
 import { SongWithoutAlbum } from "@/lib/rockit/songWithoutAlbum";
 
 export class AlbumWithSongs extends AlbumWithoutSongs {
     public readonly songs: SongWithoutAlbum[];
 
-    constructor({ publicId, name, artists, songs, internalImageUrl, releaseDate, externalImages }: {
+    constructor({
+        publicId,
+        name,
+        artists,
+        songs,
+        internalImageUrl,
+        releaseDate,
+        externalImages,
+    }: {
         publicId: string;
         name: string;
         artists: Artist[];
@@ -27,22 +35,22 @@ export class AlbumWithSongs extends AlbumWithoutSongs {
         this.songs = songs;
     }
 
-    static fromResponse(
-        response: {
-            publicId: string;
-            name: string;
-            artists: Parameters<typeof Artist.fromResponse>[];
-            releaseDate: string;
-            internalImageUrl: string | null;
-            songs: BaseSongResponseSchema[];
-            externalImages: Parameters<typeof ExternalImage.fromResponse>[];
-        }
-    ): AlbumWithSongs {
+    static fromResponse(response: {
+        publicId: string;
+        name: string;
+        artists: Parameters<typeof Artist.fromResponse>[];
+        releaseDate: string;
+        internalImageUrl: string | null;
+        songs: BaseSongResponseSchema[];
+        externalImages: Parameters<typeof ExternalImage.fromResponse>[];
+    }): AlbumWithSongs {
         return new AlbumWithSongs({
             publicId: response.publicId,
             name: response.name,
             artists: response.artists.map((artist) =>
-                Artist.fromResponse(artist as Parameters<typeof Artist.fromResponse>[0])
+                Artist.fromResponse(
+                    artist as Parameters<typeof Artist.fromResponse>[0]
+                )
             ),
             releaseDate: response.releaseDate,
             internalImageUrl: response.internalImageUrl,
@@ -50,7 +58,11 @@ export class AlbumWithSongs extends AlbumWithoutSongs {
                 SongWithoutAlbum.fromResponse(song)
             ),
             externalImages: response.externalImages.map((externalImage) =>
-                ExternalImage.fromResponse(externalImage as Parameters<typeof ExternalImage.fromResponse>[0])
+                ExternalImage.fromResponse(
+                    externalImage as Parameters<
+                        typeof ExternalImage.fromResponse
+                    >[0]
+                )
             ),
         });
     }

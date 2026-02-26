@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { rockIt } from "@/lib/rockit/rockIt";
-import { Playlist } from "@/lib/rockit/playlist";
-import { SongPlaylist } from "@/lib/rockit/songPlaylist";
-import PlaylistSong from "@/components/ListSongs/PlaylistSong";
 import { useLanguage } from "@/contexts/LanguageContext";
 import useWindowSize from "@/hooks/useWindowSize";
 import { ArrowUp } from "lucide-react";
+import { Playlist } from "@/lib/rockit/playlist";
+import { rockIt } from "@/lib/rockit/rockIt";
+import { SongPlaylist } from "@/lib/rockit/songPlaylist";
+import PlaylistSong from "@/components/ListSongs/PlaylistSong";
 import PlaylistHeader from "@/components/Playlist/PlaylistHeader";
 
 type ColumnsType = "name" | "album" | "artist" | "addedAt" | "duration";
@@ -31,9 +31,7 @@ export default function PlaylistSongsView({
         ascending: boolean;
     }>({ column: "addedAt", ascending: false });
 
-    const [songsToRender, setSongsToRender] = useState<SongPlaylist[]>(
-        []
-    );
+    const [songsToRender, setSongsToRender] = useState<SongPlaylist[]>([]);
 
     const sortedSongs = useMemo(() => {
         switch (filter.column) {

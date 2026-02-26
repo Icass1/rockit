@@ -1,5 +1,5 @@
-import { rockIt } from "@/lib/rockit/rockIt";
 import { useStore } from "@nanostores/react";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export function useSearchResults() {
     const results = useStore(rockIt.searchManager.searchResultsAtom);

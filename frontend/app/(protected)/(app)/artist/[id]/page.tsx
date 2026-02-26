@@ -1,8 +1,8 @@
+import Image from "next/image";
+import type { SpotifyArtist, SpotifyArtistTopTracks } from "@/types/spotify";
+import { Play } from "lucide-react";
 import { AppError } from "@/lib/errors/AppError";
 import { rockIt } from "@/lib/rockit/rockIt";
-import type { SpotifyArtist, SpotifyArtistTopTracks } from "@/types/spotify";
-import Image from "next/image";
-import { Play } from "lucide-react";
 
 export default async function ArtistPage({
     params,
@@ -18,17 +18,15 @@ export default async function ArtistPage({
     if (!artistRes.ok) throw new AppError(artistRes.status);
 
     const artistData = (await artistRes.json()) as SpotifyArtist;
-    artistData.images.sort(
-        (a, b) => b.width + b.height - (a.width + a.height)
-    );
+    artistData.images.sort((a, b) => b.width + b.height - (a.width + a.height));
     const artistImage = artistData.images[0]?.url ?? "";
 
     // Non-fatal: page works without top songs
     let artistSongs: SpotifyArtistTopTracks | undefined;
-    const topRes = await fetch(
-        `${rockIt.BACKEND_URL}/artist-top-songs/${id}`,
-        { signal: AbortSignal.timeout(2000), cache: "no-store" }
-    ).catch(() => null);
+    const topRes = await fetch(`${rockIt.BACKEND_URL}/artist-top-songs/${id}`, {
+        signal: AbortSignal.timeout(2000),
+        cache: "no-store",
+    }).catch(() => null);
     if (topRes?.ok) {
         artistSongs = (await topRes.json()) as SpotifyArtistTopTracks;
     }
@@ -77,7 +75,11 @@ export default async function ArtistPage({
                                             <div className="relative h-10 w-10 md:h-12 md:w-12">
                                                 {/* Fixed: was <img>, Next.js <Image> for optimization */}
                                                 <Image
-                                                    src={song.album.images[0]?.url ?? "/song-placeholder.png"}
+                                                    src={
+                                                        song.album.images[0]
+                                                            ?.url ??
+                                                        "/song-placeholder.png"
+                                                    }
                                                     alt={song.name}
                                                     width={48}
                                                     height={48}
@@ -138,7 +140,11 @@ export default async function ArtistPage({
                         </h2>
                         <div className="relative flex items-center gap-5 overflow-x-auto px-8 py-4 md:px-2 md:[scrollbar-gutter:stable]">
                             {Array.from({ length: 3 }).map((_, idx) => (
-                                <a key={idx} href="#" className="w-36 flex-none transition hover:scale-105 md:w-48">
+                                <a
+                                    key={idx}
+                                    href="#"
+                                    className="w-36 flex-none transition hover:scale-105 md:w-48"
+                                >
                                     <Image
                                         className="aspect-square w-full rounded-lg object-cover"
                                         src="/song-placeholder.png"
@@ -163,7 +169,11 @@ export default async function ArtistPage({
                         </h2>
                         <div className="relative flex items-center gap-5 overflow-x-auto px-8 py-4 md:px-2 md:[scrollbar-gutter:stable]">
                             {Array.from({ length: 3 }).map((_, idx) => (
-                                <a key={idx} href="#" className="w-36 flex-none transition hover:scale-105 md:w-48">
+                                <a
+                                    key={idx}
+                                    href="#"
+                                    className="w-36 flex-none transition hover:scale-105 md:w-48"
+                                >
                                     <Image
                                         className="aspect-square w-full rounded-full object-cover"
                                         src="/user-placeholder.png"

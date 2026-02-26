@@ -2,13 +2,13 @@
 
 import { useEffect, useRef } from "react";
 import Image from "next/image";
+import { useLanguage } from "@/contexts/LanguageContext";
+import useWindowSize from "@/hooks/useWindowSize";
+import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { PlayerUICoverColumn } from "@/components/PlayerUI/PlayerUICoverColumn";
 import { PlayerUILyricsColumn } from "@/components/PlayerUI/PlayerUILyricsColumn";
 import { PlayerUIQueueColumn } from "@/components/PlayerUI/PlayerUIQueueColumn";
-import { useLanguage } from "@/contexts/LanguageContext";
-import useWindowSize from "@/hooks/useWindowSize";
-import { useStore } from "@nanostores/react";
 
 export default function PlayerUI() {
     const $currentSong = useStore(rockIt.queueManager.currentSongAtom);

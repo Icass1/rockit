@@ -1,14 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Lang } from "@/types/lang";
+import { RotateCw } from "lucide-react";
 import { getUserInServer } from "@/lib/getUserInServer";
 import { rockIt } from "@/lib/rockit/rockIt";
 import ClearDownloads from "@/components/Downloader/ClearDownloads";
 import DownloadElement from "@/components/Downloader/DownloadElement";
 import InputBar from "@/components/Downloader/InputBar";
 import SongsStatus from "@/components/Downloader/SongsStatus";
-import { Lang } from "@/types/lang";
-import { RotateCw } from "lucide-react";
 
 async function getLanguage(): Promise<{ lang: string; langFile: Lang }> {
     const res = await fetch("http://localhost:3000/api/lang", {

@@ -1,11 +1,11 @@
 "use client";
 
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Playlist } from "@/lib/rockit/playlist";
 import { getMinutes } from "@/lib/utils/getTime";
-import ListOptions from "@/components/ListHeader/ListOptions";
-import { useLanguage } from "@/contexts/LanguageContext";
-import { ListCover } from "@/components/List/ListCover";
 import { useListDownload } from "@/components/List/hooks/useListDownload";
+import { ListCover } from "@/components/List/ListCover";
+import ListOptions from "@/components/ListHeader/ListOptions";
 
 export default function PlaylistHeader({
     className,
@@ -27,7 +27,10 @@ export default function PlaylistHeader({
     if (!lang) return false;
 
     const downloadCount = playlist.songs.filter((s) => s.downloaded).length;
-    const totalDuration = playlist.songs.reduce((acc, s) => acc + (s.duration || 0), 0);
+    const totalDuration = playlist.songs.reduce(
+        (acc, s) => acc + (s.duration || 0),
+        0
+    );
 
     return (
         <div

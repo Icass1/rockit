@@ -1,8 +1,8 @@
-import { rockIt } from "@/lib/rockit/rockIt";
-import apiFetch from "@/lib/utils/apiFetch";
-import { QueueListType } from "@/types/rockIt";
-import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
 import { BaseAlbumResponseSchema } from "@/dto";
+import { QueueListType } from "@/types/rockIt";
+import { rockIt } from "@/lib/rockit/rockIt";
+import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
+import apiFetch from "@/lib/utils/apiFetch";
 
 export class AlbumManager {
     // #region: Constructor

@@ -1,7 +1,7 @@
+import { BaseSongResponseSchema } from "@/dto";
+import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
 import { createArrayAtom } from "@/lib/store";
 import apiFetch from "@/lib/utils/apiFetch";
-import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
-import { BaseSongResponseSchema } from "@/dto";
 
 export class SongManager {
     // #region: Atoms

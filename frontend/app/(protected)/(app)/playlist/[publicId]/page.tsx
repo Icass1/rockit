@@ -46,11 +46,21 @@ export default async function PlaylistPage({
     return (
         <div className="relative flex h-full w-full flex-col gap-2 px-3 md:flex-row md:px-2">
             <PlaylistHeader
-                playlistResponse={playlistWithSongs as unknown as Parameters<typeof PlaylistHeader>[0]["playlistResponse"]}
+                playlistResponse={
+                    playlistWithSongs as unknown as Parameters<
+                        typeof PlaylistHeader
+                    >[0]["playlistResponse"]
+                }
                 className="hidden w-full md:flex"
             />
 
-            <PlaylistSongsView playlistResponse={playlistWithSongs as unknown as Parameters<typeof PlaylistSongsView>[0]["playlistResponse"]} />
+            <PlaylistSongsView
+                playlistResponse={
+                    playlistWithSongs as unknown as Parameters<
+                        typeof PlaylistSongsView
+                    >[0]["playlistResponse"]
+                }
+            />
         </div>
     );
 }

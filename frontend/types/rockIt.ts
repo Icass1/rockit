@@ -1,5 +1,5 @@
-import { SongWithAlbumResponse } from "@/dto/rockItSongWithAlbumResponse";
 import * as z from "zod";
+import { SongWithAlbumResponse } from "@/dto/rockItSongWithAlbumResponse";
 
 export type DBListType = "album" | "playlist";
 export type QueueListType =

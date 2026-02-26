@@ -7,7 +7,12 @@ export class Artist {
     public readonly internalImageUrl: string | null;
     public readonly externalImages: ExternalImage[];
 
-    constructor({ publicId, name, internalImageUrl, externalImages }: {
+    constructor({
+        publicId,
+        name,
+        internalImageUrl,
+        externalImages,
+    }: {
         publicId: string;
         name: string;
         internalImageUrl: string | null;
@@ -24,9 +29,10 @@ export class Artist {
             publicId: response.publicId,
             name: response.name,
             internalImageUrl: response.internalImageUrl,
-            externalImages: response.externalImages?.map((img) =>
-                ExternalImage.fromResponse(img)
-            ) ?? [],
+            externalImages:
+                response.externalImages?.map((img) =>
+                    ExternalImage.fromResponse(img)
+                ) ?? [],
         });
     }
 }

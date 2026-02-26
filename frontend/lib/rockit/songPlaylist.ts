@@ -1,9 +1,9 @@
-import { createAtom } from "@/lib/store";
-import apiFetch from "@/lib/utils/apiFetch";
 import { AlbumWithoutSongs } from "@/lib/rockit/albumWithoutSongs";
 import { Artist } from "@/lib/rockit/artist";
 import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
 import { SongWithoutAlbum } from "@/lib/rockit/songWithoutAlbum";
+import { createAtom } from "@/lib/store";
+import apiFetch from "@/lib/utils/apiFetch";
 
 export class SongPlaylist {
     static #instance: SongPlaylist[] = [];
@@ -21,7 +21,18 @@ export class SongPlaylist {
     public readonly album: AlbumWithoutSongs;
     public readonly addedAt: Date;
 
-    constructor({ publicId, name, artists, downloaded, discNumber, duration, album, addedAt, audioUrl, internalImageUrl }: {
+    constructor({
+        publicId,
+        name,
+        artists,
+        downloaded,
+        discNumber,
+        duration,
+        album,
+        addedAt,
+        audioUrl,
+        internalImageUrl,
+    }: {
         publicId: string;
         name: string;
         artists: Artist[];
@@ -86,36 +97,46 @@ export class SongPlaylist {
         });
     }
 
-    static fromResponse(response: {
-        song: Parameters<typeof Artist.fromResponse>[];
-        addedAt: string;
-    } & {
-        song: {
-            publicId: string;
-            name: string;
-            artists: Parameters<typeof Artist.fromResponse>[];
-            duration: number;
-            discNumber: number;
-            downloaded: boolean;
-            album: Parameters<typeof AlbumWithoutSongs.fromResponse>;
-            internalImageUrl: string | null;
-            audioUrl: string | null;
-        };
-        addedAt: string;
-    }): SongPlaylist {
-        const existing = SongPlaylist.#instance.find((s) => s.publicId === response.song.publicId);
+    static fromResponse(
+        response: {
+            song: Parameters<typeof Artist.fromResponse>[];
+            addedAt: string;
+        } & {
+            song: {
+                publicId: string;
+                name: string;
+                artists: Parameters<typeof Artist.fromResponse>[];
+                duration: number;
+                discNumber: number;
+                downloaded: boolean;
+                album: Parameters<typeof AlbumWithoutSongs.fromResponse>;
+                internalImageUrl: string | null;
+                audioUrl: string | null;
+            };
+            addedAt: string;
+        }
+    ): SongPlaylist {
+        const existing = SongPlaylist.#instance.find(
+            (s) => s.publicId === response.song.publicId
+        );
         if (existing) return existing;
 
         const newInstance = new SongPlaylist({
             publicId: response.song.publicId,
             name: response.song.name,
             artists: response.song.artists.map((artist) =>
-                Artist.fromResponse(artist as Parameters<typeof Artist.fromResponse>[0])
+                Artist.fromResponse(
+                    artist as Parameters<typeof Artist.fromResponse>[0]
+                )
             ),
             duration: response.song.duration,
             discNumber: response.song.discNumber,
             downloaded: response.song.downloaded,
-            album: AlbumWithoutSongs.fromResponse(response.song.album as Parameters<typeof AlbumWithoutSongs.fromResponse>[0]),
+            album: AlbumWithoutSongs.fromResponse(
+                response.song.album as Parameters<
+                    typeof AlbumWithoutSongs.fromResponse
+                >[0]
+            ),
             addedAt: new Date(response.addedAt),
             internalImageUrl: response.song.internalImageUrl,
             audioUrl: response.song.audioUrl,

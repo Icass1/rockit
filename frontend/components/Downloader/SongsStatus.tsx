@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { rockIt } from "@/lib/rockit/rockIt";
-import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useStore } from "@nanostores/react";
+import { rockIt } from "@/lib/rockit/rockIt";
+import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
 
 function SongDownload({
     id,
@@ -95,7 +95,6 @@ export default function SongsStatus() {
     const someSelected = $downloadInfo.some((item) => item.selected);
 
     const downloadInfoSorted = $downloadInfo.toSorted((a, b) => {
-
         let bCompleted: number = b.completed;
         if (b.completed == 100) bCompleted = -2;
         if (b.message == "Error") bCompleted = -2;

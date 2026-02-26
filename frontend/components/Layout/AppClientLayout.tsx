@@ -1,11 +1,11 @@
 "use client";
 
+import { LanguageProvider } from "@/contexts/LanguageContext";
+import type { Lang } from "@/types/lang";
 import Footer from "@/components/Footer/Footer";
 import Header from "@/components/Header/Header";
 import Navigation from "@/components/Navigation/Navigation";
 import PlayerUI from "@/components/PlayerUI/PlayerUI";
-import { LanguageProvider } from "@/contexts/LanguageContext";
-import type { Lang } from "@/types/lang";
 
 export default function AppClientLayout({
     children,

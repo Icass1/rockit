@@ -3,8 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import SearchBarInput from "@/components/Search/SearchBarInput";
 import HeaderRight from "@/components/Header/HeaderRight";
+import SearchBarInput from "@/components/Search/SearchBarInput";
 
 export default function Header() {
     const pathname = usePathname();

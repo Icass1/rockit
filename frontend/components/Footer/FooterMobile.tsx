@@ -1,11 +1,11 @@
 "use client";
 
 import Image from "next/image";
+import { useStore } from "@nanostores/react";
+import { Pause, Play } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import LikeButton from "@/components/LikeButton";
 import Slider from "@/components/Slider";
-import { useStore } from "@nanostores/react";
-import { Pause, Play } from "lucide-react";
 
 export default function FooterMobile() {
     const $playing = useStore(rockIt.audioManager.playingAtom);

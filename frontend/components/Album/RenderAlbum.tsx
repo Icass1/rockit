@@ -2,17 +2,17 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
-import { rockIt } from "@/lib/rockit/rockIt";
-import { AlbumWithSongs } from "@/lib/rockit/albumWithSongs";
-import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
-import { getMinutes, getYear } from "@/lib/utils/getTime";
-import ListOptions from "@/components/ListHeader/ListOptions";
-import AlbumSong from "@/components/ListSongs/AlbumSong";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { ListCover } from "@/components/List/ListCover";
-import { useListDownload } from "@/components/List/hooks/useListDownload";
 import { groupBy } from "lodash";
 import { Disc } from "lucide-react";
+import { AlbumWithSongs } from "@/lib/rockit/albumWithSongs";
+import { rockIt } from "@/lib/rockit/rockIt";
+import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
+import { getMinutes, getYear } from "@/lib/utils/getTime";
+import { useListDownload } from "@/components/List/hooks/useListDownload";
+import { ListCover } from "@/components/List/ListCover";
+import ListOptions from "@/components/ListHeader/ListOptions";
+import AlbumSong from "@/components/ListSongs/AlbumSong";
 
 export default function RenderAlbum({
     albumResponse,
@@ -40,7 +40,10 @@ export default function RenderAlbum({
 
     if (!lang) return false;
 
-    const totalDuration = album.songs.reduce((acc, s) => acc + (s.duration || 0), 0);
+    const totalDuration = album.songs.reduce(
+        (acc, s) => acc + (s.duration || 0),
+        0
+    );
     const discs = groupBy(album.songs, (song) => song.discNumber);
 
     return (

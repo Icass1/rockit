@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { rockIt } from "@/lib/rockit/rockIt";
 import { useLanguage } from "@/contexts/LanguageContext";
 import useDev from "@/hooks/useDev";
 import { ArrowDownToLine } from "lucide-react";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function InputBar() {
     const [url, setURL] = useState("");

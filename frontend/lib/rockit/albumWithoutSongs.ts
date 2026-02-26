@@ -13,7 +13,14 @@ export class AlbumWithoutSongs {
     public readonly type = "album";
     public readonly externalImages: ExternalImage[];
 
-    constructor({ publicId, name, artists, releaseDate, internalImageUrl, externalImages }: {
+    constructor({
+        publicId,
+        name,
+        artists,
+        releaseDate,
+        internalImageUrl,
+        externalImages,
+    }: {
         publicId: string;
         name: string;
         artists: Artist[];
@@ -30,7 +37,9 @@ export class AlbumWithoutSongs {
     }
 
     static fromResponse(
-        response: BaseSongAlbumResponseSchema & { externalImages?: ExternalImageResponseSchema[] }
+        response: BaseSongAlbumResponseSchema & {
+            externalImages?: ExternalImageResponseSchema[];
+        }
     ): AlbumWithoutSongs {
         return new AlbumWithoutSongs({
             publicId: response.publicId,
@@ -40,9 +49,10 @@ export class AlbumWithoutSongs {
             ),
             releaseDate: response.releaseDate,
             internalImageUrl: response.internalImageUrl,
-            externalImages: response.externalImages?.map((externalImage) =>
-                ExternalImage.fromResponse(externalImage)
-            ) ?? [],
+            externalImages:
+                response.externalImages?.map((externalImage) =>
+                    ExternalImage.fromResponse(externalImage)
+                ) ?? [],
         });
     }
 }

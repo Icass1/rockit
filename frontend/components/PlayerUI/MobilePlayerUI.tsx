@@ -2,15 +2,6 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { rockIt } from "@/lib/rockit/rockIt";
-import { getTime } from "@/lib/utils/getTime";
-import LikeButton from "@/components/LikeButton";
-import SongPopupMenu from "@/components/ListSongs/SongPopupMenu";
-import { useMobilePlayerVisibility } from "@/components/PlayerUI/hooks/useMobilePlayerVisibility";
-import { useMobileSwipeDismiss } from "@/components/PlayerUI/hooks/useMobileSwipeDismiss";
-import MobilePlayerUILyrics from "@/components/PlayerUI/MobilePlayerUILyrics";
-import MobilePlayerUIQueue from "@/components/PlayerUI/MobilePlayerUIQueue";
-import Slider from "@/components/Slider";
 import useWindowSize from "@/hooks/useWindowSize";
 import { useStore } from "@nanostores/react";
 import {
@@ -23,6 +14,15 @@ import {
     SkipBack,
     SkipForward,
 } from "lucide-react";
+import { rockIt } from "@/lib/rockit/rockIt";
+import { getTime } from "@/lib/utils/getTime";
+import LikeButton from "@/components/LikeButton";
+import SongPopupMenu from "@/components/ListSongs/SongPopupMenu";
+import { useMobilePlayerVisibility } from "@/components/PlayerUI/hooks/useMobilePlayerVisibility";
+import { useMobileSwipeDismiss } from "@/components/PlayerUI/hooks/useMobileSwipeDismiss";
+import MobilePlayerUILyrics from "@/components/PlayerUI/MobilePlayerUILyrics";
+import MobilePlayerUIQueue from "@/components/PlayerUI/MobilePlayerUIQueue";
+import Slider from "@/components/Slider";
 
 export default function MobilePlayerUI() {
     const $playing = useStore(rockIt.audioManager.playingAtom);

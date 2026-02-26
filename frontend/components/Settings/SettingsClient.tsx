@@ -2,6 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { ChartLine, ImageUp } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import ChangeLang from "@/components/Settings/ChangeLang";
 import CrossFadeInput from "@/components/Settings/CrossFadeInput";
@@ -12,8 +14,6 @@ import {
 } from "@/components/Settings/hooks/useSettingsUser";
 import LogOutButton from "@/components/Settings/LogOutButton";
 import ServiceWorkerInfo from "@/components/Settings/ServiceWorkerInfo";
-import { useLanguage } from "@/contexts/LanguageContext";
-import { ChartLine, ImageUp } from "lucide-react";
 
 export default function SettingsClient() {
     const { langFile: lang } = useLanguage();

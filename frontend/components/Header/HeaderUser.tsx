@@ -2,6 +2,8 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useStore } from "@nanostores/react";
+import { LogOut, Settings } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import {
     PopupMenu,
@@ -9,8 +11,6 @@ import {
     PopupMenuOption,
     PopupMenuTrigger,
 } from "@/components/PopupMenu";
-import { useStore } from "@nanostores/react";
-import { LogOut, Settings } from "lucide-react";
 
 export default function HeaderUser() {
     const router = useRouter();

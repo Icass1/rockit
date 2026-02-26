@@ -1,6 +1,6 @@
-import { RenderAlbum } from "@/components/Album";
 import { AppError } from "@/lib/errors/AppError";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { RenderAlbum } from "@/components/Album";
 
 export async function generateMetadata({
     params,
@@ -42,5 +42,13 @@ export default async function AlbumPage({
         externalImages: [],
     };
 
-    return <RenderAlbum albumResponse={albumWithSongs as unknown as Parameters<typeof RenderAlbum>[0]["albumResponse"]} />;
+    return (
+        <RenderAlbum
+            albumResponse={
+                albumWithSongs as unknown as Parameters<
+                    typeof RenderAlbum
+                >[0]["albumResponse"]
+            }
+        />
+    );
 }

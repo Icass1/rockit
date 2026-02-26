@@ -2,16 +2,6 @@
 
 import { useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { networkStatus } from "@/lib/stores/networkStatus";
-import ContextMenuContent from "@/components/ContextMenu/Content";
-import ContextMenu from "@/components/ContextMenu/ContextMenu";
-import ContextMenuOption from "@/components/ContextMenu/Option";
-import ContextMenuSplitter from "@/components/ContextMenu/Splitter";
-import SubContextMenuContent from "@/components/ContextMenu/SubContextMenu/Content";
-import SubContextMenu from "@/components/ContextMenu/SubContextMenu/ContextMenu";
-import SubContextMenuTrigger from "@/components/ContextMenu/SubContextMenu/Trigger";
-import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
-import { songHandleClick } from "@/components/ListSongs/HandleClick";
 import useDev from "@/hooks/useDev";
 import { useStore } from "@nanostores/react";
 import {
@@ -27,11 +17,21 @@ import {
     PlayCircle,
     Share2,
 } from "lucide-react";
+import { networkStatus } from "@/lib/stores/networkStatus";
+import ContextMenuContent from "@/components/ContextMenu/Content";
+import ContextMenu from "@/components/ContextMenu/ContextMenu";
+import ContextMenuOption from "@/components/ContextMenu/Option";
+import ContextMenuSplitter from "@/components/ContextMenu/Splitter";
+import SubContextMenuContent from "@/components/ContextMenu/SubContextMenu/Content";
+import SubContextMenu from "@/components/ContextMenu/SubContextMenu/ContextMenu";
+import SubContextMenuTrigger from "@/components/ContextMenu/SubContextMenu/Trigger";
+import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
+import { songHandleClick } from "@/components/ListSongs/HandleClick";
 import "@/styles/CheckBox.css";
 import Image from "next/image";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 function ListSubContextMenu({
     list,

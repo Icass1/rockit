@@ -3,9 +3,9 @@
 import type { ReactNode } from "react";
 import React from "react";
 import Image from "next/image";
+import useWindowSize from "@/hooks/useWindowSize";
 import { useContextMenu } from "@/components/ContextMenu/context";
 import PosAfterRenderDiv from "@/components/PosAfterRenderDiv";
-import useWindowSize from "@/hooks/useWindowSize";
 
 export default function ContextMenuContent({
     children,

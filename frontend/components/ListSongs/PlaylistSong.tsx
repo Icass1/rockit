@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useStore } from "@nanostores/react";
+import { CheckCircle2, EllipsisVertical } from "lucide-react";
 import { networkStatus } from "@/lib/stores/networkStatus";
 import { getTime } from "@/lib/utils/getTime";
 import LikeButton from "@/components/LikeButton";
@@ -11,8 +13,6 @@ import {
     PopupMenuContent,
     PopupMenuTrigger,
 } from "@/components/PopupMenu/PopupMenu";
-import { useStore } from "@nanostores/react";
-import { CheckCircle2, EllipsisVertical } from "lucide-react";
 import "@/styles/Skeleton.css";
 import Image from "next/image";
 import { rockIt } from "@/lib/rockit/rockIt";

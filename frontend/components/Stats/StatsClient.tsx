@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import UserStats from "@/components/Stats/UserStats";
 import { useLanguage } from "@/contexts/LanguageContext";
+import UserStats from "@/components/Stats/UserStats";
 
 export default function StatsClient() {
     const [selectedSection, setSelectedSection] = useState<string>("user");

@@ -1,9 +1,5 @@
 "use client";
 
-import { rockIt } from "@/lib/rockit/rockIt";
-import { getTime } from "@/lib/utils/getTime";
-import Slider from "@/components/Slider";
-import Spinner from "@/components/Spinner";
 import { useStore } from "@nanostores/react";
 import {
     CirclePause,
@@ -14,6 +10,10 @@ import {
     SkipBack,
     SkipForward,
 } from "lucide-react";
+import { rockIt } from "@/lib/rockit/rockIt";
+import { getTime } from "@/lib/utils/getTime";
+import Slider from "@/components/Slider";
+import Spinner from "@/components/Spinner";
 
 const ICON_BTN =
     "cursor-pointer text-gray-400 transition-all md:hover:scale-105 md:hover:text-white";

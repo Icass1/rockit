@@ -291,9 +291,8 @@ frontend/
 
 ```ts
 // ✅ Correct
-import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
 import { useFetch } from "@/hooks/useFetch";
-
+import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
 // ❌ Wrong — relative imports
 import { SongWithAlbum } from "../../lib/rockit/songWithAlbum";
 ```
@@ -334,3 +333,4 @@ export class SongWithoutAlbum {
 4. Are touch events added with `{ passive: true }` for iOS performance?
 5. Does the new component have proper TypeScript types (no `any`)?
 6. Is the barrel `index.ts` updated if a new component was added?
+```

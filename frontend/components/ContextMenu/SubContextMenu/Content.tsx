@@ -8,7 +8,13 @@ export default function SubContextMenuContent({
 }: {
     children: ReactNode[] | ReactNode;
 }) {
-    const { _contextMenuPos, _contextMenuDivRef, _setContextMenuOpen, _setContextMenuPos, _contextMenuOpen } = useContextMenu();
+    const {
+        _contextMenuPos,
+        _contextMenuDivRef,
+        _setContextMenuOpen,
+        _setContextMenuPos,
+        _contextMenuOpen,
+    } = useContextMenu();
     const { _triggerRef, _hover, _setHover } = useSubContextMenu();
 
     const updatePos: (width: number, height: number) => [number, number] = (

@@ -3,7 +3,11 @@ export class User {
     public readonly admin: boolean;
     public readonly image: string;
 
-    constructor({ username, admin, image }: {
+    constructor({
+        username,
+        admin,
+        image,
+    }: {
         username: string;
         admin: boolean;
         image: string;

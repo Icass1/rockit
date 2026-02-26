@@ -2,9 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { rockIt } from "@/lib/rockit/rockIt";
 import { DBListType } from "@/types/rockIt";
 import { Download } from "lucide-react";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 function DownloadFlyAnimation({
     start,

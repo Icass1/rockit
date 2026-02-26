@@ -2,12 +2,12 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useHomeData } from "@/components/Home/hooks/useHomeData";
 import QuickSelectionsSection from "@/components/Home/sections/QuickSelectionsSection";
 import SongScrollSection from "@/components/Home/sections/SongScrollSection";
 import SongsCarousel from "@/components/Home/SongsCarousel";
 import Spinner from "@/components/Spinner";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 const MONTH_KEYS = [
     "january",

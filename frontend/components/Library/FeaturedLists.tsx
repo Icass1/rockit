@@ -2,11 +2,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { rockIt } from "@/lib/rockit/rockIt";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { FeaturedListsResponse } from "@/dto/featuredListsResponse";
 import useFetch from "@/hooks/useFetch";
 import { Disc3, Heart, History } from "lucide-react";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export function FeaturedLists({
     filterMode,

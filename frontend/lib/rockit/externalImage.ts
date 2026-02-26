@@ -5,7 +5,11 @@ export class ExternalImage {
     public readonly width: number | null;
     public readonly height: number | null;
 
-    constructor({ url, width, height }: {
+    constructor({
+        url,
+        width,
+        height,
+    }: {
         url: string;
         width: number | null;
         height: number | null;

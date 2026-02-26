@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { EllipsisVertical } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
 import LikeButton from "@/components/LikeButton";
@@ -8,7 +9,6 @@ import SongPageAlbum from "@/components/SongPage/SongPageAlbum";
 import SongPageCover from "@/components/SongPage/SongPageCover";
 import LyricsSection from "@/components/SongPage/SongPageLyrics";
 import SongPageTopArtistSongs from "@/components/SongPage/SongPageTopArtistSongs";
-import { EllipsisVertical } from "lucide-react";
 
 export async function generateMetadata({
     params,
@@ -38,7 +38,14 @@ export async function generateMetadata({
         twitter: {
             title: `${song.name} by ${song.artists[0].name}`,
             description: `Listen to ${song.name} by ${song.artists[0].name}`,
-            images: [{ url: song.album.internalImageUrl, width: 600, height: 600, alt: song.name }],
+            images: [
+                {
+                    url: song.album.internalImageUrl,
+                    width: 600,
+                    height: 600,
+                    alt: song.name,
+                },
+            ],
         },
     };
 }
@@ -62,7 +69,10 @@ export default async function SongPage({
                     <div className="flex w-full max-w-sm items-center rounded-lg bg-neutral-200 p-4 shadow-md">
                         <div className="h-32 w-32 shrink-0 overflow-hidden rounded-full bg-neutral-300">
                             <Image
-                                src={artist.internalImageUrl ?? rockIt.USER_PLACEHOLDER_IMAGE_URL}
+                                src={
+                                    artist.internalImageUrl ??
+                                    rockIt.USER_PLACEHOLDER_IMAGE_URL
+                                }
                                 width={128}
                                 height={128}
                                 alt={artist.name}
@@ -87,7 +97,8 @@ export default async function SongPage({
                                             >
                                                 {a.name}
                                             </Link>
-                                            {i < song.artists.length - 2 && ", "}
+                                            {i < song.artists.length - 2 &&
+                                                ", "}
                                         </span>
                                     ))}
                                 </p>
@@ -115,7 +126,9 @@ export default async function SongPage({
                         <p className="text-center text-lg font-semibold text-neutral-400">
                             {song.artists.map((a, i) => (
                                 <span key={a.publicId}>
-                                    <Link href={`/artist/${a.publicId}`}>{a.name}</Link>
+                                    <Link href={`/artist/${a.publicId}`}>
+                                        {a.name}
+                                    </Link>
                                     {i < song.artists.length - 1 && ", "}
                                 </span>
                             ))}
@@ -148,7 +161,10 @@ export default async function SongPage({
                             </Link>
                             <p className="text-md font-semibold text-gray-600">
                                 Album released on{" "}
-                                {song.album.releaseDate.split("-").reverse().join("/")}
+                                {song.album.releaseDate
+                                    .split("-")
+                                    .reverse()
+                                    .join("/")}
                             </p>
                         </div>
                     </div>

@@ -54,9 +54,7 @@ export function ListCover({
             )}
 
             <div className="absolute right-3 bottom-3 flex h-16 w-auto flex-row gap-4 md:h-20">
-                {anyDownloaded && (
-                    <PlayListButton type={type} id={publicId} />
-                )}
+                {anyDownloaded && <PlayListButton type={type} id={publicId} />}
                 {!allDownloaded && (
                     <DownloadListButton type={type} publicId={publicId} />
                 )}

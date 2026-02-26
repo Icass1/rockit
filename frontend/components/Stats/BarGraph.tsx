@@ -22,7 +22,9 @@ export default function BarGraph({
     name: string;
     type?: "percentage" | "value";
 }) {
-    const [animatedItems, setAnimatedItems] = useState<Array<Item & { isExiting?: boolean; isEntering?: boolean }>>([]);
+    const [animatedItems, setAnimatedItems] = useState<
+        Array<Item & { isExiting?: boolean; isEntering?: boolean }>
+    >([]);
 
     const baseItems = useMemo(() => {
         return propItems.map((item) => ({
@@ -48,7 +50,9 @@ export default function BarGraph({
             return;
         }
 
-        const newLocalItems: Array<Item & { isExiting?: boolean; isEntering?: boolean }> = [
+        const newLocalItems: Array<
+            Item & { isExiting?: boolean; isEntering?: boolean }
+        > = [
             ...nextItems.map((item) => ({
                 ...item,
                 isEntering: enteringItems.some((e) => e.id === item.id),
@@ -80,7 +84,9 @@ export default function BarGraph({
         };
     }, [baseItems, propItems, animatedItems]);
 
-    const localItems: Array<Item & { isExiting?: boolean; isEntering?: boolean }> = animatedItems.length > 0 ? animatedItems : baseItems;
+    const localItems: Array<
+        Item & { isExiting?: boolean; isEntering?: boolean }
+    > = animatedItems.length > 0 ? animatedItems : baseItems;
     const totalValue = localItems.reduce((sum, item) => sum + item.value, 0);
     const maxValue = Math.max(...localItems.map((item) => item.value));
 

@@ -13,7 +13,13 @@ export default function SubContextMenu({
     onOpen?: () => void;
     onClose?: () => void;
 }) {
-    const { _setContextMenuOpen, _setContextMenuPos, _contextMenuDivRef, _contextMenuOpen, _contextMenuPos } = useContextMenu();
+    const {
+        _setContextMenuOpen,
+        _setContextMenuPos,
+        _contextMenuDivRef,
+        _contextMenuOpen,
+        _contextMenuPos,
+    } = useContextMenu();
 
     const _triggerRef = useRef<HTMLDivElement>(null);
 

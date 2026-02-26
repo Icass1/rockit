@@ -1,5 +1,5 @@
-import { rockIt } from "@/lib/rockit/rockIt";
 import { useStore } from "@nanostores/react";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 interface Song {
     publicId: string;
@@ -22,7 +22,11 @@ interface UseListDownloadOptions {
  *  2. `list.publicId == list.publicId` (always true) → now correctly compares
  *     against the prop `publicId`.
  */
-export function useListDownload({ publicId, type, songs }: UseListDownloadOptions) {
+export function useListDownload({
+    publicId,
+    type,
+    songs,
+}: UseListDownloadOptions) {
     // useStore is the correct nanostores/react API — it cleans up on unmount.
     const $downloadingLists = useStore(
         rockIt.downloaderManager.downloadingListsAtom
@@ -41,7 +45,8 @@ export function useListDownload({ publicId, type, songs }: UseListDownloadOption
         let completed = 0;
         for (const status of $downloadingSongsStatus) {
             if (songs.find((s) => s.publicId === status.publicId)) {
-                completed += status.message === "Error" ? 100 : status.completed;
+                completed +=
+                    status.message === "Error" ? 100 : status.completed;
             }
         }
         return completed / songs.length;

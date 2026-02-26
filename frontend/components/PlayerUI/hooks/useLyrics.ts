@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { rockIt } from "@/lib/rockit/rockIt";
 import { useStore } from "@nanostores/react";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 type LyricsTimestamp = { time: number; index: number };
 

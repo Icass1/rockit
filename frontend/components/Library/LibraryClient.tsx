@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { LibraryFilters } from "@/components/Library/LibraryFilters";
 // import { FeaturedLists } from "@/components/Library/FeaturedLists";
 import { LibraryLists } from "@/components/Library/LibraryLists";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function LibraryClient() {
     const { langFile: lang } = useLanguage();

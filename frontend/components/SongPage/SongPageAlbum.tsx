@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { rockIt } from "@/lib/rockit/rockIt";
 import { AlbumWithSongs } from "@/lib/rockit/albumWithSongs";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
 
 export default function SongPageAlbum({

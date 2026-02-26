@@ -1,4 +1,4 @@
-import { SearchResponse, SearchResponseSchema } from "@/dto";
+import { SearchResultsResponse, SearchResultsResponseSchema } from "@/dto";
 import { createAtom } from "@/lib/store";
 import apiFetch from "@/lib/utils/apiFetch";
 
@@ -7,7 +7,7 @@ export class SearchManager {
 
     private _searchQueryAtom = createAtom<string>("");
     private _searchingAtom = createAtom<boolean>(false);
-    private _searchResultsAtom = createAtom<SearchResponse | undefined>();
+    private _searchResultsAtom = createAtom<SearchResultsResponse | undefined>();
 
     // #endregion
 
@@ -27,7 +27,7 @@ export class SearchManager {
 
                 data.json().then((json) => {
                     try {
-                        const results = SearchResponseSchema.parse(json);
+                        const results = SearchResultsResponseSchema.parse(json);
                         this._searchResultsAtom.set(results);
                     } catch (e) {
                         console.error("Error parsing search results", e, json);

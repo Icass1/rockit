@@ -1,13 +1,17 @@
 from logging import Logger
 from typing import List
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from backend.utils.logger import getLogger
 from backend.core.aResult import AResult, AResultCode
+
 from backend.core.framework.downloader.baseDownload import BaseDownload
+
 from backend.core.responses.baseAlbumResponse import BaseAlbumResponse
 from backend.core.responses.baseArtistResponse import BaseArtistResponse
 from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
 from backend.core.responses.baseSongResponse import BaseSongResponse
 from backend.core.responses.searchResponse import BaseSearchResultsItem
-from backend.utils.logger import getLogger
 
 logger: Logger = getLogger(__name__)
 
@@ -21,7 +25,7 @@ class BaseProvider:
         self._id = provider_id
         self._name = provider_name
 
-    async def async_init(self):
+    async def async_init(self, session: AsyncSession):
         logger.warning(f"Provider {self} does not implement async_int")
         """TODO"""
 
@@ -49,7 +53,7 @@ class BaseProvider:
         )
 
     async def start_download_async(
-        self, public_id: str, download_id: int
+        self, session: AsyncSession, public_id: str, download_id: int
     ) -> AResult[BaseDownload]:
         """Create a BaseDownload for the given song. Override in provider-specific subclasses."""
 
@@ -69,28 +73,36 @@ class BaseProvider:
             message=f"Provider '{self._name} doesn't implement search_async method.'",
         )
 
-    async def get_song_async(self, public_id: str) -> AResult[BaseSongResponse]:
+    async def get_song_async(
+        self, session: AsyncSession, public_id: str
+    ) -> AResult[BaseSongResponse]:
         """TODO"""
         return AResult(
             code=AResultCode.NOT_IMPLEMENTED,
             message=f"Provider '{self._name} doesn't implement get_song_async method.'",
         )
 
-    async def get_album_async(self, public_id: str) -> AResult[BaseAlbumResponse]:
+    async def get_album_async(
+        self, session: AsyncSession, public_id: str
+    ) -> AResult[BaseAlbumResponse]:
         """"""
         return AResult(
             code=AResultCode.NOT_IMPLEMENTED,
             message=f"Provider '{self._name} doesn't implement get_album_async method.'",
         )
 
-    async def get_artist_async(self, public_id: str) -> AResult[BaseArtistResponse]:
+    async def get_artist_async(
+        self, session: AsyncSession, public_id: str
+    ) -> AResult[BaseArtistResponse]:
         """"""
         return AResult(
             code=AResultCode.NOT_IMPLEMENTED,
             message=f"Provider '{self._name} doesn't implement get_artist_async method.'",
         )
 
-    async def get_playlist_async(self, public_id: str) -> AResult[BasePlaylistResponse]:
+    async def get_playlist_async(
+        self, session: AsyncSession, public_id: str
+    ) -> AResult[BasePlaylistResponse]:
         """"""
         return AResult(
             code=AResultCode.NOT_IMPLEMENTED,

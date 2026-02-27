@@ -5,6 +5,7 @@ from importlib import import_module
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
 
+from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 from backend.utils.logger import getLogger
 
 from backend.core.framework.downloader import downloads_manager
@@ -30,6 +31,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.add_middleware(DBSessionMiddleware)
 
 # Search and initialize all routers.
 for dirpath, dirnames, filenames in os.walk("backend"):

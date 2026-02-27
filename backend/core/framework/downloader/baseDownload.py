@@ -1,3 +1,5 @@
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from backend.core.aResult import AResultCode
 
 
@@ -11,12 +13,12 @@ class BaseDownload:
         self.public_id = public_id
         self.download_id = download_id
 
-    def download_method(self) -> None:
+    def download_method(self, session: AsyncSession) -> None:
         """Execute the download. Override in provider-specific subclasses."""
 
         pass
 
-    async def download_method_async(self) -> AResultCode:
+    async def download_method_async(self, session: AsyncSession) -> AResultCode:
         """Return a descriptive thread name for this download."""
 
         return AResultCode(

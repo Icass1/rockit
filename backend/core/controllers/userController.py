@@ -4,7 +4,10 @@ from argon2 import PasswordHasher
 from fastapi import Depends, APIRouter, HTTPException, Request
 from logging import Logger
 
+from sqlalchemy.ext.asyncio.session import AsyncSession
+
 from backend.constants import BACKEND_URL
+from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 from backend.utils.logger import getLogger
 
 from backend.core.aResult import AResult
@@ -83,6 +86,8 @@ def get_library_lists(request: Request) -> LibraryListsResponse:
 async def get_user_albums(request: Request) -> List[BaseAlbumResponse]:
     """Get all albums in the user's library."""
 
+    session: AsyncSession = DBSessionMiddleware.get_session(request)
+
     a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
     if a_result_user.is_not_ok():
         logger.error(f"Error getting current user. {a_result_user.info()}")
@@ -91,7 +96,7 @@ async def get_user_albums(request: Request) -> List[BaseAlbumResponse]:
         )
 
     a_result_albums: AResult[List[BaseAlbumResponse]] = await User.get_user_albums(
-        user_id=a_result_user.result().id
+        session, user_id=a_result_user.result().id
     )
 
     if a_result_albums.is_not_ok():

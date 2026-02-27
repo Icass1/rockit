@@ -1,4 +1,5 @@
 from typing import List
+from sqlalchemy.ext.asyncio import AsyncSession
 from spotdl.types.song import Song as SpotdlSong  # type: ignore
 
 from backend.spotify.access.db.ormModels.album import AlbumRow
@@ -18,11 +19,15 @@ logger = getLogger(__name__)
 
 class SpotDL:
     @staticmethod
-    async def get_spotdl_song_from_song_row(track_row: TrackRow) -> AResult[SpotdlSong]:
+    async def get_spotdl_song_from_song_row(
+        session: AsyncSession, track_row: TrackRow
+    ) -> AResult[SpotdlSong]:
         """TODO"""
 
         a_result_track_artists: AResult[List[ArtistRow]] = (
-            await SpotifyAccess.get_artists_from_track_row_async(track_row=track_row)
+            await SpotifyAccess.get_artists_from_track_row_async(
+                session=session, track_row=track_row
+            )
         )
         if a_result_track_artists.is_not_ok():
             logger.error(
@@ -36,7 +41,7 @@ class SpotDL:
         track_artists: List[ArtistRow] = a_result_track_artists.result()
 
         a_result_album: AResult[AlbumRow] = await SpotifyAccess.get_album_id_async(
-            id=track_row.album_id
+            session, id=track_row.album_id
         )
         if a_result_album.is_not_ok():
             logger.error(f"Error getting album from id. {a_result_album.info()}")
@@ -46,7 +51,7 @@ class SpotDL:
 
         a_result_album_artists: AResult[List[ArtistRow]] = (
             await SpotifyAccess.get_artists_from_album_id_async(
-                album_id=track_row.album_id
+                session=session, album_id=track_row.album_id
             )
         )
         if a_result_album_artists.is_not_ok():
@@ -61,7 +66,7 @@ class SpotDL:
         album_artists: List[ArtistRow] = a_result_album_artists.result()
 
         a_result_core_song: AResult[CoreSongRow] = (
-            await MediaAccess.get_song_from_id_async(id=track_row.id)
+            await MediaAccess.get_song_from_id_async(session=session, id=track_row.id)
         )
         if a_result_core_song.is_not_ok():
             logger.error(
@@ -74,7 +79,9 @@ class SpotDL:
         core_song: CoreSongRow = a_result_core_song.result()
 
         a_result_core_album: AResult[CoreAlbumRow] = (
-            await MediaAccess.get_album_from_id_async(id=track_row.album_id)
+            await MediaAccess.get_album_from_id_async(
+                session=session, id=track_row.album_id
+            )
         )
         if a_result_core_album.is_not_ok():
             logger.error(

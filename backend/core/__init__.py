@@ -1,5 +1,6 @@
-import asyncio
 import os
+import sys
+import asyncio
 
 from logging import Logger
 
@@ -30,13 +31,21 @@ logger.info("")
 
 
 async def add_initial_content():
-    await rockit_db.async_init()
-    await providers.async_init()
+    try:
+        await rockit_db.async_init()
+    except Exception as e:
+        logger.critical(f"Error initializing database: {e}")
+        sys.exit()
 
-    await EnumAccess.check_enum_contents_async(
-        enum_class=DownloadStatusEnum, table=DownloadStatusEnumRow
-    )
-    await EnumAccess.check_enum_contents_async(RepeatSongEnum, RepeatSongEnumRow)
+    async with rockit_db.session_scope_async() as session:
+        await providers.async_init(session=session)
+
+        await EnumAccess.check_enum_contents_async(
+            session=session, enum_class=DownloadStatusEnum, table=DownloadStatusEnumRow
+        )
+        await EnumAccess.check_enum_contents_async(
+            session=session, enum_class=RepeatSongEnum, table=RepeatSongEnumRow
+        )
 
 
 if not os.environ.get("SKIP_INITIAL_CONTENT"):

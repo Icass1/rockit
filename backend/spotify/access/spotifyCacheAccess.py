@@ -1,10 +1,10 @@
 from typing import Dict, Any, Tuple, List
 from sqlalchemy.future import select
 from sqlalchemy import Result, Select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.utils.logger import getLogger
 
-from backend.core.access.db import rockit_db
 from backend.core.aResult import AResult, AResultCode
 
 from backend.spotify.access.db.ormModels.albumCache import CacheAlbumRow
@@ -17,25 +17,22 @@ logger = getLogger(__name__)
 
 class SpotifyCacheAccess:
     @staticmethod
-    async def get_album_async(id: str) -> AResult[CacheAlbumRow]:
+    async def get_album_async(session: AsyncSession, id: str) -> AResult[CacheAlbumRow]:
         try:
-            async with rockit_db.session_scope_async() as s:
-                stmt: Select[Tuple[CacheAlbumRow]] = select(CacheAlbumRow).where(
-                    CacheAlbumRow.id == id
-                )
-                result: Result[Tuple[CacheAlbumRow]] = await s.execute(statement=stmt)
+            stmt: Select[Tuple[CacheAlbumRow]] = select(CacheAlbumRow).where(
+                CacheAlbumRow.id == id
+            )
+            result: Result[Tuple[CacheAlbumRow]] = await session.execute(statement=stmt)
 
-                user: CacheAlbumRow | None = result.scalar_one_or_none()
+            user: CacheAlbumRow | None = result.scalar_one_or_none()
 
-                if not user:
-                    logger.error("Album not found in cache.")
-                    return AResult(
-                        code=AResultCode.NOT_FOUND, message="User not found."
-                    )
+            if not user:
+                logger.error("Album not found in cache.")
+                return AResult(code=AResultCode.NOT_FOUND, message="User not found.")
 
-                # Detach from session BEFORE closing session.
-                s.expunge(instance=user)
-                return AResult(code=AResultCode.OK, message="OK", result=user)
+            # Detach from session BEFORE closing session.
+            session.expunge(instance=user)
+            return AResult(code=AResultCode.OK, message="OK", result=user)
 
         except Exception as e:
             return AResult(
@@ -44,32 +41,34 @@ class SpotifyCacheAccess:
             )
 
     @staticmethod
-    async def add_album_async(id: str, json: Dict[str, Any]) -> AResultCode:
+    async def add_album_async(
+        session: AsyncSession, id: str, json: Dict[str, Any]
+    ) -> AResultCode:
         try:
-            async with rockit_db.session_scope_async() as s:
-                cache_row = CacheAlbumRow(id=id, json=json)
+            cache_row = CacheAlbumRow(id=id, json=json)
 
-                s.add(instance=cache_row)
-                await s.commit()
-                await s.refresh(instance=cache_row)
-                s.expunge(instance=cache_row)
+            session.add(instance=cache_row)
+            await session.commit()
+            await session.refresh(instance=cache_row)
+            session.expunge(instance=cache_row)
 
-                return AResultCode(code=AResultCode.OK, message="OK")
+            return AResultCode(code=AResultCode.OK, message="OK")
         except Exception as e:
             return AResultCode(
                 code=AResultCode.GENERAL_ERROR, message=f"Failed to create user: {e}."
             )
 
     @staticmethod
-    async def get_albums_by_ids_async(ids: List[str]) -> AResult[List[CacheAlbumRow]]:
+    async def get_albums_by_ids_async(
+        session: AsyncSession, ids: List[str]
+    ) -> AResult[List[CacheAlbumRow]]:
         try:
-            async with rockit_db.session_scope_async() as s:
-                stmt = select(CacheAlbumRow).where(CacheAlbumRow.id.in_(ids))
-                result = await s.execute(stmt)
-                rows = result.scalars().all()
-                for row in rows:
-                    s.expunge(row)
-                return AResult(code=AResultCode.OK, message="OK", result=list(rows))
+            stmt = select(CacheAlbumRow).where(CacheAlbumRow.id.in_(ids))
+            result = await session.execute(stmt)
+            rows = result.scalars().all()
+            for row in rows:
+                session.expunge(row)
+            return AResult(code=AResultCode.OK, message="OK", result=list(rows))
         except Exception as e:
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
@@ -77,18 +76,17 @@ class SpotifyCacheAccess:
             )
 
     @staticmethod
-    async def get_track_async(id: str) -> AResult[CacheTrackRow]:
+    async def get_track_async(session: AsyncSession, id: str) -> AResult[CacheTrackRow]:
         try:
-            async with rockit_db.session_scope_async() as s:
-                stmt = select(CacheTrackRow).where(CacheTrackRow.id == id)
-                result = await s.execute(stmt)
-                row: CacheTrackRow | None = result.scalar_one_or_none()
-                if not row:
-                    return AResult(
-                        code=AResultCode.NOT_FOUND, message="Track not found in cache."
-                    )
-                s.expunge(row)
-                return AResult(code=AResultCode.OK, message="OK", result=row)
+            stmt = select(CacheTrackRow).where(CacheTrackRow.id == id)
+            result = await session.execute(stmt)
+            row: CacheTrackRow | None = result.scalar_one_or_none()
+            if not row:
+                return AResult(
+                    code=AResultCode.NOT_FOUND, message="Track not found in cache."
+                )
+            session.expunge(row)
+            return AResult(code=AResultCode.OK, message="OK", result=row)
         except Exception as e:
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
@@ -96,15 +94,16 @@ class SpotifyCacheAccess:
             )
 
     @staticmethod
-    async def add_track_async(id: str, json: Dict[str, Any]) -> AResultCode:
+    async def add_track_async(
+        session: AsyncSession, id: str, json: Dict[str, Any]
+    ) -> AResultCode:
         try:
-            async with rockit_db.session_scope_async() as s:
-                cache_row = CacheTrackRow(id=id, json=json)
-                s.add(cache_row)
-                await s.commit()
-                await s.refresh(cache_row)
-                s.expunge(cache_row)
-                return AResultCode(code=AResultCode.OK, message="OK")
+            cache_row = CacheTrackRow(id=id, json=json)
+            session.add(cache_row)
+            await session.commit()
+            await session.refresh(cache_row)
+            session.expunge(cache_row)
+            return AResultCode(code=AResultCode.OK, message="OK")
         except Exception as e:
             return AResultCode(
                 code=AResultCode.GENERAL_ERROR,
@@ -112,15 +111,16 @@ class SpotifyCacheAccess:
             )
 
     @staticmethod
-    async def get_tracks_by_ids_async(ids: List[str]) -> AResult[List[CacheTrackRow]]:
+    async def get_tracks_by_ids_async(
+        session: AsyncSession, ids: List[str]
+    ) -> AResult[List[CacheTrackRow]]:
         try:
-            async with rockit_db.session_scope_async() as s:
-                stmt = select(CacheTrackRow).where(CacheTrackRow.id.in_(ids))
-                result = await s.execute(stmt)
-                rows = result.scalars().all()
-                for row in rows:
-                    s.expunge(row)
-                return AResult(code=AResultCode.OK, message="OK", result=list(rows))
+            stmt = select(CacheTrackRow).where(CacheTrackRow.id.in_(ids))
+            result = await session.execute(stmt)
+            rows = result.scalars().all()
+            for row in rows:
+                session.expunge(row)
+            return AResult(code=AResultCode.OK, message="OK", result=list(rows))
         except Exception as e:
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
@@ -128,18 +128,19 @@ class SpotifyCacheAccess:
             )
 
     @staticmethod
-    async def get_artist_async(id: str) -> AResult[CacheArtistRow]:
+    async def get_artist_async(
+        session: AsyncSession, id: str
+    ) -> AResult[CacheArtistRow]:
         try:
-            async with rockit_db.session_scope_async() as s:
-                stmt = select(CacheArtistRow).where(CacheArtistRow.id == id)
-                result = await s.execute(stmt)
-                row: CacheArtistRow | None = result.scalar_one_or_none()
-                if not row:
-                    return AResult(
-                        code=AResultCode.NOT_FOUND, message="Artist not found in cache."
-                    )
-                s.expunge(row)
-                return AResult(code=AResultCode.OK, message="OK", result=row)
+            stmt = select(CacheArtistRow).where(CacheArtistRow.id == id)
+            result = await session.execute(stmt)
+            row: CacheArtistRow | None = result.scalar_one_or_none()
+            if not row:
+                return AResult(
+                    code=AResultCode.NOT_FOUND, message="Artist not found in cache."
+                )
+            session.expunge(row)
+            return AResult(code=AResultCode.OK, message="OK", result=row)
         except Exception as e:
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
@@ -147,15 +148,16 @@ class SpotifyCacheAccess:
             )
 
     @staticmethod
-    async def add_artist_async(id: str, json: Dict[str, Any]) -> AResultCode:
+    async def add_artist_async(
+        session: AsyncSession, id: str, json: Dict[str, Any]
+    ) -> AResultCode:
         try:
-            async with rockit_db.session_scope_async() as s:
-                cache_row = CacheArtistRow(id=id, json=json)
-                s.add(cache_row)
-                await s.commit()
-                await s.refresh(cache_row)
-                s.expunge(cache_row)
-                return AResultCode(code=AResultCode.OK, message="OK")
+            cache_row = CacheArtistRow(id=id, json=json)
+            session.add(cache_row)
+            await session.commit()
+            await session.refresh(cache_row)
+            session.expunge(cache_row)
+            return AResultCode(code=AResultCode.OK, message="OK")
         except Exception as e:
             return AResultCode(
                 code=AResultCode.GENERAL_ERROR,
@@ -163,15 +165,16 @@ class SpotifyCacheAccess:
             )
 
     @staticmethod
-    async def get_artists_by_ids_async(ids: List[str]) -> AResult[List[CacheArtistRow]]:
+    async def get_artists_by_ids_async(
+        session: AsyncSession, ids: List[str]
+    ) -> AResult[List[CacheArtistRow]]:
         try:
-            async with rockit_db.session_scope_async() as s:
-                stmt = select(CacheArtistRow).where(CacheArtistRow.id.in_(ids))
-                result = await s.execute(stmt)
-                rows = result.scalars().all()
-                for row in rows:
-                    s.expunge(row)
-                return AResult(code=AResultCode.OK, message="OK", result=list(rows))
+            stmt = select(CacheArtistRow).where(CacheArtistRow.id.in_(ids))
+            result = await session.execute(stmt)
+            rows = result.scalars().all()
+            for row in rows:
+                session.expunge(row)
+            return AResult(code=AResultCode.OK, message="OK", result=list(rows))
         except Exception as e:
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
@@ -179,19 +182,20 @@ class SpotifyCacheAccess:
             )
 
     @staticmethod
-    async def get_playlist_async(id: str) -> AResult[CachePlaylistRow]:
+    async def get_playlist_async(
+        session: AsyncSession, id: str
+    ) -> AResult[CachePlaylistRow]:
         try:
-            async with rockit_db.session_scope_async() as s:
-                stmt = select(CachePlaylistRow).where(CachePlaylistRow.id == id)
-                result = await s.execute(stmt)
-                row: CachePlaylistRow | None = result.scalar_one_or_none()
-                if not row:
-                    return AResult(
-                        code=AResultCode.NOT_FOUND,
-                        message="Playlist not found in cache.",
-                    )
-                s.expunge(row)
-                return AResult(code=AResultCode.OK, message="OK", result=row)
+            stmt = select(CachePlaylistRow).where(CachePlaylistRow.id == id)
+            result = await session.execute(stmt)
+            row: CachePlaylistRow | None = result.scalar_one_or_none()
+            if not row:
+                return AResult(
+                    code=AResultCode.NOT_FOUND,
+                    message="Playlist not found in cache.",
+                )
+            session.expunge(row)
+            return AResult(code=AResultCode.OK, message="OK", result=row)
         except Exception as e:
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
@@ -199,15 +203,16 @@ class SpotifyCacheAccess:
             )
 
     @staticmethod
-    async def add_playlist_async(id: str, json: Dict[str, Any]) -> AResultCode:
+    async def add_playlist_async(
+        session: AsyncSession, id: str, json: Dict[str, Any]
+    ) -> AResultCode:
         try:
-            async with rockit_db.session_scope_async() as s:
-                cache_row = CachePlaylistRow(id=id, json=json)
-                s.add(cache_row)
-                await s.commit()
-                await s.refresh(cache_row)
-                s.expunge(cache_row)
-                return AResultCode(code=AResultCode.OK, message="OK")
+            cache_row = CachePlaylistRow(id=id, json=json)
+            session.add(cache_row)
+            await session.commit()
+            await session.refresh(cache_row)
+            session.expunge(cache_row)
+            return AResultCode(code=AResultCode.OK, message="OK")
         except Exception as e:
             return AResultCode(
                 code=AResultCode.GENERAL_ERROR,

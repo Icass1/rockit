@@ -1,5 +1,6 @@
 import asyncio
 from typing import Any, List
+from sqlalchemy.ext.asyncio import AsyncSession
 from backend.core.access.downloadAccess import DownloadAccess
 from backend.utils.logger import getLogger
 
@@ -42,6 +43,11 @@ class MessageHandler:
 
         self._end = False
         self._loop = loop
+        self._session: AsyncSession | None = None
+
+    def set_session(self, session: AsyncSession) -> None:
+        """Set the database session for this handler."""
+        self._session = session
 
     def get_messages(self):
         return self._messages
@@ -57,8 +63,14 @@ class MessageHandler:
         status: str = message["message"]
 
         async def _save_status():
+            if self._session is None:
+                logger.error("Session not set on MessageHandler")
+                return
             await DownloadAccess.create_download_status(
-                download_id=self._download_id, completed=completed, message=status
+                session=self._session,
+                download_id=self._download_id,
+                completed=completed,
+                message=status,
             )
 
         asyncio.run_coroutine_threadsafe(_save_status(), self._loop)

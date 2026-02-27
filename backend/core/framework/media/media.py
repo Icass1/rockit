@@ -1,6 +1,6 @@
 from typing import List
-
 from logging import Logger
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.utils.logger import getLogger
 
@@ -30,12 +30,12 @@ logger: Logger = getLogger(__name__)
 class Media:
     @staticmethod
     async def get_song_async(
-        public_id: str, providers: Providers
+        session: AsyncSession, public_id: str, providers: Providers
     ) -> AResult[BaseSongResponse]:
         """Get a song by public_id, dispatching to the matched provider."""
 
         a_result_song: AResult[CoreSongRow] = (
-            await MediaAccess.get_song_from_public_id_async(public_id)
+            await MediaAccess.get_song_from_public_id_async(session, public_id)
         )
         if a_result_song.is_not_ok():
             logger.error(f"Error getting song from database. {a_result_song.info()}")
@@ -51,7 +51,9 @@ class Media:
                 code=AResultCode.NOT_FOUND, message="Provider not found for song"
             )
 
-        a_result: AResult[BaseSongResponse] = await provider.get_song_async(public_id)
+        a_result: AResult[BaseSongResponse] = await provider.get_song_async(
+            session=session, public_id=public_id
+        )
         if a_result.is_not_ok():
             logger.error(f"Provider error getting song. {a_result.info()}")
             return AResult(code=a_result.code(), message=a_result.message())
@@ -60,12 +62,12 @@ class Media:
 
     @staticmethod
     async def get_album_async(
-        public_id: str, providers: Providers
+        session: AsyncSession, public_id: str, providers: Providers
     ) -> AResult[BaseAlbumResponse]:
         """Get an album by public_id, dispatching to the matched provider."""
 
         a_result_album: AResult[CoreAlbumRow] = (
-            await MediaAccess.get_album_from_public_id_async(public_id)
+            await MediaAccess.get_album_from_public_id_async(session, public_id)
         )
         if a_result_album.is_not_ok():
             logger.error(f"Error getting album from database. {a_result_album.info()}")
@@ -80,7 +82,7 @@ class Media:
             )
 
         a_result: AResult[BaseAlbumResponse] = await provider.get_album_async(
-            public_id=public_id
+            session=session, public_id=public_id
         )
         if a_result.is_not_ok():
             logger.error(f"Provider error getting album. {a_result.info()}")
@@ -90,12 +92,12 @@ class Media:
 
     @staticmethod
     async def get_artist_async(
-        public_id: str, providers: Providers
+        session: AsyncSession, public_id: str, providers: Providers
     ) -> AResult[BaseArtistResponse]:
         """Get an artist by public_id, dispatching to the matched provider."""
 
         a_result_artist: AResult[CoreArtistRow] = (
-            await MediaAccess.get_artist_from_public_id_async(public_id)
+            await MediaAccess.get_artist_from_public_id_async(session, public_id)
         )
         if a_result_artist.is_not_ok():
             logger.error(
@@ -114,7 +116,7 @@ class Media:
             )
 
         a_result: AResult[BaseArtistResponse] = await provider.get_artist_async(
-            public_id
+            session=session, public_id=public_id
         )
         if a_result.is_not_ok():
             logger.error(f"Provider error getting artist. {a_result.info()}")
@@ -124,12 +126,12 @@ class Media:
 
     @staticmethod
     async def get_playlist_async(
-        public_id: str, providers: Providers
+        session: AsyncSession, public_id: str, providers: Providers
     ) -> AResult[BasePlaylistResponse]:
         """Get a playlist by public_id, dispatching to the matched provider."""
 
         a_result_playlist: AResult[CorePlaylistRow] = (
-            await MediaAccess.get_playlist_from_public_id_async(public_id)
+            await MediaAccess.get_playlist_from_public_id_async(session, public_id)
         )
         if a_result_playlist.is_not_ok():
             logger.error(
@@ -148,7 +150,7 @@ class Media:
             )
 
         a_result: AResult[BasePlaylistResponse] = await provider.get_playlist_async(
-            public_id
+            session=session, public_id=public_id
         )
         if a_result.is_not_ok():
             logger.error(f"Provider error getting playlist. {a_result.info()}")
@@ -158,7 +160,7 @@ class Media:
 
     @staticmethod
     async def search_async(
-        query: str, providers: Providers
+        session: AsyncSession, query: str, providers: Providers
     ) -> AResult[SearchResultsResponse]:
         """Search all providers and aggregate results into a ProviderSearchResultsResponse list."""
 
@@ -178,9 +180,7 @@ class Media:
                     logger.error(f"Provider search error. {a_result.info()}")
                 continue
 
-            results.extend(
-                    a_result.result()
-            )
+            results.extend(a_result.result())
 
         return AResult(
             code=AResultCode.OK,

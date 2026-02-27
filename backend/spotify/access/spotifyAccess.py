@@ -14,9 +14,6 @@ from backend.utils.logger import getLogger
 
 from backend.core.aResult import AResult, AResultCode
 
-# CORE DB
-from backend.core.access.db import rockit_db
-
 # CORE ORM MODELS
 from backend.core.access.db.ormModels.image import ImageRow
 from backend.core.access.db.ormModels.song import CoreSongRow
@@ -59,27 +56,25 @@ logger = getLogger(__name__)
 class SpotifyAccess:
     @staticmethod
     async def get_album_public_id_async(
-        spotify_id: str, session: AsyncSession | None = None
+        session: AsyncSession,
+        spotify_id: str,
     ) -> AResult[AlbumRow]:
         try:
-            async with rockit_db.session_scope_or_session_async(session) as s:
-                stmt: Select[Tuple[AlbumRow]] = (
-                    select(AlbumRow)
-                    .join(CoreAlbumRow, CoreAlbumRow.id == AlbumRow.id)
-                    .where(AlbumRow.spotify_id == spotify_id)
-                )
-                result: Result[Tuple[AlbumRow]] = await s.execute(stmt)
-                album: AlbumRow | None = result.scalar_one_or_none()
+            stmt: Select[Tuple[AlbumRow]] = (
+                select(AlbumRow)
+                .join(CoreAlbumRow, CoreAlbumRow.id == AlbumRow.id)
+                .where(AlbumRow.spotify_id == spotify_id)
+            )
+            result: Result[Tuple[AlbumRow]] = await session.execute(stmt)
+            album: AlbumRow | None = result.scalar_one_or_none()
 
-                if not album:
-                    logger.error("Album not found")
-                    return AResult(
-                        code=AResultCode.NOT_FOUND, message="Album not found"
-                    )
+            if not album:
+                logger.error("Album not found")
+                return AResult(code=AResultCode.NOT_FOUND, message="Album not found")
 
-                # Detach from session BEFORE closing session.
-                s.expunge(instance=album)
-                return AResult(code=AResultCode.OK, message="OK", result=album)
+            # Detach from session BEFORE closing session.
+            session.expunge(instance=album)
+            return AResult(code=AResultCode.OK, message="OK", result=album)
 
         except Exception as e:
             logger.error(f"Failed to get album from id {spotify_id}: {e}")
@@ -90,25 +85,21 @@ class SpotifyAccess:
 
     @staticmethod
     async def get_album_id_async(
-        id: int, session: AsyncSession | None = None
+        session: AsyncSession,
+        id: int,
     ) -> AResult[AlbumRow]:
         try:
-            async with rockit_db.session_scope_or_session_async(session) as s:
-                stmt: Select[Tuple[AlbumRow]] = select(AlbumRow).where(
-                    AlbumRow.id == id
-                )
-                result: Result[Tuple[AlbumRow]] = await s.execute(stmt)
-                album: AlbumRow | None = result.scalar_one_or_none()
+            stmt: Select[Tuple[AlbumRow]] = select(AlbumRow).where(AlbumRow.id == id)
+            result: Result[Tuple[AlbumRow]] = await session.execute(stmt)
+            album: AlbumRow | None = result.scalar_one_or_none()
 
-                if not album:
-                    logger.error("Album not found")
-                    return AResult(
-                        code=AResultCode.NOT_FOUND, message="Album not found"
-                    )
+            if not album:
+                logger.error("Album not found")
+                return AResult(code=AResultCode.NOT_FOUND, message="Album not found")
 
-                # Detach from session BEFORE closing session.
-                s.expunge(instance=album)
-                return AResult(code=AResultCode.OK, message="OK", result=album)
+            # Detach from session BEFORE closing session.
+            session.expunge(instance=album)
+            return AResult(code=AResultCode.OK, message="OK", result=album)
 
         except Exception as e:
             logger.error(f"Failed to get album from id {id}: {e}")
@@ -119,27 +110,23 @@ class SpotifyAccess:
 
     @staticmethod
     async def get_spotify_id_from_public_id_async(
-        public_id: str, session: AsyncSession | None = None
+        session: AsyncSession,
+        public_id: str,
     ) -> AResult[str]:
         try:
-            async with rockit_db.session_scope_or_session_async(session) as s:
-                stmt: Select[Tuple[AlbumRow]] = (
-                    select(AlbumRow)
-                    .join(CoreAlbumRow, CoreAlbumRow.id == AlbumRow.id)
-                    .where(CoreAlbumRow.public_id == public_id)
-                )
-                result: Result[Tuple[AlbumRow]] = await s.execute(stmt)
-                album: AlbumRow | None = result.scalar_one_or_none()
+            stmt: Select[Tuple[AlbumRow]] = (
+                select(AlbumRow)
+                .join(CoreAlbumRow, CoreAlbumRow.id == AlbumRow.id)
+                .where(CoreAlbumRow.public_id == public_id)
+            )
+            result: Result[Tuple[AlbumRow]] = await session.execute(stmt)
+            album: AlbumRow | None = result.scalar_one_or_none()
 
-                if not album:
-                    logger.error("Album not found")
-                    return AResult(
-                        code=AResultCode.NOT_FOUND, message="Album not found"
-                    )
+            if not album:
+                logger.error("Album not found")
+                return AResult(code=AResultCode.NOT_FOUND, message="Album not found")
 
-                return AResult(
-                    code=AResultCode.OK, message="OK", result=album.spotify_id
-                )
+            return AResult(code=AResultCode.OK, message="OK", result=album.spotify_id)
 
         except Exception as e:
             logger.error(f"Failed to get spotify_id from public_id {public_id}: {e}")
@@ -150,25 +137,21 @@ class SpotifyAccess:
 
     @staticmethod
     async def get_track_spotify_id_async(
-        spotify_id: str, session: AsyncSession | None = None
+        session: AsyncSession,
+        spotify_id: str,
     ) -> AResult[TrackRow]:
         try:
-            passed_session = session
-            async with rockit_db.session_scope_or_session_async(session) as s:
-                stmt = select(TrackRow).where(TrackRow.spotify_id == spotify_id)
-                result = await s.execute(stmt)
-                track: TrackRow | None = result.scalar_one_or_none()
+            stmt = select(TrackRow).where(TrackRow.spotify_id == spotify_id)
+            result = await session.execute(stmt)
+            track: TrackRow | None = result.scalar_one_or_none()
 
-                if not track:
-                    logger.error("Track not found")
-                    return AResult(
-                        code=AResultCode.NOT_FOUND, message="Track not found"
-                    )
+            if not track:
+                logger.error("Track not found")
+                return AResult(code=AResultCode.NOT_FOUND, message="Track not found")
 
-                if passed_session is None:
-                    s.expunge(instance=track)
+            session.expunge(instance=track)
 
-                return AResult(code=AResultCode.OK, message="OK", result=track)
+            return AResult(code=AResultCode.OK, message="OK", result=track)
 
         except Exception as e:
             logger.error(f"Failed to get track from id {id}: {e}")
@@ -179,22 +162,20 @@ class SpotifyAccess:
 
     @staticmethod
     async def get_track_id_async(
-        id: int, session: AsyncSession | None = None
+        session: AsyncSession,
+        id: int,
     ) -> AResult[TrackRow]:
         try:
-            async with rockit_db.session_scope_or_session_async(session) as s:
-                stmt = select(TrackRow).where(TrackRow.id == id)
-                result = await s.execute(stmt)
-                track: TrackRow | None = result.scalar_one_or_none()
+            stmt = select(TrackRow).where(TrackRow.id == id)
+            result = await session.execute(stmt)
+            track: TrackRow | None = result.scalar_one_or_none()
 
-                if not track:
-                    logger.error("Track not found")
-                    return AResult(
-                        code=AResultCode.NOT_FOUND, message="Track not found"
-                    )
+            if not track:
+                logger.error("Track not found")
+                return AResult(code=AResultCode.NOT_FOUND, message="Track not found")
 
-                s.expunge(instance=track)
-                return AResult(code=AResultCode.OK, message="OK", result=track)
+            session.expunge(instance=track)
+            return AResult(code=AResultCode.OK, message="OK", result=track)
 
         except Exception as e:
             logger.error(f"Failed to get track from id {id}: {e}")
@@ -205,22 +186,20 @@ class SpotifyAccess:
 
     @staticmethod
     async def get_artist_public_id_async(
-        spotify_id: str, session: AsyncSession | None = None
+        session: AsyncSession,
+        spotify_id: str,
     ) -> AResult[ArtistRow]:
         try:
-            async with rockit_db.session_scope_or_session_async(session) as s:
-                stmt = select(ArtistRow).where(ArtistRow.spotify_id == spotify_id)
-                result = await s.execute(stmt)
-                artist: ArtistRow | None = result.scalar_one_or_none()
+            stmt = select(ArtistRow).where(ArtistRow.spotify_id == spotify_id)
+            result = await session.execute(stmt)
+            artist: ArtistRow | None = result.scalar_one_or_none()
 
-                if not artist:
-                    logger.error("Artist not found")
-                    return AResult(
-                        code=AResultCode.NOT_FOUND, message="Artist not found"
-                    )
+            if not artist:
+                logger.error("Artist not found")
+                return AResult(code=AResultCode.NOT_FOUND, message="Artist not found")
 
-                s.expunge(instance=artist)
-                return AResult(code=AResultCode.OK, message="OK", result=artist)
+            session.expunge(instance=artist)
+            return AResult(code=AResultCode.OK, message="OK", result=artist)
 
         except Exception as e:
             logger.error(f"Failed to get artist from spotify_id {spotify_id}: {e}")
@@ -231,24 +210,22 @@ class SpotifyAccess:
 
     @staticmethod
     async def get_playlist_public_id_async(
-        spotify_id: str, session: AsyncSession | None = None
+        session: AsyncSession,
+        spotify_id: str,
     ) -> AResult[SpotifyPlaylistRow]:
         try:
-            async with rockit_db.session_scope_or_session_async(session) as s:
-                stmt = select(SpotifyPlaylistRow).where(
-                    SpotifyPlaylistRow.spotify_id == spotify_id
-                )
-                result = await s.execute(stmt)
-                playlist: SpotifyPlaylistRow | None = result.scalar_one_or_none()
+            stmt = select(SpotifyPlaylistRow).where(
+                SpotifyPlaylistRow.spotify_id == spotify_id
+            )
+            result = await session.execute(stmt)
+            playlist: SpotifyPlaylistRow | None = result.scalar_one_or_none()
 
-                if not playlist:
-                    logger.error("Playlist not found")
-                    return AResult(
-                        code=AResultCode.NOT_FOUND, message="Playlist not found"
-                    )
+            if not playlist:
+                logger.error("Playlist not found")
+                return AResult(code=AResultCode.NOT_FOUND, message="Playlist not found")
 
-                s.expunge(instance=playlist)
-                return AResult(code=AResultCode.OK, message="OK", result=playlist)
+            session.expunge(instance=playlist)
+            return AResult(code=AResultCode.OK, message="OK", result=playlist)
 
         except Exception as e:
             logger.error(f"Failed to get playlist from id {id}: {e}")
@@ -261,23 +238,23 @@ class SpotifyAccess:
 
     @staticmethod
     async def _download_and_create_internal_image(
-        url: str, session: AsyncSession | None = None
+        session: AsyncSession,
+        url: str,
     ) -> AResult[ImageRow]:
         try:
-            async with rockit_db.session_scope_or_session_async(session) as session:
-                response = req.get(url, timeout=10)
-                if response.status_code != 200:
-                    return AResult(
-                        code=AResultCode.GENERAL_ERROR, message="Image download failed"
-                    )
-                filename = str(uuid.uuid4()) + ".jpg"
-                full_path = os.path.join(IMAGES_PATH, filename)
-                with open(full_path, "wb") as f:
-                    f.write(response.content)
-                img = ImageRow(public_id=create_id(32), url=url, path=filename)
-                session.add(img)
-                await session.flush()
-                return AResult(code=AResultCode.OK, message="OK", result=img)
+            response = req.get(url, timeout=10)
+            if response.status_code != 200:
+                return AResult(
+                    code=AResultCode.GENERAL_ERROR, message="Image download failed"
+                )
+            filename = str(uuid.uuid4()) + ".jpg"
+            full_path = os.path.join(IMAGES_PATH, filename)
+            with open(full_path, "wb") as f:
+                f.write(response.content)
+            img = ImageRow(public_id=create_id(32), url=url, path=filename)
+            session.add(img)
+            await session.flush()
+            return AResult(code=AResultCode.OK, message="OK", result=img)
         except Exception as e:
             logger.error(f"Failed to download/create internal image: {e}")
             return AResult(
@@ -287,24 +264,23 @@ class SpotifyAccess:
 
     @staticmethod
     async def _get_or_create_external_image(
+        session: AsyncSession,
         url: str,
         width: int | None,
         height: int | None,
-        session: AsyncSession | None = None,
     ) -> AResult[ExternalImageRow]:
         try:
-            async with rockit_db.session_scope_or_session_async(session) as session:
-                stmt = select(ExternalImageRow).where(ExternalImageRow.url == url)
-                result = await session.execute(stmt)
-                row: ExternalImageRow | None = result.scalar_one_or_none()
-                if row:
-                    return AResult(code=AResultCode.OK, message="OK", result=row)
-                row = ExternalImageRow(
-                    public_id=str(uuid.uuid4()), url=url, width=width, height=height
-                )
-                session.add(row)
-                await session.flush()
+            stmt = select(ExternalImageRow).where(ExternalImageRow.url == url)
+            result = await session.execute(stmt)
+            row: ExternalImageRow | None = result.scalar_one_or_none()
+            if row:
                 return AResult(code=AResultCode.OK, message="OK", result=row)
+            row = ExternalImageRow(
+                public_id=str(uuid.uuid4()), url=url, width=width, height=height
+            )
+            session.add(row)
+            await session.flush()
+            return AResult(code=AResultCode.OK, message="OK", result=row)
         except Exception as e:
             logger.error(f"Failed to get/create external image: {e}")
             return AResult(
@@ -314,19 +290,19 @@ class SpotifyAccess:
 
     @staticmethod
     async def _get_or_create_genre(
-        name: str, session: AsyncSession | None = None
+        session: AsyncSession,
+        name: str,
     ) -> AResult[GenreRow]:
         try:
-            async with rockit_db.session_scope_or_session_async(session) as session:
-                stmt = select(GenreRow).where(GenreRow.name == name)
-                result = await session.execute(stmt)
-                row: GenreRow | None = result.scalar_one_or_none()
-                if row:
-                    return AResult(code=AResultCode.OK, message="OK", result=row)
-                row = GenreRow(name=name)
-                session.add(row)
-                await session.flush()
+            stmt = select(GenreRow).where(GenreRow.name == name)
+            result = await session.execute(stmt)
+            row: GenreRow | None = result.scalar_one_or_none()
+            if row:
                 return AResult(code=AResultCode.OK, message="OK", result=row)
+            row = GenreRow(name=name)
+            session.add(row)
+            await session.flush()
+            return AResult(code=AResultCode.OK, message="OK", result=row)
         except Exception as e:
             logger.error(f"Failed to get/create genre: {e}")
             return AResult(
@@ -338,74 +314,75 @@ class SpotifyAccess:
 
     @staticmethod
     async def get_or_create_artist(
-        raw: RawSpotifyApiArtist, provider_id: int, session: AsyncSession | None = None
+        session: AsyncSession,
+        raw: RawSpotifyApiArtist,
+        provider_id: int,
     ) -> AResult[ArtistRow]:
         try:
-            async with rockit_db.session_scope_or_session_async(session) as session:
-                stmt = (
-                    select(ArtistRow)
-                    .join(CoreArtistRow, CoreArtistRow.id == ArtistRow.id)
-                    .where(CoreArtistRow.public_id == raw.id)
-                )
-                result = await session.execute(stmt)
-                existing: ArtistRow | None = result.scalar_one_or_none()
-                if existing:
-                    return AResult(code=AResultCode.OK, message="OK", result=existing)
+            stmt = (
+                select(ArtistRow)
+                .join(CoreArtistRow, CoreArtistRow.id == ArtistRow.id)
+                .where(CoreArtistRow.public_id == raw.id)
+            )
+            result = await session.execute(stmt)
+            existing: ArtistRow | None = result.scalar_one_or_none()
+            if existing:
+                return AResult(code=AResultCode.OK, message="OK", result=existing)
 
-                # Download highest-res image
-                internal_image_id: int | None = None
-                if raw.images:
-                    a_img = await SpotifyAccess._download_and_create_internal_image(
-                        raw.images[0].url, session
+            # Download highest-res image
+            internal_image_id: int | None = None
+            if raw.images:
+                a_img = await SpotifyAccess._download_and_create_internal_image(
+                    session, raw.images[0].url
+                )
+                if a_img.is_ok():
+                    internal_image_id = a_img.result().id
+
+            core_artist = CoreArtistRow(
+                public_id=create_id(32), provider_id=provider_id
+            )
+            session.add(core_artist)
+            await session.flush()
+
+            followers = (
+                raw.followers.total
+                if raw.followers and raw.followers.total is not None
+                else 0
+            )
+            popularity = raw.popularity if raw.popularity is not None else 0
+
+            artist_row = ArtistRow(
+                id=core_artist.id,
+                spotify_id=raw.id,
+                name=raw.name or "",
+                followers=followers,
+                popularity=popularity,
+                internal_image_id=internal_image_id,
+            )
+            session.add(artist_row)
+            await session.flush()
+
+            # Link genres
+            if raw.genres:
+                for genre_name in raw.genres:
+                    a_genre = await SpotifyAccess._get_or_create_genre(
+                        session, genre_name
                     )
-                    if a_img.is_ok():
-                        internal_image_id = a_img.result().id
+                    if a_genre.is_ok():
+                        artist_row.genres.add(a_genre.result())
 
-                core_artist = CoreArtistRow(
-                    public_id=create_id(32), provider_id=provider_id
-                )
-                session.add(core_artist)
-                await session.flush()
-
-                followers = (
-                    raw.followers.total
-                    if raw.followers and raw.followers.total is not None
-                    else 0
-                )
-                popularity = raw.popularity if raw.popularity is not None else 0
-
-                artist_row = ArtistRow(
-                    id=core_artist.id,
-                    spotify_id=raw.id,
-                    name=raw.name or "",
-                    followers=followers,
-                    popularity=popularity,
-                    internal_image_id=internal_image_id,
-                )
-                session.add(artist_row)
-                await session.flush()
-
-                # Link genres
-                if raw.genres:
-                    for genre_name in raw.genres:
-                        a_genre = await SpotifyAccess._get_or_create_genre(
-                            genre_name, session
+            # Link external images
+            if raw.images:
+                for img in raw.images:
+                    if img.url:
+                        a_ext = await SpotifyAccess._get_or_create_external_image(
+                            session, img.url, img.width, img.height
                         )
-                        if a_genre.is_ok():
-                            artist_row.genres.add(a_genre.result())
+                        if a_ext.is_ok():
+                            artist_row.external_images.add(a_ext.result())
 
-                # Link external images
-                if raw.images:
-                    for img in raw.images:
-                        if img.url:
-                            a_ext = await SpotifyAccess._get_or_create_external_image(
-                                img.url, img.width, img.height, session
-                            )
-                            if a_ext.is_ok():
-                                artist_row.external_images.add(a_ext.result())
-
-                await session.flush()
-                return AResult(code=AResultCode.OK, message="OK", result=artist_row)
+            await session.flush()
+            return AResult(code=AResultCode.OK, message="OK", result=artist_row)
 
         except Exception as e:
             logger.error(f"Failed to get/create artist: {e}")
@@ -416,93 +393,88 @@ class SpotifyAccess:
 
     @staticmethod
     async def get_or_create_album(
+        session: AsyncSession,
         raw: RawSpotifyApiAlbum,
         artist_map: Dict[str, ArtistRow],
         provider_id: int,
-        session: AsyncSession | None = None,
     ) -> AResult[AlbumRow]:
         try:
-            async with rockit_db.session_scope_or_session_async(session) as session:
-                stmt = (
-                    select(AlbumRow)
-                    .join(CoreAlbumRow, CoreAlbumRow.id == AlbumRow.id)
-                    .where(CoreAlbumRow.public_id == raw.id)
-                )
-                result = await session.execute(stmt)
-                existing: AlbumRow | None = result.scalar_one_or_none()
-                if existing:
-                    return AResult(code=AResultCode.OK, message="OK", result=existing)
+            stmt = (
+                select(AlbumRow)
+                .join(CoreAlbumRow, CoreAlbumRow.id == AlbumRow.id)
+                .where(CoreAlbumRow.public_id == raw.id)
+            )
+            result = await session.execute(stmt)
+            existing: AlbumRow | None = result.scalar_one_or_none()
+            if existing:
+                return AResult(code=AResultCode.OK, message="OK", result=existing)
 
-                # disc_count
-                disc_count = 1
-                if raw.tracks and raw.tracks.items:
-                    disc_count = max(
-                        (item.disc_number or 1) for item in raw.tracks.items
+            # disc_count
+            disc_count = 1
+            if raw.tracks and raw.tracks.items:
+                disc_count = max((item.disc_number or 1) for item in raw.tracks.items)
+
+            # Download highest-res image
+            internal_image_id: int | None = None
+            if raw.images:
+                a_img: AResult[ImageRow] = (
+                    await SpotifyAccess._download_and_create_internal_image(
+                        session, raw.images[0].url
                     )
+                )
+                if a_img.is_ok():
+                    internal_image_id = a_img.result().id
 
-                # Download highest-res image
-                internal_image_id: int | None = None
-                if raw.images:
-                    a_img: AResult[ImageRow] = (
-                        await SpotifyAccess._download_and_create_internal_image(
-                            raw.images[0].url, session
+            if internal_image_id is None:
+                return AResult(
+                    code=AResultCode.GENERAL_ERROR,
+                    message="Failed to create internal image for album",
+                )
+
+            core_album = CoreAlbumRow(public_id=create_id(32), provider_id=provider_id)
+            session.add(core_album)
+            await session.flush()
+
+            album_row = AlbumRow(
+                id=core_album.id,
+                spotify_id=raw.id,
+                internal_image_id=internal_image_id,
+                name=raw.name or "",
+                release_date=raw.release_date or "",
+                popularity=raw.popularity,
+                disc_count=disc_count,
+            )
+            session.add(album_row)
+            await session.flush()
+
+            # Link artists
+            if raw.artists:
+                for a in raw.artists:
+                    if a.id and a.id in artist_map:
+                        album_row.artists.add(artist_map[a.id])
+
+            # Link copyrights
+            if raw.copyrights:
+                for c in raw.copyrights:
+                    if c.type and c.type in CopyrightTypeEnum.__members__:
+                        type_key = CopyrightTypeEnum[c.type].value
+                        cr = CopyrightRow(text=c.text or "", type_key=type_key)
+                        session.add(cr)
+                        await session.flush()
+                        album_row.copyrights.add(cr)
+
+            # Link external images
+            if raw.images:
+                for img in raw.images:
+                    if img.url:
+                        a_ext = await SpotifyAccess._get_or_create_external_image(
+                            session, img.url, img.width, img.height
                         )
-                    )
-                    if a_img.is_ok():
-                        internal_image_id = a_img.result().id
+                        if a_ext.is_ok():
+                            album_row.external_images.add(a_ext.result())
 
-                if internal_image_id is None:
-                    return AResult(
-                        code=AResultCode.GENERAL_ERROR,
-                        message="Failed to create internal image for album",
-                    )
-
-                core_album = CoreAlbumRow(
-                    public_id=create_id(32), provider_id=provider_id
-                )
-                session.add(core_album)
-                await session.flush()
-
-                album_row = AlbumRow(
-                    id=core_album.id,
-                    spotify_id=raw.id,
-                    internal_image_id=internal_image_id,
-                    name=raw.name or "",
-                    release_date=raw.release_date or "",
-                    popularity=raw.popularity,
-                    disc_count=disc_count,
-                )
-                session.add(album_row)
-                await session.flush()
-
-                # Link artists
-                if raw.artists:
-                    for a in raw.artists:
-                        if a.id and a.id in artist_map:
-                            album_row.artists.add(artist_map[a.id])
-
-                # Link copyrights
-                if raw.copyrights:
-                    for c in raw.copyrights:
-                        if c.type and c.type in CopyrightTypeEnum.__members__:
-                            type_key = CopyrightTypeEnum[c.type].value
-                            cr = CopyrightRow(text=c.text or "", type_key=type_key)
-                            session.add(cr)
-                            await session.flush()
-                            album_row.copyrights.add(cr)
-
-                # Link external images
-                if raw.images:
-                    for img in raw.images:
-                        if img.url:
-                            a_ext = await SpotifyAccess._get_or_create_external_image(
-                                img.url, img.width, img.height, session
-                            )
-                            if a_ext.is_ok():
-                                album_row.external_images.add(a_ext.result())
-
-                await session.flush()
-                return AResult(code=AResultCode.OK, message="OK", result=album_row)
+            await session.flush()
+            return AResult(code=AResultCode.OK, message="OK", result=album_row)
 
         except Exception as e:
             logger.error(f"Failed to get/create album: {e}")
@@ -513,62 +485,57 @@ class SpotifyAccess:
 
     @staticmethod
     async def get_or_create_track(
+        session: AsyncSession,
         raw: RawSpotifyApiTrack,
         artist_map: Dict[str, ArtistRow],
         album_row: AlbumRow,
         provider_id: int,
-        session: AsyncSession | None = None,
     ) -> AResult[Tuple[TrackRow, CoreSongRow]]:
         try:
-            async with rockit_db.session_scope_or_session_async(session) as session:
-                stmt = (
-                    select(TrackRow)
-                    .join(CoreSongRow, CoreSongRow.id == TrackRow.id)
-                    .where(CoreSongRow.public_id == raw.id)
-                )
-                result = await session.execute(stmt)
-                existing: TrackRow | None = result.scalar_one_or_none()
-                if existing:
-                    return AResult(code=AResultCode.OK, message="OK", result=existing)
+            stmt = (
+                select(TrackRow)
+                .join(CoreSongRow, CoreSongRow.id == TrackRow.id)
+                .where(CoreSongRow.public_id == raw.id)
+            )
+            result = await session.execute(stmt)
+            existing: TrackRow | None = result.scalar_one_or_none()
+            if existing:
+                return AResult(code=AResultCode.OK, message="OK", result=existing)
 
-                isrc = ""
-                if raw.external_ids and raw.external_ids.isrc:
-                    isrc = raw.external_ids.isrc
+            isrc = ""
+            if raw.external_ids and raw.external_ids.isrc:
+                isrc = raw.external_ids.isrc
 
-                core_song = CoreSongRow(
-                    public_id=create_id(32), provider_id=provider_id
-                )
-                session.add(core_song)
-                await session.flush()
+            core_song = CoreSongRow(public_id=create_id(32), provider_id=provider_id)
+            session.add(core_song)
+            await session.flush()
 
-                track_row = TrackRow(
-                    id=core_song.id,
-                    spotify_id=raw.id,
-                    name=raw.name or "",
-                    duration=raw.duration_ms if raw.duration_ms is not None else 0,
-                    track_number=(
-                        raw.track_number if raw.track_number is not None else 0
-                    ),
-                    disc_number=raw.disc_number if raw.disc_number is not None else 1,
-                    internal_image_id=album_row.internal_image_id,
-                    album_id=album_row.id,
-                    isrc=isrc,
-                    popularity=raw.popularity,
-                    preview_url=raw.preview_url,
-                )
-                session.add(track_row)
-                await session.flush()
+            track_row = TrackRow(
+                id=core_song.id,
+                spotify_id=raw.id,
+                name=raw.name or "",
+                duration=raw.duration_ms if raw.duration_ms is not None else 0,
+                track_number=(raw.track_number if raw.track_number is not None else 0),
+                disc_number=raw.disc_number if raw.disc_number is not None else 1,
+                internal_image_id=album_row.internal_image_id,
+                album_id=album_row.id,
+                isrc=isrc,
+                popularity=raw.popularity,
+                preview_url=raw.preview_url,
+            )
+            session.add(track_row)
+            await session.flush()
 
-                # Link artists
-                if raw.artists:
-                    for a in raw.artists:
-                        if a.id and a.id in artist_map:
-                            track_row.artists.add(artist_map[a.id])
+            # Link artists
+            if raw.artists:
+                for a in raw.artists:
+                    if a.id and a.id in artist_map:
+                        track_row.artists.add(artist_map[a.id])
 
-                await session.flush()
-                return AResult(
-                    code=AResultCode.OK, message="OK", result=(track_row, core_song)
-                )
+            await session.flush()
+            return AResult(
+                code=AResultCode.OK, message="OK", result=(track_row, core_song)
+            )
 
         except Exception as e:
             logger.error(f"Failed to get/create track: {e}")
@@ -579,92 +546,91 @@ class SpotifyAccess:
 
     @staticmethod
     async def get_or_create_playlist(
+        session: AsyncSession,
         raw: RawSpotifyApiPlaylist,
         track_row_map: Dict[str, TrackRow],
         provider_id: int,
-        session: AsyncSession | None = None,
     ) -> AResult[SpotifyPlaylistRow]:
         try:
-            async with rockit_db.session_scope_or_session_async(session) as session:
-                stmt = (
-                    select(SpotifyPlaylistRow)
-                    .join(CorePlaylistRow, CorePlaylistRow.id == SpotifyPlaylistRow.id)
-                    .where(CorePlaylistRow.public_id == raw.id)
+            stmt = (
+                select(SpotifyPlaylistRow)
+                .join(CorePlaylistRow, CorePlaylistRow.id == SpotifyPlaylistRow.id)
+                .where(CorePlaylistRow.public_id == raw.id)
+            )
+            result = await session.execute(stmt)
+            existing: SpotifyPlaylistRow | None = result.scalar_one_or_none()
+            if existing:
+                return AResult(code=AResultCode.OK, message="OK", result=existing)
+
+            # Download image
+            internal_image_id: int | None = None
+            if raw.images:
+                a_img = await SpotifyAccess._download_and_create_internal_image(
+                    session, raw.images[0].url
                 )
-                result = await session.execute(stmt)
-                existing: SpotifyPlaylistRow | None = result.scalar_one_or_none()
-                if existing:
-                    return AResult(code=AResultCode.OK, message="OK", result=existing)
+                if a_img.is_ok():
+                    internal_image_id = a_img.result().id
 
-                # Download image
-                internal_image_id: int | None = None
-                if raw.images:
-                    a_img = await SpotifyAccess._download_and_create_internal_image(
-                        raw.images[0].url, session
-                    )
-                    if a_img.is_ok():
-                        internal_image_id = a_img.result().id
+            owner = ""
+            if raw.owner:
+                owner = raw.owner.display_name or raw.owner.id or ""
 
-                owner = ""
-                if raw.owner:
-                    owner = raw.owner.display_name or raw.owner.id or ""
+            core_playlist = CorePlaylistRow(
+                public_id=create_id(32), provider_id=provider_id
+            )
+            session.add(core_playlist)
+            await session.flush()
 
-                core_playlist = CorePlaylistRow(
-                    public_id=create_id(32), provider_id=provider_id
-                )
-                session.add(core_playlist)
-                await session.flush()
+            playlist_row = SpotifyPlaylistRow(
+                id=core_playlist.id,
+                spotify_id=raw.id,
+                name=raw.name or "",
+                owner=owner,
+                internal_image_id=internal_image_id,
+                followers=0,
+                description=raw.description,
+            )
+            session.add(playlist_row)
+            await session.flush()
 
-                playlist_row = SpotifyPlaylistRow(
-                    id=core_playlist.id,
-                    spotify_id=raw.id,
-                    name=raw.name or "",
-                    owner=owner,
-                    internal_image_id=internal_image_id,
-                    followers=0,
-                    description=raw.description,
-                )
-                session.add(playlist_row)
-                await session.flush()
-
-                # Link external images
-                if raw.images:
-                    for img in raw.images:
-                        if img.url:
-                            a_ext = await SpotifyAccess._get_or_create_external_image(
-                                img.url, img.width, img.height, session
-                            )
-                            if a_ext.is_ok():
-                                playlist_row.external_images.add(a_ext.result())
-
-                # Create PlaylistTrackRow links
-                if raw.tracks and raw.tracks.items:
-                    for item in raw.tracks.items:
-                        if not item.track or not item.track.id:
-                            continue
-                        track_row = track_row_map.get(item.track.id)
-                        if not track_row:
-                            continue
-                        added_at = datetime.now(timezone.utc)
-                        if item.added_at:
-                            try:
-                                added_at = datetime.fromisoformat(
-                                    item.added_at.replace("Z", "+00:00")
-                                )
-                            except Exception:
-                                pass
-                        added_by = item.added_by.id if item.added_by else None
-                        pt = PlaylistTrackRow(
-                            playlist_id=playlist_row.id,
-                            song_id=track_row.id,
-                            added_at=added_at,
-                            disabled=False,
-                            added_by=added_by,
+            # Link external images
+            if raw.images:
+                for img in raw.images:
+                    if img.url:
+                        a_ext = await SpotifyAccess._get_or_create_external_image(
+                            session, img.url, img.width, img.height
                         )
-                        session.add(pt)
+                        if a_ext.is_ok():
+                            playlist_row.external_images.add(a_ext.result())
 
-                await session.flush()
-                return AResult(code=AResultCode.OK, message="OK", result=playlist_row)
+            # Create PlaylistTrackRow links
+            if raw.tracks and raw.tracks.items:
+                for item in raw.tracks.items:
+                    if not item.track or not item.track.id:
+                        continue
+                    track_row = track_row_map.get(item.track.id)
+                    if not track_row:
+                        continue
+                    added_at = datetime.now(timezone.utc)
+                    if item.added_at:
+                        try:
+                            added_at = datetime.fromisoformat(
+                                item.added_at.replace("Z", "+00:00")
+                            )
+                        except Exception:
+                            pass
+                    added_by = item.added_by.id if item.added_by else None
+                    pt = PlaylistTrackRow(
+                        playlist_id=playlist_row.id,
+                        song_id=track_row.id,
+                        added_at=added_at,
+                        disabled=False,
+                        added_by=added_by,
+                    )
+                    session.add(pt)
+
+            await session.flush()
+            return AResult(code=AResultCode.OK, message="OK", result=playlist_row)
 
         except Exception as e:
             logger.error(f"Failed to get/create playlist: {e}")
@@ -675,27 +641,25 @@ class SpotifyAccess:
 
     @staticmethod
     async def get_artists_from_track_row_async(
-        track_row: TrackRow, session: AsyncSession | None = None
+        session: AsyncSession,
+        track_row: TrackRow,
     ) -> AResult[List[ArtistRow]]:
         try:
-            passed_session = session
-            async with rockit_db.session_scope_or_session_async(session) as session:
-                stmt: Select[Tuple[List[ArtistRow]]] = track_row.artists.select()
-                result: Result[Tuple[List[ArtistRow]]] = await session.execute(stmt)
-                artists: List[ArtistRow] = cast(List[ArtistRow], result.scalars().all())
+            stmt: Select[Tuple[List[ArtistRow]]] = track_row.artists.select()
+            result: Result[Tuple[List[ArtistRow]]] = await session.execute(stmt)
+            artists: List[ArtistRow] = cast(List[ArtistRow], result.scalars().all())
 
-                if not artists:
-                    logger.error("Error getting artists from track row.")
-                    return AResult(
-                        code=AResultCode.NOT_FOUND,
-                        message="Error getting artists from track row.",
-                    )
+            if not artists:
+                logger.error("Error getting artists from track row.")
+                return AResult(
+                    code=AResultCode.NOT_FOUND,
+                    message="Error getting artists from track row.",
+                )
 
-                if passed_session is None:
-                    for artist in artists:
-                        session.expunge(artist)
+            for artist in artists:
+                session.expunge(artist)
 
-                return AResult(code=AResultCode.OK, message="OK", result=artists)
+            return AResult(code=AResultCode.OK, message="OK", result=artists)
 
         except Exception as e:
             logger.error(f"Failed to get artists from track row: {e}")
@@ -706,33 +670,33 @@ class SpotifyAccess:
 
     @staticmethod
     async def get_artists_from_album_id_async(
-        album_id: int, session: AsyncSession | None = None
+        session: AsyncSession,
+        album_id: int,
     ) -> AResult[List[ArtistRow]]:
         try:
-            async with rockit_db.session_scope_or_session_async(session) as session:
-                stmt = (
-                    select(ArtistRow)
-                    .join(album_artists)
-                    .join(AlbumRow)
-                    .filter(AlbumRow.id == album_id)
+            stmt = (
+                select(ArtistRow)
+                .join(album_artists)
+                .join(AlbumRow)
+                .filter(AlbumRow.id == album_id)
+            )
+            result: Result[Tuple[ArtistRow]] = await session.execute(stmt)
+            artists_list: List[ArtistRow] = cast(
+                List[ArtistRow], result.scalars().all()
+            )
+
+            if not artists_list:
+                logger.error(f"No artists found for album id {album_id}")
+                return AResult(
+                    code=AResultCode.NOT_FOUND,
+                    message="No artists found for this album.",
                 )
-                result: Result[Tuple[ArtistRow]] = await session.execute(stmt)
-                artists_list: List[ArtistRow] = cast(
-                    List[ArtistRow], result.scalars().all()
-                )
 
-                if not artists_list:
-                    logger.error(f"No artists found for album id {album_id}")
-                    return AResult(
-                        code=AResultCode.NOT_FOUND,
-                        message="No artists found for this album.",
-                    )
+            # Detach from session
+            for artist in artists_list:
+                session.expunge(artist)
 
-                # Detach from session
-                for artist in artists_list:
-                    session.expunge(artist)
-
-                return AResult(code=AResultCode.OK, message="OK", result=artists_list)
+            return AResult(code=AResultCode.OK, message="OK", result=artists_list)
 
         except Exception as e:
             logger.error(f"Failed to get artists from album id {album_id}: {e}")
@@ -743,28 +707,26 @@ class SpotifyAccess:
 
     @staticmethod
     async def get_tracks_from_album_id_async(
-        album_id: int, session: AsyncSession | None = None
+        session: AsyncSession,
+        album_id: int,
     ) -> AResult[List[TrackRow]]:
         try:
-            async with rockit_db.session_scope_or_session_async(session) as session:
-                stmt = select(TrackRow).where(TrackRow.album_id == album_id)
-                result: Result[Tuple[TrackRow]] = await session.execute(stmt)
-                tracks_list: List[TrackRow] = cast(
-                    List[TrackRow], result.scalars().all()
+            stmt = select(TrackRow).where(TrackRow.album_id == album_id)
+            result: Result[Tuple[TrackRow]] = await session.execute(stmt)
+            tracks_list: List[TrackRow] = cast(List[TrackRow], result.scalars().all())
+
+            if not tracks_list:
+                logger.error(f"No tracks found for album id {album_id}")
+                return AResult(
+                    code=AResultCode.NOT_FOUND,
+                    message="No tracks found for this album.",
                 )
 
-                if not tracks_list:
-                    logger.error(f"No tracks found for album id {album_id}")
-                    return AResult(
-                        code=AResultCode.NOT_FOUND,
-                        message="No tracks found for this album.",
-                    )
+            # Detach from session
+            for track in tracks_list:
+                session.expunge(track)
 
-                # Detach from session
-                for track in tracks_list:
-                    session.expunge(track)
-
-                return AResult(code=AResultCode.OK, message="OK", result=tracks_list)
+            return AResult(code=AResultCode.OK, message="OK", result=tracks_list)
 
         except Exception as e:
             logger.error(f"Failed to get tracks from album id {album_id}: {e}")
@@ -775,26 +737,26 @@ class SpotifyAccess:
 
     @staticmethod
     async def get_external_images_from_album_id_async(
-        album_id: int, session: AsyncSession | None = None
+        session: AsyncSession,
+        album_id: int,
     ) -> AResult[List[ExternalImageRow]]:
         try:
-            async with rockit_db.session_scope_or_session_async(session) as session:
-                stmt = (
-                    select(ExternalImageRow)
-                    .join(album_external_images)
-                    .join(AlbumRow)
-                    .filter(AlbumRow.id == album_id)
-                )
-                result: Result[Tuple[ExternalImageRow]] = await session.execute(stmt)
-                images_list: List[ExternalImageRow] = cast(
-                    List[ExternalImageRow], result.scalars().all()
-                )
+            stmt = (
+                select(ExternalImageRow)
+                .join(album_external_images)
+                .join(AlbumRow)
+                .filter(AlbumRow.id == album_id)
+            )
+            result: Result[Tuple[ExternalImageRow]] = await session.execute(stmt)
+            images_list: List[ExternalImageRow] = cast(
+                List[ExternalImageRow], result.scalars().all()
+            )
 
-                # Detach from session
-                for image in images_list:
-                    session.expunge(image)
+            # Detach from session
+            for image in images_list:
+                session.expunge(image)
 
-                return AResult(code=AResultCode.OK, message="OK", result=images_list)
+            return AResult(code=AResultCode.OK, message="OK", result=images_list)
 
         except Exception as e:
             logger.error(f"Failed to get external images from album id {album_id}: {e}")
@@ -805,28 +767,24 @@ class SpotifyAccess:
 
     @staticmethod
     async def get_tracks_with_core_song_from_album_async(
-        album_id: int, session: AsyncSession | None = None
+        session: AsyncSession,
+        album_id: int,
     ) -> AResult[List[Tuple[TrackRow, CoreSongRow]]]:
         try:
-            async with rockit_db.session_scope_or_session_async(session) as session:
-                stmt = (
-                    select(TrackRow, CoreSongRow)
-                    .join(CoreSongRow, CoreSongRow.id == TrackRow.id)
-                    .where(TrackRow.album_id == album_id)
-                )
-                result: Result[Tuple[TrackRow, CoreSongRow]] = await session.execute(
-                    stmt
-                )
-                tracks_with_core: List[Tuple[TrackRow, CoreSongRow]] = []
+            stmt = (
+                select(TrackRow, CoreSongRow)
+                .join(CoreSongRow, CoreSongRow.id == TrackRow.id)
+                .where(TrackRow.album_id == album_id)
+            )
+            result: Result[Tuple[TrackRow, CoreSongRow]] = await session.execute(stmt)
+            tracks_with_core: List[Tuple[TrackRow, CoreSongRow]] = []
 
-                for track_row, core_song_row in result.all():
-                    session.expunge(track_row)
-                    session.expunge(core_song_row)
-                    tracks_with_core.append((track_row, core_song_row))
+            for track_row, core_song_row in result.all():
+                session.expunge(track_row)
+                session.expunge(core_song_row)
+                tracks_with_core.append((track_row, core_song_row))
 
-                return AResult(
-                    code=AResultCode.OK, message="OK", result=tracks_with_core
-                )
+            return AResult(code=AResultCode.OK, message="OK", result=tracks_with_core)
 
         except Exception as e:
             logger.error(
@@ -839,21 +797,21 @@ class SpotifyAccess:
 
     @staticmethod
     async def get_genres_from_artist_id_async(
-        artist_id: int, session: AsyncSession | None = None
+        session: AsyncSession,
+        artist_id: int,
     ) -> AResult[List[str]]:
         try:
-            async with rockit_db.session_scope_or_session_async(session) as session:
-                stmt = (
-                    select(GenreRow)
-                    .join(artist_genres)
-                    .join(ArtistRow)
-                    .filter(ArtistRow.id == artist_id)
-                )
-                result: Result[Tuple[GenreRow]] = await session.execute(stmt)
-                genres: List[GenreRow] = cast(List[GenreRow], result.scalars().all())
+            stmt = (
+                select(GenreRow)
+                .join(artist_genres)
+                .join(ArtistRow)
+                .filter(ArtistRow.id == artist_id)
+            )
+            result: Result[Tuple[GenreRow]] = await session.execute(stmt)
+            genres: List[GenreRow] = cast(List[GenreRow], result.scalars().all())
 
-                genre_names: List[str] = [g.name for g in genres]
-                return AResult(code=AResultCode.OK, message="OK", result=genre_names)
+            genre_names: List[str] = [g.name for g in genres]
+            return AResult(code=AResultCode.OK, message="OK", result=genre_names)
 
         except Exception as e:
             logger.error(f"Failed to get genres from artist id {artist_id}: {e}")
@@ -864,20 +822,20 @@ class SpotifyAccess:
 
     @staticmethod
     async def get_genres_from_artist_async(
-        artist: ArtistRow, session: AsyncSession | None = None
+        session: AsyncSession,
+        artist: ArtistRow,
     ) -> AResult[List[str]]:
         try:
-            async with rockit_db.session_scope_or_session_async(session) as session:
-                stmt = (
-                    select(GenreRow)
-                    .join(artist_genres)
-                    .filter(artist_genres.c.artist_id == artist.id)
-                )
-                result: Result[Tuple[GenreRow]] = await session.execute(stmt)
-                genres: List[GenreRow] = cast(List[GenreRow], result.scalars().all())
+            stmt = (
+                select(GenreRow)
+                .join(artist_genres)
+                .filter(artist_genres.c.artist_id == artist.id)
+            )
+            result: Result[Tuple[GenreRow]] = await session.execute(stmt)
+            genres: List[GenreRow] = cast(List[GenreRow], result.scalars().all())
 
-                genre_names: List[str] = [g.name for g in genres]
-                return AResult(code=AResultCode.OK, message="OK", result=genre_names)
+            genre_names: List[str] = [g.name for g in genres]
+            return AResult(code=AResultCode.OK, message="OK", result=genre_names)
 
         except Exception as e:
             logger.error(f"Failed to get genres from artist: {e}")
@@ -888,27 +846,27 @@ class SpotifyAccess:
 
     @staticmethod
     async def get_playlist_track_links_async(
-        playlist_id: int, session: AsyncSession | None = None
+        session: AsyncSession,
+        playlist_id: int,
     ) -> AResult[List[Tuple[PlaylistTrackRow, TrackRow]]]:
         try:
-            async with rockit_db.session_scope_or_session_async(session) as session:
-                stmt = select(PlaylistTrackRow).where(
-                    PlaylistTrackRow.playlist_id == playlist_id
-                )
-                result: Result[Tuple[PlaylistTrackRow]] = await session.execute(stmt)
-                playlist_track_rows: List[PlaylistTrackRow] = cast(
-                    List[PlaylistTrackRow], result.scalars().all()
-                )
+            stmt = select(PlaylistTrackRow).where(
+                PlaylistTrackRow.playlist_id == playlist_id
+            )
+            result: Result[Tuple[PlaylistTrackRow]] = await session.execute(stmt)
+            playlist_track_rows: List[PlaylistTrackRow] = cast(
+                List[PlaylistTrackRow], result.scalars().all()
+            )
 
-                track_links: List[Tuple[PlaylistTrackRow, TrackRow]] = []
-                for ptr in playlist_track_rows:
-                    track_stmt = select(TrackRow).where(TrackRow.id == ptr.song_id)
-                    track_result = await session.execute(track_stmt)
-                    track_row: TrackRow | None = track_result.scalar_one_or_none()
-                    if track_row:
-                        track_links.append((ptr, track_row))
+            track_links: List[Tuple[PlaylistTrackRow, TrackRow]] = []
+            for ptr in playlist_track_rows:
+                track_stmt = select(TrackRow).where(TrackRow.id == ptr.song_id)
+                track_result = await session.execute(track_stmt)
+                track_row: TrackRow | None = track_result.scalar_one_or_none()
+                if track_row:
+                    track_links.append((ptr, track_row))
 
-                return AResult(code=AResultCode.OK, message="OK", result=track_links)
+            return AResult(code=AResultCode.OK, message="OK", result=track_links)
 
         except Exception as e:
             logger.error(f"Failed to get playlist track links: {e}")

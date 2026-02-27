@@ -50,7 +50,9 @@ class Downloader:
 
             for public_id in public_ids:
                 a_result_song: AResult[CoreSongRow] = (
-                    await MediaAccess.get_song_from_public_id_async(public_id=public_id)
+                    await MediaAccess.get_song_from_public_id_async(
+                        session=session, public_id=public_id
+                    )
                 )
                 if a_result_song.is_not_ok():
                     logger.error(
@@ -83,6 +85,7 @@ class Downloader:
 
                 a_result_base_download: AResult[BaseDownload] = (
                     await provider.start_download_async(
+                        session,
                         public_id=public_id,
                         download_id=download_row.id,
                     )

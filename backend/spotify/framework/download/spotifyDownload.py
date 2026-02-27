@@ -1,23 +1,23 @@
 import asyncio
 from pathlib import Path
-
+from sqlalchemy.ext.asyncio import AsyncSession
 from spotdl.types.song import Song as SpotdlSong  # type: ignore
 
 from backend.constants import SONGS_PATH
-from backend.spotify.access.trackAccess import TrackAccess
-from backend.spotify.framework.download.messageHandler import MessageHandler
-from backend.spotify.utils.utils import get_song_name
 from backend.utils.logger import getLogger
 from backend.core.aResult import AResult, AResultCode
 
-from backend.spotify.access.db.ormModels.track import TrackRow
-from backend.spotify.access.spotifyAccess import SpotifyAccess
-from backend.spotify.framework.download.spotdl import SpotDL
-
 from backend.core.framework.downloader.baseDownload import BaseDownload
 
+from backend.spotify.utils.utils import get_song_name
+
+from backend.spotify.access.trackAccess import TrackAccess
+from backend.spotify.access.spotifyAccess import SpotifyAccess
+from backend.spotify.access.db.ormModels.track import TrackRow
 
 from backend.spotify.framework.download import spotify_downloader
+from backend.spotify.framework.download.spotdl import SpotDL
+from backend.spotify.framework.download.messageHandler import MessageHandler
 
 logger = getLogger(__name__)
 
@@ -49,11 +49,11 @@ class SpotifyDownload(BaseDownload):
 
         return self._message_handler
 
-    async def get_spotdl_song_async(self) -> AResult[SpotdlSong]:
+    async def get_spotdl_song_async(self, session: AsyncSession) -> AResult[SpotdlSong]:
         """TODO"""
 
         a_result_track_row: AResult[TrackRow] = await SpotifyAccess.get_track_id_async(
-            self.track_id
+            session=session, id=self.track_id
         )
         if a_result_track_row.is_not_ok():
             logger.error(f"Error getting track from id. {a_result_track_row.info()}")
@@ -63,7 +63,7 @@ class SpotifyDownload(BaseDownload):
 
         a_result_spotdl_song: AResult[SpotdlSong] = (
             await SpotDL.get_spotdl_song_from_song_row(
-                track_row=a_result_track_row.result()
+                session=session, track_row=a_result_track_row.result()
             )
         )
         if a_result_spotdl_song.is_not_ok():
@@ -71,19 +71,21 @@ class SpotifyDownload(BaseDownload):
                 f"Error getting spotdl song from track. {a_result_spotdl_song.info()}"
             )
             return AResult(
-                code=a_result_spotdl_song.code(), message=a_result_track_row.message()
+                code=a_result_spotdl_song.code(), message=a_result_spotdl_song.message()
             )
 
         return AResult(
             code=AResultCode.OK, message="OK", result=a_result_spotdl_song.result()
         )
 
-    async def download_method_async(self) -> AResultCode:
+    async def download_method_async(self, session: AsyncSession) -> AResultCode:
         """Download the Spotify track asynchronously."""
 
         logger.info("SpotifyDownload.download_method_async")
 
-        a_result_spotdl_song: AResult[SpotdlSong] = await self.get_spotdl_song_async()
+        a_result_spotdl_song: AResult[SpotdlSong] = await self.get_spotdl_song_async(
+            session=session
+        )
         if a_result_spotdl_song.is_not_ok():
             logger.error(f"Error getting spotdl song. {a_result_spotdl_song.info()}")
             return AResultCode(
@@ -97,8 +99,10 @@ class SpotifyDownload(BaseDownload):
         spotify_downloader.progress_handler.downloads_ids_dict[song_name] = (
             spotdl_song.song_id
         )
+        message_handler: MessageHandler = self.get_message_handler()
+        message_handler.set_session(session)
         spotify_downloader.progress_handler.downloads_dict[spotdl_song.song_id] = (
-            self.get_message_handler()
+            message_handler
         )
 
         try:
@@ -129,6 +133,7 @@ class SpotifyDownload(BaseDownload):
             logger.info(f"Moved file to: {target_path}")
 
             a_result: AResultCode = await TrackAccess.update_track_path_async(
+                session,
                 track_id=self.track_id,
                 path=str(relative_path),
                 download_url=out_song.download_url,

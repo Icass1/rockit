@@ -3,8 +3,9 @@ import math
 import json
 import base64
 import requests
-from urllib.parse import quote_plus
 from typing import Any, Dict, List
+from urllib.parse import quote_plus
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.aResult import AResult, AResultCode
 from backend.constants import CLIENT_ID, CLIENT_SECRET
@@ -74,6 +75,8 @@ class SpotifyApi:
             )
 
         if self.token:
+            if not os.path.exists(".spotify_cache"):
+                os.makedirs(".spotify_cache")
             with open(".spotify_cache/token", "w") as f:
                 f.write(self.token)
 
@@ -132,14 +135,14 @@ class SpotifyApi:
             )
 
     async def get_albums_async(
-        self, ids: List[str]
+        self, session: AsyncSession, ids: List[str]
     ) -> AResult[List[RawSpotifyApiAlbum]]:
         if not ids:
             return AResult(code=AResultCode.OK, message="OK", result=[])
 
         # Cache-first: fetch cached rows
         a_result_cached: AResult[List[CacheAlbumRow]] = (
-            await SpotifyCacheAccess.get_albums_by_ids_async(ids)
+            await SpotifyCacheAccess.get_albums_by_ids_async(session=session, ids=ids)
         )
         cached_rows: List[CacheAlbumRow] = (
             a_result_cached.result() if a_result_cached.is_ok() else []
@@ -171,7 +174,9 @@ class SpotifyApi:
             for album in albums:
                 album_id = album.get("id")
                 if album_id:
-                    await SpotifyCacheAccess.add_album_async(album_id, album)
+                    await SpotifyCacheAccess.add_album_async(
+                        session=session, id=album_id, json=album
+                    )
                 fresh_albums.append(RawSpotifyApiAlbum.from_dict(album))
 
         return AResult(
@@ -179,14 +184,14 @@ class SpotifyApi:
         )
 
     async def get_tracks_async(
-        self, ids: List[str]
+        self, session: AsyncSession, ids: List[str]
     ) -> AResult[List[RawSpotifyApiTrack]]:
         if not ids:
             return AResult(code=AResultCode.OK, message="OK", result=[])
 
         # Cache-first
         a_result_cached: AResult[List[CacheTrackRow]] = (
-            await SpotifyCacheAccess.get_tracks_by_ids_async(ids)
+            await SpotifyCacheAccess.get_tracks_by_ids_async(session=session, ids=ids)
         )
         cached_rows = a_result_cached.result() if a_result_cached.is_ok() else []
         cached_ids: set[str] = {row.id for row in cached_rows}
@@ -220,7 +225,9 @@ class SpotifyApi:
             for track in tracks:
                 track_id = track.get("id")
                 if track_id:
-                    await SpotifyCacheAccess.add_track_async(track_id, track)
+                    await SpotifyCacheAccess.add_track_async(
+                        session=session, id=track_id, json=track
+                    )
                 fresh_tracks.append(RawSpotifyApiTrack.from_dict(track))
 
         return AResult(
@@ -228,14 +235,14 @@ class SpotifyApi:
         )
 
     async def get_artists_async(
-        self, ids: List[str]
+        self, session: AsyncSession, ids: List[str]
     ) -> AResult[List[RawSpotifyApiArtist]]:
         if not ids:
             return AResult(code=AResultCode.OK, message="OK", result=[])
 
         # Cache-first
         a_result_cached: AResult[List[CacheArtistRow]] = (
-            await SpotifyCacheAccess.get_artists_by_ids_async(ids)
+            await SpotifyCacheAccess.get_artists_by_ids_async(session=session, ids=ids)
         )
         cached_rows: List[CacheArtistRow] = (
             a_result_cached.result() if a_result_cached.is_ok() else []
@@ -269,16 +276,22 @@ class SpotifyApi:
             for artist in artists:
                 artist_id = artist.get("id")
                 if artist_id:
-                    await SpotifyCacheAccess.add_artist_async(artist_id, artist)
+                    await SpotifyCacheAccess.add_artist_async(
+                        session=session, id=artist_id, json=artist
+                    )
                 fresh_artists.append(RawSpotifyApiArtist.from_dict(artist))
 
         return AResult(
             AResultCode.OK, message="OK", result=cached_artists + fresh_artists
         )
 
-    async def get_playlist_async(self, id: str) -> AResult[RawSpotifyApiPlaylist]:
+    async def get_playlist_async(
+        self, session: AsyncSession, id: str
+    ) -> AResult[RawSpotifyApiPlaylist]:
         # Cache-first
-        a_result_cached = await SpotifyCacheAccess.get_playlist_async(id)
+        a_result_cached = await SpotifyCacheAccess.get_playlist_async(
+            session=session, id=id
+        )
         if a_result_cached.is_ok():
             return AResult(
                 code=AResultCode.OK,
@@ -296,7 +309,9 @@ class SpotifyApi:
             )
 
         playlist_json = a_result_response.result()
-        await SpotifyCacheAccess.add_playlist_async(id, playlist_json)
+        await SpotifyCacheAccess.add_playlist_async(
+            session=session, id=id, json=playlist_json
+        )
 
         return AResult(
             code=AResultCode.OK,

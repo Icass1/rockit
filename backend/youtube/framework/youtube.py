@@ -1,10 +1,10 @@
 from typing import Any, List, TYPE_CHECKING
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.constants import BACKEND_URL
 from backend.utils.logger import getLogger
 from backend.core.aResult import AResult, AResultCode
 
-from backend.core.access.db import rockit_db
 from backend.core.access.db.ormModels.image import ImageRow
 from backend.core.access.db.ormModels.video import CoreVideoRow
 from backend.core.access.mediaAccess import MediaAccess
@@ -33,17 +33,21 @@ class YouTube:
     provider_name: str
 
     @staticmethod
-    async def get_video_async(youtube_id: str) -> AResult[VideoResponse]:
+    async def get_video_async(
+        session: AsyncSession, youtube_id: str
+    ) -> AResult[VideoResponse]:
         """Get a video by ID, fetching from YouTube API and populating the database if not found."""
 
         a_result_video: AResult[VideoRow] = (
-            await YouTubeAccess.get_video_youtube_id_async(youtube_id=youtube_id)
+            await YouTubeAccess.get_video_youtube_id_async(
+                session, youtube_id=youtube_id
+            )
         )
         if a_result_video.is_ok():
             video_row: VideoRow = a_result_video.result()
 
             a_result_core_video: AResult[CoreVideoRow] = (
-                await MediaAccess.get_video_from_id_async(id=video_row.id)
+                await MediaAccess.get_video_from_id_async(session, id=video_row.id)
             )
             if a_result_core_video.is_not_ok():
                 logger.error(f"Error getting core video. {a_result_core_video.info()}")
@@ -55,7 +59,9 @@ class YouTube:
             core_video: CoreVideoRow = a_result_core_video.result()
 
             a_result_channel: AResult[ChannelRow] = (
-                await YouTubeAccess.get_channel_id_async(id=video_row.channel_id)
+                await YouTubeAccess.get_channel_id_async(
+                    session, id=video_row.channel_id
+                )
             )
             channel: ChannelRow = (
                 a_result_channel.result() if a_result_channel.is_ok() else None
@@ -63,7 +69,7 @@ class YouTube:
 
             a_result_internal_image: AResult[ImageRow] = (
                 await MediaAccess.get_image_from_id_async(
-                    id=video_row.internal_image_id
+                    session, id=video_row.internal_image_id
                 )
             )
             internal_image_url: str = ""
@@ -76,7 +82,7 @@ class YouTube:
                 if channel.internal_image_id:
                     a_result_channel_image: AResult[ImageRow] = (
                         await MediaAccess.get_image_from_id_async(
-                            id=channel.internal_image_id
+                            session, id=channel.internal_image_id
                         )
                     )
                     if a_result_channel_image.is_ok():
@@ -161,35 +167,34 @@ class YouTube:
         provider_id: int = a_result_provider_id.result()
 
         try:
-            async with rockit_db.session_scope_async() as session:
-                a_result_channel_row: AResult[ChannelRow] = (
-                    await YouTubeAccess.get_or_create_channel(
-                        raw=raw_channel, provider_id=provider_id, session=session
-                    )
+            a_result_channel_row: AResult[ChannelRow] = (
+                await YouTubeAccess.get_or_create_channel(
+                    session, raw=raw_channel, provider_id=provider_id
                 )
-                if a_result_channel_row.is_not_ok():
-                    return AResult(
-                        code=a_result_channel_row.code(),
-                        message=a_result_channel_row.message(),
-                    )
-
-                channel_row: ChannelRow = a_result_channel_row.result()
-
-                a_result_video_row: AResult[VideoRow] = (
-                    await YouTubeAccess.get_or_create_video(
-                        raw=raw_video,
-                        channel_id=channel_row.id,
-                        provider_id=provider_id,
-                        session=session,
-                    )
+            )
+            if a_result_channel_row.is_not_ok():
+                return AResult(
+                    code=a_result_channel_row.code(),
+                    message=a_result_channel_row.message(),
                 )
-                if a_result_video_row.is_not_ok():
-                    return AResult(
-                        code=a_result_video_row.code(),
-                        message=a_result_video_row.message(),
-                    )
 
-                video_row = a_result_video_row.result()
+            channel_row: ChannelRow = a_result_channel_row.result()
+
+            a_result_video_row: AResult[VideoRow] = (
+                await YouTubeAccess.get_or_create_video(
+                    session,
+                    raw=raw_video,
+                    channel_id=channel_row.id,
+                    provider_id=provider_id,
+                )
+            )
+            if a_result_video_row.is_not_ok():
+                return AResult(
+                    code=a_result_video_row.code(),
+                    message=a_result_video_row.message(),
+                )
+
+            video_row = a_result_video_row.result()
 
         except Exception as e:
             logger.error(f"Failed to populate video in DB: {e}")
@@ -199,7 +204,7 @@ class YouTube:
             )
 
         a_result_core_video: AResult[CoreVideoRow] = (
-            await MediaAccess.get_video_from_id_async(id=video_row.id)
+            await MediaAccess.get_video_from_id_async(session, id=video_row.id)
         )
         if a_result_core_video.is_not_ok():
             logger.error(f"Error getting core video. {a_result_core_video.info()}")
@@ -210,7 +215,9 @@ class YouTube:
         core_video: CoreVideoRow = a_result_core_video.result()
 
         a_result_fetched_channel: AResult[ChannelRow] = (
-            await YouTubeAccess.get_channel_youtube_id_async(youtube_id=channel_id)
+            await YouTubeAccess.get_channel_youtube_id_async(
+                session, youtube_id=channel_id
+            )
         )
         fetched_channel: ChannelRow = (
             a_result_fetched_channel.result()
@@ -219,7 +226,9 @@ class YouTube:
         )
 
         a_result_internal_image: AResult[ImageRow] = (
-            await MediaAccess.get_image_from_id_async(id=video_row.internal_image_id)
+            await MediaAccess.get_image_from_id_async(
+                session, id=video_row.internal_image_id
+            )
         )
         internal_image_url: str = ""
         if a_result_internal_image.is_ok():
@@ -231,7 +240,7 @@ class YouTube:
             if fetched_channel.internal_image_id:
                 a_result_channel_image: AResult[ImageRow] = (
                     await MediaAccess.get_image_from_id_async(
-                        id=fetched_channel.internal_image_id
+                        session, id=fetched_channel.internal_image_id
                     )
                 )
                 if a_result_channel_image.is_ok():

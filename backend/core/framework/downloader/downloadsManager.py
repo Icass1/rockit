@@ -5,6 +5,7 @@ from typing import List, Tuple
 
 from backend.core.aResult import AResultCode
 from backend.utils.logger import getLogger
+from backend.core.access.db import rockit_db
 
 from backend.core.framework.downloader.baseDownload import BaseDownload
 
@@ -40,24 +41,27 @@ class DownloadsManager:
             logger.info("Started async download manager.")
             ongoing_tasks: List[asyncio.Task[AResultCode]] = []
 
-            while True:
-                await asyncio.sleep(0.4)
+            async with rockit_db.session_scope_async() as session:
+                while True:
+                    await asyncio.sleep(0.4)
 
-                # Remove finished tasks
-                ongoing_tasks = [t for t in ongoing_tasks if not t.done()]
+                    # Remove finished tasks
+                    ongoing_tasks = [t for t in ongoing_tasks if not t.done()]
 
-                # Start new downloads if under limit
-                while (
-                    len(ongoing_tasks) < self.max_download_threads
-                    and len(self.queue) > 0
-                ):
-                    download: BaseDownload = self.queue.pop(0)
-                    logger.info(f"Starting new async download: {download.public_id}")
+                    # Start new downloads if under limit
+                    while (
+                        len(ongoing_tasks) < self.max_download_threads
+                        and len(self.queue) > 0
+                    ):
+                        download: BaseDownload = self.queue.pop(0)
+                        logger.info(
+                            f"Starting new async download: {download.public_id}"
+                        )
 
-                    task: asyncio.Task[AResultCode] = asyncio.create_task(
-                        download.download_method_async()
-                    )
-                    ongoing_tasks.append(task)
+                        task: asyncio.Task[AResultCode] = asyncio.create_task(
+                            download.download_method_async(session)
+                        )
+                        ongoing_tasks.append(task)
 
         except Exception as e:
             logger.critical(f"Error in async download manager: {e}")

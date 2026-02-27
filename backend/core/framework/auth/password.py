@@ -1,4 +1,5 @@
 from passlib.context import CryptContext
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.aResult import AResult, AResultCode
 from backend.core.access.userAccess import UserAccess
@@ -16,9 +17,11 @@ class Password:
         return pwd.verify(plain, hashed)
 
     @staticmethod
-    async def login_user_async(username: str, password: str) -> AResult[UserRow]:
+    async def login_user_async(
+        session: AsyncSession, username: str, password: str
+    ) -> AResult[UserRow]:
         a_result_user: AResult[UserRow] = await UserAccess.get_user_from_username_async(
-            username
+            session, username
         )
 
         if a_result_user.is_not_ok():

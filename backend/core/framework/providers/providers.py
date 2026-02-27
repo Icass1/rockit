@@ -4,6 +4,7 @@ from logging import Logger
 from types import ModuleType
 from dataclasses import dataclass
 from importlib import import_module
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.utils.logger import getLogger
 
@@ -29,8 +30,10 @@ class Providers:
     def get_providers(self) -> List[BaseProvider]:
         return self._providers
 
-    async def async_init(self):
-        a_result_search_providers: AResultCode = await self.search_providers()
+    async def async_init(self, session: AsyncSession):
+        a_result_search_providers: AResultCode = await self.search_providers(
+            session=session
+        )
         if a_result_search_providers.is_not_ok():
             logger.error(
                 f"Error searching providers. {a_result_search_providers.info()}"
@@ -45,7 +48,7 @@ class Providers:
                 return p
         return None
 
-    async def search_providers(self) -> AResultCode:
+    async def search_providers(self, session: AsyncSession) -> AResultCode:
         logger.info("Searching providers...")
 
         providers_found_data: List[Providers.ProviderData] = []
@@ -77,7 +80,7 @@ class Providers:
                     else:
                         logger.info(f"Adding provider {module_path}")
 
-                        await provider.async_init()
+                        await provider.async_init(session)
 
                         providers_found_data.append(
                             Providers.ProviderData(
@@ -92,7 +95,7 @@ class Providers:
                     )
 
         a_result_providers_in_db: AResult[List[ProviderRow]] = (
-            await ProviderAccess.get_providers()
+            await ProviderAccess.get_providers(session)
         )
 
         if a_result_providers_in_db.is_not_ok():
@@ -129,7 +132,7 @@ class Providers:
             self._providers.append(provider_data.provider)
 
             a_result_provider: AResult[ProviderRow] = await ProviderAccess.add_provider(
-                name=provider_data.name, module=provider_data.module_path
+                session, name=provider_data.name, module=provider_data.module_path
             )
 
             if a_result_provider.is_not_ok():

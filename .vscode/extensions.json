@@ -7,7 +7,6 @@
         "ms-python.vscode-pylance",
         "ms-python.python",
         "ms-python.debugpy",
-        "ms-python.autopep8",
         "usernamehw.errorlens",
         "ms-python.black-formatter",
         "yoavbls.pretty-ts-errors",

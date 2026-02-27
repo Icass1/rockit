@@ -201,6 +201,13 @@ class ErrorRow(CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdded)
 - Database names → **snake_case**
 - Table names → **singular** (`user`, not `users`)
 
+## Language
+
+All code, comments, documentation, and messages MUST be written in **English only**.
+- Even if the user communicates in Spanish, respond and write in English
+- If you edit a file containing Spanish comments or strings, translate them to English
+- Variable names, function names, and comments must all be in English
+
 ## Things to Never Do
 
 ### Backend

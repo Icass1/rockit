@@ -231,7 +231,8 @@ async def generate_zod_schemas() -> None:
         logger.info(f"Written {output_path}")
 
     index_lines: list[str] = []
-    for model_name in all_models:
+    sorted_models: list[str] = sorted(all_models.keys())
+    for model_name in sorted_models:
         file_name = to_camel_case(model_name)
         index_lines.append(
             f"export {{ {model_name}Schema, type {model_name} }} from '@/dto/{file_name}';"

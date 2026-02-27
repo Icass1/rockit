@@ -55,8 +55,8 @@ function SearchResults() {
 
     return (
         <div className="overflow-y-auto pt-0 md:pt-24">
-            <SongsSection songs={[]} />
-            <AlbumsSection albums={[]} />
+            <SongsSection songs={results.results.filter(item => item.type === "song")} />
+            <AlbumsSection albums={results.results.filter(item => item.type === "album")} />
         </div>
     );
 }

@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { ProviderSearchResultsResponseSchema } from "@/dto";
+import { BaseSearchResultsItemSchema } from "@/dto";
 
 export const SearchResultsResponseSchema = z.object({
-    results: z.array(z.lazy(() => ProviderSearchResultsResponseSchema)),
+    results: z.array(z.lazy(() => BaseSearchResultsItemSchema)),
 });
 
 export type SearchResultsResponse = z.infer<typeof SearchResultsResponseSchema>;

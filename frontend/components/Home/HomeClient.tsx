@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { HomeStatsResponse } from "@/dto";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -30,16 +30,11 @@ function getPreviousMonthKey() {
 }
 
 function useOnClient<T>(fn: () => T, initialValue: T): T {
-    const [value, setValue] = useState(initialValue);
-    useSyncExternalStore(
+    return useSyncExternalStore(
         () => () => {},
-        () => {
-            setValue(fn());
-            return fn();
-        },
+        fn,
         () => initialValue
     );
-    return value;
 }
 
 interface HomeClientProps {

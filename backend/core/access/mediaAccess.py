@@ -51,6 +51,7 @@ class MediaAccess:
         """Get a CoreSongRow by id."""
 
         try:
+            passed_session = session
             async with rockit_db.session_scope_or_session_async(session) as s:
                 stmt: Select[Tuple[CoreSongRow]] = select(CoreSongRow).where(
                     CoreSongRow.id == id
@@ -61,7 +62,9 @@ class MediaAccess:
                 if row is None:
                     return AResult(code=AResultCode.NOT_FOUND, message="Song not found")
 
-                s.expunge(row)
+                if passed_session is None:
+                    s.expunge(row)
+
                 return AResult(code=AResultCode.OK, message="OK", result=row)
 
         except Exception as e:
@@ -187,6 +190,7 @@ class MediaAccess:
         """Get an ImageRow by id."""
 
         try:
+            passed_session = session
             async with rockit_db.session_scope_or_session_async(session) as s:
                 stmt: Select[Tuple[ImageRow]] = select(ImageRow).where(
                     ImageRow.id == id
@@ -199,7 +203,9 @@ class MediaAccess:
                         code=AResultCode.NOT_FOUND, message="Image not found"
                     )
 
-                s.expunge(row)
+                if passed_session is None:
+                    s.expunge(row)
+
                 return AResult(code=AResultCode.OK, message="OK", result=row)
 
         except Exception as e:

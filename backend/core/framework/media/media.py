@@ -21,7 +21,6 @@ from backend.core.responses.baseArtistResponse import BaseArtistResponse
 from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
 from backend.core.responses.searchResponse import (
     BaseSearchResultsItem,
-    ProviderSearchResultsResponse,
     SearchResultsResponse,
 )
 
@@ -163,7 +162,7 @@ class Media:
     ) -> AResult[SearchResultsResponse]:
         """Search all providers and aggregate results into a ProviderSearchResultsResponse list."""
 
-        results: List[ProviderSearchResultsResponse] = []
+        results: List[BaseSearchResultsItem] = []
 
         for provider in providers.get_providers():
             a_result_id: AResult[int] = provider.get_id()
@@ -179,10 +178,8 @@ class Media:
                     logger.error(f"Provider search error. {a_result.info()}")
                 continue
 
-            results.append(
-                ProviderSearchResultsResponse(
-                    provider=provider.get_name(), items=a_result.result()
-                )
+            results.extend(
+                    a_result.result()
             )
 
         return AResult(

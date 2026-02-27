@@ -1,57 +1,58 @@
-export {
-    BaseSongResponseSchema,
-    type BaseSongResponse,
-} from "@/dto/baseSongResponse";
-export {
-    BaseAlbumResponseSchema,
-    type BaseAlbumResponse,
-} from "@/dto/baseAlbumResponse";
-export {
-    HomeStatsResponseSchema,
-    type HomeStatsResponse,
-} from "@/dto/homeStatsResponse";
-export {
-    BaseSongAlbumResponseSchema,
-    type BaseSongAlbumResponse,
-} from "@/dto/baseSongAlbumResponse";
+export { AlbumResponseSchema, type AlbumResponse } from "@/dto/albumResponse";
 export {
     ArtistSearchResultsItemSchema,
     type ArtistSearchResultsItem,
 } from "@/dto/artistSearchResultsItem";
 export {
-    BaseSearchResultsItemSchema,
-    type BaseSearchResultsItem,
-} from "@/dto/baseSearchResultsItem";
+    BaseAlbumResponseSchema,
+    type BaseAlbumResponse,
+} from "@/dto/baseAlbumResponse";
 export {
-    ProviderSearchResultsResponseSchema,
-    type ProviderSearchResultsResponse,
-} from "@/dto/providerSearchResultsResponse";
+    BaseAlbumSongResponseSchema,
+    type BaseAlbumSongResponse,
+} from "@/dto/baseAlbumSongResponse";
 export {
-    SearchResultsResponseSchema,
-    type SearchResultsResponse,
-} from "@/dto/searchResultsResponse";
-export {
-    BaseSongPlaylistResponseSchema,
-    type BaseSongPlaylistResponse,
-} from "@/dto/baseSongPlaylistResponse";
-export { StatsResponseSchema, type StatsResponse } from "@/dto/statsResponse";
-export {
-    LibraryListsResponseSchema,
-    type LibraryListsResponse,
-} from "@/dto/libraryListsResponse";
+    BaseArtistResponseSchema,
+    type BaseArtistResponse,
+} from "@/dto/baseArtistResponse";
 export {
     BasePlaylistResponseSchema,
     type BasePlaylistResponse,
 } from "@/dto/basePlaylistResponse";
 export {
-    BaseAlbumSongResponseSchema,
-    type BaseAlbumSongResponse,
-} from "@/dto/baseAlbumSongResponse";
-export { LoginResponseSchema, type LoginResponse } from "@/dto/loginResponse";
+    BaseSearchResultsItemSchema,
+    type BaseSearchResultsItem,
+} from "@/dto/baseSearchResultsItem";
 export {
-    BaseArtistResponseSchema,
-    type BaseArtistResponse,
-} from "@/dto/baseArtistResponse";
+    BaseSongAlbumResponseSchema,
+    type BaseSongAlbumResponse,
+} from "@/dto/baseSongAlbumResponse";
+export {
+    BaseSongPlaylistResponseSchema,
+    type BaseSongPlaylistResponse,
+} from "@/dto/baseSongPlaylistResponse";
+export {
+    BaseSongResponseSchema,
+    type BaseSongResponse,
+} from "@/dto/baseSongResponse";
+export {
+    ChannelResponseSchema,
+    type ChannelResponse,
+} from "@/dto/channelResponse";
+export {
+    ExternalImageResponseSchema,
+    type ExternalImageResponse,
+} from "@/dto/externalImageResponse";
+export {
+    HomeStatsResponseSchema,
+    type HomeStatsResponse,
+} from "@/dto/homeStatsResponse";
+export {
+    LibraryListsResponseSchema,
+    type LibraryListsResponse,
+} from "@/dto/libraryListsResponse";
+export { LoginResponseSchema, type LoginResponse } from "@/dto/loginResponse";
+export { OkResponseSchema, type OkResponse } from "@/dto/okResponse";
 export { QueueResponseSchema, type QueueResponse } from "@/dto/queueResponse";
 export {
     QueueResponseItemSchema,
@@ -62,26 +63,21 @@ export {
     type QueueResponseItemList,
 } from "@/dto/queueResponseItemList";
 export {
+    RegisterResponseSchema,
+    type RegisterResponse,
+} from "@/dto/registerResponse";
+export {
+    SearchResultsResponseSchema,
+    type SearchResultsResponse,
+} from "@/dto/searchResultsResponse";
+export {
     SessionResponseSchema,
     type SessionResponse,
 } from "@/dto/sessionResponse";
+export { SongResponseSchema, type SongResponse } from "@/dto/songResponse";
 export {
     StartDownloadResponseSchema,
     type StartDownloadResponse,
 } from "@/dto/startDownloadResponse";
-export {
-    RegisterResponseSchema,
-    type RegisterResponse,
-} from "@/dto/registerResponse";
-export { OkResponseSchema, type OkResponse } from "@/dto/okResponse";
-export { SongResponseSchema, type SongResponse } from "@/dto/songResponse";
-export { AlbumResponseSchema, type AlbumResponse } from "@/dto/albumResponse";
-export {
-    ExternalImageResponseSchema,
-    type ExternalImageResponse,
-} from "@/dto/externalImageResponse";
-export {
-    ChannelResponseSchema,
-    type ChannelResponse,
-} from "@/dto/channelResponse";
+export { StatsResponseSchema, type StatsResponse } from "@/dto/statsResponse";
 export { VideoResponseSchema, type VideoResponse } from "@/dto/videoResponse";

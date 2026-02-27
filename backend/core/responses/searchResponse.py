@@ -13,12 +13,8 @@ class BaseSearchResultsItem(BaseModel):
     url: str
     imageUrl: str
     artists: List[ArtistSearchResultsItem]
-
-
-class ProviderSearchResultsResponse(BaseModel):
     provider: str
-    items: List[BaseSearchResultsItem]
 
 
 class SearchResultsResponse(BaseModel):
-    results: List[ProviderSearchResultsResponse]
+    results: List[BaseSearchResultsItem]

@@ -153,6 +153,7 @@ class SpotifyAccess:
         spotify_id: str, session: AsyncSession | None = None
     ) -> AResult[TrackRow]:
         try:
+            passed_session = session
             async with rockit_db.session_scope_or_session_async(session) as s:
                 stmt = select(TrackRow).where(TrackRow.spotify_id == spotify_id)
                 result = await s.execute(stmt)
@@ -164,7 +165,9 @@ class SpotifyAccess:
                         code=AResultCode.NOT_FOUND, message="Track not found"
                     )
 
-                s.expunge(instance=track)
+                if passed_session is None:
+                    s.expunge(instance=track)
+
                 return AResult(code=AResultCode.OK, message="OK", result=track)
 
         except Exception as e:
@@ -675,8 +678,8 @@ class SpotifyAccess:
         track_row: TrackRow, session: AsyncSession | None = None
     ) -> AResult[List[ArtistRow]]:
         try:
+            passed_session = session
             async with rockit_db.session_scope_or_session_async(session) as session:
-                # or proper select() query
                 stmt: Select[Tuple[List[ArtistRow]]] = track_row.artists.select()
                 result: Result[Tuple[List[ArtistRow]]] = await session.execute(stmt)
                 artists: List[ArtistRow] = cast(List[ArtistRow], result.scalars().all())
@@ -688,8 +691,9 @@ class SpotifyAccess:
                         message="Error getting artists from track row.",
                     )
 
-                for artist in artists:
-                    session.expunge(artist)
+                if passed_session is None:
+                    for artist in artists:
+                        session.expunge(artist)
 
                 return AResult(code=AResultCode.OK, message="OK", result=artists)
 

@@ -3,13 +3,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AlbumWithoutSongs } from "@/lib/rockit/albumWithoutSongs";
+import { BaseSearchResultsItem } from "@/dto/baseSearchResultsItem";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function AlbumsSection({
     albums,
 }: {
-    albums: AlbumWithoutSongs[];
+    albums: BaseSearchResultsItem[];
 }) {
     const { langFile: lang } = useLanguage();
     const router = useRouter();
@@ -25,32 +25,30 @@ export default function AlbumsSection({
                 {albums.map((album) => {
                     return (
                         <Link
-                            href={`/album/${album.publicId}`}
+                            href={album.url}
                             prefetch={false}
                             className="w-36 flex-none transition md:w-48 md:hover:scale-105"
-                            key={album.publicId}
+                            key={album.url}
                         >
                             <Image
                                 width={350}
                                 height={350}
                                 className="aspect-square w-full rounded-lg object-cover"
-                                src={album.internalImageUrl}
-                                alt={`Cover of ${album.name}`}
+                                src={album.imageUrl}
+                                alt={`Cover of ${album.title}`}
                             />
                             <span className="mt-2 block truncate text-center font-semibold">
-                                {album.name}
+                                {album.title}
                             </span>
                             <span className="block truncate text-center text-sm text-gray-400">
                                 {album.artists.map((artist, i) => (
                                     <button
-                                        key={artist.publicId}
+                                        key={artist.url}
                                         className="md:hover:underline"
                                         onClick={(e) => {
                                             e.preventDefault();
                                             e.stopPropagation();
-                                            router.push(
-                                                `/artist/${artist.publicId}`
-                                            );
+                                            router.push(artist.url);
                                         }}
                                     >
                                         {artist.name}

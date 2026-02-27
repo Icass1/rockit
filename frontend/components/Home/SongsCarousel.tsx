@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import Image from "next/image";
 import { StatsResponseSchema } from "@/dto";
 import { useStore } from "@nanostores/react";

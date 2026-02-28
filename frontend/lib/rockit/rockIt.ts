@@ -22,7 +22,7 @@ export class RockIt {
 
     public readonly VERSION = "0.1.0";
     public readonly BACKEND_URL =
-        process.env.NEXT_PUBLIC_BACKEND_URL || "undefined";
+        process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
     public readonly PLAYLIST_PLACEHOLDER_IMAGE_URL = "/song-placeholder.png";
     public readonly ALBUM_PLACEHOLDER_IMAGE_URL = "/song-placeholder.png";
     public readonly SONG_PLACEHOLDER_IMAGE_URL = "/song-placeholder.png";

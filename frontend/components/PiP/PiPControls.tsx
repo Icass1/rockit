@@ -1,5 +1,6 @@
 "use client";
 
+import { useStore } from "@nanostores/react";
 import {
     CirclePause,
     CirclePlay,
@@ -10,7 +11,6 @@ import {
     SkipForward,
 } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { useStore } from "@nanostores/react";
 
 const S = {
     controls: {

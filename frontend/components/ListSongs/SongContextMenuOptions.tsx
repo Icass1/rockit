@@ -1,5 +1,6 @@
 "use client";
 
+import type { Lang } from "@/types/lang";
 import {
     Copy,
     Download,
@@ -18,9 +19,8 @@ import ContextMenuSplitter from "@/components/ContextMenu/Splitter";
 import SubContextMenuContent from "@/components/ContextMenu/SubContextMenu/Content";
 import SubContextMenu from "@/components/ContextMenu/SubContextMenu/ContextMenu";
 import SubContextMenuTrigger from "@/components/ContextMenu/SubContextMenu/Trigger";
-import ListSubContextMenu from "@/components/ListSongs/ListSubContextMenu";
 import type { UserList } from "@/components/ListSongs/hooks/useSongContextMenu";
-import type { Lang } from "@/types/lang";
+import ListSubContextMenu from "@/components/ListSongs/ListSubContextMenu";
 
 function HandMetalIcon({ className }: { className: string }) {
     return (
@@ -36,7 +36,14 @@ function HandMetalIcon({ className }: { className: string }) {
             strokeLinejoin="round"
             className={className}
         >
-            <rect x="6" y="10" width="11" height="7" strokeLinejoin="miter" strokeWidth="0" />
+            <rect
+                x="6"
+                y="10"
+                width="11"
+                height="7"
+                strokeLinejoin="miter"
+                strokeWidth="0"
+            />
             <path d="M18 12.5V10a2 2 0 0 0-2-2 2 2 0 0 0-2 2v1.4" />
             <path d="M14 11V9a2 2 1 0-4 0v2" />
             <path d="M10 11V5a2 2 1 0-4 0v9" />

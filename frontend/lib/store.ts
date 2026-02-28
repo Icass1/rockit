@@ -1,5 +1,9 @@
 import { atom } from "nanostores";
 
+// ─────────────────────────────────────────────
+// Tipos auxiliares
+// ─────────────────────────────────────────────
+
 type Primitive = boolean | number | string;
 
 export type ReadonlyIfObject<Value> = Value extends undefined
@@ -15,7 +19,11 @@ export type ReadonlyIfObject<Value> = Value extends undefined
             ? Readonly<Value>
             : Value;
 
-type ReadonlyAtom<T> = {
+// ─────────────────────────────────────────────
+// Tipos públicos — contratos de los átomos
+// ─────────────────────────────────────────────
+
+type BaseAtomShape<T> = {
     get(): T;
     subscribe(callback: (value: T) => void): () => void;
     listen(
@@ -26,119 +34,23 @@ type ReadonlyAtom<T> = {
     ): () => void;
     notify(oldValue?: ReadonlyIfObject<T>): void;
     off(): void;
-    lc: number;
-    value: T;
+    get lc(): number;
+    get value(): T;
 };
 
-type Atom<T> = {
-    get(): T;
+export type ReadonlyAtom<T> = BaseAtomShape<T>;
+
+export type Atom<T> = BaseAtomShape<T> & {
     set(value: T): void;
-    subscribe(callback: (value: T) => void): () => void;
-    listen(
-        listener: (
-            value: ReadonlyIfObject<T>,
-            oldValue: ReadonlyIfObject<T>
-        ) => void
-    ): () => void;
-    notify(oldValue?: ReadonlyIfObject<T>): void;
-    off(): void;
     getReadonlyAtom(): ReadonlyAtom<T>;
-    lc: number;
-    value: T;
 };
 
-type ReadonlyArrayAtom<T> = {
-    get(): T[];
-    subscribe(
-        listener: (
-            value: readonly T[],
-            oldValue?: readonly T[] | undefined
-        ) => void
-    ): () => void;
-    listen(
-        listener: (
-            value: ReadonlyIfObject<T[]>,
-            oldValue: ReadonlyIfObject<T[]>
-        ) => void
-    ): () => void;
-    notify(oldValue?: ReadonlyIfObject<T[]>): void;
-    off(): void;
-    concat(...items: ConcatArray<T>[]): T[];
-    slice(start?: number, end?: number): T[];
-    includes(searchElement: T, fromIndex?: number): boolean;
-    indexOf(searchElement: T, fromIndex?: number): number;
-    lastIndexOf(searchElement: T, fromIndex?: number): number;
-    join(separator?: string): string;
-    toString(): string;
-    toLocaleString(): string;
-    find(
-        predicate: (value: T, index: number, obj: readonly T[]) => boolean,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        thisArg?: any
-    ): T | undefined;
-    findIndex(
-        predicate: (value: T, index: number, obj: readonly T[]) => boolean,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        thisArg?: any
-    ): number;
-    findLast(
-        predicate: (value: T, index: number, obj: readonly T[]) => boolean,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        thisArg?: any
-    ): T | undefined;
-    findLastIndex(
-        predicate: (value: T, index: number, obj: readonly T[]) => boolean,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        thisArg?: any
-    ): number;
-    every(
-        predicate: (value: T, index: number, obj: readonly T[]) => boolean,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        thisArg?: any
-    ): boolean;
-    some(
-        predicate: (value: T, index: number, obj: readonly T[]) => boolean,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        thisArg?: any
-    ): boolean;
-    filter(
-        predicate: (value: T, index: number, obj: readonly T[]) => boolean,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        thisArg?: any
-    ): T[];
-    map<U>(
-        callbackfn: (value: T, index: number, obj: readonly T[]) => U,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        thisArg?: any
-    ): U[];
-    flat<U>(this: U[][], depth?: number): U[];
-    flatMap<U>(
-        callback: (
-            value: T,
-            index: number,
-            array: readonly T[]
-        ) => U | readonly U[],
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        thisArg?: any
-    ): U[];
-    forEach(
-        callbackfn: (value: T, index: number, obj: readonly T[]) => void,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        thisArg?: any
-    ): void;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    reduceRight(callbackfn: any, initialValue?: any): any;
-    keys(): IterableIterator<number>;
-    values(): IterableIterator<T>;
-    entries(): IterableIterator<[number, T]>;
-    at(index: number): T | undefined;
-    lc: number;
-    value: T[];
-};
+// ReadonlyArrayAtom expone todos los métodos no-mutantes de Array<T>
+// a través de un Proxy — no necesitamos listarlos manualmente.
+export type ReadonlyArrayAtom<T> = BaseAtomShape<T[]> & readonly T[];
 
-type ArrayAtom<T> = {
+export type ArrayAtom<T> = {
     get(): T[];
-    set(value: T[], sendToSocket?: boolean): void;
     subscribe(callback: (value: T[]) => void): () => void;
     listen(
         listener: (
@@ -148,18 +60,23 @@ type ArrayAtom<T> = {
     ): () => void;
     notify(oldValue?: ReadonlyIfObject<T[]>): void;
     off(): void;
-    lc: number;
-    value: T[];
+    get lc(): number;
+    get value(): T[];
+    set(value: T[]): void;
     push(...items: T[]): number;
     pop(): T | undefined;
     shift(): T | undefined;
     unshift(...items: T[]): number;
     splice(start: number, deleteCount?: number, ...items: T[]): T[];
     sort(compareFn?: (a: T, b: T) => number): T[];
-    getReadonlyAtom(): ReadonlyArrayAtom<T>;
     reverse(): T[];
     clear(): void;
+    getReadonlyAtom(): ReadonlyArrayAtom<T>;
 };
+
+// ─────────────────────────────────────────────
+// createAtom
+// ─────────────────────────────────────────────
 
 export function createAtom<T>(
     ...args: undefined extends T ? [] | [T] : [T]
@@ -167,7 +84,7 @@ export function createAtom<T>(
     const baseAtom = atom<T>(...args);
     let _readonly: ReadonlyAtom<T> | undefined;
 
-    return {
+    const self: Atom<T> = {
         get() {
             return baseAtom.get();
         },
@@ -188,37 +105,89 @@ export function createAtom<T>(
         off() {
             return baseAtom.off();
         },
-        getReadonlyAtom() {
+        get lc() {
+            return baseAtom.lc;
+        },
+        get value() {
+            return baseAtom.value;
+        },
+        getReadonlyAtom(): ReadonlyAtom<T> {
             return (
-                _readonly ??=
-                    (() => {
-                        return {
-                            get() {
-                                return baseAtom.get();
-                            },
-                            subscribe(callback) {
-                                return baseAtom.subscribe(callback);
-                            },
-                            listen(listener) {
-                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                return baseAtom.listen(listener as any);
-                            },
-                            notify(oldValue) {
-                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                return baseAtom.notify(oldValue as any);
-                            },
-                            off() {
-                                return baseAtom.off();
-                            },
-                            get lc() {
-                                return baseAtom.lc;
-                            },
-                            get value() {
-                                return baseAtom.value;
-                            },
-                        };
-                    })()
+                _readonly ??= {
+                    get() {
+                        return baseAtom.get();
+                    },
+                    subscribe(callback) {
+                        return baseAtom.subscribe(callback);
+                    },
+                    listen(listener) {
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        return baseAtom.listen(listener as any);
+                    },
+                    notify(oldValue) {
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        return baseAtom.notify(oldValue as any);
+                    },
+                    off() {
+                        return baseAtom.off();
+                    },
+                    get lc() {
+                        return baseAtom.lc;
+                    },
+                    get value() {
+                        return baseAtom.value;
+                    },
+                }
             );
+        },
+    };
+
+    return self;
+}
+
+// ─────────────────────────────────────────────
+// createArrayAtom
+// ─────────────────────────────────────────────
+
+export function createArrayAtom<T>(
+    ...args: undefined extends T[] ? [] | [T[]] : [T[]]
+): ArrayAtom<T> {
+    const tuple = (args.length ? args : [[]]) as [T[]];
+    const baseAtom = atom<T[]>(...tuple);
+    let _readonly: ReadonlyArrayAtom<T> | undefined;
+
+    /**
+     * Helper that applies a mutable operation on a copy of the current array
+     * and pushes the result back into the atom — triggering subscribers once.
+     */
+    const setArray = (updater: (arr: T[]) => void): void => {
+        const next = [...baseAtom.get()];
+        updater(next);
+        baseAtom.set(next);
+    };
+
+    const self: ArrayAtom<T> = {
+        get() {
+            return baseAtom.get();
+        },
+        set(value: T[]) {
+            baseAtom.set(value);
+        },
+        subscribe(callback) {
+            return baseAtom.subscribe(
+                callback as (value: readonly T[]) => void
+            );
+        },
+        listen(listener) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            return baseAtom.listen(listener as any);
+        },
+        notify(oldValue) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            return baseAtom.notify(oldValue as any);
+        },
+        off() {
+            return baseAtom.off();
         },
         get lc() {
             return baseAtom.lc;
@@ -226,240 +195,9 @@ export function createAtom<T>(
         get value() {
             return baseAtom.value;
         },
-    };
-}
 
-export function createArrayAtom<T>(
-    ...args: undefined extends T[] ? [] | [T[]] : [T[]]
-): ArrayAtom<T> {
-    const tuple = (args.length ? args : [[]]) as [T[]];
-    const baseAtom = atom<T[]>(...tuple);
-    let _readonlyArray: ReadonlyArrayAtom<T> | undefined;
+        // ── Mutating array methods ──────────────────────────────────────
 
-    const setArray = (updater: (arr: T[]) => void): void => {
-        const current = baseAtom.get();
-        const next = [...current];
-        updater(next);
-        baseAtom.set(next);
-    };
-
-    // Helper to convert readonly array to mutable for internal use
-    const toMutable = (arr: readonly T[]): T[] => [...arr];
-
-    return {
-        get() {
-            return baseAtom.get();
-        },
-        set(value: T[]) {
-            baseAtom.set([...value]);
-        },
-        subscribe(callback) {
-            return baseAtom.subscribe((value) => callback(toMutable(value)));
-        },
-        listen(listener: (value: T[], oldValue: T[]) => void) {
-            return baseAtom.listen((value, oldValue) =>
-                listener(toMutable(value), toMutable(oldValue))
-            );
-        },
-        notify(oldValue?: T[]) {
-            return baseAtom.notify(oldValue);
-        },
-        off() {
-            return baseAtom.off();
-        },
-        getReadonlyAtom(): ReadonlyArrayAtom<T> {
-            return (
-                _readonlyArray ??=
-                    (() => {
-                        const currentArray = () => baseAtom.get();
-
-                        return {
-                            get: () => currentArray(),
-                            subscribe: (
-                                listener: (
-                                    value: readonly T[],
-                                    oldValue?: readonly T[] | undefined
-                                ) => void
-                            ) => baseAtom.subscribe(listener),
-                            listen: (
-                                listener: (
-                                    value: readonly T[],
-                                    oldValue: readonly T[]
-                                ) => void
-                            ) => baseAtom.listen(listener),
-                            notify: (oldValue?: readonly T[]) =>
-                                baseAtom.notify(oldValue),
-                            off: () => baseAtom.off(),
-                            get lc() {
-                                return baseAtom.lc;
-                            },
-                            get value() {
-                                return baseAtom.value;
-                            },
-
-                            // --- Non-Mutating Array Methods ---
-                            concat(...items: ConcatArray<T>[]): T[] {
-                                return currentArray().concat(...items);
-                            },
-                            slice(start?: number, end?: number): T[] {
-                                return currentArray().slice(start, end);
-                            },
-                            includes(searchElement: T, fromIndex?: number): boolean {
-                                return currentArray().includes(searchElement, fromIndex);
-                            },
-                            indexOf(searchElement: T, fromIndex?: number): number {
-                                return currentArray().indexOf(searchElement, fromIndex);
-                            },
-                            lastIndexOf(searchElement: T, fromIndex?: number): number {
-                                return currentArray().lastIndexOf(searchElement, fromIndex);
-                            },
-                            join(separator?: string): string {
-                                return currentArray().join(separator);
-                            },
-                            toString(): string {
-                                return currentArray().toString();
-                            },
-                            toLocaleString(): string {
-                                return currentArray().toLocaleString();
-                            },
-                            find(
-                                predicate: (
-                                    value: T,
-                                    index: number,
-                                    obj: readonly T[]
-                                ) => boolean,
-                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                thisArg?: any
-                            ): T | undefined {
-                                return currentArray().find(predicate, thisArg);
-                            },
-                            findIndex(
-                                predicate: (
-                                    value: T,
-                                    index: number,
-                                    obj: readonly T[]
-                                ) => boolean,
-                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                thisArg?: any
-                            ): number {
-                                return currentArray().findIndex(predicate, thisArg);
-                            },
-                            findLast(
-                                predicate: (
-                                    value: T,
-                                    index: number,
-                                    obj: readonly T[]
-                                ) => boolean,
-                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                thisArg?: any
-                            ): T | undefined {
-                                return currentArray().findLast(predicate, thisArg);
-                            },
-                            findLastIndex(
-                                predicate: (
-                                    value: T,
-                                    index: number,
-                                    obj: readonly T[]
-                                ) => boolean,
-                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                thisArg?: any
-                            ): number {
-                                return currentArray().findLastIndex(predicate, thisArg);
-                            },
-                            every(
-                                predicate: (
-                                    value: T,
-                                    index: number,
-                                    obj: readonly T[]
-                                ) => boolean,
-                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                thisArg?: any
-                            ): boolean {
-                                return currentArray().every(predicate, thisArg);
-                            },
-                            some(
-                                predicate: (
-                                    value: T,
-                                    index: number,
-                                    obj: readonly T[]
-                                ) => boolean,
-                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                thisArg?: any
-                            ): boolean {
-                                return currentArray().some(predicate, thisArg);
-                            },
-                            filter(
-                                predicate: (
-                                    value: T,
-                                    index: number,
-                                    obj: readonly T[]
-                                ) => boolean,
-                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                thisArg?: any
-                            ): T[] {
-                                return currentArray().filter(predicate, thisArg);
-                            },
-                            map<U>(
-                                callbackfn: (
-                                    value: T,
-                                    index: number,
-                                    obj: readonly T[]
-                                ) => U,
-                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                thisArg?: any
-                            ): U[] {
-                                return currentArray().map(callbackfn, thisArg);
-                            },
-                            flat<U>(this: U[][], depth?: number): U[] {
-                                return currentArray().flat(depth) as U[];
-                            },
-                            flatMap<U>(
-                                callback: (
-                                    value: T,
-                                    index: number,
-                                    array: readonly T[]
-                                ) => U | readonly U[],
-                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                thisArg?: any
-                            ): U[] {
-                                return currentArray().flatMap(callback, thisArg);
-                            },
-                            forEach(
-                                callbackfn: (
-                                    value: T,
-                                    index: number,
-                                    obj: readonly T[]
-                                ) => void,
-                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                thisArg?: any
-                            ): void {
-                                currentArray().forEach(callbackfn, thisArg);
-                            },
-
-                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                            reduceRight(callbackfn: any, initialValue?: any): any {
-                                return initialValue !== undefined
-                                    ? currentArray().reduceRight(callbackfn, initialValue)
-                                    : currentArray().reduceRight(callbackfn);
-                            },
-                            keys(): IterableIterator<number> {
-                                return currentArray().keys();
-                            },
-                            values(): IterableIterator<T> {
-                                return currentArray().values();
-                            },
-                            entries(): IterableIterator<[number, T]> {
-                                return currentArray().entries();
-                            },
-                            at(index: number): T | undefined {
-                                return currentArray().at(index);
-                            },
-                        };
-                    })()
-            );
-        },
-
-        // --- Array mutating methods ---
         push(...items: T[]): number {
             let newLength = 0;
             setArray((arr) => {
@@ -518,11 +256,80 @@ export function createArrayAtom<T>(
             baseAtom.set([]);
         },
 
-        get lc() {
-            return baseAtom.lc;
-        },
-        get value() {
-            return baseAtom.value;
+        // ── getReadonlyAtom ─────────────────────────────────────────────
+        /**
+         * Returns a memoized read-only view of the atom.
+         *
+         * The non-mutating array methods (map, filter, find, includes, ...)
+         * are exposed via a Proxy that delegates to baseAtom.get() at call
+         * time — no need to enumerate them manually. This replaces ~150 lines
+         * of boilerplate from the previous implementation.
+         *
+         * The Proxy intercepts property access:
+         *   - Known atom keys (get, subscribe, listen, lc, value…) → atom shape
+         *   - Everything else → delegate to the live array from baseAtom.get()
+         */
+        getReadonlyAtom(): ReadonlyArrayAtom<T> {
+            if (_readonly) return _readonly;
+
+            const atomShape: BaseAtomShape<T[]> = {
+                get() {
+                    return baseAtom.get();
+                },
+                subscribe(listener) {
+                    return baseAtom.subscribe(
+                        listener as (value: readonly T[]) => void
+                    );
+                },
+                listen(listener) {
+                    return baseAtom.listen(listener);
+                },
+                notify(oldValue?: readonly T[]) {
+                    return baseAtom.notify(oldValue);
+                },
+                off() {
+                    return baseAtom.off();
+                },
+                get lc() {
+                    return baseAtom.lc;
+                },
+                get value() {
+                    return baseAtom.value;
+                },
+            };
+
+            // Keys that belong to the atom shape — served from atomShape directly
+            const ATOM_KEYS = new Set<string | symbol>([
+                "get",
+                "set",
+                "subscribe",
+                "listen",
+                "notify",
+                "off",
+                "lc",
+                "value",
+            ]);
+
+            _readonly = new Proxy(atomShape, {
+                get(target, prop, receiver) {
+                    // Serve atom shape properties from the target
+                    if (ATOM_KEYS.has(prop)) {
+                        return Reflect.get(target, prop, receiver);
+                    }
+                    // Delegate everything else to the live array
+                    const arr = baseAtom.get();
+                    const val = Reflect.get(arr, prop, arr);
+                    // Bind functions so `this` inside them refers to the array
+                    return typeof val === "function" ? val.bind(arr) : val;
+                },
+                has(_, prop) {
+                    return prop in baseAtom.get();
+                },
+            }) as ReadonlyArrayAtom<T>;
+
+            return _readonly;
         },
     };
+
+    return self;
 }

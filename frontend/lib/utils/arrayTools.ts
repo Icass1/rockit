@@ -1,4 +1,7 @@
-export function deduplicateBy<T>(array: T[], callback: (item: T) => string): T[] {
+export function deduplicateBy<T>(
+    array: T[],
+    callback: (item: T) => string
+): T[] {
     const reducedArray: T[] = [];
     const seenIds = new Set();
 

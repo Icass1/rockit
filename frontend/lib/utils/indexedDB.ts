@@ -168,8 +168,7 @@ export function openRockItIndexedDB(): Promise<IDBDatabase> {
                 fillLangIndexedDB(transaction.objectStore("lang"));
             }
             // No manual transaction.commit() needed
-            transaction.oncomplete = () => {
-            };
+            transaction.oncomplete = () => {};
         };
 
         dbOpenRequest.onsuccess = function () {

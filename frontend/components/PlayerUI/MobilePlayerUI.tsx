@@ -195,7 +195,7 @@ export default function MobilePlayerUI() {
                 </div>
 
                 {/* Sub-panel triggers */}
-                <div className="absolute right-0 bottom-0 left-0 flex items-center justify-around bg-linear-to-t from-black/50 to-black/0 px-4 py-7 font-bold text-white">
+                <div className="absolute right-0 bottom-0 left-0 flex items-center justify-around bg-linear-to-t from-black/50 to-black/0 px-4 py-7 font-bold text-white safe-area-bottom">
                     <button
                         className="text-lg"
                         onClick={() => setQueueOpen(true)}

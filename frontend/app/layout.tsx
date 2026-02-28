@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "@/styles/globals.css";
 import "@/styles/base.css";
 import "@/styles/animations.css";
@@ -8,6 +8,12 @@ export const metadata: Metadata = {
     title: "RockIt",
     description: "The best music player in the world",
     manifest: "/manifest.json",
+};
+
+export const viewport: Viewport = {
+    width: "device-width",
+    initialScale: 1,
+    viewportFit: "cover",
 };
 
 export default function RootLayout({

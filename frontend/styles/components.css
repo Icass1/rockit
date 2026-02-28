@@ -145,3 +145,20 @@
 .rockit-checkbox:hover {
     border-color: #f6339a;
 }
+
+/* ── Webkit momentum scroll (Fase 4) ──────
+    Habilita momentum/inertial scrolling en iOS Safari.
+    Úsalo solo en contenedores con scroll real.
+    ─────────────────────────────────────── */
+.webkit-scroll {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* ── Safe area bottom ─────────────────────
+    Compensa el home indicator en iOS y gesture nav en Android.
+    Fallback automático si env() no existe.
+    ─────────────────────────────────────── */
+.safe-area-bottom {
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+}

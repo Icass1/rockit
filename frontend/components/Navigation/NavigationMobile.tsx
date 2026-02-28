@@ -62,7 +62,7 @@ export default function NavigationMobile() {
 
     return (
         <div
-            className="safe-area-bottom mobile-nav-blur flex h-14 w-full max-w-4xl flex-row items-center justify-center bg-[#1a1a1a]/80 py-2 touch-manipulation"
+            className="safe-area-bottom mobile-nav-blur flex h-full w-full max-w-4xl flex-row items-center justify-center bg-[#1a1a1a]/80 py-2 touch-manipulation"
         >
             {pages
                 .filter((page) => typeof page != "undefined")

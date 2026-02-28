@@ -19,13 +19,16 @@ function EmptyState() {
             <p className="mt-10 text-lg md:mt-2 md:text-xl">
                 {lang.search_empty2}
             </p>
-            <Image
-                width={144}
-                height={144}
-                className="mt-10 w-36"
-                src="/logo-banner.png"
-                alt="Rockit Logo"
-            />
+            <div className="md:mt-10 relative w-46 h-36">
+                <Image
+                    src="/logo-banner.png"
+                    alt="Rockit Logo"
+                    fill
+                    priority
+                    className="object-contain"
+                    sizes="144px"
+                />
+            </div>
         </section>
     );
 }

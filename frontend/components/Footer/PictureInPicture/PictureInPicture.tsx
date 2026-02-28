@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { PictureInPicture2 } from "lucide-react";
-import PiPContent from "@/components/Footer/PictureInPicture/PipPage";
+import PiPContent from "@/components/PiP/PiPRoot";
 
 type DocumentPiP = {
     requestWindow: (opts: { width: number; height: number }) => Promise<Window>;

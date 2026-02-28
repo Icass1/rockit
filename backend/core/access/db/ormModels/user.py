@@ -13,6 +13,7 @@ from backend.core.access.db.ormModels.declarativeMixin import (
 
 if TYPE_CHECKING:
     from backend.core.access.db.ormModels.error import ErrorRow
+    from backend.core.access.db.ormModels.requestLog import RequestLogRow
     from backend.core.access.db.ormModels.session import SessionRow
     from backend.core.access.db.ormEnums.repeatSongEnum import RepeatSongEnumRow
     from backend.core.access.db.ormModels.user_album import UserAlbumRow
@@ -55,6 +56,9 @@ class UserRow(
         "SessionRow", back_populates="user"
     )
     errors: Mapped[List["ErrorRow"]] = relationship("ErrorRow", back_populates="user")
+    request_logs: Mapped[List["RequestLogRow"]] = relationship(
+        "RequestLogRow", back_populates="user"
+    )
     user_albums: Mapped[List["UserAlbumRow"]] = relationship(
         "UserAlbumRow", back_populates="user"
     )

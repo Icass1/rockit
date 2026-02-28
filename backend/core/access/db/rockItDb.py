@@ -1,3 +1,4 @@
+import asyncio
 import os
 from dataclasses import dataclass
 from importlib import import_module
@@ -183,6 +184,14 @@ class RockItDB:
     async def close(self) -> None:
         """Dispose of the async engine."""
         await self.engine.dispose()
+
+    async def wait_for_session_local_async(self) -> None:
+        """Wait until SessionLocal is initialized."""
+        logger.debug("Waiting for SessionLocal to be initialized...")
+        while not hasattr(self, "SessionLocal"):
+            await asyncio.sleep(0.1)
+
+        logger.debug("SessionLocal is now initialized.")
 
     @asynccontextmanager
     async def session_scope_async(self) -> AsyncGenerator[AsyncSession, None]:

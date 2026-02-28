@@ -2,9 +2,16 @@
   "version": "0.3.0",
   "compounds": [
     {
-      "name": "Full Stack",
+      "name": "Full Stack (DEBUG)",
       "configurations": [
         "FastAPI Uvicorn (DEBUG)",
+        "NextJS Server",
+      ]
+    },
+    {
+      "name": "Full Stack ",
+      "configurations": [
+        "FastAPI Uvicorn",
         "NextJS Server",
       ]
     },

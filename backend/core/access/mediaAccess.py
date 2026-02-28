@@ -173,6 +173,33 @@ class MediaAccess:
             )
 
     @staticmethod
+    async def get_image_from_public_id_async(
+        session: AsyncSession,
+        public_id: str,
+    ) -> AResult[ImageRow]:
+        """Get an ImageRow by public_id."""
+
+        try:
+            stmt: Select[Tuple[ImageRow]] = select(ImageRow).where(
+                ImageRow.public_id == public_id
+            )
+            result: Result[Tuple[ImageRow]] = await session.execute(stmt)
+            row: ImageRow | None = result.scalar_one_or_none()
+
+            if row is None:
+                return AResult(code=AResultCode.NOT_FOUND, message="Image not found")
+
+            session.expunge(row)
+
+            return AResult(code=AResultCode.OK, message="OK", result=row)
+
+        except Exception as e:
+            logger.error(f"Error getting image: {e}")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR, message="Error getting image"
+            )
+
+    @staticmethod
     async def get_image_from_id_async(
         session: AsyncSession,
         id: int,

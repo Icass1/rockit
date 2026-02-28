@@ -13,6 +13,8 @@ class DBSessionMiddleware(BaseHTTPMiddleware):
         request: Request,
         call_next: Callable[[Request], Awaitable[Response]],
     ) -> Response:
+        await rockit_db.wait_for_session_local_async()
+
         async with rockit_db.session_scope_async() as session:
             request.state.db = session
             response: Response = await call_next(request)

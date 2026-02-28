@@ -11,6 +11,7 @@ from backend.core.access.db.ormModels.song import CoreSongRow
 from backend.core.access.db.ormModels.album import CoreAlbumRow
 from backend.core.access.db.ormModels.artist import CoreArtistRow
 from backend.core.access.db.ormModels.playlist import CorePlaylistRow
+from backend.core.access.db.ormModels.image import ImageRow
 
 from backend.core.framework.provider.baseProvider import BaseProvider
 from backend.core.framework.providers.providers import Providers
@@ -188,4 +189,23 @@ class Media:
             code=AResultCode.OK,
             message="OK",
             result=SearchResultsResponse(results=results),
+        )
+
+    @staticmethod
+    async def get_image_async(
+        session: AsyncSession, public_id: str
+    ) -> AResult[ImageRow]:
+        """Get an image by public_id."""
+
+        a_result_image: AResult[ImageRow] = (
+            await MediaAccess.get_image_from_public_id_async(
+                session=session, public_id=public_id
+            )
+        )
+        if a_result_image.is_not_ok():
+            logger.error(f"Error getting image from database. {a_result_image.info()}")
+            return AResult(code=a_result_image.code(), message=a_result_image.message())
+
+        return AResult(
+            code=AResultCode.OK, message="OK", result=a_result_image.result()
         )

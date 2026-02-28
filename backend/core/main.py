@@ -5,8 +5,12 @@ from importlib import import_module
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
 
-from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 from backend.utils.logger import getLogger
+
+from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
+from backend.core.middlewares.requestLogMiddleware import RequestLogMiddleware
+
+from backend.core.access.db import rockit_db
 
 from backend.core.framework.downloader import downloads_manager
 
@@ -33,6 +37,7 @@ app.add_middleware(
 )
 
 app.add_middleware(DBSessionMiddleware)
+app.add_middleware(RequestLogMiddleware)
 
 # Search and initialize all routers.
 for dirpath, dirnames, filenames in os.walk("backend"):
@@ -60,6 +65,8 @@ for dirpath, dirnames, filenames in os.walk("backend"):
 @app.on_event("startup")
 async def app_startup():
     """Initialize core enums and start background tasks."""
+
+    await rockit_db.wait_for_session_local_async()
 
     asyncio.create_task(downloads_manager.download_manager(), name="Download Manager")
     # asyncio.create_task(telegram_bot_task(), name="Rockit Telegram Bot")

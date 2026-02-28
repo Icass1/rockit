@@ -1,8 +1,10 @@
 from logging import Logger
 
 from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from backend.constants import IMAGES_PATH
 from backend.utils.logger import getLogger
 
 from backend.core.aResult import AResult
@@ -94,3 +96,19 @@ async def search(request: Request, q: str) -> SearchResultsResponse:
         )
 
     return a_result.result()
+
+
+@router.get("/image/{public_id}")
+async def get_image(request: Request, public_id: str) -> FileResponse:
+    """Get an image by its public_id."""
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+    a_result = await Media.get_image_async(session=session, public_id=public_id)
+    if a_result.is_not_ok():
+        raise HTTPException(
+            status_code=a_result.get_http_code(), detail=a_result.message()
+        )
+
+    image = a_result.result()
+    image_path = IMAGES_PATH + "/" + image.path
+
+    return FileResponse(path=image_path)

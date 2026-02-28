@@ -109,6 +109,6 @@ export function getDatabaseDate(date?: Date | number | undefined | string) {
     } else if (typeof date == "undefined") {
         return getDatabaseDate(new Date());
     } else {
-        throw "date input not valid";
+        throw new Error("getDatabaseDate: invalid date input");
     }
 }

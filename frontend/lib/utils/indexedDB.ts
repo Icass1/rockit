@@ -1,5 +1,4 @@
 function fillImageIndexedDB(imageStore: IDBObjectStore) {
-    console.warn("fillImagesIndexedDB");
     if (!imageStore.indexNames.contains("id"))
         imageStore.createIndex("id", "id", { unique: true });
     if (!imageStore.indexNames.contains("blob"))
@@ -7,7 +6,6 @@ function fillImageIndexedDB(imageStore: IDBObjectStore) {
 }
 
 function fillSongIndexedDB(songsStore: IDBObjectStore) {
-    console.warn("fillSongsIndexedDB");
     if (!songsStore.indexNames.contains("id"))
         songsStore.createIndex("id", "id", { unique: true });
     if (!songsStore.indexNames.contains("value"))
@@ -15,7 +13,6 @@ function fillSongIndexedDB(songsStore: IDBObjectStore) {
 }
 
 function fillLangIndexedDB(langStore: IDBObjectStore) {
-    console.warn("fillLangIndexedDB");
     if (!langStore.indexNames.contains("lang"))
         langStore.createIndex("lang", "lang", { unique: true });
     if (!langStore.indexNames.contains("langData"))
@@ -25,7 +22,6 @@ function fillLangIndexedDB(langStore: IDBObjectStore) {
 }
 
 function fillUserIndexedDB(userStore: IDBObjectStore) {
-    console.warn("fillUserIndexedDB");
     if (!userStore.indexNames.contains("id"))
         userStore.createIndex("id", "id", { unique: true });
     if (!userStore.indexNames.contains("value"))
@@ -34,7 +30,6 @@ function fillUserIndexedDB(userStore: IDBObjectStore) {
         });
 }
 function fillApiRequestsIndexedDB(apiStore: IDBObjectStore) {
-    console.warn("fillApiRequestsIndexedDB");
     if (!apiStore.indexNames.contains("url"))
         apiStore.createIndex("url", "url", { unique: true });
     if (!apiStore.indexNames.contains("value"))
@@ -44,7 +39,6 @@ function fillApiRequestsIndexedDB(apiStore: IDBObjectStore) {
 }
 
 function fillFileIndexedDB(fileStore: IDBObjectStore) {
-    console.warn("fillFileIndexedDB");
     if (!fileStore.indexNames.contains("url"))
         fileStore.createIndex("url", "url", { unique: true });
     if (!fileStore.indexNames.contains("fileContent"))
@@ -58,7 +52,6 @@ function fillFileIndexedDB(fileStore: IDBObjectStore) {
 }
 
 function fillRSCIndexedDB(rscStore: IDBObjectStore) {
-    console.warn("fillRSCIndexedDB");
     if (!rscStore.indexNames.contains("url"))
         rscStore.createIndex("url", "url", { unique: true });
     if (!rscStore.indexNames.contains("fileContent"))
@@ -81,7 +74,6 @@ export function openRockItIndexedDB(): Promise<IDBDatabase> {
     return new Promise((resolve, reject) => {
         dbOpenRequest.onupgradeneeded = function (event) {
             const db = dbOpenRequest.result;
-            console.error("dbOpenRequest.onupgradeneeded 1");
 
             const transaction = (event?.target as IDBOpenDBRequest)
                 ?.transaction;
@@ -177,7 +169,6 @@ export function openRockItIndexedDB(): Promise<IDBDatabase> {
             }
             // No manual transaction.commit() needed
             transaction.oncomplete = () => {
-                console.log("Upgrade transaction completed.");
             };
         };
 

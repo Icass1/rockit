@@ -32,7 +32,7 @@ type ReadonlyAtom<T> = {
 
 type Atom<T> = {
     get(): T;
-    set(value: T, sendToSocket?: boolean): void;
+    set(value: T): void;
     subscribe(callback: (value: T) => void): () => void;
     listen(
         listener: (
@@ -165,6 +165,7 @@ export function createAtom<T>(
     ...args: undefined extends T ? [] | [T] : [T]
 ): Atom<T> {
     const baseAtom = atom<T>(...args);
+    let _readonly: ReadonlyAtom<T> | undefined;
 
     return {
         get() {
@@ -188,30 +189,43 @@ export function createAtom<T>(
             return baseAtom.off();
         },
         getReadonlyAtom() {
-            return {
-                get() {
-                    return baseAtom.get();
-                },
-                subscribe(callback) {
-                    return baseAtom.subscribe(callback);
-                },
-                listen(listener) {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    return baseAtom.listen(listener as any);
-                },
-                notify(oldValue) {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    return baseAtom.notify(oldValue as any);
-                },
-                off() {
-                    return baseAtom.off();
-                },
-                lc: baseAtom.lc,
-                value: baseAtom.value,
-            };
+            return (
+                _readonly ??=
+                    (() => {
+                        return {
+                            get() {
+                                return baseAtom.get();
+                            },
+                            subscribe(callback) {
+                                return baseAtom.subscribe(callback);
+                            },
+                            listen(listener) {
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                return baseAtom.listen(listener as any);
+                            },
+                            notify(oldValue) {
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                return baseAtom.notify(oldValue as any);
+                            },
+                            off() {
+                                return baseAtom.off();
+                            },
+                            get lc() {
+                                return baseAtom.lc;
+                            },
+                            get value() {
+                                return baseAtom.value;
+                            },
+                        };
+                    })()
+            );
         },
-        lc: baseAtom.lc,
-        value: baseAtom.value,
+        get lc() {
+            return baseAtom.lc;
+        },
+        get value() {
+            return baseAtom.value;
+        },
     };
 }
 
@@ -220,6 +234,7 @@ export function createArrayAtom<T>(
 ): ArrayAtom<T> {
     const tuple = (args.length ? args : [[]]) as [T[]];
     const baseAtom = atom<T[]>(...tuple);
+    let _readonlyArray: ReadonlyArrayAtom<T> | undefined;
 
     const setArray = (updater: (arr: T[]) => void): void => {
         const current = baseAtom.get();
@@ -253,185 +268,195 @@ export function createArrayAtom<T>(
             return baseAtom.off();
         },
         getReadonlyAtom(): ReadonlyArrayAtom<T> {
-            const currentArray = () => baseAtom.get();
+            return (
+                _readonlyArray ??=
+                    (() => {
+                        const currentArray = () => baseAtom.get();
 
-            return {
-                get: () => currentArray(),
-                subscribe: (
-                    listener: (
-                        value: readonly T[],
-                        oldValue?: readonly T[] | undefined
-                    ) => void
-                ) => baseAtom.subscribe(listener),
-                listen: (
-                    listener: (
-                        value: readonly T[],
-                        oldValue: readonly T[]
-                    ) => void
-                ) => baseAtom.listen(listener),
-                notify: (oldValue?: readonly T[]) => baseAtom.notify(oldValue),
-                off: () => baseAtom.off(),
-                lc: baseAtom.lc,
-                value: baseAtom.value,
+                        return {
+                            get: () => currentArray(),
+                            subscribe: (
+                                listener: (
+                                    value: readonly T[],
+                                    oldValue?: readonly T[] | undefined
+                                ) => void
+                            ) => baseAtom.subscribe(listener),
+                            listen: (
+                                listener: (
+                                    value: readonly T[],
+                                    oldValue: readonly T[]
+                                ) => void
+                            ) => baseAtom.listen(listener),
+                            notify: (oldValue?: readonly T[]) =>
+                                baseAtom.notify(oldValue),
+                            off: () => baseAtom.off(),
+                            get lc() {
+                                return baseAtom.lc;
+                            },
+                            get value() {
+                                return baseAtom.value;
+                            },
 
-                // --- Non-Mutating Array Methods ---
-                concat(...items: ConcatArray<T>[]): T[] {
-                    return currentArray().concat(...items);
-                },
-                slice(start?: number, end?: number): T[] {
-                    return currentArray().slice(start, end);
-                },
-                includes(searchElement: T, fromIndex?: number): boolean {
-                    return currentArray().includes(searchElement, fromIndex);
-                },
-                indexOf(searchElement: T, fromIndex?: number): number {
-                    return currentArray().indexOf(searchElement, fromIndex);
-                },
-                lastIndexOf(searchElement: T, fromIndex?: number): number {
-                    return currentArray().lastIndexOf(searchElement, fromIndex);
-                },
-                join(separator?: string): string {
-                    return currentArray().join(separator);
-                },
-                toString(): string {
-                    return currentArray().toString();
-                },
-                toLocaleString(): string {
-                    return currentArray().toLocaleString();
-                },
-                find(
-                    predicate: (
-                        value: T,
-                        index: number,
-                        obj: readonly T[]
-                    ) => boolean,
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    thisArg?: any
-                ): T | undefined {
-                    return currentArray().find(predicate, thisArg);
-                },
-                findIndex(
-                    predicate: (
-                        value: T,
-                        index: number,
-                        obj: readonly T[]
-                    ) => boolean,
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    thisArg?: any
-                ): number {
-                    return currentArray().findIndex(predicate, thisArg);
-                },
-                findLast(
-                    predicate: (
-                        value: T,
-                        index: number,
-                        obj: readonly T[]
-                    ) => boolean,
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    thisArg?: any
-                ): T | undefined {
-                    return currentArray().findLast(predicate, thisArg);
-                },
-                findLastIndex(
-                    predicate: (
-                        value: T,
-                        index: number,
-                        obj: readonly T[]
-                    ) => boolean,
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    thisArg?: any
-                ): number {
-                    return currentArray().findLastIndex(predicate, thisArg);
-                },
-                every(
-                    predicate: (
-                        value: T,
-                        index: number,
-                        obj: readonly T[]
-                    ) => boolean,
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    thisArg?: any
-                ): boolean {
-                    return currentArray().every(predicate, thisArg);
-                },
-                some(
-                    predicate: (
-                        value: T,
-                        index: number,
-                        obj: readonly T[]
-                    ) => boolean,
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    thisArg?: any
-                ): boolean {
-                    return currentArray().some(predicate, thisArg);
-                },
-                filter(
-                    predicate: (
-                        value: T,
-                        index: number,
-                        obj: readonly T[]
-                    ) => boolean,
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    thisArg?: any
-                ): T[] {
-                    return currentArray().filter(predicate, thisArg);
-                },
-                map<U>(
-                    callbackfn: (
-                        value: T,
-                        index: number,
-                        obj: readonly T[]
-                    ) => U,
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    thisArg?: any
-                ): U[] {
-                    return currentArray().map(callbackfn, thisArg);
-                },
-                flat<U>(this: U[][], depth?: number): U[] {
-                    return currentArray().flat(depth) as U[];
-                },
-                flatMap<U>(
-                    callback: (
-                        value: T,
-                        index: number,
-                        array: readonly T[]
-                    ) => U | readonly U[],
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    thisArg?: any
-                ): U[] {
-                    return currentArray().flatMap(callback, thisArg);
-                },
-                forEach(
-                    callbackfn: (
-                        value: T,
-                        index: number,
-                        obj: readonly T[]
-                    ) => void,
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    thisArg?: any
-                ): void {
-                    currentArray().forEach(callbackfn, thisArg);
-                },
+                            // --- Non-Mutating Array Methods ---
+                            concat(...items: ConcatArray<T>[]): T[] {
+                                return currentArray().concat(...items);
+                            },
+                            slice(start?: number, end?: number): T[] {
+                                return currentArray().slice(start, end);
+                            },
+                            includes(searchElement: T, fromIndex?: number): boolean {
+                                return currentArray().includes(searchElement, fromIndex);
+                            },
+                            indexOf(searchElement: T, fromIndex?: number): number {
+                                return currentArray().indexOf(searchElement, fromIndex);
+                            },
+                            lastIndexOf(searchElement: T, fromIndex?: number): number {
+                                return currentArray().lastIndexOf(searchElement, fromIndex);
+                            },
+                            join(separator?: string): string {
+                                return currentArray().join(separator);
+                            },
+                            toString(): string {
+                                return currentArray().toString();
+                            },
+                            toLocaleString(): string {
+                                return currentArray().toLocaleString();
+                            },
+                            find(
+                                predicate: (
+                                    value: T,
+                                    index: number,
+                                    obj: readonly T[]
+                                ) => boolean,
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                thisArg?: any
+                            ): T | undefined {
+                                return currentArray().find(predicate, thisArg);
+                            },
+                            findIndex(
+                                predicate: (
+                                    value: T,
+                                    index: number,
+                                    obj: readonly T[]
+                                ) => boolean,
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                thisArg?: any
+                            ): number {
+                                return currentArray().findIndex(predicate, thisArg);
+                            },
+                            findLast(
+                                predicate: (
+                                    value: T,
+                                    index: number,
+                                    obj: readonly T[]
+                                ) => boolean,
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                thisArg?: any
+                            ): T | undefined {
+                                return currentArray().findLast(predicate, thisArg);
+                            },
+                            findLastIndex(
+                                predicate: (
+                                    value: T,
+                                    index: number,
+                                    obj: readonly T[]
+                                ) => boolean,
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                thisArg?: any
+                            ): number {
+                                return currentArray().findLastIndex(predicate, thisArg);
+                            },
+                            every(
+                                predicate: (
+                                    value: T,
+                                    index: number,
+                                    obj: readonly T[]
+                                ) => boolean,
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                thisArg?: any
+                            ): boolean {
+                                return currentArray().every(predicate, thisArg);
+                            },
+                            some(
+                                predicate: (
+                                    value: T,
+                                    index: number,
+                                    obj: readonly T[]
+                                ) => boolean,
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                thisArg?: any
+                            ): boolean {
+                                return currentArray().some(predicate, thisArg);
+                            },
+                            filter(
+                                predicate: (
+                                    value: T,
+                                    index: number,
+                                    obj: readonly T[]
+                                ) => boolean,
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                thisArg?: any
+                            ): T[] {
+                                return currentArray().filter(predicate, thisArg);
+                            },
+                            map<U>(
+                                callbackfn: (
+                                    value: T,
+                                    index: number,
+                                    obj: readonly T[]
+                                ) => U,
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                thisArg?: any
+                            ): U[] {
+                                return currentArray().map(callbackfn, thisArg);
+                            },
+                            flat<U>(this: U[][], depth?: number): U[] {
+                                return currentArray().flat(depth) as U[];
+                            },
+                            flatMap<U>(
+                                callback: (
+                                    value: T,
+                                    index: number,
+                                    array: readonly T[]
+                                ) => U | readonly U[],
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                thisArg?: any
+                            ): U[] {
+                                return currentArray().flatMap(callback, thisArg);
+                            },
+                            forEach(
+                                callbackfn: (
+                                    value: T,
+                                    index: number,
+                                    obj: readonly T[]
+                                ) => void,
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                thisArg?: any
+                            ): void {
+                                currentArray().forEach(callbackfn, thisArg);
+                            },
 
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                reduceRight(callbackfn: any, initialValue?: any): any {
-                    return initialValue !== undefined
-                        ? currentArray().reduceRight(callbackfn, initialValue)
-                        : currentArray().reduceRight(callbackfn);
-                },
-                keys(): IterableIterator<number> {
-                    return currentArray().keys();
-                },
-                values(): IterableIterator<T> {
-                    return currentArray().values();
-                },
-                entries(): IterableIterator<[number, T]> {
-                    return currentArray().entries();
-                },
-                at(index: number): T | undefined {
-                    return currentArray().at(index);
-                },
-            };
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            reduceRight(callbackfn: any, initialValue?: any): any {
+                                return initialValue !== undefined
+                                    ? currentArray().reduceRight(callbackfn, initialValue)
+                                    : currentArray().reduceRight(callbackfn);
+                            },
+                            keys(): IterableIterator<number> {
+                                return currentArray().keys();
+                            },
+                            values(): IterableIterator<T> {
+                                return currentArray().values();
+                            },
+                            entries(): IterableIterator<[number, T]> {
+                                return currentArray().entries();
+                            },
+                            at(index: number): T | undefined {
+                                return currentArray().at(index);
+                            },
+                        };
+                    })()
+            );
         },
 
         // --- Array mutating methods ---
@@ -493,7 +518,11 @@ export function createArrayAtom<T>(
             baseAtom.set([]);
         },
 
-        lc: baseAtom.lc,
-        value: baseAtom.value,
+        get lc() {
+            return baseAtom.lc;
+        },
+        get value() {
+            return baseAtom.value;
+        },
     };
 }

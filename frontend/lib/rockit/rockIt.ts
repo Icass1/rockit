@@ -52,8 +52,6 @@ export class RockIt {
     // #endregion: Managers
 
     constructor() {
-        this.BACKEND_URL = "http://localhost:8000";
-
         if (typeof window === "undefined") return;
 
         this.webSocketManager.init(this.BACKEND_URL);

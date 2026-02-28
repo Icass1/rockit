@@ -6,8 +6,6 @@ export async function downloadFile(
     database: IDBDatabase,
     setResources?: Dispatch<SetStateAction<string[]>> | undefined
 ) {
-    console.log(`Downloading ${url}`);
-
     if (setResources) setResources((value) => [...value, url]);
 
     const response = await fetch(url);
@@ -64,8 +62,6 @@ export async function downloadRsc(url: string, database: IDBDatabase) {
                 vary: responsePreFetch.headers.get("vary"),
             },
         });
-    } else {
-        console.warn("responsePreFetch failed");
     }
 
     const response = await fetch(url, { headers: { rsc: "1" } });
@@ -82,8 +78,6 @@ export async function downloadRsc(url: string, database: IDBDatabase) {
                 vary: responsePreFetch.headers.get("vary"),
             },
         });
-    } else {
-        console.warn("response failed");
     }
 }
 
@@ -93,7 +87,6 @@ export async function downloadResources({
     setResources?: Dispatch<SetStateAction<string[]>> | undefined;
 }) {
     const database = await openRockItIndexedDB();
-    console.log("DAtabase opened");
 
     downloadFile("/", database, setResources);
     downloadFile("/library", database, setResources);

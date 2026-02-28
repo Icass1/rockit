@@ -18,7 +18,7 @@ export default function OnlineUserIndicator() {
             <span className="text-sm font-semibold tabular-nums">
                 {$onlineUsers}
             </span>
-            <User className="h-5 w-5" />
+            <User className="h-7 w-7" />
         </div>
     );
 }

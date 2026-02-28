@@ -176,6 +176,11 @@ export class AudioManager {
         throw new Error("(setSrc) Method not implemented.");
     }
 
+    simulateSongEnded() {
+        // TODO: Implement - triggers song ended logic for testing
+        console.warn("simulateSongEnded not implemented");
+    }
+
     // #endregion: Methods
 
     // #region: Handlers

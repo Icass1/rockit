@@ -151,6 +151,16 @@ export class QueueManager {
         throw "(addListToBottomAsync) Not implemented method";
     }
 
+    addSongNext(song: BaseSongWithAlbumResponse) {
+        // TODO: Implement backend - add song to play next
+        console.warn("addSongNext not implemented");
+    }
+
+    addSongToEnd(song: BaseSongWithAlbumResponse) {
+        // TODO: Implement backend - add song to end of queue
+        console.warn("addSongToEnd not implemented");
+    }
+
     // #endregion: Methods
 
     // #region: Getters

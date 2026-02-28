@@ -50,7 +50,7 @@ export default function SearchBarInput() {
                     if (pathname !== "/search") router.push("/search");
                 }}
                 // pr-16: espacio para spinner (16px) + X nativa (16px) + gaps
-                className="z-10 block h-10 w-full rounded-full bg-neutral-900 pl-10 pr-16 text-base font-semibold shadow focus:outline-0 md:z-50"
+                className="z-10 block h-10 w-full rounded-full bg-neutral-900 px-10 text-base font-semibold shadow focus:outline-0 md:z-50"
                 style={{
                     backgroundImage: "url(/search-icon.png)",
                     backgroundPosition: "15px center",
@@ -62,7 +62,7 @@ export default function SearchBarInput() {
 
             {/* Spinner — antes de la X nativa del input */}
             {searching && (
-                <div className="pointer-events-none absolute top-1/2 right-8 -translate-y-1/2">
+                <div className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2">
                     <div className="h-4 w-4 animate-spin rounded-full border-2 border-neutral-600 border-t-[#ec5588]" />
                 </div>
             )}

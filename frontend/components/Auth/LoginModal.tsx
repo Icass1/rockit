@@ -86,6 +86,7 @@ export default function LoginModal() {
                         src="/logo-banner.png"
                         className="w-1/2"
                         alt="Rock It!"
+                        priority
                     />
                 </div>
 

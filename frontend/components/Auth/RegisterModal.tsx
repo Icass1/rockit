@@ -85,6 +85,7 @@ export default function SignupModal() {
                 src="/logo-banner.png"
                 className="w-1/3"
                 alt="Rock It!"
+                priority
             />
 
             <h2 className="text-foreground mt-4 text-3xl font-extrabold">

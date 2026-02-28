@@ -14,7 +14,7 @@
         "source.fixAll.eslint": "always"
     },
     // "python.analysis.typeCheckingMode": "strict",
-    "python.analysis.typeCheckingMode": "standard",
+    // "python.analysis.typeCheckingMode": "standard",
     "python.analysis.autoFormatStrings": true,
     "python.analysis.autoImportCompletions": true,
     "python.analysis.inlayHints.callArgumentNames": "all",
@@ -22,4 +22,5 @@
     "python.analysis.inlayHints.pytestParameters": true,
     "python.analysis.inlayHints.variableTypes": true,
     "python-envs.defaultEnvManager": "ms-python.python:venv",
+    "css.lint.unknownAtRules": "ignore",
 }

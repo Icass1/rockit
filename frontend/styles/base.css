@@ -50,3 +50,13 @@ code {
         Menlo, Monaco, "Lucida Console", "Liberation Mono", "DejaVu Sans Mono",
         "Bitstream Vera Sans Mono", "Courier New", monospace;
 }
+
+/*
+ * Redefine md: para que solo se active cuando hay suficiente
+ * alto además de ancho — evita que móviles en landscape activen
+ * el layout de escritorio.
+ *
+ * móvil landscape: ~926px ancho × ~430px alto → NO activa md:
+ * tablet/desktop:  cualquier ancho × >500px alto → SÍ activa md:
+ */
+@custom-variant md (@media (min-width: 768px) and (min-height: 500px));

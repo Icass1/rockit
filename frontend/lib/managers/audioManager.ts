@@ -50,6 +50,9 @@ export class AudioManager {
         this._audio.onplay = (ev: Event) => {
             this.handleAudioPlay(ev);
         };
+        this._audio.onended = () => {
+            this.handleAudioEnded();
+        };
 
         AudioManager.#instance = this;
 
@@ -177,8 +180,7 @@ export class AudioManager {
     }
 
     simulateSongEnded() {
-        // TODO: Implement - triggers song ended logic for testing
-        console.warn("simulateSongEnded not implemented");
+        this.handleAudioEnded();
     }
 
     // #endregion: Methods
@@ -220,6 +222,38 @@ export class AudioManager {
     private handleAudioPlay(ev: Event) {
         this._playingAtom.set(true);
         console.log("(handleAudioPlay)", ev);
+    }
+
+    private handleAudioEnded() {
+        const repeat = rockIt.userManager.repeatSongAtom.get();
+        const random = rockIt.userManager.randomQueueAtom.get();
+        const queue = rockIt.queueManager.queue;
+        const currentQueueSongId = rockIt.queueManager.currentQueueSongId;
+
+        if (repeat === "one") {
+            this.play();
+            return;
+        }
+
+        const currentIndex = queue.findIndex(
+            (item) => item.queueSongId === currentQueueSongId
+        );
+
+        let nextIndex = currentIndex + 1;
+
+        if (random) {
+            nextIndex = Math.floor(Math.random() * queue.length);
+        }
+
+        if (nextIndex < queue.length) {
+            rockIt.queueManager.setQueueSongId(queue[nextIndex].queueSongId);
+            this.play();
+        } else if (repeat === "all" && queue.length > 0) {
+            rockIt.queueManager.setQueueSongId(queue[0].queueSongId);
+            this.play();
+        } else {
+            this.pause();
+        }
     }
     // #endregion: Handlers
 

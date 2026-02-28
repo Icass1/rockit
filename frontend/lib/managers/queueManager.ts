@@ -1,6 +1,5 @@
 import {
     BaseSongWithAlbumResponse,
-    BaseSongWithoutAlbumResponse,
     QueueResponseItem,
     QueueResponseSchema,
 } from "@/dto";
@@ -19,6 +18,7 @@ export class QueueManager {
 
     private _queueAtom = createArrayAtom<QueueResponseItem>([]);
     private _currentQueueSongIdAtom = createAtom<number | null>(0);
+    private _originalQueue: QueueResponseItem[] = [];
 
     // #endregion: Atoms
 
@@ -151,14 +151,65 @@ export class QueueManager {
         throw "(addListToBottomAsync) Not implemented method";
     }
 
-    addSongNext(song: BaseSongWithAlbumResponse) {
+    addSongNext(_song: BaseSongWithAlbumResponse) {
         // TODO: Implement backend - add song to play next
-        console.warn("addSongNext not implemented");
     }
 
-    addSongToEnd(song: BaseSongWithAlbumResponse) {
+    addSongToEnd(_song: BaseSongWithAlbumResponse) {
         // TODO: Implement backend - add song to end of queue
-        console.warn("addSongToEnd not implemented");
+    }
+
+    shuffleQueue() {
+        const currentQueueSongId = this.currentQueueSongId;
+        const currentQueue = this.queue;
+
+        if (!currentQueue.length) return;
+
+        this._originalQueue = [...currentQueue];
+
+        // Fisher-Yates shuffle
+        const shuffled = [...currentQueue];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+
+        // Keep current song at the front
+        const currentIndex = shuffled.findIndex(
+            (item) => item.queueSongId === currentQueueSongId
+        );
+        if (currentIndex > 0) {
+            [shuffled[0], shuffled[currentIndex]] = [
+                shuffled[currentIndex],
+                shuffled[0],
+            ];
+        }
+
+        this._queueAtom.set(shuffled);
+    }
+
+    restoreOriginalQueue() {
+        if (!this._originalQueue.length) return;
+
+        const currentQueueSongId = this.currentQueueSongId;
+        const restored = [...this._originalQueue];
+
+        // Keep current song at the front
+        const currentIndex = restored.findIndex(
+            (item) => item.queueSongId === currentQueueSongId
+        );
+        if (currentIndex > 0) {
+            [restored[0], restored[currentIndex]] = [
+                restored[currentIndex],
+                restored[0],
+            ];
+        }
+
+        this._queueAtom.set(restored);
+    }
+
+    saveOriginalQueue() {
+        this._originalQueue = [...this.queue];
     }
 
     // #endregion: Methods

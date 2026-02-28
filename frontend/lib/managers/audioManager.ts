@@ -226,7 +226,6 @@ export class AudioManager {
 
     private handleAudioEnded() {
         const repeat = rockIt.userManager.repeatSongAtom.get();
-        const random = rockIt.userManager.randomQueueAtom.get();
         const queue = rockIt.queueManager.queue;
         const currentQueueSongId = rockIt.queueManager.currentQueueSongId;
 
@@ -239,11 +238,7 @@ export class AudioManager {
             (item) => item.queueSongId === currentQueueSongId
         );
 
-        let nextIndex = currentIndex + 1;
-
-        if (random) {
-            nextIndex = Math.floor(Math.random() * queue.length);
-        }
+        const nextIndex = currentIndex + 1;
 
         if (nextIndex < queue.length) {
             rockIt.queueManager.setQueueSongId(queue[nextIndex].queueSongId);

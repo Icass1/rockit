@@ -1,5 +1,6 @@
 import { SessionResponse } from "@/dto";
 import { getUserInClient } from "@/lib/getUserInClient";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { createAtom } from "@/lib/store";
 
 export class UserManager {
@@ -32,7 +33,16 @@ export class UserManager {
 
     // #region: Methods
     toggleRandomQueue() {
-        this._randomQueueAtom.set(!this._randomQueueAtom.get());
+        const newState = !this._randomQueueAtom.get();
+        this._randomQueueAtom.set(newState);
+
+        if (!rockIt.queueManager.queue.length) return;
+
+        if (newState) {
+            rockIt.queueManager.shuffleQueue();
+        } else {
+            rockIt.queueManager.restoreOriginalQueue();
+        }
     }
 
     cyclerepeatSong() {

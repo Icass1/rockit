@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { useStore } from "@nanostores/react";
 import type { DebouncedFunc } from "lodash";
 import debounce from "lodash/debounce";
 import { rockIt } from "@/lib/rockit/rockIt";
@@ -12,6 +13,7 @@ export default function SearchBarInput() {
     const { langFile: lang } = useLanguage();
     const pathname = usePathname();
     const router = useRouter();
+    const searching = useStore(rockIt.searchManager.searchingAtom);
 
     const searchDebounce = useRef<DebouncedFunc<(q: string) => void> | null>(
         null
@@ -28,32 +30,42 @@ export default function SearchBarInput() {
     if (!lang) return null;
 
     return (
-        <input
-            type="search"
-            id="search-bar"
-            value={value}
-            onChange={(e) => {
-                const query = e.target.value;
-                setValue(query);
+        <div className="relative top-1/2 mx-auto w-full -translate-y-1/2">
+            <input
+                type="search"
+                id="search-bar"
+                value={value}
+                onChange={(e) => {
+                    const query = e.target.value;
+                    setValue(query);
 
-                if (query === "") {
-                    searchDebounce.current?.cancel();
-                    rockIt.searchManager.clearResults();
-                } else {
-                    searchDebounce.current?.(query);
-                }
-            }}
-            onClick={() => {
-                if (pathname !== "/search") router.push("/search");
-            }}
-            className="relative top-1/2 z-10 mx-auto block h-10 w-full -translate-y-1/2 rounded-full bg-neutral-900 px-10 text-base font-semibold shadow focus:outline-0 md:z-50"
-            style={{
-                backgroundImage: "url(/search-icon.png)",
-                backgroundPosition: "15px center",
-                backgroundSize: "14px",
-                backgroundRepeat: "no-repeat",
-            }}
-            placeholder={lang.search_bar}
-        />
+                    if (query === "") {
+                        searchDebounce.current?.cancel();
+                        rockIt.searchManager.clearResults();
+                    } else {
+                        searchDebounce.current?.(query);
+                    }
+                }}
+                onClick={() => {
+                    if (pathname !== "/search") router.push("/search");
+                }}
+                // pr-16: espacio para spinner (16px) + X nativa (16px) + gaps
+                className="z-10 block h-10 w-full rounded-full bg-neutral-900 pl-10 pr-16 text-base font-semibold shadow focus:outline-0 md:z-50"
+                style={{
+                    backgroundImage: "url(/search-icon.png)",
+                    backgroundPosition: "15px center",
+                    backgroundSize: "14px",
+                    backgroundRepeat: "no-repeat",
+                }}
+                placeholder={lang.search_bar}
+            />
+
+            {/* Spinner — antes de la X nativa del input */}
+            {searching && (
+                <div className="pointer-events-none absolute top-1/2 right-8 -translate-y-1/2">
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-neutral-600 border-t-[#ec5588]" />
+                </div>
+            )}
+        </div>
     );
 }

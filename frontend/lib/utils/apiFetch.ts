@@ -1,6 +1,8 @@
 interface ApiFetchOptions {
     headers?: HeadersInit;
     auth?: boolean;
+    // AbortSignal para cancelar la request (usado en searchManager)
+    signal?: AbortSignal;
 }
 
 export default async function apiFetch(
@@ -20,6 +22,7 @@ export default async function apiFetch(
                 Cookie: `session_id=${session}`,
             },
             cache: "no-store",
+            // signal no se pasa en SSR — las llamadas server-side no se cancelan
         });
 
         return res;
@@ -27,6 +30,7 @@ export default async function apiFetch(
         return fetch(`${rockIt.BACKEND_URL}${path}`, {
             headers: { ...options?.headers },
             credentials: "include",
+            signal: options?.signal,
         });
     }
 }

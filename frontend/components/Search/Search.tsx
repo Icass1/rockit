@@ -33,18 +33,21 @@ function EmptyState() {
 function SearchResults() {
     const { results, searching, query } = useSearchResults();
 
+    // Input is empty — show empty/welcome state
     if (!query) return <EmptyState />;
 
-    if (searching) {
+    // First search ever (no previous results yet) — show a full loading state
+    if (searching && !results) {
         return (
             <div className="flex h-full items-center justify-center text-white">
-                <span className="animate-pulse text-lg font-semibold">
+                <span className="animate-pulse text-xl font-semibold">
                     Searching...
                 </span>
             </div>
         );
     }
 
+    // Network/parse error with no results to fall back on
     if (!results?.results) {
         return (
             <p className="mx-10 block text-center text-sm font-bold text-red-500">
@@ -53,6 +56,9 @@ function SearchResults() {
         );
     }
 
+    // We have results — show them immediately.
+    // If a new search is in flight (searching === true), show a small inline
+    // indicator instead of blanking out the existing results.
     return (
         <div className="overflow-y-auto pt-0 md:pt-24">
             <SongsSection

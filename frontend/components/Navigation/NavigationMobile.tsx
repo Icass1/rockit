@@ -20,9 +20,7 @@ export default function NavigationMobile() {
 
     const $user = useStore(rockIt.userManager.userAtom);
 
-    if (!lang) return false;
-
-    if (!$user) return false;
+    if (!lang || !$user) return null;
 
     const pages = [
         {
@@ -64,8 +62,7 @@ export default function NavigationMobile() {
 
     return (
         <div
-            className="flex h-full w-full max-w-4xl flex-row items-center justify-center bg-[#1a1a1a]/80 py-2"
-            style={{ backdropFilter: "blur(10px)" }}
+            className="safe-area-bottom mobile-nav-blur flex h-14 w-full max-w-4xl flex-row items-center justify-center bg-[#1a1a1a]/80 py-2 touch-manipulation"
         >
             {pages
                 .filter((page) => typeof page != "undefined")

@@ -162,3 +162,9 @@
 .safe-area-bottom {
     padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
 }
+
+.mobile-nav-blur {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    will-change: backdrop-filter;
+}

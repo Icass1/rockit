@@ -1,6 +1,6 @@
 "use client";
 
-import { Playlist } from "@/lib/rockit/playlist";
+import { BasePlaylistResponse } from "@/dto";
 import { getMinutes } from "@/lib/utils/getTime";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useListDownload } from "@/components/List/hooks/useListDownload";
@@ -9,26 +9,27 @@ import ListOptions from "@/components/ListHeader/ListOptions";
 
 export default function PlaylistHeader({
     className,
-    playlistResponse,
+    playlist,
 }: {
     className: string;
-    playlistResponse: Parameters<typeof Playlist.fromResponse>[0];
+    playlist: BasePlaylistResponse;
 }) {
-    const playlist = Playlist.fromResponse(playlistResponse);
     const { langFile: lang } = useLanguage();
 
     const { isDownloading, downloadProgress, anyDownloaded, allDownloaded } =
         useListDownload({
             publicId: playlist.publicId,
             type: "playlist",
-            songs: playlist.songs,
+            songs: playlist.songs.map((song) => song.song),
         });
 
     if (!lang) return false;
 
-    const downloadCount = playlist.songs.filter((s) => s.downloaded).length;
+    const downloadCount = playlist.songs.filter(
+        (s) => s.song.downloaded
+    ).length;
     const totalDuration = playlist.songs.reduce(
-        (acc, s) => acc + (s.duration || 0),
+        (acc, s) => acc + (s.song.duration || 0),
         0
     );
 

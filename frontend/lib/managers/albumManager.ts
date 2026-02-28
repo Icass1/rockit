@@ -1,7 +1,10 @@
-import { BaseAlbumResponseSchema } from "@/dto";
+import {
+    BaseAlbumWithSongsResponseSchema,
+    BaseSongWithAlbumResponse,
+    BaseSongWithoutAlbumResponse,
+} from "@/dto";
 import { QueueListType } from "@/types/rockIt";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
 import apiFetch from "@/lib/utils/apiFetch";
 
 export class AlbumManager {
@@ -11,8 +14,8 @@ export class AlbumManager {
 
     // #endregion: Constructor
 
-    async getSpotifyAlbumAsync(publicId: string) {
-        const response = await apiFetch(`/spotify/album/${publicId}`, {
+    async getAlbumAsync(publicId: string) {
+        const response = await apiFetch(`/album/${publicId}`, {
             auth: false,
         });
         if (!response?.ok) {
@@ -21,11 +24,11 @@ export class AlbumManager {
 
         const responseJson = await response.json();
 
-        return BaseAlbumResponseSchema.parse(responseJson);
+        return BaseAlbumWithSongsResponseSchema.parse(responseJson);
     }
 
     async playAlbum(
-        songs: SongWithAlbum[],
+        songs: BaseSongWithAlbumResponse[],
         listType: QueueListType,
         listPublicId: string,
         startSongPublicId?: string

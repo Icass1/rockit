@@ -1,8 +1,8 @@
 from typing import List
 from pydantic import BaseModel
 
-from backend.core.responses.baseSongResponse import BaseSongResponse
+from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 
 
 class StatsResponse(BaseModel):
-    songs: List[BaseSongResponse]
+    songs: List[BaseSongWithAlbumResponse]

@@ -11,7 +11,7 @@ from backend.core.access.db.ormModels.declarativeMixin import (
 from backend.spotify.access.db.base import SpotifyBase
 
 if TYPE_CHECKING:
-    from backend.spotify.access.db.ormModels.playlist import SpotifyPlaylistRow
+    from backend.spotify.access.db.ormModels.playlist import PlaylistRow
     from backend.spotify.access.db.ormModels.track import TrackRow
 
 
@@ -29,8 +29,8 @@ class PlaylistTrackRow(SpotifyBase, TableDateUpdated, TableDateAdded):
     added_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=False)
     disabled: Mapped[bool] = mapped_column(Boolean, nullable=False)
 
-    playlist: Mapped["SpotifyPlaylistRow"] = relationship(
-        "SpotifyPlaylistRow", back_populates="playlist_song_links"
+    playlist: Mapped["PlaylistRow"] = relationship(
+        "PlaylistRow", back_populates="playlist_song_links"
     )
     track: Mapped["TrackRow"] = relationship(
         "TrackRow", back_populates="playlist_song_links"

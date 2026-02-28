@@ -2,11 +2,10 @@
 
 import { useEffect, useMemo, useRef } from "react";
 import Image from "next/image";
-import { StatsResponseSchema } from "@/dto";
+import { BaseSongWithoutAlbumResponse, StatsResponseSchema } from "@/dto";
 import { useStore } from "@nanostores/react";
 import { ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { SongWithoutAlbum } from "@/lib/rockit/songWithoutAlbum";
 import useFetch from "@/hooks/useFetch";
 import useWindowSize from "@/hooks/useWindowSize";
 import { useCarousel } from "@/components/Home/hooks/useCarousel";
@@ -55,8 +54,8 @@ function CarouselSong({
 }: {
     index: number;
     currentIndex: number;
-    song: SongWithoutAlbum;
-    songs: SongWithoutAlbum[];
+    song: BaseSongWithoutAlbumResponse;
+    songs: BaseSongWithoutAlbumResponse[];
     total: number;
     isMobile: boolean;
 }) {
@@ -154,7 +153,7 @@ export default function SongsCarousel() {
 
     const parsedSongs = useMemo(() => {
         if (!songs) return [];
-        return songs.map((song) => SongWithoutAlbum.fromResponse(song));
+        return songs;
     }, [songs]);
 
     // Touch events con passive: true para iOS
@@ -196,7 +195,7 @@ export default function SongsCarousel() {
                         key={song.publicId}
                         index={index}
                         currentIndex={currentIndex}
-                        song={SongWithoutAlbum.fromResponse(song)}
+                        song={song}
                         songs={parsedSongs}
                         total={songs.length}
                         isMobile={isMobile}

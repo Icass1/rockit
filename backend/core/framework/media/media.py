@@ -15,8 +15,8 @@ from backend.core.access.db.ormModels.playlist import CorePlaylistRow
 from backend.core.framework.provider.baseProvider import BaseProvider
 from backend.core.framework.providers.providers import Providers
 
-from backend.core.responses.baseSongResponse import BaseSongResponse
-from backend.core.responses.baseAlbumResponse import BaseAlbumResponse
+from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
+from backend.core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
 from backend.core.responses.baseArtistResponse import BaseArtistResponse
 from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
 from backend.core.responses.searchResponse import (
@@ -31,11 +31,13 @@ class Media:
     @staticmethod
     async def get_song_async(
         session: AsyncSession, public_id: str, providers: Providers
-    ) -> AResult[BaseSongResponse]:
+    ) -> AResult[BaseSongWithAlbumResponse]:
         """Get a song by public_id, dispatching to the matched provider."""
 
         a_result_song: AResult[CoreSongRow] = (
-            await MediaAccess.get_song_from_public_id_async(session, public_id)
+            await MediaAccess.get_song_from_public_id_async(
+                session=session, public_id=public_id
+            )
         )
         if a_result_song.is_not_ok():
             logger.error(f"Error getting song from database. {a_result_song.info()}")
@@ -51,7 +53,7 @@ class Media:
                 code=AResultCode.NOT_FOUND, message="Provider not found for song"
             )
 
-        a_result: AResult[BaseSongResponse] = await provider.get_song_async(
+        a_result: AResult[BaseSongWithAlbumResponse] = await provider.get_song_async(
             session=session, public_id=public_id
         )
         if a_result.is_not_ok():
@@ -63,7 +65,7 @@ class Media:
     @staticmethod
     async def get_album_async(
         session: AsyncSession, public_id: str, providers: Providers
-    ) -> AResult[BaseAlbumResponse]:
+    ) -> AResult[BaseAlbumWithSongsResponse]:
         """Get an album by public_id, dispatching to the matched provider."""
 
         a_result_album: AResult[CoreAlbumRow] = (
@@ -81,7 +83,7 @@ class Media:
                 code=AResultCode.NOT_FOUND, message="Provider not found for album"
             )
 
-        a_result: AResult[BaseAlbumResponse] = await provider.get_album_async(
+        a_result: AResult[BaseAlbumWithSongsResponse] = await provider.get_album_async(
             session=session, public_id=public_id
         )
         if a_result.is_not_ok():

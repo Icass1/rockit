@@ -1,6 +1,5 @@
+import { BaseAlbumWithoutSongsResponse, BasePlaylistResponse } from "@/dto";
 import { DBListType } from "@/types/rockIt";
-import { AlbumWithoutSongs } from "@/lib/rockit/albumWithoutSongs";
-import { Playlist } from "@/lib/rockit/playlist";
 import { RESPONSE_UNDEFINED_MESSAGE, rockIt } from "@/lib/rockit/rockIt";
 import { createArrayAtom } from "@/lib/store";
 import apiFetch from "@/lib/utils/apiFetch";
@@ -16,9 +15,9 @@ export class ListManager {
     //     type: DBListType;
     // }>([]);
 
-    private _pinnedListsAtom = createArrayAtom<AlbumWithoutSongs | Playlist>(
-        []
-    );
+    private _pinnedListsAtom = createArrayAtom<
+        BaseAlbumWithoutSongsResponse | BasePlaylistResponse
+    >([]);
 
     constructor() {}
 

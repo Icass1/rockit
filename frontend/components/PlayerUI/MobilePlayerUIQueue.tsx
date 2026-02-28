@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import { QueueResponseItem } from "@/dto";
 import { useStore } from "@nanostores/react";
 import {
     GripVertical,
@@ -9,7 +10,6 @@ import {
     PlayCircle,
 } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { SongQueue } from "@/lib/rockit/songQueue";
 import useWindowSize from "@/hooks/useWindowSize";
 import { useLanguage } from "@/contexts/LanguageContext";
 import ContextMenuContent from "@/components/ContextMenu/Content";
@@ -47,7 +47,7 @@ export default function MobilePlayerUIQueue({
 
     const touchStart = (
         e: React.TouchEvent,
-        song: SongQueue,
+        song: QueueResponseItem,
         index: number
     ) => {
         startDrag(e.touches[0].clientY, song, index);
@@ -55,9 +55,9 @@ export default function MobilePlayerUIQueue({
 
     // TODO: implement when queueManager supports reorder / remove
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const handleRemoveSong = (_song: SongQueue) => {};
+    const handleRemoveSong = (_song: QueueResponseItem) => {};
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const handlePlaySong = async (_song: SongQueue) => {};
+    const handlePlaySong = async (_song: QueueResponseItem) => {};
 
     const { langFile: lang } = useLanguage();
     const hasQueue = $queue && $queue.length > 0;

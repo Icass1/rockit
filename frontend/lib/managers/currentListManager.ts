@@ -1,13 +1,12 @@
-import { SongPlaylist } from "@/lib/rockit/songPlaylist";
-import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
+import { BaseSongWithAlbumResponse } from "@/dto";
 import { createArrayAtom } from "@/lib/store";
 
 export class CurrentListManager {
     // #region: Atoms
 
-    private _currentListSongsAtom = createArrayAtom<
-        SongWithAlbum | SongPlaylist
-    >([]);
+    private _currentListSongsAtom = createArrayAtom<BaseSongWithAlbumResponse>(
+        []
+    );
 
     // #endregion: Atoms
 
@@ -19,7 +18,7 @@ export class CurrentListManager {
 
     // #region: Methods
 
-    setCurrentListSongs(songs: SongWithAlbum[]) {
+    setCurrentListSongs(songs: BaseSongWithAlbumResponse[]) {
         this._currentListSongsAtom.set(songs);
     }
 

@@ -16,7 +16,7 @@ from backend.spotify.access.db.ormModels.playlist_tracks import PlaylistTrackRow
 from backend.spotify.access.db.ormModels.externalImage import ExternalImageRow
 
 
-class SpotifyPlaylistRow(SpotifyBase, TableDateUpdated, TableDateAdded):
+class PlaylistRow(SpotifyBase, TableDateUpdated, TableDateAdded):
     __tablename__ = "playlist"
     __table_args__ = ({"schema": "spotify", "extend_existing": True},)
 

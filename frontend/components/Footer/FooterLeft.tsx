@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { BaseSongWithAlbumResponse } from "@/dto";
 import { Station } from "@/types/station";
 import { useStore } from "@nanostores/react";
 import {
@@ -12,11 +13,14 @@ import {
     PlayIcon,
 } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
 import LikeButton from "@/components/LikeButton";
 import SongPopupMenu from "@/components/ListSongs/SongPopupMenu";
 
-function FooterLeftForSong({ currentSong }: { currentSong: SongWithAlbum }) {
+function FooterLeftForSong({
+    currentSong,
+}: {
+    currentSong: BaseSongWithAlbumResponse;
+}) {
     const $playing = useStore(rockIt.audioManager.playingAtom);
     const $queue = useStore(rockIt.queueManager.queueAtom);
 

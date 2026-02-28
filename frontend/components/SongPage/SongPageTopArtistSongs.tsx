@@ -3,11 +3,15 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Artist } from "@/lib/rockit/artist";
-import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
+import { BaseArtistResponse, BaseSongWithAlbumResponse } from "@/dto";
 
-export default function SongPageTopArtistSongs({ artist }: { artist: Artist }) {
-    const [artistSongs, setArtistSongs] = useState<SongWithAlbum[]>();
+export default function SongPageTopArtistSongs({
+    artist,
+}: {
+    artist: BaseArtistResponse;
+}) {
+    const [artistSongs, setArtistSongs] =
+        useState<BaseSongWithAlbumResponse[]>();
 
     useEffect(() => {
         console.log("(SongPageTopArtistSongs)", { setArtistSongs });

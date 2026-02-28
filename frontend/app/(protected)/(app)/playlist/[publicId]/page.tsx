@@ -6,7 +6,7 @@ import PlaylistSongsView from "@/components/Playlist/PlaylistSongsView";
 
 const getPlaylist = cache(async (publicId: string) => {
     const playlist = await rockIt.playlistManager
-        .getSpotifyPlaylistAsync(publicId)
+        .getPlaylistAsync(publicId)
         .catch(() => null); // ← normaliza errores de red / 5xx / timeouts
     return playlist;
 });
@@ -40,32 +40,14 @@ export default async function PlaylistPage({
 
     if (!playlistResponse) notFound();
 
-    const playlistWithSongs = {
-        ...playlistResponse,
-        songs: [],
-        internalImageUrl: null,
-        owner: "",
-        externalImages: [],
-    };
-
     return (
         <div className="relative flex h-full w-full flex-col gap-2 px-3 md:flex-row md:px-2">
             <PlaylistHeader
-                playlistResponse={
-                    playlistWithSongs as unknown as Parameters<
-                        typeof PlaylistHeader
-                    >[0]["playlistResponse"]
-                }
+                playlist={playlistResponse}
                 className="hidden w-full md:flex"
             />
 
-            <PlaylistSongsView
-                playlistResponse={
-                    playlistWithSongs as unknown as Parameters<
-                        typeof PlaylistSongsView
-                    >[0]["playlistResponse"]
-                }
-            />
+            <PlaylistSongsView playlist={playlistResponse} />
         </div>
     );
 }

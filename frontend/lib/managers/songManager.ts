@@ -1,5 +1,7 @@
-import { BaseSongResponseSchema } from "@/dto";
-import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
+import {
+    BaseSongWithAlbumResponse,
+    BaseSongWithAlbumResponseSchema,
+} from "@/dto";
 import { createArrayAtom } from "@/lib/store";
 import apiFetch from "@/lib/utils/apiFetch";
 
@@ -18,17 +20,17 @@ export class SongManager {
 
     // #region: Methods
 
-    async getSpotifySongAsync(publicId: string) {
-        const response = await apiFetch(`/spotify/song/${publicId}`, {
+    async getSongAsync(publicId: string) {
+        const response = await apiFetch(`/media/song/${publicId}`, {
             auth: false,
         });
         if (!response?.ok) {
-            throw "Error fetching album.";
+            throw "Error fetching song.";
         }
 
         const responseJson = await response.json();
 
-        return BaseSongResponseSchema.parse(responseJson);
+        return BaseSongWithAlbumResponseSchema.parse(responseJson);
     }
 
     toggleLikeSong(songPublicId: string) {
@@ -72,7 +74,7 @@ export class SongManager {
         throw new Error("Method not implemented.");
     }
 
-    playSong(song: SongWithAlbum) {
+    playSong(song: BaseSongWithAlbumResponse) {
         console.log(song);
         throw new Error("Method not implemented.");
         // const _currentList = currentList.get();

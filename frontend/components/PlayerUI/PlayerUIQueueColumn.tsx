@@ -1,13 +1,13 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { QueueResponseItem } from "@/dto";
 import { Lang } from "@/types/lang";
-import { SongQueue } from "@/lib/rockit/songQueue";
 import { PlayerUIQueueList } from "@/components/PlayerUI/PlayerUIQueueList";
 import { PlayerUIRelatedTab } from "@/components/PlayerUI/PlayerUIRelatedTab";
 
 interface PlayerUIQueueColumnProps {
-    queue: SongQueue[];
+    queue: QueueResponseItem[];
     lang: Lang;
 }
 

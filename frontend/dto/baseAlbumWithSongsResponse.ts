@@ -2,10 +2,9 @@ import { z } from "zod";
 import {
     BaseArtistResponseSchema,
     BaseSongWithoutAlbumResponseSchema,
-    ExternalImageResponseSchema,
 } from "@/dto";
 
-export const AlbumResponseSchema = z.object({
+export const BaseAlbumWithSongsResponseSchema = z.object({
     type: z.union([z.literal("album")]),
     provider: z.string(),
     publicId: z.string(),
@@ -14,8 +13,8 @@ export const AlbumResponseSchema = z.object({
     releaseDate: z.string(),
     internalImageUrl: z.string(),
     songs: z.array(z.lazy(() => BaseSongWithoutAlbumResponseSchema)),
-    spotifyId: z.string(),
-    externalImages: z.array(z.lazy(() => ExternalImageResponseSchema)),
 });
 
-export type AlbumResponse = z.infer<typeof AlbumResponseSchema>;
+export type BaseAlbumWithSongsResponse = z.infer<
+    typeof BaseAlbumWithSongsResponseSchema
+>;

@@ -16,9 +16,13 @@ from backend.core.responses.searchResponse import (
 )
 from backend.core.responses.baseArtistResponse import BaseArtistResponse
 from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
-from backend.core.responses.baseSongAlbumResponse import BaseSongAlbumResponse
-from backend.core.responses.baseSongPlaylistResponse import BaseSongPlaylistResponse
-from backend.core.responses.baseSongResponse import BaseSongResponse
+from backend.core.responses.baseAlbumWithoutSongsResponse import (
+    BaseAlbumWithoutSongsResponse,
+)
+from backend.core.responses.baseSongForPlaylistResponse import (
+    BaseSongForPlaylistResponse,
+)
+from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 
 from backend.spotify.access.spotifyAccess import SpotifyAccess
 from backend.spotify.access.db.ormModels.album import AlbumRow
@@ -321,7 +325,7 @@ class Spotify:
                         duration=track_row.duration,
                         discNumber=track_row.disc_number,
                         trackNumber=track_row.track_number,
-                        album=BaseSongAlbumResponse(
+                        album=BaseAlbumWithoutSongsResponse(
                             provider=Spotify.provider_name,
                             publicId=album_row.spotify_id,
                             name=album_row.name,
@@ -593,7 +597,7 @@ class Spotify:
                     duration=track_row.duration,
                     discNumber=track_row.disc_number,
                     trackNumber=track_row.track_number,
-                    album=BaseSongAlbumResponse(
+                    album=BaseAlbumWithoutSongsResponse(
                         provider=Spotify.provider_name,
                         publicId=album_row.spotify_id,
                         name=album_row.name,
@@ -775,7 +779,7 @@ class Spotify:
                     duration=track_row.duration,
                     discNumber=track_row.disc_number,
                     trackNumber=track_row.track_number,
-                    album=BaseSongAlbumResponse(
+                    album=BaseAlbumWithoutSongsResponse(
                         provider=Spotify.provider_name,
                         publicId=album_row.spotify_id,
                         name=album_row.name,
@@ -873,6 +877,10 @@ class Spotify:
             )
             if a.is_ok():
                 artist_map[raw_artist.id] = a.result()
+            else:
+                logger.error(
+                    f"Failed to get/create artist {raw_artist.id}: {a.message()}"
+                )
 
         a_result_album: AResult[AlbumRow] = await SpotifyAccess.get_or_create_album(
             raw=raw_album,
@@ -1042,7 +1050,7 @@ class Spotify:
                 duration=fetched_track_row.duration,
                 discNumber=fetched_track_row.disc_number,
                 trackNumber=fetched_track_row.track_number,
-                album=BaseSongAlbumResponse(
+                album=BaseAlbumWithoutSongsResponse(
                     provider=Spotify.provider_name,
                     publicId=fetched_album_row.spotify_id,
                     name=fetched_album_row.name,
@@ -1188,15 +1196,15 @@ class Spotify:
         """Get a playlist by ID, fetching from Spotify API and populating the database if not found."""
 
         # Check DB.
-        from backend.spotify.access.db.ormModels.playlist import SpotifyPlaylistRow
+        from backend.spotify.access.db.ormModels.playlist import PlaylistRow
 
-        a_result_playlist: AResult[SpotifyPlaylistRow] = (
+        a_result_playlist: AResult[PlaylistRow] = (
             await SpotifyAccess.get_playlist_public_id_async(
                 session=session, spotify_id=spotify_id
             )
         )
         if a_result_playlist.is_ok():
-            playlist_row: SpotifyPlaylistRow = a_result_playlist.result()
+            playlist_row: PlaylistRow = a_result_playlist.result()
 
             internal_image_url: str = ""
             if playlist_row.internal_image_id:
@@ -1217,7 +1225,7 @@ class Spotify:
             if a_result_track_links.is_ok():
                 playlist_track_links = a_result_track_links.result()
 
-            song_responses: List[BaseSongPlaylistResponse] = []
+            song_responses: List[BaseSongForPlaylistResponse] = []
             for playlist_track_row, track_row in playlist_track_links:
                 a_result_core_song: AResult[CoreSongRow] = (
                     await MediaAccess.get_song_from_id_async(
@@ -1340,8 +1348,8 @@ class Spotify:
                     )
 
                 song_responses.append(
-                    BaseSongPlaylistResponse(
-                        song=BaseSongResponse(
+                    BaseSongForPlaylistResponse(
+                        song=BaseSongWithAlbumResponse(
                             provider=Spotify.provider_name,
                             publicId=core_song.public_id,
                             name=track_row.name,
@@ -1352,7 +1360,7 @@ class Spotify:
                             duration=track_row.duration,
                             discNumber=track_row.disc_number,
                             trackNumber=track_row.track_number,
-                            album=BaseSongAlbumResponse(
+                            album=BaseAlbumWithoutSongsResponse(
                                 provider=Spotify.provider_name,
                                 publicId=album_row.spotify_id,
                                 name=album_row.name,
@@ -1510,7 +1518,7 @@ class Spotify:
                 message=a_result_playlist.message(),
             )
 
-        a_result_fetched_playlist: AResult[SpotifyPlaylistRow] = (
+        a_result_fetched_playlist: AResult[PlaylistRow] = (
             await SpotifyAccess.get_playlist_public_id_async(
                 session=session, spotify_id=spotify_id
             )
@@ -1521,7 +1529,7 @@ class Spotify:
                 message=a_result_fetched_playlist.message(),
             )
 
-        fetched_playlist_row: SpotifyPlaylistRow = a_result_fetched_playlist.result()
+        fetched_playlist_row: PlaylistRow = a_result_fetched_playlist.result()
 
         fetched_internal_image_url: str = ""
         if fetched_playlist_row.internal_image_id:
@@ -1542,7 +1550,7 @@ class Spotify:
         if a_result_fetched_track_links.is_ok():
             fetched_playlist_track_links = a_result_fetched_track_links.result()
 
-        fetched_song_responses: List[BaseSongPlaylistResponse] = []
+        fetched_song_responses: List[BaseSongForPlaylistResponse] = []
         for playlist_track_row, track_row in fetched_playlist_track_links:
             a_result_core_song: AResult[CoreSongRow] = (
                 await MediaAccess.get_song_from_id_async(
@@ -1661,8 +1669,8 @@ class Spotify:
                 )
 
             fetched_song_responses.append(
-                BaseSongPlaylistResponse(
-                    song=BaseSongResponse(
+                BaseSongForPlaylistResponse(
+                    song=BaseSongWithAlbumResponse(
                         provider=Spotify.provider_name,
                         publicId=core_song.public_id,
                         name=track_row.name,
@@ -1673,7 +1681,7 @@ class Spotify:
                         duration=track_row.duration,
                         discNumber=track_row.disc_number,
                         trackNumber=track_row.track_number,
-                        album=BaseSongAlbumResponse(
+                        album=BaseAlbumWithoutSongsResponse(
                             provider=Spotify.provider_name,
                             publicId=album_row.spotify_id,
                             name=album_row.name,

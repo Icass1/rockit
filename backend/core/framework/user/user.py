@@ -14,7 +14,7 @@ from backend.core.framework.provider.baseProvider import BaseProvider
 from backend.core.framework import providers
 
 from backend.core.responses.queueResponse import QueueResponse
-from backend.core.responses.baseAlbumResponse import BaseAlbumResponse
+from backend.core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
 
 logger = getLogger(__name__)
 
@@ -30,7 +30,7 @@ class User:
     @staticmethod
     async def get_user_albums(
         session: AsyncSession, user_id: int
-    ) -> AResult[List[BaseAlbumResponse]]:
+    ) -> AResult[List[BaseAlbumWithSongsResponse]]:
         """Get all albums for a user."""
 
         a_result_albums: AResult[
@@ -43,7 +43,7 @@ class User:
                 code=a_result_albums.code(), message=a_result_albums.message()
             )
 
-        albums: List[BaseAlbumResponse] = []
+        albums: List[BaseAlbumWithSongsResponse] = []
         for _, album, provider in a_result_albums.result():
             provider_instance: BaseProvider | None = providers.find_provider(
                 provider_id=provider.id
@@ -52,7 +52,7 @@ class User:
                 logger.error(f"No provider found for provider_id {provider.id}.")
                 continue
 
-            a_result_album: AResult[BaseAlbumResponse] = (
+            a_result_album: AResult[BaseAlbumWithSongsResponse] = (
                 await provider_instance.get_album_async(
                     session=session, public_id=album.public_id
                 )

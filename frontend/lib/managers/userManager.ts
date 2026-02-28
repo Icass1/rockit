@@ -1,5 +1,5 @@
+import { SessionResponse } from "@/dto";
 import { getUserInClient } from "@/lib/getUserInClient";
-import { User } from "@/lib/rockit/user";
 import { createAtom } from "@/lib/store";
 
 export class UserManager {
@@ -8,7 +8,7 @@ export class UserManager {
     private _randomQueueAtom = createAtom<boolean>(false);
     private _repeatSongAtom = createAtom<"all" | "one" | "off">("off");
 
-    private _userAtom = createAtom<User | undefined>();
+    private _userAtom = createAtom<SessionResponse | undefined>();
 
     // #endregion
 
@@ -25,7 +25,7 @@ export class UserManager {
             console.warn("No session found in UserManager");
         }
 
-        this._userAtom.set(User.fromResponse(session));
+        this._userAtom.set(session);
     }
 
     // #endregion

@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { BaseArtistResponseSchema } from "@/dto";
 
-export const BaseSongAlbumResponseSchema = z.object({
+export const BaseAlbumWithoutSongsResponseSchema = z.object({
+    type: z.union([z.literal("album")]),
     provider: z.string(),
     publicId: z.string(),
     name: z.string(),
@@ -10,4 +11,6 @@ export const BaseSongAlbumResponseSchema = z.object({
     internalImageUrl: z.string(),
 });
 
-export type BaseSongAlbumResponse = z.infer<typeof BaseSongAlbumResponseSchema>;
+export type BaseAlbumWithoutSongsResponse = z.infer<
+    typeof BaseAlbumWithoutSongsResponseSchema
+>;

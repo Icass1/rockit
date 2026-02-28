@@ -94,14 +94,14 @@ export class AudioManager {
             return;
         }
         if (
-            rockIt.queueManager.currentSong?.audioUrl &&
-            this._audio.src != rockIt.queueManager.currentSong.audioUrl
+            rockIt.queueManager.currentSong?.audioSrc &&
+            this._audio.src != rockIt.queueManager.currentSong.audioSrc
         ) {
             console.log(
-                `(setSong) Setting audio src to ${rockIt.queueManager.currentSong.audioUrl}`
+                `(setSong) Setting audio src to ${rockIt.queueManager.currentSong.audioSrc}`
             );
             this._audio.volume = this._currentVolume.get();
-            this._audio.src = rockIt.queueManager.currentSong.audioUrl;
+            this._audio.src = rockIt.queueManager.currentSong.audioSrc;
 
             rockIt.webSocketManager.send({
                 currentSong: rockIt.queueManager.currentSong.publicId,

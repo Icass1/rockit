@@ -2,6 +2,7 @@
 
 import { type ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import { BaseSongWithAlbumResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
 import {
     Copy,
@@ -17,7 +18,6 @@ import {
     Share2,
 } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
 import { networkStatus } from "@/lib/stores/networkStatus";
 import useDev from "@/hooks/useDev";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -33,7 +33,7 @@ export default function SongPopupMenu({
     song,
 }: {
     children: ReactNode;
-    song: SongWithAlbum;
+    song: BaseSongWithAlbumResponse;
 }) {
     const { langFile: lang } = useLanguage();
     const router = useRouter();

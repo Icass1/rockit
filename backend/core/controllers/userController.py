@@ -19,7 +19,7 @@ from backend.core.middlewares.authMiddleware import AuthMiddleware
 from backend.core.responses.libraryListsResponse import LibraryListsResponse
 from backend.core.responses.queueResponse import QueueResponse
 from backend.core.responses.sessionResponse import SessionResponse
-from backend.core.responses.baseAlbumResponse import BaseAlbumResponse
+from backend.core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
 
 ph = PasswordHasher(
     time_cost=2,
@@ -83,7 +83,7 @@ def get_library_lists(request: Request) -> LibraryListsResponse:
 
 
 @router.get(path="/library/albums")
-async def get_user_albums(request: Request) -> List[BaseAlbumResponse]:
+async def get_user_albums(request: Request) -> List[BaseAlbumWithSongsResponse]:
     """Get all albums in the user's library."""
 
     session: AsyncSession = DBSessionMiddleware.get_session(request)
@@ -95,8 +95,8 @@ async def get_user_albums(request: Request) -> List[BaseAlbumResponse]:
             status_code=a_result_user.get_http_code(), detail=a_result_user.message()
         )
 
-    a_result_albums: AResult[List[BaseAlbumResponse]] = await User.get_user_albums(
-        session, user_id=a_result_user.result().id
+    a_result_albums: AResult[List[BaseAlbumWithSongsResponse]] = (
+        await User.get_user_albums(session, user_id=a_result_user.result().id)
     )
 
     if a_result_albums.is_not_ok():

@@ -1,5 +1,8 @@
 import { z } from "zod";
-import { BaseArtistResponseSchema, BaseSongAlbumResponseSchema } from "@/dto";
+import {
+    BaseAlbumWithoutSongsResponseSchema,
+    BaseArtistResponseSchema,
+} from "@/dto";
 
 export const SongResponseSchema = z.object({
     provider: z.string(),
@@ -12,7 +15,7 @@ export const SongResponseSchema = z.object({
     duration: z.number(),
     discNumber: z.number(),
     trackNumber: z.number(),
-    album: z.lazy(() => BaseSongAlbumResponseSchema),
+    album: z.lazy(() => BaseAlbumWithoutSongsResponseSchema),
     spotifyId: z.string(),
 });
 

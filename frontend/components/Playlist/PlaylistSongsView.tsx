@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { BasePlaylistResponse, BaseSongForPlaylistResponse } from "@/dto";
 import { ArrowUp } from "lucide-react";
-import { Playlist } from "@/lib/rockit/playlist";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { SongPlaylist } from "@/lib/rockit/songPlaylist";
 import useWindowSize from "@/hooks/useWindowSize";
 import { useLanguage } from "@/contexts/LanguageContext";
 import PlaylistSong from "@/components/ListSongs/PlaylistSong";
@@ -13,12 +12,10 @@ import PlaylistHeader from "@/components/Playlist/PlaylistHeader";
 type ColumnsType = "name" | "album" | "artist" | "addedAt" | "duration";
 
 export default function PlaylistSongsView({
-    playlistResponse,
+    playlist,
 }: {
-    playlistResponse: Parameters<typeof Playlist.fromResponse>[0];
+    playlist: BasePlaylistResponse;
 }) {
-    const playlist = Playlist.fromResponse(playlistResponse);
-
     useEffect(() => {
         rockIt.queueManager.setCurrentList(playlist.publicId);
     }, [playlist.publicId]);
@@ -28,14 +25,16 @@ export default function PlaylistSongsView({
         ascending: boolean;
     }>({ column: "addedAt", ascending: false });
 
-    const [songsToRender, setSongsToRender] = useState<SongPlaylist[]>([]);
+    const [songsToRender, setSongsToRender] = useState<
+        BaseSongForPlaylistResponse[]
+    >([]);
 
     const sortedSongs = useMemo(() => {
         switch (filter.column) {
             case "name":
                 return playlist.songs.toSorted((a, b) => {
-                    const nameA = a.name.toLowerCase();
-                    const nameB = b.name.toLowerCase();
+                    const nameA = a.song.name.toLowerCase();
+                    const nameB = b.song.name.toLowerCase();
                     if (nameA < nameB) {
                         return filter.ascending ? 1 : -1;
                     }
@@ -57,8 +56,8 @@ export default function PlaylistSongsView({
                 });
             case "album":
                 return playlist.songs.toSorted((a, b) => {
-                    const albumNameA = a.album.name.toLowerCase();
-                    const albumNameB = b.album.name.toLowerCase();
+                    const albumNameA = a.song.album.name.toLowerCase();
+                    const albumNameB = b.song.album.name.toLowerCase();
                     if (albumNameA < albumNameB) {
                         return filter.ascending ? 1 : -1;
                     }
@@ -69,11 +68,11 @@ export default function PlaylistSongsView({
                 });
             case "artist":
                 return playlist.songs.toSorted((a, b) => {
-                    const artistsA = a.artists
+                    const artistsA = a.song.artists
                         .map((artist) => artist.name)
                         .join("")
                         .toLowerCase();
-                    const artistsB = b.artists
+                    const artistsB = b.song.artists
                         .map((artist) => artist.name)
                         .join("")
                         .toLowerCase();
@@ -87,10 +86,10 @@ export default function PlaylistSongsView({
                 });
             case "duration":
                 return playlist.songs.toSorted((a, b) => {
-                    if (a.duration < b.duration) {
+                    if (a.song.duration < b.song.duration) {
                         return filter.ascending ? 1 : -1;
                     }
-                    if (a.duration > b.duration) {
+                    if (a.song.duration > b.song.duration) {
                         return filter.ascending ? -1 : 1;
                     }
                     return 0;
@@ -105,7 +104,9 @@ export default function PlaylistSongsView({
     }, [sortedSongs]);
 
     useEffect(() => {
-        rockIt.currentListManager.setCurrentListSongs(songsToRender);
+        rockIt.currentListManager.setCurrentListSongs(
+            songsToRender.map((song) => song.song)
+        );
     }, [songsToRender]);
 
     const divRef = useRef<HTMLDivElement>(null);
@@ -183,10 +184,7 @@ export default function PlaylistSongsView({
             }}
             className="relative h-full max-h-full min-h-0 overflow-auto md:w-full md:pr-6"
         >
-            <PlaylistHeader
-                playlistResponse={playlistResponse}
-                className="flex md:hidden"
-            />
+            <PlaylistHeader playlist={playlist} className="flex md:hidden" />
             <div
                 className="hidden flex-row items-center gap-4 rounded px-2 text-sm text-stone-400 md:flex"
                 style={{ marginTop: `${marginTop}px` }}
@@ -229,7 +227,7 @@ export default function PlaylistSongsView({
 
                     return (
                         <div
-                            key={song.publicId + index}
+                            key={song.song.publicId + index}
                             className="absolute right-0 left-0 h-14"
                             style={{ top: `${top}px` }}
                         >

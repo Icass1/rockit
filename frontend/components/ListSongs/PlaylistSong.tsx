@@ -10,15 +10,19 @@ import LikeButton from "@/components/LikeButton";
 import SongContextMenu from "@/components/ListSongs/SongContextMenu";
 import "@/styles/Skeleton.css";
 import Image from "next/image";
+import { BaseSongForPlaylistResponse } from "@/dto";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { SongPlaylist } from "@/lib/rockit/songPlaylist";
 import {
     PopupMenu,
     PopupMenuContent,
     PopupMenuTrigger,
 } from "@/components/PopupMenu";
 
-export default function PlaylistSong({ song }: { song: SongPlaylist }) {
+export default function PlaylistSong({
+    song,
+}: {
+    song: BaseSongForPlaylistResponse;
+}) {
     const [hovered, setHovered] = useState(false);
 
     const $queue = useStore(rockIt.queueManager.queueAtom);
@@ -32,36 +36,36 @@ export default function PlaylistSong({ song }: { song: SongPlaylist }) {
     );
 
     const router = useRouter();
-    const [$songAtom] = useStore(song.atom);
 
     if (!$queue) return <div className="skeleton h-10 w-full rounded"></div>;
 
     return (
-        <SongContextMenu song={$songAtom}>
+        <SongContextMenu song={song.song}>
             <div
                 className={
                     "flex flex-row items-center gap-2 rounded px-2 py-[0.5rem] transition-colors select-none md:gap-4 md:select-text " +
                     // If offline and the song is not saved to indexedDB or the song is not in the server database, disable that song
                     ((($networkStatus == "offline" &&
-                        !$songsInIndexedDB?.includes($songAtom.publicId)) ||
-                        !$songAtom.downloaded) &&
+                        !$songsInIndexedDB?.includes(song.song.publicId)) ||
+                        !song.song.downloaded) &&
                         "pointer-events-none opacity-40") +
                     // If the song is playing and is from this playlist, change color, if the song has been added to the queue clicking the album, it won't show the color
                     ($queue.find(
                         (song) => song.queueSongId == $currentQueueSongId
-                    )?.list == $currentList &&
+                    )?.listPublicId == $currentList &&
                     $queue.find(
                         (song) => song.queueSongId == $currentQueueSongId
-                    )?.song.publicId == song.publicId
+                    )?.song.publicId == song.song.publicId
                         ? " text-[#ec5588]"
                         : "")
                 }
                 onClick={() =>
                     rockIt.playlistManager.playPlaylist(
                         rockIt.currentListManager.currentListSongsAtom.get(),
+
                         "album",
-                        $songAtom.album.publicId,
-                        $songAtom.publicId
+                        song.song.album.publicId,
+                        song.song.publicId
                     )
                 }
                 onMouseEnter={() => setHovered(true)}
@@ -70,11 +74,11 @@ export default function PlaylistSong({ song }: { song: SongPlaylist }) {
                 {/* Imagen */}
                 <div className="relative aspect-square h-10 w-auto rounded">
                     <Image
-                        alt={$songAtom.name}
+                        alt={song.song.name}
                         width={40}
                         height={40}
                         src={
-                            $songAtom.internalImageUrl ??
+                            song.song.internalImageUrl ??
                             rockIt.SONG_PLACEHOLDER_IMAGE_URL
                         }
                         className="absolute top-0 right-0 bottom-0 left-0 rounded"
@@ -92,13 +96,13 @@ export default function PlaylistSong({ song }: { song: SongPlaylist }) {
                             //     event.stopPropagation();
                             // }}
                         >
-                            {$songAtom.name}
+                            {song.song.name}
                         </span>
                     </div>
                     <div className="flex h-full w-full max-w-full min-w-0 flex-row items-center">
                         <div className="hidden flex-1 flex-row gap-2 truncate pr-2 md:flex">
                             <label className="text-md max-w-[50%] truncate">
-                                {$songAtom.artists.map((artist, index) => (
+                                {song.song.artists.map((artist, index) => (
                                     <span
                                         className="cursor-pointer md:hover:underline"
                                         key={index}
@@ -110,7 +114,7 @@ export default function PlaylistSong({ song }: { song: SongPlaylist }) {
                                         }}
                                     >
                                         {artist.name}
-                                        {index < $songAtom.artists.length - 1
+                                        {index < song.song.artists.length - 1
                                             ? ", "
                                             : ""}
                                     </span>
@@ -122,25 +126,25 @@ export default function PlaylistSong({ song }: { song: SongPlaylist }) {
                                 className="text-md cursor-pointer truncate md:hover:underline"
                                 onClick={(event) => {
                                     router.push(
-                                        `/album/${$songAtom.album.publicId}`
+                                        `/album/${song.song.album.publicId}`
                                     );
                                     event.stopPropagation();
                                 }}
                             >
-                                {$songAtom.album.name}
+                                {song.song.album.name}
                             </span>
                         </div>
 
                         {/* Botones y tiempo (alineados a la derecha) */}
                         <div className="ml-auto flex w-fit items-center gap-x-2 md:gap-4">
                             {$songsInIndexedDB?.includes(
-                                $songAtom.publicId
+                                song.song.publicId
                             ) && (
                                 <div className="min-h-6 min-w-6">
                                     <CheckCircle2 className="flex h-full w-full text-[#ec5588]" />
                                 </div>
                             )}
-                            <LikeButton songPublicId={$songAtom.publicId} />
+                            <LikeButton songPublicId={song.song.publicId} />
                             {/* <EllipsisVertical className="text-gray-400 flex md:hidden md:hover:text-white md:hover:scale-105" /> */}
 
                             <label className="flex min-w-7 items-center justify-center text-sm text-white/80 select-none">
@@ -152,7 +156,7 @@ export default function PlaylistSong({ song }: { song: SongPlaylist }) {
                                         <PopupMenuContent></PopupMenuContent>
                                     </PopupMenu>
                                 ) : (
-                                    getTime($songAtom.duration)
+                                    getTime(song.song.duration)
                                 )}
                             </label>
                         </div>

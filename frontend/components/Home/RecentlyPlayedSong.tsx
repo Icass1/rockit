@@ -2,15 +2,15 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { SongWithoutAlbum } from "@/lib/rockit/songWithoutAlbum";
+import { BaseSongWithoutAlbumResponse } from "@/dto/baseSongWithoutAlbumResponse";
 import { songHandleClick } from "@/components/ListSongs/HandleClick";
 
 export default function RecentlyPlayedSong({
     song,
     songs,
 }: {
-    song: SongWithoutAlbum;
-    songs: SongWithoutAlbum[];
+    song: BaseSongWithoutAlbumResponse;
+    songs: BaseSongWithoutAlbumResponse[];
 }) {
     const router = useRouter();
 

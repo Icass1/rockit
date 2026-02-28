@@ -1,9 +1,9 @@
-import { SongWithoutAlbum } from "@/lib/rockit/songWithoutAlbum";
+import { BaseSongWithoutAlbumResponse } from "@/dto/baseSongWithoutAlbumResponse";
 import RecentlyPlayedSong from "@/components/Home/RecentlyPlayedSong";
 
 interface SongScrollSectionProps {
     title: string;
-    songs: SongWithoutAlbum[];
+    songs: BaseSongWithoutAlbumResponse[];
     className?: string;
 }
 

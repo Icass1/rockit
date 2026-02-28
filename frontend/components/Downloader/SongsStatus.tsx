@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { BaseSongWithAlbumResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 function SongDownload({
@@ -16,7 +16,7 @@ function SongDownload({
     completed: number;
     message: string;
 }) {
-    const [song, setSong] = useState<SongWithAlbum>();
+    const [song, setSong] = useState<BaseSongWithAlbumResponse>();
 
     useEffect(() => {
         fetch(`/api/song/${id}?q=name,image,albumName,albumId`)

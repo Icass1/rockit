@@ -1,8 +1,8 @@
-import { SongWithoutAlbum } from "@/lib/rockit/songWithoutAlbum";
+import { BaseSongWithoutAlbumResponse } from "@/dto";
 
 export function songHandleClick(
-    song: SongWithoutAlbum,
-    currentListSongs: SongWithoutAlbum[]
+    song: BaseSongWithoutAlbumResponse,
+    currentListSongs: BaseSongWithoutAlbumResponse[]
 ) {
     console.log("songHandleClick", { song, currentListSongs });
     throw "(songHandleClick) Method not implemented";

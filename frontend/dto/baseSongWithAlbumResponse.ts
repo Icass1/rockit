@@ -1,7 +1,10 @@
 import { z } from "zod";
-import { BaseArtistResponseSchema } from "@/dto";
+import {
+    BaseAlbumWithoutSongsResponseSchema,
+    BaseArtistResponseSchema,
+} from "@/dto";
 
-export const BaseAlbumSongResponseSchema = z.object({
+export const BaseSongWithAlbumResponseSchema = z.object({
     provider: z.string(),
     publicId: z.string(),
     name: z.string(),
@@ -12,6 +15,9 @@ export const BaseAlbumSongResponseSchema = z.object({
     duration: z.number(),
     discNumber: z.number(),
     trackNumber: z.number(),
+    album: z.lazy(() => BaseAlbumWithoutSongsResponseSchema),
 });
 
-export type BaseAlbumSongResponse = z.infer<typeof BaseAlbumSongResponseSchema>;
+export type BaseSongWithAlbumResponse = z.infer<
+    typeof BaseSongWithAlbumResponseSchema
+>;

@@ -308,7 +308,7 @@ Do not manually create new DTO files. The backend generates TypeScript schemas f
 - `BaseSongResponse` — for songs without album
 - `BaseArtistResponse` — for artists
 - `BaseAlbumResponse` — for albums
-- `BaseSongAlbumResponse` — for album info inside song
+- `BaseAlbumWithoutSongsResponse` — for album info inside song
 - `BasePlaylistResponse` — for playlists
 - `ExternalImageResponse` — for external images
 

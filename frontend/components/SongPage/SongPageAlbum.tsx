@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { AlbumWithSongs } from "@/lib/rockit/albumWithSongs";
+import { BaseAlbumWithSongsResponse } from "@/dto";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
 
@@ -11,12 +11,12 @@ export default function SongPageAlbum({
 }: {
     albumPublicId: string;
 }) {
-    const [album, setAlbum] = useState<AlbumWithSongs>();
+    const [album, setAlbum] = useState<BaseAlbumWithSongsResponse>();
 
     useEffect(() => {
         rockIt.albumManager
-            .getSpotifyAlbumAsync(albumPublicId)
-            .then((data) => setAlbum(AlbumWithSongs.fromResponse(data)));
+            .getAlbumAsync(albumPublicId)
+            .then((data) => setAlbum(data));
     }, [albumPublicId]);
 
     if (!album) {

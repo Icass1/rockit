@@ -1,14 +1,16 @@
 import { z } from "zod";
-import { BaseSongResponseSchema } from "@/dto";
+import { BaseSongWithAlbumResponseSchema } from "@/dto";
 
 export const HomeStatsResponseSchema = z.object({
-    songsByTimePlayed: z.array(z.lazy(() => BaseSongResponseSchema)),
-    randomSongsLastMonth: z.array(z.lazy(() => BaseSongResponseSchema)),
-    nostalgicMix: z.array(z.lazy(() => BaseSongResponseSchema)),
-    hiddenGems: z.array(z.lazy(() => BaseSongResponseSchema)),
-    communityTop: z.array(z.lazy(() => BaseSongResponseSchema)),
-    monthlyTop: z.array(z.lazy(() => BaseSongResponseSchema)),
-    moodSongs: z.array(z.lazy(() => BaseSongResponseSchema)),
+    songsByTimePlayed: z.array(z.lazy(() => BaseSongWithAlbumResponseSchema)),
+    randomSongsLastMonth: z.array(
+        z.lazy(() => BaseSongWithAlbumResponseSchema)
+    ),
+    nostalgicMix: z.array(z.lazy(() => BaseSongWithAlbumResponseSchema)),
+    hiddenGems: z.array(z.lazy(() => BaseSongWithAlbumResponseSchema)),
+    communityTop: z.array(z.lazy(() => BaseSongWithAlbumResponseSchema)),
+    monthlyTop: z.array(z.lazy(() => BaseSongWithAlbumResponseSchema)),
+    moodSongs: z.array(z.lazy(() => BaseSongWithAlbumResponseSchema)),
 });
 
 export type HomeStatsResponse = z.infer<typeof HomeStatsResponseSchema>;

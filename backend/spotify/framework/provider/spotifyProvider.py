@@ -8,8 +8,8 @@ from backend.utils.logger import getLogger
 
 from backend.core.aResult import AResult, AResultCode
 from backend.core.responses.searchResponse import BaseSearchResultsItem
-from backend.core.responses.baseSongResponse import BaseSongResponse
-from backend.core.responses.baseAlbumResponse import BaseAlbumResponse
+from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
+from backend.core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
 from backend.core.responses.baseArtistResponse import BaseArtistResponse
 from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
 from backend.core.framework.downloader.baseDownload import BaseDownload
@@ -64,11 +64,26 @@ class SpotifyProvider(BaseProvider):
 
     async def get_song_async(
         self, session: AsyncSession, public_id: str
-    ) -> AResult[BaseSongResponse]:
+    ) -> AResult[BaseSongWithAlbumResponse]:
         """Get a Spotify track by public_id."""
 
+        a_result_spotify_id: AResult[str] = (
+            await SpotifyAccess.get_track_spotify_id_from_public_id_async(
+                session=session, public_id=public_id
+            )
+        )
+        if a_result_spotify_id.is_not_ok():
+            logger.error(
+                f"Error getting spotify_id from public_id. {a_result_spotify_id.info()}"
+            )
+            return AResult(
+                code=a_result_spotify_id.code(), message=a_result_spotify_id.message()
+            )
+
+        spotify_id: str = a_result_spotify_id.result()
+
         a_result: AResult[SongResponse] = await Spotify.get_track_async(
-            session, public_id
+            session=session, spotify_id=spotify_id
         )
         if a_result.is_not_ok():
             logger.error(f"Error getting Spotify track. {a_result.info()}")
@@ -78,12 +93,12 @@ class SpotifyProvider(BaseProvider):
 
     async def get_album_async(
         self, session: AsyncSession, public_id: str
-    ) -> AResult[BaseAlbumResponse]:
+    ) -> AResult[BaseAlbumWithSongsResponse]:
         """Get a Spotify album by public_id."""
 
         a_result_spotify_id: AResult[str] = (
-            await SpotifyAccess.get_spotify_id_from_public_id_async(
-                session, public_id=public_id
+            await SpotifyAccess.get_album_spotify_id_from_public_id_async(
+                session=session, public_id=public_id
             )
         )
         if a_result_spotify_id.is_not_ok():
@@ -97,7 +112,7 @@ class SpotifyProvider(BaseProvider):
         spotify_id: str = a_result_spotify_id.result()
 
         a_result: AResult[AlbumResponse] = await Spotify.get_album_async(
-            session, spotify_id
+            session=session, spotify_id=spotify_id
         )
         if a_result.is_not_ok():
             logger.error(f"Error getting Spotify album. {a_result.info()}")
@@ -110,8 +125,23 @@ class SpotifyProvider(BaseProvider):
     ) -> AResult[BaseArtistResponse]:
         """Get a Spotify artist by public_id."""
 
+        a_result_spotify_id: AResult[str] = (
+            await SpotifyAccess.get_artist_spotify_id_from_public_id_async(
+                session=session, public_id=public_id
+            )
+        )
+        if a_result_spotify_id.is_not_ok():
+            logger.error(
+                f"Error getting spotify_id from public_id. {a_result_spotify_id.info()}"
+            )
+            return AResult(
+                code=a_result_spotify_id.code(), message=a_result_spotify_id.message()
+            )
+
+        spotify_id: str = a_result_spotify_id.result()
+
         a_result: AResult[BaseArtistResponse] = await Spotify.get_artist_async(
-            session, public_id
+            session, spotify_id
         )
         if a_result.is_not_ok():
             logger.error(f"Error getting Spotify artist. {a_result.info()}")
@@ -124,8 +154,23 @@ class SpotifyProvider(BaseProvider):
     ) -> AResult[BasePlaylistResponse]:
         """Get a Spotify playlist by public_id."""
 
+        a_result_spotify_id: AResult[str] = (
+            await SpotifyAccess.get_playlist_spotify_id_from_public_id_async(
+                session=session, public_id=public_id
+            )
+        )
+        if a_result_spotify_id.is_not_ok():
+            logger.error(
+                f"Error getting spotify_id from public_id. {a_result_spotify_id.info()}"
+            )
+            return AResult(
+                code=a_result_spotify_id.code(), message=a_result_spotify_id.message()
+            )
+
+        spotify_id: str = a_result_spotify_id.result()
+
         a_result: AResult[BasePlaylistResponse] = await Spotify.get_playlist_async(
-            session, public_id
+            session=session, spotify_id=spotify_id
         )
         if a_result.is_not_ok():
             logger.error(f"Error getting Spotify playlist. {a_result.info()}")
@@ -138,8 +183,23 @@ class SpotifyProvider(BaseProvider):
     ) -> AResult[BaseDownload]:
         """Create a SpotifyDownload for the given track public_id."""
 
+        a_result_spotify_id: AResult[str] = (
+            await SpotifyAccess.get_track_spotify_id_from_public_id_async(
+                session=session, public_id=public_id
+            )
+        )
+        if a_result_spotify_id.is_not_ok():
+            logger.error(
+                f"Error getting spotify_id from public_id. {a_result_spotify_id.info()}"
+            )
+            return AResult(
+                code=a_result_spotify_id.code(), message=a_result_spotify_id.message()
+            )
+
+        spotify_id: str = a_result_spotify_id.result()
+
         a_result: AResult[TrackRow] = await SpotifyAccess.get_track_spotify_id_async(
-            session=session, spotify_id=public_id
+            session=session, spotify_id=spotify_id
         )
         if a_result.is_not_ok():
             logger.error(f"Error getting track for download. {a_result.info()}")

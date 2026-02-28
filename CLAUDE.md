@@ -288,5 +288,5 @@ async with rockit_db.session_scope_async() as session:
 To get pylance errors, execute:
 
 ```bash
-.venv/bin/python3 -m pyright
+venv/bin/python3 -m pyright
 ```

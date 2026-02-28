@@ -1,17 +1,17 @@
-from typing import Sequence
+from typing import Literal, Sequence
+
 from pydantic import BaseModel
 
 from backend.core.responses.baseArtistResponse import BaseArtistResponse
 
 
-class BaseAlbumSongResponse(BaseModel):
+class BaseAlbumWithoutSongsResponse(BaseModel):
+    """Base response model for a song's album information."""
+
+    type: Literal["album"] = "album"
     provider: str
     publicId: str
     name: str
     artists: Sequence[BaseArtistResponse]
-    audioSrc: str | None
-    downloaded: bool
+    releaseDate: str
     internalImageUrl: str
-    duration: int
-    discNumber: int
-    trackNumber: int

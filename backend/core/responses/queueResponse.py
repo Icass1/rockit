@@ -1,17 +1,13 @@
 from typing import List
 from pydantic import BaseModel
 
-from backend.core.responses.baseSongResponse import BaseSongResponse
-
-
-class QueueResponseItemList(BaseModel):
-    publicId: str
+from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 
 
 class QueueResponseItem(BaseModel):
     queueSongId: int
-    list: QueueResponseItemList
-    song: BaseSongResponse
+    listPublicId: str
+    song: BaseSongWithAlbumResponse
 
 
 class QueueResponse(BaseModel):

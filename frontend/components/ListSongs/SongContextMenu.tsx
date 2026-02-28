@@ -29,8 +29,8 @@ import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
 import { songHandleClick } from "@/components/ListSongs/HandleClick";
 import "@/styles/CheckBox.css";
 import Image from "next/image";
+import { BaseSongWithAlbumResponse } from "@/dto";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 function ListSubContextMenu({
@@ -95,7 +95,7 @@ export default function SongContextMenu({
     onPlay,
 }: {
     children: ReactNode;
-    song: SongWithAlbum;
+    song: BaseSongWithAlbumResponse;
     onPlay?: () => void;
 }) {
     const $likedSongs = useStore(rockIt.songManager.likedSongsAtom);
@@ -135,10 +135,8 @@ export default function SongContextMenu({
                             onPlay();
                         } else {
                             songHandleClick(
-                                song.toSongWithoutAlbum(),
-                                $currentListSongs.map((song) =>
-                                    song.toSongWithoutAlbum()
-                                )
+                                song,
+                                $currentListSongs.map((song) => song)
                             );
                         }
                     }}

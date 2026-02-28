@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
+import { BaseSongWithAlbumResponse } from "@/dto";
 import { songHandleClick } from "@/components/ListSongs/HandleClick";
 import SongContextMenu from "@/components/ListSongs/SongContextMenu";
 
@@ -9,14 +9,11 @@ export default function QuickSelectionsSong({
     song,
     songs,
 }: {
-    song: SongWithAlbum;
-    songs: SongWithAlbum[];
+    song: BaseSongWithAlbumResponse;
+    songs: BaseSongWithAlbumResponse[];
 }) {
     const handleClick = () => {
-        songHandleClick(
-            song.toSongWithoutAlbum(),
-            songs.map((s) => s.toSongWithoutAlbum())
-        );
+        songHandleClick(song, songs);
     };
 
     return (

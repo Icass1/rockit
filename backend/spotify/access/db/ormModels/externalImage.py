@@ -23,7 +23,7 @@ from backend.spotify.access.db.associationTables.playlist_external_images import
 if TYPE_CHECKING:
     from backend.spotify.access.db.ormModels.album import AlbumRow
     from backend.spotify.access.db.ormModels.artist import ArtistRow
-    from backend.spotify.access.db.ormModels.playlist import SpotifyPlaylistRow
+    from backend.spotify.access.db.ormModels.playlist import PlaylistRow
 
 
 class ExternalImageRow(
@@ -39,8 +39,8 @@ class ExternalImageRow(
     albums: Mapped[List["AlbumRow"]] = relationship(
         "AlbumRow", secondary=album_external_images, back_populates="external_images"
     )
-    playlists: Mapped[List["SpotifyPlaylistRow"]] = relationship(
-        "SpotifyPlaylistRow",
+    playlists: Mapped[List["PlaylistRow"]] = relationship(
+        "PlaylistRow",
         secondary=playlist_external_images,
         back_populates="external_images",
     )

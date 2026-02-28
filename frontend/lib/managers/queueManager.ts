@@ -1,18 +1,23 @@
-import { QueueResponseSchema } from "@/dto";
+import {
+    BaseSongWithAlbumResponse,
+    BaseSongWithoutAlbumResponse,
+    QueueResponseItem,
+    QueueResponseSchema,
+} from "@/dto";
 import { DBListType, QueueListType } from "@/types/rockIt";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { SongQueue } from "@/lib/rockit/songQueue";
-import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
 import { createArrayAtom, createAtom } from "@/lib/store";
 import apiFetch from "@/lib/utils/apiFetch";
 
 export class QueueManager {
     // #region: Atoms
 
-    private _currentSongAtom = createAtom<SongWithAlbum | undefined>();
+    private _currentSongAtom = createAtom<
+        BaseSongWithAlbumResponse | undefined
+    >();
     private _currentListAtom = createAtom<string | undefined>();
 
-    private _queueAtom = createArrayAtom<SongQueue>([]);
+    private _queueAtom = createArrayAtom<QueueResponseItem>([]);
     private _currentQueueSongIdAtom = createAtom<number | null>(0);
 
     // #endregion: Atoms
@@ -40,11 +45,11 @@ export class QueueManager {
 
         this._currentQueueSongIdAtom.set(responseParsed.currentQueueSongId);
         this._queueAtom.set(
-            responseParsed.queue.map((queueElement): SongQueue => {
+            responseParsed.queue.map((queueElement): QueueResponseItem => {
                 return {
-                    song: SongWithAlbum.fromResponse(queueElement.song),
+                    song: queueElement.song,
                     queueSongId: queueElement.queueSongId,
-                    list: queueElement.list.publicId,
+                    listPublicId: queueElement.listPublicId,
                 };
             })
         );
@@ -56,7 +61,7 @@ export class QueueManager {
             );
 
         this._currentSongAtom.set(currentSong?.song);
-        this._currentListAtom.set(currentSong?.list);
+        this._currentListAtom.set(currentSong?.listPublicId);
     }
 
     // #endregion: Constructor
@@ -68,7 +73,7 @@ export class QueueManager {
     skipForward() {}
 
     setSongs(
-        songs: SongWithAlbum[],
+        songs: BaseSongWithAlbumResponse[],
         listType: QueueListType,
         listPublicId: string
     ) {
@@ -85,7 +90,7 @@ export class QueueManager {
         this._queueAtom.set(
             songs.map((song, index) => {
                 return {
-                    list: listPublicId,
+                    listPublicId: listPublicId,
                     song,
                     queueSongId: index,
                 };
@@ -106,7 +111,7 @@ export class QueueManager {
         rockIt.webSocketManager.send({ queueSongId: song.queueSongId });
         this._currentQueueSongIdAtom.set(song.queueSongId);
         this._currentSongAtom.set(song.song);
-        this._currentListAtom.set(song.list);
+        this._currentListAtom.set(song.listPublicId);
     }
 
     setQueueSongId(queueSongId: number) {
@@ -124,7 +129,7 @@ export class QueueManager {
             return;
         }
         this._currentSongAtom.set(song.song);
-        this._currentListAtom.set(song.list);
+        this._currentListAtom.set(song.listPublicId);
     }
 
     setCurrentList(currentList: string | undefined) {

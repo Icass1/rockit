@@ -1,10 +1,10 @@
 import { z } from "zod";
-import { BaseSongResponseSchema, QueueResponseItemListSchema } from "@/dto";
+import { BaseSongWithAlbumResponseSchema } from "@/dto";
 
 export const QueueResponseItemSchema = z.object({
     queueSongId: z.number(),
-    list: z.lazy(() => QueueResponseItemListSchema),
-    song: z.lazy(() => BaseSongResponseSchema),
+    listPublicId: z.string(),
+    song: z.lazy(() => BaseSongWithAlbumResponseSchema),
 });
 
 export type QueueResponseItem = z.infer<typeof QueueResponseItemSchema>;

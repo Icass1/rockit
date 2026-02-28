@@ -1,7 +1,6 @@
 "use client";
 
 import type { ReactNode } from "react";
-import React from "react";
 import Image from "next/image";
 import useWindowSize from "@/hooks/useWindowSize";
 import { useContextMenu } from "@/components/ContextMenu/context";

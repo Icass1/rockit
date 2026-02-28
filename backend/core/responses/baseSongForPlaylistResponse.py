@@ -2,11 +2,11 @@ from datetime import datetime
 
 from pydantic import BaseModel, field_validator
 
-from backend.core.responses.baseSongResponse import BaseSongResponse
+from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 
 
-class BaseSongPlaylistResponse(BaseModel):
-    song: BaseSongResponse
+class BaseSongForPlaylistResponse(BaseModel):
+    song: BaseSongWithAlbumResponse
     addedAt: datetime
 
     @field_validator("addedAt")

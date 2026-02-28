@@ -4,16 +4,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { EllipsisVertical } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
 import LikeButton from "@/components/LikeButton";
 import SongPopupMenu from "@/components/ListSongs/SongPopupMenu";
 import SongPageAlbum from "@/components/SongPage/SongPageAlbum";
 import SongPageCover from "@/components/SongPage/SongPageCover";
 import LyricsSection from "@/components/SongPage/SongPageLyrics";
-import SongPageTopArtistSongs from "@/components/SongPage/SongPageTopArtistSongs";
 
 const getSong = cache(async (publicId: string) => {
-    return rockIt.songManager.getSpotifySongAsync(publicId);
+    return rockIt.songManager.getSongAsync(publicId);
 });
 
 export async function generateMetadata({
@@ -66,10 +64,9 @@ export default async function SongPage({
 }) {
     const { publicId } = await params;
 
-    const songResponse = await getSong(publicId);
-    if (!songResponse) notFound();
+    const song = await getSong(publicId);
+    if (!song) notFound();
 
-    const song = SongWithAlbum.fromResponse(songResponse);
     const artist = song.artists[0];
 
     return (
@@ -180,7 +177,7 @@ export default async function SongPage({
             <div className="flex flex-col gap-8 px-4">
                 <LyricsSection songPublicId={song.publicId} />
                 <SongPageAlbum albumPublicId={song.album.publicId} />
-                <SongPageTopArtistSongs artist={artist} />
+                {/* <SongPageTopArtistSongs artist={artist} /> */}
             </div>
         </div>
     );

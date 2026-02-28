@@ -4,13 +4,13 @@ export {
     type ArtistSearchResultsItem,
 } from "@/dto/artistSearchResultsItem";
 export {
-    BaseAlbumResponseSchema,
-    type BaseAlbumResponse,
-} from "@/dto/baseAlbumResponse";
+    BaseAlbumWithSongsResponseSchema,
+    type BaseAlbumWithSongsResponse,
+} from "@/dto/baseAlbumWithSongsResponse";
 export {
-    BaseAlbumSongResponseSchema,
-    type BaseAlbumSongResponse,
-} from "@/dto/baseAlbumSongResponse";
+    BaseAlbumWithoutSongsResponseSchema,
+    type BaseAlbumWithoutSongsResponse,
+} from "@/dto/baseAlbumWithoutSongsResponse";
 export {
     BaseArtistResponseSchema,
     type BaseArtistResponse,
@@ -24,17 +24,17 @@ export {
     type BaseSearchResultsItem,
 } from "@/dto/baseSearchResultsItem";
 export {
-    BaseSongAlbumResponseSchema,
-    type BaseSongAlbumResponse,
-} from "@/dto/baseSongAlbumResponse";
+    BaseSongForPlaylistResponseSchema,
+    type BaseSongForPlaylistResponse,
+} from "@/dto/baseSongForPlaylistResponse";
 export {
-    BaseSongPlaylistResponseSchema,
-    type BaseSongPlaylistResponse,
-} from "@/dto/baseSongPlaylistResponse";
+    BaseSongWithAlbumResponseSchema,
+    type BaseSongWithAlbumResponse,
+} from "@/dto/baseSongWithAlbumResponse";
 export {
-    BaseSongResponseSchema,
-    type BaseSongResponse,
-} from "@/dto/baseSongResponse";
+    BaseSongWithoutAlbumResponseSchema,
+    type BaseSongWithoutAlbumResponse,
+} from "@/dto/baseSongWithoutAlbumResponse";
 export {
     ChannelResponseSchema,
     type ChannelResponse,
@@ -58,10 +58,6 @@ export {
     QueueResponseItemSchema,
     type QueueResponseItem,
 } from "@/dto/queueResponseItem";
-export {
-    QueueResponseItemListSchema,
-    type QueueResponseItemList,
-} from "@/dto/queueResponseItemList";
 export {
     RegisterResponseSchema,
     type RegisterResponse,

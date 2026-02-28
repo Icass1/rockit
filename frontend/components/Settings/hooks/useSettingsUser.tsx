@@ -1,7 +1,6 @@
 "use client";
 
 import useSession from "@/hooks/useSession";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 export function useSettingsUser() {
     const session = useSession();

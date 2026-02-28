@@ -2,11 +2,10 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
+import { BaseAlbumWithSongsResponse } from "@/dto";
 import { groupBy } from "lodash";
 import { Disc } from "lucide-react";
-import { AlbumWithSongs } from "@/lib/rockit/albumWithSongs";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
 import { getMinutes, getYear } from "@/lib/utils/getTime";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useListDownload } from "@/components/List/hooks/useListDownload";
@@ -15,19 +14,15 @@ import ListOptions from "@/components/ListHeader/ListOptions";
 import AlbumSong from "@/components/ListSongs/AlbumSong";
 
 export default function RenderAlbum({
-    albumResponse,
+    album,
 }: {
-    albumResponse: Parameters<typeof AlbumWithSongs.fromResponse>[0];
+    album: BaseAlbumWithSongsResponse;
 }) {
     const { langFile: lang } = useLanguage();
 
-    const album = AlbumWithSongs.fromResponse(albumResponse);
-
     useEffect(() => {
         rockIt.currentListManager.setCurrentListSongs(
-            album.songs.map((song) => {
-                return new SongWithAlbum({ ...song, album });
-            })
+            album.songs.map((song) => ({ ...song, album: { ...album } }))
         );
     }, [album]);
 
@@ -104,7 +99,7 @@ export default function RenderAlbum({
                         {songs.map((song, songIndex) => (
                             <AlbumSong
                                 key={song.publicId}
-                                song={new SongWithAlbum({ ...song, album })}
+                                song={{ ...song, album: { ...album } }}
                                 index={songIndex}
                             />
                         ))}

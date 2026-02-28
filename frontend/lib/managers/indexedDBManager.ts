@@ -1,5 +1,5 @@
+import { BaseSongWithAlbumResponse } from "@/dto";
 import { DBListType } from "@/types/rockIt";
-import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
 import { createArrayAtom } from "@/lib/store";
 
 export class IndexedDBManager {
@@ -26,7 +26,7 @@ export class IndexedDBManager {
         throw "(downloadListToDeviceAsync) Method not implemented";
     }
 
-    saveSongToIndexedDB(song: SongWithAlbum) {
+    saveSongToIndexedDB(song: BaseSongWithAlbumResponse) {
         console.warn(song);
         throw "(downloadListToDeviceAsync) Method not implemented";
     }

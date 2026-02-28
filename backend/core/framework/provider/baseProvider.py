@@ -7,10 +7,10 @@ from backend.core.aResult import AResult, AResultCode
 
 from backend.core.framework.downloader.baseDownload import BaseDownload
 
-from backend.core.responses.baseAlbumResponse import BaseAlbumResponse
+from backend.core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
 from backend.core.responses.baseArtistResponse import BaseArtistResponse
 from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
-from backend.core.responses.baseSongResponse import BaseSongResponse
+from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from backend.core.responses.searchResponse import BaseSearchResultsItem
 
 logger: Logger = getLogger(__name__)
@@ -75,7 +75,7 @@ class BaseProvider:
 
     async def get_song_async(
         self, session: AsyncSession, public_id: str
-    ) -> AResult[BaseSongResponse]:
+    ) -> AResult[BaseSongWithAlbumResponse]:
         """TODO"""
         return AResult(
             code=AResultCode.NOT_IMPLEMENTED,
@@ -84,7 +84,7 @@ class BaseProvider:
 
     async def get_album_async(
         self, session: AsyncSession, public_id: str
-    ) -> AResult[BaseAlbumResponse]:
+    ) -> AResult[BaseAlbumWithSongsResponse]:
         """"""
         return AResult(
             code=AResultCode.NOT_IMPLEMENTED,

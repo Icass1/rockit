@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { SongPlaylist } from "@/lib/rockit/songPlaylist";
+import { BaseSongForPlaylistResponse } from "@/dto";
 
 export type SortColumn = "name" | "album" | "artist" | "addedAt" | "duration";
 
@@ -8,7 +8,7 @@ interface SortState {
     ascending: boolean;
 }
 
-export function usePlaylistSort(songs: SongPlaylist[]) {
+export function usePlaylistSort(songs: BaseSongForPlaylistResponse[]) {
     const [filter, setFilter] = useState<SortState>({
         column: "addedAt",
         ascending: false,
@@ -28,8 +28,8 @@ export function usePlaylistSort(songs: SongPlaylist[]) {
         return [...songs].sort((a, b) => {
             switch (filter.column) {
                 case "name": {
-                    const na = a.name.toLowerCase();
-                    const nb = b.name.toLowerCase();
+                    const na = a.song.name.toLowerCase();
+                    const nb = b.song.name.toLowerCase();
                     return na < nb ? dir : na > nb ? -dir : 0;
                 }
                 case "addedAt": {
@@ -41,23 +41,23 @@ export function usePlaylistSort(songs: SongPlaylist[]) {
                     );
                 }
                 case "album": {
-                    const aa = a.album.name.toLowerCase();
-                    const ab = b.album.name.toLowerCase();
+                    const aa = a.song.album.name.toLowerCase();
+                    const ab = b.song.album.name.toLowerCase();
                     return aa < ab ? dir : aa > ab ? -dir : 0;
                 }
                 case "artist": {
-                    const art_a = a.artists
+                    const art_a = a.song.artists
                         .map((x) => x.name)
                         .join("")
                         .toLowerCase();
-                    const art_b = b.artists
+                    const art_b = b.song.artists
                         .map((x) => x.name)
                         .join("")
                         .toLowerCase();
                     return art_a < art_b ? dir : art_a > art_b ? -dir : 0;
                 }
                 case "duration":
-                    return (a.duration - b.duration) * dir;
+                    return (a.song.duration - b.song.duration) * dir;
                 default:
                     return 0;
             }

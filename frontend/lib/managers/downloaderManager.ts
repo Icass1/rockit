@@ -1,4 +1,4 @@
-import { BaseSongResponseSchema, StartDownloadResponseSchema } from "@/dto";
+import { StartDownloadResponseSchema } from "@/dto";
 import { DBListType, DownloadInfo } from "@/types/rockIt";
 import { RESPONSE_UNDEFINED_MESSAGE, rockIt } from "@/lib/rockit/rockIt";
 import { createArrayAtom } from "@/lib/store";

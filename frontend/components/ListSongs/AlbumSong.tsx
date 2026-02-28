@@ -1,10 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { BaseSongWithAlbumResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
 import { CheckCircle2, EllipsisVertical } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
 import { networkStatus } from "@/lib/stores/networkStatus";
 import { getTime } from "@/lib/utils/getTime";
 import LikeButton from "@/components/LikeButton";
@@ -14,7 +14,7 @@ export default function AlbumSong({
     song,
     index,
 }: {
-    song: SongWithAlbum;
+    song: BaseSongWithAlbumResponse;
     index: number;
 }) {
     const [hovered, setHovered] = useState(false);
@@ -26,36 +26,30 @@ export default function AlbumSong({
     const $songsInIndexedDB = useStore(
         rockIt.indexedDBManager.songsInIndexedDBAtom
     );
-    const $networkStatus = useStore(networkStatus);
 
-    const [$songAtom] = useStore(song.atom);
+    const $networkStatus = useStore(networkStatus);
 
     const songUnavaliable = useMemo(() => {
         return (
             ($networkStatus == "offline" &&
-                !$songsInIndexedDB?.includes($songAtom.publicId)) ||
-            !$songAtom.downloaded
+                !$songsInIndexedDB?.includes(song.publicId)) ||
+            !song.downloaded
         );
-    }, [
-        $songsInIndexedDB,
-        $networkStatus,
-        $songAtom.downloaded,
-        $songAtom.publicId,
-    ]);
+    }, [$songsInIndexedDB, $networkStatus, song.downloaded, song.publicId]);
 
     const songPlaying = useMemo(() => {
         return (
             $queue.find((song) => song.queueSongId == $currentQueueSongId)
-                ?.list == $currentList &&
+                ?.listPublicId == $currentList &&
             $queue.find((song) => song.queueSongId == $currentQueueSongId)?.song
-                .publicId == $songAtom.publicId
+                .publicId == song.publicId
         );
-    }, [$songAtom.publicId, $currentList, $queue, $currentQueueSongId]);
+    }, [song.publicId, $currentList, $queue, $currentQueueSongId]);
 
     if (!$queue) return <div></div>;
 
     return (
-        <SongContextMenu song={$songAtom}>
+        <SongContextMenu song={song}>
             <div
                 className={
                     "grid grid-cols-[min-content_1fr_min-content_min-content_40px] items-center gap-2 rounded py-[0.5rem] transition-colors select-none md:gap-4 md:px-2 md:py-[0.65rem] md:select-text " +
@@ -66,8 +60,8 @@ export default function AlbumSong({
                     rockIt.albumManager.playAlbum(
                         rockIt.currentListManager.currentListSongsAtom.get(),
                         "album",
-                        $songAtom.album.publicId,
-                        $songAtom.publicId
+                        song.album.publicId,
+                        song.publicId
                     )
                 }
                 onMouseEnter={() => {
@@ -87,17 +81,17 @@ export default function AlbumSong({
                     }
                 >
                     <label className="w-auto max-w-full min-w-0 truncate">
-                        {$songAtom.name}
+                        {song.name}
                     </label>
                 </div>
-                {$songsInIndexedDB?.includes($songAtom.publicId) ? (
+                {$songsInIndexedDB?.includes(song.publicId) ? (
                     <div className="min-h-6 min-w-6">
                         <CheckCircle2 className="flex h-full w-full text-[#ec5588]" />
                     </div>
                 ) : (
                     <div></div>
                 )}
-                <LikeButton songPublicId={$songAtom.publicId} />
+                <LikeButton songPublicId={song.publicId} />
 
                 <label className="flex min-w-7 items-center justify-center text-sm text-white/80 select-none">
                     {hovered && window.innerWidth > 768 ? (
@@ -108,7 +102,7 @@ export default function AlbumSong({
                             }}
                         />
                     ) : (
-                        getTime($songAtom.duration)
+                        getTime(song.duration)
                     )}
                 </label>
             </div>

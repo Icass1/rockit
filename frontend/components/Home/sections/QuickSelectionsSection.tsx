@@ -1,4 +1,4 @@
-import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
+import { BaseSongWithAlbumResponse } from "@/dto";
 import QuickSelectionsSong from "@/components/Home/QuickSelectionsSong";
 
 const COLUMNS = 10;
@@ -7,7 +7,7 @@ const SONGS_POOL = 8 * SONGS_PER_COLUMN + SONGS_PER_COLUMN;
 
 interface QuickSelectionsSectionProps {
     title: string;
-    songs: SongWithAlbum[];
+    songs: BaseSongWithAlbumResponse[];
 }
 
 export default function QuickSelectionsSection({

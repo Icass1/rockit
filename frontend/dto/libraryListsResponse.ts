@@ -1,8 +1,11 @@
 import { z } from "zod";
-import { BaseAlbumResponseSchema, BasePlaylistResponseSchema } from "@/dto";
+import {
+    BaseAlbumWithSongsResponseSchema,
+    BasePlaylistResponseSchema,
+} from "@/dto";
 
 export const LibraryListsResponseSchema = z.object({
-    albums: z.array(z.lazy(() => BaseAlbumResponseSchema)),
+    albums: z.array(z.lazy(() => BaseAlbumWithSongsResponseSchema)),
     playlists: z.array(z.lazy(() => BasePlaylistResponseSchema)),
 });
 

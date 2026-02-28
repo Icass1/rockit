@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
-import { SessionResponseSchema } from "@/dto";
-import { User } from "@/lib/rockit/user";
+import { SessionResponse, SessionResponseSchema } from "@/dto";
 import apiFetch from "@/lib/utils/apiFetch";
 
 type Session =
-    | { status: "authenticated"; user: User }
+    | { status: "authenticated"; user: SessionResponse }
     | { status: "loading"; user: null }
     | { status: "unauthenticated"; user: null };
 
@@ -14,7 +13,7 @@ async function update(setData: React.Dispatch<React.SetStateAction<Session>>) {
     if (res && res.ok) {
         const json = await res.json();
         const parsed = SessionResponseSchema.parse(json);
-        setData({ user: User.fromResponse(parsed), status: "authenticated" });
+        setData({ user: parsed, status: "authenticated" });
     } else {
         setData({ user: null, status: "unauthenticated" });
     }

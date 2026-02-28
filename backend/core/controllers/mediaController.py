@@ -11,8 +11,8 @@ from backend.core.framework import providers
 from backend.core.framework.media.media import Media
 from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 
-from backend.core.responses.baseSongResponse import BaseSongResponse
-from backend.core.responses.baseAlbumResponse import BaseAlbumResponse
+from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
+from backend.core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
 from backend.core.responses.baseArtistResponse import BaseArtistResponse
 from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
 from backend.core.responses.searchResponse import SearchResultsResponse
@@ -22,10 +22,10 @@ router = APIRouter(prefix="/media")
 
 
 @router.get("/song/{public_id}")
-async def get_song(request: Request, public_id: str) -> BaseSongResponse:
+async def get_song(request: Request, public_id: str) -> BaseSongWithAlbumResponse:
     """Get a song by its public_id."""
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-    a_result: AResult[BaseSongResponse] = await Media.get_song_async(
+    a_result: AResult[BaseSongWithAlbumResponse] = await Media.get_song_async(
         session=session, public_id=public_id, providers=providers
     )
     if a_result.is_not_ok():
@@ -37,10 +37,10 @@ async def get_song(request: Request, public_id: str) -> BaseSongResponse:
 
 
 @router.get("/album/{public_id}")
-async def get_album(request: Request, public_id: str) -> BaseAlbumResponse:
+async def get_album(request: Request, public_id: str) -> BaseAlbumWithSongsResponse:
     """Get an album by its public_id."""
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-    a_result: AResult[BaseAlbumResponse] = await Media.get_album_async(
+    a_result: AResult[BaseAlbumWithSongsResponse] = await Media.get_album_async(
         session=session, public_id=public_id, providers=providers
     )
     if a_result.is_not_ok():

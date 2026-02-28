@@ -33,10 +33,10 @@ npx tsc --noEmit     # TypeScript type checking
 ### Backend
 ```bash
 cd backend
-.venv/bin/python -m pytest                         # Run all tests
-.venv/bin/python -m pytest path/to/test_file.py   # Run specific test file
-.venv/bin/python -m pytest -k "test_name"        # Run tests matching pattern
-.venv/bin/python -m pyright                       # Type checking
+venv/bin/python -m pytest                         # Run all tests
+venv/bin/python -m pytest path/to/test_file.py   # Run specific test file
+venv/bin/python -m pytest -k "test_name"        # Run tests matching pattern
+venv/bin/python -m pyright                       # Type checking
 ```
 
 ## Architecture
@@ -109,6 +109,13 @@ class Example:
 ```python
 from backend.utils.logger import getLogger
 logger = getLogger(__name__)
+```
+
+Always log errors with stack traces before returning AResult errors:
+```python
+if a_result_example.is_not_ok():
+    logger.error(f"Error getting string. {a_result_example.info()}", exc_info=True)
+    return AResult(code=AResultCode.GENERAL_ERROR, message=a_result_example.message())
 ```
 
 ### Docstrings
@@ -226,7 +233,7 @@ All code, comments, documentation, and messages MUST be written in **English onl
 
 ## Before Submitting Changes
 
-1. **Backend**: Run pyright type checking (`.venv/bin/python -m pyright`)
+1. **Backend**: Run pyright type checking (`venv/bin/python -m pyright`)
 2. **Frontend**: Run `npx tsc --noEmit` for TypeScript errors
 3. **Frontend**: Run `npm run lint` for ESLint errors
 4. Does the modified `page.tsx` still have no `"use client"`?

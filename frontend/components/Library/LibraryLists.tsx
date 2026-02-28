@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { BaseAlbumWithoutSongsResponse, BasePlaylistResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
 import {
     HardDriveDownload,
@@ -13,8 +14,6 @@ import {
     PlayCircle,
     Shuffle,
 } from "lucide-react";
-import { AlbumWithoutSongs } from "@/lib/rockit/albumWithoutSongs";
-import { Playlist } from "@/lib/rockit/playlist";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { LibraryListsResponseSchema } from "@/dto/libraryListsResponse";
 import useFetch from "@/hooks/useFetch";
@@ -33,7 +32,7 @@ function AddListContextMenu({
     list,
 }: {
     children: React.ReactNode;
-    list: Playlist | AlbumWithoutSongs;
+    list: BasePlaylistResponse | BaseAlbumWithoutSongsResponse;
 }) {
     const $pinnedLists = useStore(rockIt.listManager.pinnedListsAtom);
 
@@ -175,12 +174,8 @@ export function LibraryLists({
     if (!listsResponse) return <div>LibraryLists.listsResponse Loading...</div>;
 
     const lists = {
-        albums: listsResponse.albums.map((album) =>
-            AlbumWithoutSongs.fromResponse(album)
-        ),
-        playlists: listsResponse.playlists.map((playlist) =>
-            Playlist.fromResponse(playlist)
-        ),
+        albums: listsResponse.albums,
+        playlists: listsResponse.playlists,
     };
 
     const filteredLists = lists;

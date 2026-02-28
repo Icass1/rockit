@@ -5,7 +5,7 @@ import { RenderAlbum } from "@/components/Album";
 
 const getAlbum = cache(async (publicId: string) => {
     const album = await rockIt.albumManager
-        .getSpotifyAlbumAsync(publicId)
+        .getAlbumAsync(publicId)
         .catch(() => null);
     return album;
 });
@@ -46,13 +46,5 @@ export default async function AlbumPage({
         externalImages: [],
     };
 
-    return (
-        <RenderAlbum
-            albumResponse={
-                albumWithSongs as unknown as Parameters<
-                    typeof RenderAlbum
-                >[0]["albumResponse"]
-            }
-        />
-    );
+    return <RenderAlbum album={albumWithSongs} />;
 }

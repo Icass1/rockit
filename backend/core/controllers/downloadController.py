@@ -1,7 +1,9 @@
 from logging import Logger
 
-from fastapi import APIRouter, Depends, HTTPException, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, Request
+from sqlalchemy.ext.asyncio.session import AsyncSession
 
+from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 from backend.utils.logger import getLogger
 
 from backend.core.aResult import AResult
@@ -25,11 +27,13 @@ router = APIRouter(
 
 @router.post("/start-downloads")
 async def start_download(
-    request: Request, response: Response, payload: StartDownloadRequest
+    request: Request, payload: StartDownloadRequest
 ) -> StartDownloadResponse:
     """Start downloading a list of songs grouped under a single download group."""
 
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+
+    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request=request)
     if a_result_user.is_not_ok():
         raise HTTPException(
             status_code=a_result_user.get_http_code(), detail=a_result_user.message()
@@ -39,6 +43,7 @@ async def start_download(
 
     a_result: AResult[StartDownloadResponse] = (
         await Downloader.download_multiple_songs_async(
+            session=session,
             user_id=user.id,
             title=payload.title,
             public_ids=payload.ids,

@@ -1,5 +1,6 @@
 "use client";
 
+import { QueueResponseItem } from "@/dto";
 import { Lang } from "@/types/lang";
 import { useStore } from "@nanostores/react";
 import {
@@ -9,10 +10,7 @@ import {
     ListX,
     PlayCircle,
 } from "lucide-react";
-import { AlbumWithoutSongs } from "@/lib/rockit/albumWithoutSongs";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { SongQueue } from "@/lib/rockit/songQueue";
-import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
 import ContextMenuContent from "@/components/ContextMenu/Content";
 import ContextMenu from "@/components/ContextMenu/ContextMenu";
 import ContextMenuOption from "@/components/ContextMenu/Option";
@@ -29,32 +27,8 @@ const AUTO_PLAY_MOCKS = [
     { id: "auto5", title: "Echoes in the Dark", artist: "Shadow Sound" },
 ];
 
-function buildAutoSong(mock: (typeof AUTO_PLAY_MOCKS)[number], idx: number) {
-    return new SongQueue({
-        song: new SongWithAlbum({
-            publicId: mock.id,
-            name: mock.title,
-            artists: [],
-            discNumber: 1,
-            duration: 123,
-            downloaded: true,
-            album: new AlbumWithoutSongs({
-                name: "Album 1",
-                publicId: "",
-                artists: [],
-                releaseDate: "",
-                internalImageUrl: "",
-            }),
-            internalImageUrl: null,
-            audioUrl: null,
-        }),
-        queueSongId: idx,
-        list: "auto-list",
-    });
-}
-
 interface PlayerUIQueueListProps {
-    queue: SongQueue[];
+    queue: QueueResponseItem[];
     queueScroll: number;
     lang: Lang;
 }
@@ -71,9 +45,9 @@ export function PlayerUIQueueList({
 
     // TODO: implement when queueManager.reorderQueue is available
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const handleRemoveSong = (_song: SongQueue) => {};
+    const handleRemoveSong = (_song: QueueResponseItem) => {};
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const handlePlaySong = async (_song: SongQueue) => {};
+    const handlePlaySong = async (_song: QueueResponseItem) => {};
 
     return (
         <>
@@ -164,7 +138,48 @@ export function PlayerUIQueueList({
                     Reproducciones automáticas a continuación
                 </h2>
                 {AUTO_PLAY_MOCKS.map((mock, i) => {
-                    const autoSong = buildAutoSong(mock, i);
+                    const autoSong: QueueResponseItem = {
+                        queueSongId: -i - 1, // Negative IDs for mock songs
+                        listPublicId: "",
+                        song: {
+                            downloaded: false,
+                            internalImageUrl: "song-placeholder.png",
+                            duration: 123,
+                            discNumber: 1,
+                            trackNumber: 1,
+                            provider: "mock",
+                            audioSrc: null,
+                            publicId: `auto-${mock.id}`,
+                            name: mock.title,
+                            album: {
+                                type: "album",
+                                name: "Single",
+                                releaseDate: "2024-01-01",
+                                internalImageUrl: "album-placeholder.png",
+                                provider: "mock",
+                                publicId: `auto-album-${mock.id}`,
+                                artists: [
+                                    {
+                                        provider: "mock",
+                                        publicId: "publicId",
+                                        internalImageUrl:
+                                            "song-placeholder.png",
+                                        genres: [],
+                                        name: mock.artist,
+                                    },
+                                ],
+                            },
+                            artists: [
+                                {
+                                    provider: "mock",
+                                    publicId: "publicId",
+                                    internalImageUrl: "song-placeholder.png",
+                                    genres: [],
+                                    name: mock.artist,
+                                },
+                            ],
+                        },
+                    };
 
                     return (
                         <div

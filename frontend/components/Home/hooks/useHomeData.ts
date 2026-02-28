@@ -1,35 +1,27 @@
-import { HomeStatsResponseSchema } from "@/dto";
-import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
-import { SongWithoutAlbum } from "@/lib/rockit/songWithoutAlbum";
+import { BaseSongWithAlbumResponse, HomeStatsResponseSchema } from "@/dto";
 import useFetch from "@/hooks/useFetch";
 
 export interface HomeData {
-    songsByTimePlayed: SongWithoutAlbum[];
-    randomSongsLastMonth: SongWithAlbum[];
-    hiddenGems: SongWithoutAlbum[];
-    communityTop: SongWithoutAlbum[];
-    monthlyTop: SongWithoutAlbum[];
+    songsByTimePlayed: BaseSongWithAlbumResponse[];
+    randomSongsLastMonth: BaseSongWithAlbumResponse[];
+    hiddenGems: BaseSongWithAlbumResponse[];
+    communityTop: BaseSongWithAlbumResponse[];
+    monthlyTop: BaseSongWithAlbumResponse[];
     isEmpty: boolean;
 }
 
 function transformStats(
     dataResponse: NonNullable<ReturnType<typeof HomeStatsResponseSchema.parse>>
 ): HomeData {
-    const songsByTimePlayed = dataResponse.songsByTimePlayed.map((song) =>
-        SongWithAlbum.fromResponse(song).toSongWithoutAlbum()
+    const songsByTimePlayed = dataResponse.songsByTimePlayed.map(
+        (song) => song
     );
-    const randomSongsLastMonth = dataResponse.randomSongsLastMonth.map((song) =>
-        SongWithAlbum.fromResponse(song)
+    const randomSongsLastMonth = dataResponse.randomSongsLastMonth.map(
+        (song) => song
     );
-    const hiddenGems = dataResponse.hiddenGems.map((song) =>
-        SongWithAlbum.fromResponse(song).toSongWithoutAlbum()
-    );
-    const communityTop = dataResponse.communityTop.map((song) =>
-        SongWithAlbum.fromResponse(song).toSongWithoutAlbum()
-    );
-    const monthlyTop = dataResponse.monthlyTop.map((song) =>
-        SongWithAlbum.fromResponse(song).toSongWithoutAlbum()
-    );
+    const hiddenGems = dataResponse.hiddenGems.map((song) => song);
+    const communityTop = dataResponse.communityTop.map((song) => song);
+    const monthlyTop = dataResponse.monthlyTop.map((song) => song);
 
     const isEmpty =
         songsByTimePlayed.length === 0 &&

@@ -1,13 +1,11 @@
 import { cache } from "react";
 import { notFound } from "next/navigation";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { getPlaylistAsync } from "@/lib/services/mediaService";
 import PlaylistHeader from "@/components/Playlist/PlaylistHeader";
 import PlaylistSongsView from "@/components/Playlist/PlaylistSongsView";
 
 const getPlaylist = cache(async (publicId: string) => {
-    const playlist = await rockIt.playlistManager
-        .getPlaylistAsync(publicId)
-        .catch(() => null); // ← normaliza errores de red / 5xx / timeouts
+    const playlist = await getPlaylistAsync(publicId).catch(() => null);
     return playlist;
 });
 

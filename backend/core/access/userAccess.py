@@ -126,3 +126,51 @@ class UserAccess:
                 code=AResultCode.GENERAL_ERROR,
                 message=f"Failed to get user albums: {e}",
             )
+
+    @staticmethod
+    async def add_user_album(
+        session: AsyncSession, user_id: int, album_id: int
+    ) -> AResult[UserAlbumRow]:
+        """Add an album to user's library."""
+        try:
+            user_album = UserAlbumRow(user_id=user_id, album_id=album_id)
+            session.add(instance=user_album)
+            await session.commit()
+            await session.refresh(instance=user_album)
+            session.expunge(instance=user_album)
+            return AResult(code=AResultCode.OK, message="OK", result=user_album)
+
+        except Exception as e:
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to add album to user library: {e}",
+            )
+
+    @staticmethod
+    async def remove_user_album(
+        session: AsyncSession, user_id: int, album_id: int
+    ) -> AResult[bool]:
+        """Remove an album from user's library."""
+        try:
+            stmt: Select[Tuple[UserAlbumRow]] = select(UserAlbumRow).where(
+                UserAlbumRow.user_id == user_id,
+                UserAlbumRow.album_id == album_id,
+            )
+            result: Result[Tuple[UserAlbumRow]] = await session.execute(statement=stmt)
+            user_album: UserAlbumRow | None = result.scalar_one_or_none()
+
+            if user_album is None:
+                return AResult(
+                    code=AResultCode.NOT_FOUND,
+                    message="Album not found in user library",
+                )
+
+            await session.delete(instance=user_album)
+            await session.commit()
+            return AResult(code=AResultCode.OK, message="OK", result=True)
+
+        except Exception as e:
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to remove album from user library: {e}",
+            )

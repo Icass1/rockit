@@ -1,8 +1,9 @@
 import { HomeStatsResponseSchema } from "@/dto";
+import { BACKEND_URL } from "@/environment";
 import HomeClient from "@/components/Home/HomeClient";
 
 async function getHomeStats() {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    const baseUrl = BACKEND_URL;
     const res = await fetch(`${baseUrl}/stats/home`, {
         next: { revalidate: 60 },
     });

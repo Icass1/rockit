@@ -1,9 +1,5 @@
-import {
-    BaseSongWithAlbumResponse,
-    BaseSongWithAlbumResponseSchema,
-} from "@/dto";
+import { BaseSongWithAlbumResponse } from "@/dto";
 import { createArrayAtom } from "@/lib/store";
-import apiFetch from "@/lib/utils/apiFetch";
 
 export class SongManager {
     // #region: Atoms
@@ -19,19 +15,6 @@ export class SongManager {
     // #endregion: Constructor
 
     // #region: Methods
-
-    async getSongAsync(publicId: string) {
-        const response = await apiFetch(`/media/song/${publicId}`, {
-            auth: false,
-        });
-        if (!response?.ok) {
-            throw "Error fetching song.";
-        }
-
-        const responseJson = await response.json();
-
-        return BaseSongWithAlbumResponseSchema.parse(responseJson);
-    }
 
     toggleLikeSong(songPublicId: string) {
         //  if (rockIt.songManager.likedSongsAtom.get().includes(song.publicId)) {

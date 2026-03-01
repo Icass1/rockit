@@ -15,12 +15,8 @@ export class UserManager {
 
     // #region: Constructor
 
-    constructor() {
+    public async init() {
         if (typeof window === "undefined") return;
-        this.init();
-    }
-
-    private async init() {
         const session = await getUserInClient();
         if (!session) {
             console.warn("No session found in UserManager");

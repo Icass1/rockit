@@ -1,4 +1,5 @@
 import { StartDownloadResponseSchema } from "@/dto";
+import { BACKEND_URL } from "@/environment";
 import { DBListType, DownloadInfo } from "@/types/rockIt";
 import { RESPONSE_UNDEFINED_MESSAGE, rockIt } from "@/lib/rockit/rockIt";
 import { createArrayAtom } from "@/lib/store";
@@ -41,7 +42,7 @@ export class DownloaderManager {
         this._downloadingListsAtom.push({ type, publicId });
 
         const eventSource = new EventSource(
-            `${rockIt.BACKEND_URL}/downloader/download-status?id=${downloadId}`
+            `${BACKEND_URL}/downloader/download-status?id=${downloadId}`
         );
 
         eventSource.onerror = (ev: Event) => {
@@ -93,7 +94,7 @@ export class DownloaderManager {
         this._downloadingListsAtom.push({ type, publicId });
 
         const eventSource = new EventSource(
-            `${rockIt.BACKEND_URL}/downloader/download-status?id=${startDownload.downloadGroupId}`
+            `${BACKEND_URL}/downloader/download-status?id=${startDownload.downloadGroupId}`
         );
 
         eventSource.onerror = (ev: Event) => {
@@ -139,7 +140,7 @@ export class DownloaderManager {
         const startDownload = StartDownloadResponseSchema.parse(responseJson);
 
         const eventSource = new EventSource(
-            `${rockIt.BACKEND_URL}/downloader/download-status?id=${startDownload.downloadGroupId}`
+            `${BACKEND_URL}/downloader/download-status?id=${startDownload.downloadGroupId}`
         );
 
         eventSource.onerror = (ev: Event) => {

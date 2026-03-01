@@ -2,8 +2,10 @@ import { cache } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BACKEND_URL } from "@/environment";
 import { EllipsisVertical } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { getSongAsync } from "@/lib/services/mediaService";
 import LikeButton from "@/components/LikeButton";
 import SongPopupMenu from "@/components/ListSongs/SongPopupMenu";
 import SongPageAlbum from "@/components/SongPage/SongPageAlbum";
@@ -11,7 +13,7 @@ import SongPageCover from "@/components/SongPage/SongPageCover";
 import LyricsSection from "@/components/SongPage/SongPageLyrics";
 
 const getSong = cache(async (publicId: string) => {
-    return rockIt.songManager.getSongAsync(publicId);
+    return getSongAsync(publicId);
 });
 
 export async function generateMetadata({
@@ -31,7 +33,7 @@ export async function generateMetadata({
             title: `${song.name} by ${song.artists[0].name}`,
             description: `Listen to ${song.name} by ${song.artists[0].name}`,
             type: "music.song",
-            url: `https://${rockIt.BACKEND_URL}/song/${publicId}`,
+            url: `https://${BACKEND_URL}/song/${publicId}`,
             images: [
                 {
                     url: song.album.internalImageUrl,

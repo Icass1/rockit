@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { BaseAlbumWithSongsResponse } from "@/dto";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { getAlbumAsync } from "@/lib/services/mediaService";
 import { getTime } from "@/lib/utils/getTime";
 
 export default function SongPageAlbum({
@@ -14,9 +14,7 @@ export default function SongPageAlbum({
     const [album, setAlbum] = useState<BaseAlbumWithSongsResponse>();
 
     useEffect(() => {
-        rockIt.albumManager
-            .getAlbumAsync(albumPublicId)
-            .then((data) => setAlbum(data));
+        getAlbumAsync(albumPublicId).then((data) => setAlbum(data));
     }, [albumPublicId]);
 
     if (!album) {

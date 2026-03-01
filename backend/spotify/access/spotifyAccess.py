@@ -42,6 +42,13 @@ from backend.spotify.access.db.associationTables.artist_genres import artist_gen
 from backend.spotify.access.db.associationTables.album_external_images import (
     album_external_images,
 )
+from backend.spotify.access.db.associationTables.artist_external_images import (
+    artist_external_images,
+)
+from backend.spotify.access.db.associationTables.song_artists import song_artists
+from backend.spotify.access.db.associationTables.album_copyrights import (
+    album_copyrights,
+)
 
 # SPOTIFY TYPES
 from backend.spotify.spotifyApiTypes.rawSpotifyApiAlbum import RawSpotifyApiAlbum
@@ -1044,4 +1051,334 @@ class SpotifyAccess:
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
                 message=f"Failed to get playlist track links: {e}",
+            )
+
+    # ── Bulk getters ─────────────────────────────────────────────────────────────
+
+    @staticmethod
+    async def get_albums_by_spotify_ids_async(
+        session: AsyncSession,
+        spotify_ids: List[str],
+    ) -> AResult[List[AlbumRow]]:
+        try:
+            if not spotify_ids:
+                return AResult(code=AResultCode.OK, message="OK", result=[])
+
+            stmt = (
+                select(AlbumRow)
+                .join(CoreAlbumRow, CoreAlbumRow.id == AlbumRow.id)
+                .where(AlbumRow.spotify_id.in_(spotify_ids))
+            )
+            result = await session.execute(stmt)
+            albums: List[AlbumRow] = list(result.scalars().all())
+
+            for album in albums:
+                session.expunge(album)
+
+            return AResult(code=AResultCode.OK, message="OK", result=albums)
+
+        except Exception as e:
+            logger.error(f"Failed to get albums by spotify ids: {e}")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to get albums by spotify ids: {e}",
+            )
+
+    @staticmethod
+    async def get_tracks_by_spotify_ids_async(
+        session: AsyncSession,
+        spotify_ids: List[str],
+    ) -> AResult[List[TrackRow]]:
+        try:
+            if not spotify_ids:
+                return AResult(code=AResultCode.OK, message="OK", result=[])
+
+            stmt = (
+                select(TrackRow)
+                .join(CoreSongRow, CoreSongRow.id == TrackRow.id)
+                .where(TrackRow.spotify_id.in_(spotify_ids))
+            )
+            result = await session.execute(stmt)
+            tracks: List[TrackRow] = list(result.scalars().all())
+
+            for track in tracks:
+                session.expunge(track)
+
+            return AResult(code=AResultCode.OK, message="OK", result=tracks)
+
+        except Exception as e:
+            logger.error(f"Failed to get tracks by spotify ids: {e}")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to get tracks by spotify ids: {e}",
+            )
+
+    @staticmethod
+    async def get_artists_by_spotify_ids_async(
+        session: AsyncSession,
+        spotify_ids: List[str],
+    ) -> AResult[List[ArtistRow]]:
+        try:
+            if not spotify_ids:
+                return AResult(code=AResultCode.OK, message="OK", result=[])
+
+            stmt = (
+                select(ArtistRow)
+                .join(CoreArtistRow, CoreArtistRow.id == ArtistRow.id)
+                .where(ArtistRow.spotify_id.in_(spotify_ids))
+            )
+            result = await session.execute(stmt)
+            artists: List[ArtistRow] = list(result.scalars().all())
+
+            for artist in artists:
+                session.expunge(artist)
+
+            return AResult(code=AResultCode.OK, message="OK", result=artists)
+
+        except Exception as e:
+            logger.error(f"Failed to get artists by spotify ids: {e}")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to get artists by spotify ids: {e}",
+            )
+
+    @staticmethod
+    async def get_playlists_by_spotify_ids_async(
+        session: AsyncSession,
+        spotify_ids: List[str],
+    ) -> AResult[List[PlaylistRow]]:
+        try:
+            if not spotify_ids:
+                return AResult(code=AResultCode.OK, message="OK", result=[])
+
+            stmt = (
+                select(PlaylistRow)
+                .join(CorePlaylistRow, CorePlaylistRow.id == PlaylistRow.id)
+                .where(PlaylistRow.spotify_id.in_(spotify_ids))
+            )
+            result = await session.execute(stmt)
+            playlists: List[PlaylistRow] = list(result.scalars().all())
+
+            for playlist in playlists:
+                session.expunge(playlist)
+
+            return AResult(code=AResultCode.OK, message="OK", result=playlists)
+
+        except Exception as e:
+            logger.error(f"Failed to get playlists by spotify ids: {e}")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to get playlists by spotify ids: {e}",
+            )
+
+    # ── Image download helpers ────────────────────────────────────────────────
+
+    @staticmethod
+    async def download_and_create_album_image_async(
+        session: AsyncSession,
+        url: str,
+    ) -> AResult[ImageRow]:
+        try:
+            response = req.get(url, timeout=10)
+            if response.status_code != 200:
+                logger.warning(f"Failed to download album image from {url}")
+                return AResult(
+                    code=AResultCode.GENERAL_ERROR,
+                    message="Image download failed",
+                )
+
+            spotify_dir = os.path.join(IMAGES_PATH, "spotify", "album")
+            os.makedirs(spotify_dir, exist_ok=True)
+
+            filename = str(uuid.uuid4()) + ".jpg"
+            full_path = os.path.join(spotify_dir, filename)
+            with open(full_path, "wb") as f:
+                f.write(response.content)
+
+            img = ImageRow(public_id=create_id(32), url=url, path=filename)
+            session.add(img)
+            await session.flush()
+            return AResult(code=AResultCode.OK, message="OK", result=img)
+
+        except Exception as e:
+            logger.error(f"Failed to download/create album image: {e}")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to download/create album image: {e}",
+            )
+
+    @staticmethod
+    async def download_and_create_artist_image_async(
+        session: AsyncSession,
+        url: str,
+    ) -> AResult[ImageRow]:
+        try:
+            response = req.get(url, timeout=10)
+            if response.status_code != 200:
+                logger.warning(f"Failed to download artist image from {url}")
+                return AResult(
+                    code=AResultCode.GENERAL_ERROR,
+                    message="Image download failed",
+                )
+
+            spotify_dir = os.path.join(IMAGES_PATH, "spotify", "artist")
+            os.makedirs(spotify_dir, exist_ok=True)
+
+            filename = str(uuid.uuid4()) + ".jpg"
+            full_path = os.path.join(spotify_dir, filename)
+            with open(full_path, "wb") as f:
+                f.write(response.content)
+
+            img = ImageRow(public_id=create_id(32), url=url, path=filename)
+            session.add(img)
+            await session.flush()
+            return AResult(code=AResultCode.OK, message="OK", result=img)
+
+        except Exception as e:
+            logger.error(f"Failed to download/create artist image: {e}")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to download/create artist image: {e}",
+            )
+
+    # ── Association helpers ──────────────────────────────────────────────────
+
+    @staticmethod
+    async def link_album_external_image_async(
+        session: AsyncSession,
+        album_id: int,
+        external_image_id: int,
+    ) -> AResult[None]:
+        try:
+            stmt = album_external_images.insert().values(
+                album_id=album_id,
+                external_image_id=external_image_id,
+            )
+            await session.execute(stmt)
+            await session.flush()
+            return AResult(code=AResultCode.OK, message="OK", result=None)
+
+        except Exception as e:
+            logger.warning(
+                f"Failed to link album external image (may already exist): {e}"
+            )
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to link album external image: {e}",
+            )
+
+    @staticmethod
+    async def link_artist_external_image_async(
+        session: AsyncSession,
+        artist_id: int,
+        external_image_id: int,
+    ) -> AResult[None]:
+        try:
+            stmt = artist_external_images.insert().values(
+                artist_id=artist_id,
+                external_image_id=external_image_id,
+            )
+            await session.execute(stmt)
+            await session.flush()
+            return AResult(code=AResultCode.OK, message="OK", result=None)
+
+        except Exception as e:
+            logger.warning(
+                f"Failed to link artist external image (may already exist): {e}"
+            )
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to link artist external image: {e}",
+            )
+
+    @staticmethod
+    async def link_track_artists_async(
+        session: AsyncSession,
+        track_id: int,
+        artist_ids: List[int],
+    ) -> AResult[None]:
+        try:
+            for artist_id in artist_ids:
+                stmt = song_artists.insert().values(
+                    track_id=track_id,
+                    artist_id=artist_id,
+                )
+                await session.execute(stmt)
+            await session.flush()
+            return AResult(code=AResultCode.OK, message="OK", result=None)
+
+        except Exception as e:
+            logger.warning(f"Failed to link track artists (may already exist): {e}")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to link track artists: {e}",
+            )
+
+    @staticmethod
+    async def link_album_artists_async(
+        session: AsyncSession,
+        album_id: int,
+        artist_ids: List[int],
+    ) -> AResult[None]:
+        try:
+            for artist_id in artist_ids:
+                stmt = album_artists.insert().values(
+                    album_id=album_id,
+                    artist_id=artist_id,
+                )
+                await session.execute(stmt)
+            await session.flush()
+            return AResult(code=AResultCode.OK, message="OK", result=None)
+
+        except Exception as e:
+            logger.warning(f"Failed to link album artists (may already exist): {e}")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to link album artists: {e}",
+            )
+
+    @staticmethod
+    async def link_artist_genres_async(
+        session: AsyncSession,
+        artist_id: int,
+        genre_ids: List[int],
+    ) -> AResult[None]:
+        try:
+            for genre_id in genre_ids:
+                stmt = artist_genres.insert().values(
+                    artist_id=artist_id,
+                    genre_id=genre_id,
+                )
+                await session.execute(stmt)
+            await session.flush()
+            return AResult(code=AResultCode.OK, message="OK", result=None)
+
+        except Exception as e:
+            logger.warning(f"Failed to link artist genres (may already exist): {e}")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to link artist genres: {e}",
+            )
+
+    @staticmethod
+    async def link_album_copyrights_async(
+        session: AsyncSession,
+        album_id: int,
+        copyright_ids: List[int],
+    ) -> AResult[None]:
+        try:
+            for copyright_id in copyright_ids:
+                stmt = album_copyrights.insert().values(
+                    album_id=album_id,
+                    copyright_id=copyright_id,
+                )
+                await session.execute(stmt)
+            await session.flush()
+            return AResult(code=AResultCode.OK, message="OK", result=None)
+
+        except Exception as e:
+            logger.warning(f"Failed to link album copyrights (may already exist): {e}")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to link album copyrights: {e}",
             )

@@ -11,8 +11,6 @@ export default async function SpotifySongPage({
     const { spotifyId } = await params;
     const song = await apiFetch(`/spotify/track/${spotifyId}`);
 
-    console.log(song, song?.status);
-
     if (!song) throw new AppError(505);
 
     if (song.status != 200) throw new AppError(505);

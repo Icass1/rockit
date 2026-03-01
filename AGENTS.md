@@ -138,6 +138,14 @@ AResult(code=AResultCode.OK, message="OK", result="text")
 7. `backend.core.responses`
 8. `backend.core.requests`
 
+### Response Classes
+All endpoints must return a Pydantic `BaseModel` class from the `responses` folder. Never return `dict` or raw types.
+
+When no useful data needs to be returned (e.g., add/remove operations), use `OkResponse` instead of creating a custom response with meaningless data.
+
+### Code Formatting
+Every time you edit a file, you must run `venv/bin/python -m black` on that file to ensure consistent formatting.
+
 ## Frontend Code Style
 
 ### Server vs Client Components

@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { BaseSongWithAlbumResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
 import { CheckCircle2, EllipsisVertical } from "lucide-react";
+import { AlbumManager } from "@/lib/managers/albumManager";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { networkStatus } from "@/lib/stores/networkStatus";
 import { getTime } from "@/lib/utils/getTime";
@@ -57,7 +58,7 @@ export default function AlbumSong({
                     (songPlaying ? " text-[#ec5588]" : "")
                 }
                 onClick={() =>
-                    rockIt.albumManager.playAlbum(
+                    AlbumManager.playAlbum(
                         rockIt.currentListManager.currentListSongsAtom.get(),
                         "album",
                         song.album.publicId,

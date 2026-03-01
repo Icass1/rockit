@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { BACKEND_URL } from "@/environment";
 import UsernameInput from "@/components/Auth/UsernameInput";
 
 export default function SignupModal() {
@@ -34,21 +34,18 @@ export default function SignupModal() {
         try {
             setLoading(true);
 
-            const response = await fetch(
-                `${rockIt.BACKEND_URL}/auth/register`,
-                {
-                    method: "POST",
-                    credentials: "include",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        username,
-                        password,
-                        repeatPassword,
-                    }),
-                }
-            );
+            const response = await fetch(`${BACKEND_URL}/auth/register`, {
+                method: "POST",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    username,
+                    password,
+                    repeatPassword,
+                }),
+            });
 
             if (!response.ok) {
                 const text = await response.text();

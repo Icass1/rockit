@@ -1,8 +1,9 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import type { SpotifyArtist, SpotifyArtistTopTracks } from "@/types/spotify";
+import { BaseArtistResponseSchema, BaseSongWithAlbumResponse } from "@/dto";
 import { Play } from "lucide-react";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { AppError } from "@/lib/errors/AppError";
+import apiFetch from "@/lib/utils/apiFetch";
 
 export default async function ArtistPage({
     params,
@@ -11,38 +12,56 @@ export default async function ArtistPage({
 }) {
     const { id } = await params;
 
-    const artistRes = await fetch(`${rockIt.BACKEND_URL}/artist/${id}`, {
-        cache: "no-store",
-    });
-    if (!artistRes.ok) notFound();
-
-    const artistData = (await artistRes.json()) as SpotifyArtist;
-    artistData.images.sort((a, b) => b.width + b.height - (a.width + a.height));
-    const artistImage = artistData.images[0]?.url ?? "";
-
-    // Non-fatal: page works without top songs
-    let artistSongs: SpotifyArtistTopTracks | undefined;
-    const topRes = await fetch(`${rockIt.BACKEND_URL}/artist-top-songs/${id}`, {
-        signal: AbortSignal.timeout(2000),
-        cache: "no-store",
-    }).catch(() => null);
-    if (topRes?.ok) {
-        artistSongs = (await topRes.json()) as SpotifyArtistTopTracks;
+    const artistRes = await apiFetch("/artist/" + id);
+    if (artistRes.status !== 200) {
+        notFound();
     }
+
+    if (!artistRes?.ok) {
+        throw new AppError(500);
+    }
+
+    const artist = BaseArtistResponseSchema.parse(artistRes.json());
+
+    const artistTopSongs: BaseSongWithAlbumResponse[] = [];
+
+    // const artistRes = await fetch(`${rockIt.BACKEND_URL}/artist/${id}`, {
+    //     cache: "no-store",
+    // });
+    // if (!artistRes.ok) notFound();
+
+    // const artistData = (await artistRes.json()) as SpotifyArtist;
+    // artistData.images.sort((a, b) => b.width + b.height - (a.width + a.height));
+    // const artistImage = artistData.images[0]?.url ?? "";
+
+    // // Non-fatal: page works without top songs
+    // const topRes = await apiFetch(`/artist-top-songs/${id}`, {
+    //     signal: AbortSignal.timeout(2000),
+    // });
+
+    // if (topRes.status !== 200) {
+    //     notFound();
+    // }
+
+    // if (!topRes?.ok) {
+    //     throw new AppError(500);
+    // }
+
+    // const artistSongs = (await topRes.json()) as SpotifyArtistTopTracks;
 
     return (
         <div className="flex h-full w-full flex-col overflow-y-scroll bg-[#0b0b0b] text-white">
             <div
                 className="relative w-full bg-size-[120%] bg-top bg-no-repeat md:bg-size-[100%]"
                 style={{
-                    backgroundImage: `url('${artistImage}')`,
+                    backgroundImage: `url('${artist.internalImageUrl}')`,
                     backgroundAttachment: "fixed",
                 }}
             >
                 <div className="relative z-10 flex h-screen flex-col">
                     <div className="min-h-1/2 flex h-1/4 w-full items-end bg-linear-to-b from-transparent to-black/50 p-4 md:h-1/2 md:p-8">
                         <h1 className="text-4xl font-extrabold md:text-8xl">
-                            {artistData.name}
+                            {artist.name}
                         </h1>
                     </div>
 
@@ -63,9 +82,9 @@ export default async function ArtistPage({
                                     Top Songs
                                 </h2>
                                 <div className="space-y-1">
-                                    {artistSongs?.tracks.map((song, index) => (
+                                    {artistTopSongs.map((song, index) => (
                                         <div
-                                            key={song.id}
+                                            key={song.publicId}
                                             className="group flex items-center space-x-4 rounded-md p-2 transition md:hover:bg-[#212121]"
                                         >
                                             <span className="w-6 text-center text-sm font-semibold text-gray-400 md:text-lg">
@@ -75,9 +94,8 @@ export default async function ArtistPage({
                                                 {/* Fixed: was <img>, Next.js <Image> for optimization */}
                                                 <Image
                                                     src={
-                                                        song.album.images[0]
-                                                            ?.url ??
-                                                        "/song-placeholder.png"
+                                                        song.album
+                                                            .internalImageUrl
                                                     }
                                                     alt={song.name}
                                                     width={48}

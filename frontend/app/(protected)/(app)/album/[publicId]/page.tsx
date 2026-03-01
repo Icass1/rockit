@@ -1,12 +1,10 @@
 import { cache } from "react";
 import { notFound } from "next/navigation";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { getAlbumAsync } from "@/lib/services/mediaService";
 import { RenderAlbum } from "@/components/Album";
 
 const getAlbum = cache(async (publicId: string) => {
-    const album = await rockIt.albumManager
-        .getAlbumAsync(publicId)
-        .catch(() => null);
+    const album = await getAlbumAsync(publicId).catch(() => null);
     return album;
 });
 

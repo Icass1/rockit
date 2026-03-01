@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { BACKEND_URL } from "@/environment";
 
 export default function LoginModal() {
     const router = useRouter();
@@ -27,9 +27,9 @@ export default function LoginModal() {
         try {
             setLoading(true);
 
-            const res = await fetch(`${rockIt.BACKEND_URL}/auth/login`, {
+            const res = await fetch(`${BACKEND_URL}/auth/login`, {
                 method: "POST",
-                credentials: "include", // 🔴 CLAVE → guarda la cookie de sesión
+                credentials: "include",
                 headers: {
                     "Content-Type": "application/json",
                 },

@@ -5,6 +5,7 @@ from backend.core.aResult import AResult, AResultCode
 from backend.utils.logger import getLogger
 
 from backend.core.access.userAccess import UserAccess
+from backend.core.access.mediaAccess import MediaAccess
 
 from backend.core.access.db.ormModels.album import CoreAlbumRow
 from backend.core.access.db.ormModels.provider import ProviderRow
@@ -23,8 +24,9 @@ class User:
     @staticmethod
     def get_user_queue(user_id: int) -> AResult[QueueResponse]:
         return AResult(
-            code=AResultCode.NOT_IMPLEMENTED,
-            message="Get user queue is not implemented",
+            code=AResultCode.OK,
+            message="OK",
+            result=QueueResponse(currentQueueSongId=None, queue=[]),
         )
 
     @staticmethod
@@ -66,3 +68,61 @@ class User:
             albums.append(a_result_album.result())
 
         return AResult(code=AResultCode.OK, message="OK", result=albums)
+
+    @staticmethod
+    async def add_album_to_library(
+        session: AsyncSession, user_id: int, album_public_id: str
+    ) -> AResult[UserAlbumRow]:
+        """Add an album to user's library by public_id."""
+
+        a_result_album: AResult[CoreAlbumRow] = (
+            await MediaAccess.get_album_from_public_id_async(
+                session=session, public_id=album_public_id
+            )
+        )
+        if a_result_album.is_not_ok():
+            logger.error(f"Error getting album. {a_result_album.info()}")
+            return AResult(code=a_result_album.code(), message=a_result_album.message())
+
+        a_result_user_album: AResult[UserAlbumRow] = await UserAccess.add_user_album(
+            session=session, user_id=user_id, album_id=a_result_album.result().id
+        )
+        if a_result_user_album.is_not_ok():
+            logger.error(f"Error adding album to library. {a_result_user_album.info()}")
+            return AResult(
+                code=a_result_user_album.code(), message=a_result_user_album.message()
+            )
+
+        return AResult(
+            code=AResultCode.OK, message="OK", result=a_result_user_album.result()
+        )
+
+    @staticmethod
+    async def remove_album_from_library(
+        session: AsyncSession, user_id: int, album_public_id: str
+    ) -> AResult[bool]:
+        """Remove an album from user's library by public_id."""
+
+        a_result_album: AResult[CoreAlbumRow] = (
+            await MediaAccess.get_album_from_public_id_async(
+                session=session, public_id=album_public_id
+            )
+        )
+        if a_result_album.is_not_ok():
+            logger.error(f"Error getting album. {a_result_album.info()}")
+            return AResult(code=a_result_album.code(), message=a_result_album.message())
+
+        a_result_removed: AResult[bool] = await UserAccess.remove_user_album(
+            session=session, user_id=user_id, album_id=a_result_album.result().id
+        )
+        if a_result_removed.is_not_ok():
+            logger.error(
+                f"Error removing album from library. {a_result_removed.info()}"
+            )
+            return AResult(
+                code=a_result_removed.code(), message=a_result_removed.message()
+            )
+
+        return AResult(
+            code=AResultCode.OK, message="OK", result=a_result_removed.result()
+        )

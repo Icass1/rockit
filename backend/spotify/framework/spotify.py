@@ -29,6 +29,7 @@ from backend.spotify.access.db.ormModels.album import AlbumRow
 from backend.spotify.access.db.ormModels.track import TrackRow
 from backend.spotify.access.db.ormModels.artist import ArtistRow
 from backend.spotify.access.db.ormModels.externalImage import ExternalImageRow
+from backend.spotify.access.db.ormModels.playlist import PlaylistRow
 from backend.spotify.access.db.ormModels.playlist_tracks import PlaylistTrackRow
 
 from backend.spotify.framework.spotifyApi import spotify_api
@@ -88,7 +89,7 @@ class Spotify:
                     BaseSearchResultsItem(
                         type="song",
                         title=track.name,
-                        url=f"/spotify/song/{track.id}",
+                        url=f"/spotify/track/{track.id}",
                         imageUrl=track_image_url,
                         artists=track_artists,
                         provider=Spotify.provider_name,
@@ -1705,4 +1706,516 @@ class Spotify:
                 internalImageUrl=fetched_internal_image_url,
                 owner=fetched_playlist_row.owner,
             ),
+        )
+
+    # ── Bulk methods ───────────────────────────────────────────────────────────
+
+    @staticmethod
+    async def get_albums_from_db(
+        session: AsyncSession, spotify_ids: List[str]
+    ) -> AResult[List[AlbumRow]]:
+        """Get albums from database by their Spotify IDs."""
+        a_result = await SpotifyAccess.get_albums_by_spotify_ids_async(
+            session=session, spotify_ids=spotify_ids
+        )
+        if a_result.is_not_ok():
+            logger.error(f"Error getting albums from DB. {a_result.info()}")
+            return AResult(code=a_result.code(), message=a_result.message())
+        return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+
+    @staticmethod
+    async def get_missing_album_ids(
+        session: AsyncSession, spotify_ids: List[str]
+    ) -> AResult[List[str]]:
+        """Get album IDs that are not in the database."""
+        a_result_existing = await SpotifyAccess.get_albums_by_spotify_ids_async(
+            session=session, spotify_ids=spotify_ids
+        )
+        existing_ids: Set[str] = (
+            {a.spotify_id for a in a_result_existing.result()}
+            if a_result_existing.is_ok()
+            else set()
+        )
+        missing_ids = [sid for sid in spotify_ids if sid not in existing_ids]
+        return AResult(code=AResultCode.OK, message="OK", result=missing_ids)
+
+    @staticmethod
+    async def fetch_albums_from_spotify(
+        session: AsyncSession, spotify_ids: List[str]
+    ) -> AResult[List[RawSpotifyApiAlbum]]:
+        """Fetch albums from Spotify API (via cache)."""
+        a_result = await spotify_api.get_albums_async(session=session, ids=spotify_ids)
+        if a_result.is_not_ok():
+            logger.error(f"Error fetching albums from Spotify. {a_result.info()}")
+            return AResult(code=a_result.code(), message=a_result.message())
+        return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+
+    @staticmethod
+    async def fetch_tracks_from_spotify(
+        session: AsyncSession, spotify_ids: List[str]
+    ) -> AResult[List[RawSpotifyApiTrack]]:
+        """Fetch tracks from Spotify API (via cache)."""
+        a_result = await spotify_api.get_tracks_async(session=session, ids=spotify_ids)
+        if a_result.is_not_ok():
+            logger.error(f"Error fetching tracks from Spotify. {a_result.info()}")
+            return AResult(code=a_result.code(), message=a_result.message())
+        return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+
+    @staticmethod
+    async def fetch_artists_from_spotify(
+        session: AsyncSession, spotify_ids: List[str]
+    ) -> AResult[List[RawSpotifyApiArtist]]:
+        """Fetch artists from Spotify API (via cache)."""
+        a_result = await spotify_api.get_artists_async(session=session, ids=spotify_ids)
+        if a_result.is_not_ok():
+            logger.error(f"Error fetching artists from Spotify. {a_result.info()}")
+            return AResult(code=a_result.code(), message=a_result.message())
+        return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+
+    @staticmethod
+    async def get_albums_async(
+        session: AsyncSession, spotify_ids: List[str]
+    ) -> AResult[List[AlbumRow]]:
+        """
+        Get albums by Spotify IDs.
+        1. Get existing albums from DB
+        2. Identify missing albums
+        3. Fetch missing albums from Spotify
+        4. Fetch all tracks of missing albums
+        5. Fetch all artists from tracks and albums
+        6. Download images and insert into DB
+        7. Insert albums, tracks, artists, etc.
+        8. Return albums from DB
+        """
+        if not spotify_ids:
+            return AResult(code=AResultCode.OK, message="OK", result=[])
+
+        a_result_existing = await Spotify.get_albums_from_db(
+            session=session, spotify_ids=spotify_ids
+        )
+        existing_albums: List[AlbumRow] = (
+            a_result_existing.result() if a_result_existing.is_ok() else []
+        )
+
+        existing_album_ids: Set[str] = {a.spotify_id for a in existing_albums}
+        spotify_ids_to_fetch: List[str] = [
+            sid for sid in spotify_ids if sid not in existing_album_ids
+        ]
+
+        a_result_missing = await Spotify.get_missing_album_ids(
+            session=session, spotify_ids=spotify_ids_to_fetch
+        )
+        if a_result_missing.is_not_ok():
+            return AResult(
+                code=a_result_missing.code(), message=a_result_missing.message()
+            )
+
+        missing_album_ids: List[str] = a_result_missing.result()
+        if not missing_album_ids:
+            return a_result_existing
+
+        a_result_raw_albums = await Spotify.fetch_albums_from_spotify(
+            session=session, spotify_ids=missing_album_ids
+        )
+        raw_albums: List[RawSpotifyApiAlbum] = (
+            a_result_raw_albums.result() if a_result_raw_albums.is_ok() else []
+        )
+
+        track_ids: List[str] = []
+        for raw_album in raw_albums:
+            if raw_album.tracks and raw_album.tracks.items:
+                for item in raw_album.tracks.items:
+                    if item.id:
+                        track_ids.append(item.id)
+
+        a_result_raw_tracks = await Spotify.fetch_tracks_from_spotify(
+            session=session, spotify_ids=track_ids
+        )
+        raw_tracks: List[RawSpotifyApiTrack] = (
+            a_result_raw_tracks.result() if a_result_raw_tracks.is_ok() else []
+        )
+
+        artist_ids: Set[str] = set()
+        for raw_album in raw_albums:
+            if raw_album.artists:
+                for a in raw_album.artists:
+                    if a.id:
+                        artist_ids.add(a.id)
+        for raw_track in raw_tracks:
+            if raw_track.artists:
+                for a in raw_track.artists:
+                    if a.id:
+                        artist_ids.add(a.id)
+
+        a_result_raw_artists = await Spotify.fetch_artists_from_spotify(
+            session=session, spotify_ids=list(artist_ids)
+        )
+        raw_artists: List[RawSpotifyApiArtist] = (
+            a_result_raw_artists.result() if a_result_raw_artists.is_ok() else []
+        )
+
+        a_result_provider_id: AResult[int] = Spotify.provider.get_id()
+        if a_result_provider_id.is_not_ok():
+            logger.error(f"Error getting provider id. {a_result_provider_id.info()}")
+            return AResult(
+                code=a_result_provider_id.code(), message=a_result_provider_id.message()
+            )
+
+        provider_id: int = a_result_provider_id.result()
+
+        artist_map: Dict[str, ArtistRow] = {}
+        for raw_artist in raw_artists:
+            if not raw_artist.id:
+                continue
+            a_result_artist = await SpotifyAccess.get_or_create_artist(
+                session=session, raw=raw_artist, provider_id=provider_id
+            )
+            if a_result_artist.is_ok():
+                artist_map[raw_artist.id] = a_result_artist.result()
+
+        album_map: Dict[str, AlbumRow] = {}
+        for raw_album in raw_albums:
+            if not raw_album.id:
+                continue
+            a_result_album = await SpotifyAccess.get_or_create_album(
+                session=session,
+                raw=raw_album,
+                artist_map=artist_map,
+                provider_id=provider_id,
+            )
+            if a_result_album.is_ok():
+                album_map[raw_album.id] = a_result_album.result()
+
+        for raw_track in raw_tracks:
+            if not raw_track.id:
+                continue
+            album_id = raw_track.album.id if raw_track.album else None
+            album_row = album_map.get(album_id) if album_id else None
+            if not album_row:
+                continue
+            await SpotifyAccess.get_or_create_track(
+                session=session,
+                raw=raw_track,
+                artist_map=artist_map,
+                album_row=album_row,
+                provider_id=provider_id,
+            )
+
+        return await Spotify.get_albums_from_db(
+            session=session, spotify_ids=spotify_ids
+        )
+
+    @staticmethod
+    async def get_tracks_from_db(
+        session: AsyncSession, spotify_ids: List[str]
+    ) -> AResult[List[TrackRow]]:
+        """Get tracks from database by their Spotify IDs."""
+        a_result = await SpotifyAccess.get_tracks_by_spotify_ids_async(
+            session=session, spotify_ids=spotify_ids
+        )
+        if a_result.is_not_ok():
+            logger.error(f"Error getting tracks from DB. {a_result.info()}")
+            return AResult(code=a_result.code(), message=a_result.message())
+        return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+
+    @staticmethod
+    async def get_missing_track_ids(
+        session: AsyncSession, spotify_ids: List[str]
+    ) -> AResult[List[str]]:
+        """Get track IDs that are not in the database."""
+        a_result_existing = await SpotifyAccess.get_tracks_by_spotify_ids_async(
+            session=session, spotify_ids=spotify_ids
+        )
+        existing_ids: Set[str] = (
+            {t.spotify_id for t in a_result_existing.result()}
+            if a_result_existing.is_ok()
+            else set()
+        )
+        missing_ids = [sid for sid in spotify_ids if sid not in existing_ids]
+        return AResult(code=AResultCode.OK, message="OK", result=missing_ids)
+
+    @staticmethod
+    async def get_tracks_async(
+        session: AsyncSession, spotify_ids: List[str]
+    ) -> AResult[List[TrackRow]]:
+        """
+        Get tracks by Spotify IDs.
+        1. Get existing tracks from DB
+        2. Identify missing tracks
+        3. Get album IDs from missing tracks
+        4. Fetch albums from Spotify (which includes track data)
+        5. Fetch artists from Spotify
+        6. Insert everything into DB
+        7. Return tracks from DB
+        """
+        if not spotify_ids:
+            return AResult(code=AResultCode.OK, message="OK", result=[])
+
+        a_result_existing = await Spotify.get_tracks_from_db(
+            session=session, spotify_ids=spotify_ids
+        )
+        existing_tracks: List[TrackRow] = (
+            a_result_existing.result() if a_result_existing.is_ok() else []
+        )
+
+        existing_track_ids: Set[str] = {t.spotify_id for t in existing_tracks}
+        spotify_ids_to_fetch: List[str] = [
+            sid for sid in spotify_ids if sid not in existing_track_ids
+        ]
+
+        a_result_missing = await Spotify.get_missing_track_ids(
+            session=session, spotify_ids=spotify_ids_to_fetch
+        )
+        if a_result_missing.is_not_ok():
+            return AResult(
+                code=a_result_missing.code(), message=a_result_missing.message()
+            )
+
+        missing_track_ids: List[str] = a_result_missing.result()
+        if not missing_track_ids:
+            return a_result_existing
+
+        a_result_raw_tracks = await Spotify.fetch_tracks_from_spotify(
+            session=session, spotify_ids=missing_track_ids
+        )
+        raw_tracks: List[RawSpotifyApiTrack] = (
+            a_result_raw_tracks.result() if a_result_raw_tracks.is_ok() else []
+        )
+
+        album_ids: Set[str] = set()
+        for raw_track in raw_tracks:
+            if raw_track.album and raw_track.album.id:
+                album_ids.add(raw_track.album.id)
+
+        if album_ids:
+            await Spotify.get_albums_async(session=session, spotify_ids=list(album_ids))
+
+        return await Spotify.get_tracks_from_db(
+            session=session, spotify_ids=spotify_ids
+        )
+
+    @staticmethod
+    async def get_artists_from_db(
+        session: AsyncSession, spotify_ids: List[str]
+    ) -> AResult[List[ArtistRow]]:
+        """Get artists from database by their Spotify IDs."""
+        a_result = await SpotifyAccess.get_artists_by_spotify_ids_async(
+            session=session, spotify_ids=spotify_ids
+        )
+        if a_result.is_not_ok():
+            logger.error(f"Error getting artists from DB. {a_result.info()}")
+            return AResult(code=a_result.code(), message=a_result.message())
+        return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+
+    @staticmethod
+    async def get_missing_artist_ids(
+        session: AsyncSession, spotify_ids: List[str]
+    ) -> AResult[List[str]]:
+        """Get artist IDs that are not in the database."""
+        a_result_existing = await SpotifyAccess.get_artists_by_spotify_ids_async(
+            session=session, spotify_ids=spotify_ids
+        )
+        existing_ids: Set[str] = (
+            {a.spotify_id for a in a_result_existing.result()}
+            if a_result_existing.is_ok()
+            else set()
+        )
+        missing_ids = [sid for sid in spotify_ids if sid not in existing_ids]
+        return AResult(code=AResultCode.OK, message="OK", result=missing_ids)
+
+    @staticmethod
+    async def get_artists_async(
+        session: AsyncSession, spotify_ids: List[str]
+    ) -> AResult[List[ArtistRow]]:
+        """
+        Get artists by Spotify IDs.
+        1. Get existing artists from DB
+        2. Identify missing artists
+        3. Fetch missing artists from Spotify
+        4. Download images and insert into DB
+        5. Insert artists, genres, etc.
+        6. Return artists from DB
+        """
+        if not spotify_ids:
+            return AResult(code=AResultCode.OK, message="OK", result=[])
+
+        a_result_existing = await Spotify.get_artists_from_db(
+            session=session, spotify_ids=spotify_ids
+        )
+        existing_artists: List[ArtistRow] = (
+            a_result_existing.result() if a_result_existing.is_ok() else []
+        )
+
+        existing_artist_ids: Set[str] = {a.spotify_id for a in existing_artists}
+        spotify_ids_to_fetch: List[str] = [
+            sid for sid in spotify_ids if sid not in existing_artist_ids
+        ]
+
+        a_result_missing = await Spotify.get_missing_artist_ids(
+            session=session, spotify_ids=spotify_ids_to_fetch
+        )
+        if a_result_missing.is_not_ok():
+            return AResult(
+                code=a_result_missing.code(), message=a_result_missing.message()
+            )
+
+        missing_artist_ids: List[str] = a_result_missing.result()
+        if not missing_artist_ids:
+            return a_result_existing
+
+        a_result_raw_artists = await Spotify.fetch_artists_from_spotify(
+            session=session, spotify_ids=missing_artist_ids
+        )
+        raw_artists: List[RawSpotifyApiArtist] = (
+            a_result_raw_artists.result() if a_result_raw_artists.is_ok() else []
+        )
+
+        a_result_provider_id: AResult[int] = Spotify.provider.get_id()
+        if a_result_provider_id.is_not_ok():
+            logger.error(f"Error getting provider id. {a_result_provider_id.info()}")
+            return AResult(
+                code=a_result_provider_id.code(), message=a_result_provider_id.message()
+            )
+
+        provider_id: int = a_result_provider_id.result()
+
+        artist_map: Dict[str, ArtistRow] = {}
+        for raw_artist in raw_artists:
+            if not raw_artist.id:
+                continue
+            a_result_artist = await SpotifyAccess.get_or_create_artist(
+                session=session, raw=raw_artist, provider_id=provider_id
+            )
+            if a_result_artist.is_ok():
+                artist_map[raw_artist.id] = a_result_artist.result()
+
+        return await Spotify.get_artists_from_db(
+            session=session, spotify_ids=spotify_ids
+        )
+
+    @staticmethod
+    async def get_playlists_from_db(
+        session: AsyncSession, spotify_ids: List[str]
+    ) -> AResult[List[PlaylistRow]]:
+        """Get playlists from database by their Spotify IDs."""
+        a_result = await SpotifyAccess.get_playlists_by_spotify_ids_async(
+            session=session, spotify_ids=spotify_ids
+        )
+        if a_result.is_not_ok():
+            logger.error(f"Error getting playlists from DB. {a_result.info()}")
+            return AResult(code=a_result.code(), message=a_result.message())
+        return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+
+    @staticmethod
+    async def get_missing_playlist_ids(
+        session: AsyncSession, spotify_ids: List[str]
+    ) -> AResult[List[str]]:
+        """Get playlist IDs that are not in the database."""
+        a_result_existing = await SpotifyAccess.get_playlists_by_spotify_ids_async(
+            session=session, spotify_ids=spotify_ids
+        )
+        existing_ids: Set[str] = (
+            {p.spotify_id for p in a_result_existing.result()}
+            if a_result_existing.is_ok()
+            else set()
+        )
+        missing_ids = [sid for sid in spotify_ids if sid not in existing_ids]
+        return AResult(code=AResultCode.OK, message="OK", result=missing_ids)
+
+    @staticmethod
+    async def get_playlists_async(
+        session: AsyncSession, spotify_ids: List[str]
+    ) -> AResult[List[PlaylistRow]]:
+        """
+        Get playlists by Spotify IDs.
+        1. Get existing playlists from DB
+        2. Identify missing playlists
+        3. Fetch missing playlists from Spotify
+        4. Get all track IDs from playlists
+        5. Fetch albums for those tracks
+        6. Fetch artists
+        7. Insert everything into DB
+        8. Return playlists from DB
+        """
+        if not spotify_ids:
+            return AResult(code=AResultCode.OK, message="OK", result=[])
+
+        a_result_existing = await Spotify.get_playlists_from_db(
+            session=session, spotify_ids=spotify_ids
+        )
+        existing_playlists: List[PlaylistRow] = (
+            a_result_existing.result() if a_result_existing.is_ok() else []
+        )
+
+        existing_playlist_ids: Set[str] = {p.spotify_id for p in existing_playlists}
+        spotify_ids_to_fetch: List[str] = [
+            sid for sid in spotify_ids if sid not in existing_playlist_ids
+        ]
+
+        a_result_missing = await Spotify.get_missing_playlist_ids(
+            session=session, spotify_ids=spotify_ids_to_fetch
+        )
+        if a_result_missing.is_not_ok():
+            return AResult(
+                code=a_result_missing.code(), message=a_result_missing.message()
+            )
+
+        missing_playlist_ids: List[str] = a_result_missing.result()
+        if not missing_playlist_ids:
+            return a_result_existing
+
+        a_result_provider_id: AResult[int] = Spotify.provider.get_id()
+        if a_result_provider_id.is_not_ok():
+            logger.error(f"Error getting provider id. {a_result_provider_id.info()}")
+            return AResult(
+                code=a_result_provider_id.code(), message=a_result_provider_id.message()
+            )
+
+        provider_id: int = a_result_provider_id.result()
+
+        for playlist_id in missing_playlist_ids:
+            a_result_raw_playlist = await spotify_api.get_playlist_async(
+                session=session, id=playlist_id
+            )
+            if a_result_raw_playlist.is_not_ok():
+                logger.error(
+                    f"Error fetching playlist {playlist_id}. {a_result_raw_playlist.info()}"
+                )
+                continue
+
+            raw_playlist: RawSpotifyApiPlaylist = a_result_raw_playlist.result()
+
+            track_ids: List[str] = []
+            album_ids: Set[str] = set()
+            if raw_playlist.tracks and raw_playlist.tracks.items:
+                for item in raw_playlist.tracks.items:
+                    if item.track and item.track.id:
+                        track_ids.append(item.track.id)
+                    if item.track and item.track.album and item.track.album.id:
+                        album_ids.add(item.track.album.id)
+
+            if album_ids:
+                await Spotify.get_albums_async(
+                    session=session, spotify_ids=list(album_ids)
+                )
+
+            await Spotify.get_tracks_async(session=session, spotify_ids=track_ids)
+
+            a_result_tracks = await Spotify.get_tracks_from_db(
+                session=session, spotify_ids=track_ids
+            )
+            db_tracks: List[TrackRow] = (
+                a_result_tracks.result() if a_result_tracks.is_ok() else []
+            )
+            track_row_map: Dict[str, TrackRow] = {t.spotify_id: t for t in db_tracks}
+
+            await SpotifyAccess.get_or_create_playlist(
+                session=session,
+                raw=raw_playlist,
+                track_row_map=track_row_map,
+                provider_id=provider_id,
+            )
+
+        return await Spotify.get_playlists_from_db(
+            session=session, spotify_ids=spotify_ids
         )

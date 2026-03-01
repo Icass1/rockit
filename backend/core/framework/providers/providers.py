@@ -46,6 +46,7 @@ class Providers:
             a_result_id: AResult[int] = p.get_id()
             if a_result_id.is_ok() and a_result_id.result() == provider_id:
                 return p
+
         return None
 
     async def search_providers(self, session: AsyncSession) -> AResultCode:

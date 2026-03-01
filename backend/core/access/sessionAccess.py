@@ -29,7 +29,6 @@ class SessionAccess:
             session.add(session_row)
             await session.commit()
             await session.refresh(session_row)
-            session.expunge(session_row)
 
             return AResult(
                 code=AResultCode.OK,
@@ -58,7 +57,6 @@ class SessionAccess:
                 logger.error("Error ")
                 return AResult(code=AResultCode.NOT_FOUND, message="Session not found")
 
-            session.expunge(session_row)
             return AResult(
                 code=AResultCode.OK,
                 message="Session retrieved successfully.",

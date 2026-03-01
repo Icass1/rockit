@@ -29,10 +29,10 @@ class UserAccess:
                 return AResult(code=AResultCode.NOT_FOUND, message="User not found.")
 
             # Detach from session BEFORE closing session.
-            session.expunge(instance=result)
             return AResult(code=AResultCode.OK, message="OK", result=result)
 
         except Exception as e:
+            logger.error(f"Error in get_user_from_id_async: {e}")
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
                 message=f"Failed to get user from id: {e}",
@@ -55,10 +55,10 @@ class UserAccess:
                 return AResult(code=AResultCode.NOT_FOUND, message="User not found")
 
             # Detach from session BEFORE closing session.
-            session.expunge(instance=user)
             return AResult(code=AResultCode.OK, message="OK", result=user)
 
         except Exception as e:
+            logger.error(f"Error in get_user_from_username_async: {e}")
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
                 message=f"Failed to get user from username: {e}",
@@ -80,10 +80,10 @@ class UserAccess:
             session.add(instance=user)
             await session.commit()
             await session.refresh(instance=user)
-            session.expunge(instance=user)
 
             return AResult(code=AResultCode.OK, message="OK", result=user)
         except Exception as e:
+            logger.error(f"Error in create_user_async: {e}")
             return AResult(
                 code=AResultCode.GENERAL_ERROR, message=f"Failed to create user: {e}"
             )
@@ -112,9 +112,6 @@ class UserAccess:
                 Tuple[UserAlbumRow, CoreAlbumRow, ProviderRow]
             ] = []
             for ua in user_albums:
-                session.expunge(instance=ua)
-                session.expunge(instance=ua.album)
-                session.expunge(instance=ua.album.provider)
                 albums_with_providers.append((ua, ua.album, ua.album.provider))
 
             return AResult(
@@ -122,6 +119,7 @@ class UserAccess:
             )
 
         except Exception as e:
+            logger.error(f"Error in get_user_albums: {e}")
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
                 message=f"Failed to get user albums: {e}",
@@ -137,10 +135,10 @@ class UserAccess:
             session.add(instance=user_album)
             await session.commit()
             await session.refresh(instance=user_album)
-            session.expunge(instance=user_album)
             return AResult(code=AResultCode.OK, message="OK", result=user_album)
 
         except Exception as e:
+            logger.error(f"Error in add_user_album: {e}")
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
                 message=f"Failed to add album to user library: {e}",
@@ -170,6 +168,7 @@ class UserAccess:
             return AResult(code=AResultCode.OK, message="OK", result=True)
 
         except Exception as e:
+            logger.error(f"Error in remove_user_album: {e}")
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
                 message=f"Failed to remove album from user library: {e}",

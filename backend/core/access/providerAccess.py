@@ -20,9 +20,6 @@ class ProviderAccess:
             result = await session.execute(stmt)
             rows: List[ProviderRow] = list(result.scalars().all())
 
-            for row in rows:
-                session.expunge(row)
-
             return AResult(code=AResultCode.OK, message="OK", result=rows)
 
         except Exception as e:
@@ -40,7 +37,6 @@ class ProviderAccess:
             session.add(provider)
             await session.commit()
             await session.refresh(provider)
-            session.expunge(provider)
 
             return AResult(code=AResultCode.OK, message="OK", result=provider)
         except Exception as e:

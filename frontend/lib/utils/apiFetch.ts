@@ -1,16 +1,19 @@
 import { BACKEND_URL } from "@/environment";
 
 interface ApiFetchOptions {
+    method?: string;
     headers?: HeadersInit;
+    body?: BodyInit | null;
     auth?: boolean;
-    // AbortSignal para cancelar la request (usado en searchManager)
     signal?: AbortSignal;
 }
 
 export default async function apiFetch(
     path: string,
-    options?: ApiFetchOptions
+    options: ApiFetchOptions = {}
 ): Promise<Response> {
+    const { method = "GET", headers, body, signal } = options;
+
     if (typeof window === "undefined") {
         const { cookies } = await import("next/headers");
 
@@ -18,19 +21,23 @@ export default async function apiFetch(
         const session = cookieStore.get("session_id")?.value;
 
         const res = await fetch(`${BACKEND_URL}${path}`, {
+            method,
             headers: {
                 Cookie: `session_id=${session}`,
+                ...headers,
             },
+            body,
             cache: "no-store",
-            // signal no se pasa en SSR — las llamadas server-side no se cancelan
         });
 
         return res;
     } else {
         return fetch(`${BACKEND_URL}${path}`, {
-            headers: { ...options?.headers },
+            method,
+            headers: { ...headers },
+            body,
             credentials: "include",
-            signal: options?.signal,
+            signal,
         });
     }
 }

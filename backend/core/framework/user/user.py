@@ -2,6 +2,9 @@ from typing import List, Tuple
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.aResult import AResult, AResultCode
+from backend.core.responses.baseAlbumWithoutSongsResponse import (
+    BaseAlbumWithoutSongsResponse,
+)
 from backend.utils.logger import getLogger
 
 from backend.core.access.userAccess import UserAccess
@@ -32,7 +35,7 @@ class User:
     @staticmethod
     async def get_user_albums(
         session: AsyncSession, user_id: int
-    ) -> AResult[List[BaseAlbumWithSongsResponse]]:
+    ) -> AResult[List[BaseAlbumWithoutSongsResponse]]:
         """Get all albums for a user."""
 
         a_result_albums: AResult[
@@ -45,7 +48,7 @@ class User:
                 code=a_result_albums.code(), message=a_result_albums.message()
             )
 
-        albums: List[BaseAlbumWithSongsResponse] = []
+        albums: List[BaseAlbumWithoutSongsResponse] = []
         for _, album, provider in a_result_albums.result():
             provider_instance: BaseProvider | None = providers.find_provider(
                 provider_id=provider.id

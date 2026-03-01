@@ -6,23 +6,25 @@ from logging import Logger
 
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
+from backend.core.aResult import AResult
 from backend.constants import BACKEND_URL
 from backend.utils.logger import getLogger
-from backend.core.aResult import AResult
 
-from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 from backend.core.middlewares.authMiddleware import AuthMiddleware
+from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 
 from backend.core.access.db.ormModels.user import UserRow
 from backend.core.access.db.ormModels.user_album import UserAlbumRow
 
 from backend.core.framework.user.user import User
 
-from backend.core.responses.libraryListsResponse import LibraryListsResponse
 from backend.core.responses.okResponse import OkResponse
 from backend.core.responses.queueResponse import QueueResponse
 from backend.core.responses.sessionResponse import SessionResponse
-from backend.core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
+from backend.core.responses.libraryListsResponse import LibraryListsResponse
+from backend.core.responses.baseAlbumWithoutSongsResponse import (
+    BaseAlbumWithoutSongsResponse,
+)
 
 ph = PasswordHasher(
     time_cost=2,
@@ -80,13 +82,34 @@ def get_queue(request: Request) -> QueueResponse:
 
 
 @router.get(path="/library/lists")
-def get_library_lists(request: Request) -> LibraryListsResponse:
+async def get_library_lists(request: Request) -> LibraryListsResponse:
+    """Get all albums and playlists in the user's library."""
 
-    return LibraryListsResponse(albums=[], playlists=[])
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+
+    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request=request)
+    if a_result_user.is_not_ok():
+        logger.error(f"Error getting current user. {a_result_user.info()}")
+        raise HTTPException(
+            status_code=a_result_user.get_http_code(), detail=a_result_user.message()
+        )
+
+    a_result_albums: AResult[List[BaseAlbumWithoutSongsResponse]] = (
+        await User.get_user_albums(session=session, user_id=a_result_user.result().id)
+    )
+
+    if a_result_albums.is_not_ok():
+        logger.error(f"Error getting user albums. {a_result_albums.info()}")
+        raise HTTPException(
+            status_code=a_result_albums.get_http_code(),
+            detail=a_result_albums.message(),
+        )
+
+    return LibraryListsResponse(albums=a_result_albums.result(), playlists=[])
 
 
 @router.get(path="/library/albums")
-async def get_user_albums(request: Request) -> List[BaseAlbumWithSongsResponse]:
+async def get_user_albums(request: Request) -> List[BaseAlbumWithoutSongsResponse]:
     """Get all albums in the user's library."""
 
     session: AsyncSession = DBSessionMiddleware.get_session(request)
@@ -98,7 +121,7 @@ async def get_user_albums(request: Request) -> List[BaseAlbumWithSongsResponse]:
             status_code=a_result_user.get_http_code(), detail=a_result_user.message()
         )
 
-    a_result_albums: AResult[List[BaseAlbumWithSongsResponse]] = (
+    a_result_albums: AResult[List[BaseAlbumWithoutSongsResponse]] = (
         await User.get_user_albums(session, user_id=a_result_user.result().id)
     )
 

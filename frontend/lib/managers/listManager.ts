@@ -24,9 +24,9 @@ export class ListManager {
     // #region: Mehtods
 
     async addListToLibraryAsync(type: DBListType, publicId: string) {
-        const response = await apiFetch(
-            `/library/add-list/${type}/${publicId}`
-        );
+        const response = await apiFetch(`/user/library/${type}/${publicId}`, {
+            method: "POST",
+        });
 
         if (!response) {
             rockIt.notificationManager.notifyError(RESPONSE_UNDEFINED_MESSAGE);
@@ -45,9 +45,9 @@ export class ListManager {
     }
 
     async removeListFromLibraryAsync(type: DBListType, publicId: string) {
-        const response = await apiFetch(
-            `/library/remove-list/${type}/${publicId}`
-        );
+        const response = await apiFetch(`/user/library/${type}/${publicId}`, {
+            method: "DELETE",
+        });
 
         if (!response) {
             rockIt.notificationManager.notifyError(RESPONSE_UNDEFINED_MESSAGE);

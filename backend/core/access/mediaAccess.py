@@ -36,7 +36,6 @@ class MediaAccess:
             if row is None:
                 return AResult(code=AResultCode.NOT_FOUND, message="Song not found")
 
-            session.expunge(row)
             return AResult(code=AResultCode.OK, message="OK", result=row)
 
         except Exception as e:
@@ -60,8 +59,6 @@ class MediaAccess:
             if row is None:
                 return AResult(code=AResultCode.NOT_FOUND, message="Song not found")
 
-            session.expunge(row)
-
             return AResult(code=AResultCode.OK, message="OK", result=row)
 
         except Exception as e:
@@ -83,9 +80,9 @@ class MediaAccess:
             row: CoreAlbumRow | None = result.scalar_one_or_none()
 
             if row is None:
+                logger.error(f"Album with public_id {public_id} not found.")
                 return AResult(code=AResultCode.NOT_FOUND, message="Album not found")
 
-            session.expunge(row)
             return AResult(code=AResultCode.OK, message="OK", result=row)
 
         except Exception as e:
@@ -109,9 +106,9 @@ class MediaAccess:
             row: CoreAlbumRow | None = result.scalar_one_or_none()
 
             if row is None:
+                logger.error(f"Album with id {id} not found.")
                 return AResult(code=AResultCode.NOT_FOUND, message="Album not found")
 
-            session.expunge(row)
             return AResult(code=AResultCode.OK, message="OK", result=row)
 
         except Exception as e:
@@ -137,7 +134,6 @@ class MediaAccess:
             if row is None:
                 return AResult(code=AResultCode.NOT_FOUND, message="Artist not found")
 
-            session.expunge(row)
             return AResult(code=AResultCode.OK, message="OK", result=row)
 
         except Exception as e:
@@ -163,7 +159,6 @@ class MediaAccess:
             if row is None:
                 return AResult(code=AResultCode.NOT_FOUND, message="Playlist not found")
 
-            session.expunge(row)
             return AResult(code=AResultCode.OK, message="OK", result=row)
 
         except Exception as e:
@@ -189,8 +184,6 @@ class MediaAccess:
             if row is None:
                 return AResult(code=AResultCode.NOT_FOUND, message="Image not found")
 
-            session.expunge(row)
-
             return AResult(code=AResultCode.OK, message="OK", result=row)
 
         except Exception as e:
@@ -213,8 +206,6 @@ class MediaAccess:
 
             if row is None:
                 return AResult(code=AResultCode.NOT_FOUND, message="Image not found")
-
-            session.expunge(row)
 
             return AResult(code=AResultCode.OK, message="OK", result=row)
 
@@ -239,9 +230,9 @@ class MediaAccess:
             row: CoreVideoRow | None = result.scalar_one_or_none()
 
             if row is None:
+                logger.error(f"Video with id {id} not found.")
                 return AResult(code=AResultCode.NOT_FOUND, message="Video not found")
 
-            session.expunge(row)
             return AResult(code=AResultCode.OK, message="OK", result=row)
 
         except Exception as e:

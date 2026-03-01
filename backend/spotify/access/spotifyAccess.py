@@ -82,7 +82,6 @@ class SpotifyAccess:
                 return AResult(code=AResultCode.NOT_FOUND, message="Album not found")
 
             # Detach from session BEFORE closing session.
-            session.expunge(instance=album)
             return AResult(code=AResultCode.OK, message="OK", result=album)
 
         except Exception as e:
@@ -107,7 +106,6 @@ class SpotifyAccess:
                 return AResult(code=AResultCode.NOT_FOUND, message="Album not found")
 
             # Detach from session BEFORE closing session.
-            session.expunge(instance=album)
             return AResult(code=AResultCode.OK, message="OK", result=album)
 
         except Exception as e:
@@ -243,8 +241,6 @@ class SpotifyAccess:
                 logger.warning(f"Track not found for spotify_id: {spotify_id}")
                 return AResult(code=AResultCode.NOT_FOUND, message="Track not found")
 
-            session.expunge(instance=track)
-
             return AResult(code=AResultCode.OK, message="OK", result=track)
 
         except Exception as e:
@@ -268,7 +264,6 @@ class SpotifyAccess:
                 logger.error(f"Track not found for id: {id}")
                 return AResult(code=AResultCode.NOT_FOUND, message="Track not found")
 
-            session.expunge(instance=track)
             return AResult(code=AResultCode.OK, message="OK", result=track)
 
         except Exception as e:
@@ -292,7 +287,6 @@ class SpotifyAccess:
                 logger.error("Artist not found")
                 return AResult(code=AResultCode.NOT_FOUND, message="Artist not found")
 
-            session.expunge(instance=artist)
             return AResult(code=AResultCode.OK, message="OK", result=artist)
 
         except Exception as e:
@@ -316,7 +310,6 @@ class SpotifyAccess:
                 logger.error("Playlist not found")
                 return AResult(code=AResultCode.NOT_FOUND, message="Playlist not found")
 
-            session.expunge(instance=playlist)
             return AResult(code=AResultCode.OK, message="OK", result=playlist)
 
         except Exception as e:
@@ -834,9 +827,6 @@ class SpotifyAccess:
                     message=f"Error getting artists from track row. {track_row.id}",
                 )
 
-            for artist in artists:
-                session.expunge(artist)
-
             return AResult(code=AResultCode.OK, message="OK", result=artists)
 
         except Exception as e:
@@ -870,10 +860,6 @@ class SpotifyAccess:
                     message="No artists found for this album.",
                 )
 
-            # Detach from session
-            for artist in artists_list:
-                session.expunge(artist)
-
             return AResult(code=AResultCode.OK, message="OK", result=artists_list)
 
         except Exception as e:
@@ -899,10 +885,6 @@ class SpotifyAccess:
                     code=AResultCode.NOT_FOUND,
                     message="No tracks found for this album.",
                 )
-
-            # Detach from session
-            for track in tracks_list:
-                session.expunge(track)
 
             return AResult(code=AResultCode.OK, message="OK", result=tracks_list)
 
@@ -930,10 +912,6 @@ class SpotifyAccess:
                 List[ExternalImageRow], result.scalars().all()
             )
 
-            # Detach from session
-            for image in images_list:
-                session.expunge(image)
-
             return AResult(code=AResultCode.OK, message="OK", result=images_list)
 
         except Exception as e:
@@ -958,8 +936,6 @@ class SpotifyAccess:
             tracks_with_core: List[Tuple[TrackRow, CoreSongRow]] = []
 
             for track_row, core_song_row in result.all():
-                session.expunge(track_row)
-                session.expunge(core_song_row)
                 tracks_with_core.append((track_row, core_song_row))
 
             return AResult(code=AResultCode.OK, message="OK", result=tracks_with_core)
@@ -1072,9 +1048,6 @@ class SpotifyAccess:
             result = await session.execute(stmt)
             albums: List[AlbumRow] = list(result.scalars().all())
 
-            for album in albums:
-                session.expunge(album)
-
             return AResult(code=AResultCode.OK, message="OK", result=albums)
 
         except Exception as e:
@@ -1100,9 +1073,6 @@ class SpotifyAccess:
             )
             result = await session.execute(stmt)
             tracks: List[TrackRow] = list(result.scalars().all())
-
-            for track in tracks:
-                session.expunge(track)
 
             return AResult(code=AResultCode.OK, message="OK", result=tracks)
 
@@ -1130,9 +1100,6 @@ class SpotifyAccess:
             result = await session.execute(stmt)
             artists: List[ArtistRow] = list(result.scalars().all())
 
-            for artist in artists:
-                session.expunge(artist)
-
             return AResult(code=AResultCode.OK, message="OK", result=artists)
 
         except Exception as e:
@@ -1158,9 +1125,6 @@ class SpotifyAccess:
             )
             result = await session.execute(stmt)
             playlists: List[PlaylistRow] = list(result.scalars().all())
-
-            for playlist in playlists:
-                session.expunge(playlist)
 
             return AResult(code=AResultCode.OK, message="OK", result=playlists)
 

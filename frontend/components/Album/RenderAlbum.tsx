@@ -42,8 +42,8 @@ export default function RenderAlbum({
     const discs = groupBy(album.songs, (song) => song.discNumber);
 
     return (
-        <div className="relative flex h-full w-full flex-col overflow-y-auto px-2 md:grid md:grid-cols-[min-content_1fr] md:px-0">
-            <div className="relative top-24 z-50 mx-4 flex h-full flex-col items-center justify-center gap-1 md:top-0 md:max-w-md">
+        <div className="relative flex h-full w-full flex-col overflow-y-auto px-2 md:grid md:grid-cols-[1fr_3fr] md:px-0">
+            <div className="relative top-24 z-50 mx-4 flex h-full flex-col items-center justify-center gap-1  md:top-0 md:max-w-md">
                 <ListCover
                     publicId={album.publicId}
                     type="album"
@@ -53,7 +53,7 @@ export default function RenderAlbum({
                     downloadProgress={downloadProgress}
                     anyDownloaded={anyDownloaded}
                     allDownloaded={allDownloaded}
-                    sizeClassName="h-72 md:h-[40vh]"
+                    sizeClassName="h-72"
                 />
 
                 <div className="z-50 mx-auto flex w-fit flex-row items-center gap-2">

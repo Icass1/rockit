@@ -1,7 +1,10 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Dict, List, Set, TYPE_CHECKING, Tuple
+import os
+import re
+from fastapi import Request
 
-from backend.constants import BACKEND_URL
+from backend.constants import BACKEND_URL, SONGS_PATH
 from backend.utils.logger import getLogger
 from backend.core.aResult import AResult, AResultCode
 
@@ -2218,4 +2221,67 @@ class Spotify:
 
         return await Spotify.get_playlists_from_db(
             session=session, spotify_ids=spotify_ids
+        )
+
+    @staticmethod
+    async def get_audio_with_range_async(
+        session: AsyncSession, spotify_id: str, request: Request
+    ) -> AResult[tuple[bytes, int, str]]:
+        """Get audio file bytes with HTTP range support for HTML audio element seeking.
+
+        Returns: tuple of (content_bytes, status_code, content_range_header)
+        """
+
+        a_result_track: AResult[TrackRow] = (
+            await SpotifyAccess.get_track_spotify_id_async(
+                session=session, spotify_id=spotify_id
+            )
+        )
+        if a_result_track.is_not_ok():
+            logger.error(f"Error getting track. {a_result_track.info()}")
+            return AResult(code=a_result_track.code(), message=a_result_track.message())
+
+        track_row: TrackRow = a_result_track.result()
+
+        if not track_row.path:
+            logger.error(f"Track {spotify_id} has no audio file downloaded.")
+            return AResult(
+                code=AResultCode.NOT_FOUND, message="Audio file not downloaded"
+            )
+
+        full_path: str = os.path.join(SONGS_PATH, track_row.path)
+        if not os.path.exists(full_path):
+            logger.error(f"Audio file not found at {full_path}")
+            return AResult(code=AResultCode.NOT_FOUND, message="Audio file not found")
+
+        file_size: int = os.path.getsize(full_path)
+        range_header: str | None = request.headers.get("Range")
+
+        if range_header:
+            range_match = re.match(r"bytes=(\d+)-(\d*)", range_header)
+            if range_match:
+                start: int = int(range_match.group(1))
+                end_str: str | None = range_match.group(2)
+                end: int = int(end_str) if end_str else file_size - 1
+            else:
+                start = 0
+                end = file_size - 1
+        else:
+            start = 0
+            end = file_size - 1
+
+        end = min(end, file_size - 1)
+        content_length: int = end - start + 1
+
+        with open(full_path, "rb") as f:
+            f.seek(start)
+            content: bytes = f.read(content_length)
+
+        content_range: str = f"bytes {start}-{end}/{file_size}"
+        status_code: int = 206 if range_header else 200
+
+        return AResult(
+            code=AResultCode.OK,
+            message="OK",
+            result=(content, status_code, content_range),
         )

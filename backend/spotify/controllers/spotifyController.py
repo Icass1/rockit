@@ -1,6 +1,8 @@
-from fastapi import Depends, APIRouter, HTTPException, Request
 from logging import Logger
+from typing import Dict
+from fastapi.responses import Response
 from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import Depends, APIRouter, HTTPException, Request
 
 from backend.utils.logger import getLogger
 from backend.core.aResult import AResult
@@ -79,3 +81,37 @@ async def get_playlist_async(request: Request, spotify_id: str) -> BasePlaylistR
         )
 
     return a_result.result()
+
+
+@router.get("/audio/{spotify_id}")
+async def get_audio_async(request: Request, spotify_id: str) -> Response:
+    """Stream audio file with range support for HTML audio element seeking."""
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+    a_result_response: AResult[tuple[bytes, int, str]] = (
+        await Spotify.get_audio_with_range_async(
+            session=session, spotify_id=spotify_id, request=request
+        )
+    )
+    if a_result_response.is_not_ok():
+        logger.error(f"Error getting audio. {a_result_response.info()}")
+        raise HTTPException(
+            status_code=a_result_response.get_http_code(),
+            detail=a_result_response.message(),
+        )
+
+    content: bytes
+    status_code: int
+    content_range: str
+    content, status_code, content_range = a_result_response.result()
+
+    headers: Dict[str, str] = {
+        "Accept-Ranges": "bytes",
+        "Content-Range": content_range,
+    }
+
+    return Response(
+        content=content,
+        media_type="audio/mpeg",
+        status_code=status_code,
+        headers=headers,
+    )

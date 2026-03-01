@@ -32,8 +32,8 @@ export default function AlbumSong({
 
     const songUnavaliable = useMemo(() => {
         return (
-            ($networkStatus == "offline" &&
-                !$songsInIndexedDB?.includes(song.publicId)) ||
+            $networkStatus == "offline" &&
+            !$songsInIndexedDB?.includes(song.publicId) &&
             !song.downloaded
         );
     }, [$songsInIndexedDB, $networkStatus, song.downloaded, song.publicId]);
@@ -53,7 +53,7 @@ export default function AlbumSong({
         <SongContextMenu song={song}>
             <div
                 className={
-                    "grid grid-cols-[min-content_1fr_min-content_min-content_40px] items-center gap-2 rounded py-[0.5rem] transition-colors select-none md:gap-4 md:px-2 md:py-[0.65rem] md:select-text " +
+                    "grid grid-cols-[min-content_1fr_min-content_min-content_40px] items-center gap-2 rounded py-[0.5rem] transition-colors select-none md:gap-4 md:px-2 md:py-[0.65rem] md:select-text" +
                     (songUnavaliable ? " pointer-events-none opacity-40" : "") +
                     (songPlaying ? " text-[#ec5588]" : "")
                 }

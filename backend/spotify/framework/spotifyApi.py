@@ -97,10 +97,10 @@ class SpotifyApi:
                 parsed_params += "&"
             parsed_params += k[0] + "=" + k[1]
 
-        url = f"https://api.spotify.com/v1/{path}"
-        headers = self.get_auth_header()
+        url: str = f"https://api.spotify.com/v1/{path}"
+        headers: None | Dict[str, str] = self.get_auth_header()
 
-        query_url = url + ("?" + parsed_params if len(parsed_params) > 0 else "")
+        query_url: str = url + ("?" + parsed_params if len(parsed_params) > 0 else "")
 
         logger.warning(f"Spotify api call: {query_url}")
 
@@ -153,7 +153,9 @@ class SpotifyApi:
         for i in range(
             math.ceil(len(missing_ids) / max_data_per_call) if missing_ids else 0
         ):
-            batch = missing_ids[i * max_data_per_call : (i + 1) * max_data_per_call]
+            batch: List[str] = missing_ids[
+                i * max_data_per_call : (i + 1) * max_data_per_call
+            ]
             a_result_response = await self.api_call(
                 path="albums", params={"ids": ",".join(batch)}
             )
@@ -305,14 +307,21 @@ class SpotifyApi:
     async def search_async(self, query: str) -> AResult[RawSpotifyApiSearchResults]:
         """Search Spotify for tracks, albums, artists, and playlists matching the query."""
 
-        a_result_response = await self.api_call(
-            path="search",
-            params={
-                "q": quote_plus(query),
-                "type": "track,album,artist,playlist",
-                "limit": "10",
-            },
-        )
+        try:
+            a_result_response: AResult[Dict[str, Any]] = await self.api_call(
+                path="search",
+                params={
+                    "q": quote_plus(query),
+                    "type": "track,album,artist,playlist",
+                    "limit": "10",
+                },
+            )
+        except Exception as e:
+            logger.error(f"Error in search_async api_call. {e}")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Exception during Spotify search api call: {e}",
+            )
 
         if a_result_response.is_not_ok():
             logger.error(f"Error in search_async api_call. {a_result_response.info()}")

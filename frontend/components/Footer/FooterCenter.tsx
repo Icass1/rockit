@@ -112,7 +112,7 @@ export default function FooterCenter() {
                     {getTime($currentTime ?? 0)}
                 </span>
                 <Slider
-                    id="footer-center-slider"
+                    id="default-slider"
                     aria-label="Song progress"
                     aria-valuetext={`${getTime($currentTime ?? 0)} of ${getTime($currentSong?.duration ?? 0)}`}
                     className="relative h-1 w-full max-w-full min-w-0 rounded bg-neutral-700"

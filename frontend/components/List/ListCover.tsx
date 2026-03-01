@@ -36,7 +36,7 @@ export function ListCover({
 }: ListCoverProps) {
     return (
         <div
-            className={`relative aspect-square w-full overflow-hidden rounded-xl md:rounded-md ${sizeClassName}`}
+            className={`relative aspect-square w-full h-auto overflow-hidden rounded-xl md:rounded-md ${sizeClassName}`}
         >
             <Image
                 width={600}

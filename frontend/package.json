@@ -6,7 +6,7 @@
         "dev": "next dev",
         "build": "next build",
         "start": "next start",
-        "lint": "eslint . && npx tsc --noEmit"
+        "lint": "eslint --cache app components lib hooks contexts types dto && npx tsc --noEmit"
     },
     "dependencies": {
         "@nanostores/react": "^0.8.4",

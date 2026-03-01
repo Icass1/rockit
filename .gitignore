@@ -89,3 +89,6 @@ backend/types.out.py
 
 .spotify
 .spotify_cache
+
+
+.eslintcache

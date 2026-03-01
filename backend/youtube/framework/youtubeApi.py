@@ -148,7 +148,7 @@ class YoutubeApi:
                     "type": "video",
                     "maxResults": max_results,
                     "order": order_by,
-                    "videoDuration": "medium",
+                    "videoCategoryId": "10",
                 }
             )
             response: requests.Response = requests.get(url, params=params, timeout=10)
@@ -171,6 +171,7 @@ class YoutubeApi:
 
             items: list[dict[str, Any]] = data.get("items", [])
             if not items:
+                logger.error(f"No videos found for query: {query}")
                 return AResult(
                     code=AResultCode.NOT_FOUND, message="No videos found on YouTube"
                 )

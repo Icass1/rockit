@@ -82,7 +82,7 @@ class Downloader:
 
             a_result_base_download: AResult[BaseDownload] = (
                 await provider.start_download_async(
-                    session,
+                    session=session,
                     public_id=public_id,
                     download_id=download_row.id,
                 )

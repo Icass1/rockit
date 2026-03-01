@@ -240,7 +240,7 @@ class SpotifyAccess:
             track: TrackRow | None = result.scalar_one_or_none()
 
             if not track:
-                logger.error("Track not found")
+                logger.warning(f"Track not found for spotify_id: {spotify_id}")
                 return AResult(code=AResultCode.NOT_FOUND, message="Track not found")
 
             session.expunge(instance=track)
@@ -248,10 +248,10 @@ class SpotifyAccess:
             return AResult(code=AResultCode.OK, message="OK", result=track)
 
         except Exception as e:
-            logger.error(f"Failed to get track from id {id}: {e}")
+            logger.error(f"Failed to get track from spotify_id {spotify_id}: {e}")
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
-                message=f"Failed to get track from id {id}: {e}",
+                message=f"Failed to get track from spotify_id {spotify_id}: {e}",
             )
 
     @staticmethod
@@ -265,7 +265,7 @@ class SpotifyAccess:
             track: TrackRow | None = result.scalar_one_or_none()
 
             if not track:
-                logger.error("Track not found")
+                logger.error(f"Track not found for id: {id}")
                 return AResult(code=AResultCode.NOT_FOUND, message="Track not found")
 
             session.expunge(instance=track)
@@ -828,10 +828,10 @@ class SpotifyAccess:
             artists: List[ArtistRow] = cast(List[ArtistRow], result.scalars().all())
 
             if not artists:
-                logger.error("Error getting artists from track row.")
+                logger.error(f"Error getting artists from track row {track_row.id}.")
                 return AResult(
                     code=AResultCode.NOT_FOUND,
-                    message="Error getting artists from track row.",
+                    message=f"Error getting artists from track row. {track_row.id}",
                 )
 
             for artist in artists:

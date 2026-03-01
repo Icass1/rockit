@@ -212,7 +212,7 @@ class SpotifyProvider(BaseProvider):
             result=SpotifyDownload(
                 public_id=public_id,
                 download_id=download_id,
-                track_id=track.id,
+                track_spotify_id=track.id,
                 download_url=track.download_url,
             ),
         )

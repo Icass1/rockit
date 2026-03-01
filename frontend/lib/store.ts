@@ -112,33 +112,31 @@ export function createAtom<T>(
             return baseAtom.value;
         },
         getReadonlyAtom(): ReadonlyAtom<T> {
-            return (
-                _readonly ??= {
-                    get() {
-                        return baseAtom.get();
-                    },
-                    subscribe(callback) {
-                        return baseAtom.subscribe(callback);
-                    },
-                    listen(listener) {
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        return baseAtom.listen(listener as any);
-                    },
-                    notify(oldValue) {
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        return baseAtom.notify(oldValue as any);
-                    },
-                    off() {
-                        return baseAtom.off();
-                    },
-                    get lc() {
-                        return baseAtom.lc;
-                    },
-                    get value() {
-                        return baseAtom.value;
-                    },
-                }
-            );
+            return (_readonly ??= {
+                get() {
+                    return baseAtom.get();
+                },
+                subscribe(callback) {
+                    return baseAtom.subscribe(callback);
+                },
+                listen(listener) {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    return baseAtom.listen(listener as any);
+                },
+                notify(oldValue) {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    return baseAtom.notify(oldValue as any);
+                },
+                off() {
+                    return baseAtom.off();
+                },
+                get lc() {
+                    return baseAtom.lc;
+                },
+                get value() {
+                    return baseAtom.value;
+                },
+            });
         },
     };
 

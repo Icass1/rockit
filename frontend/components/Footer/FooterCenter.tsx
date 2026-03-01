@@ -15,6 +15,7 @@ import { getTime } from "@/lib/utils/getTime";
 import Slider from "@/components/Slider";
 import Spinner from "@/components/Spinner";
 
+// Shared button styles extracted as constants — easier to update globally
 const ICON_BTN =
     "cursor-pointer text-gray-400 transition-all md:hover:scale-105 md:hover:text-white";
 const ACTIVE = "text-[#ee1086]";
@@ -28,19 +29,28 @@ export default function FooterCenter() {
     const $repeatSong = useStore(rockIt.userManager.repeatSongAtom);
     const $currentStation = useStore(rockIt.stationManager.currentStationAtom);
 
+    // Station mode — hide playback controls, keep layout slot
     if ($currentStation) return <div className="hidden w-1/3 md:block" />;
 
     const RepeatIcon = $repeatSong === "one" ? Repeat1 : Repeat;
     const isRepeatActive = $repeatSong === "one" || $repeatSong === "all";
 
+    const repeatLabel =
+        $repeatSong === "one"
+            ? "Repeat one"
+            : $repeatSong === "all"
+              ? "Repeat all"
+              : "No repeat";
+
     return (
         <div className="hidden w-1/3 flex-col items-center justify-center space-y-1 md:flex">
-            {/* Controls */}
+            {/* Playback controls */}
             <div className="grid grid-cols-5 items-center justify-items-center gap-2">
                 <button
                     aria-label={
                         $randomQueue ? "Disable shuffle" : "Enable shuffle"
                     }
+                    aria-pressed={$randomQueue}
                     onClick={() => rockIt.userManager.toggleRandomQueue()}
                 >
                     <Shuffle
@@ -86,13 +96,8 @@ export default function FooterCenter() {
                 </button>
 
                 <button
-                    aria-label={
-                        $repeatSong === "one"
-                            ? "Repeat one"
-                            : $repeatSong === "all"
-                              ? "Repeat all"
-                              : "No repeat"
-                    }
+                    aria-label={repeatLabel}
+                    aria-pressed={isRepeatActive}
                     onClick={() => rockIt.userManager.cyclerepeatSong()}
                 >
                     <RepeatIcon
@@ -107,7 +112,9 @@ export default function FooterCenter() {
                     {getTime($currentTime ?? 0)}
                 </span>
                 <Slider
-                    id="default-slider"
+                    id="footer-center-slider"
+                    aria-label="Song progress"
+                    aria-valuetext={`${getTime($currentTime ?? 0)} of ${getTime($currentSong?.duration ?? 0)}`}
                     className="relative h-1 w-full max-w-full min-w-0 rounded bg-neutral-700"
                     value={$currentTime ?? 0}
                     min={0}

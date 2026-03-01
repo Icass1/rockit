@@ -11,92 +11,76 @@ import {
     ShieldEllipsis,
     Users,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { useLanguage } from "@/contexts/LanguageContext";
+
+interface NavPage {
+    title: string;
+    href: string;
+    icon: LucideIcon;
+    disabled?: boolean;
+}
 
 export default function NavigationMobile() {
     const { langFile: lang } = useLanguage();
     const activePage = usePathname();
-
     const $user = useStore(rockIt.userManager.userAtom);
 
     if (!lang || !$user) return null;
 
-    const pages = [
-        {
-            name: "Home",
-            title: lang.home,
-            href: "/",
-            icon: Home,
-        },
-        {
-            name: "Library",
-            title: lang.library,
-            href: "/library",
-            icon: Library,
-        },
-        {
-            name: "Search",
-            title: lang.search,
-            href: "/search",
-            icon: Search,
-            disabled: false,
-        },
-        {
-            name: "Friends",
-            title: lang.friends,
-            href: "/friends",
-            icon: Users,
-            disabled: true,
-        },
-
-        $user.admin
-            ? {
-                  name: "Admin",
-                  title: "Admin",
-                  href: "/admin",
-                  icon: ShieldEllipsis,
-              }
-            : undefined,
+    // All nav items in one place — Settings no longer hardcoded outside
+    const pages: NavPage[] = [
+        { title: lang.home, href: "/", icon: Home },
+        { title: lang.library, href: "/library", icon: Library },
+        { title: lang.search, href: "/search", icon: Search },
+        { title: lang.friends, href: "/friends", icon: Users, disabled: true },
+        { title: lang.settings, href: "/settings", icon: Settings },
+        // Admin tab — only shown to admin users
+        ...($user.admin
+            ? [
+                  {
+                      title: "Admin",
+                      href: "/admin",
+                      icon: ShieldEllipsis,
+                  } satisfies NavPage,
+              ]
+            : []),
     ];
 
     return (
-        <div className="safe-area-bottom mobile-nav-blur flex h-full w-full max-w-4xl flex-row items-center justify-center bg-[#1a1a1a]/80 py-2 touch-manipulation">
-            {pages
-                .filter((page) => typeof page != "undefined")
-                .map((page) => (
+        <nav
+            aria-label="Mobile navigation"
+            className="safe-area-bottom mobile-nav-blur flex h-full w-full max-w-4xl flex-row items-center justify-center bg-[#1a1a1a]/80 py-2 touch-manipulation"
+        >
+            {pages.map((page) => {
+                const isActive = activePage === page.href;
+                return (
                     <Link
                         key={page.href}
-                        href={page.href}
+                        href={page.disabled ? "#" : page.href}
                         title={page.title}
-                        className={`mr-2 ml-2 flex h-full w-full items-center justify-center gap-2 rounded-md transition-all ${
-                            activePage === page.href
-                                ? "bg-white text-black"
-                                : "text-white"
-                        } ${
-                            page.disabled == true
+                        aria-current={isActive ? "page" : undefined}
+                        aria-disabled={page.disabled}
+                        className={[
+                            "mr-2 ml-2 flex h-full w-full items-center justify-center gap-2 rounded-md transition-all",
+                            isActive ? "bg-white text-black" : "text-white",
+                            page.disabled
                                 ? "pointer-events-none opacity-50"
-                                : ""
-                        }`}
+                                : "",
+                        ]
+                            .filter(Boolean)
+                            .join(" ")}
                     >
-                        <div className="flex h-8 w-8 items-center justify-center">
-                            <page.icon className="h-[1.35rem] w-[1.35rem]" />
-                        </div>
+                        <span className="flex h-8 w-8 items-center justify-center">
+                            <page.icon
+                                className="h-[1.35rem] w-[1.35rem]"
+                                aria-hidden
+                            />
+                        </span>
                     </Link>
-                ))}
-            <Link
-                href="/settings"
-                title="Settings"
-                className={`mr-2 ml-2 flex h-full w-full items-center justify-center gap-2 rounded-md transition-all ${
-                    activePage === "/settings"
-                        ? "bg-white text-black"
-                        : "text-white"
-                }`}
-            >
-                <div className="flex h-8 w-8 items-center justify-center">
-                    <Settings className="h-[1.35rem] w-[1.35rem]" />
-                </div>
-            </Link>
-        </div>
+                );
+            })}
+        </nav>
     );
 }

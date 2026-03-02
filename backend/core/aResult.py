@@ -9,6 +9,7 @@ class AResultCode:
     NOT_FOUND = 0x3
     BAD_REQUEST = 0x4
     NOT_IMPLEMENTED = 0x5
+    ALREADY_EXISTS = 0x6
 
     _code: int
     _message: str
@@ -25,6 +26,8 @@ class AResultCode:
 
     def get_http_code(self):
         if self._code == AResultCode.OK:
+            return 200
+        if self._code == AResultCode.ALREADY_EXISTS:
             return 200
         if self._code == AResultCode.GENERAL_ERROR:
             return 500
@@ -46,6 +49,8 @@ class AResultCode:
     def code_str(self) -> str:
         if self._code == AResultCode.OK:
             return "OK"
+        if self._code == AResultCode.ALREADY_EXISTS:
+            return "ALREADY_EXISTS"
         if self._code == AResultCode.GENERAL_ERROR:
             return "GENERAL_ERROR"
         if self._code == AResultCode.NOT_FOUND:
@@ -73,6 +78,8 @@ class AResult(Generic[T]):
 
         if code == AResultCode.OK and result is None:
             raise ValueError("Must provide result when code is OK")
+        if code == AResultCode.ALREADY_EXISTS and result is None:
+            pass  # ALLOWED
 
     def is_ok(self) -> bool:
         return self._code.is_ok()

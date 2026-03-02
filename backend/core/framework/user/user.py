@@ -13,7 +13,7 @@ from backend.utils.logger import getLogger
 
 from backend.core.access.userAccess import UserAccess
 from backend.core.access.mediaAccess import MediaAccess
-from backend.core.access.userSongAccess import UserSongAccess
+from backend.core.access.userLikedMediaAccess import UserLikedMediaAccess
 from backend.core.enums.mediaTypeEnum import MediaTypeEnum
 
 from backend.core.framework.provider.baseProvider import BaseProvider
@@ -155,7 +155,7 @@ class User:
 
         media: CoreMediaRow = a_result_media.result()
 
-        a_result: AResult[UserLikedMediaRow] = await UserSongAccess.add_like(
+        a_result: AResult[UserLikedMediaRow] = await UserLikedMediaAccess.add_like(
             session=session, user_id=user_id, media_id=media.id
         )
         if a_result.is_not_ok():
@@ -183,7 +183,7 @@ class User:
 
         media: CoreMediaRow = a_result_media.result()
 
-        a_result: AResult[bool] = await UserSongAccess.remove_like(
+        a_result: AResult[bool] = await UserLikedMediaAccess.remove_like(
             session=session, user_id=user_id, media_id=media.id
         )
         if a_result.is_not_ok():
@@ -248,7 +248,7 @@ class User:
 
             song_media: CoreMediaRow = a_result_song_media.result()
 
-            a_result_like: AResult[UserLikedMediaRow] = await UserSongAccess.add_like(
+            a_result_like: AResult[UserLikedMediaRow] = await UserLikedMediaAccess.add_like(
                 session=session, user_id=user_id, media_id=song_media.id
             )
             if a_result_like.is_ok():
@@ -312,7 +312,7 @@ class User:
 
             song_media: CoreMediaRow = a_result_song_media.result()
 
-            a_result_unlike: AResult[bool] = await UserSongAccess.remove_like(
+            a_result_unlike: AResult[bool] = await UserLikedMediaAccess.remove_like(
                 session=session, user_id=user_id, media_id=song_media.id
             )
             if a_result_unlike.is_ok():
@@ -344,7 +344,7 @@ class User:
 
             media: CoreMediaRow = a_result_media.result()
 
-            a_result: AResult[UserLikedMediaRow] = await UserSongAccess.add_like(
+            a_result: AResult[UserLikedMediaRow] = await UserLikedMediaAccess.add_like(
                 session=session, user_id=user_id, media_id=media.id
             )
             if a_result.is_ok():
@@ -376,7 +376,7 @@ class User:
 
             media: CoreMediaRow = a_result_media.result()
 
-            a_result: AResult[bool] = await UserSongAccess.remove_like(
+            a_result: AResult[bool] = await UserLikedMediaAccess.remove_like(
                 session=session, user_id=user_id, media_id=media.id
             )
             if a_result.is_ok():
@@ -391,7 +391,7 @@ class User:
         """Get all liked song public IDs for a user."""
 
         a_result: AResult[List[str]] = (
-            await UserSongAccess.get_user_liked_song_public_ids(
+            await UserLikedMediaAccess.get_user_liked_song_public_ids(
                 session=session, user_id=user_id
             )
         )

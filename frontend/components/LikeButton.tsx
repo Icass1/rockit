@@ -1,11 +1,64 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { useStore } from "@nanostores/react";
 import "@/styles/LikeButton.css";
 import { rockIt } from "@/lib/rockit/rockIt";
 
+type FlameState = "hidden" | "enter" | "visible" | "exit";
+
+const FLAME_DURATION_MS = 3500;
+
 export default function LikeButton({ songPublicId }: { songPublicId: string }) {
     const $likedSongs = useStore(rockIt.songManager.likedSongsAtom);
+    const isLiked = $likedSongs.includes(songPublicId);
+
+    const [flameState, setFlameState] = useState<FlameState>(
+        isLiked ? "visible" : "hidden"
+    );
+    const [handTilt, setHandTilt] = useState(false);
+
+    const prevLiked = useRef(isLiked);
+    const dismissTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    // React to like/unlike changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => {
+        if (prevLiked.current === isLiked) return;
+        prevLiked.current = isLiked;
+
+        if (isLiked) {
+            setFlameState("enter");
+        } else {
+            if (dismissTimer.current) clearTimeout(dismissTimer.current);
+            setFlameState("exit");
+        }
+    }, [isLiked]);
+
+    // Auto-dismiss: once enter settles to "visible", start the countdown
+    useEffect(() => {
+        if (flameState !== "visible") return;
+
+        dismissTimer.current = setTimeout(() => {
+            setFlameState("exit");
+        }, FLAME_DURATION_MS);
+
+        return () => {
+            if (dismissTimer.current) clearTimeout(dismissTimer.current);
+        };
+    }, [flameState]);
+
+    const handleFlameAnimationEnd = () => {
+        if (flameState === "enter") setFlameState("visible");
+        if (flameState === "exit") setFlameState("hidden");
+    };
+
+    const handleClick = () => {
+        setHandTilt(true);
+        rockIt.songManager.toggleLikeSong(songPublicId);
+    };
+
+    const flameVisible = flameState !== "hidden";
 
     return (
         <div
@@ -18,37 +71,40 @@ export default function LikeButton({ songPublicId }: { songPublicId: string }) {
                 overflow: "visible",
             }}
         >
-            {/* Fuego animado */}
-            {/* {showFire && (
+            {flameVisible && (
                 <div
-                    style={{
-                        pointerEvents: "none",
-                        position: "absolute",
-                        top: "33%",
-                        left: "50%",
-                        transform: "translate(-9px, -50%)",
-                    }}
+                    className={[
+                        "flame-wrapper",
+                        flameState === "enter" ? "flame-wrapper--enter" : "",
+                        flameState === "exit" ? "flame-wrapper--exit" : "",
+                    ]
+                        .filter(Boolean)
+                        .join(" ")}
+                    onAnimationEnd={handleFlameAnimationEnd}
                 >
                     <div className="flame-container">
-                        <div className="red flame"></div>
-                        <div className="orange flame"></div>
-                        <div className="yellow flame"></div>
-                        <div className="white flame"></div>
-                        <div className="blue circle"></div>
-                        <div className="black circle"></div>
+                        <div className="red    flame" />
+                        <div className="orange flame" />
+                        <div className="yellow flame" />
+                        <div className="white  flame" />
+                        <div className="blue   circle" />
                     </div>
                 </div>
-            )} */}
+            )}
 
-            {/* Mano de metal */}
             <div
-                onClick={() => rockIt.songManager.toggleLikeSong(songPublicId)}
+                role="button"
+                aria-label={isLiked ? "Unlike" : "Like"}
+                aria-pressed={isLiked}
+                onClick={handleClick}
+                className={handTilt ? "hand-tilt" : undefined}
+                onAnimationEnd={() => setHandTilt(false)}
                 style={{
                     height: "22px",
                     width: "22px",
                     cursor: "pointer",
-                    // transform: animateHand ? "rotate(20deg)" : undefined, // si usas hand-rotate
-                    // transition: animateHand ? "transform 0.3s ease" : undefined,
+                    position: "relative",
+                    zIndex: 1,
                 }}
             >
                 <svg
@@ -56,28 +112,20 @@ export default function LikeButton({ songPublicId }: { songPublicId: string }) {
                     width="24"
                     height="24"
                     viewBox="0 0 24 24"
-                    fill={
-                        $likedSongs.includes(songPublicId)
-                            ? "white"
-                            : "transparent"
-                    }
+                    fill={isLiked ? "white" : "transparent"}
                     stroke="currentColor"
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     style={{
-                        color: $likedSongs.includes(songPublicId)
-                            ? "#202020"
-                            : "#A1A1AA",
-                        transition: "color 0.2s ease",
+                        color: isLiked ? "#202020" : "#A1A1AA",
+                        transition: "fill 0.2s ease, color 0.2s ease",
                     }}
                     onMouseEnter={(e) => {
                         e.currentTarget.style.color = "#FFFFFF";
                     }}
                     onMouseLeave={(e) => {
-                        e.currentTarget.style.color = $likedSongs.includes(
-                            songPublicId
-                        )
+                        e.currentTarget.style.color = isLiked
                             ? "#202020"
                             : "#A1A1AA";
                     }}
@@ -90,10 +138,10 @@ export default function LikeButton({ songPublicId }: { songPublicId: string }) {
                         strokeLinejoin="miter"
                         strokeWidth="0"
                     />
-                    <path d="M18 12.5V10a2 2 0 0 0-2-2 2 2 0 0 0-2 2v1.4"></path>
-                    <path d="M14 11V9a2 2 0 1 0-4 0v2"></path>
-                    <path d="M10 11V5a2 2 2 1 0-4 0v9"></path>
-                    <path d="m7 15-1.76-1.76a2 2 0 0 0-2.83 2.82l3.6 3.6C7.5 21.14 9.2 22 12 22h2a8 8 0 0 0 8-8V7a2 2 0 1 0-4 0v5"></path>
+                    <path d="M18 12.5V10a2 2 0 0 0-2-2 2 2 0 0 0-2 2v1.4" />
+                    <path d="M14 11V9a2 2 0 1 0-4 0v2" />
+                    <path d="M10 11V5a2 2 0 1 0-4 0v9" />
+                    <path d="m7 15-1.76-1.76a2 2 0 0 0-2.83 2.82l3.6 3.6C7.5 21.14 9.2 22 12 22h2a8 8 0 0 0 8-8V7a2 2 0 1 0-4 0v5" />
                 </svg>
             </div>
         </div>

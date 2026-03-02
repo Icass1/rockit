@@ -15,7 +15,7 @@ from backend.utils.logger import getLogger
 logger: Logger = getLogger(__name__)
 
 
-class UserSongAccess:
+class UserLikedMediaAccess:
     @staticmethod
     async def add_like(
         session: AsyncSession, user_id: int, media_id: int
@@ -29,7 +29,7 @@ class UserSongAccess:
 
         except IntegrityError:
             await session.rollback()
-            return AResult(code=AResultCode.OK, message="Already liked")
+            return AResult(code=AResultCode.ALREADY_EXISTS, message="Already liked")
         except Exception as e:
             logger.error(f"Error in add_like: {e}")
             return AResult(

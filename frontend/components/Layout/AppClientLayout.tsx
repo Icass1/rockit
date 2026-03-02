@@ -1,11 +1,14 @@
 "use client";
 
+import { useEffect } from "react";
+
 import type { Lang } from "@/types/lang";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import Footer from "@/components/Footer/Footer";
 import Header from "@/components/Header/Header";
 import Navigation from "@/components/Navigation/Navigation";
 import PlayerUI from "@/components/PlayerUI/PlayerUI";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function AppClientLayout({
     children,
@@ -16,6 +19,10 @@ export default function AppClientLayout({
     lang: string;
     langFile: Lang;
 }) {
+    useEffect(() => {
+        rockIt.songManager.fetchLikedSongs();
+    }, []);
+
     return (
         <LanguageProvider langFile={langFile} lang={lang}>
             <div className="fixed inset-0 bg-[#0b0b0b] md:left-12">

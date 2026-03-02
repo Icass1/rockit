@@ -77,11 +77,15 @@ class Media:
             )
         )
         if a_result_album.is_not_ok():
-            logger.error(f"Error getting album from database. {a_result_album.info()}")
+            logger.error(
+                f"Error getting album from database for public id {public_id}. {a_result_album.info()}"
+            )
             return AResult(code=a_result_album.code(), message=a_result_album.message())
 
         album: CoreMediaRow = a_result_album.result()
-        provider: BaseProvider | None = providers.find_provider(album.provider_id)
+        provider: BaseProvider | None = providers.find_provider(
+            provider_id=album.provider_id
+        )
         if provider is None:
             logger.error(f"No provider found for provider_id {album.provider_id}.")
             return AResult(

@@ -21,8 +21,9 @@ export class RockIt {
     // #region: Constants
 
     public readonly VERSION = "0.1.0";
-    public readonly PLAYLIST_PLACEHOLDER_IMAGE_URL = "/song-placeholder.png";
-    public readonly ALBUM_PLACEHOLDER_IMAGE_URL = "/song-placeholder.png";
+    public readonly PLAYLIST_PLACEHOLDER_IMAGE_URL =
+        "/playlist-placeholder.png";
+    public readonly ALBUM_PLACEHOLDER_IMAGE_URL = "/album-placeholder.png";
     public readonly SONG_PLACEHOLDER_IMAGE_URL = "/song-placeholder.png";
     public readonly STATION_PLACEHOLDER_IMAGE_URL = "/radio-placeholder.png";
     public readonly USER_PLACEHOLDER_IMAGE_URL = "/user-placeholder.png";

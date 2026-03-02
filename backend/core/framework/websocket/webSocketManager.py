@@ -1,8 +1,13 @@
 import json
-from typing import Any, Dict, Set
+from typing import Any, Dict, List, Set
 
 from fastapi import WebSocket
 
+from backend.core.aResult import AResult
+from backend.core.access.db import rockit_db
+from backend.core.access.db.ormModels.media import CoreMediaRow
+from backend.core.access.mediaAccess import MediaAccess
+from backend.core.access.userQueueAccess import UserQueueAccess
 from backend.core.responses.downloadProgressMessage import DownloadProgressMessage
 from backend.core.requests.wsMessages import (
     MediaEndedMessageRequest,
@@ -18,7 +23,7 @@ from backend.utils.logger import getLogger
 logger = getLogger(__name__)
 
 
-class RockitWebSocketManager:
+class WebSocketManager:
     def __init__(self) -> None:
         self.active_connections: Dict[int, Set[WebSocket]] = {}
 
@@ -85,6 +90,45 @@ class RockitWebSocketManager:
         elif message_type == "current_queue":
             current_queue_msg = CurrentQueueMessageRequest(**data)
             logger.info(f"User {user_id} current queue: {current_queue_msg.queue}")
+
+            try:
+                async with rockit_db.session_scope_async() as session:
+                    a_result_media: AResult[List[CoreMediaRow]] = (
+                        await MediaAccess.get_medias_from_public_ids_async(
+                            session=session,
+                            public_ids=[
+                                item.publicId for item in current_queue_msg.queue
+                            ],
+                            media_type_key=None,
+                        )
+                    )
+
+                    queue_items: list[tuple[int, int]] = []
+
+                    for item in current_queue_msg.queue:
+
+                        item_id: int | None = None
+
+                        for row in a_result_media.result():
+                            if row.public_id == item.publicId:
+                                item_id = row.id
+
+                        if item_id == None:
+                            logger.error(
+                                f"Item with public id {item.publicId} not found in media table"
+                            )
+                            continue
+
+                        queue_items.append((item.queueIndex, item_id))
+
+                    await UserQueueAccess.save_user_queue(
+                        session=session,
+                        user_id=user_id,
+                        queue_items=queue_items,
+                        queue_type=current_queue_msg.queueType,
+                    )
+            except Exception as e:
+                logger.error(f"Error saving user queue: {e}", exc_info=True)
         elif message_type == "current_time":
             current_time_msg = CurrentTimeMessageRequest(**data)
             logger.info(f"User {user_id} current time: {current_time_msg.currentTime}")
@@ -107,4 +151,4 @@ class RockitWebSocketManager:
             logger.warning(f"Unknown message type: {message_type}")
 
 
-rockit_ws_manager = RockitWebSocketManager()
+rockit_ws_manager = WebSocketManager()

@@ -120,7 +120,10 @@ export class QueueManager {
             }
         );
 
-        rockIt.webSocketManager.sendCurrentQueue({ queue: queueData });
+        rockIt.webSocketManager.sendCurrentQueue({
+            queue: queueData,
+            queueType: "SORTED",
+        });
 
         this._queueAtom.set(
             songs.map((song, index) => {

@@ -1,6 +1,6 @@
 from backend.core.framework.websocket.webSocketManager import (
-    RockitWebSocketManager,
+    WebSocketManager,
     rockit_ws_manager,
 )
 
-__all__ = ["RockitWebSocketManager", "rockit_ws_manager"]
+__all__ = ["WebSocketManager", "rockit_ws_manager"]

@@ -5,9 +5,13 @@ import asyncio
 from logging import Logger
 
 from backend.core.access.db.ormEnums.downloadStatusEnum import DownloadStatusEnumRow
+from backend.core.access.db.ormEnums.queueTypeEnum import (
+    QueueTypeEnumRow,
+)
 from backend.core.enums.downloadStatusEnum import DownloadStatusEnum
 from backend.core.enums.mediaTypeEnum import MediaTypeEnum
 from backend.core.access.db.ormEnums.mediaTypeEnum import MediaTypeEnumRow
+from backend.core.enums.queueTypeEnum import QueueTypeEnum
 from backend.utils.logger import getLogger
 
 from backend.core.access.db.ormEnums.repeatModeEnum import RepeatModeEnumRow
@@ -50,6 +54,9 @@ async def add_initial_content():
         )
         await EnumAccess.check_enum_contents_async(
             session=session, enum_class=MediaTypeEnum, table=MediaTypeEnumRow
+        )
+        await EnumAccess.check_enum_contents_async(
+            session=session, enum_class=QueueTypeEnum, table=QueueTypeEnumRow
         )
 
 

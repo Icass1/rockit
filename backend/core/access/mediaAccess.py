@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, List, cast
 
 from sqlalchemy.sql import Select
 from sqlalchemy import Result, select, and_
@@ -16,33 +16,67 @@ logger = getLogger(__name__)
 
 class MediaAccess:
     @staticmethod
-    async def get_media_from_public_id_async(
+    async def get_medias_from_public_ids_async(
         session: AsyncSession,
-        public_id: str,
-        media_type_key: int,
-    ) -> AResult[CoreMediaRow]:
-        """Get a CoreMediaRow by public_id and media_type."""
+        public_ids: List[str],
+        media_type_key: int | None,
+    ) -> AResult[List[CoreMediaRow]]:
+        """Get CoreMediaRow entries by public_ids and optional media_type."""
 
         try:
-            stmt: Select[Tuple[CoreMediaRow]] = select(CoreMediaRow).where(
-                and_(
-                    CoreMediaRow.public_id == public_id,
+            if media_type_key is not None:
+                where_stmt = and_(
+                    CoreMediaRow.public_id.in_(public_ids),
                     CoreMediaRow.media_type_key == media_type_key,
                 )
-            )
-            result = await session.execute(stmt)
-            row: CoreMediaRow | None = result.scalar_one_or_none()
+            else:
+                where_stmt = CoreMediaRow.public_id.in_(public_ids)
 
-            if row is None:
+            stmt: Select[Tuple[CoreMediaRow]] = select(CoreMediaRow).where(where_stmt)
+            result: Result[Tuple[CoreMediaRow]] = await session.execute(stmt)
+            rows: List[CoreMediaRow] = cast(List[CoreMediaRow], result.scalars().all())
+
+            if not rows:
                 return AResult(code=AResultCode.NOT_FOUND, message="Media not found")
 
-            return AResult(code=AResultCode.OK, message="OK", result=row)
+            return AResult(code=AResultCode.OK, message="OK", result=rows)
 
         except Exception as e:
             logger.error(f"Error getting media: {e}")
             return AResult(
                 code=AResultCode.GENERAL_ERROR, message="Error getting media"
             )
+
+    @staticmethod
+    async def get_media_from_public_id_async(
+        session: AsyncSession,
+        public_id: str,
+        media_type_key: int | None,
+    ) -> AResult[CoreMediaRow]:
+        a_result_media: AResult[List[CoreMediaRow]] = (
+            await MediaAccess.get_medias_from_public_ids_async(
+                session=session, public_ids=[public_id], media_type_key=media_type_key
+            )
+        )
+
+        if a_result_media.is_not_ok():
+            logger.error(
+                f"Error getting medias from public id {public_id}. {a_result_media.info()}"
+            )
+            return AResult(code=a_result_media.code(), message=a_result_media.message())
+
+        if len(a_result_media.result()) != 1:
+            logger.error(
+                f"get_medias_from_public_ids_async returned {len(a_result_media.result())} rows instead of 1."
+            )
+            return AResult(
+                code=AResultCode.NOT_FOUND,
+                message=f"get_medias_from_public_ids_async returned {len(a_result_media.result())} rows instead of 1.",
+            )
+
+        return AResult(
+            code=AResultCode.OK, message="OK", result=a_result_media.result()[0]
+        )
 
     @staticmethod
     async def get_media_from_id_async(

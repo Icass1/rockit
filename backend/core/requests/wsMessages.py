@@ -1,4 +1,6 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
+
+from backend.core.enums.queueTypeEnum import QueueTypeEnum
 
 
 class MediaEndedMessageRequest(BaseModel):
@@ -17,6 +19,11 @@ class CurrentQueueMessageRequestItem(BaseModel):
 
 class CurrentQueueMessageRequest(BaseModel):
     queue: list[CurrentQueueMessageRequestItem]
+    queueType: QueueTypeEnum
+
+    @field_validator("queueType", mode="before")
+    def convert_string_to_enum(cls, v: str):
+        return QueueTypeEnum[v]
 
 
 class CurrentTimeMessageRequest(BaseModel):

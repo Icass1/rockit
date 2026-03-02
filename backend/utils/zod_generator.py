@@ -173,6 +173,8 @@ def generate_zod_schema(
 
 
 async def generate_zod_schemas() -> None:
+    return
+
     all_models: dict[str, type[BaseModel]] = {}
 
     for folder in folders_to_process:

@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from backend.core.access.db.ormModels.session import SessionRow
     from backend.core.access.db.ormEnums.repeatModeEnum import RepeatModeEnumRow
     from backend.core.access.db.ormModels.user_media import UserMediaRow
+    from backend.core.access.db.ormModels.user_queue import UserQueueRow
 
 
 class UserRow(
@@ -61,6 +62,9 @@ class UserRow(
     )
     user_medias: Mapped[List["UserMediaRow"]] = relationship(
         "UserMediaRow", back_populates="user"
+    )
+    user_queues: Mapped[List["UserQueueRow"]] = relationship(
+        "UserQueueRow", back_populates="user"
     )
 
     def __init__(

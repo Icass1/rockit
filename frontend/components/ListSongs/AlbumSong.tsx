@@ -8,6 +8,7 @@ import { AlbumManager } from "@/lib/managers/albumManager";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { networkStatus } from "@/lib/stores/networkStatus";
 import { getTime } from "@/lib/utils/getTime";
+import useWindowSize from "@/hooks/useWindowSize";
 import LikeButton from "@/components/LikeButton";
 import SongContextMenu from "@/components/ListSongs/SongContextMenu";
 
@@ -29,12 +30,17 @@ export default function AlbumSong({
     );
 
     const $networkStatus = useStore(networkStatus);
+    const { width: innerWidth } = useWindowSize();
 
     const songUnavailable = useMemo(() => {
-        const notInCache = !$songsInIndexedDB?.includes(song.publicId);
-        const offlineAndMissing = $networkStatus === "offline" && notInCache;
+        const offline = $networkStatus === "offline";
+        const inCache = $songsInIndexedDB?.includes(song.publicId);
+        const downloaded = song.downloaded;
 
-        return offlineAndMissing || !song.downloaded;
+        if (downloaded) return false;
+        if (offline && inCache) return false;
+
+        return true;
     }, [$songsInIndexedDB, $networkStatus, song.downloaded, song.publicId]);
 
     const songPlaying = useMemo(() => {
@@ -94,7 +100,7 @@ export default function AlbumSong({
                 <LikeButton songPublicId={song.publicId} />
 
                 <label className="flex min-w-7 items-center justify-center text-sm text-white/80 select-none">
-                    {hovered && window.innerWidth > 768 ? (
+                    {hovered && (innerWidth ?? 0) > 768 ? (
                         <EllipsisVertical
                             className="h-5 w-5 text-gray-400 md:hover:scale-105 md:hover:text-white"
                             onClick={() => {

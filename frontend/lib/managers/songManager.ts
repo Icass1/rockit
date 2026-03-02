@@ -35,7 +35,7 @@ export class SongManager {
         );
 
         const res = await apiFetch(`/like/song/${songPublicId}`, {
-            method: "PUT",
+            method: isLiked ? "DELETE" : "PUT",
         });
 
         if (!res?.ok) {

@@ -11,6 +11,7 @@ from backend.core.access.db.ormModels.declarativeMixin import (
 
 if TYPE_CHECKING:
     from backend.core.access.db.ormModels.user import UserRow
+    from backend.core.access.db.ormModels.media import CoreMediaRow
 
 
 class UserMediaRow(CoreBase, TableAutoincrementId, TableDateAdded):
@@ -30,6 +31,10 @@ class UserMediaRow(CoreBase, TableAutoincrementId, TableDateAdded):
 
     user: Mapped["UserRow"] = relationship(
         "UserRow",
+        back_populates="user_medias",
+    )
+    media: Mapped["CoreMediaRow"] = relationship(
+        "CoreMediaRow",
         back_populates="user_medias",
     )
 

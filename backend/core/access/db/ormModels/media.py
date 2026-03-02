@@ -14,6 +14,7 @@ from backend.core.access.db.ormModels.declarativeMixin import (
 if TYPE_CHECKING:
     from backend.core.access.db.ormModels.provider import ProviderRow
     from backend.core.access.db.ormEnums.mediaTypeEnum import MediaTypeEnumRow
+    from backend.core.access.db.ormModels.user_media import UserMediaRow
 
 
 class CoreMediaRow(
@@ -34,6 +35,9 @@ class CoreMediaRow(
     )
     media_type: Mapped[List["MediaTypeEnumRow"]] = relationship(
         "MediaTypeEnumRow", back_populates="media"
+    )
+    user_medias: Mapped[List["UserMediaRow"]] = relationship(
+        "UserMediaRow", back_populates="media"
     )
 
     def __init__(self, public_id: str, provider_id: int, media_type_key: int):

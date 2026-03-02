@@ -126,10 +126,21 @@ export class AudioManager {
 
     pause() {
         if (!this._audio) {
-            console.warn("(pause) Audio element not initialized");
             return;
         }
         this._audio.pause();
+    }
+
+    playStream(url: string) {
+        if (!this._audio) return;
+
+        rockIt.queueManager.clearCurrentSong?.();
+
+        this._audio.src = url;
+        this._audio.volume = this._currentVolume.get();
+        this._audio.play().catch((err) => {
+            console.error("AudioManager: stream play failed:", err);
+        });
     }
 
     mute() {

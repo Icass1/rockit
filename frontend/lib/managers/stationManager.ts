@@ -1,4 +1,5 @@
-import { Station } from "@/types/station";
+import type { Station } from "@/types/station";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { createAtom } from "@/lib/store";
 
 export class StationManager {
@@ -6,7 +7,7 @@ export class StationManager {
 
     private _currentStationAtom = createAtom<Station | undefined>();
 
-    // #endregion
+    // #endregion: Atoms
 
     // #region: Constructor
 
@@ -14,17 +15,25 @@ export class StationManager {
 
     // #endregion: Constructor
 
-    // #region: Method
+    // #region: Methods
 
-    setAndPlayStation(station: Station) {
-        throw `(setAndPlayStation) not implemented ${station}`;
+    setAndPlayStation(station: Station): void {
+        this._currentStationAtom.set(station);
+
+        const streamUrl = station.url_resolved || station.url;
+        rockIt.audioManager.playStream(streamUrl);
     }
-    // #endregion: Method
+
+    clearStation(): void {
+        this._currentStationAtom.set(undefined);
+    }
+
+    // #endregion: Methods
 
     // #region: Getters
 
     get currentStationAtom() {
-        return this._currentStationAtom;
+        return this._currentStationAtom.getReadonlyAtom();
     }
 
     // #endregion: Getters

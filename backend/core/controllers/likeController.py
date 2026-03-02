@@ -3,6 +3,8 @@ from typing import List
 from fastapi import Depends, APIRouter, HTTPException, Request
 from logging import Logger
 
+from pydantic import BaseModel
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.aResult import AResult
@@ -15,6 +17,11 @@ from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 from backend.core.access.db.ormModels.user import UserRow
 
 from backend.core.framework.userSong.userSong import UserSong
+
+
+class LikeSongsRequest(BaseModel):
+    song_public_ids: List[str]
+
 
 logger: Logger = getLogger(__name__)
 router = APIRouter(
@@ -63,6 +70,31 @@ async def get_liked_songs(request: Request) -> List[str]:
     )
     if a_result.is_not_ok():
         logger.error(f"Error getting liked songs. {a_result.info()}")
+        raise HTTPException(
+            status_code=a_result.get_http_code(), detail=a_result.message()
+        )
+
+    return a_result.result()
+
+
+@router.post("/songs")
+async def like_songs(request: Request, like_request: LikeSongsRequest) -> OkResponse:
+    session: AsyncSession = DBSessionMiddleware.get_session(request)
+
+    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
+    if a_result_user.is_not_ok():
+        logger.error(f"Error getting current user. {a_result_user.info()}")
+        raise HTTPException(
+            status_code=a_result_user.get_http_code(), detail=a_result_user.message()
+        )
+
+    a_result: AResult[OkResponse] = await UserSong.like_songs(
+        session=session,
+        user_id=a_result_user.result().id,
+        song_public_ids=like_request.song_public_ids,
+    )
+    if a_result.is_not_ok():
+        logger.error(f"Error liking songs. {a_result.info()}")
         raise HTTPException(
             status_code=a_result.get_http_code(), detail=a_result.message()
         )

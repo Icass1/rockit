@@ -66,3 +66,38 @@ class UserSong:
             return AResult(code=a_result.code(), message=a_result.message())
 
         return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+
+    @staticmethod
+    async def like_songs(
+        session: AsyncSession, user_id: int, song_public_ids: List[str]
+    ) -> AResult[OkResponse]:
+        for song_public_id in song_public_ids:
+            a_result_song = await MediaAccess.get_song_from_public_id_async(
+                session=session, public_id=song_public_id
+            )
+            if a_result_song.is_not_ok():
+                logger.error(
+                    f"Song not found: {song_public_id}, {a_result_song.info()}"
+                )
+                continue
+
+            song = a_result_song.result()
+
+            a_result_check = await UserSongAccess.is_song_liked(
+                session=session, user_id=user_id, song_id=song.id
+            )
+            if a_result_check.is_not_ok():
+                logger.error(f"Error checking like status: {a_result_check.info()}")
+                continue
+
+            is_liked = a_result_check.result()
+
+            if not is_liked:
+                a_result_add = await UserSongAccess.add_like(
+                    session=session, user_id=user_id, song_id=song.id
+                )
+                if a_result_add.is_not_ok():
+                    logger.error(f"Error adding like: {a_result_add.info()}")
+                    continue
+
+        return AResult(code=AResultCode.OK, message="OK", result=OkResponse())

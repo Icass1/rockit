@@ -123,8 +123,87 @@ export class ListManager {
     }
 
     async likeAllSongsAsync(type: DBListType, publicId: string) {
-        console.log(type, publicId);
-        throw "(likeAllSongsAsync) Not implemented method";
+        let songPublicIds: string[];
+
+        try {
+            if (type === "album") {
+                const res = await fetch(`/media/album/${publicId}`, {
+                    credentials: "include",
+                });
+                if (!res.ok) {
+                    rockIt.notificationManager.notifyError(
+                        `Failed to fetch album: ${res.status}`
+                    );
+                    return;
+                }
+                const album = await res.json();
+                if (!album.songs) {
+                    rockIt.notificationManager.notifyError(
+                        "Album has no songs"
+                    );
+                    return;
+                }
+                songPublicIds = album.songs.map(
+                    (song: { publicId: string }) => song.publicId
+                );
+            } else if (type === "playlist") {
+                const res = await fetch(`/media/playlist/${publicId}`, {
+                    credentials: "include",
+                });
+                if (!res.ok) {
+                    rockIt.notificationManager.notifyError(
+                        `Failed to fetch playlist: ${res.status}`
+                    );
+                    return;
+                }
+                const playlist = await res.json();
+                if (!playlist.songs) {
+                    rockIt.notificationManager.notifyError(
+                        "Playlist has no songs"
+                    );
+                    return;
+                }
+                songPublicIds = playlist.songs.map(
+                    (song: { publicId: string }) => song.publicId
+                );
+            } else {
+                rockIt.notificationManager.notifyError("Invalid list type.");
+                return;
+            }
+        } catch (error) {
+            rockIt.notificationManager.notifyError(
+                `Error fetching list: ${error}`
+            );
+            return;
+        }
+
+        if (songPublicIds.length === 0) {
+            rockIt.notificationManager.notifyError("No songs found to like.");
+            return;
+        }
+
+        const response = await apiFetch("/like/songs", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ song_public_ids: songPublicIds }),
+        });
+
+        if (!response) {
+            rockIt.notificationManager.notifyError(RESPONSE_UNDEFINED_MESSAGE);
+            return;
+        }
+        if (!response.ok) {
+            rockIt.notificationManager.notifyError(
+                "Unable to like all songs."
+            );
+            return;
+        }
+
+        const current = rockIt.songManager.likedSongsAtom.get();
+        const newLiked = [...new Set([...current, ...songPublicIds])];
+        rockIt.songManager.likedSongsAtom.set(newLiked);
+
+        rockIt.notificationManager.notifyInfo("All songs liked.");
     }
 
     async addListToTopQueueAsync(type: DBListType, publicId: string) {

@@ -141,7 +141,7 @@ export default function RadioClient() {
         setError(null);
         try {
             const res = await fetch(
-                `/api/radio/stations/byname/${encodeURIComponent(searchTerm)}?limit=20`
+                `/radio/stations/byname/${encodeURIComponent(searchTerm)}?limit=20`
             );
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const data: Station[] = await res.json();

@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { BaseSongWithoutAlbumResponseSchema } from "@/dto";
 import { AppError } from "@/lib/errors/AppError";
-import apiFetch from "@/lib/utils/apiFetch";
+import { apiFetch } from "@/lib/utils/apiFetch";
 
 export default async function SpotifySongPage({
     params,

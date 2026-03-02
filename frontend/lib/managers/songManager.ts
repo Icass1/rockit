@@ -1,6 +1,6 @@
 import { BaseSongWithAlbumResponse } from "@/dto";
 import { createArrayAtom } from "@/lib/store";
-import apiFetch from "@/lib/utils/apiFetch";
+import { apiFetch } from "@/lib/utils/apiFetch";
 
 export class SongManager {
     // #region: Atoms
@@ -34,7 +34,9 @@ export class SongManager {
                 : [...current, songPublicId]
         );
 
-        const res = await apiFetch(`/like/song/${songPublicId}`, { method: "PUT" });
+        const res = await apiFetch(`/like/song/${songPublicId}`, {
+            method: "PUT",
+        });
 
         if (!res?.ok) {
             this.likedSongsAtom.set(current);

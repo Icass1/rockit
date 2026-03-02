@@ -42,6 +42,7 @@ export default function PlaylistHeader({
         >
             <ListCover
                 publicId={playlist.publicId}
+                publicIds={playlist.songs.map((song) => song.song.publicId)}
                 type="playlist"
                 name={playlist.name}
                 imageUrl={playlist.internalImageUrl ?? "/song-placeholder.png"}

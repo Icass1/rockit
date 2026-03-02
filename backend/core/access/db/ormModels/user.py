@@ -15,8 +15,8 @@ if TYPE_CHECKING:
     from backend.core.access.db.ormModels.error import ErrorRow
     from backend.core.access.db.ormModels.requestLog import RequestLogRow
     from backend.core.access.db.ormModels.session import SessionRow
-    from backend.core.access.db.ormEnums.repeatSongEnum import RepeatSongEnumRow
-    from backend.core.access.db.ormModels.user_album import UserAlbumRow
+    from backend.core.access.db.ormEnums.repeatModeEnum import RepeatModeEnumRow
+    from backend.core.access.db.ormModels.user_media import UserMediaRow
 
 
 class UserRow(
@@ -31,10 +31,10 @@ class UserRow(
     provider_account_id: Mapped[str | None] = mapped_column(String, nullable=True)
     current_station: Mapped[str | None] = mapped_column(String, nullable=True)
     current_time: Mapped[float | None] = mapped_column(DOUBLE_PRECISION, nullable=True)
-    queue_song_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    current_queue_index: Mapped[int | None] = mapped_column(Integer, nullable=True)
     random_queue: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    repeat_song_key: Mapped[int] = mapped_column(
-        Integer, ForeignKey("core.repeat_song_enum.key"), nullable=False, default=1
+    repeat_mode_key: Mapped[int] = mapped_column(
+        Integer, ForeignKey("core.repeat_mode_enum.key"), nullable=False, default=1
     )
     volume: Mapped[float] = mapped_column(DOUBLE_PRECISION, nullable=False, default=1)
     cross_fade: Mapped[float] = mapped_column(
@@ -47,8 +47,8 @@ class UserRow(
     admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     super_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
-    repeat_song_enum: Mapped["RepeatSongEnumRow"] = relationship(
-        "RepeatSongEnumRow", back_populates="user", uselist=False
+    repeat_mode_enum: Mapped["RepeatModeEnumRow"] = relationship(
+        "RepeatModeEnumRow", back_populates="user", uselist=False
     )
 
     # one-to-many
@@ -59,8 +59,8 @@ class UserRow(
     request_logs: Mapped[List["RequestLogRow"]] = relationship(
         "RequestLogRow", back_populates="user"
     )
-    user_albums: Mapped[List["UserAlbumRow"]] = relationship(
-        "UserAlbumRow", back_populates="user"
+    user_medias: Mapped[List["UserMediaRow"]] = relationship(
+        "UserMediaRow", back_populates="user"
     )
 
     def __init__(
@@ -72,9 +72,9 @@ class UserRow(
         provider_account_id: str | None = None,
         current_station: str | None = None,
         current_time: float | None = None,
-        queue_song_id: int | None = None,
+        current_queue_index: int | None = None,
         random_queue: bool = False,
-        repeat_song_key: int = 1,
+        repeat_mode_key: int = 1,
         volume: float = 1,
         cross_fade: float = 0,
         lang: str = "en",
@@ -90,9 +90,9 @@ class UserRow(
         kwargs["provider_account_id"] = provider_account_id
         kwargs["current_station"] = current_station
         kwargs["current_time"] = current_time
-        kwargs["queue_song_id"] = queue_song_id
+        kwargs["current_queue_index"] = current_queue_index
         kwargs["random_queue"] = random_queue
-        kwargs["repeat_song_key"] = repeat_song_key
+        kwargs["repeat_mode_key"] = repeat_mode_key
         kwargs["volume"] = volume
         kwargs["cross_fade"] = cross_fade
         kwargs["lang"] = lang

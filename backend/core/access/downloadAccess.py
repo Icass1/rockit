@@ -51,7 +51,7 @@ class DownloadAccess:
         try:
             row: DownloadRow = DownloadRow(
                 download_group_id=download_group_id,
-                song_id=song_id,
+                media_id=song_id,
             )
             session.add(row)
             await session.flush()

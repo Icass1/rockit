@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { DBListType } from "@/types/rockIt";
 import { Download } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 
@@ -60,11 +59,9 @@ function DownloadFlyAnimation({
 }
 
 export default function DownloadListButton({
-    publicId,
-    type,
+    publicIds,
 }: {
-    publicId: string;
-    type: DBListType;
+    publicIds: string[];
 }) {
     const divRef = useRef<HTMLDivElement>(null);
 
@@ -78,10 +75,7 @@ export default function DownloadListButton({
             <div
                 ref={divRef}
                 onClick={() => {
-                    rockIt.downloaderManager.downloadSpotifyListToDBAsync(
-                        type,
-                        publicId
-                    );
+                    rockIt.downloaderManager.downloadMediaToDBAsync(publicIds);
                 }}
                 className="h-16 w-16 cursor-pointer rounded-full bg-gradient-to-r from-[#ee1086] to-[#fb6467] shadow-[0px_0px_20px_3px_#0e0e0e] transition-transform md:h-20 md:w-20 md:hover:scale-105"
             >

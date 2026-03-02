@@ -1,4 +1,3 @@
-import { BACKEND_URL } from "@/environment";
 import { AlbumManager } from "@/lib/managers/albumManager";
 import { AudioManager } from "@/lib/managers/audioManager";
 import { CurrentListManager } from "@/lib/managers/currentListManager";
@@ -53,11 +52,10 @@ export class RockIt {
     constructor() {
         if (typeof window === "undefined") return;
 
-        this.webSocketManager.init(BACKEND_URL);
+        this.webSocketManager.init();
     }
 }
 
 export const rockIt = new RockIt();
 rockIt.queueManager.init();
-rockIt.downloaderManager.init();
 rockIt.userManager.init();

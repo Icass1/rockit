@@ -14,7 +14,7 @@ from backend.core.middlewares.authMiddleware import AuthMiddleware
 from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 
 from backend.core.access.db.ormModels.user import UserRow
-from backend.core.access.db.ormModels.user_album import UserAlbumRow
+from backend.core.access.db.ormModels.user_media import UserMediaRow
 
 from backend.core.framework.user.user import User
 
@@ -95,7 +95,7 @@ async def get_library_lists(request: Request) -> LibraryListsResponse:
         )
 
     a_result_albums: AResult[List[BaseAlbumWithoutSongsResponse]] = (
-        await User.get_user_albums(session=session, user_id=a_result_user.result().id)
+        await User.get_user_medias(session=session, user_id=a_result_user.result().id)
     )
 
     if a_result_albums.is_not_ok():
@@ -109,7 +109,7 @@ async def get_library_lists(request: Request) -> LibraryListsResponse:
 
 
 @router.get(path="/library/albums")
-async def get_user_albums(request: Request) -> List[BaseAlbumWithoutSongsResponse]:
+async def get_user_medias(request: Request) -> List[BaseAlbumWithoutSongsResponse]:
     """Get all albums in the user's library."""
 
     session: AsyncSession = DBSessionMiddleware.get_session(request)
@@ -122,7 +122,7 @@ async def get_user_albums(request: Request) -> List[BaseAlbumWithoutSongsRespons
         )
 
     a_result_albums: AResult[List[BaseAlbumWithoutSongsResponse]] = (
-        await User.get_user_albums(session, user_id=a_result_user.result().id)
+        await User.get_user_medias(session, user_id=a_result_user.result().id)
     )
 
     if a_result_albums.is_not_ok():
@@ -136,7 +136,7 @@ async def get_user_albums(request: Request) -> List[BaseAlbumWithoutSongsRespons
 
 
 @router.post(path="/library/album/{album_public_id}")
-async def add_album_to_library(request: Request, album_public_id: str) -> OkResponse:
+async def add_media_to_library(request: Request, album_public_id: str) -> OkResponse:
     """Add an album to the user's library."""
 
     session: AsyncSession = DBSessionMiddleware.get_session(request)
@@ -148,7 +148,7 @@ async def add_album_to_library(request: Request, album_public_id: str) -> OkResp
             status_code=a_result_user.get_http_code(), detail=a_result_user.message()
         )
 
-    a_result: AResult[UserAlbumRow] = await User.add_album_to_library(
+    a_result: AResult[UserMediaRow] = await User.add_media_to_library(
         session=session,
         user_id=a_result_user.result().id,
         album_public_id=album_public_id,

@@ -106,8 +106,9 @@ export class AudioManager {
             this._audio.volume = this._currentVolume.get();
             this._audio.src = rockIt.queueManager.currentSong.audioSrc;
 
-            rockIt.webSocketManager.send({
-                currentSong: rockIt.queueManager.currentSong.publicId,
+            rockIt.webSocketManager.sendCurrentMedia({
+                mediaPublicId: rockIt.queueManager.currentSong.publicId,
+                queueIndex: 1,
             });
         }
     }
@@ -172,7 +173,9 @@ export class AudioManager {
             console.warn("(setCurrentTime) Audio element not initialized");
             return false;
         }
+        const timeFrom = this._audio.currentTime;
         this._audio.currentTime = time;
+        rockIt.webSocketManager.sendSeek({ timeFrom, timeTo: time });
     }
 
     setSrc() {
@@ -199,7 +202,7 @@ export class AudioManager {
             return false;
         }
         this._currentTimeAtom.set(this._audio.currentTime);
-        rockIt.webSocketManager.send({
+        rockIt.webSocketManager.sendCurrentTime({
             currentTime: this._audio.currentTime,
         });
     }
@@ -225,20 +228,25 @@ export class AudioManager {
     }
 
     private handleAudioEnded() {
+        const currentSong = rockIt.queueManager.currentSong;
         const repeat = rockIt.userManager.repeatSongAtom.get();
         const queue = rockIt.queueManager.queue;
         const currentQueueSongId = rockIt.queueManager.currentQueueSongId;
+
+        if (currentSong) {
+            rockIt.webSocketManager.sendMediaEnded({
+                mediaPublicId: currentSong.publicId,
+            });
+        }
 
         if (repeat === "one") {
             this.play();
             return;
         }
 
-        const currentIndex = queue.findIndex(
-            (item) => item.queueSongId === currentQueueSongId
-        );
-
-        const nextIndex = currentIndex + 1;
+        const nextIndex =
+            queue.findIndex((item) => item.queueSongId === currentQueueSongId) +
+            1;
 
         if (nextIndex < queue.length) {
             rockIt.queueManager.setQueueSongId(queue[nextIndex].queueSongId);

@@ -9,9 +9,10 @@ from backend.core.aResult import AResult, AResultCode
 
 from backend.core.access.downloadAccess import DownloadAccess
 from backend.core.access.mediaAccess import MediaAccess
-from backend.core.access.db.ormModels.song import CoreSongRow
+from backend.core.access.db.ormModels.media import CoreMediaRow
 from backend.core.access.db.ormModels.downloadGroup import DownloadGroupRow
 from backend.core.access.db.ormModels.download import DownloadRow
+from backend.core.enums.mediaTypeEnum import MediaTypeEnum
 
 from backend.core.framework.provider.baseProvider import BaseProvider
 from backend.core.framework.providers.providers import Providers
@@ -48,16 +49,18 @@ class Downloader:
         group: DownloadGroupRow = a_result_group.result()
 
         for public_id in public_ids:
-            a_result_song: AResult[CoreSongRow] = (
-                await MediaAccess.get_song_from_public_id_async(
-                    session=session, public_id=public_id
+            a_result_song: AResult[CoreMediaRow] = (
+                await MediaAccess.get_media_from_public_id_async(
+                    session=session,
+                    public_id=public_id,
+                    media_type_key=MediaTypeEnum.SONG.value,
                 )
             )
             if a_result_song.is_not_ok():
                 logger.error(f"Error getting song {public_id}. {a_result_song.info()}")
                 continue
 
-            song: CoreSongRow = a_result_song.result()
+            song: CoreMediaRow = a_result_song.result()
             provider: BaseProvider | None = providers.find_provider(
                 provider_id=song.provider_id
             )
@@ -85,6 +88,7 @@ class Downloader:
                     session=session,
                     public_id=public_id,
                     download_id=download_row.id,
+                    user_id=user_id,
                 )
             )
             if a_result_base_download.is_not_ok():

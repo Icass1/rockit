@@ -6,14 +6,16 @@ from logging import Logger
 
 from backend.core.access.db.ormEnums.downloadStatusEnum import DownloadStatusEnumRow
 from backend.core.enums.downloadStatusEnum import DownloadStatusEnum
+from backend.core.enums.mediaTypeEnum import MediaTypeEnum
+from backend.core.access.db.ormEnums.mediaTypeEnum import MediaTypeEnumRow
 from backend.utils.logger import getLogger
 
-from backend.core.access.db.ormEnums.repeatSongEnum import RepeatSongEnumRow
+from backend.core.access.db.ormEnums.repeatModeEnum import RepeatModeEnumRow
 from backend.core.access.enumAccess import EnumAccess
 from backend.core.access.db import rockit_db
 from backend.core.framework import providers
 
-from backend.core.enums.repeatSongEnum import RepeatSongEnum
+from backend.core.enums.repeatModeEnum import RepeatModeEnum
 
 logger: Logger = getLogger(__name__)
 
@@ -44,7 +46,10 @@ async def add_initial_content():
             session=session, enum_class=DownloadStatusEnum, table=DownloadStatusEnumRow
         )
         await EnumAccess.check_enum_contents_async(
-            session=session, enum_class=RepeatSongEnum, table=RepeatSongEnumRow
+            session=session, enum_class=RepeatModeEnum, table=RepeatModeEnumRow
+        )
+        await EnumAccess.check_enum_contents_async(
+            session=session, enum_class=MediaTypeEnum, table=MediaTypeEnumRow
         )
 
 

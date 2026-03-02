@@ -8,9 +8,8 @@ from backend.constants import BACKEND_URL, SONGS_PATH
 from backend.utils.logger import getLogger
 from backend.core.aResult import AResult, AResultCode
 
-from backend.core.access.db.ormModels.album import CoreAlbumRow
-from backend.core.access.db.ormModels.song import CoreSongRow
 from backend.core.access.db.ormModels.image import ImageRow
+from backend.core.access.db.ormModels.media import CoreMediaRow
 from backend.core.access.mediaAccess import MediaAccess
 
 from backend.core.responses.searchResponse import (
@@ -176,8 +175,8 @@ class Spotify:
         if a_result_album.is_ok():
             album_row: AlbumRow = a_result_album.result()
 
-            a_result_core_album: AResult[CoreAlbumRow] = (
-                await MediaAccess.get_album_from_id_async(session, id=album_row.id)
+            a_result_core_album: AResult[CoreMediaRow] = (
+                await MediaAccess.get_media_from_id_async(session, id=album_row.id)
             )
             if a_result_core_album.is_not_ok():
                 logger.error(f"Error getting core album. {a_result_core_album.info()}")
@@ -186,7 +185,7 @@ class Spotify:
                     message=a_result_core_album.message(),
                 )
 
-            core_album: CoreAlbumRow = a_result_core_album.result()
+            core_album: CoreMediaRow = a_result_core_album.result()
 
             a_result_artists: AResult[List[ArtistRow]] = (
                 await SpotifyAccess.get_artists_from_album_id_async(
@@ -197,12 +196,12 @@ class Spotify:
                 a_result_artists.result() if a_result_artists.is_ok() else []
             )
 
-            a_result_tracks: AResult[List[Tuple[TrackRow, CoreSongRow]]] = (
+            a_result_tracks: AResult[List[Tuple[TrackRow, CoreMediaRow]]] = (
                 await SpotifyAccess.get_tracks_with_core_song_from_album_async(
                     session=session, album_id=album_row.id
                 )
             )
-            tracks_with_core: List[Tuple[TrackRow, CoreSongRow]] = (
+            tracks_with_core: List[Tuple[TrackRow, CoreMediaRow]] = (
                 a_result_tracks.result() if a_result_tracks.is_ok() else []
             )
 
@@ -451,8 +450,8 @@ class Spotify:
                 provider_id=provider_id,
             )
 
-        a_result_core_album: AResult[CoreAlbumRow] = (
-            await MediaAccess.get_album_from_id_async(session=session, id=album_row.id)
+        a_result_core_album: AResult[CoreMediaRow] = (
+            await MediaAccess.get_media_from_id_async(session=session, id=album_row.id)
         )
         if a_result_core_album.is_not_ok():
             logger.error(f"Error getting core album. {a_result_core_album.info()}")
@@ -460,7 +459,7 @@ class Spotify:
                 code=a_result_core_album.code(), message=a_result_core_album.message()
             )
 
-        core_album: CoreAlbumRow = a_result_core_album.result()
+        core_album: CoreMediaRow = a_result_core_album.result()
 
         a_result_db_artists: AResult[List[ArtistRow]] = (
             await SpotifyAccess.get_artists_from_album_id_async(
@@ -471,12 +470,12 @@ class Spotify:
             a_result_db_artists.result() if a_result_db_artists.is_ok() else []
         )
 
-        a_result_db_tracks: AResult[List[Tuple[TrackRow, CoreSongRow]]] = (
+        a_result_db_tracks: AResult[List[Tuple[TrackRow, CoreMediaRow]]] = (
             await SpotifyAccess.get_tracks_with_core_song_from_album_async(
                 session=session, album_id=album_row.id
             )
         )
-        tracks_with_core: List[Tuple[TrackRow, CoreSongRow]] = (
+        tracks_with_core: List[Tuple[TrackRow, CoreMediaRow]] = (
             a_result_db_tracks.result() if a_result_db_tracks.is_ok() else []
         )
 
@@ -647,8 +646,8 @@ class Spotify:
         if a_result_track.is_ok():
             track_row: TrackRow = a_result_track.result()
 
-            a_result_core_song: AResult[CoreSongRow] = (
-                await MediaAccess.get_song_from_id_async(
+            a_result_core_song: AResult[CoreMediaRow] = (
+                await MediaAccess.get_media_from_id_async(
                     id=track_row.id, session=session
                 )
             )
@@ -660,7 +659,7 @@ class Spotify:
                     code=a_result_core_song.code(), message=a_result_core_song.message()
                 )
 
-            core_song: CoreSongRow = a_result_core_song.result()
+            core_song: CoreMediaRow = a_result_core_song.result()
 
             track_artists: List[ArtistRow] = []
             a_result_track_artists: AResult[List[ArtistRow]] = (
@@ -868,7 +867,7 @@ class Spotify:
                 code=a_result_provider_id.code(), message=a_result_provider_id.message()
             )
 
-        created_core_song: CoreSongRow | None = None
+        created_core_song: CoreMediaRow | None = None
         provider_id: int = a_result_provider_id.result()
         artist_map: Dict[str, ArtistRow] = {}
         for raw_artist in raw_artists:
@@ -898,7 +897,7 @@ class Spotify:
         album_row: AlbumRow = a_result_album.result()
 
         for t in raw_album_tracks:
-            a_result_create_track: AResult[Tuple[TrackRow, CoreSongRow]] = (
+            a_result_create_track: AResult[Tuple[TrackRow, CoreMediaRow]] = (
                 await SpotifyAccess.get_or_create_track(
                     raw=t,
                     artist_map=artist_map,
@@ -1231,15 +1230,15 @@ class Spotify:
 
             song_responses: List[BaseSongForPlaylistResponse] = []
             for playlist_track_row, track_row in playlist_track_links:
-                a_result_core_song: AResult[CoreSongRow] = (
-                    await MediaAccess.get_song_from_id_async(
+                a_result_core_song: AResult[CoreMediaRow] = (
+                    await MediaAccess.get_media_from_id_async(
                         session=session, id=track_row.id
                     )
                 )
                 if a_result_core_song.is_not_ok():
                     continue
 
-                core_song: CoreSongRow = a_result_core_song.result()
+                core_song: CoreMediaRow = a_result_core_song.result()
 
                 track_artists: List[ArtistRow] = []
                 a_result_track_artists: AResult[List[ArtistRow]] = (
@@ -1497,7 +1496,7 @@ class Spotify:
             album_row: AlbumRow = album_row_map.get(album_id)
             if album_row is None:
                 continue
-            a_result_track: AResult[Tuple[TrackRow, CoreSongRow]] = (
+            a_result_track: AResult[Tuple[TrackRow, CoreMediaRow]] = (
                 await SpotifyAccess.get_or_create_track(
                     raw=raw_track,
                     artist_map=artist_map,
@@ -1556,15 +1555,15 @@ class Spotify:
 
         fetched_song_responses: List[BaseSongForPlaylistResponse] = []
         for playlist_track_row, track_row in fetched_playlist_track_links:
-            a_result_core_song: AResult[CoreSongRow] = (
-                await MediaAccess.get_song_from_id_async(
+            a_result_core_song: AResult[CoreMediaRow] = (
+                await MediaAccess.get_media_from_id_async(
                     session=session, id=track_row.id
                 )
             )
             if a_result_core_song.is_not_ok():
                 continue
 
-            core_song: CoreSongRow = a_result_core_song.result()
+            core_song: CoreMediaRow = a_result_core_song.result()
 
             track_artists: List[ArtistRow] = []
             a_result_track_artists: AResult[List[ArtistRow]] = (

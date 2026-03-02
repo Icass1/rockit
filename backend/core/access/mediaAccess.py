@@ -1,170 +1,72 @@
 from typing import Tuple
 
 from sqlalchemy.sql import Select
-from sqlalchemy import Result, select
+from sqlalchemy import Result, select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.utils.logger import getLogger
 
 from backend.core.aResult import AResult, AResultCode
 
-from backend.core.access.db.ormModels.song import CoreSongRow
-from backend.core.access.db.ormModels.album import CoreAlbumRow
-from backend.core.access.db.ormModels.artist import CoreArtistRow
-from backend.core.access.db.ormModels.playlist import CorePlaylistRow
+from backend.core.access.db.ormModels.media import CoreMediaRow
 from backend.core.access.db.ormModels.image import ImageRow
-from backend.core.access.db.ormModels.video import CoreVideoRow
 
 logger = getLogger(__name__)
 
 
 class MediaAccess:
     @staticmethod
-    async def get_song_from_public_id_async(
+    async def get_media_from_public_id_async(
         session: AsyncSession,
         public_id: str,
-    ) -> AResult[CoreSongRow]:
-        """Get a CoreSongRow by public_id."""
+        media_type_key: int,
+    ) -> AResult[CoreMediaRow]:
+        """Get a CoreMediaRow by public_id and media_type."""
 
         try:
-            stmt: Select[Tuple[CoreSongRow]] = select(CoreSongRow).where(
-                CoreSongRow.public_id == public_id
+            stmt: Select[Tuple[CoreMediaRow]] = select(CoreMediaRow).where(
+                and_(
+                    CoreMediaRow.public_id == public_id,
+                    CoreMediaRow.media_type_key == media_type_key,
+                )
             )
             result = await session.execute(stmt)
-            row: CoreSongRow | None = result.scalar_one_or_none()
+            row: CoreMediaRow | None = result.scalar_one_or_none()
 
             if row is None:
-                return AResult(code=AResultCode.NOT_FOUND, message="Song not found")
+                return AResult(code=AResultCode.NOT_FOUND, message="Media not found")
 
             return AResult(code=AResultCode.OK, message="OK", result=row)
 
         except Exception as e:
-            logger.error(f"Error getting song: {e}")
-            return AResult(code=AResultCode.GENERAL_ERROR, message="Error getting song")
+            logger.error(f"Error getting media: {e}")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR, message="Error getting media"
+            )
 
     @staticmethod
-    async def get_song_from_id_async(
+    async def get_media_from_id_async(
         session: AsyncSession,
         id: int,
-    ) -> AResult[CoreSongRow]:
-        """Get a CoreSongRow by id."""
+    ) -> AResult[CoreMediaRow]:
+        """Get a CoreMediaRow by id."""
 
         try:
-            stmt: Select[Tuple[CoreSongRow]] = select(CoreSongRow).where(
-                CoreSongRow.id == id
+            stmt: Select[Tuple[CoreMediaRow]] = select(CoreMediaRow).where(
+                CoreMediaRow.id == id
             )
-            result: Result[Tuple[CoreSongRow]] = await session.execute(stmt)
-            row: CoreSongRow | None = result.scalar_one_or_none()
+            result: Result[Tuple[CoreMediaRow]] = await session.execute(stmt)
+            row: CoreMediaRow | None = result.scalar_one_or_none()
 
             if row is None:
-                return AResult(code=AResultCode.NOT_FOUND, message="Song not found")
+                return AResult(code=AResultCode.NOT_FOUND, message="Media not found")
 
             return AResult(code=AResultCode.OK, message="OK", result=row)
 
         except Exception as e:
-            logger.error(f"Error getting song: {e}")
-            return AResult(code=AResultCode.GENERAL_ERROR, message="Error getting song")
-
-    @staticmethod
-    async def get_album_from_public_id_async(
-        session: AsyncSession,
-        public_id: str,
-    ) -> AResult[CoreAlbumRow]:
-        """Get a CoreAlbumRow by public_id."""
-
-        try:
-            stmt: Select[Tuple[CoreAlbumRow]] = select(CoreAlbumRow).where(
-                CoreAlbumRow.public_id == public_id
-            )
-            result = await session.execute(stmt)
-            row: CoreAlbumRow | None = result.scalar_one_or_none()
-
-            if row is None:
-                logger.error(f"Album with public_id {public_id} not found.")
-                return AResult(code=AResultCode.NOT_FOUND, message="Album not found")
-
-            return AResult(code=AResultCode.OK, message="OK", result=row)
-
-        except Exception as e:
-            logger.error(f"Error getting album: {e}")
+            logger.error(f"Error getting media: {e}")
             return AResult(
-                code=AResultCode.GENERAL_ERROR, message="Error getting album"
-            )
-
-    @staticmethod
-    async def get_album_from_id_async(
-        session: AsyncSession,
-        id: int,
-    ) -> AResult[CoreAlbumRow]:
-        """Get a CoreAlbumRow by id."""
-
-        try:
-            stmt: Select[Tuple[CoreAlbumRow]] = select(CoreAlbumRow).where(
-                CoreAlbumRow.id == id
-            )
-            result: Result[Tuple[CoreAlbumRow]] = await session.execute(stmt)
-            row: CoreAlbumRow | None = result.scalar_one_or_none()
-
-            if row is None:
-                logger.error(f"Album with id {id} not found.")
-                return AResult(code=AResultCode.NOT_FOUND, message="Album not found")
-
-            return AResult(code=AResultCode.OK, message="OK", result=row)
-
-        except Exception as e:
-            logger.error(f"Error getting album: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR, message="Error getting album"
-            )
-
-    @staticmethod
-    async def get_artist_from_public_id_async(
-        session: AsyncSession,
-        public_id: str,
-    ) -> AResult[CoreArtistRow]:
-        """Get a CoreArtistRow by public_id."""
-
-        try:
-            stmt: Select[Tuple[CoreArtistRow]] = select(CoreArtistRow).where(
-                CoreArtistRow.public_id == public_id
-            )
-            result = await session.execute(stmt)
-            row: CoreArtistRow | None = result.scalar_one_or_none()
-
-            if row is None:
-                return AResult(code=AResultCode.NOT_FOUND, message="Artist not found")
-
-            return AResult(code=AResultCode.OK, message="OK", result=row)
-
-        except Exception as e:
-            logger.error(f"Error getting artist: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR, message="Error getting artist"
-            )
-
-    @staticmethod
-    async def get_playlist_from_public_id_async(
-        session: AsyncSession,
-        public_id: str,
-    ) -> AResult[CorePlaylistRow]:
-        """Get a CorePlaylistRow by public_id."""
-
-        try:
-            stmt: Select[Tuple[CorePlaylistRow]] = select(CorePlaylistRow).where(
-                CorePlaylistRow.public_id == public_id
-            )
-            result = await session.execute(stmt)
-            row: CorePlaylistRow | None = result.scalar_one_or_none()
-
-            if row is None:
-                return AResult(code=AResultCode.NOT_FOUND, message="Playlist not found")
-
-            return AResult(code=AResultCode.OK, message="OK", result=row)
-
-        except Exception as e:
-            logger.error(f"Error getting playlist: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR, message="Error getting playlist"
+                code=AResultCode.GENERAL_ERROR, message="Error getting media"
             )
 
     @staticmethod
@@ -213,30 +115,4 @@ class MediaAccess:
             logger.error(f"Error getting image: {e}")
             return AResult(
                 code=AResultCode.GENERAL_ERROR, message="Error getting image"
-            )
-
-    @staticmethod
-    async def get_video_from_id_async(
-        session: AsyncSession,
-        id: int,
-    ) -> AResult[CoreVideoRow]:
-        """Get a CoreVideoRow by id."""
-
-        try:
-            stmt: Select[Tuple[CoreVideoRow]] = select(CoreVideoRow).where(
-                CoreVideoRow.id == id
-            )
-            result: Result[Tuple[CoreVideoRow]] = await session.execute(stmt)
-            row: CoreVideoRow | None = result.scalar_one_or_none()
-
-            if row is None:
-                logger.error(f"Video with id {id} not found.")
-                return AResult(code=AResultCode.NOT_FOUND, message="Video not found")
-
-            return AResult(code=AResultCode.OK, message="OK", result=row)
-
-        except Exception as e:
-            logger.error(f"Error getting video: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR, message="Error getting video"
             )

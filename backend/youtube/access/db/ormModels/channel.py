@@ -19,7 +19,7 @@ class ChannelRow(YoutubeBase, TableDateUpdated, TableDateAdded):
     __table_args__ = ({"schema": "youtube", "extend_existing": True},)
 
     id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("core.artist.id"), primary_key=True
+        Integer, ForeignKey("core.media.id"), primary_key=True
     )
     youtube_id: Mapped[str] = mapped_column(String, unique=True, nullable=False)
     name: Mapped[str] = mapped_column(String, nullable=False)

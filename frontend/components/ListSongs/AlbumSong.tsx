@@ -30,12 +30,11 @@ export default function AlbumSong({
 
     const $networkStatus = useStore(networkStatus);
 
-    const songUnavaliable = useMemo(() => {
-        return (
-            $networkStatus == "offline" &&
-            !$songsInIndexedDB?.includes(song.publicId) &&
-            !song.downloaded
-        );
+    const songUnavailable = useMemo(() => {
+        const notInCache = !$songsInIndexedDB?.includes(song.publicId);
+        const offlineAndMissing = $networkStatus === "offline" && notInCache;
+
+        return offlineAndMissing || !song.downloaded;
     }, [$songsInIndexedDB, $networkStatus, song.downloaded, song.publicId]);
 
     const songPlaying = useMemo(() => {
@@ -54,7 +53,7 @@ export default function AlbumSong({
             <div
                 className={
                     "grid grid-cols-[min-content_1fr_min-content_min-content_40px] items-center gap-2 rounded py-[0.5rem] transition-colors select-none md:gap-4 md:px-2 md:py-[0.65rem] md:select-text" +
-                    (songUnavaliable ? " pointer-events-none opacity-40" : "") +
+                    (songUnavailable ? " pointer-events-none opacity-40" : "") +
                     (songPlaying ? " text-[#ec5588]" : "")
                 }
                 onClick={() =>

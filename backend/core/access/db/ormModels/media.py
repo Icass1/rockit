@@ -13,30 +13,33 @@ from backend.core.access.db.ormModels.declarativeMixin import (
 
 if TYPE_CHECKING:
     from backend.core.access.db.ormModels.provider import ProviderRow
-    from backend.core.access.db.ormModels.user_album import UserAlbumRow
+    from backend.core.access.db.ormEnums.mediaTypeEnum import MediaTypeEnumRow
 
 
-class CoreAlbumRow(
+class CoreMediaRow(
     CoreBase, TableAutoincrementId, TablePublicId, TableDateUpdated, TableDateAdded
 ):
-    __tablename__ = "album"
+    __tablename__ = "media"
     __table_args__ = ({"schema": "core", "extend_existing": True},)
 
     provider_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("core.provider.id"), nullable=False
     )
+    media_type_key: Mapped[int] = mapped_column(
+        Integer, ForeignKey("core.media_type_enum.key"), nullable=False
+    )
 
     provider: Mapped["ProviderRow"] = relationship(
-        "ProviderRow", back_populates="albums", uselist=False
+        "ProviderRow", back_populates="medias", uselist=False
+    )
+    media_type: Mapped[List["MediaTypeEnumRow"]] = relationship(
+        "MediaTypeEnumRow", back_populates="media"
     )
 
-    user_albums: Mapped[List["UserAlbumRow"]] = relationship(
-        "UserAlbumRow", back_populates="album"
-    )
-
-    def __init__(self, public_id: str, provider_id: int):
+    def __init__(self, public_id: str, provider_id: int, media_type_key: int):
         kwargs: Dict[str, int | str] = {}
         kwargs["public_id"] = public_id
         kwargs["provider_id"] = provider_id
+        kwargs["media_type_key"] = media_type_key
         for k, v in kwargs.items():
             setattr(self, k, v)

@@ -9,8 +9,8 @@ if TYPE_CHECKING:
     from backend.core.access.db.ormModels.user import UserRow
 
 
-class RepeatSongEnumRow(CoreBase, BaseEnumRow):
-    __tablename__ = "repeat_song_enum"
+class RepeatModeEnumRow(CoreBase, BaseEnumRow):
+    __tablename__ = "repeat_mode_enum"
     __table_args__ = ({"schema": "core", "extend_existing": True},)
 
-    user: Mapped["UserRow"] = relationship("UserRow", back_populates="repeat_song_enum")
+    user: Mapped["UserRow"] = relationship("UserRow", back_populates="repeat_mode_enum")

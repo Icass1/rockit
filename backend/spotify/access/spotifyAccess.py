@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from typing import Dict, List, Tuple, cast
 
 from sqlalchemy.future import select
-from sqlalchemy import Result, Select
+from sqlalchemy import Result, Select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlalchemy.exc import IntegrityError
@@ -18,10 +18,8 @@ from backend.core.aResult import AResult, AResultCode
 
 # CORE ORM MODELS
 from backend.core.access.db.ormModels.image import ImageRow
-from backend.core.access.db.ormModels.song import CoreSongRow
-from backend.core.access.db.ormModels.album import CoreAlbumRow
-from backend.core.access.db.ormModels.artist import CoreArtistRow
-from backend.core.access.db.ormModels.playlist import CorePlaylistRow
+from backend.core.access.db.ormModels.media import CoreMediaRow
+from backend.core.enums.mediaTypeEnum import MediaTypeEnum
 
 # SPOTIFY ENUMS
 from backend.spotify.enums.copyrightTypeEnum import CopyrightTypeEnum
@@ -71,7 +69,13 @@ class SpotifyAccess:
         try:
             stmt: Select[Tuple[AlbumRow]] = (
                 select(AlbumRow)
-                .join(CoreAlbumRow, CoreAlbumRow.id == AlbumRow.id)
+                .join(
+                    CoreMediaRow,
+                    and_(
+                        CoreMediaRow.id == AlbumRow.id,
+                        CoreMediaRow.media_type_key == MediaTypeEnum.ALBUM.value,
+                    ),
+                )
                 .where(AlbumRow.spotify_id == spotify_id)
             )
             result: Result[Tuple[AlbumRow]] = await session.execute(stmt)
@@ -123,8 +127,14 @@ class SpotifyAccess:
         try:
             stmt: Select[Tuple[AlbumRow]] = (
                 select(AlbumRow)
-                .join(CoreAlbumRow, CoreAlbumRow.id == AlbumRow.id)
-                .where(CoreAlbumRow.public_id == public_id)
+                .join(
+                    CoreMediaRow,
+                    and_(
+                        CoreMediaRow.id == AlbumRow.id,
+                        CoreMediaRow.media_type_key == MediaTypeEnum.ALBUM.value,
+                    ),
+                )
+                .where(CoreMediaRow.public_id == public_id)
             )
             result: Result[Tuple[AlbumRow]] = await session.execute(stmt)
             album: AlbumRow | None = result.scalar_one_or_none()
@@ -150,8 +160,14 @@ class SpotifyAccess:
         try:
             stmt: Select[Tuple[TrackRow]] = (
                 select(TrackRow)
-                .join(CoreSongRow, CoreSongRow.id == TrackRow.id)
-                .where(CoreSongRow.public_id == public_id)
+                .join(
+                    CoreMediaRow,
+                    and_(
+                        CoreMediaRow.id == TrackRow.id,
+                        CoreMediaRow.media_type_key == MediaTypeEnum.SONG.value,
+                    ),
+                )
+                .where(CoreMediaRow.public_id == public_id)
             )
             result: Result[Tuple[TrackRow]] = await session.execute(stmt)
             track: TrackRow | None = result.scalar_one_or_none()
@@ -177,8 +193,14 @@ class SpotifyAccess:
         try:
             stmt: Select[Tuple[ArtistRow]] = (
                 select(ArtistRow)
-                .join(CoreArtistRow, CoreArtistRow.id == ArtistRow.id)
-                .where(CoreArtistRow.public_id == public_id)
+                .join(
+                    CoreMediaRow,
+                    and_(
+                        CoreMediaRow.id == ArtistRow.id,
+                        CoreMediaRow.media_type_key == MediaTypeEnum.ARTIST.value,
+                    ),
+                )
+                .where(CoreMediaRow.public_id == public_id)
             )
             result: Result[Tuple[ArtistRow]] = await session.execute(stmt)
             artist: ArtistRow | None = result.scalar_one_or_none()
@@ -204,8 +226,14 @@ class SpotifyAccess:
         try:
             stmt: Select[Tuple[PlaylistRow]] = (
                 select(PlaylistRow)
-                .join(CorePlaylistRow, CorePlaylistRow.id == PlaylistRow.id)
-                .where(CorePlaylistRow.public_id == public_id)
+                .join(
+                    CoreMediaRow,
+                    and_(
+                        CoreMediaRow.id == PlaylistRow.id,
+                        CoreMediaRow.media_type_key == MediaTypeEnum.PLAYLIST.value,
+                    ),
+                )
+                .where(CoreMediaRow.public_id == public_id)
             )
             result: Result[Tuple[PlaylistRow]] = await session.execute(stmt)
             artist: PlaylistRow | None = result.scalar_one_or_none()
@@ -440,8 +468,14 @@ class SpotifyAccess:
         try:
             stmt = (
                 select(ArtistRow)
-                .join(CoreArtistRow, CoreArtistRow.id == ArtistRow.id)
-                .where(CoreArtistRow.public_id == raw.id)
+                .join(
+                    CoreMediaRow,
+                    and_(
+                        CoreMediaRow.id == ArtistRow.id,
+                        CoreMediaRow.media_type_key == MediaTypeEnum.ARTIST.value,
+                    ),
+                )
+                .where(CoreMediaRow.public_id == raw.id)
             )
             result = await session.execute(stmt)
             existing: ArtistRow | None = result.scalar_one_or_none()
@@ -457,8 +491,10 @@ class SpotifyAccess:
                 if a_img.is_ok():
                     internal_image_id = a_img.result().id
 
-            core_artist = CoreArtistRow(
-                public_id=create_id(32), provider_id=provider_id
+            core_artist = CoreMediaRow(
+                public_id=create_id(32),
+                provider_id=provider_id,
+                media_type_key=MediaTypeEnum.ARTIST.value,
             )
             session.add(core_artist)
             await session.flush()
@@ -511,8 +547,14 @@ class SpotifyAccess:
             session.expire_all()
             stmt = (
                 select(ArtistRow)
-                .join(CoreArtistRow, CoreArtistRow.id == ArtistRow.id)
-                .where(CoreArtistRow.public_id == raw.id)
+                .join(
+                    CoreMediaRow,
+                    and_(
+                        CoreMediaRow.id == ArtistRow.id,
+                        CoreMediaRow.media_type_key == MediaTypeEnum.ARTIST.value,
+                    ),
+                )
+                .where(CoreMediaRow.public_id == raw.id)
             )
             result = await session.execute(stmt)
             existing = result.scalar_one_or_none()
@@ -541,8 +583,14 @@ class SpotifyAccess:
         try:
             stmt = (
                 select(AlbumRow)
-                .join(CoreAlbumRow, CoreAlbumRow.id == AlbumRow.id)
-                .where(CoreAlbumRow.public_id == raw.id)
+                .join(
+                    CoreMediaRow,
+                    and_(
+                        CoreMediaRow.id == AlbumRow.id,
+                        CoreMediaRow.media_type_key == MediaTypeEnum.ALBUM.value,
+                    ),
+                )
+                .where(CoreMediaRow.public_id == raw.id)
             )
             result = await session.execute(stmt)
             existing: AlbumRow | None = result.scalar_one_or_none()
@@ -571,7 +619,11 @@ class SpotifyAccess:
                     message="Failed to create internal image for album",
                 )
 
-            core_album = CoreAlbumRow(public_id=create_id(32), provider_id=provider_id)
+            core_album = CoreMediaRow(
+                public_id=create_id(32),
+                provider_id=provider_id,
+                media_type_key=MediaTypeEnum.ALBUM.value,
+            )
             session.add(core_album)
             await session.flush()
 
@@ -624,22 +676,20 @@ class SpotifyAccess:
             session.expire_all()
             stmt = (
                 select(AlbumRow)
-                .join(CoreAlbumRow, CoreAlbumRow.id == AlbumRow.id)
-                .where(CoreAlbumRow.public_id == raw.id)
+                .join(
+                    CoreMediaRow,
+                    and_(
+                        CoreMediaRow.id == AlbumRow.id,
+                        CoreMediaRow.media_type_key == MediaTypeEnum.ALBUM.value,
+                    ),
+                )
+                .where(CoreMediaRow.public_id == raw.id)
             )
             result = await session.execute(stmt)
             existing = result.scalar_one_or_none()
             if existing:
                 return AResult(code=AResultCode.OK, message="OK", result=existing)
             logger.error(f"Album {raw.id} not found after IntegrityError rollback")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
-                message="Failed to get or create album after conflict",
-            )
-            result = await session.execute(stmt)
-            existing = result.scalar_one_or_none()
-            if existing:
-                return AResult(code=AResultCode.OK, message="OK", result=existing)
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
                 message="Failed to get or create album after conflict",
@@ -659,12 +709,18 @@ class SpotifyAccess:
         artist_map: Dict[str, ArtistRow],
         album_row: AlbumRow,
         provider_id: int,
-    ) -> AResult[Tuple[TrackRow, CoreSongRow]]:
+    ) -> AResult[Tuple[TrackRow, CoreMediaRow]]:
         try:
             stmt = (
                 select(TrackRow)
-                .join(CoreSongRow, CoreSongRow.id == TrackRow.id)
-                .where(CoreSongRow.public_id == raw.id)
+                .join(
+                    CoreMediaRow,
+                    and_(
+                        CoreMediaRow.id == TrackRow.id,
+                        CoreMediaRow.media_type_key == MediaTypeEnum.SONG.value,
+                    ),
+                )
+                .where(CoreMediaRow.public_id == raw.id)
             )
             result = await session.execute(stmt)
             existing: TrackRow | None = result.scalar_one_or_none()
@@ -675,7 +731,11 @@ class SpotifyAccess:
             if raw.external_ids and raw.external_ids.isrc:
                 isrc = raw.external_ids.isrc
 
-            core_song = CoreSongRow(public_id=create_id(32), provider_id=provider_id)
+            core_song = CoreMediaRow(
+                public_id=create_id(32),
+                provider_id=provider_id,
+                media_type_key=MediaTypeEnum.SONG.value,
+            )
             session.add(core_song)
             await session.flush()
 
@@ -725,8 +785,14 @@ class SpotifyAccess:
         try:
             stmt = (
                 select(PlaylistRow)
-                .join(CorePlaylistRow, CorePlaylistRow.id == PlaylistRow.id)
-                .where(CorePlaylistRow.public_id == raw.id)
+                .join(
+                    CoreMediaRow,
+                    and_(
+                        CoreMediaRow.id == PlaylistRow.id,
+                        CoreMediaRow.media_type_key == MediaTypeEnum.PLAYLIST.value,
+                    ),
+                )
+                .where(CoreMediaRow.public_id == raw.id)
             )
             result = await session.execute(stmt)
             existing: PlaylistRow | None = result.scalar_one_or_none()
@@ -746,8 +812,10 @@ class SpotifyAccess:
             if raw.owner:
                 owner = raw.owner.display_name or raw.owner.id or ""
 
-            core_playlist = CorePlaylistRow(
-                public_id=create_id(32), provider_id=provider_id
+            core_playlist = CoreMediaRow(
+                public_id=create_id(32),
+                provider_id=provider_id,
+                media_type_key=MediaTypeEnum.PLAYLIST.value,
             )
             session.add(core_playlist)
             await session.flush()
@@ -925,15 +993,21 @@ class SpotifyAccess:
     async def get_tracks_with_core_song_from_album_async(
         session: AsyncSession,
         album_id: int,
-    ) -> AResult[List[Tuple[TrackRow, CoreSongRow]]]:
+    ) -> AResult[List[Tuple[TrackRow, CoreMediaRow]]]:
         try:
             stmt = (
-                select(TrackRow, CoreSongRow)
-                .join(CoreSongRow, CoreSongRow.id == TrackRow.id)
+                select(TrackRow, CoreMediaRow)
+                .join(
+                    CoreMediaRow,
+                    and_(
+                        CoreMediaRow.id == TrackRow.id,
+                        CoreMediaRow.media_type_key == MediaTypeEnum.SONG.value,
+                    ),
+                )
                 .where(TrackRow.album_id == album_id)
             )
-            result: Result[Tuple[TrackRow, CoreSongRow]] = await session.execute(stmt)
-            tracks_with_core: List[Tuple[TrackRow, CoreSongRow]] = []
+            result: Result[Tuple[TrackRow, CoreMediaRow]] = await session.execute(stmt)
+            tracks_with_core: List[Tuple[TrackRow, CoreMediaRow]] = []
 
             for track_row, core_song_row in result.all():
                 tracks_with_core.append((track_row, core_song_row))
@@ -1042,7 +1116,13 @@ class SpotifyAccess:
 
             stmt = (
                 select(AlbumRow)
-                .join(CoreAlbumRow, CoreAlbumRow.id == AlbumRow.id)
+                .join(
+                    CoreMediaRow,
+                    and_(
+                        CoreMediaRow.id == AlbumRow.id,
+                        CoreMediaRow.media_type_key == MediaTypeEnum.ALBUM.value,
+                    ),
+                )
                 .where(AlbumRow.spotify_id.in_(spotify_ids))
             )
             result = await session.execute(stmt)
@@ -1068,7 +1148,13 @@ class SpotifyAccess:
 
             stmt = (
                 select(TrackRow)
-                .join(CoreSongRow, CoreSongRow.id == TrackRow.id)
+                .join(
+                    CoreMediaRow,
+                    and_(
+                        CoreMediaRow.id == TrackRow.id,
+                        CoreMediaRow.media_type_key == MediaTypeEnum.SONG.value,
+                    ),
+                )
                 .where(TrackRow.spotify_id.in_(spotify_ids))
             )
             result = await session.execute(stmt)
@@ -1094,7 +1180,13 @@ class SpotifyAccess:
 
             stmt = (
                 select(ArtistRow)
-                .join(CoreArtistRow, CoreArtistRow.id == ArtistRow.id)
+                .join(
+                    CoreMediaRow,
+                    and_(
+                        CoreMediaRow.id == ArtistRow.id,
+                        CoreMediaRow.media_type_key == MediaTypeEnum.ARTIST.value,
+                    ),
+                )
                 .where(ArtistRow.spotify_id.in_(spotify_ids))
             )
             result = await session.execute(stmt)
@@ -1120,7 +1212,13 @@ class SpotifyAccess:
 
             stmt = (
                 select(PlaylistRow)
-                .join(CorePlaylistRow, CorePlaylistRow.id == PlaylistRow.id)
+                .join(
+                    CoreMediaRow,
+                    and_(
+                        CoreMediaRow.id == PlaylistRow.id,
+                        CoreMediaRow.media_type_key == MediaTypeEnum.PLAYLIST.value,
+                    ),
+                )
                 .where(PlaylistRow.spotify_id.in_(spotify_ids))
             )
             result = await session.execute(stmt)

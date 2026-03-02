@@ -21,7 +21,7 @@ class PlaylistRow(SpotifyBase, TableDateUpdated, TableDateAdded):
     __table_args__ = ({"schema": "spotify", "extend_existing": True},)
 
     id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("core.playlist.id"), primary_key=True
+        Integer, ForeignKey("core.media.id"), primary_key=True
     )
     spotify_id: Mapped[str] = mapped_column(String, unique=True, nullable=False)
     internal_image_id: Mapped[int | None] = mapped_column(

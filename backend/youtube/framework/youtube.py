@@ -6,7 +6,7 @@ from backend.utils.logger import getLogger
 from backend.core.aResult import AResult, AResultCode
 
 from backend.core.access.db.ormModels.image import ImageRow
-from backend.core.access.db.ormModels.video import CoreVideoRow
+from backend.core.access.db.ormModels.media import CoreMediaRow
 from backend.core.access.mediaAccess import MediaAccess
 
 from backend.youtube.access.youtubeAccess import YouTubeAccess
@@ -46,8 +46,8 @@ class YouTube:
         if a_result_video.is_ok():
             video_row: VideoRow = a_result_video.result()
 
-            a_result_core_video: AResult[CoreVideoRow] = (
-                await MediaAccess.get_video_from_id_async(session, id=video_row.id)
+            a_result_core_video: AResult[CoreMediaRow] = (
+                await MediaAccess.get_media_from_id_async(session, id=video_row.id)
             )
             if a_result_core_video.is_not_ok():
                 logger.error(f"Error getting core video. {a_result_core_video.info()}")
@@ -56,7 +56,7 @@ class YouTube:
                     message=a_result_core_video.message(),
                 )
 
-            core_video: CoreVideoRow = a_result_core_video.result()
+            core_video: CoreMediaRow = a_result_core_video.result()
 
             a_result_channel: AResult[ChannelRow] = (
                 await YouTubeAccess.get_channel_id_async(
@@ -203,8 +203,8 @@ class YouTube:
                 message=f"Failed to populate video in DB: {e}",
             )
 
-        a_result_core_video: AResult[CoreVideoRow] = (
-            await MediaAccess.get_video_from_id_async(session, id=video_row.id)
+        a_result_core_video: AResult[CoreMediaRow] = (
+            await MediaAccess.get_media_from_id_async(session, id=video_row.id)
         )
         if a_result_core_video.is_not_ok():
             logger.error(f"Error getting core video. {a_result_core_video.info()}")
@@ -212,7 +212,7 @@ class YouTube:
                 code=a_result_core_video.code(), message=a_result_core_video.message()
             )
 
-        core_video: CoreVideoRow = a_result_core_video.result()
+        core_video: CoreMediaRow = a_result_core_video.result()
 
         a_result_fetched_channel: AResult[ChannelRow] = (
             await YouTubeAccess.get_channel_youtube_id_async(

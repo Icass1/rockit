@@ -1,12 +1,13 @@
 import {
     BaseSongWithAlbumResponse,
+    CurrentQueueMessageRequestItem,
     QueueResponseItem,
     QueueResponseSchema,
 } from "@/dto";
 import { DBListType, QueueListType } from "@/types/rockIt";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createArrayAtom, createAtom } from "@/lib/store";
-import apiFetch from "@/lib/utils/apiFetch";
+import { apiFetch } from "@/lib/utils/apiFetch";
 
 export class QueueManager {
     // #region: Atoms
@@ -68,24 +69,58 @@ export class QueueManager {
 
     // #region: Methods
 
-    skipBack() {}
+    skipBack() {
+        rockIt.webSocketManager.sendSkipClicked({
+            direction: "previous",
+            mediaPublicId: "TODO",
+        });
+        const currentQueueSongId = this.currentQueueSongId;
+        const queue = this.queue;
 
-    skipForward() {}
+        const currentIndex = queue.findIndex(
+            (item) => item.queueSongId === currentQueueSongId
+        );
+
+        if (currentIndex > 0) {
+            this.setQueueSongId(queue[currentIndex - 1].queueSongId);
+            rockIt.audioManager.play();
+        }
+    }
+
+    skipForward() {
+        rockIt.webSocketManager.sendSkipClicked({
+            direction: "next",
+            mediaPublicId: "TODO",
+        });
+        const currentQueueSongId = this.currentQueueSongId;
+        const queue = this.queue;
+
+        const currentIndex = queue.findIndex(
+            (item) => item.queueSongId === currentQueueSongId
+        );
+
+        const nextIndex = currentIndex + 1;
+        if (nextIndex < queue.length) {
+            this.setQueueSongId(queue[nextIndex].queueSongId);
+            rockIt.audioManager.play();
+        }
+    }
 
     setSongs(
         songs: BaseSongWithAlbumResponse[],
         listType: QueueListType,
         listPublicId: string
     ) {
-        rockIt.webSocketManager.send({
-            queue: songs.map((song, index) => {
+        const queueData: CurrentQueueMessageRequestItem[] = songs.map(
+            (song, index): CurrentQueueMessageRequestItem => {
                 return {
-                    list: { type: listType, publicId: listPublicId },
-                    song: song.publicId,
-                    queueSongId: index,
+                    publicId: song.publicId,
+                    queueIndex: index,
                 };
-            }),
-        });
+            }
+        );
+
+        rockIt.webSocketManager.sendCurrentQueue({ queue: queueData });
 
         this._queueAtom.set(
             songs.map((song, index) => {
@@ -108,7 +143,7 @@ export class QueueManager {
             );
             return;
         }
-        rockIt.webSocketManager.send({ queueSongId: song.queueSongId });
+        rockIt.webSocketManager.sendMediaClicked({ mediaPublicId: publicId });
         this._currentQueueSongIdAtom.set(song.queueSongId);
         this._currentSongAtom.set(song.song);
         this._currentListAtom.set(song.listPublicId);
@@ -116,7 +151,6 @@ export class QueueManager {
 
     setQueueSongId(queueSongId: number) {
         this._currentQueueSongIdAtom.set(queueSongId);
-        rockIt.webSocketManager.send({ queueSongId: queueSongId });
 
         const song = this._queueAtom
             .get()

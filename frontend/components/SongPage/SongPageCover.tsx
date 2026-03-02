@@ -26,9 +26,9 @@ function SongPageCoverIcon({
             <Download
                 className={iconClassName}
                 onClick={() =>
-                    rockIt.downloaderManager.downloadSpotifySongToDBAsync(
-                        song.publicId
-                    )
+                    rockIt.downloaderManager.downloadMediaToDBAsync([
+                        song.publicId,
+                    ])
                 }
             />
         );

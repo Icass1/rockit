@@ -1,7 +1,6 @@
-from backend.core.framework.websocket.downloadProgress import (
-    DownloadProgress,
-    DownloadWebSocketManager,
-    download_ws_manager,
+from backend.core.framework.websocket.webSocketManager import (
+    RockitWebSocketManager,
+    rockit_ws_manager,
 )
 
-__all__ = ["DownloadProgress", "DownloadWebSocketManager", "download_ws_manager"]
+__all__ = ["RockitWebSocketManager", "rockit_ws_manager"]

@@ -12,6 +12,7 @@ from backend.utils.logger import getLogger
 from backend.core.aResult import AResult, AResultCode
 
 from backend.core.framework.downloader.baseDownload import BaseDownload
+from backend.core.framework.websocket.webSocketManager import rockit_ws_manager
 from backend.youtube.framework.youtubeApi import youtube_api, RawYoutubeSearchResult
 from backend.youtube.framework.youtubeDownloader import YouTubeDownloader
 from backend.spotify.access.spotifyAccess import SpotifyAccess
@@ -36,12 +37,13 @@ class SpotifyDownload(BaseDownload):
         self,
         public_id: str,
         download_id: int,
+        user_id: int,
         track_spotify_id: int,
         download_url: str | None,
     ) -> None:
         """Create a SpotifyDownload for a single track."""
 
-        super().__init__(public_id=public_id, download_id=download_id)
+        super().__init__(public_id=public_id, download_id=download_id, user_id=user_id)
         self.track_spotify_id = track_spotify_id
         self.download_url = download_url
 
@@ -122,14 +124,20 @@ class SpotifyDownload(BaseDownload):
             filename: str = f"{track.spotify_id}_{self.download_id}"
 
             async def progress_callback(progress: float, status: str):
-                print("Progress callback:", progress, status)
-                return None
+                await rockit_ws_manager.broadcast_progress(
+                    user_id=self.user_id,
+                    download_id=self.download_id,
+                    status=status,
+                    progress=progress,
+                    message=f"{status}: {progress:.1f}%",
+                )
 
             a_result_download: AResult[str] = (
                 await YouTubeDownloader.download_as_mp3_async(
                     youtube_url=youtube_url,
                     download_id=self.download_id,
                     filename=filename,
+                    user_id=self.user_id,
                     progress_callback=progress_callback,
                 )
             )

@@ -179,7 +179,7 @@ class SpotifyProvider(BaseProvider):
         return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
 
     async def start_download_async(
-        self, session: AsyncSession, public_id: str, download_id: int
+        self, session: AsyncSession, public_id: str, download_id: int, user_id: int
     ) -> AResult[BaseDownload]:
         """Create a SpotifyDownload for the given track public_id."""
 
@@ -212,6 +212,7 @@ class SpotifyProvider(BaseProvider):
             result=SpotifyDownload(
                 public_id=public_id,
                 download_id=download_id,
+                user_id=user_id,
                 track_spotify_id=track.id,
                 download_url=track.download_url,
             ),

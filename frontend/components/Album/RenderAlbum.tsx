@@ -46,6 +46,7 @@ export default function RenderAlbum({
             <div className="relative top-24 z-50 mx-4 flex h-full flex-col items-center justify-center gap-1  md:top-0 md:max-w-md">
                 <ListCover
                     publicId={album.publicId}
+                    publicIds={album.songs.map((song) => song.publicId)}
                     type="album"
                     name={album.name}
                     imageUrl={album.internalImageUrl ?? "/song-placeholder.png"}

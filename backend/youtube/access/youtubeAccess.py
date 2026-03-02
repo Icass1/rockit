@@ -5,7 +5,7 @@ from typing import Any, List, Optional, Tuple
 from urllib.parse import parse_qs, urlparse
 
 from sqlalchemy.future import select
-from sqlalchemy import Result, Select
+from sqlalchemy import Result, Select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.utils.backendUtils import create_id
@@ -14,8 +14,8 @@ from backend.utils.logger import getLogger
 from backend.core.aResult import AResult, AResultCode
 
 from backend.core.access.db.ormModels.image import ImageRow
-from backend.core.access.db.ormModels.video import CoreVideoRow
-from backend.core.access.db.ormModels.artist import CoreArtistRow
+from backend.core.access.db.ormModels.media import CoreMediaRow
+from backend.core.enums.mediaTypeEnum import MediaTypeEnum
 
 from backend.youtube.access.db.ormModels.video import VideoRow
 from backend.youtube.access.db.ormModels.channel import ChannelRow
@@ -181,7 +181,13 @@ class YouTubeAccess:
         try:
             stmt = (
                 select(ChannelRow)
-                .join(CoreArtistRow, CoreArtistRow.id == ChannelRow.id)
+                .join(
+                    CoreMediaRow,
+                    and_(
+                        CoreMediaRow.id == ChannelRow.id,
+                        CoreMediaRow.media_type_key == MediaTypeEnum.ARTIST.value,
+                    ),
+                )
                 .where(ChannelRow.youtube_id == raw.id)
             )
             result = await session.execute(stmt)
@@ -208,8 +214,10 @@ class YouTubeAccess:
                 if a_img.is_ok():
                     internal_image_id = a_img.result().id
 
-            core_artist = CoreArtistRow(
-                public_id=create_id(32), provider_id=provider_id
+            core_artist = CoreMediaRow(
+                public_id=create_id(32),
+                provider_id=provider_id,
+                media_type_key=MediaTypeEnum.ARTIST.value,
             )
             session.add(core_artist)
             await session.flush()
@@ -298,12 +306,10 @@ class YouTubeAccess:
                     message="Failed to create internal image for video",
                 )
 
-            core_video = CoreVideoRow(
+            core_video = CoreMediaRow(
                 public_id=create_id(32),
-                name=snippet.get("title", ""),
-                view_type="video",
-                description=snippet.get("description"),
                 provider_id=provider_id,
+                media_type_key=MediaTypeEnum.VIDEO.value,
             )
             session.add(core_video)
             await session.flush()

@@ -11,11 +11,7 @@ from backend.core.access.db.ormModels.declarativeMixin import (
 )
 
 if TYPE_CHECKING:
-    from backend.core.access.db.ormModels.song import CoreSongRow
-    from backend.core.access.db.ormModels.album import CoreAlbumRow
-    from backend.core.access.db.ormModels.artist import CoreArtistRow
-    from backend.core.access.db.ormModels.playlist import CorePlaylistRow
-    from backend.core.access.db.ormModels.video import CoreVideoRow
+    from backend.core.access.db.ormModels.media import CoreMediaRow
 
 
 class ProviderRow(CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdded):
@@ -26,24 +22,8 @@ class ProviderRow(CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdd
 
     module: Mapped[str] = mapped_column(String, nullable=False, unique=True)
 
-    songs: Mapped[List["CoreSongRow"]] = relationship(
-        "CoreSongRow", back_populates="provider", uselist=True
-    )
-
-    albums: Mapped[List["CoreAlbumRow"]] = relationship(
-        "CoreAlbumRow", back_populates="provider", uselist=True
-    )
-
-    artists: Mapped[List["CoreArtistRow"]] = relationship(
-        "CoreArtistRow", back_populates="provider", uselist=True
-    )
-
-    playlists: Mapped[List["CorePlaylistRow"]] = relationship(
-        "CorePlaylistRow", back_populates="provider", uselist=True
-    )
-
-    videos: Mapped[List["CoreVideoRow"]] = relationship(
-        "CoreVideoRow", back_populates="provider", uselist=True
+    medias: Mapped[List["CoreMediaRow"]] = relationship(
+        "CoreMediaRow", back_populates="provider", uselist=True
     )
 
     def __init__(self, name: str, module: str):

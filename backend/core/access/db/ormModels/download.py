@@ -22,8 +22,8 @@ class DownloadRow(CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdd
     download_group_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("core.download_group.id"), nullable=False
     )
-    song_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("core.song.id"), nullable=False
+    media_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("core.media.id"), nullable=False
     )
     status_key: Mapped[int] = mapped_column(
         Integer, ForeignKey("core.download_status_enum.key"), nullable=False, default=1
@@ -44,14 +44,14 @@ class DownloadRow(CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdd
     def __init__(
         self,
         download_group_id: int,
-        song_id: int,
+        media_id: int,
         status_key: int = 1,
         message: str | None = None,
         completed: float = 0.0,
     ):
         kwargs: Dict[str, None | float | int | str] = {}
         kwargs["download_group_id"] = download_group_id
-        kwargs["song_id"] = song_id
+        kwargs["media_id"] = media_id
         kwargs["status_key"] = status_key
         kwargs["message"] = message
         kwargs["completed"] = completed

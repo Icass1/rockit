@@ -1,6 +1,6 @@
 import { SearchResultsResponse, SearchResultsResponseSchema } from "@/dto";
 import { createAtom } from "@/lib/store";
-import apiFetch from "@/lib/utils/apiFetch";
+import { apiFetch } from "@/lib/utils/apiFetch";
 
 export class SearchManager {
     // #region Atoms

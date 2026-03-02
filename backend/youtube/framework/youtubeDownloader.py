@@ -6,7 +6,7 @@ import yt_dlp  # type: ignore[import]
 
 from backend.constants import TEMP_PATH
 from backend.core.aResult import AResult, AResultCode
-from backend.core.framework.websocket import download_ws_manager
+from backend.core.framework.websocket.webSocketManager import rockit_ws_manager
 from backend.utils.logger import getLogger
 
 logger = getLogger(__name__)
@@ -17,6 +17,7 @@ class YouTubeDownloader:
     async def download_as_mp3_async(
         youtube_url: str,
         download_id: int,
+        user_id: int,
         filename: str,
         progress_callback: Optional[
             Callable[[float, str], Coroutine[Any, Any, None]]
@@ -25,6 +26,7 @@ class YouTubeDownloader:
         return await YouTubeDownloader._download_async(
             youtube_url=youtube_url,
             download_id=download_id,
+            user_id=user_id,
             filename=filename,
             format_type="mp3",
             progress_callback=progress_callback,
@@ -34,6 +36,7 @@ class YouTubeDownloader:
     async def download_as_mp4_async(
         youtube_url: str,
         download_id: int,
+        user_id: int,
         filename: str,
         progress_callback: Optional[
             Callable[[float, str], Coroutine[Any, Any, None]]
@@ -42,6 +45,7 @@ class YouTubeDownloader:
         return await YouTubeDownloader._download_async(
             youtube_url=youtube_url,
             download_id=download_id,
+            user_id=user_id,
             filename=filename,
             format_type="mp4",
             progress_callback=progress_callback,
@@ -51,6 +55,7 @@ class YouTubeDownloader:
     async def _download_async(
         youtube_url: str,
         download_id: int,
+        user_id: int,
         filename: str,
         format_type: str,
         progress_callback: Optional[
@@ -100,7 +105,8 @@ class YouTubeDownloader:
                     percent: float = (downloaded_bytes / total_bytes) * 100
                     loop.call_soon_threadsafe(
                         asyncio.create_task,
-                        download_ws_manager.broadcast_progress(
+                        rockit_ws_manager.broadcast_progress(
+                            user_id=user_id,
                             download_id=download_id,
                             status="downloading",
                             progress=percent,
@@ -115,7 +121,8 @@ class YouTubeDownloader:
             elif status == "finished":
                 loop.call_soon_threadsafe(
                     asyncio.create_task,
-                    download_ws_manager.broadcast_progress(
+                    rockit_ws_manager.broadcast_progress(
+                        user_id=user_id,
                         download_id=download_id,
                         status="converting",
                         progress=100,
@@ -131,7 +138,8 @@ class YouTubeDownloader:
         ydl_opts["progress_hooks"] = [progress_hook]
 
         try:
-            await download_ws_manager.broadcast_progress(
+            await rockit_ws_manager.broadcast_progress(
+                user_id=user_id,
                 download_id=download_id,
                 status="starting",
                 progress=0,
@@ -153,7 +161,8 @@ class YouTubeDownloader:
                     final_path = os.path.join(output_path, matching[0])
                     final_filename = matching[0]
 
-            await download_ws_manager.broadcast_progress(
+            await rockit_ws_manager.broadcast_progress(
+                user_id=user_id,
                 download_id=download_id,
                 status="completed",
                 progress=100,
@@ -168,7 +177,8 @@ class YouTubeDownloader:
 
         except Exception as e:
             logger.error(f"Error downloading YouTube video: {e}", exc_info=True)
-            await download_ws_manager.broadcast_progress(
+            await rockit_ws_manager.broadcast_progress(
+                user_id=user_id,
                 download_id=download_id,
                 status="error",
                 progress=0,

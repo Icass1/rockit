@@ -1,7 +1,9 @@
-from typing import List, Tuple
+from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.aResult import AResult, AResultCode
+from backend.core.access.db.ormModels.media import CoreMediaRow
+from backend.core.access.db.ormModels.user_media import UserMediaRow
 from backend.core.responses.baseAlbumWithoutSongsResponse import (
     BaseAlbumWithoutSongsResponse,
 )
@@ -9,10 +11,7 @@ from backend.utils.logger import getLogger
 
 from backend.core.access.userAccess import UserAccess
 from backend.core.access.mediaAccess import MediaAccess
-
-from backend.core.access.db.ormModels.album import CoreAlbumRow
-from backend.core.access.db.ormModels.provider import ProviderRow
-from backend.core.access.db.ormModels.user_album import UserAlbumRow
+from backend.core.enums.mediaTypeEnum import MediaTypeEnum
 
 from backend.core.framework.provider.baseProvider import BaseProvider
 from backend.core.framework import providers
@@ -33,14 +32,14 @@ class User:
         )
 
     @staticmethod
-    async def get_user_albums(
+    async def get_user_medias(
         session: AsyncSession, user_id: int
     ) -> AResult[List[BaseAlbumWithoutSongsResponse]]:
         """Get all albums for a user."""
 
-        a_result_albums: AResult[
-            List[Tuple[UserAlbumRow, CoreAlbumRow, ProviderRow]]
-        ] = await UserAccess.get_user_albums(session=session, user_id=user_id)
+        a_result_albums = await UserAccess.get_user_medias(
+            session=session, user_id=user_id
+        )
 
         if a_result_albums.is_not_ok():
             logger.error(f"Error getting user albums. {a_result_albums.info()}")
@@ -73,22 +72,24 @@ class User:
         return AResult(code=AResultCode.OK, message="OK", result=albums)
 
     @staticmethod
-    async def add_album_to_library(
+    async def add_media_to_library(
         session: AsyncSession, user_id: int, album_public_id: str
-    ) -> AResult[UserAlbumRow]:
+    ) -> AResult[UserMediaRow]:
         """Add an album to user's library by public_id."""
 
-        a_result_album: AResult[CoreAlbumRow] = (
-            await MediaAccess.get_album_from_public_id_async(
-                session=session, public_id=album_public_id
+        a_result_album: AResult[CoreMediaRow] = (
+            await MediaAccess.get_media_from_public_id_async(
+                session=session,
+                public_id=album_public_id,
+                media_type_key=MediaTypeEnum.ALBUM.value,
             )
         )
         if a_result_album.is_not_ok():
             logger.error(f"Error getting album. {a_result_album.info()}")
             return AResult(code=a_result_album.code(), message=a_result_album.message())
 
-        a_result_user_album: AResult[UserAlbumRow] = await UserAccess.add_user_album(
-            session=session, user_id=user_id, album_id=a_result_album.result().id
+        a_result_user_album: AResult[UserMediaRow] = await UserAccess.add_user_media(
+            session=session, user_id=user_id, media_id=a_result_album.result().id
         )
         if a_result_user_album.is_not_ok():
             logger.error(f"Error adding album to library. {a_result_user_album.info()}")
@@ -106,17 +107,19 @@ class User:
     ) -> AResult[bool]:
         """Remove an album from user's library by public_id."""
 
-        a_result_album: AResult[CoreAlbumRow] = (
-            await MediaAccess.get_album_from_public_id_async(
-                session=session, public_id=album_public_id
+        a_result_album: AResult[CoreMediaRow] = (
+            await MediaAccess.get_media_from_public_id_async(
+                session=session,
+                public_id=album_public_id,
+                media_type_key=MediaTypeEnum.ALBUM.value,
             )
         )
         if a_result_album.is_not_ok():
             logger.error(f"Error getting album. {a_result_album.info()}")
             return AResult(code=a_result_album.code(), message=a_result_album.message())
 
-        a_result_removed: AResult[bool] = await UserAccess.remove_user_album(
-            session=session, user_id=user_id, album_id=a_result_album.result().id
+        a_result_removed: AResult[bool] = await UserAccess.remove_user_media(
+            session=session, user_id=user_id, media_id=a_result_album.result().id
         )
         if a_result_removed.is_not_ok():
             logger.error(

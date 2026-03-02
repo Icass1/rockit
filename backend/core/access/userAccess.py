@@ -8,9 +8,9 @@ from passlib.context import CryptContext
 
 from backend.core.aResult import AResult, AResultCode
 from backend.core.access.db.ormModels.user import UserRow
-from backend.core.access.db.ormModels.user_album import UserAlbumRow
-from backend.core.access.db.ormModels.album import CoreAlbumRow
+from backend.core.access.db.ormModels.media import CoreMediaRow
 from backend.core.access.db.ormModels.provider import ProviderRow
+from backend.core.access.db.ormModels.user_media import UserMediaRow
 from backend.utils.backendUtils import create_id
 from backend.utils.logger import getLogger
 
@@ -89,87 +89,87 @@ class UserAccess:
             )
 
     @staticmethod
-    async def get_user_albums(
+    async def get_user_medias(
         session: AsyncSession, user_id: int
-    ) -> AResult[List[Tuple[UserAlbumRow, CoreAlbumRow, ProviderRow]]]:
+    ) -> AResult[List[Tuple[UserMediaRow, CoreMediaRow, ProviderRow]]]:
         try:
-            stmt: Select[Tuple[UserAlbumRow]] = (
-                select(UserAlbumRow)
-                .where(UserAlbumRow.user_id == user_id)
+            stmt: Select[Tuple[UserMediaRow]] = (
+                select(UserMediaRow)
+                .where(UserMediaRow.user_id == user_id)
                 .options(
-                    selectinload(UserAlbumRow.album).selectinload(CoreAlbumRow.provider)
+                    selectinload(UserMediaRow.media).selectinload(CoreMediaRow.provider)
                 )
             )
-            result: Result[Tuple[UserAlbumRow]] = await session.execute(statement=stmt)
-            user_albums: List[UserAlbumRow] = list(result.scalars().all())
+            result: Result[Tuple[UserMediaRow]] = await session.execute(statement=stmt)
+            user_medias: List[UserMediaRow] = list(result.scalars().all())
 
-            if not user_albums:
+            if not user_medias:
                 return AResult(
-                    code=AResultCode.NOT_FOUND, message="No albums found for user."
+                    code=AResultCode.NOT_FOUND, message="No media found for user."
                 )
 
-            albums_with_providers: List[
-                Tuple[UserAlbumRow, CoreAlbumRow, ProviderRow]
+            medias_with_providers: List[
+                Tuple[UserMediaRow, CoreMediaRow, ProviderRow]
             ] = []
-            for ua in user_albums:
-                albums_with_providers.append((ua, ua.album, ua.album.provider))
+            for um in user_medias:
+                medias_with_providers.append((um, um.media, um.media.provider))
 
             return AResult(
-                code=AResultCode.OK, message="OK", result=albums_with_providers
+                code=AResultCode.OK, message="OK", result=medias_with_providers
             )
 
         except Exception as e:
-            logger.error(f"Error in get_user_albums: {e}")
+            logger.error(f"Error in get_user_medias: {e}")
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
-                message=f"Failed to get user albums: {e}",
+                message=f"Failed to get user media: {e}",
             )
 
     @staticmethod
-    async def add_user_album(
-        session: AsyncSession, user_id: int, album_id: int
-    ) -> AResult[UserAlbumRow]:
-        """Add an album to user's library."""
+    async def add_user_media(
+        session: AsyncSession, user_id: int, media_id: int
+    ) -> AResult[UserMediaRow]:
+        """Add an media to user's library."""
         try:
-            user_album = UserAlbumRow(user_id=user_id, album_id=album_id)
-            session.add(instance=user_album)
+            user_media = UserMediaRow(user_id=user_id, media_id=media_id)
+            session.add(instance=user_media)
             await session.commit()
-            await session.refresh(instance=user_album)
-            return AResult(code=AResultCode.OK, message="OK", result=user_album)
+            await session.refresh(instance=user_media)
+            return AResult(code=AResultCode.OK, message="OK", result=user_media)
 
         except Exception as e:
-            logger.error(f"Error in add_user_album: {e}")
+            logger.error(f"Error in add_user_media: {e}")
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
-                message=f"Failed to add album to user library: {e}",
+                message=f"Failed to add media to user library: {e}",
             )
 
     @staticmethod
-    async def remove_user_album(
-        session: AsyncSession, user_id: int, album_id: int
+    async def remove_user_media(
+        session: AsyncSession, user_id: int, media_id: int
     ) -> AResult[bool]:
-        """Remove an album from user's library."""
+        """Remove an media from user's library."""
         try:
-            stmt: Select[Tuple[UserAlbumRow]] = select(UserAlbumRow).where(
-                UserAlbumRow.user_id == user_id,
-                UserAlbumRow.album_id == album_id,
+            stmt: Select[Tuple[UserMediaRow]] = select(UserMediaRow).where(
+                UserMediaRow.user_id == user_id,
+                UserMediaRow.media_id == media_id,
             )
-            result: Result[Tuple[UserAlbumRow]] = await session.execute(statement=stmt)
-            user_album: UserAlbumRow | None = result.scalar_one_or_none()
+            result: Result[Tuple[UserMediaRow]] = await session.execute(statement=stmt)
+            user_media: UserMediaRow | None = result.scalar_one_or_none()
 
-            if user_album is None:
+            if user_media is None:
                 return AResult(
                     code=AResultCode.NOT_FOUND,
-                    message="Album not found in user library",
+                    message="Media not found in user library",
                 )
 
-            await session.delete(instance=user_album)
+            await session.delete(instance=user_media)
             await session.commit()
             return AResult(code=AResultCode.OK, message="OK", result=True)
 
         except Exception as e:
-            logger.error(f"Error in remove_user_album: {e}")
+            logger.error(f"Error in remove_user_media: {e}")
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
-                message=f"Failed to remove album from user library: {e}",
+                message=f"Failed to remove media from user library: {e}",
             )

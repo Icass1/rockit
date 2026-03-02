@@ -137,10 +137,11 @@ export default function ListOptions({
                     !$downloadedLists.includes(publicId) && (
                         <PopupMenuOption
                             onClick={() =>
-                                rockIt.downloaderManager.downloadSpotifyListToDBAsync(
-                                    type,
-                                    publicId
-                                )
+                                // rockIt.downloaderManager.downloadSpotifyListToDBAsync(
+                                //     type,
+                                //     publicId
+                                // )
+                                console.warn("TODO")
                             }
                         >
                             <Download className="h-5 w-5" />

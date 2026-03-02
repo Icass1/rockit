@@ -74,9 +74,10 @@ export default function SongPopupMenu({
     };
 
     const handleServerDownload = () => {
-        rockIt.downloaderManager.startDownloadAsync(
-            `https://open.spotify.com/track/${song.publicId}`
-        );
+        console.warn("TODO");
+        // rockIt.downloaderManager.startDownloadAsync(
+        //     `https://open.spotify.com/track/${song.publicId}`
+        // );
     };
 
     const handleShare = () => {

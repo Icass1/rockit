@@ -7,11 +7,9 @@ from backend.utils.logger import getLogger
 from backend.core.aResult import AResult, AResultCode
 
 from backend.core.access.mediaAccess import MediaAccess
-from backend.core.access.db.ormModels.song import CoreSongRow
-from backend.core.access.db.ormModels.album import CoreAlbumRow
-from backend.core.access.db.ormModels.artist import CoreArtistRow
-from backend.core.access.db.ormModels.playlist import CorePlaylistRow
+from backend.core.access.db.ormModels.media import CoreMediaRow
 from backend.core.access.db.ormModels.image import ImageRow
+from backend.core.enums.mediaTypeEnum import MediaTypeEnum
 
 from backend.core.framework.provider.baseProvider import BaseProvider
 from backend.core.framework.providers.providers import Providers
@@ -35,16 +33,18 @@ class Media:
     ) -> AResult[BaseSongWithAlbumResponse]:
         """Get a song by public_id, dispatching to the matched provider."""
 
-        a_result_song: AResult[CoreSongRow] = (
-            await MediaAccess.get_song_from_public_id_async(
-                session=session, public_id=public_id
+        a_result_song: AResult[CoreMediaRow] = (
+            await MediaAccess.get_media_from_public_id_async(
+                session=session,
+                public_id=public_id,
+                media_type_key=MediaTypeEnum.SONG.value,
             )
         )
         if a_result_song.is_not_ok():
             logger.error(f"Error getting song from database. {a_result_song.info()}")
             return AResult(code=a_result_song.code(), message=a_result_song.message())
 
-        song: CoreSongRow = a_result_song.result()
+        song: CoreMediaRow = a_result_song.result()
         provider: BaseProvider | None = providers.find_provider(
             provider_id=song.provider_id
         )
@@ -69,14 +69,18 @@ class Media:
     ) -> AResult[BaseAlbumWithSongsResponse]:
         """Get an album by public_id, dispatching to the matched provider."""
 
-        a_result_album: AResult[CoreAlbumRow] = (
-            await MediaAccess.get_album_from_public_id_async(session, public_id)
+        a_result_album: AResult[CoreMediaRow] = (
+            await MediaAccess.get_media_from_public_id_async(
+                session=session,
+                public_id=public_id,
+                media_type_key=MediaTypeEnum.ALBUM.value,
+            )
         )
         if a_result_album.is_not_ok():
             logger.error(f"Error getting album from database. {a_result_album.info()}")
             return AResult(code=a_result_album.code(), message=a_result_album.message())
 
-        album: CoreAlbumRow = a_result_album.result()
+        album: CoreMediaRow = a_result_album.result()
         provider: BaseProvider | None = providers.find_provider(album.provider_id)
         if provider is None:
             logger.error(f"No provider found for provider_id {album.provider_id}.")
@@ -99,8 +103,12 @@ class Media:
     ) -> AResult[BaseArtistResponse]:
         """Get an artist by public_id, dispatching to the matched provider."""
 
-        a_result_artist: AResult[CoreArtistRow] = (
-            await MediaAccess.get_artist_from_public_id_async(session, public_id)
+        a_result_artist: AResult[CoreMediaRow] = (
+            await MediaAccess.get_media_from_public_id_async(
+                session=session,
+                public_id=public_id,
+                media_type_key=MediaTypeEnum.ARTIST.value,
+            )
         )
         if a_result_artist.is_not_ok():
             logger.error(
@@ -110,7 +118,7 @@ class Media:
                 code=a_result_artist.code(), message=a_result_artist.message()
             )
 
-        artist: CoreArtistRow = a_result_artist.result()
+        artist: CoreMediaRow = a_result_artist.result()
         provider: BaseProvider | None = providers.find_provider(artist.provider_id)
         if provider is None:
             logger.error(f"No provider found for provider_id {artist.provider_id}.")
@@ -133,8 +141,12 @@ class Media:
     ) -> AResult[BasePlaylistResponse]:
         """Get a playlist by public_id, dispatching to the matched provider."""
 
-        a_result_playlist: AResult[CorePlaylistRow] = (
-            await MediaAccess.get_playlist_from_public_id_async(session, public_id)
+        a_result_playlist: AResult[CoreMediaRow] = (
+            await MediaAccess.get_media_from_public_id_async(
+                session=session,
+                public_id=public_id,
+                media_type_key=MediaTypeEnum.PLAYLIST.value,
+            )
         )
         if a_result_playlist.is_not_ok():
             logger.error(
@@ -144,7 +156,7 @@ class Media:
                 code=a_result_playlist.code(), message=a_result_playlist.message()
             )
 
-        playlist: CorePlaylistRow = a_result_playlist.result()
+        playlist: CoreMediaRow = a_result_playlist.result()
         provider: BaseProvider | None = providers.find_provider(playlist.provider_id)
         if provider is None:
             logger.error(f"No provider found for provider_id {playlist.provider_id}.")

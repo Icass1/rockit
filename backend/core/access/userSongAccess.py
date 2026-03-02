@@ -8,8 +8,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 
 from backend.core.aResult import AResult, AResultCode
-from backend.core.access.db.ormModels.user_song import UserSongRow
-from backend.core.access.db.ormModels.song import CoreSongRow
+from backend.core.access.db.ormModels.user_liked_media import UserLikedMediaRow
+from backend.core.access.db.ormModels.media import CoreMediaRow
 from backend.utils.logger import getLogger
 
 logger: Logger = getLogger(__name__)
@@ -18,10 +18,10 @@ logger: Logger = getLogger(__name__)
 class UserSongAccess:
     @staticmethod
     async def add_like(
-        session: AsyncSession, user_id: int, song_id: int
-    ) -> AResult[UserSongRow]:
+        session: AsyncSession, user_id: int, media_id: int
+    ) -> AResult[UserLikedMediaRow]:
         try:
-            user_song = UserSongRow(user_id=user_id, song_id=song_id)
+            user_song = UserLikedMediaRow(user_id=user_id, media_id=media_id)
             session.add(instance=user_song)
             await session.commit()
             await session.refresh(instance=user_song)
@@ -39,12 +39,12 @@ class UserSongAccess:
 
     @staticmethod
     async def remove_like(
-        session: AsyncSession, user_id: int, song_id: int
+        session: AsyncSession, user_id: int, media_id: int
     ) -> AResult[bool]:
         try:
-            stmt = delete(UserSongRow).where(
-                UserSongRow.user_id == user_id,
-                UserSongRow.song_id == song_id,
+            stmt = delete(UserLikedMediaRow).where(
+                UserLikedMediaRow.user_id == user_id,
+                UserLikedMediaRow.media_id == media_id,
             )
             result = await session.execute(stmt)
             await session.commit()
@@ -71,10 +71,10 @@ class UserSongAccess:
     ) -> AResult[List[str]]:
         try:
             stmt: Select[Tuple[str]] = (
-                select(CoreSongRow.public_id)
-                .join(UserSongRow, UserSongRow.song_id == CoreSongRow.id)
-                .where(UserSongRow.user_id == user_id)
-                .order_by(UserSongRow.date_added.desc())
+                select(CoreMediaRow.public_id)
+                .join(UserLikedMediaRow, UserLikedMediaRow.media_id == CoreMediaRow.id)
+                .where(UserLikedMediaRow.user_id == user_id)
+                .order_by(UserLikedMediaRow.date_added.desc())
             )
             result: Result[Tuple[str]] = await session.execute(statement=stmt)
             public_ids: List[str] = list(result.scalars().all())
@@ -90,15 +90,15 @@ class UserSongAccess:
 
     @staticmethod
     async def is_song_liked(
-        session: AsyncSession, user_id: int, song_id: int
+        session: AsyncSession, user_id: int, media_id: int
     ) -> AResult[bool]:
         try:
-            stmt = select(UserSongRow).where(
-                UserSongRow.user_id == user_id,
-                UserSongRow.song_id == song_id,
+            stmt = select(UserLikedMediaRow).where(
+                UserLikedMediaRow.user_id == user_id,
+                UserLikedMediaRow.media_id == media_id,
             )
             result = await session.execute(stmt)
-            user_song: UserSongRow | None = result.scalar_one_or_none()
+            user_song: UserLikedMediaRow | None = result.scalar_one_or_none()
 
             return AResult(
                 code=AResultCode.OK,

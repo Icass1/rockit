@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { ArrowDownToLine } from "lucide-react";
-import { rockIt } from "@/lib/rockit/rockIt";
 import useDev from "@/hooks/useDev";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -39,7 +38,7 @@ export default function InputBar() {
             <div
                 className="flex min-h-9 min-w-9 cursor-pointer items-center justify-center rounded-full bg-pink-700 hover:bg-pink-800"
                 onClick={() => {
-                    rockIt.downloaderManager.startDownloadAsync(url);
+                    // rockIt.downloaderManager.startDownloadAsync(url);
                 }}
             >
                 <ArrowDownToLine className="h-5 w-5 text-white" />

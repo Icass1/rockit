@@ -1,9 +1,7 @@
-import { StartDownloadResponseSchema } from "@/dto";
-import { BACKEND_URL } from "@/environment";
 import { DBListType, DownloadInfo } from "@/types/rockIt";
 import { RESPONSE_UNDEFINED_MESSAGE, rockIt } from "@/lib/rockit/rockIt";
 import { createArrayAtom } from "@/lib/store";
-import apiFetch from "@/lib/utils/apiFetch";
+import { postFetch } from "@/lib/utils/apiFetch";
 
 interface SongStatus {
     publicId: string;
@@ -30,54 +28,15 @@ export class DownloaderManager {
 
     constructor() {}
 
-    init() {
-        return;
-        if (typeof window == "undefined") {
-            return;
-        }
-        const type = "playlist";
-        const publicId = "7h6r9ScqSjCHH3QozfBdIq";
-        const downloadId = "IMZPc5DVyEq3sBwN";
-
-        this._downloadingListsAtom.push({ type, publicId });
-
-        const eventSource = new EventSource(
-            `${BACKEND_URL}/downloader/download-status?id=${downloadId}`
-        );
-
-        eventSource.onerror = (ev: Event) => {
-            this.handleEventSourceError(eventSource, ev, () => {
-                const index = this._downloadingListsAtom
-                    .getReadonlyAtom()
-                    .findIndex(
-                        (item) => item.publicId == publicId && item.type == type
-                    );
-
-                this._downloadingListsAtom.splice(index, 1);
-            });
-        };
-
-        eventSource.onmessage = (ev: MessageEvent) => {
-            this.handleEventSourceMessage(eventSource, ev);
-        };
-
-        eventSource.onopen = (ev: Event) => {
-            this.handleEventSourceOpen(eventSource, ev);
-        };
-    }
-
     // #endregion
 
     // #region: Methods
 
-    async downloadSpotifyListToDBAsync(type: DBListType, publicId: string) {
-        const url = `https://open.spotify.com/${type}/${publicId}`;
-
-        // console.log("(downloadSpotifyListToDBAsync)", url);
-
-        const response = await apiFetch(
-            `/downloader/start-download?user=1&url=${url}`
-        );
+    async downloadMediaToDBAsync(publicIds: string[]) {
+        const response = await postFetch("/downloader/start-downloads", {
+            ids: publicIds,
+            title: "Download 1",
+        });
 
         if (!response) {
             rockIt.notificationManager.notifyError(RESPONSE_UNDEFINED_MESSAGE);
@@ -87,124 +46,9 @@ export class DownloaderManager {
             rockIt.notificationManager.notifyError("Unable to start download.");
             return;
         }
-
-        const responseJson = await response.json();
-        const startDownload = StartDownloadResponseSchema.parse(responseJson);
-
-        this._downloadingListsAtom.push({ type, publicId });
-
-        const eventSource = new EventSource(
-            `${BACKEND_URL}/downloader/download-status?id=${startDownload.downloadGroupId}`
-        );
-
-        eventSource.onerror = (ev: Event) => {
-            this.handleEventSourceError(eventSource, ev, () => {
-                const index = this._downloadingListsAtom
-                    .getReadonlyAtom()
-                    .findIndex(
-                        (item) => item.publicId == publicId && item.type == type
-                    );
-
-                this._downloadingListsAtom.splice(index, 1);
-            });
-        };
-
-        eventSource.onmessage = (ev: MessageEvent) => {
-            this.handleEventSourceMessage(eventSource, ev);
-        };
-
-        eventSource.onopen = (ev: Event) => {
-            this.handleEventSourceOpen(eventSource, ev);
-        };
     }
-
-    async downloadSpotifySongToDBAsync(publicId: string) {
-        const url = `https://open.spotify.com/track/${publicId}`;
-
-        // console.log("(downloadSpotifySongToDBAsync)", url);
-
-        const response = await apiFetch(
-            `/downloader/start-download?user=1&url=${url}`
-        );
-
-        if (!response) {
-            rockIt.notificationManager.notifyError(RESPONSE_UNDEFINED_MESSAGE);
-            return;
-        }
-        if (!response.ok) {
-            rockIt.notificationManager.notifyError("Unable to start download.");
-            return;
-        }
-
-        const responseJson = await response.json();
-        const startDownload = StartDownloadResponseSchema.parse(responseJson);
-
-        const eventSource = new EventSource(
-            `${BACKEND_URL}/downloader/download-status?id=${startDownload.downloadGroupId}`
-        );
-
-        eventSource.onerror = (ev: Event) => {
-            this.handleEventSourceError(eventSource, ev);
-        };
-
-        eventSource.onmessage = (ev: MessageEvent) => {
-            this.handleEventSourceMessage(eventSource, ev);
-        };
-
-        eventSource.onopen = (ev: Event) => {
-            this.handleEventSourceOpen(eventSource, ev);
-        };
-    }
-
-    // private async handleSpotifySongDownloaded(publicId: string) {
-    //     // console.log("(handleSpotifySongDownloaded)", { publicId });
-
-    //     await BaseSongResponseSchema.getExistingInstanceFromPublicId(
-    //         publicId
-    //     )?.updateAsync();
-    //     await SongWithoutAlbum.getExistingInstanceFromPublicId(
-    //         publicId
-    //     )?.updateAsync();
-    //     await SongPlaylist.getExistingInstanceFromPublicId(
-    //         publicId
-    //     )?.updateAsync();
-    // }
 
     // #endregion: Methods
-
-    // #region: Handlers
-
-    private handleEventSourceError(
-        eventSource: EventSource,
-        ev: Event,
-        onEnd?: () => void
-    ) {
-        eventSource.close();
-
-        if (onEnd) onEnd();
-        console.log(`Error in ${eventSource.url} ${ev}`);
-    }
-
-    private handleEventSourceMessage(
-        eventSource: EventSource,
-        ev: MessageEvent
-    ) {}
-
-    private handleEventSourceOpen(eventSource: EventSource, ev: Event) {
-        console.log(`Event source open ${eventSource.url} ${ev}`);
-    }
-
-    // async getDownloadsAsync(): Promise<DownloadsResponse> {
-    //     throw "(getDownloadsAsync) Method not implemented.";
-    //     // return DownloadsResponse.parse([]);
-    // }
-
-    async startDownloadAsync(url: string) {
-        console.log(url);
-        throw "(startDownloadAsync) Method not implemented.";
-    }
-
-    // #endregion: Handlers
 
     // #region: Getters
 

@@ -1,14 +1,13 @@
 "use client";
 
 import { useEffect } from "react";
-
 import type { Lang } from "@/types/lang";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import Footer from "@/components/Footer/Footer";
 import Header from "@/components/Header/Header";
 import Navigation from "@/components/Navigation/Navigation";
 import PlayerUI from "@/components/PlayerUI/PlayerUI";
-import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function AppClientLayout({
     children,

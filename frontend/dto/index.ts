@@ -40,6 +40,26 @@ export {
     type ChannelResponse,
 } from "@/dto/channelResponse";
 export {
+    CurrentMediaMessageRequestSchema,
+    type CurrentMediaMessageRequest,
+} from "@/dto/currentMediaMessageRequest";
+export {
+    CurrentQueueMessageRequestSchema,
+    type CurrentQueueMessageRequest,
+} from "@/dto/currentQueueMessageRequest";
+export {
+    CurrentQueueMessageRequestItemSchema,
+    type CurrentQueueMessageRequestItem,
+} from "@/dto/currentQueueMessageRequestItem";
+export {
+    CurrentTimeMessageRequestSchema,
+    type CurrentTimeMessageRequest,
+} from "@/dto/currentTimeMessageRequest";
+export {
+    DownloadProgressMessageSchema,
+    type DownloadProgressMessage,
+} from "@/dto/downloadProgressMessage";
+export {
     ExternalImageResponseSchema,
     type ExternalImageResponse,
 } from "@/dto/externalImageResponse";
@@ -51,13 +71,26 @@ export {
     LibraryListsResponseSchema,
     type LibraryListsResponse,
 } from "@/dto/libraryListsResponse";
+export { LoginRequestSchema, type LoginRequest } from "@/dto/loginRequest";
 export { LoginResponseSchema, type LoginResponse } from "@/dto/loginResponse";
+export {
+    MediaClickedMessageRequestSchema,
+    type MediaClickedMessageRequest,
+} from "@/dto/mediaClickedMessageRequest";
+export {
+    MediaEndedMessageRequestSchema,
+    type MediaEndedMessageRequest,
+} from "@/dto/mediaEndedMessageRequest";
 export { OkResponseSchema, type OkResponse } from "@/dto/okResponse";
 export { QueueResponseSchema, type QueueResponse } from "@/dto/queueResponse";
 export {
     QueueResponseItemSchema,
     type QueueResponseItem,
 } from "@/dto/queueResponseItem";
+export {
+    RegisterRequestSchema,
+    type RegisterRequest,
+} from "@/dto/registerRequest";
 export {
     RegisterResponseSchema,
     type RegisterResponse,
@@ -67,10 +100,22 @@ export {
     type SearchResultsResponse,
 } from "@/dto/searchResultsResponse";
 export {
+    SeekMessageRequestSchema,
+    type SeekMessageRequest,
+} from "@/dto/seekMessageRequest";
+export {
     SessionResponseSchema,
     type SessionResponse,
 } from "@/dto/sessionResponse";
+export {
+    SkipClickedMessageRequestSchema,
+    type SkipClickedMessageRequest,
+} from "@/dto/skipClickedMessageRequest";
 export { SongResponseSchema, type SongResponse } from "@/dto/songResponse";
+export {
+    StartDownloadRequestSchema,
+    type StartDownloadRequest,
+} from "@/dto/startDownloadRequest";
 export {
     StartDownloadResponseSchema,
     type StartDownloadResponse,

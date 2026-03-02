@@ -1,12 +1,12 @@
 import os
+import re
 import types
+import inspect
 import datetime
 import importlib
-import inspect
-import re
-from collections.abc import Sequence as ABCSequence
 from pathlib import Path
-from typing import Union, get_args, get_origin, Literal, Optional, Sequence
+from collections.abc import Sequence as ABCSequence
+from typing import Union, get_args, get_origin, Literal, Optional, Sequence, List
 
 from pydantic import BaseModel
 
@@ -14,15 +14,19 @@ from backend.utils.logger import getLogger
 
 logger = getLogger(__name__)
 
-RESPONSE_FOLDERS = [
-    "backend/core/responses",
-    "backend/spotify/responses",
-    "backend/youtube/responses",
-    "backend/default/responses",
-    "backend/rockit/responses",
-]
+folders_to_process: List[str] = []
 
-BASE_DIR = Path(__file__).parent.parent.parent
+for root, dirs, files in os.walk("."):
+    if "venv" in root:
+        continue
+    if "node_modules" in root:
+        continue
+    for dir in dirs:
+        if dir.endswith("responses") or dir.endswith("requests"):
+            folders_to_process.append(os.path.join(root, dir))
+
+
+BASE_DIR = Path().cwd()
 
 PYTHON_TYPE_TO_ZOD = {
     str: "z.string()",
@@ -171,7 +175,7 @@ def generate_zod_schema(
 async def generate_zod_schemas() -> None:
     all_models: dict[str, type[BaseModel]] = {}
 
-    for folder in RESPONSE_FOLDERS:
+    for folder in folders_to_process:
         if not os.path.exists(folder):
             logger.warning(f"Folder {folder} does not exist")
             continue

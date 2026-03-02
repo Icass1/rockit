@@ -136,6 +136,10 @@ export class QueueManager {
         this._currentListAtom.set(currentList);
     }
 
+    clearCurrentSong(): void {
+        this._currentSongAtom.set(undefined);
+    }
+
     async addListToTopAsync(type: DBListType, publicId: string) {
         console.log(type, publicId);
         throw "(addListToTopAsync) Not implemented method";

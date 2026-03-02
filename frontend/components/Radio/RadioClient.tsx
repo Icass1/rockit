@@ -2,102 +2,83 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { z } from "zod";
-import { Station } from "@/types/station";
-import pkg from "lodash";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { useStore } from "@nanostores/react";
+import debounce from "lodash/debounce";
+import type { DebouncedFunc } from "lodash";
 import { ListPlus, Play, SearchX } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
-import useWindowSize from "@/hooks/useWindowSize";
 import { useLanguage } from "@/contexts/LanguageContext";
+import type { Station } from "@/types/station";
 
-const { debounce } = pkg;
+function StationCard({ station }: { station: Station }) {
+    const handlePlay = (e?: React.MouseEvent) => {
+        e?.stopPropagation();
+        rockIt.stationManager.setAndPlayStation(station);
+    };
 
-const StationResponseSchema = z.array(
-    z.object({
-        changeuuid: z.string(),
-        stationuuid: z.string(),
-        serveruuid: z.string(),
-        name: z.string(),
-        url: z.string(),
-        url_resolved: z.string(),
-        homepage: z.string(),
-        favicon: z.string(),
-        tags: z.string(),
-        country: z.string(),
-        countrycode: z.string(),
-        iso_3166_2: z.string(),
-        state: z.string(),
-        language: z.string(),
-        languagecodes: z.string(),
-        votes: z.number(),
-        lastchangetime: z.string(),
-        lastchangetime_iso8601: z.string(),
-        codec: z.string(),
-        bitrate: z.number(),
-        hls: z.number(),
-        lastcheckok: z.number(),
-        lastchecktime: z.string(),
-        lastchecktime_iso8601: z.string(),
-        lastcheckoktime: z.string(),
-        lastcheckoktime_iso8601: z.string(),
-        lastlocalchecktime: z.string(),
-        lastlocalchecktime_iso8601: z.string(),
-        clicktimestamp: z.string(),
-        clicktimestamp_iso8601: z.string(),
-        clickcount: z.number(),
-        clicktrend: z.number(),
-        ssl_error: z.number(),
-        geo_lat: z.undefined(),
-        geo_long: z.undefined(),
-        geo_distance: z.undefined(),
-        has_extended_info: z.boolean(),
-    })
-);
+    const coverSrc = station.favicon
+        ? `/api/proxy?url=${encodeURIComponent(station.favicon)}`
+        : rockIt.STATION_PLACEHOLDER_IMAGE_URL;
 
-type StationResponse = z.infer<typeof StationResponseSchema>;
+    const tags = station.tags
+        ? station.tags
+              .split(",")
+              .slice(0, 3)
+              .map((t) => t.trim())
+              .filter(Boolean)
+              .map((t) => t.charAt(0).toUpperCase() + t.slice(1))
+              .join(", ")
+        : null;
 
-function StationCard({ station }: { station: StationResponse[number] }) {
     return (
         <div
-            className="flex h-32 cursor-pointer items-center gap-2 rounded-md bg-neutral-800 px-4 py-2 shadow-md transition hover:bg-neutral-700"
-            onClick={() => {
-                rockIt.stationManager.setAndPlayStation(station);
-            }}
+            role="button"
+            aria-label={`Play ${station.name}`}
+            tabIndex={0}
+            className="flex h-32 cursor-pointer items-center gap-3 rounded-md bg-neutral-800 px-4 py-2 shadow-md transition hover:bg-neutral-700"
+            onClick={handlePlay}
+            onKeyDown={(e) => e.key === "Enter" && handlePlay()}
         >
-            <Image
-                src={
-                    station.favicon
-                        ? "/api/proxy?url=" + station.favicon
-                        : rockIt.STATION_PLACEHOLDER_IMAGE_URL
-                }
-                alt={`${station.name} cover`}
-                className="aspect-square h-14 min-h-14 w-14 min-w-14 rounded-md object-cover md:h-24 md:min-h-24 md:w-24 md:min-w-24"
-            />
+            <div className="relative aspect-square h-full min-w-14 shrink-0 overflow-hidden rounded-md md:h-24 md:min-w-24">
+                <Image
+                    src={coverSrc}
+                    alt={`${station.name} cover`}
+                    fill
+                    className="object-cover"
+                    onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).src =
+                            rockIt.STATION_PLACEHOLDER_IMAGE_URL;
+                    }}
+                />
+            </div>
+
             <div className="min-w-0 flex-1">
-                <h3 className="line-clamp-2 text-lg font-semibold text-white">
+                <h3 className="line-clamp-2 text-base font-semibold text-white md:text-lg">
                     {station.name}
                 </h3>
-                <p className="mt-1 line-clamp-1 text-sm text-neutral-400">
-                    {station.country || "Unknown Country"}
+                <p className="mt-0.5 line-clamp-1 text-sm text-neutral-400">
+                    {station.country || "Unknown"}
                 </p>
-                <p className="mt-1 line-clamp-1 text-xs text-neutral-500">
-                    {station.tags
-                        .split(",")
-                        .map(
-                            (tag) =>
-                                String(tag).charAt(0).toUpperCase() +
-                                String(tag).slice(1)
-                        )
-                        .join(", ")}
-                </p>
+                {tags && (
+                    <p className="mt-0.5 line-clamp-1 text-xs text-neutral-500">
+                        {tags}
+                    </p>
+                )}
             </div>
-            <button className="rounded-full bg-neutral-700 p-2.5 text-white hover:bg-neutral-500">
-                <ListPlus className="h-6 w-6 fill-current" />
-            </button>
+
             <button
-                className="hidden rounded-full bg-pink-500 p-3 text-white hover:bg-pink-600 md:flex"
-                onClick={() => rockIt.stationManager.setAndPlayStation(station)}
+                aria-label="Add to library"
+                className="shrink-0 rounded-full bg-neutral-700 p-2 text-white transition hover:bg-neutral-500"
+                onClick={(e) => e.stopPropagation()}
+            >
+                <ListPlus className="h-5 w-5" />
+            </button>
+
+            <button
+                aria-label={`Play ${station.name}`}
+                className="hidden shrink-0 rounded-full bg-pink-500 p-3 text-white transition hover:bg-pink-600 md:flex"
+                onClick={handlePlay}
             >
                 <Play className="h-5 w-5 fill-current" />
             </button>
@@ -105,162 +86,155 @@ function StationCard({ station }: { station: StationResponse[number] }) {
     );
 }
 
-function EmptyState({
-    lang,
-}: {
-    lang: { radio_empty1: string; radio_empty2: string };
-}) {
+function EmptyState({ hasQuery }: { hasQuery: boolean }) {
+    const { langFile: lang } = useLanguage();
+    if (!lang) return null;
+
     return (
-        <div className="col-span-full flex h-36 flex-col items-center justify-center md:h-36">
-            <SearchX className="mb-4 h-16 w-16" />
-            <p className="text-2xl font-semibold text-white">
-                {lang.radio_empty1}
+        <div className="col-span-full flex flex-col items-center justify-center py-16 text-center">
+            <SearchX className="mb-4 h-16 w-16 text-neutral-500" />
+            <p className="text-xl font-semibold text-white">
+                {hasQuery ? lang.radio_empty1 : lang.radio_search}
             </p>
-            <p className="mt-2 text-lg text-neutral-400">{lang.radio_empty2}</p>
+            {hasQuery && (
+                <p className="mt-2 text-neutral-400">{lang.radio_empty2}</p>
+            )}
+        </div>
+    );
+}
+
+function LoadingSkeleton() {
+    return (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+                <div
+                    key={i}
+                    className="h-32 animate-pulse rounded-md bg-neutral-800"
+                />
+            ))}
         </div>
     );
 }
 
 export default function RadioClient() {
-    const router = useRouter();
-    const searchParams = useSearchParams();
-    const pathname = usePathname();
-
-    const [filteredStations, setFilteredStations] = useState<Station[]>([]);
-    const [searchQuery, setSearchQuery] = useState(searchParams.get("q") ?? "");
-    const [error, setError] = useState<string | null>(null);
-    const [isOnline, setIsOnline] = useState(true);
-    const innerWidth = useWindowSize().width;
-
-    const searchDebounce =
-        useRef<pkg.DebouncedFunc<(query: string) => void>>(null);
-
-    const search = useCallback((query: string) => {
-        fetchStations("byname", query);
-    }, []);
-
-    useEffect(() => {
-        searchDebounce.current = debounce((query: string) => {
-            search(query);
-        }, 1000);
-    }, [search]);
-
-    useEffect(() => {
-        setIsOnline(
-            typeof window !== "undefined" ? window.navigator.onLine : true
-        );
-    }, []);
-
     const { langFile: lang } = useLanguage();
+    const $currentStation = useStore(rockIt.stationManager.currentStationAtom);
 
-    const fetchStations = async (by: string, searchTerm: string) => {
-        try {
-            if (!searchTerm.trim()) {
-                setFilteredStations([]);
-                return;
-            }
+    const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
 
-            const response = await fetch(
-                `/api/radio/stations/${by}/${searchTerm}?limit=15&offset=0`
-            );
-            if (!response.ok) {
-                throw new Error("Failed to fetch stations");
-            }
-            const data = await response.json();
-            const parsed = StationResponseSchema.parse(data);
-            setFilteredStations(parsed as unknown as Station[]);
-        } catch (err) {
-            if (err instanceof Error) {
-                setError(err.message);
-            } else {
-                setError("An unknown error occurred");
-            }
+    const initialQuery = searchParams.get("q") ?? "";
+    const [query, setQuery] = useState(initialQuery);
+    const [stations, setStations] = useState<Station[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const debounceRef = useRef<DebouncedFunc<(q: string) => void> | null>(null);
+
+    const fetchStations = useCallback(async (searchTerm: string) => {
+        if (!searchTerm.trim()) {
+            setStations([]);
+            return;
         }
-    };
+        setLoading(true);
+        setError(null);
+        try {
+            const res = await fetch(
+                `/api/radio/stations/byname/${encodeURIComponent(searchTerm)}?limit=20`
+            );
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data: Station[] = await res.json();
+            setStations(data);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Unknown error");
+        } finally {
+            setLoading(false);
+        }
+    }, []);
 
     useEffect(() => {
-        if (searchDebounce.current) {
-            searchDebounce.current(searchQuery);
-        }
-    }, [searchQuery]);
+        debounceRef.current = debounce(fetchStations, 400);
+        return () => debounceRef.current?.cancel();
+    }, [fetchStations]);
 
-    if (error) {
-        return (
-            <div className="p-2 pt-16 pb-16 text-white md:mt-0 md:mb-0 md:pt-24 md:pb-24">
-                Error: {error}
-            </div>
-        );
-    }
+    useEffect(() => {
+        if (initialQuery) fetchStations(initialQuery);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
-    const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setQuery(value);
+
         const params = new URLSearchParams(searchParams);
-        params.set("q", e.target.value);
-        const newParams = params.toString();
-        router.push(`${pathname}?${newParams}`);
+        if (value) params.set("q", value);
+        else params.delete("q");
+        router.replace(`${pathname}?${params.toString()}`, { scroll: false });
 
-        setSearchQuery(e.target.value);
-        if (searchDebounce.current) {
-            searchDebounce.current(e.target.value);
-        }
+        debounceRef.current?.(value);
     };
 
-    if (!lang) return false;
-
-    if (!isOnline) {
-        return <div>You are offline</div>;
-    }
-
-    if (!innerWidth) return;
-
-    const isDesktop = innerWidth > 768;
+    if (!lang) return null;
 
     return (
-        <div
-            className={`h-full overflow-y-auto p-2 text-white ${
-                isDesktop
-                    ? "pt-16 pb-16 md:mt-0 md:mb-0 md:pt-24 md:pb-24"
-                    : "pt-20"
-            }`}
-        >
-            <h1
-                className={`text-center font-bold select-none ${
-                    isDesktop ? "my-6 text-3xl" : "mb-4 text-2xl"
-                }`}
-            >
+        <div className="h-full overflow-y-auto p-3 pt-16 pb-20 text-white md:pt-24 md:pb-24">
+            <h1 className="my-6 text-center text-2xl font-bold select-none md:text-3xl">
                 {lang.radio_stations} 📻
             </h1>
-            <div
-                className={`mb-4 ${isDesktop ? "flex items-center justify-between" : ""}`}
-            >
+
+            {$currentStation && (
+                <div className="mx-auto mb-6 flex max-w-md items-center gap-3 rounded-lg bg-pink-500/20 px-4 py-3 ring-1 ring-pink-500/40">
+                    <span className="relative flex h-3 w-3 shrink-0">
+                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-pink-400 opacity-75" />
+                        <span className="relative inline-flex h-3 w-3 rounded-full bg-pink-500" />
+                    </span>
+                    <p className="min-w-0 truncate text-sm font-medium text-pink-200">
+                        {$currentStation.name}
+                    </p>
+                    <button
+                        className="ml-auto shrink-0 text-xs text-pink-400 transition hover:text-white"
+                        onClick={() => rockIt.stationManager.clearStation()}
+                    >
+                        Stop
+                    </button>
+                </div>
+            )}
+
+            <div className="mx-auto mb-6 max-w-md">
                 <input
                     type="search"
-                    placeholder={
-                        isDesktop
-                            ? lang.radio_search
-                            : "Search for stations, tags, countries..."
-                    }
-                    value={searchQuery}
-                    onChange={handleSearch}
-                    className={`w-full rounded-full border border-neutral-700 bg-neutral-800 px-4 py-2 text-white ${
-                        isDesktop ? "mx-auto my-3 max-w-md px-5" : ""
-                    }`}
+                    placeholder={lang.radio_search}
+                    value={query}
+                    onChange={handleChange}
+                    className="w-full rounded-full border border-neutral-700 bg-neutral-800 px-5 py-2 text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-pink-500"
                 />
             </div>
-            <div
-                className={`${isDesktop ? "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3" : "space-y-4"}`}
-            >
-                {filteredStations.length > 0 ? (
-                    filteredStations.map((station) => (
-                        <StationCard
-                            station={station}
-                            key={station.stationuuid}
-                        />
-                    ))
-                ) : (
-                    <EmptyState lang={lang} />
-                )}
-            </div>
-            <div className="min-h-10"></div>
+
+            {error && (
+                <p className="mb-4 text-center text-sm text-red-400">
+                    Error: {error}
+                </p>
+            )}
+
+            {loading ? (
+                <LoadingSkeleton />
+            ) : (
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {stations.length > 0 ? (
+                        stations.map((station) => (
+                            <StationCard
+                                key={station.stationuuid}
+                                station={station}
+                            />
+                        ))
+                    ) : (
+                        <EmptyState hasQuery={!!query} />
+                    )}
+                </div>
+            )}
+
+            <div className="h-10" />
         </div>
     );
 }

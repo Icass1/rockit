@@ -1,6 +1,7 @@
 from pydantic import BaseModel, field_validator
 
 from backend.core.enums.queueTypeEnum import QueueTypeEnum
+from backend.core.enums.skipDirectionEnum import SkipDirectionEnum
 
 
 class MediaEndedMessageRequest(BaseModel):
@@ -22,7 +23,7 @@ class CurrentQueueMessageRequest(BaseModel):
     queueType: QueueTypeEnum
 
     @field_validator("queueType", mode="before")
-    def convert_string_to_enum(cls, v: str):
+    def convert_string_to_enum(cls, v: str) -> QueueTypeEnum:
         return QueueTypeEnum[v]
 
 
@@ -35,8 +36,12 @@ class MediaClickedMessageRequest(BaseModel):
 
 
 class SkipClickedMessageRequest(BaseModel):
-    direction: str
+    direction: SkipDirectionEnum
     mediaPublicId: str
+
+    @field_validator("direction", mode="before")
+    def convert_string_to_enum(cls, v: str) -> SkipDirectionEnum:
+        return SkipDirectionEnum[v]
 
 
 class SeekMessageRequest(BaseModel):

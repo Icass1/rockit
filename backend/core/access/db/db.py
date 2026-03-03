@@ -2,6 +2,7 @@
 from backend.core.access.db.base import CoreBase
 
 # ORMS MODELS
+from backend.core.access.db.ormModels.user_skipped_media import UserSkippedMediaRow  # type: ignore
 from backend.core.access.db.ormModels.user_liked_media import UserLikedMediaRow  # type: ignore
 from backend.core.access.db.ormModels.downloadStatus import DownloadStatusRow  # type: ignore
 from backend.core.access.db.ormModels.downloadGroup import DownloadGroupRow  # type: ignore
@@ -18,6 +19,7 @@ from backend.core.access.db.ormModels.user import UserRow  # type: ignore
 
 # ENUMS
 from backend.core.access.db.ormEnums.downloadStatusEnum import DownloadStatusEnumRow  # type: ignore
+from backend.core.access.db.ormEnums.skipDirectionEnum import SkipDirectionEnumRow  # type: ignore
 from backend.core.access.db.ormEnums.repeatModeEnum import RepeatModeEnumRow  # type: ignore
 from backend.core.access.db.ormEnums.mediaTypeEnum import MediaTypeEnumRow  # type: ignore
 from backend.core.access.db.ormEnums.queueTypeEnum import QueueTypeEnumRow  # type: ignore

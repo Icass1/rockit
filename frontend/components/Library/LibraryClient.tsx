@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LibraryFilters } from "@/components/Library/LibraryFilters";
-// import { FeaturedLists } from "@/components/Library/FeaturedLists";
 import { LibraryLists } from "@/components/Library/LibraryLists";
 
 export default function LibraryClient() {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Link from "next/link";
 import { BaseAlbumWithSongsResponse } from "@/dto";
 import { groupBy } from "lodash";

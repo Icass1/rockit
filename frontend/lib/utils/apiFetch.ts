@@ -42,7 +42,7 @@ export async function apiFetch(
     }
 }
 
-export async function postFetch(path: string, body: object) {
+export async function apiPostFetch(path: string, body: object) {
     return apiFetch(path, {
         method: "POST",
         body: JSON.stringify(body),

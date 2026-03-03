@@ -48,7 +48,7 @@ export default function HomeClient({ initialStats }: HomeClientProps) {
     const previousMonthKey = useOnClient(getPreviousMonthKey, null);
 
     useEffect(() => {
-        if (data?.isEmpty) router.push("/search");
+        if (data?.isEmpty) router.push("/library");
     }, [data?.isEmpty, router]);
 
     if (!data) {

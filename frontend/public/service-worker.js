@@ -397,8 +397,7 @@ const fromNetwork = async (request) => {
                             if (placeholderEvent.target.result) {
                                 return resolve(
                                     new Response(
-                                        placeholderEvent.target.result
-                                            .fileContent,
+                                        placeholderEvent.target.result.fileContent,
                                         {
                                             headers: {
                                                 "Content-Type": "image/png",

@@ -3,6 +3,9 @@ import type { NextConfig } from "next";
 const isDev = process.env.NODE_ENV === "development" || true;
 
 const nextConfig: NextConfig = {
+    turbopack: {
+        root: __dirname,
+    },
     images: {
         // Only disable image optimization in dev
         unoptimized: isDev,

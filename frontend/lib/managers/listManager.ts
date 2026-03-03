@@ -2,7 +2,7 @@ import { BaseAlbumWithoutSongsResponse, BasePlaylistResponse } from "@/dto";
 import { DBListType } from "@/types/rockIt";
 import { RESPONSE_UNDEFINED_MESSAGE, rockIt } from "@/lib/rockit/rockIt";
 import { createArrayAtom } from "@/lib/store";
-import { apiFetch } from "@/lib/utils/apiFetch";
+import { apiFetch, apiPostFetch } from "@/lib/utils/apiFetch";
 
 export class ListManager {
     private _libraryListsAtom = createArrayAtom<{
@@ -182,10 +182,8 @@ export class ListManager {
             return;
         }
 
-        const response = await apiFetch("/like/songs", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ song_public_ids: songPublicIds }),
+        const response = await apiPostFetch("/user/like/songs", {
+            publicIds: songPublicIds,
         });
 
         if (!response) {

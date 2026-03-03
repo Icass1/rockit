@@ -1,7 +1,7 @@
 import { DBListType, DownloadInfo } from "@/types/rockIt";
 import { RESPONSE_UNDEFINED_MESSAGE, rockIt } from "@/lib/rockit/rockIt";
 import { createArrayAtom } from "@/lib/store";
-import { postFetch } from "@/lib/utils/apiFetch";
+import { apiPostFetch } from "@/lib/utils/apiFetch";
 
 interface SongStatus {
     publicId: string;
@@ -33,7 +33,7 @@ export class DownloaderManager {
     // #region: Methods
 
     async downloadMediaToDBAsync(publicIds: string[]) {
-        const response = await postFetch("/downloader/start-downloads", {
+        const response = await apiPostFetch("/downloader/start-downloads", {
             ids: publicIds,
             title: "Download 1",
         });

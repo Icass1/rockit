@@ -40,5 +40,6 @@ class SkipClickedMessageRequest(BaseModel):
 
 
 class SeekMessageRequest(BaseModel):
+    mediaPublicId: str
     timeFrom: float
     timeTo: float

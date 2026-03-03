@@ -26,6 +26,7 @@ import ContextMenuSplitter from "@/components/ContextMenu/Splitter";
 import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
 import NewPlaylistButton from "@/components/Library/NewPlaylistButton";
 import PlayLibraryButton from "@/components/Library/PlayLibraryButton";
+import LoadingComponent from "@/components/Loading";
 
 function AddListContextMenu({
     children,
@@ -162,8 +163,6 @@ export function LibraryLists({
     filterMode: "default" | "asc" | "desc";
     searchQuery: string;
 }) {
-    console.log("LibraryLists", { filterMode, searchQuery });
-
     const { width } = useWindowSize();
     const { langFile: lang } = useLanguage();
 
@@ -171,7 +170,7 @@ export function LibraryLists({
         "/user/library/lists",
         LibraryListsResponseSchema
     );
-    if (!listsResponse) return <div>LibraryLists.listsResponse Loading...</div>;
+    if (!listsResponse) return <LoadingComponent />;
 
     const lists = {
         albums: listsResponse.albums,

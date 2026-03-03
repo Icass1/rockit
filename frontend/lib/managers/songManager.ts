@@ -18,7 +18,7 @@ export class SongManager {
     // #region: Methods
 
     async fetchLikedSongs(): Promise<void> {
-        const res = await apiFetch("/like");
+        const res = await apiFetch("/user/liked-songs");
         if (!res?.ok) return;
         const data: string[] = await res.json();
         this.likedSongsAtom.set(data);
@@ -34,7 +34,7 @@ export class SongManager {
                 : [...current, songPublicId]
         );
 
-        const res = await apiFetch(`/like/song/${songPublicId}`, {
+        const res = await apiFetch(`/user/like/${songPublicId}`, {
             method: isLiked ? "DELETE" : "PUT",
         });
 

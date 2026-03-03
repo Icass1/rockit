@@ -182,7 +182,7 @@ export class ListManager {
             return;
         }
 
-        const response = await apiFetch("/like/songs", {
+        const response = await apiFetch("/user/like/songs", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ song_public_ids: songPublicIds }),

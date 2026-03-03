@@ -7,7 +7,7 @@ import { rockIt } from "@/lib/rockit/rockIt";
 
 type FlameState = "hidden" | "enter" | "visible" | "exit";
 
-const FLAME_DURATION_MS = 3500;
+const FLAME_DURATION_MS = 1000;
 
 export default function LikeButton({ songPublicId }: { songPublicId: string }) {
     const $likedSongs = useStore(rockIt.songManager.likedSongsAtom);
@@ -29,9 +29,6 @@ export default function LikeButton({ songPublicId }: { songPublicId: string }) {
 
         if (isLiked) {
             setFlameState("enter");
-        } else {
-            if (dismissTimer.current) clearTimeout(dismissTimer.current);
-            setFlameState("exit");
         }
     }, [isLiked]);
 

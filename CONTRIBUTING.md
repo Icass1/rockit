@@ -62,7 +62,8 @@ frontend/           - Next.js application
 
 backend/           - FastAPI application
   core/           - Core business (auth, users, sessions)
-  rockit/         - Main Rockit business logic
+  default/        - Default business logic (Playlist created by users are here)
+  rockit/         - RockIt integration (music uploaded by users to the database)
   spotify/        - Spotify integration
   youtube/        - YouTube integration
 

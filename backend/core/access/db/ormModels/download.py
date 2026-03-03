@@ -36,7 +36,6 @@ class DownloadRow(CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdd
     download_group: Mapped["DownloadGroupRow"] = relationship(
         "DownloadGroupRow", back_populates="downloads"
     )
-
     download_status_list: Mapped[List["DownloadStatusRow"]] = relationship(
         "DownloadStatusRow", back_populates="download", order_by="DownloadStatusRow.id"
     )

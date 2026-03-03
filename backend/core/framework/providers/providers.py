@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from importlib import import_module
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from backend.core.access.db import rockit_db
 from backend.utils.logger import getLogger
 
 from backend.core.aResult import AResult, AResultCode
@@ -146,5 +147,7 @@ class Providers:
                 provider_id=a_result_provider.result().id,
                 provider_name=a_result_provider.result().name,
             )
+
+        await rockit_db.after_all_providers_tables_init()
 
         return AResultCode(code=AResultCode.OK, message="OK")

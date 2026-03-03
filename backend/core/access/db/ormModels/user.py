@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from backend.core.access.db.ormModels.requestLog import RequestLogRow
     from backend.core.access.db.ormModels.session import SessionRow
     from backend.core.access.db.ormEnums.repeatModeEnum import RepeatModeEnumRow
-    from backend.core.access.db.ormModels.user_media import UserMediaRow
+    from backend.core.access.db.ormModels.user_library_media import UserLibraryMediaRow
     from backend.core.access.db.ormModels.user_queue import UserQueueRow
 
 
@@ -62,8 +62,8 @@ class UserRow(
     request_logs: Mapped[List["RequestLogRow"]] = relationship(
         "RequestLogRow", back_populates="user"
     )
-    user_medias: Mapped[List["UserMediaRow"]] = relationship(
-        "UserMediaRow", back_populates="user"
+    user_library_medias: Mapped[List["UserLibraryMediaRow"]] = relationship(
+        "UserLibraryMediaRow", back_populates="user"
     )
     user_queues: Mapped[List["UserQueueRow"]] = relationship(
         "UserQueueRow", back_populates="user"

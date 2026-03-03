@@ -10,7 +10,7 @@ from backend.core.aResult import AResult, AResultCode
 from backend.core.access.db.ormModels.user import UserRow
 from backend.core.access.db.ormModels.media import CoreMediaRow
 from backend.core.access.db.ormModels.provider import ProviderRow
-from backend.core.access.db.ormModels.user_media import UserMediaRow
+from backend.core.access.db.ormModels.user_library_media import UserLibraryMediaRow
 from backend.utils.backendUtils import create_id
 from backend.utils.logger import getLogger
 
@@ -89,29 +89,35 @@ class UserAccess:
             )
 
     @staticmethod
-    async def get_user_medias(
+    async def get_user_library_medias(
         session: AsyncSession, user_id: int
-    ) -> AResult[List[Tuple[UserMediaRow, CoreMediaRow, ProviderRow]]]:
+    ) -> AResult[List[Tuple[UserLibraryMediaRow, CoreMediaRow, ProviderRow]]]:
         try:
-            stmt: Select[Tuple[UserMediaRow]] = (
-                select(UserMediaRow)
-                .where(UserMediaRow.user_id == user_id)
+            stmt: Select[Tuple[UserLibraryMediaRow]] = (
+                select(UserLibraryMediaRow)
+                .where(UserLibraryMediaRow.user_id == user_id)
                 .options(
-                    selectinload(UserMediaRow.media).selectinload(CoreMediaRow.provider)
+                    selectinload(UserLibraryMediaRow.media).selectinload(
+                        CoreMediaRow.provider
+                    )
                 )
             )
-            result: Result[Tuple[UserMediaRow]] = await session.execute(statement=stmt)
-            user_medias: List[UserMediaRow] = list(result.scalars().all())
+            result: Result[Tuple[UserLibraryMediaRow]] = await session.execute(
+                statement=stmt
+            )
+            user_library_medias: List[UserLibraryMediaRow] = list(
+                result.scalars().all()
+            )
 
-            if not user_medias:
+            if not user_library_medias:
                 return AResult(
                     code=AResultCode.NOT_FOUND, message="No media found for user."
                 )
 
             medias_with_providers: List[
-                Tuple[UserMediaRow, CoreMediaRow, ProviderRow]
+                Tuple[UserLibraryMediaRow, CoreMediaRow, ProviderRow]
             ] = []
-            for um in user_medias:
+            for um in user_library_medias:
                 medias_with_providers.append((um, um.media, um.media.provider))
 
             return AResult(
@@ -119,56 +125,60 @@ class UserAccess:
             )
 
         except Exception as e:
-            logger.error(f"Error in get_user_medias: {e}")
+            logger.error(f"Error in get_user_library_medias: {e}")
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
                 message=f"Failed to get user media: {e}",
             )
 
     @staticmethod
-    async def add_user_media(
+    async def add_user_library_media(
         session: AsyncSession, user_id: int, media_id: int
-    ) -> AResult[UserMediaRow]:
+    ) -> AResult[UserLibraryMediaRow]:
         """Add an media to user's library."""
         try:
-            user_media = UserMediaRow(user_id=user_id, media_id=media_id)
-            session.add(instance=user_media)
+            user_library_media = UserLibraryMediaRow(user_id=user_id, media_id=media_id)
+            session.add(instance=user_library_media)
             await session.commit()
-            await session.refresh(instance=user_media)
-            return AResult(code=AResultCode.OK, message="OK", result=user_media)
+            await session.refresh(instance=user_library_media)
+            return AResult(code=AResultCode.OK, message="OK", result=user_library_media)
 
         except Exception as e:
-            logger.error(f"Error in add_user_media: {e}")
+            logger.error(f"Error in add_user_library_media: {e}")
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
                 message=f"Failed to add media to user library: {e}",
             )
 
     @staticmethod
-    async def remove_user_media(
+    async def remove_user_library_media(
         session: AsyncSession, user_id: int, media_id: int
     ) -> AResult[bool]:
         """Remove an media from user's library."""
         try:
-            stmt: Select[Tuple[UserMediaRow]] = select(UserMediaRow).where(
-                UserMediaRow.user_id == user_id,
-                UserMediaRow.media_id == media_id,
+            stmt: Select[Tuple[UserLibraryMediaRow]] = select(
+                UserLibraryMediaRow
+            ).where(
+                UserLibraryMediaRow.user_id == user_id,
+                UserLibraryMediaRow.media_id == media_id,
             )
-            result: Result[Tuple[UserMediaRow]] = await session.execute(statement=stmt)
-            user_media: UserMediaRow | None = result.scalar_one_or_none()
+            result: Result[Tuple[UserLibraryMediaRow]] = await session.execute(
+                statement=stmt
+            )
+            user_library_media: UserLibraryMediaRow | None = result.scalar_one_or_none()
 
-            if user_media is None:
+            if user_library_media is None:
                 return AResult(
                     code=AResultCode.NOT_FOUND,
                     message="Media not found in user library",
                 )
 
-            await session.delete(instance=user_media)
+            await session.delete(instance=user_library_media)
             await session.commit()
             return AResult(code=AResultCode.OK, message="OK", result=True)
 
         except Exception as e:
-            logger.error(f"Error in remove_user_media: {e}")
+            logger.error(f"Error in remove_user_library_media: {e}")
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
                 message=f"Failed to remove media from user library: {e}",

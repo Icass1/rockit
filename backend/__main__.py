@@ -10,10 +10,12 @@ async def main() -> None:
     logger.info("Future CLI in progress")
 
     while True:
-        command = input("> ")
+        try:
+            command = input("> ")
+        except KeyboardInterrupt:
+            break
 
         if command == "exit":
-            print("Bye!")
             break
         elif command == "reinit":
             await rockit_db.reinit()
@@ -23,6 +25,8 @@ async def main() -> None:
             await generate_zod_schemas()
         else:
             print("Command not found.")
+
+    print("Bye!")
 
 
 if __name__ == "__main__":

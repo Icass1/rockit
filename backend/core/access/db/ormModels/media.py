@@ -14,7 +14,7 @@ from backend.core.access.db.ormModels.declarativeMixin import (
 if TYPE_CHECKING:
     from backend.core.access.db.ormModels.provider import ProviderRow
     from backend.core.access.db.ormEnums.mediaTypeEnum import MediaTypeEnumRow
-    from backend.core.access.db.ormModels.user_media import UserMediaRow
+    from backend.core.access.db.ormModels.user_library_media import UserLibraryMediaRow
     from backend.core.access.db.ormModels.user_queue import UserQueueRow
 
 
@@ -37,8 +37,8 @@ class CoreMediaRow(
     media_type: Mapped[List["MediaTypeEnumRow"]] = relationship(
         "MediaTypeEnumRow", back_populates="media"
     )
-    user_medias: Mapped[List["UserMediaRow"]] = relationship(
-        "UserMediaRow", back_populates="media"
+    user_library_medias: Mapped[List["UserLibraryMediaRow"]] = relationship(
+        "UserLibraryMediaRow", back_populates="media"
     )
     user_queues: Mapped[List["UserQueueRow"]] = relationship(
         "UserQueueRow", back_populates="media"

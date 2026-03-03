@@ -16,6 +16,8 @@ from sqlalchemy import Connection, Inspector, Table, text, inspect
 from backend.utils.logger import getLogger
 from backend.core.access.db.base import CoreBase
 
+from backend.core.access.db.ormModels.declarativeMixin import triggers
+
 T = TypeVar("T")
 
 logger = getLogger(__name__)
@@ -47,6 +49,17 @@ for dirpath, dirnames, filenames in os.walk("backend"):
             schemas.append(SchemaInfo(name=schema, base=module.base))
     except:
         logger.warning(f"{module} doesn't have an schemas variable declared.")
+
+
+SET_UPDATED_TIMESTAMP_STMT = """
+CREATE OR REPLACE FUNCTION core.set_updated_timestamp()
+RETURNS trigger AS $$
+BEGIN
+    NEW.date_updated = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+"""
 
 
 class RockItDB:
@@ -93,15 +106,27 @@ class RockItDB:
                 await self.check_table_schema_async(table)
 
     async def create_schemas(self):
+        """TODO"""
+
         async with self.engine.begin() as conn:
             for schema in schemas:
                 await conn.execute(text(f"CREATE SCHEMA IF NOT EXISTS {schema.name}"))
             await conn.commit()
 
     async def drop_schemas(self):
+        """TODO"""
+
         async with self.engine.begin() as conn:
             for schema in schemas:
                 await conn.execute(text(f"DROP SCHEMA IF EXISTS {schema.name} CASCADE"))
+            await conn.commit()
+
+    async def after_all_providers_tables_init(self):
+        """TODO"""
+
+        async with self.engine.begin() as conn:
+            for trigger in triggers:
+                await conn.execute(text(trigger))
             await conn.commit()
 
     async def check_table_schema_async(self, table: Table):

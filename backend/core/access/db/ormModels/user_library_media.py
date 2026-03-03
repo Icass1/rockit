@@ -14,10 +14,10 @@ if TYPE_CHECKING:
     from backend.core.access.db.ormModels.media import CoreMediaRow
 
 
-class UserMediaRow(CoreBase, TableAutoincrementId, TableDateAdded):
-    __tablename__ = "user_media"
+class UserLibraryMediaRow(CoreBase, TableAutoincrementId, TableDateAdded):
+    __tablename__ = "user_library_media"
     __table_args__ = (
-        UniqueConstraint("user_id", "media_id", name="uq_user_media"),
+        UniqueConstraint("user_id", "media_id", name="uq_user_library_media"),
         {"schema": "core", "extend_existing": True},
     )
 
@@ -31,11 +31,11 @@ class UserMediaRow(CoreBase, TableAutoincrementId, TableDateAdded):
 
     user: Mapped["UserRow"] = relationship(
         "UserRow",
-        back_populates="user_medias",
+        back_populates="user_library_medias",
     )
     media: Mapped["CoreMediaRow"] = relationship(
         "CoreMediaRow",
-        back_populates="user_medias",
+        back_populates="user_library_medias",
     )
 
     def __init__(self, user_id: int, media_id: int):

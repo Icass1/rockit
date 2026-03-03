@@ -6,7 +6,7 @@ from backend.core.aResult import AResult, AResultCode
 from backend.core.access.db.ormModels.media import CoreMediaRow
 from backend.core.access.db.ormModels.provider import ProviderRow
 from backend.core.access.db.ormModels.user import UserRow
-from backend.core.access.db.ormModels.user_media import UserMediaRow
+from backend.core.access.db.ormModels.user_library_media import UserLibraryMediaRow
 from backend.core.access.db.ormModels.user_liked_media import UserLikedMediaRow
 from backend.core.access.db.ormModels.user_queue import UserQueueRow
 from backend.core.responses.baseAlbumWithoutSongsResponse import (
@@ -96,14 +96,14 @@ class User:
         )
 
     @staticmethod
-    async def get_user_medias(
+    async def get_user_library_medias(
         session: AsyncSession, user_id: int
     ) -> AResult[List[BaseAlbumWithoutSongsResponse]]:
         """Get all albums for a user."""
 
         a_result_albums: AResult[
-            List[Tuple[UserMediaRow, CoreMediaRow, ProviderRow]]
-        ] = await UserAccess.get_user_medias(session=session, user_id=user_id)
+            List[Tuple[UserLibraryMediaRow, CoreMediaRow, ProviderRow]]
+        ] = await UserAccess.get_user_library_medias(session=session, user_id=user_id)
 
         if a_result_albums.is_not_ok():
             logger.error(f"Error getting user albums. {a_result_albums.info()}")
@@ -138,7 +138,7 @@ class User:
     @staticmethod
     async def add_media_to_library(
         session: AsyncSession, user_id: int, album_public_id: str
-    ) -> AResult[UserMediaRow]:
+    ) -> AResult[UserLibraryMediaRow]:
         """Add an album to user's library by public_id."""
 
         a_result_album: AResult[CoreMediaRow] = (
@@ -152,8 +152,10 @@ class User:
             logger.error(f"Error getting album. {a_result_album.info()}")
             return AResult(code=a_result_album.code(), message=a_result_album.message())
 
-        a_result_user_album: AResult[UserMediaRow] = await UserAccess.add_user_media(
-            session=session, user_id=user_id, media_id=a_result_album.result().id
+        a_result_user_album: AResult[UserLibraryMediaRow] = (
+            await UserAccess.add_user_library_media(
+                session=session, user_id=user_id, media_id=a_result_album.result().id
+            )
         )
         if a_result_user_album.is_not_ok():
             logger.error(f"Error adding album to library. {a_result_user_album.info()}")
@@ -182,7 +184,7 @@ class User:
             logger.error(f"Error getting album. {a_result_album.info()}")
             return AResult(code=a_result_album.code(), message=a_result_album.message())
 
-        a_result_removed: AResult[bool] = await UserAccess.remove_user_media(
+        a_result_removed: AResult[bool] = await UserAccess.remove_user_library_media(
             session=session, user_id=user_id, media_id=a_result_album.result().id
         )
         if a_result_removed.is_not_ok():

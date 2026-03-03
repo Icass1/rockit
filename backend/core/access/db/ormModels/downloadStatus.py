@@ -7,16 +7,13 @@ from backend.core.access.db.base import CoreBase
 from backend.core.access.db.ormModels.declarativeMixin import (
     TableAutoincrementId,
     TableDateAdded,
-    TableDateUpdated,
 )
 
 if TYPE_CHECKING:
     from backend.core.access.db.ormModels.download import DownloadRow
 
 
-class DownloadStatusRow(
-    CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdded
-):
+class DownloadStatusRow(CoreBase, TableAutoincrementId, TableDateAdded):
     __tablename__ = "download_status"
     __table_args__ = ({"schema": "core", "extend_existing": True},)
 

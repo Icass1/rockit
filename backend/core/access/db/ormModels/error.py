@@ -6,15 +6,15 @@ from sqlalchemy import ForeignKey, String, Integer, Text
 from backend.core.access.db.base import CoreBase
 from backend.core.access.db.ormModels.declarativeMixin import (
     TableDateAdded,
-    TableDateUpdated,
     TableAutoincrementId,
+    TableDisableDelete,
 )
 
 if TYPE_CHECKING:
     from backend.core.access.db.ormModels.user import UserRow
 
 
-class ErrorRow(CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdded):
+class ErrorRow(CoreBase, TableAutoincrementId, TableDateAdded, TableDisableDelete):
     __tablename__ = "error"
     __table_args__ = ({"schema": "core", "extend_existing": True},)
 

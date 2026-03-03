@@ -9,6 +9,7 @@ import type { DebouncedFunc } from "lodash";
 import debounce from "lodash/debounce";
 import { ListPlus, Play, SearchX } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { apiFetch } from "@/lib/utils/apiFetch";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 function StationCard({ station }: { station: Station }) {
@@ -140,7 +141,7 @@ export default function RadioClient() {
         setLoading(true);
         setError(null);
         try {
-            const res = await fetch(
+            const res = await apiFetch(
                 `/radio/stations/byname/${encodeURIComponent(searchTerm)}?limit=20`
             );
             if (!res.ok) throw new Error(`HTTP ${res.status}`);

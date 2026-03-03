@@ -5,7 +5,11 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useSearchResults } from "@/components/Search/hooks/useSearchResults";
 import SearchBarInput from "@/components/Search/SearchBarInput";
 import AlbumsSection from "@/components/Search/sections/AlbumsSection";
+import ArtistsSection from "@/components/Search/sections/ArtistsSection";
+import PlaylistsSection from "@/components/Search/sections/PlaylistsSection";
+import RadioSection from "@/components/Search/sections/RadioSection";
 import SongsSection from "@/components/Search/sections/SongsSection";
+import VideosSection from "@/components/Search/sections/VideosSection";
 
 function EmptyState() {
     const { langFile: lang } = useLanguage();
@@ -36,10 +40,8 @@ function EmptyState() {
 function SearchResults() {
     const { results, searching, query } = useSearchResults();
 
-    // Input is empty — show empty/welcome state
     if (!query) return <EmptyState />;
 
-    // First search ever (no previous results yet) — show a full loading state
     if (searching && !results) {
         return (
             <div className="flex h-full items-center justify-center text-white">
@@ -50,8 +52,7 @@ function SearchResults() {
         );
     }
 
-    // Network/parse error with no results to fall back on
-    if (!results?.results) {
+    if (!results?.media?.results) {
         return (
             <p className="mx-10 block text-center text-sm font-bold text-red-500">
                 It seems there was an error searching your music.
@@ -59,17 +60,30 @@ function SearchResults() {
         );
     }
 
-    // We have results — show them immediately.
-    // If a new search is in flight (searching === true), show a small inline
-    // indicator instead of blanking out the existing results.
+    const mediaResults = results.media.results;
+
     return (
         <div className="overflow-y-auto pt-0 md:pt-24">
             <SongsSection
-                songs={results.results.filter((item) => item.type === "song")}
+                songs={mediaResults.filter((item) => item.type === "song")}
             />
             <AlbumsSection
-                albums={results.results.filter((item) => item.type === "album")}
+                albums={mediaResults.filter((item) => item.type === "album")}
             />
+            <ArtistsSection
+                artists={mediaResults.filter((item) => item.type === "artist")}
+            />
+            <PlaylistsSection
+                playlists={mediaResults.filter(
+                    (item) => item.type === "playlist"
+                )}
+            />
+            {results.youtube && results.youtube.videos.length > 0 && (
+                <VideosSection videos={results.youtube.videos} />
+            )}
+            {results.radio.length > 0 && (
+                <RadioSection stations={results.radio} />
+            )}
         </div>
     );
 }

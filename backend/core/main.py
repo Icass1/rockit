@@ -58,6 +58,8 @@ for dirpath, dirnames, filenames in os.walk("backend"):
         module = import_module(f"{'.'.join(dirpath.split('/'))}.{module_name}")
         try:
             app.include_router(module.router)
+            if hasattr(module, "public_router"):
+                app.include_router(module.public_router)
         except Exception as e:
             logger.error(f"Error including router {module_name}. ({e})")
 

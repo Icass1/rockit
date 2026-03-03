@@ -1,15 +1,25 @@
-import { SearchResultsResponse, SearchResultsResponseSchema } from "@/dto";
+import {
+    SearchResultsResponse,
+    SearchResultsResponseSchema,
+    YouTubeSearchResponseSchema,
+    type YouTubeSearchResponse,
+} from "@/dto";
 import { createAtom } from "@/lib/store";
 import { apiFetch } from "@/lib/utils/apiFetch";
+import { Station } from "@/types/station";
+
+export interface SearchResults {
+    media: SearchResultsResponse | undefined;
+    radio: Station[];
+    youtube: YouTubeSearchResponse | undefined;
+}
 
 export class SearchManager {
     // #region Atoms
 
     private _searchQueryAtom = createAtom<string>("");
     private _searchingAtom = createAtom<boolean>(false);
-    private _searchResultsAtom = createAtom<
-        SearchResultsResponse | undefined
-    >();
+    private _searchResultsAtom = createAtom<SearchResults | undefined>();
 
     // #endregion
 
@@ -19,34 +29,47 @@ export class SearchManager {
     // #region Methods
 
     async search(query: string) {
-        // Cancel any previous in-flight request so stale responses
-        // never overwrite a newer query's results
         this._abortController?.abort();
         this._abortController = new AbortController();
 
         this._searchQueryAtom.set(query);
         this._searchingAtom.set(true);
 
-        // NOTE: _searchResultsAtom is NOT cleared here on purpose.
-        // Previous results stay visible while the new request is in flight,
-        // preventing the "flash of empty content" between keystrokes.
-
         try {
-            const data = await apiFetch(
-                "/media/search?q=" + encodeURIComponent(query),
-                { signal: this._abortController.signal }
-            );
+            const [mediaRes, radioRes, youtubeRes] = await Promise.all([
+                apiFetch(`/media/search?q=${encodeURIComponent(query)}`, {
+                    signal: this._abortController.signal,
+                }),
+                fetch(
+                    `/radio/stations/byname/${encodeURIComponent(query)}?limit=5`,
+                    { signal: this._abortController.signal }
+                ),
+                apiFetch(`/youtube/search?q=${encodeURIComponent(query)}&limit=5`, {
+                    signal: this._abortController.signal,
+                }),
+            ]);
 
-            if (!data?.ok) return;
+            let media: SearchResultsResponse | undefined;
+            if (mediaRes?.ok) {
+                const mediaJson = await mediaRes.json();
+                media = SearchResultsResponseSchema.parse(mediaJson);
+            }
 
-            const json = await data.json();
-            const results = SearchResultsResponseSchema.parse(json);
-            this._searchResultsAtom.set(results);
+            let radio: Station[] = [];
+            if (radioRes.ok) {
+                radio = await radioRes.json();
+            }
+
+            let youtube: YouTubeSearchResponse | undefined;
+            if (youtubeRes?.ok) {
+                const youtubeJson = await youtubeRes.json();
+                youtube = YouTubeSearchResponseSchema.parse(youtubeJson);
+            }
+
+            this._searchResultsAtom.set({ media, radio, youtube });
         } catch (e) {
-            // AbortError is expected when a newer search supersedes this one
             if (e instanceof Error && e.name === "AbortError") return;
         } finally {
-            // Only stop the loading indicator if this request wasn't aborted
             if (!this._abortController?.signal.aborted) {
                 this._searchingAtom.set(false);
             }

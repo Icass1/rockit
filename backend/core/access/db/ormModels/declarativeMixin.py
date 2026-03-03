@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any, List
 
-from sqlalchemy import TIMESTAMP, Integer, String, func, event, DDL
+from sqlalchemy import TIMESTAMP, Integer, String, func, event
 from sqlalchemy.orm import mapped_column, declarative_mixin, Mapped, Mapper
 from sqlalchemy.schema import Table
 
@@ -42,16 +42,47 @@ def add_timestamp_trigger(
     disable_update = False
     disable_delete = False
 
-    # If the table has date_updated column → attach auto-update trigger
     if hasattr(class_, "date_updated"):
         trigger_name = f"{table_name}_update_timestamp"
-        ddl = DDL(f"""
-            CREATE TRIGGER {trigger_name}
-            BEFORE UPDATE ON {schema}.{table_name}
-            FOR EACH ROW
-            EXECUTE FUNCTION core.set_updated_timestamp();
-            """)
-        event.listen(table, "after_create", ddl)
+
+        triggers.append(f"""
+        DO $$
+        BEGIN
+            IF NOT EXISTS (
+                SELECT 1
+                FROM pg_proc
+                WHERE proname = 'set_updated_timestamp'
+                AND pronamespace = 'core'::regnamespace
+            ) THEN
+                EXECUTE '
+                CREATE OR REPLACE FUNCTION core.set_updated_timestamp()
+                RETURNS trigger AS $func$
+                BEGIN
+                    NEW.date_updated = NOW();
+                    RETURN NEW;
+                END;
+                $func$ LANGUAGE plpgsql;
+                ';
+            END IF;
+        END
+        $$;
+        """)
+        triggers.append(f"""
+                DO $$
+                BEGIN
+                    IF NOT EXISTS (
+                        SELECT 1
+                        FROM pg_trigger
+                        WHERE tgname = '{trigger_name}'
+                        AND tgrelid = '{schema}.{table_name}'::regclass
+                    ) THEN
+                        CREATE TRIGGER {trigger_name}
+                        BEFORE UPDATE ON {schema}.{table_name}
+                        FOR EACH ROW
+                        EXECUTE FUNCTION core.set_updated_timestamp();
+                    END IF;
+                END
+                $$;""")
     else:
         disable_update = True
 
@@ -62,32 +93,41 @@ def add_timestamp_trigger(
         func_name = "no_update"
         trigger_name = f"{table_name}_no_update"
         triggers.append(f"""
-        DO $$
-        BEGIN
-            IF NOT EXISTS (
-                SELECT 1
-                FROM pg_proc
-                WHERE proname = '{func_name}'
-                AND pronamespace = 'core'::regnamespace
-            ) THEN
-                EXECUTE '
-                CREATE FUNCTION core.{func_name}()
-                RETURNS trigger AS $func$
-                BEGIN
-                    RAISE EXCEPTION ''UPDATEs are not allowed on this table'';
-                END;
-                $func$ LANGUAGE plpgsql;
-                ';
-            END IF;
-        END;
-        $$;
-        """)
+            DO $$
+            BEGIN
+                IF NOT EXISTS (
+                    SELECT 1
+                    FROM pg_proc
+                    WHERE proname = '{func_name}'
+                    AND pronamespace = 'core'::regnamespace
+                ) THEN
+                    EXECUTE '
+                        CREATE FUNCTION core.{func_name}()
+                        RETURNS trigger AS $func$
+                        BEGIN
+                            RAISE EXCEPTION ''UPDATEs are not allowed on this table'';
+                        END;
+                        $func$ LANGUAGE plpgsql;
+                    ';
+                END IF;
+            END;
+            $$;""")
         triggers.append(f"""
-        CREATE TRIGGER {trigger_name}
-        BEFORE UPDATE ON {schema}.{table_name}
-        FOR EACH ROW
-        EXECUTE FUNCTION core.{func_name}();
-        """)
+                DO $$
+                BEGIN
+                    IF NOT EXISTS (
+                        SELECT 1
+                        FROM pg_trigger
+                        WHERE tgname = '{trigger_name}'
+                        AND tgrelid = '{schema}.{table_name}'::regclass
+                    ) THEN
+                        CREATE TRIGGER {trigger_name}
+                        BEFORE UPDATE ON {schema}.{table_name}
+                        FOR EACH ROW
+                        EXECUTE FUNCTION core.no_update();
+                    END IF;
+                END
+                $$;""")
 
     if disable_delete:
         func_name = "no_delete"
@@ -102,23 +142,33 @@ def add_timestamp_trigger(
                 AND pronamespace = 'core'::regnamespace
             ) THEN
                 EXECUTE '
-                CREATE FUNCTION core.{func_name}()
-                RETURNS trigger AS $func$
-                BEGIN
-                    RAISE EXCEPTION ''DELETEs are not allowed on this table'';
-                END;
-                $func$ LANGUAGE plpgsql;
+                    CREATE FUNCTION core.{func_name}()
+                    RETURNS trigger AS $func$
+                    BEGIN
+                        RAISE EXCEPTION ''DELETEs are not allowed on this table'';
+                    END;
+                    $func$ LANGUAGE plpgsql;
                 ';
             END IF;
         END;
         $$;
         """)
         triggers.append(f"""
-        CREATE TRIGGER {trigger_name}
-        BEFORE DELETE ON {schema}.{table_name}
-        FOR EACH ROW
-        EXECUTE FUNCTION core.{func_name}();
-        """)
+                DO $$
+                BEGIN
+                    IF NOT EXISTS (
+                        SELECT 1
+                        FROM pg_trigger
+                        WHERE tgname = '{trigger_name}'
+                        AND tgrelid = '{schema}.{table_name}'::regclass
+                    ) THEN
+                        CREATE TRIGGER {trigger_name}
+                        BEFORE DELETE ON {schema}.{table_name}
+                        FOR EACH ROW
+                        EXECUTE FUNCTION core.no_update();
+                    END IF;
+                END
+                $$;""")
 
 
 class TableDisableDelete:

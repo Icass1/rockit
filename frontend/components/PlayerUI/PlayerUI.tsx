@@ -41,7 +41,7 @@ export default function PlayerUI() {
     useEffect(() => {
         if (!$isPlayerUIVisible) return;
         const index = rockIt.queueManager.queue?.findIndex(
-            (s) => s.queueSongId === rockIt.queueManager.currentQueueSongId
+            (s) => s.queueMediaId === rockIt.queueManager.currentQueueMediaId
         );
         if (index == null || index === -1) return;
         const queueEl = divRef.current?.querySelector(

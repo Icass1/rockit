@@ -56,43 +56,43 @@ export function useLyrics() {
     useEffect(() => {
         if (!$currentSong?.publicId) return;
 
-        fetch(`/api/lyrics/${$currentSong.publicId}`)
-            .then((res) => res.json())
-            .then(
-                (
-                    data:
-                        | { dynamicLyrics: false; lyrics: string }
-                        | {
-                              dynamicLyrics: true;
-                              lyrics: { seconds: number; lyrics: string }[];
-                          }
-                ) => {
-                    if (!data.lyrics) {
-                        setLyricsState({ status: "empty" });
-                        return;
-                    }
+        // fetch(`/api/lyrics/${$currentSong.publicId}`)
+        //     .then((res) => res.json())
+        //     .then(
+        //         (
+        //             data:
+        //                 | { dynamicLyrics: false; lyrics: string }
+        //                 | {
+        //                       dynamicLyrics: true;
+        //                       lyrics: { seconds: number; lyrics: string }[];
+        //                   }
+        //         ) => {
+        //             if (!data.lyrics) {
+        //                 setLyricsState({ status: "empty" });
+        //                 return;
+        //             }
 
-                    if (data.dynamicLyrics) {
-                        setLyricsState({
-                            status: "dynamic",
-                            lines: data.lyrics.map((l) => l.lyrics),
-                            timestamps: data.lyrics.map((l, i) => ({
-                                time: l.seconds,
-                                index: i,
-                            })),
-                        });
-                    } else {
-                        setLyricsState({
-                            status: "static",
-                            lines: data.lyrics.split("\n"),
-                        });
-                    }
-                }
-            )
-            .catch(() => {
-                // Silently fall back — lyrics are non-critical
-                setLyricsState({ status: "empty" });
-            });
+        //             if (data.dynamicLyrics) {
+        //                 setLyricsState({
+        //                     status: "dynamic",
+        //                     lines: data.lyrics.map((l) => l.lyrics),
+        //                     timestamps: data.lyrics.map((l, i) => ({
+        //                         time: l.seconds,
+        //                         index: i,
+        //                     })),
+        //                 });
+        //             } else {
+        //                 setLyricsState({
+        //                     status: "static",
+        //                     lines: data.lyrics.split("\n"),
+        //                 });
+        //             }
+        //         }
+        //     )
+        //     .catch(() => {
+        //         // Silently fall back — lyrics are non-critical
+        //         setLyricsState({ status: "empty" });
+        //     });
     }, [$currentSong?.publicId]);
 
     // --- Keyboard navigation ---

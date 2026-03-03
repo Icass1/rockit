@@ -4,6 +4,8 @@ export const SessionResponseSchema = z.object({
     username: z.string(),
     image: z.string(),
     admin: z.boolean(),
+    queueType: z.any(),
+    currentTime: z.number().nullable(),
 });
 
 export type SessionResponse = z.infer<typeof SessionResponseSchema>;

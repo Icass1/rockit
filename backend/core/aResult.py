@@ -10,6 +10,7 @@ class AResultCode:
     BAD_REQUEST = 0x4
     NOT_IMPLEMENTED = 0x5
     ALREADY_EXISTS = 0x6
+    VALIDATION_ERROR = 0x7
 
     _code: int
     _message: str

@@ -1,5 +1,6 @@
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createAtom } from "@/lib/store";
+import { ERepeatMode } from "@/models/enums/repeatMode";
 
 export class AudioManager {
     static #instance: AudioManager;
@@ -97,7 +98,9 @@ export class AudioManager {
             return;
         }
         if (
-            rockIt.queueManager.currentSong?.audioSrc &&
+            rockIt.queueManager.currentSong &&
+            rockIt.queueManager.currentSong.audioSrc &&
+            rockIt.queueManager.currentQueueMediaId &&
             this._audio.src != rockIt.queueManager.currentSong.audioSrc
         ) {
             console.log(
@@ -108,7 +111,7 @@ export class AudioManager {
 
             rockIt.webSocketManager.sendCurrentMedia({
                 mediaPublicId: rockIt.queueManager.currentSong.publicId,
-                queueIndex: 1,
+                queueMediaId: rockIt.queueManager.currentQueueMediaId,
             });
         }
     }
@@ -240,9 +243,9 @@ export class AudioManager {
 
     private handleAudioEnded() {
         const currentSong = rockIt.queueManager.currentSong;
-        const repeat = rockIt.userManager.repeatSongAtom.get();
+        const repeat = rockIt.userManager.repeatModeAtom.get();
         const queue = rockIt.queueManager.queue;
-        const currentQueueSongId = rockIt.queueManager.currentQueueSongId;
+        const currentQueueMediaId = rockIt.queueManager.currentQueueMediaId;
 
         if (currentSong) {
             rockIt.webSocketManager.sendMediaEnded({
@@ -250,20 +253,21 @@ export class AudioManager {
             });
         }
 
-        if (repeat === "one") {
+        if (repeat === ERepeatMode.ONE) {
             this.play();
             return;
         }
 
         const nextIndex =
-            queue.findIndex((item) => item.queueSongId === currentQueueSongId) +
-            1;
+            queue.findIndex(
+                (item) => item.queueMediaId === currentQueueMediaId
+            ) + 1;
 
         if (nextIndex < queue.length) {
-            rockIt.queueManager.setQueueSongId(queue[nextIndex].queueSongId);
+            rockIt.queueManager.setQueueMediaId(queue[nextIndex].queueMediaId);
             this.play();
-        } else if (repeat === "all" && queue.length > 0) {
-            rockIt.queueManager.setQueueSongId(queue[0].queueSongId);
+        } else if (repeat === ERepeatMode.ALL && queue.length > 0) {
+            rockIt.queueManager.setQueueMediaId(queue[0].queueMediaId);
             this.play();
         } else {
             this.pause();

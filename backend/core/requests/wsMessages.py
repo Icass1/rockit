@@ -9,12 +9,12 @@ class MediaEndedMessageRequest(BaseModel):
 
 class CurrentMediaMessageRequest(BaseModel):
     mediaPublicId: str
-    queueIndex: int
+    queueMediaId: int
 
 
 class CurrentQueueMessageRequestItem(BaseModel):
     publicId: str
-    queueIndex: int
+    queueMediaId: int
 
 
 class CurrentQueueMessageRequest(BaseModel):

@@ -25,7 +25,7 @@ class UserQueueRow(CoreBase, TableAutoincrementId, TableDateAdded):
     media_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("core.media.id"), nullable=False
     )
-    queue_index: Mapped[int] = mapped_column(Integer, nullable=False)
+    queue_media_id: Mapped[int] = mapped_column(Integer, nullable=False)
     queue_type_key: Mapped[int] = mapped_column(
         Integer, ForeignKey("core.queue_type_enum.key"), nullable=False
     )
@@ -35,12 +35,12 @@ class UserQueueRow(CoreBase, TableAutoincrementId, TableDateAdded):
     queue_type_enum: Mapped["QueueTypeEnumRow"] = relationship("QueueTypeEnumRow")
 
     def __init__(
-        self, user_id: int, media_id: int, queue_index: int, queue_type_key: int
+        self, user_id: int, media_id: int, queue_media_id: int, queue_type_key: int
     ):
         kwargs: Dict[str, int] = {}
         kwargs["user_id"] = user_id
         kwargs["media_id"] = media_id
-        kwargs["queue_index"] = queue_index
+        kwargs["queue_media_id"] = queue_media_id
         kwargs["queue_type_key"] = queue_type_key
         for k, v in kwargs.items():
             setattr(self, k, v)

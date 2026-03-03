@@ -19,7 +19,7 @@ export class AlbumManager {
 
         if (startSongPublicId)
             rockIt.queueManager.moveToSong(startSongPublicId);
-        else rockIt.queueManager.setQueueSongId(0);
+        else rockIt.queueManager.setQueueMediaId(0);
 
         rockIt.audioManager.play();
     }

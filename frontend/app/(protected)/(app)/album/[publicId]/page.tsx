@@ -44,5 +44,7 @@ export default async function AlbumPage({
         externalImages: [],
     };
 
+    albumWithSongs.songs.sort((a, b) => a.trackNumber - b.trackNumber);
+
     return <RenderAlbum album={albumWithSongs} />;
 }

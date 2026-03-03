@@ -3,13 +3,16 @@ import json
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from logging import Logger
 
-from backend.constants import SESSION_COOKIE
-from backend.core import rockit_db
 from backend.core.aResult import AResult
-from backend.core.access.db.ormModels.session import SessionRow
-from backend.core.framework.auth.session import Session
-from backend.core.framework.websocket.webSocketManager import rockit_ws_manager
 from backend.utils.logger import getLogger
+from backend.constants import SESSION_COOKIE
+
+from backend.core import rockit_db
+
+from backend.core.access.db.ormModels.session import SessionRow
+
+from backend.core.framework.auth.session import Session
+from backend.core.framework.websocket.webSocketManager import ws_manager
 
 logger: Logger = getLogger(__name__)
 router = APIRouter(prefix="/ws")
@@ -41,15 +44,15 @@ async def websocket_endpoint(websocket: WebSocket) -> None:
         await websocket.close(code=e.code, reason=e.reason)
         return
 
-    await rockit_ws_manager.connect(user_id, websocket)
+    await ws_manager.connect(user_id, websocket)
 
     try:
         while True:
-            data = await websocket.receive_text()
+            data: str = await websocket.receive_text()
             try:
                 message: dict[str, object] = json.loads(data)
-                await rockit_ws_manager.handle_client_message(user_id, message)
+                await ws_manager.handle_client_message(user_id, message)
             except json.JSONDecodeError:
                 logger.warning(f"Invalid JSON received from user {user_id}")
     except WebSocketDisconnect:
-        rockit_ws_manager.disconnect(user_id, websocket)
+        ws_manager.disconnect(user_id, websocket)

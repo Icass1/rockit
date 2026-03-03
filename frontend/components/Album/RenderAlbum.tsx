@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { BaseAlbumWithSongsResponse } from "@/dto";
 import { groupBy } from "lodash";
@@ -39,6 +39,7 @@ export default function RenderAlbum({
         (acc, s) => acc + (s.duration || 0),
         0
     );
+
     const discs = groupBy(album.songs, (song) => song.discNumber);
 
     return (

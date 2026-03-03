@@ -11,6 +11,7 @@ import {
     SkipForward,
 } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { ERepeatMode } from "@/models/enums/repeatMode";
 
 const S = {
     controls: {
@@ -48,7 +49,7 @@ interface PiPControlsProps {
 
 export function PiPControls({ show }: PiPControlsProps) {
     const $playing = useStore(rockIt.audioManager.playingAtom);
-    const $repeatSong = useStore(rockIt.userManager.repeatSongAtom);
+    const $repeatSong = useStore(rockIt.userManager.repeatModeAtom);
 
     if (!show) return null;
 
@@ -87,7 +88,7 @@ export function PiPControls({ show }: PiPControlsProps) {
                 style={S.iconBtn}
                 onClick={() => rockIt.userManager.cyclerepeatSong()}
             >
-                {$repeatSong === "one" ? (
+                {$repeatSong === ERepeatMode.ONE ? (
                     <Repeat1 style={S.icon} color="white" />
                 ) : (
                     <Repeat style={S.icon} color="white" />

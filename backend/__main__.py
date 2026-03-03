@@ -1,11 +1,7 @@
-from backend.core.access.db import rockit_db  # type: ignore
-from backend.utils.logger import getLogger
 import asyncio
 
-import os
-
-os.environ["SKIP_INITIAL_CONTENT"] = "true"
-
+from backend.utils.logger import getLogger
+from backend.core.access.db import rockit_db  # type: ignore
 
 logger = getLogger(__name__)
 

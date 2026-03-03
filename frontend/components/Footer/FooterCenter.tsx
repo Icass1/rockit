@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
+import { EQueueType } from "@/models/enums/queueType";
+import { ERepeatMode } from "@/models/enums/repeatMode";
 import Slider from "@/components/Slider";
 import Spinner from "@/components/Spinner";
 
@@ -25,20 +27,21 @@ export default function FooterCenter() {
     const $currentTime = useStore(rockIt.audioManager.currentTimeAtom);
     const $loading = useStore(rockIt.audioManager.loadingAtom);
     const $currentSong = useStore(rockIt.queueManager.currentSongAtom);
-    const $randomQueue = useStore(rockIt.userManager.randomQueueAtom);
-    const $repeatSong = useStore(rockIt.userManager.repeatSongAtom);
+    const $queueType = useStore(rockIt.userManager.queueTypeAtom);
+    const $repeatSong = useStore(rockIt.userManager.repeatModeAtom);
     const $currentStation = useStore(rockIt.stationManager.currentStationAtom);
 
     // Station mode — hide playback controls, keep layout slot
     if ($currentStation) return <div className="hidden w-1/3 md:block" />;
 
-    const RepeatIcon = $repeatSong === "one" ? Repeat1 : Repeat;
-    const isRepeatActive = $repeatSong === "one" || $repeatSong === "all";
+    const RepeatIcon = $repeatSong === ERepeatMode.ONE ? Repeat1 : Repeat;
+    const isRepeatActive =
+        $repeatSong === ERepeatMode.ONE || $repeatSong === ERepeatMode.ALL;
 
     const repeatLabel =
-        $repeatSong === "one"
+        $repeatSong === ERepeatMode.ONE
             ? "Repeat one"
-            : $repeatSong === "all"
+            : $repeatSong === ERepeatMode.ALL
               ? "Repeat all"
               : "No repeat";
 
@@ -48,13 +51,13 @@ export default function FooterCenter() {
             <div className="grid grid-cols-5 items-center justify-items-center gap-2">
                 <button
                     aria-label={
-                        $randomQueue ? "Disable shuffle" : "Enable shuffle"
+                        $queueType ? "Disable shuffle" : "Enable shuffle"
                     }
-                    aria-pressed={$randomQueue}
+                    aria-pressed={$queueType === EQueueType.RANDOM}
                     onClick={() => rockIt.userManager.toggleRandomQueue()}
                 >
                     <Shuffle
-                        className={`h-4.5 w-4.5 transition-colors md:hover:scale-105 ${$randomQueue ? ACTIVE : "text-gray-400"}`}
+                        className={`h-4.5 w-4.5 transition-colors md:hover:scale-105 ${$queueType ? ACTIVE : "text-gray-400"}`}
                     />
                 </button>
 

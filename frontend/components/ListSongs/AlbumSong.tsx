@@ -21,8 +21,8 @@ export default function AlbumSong({
 }) {
     const [hovered, setHovered] = useState(false);
     const $queue = useStore(rockIt.queueManager.queueAtom);
-    const $currentQueueSongId = useStore(
-        rockIt.queueManager.currentQueueSongIdAtom
+    const $currentQueueMediaId = useStore(
+        rockIt.queueManager.currentQueueMediaIdAtom
     );
     const $currentList = useStore(rockIt.queueManager.currentListAtom);
     const $songsInIndexedDB = useStore(
@@ -45,12 +45,12 @@ export default function AlbumSong({
 
     const songPlaying = useMemo(() => {
         return (
-            $queue.find((song) => song.queueSongId == $currentQueueSongId)
+            $queue.find((song) => song.queueMediaId == $currentQueueMediaId)
                 ?.listPublicId == $currentList &&
-            $queue.find((song) => song.queueSongId == $currentQueueSongId)?.song
-                .publicId == song.publicId
+            $queue.find((song) => song.queueMediaId == $currentQueueMediaId)
+                ?.song.publicId == song.publicId
         );
-    }, [song.publicId, $currentList, $queue, $currentQueueSongId]);
+    }, [song.publicId, $currentList, $queue, $currentQueueMediaId]);
 
     if (!$queue) return <div></div>;
 

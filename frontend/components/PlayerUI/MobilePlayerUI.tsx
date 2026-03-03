@@ -28,7 +28,7 @@ export default function MobilePlayerUI() {
     const $playing = useStore(rockIt.audioManager.playingAtom);
     const $currentTime = useStore(rockIt.audioManager.currentTimeAtom);
     const $currentSong = useStore(rockIt.queueManager.currentSongAtom);
-    const $randomQueue = useStore(rockIt.userManager.randomQueueAtom);
+    const $queueType = useStore(rockIt.userManager.queueTypeAtom);
 
     const { width: innerWidth } = useWindowSize();
     const [queueOpen, setQueueOpen] = useState(false);
@@ -149,7 +149,7 @@ export default function MobilePlayerUI() {
                         aria-label="Shuffle"
                     >
                         <Shuffle
-                            className={`h-6 w-6 ${$randomQueue ? "text-[#ee1086]" : "text-white"}`}
+                            className={`h-6 w-6 ${$queueType ? "text-[#ee1086]" : "text-white"}`}
                         />
                     </button>
 

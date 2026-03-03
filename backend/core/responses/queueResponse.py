@@ -5,11 +5,11 @@ from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumRe
 
 
 class QueueResponseItem(BaseModel):
-    queueSongId: int
+    queueMediaId: int
     listPublicId: str
     song: BaseSongWithAlbumResponse
 
 
 class QueueResponse(BaseModel):
-    currentQueueSongId: int | None
+    currentQueueMediaId: int | None
     queue: List[QueueResponseItem]

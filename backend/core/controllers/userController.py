@@ -18,6 +18,8 @@ from backend.core.access.db.ormModels.user_media import UserMediaRow
 
 from backend.core.framework.user.user import User
 
+from backend.core.enums.queueTypeEnum import QueueTypeEnum
+
 from backend.core.responses.okResponse import OkResponse
 from backend.core.responses.queueResponse import QueueResponse
 from backend.core.responses.sessionResponse import SessionResponse
@@ -57,20 +59,24 @@ async def get_session(request: Request) -> SessionResponse:
         username=a_result_user.result().username,
         image=image,
         admin=a_result_user.result().admin,
+        queueType=QueueTypeEnum(value=a_result_user.result().queue_type_key),
+        currentTime=a_result_user.result().current_time,
     )
 
 
 @router.get(path="/queue")
-def get_queue(request: Request) -> QueueResponse:
+async def get_queue(request: Request) -> QueueResponse:
+
     a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
     if a_result_user.is_not_ok():
         logger.error(f"Error getting current user. {a_result_user.info()}")
         raise HTTPException(
             status_code=a_result_user.get_http_code(), detail=a_result_user.message()
         )
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
 
-    a_result_queue: AResult[QueueResponse] = User.get_user_queue(
-        user_id=a_result_user.result().id
+    a_result_queue: AResult[QueueResponse] = await User.get_user_queue_async(
+        session=session, user_id=a_result_user.result().id
     )
     if a_result_queue.is_not_ok():
         logger.error(f"Error getting user queue. {a_result_queue.info()}")

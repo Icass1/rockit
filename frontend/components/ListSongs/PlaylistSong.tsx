@@ -26,8 +26,8 @@ export default function PlaylistSong({
     const [hovered, setHovered] = useState(false);
 
     const $queue = useStore(rockIt.queueManager.queueAtom);
-    const $currentQueueSongId = useStore(
-        rockIt.queueManager.currentQueueSongIdAtom
+    const $currentQueueMediaId = useStore(
+        rockIt.queueManager.currentQueueMediaIdAtom
     );
     const $currentList = useStore(rockIt.queueManager.currentListAtom);
     const $networkStatus = useStore(networkStatus);
@@ -51,10 +51,10 @@ export default function PlaylistSong({
                         "pointer-events-none opacity-40") +
                     // If the song is playing and is from this playlist, change color, if the song has been added to the queue clicking the album, it won't show the color
                     ($queue.find(
-                        (song) => song.queueSongId == $currentQueueSongId
+                        (song) => song.queueMediaId == $currentQueueMediaId
                     )?.listPublicId == $currentList &&
                     $queue.find(
-                        (song) => song.queueSongId == $currentQueueSongId
+                        (song) => song.queueMediaId == $currentQueueMediaId
                     )?.song.publicId == song.song.publicId
                         ? " text-[#ec5588]"
                         : "")

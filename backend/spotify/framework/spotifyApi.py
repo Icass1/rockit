@@ -124,9 +124,9 @@ class SpotifyApi:
                 return AResult(
                     code=AResultCode.OK, message="OK", result=json.loads(result.content)
                 )
-            except:
+            except Exception as e:
                 logger.critical(
-                    f"Unable to load json. {result.content=}, {result.text=} {result.status_code=}"
+                    f"Unable to load json {e}. {result.content=}, {result.text=} {result.status_code=}"
                 )
                 return AResult(
                     code=AResultCode.GENERAL_ERROR, message="Unable to parse json"

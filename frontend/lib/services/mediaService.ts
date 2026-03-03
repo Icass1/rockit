@@ -6,7 +6,6 @@ import {
 import { apiFetch } from "@/lib/utils/apiFetch";
 
 export async function getAlbumAsync(publicId: string) {
-    console.log("getAlbumAsync", publicId);
     const response = await apiFetch(`/media/album/${publicId}`, {
         auth: false,
     });

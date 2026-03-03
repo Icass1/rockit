@@ -1,25 +1,30 @@
-from typing import List
+from typing import List, Tuple
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.aResult import AResult, AResultCode
 from backend.core.access.db.ormModels.media import CoreMediaRow
+from backend.core.access.db.ormModels.provider import ProviderRow
+from backend.core.access.db.ormModels.user import UserRow
 from backend.core.access.db.ormModels.user_media import UserMediaRow
 from backend.core.access.db.ormModels.user_liked_media import UserLikedMediaRow
+from backend.core.access.db.ormModels.user_queue import UserQueueRow
 from backend.core.responses.baseAlbumWithoutSongsResponse import (
     BaseAlbumWithoutSongsResponse,
 )
+from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from backend.utils.logger import getLogger
 
 from backend.core.access.userAccess import UserAccess
 from backend.core.access.mediaAccess import MediaAccess
 from backend.core.access.userLikedMediaAccess import UserLikedMediaAccess
+from backend.core.access.userQueueAccess import UserQueueAccess
 from backend.core.enums.mediaTypeEnum import MediaTypeEnum
 
 from backend.core.framework.provider.baseProvider import BaseProvider
 from backend.core.framework import providers
 
-from backend.core.responses.queueResponse import QueueResponse
+from backend.core.responses.queueResponse import QueueResponse, QueueResponseItem
 from backend.core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
 
 logger = getLogger(__name__)
@@ -27,11 +32,67 @@ logger = getLogger(__name__)
 
 class User:
     @staticmethod
-    def get_user_queue(user_id: int) -> AResult[QueueResponse]:
+    async def get_user_queue_async(
+        session: AsyncSession, user_id: int
+    ) -> AResult[QueueResponse]:
+        """Get the user's queue with all songs."""
+
+        a_result_user: AResult[UserRow] = await UserAccess.get_user_from_id(
+            session=session, user_id=user_id
+        )
+        if a_result_user.is_not_ok():
+            logger.error(f"Error getting user. {a_result_user.info()}")
+            return AResult(code=a_result_user.code(), message=a_result_user.message())
+
+        user: UserRow = a_result_user.result()
+        current_queue_media_id: int | None = user.current_queue_media_id
+
+        a_result_queue: AResult[List[UserQueueRow]] = (
+            await UserQueueAccess.get_all_user_queues(session=session, user_id=user_id)
+        )
+        if a_result_queue.is_not_ok():
+            logger.error(f"Error getting user queue. {a_result_queue.info()}")
+            return AResult(code=a_result_queue.code(), message=a_result_queue.message())
+
+        queue_items: List[UserQueueRow] = a_result_queue.result()
+
+        queue: List[QueueResponseItem] = []
+        for item in queue_items:
+            media: CoreMediaRow = item.media
+            provider: BaseProvider | None = providers.find_provider(
+                provider_id=media.provider_id
+            )
+            if provider is None:
+                logger.error(f"No provider found for provider_id {media.provider_id}.")
+                continue
+
+            a_result_song: AResult[BaseSongWithAlbumResponse] = (
+                await provider.get_song_async(
+                    session=session, public_id=media.public_id
+                )
+            )
+            if a_result_song.is_not_ok():
+                logger.error(
+                    f"Error getting song from provider. {a_result_song.info()}"
+                )
+                continue
+
+            song: BaseSongWithAlbumResponse = a_result_song.result()
+
+            queue.append(
+                QueueResponseItem(
+                    queueMediaId=item.queue_media_id,
+                    listPublicId=song.album.publicId,
+                    song=song,
+                )
+            )
+
         return AResult(
             code=AResultCode.OK,
             message="OK",
-            result=QueueResponse(currentQueueSongId=None, queue=[]),
+            result=QueueResponse(
+                currentQueueMediaId=current_queue_media_id, queue=queue
+            ),
         )
 
     @staticmethod
@@ -40,9 +101,9 @@ class User:
     ) -> AResult[List[BaseAlbumWithoutSongsResponse]]:
         """Get all albums for a user."""
 
-        a_result_albums = await UserAccess.get_user_medias(
-            session=session, user_id=user_id
-        )
+        a_result_albums: AResult[
+            List[Tuple[UserMediaRow, CoreMediaRow, ProviderRow]]
+        ] = await UserAccess.get_user_medias(session=session, user_id=user_id)
 
         if a_result_albums.is_not_ok():
             logger.error(f"Error getting user albums. {a_result_albums.info()}")
@@ -248,8 +309,10 @@ class User:
 
             song_media: CoreMediaRow = a_result_song_media.result()
 
-            a_result_like: AResult[UserLikedMediaRow] = await UserLikedMediaAccess.add_like(
-                session=session, user_id=user_id, media_id=song_media.id
+            a_result_like: AResult[UserLikedMediaRow] = (
+                await UserLikedMediaAccess.add_like(
+                    session=session, user_id=user_id, media_id=song_media.id
+                )
             )
             if a_result_like.is_ok():
                 liked_songs.append(a_result_like.result())
@@ -400,3 +463,64 @@ class User:
             return AResult(code=a_result.code(), message=a_result.message())
 
         return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+
+    @staticmethod
+    async def update_user_current_media(
+        session: AsyncSession, user_id: int, queue_media_id: int, media_public_id: str
+    ) -> AResult[bool]:
+        """Update user's current queue media after validating the public ID matches."""
+
+        a_result_queue_item: AResult[UserQueueRow] = (
+            await UserQueueAccess.get_queue_item_by_queue_media_id(
+                session=session, user_id=user_id, queue_media_id=queue_media_id
+            )
+        )
+        if a_result_queue_item.is_not_ok():
+            logger.error(f"Error getting queue item. {a_result_queue_item.info()}")
+            return AResult(
+                code=a_result_queue_item.code(), message=a_result_queue_item.message()
+            )
+
+        queue_item: UserQueueRow = a_result_queue_item.result()
+
+        if queue_item.media.public_id != media_public_id:
+            logger.error(
+                f"Media public ID mismatch. Expected {queue_item.media.public_id}, got {media_public_id}"
+            )
+            return AResult(
+                code=AResultCode.VALIDATION_ERROR, message="Media public ID mismatch"
+            )
+
+        a_result_user: AResult[UserRow] = await UserAccess.get_user_from_id(
+            session=session, user_id=user_id
+        )
+        if a_result_user.is_not_ok():
+            logger.error(f"Error getting user. {a_result_user.info()}")
+            return AResult(code=a_result_user.code(), message=a_result_user.message())
+
+        user: UserRow = a_result_user.result()
+        user.current_queue_media_id = queue_media_id
+
+        await session.commit()
+
+        return AResult(code=AResultCode.OK, message="OK", result=True)
+
+    @staticmethod
+    async def update_user_current_time(
+        session: AsyncSession, user_id: int, current_time: float
+    ) -> AResult[bool]:
+        """Update user's current playback time."""
+
+        a_result_user: AResult[UserRow] = await UserAccess.get_user_from_id(
+            session=session, user_id=user_id
+        )
+        if a_result_user.is_not_ok():
+            logger.error(f"Error getting user. {a_result_user.info()}")
+            return AResult(code=a_result_user.code(), message=a_result_user.message())
+
+        user: UserRow = a_result_user.result()
+        user.current_time = current_time
+
+        await session.commit()
+
+        return AResult(code=AResultCode.OK, message="OK", result=True)

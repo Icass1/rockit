@@ -4,10 +4,16 @@ from typing import Any, Dict, List, Set
 from fastapi import WebSocket
 
 from backend.core.aResult import AResult
+from backend.utils.logger import getLogger
+
 from backend.core.access.db import rockit_db
 from backend.core.access.db.ormModels.media import CoreMediaRow
+
 from backend.core.access.mediaAccess import MediaAccess
 from backend.core.access.userQueueAccess import UserQueueAccess
+
+from backend.core.framework.user.user import User
+
 from backend.core.responses.downloadProgressMessage import DownloadProgressMessage
 from backend.core.requests.wsMessages import (
     MediaEndedMessageRequest,
@@ -18,7 +24,6 @@ from backend.core.requests.wsMessages import (
     SkipClickedMessageRequest,
     SeekMessageRequest,
 )
-from backend.utils.logger import getLogger
 
 logger = getLogger(__name__)
 
@@ -85,14 +90,28 @@ class WebSocketManager:
         elif message_type == "current_media":
             current_media_msg = CurrentMediaMessageRequest(**data)
             logger.info(
-                f"User {user_id} current media: {current_media_msg.mediaPublicId}"
+                f"User {user_id} current media: {current_media_msg.mediaPublicId}, queue media id: {current_media_msg.queueMediaId}"
             )
-        elif message_type == "current_queue":
-            current_queue_msg = CurrentQueueMessageRequest(**data)
-            logger.info(f"User {user_id} current queue: {current_queue_msg.queue}")
 
             try:
                 async with rockit_db.session_scope_async() as session:
+                    a_result = await User.update_user_current_media(
+                        session=session,
+                        user_id=user_id,
+                        queue_media_id=current_media_msg.queueMediaId,
+                        media_public_id=current_media_msg.mediaPublicId,
+                    )
+                    if a_result.is_not_ok():
+                        logger.error(f"Error updating current media. {a_result.info()}")
+            except Exception as e:
+                logger.error(f"Error updating current media: {e}", exc_info=True)
+
+        elif message_type == "current_queue":
+            current_queue_msg = CurrentQueueMessageRequest(**data)
+
+            try:
+                async with rockit_db.session_scope_async() as session:
+
                     a_result_media: AResult[List[CoreMediaRow]] = (
                         await MediaAccess.get_medias_from_public_ids_async(
                             session=session,
@@ -119,7 +138,7 @@ class WebSocketManager:
                             )
                             continue
 
-                        queue_items.append((item.queueIndex, item_id))
+                        queue_items.append((item.queueMediaId, item_id))
 
                     await UserQueueAccess.save_user_queue(
                         session=session,
@@ -131,7 +150,19 @@ class WebSocketManager:
                 logger.error(f"Error saving user queue: {e}", exc_info=True)
         elif message_type == "current_time":
             current_time_msg = CurrentTimeMessageRequest(**data)
-            logger.info(f"User {user_id} current time: {current_time_msg.currentTime}")
+
+            try:
+                async with rockit_db.session_scope_async() as session:
+                    a_result = await User.update_user_current_time(
+                        session=session,
+                        user_id=user_id,
+                        current_time=current_time_msg.currentTime,
+                    )
+                    if a_result.is_not_ok():
+                        logger.error(f"Error updating current time. {a_result.info()}")
+            except Exception as e:
+                logger.error(f"Error updating current time: {e}", exc_info=True)
+
         elif message_type == "media_clicked":
             media_clicked_msg = MediaClickedMessageRequest(**data)
             logger.info(
@@ -151,4 +182,4 @@ class WebSocketManager:
             logger.warning(f"Unknown message type: {message_type}")
 
 
-rockit_ws_manager = WebSocketManager()
+ws_manager = WebSocketManager()

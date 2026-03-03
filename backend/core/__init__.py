@@ -1,4 +1,3 @@
-import os
 import sys
 import asyncio
 
@@ -60,5 +59,14 @@ async def add_initial_content():
         )
 
 
-if not os.environ.get("SKIP_INITIAL_CONTENT"):
-    asyncio.create_task(add_initial_content())
+async def main():
+    await add_initial_content()
+
+
+try:
+    # Try to get running loop
+    loop = asyncio.get_running_loop()
+    loop.create_task(add_initial_content())
+except RuntimeError:
+    # No running loop → create one and run
+    asyncio.run(main())

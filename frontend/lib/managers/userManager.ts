@@ -2,12 +2,14 @@ import { SessionResponse } from "@/dto";
 import { getUserInClient } from "@/lib/getUserInClient";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createAtom } from "@/lib/store";
+import { EQueueType } from "@/models/enums/queueType";
+import { ERepeatMode } from "@/models/enums/repeatMode";
 
 export class UserManager {
     // #region: Atoms
 
-    private _randomQueueAtom = createAtom<boolean>(false);
-    private _repeatSongAtom = createAtom<"all" | "one" | "off">("off");
+    private _queueTypeAtom = createAtom<EQueueType>(EQueueType.SORTED);
+    private _repeatModeAtom = createAtom<ERepeatMode>(ERepeatMode.OFF);
 
     private _userAtom = createAtom<SessionResponse | undefined>();
 
@@ -29,26 +31,29 @@ export class UserManager {
 
     // #region: Methods
     toggleRandomQueue() {
-        const newState = !this._randomQueueAtom.get();
-        this._randomQueueAtom.set(newState);
+        const modes = Object.values(EQueueType).filter(
+            (v) => typeof v === "number"
+        ) as EQueueType[];
+        const current = this._queueTypeAtom.get();
+        const next = modes[(modes.indexOf(current) + 1) % modes.length];
+        this._queueTypeAtom.set(next);
 
         if (!rockIt.queueManager.queue.length) return;
 
-        if (newState) {
+        if (this._queueTypeAtom.get() == EQueueType.RANDOM) {
             rockIt.queueManager.shuffleQueue();
-        } else {
+        } else if (this._queueTypeAtom.get() == EQueueType.SORTED) {
             rockIt.queueManager.restoreOriginalQueue();
         }
     }
 
     cyclerepeatSong() {
-        this._repeatSongAtom.set(
-            this._repeatSongAtom.get() === "off"
-                ? "all"
-                : this._repeatSongAtom.get() === "all"
-                  ? "one"
-                  : "off"
-        );
+        const modes = Object.values(ERepeatMode).filter(
+            (v) => typeof v === "number"
+        ) as ERepeatMode[];
+        const current = this._repeatModeAtom.get();
+        const next = modes[(modes.indexOf(current) + 1) % modes.length];
+        this._repeatModeAtom.set(next);
     }
 
     async setLangAsync(lang: string) {
@@ -67,11 +72,12 @@ export class UserManager {
 
     // #region: Getters
 
-    get randomQueueAtom() {
-        return this._randomQueueAtom;
+    get queueTypeAtom() {
+        return this._queueTypeAtom;
     }
-    get repeatSongAtom() {
-        return this._repeatSongAtom;
+
+    get repeatModeAtom() {
+        return this._repeatModeAtom;
     }
 
     get userAtom() {

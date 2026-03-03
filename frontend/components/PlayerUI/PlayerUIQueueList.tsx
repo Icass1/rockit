@@ -38,8 +38,8 @@ export function PlayerUIQueueList({
     queueScroll,
     lang,
 }: PlayerUIQueueListProps) {
-    const $currentQueueSongId = useStore(
-        rockIt.queueManager.currentQueueSongIdAtom
+    const $currentQueueMediaId = useStore(
+        rockIt.queueManager.currentQueueMediaIdAtom
     );
     const { draggingSong, startDrag, calcItemTop } = useQueueDrag();
 
@@ -59,13 +59,13 @@ export function PlayerUIQueueList({
                     draggingSong?.song.song.publicId ===
                     queueSong.song.publicId;
 
-                if (top > queueScroll + 500 || top < queueScroll - 500) {
-                    return null;
-                }
+                // if (top > queueScroll || top < queueScroll) {
+                //     return null;
+                // }
 
                 return (
                     <div
-                        key={`${queueSong.song.publicId}-${queueSong.queueSongId}`}
+                        key={`${queueSong.song.publicId}-${queueSong.queueMediaId}`}
                         className={`absolute w-full ${isDragging ? "z-10" : "transition-[top] duration-200"}`}
                         style={{
                             top: `${top + 20}px`,
@@ -108,8 +108,8 @@ export function PlayerUIQueueList({
                                 <ContextMenuOption
                                     onClick={() => handleRemoveSong(queueSong)}
                                     disable={
-                                        $currentQueueSongId ===
-                                        queueSong.queueSongId
+                                        $currentQueueMediaId ===
+                                        queueSong.queueMediaId
                                     }
                                 >
                                     <ListX className="h-5 w-5" />
@@ -139,7 +139,7 @@ export function PlayerUIQueueList({
                 </h2>
                 {AUTO_PLAY_MOCKS.map((mock, i) => {
                     const autoSong: QueueResponseItem = {
-                        queueSongId: -i - 1, // Negative IDs for mock songs
+                        queueMediaId: -i - 1, // Negative IDs for mock songs
                         listPublicId: "",
                         song: {
                             downloaded: false,
@@ -218,8 +218,8 @@ export function PlayerUIQueueList({
                                             handleRemoveSong(autoSong)
                                         }
                                         disable={
-                                            $currentQueueSongId ===
-                                            autoSong.queueSongId
+                                            $currentQueueMediaId ===
+                                            autoSong.queueMediaId
                                         }
                                     >
                                         <ListX className="h-5 w-5" />

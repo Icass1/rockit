@@ -6,7 +6,7 @@ import yt_dlp  # type: ignore[import]
 
 from backend.constants import TEMP_PATH
 from backend.core.aResult import AResult, AResultCode
-from backend.core.framework.websocket.webSocketManager import rockit_ws_manager
+from backend.core.framework.websocket.webSocketManager import ws_manager
 from backend.utils.logger import getLogger
 
 logger = getLogger(__name__)
@@ -105,7 +105,7 @@ class YouTubeDownloader:
                     percent: float = (downloaded_bytes / total_bytes) * 100
                     loop.call_soon_threadsafe(
                         asyncio.create_task,
-                        rockit_ws_manager.broadcast_progress(
+                        ws_manager.broadcast_progress(
                             user_id=user_id,
                             download_id=download_id,
                             status="downloading",
@@ -121,7 +121,7 @@ class YouTubeDownloader:
             elif status == "finished":
                 loop.call_soon_threadsafe(
                     asyncio.create_task,
-                    rockit_ws_manager.broadcast_progress(
+                    ws_manager.broadcast_progress(
                         user_id=user_id,
                         download_id=download_id,
                         status="converting",
@@ -138,7 +138,7 @@ class YouTubeDownloader:
         ydl_opts["progress_hooks"] = [progress_hook]
 
         try:
-            await rockit_ws_manager.broadcast_progress(
+            await ws_manager.broadcast_progress(
                 user_id=user_id,
                 download_id=download_id,
                 status="starting",
@@ -161,7 +161,7 @@ class YouTubeDownloader:
                     final_path = os.path.join(output_path, matching[0])
                     final_filename = matching[0]
 
-            await rockit_ws_manager.broadcast_progress(
+            await ws_manager.broadcast_progress(
                 user_id=user_id,
                 download_id=download_id,
                 status="completed",
@@ -177,7 +177,7 @@ class YouTubeDownloader:
 
         except Exception as e:
             logger.error(f"Error downloading YouTube video: {e}", exc_info=True)
-            await rockit_ws_manager.broadcast_progress(
+            await ws_manager.broadcast_progress(
                 user_id=user_id,
                 download_id=download_id,
                 status="error",

@@ -8,12 +8,12 @@ import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
 
 export function QueueSong({ song }: { song: QueueResponseItem }) {
-    const $currentQueueSongId = useStore(
-        rockIt.queueManager.currentQueueSongIdAtom
+    const $currentQueueMediaId = useStore(
+        rockIt.queueManager.currentQueueMediaIdAtom
     );
     const $playing = useStore(rockIt.audioManager.playingAtom);
 
-    const isCurrent = song.queueSongId === $currentQueueSongId;
+    const isCurrent = song.queueMediaId === $currentQueueMediaId;
 
     // TODO: implement click handler when queueManager.playSongFromQueue is available
     const handleClick = () => {};

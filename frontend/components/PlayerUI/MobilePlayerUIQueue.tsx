@@ -39,7 +39,7 @@ export default function MobilePlayerUIQueue({
     useEffect(() => {
         if (!scrollRef.current || !open) return;
         const currentIdx = rockIt.queueManager.queue?.findIndex(
-            (s) => s.queueSongId === rockIt.queueManager.currentQueueSongId
+            (s) => s.queueMediaId === rockIt.queueManager.currentQueueMediaId
         );
         if (currentIdx == null || currentIdx === -1) return;
         scrollRef.current.scrollTo({ top: currentIdx * 64 - 100 });
@@ -115,7 +115,7 @@ export default function MobilePlayerUIQueue({
 
                             return (
                                 <div
-                                    key={`${song.song.publicId}-${song.queueSongId}`}
+                                    key={`${song.song.publicId}-${song.queueMediaId}`}
                                     className={`absolute w-full ${isDragging ? "z-10" : "transition-[top] duration-500"}`}
                                     style={{
                                         top: `${top + 20}px`,

@@ -146,6 +146,9 @@ When no useful data needs to be returned (e.g., add/remove operations), use `OkR
 ### Code Formatting
 Every time you edit a file, you must run `venv/bin/python -m black` on that file to ensure consistent formatting.
 
+### WebSocket Framework
+The WebSocket manager (`webSocketManager.py`) is in the framework layer and must use framework layer functions, not access layer directly.
+
 ## Frontend Code Style
 
 ### Server vs Client Components

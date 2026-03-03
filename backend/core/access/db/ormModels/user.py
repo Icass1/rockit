@@ -32,8 +32,10 @@ class UserRow(
     provider_account_id: Mapped[str | None] = mapped_column(String, nullable=True)
     current_station: Mapped[str | None] = mapped_column(String, nullable=True)
     current_time: Mapped[float | None] = mapped_column(DOUBLE_PRECISION, nullable=True)
-    current_queue_index: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    random_queue: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    current_queue_media_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    queue_type_key: Mapped[int] = mapped_column(
+        Integer, ForeignKey("core.queue_type_enum.key"), nullable=False, default=2
+    )
     repeat_mode_key: Mapped[int] = mapped_column(
         Integer, ForeignKey("core.repeat_mode_enum.key"), nullable=False, default=1
     )
@@ -76,8 +78,8 @@ class UserRow(
         provider_account_id: str | None = None,
         current_station: str | None = None,
         current_time: float | None = None,
-        current_queue_index: int | None = None,
-        random_queue: bool = False,
+        current_queue_media_id: int | None = None,
+        queue_type_key: int = 2,
         repeat_mode_key: int = 1,
         volume: float = 1,
         cross_fade: float = 0,
@@ -94,8 +96,8 @@ class UserRow(
         kwargs["provider_account_id"] = provider_account_id
         kwargs["current_station"] = current_station
         kwargs["current_time"] = current_time
-        kwargs["current_queue_index"] = current_queue_index
-        kwargs["random_queue"] = random_queue
+        kwargs["current_queue_media_id"] = current_queue_media_id
+        kwargs["queue_type_key"] = queue_type_key
         kwargs["repeat_mode_key"] = repeat_mode_key
         kwargs["volume"] = volume
         kwargs["cross_fade"] = cross_fade

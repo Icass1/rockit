@@ -6,13 +6,13 @@ export default function PlayLibraryButton() {
     let icon;
 
     const $queue = useStore(rockIt.queueManager.queueAtom);
-    const $currentQueueSongId = useStore(
-        rockIt.queueManager.currentQueueSongIdAtom
+    const $currentQueueMediaId = useStore(
+        rockIt.queueManager.currentQueueMediaIdAtom
     );
 
     const playingLibrary = $queue?.find(
         (queueSong) =>
-            queueSong.queueSongId == $currentQueueSongId &&
+            queueSong.queueMediaId == $currentQueueMediaId &&
             queueSong?.listPublicId == "library"
     )
         ? true

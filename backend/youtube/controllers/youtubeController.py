@@ -19,8 +19,6 @@ router = APIRouter(
     prefix="/youtube", dependencies=[Depends(dependency=AuthMiddleware.auth_dependency)]
 )
 
-public_router = APIRouter(prefix="/youtube")
-
 
 class YouTubeSearchVideoItem(BaseModel):
     videoId: str
@@ -43,11 +41,11 @@ def _get_thumbnail_url(thumbnails: Any) -> str:
     return str(medium.get("url") or high.get("url") or default.get("url") or "")
 
 
-@public_router.get("/search")
+@router.get("/search")
 async def search_youtube(
     q: str = Query(..., min_length=1), limit: int = Query(default=10, ge=1, le=20)
 ) -> YouTubeSearchResponse:
-    """Search YouTube videos (public endpoint, no auth required)."""
+    """Search YouTube videos."""
 
     a_result = await youtube_api.search_videos_async(query=q, max_results=limit)
     if a_result.is_not_ok():

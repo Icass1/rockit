@@ -768,6 +768,35 @@ class SpotifyAccess:
                 code=AResultCode.OK, message="OK", result=(track_row, core_song)
             )
 
+        except IntegrityError:
+            logger.warning(
+                f"IntegrityError in get_or_create_track for {raw.id}, rolling back and fetching existing"
+            )
+            await session.rollback()
+            session.expire_all()
+            stmt = (
+                select(TrackRow)
+                .join(
+                    CoreMediaRow,
+                    and_(
+                        CoreMediaRow.id == TrackRow.id,
+                        CoreMediaRow.media_type_key == MediaTypeEnum.SONG.value,
+                    ),
+                )
+                .where(CoreMediaRow.public_id == raw.id)
+            )
+            result = await session.execute(stmt)
+            existing = result.scalar_one_or_none()
+            if existing:
+                return AResult(
+                    code=AResultCode.OK, message="OK", result=(existing, existing)
+                )
+            logger.error(f"Track {raw.id} not found after IntegrityError rollback")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to get or create track after conflict",
+            )
+
         except Exception as e:
             logger.error(f"Failed to get/create track: {e}")
             return AResult(

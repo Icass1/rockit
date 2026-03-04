@@ -1,7 +1,8 @@
 from typing import Dict, Any, Tuple, List
 from sqlalchemy.future import select
-from sqlalchemy import Result, Select
+from sqlalchemy import Result, Select, func, insert
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from backend.utils.logger import getLogger
 
@@ -98,11 +99,18 @@ class SpotifyCacheAccess:
         session: AsyncSession, id: str, json: Dict[str, Any]
     ) -> AResultCode:
         try:
-            cache_row = CacheTrackRow(id=id, json=json)
-            session.add(cache_row)
-            await session.commit()
-            await session.refresh(cache_row)
-            session.expunge(cache_row)
+            stmt = (
+                pg_insert(CacheTrackRow)
+                .values(id=id, json=json)
+                .on_conflict_do_update(
+                    index_elements=["id"],
+                    set_={
+                        "json": json,
+                        "date_updated": func.now(),
+                    },
+                )
+            )
+            await session.execute(stmt)
             return AResultCode(code=AResultCode.OK, message="OK")
         except Exception as e:
             return AResultCode(

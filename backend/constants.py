@@ -53,7 +53,7 @@ def get_env_int(name: str) -> int:
 BACKEND_URL = get_env_str("BACKEND_URL")
 SESSION_DURATION = get_env_int("SESSION_DURATION")
 ENVIRONMENT = get_env_str("ENVIRONMENT", ["DEV", "PROD"])
-SONGS_PATH = get_env_str("SONGS_PATH")
+MEDIA_PATH = get_env_str("MEDIA_PATH")
 IMAGES_PATH = get_env_str("IMAGES_PATH")
 TEMP_PATH = get_env_str("TEMP_PATH")
 LOGS_PATH = get_env_str("LOGS_PATH")

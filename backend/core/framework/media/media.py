@@ -33,13 +33,13 @@ class Media:
     async def get_medias_from_public_ids_async(
         session: AsyncSession,
         public_ids: List[str],
-        media_type_key: MediaTypeEnum | None,
+        media_type_keys: List[MediaTypeEnum] | None,
     ) -> AResult[List[MediaModel]]:
         """TODO"""
 
         a_result: AResult[List[CoreMediaRow]] = (
             await MediaAccess.get_medias_from_public_ids_async(
-                session=session, public_ids=public_ids, media_type_key=media_type_key
+                session=session, public_ids=public_ids, media_type_keys=media_type_keys
             )
         )
 
@@ -50,7 +50,9 @@ class Media:
             return AResult(code=a_result.code(), message=a_result.message())
 
         result: List[MediaModel] = [
-            MediaModel(public_id=media.public_id, id=media.id)
+            MediaModel(
+                public_id=media.public_id, id=media.id, provider_id=media.provider_id
+            )
             for media in a_result.result()
         ]
 
@@ -58,13 +60,15 @@ class Media:
 
     @staticmethod
     async def get_media_from_public_id_async(
-        session: AsyncSession, public_id: str, media_type_key: MediaTypeEnum | None
+        session: AsyncSession,
+        public_id: str,
+        media_type_keys: List[MediaTypeEnum] | None,
     ) -> AResult[MediaModel]:
         """TODO"""
 
         a_result_media: AResult[CoreMediaRow] = (
             await MediaAccess.get_media_from_public_id_async(
-                session=session, public_id=public_id, media_type_key=media_type_key
+                session=session, public_id=public_id, media_type_keys=media_type_keys
             )
         )
 
@@ -80,6 +84,7 @@ class Media:
             result=MediaModel(
                 public_id=a_result_media.result().public_id,
                 id=a_result_media.result().id,
+                provider_id=a_result_media.result().provider_id,
             ),
         )
 
@@ -93,7 +98,7 @@ class Media:
             await MediaAccess.get_media_from_public_id_async(
                 session=session,
                 public_id=public_id,
-                media_type_key=MediaTypeEnum.SONG,
+                media_type_keys=[MediaTypeEnum.SONG],
             )
         )
         if a_result_song.is_not_ok():
@@ -129,7 +134,7 @@ class Media:
             await MediaAccess.get_media_from_public_id_async(
                 session=session,
                 public_id=public_id,
-                media_type_key=MediaTypeEnum.ALBUM,
+                media_type_keys=[MediaTypeEnum.ALBUM],
             )
         )
         if a_result_album.is_not_ok():
@@ -167,7 +172,7 @@ class Media:
             await MediaAccess.get_media_from_public_id_async(
                 session=session,
                 public_id=public_id,
-                media_type_key=MediaTypeEnum.ARTIST,
+                media_type_keys=[MediaTypeEnum.ARTIST],
             )
         )
         if a_result_artist.is_not_ok():
@@ -205,7 +210,7 @@ class Media:
             await MediaAccess.get_media_from_public_id_async(
                 session=session,
                 public_id=public_id,
-                media_type_key=MediaTypeEnum.PLAYLIST,
+                media_type_keys=[MediaTypeEnum.PLAYLIST],
             )
         )
         if a_result_playlist.is_not_ok():

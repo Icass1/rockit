@@ -147,7 +147,7 @@ class User:
             await MediaAccess.get_media_from_public_id_async(
                 session=session,
                 public_id=album_public_id,
-                media_type_key=MediaTypeEnum.ALBUM,
+                media_type_keys=[MediaTypeEnum.ALBUM],
             )
         )
         if a_result_album.is_not_ok():
@@ -179,7 +179,7 @@ class User:
             await MediaAccess.get_media_from_public_id_async(
                 session=session,
                 public_id=album_public_id,
-                media_type_key=MediaTypeEnum.ALBUM,
+                media_type_keys=[MediaTypeEnum.ALBUM],
             )
         )
         if a_result_album.is_not_ok():
@@ -211,7 +211,7 @@ class User:
             await MediaAccess.get_media_from_public_id_async(
                 session=session,
                 public_id=song_public_id,
-                media_type_key=MediaTypeEnum.SONG,
+                media_type_keys=[MediaTypeEnum.SONG],
             )
         )
         if a_result_media.is_not_ok():
@@ -239,7 +239,7 @@ class User:
             await MediaAccess.get_media_from_public_id_async(
                 session=session,
                 public_id=song_public_id,
-                media_type_key=MediaTypeEnum.SONG,
+                media_type_keys=[MediaTypeEnum.SONG],
             )
         )
         if a_result_media.is_not_ok():
@@ -267,7 +267,7 @@ class User:
             await MediaAccess.get_media_from_public_id_async(
                 session=session,
                 public_id=album_public_id,
-                media_type_key=MediaTypeEnum.ALBUM,
+                media_type_keys=[MediaTypeEnum.ALBUM],
             )
         )
         if a_result_album_media.is_not_ok():
@@ -302,7 +302,7 @@ class User:
                 await MediaAccess.get_media_from_public_id_async(
                     session=session,
                     public_id=song.publicId,
-                    media_type_key=MediaTypeEnum.SONG,
+                    media_type_keys=[MediaTypeEnum.SONG],
                 )
             )
             if a_result_song_media.is_not_ok():
@@ -333,7 +333,7 @@ class User:
             await MediaAccess.get_media_from_public_id_async(
                 session=session,
                 public_id=album_public_id,
-                media_type_key=MediaTypeEnum.ALBUM,
+                media_type_keys=[MediaTypeEnum.ALBUM],
             )
         )
         if a_result_album_media.is_not_ok():
@@ -368,7 +368,7 @@ class User:
                 await MediaAccess.get_media_from_public_id_async(
                     session=session,
                     public_id=song.publicId,
-                    media_type_key=MediaTypeEnum.SONG,
+                    media_type_keys=[MediaTypeEnum.SONG],
                 )
             )
             if a_result_song_media.is_not_ok():
@@ -400,7 +400,7 @@ class User:
                 await MediaAccess.get_media_from_public_id_async(
                     session=session,
                     public_id=song_public_id,
-                    media_type_key=MediaTypeEnum.SONG,
+                    media_type_keys=[MediaTypeEnum.SONG],
                 )
             )
             if a_result_media.is_not_ok():
@@ -432,7 +432,7 @@ class User:
                 await MediaAccess.get_media_from_public_id_async(
                     session=session,
                     public_id=song_public_id,
-                    media_type_key=MediaTypeEnum.SONG,
+                    media_type_keys=[MediaTypeEnum.SONG],
                 )
             )
             if a_result_media.is_not_ok():

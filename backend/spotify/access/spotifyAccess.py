@@ -545,17 +545,7 @@ class SpotifyAccess:
             )
             await session.rollback()
             session.expire_all()
-            stmt = (
-                select(ArtistRow)
-                .join(
-                    CoreMediaRow,
-                    and_(
-                        CoreMediaRow.id == ArtistRow.id,
-                        CoreMediaRow.media_type_key == MediaTypeEnum.ARTIST.value,
-                    ),
-                )
-                .where(CoreMediaRow.public_id == raw.id)
-            )
+            stmt = select(ArtistRow).where(ArtistRow.spotify_id == raw.id)
             result = await session.execute(stmt)
             existing = result.scalar_one_or_none()
             if existing:

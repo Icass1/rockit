@@ -38,6 +38,7 @@ class YouTubeDownloader:
         download_id: int,
         user_id: int,
         filename: str,
+        height: int = 1080,
         progress_callback: Optional[
             Callable[[float, str], Coroutine[Any, Any, None]]
         ] = None,
@@ -48,6 +49,7 @@ class YouTubeDownloader:
             user_id=user_id,
             filename=filename,
             format_type="mp4",
+            height=height,
             progress_callback=progress_callback,
         )
 
@@ -58,6 +60,7 @@ class YouTubeDownloader:
         user_id: int,
         filename: str,
         format_type: str,
+        height: int = 1080,
         progress_callback: Optional[
             Callable[[float, str], Coroutine[Any, Any, None]]
         ] = None,
@@ -84,9 +87,19 @@ class YouTubeDownloader:
             }
             expected_ext = "mp3"
         else:
+            format_string: str = (
+                f"bestvideo[height>={height}]+bestaudio/bestvideo[height>={height}]/best[height>={height}][ext=mp4]/best"
+            )
             ydl_opts = {
-                "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
+                "format": format_string,
                 "outtmpl": output_template,
+                "merge_output_format": "mp4",
+                "postprocessors": [
+                    {
+                        "key": "FFmpegVideoConvertor",
+                        "preferedformat": "mp4",
+                    }
+                ],
                 "quiet": True,
                 "no_warnings": True,
             }

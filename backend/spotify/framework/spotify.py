@@ -4,7 +4,7 @@ import os
 import re
 from fastapi import Request
 
-from backend.constants import BACKEND_URL, SONGS_PATH
+from backend.constants import BACKEND_URL, MEDIA_PATH
 from backend.utils.logger import getLogger
 from backend.core.aResult import AResult, AResultCode
 
@@ -2248,7 +2248,7 @@ class Spotify:
                 code=AResultCode.NOT_FOUND, message="Audio file not downloaded"
             )
 
-        full_path: str = os.path.join(SONGS_PATH, track_row.path)
+        full_path: str = os.path.join(MEDIA_PATH, track_row.path)
         if not os.path.exists(full_path):
             logger.error(f"Audio file not found at {full_path}")
             return AResult(code=AResultCode.NOT_FOUND, message="Audio file not found")

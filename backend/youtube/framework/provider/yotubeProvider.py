@@ -1,6 +1,9 @@
 from logging import Logger
 from typing import List, Any
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from backend.core.framework.downloader.baseDownload import BaseDownload
 from backend.utils.logger import getLogger
 from backend.core.aResult import AResult, AResultCode
 
@@ -10,6 +13,9 @@ from backend.core.responses.searchResponse import (
     BaseSearchResultsItem,
 )
 
+from backend.youtube.access.db.ormModels.video import VideoRow
+from backend.youtube.framework.download.youtubeDownload import YoutubeDownload
+from backend.youtube.framework.video import Video
 from backend.youtube.framework.youtube import YouTube
 from backend.youtube.framework.youtubeApi import RawYoutubeSearchResult, youtube_api
 
@@ -17,10 +23,14 @@ logger: Logger = getLogger(__name__)
 
 
 class YoutubeProvider(BaseProvider):
+    """TODO"""
+
     def __init__(self) -> None:
         super().__init__()
 
     def set_info(self, provider_id: int, provider_name: str) -> None:
+        """TODO"""
+
         YouTube.provider_name = provider_name
         YouTube.provider = self
 
@@ -28,6 +38,7 @@ class YoutubeProvider(BaseProvider):
         self._name = provider_name
 
     async def search_async(self, query: str) -> AResult[List[BaseSearchResultsItem]]:
+        """TODO"""
 
         a_result: AResult[List[RawYoutubeSearchResult]] = (
             await youtube_api.search_videos_async(query=query, max_results=10)
@@ -56,7 +67,34 @@ class YoutubeProvider(BaseProvider):
 
         return AResult(code=AResultCode.OK, message="OK", result=result)
 
+    async def start_download_async(
+        self, session: AsyncSession, public_id: str, download_id: int, user_id: int
+    ) -> AResult[BaseDownload]:
+        """TODO"""
+
+        a_result_video: AResult[VideoRow] = await Video.get_video_from_public_id_async(
+            session=session, public_id=public_id
+        )
+        if a_result_video.is_not_ok():
+            logger.error(f"Error getting video from public id {public_id}")
+            return AResult(code=a_result_video.code(), message=a_result_video.message())
+
+        return AResult(
+            code=AResultCode.OK,
+            message="OK",
+            result=YoutubeDownload(
+                public_id=public_id,
+                download_id=download_id,
+                user_id=user_id,
+                youtube_url=a_result_video.result().youtube_url,
+                youtube_video_id=a_result_video.result().youtube_id,
+                video_id=a_result_video.result().id,
+            ),
+        )
+
     def _get_thumbnail_url(self, thumbnails: Any) -> str:
+        """TODO"""
+
         if not thumbnails:
             return ""
         thumb_dict: dict[str, Any] = thumbnails

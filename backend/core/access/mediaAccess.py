@@ -21,15 +21,17 @@ class MediaAccess:
     async def get_medias_from_public_ids_async(
         session: AsyncSession,
         public_ids: List[str],
-        media_type_key: MediaTypeEnum | None,
+        media_type_keys: List[MediaTypeEnum] | None,
     ) -> AResult[List[CoreMediaRow]]:
         """Get CoreMediaRow entries by public_ids and optional media_type."""
 
         try:
-            if media_type_key is not None:
+            if media_type_keys is not None:
                 where_stmt = and_(
                     CoreMediaRow.public_id.in_(public_ids),
-                    CoreMediaRow.media_type_key == media_type_key.value,
+                    CoreMediaRow.media_type_key.in_(
+                        media_type_key.value for media_type_key in media_type_keys
+                    ),
                 )
             else:
                 where_stmt = CoreMediaRow.public_id.in_(public_ids)
@@ -41,7 +43,7 @@ class MediaAccess:
             if not rows:
                 return AResult(
                     code=AResultCode.NOT_FOUND,
-                    message=f"Media not found for public ids: {public_ids} with media type key {media_type_key}",
+                    message=f"Media not found for public ids: {public_ids} with media type key {media_type_keys}",
                 )
 
             return AResult(code=AResultCode.OK, message="OK", result=rows)
@@ -56,11 +58,11 @@ class MediaAccess:
     async def get_media_from_public_id_async(
         session: AsyncSession,
         public_id: str,
-        media_type_key: MediaTypeEnum | None,
+        media_type_keys: List[MediaTypeEnum] | None,
     ) -> AResult[CoreMediaRow]:
         a_result_media: AResult[List[CoreMediaRow]] = (
             await MediaAccess.get_medias_from_public_ids_async(
-                session=session, public_ids=[public_id], media_type_key=media_type_key
+                session=session, public_ids=[public_id], media_type_keys=media_type_keys
             )
         )
 

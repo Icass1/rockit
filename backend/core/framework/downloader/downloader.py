@@ -3,13 +3,13 @@ from typing import List
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
 )
+from backend.core.framework.media.media import Media
+from backend.core.framework.models.media import MediaModel
 from backend.utils.logger import getLogger
 
 from backend.core.aResult import AResult, AResultCode
 
 from backend.core.access.downloadAccess import DownloadAccess
-from backend.core.access.mediaAccess import MediaAccess
-from backend.core.access.db.ormModels.media import CoreMediaRow
 from backend.core.access.db.ormModels.downloadGroup import DownloadGroupRow
 from backend.core.access.db.ormModels.download import DownloadRow
 from backend.core.enums.mediaTypeEnum import MediaTypeEnum
@@ -49,18 +49,18 @@ class Downloader:
         group: DownloadGroupRow = a_result_group.result()
 
         for public_id in public_ids:
-            a_result_song: AResult[CoreMediaRow] = (
-                await MediaAccess.get_media_from_public_id_async(
+            a_result_song: AResult[MediaModel] = (
+                await Media.get_media_from_public_id_async(
                     session=session,
                     public_id=public_id,
-                    media_type_key=MediaTypeEnum.SONG,
+                    media_type_keys=[MediaTypeEnum.SONG, MediaTypeEnum.VIDEO],
                 )
             )
             if a_result_song.is_not_ok():
                 logger.error(f"Error getting song {public_id}. {a_result_song.info()}")
                 continue
 
-            song: CoreMediaRow = a_result_song.result()
+            song: MediaModel = a_result_song.result()
             provider: BaseProvider | None = providers.find_provider(
                 provider_id=song.provider_id
             )

@@ -1,6 +1,6 @@
 from typing import List, TYPE_CHECKING, Dict
 
-from sqlalchemy import String, ForeignKey, Text, Integer
+from sqlalchemy import BIGINT, String, ForeignKey, Text, Integer
 from sqlalchemy.orm import relationship, mapped_column, Mapped, WriteOnlyMapped
 
 from backend.core.access.db.ormModels.declarativeMixin import (
@@ -27,8 +27,8 @@ class VideoRow(YoutubeBase, TableAutoincrementId, TableDateUpdated, TableDateAdd
     youtube_id: Mapped[str] = mapped_column(String, unique=True, nullable=False)
     name: Mapped[str] = mapped_column(String, nullable=False)
     duration: Mapped[int] = mapped_column(Integer, nullable=False)
-    view_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    like_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    view_count: Mapped[int] = mapped_column(BIGINT, nullable=False, default=0)
+    like_count: Mapped[int] = mapped_column(BIGINT, nullable=False, default=0)
     comment_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     internal_image_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("core.image.id"), nullable=False
@@ -38,7 +38,7 @@ class VideoRow(YoutubeBase, TableAutoincrementId, TableDateUpdated, TableDateAdd
         Integer, ForeignKey("youtube.channel.id"), nullable=False
     )
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
-    youtube_url: Mapped[str | None] = mapped_column(String, nullable=True)
+    youtube_url: Mapped[str] = mapped_column(String, nullable=False)
     tags: Mapped[str | None] = mapped_column(String, nullable=True)
     published_at: Mapped[str | None] = mapped_column(String, nullable=True)
 
@@ -61,12 +61,12 @@ class VideoRow(YoutubeBase, TableAutoincrementId, TableDateUpdated, TableDateAdd
         duration: int,
         internal_image_id: int,
         channel_id: int,
+        youtube_url: str,
         view_count: int = 0,
         like_count: int = 0,
         comment_count: int = 0,
         path: str | None = None,
         description: str | None = None,
-        youtube_url: str | None = None,
         tags: str | None = None,
         published_at: str | None = None,
     ):
@@ -77,12 +77,12 @@ class VideoRow(YoutubeBase, TableAutoincrementId, TableDateUpdated, TableDateAdd
         kwargs["duration"] = duration
         kwargs["internal_image_id"] = internal_image_id
         kwargs["channel_id"] = channel_id
+        kwargs["youtube_url"] = youtube_url
         kwargs["view_count"] = view_count
         kwargs["like_count"] = like_count
         kwargs["comment_count"] = comment_count
         kwargs["path"] = path
         kwargs["description"] = description
-        kwargs["youtube_url"] = youtube_url
         kwargs["tags"] = tags
         kwargs["published_at"] = published_at
         for k, v in kwargs.items():

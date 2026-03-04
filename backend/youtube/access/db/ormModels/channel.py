@@ -1,6 +1,6 @@
 from typing import List, TYPE_CHECKING, Dict
 
-from sqlalchemy import String, Integer, ForeignKey
+from sqlalchemy import String, Integer, BigInteger, ForeignKey
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 
 from backend.youtube.access.db.base import YoutubeBase
@@ -23,9 +23,9 @@ class ChannelRow(YoutubeBase, TableDateUpdated, TableDateAdded):
     )
     youtube_id: Mapped[str] = mapped_column(String, unique=True, nullable=False)
     name: Mapped[str] = mapped_column(String, nullable=False)
-    subscriber_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    view_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    video_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    subscriber_count: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
+    view_count: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
+    video_count: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
     internal_image_id: Mapped[int | None] = mapped_column(
         Integer, ForeignKey("core.image.id"), nullable=True
     )

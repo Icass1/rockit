@@ -121,6 +121,7 @@ class YouTube:
                     youtubeUrl=video_row.youtube_url,
                     tags=tags,
                     publishedAt=video_row.published_at,
+                    path=video_row.path,
                 ),
             )
 
@@ -279,5 +280,6 @@ class YouTube:
                 youtubeUrl=video_row.youtube_url,
                 tags=tags,
                 publishedAt=video_row.published_at,
+                path=video_row.path,
             ),
         )

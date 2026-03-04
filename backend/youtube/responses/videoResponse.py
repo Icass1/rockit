@@ -19,3 +19,4 @@ class VideoResponse(BaseModel):
     youtubeUrl: Optional[str] = None
     tags: List[str] = []
     publishedAt: Optional[str] = None
+    path: Optional[str] = None

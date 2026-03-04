@@ -112,7 +112,7 @@ class WebSocketManager:
                     await Media.get_medias_from_public_ids_async(
                         session=session,
                         public_ids=[item.publicId for item in current_queue_msg.queue],
-                        media_type_key=None,
+                        media_type_keys=None,
                     )
                 )
 
@@ -172,7 +172,7 @@ class WebSocketManager:
                     await Media.get_media_from_public_id_async(
                         session=session,
                         public_id=seek_msg.mediaPublicId,
-                        media_type_key=None,
+                        media_type_keys=None,
                     )
                 )
                 if a_result_media.is_not_ok():

@@ -8,6 +8,7 @@ export const BaseSearchResultsItemSchema = z.object({
         z.literal("artist"),
         z.literal("song"),
         z.literal("video"),
+        z.literal("radio"),
     ]),
     title: z.string(),
     url: z.string(),

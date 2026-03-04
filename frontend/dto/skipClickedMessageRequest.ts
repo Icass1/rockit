@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const SkipClickedMessageRequestSchema = z.object({
-    direction: z.string(),
+    direction: z.any(),
     mediaPublicId: z.string(),
 });
 

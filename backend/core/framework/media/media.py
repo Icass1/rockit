@@ -1,3 +1,4 @@
+import asyncio
 from typing import List
 from logging import Logger
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,6 +14,7 @@ from backend.core.enums.mediaTypeEnum import MediaTypeEnum
 
 from backend.core.framework.provider.baseProvider import BaseProvider
 from backend.core.framework.providers.providers import Providers
+from backend.core.framework.models.media import MediaModel
 
 from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from backend.core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
@@ -28,6 +30,60 @@ logger: Logger = getLogger(__name__)
 
 class Media:
     @staticmethod
+    async def get_medias_from_public_ids_async(
+        session: AsyncSession,
+        public_ids: List[str],
+        media_type_key: MediaTypeEnum | None,
+    ) -> AResult[List[MediaModel]]:
+        """TODO"""
+
+        a_result: AResult[List[CoreMediaRow]] = (
+            await MediaAccess.get_medias_from_public_ids_async(
+                session=session, public_ids=public_ids, media_type_key=media_type_key
+            )
+        )
+
+        if a_result.is_not_ok():
+            logger.error(
+                f"Error getting medias from database for public ids {public_ids}. {a_result.info()}"
+            )
+            return AResult(code=a_result.code(), message=a_result.message())
+
+        result: List[MediaModel] = [
+            MediaModel(public_id=media.public_id, id=media.id)
+            for media in a_result.result()
+        ]
+
+        return AResult(code=AResultCode.OK, message="OK", result=result)
+
+    @staticmethod
+    async def get_media_from_public_id_async(
+        session: AsyncSession, public_id: str, media_type_key: MediaTypeEnum | None
+    ) -> AResult[MediaModel]:
+        """TODO"""
+
+        a_result_media: AResult[CoreMediaRow] = (
+            await MediaAccess.get_media_from_public_id_async(
+                session=session, public_id=public_id, media_type_key=media_type_key
+            )
+        )
+
+        if a_result_media.is_not_ok():
+            logger.error(
+                f"Error getting media from database for public id {public_id}. {a_result_media.info()}"
+            )
+            return AResult(code=a_result_media.code(), message=a_result_media.message())
+
+        return AResult(
+            code=AResultCode.OK,
+            message="OK",
+            result=MediaModel(
+                public_id=a_result_media.result().public_id,
+                id=a_result_media.result().id,
+            ),
+        )
+
+    @staticmethod
     async def get_song_async(
         session: AsyncSession, public_id: str, providers: Providers
     ) -> AResult[BaseSongWithAlbumResponse]:
@@ -37,7 +93,7 @@ class Media:
             await MediaAccess.get_media_from_public_id_async(
                 session=session,
                 public_id=public_id,
-                media_type_key=MediaTypeEnum.SONG.value,
+                media_type_key=MediaTypeEnum.SONG,
             )
         )
         if a_result_song.is_not_ok():
@@ -73,7 +129,7 @@ class Media:
             await MediaAccess.get_media_from_public_id_async(
                 session=session,
                 public_id=public_id,
-                media_type_key=MediaTypeEnum.ALBUM.value,
+                media_type_key=MediaTypeEnum.ALBUM,
             )
         )
         if a_result_album.is_not_ok():
@@ -111,7 +167,7 @@ class Media:
             await MediaAccess.get_media_from_public_id_async(
                 session=session,
                 public_id=public_id,
-                media_type_key=MediaTypeEnum.ARTIST.value,
+                media_type_key=MediaTypeEnum.ARTIST,
             )
         )
         if a_result_artist.is_not_ok():
@@ -149,7 +205,7 @@ class Media:
             await MediaAccess.get_media_from_public_id_async(
                 session=session,
                 public_id=public_id,
-                media_type_key=MediaTypeEnum.PLAYLIST.value,
+                media_type_key=MediaTypeEnum.PLAYLIST,
             )
         )
         if a_result_playlist.is_not_ok():
@@ -181,9 +237,11 @@ class Media:
     async def search_async(
         session: AsyncSession, query: str, providers: Providers
     ) -> AResult[SearchResultsResponse]:
-        """Search all providers and aggregate results into a ProviderSearchResultsResponse list."""
+        """Search all providers concurrently and aggregate results."""
 
         results: List[BaseSearchResultsItem] = []
+
+        tasks: List[asyncio.Task[AResult[List[BaseSearchResultsItem]]]] = []
 
         for provider in providers.get_providers():
             a_result_id: AResult[int] = provider.get_id()
@@ -191,9 +249,19 @@ class Media:
                 logger.error(f"Skipping provider with no id. {a_result_id.info()}")
                 continue
 
-            a_result: AResult[List[BaseSearchResultsItem]] = (
-                await provider.search_async(query)
+            # Schedule provider search
+            task: asyncio.Task[AResult[List[BaseSearchResultsItem]]] = (
+                asyncio.create_task(provider.search_async(query))
             )
+            tasks.append(task)
+
+        # Run all searches concurrently
+        search_results: List[AResult[List[BaseSearchResultsItem]]] = (
+            await asyncio.gather(*tasks, return_exceptions=False)
+        )
+
+        # Collect results
+        for a_result in search_results:
             if a_result.is_not_ok():
                 if a_result.code() != AResultCode.NOT_IMPLEMENTED:
                     logger.error(f"Provider search error. {a_result.info()}")

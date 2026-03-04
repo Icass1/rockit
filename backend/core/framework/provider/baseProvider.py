@@ -1,17 +1,20 @@
+from __future__ import annotations
+
 from logging import Logger
-from typing import List
+from typing import TYPE_CHECKING, List
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.utils.logger import getLogger
 from backend.core.aResult import AResult, AResultCode
 
-from backend.core.framework.downloader.baseDownload import BaseDownload
+if TYPE_CHECKING:
+    from backend.core.framework.downloader.baseDownload import BaseDownload
 
-from backend.core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
+from backend.core.responses.searchResponse import BaseSearchResultsItem
 from backend.core.responses.baseArtistResponse import BaseArtistResponse
 from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
 from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
-from backend.core.responses.searchResponse import BaseSearchResultsItem
+from backend.core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
 
 logger: Logger = getLogger(__name__)
 

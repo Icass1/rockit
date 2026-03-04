@@ -53,7 +53,7 @@ class Downloader:
                 await MediaAccess.get_media_from_public_id_async(
                     session=session,
                     public_id=public_id,
-                    media_type_key=MediaTypeEnum.SONG.value,
+                    media_type_key=MediaTypeEnum.SONG,
                 )
             )
             if a_result_song.is_not_ok():

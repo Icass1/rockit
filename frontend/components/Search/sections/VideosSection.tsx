@@ -2,15 +2,18 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { YouTubeSearchVideoItem } from "@/dto";
+import { useRouter } from "next/navigation";
+import { BaseSearchResultsItem } from "@/dto";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function VideosSection({
     videos,
 }: {
-    videos: YouTubeSearchVideoItem[];
+    videos: BaseSearchResultsItem[];
 }) {
     const { langFile: lang } = useLanguage();
+
+    const router = useRouter();
 
     if (!lang || videos.length === 0) return null;
 
@@ -22,23 +25,36 @@ export default function VideosSection({
             <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pr-14 md:pl-4">
                 {videos.map((video) => (
                     <Link
-                        href={`/youtube/video/${video.videoId}`}
+                        href={video.url}
                         prefetch={false}
                         className="w-64 flex-none transition md:w-80 md:hover:scale-105"
-                        key={video.videoId}
+                        key={video.url}
                     >
                         <Image
                             width={350}
                             height={197}
                             className="aspect-video w-full rounded-lg object-cover"
-                            src={video.thumbnailUrl || "/video-placeholder.png"}
+                            src={video.imageUrl}
                             alt={`Thumbnail of ${video.title}`}
                         />
                         <span className="mt-2 block truncate text-left font-semibold">
                             {video.title}
                         </span>
-                        <span className="block truncate text-left text-sm text-gray-400">
-                            {video.channelTitle}
+                        <span className="block truncate text-center text-sm text-gray-400">
+                            {video.artists.map((artist, i) => (
+                                <button
+                                    key={artist.url}
+                                    className="md:hover:underline"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        router.push(artist.url);
+                                    }}
+                                >
+                                    {artist.name}
+                                    {i < video.artists.length - 1 ? ", " : ""}
+                                </button>
+                            ))}
                         </span>
                     </Link>
                 ))}

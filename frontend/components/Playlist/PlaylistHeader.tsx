@@ -45,7 +45,7 @@ export default function PlaylistHeader({
                 publicIds={playlist.songs.map((song) => song.song.publicId)}
                 type="playlist"
                 name={playlist.name}
-                imageUrl={playlist.internalImageUrl ?? "/song-placeholder.png"}
+                imageUrl={playlist.internalImageUrl}
                 isDownloading={isDownloading}
                 downloadProgress={downloadProgress}
                 anyDownloaded={anyDownloaded}

@@ -52,7 +52,7 @@ function SearchResults() {
         );
     }
 
-    if (!results?.media?.results) {
+    if (!results?.results) {
         return (
             <p className="mx-10 block text-center text-sm font-bold text-red-500">
                 It seems there was an error searching your music.
@@ -60,7 +60,7 @@ function SearchResults() {
         );
     }
 
-    const mediaResults = results.media.results;
+    const mediaResults = results.results;
 
     return (
         <div className="overflow-y-auto pt-0 md:pt-24">
@@ -78,12 +78,12 @@ function SearchResults() {
                     (item) => item.type === "playlist"
                 )}
             />
-            {results.youtube && results.youtube.videos.length > 0 && (
-                <VideosSection videos={results.youtube.videos} />
-            )}
-            {results.radio.length > 0 && (
-                <RadioSection stations={results.radio} />
-            )}
+            <VideosSection
+                videos={mediaResults.filter((item) => item.type === "video")}
+            />
+            {/* <RadioSection
+                stations={mediaResults.filter((item) => item.type === "radio")}
+            /> */}
         </div>
     );
 }

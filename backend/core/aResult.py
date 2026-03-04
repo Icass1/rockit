@@ -104,4 +104,4 @@ class AResult(Generic[T]):
         return self._code.code_str()
 
     def info(self) -> str:
-        return f"Message: {self.message()}, Code: {self.code_str()}"
+        return f"Message: '{self.message()}', Code: '{self.code_str()}'"

@@ -122,9 +122,3 @@ export {
 } from "@/dto/startDownloadResponse";
 export { StatsResponseSchema, type StatsResponse } from "@/dto/statsResponse";
 export { VideoResponseSchema, type VideoResponse } from "@/dto/videoResponse";
-export {
-    YouTubeSearchResponseSchema,
-    YouTubeSearchVideoItemSchema,
-    type YouTubeSearchResponse,
-    type YouTubeSearchVideoItem,
-} from "@/dto/youtubeSearchResponse";

@@ -78,7 +78,7 @@ export default function FriendsClient() {
                                     <Image
                                         width={96}
                                         height={96}
-                                        src="/song-placeholder.png"
+                                        src="/song-placeholder.png6"
                                         alt=""
                                         className="h-full w-full rounded-md object-cover transition-opacity group-hover:opacity-40"
                                     />

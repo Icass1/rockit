@@ -20,6 +20,7 @@ class TableDateUpdated:
         nullable=False,
         server_default=func.now(),
         server_onupdate=func.now(),
+        default=func.now(),
     )
 
 

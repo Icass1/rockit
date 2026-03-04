@@ -11,6 +11,8 @@ from backend.core.access.db.ormModels.user import UserRow
 from backend.core.access.db.ormModels.media import CoreMediaRow
 from backend.core.access.db.ormModels.provider import ProviderRow
 from backend.core.access.db.ormModels.user_library_media import UserLibraryMediaRow
+from backend.core.access.db.ormModels.user_seeks import UserSeeksRow
+from backend.core.utils.safeAsyncCall import safe_async
 from backend.utils.backendUtils import create_id
 from backend.utils.logger import getLogger
 
@@ -72,7 +74,7 @@ class UserAccess:
             password_hash: str = pwd.hash(secret=password)
 
             user = UserRow(
-                public_id=create_id(),
+                public_id=create_id(32),
                 username=username,
                 password_hash=password_hash,
             )
@@ -110,9 +112,7 @@ class UserAccess:
             )
 
             if not user_library_medias:
-                return AResult(
-                    code=AResultCode.NOT_FOUND, message="No media found for user."
-                )
+                return AResult(code=AResultCode.OK, message="OK", result=[])
 
             medias_with_providers: List[
                 Tuple[UserLibraryMediaRow, CoreMediaRow, ProviderRow]
@@ -151,35 +151,43 @@ class UserAccess:
             )
 
     @staticmethod
+    @safe_async
     async def remove_user_library_media(
         session: AsyncSession, user_id: int, media_id: int
     ) -> AResult[bool]:
         """Remove an media from user's library."""
-        try:
-            stmt: Select[Tuple[UserLibraryMediaRow]] = select(
-                UserLibraryMediaRow
-            ).where(
-                UserLibraryMediaRow.user_id == user_id,
-                UserLibraryMediaRow.media_id == media_id,
-            )
-            result: Result[Tuple[UserLibraryMediaRow]] = await session.execute(
-                statement=stmt
-            )
-            user_library_media: UserLibraryMediaRow | None = result.scalar_one_or_none()
+        stmt: Select[Tuple[UserLibraryMediaRow]] = select(UserLibraryMediaRow).where(
+            UserLibraryMediaRow.user_id == user_id,
+            UserLibraryMediaRow.media_id == media_id,
+        )
+        result: Result[Tuple[UserLibraryMediaRow]] = await session.execute(
+            statement=stmt
+        )
+        user_library_media: UserLibraryMediaRow | None = result.scalar_one_or_none()
 
-            if user_library_media is None:
-                return AResult(
-                    code=AResultCode.NOT_FOUND,
-                    message="Media not found in user library",
-                )
-
-            await session.delete(instance=user_library_media)
-            await session.commit()
-            return AResult(code=AResultCode.OK, message="OK", result=True)
-
-        except Exception as e:
-            logger.error(f"Error in remove_user_library_media: {e}")
+        if user_library_media is None:
             return AResult(
-                code=AResultCode.GENERAL_ERROR,
-                message=f"Failed to remove media from user library: {e}",
+                code=AResultCode.NOT_FOUND,
+                message="Media not found in user library",
             )
+
+        await session.delete(instance=user_library_media)
+        await session.commit()
+        return AResult(code=AResultCode.OK, message="OK", result=True)
+
+    @staticmethod
+    @safe_async
+    async def add_user_current_time_seek_async(
+        session: AsyncSession,
+        user_id: int,
+        media_id: int,
+        time_from: float,
+        time_to: float,
+    ) -> AResult[UserSeeksRow]:
+        user = UserSeeksRow(
+            user_id=user_id, media_id=media_id, time_from=time_from, time_to=time_to
+        )
+
+        session.add(instance=user)
+
+        return AResult(code=AResultCode.OK, message="OK", result=user)

@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from backend.core.utils.safeAsyncCall import safe_async
 from backend.utils.backendUtils import create_id
 from backend.utils.logger import getLogger
 
@@ -17,6 +18,7 @@ logger: Logger = getLogger(__name__)
 
 class DownloadAccess:
     @staticmethod
+    @safe_async
     async def create_download_group(
         session: AsyncSession,
         user_id: int,
@@ -24,23 +26,18 @@ class DownloadAccess:
     ) -> AResult[DownloadGroupRow]:
         """Create a new download group row and flush so its id is available."""
 
-        try:
-            row: DownloadGroupRow = DownloadGroupRow(
-                public_id=create_id(32),
-                user_id=user_id,
-                title=title,
-                date_started=datetime.now(timezone.utc),
-            )
-            session.add(row)
-            await session.flush()
-            return AResult(code=AResultCode.OK, message="OK", result=row)
-        except Exception as e:
-            logger.error(f"Error creating download group. {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR, message="Error creating download group"
-            )
+        row: DownloadGroupRow = DownloadGroupRow(
+            public_id=create_id(32),
+            user_id=user_id,
+            title=title,
+            date_started=datetime.now(timezone.utc),
+        )
+        session.add(row)
+        await session.flush()
+        return AResult(code=AResultCode.OK, message="OK", result=row)
 
     @staticmethod
+    @safe_async
     async def create_download(
         session: AsyncSession,
         download_group_id: int,
@@ -48,21 +45,16 @@ class DownloadAccess:
     ) -> AResult[DownloadRow]:
         """Create a new download row for a single song and flush so its id is available."""
 
-        try:
-            row: DownloadRow = DownloadRow(
-                download_group_id=download_group_id,
-                media_id=song_id,
-            )
-            session.add(row)
-            await session.flush()
-            return AResult(code=AResultCode.OK, message="OK", result=row)
-        except Exception as e:
-            logger.error(f"Error creating download. {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR, message="Error creating download"
-            )
+        row: DownloadRow = DownloadRow(
+            download_group_id=download_group_id,
+            media_id=song_id,
+        )
+        session.add(row)
+        await session.flush()
+        return AResult(code=AResultCode.OK, message="OK", result=row)
 
     @staticmethod
+    @safe_async
     async def create_download_status(
         session: AsyncSession,
         download_id: int,
@@ -77,5 +69,4 @@ class DownloadAccess:
             message=message,
         )
         session.add(row)
-        await session.flush()
         return AResult(code=AResultCode.OK, message="OK", result=row)

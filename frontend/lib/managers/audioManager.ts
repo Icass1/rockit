@@ -189,7 +189,19 @@ export class AudioManager {
         }
         const timeFrom = this._audio.currentTime;
         this._audio.currentTime = time;
-        rockIt.webSocketManager.sendSeek({ timeFrom, timeTo: time });
+
+        if (!rockIt.queueManager.currentSong?.publicId) {
+            rockIt.notificationManager.notifyError(
+                "Current song is not defined to send seek."
+            );
+            return;
+        }
+
+        rockIt.webSocketManager.sendSeek({
+            mediaPublicId: rockIt.queueManager.currentSong?.publicId,
+            timeFrom,
+            timeTo: time,
+        });
     }
 
     setSrc() {

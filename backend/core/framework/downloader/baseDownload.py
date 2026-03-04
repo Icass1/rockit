@@ -1,6 +1,13 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.core.aResult import AResultCode
+from backend.core.aResult import AResult, AResultCode
+
+from backend.core.access.db.ormModels.downloadStatus import DownloadStatusRow
+from backend.core.access.downloadAccess import DownloadAccess
+from backend.core.framework.websocket.webSocketManager import ws_manager
+from backend.utils.logger import getLogger
+
+logger = getLogger(__name__)
 
 
 class BaseDownload:
@@ -19,6 +26,33 @@ class BaseDownload:
         """Execute the download. Override in provider-specific subclasses."""
 
         pass
+
+    async def progress_callback(
+        self, session: AsyncSession, progress: float, status: str
+    ):
+        """TODO."""
+
+        message = f"{status}: {progress:.1f}%"
+
+        a_result: AResult[DownloadStatusRow] = (
+            await DownloadAccess.create_download_status(
+                session=session,
+                download_id=self.download_id,
+                completed=progress,
+                message=message,
+            )
+        )
+
+        if a_result.is_not_ok():
+            logger.error(f"Error inserting download status. {a_result.info()}")
+
+        await ws_manager.broadcast_progress(
+            user_id=self.user_id,
+            download_id=self.download_id,
+            status=status,
+            progress=progress,
+            message=message,
+        )
 
     async def download_method_async(self, session: AsyncSession) -> AResultCode:
         """Return a descriptive thread name for this download."""

@@ -9,6 +9,8 @@ from backend.core.access.db.ormModels.user import UserRow
 from backend.core.access.db.ormModels.user_library_media import UserLibraryMediaRow
 from backend.core.access.db.ormModels.user_liked_media import UserLikedMediaRow
 from backend.core.access.db.ormModels.user_queue import UserQueueRow
+from backend.core.access.db.ormModels.user_seeks import UserSeeksRow
+from backend.core.enums.queueTypeEnum import QueueTypeEnum
 from backend.core.responses.baseAlbumWithoutSongsResponse import (
     BaseAlbumWithoutSongsResponse,
 )
@@ -145,7 +147,7 @@ class User:
             await MediaAccess.get_media_from_public_id_async(
                 session=session,
                 public_id=album_public_id,
-                media_type_key=MediaTypeEnum.ALBUM.value,
+                media_type_key=MediaTypeEnum.ALBUM,
             )
         )
         if a_result_album.is_not_ok():
@@ -177,7 +179,7 @@ class User:
             await MediaAccess.get_media_from_public_id_async(
                 session=session,
                 public_id=album_public_id,
-                media_type_key=MediaTypeEnum.ALBUM.value,
+                media_type_key=MediaTypeEnum.ALBUM,
             )
         )
         if a_result_album.is_not_ok():
@@ -209,7 +211,7 @@ class User:
             await MediaAccess.get_media_from_public_id_async(
                 session=session,
                 public_id=song_public_id,
-                media_type_key=MediaTypeEnum.SONG.value,
+                media_type_key=MediaTypeEnum.SONG,
             )
         )
         if a_result_media.is_not_ok():
@@ -237,7 +239,7 @@ class User:
             await MediaAccess.get_media_from_public_id_async(
                 session=session,
                 public_id=song_public_id,
-                media_type_key=MediaTypeEnum.SONG.value,
+                media_type_key=MediaTypeEnum.SONG,
             )
         )
         if a_result_media.is_not_ok():
@@ -265,7 +267,7 @@ class User:
             await MediaAccess.get_media_from_public_id_async(
                 session=session,
                 public_id=album_public_id,
-                media_type_key=MediaTypeEnum.ALBUM.value,
+                media_type_key=MediaTypeEnum.ALBUM,
             )
         )
         if a_result_album_media.is_not_ok():
@@ -300,7 +302,7 @@ class User:
                 await MediaAccess.get_media_from_public_id_async(
                     session=session,
                     public_id=song.publicId,
-                    media_type_key=MediaTypeEnum.SONG.value,
+                    media_type_key=MediaTypeEnum.SONG,
                 )
             )
             if a_result_song_media.is_not_ok():
@@ -331,7 +333,7 @@ class User:
             await MediaAccess.get_media_from_public_id_async(
                 session=session,
                 public_id=album_public_id,
-                media_type_key=MediaTypeEnum.ALBUM.value,
+                media_type_key=MediaTypeEnum.ALBUM,
             )
         )
         if a_result_album_media.is_not_ok():
@@ -366,7 +368,7 @@ class User:
                 await MediaAccess.get_media_from_public_id_async(
                     session=session,
                     public_id=song.publicId,
-                    media_type_key=MediaTypeEnum.SONG.value,
+                    media_type_key=MediaTypeEnum.SONG,
                 )
             )
             if a_result_song_media.is_not_ok():
@@ -398,7 +400,7 @@ class User:
                 await MediaAccess.get_media_from_public_id_async(
                     session=session,
                     public_id=song_public_id,
-                    media_type_key=MediaTypeEnum.SONG.value,
+                    media_type_key=MediaTypeEnum.SONG,
                 )
             )
             if a_result_media.is_not_ok():
@@ -430,7 +432,7 @@ class User:
                 await MediaAccess.get_media_from_public_id_async(
                     session=session,
                     public_id=song_public_id,
-                    media_type_key=MediaTypeEnum.SONG.value,
+                    media_type_key=MediaTypeEnum.SONG,
                 )
             )
             if a_result_media.is_not_ok():
@@ -526,3 +528,46 @@ class User:
         await session.commit()
 
         return AResult(code=AResultCode.OK, message="OK", result=True)
+
+    @staticmethod
+    async def add_user_current_time_seek_async(
+        session: AsyncSession,
+        user_id: int,
+        media_id: int,
+        time_from: float,
+        time_to: float,
+    ) -> AResultCode:
+        a_result: AResult[UserSeeksRow] = (
+            await UserAccess.add_user_current_time_seek_async(
+                session=session,
+                user_id=user_id,
+                media_id=media_id,
+                time_from=time_from,
+                time_to=time_to,
+            )
+        )
+        if a_result.is_not_ok():
+            logger.error(f"Error adding user current time seek. {a_result.info()}")
+            return AResultCode(code=a_result.code(), message=a_result.message())
+
+        return AResultCode(code=AResultCode.OK, message="OK")
+
+    @staticmethod
+    async def save_user_queue_async(
+        session: AsyncSession,
+        user_id: int,
+        queue_items: List[Tuple[int, int]],
+        queue_type: QueueTypeEnum,
+    ) -> AResultCode:
+        a_result: AResult[bool] = await UserQueueAccess.save_user_queue_async(
+            session=session,
+            user_id=user_id,
+            queue_items=queue_items,
+            queue_type=queue_type,
+        )
+
+        if a_result.is_not_ok():
+            logger.error(f"Error saving user queue. {a_result.info()}")
+            return AResultCode(code=a_result.code(), message=a_result.message())
+
+        return AResultCode(code=AResultCode.OK, message="OK")

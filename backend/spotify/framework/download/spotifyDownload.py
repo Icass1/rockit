@@ -12,7 +12,6 @@ from backend.utils.logger import getLogger
 from backend.core.aResult import AResult, AResultCode
 
 from backend.core.framework.downloader.baseDownload import BaseDownload
-from backend.core.framework.websocket.webSocketManager import ws_manager
 from backend.youtube.framework.youtubeApi import youtube_api, RawYoutubeSearchResult
 from backend.youtube.framework.youtubeDownloader import YouTubeDownloader
 from backend.spotify.access.spotifyAccess import SpotifyAccess
@@ -123,13 +122,9 @@ class SpotifyDownload(BaseDownload):
 
             filename: str = f"{track.spotify_id}_{self.download_id}"
 
-            async def progress_callback(progress: float, status: str):
-                await ws_manager.broadcast_progress(
-                    user_id=self.user_id,
-                    download_id=self.download_id,
-                    status=status,
-                    progress=progress,
-                    message=f"{status}: {progress:.1f}%",
+            async def _progress_callback(progress: float, status: str):
+                await self.progress_callback(
+                    session=session, progress=progress, status=status
                 )
 
             a_result_download: AResult[str] = (
@@ -138,7 +133,7 @@ class SpotifyDownload(BaseDownload):
                     download_id=self.download_id,
                     filename=filename,
                     user_id=self.user_id,
-                    progress_callback=progress_callback,
+                    progress_callback=_progress_callback,
                 )
             )
 

@@ -64,7 +64,7 @@ class UserQueueAccess:
             )
 
     @staticmethod
-    async def save_user_queue(
+    async def save_user_queue_async(
         session: AsyncSession,
         user_id: int,
         queue_items: List[Tuple[int, int]],

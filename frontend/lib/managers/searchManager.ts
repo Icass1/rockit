@@ -1,25 +1,16 @@
-import {
-    SearchResultsResponse,
-    SearchResultsResponseSchema,
-    YouTubeSearchResponseSchema,
-    type YouTubeSearchResponse,
-} from "@/dto";
-import { Station } from "@/types/station";
+import { SearchResultsResponse, SearchResultsResponseSchema } from "@/dto";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { createAtom } from "@/lib/store";
 import { apiFetch } from "@/lib/utils/apiFetch";
-
-export interface SearchResults {
-    media: SearchResultsResponse | undefined;
-    radio: Station[];
-    youtube: YouTubeSearchResponse | undefined;
-}
 
 export class SearchManager {
     // #region Atoms
 
     private _searchQueryAtom = createAtom<string>("");
     private _searchingAtom = createAtom<boolean>(false);
-    private _searchResultsAtom = createAtom<SearchResults | undefined>();
+    private _searchResultsAtom = createAtom<
+        SearchResultsResponse | undefined
+    >();
 
     // #endregion
 
@@ -36,41 +27,26 @@ export class SearchManager {
         this._searchingAtom.set(true);
 
         try {
-            const [mediaRes, radioRes, youtubeRes] = await Promise.all([
+            const [mediaRes] = await Promise.all([
                 apiFetch(`/media/search?q=${encodeURIComponent(query)}`, {
                     signal: this._abortController.signal,
                 }),
-                fetch(
-                    `/radio/stations/byname/${encodeURIComponent(query)}?limit=5`,
-                    { signal: this._abortController.signal }
-                ),
-                apiFetch(
-                    `/youtube/search?q=${encodeURIComponent(query)}&limit=5`,
-                    {
-                        signal: this._abortController.signal,
-                    }
-                ),
             ]);
 
+            console.log(mediaRes);
+
             let media: SearchResultsResponse | undefined;
+            console.log("1");
             if (mediaRes?.ok) {
+                console.log("2");
                 const mediaJson = await mediaRes.json();
                 media = SearchResultsResponseSchema.parse(mediaJson);
             }
 
-            let radio: Station[] = [];
-            if (radioRes.ok) {
-                radio = await radioRes.json();
-            }
-
-            let youtube: YouTubeSearchResponse | undefined;
-            if (youtubeRes?.ok) {
-                const youtubeJson = await youtubeRes.json();
-                youtube = YouTubeSearchResponseSchema.parse(youtubeJson);
-            }
-
-            this._searchResultsAtom.set({ media, radio, youtube });
+            console.log(media);
+            this._searchResultsAtom.set(media);
         } catch (e) {
+            rockIt.notificationManager.notifyError("Error searching music.");
             if (e instanceof Error && e.name === "AbortError") return;
         } finally {
             if (!this._abortController?.signal.aborted) {

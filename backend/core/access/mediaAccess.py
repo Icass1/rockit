@@ -11,6 +11,8 @@ from backend.core.aResult import AResult, AResultCode
 from backend.core.access.db.ormModels.media import CoreMediaRow
 from backend.core.access.db.ormModels.image import ImageRow
 
+from backend.core.enums.mediaTypeEnum import MediaTypeEnum
+
 logger = getLogger(__name__)
 
 
@@ -19,7 +21,7 @@ class MediaAccess:
     async def get_medias_from_public_ids_async(
         session: AsyncSession,
         public_ids: List[str],
-        media_type_key: int | None,
+        media_type_key: MediaTypeEnum | None,
     ) -> AResult[List[CoreMediaRow]]:
         """Get CoreMediaRow entries by public_ids and optional media_type."""
 
@@ -27,7 +29,7 @@ class MediaAccess:
             if media_type_key is not None:
                 where_stmt = and_(
                     CoreMediaRow.public_id.in_(public_ids),
-                    CoreMediaRow.media_type_key == media_type_key,
+                    CoreMediaRow.media_type_key == media_type_key.value,
                 )
             else:
                 where_stmt = CoreMediaRow.public_id.in_(public_ids)
@@ -37,7 +39,10 @@ class MediaAccess:
             rows: List[CoreMediaRow] = cast(List[CoreMediaRow], result.scalars().all())
 
             if not rows:
-                return AResult(code=AResultCode.NOT_FOUND, message="Media not found")
+                return AResult(
+                    code=AResultCode.NOT_FOUND,
+                    message=f"Media not found for public ids: {public_ids} with media type key {media_type_key}",
+                )
 
             return AResult(code=AResultCode.OK, message="OK", result=rows)
 
@@ -51,7 +56,7 @@ class MediaAccess:
     async def get_media_from_public_id_async(
         session: AsyncSession,
         public_id: str,
-        media_type_key: int | None,
+        media_type_key: MediaTypeEnum | None,
     ) -> AResult[CoreMediaRow]:
         a_result_media: AResult[List[CoreMediaRow]] = (
             await MediaAccess.get_medias_from_public_ids_async(

@@ -14,9 +14,10 @@ Rockit is a music player with:
 frontend/   → Next.js frontend
 backend/    → FastAPI backend
   core/     → Core business (auth, users, sessions)
+  default/  → Default business logic (Playlist created by users are here)
   spotify/  → Spotify integration
   youtube/  → YouTube integration
-  rockit/   → Rockit main business
+  rockit/   → RockIt integration (music uploaded by users to the database)
 ```
 
 ## Commands

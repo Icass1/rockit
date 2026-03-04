@@ -8,7 +8,7 @@ class ArtistSearchResultsItem(BaseModel):
 
 
 class BaseSearchResultsItem(BaseModel):
-    type: Literal["album", "playlist", "artist", "song", "video"]
+    type: Literal["album", "playlist", "artist", "song", "video", "radio"]
     title: str
     url: str
     imageUrl: str

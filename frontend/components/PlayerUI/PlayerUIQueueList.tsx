@@ -143,7 +143,7 @@ export function PlayerUIQueueList({
                         listPublicId: "",
                         song: {
                             downloaded: false,
-                            internalImageUrl: "song-placeholder.png",
+                            internalImageUrl: "/image/song-placeholder.png",
                             duration: 123,
                             discNumber: 1,
                             trackNumber: 1,
@@ -155,7 +155,7 @@ export function PlayerUIQueueList({
                                 type: "album",
                                 name: "Single",
                                 releaseDate: "2024-01-01",
-                                internalImageUrl: "album-placeholder.png",
+                                internalImageUrl: "/image/song-placeholder.png",
                                 provider: "mock",
                                 publicId: `auto-album-${mock.id}`,
                                 artists: [
@@ -163,7 +163,7 @@ export function PlayerUIQueueList({
                                         provider: "mock",
                                         publicId: "publicId",
                                         internalImageUrl:
-                                            "song-placeholder.png",
+                                            "/image/song-placeholder.png",
                                         genres: [],
                                         name: mock.artist,
                                     },
@@ -173,7 +173,8 @@ export function PlayerUIQueueList({
                                 {
                                     provider: "mock",
                                     publicId: "publicId",
-                                    internalImageUrl: "song-placeholder.png",
+                                    internalImageUrl:
+                                        "/image/song-placeholder.png",
                                     genres: [],
                                     name: mock.artist,
                                 },

@@ -90,7 +90,7 @@ function CarouselSong({
                     alt={song.name}
                     width={300}
                     height={300}
-                    src={song.internalImageUrl ?? "/song-placeholder.png"}
+                    src={song.internalImageUrl}
                     className="relative top-1/2 aspect-square h-auto w-full -translate-y-1/2 transition-all duration-300"
                     style={{ filter: `brightness(${brightness})` }}
                     // Precarga las canciones adyacentes

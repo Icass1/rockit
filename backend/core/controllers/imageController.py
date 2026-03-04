@@ -1,5 +1,5 @@
 import os
-from fastapi import Depends, APIRouter, Request
+from fastapi import Depends, APIRouter, HTTPException, Request
 
 from fastapi.responses import FileResponse
 
@@ -14,6 +14,11 @@ router = APIRouter(
 
 @router.get("/{path}")
 async def get_session(request: Request, path: str) -> FileResponse:
-    image_path = os.path.join(IMAGES_PATH, path)
+    image_path: str = os.path.join(IMAGES_PATH, path)
+
+    if not os.path.exists(image_path):
+        raise HTTPException(
+            status_code=404, detail="Image in database but not in filesystem."
+        )
 
     return FileResponse(path=image_path)

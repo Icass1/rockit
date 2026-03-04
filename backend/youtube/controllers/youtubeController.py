@@ -6,9 +6,10 @@ import os
 import aiofiles
 
 from backend.constants import MEDIA_PATH
-from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 from backend.utils.logger import getLogger
 from backend.core.aResult import AResult, AResultCode
+
+from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 from backend.core.middlewares.authMiddleware import AuthMiddleware
 
 from backend.youtube.framework.youtube import YouTube

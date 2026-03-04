@@ -1,5 +1,4 @@
 from typing import Dict
-from spotdl.types.options import DownloaderOptions  # type: ignore
 from dotenv import load_dotenv
 from typing import List
 import os

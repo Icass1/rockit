@@ -14,9 +14,9 @@ from backend.core.access.db.ormModels.downloadGroup import DownloadGroupRow
 from backend.core.access.db.ormModels.download import DownloadRow
 from backend.core.enums.mediaTypeEnum import MediaTypeEnum
 
-from backend.core.framework.provider.baseProvider import BaseProvider
-from backend.core.framework.providers.providers import Providers
+from backend.core.framework import providers
 from backend.core.framework.downloader import downloads_manager
+from backend.core.framework.provider.baseProvider import BaseProvider
 from backend.core.framework.downloader.baseDownload import BaseDownload
 
 from backend.core.responses.startDownloadResponse import StartDownloadResponse
@@ -27,11 +27,7 @@ logger: Logger = getLogger(__name__)
 class Downloader:
     @staticmethod
     async def download_multiple_songs_async(
-        session: AsyncSession,
-        user_id: int,
-        title: str,
-        public_ids: List[str],
-        providers: Providers,
+        session: AsyncSession, user_id: int, title: str, public_ids: List[str]
     ) -> AResult[StartDownloadResponse]:
         """Create a download group, queue a BaseDownload per song, and return the group's public_id."""
 

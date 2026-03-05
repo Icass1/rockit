@@ -15,8 +15,8 @@ from backend.youtube.access.db.ormModels.channel import ChannelRow
 
 from backend.youtube.framework.youtubeApi import youtube_api
 
-from backend.youtube.responses.videoResponse import VideoResponse
-from backend.youtube.responses.channelResponse import ChannelResponse
+from backend.youtube.responses.videoResponse import YoutubeVideoResponse
+from backend.youtube.responses.channelResponse import YoutubeChannelResponse
 
 from backend.youtube.youtubeApiTypes.rawYoutubeApiVideo import RawYoutubeVideo
 from backend.youtube.youtubeApiTypes.rawYoutubeApiChannel import RawYoutubeChannel
@@ -35,7 +35,7 @@ class YouTube:
     @staticmethod
     async def get_video_async(
         session: AsyncSession, youtube_id: str
-    ) -> AResult[VideoResponse]:
+    ) -> AResult[YoutubeVideoResponse]:
         """Get a video by ID, fetching from YouTube API and populating the database if not found."""
 
         a_result_video: AResult[VideoRow] = (
@@ -76,7 +76,7 @@ class YouTube:
             if a_result_internal_image.is_ok():
                 internal_image_url = f"{BACKEND_URL}/media/image/{a_result_internal_image.result().public_id}"
 
-            channel_response: ChannelResponse | None = None
+            channel_response: YoutubeChannelResponse | None = None
             if channel:
                 channel_internal_image_url: str = ""
                 if channel.internal_image_id:
@@ -88,7 +88,7 @@ class YouTube:
                     if a_result_channel_image.is_ok():
                         channel_internal_image_url = f"{BACKEND_URL}/media/image/{a_result_channel_image.result().public_id}"
 
-                channel_response = ChannelResponse(
+                channel_response = YoutubeChannelResponse(
                     provider=YouTube.provider_name,
                     publicId=channel.youtube_id,
                     name=channel.name,
@@ -106,7 +106,7 @@ class YouTube:
             return AResult(
                 code=AResultCode.OK,
                 message="OK",
-                result=VideoResponse(
+                result=YoutubeVideoResponse(
                     provider=YouTube.provider_name,
                     publicId=core_video.public_id,
                     youtubeId=video_row.youtube_id,
@@ -235,7 +235,7 @@ class YouTube:
         if a_result_internal_image.is_ok():
             internal_image_url = f"{BACKEND_URL}/media/image/{a_result_internal_image.result().public_id}"
 
-        channel_response: ChannelResponse | None = None
+        channel_response: YoutubeChannelResponse | None = None
         if fetched_channel:
             channel_internal_image_url: str = ""
             if fetched_channel.internal_image_id:
@@ -247,7 +247,7 @@ class YouTube:
                 if a_result_channel_image.is_ok():
                     channel_internal_image_url = f"{BACKEND_URL}/media/image/{a_result_channel_image.result().public_id}"
 
-            channel_response = ChannelResponse(
+            channel_response = YoutubeChannelResponse(
                 provider=YouTube.provider_name,
                 publicId=fetched_channel.youtube_id,
                 name=fetched_channel.name,
@@ -265,7 +265,7 @@ class YouTube:
         return AResult(
             code=AResultCode.OK,
             message="OK",
-            result=VideoResponse(
+            result=YoutubeVideoResponse(
                 provider=YouTube.provider_name,
                 publicId=core_video.public_id,
                 youtubeId=video_row.youtube_id,

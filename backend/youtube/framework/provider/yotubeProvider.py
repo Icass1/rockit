@@ -13,6 +13,8 @@ from backend.core.responses.searchResponse import (
     BaseSearchResultsItem,
 )
 
+from backend.core.responses.baseVideoResponse import BaseVideoResponse
+from backend.youtube.responses.videoResponse import YoutubeVideoResponse
 from backend.youtube.access.db.ormModels.video import VideoRow
 from backend.youtube.framework.download.youtubeDownload import YoutubeDownload
 from backend.youtube.framework.video import Video
@@ -108,6 +110,42 @@ class YoutubeProvider(BaseProvider):
         high = thumb_dict.get("high", {})
         default = thumb_dict.get("default", {})
         return str(medium.get("url") or high.get("url") or default.get("url") or "")
+
+    async def get_video_async(
+        self, session: AsyncSession, public_id: str
+    ) -> AResult[BaseVideoResponse]:
+        """Get a video by public_id."""
+
+        a_result_video: AResult[VideoRow] = await Video.get_video_from_public_id_async(
+            session=session, public_id=public_id
+        )
+        if a_result_video.is_not_ok():
+            logger.error(f"Error getting video from public id {public_id}")
+            return AResult(code=a_result_video.code(), message=a_result_video.message())
+
+        video: VideoRow = a_result_video.result()
+
+        a_result: AResult[YoutubeVideoResponse] = await YouTube.get_video_async(
+            session=session, youtube_id=video.youtube_id
+        )
+        if a_result.is_not_ok():
+            logger.error(f"Error getting video from YouTube. {a_result.info()}")
+            return AResult(code=a_result.code(), message=a_result.message())
+
+        youtube_video: YoutubeVideoResponse = a_result.result()
+
+        return AResult(
+            code=AResultCode.OK,
+            message="OK",
+            result=BaseVideoResponse(
+                provider=youtube_video.provider,
+                publicId=youtube_video.publicId,
+                name=youtube_video.name,
+                videoUrl=youtube_video.youtubeUrl,
+                internalImageUrl=youtube_video.internalImageUrl or "",
+                duration=youtube_video.duration,
+            ),
+        )
 
 
 provider = YoutubeProvider()

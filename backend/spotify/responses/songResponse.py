@@ -1,5 +1,5 @@
 from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 
 
-class SpotifySongResponse(BaseSongWithAlbumResponse):
+class SpotifyTrackResponse(BaseSongWithAlbumResponse):
     spotifyId: str

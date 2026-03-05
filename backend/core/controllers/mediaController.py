@@ -6,12 +6,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.aResult import AResult
 from backend.constants import IMAGES_PATH
+from backend.core.responses.baseVideoResponse import BaseVideoResponse
 from backend.utils.logger import getLogger
 from backend.core.access.db.ormModels.image import ImageRow
 
 from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 
-from backend.core.framework import providers
 from backend.core.framework.media.media import Media
 
 from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
@@ -30,7 +30,7 @@ async def get_song(request: Request, public_id: str) -> BaseSongWithAlbumRespons
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
     a_result: AResult[BaseSongWithAlbumResponse] = await Media.get_song_async(
-        session=session, public_id=public_id, providers=providers
+        session=session, public_id=public_id
     )
     if a_result.is_not_ok():
         raise HTTPException(
@@ -46,7 +46,7 @@ async def get_album(request: Request, public_id: str) -> BaseAlbumWithSongsRespo
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
     a_result: AResult[BaseAlbumWithSongsResponse] = await Media.get_album_async(
-        session=session, public_id=public_id, providers=providers
+        session=session, public_id=public_id
     )
     if a_result.is_not_ok():
         raise HTTPException(
@@ -62,7 +62,7 @@ async def get_artist(request: Request, public_id: str) -> BaseArtistResponse:
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
     a_result: AResult[BaseArtistResponse] = await Media.get_artist_async(
-        session=session, public_id=public_id, providers=providers
+        session=session, public_id=public_id
     )
     if a_result.is_not_ok():
         raise HTTPException(
@@ -78,7 +78,23 @@ async def get_playlist(request: Request, public_id: str) -> BasePlaylistResponse
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
     a_result: AResult[BasePlaylistResponse] = await Media.get_playlist_async(
-        session=session, public_id=public_id, providers=providers
+        session=session, public_id=public_id
+    )
+    if a_result.is_not_ok():
+        raise HTTPException(
+            status_code=a_result.get_http_code(), detail=a_result.message()
+        )
+
+    return a_result.result()
+
+
+@router.get("/video/{public_id}")
+async def get_video_async(request: Request, public_id: str) -> BaseVideoResponse:
+    """Get a video by its public_id."""
+
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+    a_result: AResult[BaseVideoResponse] = await Media.get_video_async(
+        session=session, public_id=public_id
     )
     if a_result.is_not_ok():
         raise HTTPException(
@@ -94,7 +110,7 @@ async def search(request: Request, q: str) -> SearchResultsResponse:
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
     a_result: AResult[SearchResultsResponse] = await Media.search_async(
-        session=session, query=q, providers=providers
+        session=session, query=q
     )
     if a_result.is_not_ok():
         raise HTTPException(

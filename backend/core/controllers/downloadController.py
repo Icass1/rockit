@@ -8,7 +8,6 @@ from backend.utils.logger import getLogger
 
 from backend.core.aResult import AResult
 
-from backend.core.framework import providers
 from backend.core.framework.downloader.downloader import Downloader
 
 from backend.core.middlewares.authMiddleware import AuthMiddleware
@@ -47,7 +46,6 @@ async def start_download(
             user_id=user.id,
             title=payload.title,
             public_ids=payload.ids,
-            providers=providers,
         )
     )
     if a_result.is_not_ok():

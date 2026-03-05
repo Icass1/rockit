@@ -10,6 +10,7 @@ from backend.core.aResult import AResult, AResultCode
 if TYPE_CHECKING:
     from backend.core.framework.downloader.baseDownload import BaseDownload
 
+from backend.core.responses.baseVideoResponse import BaseVideoResponse
 from backend.core.responses.searchResponse import BaseSearchResultsItem
 from backend.core.responses.baseArtistResponse import BaseArtistResponse
 from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
@@ -115,4 +116,13 @@ class BaseProvider:
         return AResult(
             code=AResultCode.NOT_IMPLEMENTED,
             message=f"Provider '{self._name} doesn't implement get_playlist_async method.'",
+        )
+
+    async def get_video_async(
+        self, session: AsyncSession, public_id: str
+    ) -> AResult[BaseVideoResponse]:
+        """"""
+        return AResult(
+            code=AResultCode.NOT_IMPLEMENTED,
+            message=f"Provider '{self._name} doesn't implement get_video_async method.'",
         )

@@ -12,14 +12,15 @@ from backend.core.access.db.ormModels.media import CoreMediaRow
 from backend.core.access.db.ormModels.image import ImageRow
 from backend.core.enums.mediaTypeEnum import MediaTypeEnum
 
-from backend.core.framework.provider.baseProvider import BaseProvider
-from backend.core.framework.providers.providers import Providers
+from backend.core.framework import providers
 from backend.core.framework.models.media import MediaModel
+from backend.core.framework.provider.baseProvider import BaseProvider
 
 from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from backend.core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
 from backend.core.responses.baseArtistResponse import BaseArtistResponse
 from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
+from backend.core.responses.baseVideoResponse import BaseVideoResponse
 from backend.core.responses.searchResponse import (
     BaseSearchResultsItem,
     SearchResultsResponse,
@@ -90,7 +91,7 @@ class Media:
 
     @staticmethod
     async def get_song_async(
-        session: AsyncSession, public_id: str, providers: Providers
+        session: AsyncSession, public_id: str
     ) -> AResult[BaseSongWithAlbumResponse]:
         """Get a song by public_id, dispatching to the matched provider."""
 
@@ -126,7 +127,7 @@ class Media:
 
     @staticmethod
     async def get_album_async(
-        session: AsyncSession, public_id: str, providers: Providers
+        session: AsyncSession, public_id: str
     ) -> AResult[BaseAlbumWithSongsResponse]:
         """Get an album by public_id, dispatching to the matched provider."""
 
@@ -164,7 +165,7 @@ class Media:
 
     @staticmethod
     async def get_artist_async(
-        session: AsyncSession, public_id: str, providers: Providers
+        session: AsyncSession, public_id: str
     ) -> AResult[BaseArtistResponse]:
         """Get an artist by public_id, dispatching to the matched provider."""
 
@@ -202,7 +203,7 @@ class Media:
 
     @staticmethod
     async def get_playlist_async(
-        session: AsyncSession, public_id: str, providers: Providers
+        session: AsyncSession, public_id: str
     ) -> AResult[BasePlaylistResponse]:
         """Get a playlist by public_id, dispatching to the matched provider."""
 
@@ -240,7 +241,7 @@ class Media:
 
     @staticmethod
     async def search_async(
-        session: AsyncSession, query: str, providers: Providers
+        session: AsyncSession, query: str
     ) -> AResult[SearchResultsResponse]:
         """Search all providers concurrently and aggregate results."""
 
@@ -298,3 +299,39 @@ class Media:
         return AResult(
             code=AResultCode.OK, message="OK", result=a_result_image.result()
         )
+
+    @staticmethod
+    async def get_video_async(
+        session: AsyncSession, public_id: str
+    ) -> AResult[BaseVideoResponse]:
+        """Get a video by public_id, dispatching to the matched provider."""
+
+        a_result_video: AResult[CoreMediaRow] = (
+            await MediaAccess.get_media_from_public_id_async(
+                session=session,
+                public_id=public_id,
+                media_type_keys=[MediaTypeEnum.VIDEO],
+            )
+        )
+        if a_result_video.is_not_ok():
+            logger.error(
+                f"Error getting video from database for public id {public_id}. {a_result_video.info()}"
+            )
+            return AResult(code=a_result_video.code(), message=a_result_video.message())
+
+        video: CoreMediaRow = a_result_video.result()
+        provider: BaseProvider | None = providers.find_provider(video.provider_id)
+        if provider is None:
+            logger.error(f"No provider found for provider_id {video.provider_id}.")
+            return AResult(
+                code=AResultCode.NOT_FOUND, message="Provider not found for video"
+            )
+
+        a_result: AResult[BaseVideoResponse] = await provider.get_video_async(
+            session=session, public_id=public_id
+        )
+        if a_result.is_not_ok():
+            logger.error(f"Provider error getting video. {a_result.info()}")
+            return AResult(code=a_result.code(), message=a_result.message())
+
+        return AResult(code=AResultCode.OK, message="OK", result=a_result.result())

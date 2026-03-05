@@ -14,7 +14,7 @@ from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
 
 from backend.spotify.framework.spotify import Spotify
 
-from backend.spotify.responses.songResponse import SpotifySongResponse
+from backend.spotify.responses.songResponse import SpotifyTrackResponse
 from backend.spotify.responses.albumResponse import SpotifyAlbumResponse
 
 logger: Logger = getLogger(name=__name__)
@@ -39,9 +39,9 @@ async def get_album_async(request: Request, spotify_id: str) -> SpotifyAlbumResp
 
 
 @router.get("/track/{spotify_id}")
-async def get_track_async(request: Request, spotify_id: str) -> SpotifySongResponse:
+async def get_track_async(request: Request, spotify_id: str) -> SpotifyTrackResponse:
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-    a_result: AResult[SpotifySongResponse] = await Spotify.get_track_async(
+    a_result: AResult[SpotifyTrackResponse] = await Spotify.get_track_async(
         session=session, spotify_id=spotify_id
     )
     if a_result.is_not_ok():

@@ -13,8 +13,8 @@ from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 from backend.core.middlewares.authMiddleware import AuthMiddleware
 
 from backend.youtube.framework.youtube import YouTube
-from backend.youtube.responses.channelResponse import ChannelResponse
-from backend.youtube.responses.videoResponse import VideoResponse
+from backend.youtube.responses.channelResponse import YoutubeChannelResponse
+from backend.youtube.responses.videoResponse import YoutubeVideoResponse
 
 logger: Logger = getLogger(name=__name__)
 router = APIRouter(
@@ -29,7 +29,7 @@ async def stream_video_async(request: Request, youtube_id: str):
     """Stream video."""
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-    a_result: AResult[VideoResponse] = await YouTube.get_video_async(
+    a_result: AResult[YoutubeVideoResponse] = await YouTube.get_video_async(
         session=session, youtube_id=youtube_id
     )
     if a_result.is_not_ok():
@@ -38,7 +38,7 @@ async def stream_video_async(request: Request, youtube_id: str):
             status_code=a_result.get_http_code(), detail=a_result.message()
         )
 
-    video_response: VideoResponse = a_result.result()
+    video_response: YoutubeVideoResponse = a_result.result()
     if not video_response.path:
         raise HTTPException(status_code=404, detail="Video file not found")
 
@@ -103,11 +103,11 @@ async def stream_video_async(request: Request, youtube_id: str):
 
 
 @router.get("/video/{youtube_id}")
-async def get_video_async(request: Request, youtube_id: str) -> VideoResponse:
+async def get_video_async(request: Request, youtube_id: str) -> YoutubeVideoResponse:
     """TODO"""
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-    a_result: AResult[VideoResponse] = await YouTube.get_video_async(
+    a_result: AResult[YoutubeVideoResponse] = await YouTube.get_video_async(
         session=session, youtube_id=youtube_id
     )
     if a_result.is_not_ok():
@@ -120,7 +120,7 @@ async def get_video_async(request: Request, youtube_id: str) -> VideoResponse:
 
 
 @router.get("/chanel/{youtube_id}")
-async def get_chanel_async(request: Request, youtube_id: str) -> ChannelResponse:
+async def get_chanel_async(request: Request, youtube_id: str) -> YoutubeChannelResponse:
     """TODO"""
 
     a_result = AResultCode(code=AResultCode.NOT_IMPLEMENTED, message="TODO")

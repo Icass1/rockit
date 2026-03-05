@@ -74,7 +74,7 @@ export class QueueManager {
 
     skipBack() {
         rockIt.webSocketManager.sendSkipClicked({
-            direction: "previous",
+            direction: "PREVIOUS",
             mediaPublicId: "TODO",
         });
         const currentQueueMediaId = this.currentQueueMediaId;
@@ -92,7 +92,7 @@ export class QueueManager {
 
     skipForward() {
         rockIt.webSocketManager.sendSkipClicked({
-            direction: "next",
+            direction: "NEXT",
             mediaPublicId: "TODO",
         });
         const currentQueueMediaId = this.currentQueueMediaId;

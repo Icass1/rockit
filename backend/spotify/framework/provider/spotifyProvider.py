@@ -3,7 +3,7 @@ from logging import Logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.spotify.responses.albumResponse import SpotifyAlbumResponse
-from backend.spotify.responses.songResponse import SpotifySongResponse
+from backend.spotify.responses.songResponse import SpotifyTrackResponse
 from backend.utils.logger import getLogger
 
 from backend.core.aResult import AResult, AResultCode
@@ -82,7 +82,7 @@ class SpotifyProvider(BaseProvider):
 
         spotify_id: str = a_result_spotify_id.result()
 
-        a_result: AResult[SpotifySongResponse] = await Spotify.get_track_async(
+        a_result: AResult[SpotifyTrackResponse] = await Spotify.get_track_async(
             session=session, spotify_id=spotify_id
         )
         if a_result.is_not_ok():

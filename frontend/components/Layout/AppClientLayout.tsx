@@ -4,9 +4,9 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { UrlMatchResponseSchema } from "@/dto";
 import type { Lang } from "@/types/lang";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { apiFetch } from "@/lib/utils/apiFetch";
-import { LanguageProvider } from "@/contexts/LanguageContext";
 import DropOverlay from "@/components/DropOverlay";
 import Footer from "@/components/Footer/Footer";
 import Header from "@/components/Header/Header";
@@ -53,15 +53,15 @@ export default function AppClientLayout({
                 <PlayerUI />
             </div>
 
-            <div className="fixed right-0 bottom-0 left-0 z-40 hidden h-24 md:block">
+            <div className="fixed bottom-0 left-0 right-0 z-40 hidden h-24 md:block">
                 <Footer />
             </div>
 
-            <div className="fixed top-0 right-0 left-12 z-40 hidden h-24 w-auto md:block">
+            <div className="fixed left-12 right-0 top-0 z-40 hidden h-24 w-auto md:block">
                 <Header />
             </div>
 
-            <div className="fixed z-40 hidden md:top-0 md:bottom-24 md:left-0 md:block">
+            <div className="fixed z-40 hidden md:bottom-24 md:left-0 md:top-0 md:block">
                 <Navigation />
             </div>
         </LanguageProvider>

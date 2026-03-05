@@ -15,7 +15,7 @@ export default function LibraryClient() {
     if (!lang) return false;
 
     return (
-        <div className="h-full w-full webkit-scroll pt-24 pb-24 md:px-8">
+        <div className="webkit-scroll h-full w-full pb-24 pt-24 md:px-8">
             <section className="flex items-center justify-between px-10 md:px-0">
                 <div className="hidden md:flex">
                     <h1 className="text-4xl font-bold text-white">

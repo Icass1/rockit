@@ -3,9 +3,9 @@
 import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
-import { rockIt } from "@/lib/rockit/rockIt";
-import useWindowSize from "@/hooks/useWindowSize";
 import { useLanguage } from "@/contexts/LanguageContext";
+import useWindowSize from "@/hooks/useWindowSize";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { PlayerUICoverColumn } from "@/components/PlayerUI/PlayerUICoverColumn";
 import { PlayerUILyricsColumn } from "@/components/PlayerUI/PlayerUILyricsColumn";
 import { PlayerUIQueueColumn } from "@/components/PlayerUI/PlayerUIQueueColumn";
@@ -55,7 +55,7 @@ export default function PlayerUI() {
     return (
         <div
             ref={divRef}
-            className="absolute inset-0 flex items-center justify-center overflow-hidden bg-black/80 pt-20 pb-24 pl-12 transition-all duration-300"
+            className="absolute inset-0 flex items-center justify-center overflow-hidden bg-black/80 pb-24 pl-12 pt-20 transition-all duration-300"
             style={{
                 top: $isPlayerUIVisible ? "0%" : "100%",
                 height: "calc(100%)",
@@ -71,7 +71,7 @@ export default function PlayerUI() {
                     }
                     width={600}
                     height={600}
-                    className="absolute top-1/2 h-auto w-full -translate-y-1/2 blur-md brightness-50 select-none"
+                    className="absolute top-1/2 h-auto w-full -translate-y-1/2 select-none blur-md brightness-50"
                 />
 
                 <PlayerUILyricsColumn />

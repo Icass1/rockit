@@ -1,5 +1,5 @@
-import { z } from "zod";
 import { YoutubeChannelResponseSchema } from "@/dto";
+import { z } from "zod";
 
 export const YoutubeVideoResponseSchema = z.object({
     provider: z.string(),

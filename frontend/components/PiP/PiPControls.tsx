@@ -10,8 +10,8 @@ import {
     SkipBack,
     SkipForward,
 } from "lucide-react";
-import { rockIt } from "@/lib/rockit/rockIt";
 import { ERepeatMode } from "@/models/enums/repeatMode";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 const S = {
     controls: {

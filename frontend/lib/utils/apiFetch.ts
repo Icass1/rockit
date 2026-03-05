@@ -1,5 +1,5 @@
-import { z, ZodType } from "zod";
 import { BACKEND_URL } from "@/environment";
+import { z, ZodType } from "zod";
 
 interface ApiFetchOptions {
     method?: string;

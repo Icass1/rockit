@@ -39,7 +39,7 @@ export default function FooterMobile() {
                         }
                         width={56}
                         height={56}
-                        className="h-full w-full rounded-md p-1 object-cover"
+                        className="h-full w-full rounded-md object-cover p-1"
                     />
                 </div>
 
@@ -48,7 +48,7 @@ export default function FooterMobile() {
                     <p className="truncate font-semibold leading-tight">
                         {$currentSong?.name ?? ""}
                     </p>
-                    <p className="truncate text-sm text-neutral-400 leading-tight">
+                    <p className="truncate text-sm leading-tight text-neutral-400">
                         {$currentSong?.artists.map((a) => a.name).join(", ") ??
                             ""}
                     </p>

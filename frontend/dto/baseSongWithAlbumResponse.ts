@@ -1,8 +1,8 @@
-import { z } from "zod";
 import {
     BaseAlbumWithoutSongsResponseSchema,
     BaseArtistResponseSchema,
 } from "@/dto";
+import { z } from "zod";
 
 export const BaseSongWithAlbumResponseSchema = z.object({
     provider: z.string(),

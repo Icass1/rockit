@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { BaseSongWithAlbumResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
-import { rockIt } from "@/lib/rockit/rockIt";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 function SongDownload({
     id,
@@ -52,7 +52,7 @@ function SongDownload({
 
             <div
                 style={{ gridArea: "name" }}
-                className="h-full w-full max-w-full min-w-0"
+                className="h-full w-full min-w-0 max-w-full"
             >
                 {song?.name ? (
                     <label>{song.name}</label>
@@ -63,12 +63,12 @@ function SongDownload({
             <div
                 title={message}
                 style={{ gridArea: "message" }}
-                className="w-full max-w-full min-w-0 truncate"
+                className="w-full min-w-0 max-w-full truncate"
             >
                 {message}
             </div>
 
-            <div className="flex w-full max-w-full min-w-0 flex-row items-center gap-2">
+            <div className="flex w-full min-w-0 max-w-full flex-row items-center gap-2">
                 <label className="min-w-[30px] text-right text-xs font-semibold text-neutral-300">
                     {Math.round(completed)}%
                 </label>

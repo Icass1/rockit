@@ -95,7 +95,7 @@ export default function FriendsClient() {
                                         Álbum de la canción {index + 1}
                                     </p>
                                 </div>
-                                <div className="absolute -top-3 -right-2 flex items-center space-x-2 rounded-md bg-gradient-to-r from-[#ee1086] to-[#ce5254] px-2 text-sm text-white">
+                                <div className="absolute -right-2 -top-3 flex items-center space-x-2 rounded-md bg-gradient-to-r from-[#ee1086] to-[#ce5254] px-2 text-sm text-white">
                                     <Forward className="h-7" />
                                     <span>
                                         {lang.shared_from} &apos;user{" "}

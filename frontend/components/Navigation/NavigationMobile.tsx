@@ -12,8 +12,8 @@ import {
     Users,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { rockIt } from "@/lib/rockit/rockIt";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 interface NavPage {
     title: string;
@@ -51,7 +51,7 @@ export default function NavigationMobile() {
     return (
         <nav
             aria-label="Mobile navigation"
-            className="safe-area-bottom mobile-nav-blur flex h-full w-full max-w-4xl flex-row items-center justify-center bg-[#1a1a1a]/80 py-2 touch-manipulation"
+            className="safe-area-bottom mobile-nav-blur flex h-full w-full max-w-4xl touch-manipulation flex-row items-center justify-center bg-[#1a1a1a]/80 py-2"
         >
             {pages.map((page) => {
                 const isActive = activePage === page.href;
@@ -63,7 +63,7 @@ export default function NavigationMobile() {
                         aria-current={isActive ? "page" : undefined}
                         aria-disabled={page.disabled}
                         className={[
-                            "mr-2 ml-2 flex h-full w-full items-center justify-center gap-2 rounded-md transition-all",
+                            "ml-2 mr-2 flex h-full w-full items-center justify-center gap-2 rounded-md transition-all",
                             isActive ? "bg-white text-black" : "text-white",
                             page.disabled
                                 ? "pointer-events-none opacity-50"

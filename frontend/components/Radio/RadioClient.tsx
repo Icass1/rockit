@@ -3,14 +3,14 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import type { Station } from "@/types/station";
 import { useStore } from "@nanostores/react";
 import type { DebouncedFunc } from "lodash";
 import debounce from "lodash/debounce";
 import { ListPlus, Play, SearchX } from "lucide-react";
+import type { Station } from "@/types/station";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { baseApiFetch } from "@/lib/utils/apiFetch";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 function StationCard({ station }: { station: Station }) {
     const handlePlay = (e?: React.MouseEvent) => {
@@ -179,8 +179,8 @@ export default function RadioClient() {
     if (!lang) return null;
 
     return (
-        <div className="h-full overflow-y-auto p-3 pt-16 pb-20 text-white md:pt-24 md:pb-24">
-            <h1 className="my-6 text-center text-2xl font-bold select-none md:text-3xl">
+        <div className="h-full overflow-y-auto p-3 pb-20 pt-16 text-white md:pb-24 md:pt-24">
+            <h1 className="my-6 select-none text-center text-2xl font-bold md:text-3xl">
                 {lang.radio_stations} 📻
             </h1>
 

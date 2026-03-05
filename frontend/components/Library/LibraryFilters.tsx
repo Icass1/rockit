@@ -44,7 +44,7 @@ export function LibraryFilters({
             </button>
 
             <input
-                className="text-1xl h-8 w-full rounded-full bg-neutral-900 pr-2 pl-10 font-semibold shadow focus:outline-none"
+                className="text-1xl h-8 w-full rounded-full bg-neutral-900 pl-10 pr-2 font-semibold shadow focus:outline-none"
                 style={{
                     backgroundImage: "url(/search-icon.png)",
                     backgroundPosition: "15px center",

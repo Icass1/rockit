@@ -1,5 +1,5 @@
-import * as z from "zod";
 import { BaseSongWithAlbumResponseSchema } from "@/dto";
+import * as z from "zod";
 
 export type DBListType = "album" | "playlist";
 export type QueueListType =

@@ -1,7 +1,6 @@
 import { cache } from "react";
-import { notFound } from "next/navigation";
 import { getAlbumAsync } from "@/lib/services/mediaService";
-import { RenderAlbum } from "@/components/Album";
+import RenderList from "@/components/RenderList/RenderList";
 
 const getAlbum = cache(async (publicId: string) => {
     const album = await getAlbumAsync(publicId).catch(() => null);
@@ -35,16 +34,16 @@ export default async function AlbumPage({
 }) {
     const { publicId } = await params;
 
-    const albumResponse = await getAlbum(publicId);
+    // const albumResponse = await getAlbum(publicId);
 
-    if (!albumResponse) notFound();
+    // if (!albumResponse) notFound();
 
-    const albumWithSongs = {
-        ...albumResponse,
-        externalImages: [],
-    };
+    // const albumWithSongs = {
+    //     ...albumResponse,
+    //     externalImages: [],
+    // };
 
-    albumWithSongs.songs.sort((a, b) => a.trackNumber - b.trackNumber);
+    // albumWithSongs.songs.sort((a, b) => a.trackNumber - b.trackNumber);
 
-    return <RenderAlbum album={albumWithSongs} />;
+    return <RenderList />;
 }

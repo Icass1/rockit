@@ -23,7 +23,7 @@ function EmptyState() {
             <p className="mt-10 text-lg md:mt-2 md:text-xl">
                 {lang.search_empty2}
             </p>
-            <div className="md:mt-10 relative w-46 h-36">
+            <div className="w-46 relative h-36 md:mt-10">
                 <Image
                     src="/logo-banner.png"
                     alt="Rockit Logo"

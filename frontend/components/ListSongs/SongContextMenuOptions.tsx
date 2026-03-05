@@ -1,6 +1,5 @@
 "use client";
 
-import type { Lang } from "@/types/lang";
 import {
     Copy,
     Download,
@@ -14,6 +13,7 @@ import {
     PlayCircle,
     Share2,
 } from "lucide-react";
+import type { Lang } from "@/types/lang";
 import ContextMenuOption from "@/components/ContextMenu/Option";
 import ContextMenuSplitter from "@/components/ContextMenu/Splitter";
 import SubContextMenuContent from "@/components/ContextMenu/SubContextMenu/Content";

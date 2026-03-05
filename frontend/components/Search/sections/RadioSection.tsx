@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import { Station } from "@/types/station";
-import { rockIt } from "@/lib/rockit/rockIt";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function RadioSection({ stations }: { stations: Station[] }) {
     const { langFile: lang } = useLanguage();
@@ -15,7 +15,7 @@ export default function RadioSection({ stations }: { stations: Station[] }) {
             <h2 className="px-5 text-left text-2xl font-bold md:px-0 md:text-3xl">
                 {lang.radio_stations}
             </h2>
-            <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pr-14 md:pl-4">
+            <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pl-4 md:pr-14">
                 {stations.map((station) => (
                     <div
                         className="w-36 flex-none cursor-pointer transition md:w-48 md:hover:scale-105"

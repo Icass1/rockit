@@ -291,8 +291,8 @@ frontend/
 
 ```ts
 // ✅ Correct
-import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
 import { useFetch } from "@/hooks/useFetch";
+import { SongWithAlbum } from "@/lib/rockit/songWithAlbum";
 // ❌ Wrong — relative imports
 import { SongWithAlbum } from "../../lib/rockit/songWithAlbum";
 ```

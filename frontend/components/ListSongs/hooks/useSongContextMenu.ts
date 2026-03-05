@@ -53,9 +53,7 @@ export function useSongContextMenu(song: BaseSongWithAlbumResponse) {
     const handleShare = useCallback(() => {
         navigator.share({
             title: "RockIt!",
-            text: `${song.name} ${song.album.name} ${song.artists
-                .map((a) => a.name)
-                .join(", ")}`,
+            text: `${song.name} ${song.album.name} ${song.artists.map((a) => a.name).join(", ")}`,
             url: `/song/${song.publicId}`,
         });
     }, [song]);

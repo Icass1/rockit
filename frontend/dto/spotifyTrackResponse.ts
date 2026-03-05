@@ -1,8 +1,8 @@
-import { z } from "zod";
 import {
     BaseAlbumWithoutSongsResponseSchema,
     BaseArtistResponseSchema,
 } from "@/dto";
+import { z } from "zod";
 
 export const SpotifyTrackResponseSchema = z.object({
     provider: z.string(),

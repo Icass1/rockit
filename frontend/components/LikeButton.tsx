@@ -80,11 +80,11 @@ export default function LikeButton({ songPublicId }: { songPublicId: string }) {
                     onAnimationEnd={handleFlameAnimationEnd}
                 >
                     <div className="flame-container">
-                        <div className="red    flame" />
+                        <div className="red flame" />
                         <div className="orange flame" />
                         <div className="yellow flame" />
-                        <div className="white  flame" />
-                        <div className="blue   circle" />
+                        <div className="white flame" />
+                        <div className="blue circle" />
                     </div>
                 </div>
             )}

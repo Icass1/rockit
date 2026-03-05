@@ -1,5 +1,5 @@
-import { z } from "zod";
 import { ArtistSearchResultsItemSchema } from "@/dto";
+import { z } from "zod";
 
 export const BaseSearchResultsItemSchema = z.object({
     type: z.union([

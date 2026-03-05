@@ -33,7 +33,7 @@ export default function ContextMenuOption({
                 // like "hover:bg-red-700" was appearing twice in the DOM
                 className ?? "",
                 "context-menu-option flex cursor-pointer flex-row items-center gap-2 rounded-sm p-2 text-sm font-semibold md:hover:bg-neutral-700",
-                disable || !onClick ? " pointer-events-none opacity-50" : "",
+                disable || !onClick ? "pointer-events-none opacity-50" : "",
             ]
                 .filter(Boolean)
                 .join(" ")}

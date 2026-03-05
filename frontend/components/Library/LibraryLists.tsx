@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { BaseAlbumWithoutSongsResponse, BasePlaylistResponse } from "@/dto";
+import { LibraryListsResponseSchema } from "@/dto/libraryListsResponse";
 import { useStore } from "@nanostores/react";
 import {
     HardDriveDownload,
@@ -14,11 +15,10 @@ import {
     PlayCircle,
     Shuffle,
 } from "lucide-react";
-import { rockIt } from "@/lib/rockit/rockIt";
-import { LibraryListsResponseSchema } from "@/dto/libraryListsResponse";
+import { useLanguage } from "@/contexts/LanguageContext";
 import useFetch from "@/hooks/useFetch";
 import useWindowSize from "@/hooks/useWindowSize";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { rockIt } from "@/lib/rockit/rockIt";
 import ContextMenuContent from "@/components/ContextMenu/Content";
 import ContextMenu from "@/components/ContextMenu/ContextMenu";
 import ContextMenuOption from "@/components/ContextMenu/Option";
@@ -208,7 +208,7 @@ export function LibraryLists({
                     >
                         <Link
                             href={`/playlist/${playlist.publicId}`}
-                            className="library-item flex h-auto w-full max-w-full min-w-0 flex-col transition-transform md:hover:scale-110"
+                            className="library-item flex h-auto w-full min-w-0 max-w-full flex-col transition-transform md:hover:scale-110"
                         >
                             <Image
                                 alt={playlist.name}
@@ -235,7 +235,7 @@ export function LibraryLists({
                         <Link
                             key={"album" + index}
                             href={`/album/${album.publicId}`}
-                            className="library-item flex h-auto w-full max-w-full min-w-0 flex-col transition-transform md:hover:scale-110"
+                            className="library-item flex h-auto w-full min-w-0 max-w-full flex-col transition-transform md:hover:scale-110"
                         >
                             <Image
                                 alt={album.name}

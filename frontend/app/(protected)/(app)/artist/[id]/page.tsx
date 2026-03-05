@@ -28,14 +28,14 @@ export default async function ArtistPage({
     return (
         <div className="flex h-full w-full flex-col overflow-y-scroll bg-[#0b0b0b] text-white">
             <div
-                className="relative w-full bg-size-[120%] bg-top bg-no-repeat md:bg-size-[100%]"
+                className="bg-size-[120%] md:bg-size-[100%] relative w-full bg-top bg-no-repeat"
                 style={{
                     backgroundImage: `url('${artist.internalImageUrl}')`,
                     backgroundAttachment: "fixed",
                 }}
             >
                 <div className="relative z-10 flex h-screen flex-col">
-                    <div className="min-h-1/2 flex h-1/4 w-full items-end bg-linear-to-b from-transparent to-black/50 p-4 md:h-1/2 md:p-8">
+                    <div className="min-h-1/2 bg-linear-to-b flex h-1/4 w-full items-end from-transparent to-black/50 p-4 md:h-1/2 md:p-8">
                         <h1 className="text-4xl font-extrabold md:text-8xl">
                             {artist.name}
                         </h1>

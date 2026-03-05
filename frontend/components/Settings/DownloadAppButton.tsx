@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { Download } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 import {
     clearResources,
     downloadResources,
 } from "@/lib/utils/downloadResources";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function DownloadAppButton() {
     const [resources, setResources] = useState<string[]>([]);
@@ -38,7 +38,7 @@ export default function DownloadAppButton() {
                 {resources.map((resource) => (
                     <span
                         key={resource}
-                        className="w-full max-w-full min-w-0 truncate text-xs"
+                        className="w-full min-w-0 max-w-full truncate text-xs"
                     >
                         {resource}
                     </span>

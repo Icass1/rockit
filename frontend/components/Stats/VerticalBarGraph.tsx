@@ -70,7 +70,7 @@ function Bar({
                 width: `calc((100%) / ${dataLength} - 10px)`,
             }}
         >
-            <label className="absolute right-1/2 -bottom-5 origin-right -rotate-45 text-xs text-nowrap text-white">
+            <label className="absolute -bottom-5 right-1/2 origin-right -rotate-45 text-nowrap text-xs text-white">
                 {getDateDDMMYYYY(entry.start)} - {getDateDDMMYYYY(entry.end)}
             </label>
         </div>
@@ -157,7 +157,7 @@ export default function VerticalBarGraph({
             </div>
 
             <div
-                className="absolute top-0 right-0 left-0 text-center text-xl font-semibold"
+                className="absolute left-0 right-0 top-0 text-center text-xl font-semibold"
                 style={{ height: marginTop }}
             >
                 {title}
@@ -171,13 +171,13 @@ export default function VerticalBarGraph({
                     top: marginTop,
                 }}
             >
-                <label className="absolute top-1/2 left-6 -translate-1/2 -rotate-90 text-xl font-semibold text-nowrap">
+                <label className="-translate-1/2 absolute left-6 top-1/2 -rotate-90 text-nowrap text-xl font-semibold">
                     Minutes listened
                 </label>
             </div>
 
             <div
-                className="absolute top-0 right-0 h-full"
+                className="absolute right-0 top-0 h-full"
                 style={{ width: marginRight }}
             />
 

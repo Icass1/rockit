@@ -3,9 +3,9 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { BasePlaylistResponse, BaseSongForPlaylistResponse } from "@/dto";
 import { ArrowUp } from "lucide-react";
-import { rockIt } from "@/lib/rockit/rockIt";
-import useWindowSize from "@/hooks/useWindowSize";
 import { useLanguage } from "@/contexts/LanguageContext";
+import useWindowSize from "@/hooks/useWindowSize";
+import { rockIt } from "@/lib/rockit/rockIt";
 import PlaylistSong from "@/components/ListSongs/PlaylistSong";
 import PlaylistHeader from "@/components/Playlist/PlaylistHeader";
 
@@ -143,7 +143,7 @@ export default function PlaylistSongsView({
         return (
             <label
                 className={
-                    "flex cursor-pointer flex-row items-center font-semibold select-none hover:underline " +
+                    "flex cursor-pointer select-none flex-row items-center font-semibold hover:underline " +
                     (filter.column == column ? "text-[#ec5588]" : "")
                 }
                 onClick={() => {
@@ -228,7 +228,7 @@ export default function PlaylistSongsView({
                     return (
                         <div
                             key={song.song.publicId + index}
-                            className="absolute right-0 left-0 h-14"
+                            className="absolute left-0 right-0 h-14"
                             style={{ top: `${top}px` }}
                         >
                             <PlaylistSong song={song} />
@@ -245,12 +245,7 @@ export default function PlaylistSongsView({
             {/* 84px at the bottom*/}
             <div
                 style={{
-                    minHeight: `${
-                        songsToRender.length * (4 + 56) +
-                        marginTop +
-                        innerWidth -
-                        200
-                    }px`,
+                    minHeight: `${songsToRender.length * (4 + 56) + marginTop + innerWidth - 200}px`,
                 }}
             />
         </div>

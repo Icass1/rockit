@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { createPortal } from "react-dom";
 import { PictureInPicture2 } from "lucide-react";
+import { createPortal } from "react-dom";
 import PiPContent from "@/components/PiP/PiPRoot";
 
 type DocumentPiP = {

@@ -1,8 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Lang } from "@/types/lang";
 import { RotateCw } from "lucide-react";
+import { Lang } from "@/types/lang";
 import { getUserInServer } from "@/lib/getUserInServer";
 import ClearDownloads from "@/components/Downloader/ClearDownloads";
 import InputBar from "@/components/Downloader/InputBar";

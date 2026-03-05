@@ -1,9 +1,13 @@
 "use client";
 
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { UrlMatchResponseSchema } from "@/dto";
 import type { Lang } from "@/types/lang";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { apiFetch } from "@/lib/utils/apiFetch";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import DropOverlay from "@/components/DropOverlay";
 import Footer from "@/components/Footer/Footer";
 import Header from "@/components/Header/Header";
 import Navigation from "@/components/Navigation/Navigation";
@@ -18,12 +22,29 @@ export default function AppClientLayout({
     lang: string;
     langFile: Lang;
 }) {
+    const router = useRouter();
+
     useEffect(() => {
         rockIt.songManager.fetchLikedSongs();
     }, []);
 
+    const handleLinkDrop = (url: string) => {
+        console.log("Dropped URL:", url);
+        apiFetch(`/media/url/match?url=${url}`, UrlMatchResponseSchema).then(
+            (data) => {
+                if (data.path) {
+                    router.push(data.path);
+                } else {
+                    rockIt.notificationManager.notifyError("Unkown URL.");
+                }
+            }
+        );
+    };
+
     return (
         <LanguageProvider langFile={langFile} lang={lang}>
+            <DropOverlay onDropLink={handleLinkDrop} />
+
             <div className="fixed inset-0 bg-[#0b0b0b] md:left-12">
                 {children}
             </div>

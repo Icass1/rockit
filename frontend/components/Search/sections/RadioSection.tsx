@@ -30,7 +30,7 @@ export default function RadioSection({ stations }: { stations: Station[] }) {
                             className="aspect-square w-full rounded-lg object-cover"
                             src={
                                 station.favicon
-                                    ? `/api/proxy?url=${encodeURIComponent(station.favicon)}`
+                                    ? `proxy?url=${encodeURIComponent(station.favicon)}`
                                     : "/radio-placeholder.png"
                             }
                             alt={`Radio station ${station.name}`}

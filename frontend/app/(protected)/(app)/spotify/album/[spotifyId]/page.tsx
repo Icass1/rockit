@@ -1,5 +1,10 @@
 import SpotifyAlbumClient from "@/components/Spotify/Album";
 
-export default function Page({ params }: { params: { spotifyId: string } }) {
-    return <SpotifyAlbumClient spotifyId={params.spotifyId} />;
+export default async function Page({
+    params,
+}: {
+    params: { spotifyId: string };
+}) {
+    const { spotifyId } = await params;
+    return <SpotifyAlbumClient spotifyId={spotifyId} />;
 }

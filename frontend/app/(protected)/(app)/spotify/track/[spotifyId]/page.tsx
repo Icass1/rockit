@@ -1,5 +1,10 @@
 import SpotifyTrackClient from "@/components/Spotify/Track";
 
-export default function Page({ params }: { params: { spotifyId: string } }) {
-    return <SpotifyTrackClient spotifyId={params.spotifyId} />;
+export default async function Page({
+    params,
+}: {
+    params: { spotifyId: string };
+}) {
+    const { spotifyId } = await params;
+    return <SpotifyTrackClient spotifyId={spotifyId} />;
 }

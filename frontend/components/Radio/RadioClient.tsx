@@ -9,7 +9,7 @@ import type { DebouncedFunc } from "lodash";
 import debounce from "lodash/debounce";
 import { ListPlus, Play, SearchX } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { apiFetch } from "@/lib/utils/apiFetch";
+import { baseApiFetch } from "@/lib/utils/apiFetch";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 function StationCard({ station }: { station: Station }) {
@@ -19,7 +19,7 @@ function StationCard({ station }: { station: Station }) {
     };
 
     const coverSrc = station.favicon
-        ? `/api/proxy?url=${encodeURIComponent(station.favicon)}`
+        ? `proxy?url=${encodeURIComponent(station.favicon)}`
         : rockIt.STATION_PLACEHOLDER_IMAGE_URL;
 
     const tags = station.tags
@@ -141,7 +141,7 @@ export default function RadioClient() {
         setLoading(true);
         setError(null);
         try {
-            const res = await apiFetch(
+            const res = await baseApiFetch(
                 `/radio/stations/byname/${encodeURIComponent(searchTerm)}?limit=20`
             );
             if (!res.ok) throw new Error(`HTTP ${res.status}`);

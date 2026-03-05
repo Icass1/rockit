@@ -56,7 +56,7 @@ export function useLyrics() {
     useEffect(() => {
         if (!$currentSong?.publicId) return;
 
-        // fetch(`/api/lyrics/${$currentSong.publicId}`)
+        // fetch(`lyrics/${$currentSong.publicId}`)
         //     .then((res) => res.json())
         //     .then(
         //         (

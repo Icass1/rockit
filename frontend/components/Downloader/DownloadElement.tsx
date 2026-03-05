@@ -35,64 +35,64 @@ export default function DownloadElement({
 
     console.log("DownloadElement", { setSelected, router });
 
-    useEffect(() => {
-        if (download.downloadURL.includes("open.spotify.com/album")) {
-            const albumId = download.downloadURL.replace(
-                "https://open.spotify.com/album/",
-                ""
-            );
+    // useEffect(() => {
+    //     if (download.downloadURL.includes("open.spotify.com/album")) {
+    //         const albumId = download.downloadURL.replace(
+    //             "https://open.spotify.com/album/",
+    //             ""
+    //         );
 
-            fetch(`/api/album/${albumId}?p=name,image,artists`)
-                .then((response) => response.json())
-                .then((data) => {
-                    setName(data.name);
-                    setCover(data.image);
-                    setArtistOwner(
-                        data.artists.map(
-                            (artist: { name: string }) => artist.name
-                        )
-                    );
-                });
+    //         fetch(`album/${albumId}?p=name,image,artists`)
+    //             .then((response) => response.json())
+    //             .then((data) => {
+    //                 setName(data.name);
+    //                 setCover(data.image);
+    //                 setArtistOwner(
+    //                     data.artists.map(
+    //                         (artist: { name: string }) => artist.name
+    //                     )
+    //                 );
+    //             });
 
-            console.log("Album", download.downloadURL);
-        } else if (download.downloadURL.includes("open.spotify.com/playlist")) {
-            const playlistId = download.downloadURL.replace(
-                "https://open.spotify.com/playlist/",
-                ""
-            );
+    //         console.log("Album", download.downloadURL);
+    //     } else if (download.downloadURL.includes("open.spotify.com/playlist")) {
+    //         const playlistId = download.downloadURL.replace(
+    //             "https://open.spotify.com/playlist/",
+    //             ""
+    //         );
 
-            fetch(`/api/playlist/${playlistId}?p=name,image,owner`)
-                .then((response) => response.json())
-                .then((data) => {
-                    setName(data.name);
-                    setCover(data.image);
-                    setArtistOwner(data.owner);
-                });
+    //         fetch(`playlist/${playlistId}?p=name,image,owner`)
+    //             .then((response) => response.json())
+    //             .then((data) => {
+    //                 setName(data.name);
+    //                 setCover(data.image);
+    //                 setArtistOwner(data.owner);
+    //             });
 
-            console.log("Playlist", download.downloadURL);
-        } else if (download.downloadURL.includes("open.spotify.com/track")) {
-            const songId = download.downloadURL.replace(
-                "https://open.spotify.com/track/",
-                ""
-            );
+    //         console.log("Playlist", download.downloadURL);
+    //     } else if (download.downloadURL.includes("open.spotify.com/track")) {
+    //         const songId = download.downloadURL.replace(
+    //             "https://open.spotify.com/track/",
+    //             ""
+    //         );
 
-            fetch(`/api/song/${songId}?q=name,image,artists`)
-                .then((response) => response.json())
-                .then((data) => {
-                    setName(data.name);
-                    setCover(data.image);
-                    setArtistOwner(
-                        data.artists.map(
-                            (artist: { name: string }) => artist.name
-                        )
-                    );
-                });
-        }
-    }, [download.downloadURL]);
+    //         fetch(`song/${songId}?q=name,image,artists`)
+    //             .then((response) => response.json())
+    //             .then((data) => {
+    //                 setName(data.name);
+    //                 setCover(data.image);
+    //                 setArtistOwner(
+    //                     data.artists.map(
+    //                         (artist: { name: string }) => artist.name
+    //                     )
+    //                 );
+    //             });
+    //     }
+    // }, [download.downloadURL]);
 
     // const handleMarkSeen = (e: MouseEvent) => {
     //     e.preventDefault();
-    //     fetch(`/api/downloads/mark-seen/${download.publicId}`).then(
+    //     fetch(`downloads/mark-seen/${download.publicId}`).then(
     //         (response) => {
     //             if (response.ok) {
     //                 router.push("/downloader");

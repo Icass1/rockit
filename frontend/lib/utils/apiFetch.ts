@@ -1,3 +1,4 @@
+import { z, ZodType } from "zod";
 import { BACKEND_URL } from "@/environment";
 
 interface ApiFetchOptions {
@@ -8,19 +9,34 @@ interface ApiFetchOptions {
     signal?: AbortSignal;
 }
 
-export async function apiFetch(
+export async function apiFetch<T extends ZodType>(
+    path: string,
+    schema: T,
+    options: ApiFetchOptions = {}
+) {
+    const res = await baseApiFetch(path, options);
+
+    const json = await res.json();
+    const parsed = schema.parse(json);
+    return parsed;
+}
+
+export async function baseApiFetch(
     path: string,
     options: ApiFetchOptions = {}
-): Promise<Response> {
+) {
     const { method = "GET", headers, body, signal } = options;
+
+    if (!path.startsWith("/")) {
+        console.warn(`'${path}' doesn't start with /`);
+    }
 
     if (typeof window === "undefined") {
         const { cookies } = await import("next/headers");
-
         const cookieStore = await cookies();
         const session = cookieStore.get("session_id")?.value;
 
-        const res = await fetch(`${BACKEND_URL}${path}`, {
+        return fetch(`${BACKEND_URL}${path}`, {
             method,
             headers: {
                 Cookie: `session_id=${session}`,
@@ -29,12 +45,10 @@ export async function apiFetch(
             body,
             cache: "no-store",
         });
-
-        return res;
     } else {
         return fetch(`${BACKEND_URL}${path}`, {
             method,
-            headers: { ...headers },
+            headers,
             body,
             credentials: "include",
             signal,
@@ -43,7 +57,7 @@ export async function apiFetch(
 }
 
 export async function apiPostFetch(path: string, body: object) {
-    return apiFetch(path, {
+    return baseApiFetch(path, {
         method: "POST",
         body: JSON.stringify(body),
         headers: { "Content-Type": "application/json" },

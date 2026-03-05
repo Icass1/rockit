@@ -40,7 +40,7 @@ class YouTube:
 
         a_result_video: AResult[VideoRow] = (
             await YouTubeAccess.get_video_youtube_id_async(
-                session, youtube_id=youtube_id
+                session=session, youtube_id=youtube_id
             )
         )
         if a_result_video.is_ok():
@@ -60,7 +60,7 @@ class YouTube:
 
             a_result_channel: AResult[ChannelRow] = (
                 await YouTubeAccess.get_channel_id_async(
-                    session, id=video_row.channel_id
+                    session=session, id=video_row.channel_id
                 )
             )
             channel: ChannelRow = (
@@ -69,7 +69,7 @@ class YouTube:
 
             a_result_internal_image: AResult[ImageRow] = (
                 await MediaAccess.get_image_from_id_async(
-                    session, id=video_row.internal_image_id
+                    session=session, id=video_row.internal_image_id
                 )
             )
             internal_image_url: str = ""
@@ -217,7 +217,7 @@ class YouTube:
 
         a_result_fetched_channel: AResult[ChannelRow] = (
             await YouTubeAccess.get_channel_youtube_id_async(
-                session, youtube_id=channel_id
+                session=session, youtube_id=channel_id
             )
         )
         fetched_channel: ChannelRow = (
@@ -228,7 +228,7 @@ class YouTube:
 
         a_result_internal_image: AResult[ImageRow] = (
             await MediaAccess.get_image_from_id_async(
-                session, id=video_row.internal_image_id
+                session=session, id=video_row.internal_image_id
             )
         )
         internal_image_url: str = ""

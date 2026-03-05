@@ -29,7 +29,7 @@ export function useSongContextMenu(song: BaseSongWithAlbumResponse) {
     const fetchUserLists = useCallback(async () => {
         if (userLists.length > 0) return;
         try {
-            const res = await fetch(`/api/song/${song.publicId}/lists`);
+            const res = await fetch(`song/${song.publicId}/lists`);
             if (!res.ok) return;
             const data = await res.json();
             setUserLists(data);

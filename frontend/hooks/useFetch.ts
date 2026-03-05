@@ -7,13 +7,8 @@ async function update<T extends ZodType>(
     schema: T,
     setData: React.Dispatch<React.SetStateAction<z.infer<T> | undefined>>
 ) {
-    const res = await apiFetch(path);
-
-    if (res && res.ok) {
-        const json = await res.json();
-        const parsed = schema.parse(json);
-        setData(parsed);
-    }
+    const res = await apiFetch(path, schema);
+    setData(res);
 }
 
 export default function useFetch<T extends ZodType>(

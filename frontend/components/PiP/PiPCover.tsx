@@ -46,7 +46,7 @@ export function PiPCover({ showControls }: PiPCoverProps) {
         <div style={S.coverWrapper as React.CSSProperties}>
             {$currentSong?.internalImageUrl && (
                 <Image
-                    src={`/api/image/${$currentSong.internalImageUrl}`}
+                    src={`image/${$currentSong.internalImageUrl}`}
                     alt={`Cover of ${$currentSong.name}`}
                     fill
                     style={{ objectFit: "cover" }}

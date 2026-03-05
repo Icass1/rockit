@@ -75,7 +75,7 @@ export default function NewPlaylistButton() {
                                         );
                                         return;
                                     }
-                                    fetch("/api/playlist/new", {
+                                    fetch("playlist/new", {
                                         method: "POST",
                                         body: JSON.stringify({ name: name }),
                                     })

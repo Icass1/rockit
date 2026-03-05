@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { ChannelResponseSchema } from "@/dto";
+import { YoutubeChannelResponseSchema } from "@/dto";
 
-export const VideoResponseSchema = z.object({
+export const YoutubeVideoResponseSchema = z.object({
     provider: z.string(),
     publicId: z.string(),
     youtubeId: z.string(),
@@ -11,7 +11,7 @@ export const VideoResponseSchema = z.object({
     likeCount: z.number(),
     commentCount: z.number(),
     internalImageUrl: z.string().nullable(),
-    channel: z.lazy(() => ChannelResponseSchema).nullable(),
+    channel: z.lazy(() => YoutubeChannelResponseSchema).nullable(),
     description: z.string().nullable(),
     youtubeUrl: z.string().nullable(),
     tags: z.array(z.string()),
@@ -19,4 +19,4 @@ export const VideoResponseSchema = z.object({
     path: z.string().nullable(),
 });
 
-export type VideoResponse = z.infer<typeof VideoResponseSchema>;
+export type YoutubeVideoResponse = z.infer<typeof YoutubeVideoResponseSchema>;

@@ -1,19 +1,14 @@
 from typing import Optional, List
-from pydantic import BaseModel
 
+from backend.core.responses.baseVideoResponse import BaseVideoResponse
 from backend.youtube.responses.channelResponse import YoutubeChannelResponse
 
 
-class YoutubeVideoResponse(BaseModel):
-    provider: str
-    publicId: str
+class YoutubeVideoResponse(BaseVideoResponse):
     youtubeId: str
-    name: str
-    duration: int = 0
-    viewCount: int = 0
-    likeCount: int = 0
-    commentCount: int = 0
-    internalImageUrl: Optional[str] = None
+    viewCount: int
+    likeCount: int
+    commentCount: int
     channel: Optional[YoutubeChannelResponse] = None
     description: Optional[str] = None
     youtubeUrl: Optional[str] = None

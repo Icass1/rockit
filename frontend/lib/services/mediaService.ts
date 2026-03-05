@@ -3,10 +3,10 @@ import {
     BasePlaylistResponseSchema,
     BaseSongWithAlbumResponseSchema,
 } from "@/dto";
-import { apiFetch } from "@/lib/utils/apiFetch";
+import { baseApiFetch } from "@/lib/utils/apiFetch";
 
 export async function getAlbumAsync(publicId: string) {
-    const response = await apiFetch(`/media/album/${publicId}`, {
+    const response = await baseApiFetch(`/media/album/${publicId}`, {
         auth: false,
     });
     if (!response?.ok) {
@@ -19,7 +19,7 @@ export async function getAlbumAsync(publicId: string) {
 }
 
 export async function getSongAsync(publicId: string) {
-    const response = await apiFetch(`/media/song/${publicId}`, {
+    const response = await baseApiFetch(`/media/song/${publicId}`, {
         auth: false,
     });
     if (!response?.ok) {
@@ -32,7 +32,7 @@ export async function getSongAsync(publicId: string) {
 }
 
 export async function getPlaylistAsync(publicId: string) {
-    const response = await apiFetch(`/media/playlist/${publicId}`, {
+    const response = await baseApiFetch(`/media/playlist/${publicId}`, {
         auth: false,
     });
     if (!response?.ok) {

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const ChannelResponseSchema = z.object({
+export const YoutubeChannelResponseSchema = z.object({
     provider: z.string(),
     publicId: z.string(),
     name: z.string(),
@@ -11,4 +11,6 @@ export const ChannelResponseSchema = z.object({
     description: z.string().nullable(),
 });
 
-export type ChannelResponse = z.infer<typeof ChannelResponseSchema>;
+export type YoutubeChannelResponse = z.infer<
+    typeof YoutubeChannelResponseSchema
+>;

@@ -19,7 +19,7 @@ function SongDownload({
     const [song, setSong] = useState<BaseSongWithAlbumResponse>();
 
     useEffect(() => {
-        fetch(`/api/song/${id}?q=name,image,albumName,albumId`)
+        fetch(`song/${id}?q=name,image,albumName,albumId`)
             .then((response) => response.json())
             .then((data) => {
                 setSong(data);

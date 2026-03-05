@@ -30,8 +30,9 @@ from backend.spotify.access.spotifyAccess import SpotifyAccess
 from backend.spotify.access.db.ormModels.album import AlbumRow
 from backend.spotify.access.db.ormModels.track import TrackRow
 from backend.spotify.access.db.ormModels.artist import ArtistRow
-from backend.spotify.access.db.ormModels.externalImage import ExternalImageRow
 from backend.spotify.access.db.ormModels.playlist import PlaylistRow
+from backend.spotify.access.db.ormModels.playlist import PlaylistRow
+from backend.spotify.access.db.ormModels.externalImage import ExternalImageRow
 from backend.spotify.access.db.ormModels.playlist_tracks import PlaylistTrackRow
 
 from backend.spotify.framework.spotifyApi import spotify_api
@@ -1203,7 +1204,6 @@ class Spotify:
         """Get a playlist by ID, fetching from Spotify API and populating the database if not found."""
 
         # Check DB.
-        from backend.spotify.access.db.ormModels.playlist import PlaylistRow
 
         a_result_playlist: AResult[PlaylistRow] = (
             await SpotifyAccess.get_playlist_public_id_async(
@@ -1226,8 +1226,10 @@ class Spotify:
                     )
 
             playlist_track_links: List[Tuple[PlaylistTrackRow, TrackRow]] = []
-            a_result_track_links = await SpotifyAccess.get_playlist_track_links_async(
-                session=session, playlist_id=playlist_row.id
+            a_result_track_links: AResult[List[Tuple[PlaylistTrackRow, TrackRow]]] = (
+                await SpotifyAccess.get_playlist_track_links_async(
+                    session=session, playlist_id=playlist_row.id
+                )
             )
             if a_result_track_links.is_ok():
                 playlist_track_links = a_result_track_links.result()
@@ -1240,6 +1242,7 @@ class Spotify:
                     )
                 )
                 if a_result_core_song.is_not_ok():
+                    logger.error(f"Error getting media for track {track_row.id}")
                     continue
 
                 core_song: CoreMediaRow = a_result_core_song.result()
@@ -1380,12 +1383,24 @@ class Spotify:
                     )
                 )
 
+            a_result_core_playlist: AResult[CoreMediaRow] = (
+                await MediaAccess.get_media_from_id_async(
+                    session=session, id=playlist_row.id
+                )
+            )
+            if a_result_core_playlist.is_not_ok():
+                logger.error(f"Error getting media for track {playlist_row.id}")
+                return AResult(
+                    code=a_result_core_playlist.code(),
+                    message=a_result_core_playlist.message(),
+                )
+
             return AResult(
                 code=AResultCode.OK,
                 message="OK",
                 result=BasePlaylistResponse(
                     provider=Spotify.provider_name,
-                    publicId=spotify_id,
+                    publicId=a_result_core_playlist.result().public_id,
                     name=playlist_row.name,
                     songs=song_responses,
                     internalImageUrl=internal_image_url,
@@ -1549,10 +1564,10 @@ class Spotify:
                 fetched_internal_image_url = f"{BACKEND_URL}/media/image/{a_result_fetched_image.result().public_id}"
 
         fetched_playlist_track_links: List[Tuple[PlaylistTrackRow, TrackRow]] = []
-        a_result_fetched_track_links = (
-            await SpotifyAccess.get_playlist_track_links_async(
-                session=session, playlist_id=fetched_playlist_row.id
-            )
+        a_result_fetched_track_links: AResult[
+            List[Tuple[PlaylistTrackRow, TrackRow]]
+        ] = await SpotifyAccess.get_playlist_track_links_async(
+            session=session, playlist_id=fetched_playlist_row.id
         )
         if a_result_fetched_track_links.is_ok():
             fetched_playlist_track_links = a_result_fetched_track_links.result()
@@ -1700,13 +1715,24 @@ class Spotify:
                     addedAt=playlist_track_row.added_at,
                 )
             )
+        a_result_core_playlist: AResult[CoreMediaRow] = (
+            await MediaAccess.get_media_from_id_async(
+                session=session, id=fetched_playlist_row.id
+            )
+        )
+        if a_result_core_playlist.is_not_ok():
+            logger.error(f"Error getting media for track {fetched_playlist_row.id}")
+            return AResult(
+                code=a_result_core_playlist.code(),
+                message=a_result_core_playlist.message(),
+            )
 
         return AResult(
             code=AResultCode.OK,
             message="OK",
             result=BasePlaylistResponse(
                 provider=Spotify.provider_name,
-                publicId=spotify_id,
+                publicId=a_result_core_playlist.result().public_id,
                 name=raw_playlist.name,
                 songs=fetched_song_responses,
                 internalImageUrl=fetched_internal_image_url,

@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { BaseSongWithoutAlbumResponseSchema } from "@/dto";
+import { BaseVideoResponseSchema } from "@/dto";
+import { apiFetch } from "@/lib/utils/apiFetch";
+import LoadingComponent from "@/components/Loading";
 
 export default function YoutubeVideoClient({
     youtubeId,
@@ -11,22 +13,23 @@ export default function YoutubeVideoClient({
 }) {
     const router = useRouter();
 
+    // Reference to now if useEffect has already ran, in developer mode, useEffect are executed twice.
+    const hasRun = useRef(false);
+
     useEffect(() => {
+        if (hasRun.current) return;
+        hasRun.current = true;
+
         async function load() {
-            const video = await fetch(`/api/youtube/video/${youtubeId}`);
-            const parsedSong = BaseSongWithoutAlbumResponseSchema.parse(
-                await video.json()
+            const video = await apiFetch(
+                `/youtube/video/${youtubeId}`,
+                BaseVideoResponseSchema
             );
 
-            router.replace(`/video/${parsedSong.publicId}`);
+            router.replace(`/video/${video.publicId}`);
         }
         load();
     }, [youtubeId, router]);
 
-    return (
-        <div>
-            <h2>Loading Youtube Video...</h2>
-            <p>Please wait, fetching data...</p>
-        </div>
-    );
+    return <LoadingComponent />;
 }

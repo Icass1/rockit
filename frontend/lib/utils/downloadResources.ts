@@ -101,7 +101,7 @@ export async function downloadResources({
     downloadRsc("/settings", database);
     downloadRsc("/stats", database);
 
-    const responseStaticTree = await fetch("/api/get-static-tree");
+    const responseStaticTree = await fetch("get-static-tree");
     const staticTree: string[] = await responseStaticTree.json();
 
     await Promise.all(

@@ -7,7 +7,7 @@ import {
 import { DBListType, QueueListType } from "@/types/rockIt";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createArrayAtom, createAtom } from "@/lib/store";
-import { apiFetch } from "@/lib/utils/apiFetch";
+import { baseApiFetch } from "@/lib/utils/apiFetch";
 
 export class QueueManager {
     // #region: Atoms
@@ -31,7 +31,7 @@ export class QueueManager {
 
     async init() {
         if (typeof window === "undefined") return;
-        const response = await apiFetch("/user/queue");
+        const response = await baseApiFetch("/user/queue");
 
         if (!response) {
             rockIt.notificationManager.notifyError("Failed to load queue.");

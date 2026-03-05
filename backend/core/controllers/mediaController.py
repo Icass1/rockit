@@ -7,12 +7,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.core.aResult import AResult
 from backend.constants import IMAGES_PATH
 from backend.core.responses.baseVideoResponse import BaseVideoResponse
+from backend.core.responses.urlMatchResponse import UrlMatchResponse
 from backend.utils.logger import getLogger
 from backend.core.access.db.ormModels.image import ImageRow
 
 from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 
 from backend.core.framework.media.media import Media
+from backend.core.framework import providers
 
 from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from backend.core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
@@ -142,3 +144,11 @@ async def get_image(request: Request, public_id: str) -> FileResponse:
         )
 
     return FileResponse(path=image_path)
+
+
+@router.get("/url/match")
+async def match_url(request: Request, url: str) -> UrlMatchResponse:
+    """Match a URL to an internal path based on provider patterns."""
+
+    path: str | None = providers.match_url(url)
+    return UrlMatchResponse(path=path)

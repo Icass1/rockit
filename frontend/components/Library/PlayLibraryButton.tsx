@@ -54,7 +54,7 @@ export default function PlayLibraryButton() {
 
     //     await Promise.all(
     //         albums.map(async (album) => {
-    //             const response = await fetch(`/api/album/${album.id}?p=songs`);
+    //             const response = await fetch(`album/${album.id}?p=songs`);
     //             const json = await response.json();
     //             const albumsSongs = json.songs;
     //             librarySongs.push(...albumsSongs);

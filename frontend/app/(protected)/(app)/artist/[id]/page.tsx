@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { BaseArtistResponseSchema, BaseSongWithAlbumResponse } from "@/dto";
 import { Play } from "lucide-react";
 import { AppError } from "@/lib/errors/AppError";
-import { apiFetch } from "@/lib/utils/apiFetch";
+import { baseApiFetch } from "@/lib/utils/apiFetch";
 
 export default async function ArtistPage({
     params,
@@ -12,7 +12,7 @@ export default async function ArtistPage({
 }) {
     const { id } = await params;
 
-    const artistRes = await apiFetch("/artist/" + id);
+    const artistRes = await baseApiFetch("/artist/" + id);
     if (artistRes.status !== 200) {
         notFound();
     }

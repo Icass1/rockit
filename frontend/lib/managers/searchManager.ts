@@ -1,7 +1,7 @@
 import { SearchResultsResponse, SearchResultsResponseSchema } from "@/dto";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createAtom } from "@/lib/store";
-import { apiFetch } from "@/lib/utils/apiFetch";
+import { baseApiFetch } from "@/lib/utils/apiFetch";
 
 export class SearchManager {
     // #region Atoms
@@ -28,7 +28,7 @@ export class SearchManager {
 
         try {
             const [mediaRes] = await Promise.all([
-                apiFetch(`/media/search?q=${encodeURIComponent(query)}`, {
+                baseApiFetch(`/media/search?q=${encodeURIComponent(query)}`, {
                     signal: this._abortController.signal,
                 }),
             ]);

@@ -33,7 +33,7 @@ export default function PlaylistsSection({
                             className="aspect-square w-full rounded-lg object-cover"
                             src={
                                 playlist.imageUrl ||
-                                "/api/image/song-placeholder.png"
+                                "image/song-placeholder.png"
                             }
                             alt={`Cover of ${playlist.title}`}
                         />

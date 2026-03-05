@@ -1,5 +1,13 @@
 import YoutubeVideoClient from "@/components/Youtube/Video";
 
-export default function Page({ params }: { params: { youtubeId: string } }) {
-    return <YoutubeVideoClient youtubeId={params.youtubeId} />;
+export default async function Page({
+    params,
+}: {
+    params: Promise<{ youtubeId: string }>;
+}) {
+    const { youtubeId } = await params;
+
+    console.log(youtubeId);
+
+    return <YoutubeVideoClient youtubeId={youtubeId} />;
 }

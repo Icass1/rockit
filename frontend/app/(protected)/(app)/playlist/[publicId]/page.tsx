@@ -36,7 +36,10 @@ export default async function PlaylistPage({
 
     const playlistResponse = await getPlaylist(publicId);
 
-    if (!playlistResponse) notFound();
+    if (!playlistResponse) {
+        console.error(`Playlist response is ${playlistResponse}`);
+        notFound();
+    }
 
     return (
         <div className="relative flex h-full w-full flex-col gap-2 px-3 md:flex-row md:px-2">

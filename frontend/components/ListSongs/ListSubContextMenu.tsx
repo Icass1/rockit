@@ -18,9 +18,7 @@ export default function ListSubContextMenu({
 
     const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const adding = e.target.checked;
-        const endpoint = adding
-            ? "/api/playlist/add-song"
-            : "/api/playlist/remove-song";
+        const endpoint = adding ? "playlist/add-song" : "playlist/remove-song";
 
         try {
             const res = await fetch(endpoint, {

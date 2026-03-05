@@ -1,6 +1,6 @@
 import { BaseSongWithAlbumResponse } from "@/dto";
 import { createArrayAtom } from "@/lib/store";
-import { apiFetch } from "@/lib/utils/apiFetch";
+import { baseApiFetch } from "@/lib/utils/apiFetch";
 
 export class SongManager {
     // #region: Atoms
@@ -18,7 +18,7 @@ export class SongManager {
     // #region: Methods
 
     async fetchLikedSongs(): Promise<void> {
-        const res = await apiFetch("/user/like");
+        const res = await baseApiFetch("/user/like");
         if (!res?.ok) return;
         const data: string[] = await res.json();
         this.likedSongsAtom.set(data);
@@ -34,7 +34,7 @@ export class SongManager {
                 : [...current, songPublicId]
         );
 
-        const res = await apiFetch(`/user/like/song/${songPublicId}`, {
+        const res = await baseApiFetch(`/user/like/song/${songPublicId}`, {
             method: isLiked ? "DELETE" : "PUT",
         });
 

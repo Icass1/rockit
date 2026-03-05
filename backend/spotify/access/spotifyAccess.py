@@ -539,9 +539,9 @@ class SpotifyAccess:
             await session.flush()
             return AResult(code=AResultCode.OK, message="OK", result=artist_row)
 
-        except IntegrityError:
+        except IntegrityError as e:
             logger.warning(
-                f"IntegrityError in get_or_create_artist for {raw.id}, rolling back and fetching existing"
+                f"IntegrityError in get_or_create_artist for {raw.id}, rolling back and fetching existing. Error: {e}"
             )
             await session.rollback()
             session.expire_all()
@@ -1068,7 +1068,7 @@ class SpotifyAccess:
         playlist_id: int,
     ) -> AResult[List[Tuple[PlaylistTrackRow, TrackRow]]]:
         try:
-            stmt = select(PlaylistTrackRow).where(
+            stmt: Select[Tuple[PlaylistTrackRow]] = select(PlaylistTrackRow).where(
                 PlaylistTrackRow.playlist_id == playlist_id
             )
             result: Result[Tuple[PlaylistTrackRow]] = await session.execute(stmt)
@@ -1078,8 +1078,14 @@ class SpotifyAccess:
 
             track_links: List[Tuple[PlaylistTrackRow, TrackRow]] = []
             for ptr in playlist_track_rows:
-                track_stmt = select(TrackRow).where(TrackRow.id == ptr.song_id)
-                track_result = await session.execute(track_stmt)
+                track_stmt = (
+                    select(TrackRow)
+                    .where(TrackRow.id == ptr.song_id)
+                    .options(selectinload(TrackRow.album))
+                )
+                track_result: Result[Tuple[TrackRow]] = await session.execute(
+                    track_stmt
+                )
                 track_row: TrackRow | None = track_result.scalar_one_or_none()
                 if track_row:
                     track_links.append((ptr, track_row))

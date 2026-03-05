@@ -9,7 +9,7 @@ import InputBar from "@/components/Downloader/InputBar";
 import SongsStatus from "@/components/Downloader/SongsStatus";
 
 async function getLanguage(): Promise<{ lang: string; langFile: Lang }> {
-    const res = await fetch("http://localhost:3000/api/lang", {
+    const res = await fetch("http://localhost:3000lang", {
         cache: "no-store",
     });
     return res.json();

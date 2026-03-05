@@ -51,7 +51,7 @@ export default function SongPageCover({
     // const handleClick = () => {
     //     if (song.path == undefined || song.path == "") {
     //         fetch(
-    //             `/api/start-download?url=https://open.spotify.com/track/${song.id}`
+    //             `start-download?url=https://open.spotify.com/track/${song.id}`
     //         ).then((response) => {
     //             response.json().then((data) => {
     //                 downloads.set([data.download_id, ...downloads.get()]);

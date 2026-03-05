@@ -2,7 +2,7 @@ import { BaseAlbumWithoutSongsResponse, BasePlaylistResponse } from "@/dto";
 import { DBListType } from "@/types/rockIt";
 import { RESPONSE_UNDEFINED_MESSAGE, rockIt } from "@/lib/rockit/rockIt";
 import { createArrayAtom } from "@/lib/store";
-import { apiFetch, apiPostFetch } from "@/lib/utils/apiFetch";
+import { baseApiFetch } from "@/lib/utils/apiFetch";
 
 export class ListManager {
     private _libraryListsAtom = createArrayAtom<{
@@ -24,9 +24,12 @@ export class ListManager {
     // #region: Mehtods
 
     async addListToLibraryAsync(type: DBListType, publicId: string) {
-        const response = await apiFetch(`/user/library/${type}/${publicId}`, {
-            method: "POST",
-        });
+        const response = await baseApiFetch(
+            `/user/library/${type}/${publicId}`,
+            {
+                method: "POST",
+            }
+        );
 
         if (!response) {
             rockIt.notificationManager.notifyError(RESPONSE_UNDEFINED_MESSAGE);
@@ -45,9 +48,12 @@ export class ListManager {
     }
 
     async removeListFromLibraryAsync(type: DBListType, publicId: string) {
-        const response = await apiFetch(`/user/library/${type}/${publicId}`, {
-            method: "DELETE",
-        });
+        const response = await baseApiFetch(
+            `/user/library/${type}/${publicId}`,
+            {
+                method: "DELETE",
+            }
+        );
 
         if (!response) {
             rockIt.notificationManager.notifyError(RESPONSE_UNDEFINED_MESSAGE);
@@ -81,7 +87,7 @@ export class ListManager {
     }
 
     async pinListAsync(type: DBListType, publicId: string) {
-        const response = await apiFetch(`/pin/${type}/${publicId}`, {
+        const response = await baseApiFetch(`/pin/${type}/${publicId}`, {
             headers: { method: "POST" },
         });
 
@@ -182,7 +188,7 @@ export class ListManager {
             return;
         }
 
-        const response = await apiFetch("/user/like/songs", {
+        const response = await baseApiFetch("/user/like/songs", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ song_public_ids: songPublicIds }),
@@ -231,7 +237,7 @@ export class ListManager {
 
         // const interval = setInterval(async () => {
         //     const response = await fetch(
-        //         `/api/zip-list/${type}/${id}?jobId=${jobId}`
+        //         `zip-list/${type}/${id}?jobId=${jobId}`
         //     );
         //     if (!response.ok) {
         //         console.warn("Response not ok");
@@ -245,7 +251,7 @@ export class ListManager {
         //         const resultId = json.result;
 
         //         const a = document.createElement("a");
-        //         const url = `/api/zip-list/${type}/${id}?getId=${resultId}`;
+        //         const url = `zip-list/${type}/${id}?getId=${resultId}`;
 
         //         a.href = url;
 

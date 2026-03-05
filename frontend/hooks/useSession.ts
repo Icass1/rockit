@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { SessionResponse, SessionResponseSchema } from "@/dto";
-import { apiFetch } from "@/lib/utils/apiFetch";
+import { baseApiFetch } from "@/lib/utils/apiFetch";
 
 type Session =
     | { status: "authenticated"; user: SessionResponse }
@@ -8,7 +8,7 @@ type Session =
     | { status: "unauthenticated"; user: null };
 
 async function update(setData: React.Dispatch<React.SetStateAction<Session>>) {
-    const res = await apiFetch("/user/session");
+    const res = await baseApiFetch("/user/session");
 
     if (res && res.ok) {
         const json = await res.json();

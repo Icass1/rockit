@@ -124,5 +124,13 @@ class BaseProvider:
         """"""
         return AResult(
             code=AResultCode.NOT_IMPLEMENTED,
-            message=f"Provider '{self._name} doesn't implement get_video_async method.'",
+            message=f"Provider '{self._name}' doesn't implement get_video_async method.",
         )
+
+    def match_url(self, url: str) -> str | None:
+        """Check if the given URL matches this provider and return the internal path.
+
+        Returns the internal path (e.g., '/spotify/track/{id}') if the URL matches,
+        or None if it doesn't match this provider.
+        """
+        return None

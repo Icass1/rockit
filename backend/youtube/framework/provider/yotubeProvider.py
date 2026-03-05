@@ -1,5 +1,6 @@
 from logging import Logger
-from typing import List, Any
+from typing import List, Any, Pattern
+import re
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -22,6 +23,33 @@ from backend.youtube.framework.youtube import YouTube
 from backend.youtube.framework.youtubeApi import RawYoutubeSearchResult, youtube_api
 
 logger: Logger = getLogger(__name__)
+
+YOUTUBE_URL_PATTERNS: list[tuple[Pattern[str], str]] = [
+    (
+        re.compile(r"https?://(?:www\.)?youtube\.com/watch\?v=([a-zA-Z0-9_-]{11})"),
+        "/youtube/video/{}",
+    ),
+    (
+        re.compile(r"https?://(?:www\.)?youtube\.com/shorts/([a-zA-Z0-9_-]{11})"),
+        "/youtube/video/{}",
+    ),
+    (
+        re.compile(r"https?://(?:www\.)?youtu\.be/([a-zA-Z0-9_-]{11})"),
+        "/youtube/video/{}",
+    ),
+    (
+        re.compile(r"https?://(?:www\.)?youtube\.com/channel/([a-zA-Z0-9_-]{21})"),
+        "/youtube/channel/{}",
+    ),
+    (
+        re.compile(r"https?://(?:www\.)?youtube\.com/@([a-zA-Z0-9_-]+)"),
+        "/youtube/channel/{}",
+    ),
+    (
+        re.compile(r"https?://(?:www\.)?youtube\.com/playlist\?list=([a-zA-Z0-9_-]+)"),
+        "/youtube/playlist/{}",
+    ),
+]
 
 
 class YoutubeProvider(BaseProvider):
@@ -68,6 +96,14 @@ class YoutubeProvider(BaseProvider):
         ]
 
         return AResult(code=AResultCode.OK, message="OK", result=result)
+
+    def match_url(self, url: str) -> str | None:
+        """Check if the URL is a YouTube URL and return the internal path."""
+        for pattern, path_template in YOUTUBE_URL_PATTERNS:
+            match = pattern.match(url)
+            if match:
+                return path_template.format(match.group(1))
+        return None
 
     async def start_download_async(
         self,

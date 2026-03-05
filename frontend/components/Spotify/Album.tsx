@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { BaseAlbumWithoutSongsResponseSchema } from "@/dto";
+import { apiFetch } from "@/lib/utils/apiFetch";
+import LoadingComponent from "@/components/Loading";
 
 export default function SpotifyAlbumClient({
     spotifyId,
@@ -11,22 +13,23 @@ export default function SpotifyAlbumClient({
 }) {
     const router = useRouter();
 
+    // Reference to now if useEffect has already ran, in developer mode, useEffect are executed twice.
+    const hasRun = useRef(false);
+
     useEffect(() => {
+        if (hasRun.current) return;
+        hasRun.current = true;
+
         async function load() {
-            const album = await fetch(`/api/spotify/album/${spotifyId}`);
-            const parsedSong = BaseAlbumWithoutSongsResponseSchema.parse(
-                await album.json()
+            const album = await apiFetch(
+                `/spotify/album/${spotifyId}`,
+                BaseAlbumWithoutSongsResponseSchema
             );
 
-            router.replace(`/album/${parsedSong.publicId}`);
+            router.replace(`/album/${album.publicId}`);
         }
         load();
     }, [spotifyId, router]);
 
-    return (
-        <div>
-            <h2>Loading Spotify Album...</h2>
-            <p>Please wait, fetching data...</p>
-        </div>
-    );
+    return <LoadingComponent />;
 }

@@ -35,9 +35,9 @@ export {
     type BaseSongWithoutAlbumResponse,
 } from "@/dto/baseSongWithoutAlbumResponse";
 export {
-    ChannelResponseSchema,
-    type ChannelResponse,
-} from "@/dto/channelResponse";
+    BaseVideoResponseSchema,
+    type BaseVideoResponse,
+} from "@/dto/baseVideoResponse";
 export {
     CurrentMediaMessageRequestSchema,
     type CurrentMediaMessageRequest,
@@ -115,9 +115,9 @@ export {
     type SpotifyExternalImageResponse,
 } from "@/dto/spotifyExternalImageResponse";
 export {
-    SpotifySongResponseSchema,
-    type SpotifySongResponse,
-} from "@/dto/spotifySongResponse";
+    SpotifyTrackResponseSchema,
+    type SpotifyTrackResponse,
+} from "@/dto/spotifyTrackResponse";
 export {
     StartDownloadRequestSchema,
     type StartDownloadRequest,
@@ -127,4 +127,15 @@ export {
     type StartDownloadResponse,
 } from "@/dto/startDownloadResponse";
 export { StatsResponseSchema, type StatsResponse } from "@/dto/statsResponse";
-export { VideoResponseSchema, type VideoResponse } from "@/dto/videoResponse";
+export {
+    UrlMatchResponseSchema,
+    type UrlMatchResponse,
+} from "@/dto/urlMatchResponse";
+export {
+    YoutubeChannelResponseSchema,
+    type YoutubeChannelResponse,
+} from "@/dto/youtubeChannelResponse";
+export {
+    YoutubeVideoResponseSchema,
+    type YoutubeVideoResponse,
+} from "@/dto/youtubeVideoResponse";

@@ -1,5 +1,6 @@
-from typing import List
+import re
 from logging import Logger
+from typing import List, Pattern
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.spotify.responses.albumResponse import SpotifyAlbumResponse
@@ -27,6 +28,25 @@ from backend.spotify.access.spotifyAccess import SpotifyAccess
 from backend.spotify.access.db.ormModels.track import TrackRow
 
 logger: Logger = getLogger(__name__)
+
+SPOTIFY_URL_PATTERNS: list[tuple[Pattern[str], str]] = [
+    (
+        re.compile(r"https?://open\.spotify\.com/track/([a-zA-Z0-9]+)"),
+        "/spotify/track/{}",
+    ),
+    (
+        re.compile(r"https?://open\.spotify\.com/album/([a-zA-Z0-9]+)"),
+        "/spotify/album/{}",
+    ),
+    (
+        re.compile(r"https?://open\.spotify\.com/artist/([a-zA-Z0-9]+)"),
+        "/spotify/artist/{}",
+    ),
+    (
+        re.compile(r"https?://open\.spotify\.com/playlist/([a-zA-Z0-9]+)"),
+        "/spotify/playlist/{}",
+    ),
+]
 
 
 class SpotifyProvider(BaseProvider):
@@ -223,6 +243,14 @@ class SpotifyProvider(BaseProvider):
                 download_url=track.download_url,
             ),
         )
+
+    def match_url(self, url: str) -> str | None:
+        """Check if the URL is a Spotify URL and return the internal path."""
+        for pattern, path_template in SPOTIFY_URL_PATTERNS:
+            match = pattern.match(url)
+            if match:
+                return path_template.format(match.group(1))
+        return None
 
 
 provider = SpotifyProvider()

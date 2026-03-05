@@ -50,6 +50,14 @@ class Providers:
 
         return None
 
+    def match_url(self, url: str) -> str | None:
+        """Check all providers for a matching URL and return the internal path."""
+        for provider in self._providers:
+            path: str | None = provider.match_url(url)
+            if path is not None:
+                return path
+        return None
+
     async def search_providers(self, session: AsyncSession) -> AResultCode:
         logger.info("Searching providers...")
 

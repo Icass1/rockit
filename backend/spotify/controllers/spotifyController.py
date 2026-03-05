@@ -14,8 +14,8 @@ from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
 
 from backend.spotify.framework.spotify import Spotify
 
-from backend.spotify.responses.songResponse import SongResponse
-from backend.spotify.responses.albumResponse import AlbumResponse
+from backend.spotify.responses.songResponse import SpotifySongResponse
+from backend.spotify.responses.albumResponse import SpotifyAlbumResponse
 
 logger: Logger = getLogger(name=__name__)
 router = APIRouter(
@@ -24,9 +24,9 @@ router = APIRouter(
 
 
 @router.get("/album/{spotify_id}")
-async def get_album_async(request: Request, spotify_id: str) -> AlbumResponse:
+async def get_album_async(request: Request, spotify_id: str) -> SpotifyAlbumResponse:
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-    a_result_album: AResult[AlbumResponse] = await Spotify.get_album_async(
+    a_result_album: AResult[SpotifyAlbumResponse] = await Spotify.get_album_async(
         session=session, spotify_id=spotify_id
     )
     if a_result_album.is_not_ok():
@@ -39,9 +39,9 @@ async def get_album_async(request: Request, spotify_id: str) -> AlbumResponse:
 
 
 @router.get("/track/{spotify_id}")
-async def get_track_async(request: Request, spotify_id: str) -> SongResponse:
+async def get_track_async(request: Request, spotify_id: str) -> SpotifySongResponse:
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-    a_result: AResult[SongResponse] = await Spotify.get_track_async(
+    a_result: AResult[SpotifySongResponse] = await Spotify.get_track_async(
         session=session, spotify_id=spotify_id
     )
     if a_result.is_not_ok():

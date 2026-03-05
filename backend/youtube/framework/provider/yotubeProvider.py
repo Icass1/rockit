@@ -68,7 +68,12 @@ class YoutubeProvider(BaseProvider):
         return AResult(code=AResultCode.OK, message="OK", result=result)
 
     async def start_download_async(
-        self, session: AsyncSession, public_id: str, download_id: int, user_id: int
+        self,
+        session: AsyncSession,
+        public_id: str,
+        download_id: int,
+        download_group_id: int,
+        user_id: int,
     ) -> AResult[BaseDownload]:
         """TODO"""
 
@@ -85,6 +90,7 @@ class YoutubeProvider(BaseProvider):
             result=YoutubeDownload(
                 public_id=public_id,
                 download_id=download_id,
+                download_group_id=download_group_id,
                 user_id=user_id,
                 youtube_url=a_result_video.result().youtube_url,
                 youtube_video_id=a_result_video.result().youtube_id,

@@ -4,7 +4,7 @@ import {
     BaseArtistResponseSchema,
 } from "@/dto";
 
-export const SongResponseSchema = z.object({
+export const SpotifySongResponseSchema = z.object({
     provider: z.string(),
     publicId: z.string(),
     name: z.string(),
@@ -19,4 +19,4 @@ export const SongResponseSchema = z.object({
     spotifyId: z.string(),
 });
 
-export type SongResponse = z.infer<typeof SongResponseSchema>;
+export type SpotifySongResponse = z.infer<typeof SpotifySongResponseSchema>;

@@ -25,30 +25,6 @@ export default async function ArtistPage({
 
     const artistTopSongs: BaseSongWithAlbumResponse[] = [];
 
-    // const artistRes = await fetch(`${rockIt.BACKEND_URL}/artist/${id}`, {
-    //     cache: "no-store",
-    // });
-    // if (!artistRes.ok) notFound();
-
-    // const artistData = (await artistRes.json()) as SpotifyArtist;
-    // artistData.images.sort((a, b) => b.width + b.height - (a.width + a.height));
-    // const artistImage = artistData.images[0]?.url ?? "";
-
-    // // Non-fatal: page works without top songs
-    // const topRes = await apiFetch(`/artist-top-songs/${id}`, {
-    //     signal: AbortSignal.timeout(2000),
-    // });
-
-    // if (topRes.status !== 200) {
-    //     notFound();
-    // }
-
-    // if (!topRes?.ok) {
-    //     throw new AppError(500);
-    // }
-
-    // const artistSongs = (await topRes.json()) as SpotifyArtistTopTracks;
-
     return (
         <div className="flex h-full w-full flex-col overflow-y-scroll bg-[#0b0b0b] text-white">
             <div

@@ -16,6 +16,7 @@ export const VideoResponseSchema = z.object({
     youtubeUrl: z.string().nullable(),
     tags: z.array(z.string()),
     publishedAt: z.string().nullable(),
+    path: z.string().nullable(),
 });
 
 export type VideoResponse = z.infer<typeof VideoResponseSchema>;

@@ -13,13 +13,17 @@ logger = getLogger(__name__)
 class BaseDownload:
     public_id: str
     download_id: int
+    download_group_id: int
     user_id: int
 
-    def __init__(self, public_id: str, download_id: int, user_id: int) -> None:
+    def __init__(
+        self, public_id: str, download_id: int, download_group_id: int, user_id: int
+    ) -> None:
         """Store the public_id and download row id for this download."""
 
         self.public_id = public_id
         self.download_id = download_id
+        self.download_group_id = download_group_id
         self.user_id = user_id
 
     def download_method(self, session: AsyncSession) -> None:

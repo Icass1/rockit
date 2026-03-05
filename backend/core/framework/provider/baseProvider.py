@@ -56,7 +56,12 @@ class BaseProvider:
         )
 
     async def start_download_async(
-        self, session: AsyncSession, public_id: str, download_id: int, user_id: int
+        self,
+        session: AsyncSession,
+        public_id: str,
+        download_id: int,
+        download_group_id: int,
+        user_id: int,
     ) -> AResult[BaseDownload]:
         """Create a BaseDownload for the given song. Override in provider-specific subclasses."""
 

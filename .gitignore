@@ -68,6 +68,7 @@ site-packages
 /temp
 /backend/temp
 /songs
+/media
 /images
 __pycache__
 rest

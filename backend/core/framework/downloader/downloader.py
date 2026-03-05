@@ -88,6 +88,7 @@ class Downloader:
                     session=session,
                     public_id=public_id,
                     download_id=download_row.id,
+                    download_group_id=group.id,
                     user_id=user_id,
                 )
             )

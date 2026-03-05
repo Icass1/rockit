@@ -100,7 +100,7 @@ export class AudioManager {
         if (
             rockIt.queueManager.currentSong &&
             rockIt.queueManager.currentSong.audioSrc &&
-            rockIt.queueManager.currentQueueMediaId &&
+            rockIt.queueManager.currentQueueMediaId != null &&
             this._audio.src != rockIt.queueManager.currentSong.audioSrc
         ) {
             console.log(

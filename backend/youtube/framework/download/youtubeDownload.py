@@ -23,6 +23,7 @@ class YoutubeDownload(BaseDownload):
         self,
         public_id: str,
         download_id: int,
+        download_group_id: int,
         user_id: int,
         youtube_url: str,
         youtube_video_id: str,
@@ -30,7 +31,12 @@ class YoutubeDownload(BaseDownload):
     ) -> None:
         """Create a YoutubeDownload for a single video."""
 
-        super().__init__(public_id=public_id, download_id=download_id, user_id=user_id)
+        super().__init__(
+            public_id=public_id,
+            download_id=download_id,
+            download_group_id=download_group_id,
+            user_id=user_id,
+        )
         self.youtube_url = youtube_url
         self.youtube_video_id = youtube_video_id
         self.video_id = video_id

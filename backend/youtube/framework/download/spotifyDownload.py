@@ -36,13 +36,19 @@ class SpotifyDownload(BaseDownload):
         self,
         public_id: str,
         download_id: int,
+        download_group_id: int,
         user_id: int,
         track_spotify_id: int,
         download_url: str | None,
     ) -> None:
         """Create a SpotifyDownload for a single track."""
 
-        super().__init__(public_id=public_id, download_id=download_id, user_id=user_id)
+        super().__init__(
+            public_id=public_id,
+            download_id=download_id,
+            download_group_id=download_group_id,
+            user_id=user_id,
+        )
         self.track_spotify_id = track_spotify_id
         self.download_url = download_url
 

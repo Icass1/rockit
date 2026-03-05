@@ -1,6 +1,7 @@
 from logging import Logger
 from datetime import datetime, timezone
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.utils.safeAsyncCall import safe_async
@@ -8,6 +9,7 @@ from backend.utils.backendUtils import create_id
 from backend.utils.logger import getLogger
 
 from backend.core.aResult import AResult, AResultCode
+from backend.core.enums.downloadStatusEnum import DownloadStatusEnum
 
 from backend.core.access.db.ormModels.download import DownloadRow
 from backend.core.access.db.ormModels.downloadGroup import DownloadGroupRow
@@ -70,3 +72,69 @@ class DownloadAccess:
         )
         session.add(row)
         return AResult(code=AResultCode.OK, message="OK", result=row)
+
+    @staticmethod
+    @safe_async
+    async def update_download_group_completion(
+        session: AsyncSession,
+        download_group_id: int,
+    ) -> AResult[DownloadGroupRow]:
+        """Update download group with success/fail counts and date_ended."""
+
+        result = await session.execute(
+            select(DownloadRow).where(
+                DownloadRow.download_group_id == download_group_id
+            )
+        )
+        downloads: list[DownloadRow] = list(result.scalars().all())
+
+        success_count: int = 0
+        fail_count: int = 0
+        for download in downloads:
+            if download.status_key == DownloadStatusEnum.COMPLETED.value:
+                success_count += 1
+            elif download.status_key == DownloadStatusEnum.FAILED.value:
+                fail_count += 1
+
+        result_group = await session.execute(
+            select(DownloadGroupRow).where(DownloadGroupRow.id == download_group_id)
+        )
+        group: DownloadGroupRow | None = result_group.scalar_one_or_none()
+        if group is None:
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Download group {download_group_id} not found",
+            )
+
+        group.date_ended = datetime.now(timezone.utc)
+        group.success = success_count
+        group.fail = fail_count
+
+        if fail_count > 0:
+            group.status_key = DownloadStatusEnum.FAILED.value
+        else:
+            group.status_key = DownloadStatusEnum.COMPLETED.value
+
+        return AResult(code=AResultCode.OK, message="OK", result=group)
+
+    @staticmethod
+    @safe_async
+    async def update_download_status(
+        session: AsyncSession,
+        download_id: int,
+        status_key: int,
+    ) -> AResult[DownloadRow]:
+        """Update the status_key of a download row."""
+
+        result = await session.execute(
+            select(DownloadRow).where(DownloadRow.id == download_id)
+        )
+        download: DownloadRow | None = result.scalar_one_or_none()
+        if download is None:
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Download {download_id} not found",
+            )
+
+        download.status_key = status_key
+        return AResult(code=AResultCode.OK, message="OK", result=download)

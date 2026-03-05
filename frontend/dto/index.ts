@@ -1,4 +1,3 @@
-export { AlbumResponseSchema, type AlbumResponse } from "@/dto/albumResponse";
 export {
     ArtistSearchResultsItemSchema,
     type ArtistSearchResultsItem,
@@ -60,10 +59,6 @@ export {
     type DownloadProgressMessage,
 } from "@/dto/downloadProgressMessage";
 export {
-    ExternalImageResponseSchema,
-    type ExternalImageResponse,
-} from "@/dto/externalImageResponse";
-export {
     HomeStatsResponseSchema,
     type HomeStatsResponse,
 } from "@/dto/homeStatsResponse";
@@ -111,7 +106,18 @@ export {
     SkipClickedMessageRequestSchema,
     type SkipClickedMessageRequest,
 } from "@/dto/skipClickedMessageRequest";
-export { SongResponseSchema, type SongResponse } from "@/dto/songResponse";
+export {
+    SpotifyAlbumResponseSchema,
+    type SpotifyAlbumResponse,
+} from "@/dto/spotifyAlbumResponse";
+export {
+    SpotifyExternalImageResponseSchema,
+    type SpotifyExternalImageResponse,
+} from "@/dto/spotifyExternalImageResponse";
+export {
+    SpotifySongResponseSchema,
+    type SpotifySongResponse,
+} from "@/dto/spotifySongResponse";
 export {
     StartDownloadRequestSchema,
     type StartDownloadRequest,

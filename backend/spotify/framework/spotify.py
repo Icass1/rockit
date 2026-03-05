@@ -36,9 +36,9 @@ from backend.spotify.access.db.ormModels.playlist_tracks import PlaylistTrackRow
 
 from backend.spotify.framework.spotifyApi import spotify_api
 
-from backend.spotify.responses.songResponse import SongResponse
-from backend.spotify.responses.albumResponse import AlbumResponse
-from backend.spotify.responses.externalImageResponse import ExternalImageResponse
+from backend.spotify.responses.songResponse import SpotifySongResponse
+from backend.spotify.responses.albumResponse import SpotifyAlbumResponse
+from backend.spotify.responses.externalImageResponse import SpotifyExternalImageResponse
 
 from backend.spotify.spotifyApiTypes.rawSpotifyApiAlbum import RawSpotifyApiAlbum
 from backend.spotify.spotifyApiTypes.rawSpotifyApiTrack import RawSpotifyApiTrack
@@ -162,10 +162,10 @@ class Spotify:
     @staticmethod
     async def get_album_async(
         session: AsyncSession, spotify_id: str
-    ) -> AResult[AlbumResponse]:
+    ) -> AResult[SpotifyAlbumResponse]:
         """Get an album by ID, fetching from Spotify API and populating the database if not found."""
 
-        song_responses: List[SongResponse]
+        song_responses: List[SpotifySongResponse]
 
         a_result_album: AResult[AlbumRow] = (
             await SpotifyAccess.get_album_public_id_async(
@@ -316,7 +316,7 @@ class Spotify:
                     audio_src = f"{BACKEND_URL}/spotify/audio/{track_row.spotify_id}"
 
                 song_responses.append(
-                    SongResponse(
+                    SpotifySongResponse(
                         provider=Spotify.provider_name,
                         publicId=core_song.public_id,
                         name=track_row.name,
@@ -339,15 +339,17 @@ class Spotify:
                     )
                 )
 
-            external_image_responses: List[ExternalImageResponse] = [
-                ExternalImageResponse(url=img.url, width=img.width, height=img.height)
+            external_image_responses: List[SpotifyExternalImageResponse] = [
+                SpotifyExternalImageResponse(
+                    url=img.url, width=img.width, height=img.height
+                )
                 for img in external_images
             ]
 
             return AResult(
                 code=AResultCode.OK,
                 message="OK",
-                result=AlbumResponse(
+                result=SpotifyAlbumResponse(
                     provider=Spotify.provider_name,
                     publicId=core_album.public_id,
                     spotifyId=spotify_id,
@@ -588,7 +590,7 @@ class Spotify:
                 audio_src = f"{BACKEND_URL}/spotify/audio/{track_row.spotify_id}"
 
             song_responses.append(
-                SongResponse(
+                SpotifySongResponse(
                     provider=Spotify.provider_name,
                     publicId=core_song.public_id,
                     name=track_row.name,
@@ -611,15 +613,17 @@ class Spotify:
                 )
             )
 
-        external_image_responses: List[ExternalImageResponse] = [
-            ExternalImageResponse(url=img.url, width=img.width, height=img.height)
+        external_image_responses: List[SpotifyExternalImageResponse] = [
+            SpotifyExternalImageResponse(
+                url=img.url, width=img.width, height=img.height
+            )
             for img in external_images
         ]
 
         return AResult(
             code=AResultCode.OK,
             message="OK",
-            result=AlbumResponse(
+            result=SpotifyAlbumResponse(
                 provider=Spotify.provider_name,
                 publicId=core_album.public_id,
                 spotifyId=spotify_id,
@@ -635,7 +639,7 @@ class Spotify:
     @staticmethod
     async def get_track_async(
         session: AsyncSession, spotify_id: str
-    ) -> AResult[SongResponse]:
+    ) -> AResult[SpotifySongResponse]:
         """Get a track by ID, fetching from Spotify API and populating the database if not found."""
 
         a_result_track: AResult[TrackRow] = (
@@ -770,7 +774,7 @@ class Spotify:
             return AResult(
                 code=AResultCode.OK,
                 message="OK",
-                result=SongResponse(
+                result=SpotifySongResponse(
                     provider=Spotify.provider_name,
                     publicId=core_song.public_id,
                     spotifyId=track_row.spotify_id,
@@ -1041,7 +1045,7 @@ class Spotify:
         return AResult(
             code=AResultCode.OK,
             message="OK",
-            result=SongResponse(
+            result=SpotifySongResponse(
                 provider=Spotify.provider_name,
                 publicId=created_core_song.public_id,
                 spotifyId=spotify_id,

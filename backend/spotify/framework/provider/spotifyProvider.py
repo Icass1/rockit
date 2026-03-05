@@ -2,8 +2,8 @@ from typing import List
 from logging import Logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.spotify.responses.albumResponse import AlbumResponse
-from backend.spotify.responses.songResponse import SongResponse
+from backend.spotify.responses.albumResponse import SpotifyAlbumResponse
+from backend.spotify.responses.songResponse import SpotifySongResponse
 from backend.utils.logger import getLogger
 
 from backend.core.aResult import AResult, AResultCode
@@ -82,7 +82,7 @@ class SpotifyProvider(BaseProvider):
 
         spotify_id: str = a_result_spotify_id.result()
 
-        a_result: AResult[SongResponse] = await Spotify.get_track_async(
+        a_result: AResult[SpotifySongResponse] = await Spotify.get_track_async(
             session=session, spotify_id=spotify_id
         )
         if a_result.is_not_ok():
@@ -111,7 +111,7 @@ class SpotifyProvider(BaseProvider):
 
         spotify_id: str = a_result_spotify_id.result()
 
-        a_result: AResult[AlbumResponse] = await Spotify.get_album_async(
+        a_result: AResult[SpotifyAlbumResponse] = await Spotify.get_album_async(
             session=session, spotify_id=spotify_id
         )
         if a_result.is_not_ok():
@@ -179,7 +179,12 @@ class SpotifyProvider(BaseProvider):
         return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
 
     async def start_download_async(
-        self, session: AsyncSession, public_id: str, download_id: int, user_id: int
+        self,
+        session: AsyncSession,
+        public_id: str,
+        download_id: int,
+        download_group_id: int,
+        user_id: int,
     ) -> AResult[BaseDownload]:
         """Create a SpotifyDownload for the given track public_id."""
 
@@ -212,6 +217,7 @@ class SpotifyProvider(BaseProvider):
             result=SpotifyDownload(
                 public_id=public_id,
                 download_id=download_id,
+                download_group_id=download_group_id,
                 user_id=user_id,
                 track_spotify_id=track.id,
                 download_url=track.download_url,

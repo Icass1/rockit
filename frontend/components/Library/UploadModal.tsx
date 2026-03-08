@@ -1,9 +1,9 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
+import { BACKEND_URL } from "@/environment";
 import { FileArchive, FileAudio, Upload, X } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { BACKEND_URL } from "@/environment";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -155,15 +155,12 @@ export default function UploadModal({ isOpen, onClose }: UploadModalProps) {
             });
 
             // TODO: implement /downloader/upload endpoint in backend
-            const res = await fetch(
-                `${BACKEND_URL}/downloader/upload`,
-                {
-                    method: "POST",
-                    credentials: "include",
-                    body: formData,
-                    // No Content-Type header — let browser set multipart boundary
-                }
-            );
+            const res = await fetch(`${BACKEND_URL}/downloader/upload`, {
+                method: "POST",
+                credentials: "include",
+                body: formData,
+                // No Content-Type header — let browser set multipart boundary
+            });
 
             if (!res.ok) {
                 throw new Error(`Upload failed: ${res.status}`);
@@ -300,26 +297,34 @@ export default function UploadModal({ isOpen, onClose }: UploadModalProps) {
                                                         type="text"
                                                         value={file.title}
                                                         onChange={(e) =>
-                                                            updateFile(file.id, {
-                                                                title: e.target
-                                                                    .value,
-                                                            })
+                                                            updateFile(
+                                                                file.id,
+                                                                {
+                                                                    title: e
+                                                                        .target
+                                                                        .value,
+                                                                }
+                                                            )
                                                         }
                                                         placeholder="Title"
-                                                        className="min-w-0 flex-1 rounded-md bg-neutral-700 px-2 py-1.5 text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
+                                                        className="min-w-0 flex-1 rounded-md bg-neutral-700 px-2 py-1.5 text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
                                                     />
                                                     <input
                                                         type="text"
                                                         value={file.track}
                                                         onChange={(e) =>
-                                                            updateFile(file.id, {
-                                                                track: e.target
-                                                                    .value,
-                                                            })
+                                                            updateFile(
+                                                                file.id,
+                                                                {
+                                                                    track: e
+                                                                        .target
+                                                                        .value,
+                                                                }
+                                                            )
                                                         }
                                                         placeholder="#"
                                                         inputMode="numeric"
-                                                        className="w-14 rounded-md bg-neutral-700 px-2 py-1.5 text-center text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
+                                                        className="w-14 rounded-md bg-neutral-700 px-2 py-1.5 text-center text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
                                                     />
                                                 </div>
                                                 {/* Row 2: Artist + Album + Year */}
@@ -328,38 +333,50 @@ export default function UploadModal({ isOpen, onClose }: UploadModalProps) {
                                                         type="text"
                                                         value={file.artist}
                                                         onChange={(e) =>
-                                                            updateFile(file.id, {
-                                                                artist: e.target
-                                                                    .value,
-                                                            })
+                                                            updateFile(
+                                                                file.id,
+                                                                {
+                                                                    artist: e
+                                                                        .target
+                                                                        .value,
+                                                                }
+                                                            )
                                                         }
                                                         placeholder="Artist"
-                                                        className="min-w-0 flex-1 rounded-md bg-neutral-700 px-2 py-1.5 text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
+                                                        className="min-w-0 flex-1 rounded-md bg-neutral-700 px-2 py-1.5 text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
                                                     />
                                                     <input
                                                         type="text"
                                                         value={file.album}
                                                         onChange={(e) =>
-                                                            updateFile(file.id, {
-                                                                album: e.target
-                                                                    .value,
-                                                            })
+                                                            updateFile(
+                                                                file.id,
+                                                                {
+                                                                    album: e
+                                                                        .target
+                                                                        .value,
+                                                                }
+                                                            )
                                                         }
                                                         placeholder="Album"
-                                                        className="min-w-0 flex-1 rounded-md bg-neutral-700 px-2 py-1.5 text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
+                                                        className="min-w-0 flex-1 rounded-md bg-neutral-700 px-2 py-1.5 text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
                                                     />
                                                     <input
                                                         type="text"
                                                         value={file.year}
                                                         onChange={(e) =>
-                                                            updateFile(file.id, {
-                                                                year: e.target
-                                                                    .value,
-                                                            })
+                                                            updateFile(
+                                                                file.id,
+                                                                {
+                                                                    year: e
+                                                                        .target
+                                                                        .value,
+                                                                }
+                                                            )
                                                         }
                                                         placeholder="Year"
                                                         inputMode="numeric"
-                                                        className="w-20 rounded-md bg-neutral-700 px-2 py-1.5 text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
+                                                        className="w-20 rounded-md bg-neutral-700 px-2 py-1.5 text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
                                                     />
                                                 </div>
                                             </div>

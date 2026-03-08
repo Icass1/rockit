@@ -9,10 +9,10 @@ export async function Song({ index }: { index: number }) {
 export default async function RenderList() {
     return (
         <div className="flex h-full w-full flex-row bg-red-400">
-            <div className="h-full w-1/2 pb-24 pt-24">
+            <div className="h-full w-1/2 pt-24 pb-24">
                 <div className="h-full w-full bg-blue-500">A</div>
             </div>
-            <div className="flex h-full w-1/2 flex-col gap-2 overflow-y-auto bg-green-400 pb-96 pt-24">
+            <div className="flex h-full w-1/2 flex-col gap-2 overflow-y-auto bg-green-400 pt-24 pb-96">
                 {Array(100)
                     .fill(1)
                     .map((_, i) => (

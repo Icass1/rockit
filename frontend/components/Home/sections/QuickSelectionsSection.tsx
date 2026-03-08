@@ -25,7 +25,7 @@ export default function QuickSelectionsSection({
                 {Array.from({ length: COLUMNS }).map((_, columnIndex) => (
                     <div
                         key={columnIndex}
-                        className="max-w-50 md:max-w-87.5 flex w-[51%] flex-none snap-center flex-col gap-1 md:w-[calc(25%-10px)]"
+                        className="flex w-[51%] max-w-50 flex-none snap-center flex-col gap-1 md:w-[calc(25%-10px)] md:max-w-87.5"
                     >
                         {songs
                             .slice(

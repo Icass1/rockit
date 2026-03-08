@@ -3,9 +3,9 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { BACKEND_URL } from "@/environment";
 import { Plus } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { BACKEND_URL } from "@/environment";
 
 export default function NewPlaylistButton() {
     const [showModal, setShowModal] = useState(false);
@@ -17,21 +17,20 @@ export default function NewPlaylistButton() {
 
     const handleCreate = async () => {
         if (!name.trim()) {
-            setError(lang?.error_enter_name ?? "Enter a name for your new playlist");
+            setError(
+                lang?.error_enter_name ?? "Enter a name for your new playlist"
+            );
             return;
         }
 
         setLoading(true);
         try {
-            const res = await fetch(
-                `${BACKEND_URL}/user/playlist/new`,
-                {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    credentials: "include",
-                    body: JSON.stringify({ name: name.trim() }),
-                }
-            );
+            const res = await fetch(`${BACKEND_URL}/user/playlist/new`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify({ name: name.trim() }),
+            });
 
             if (!res.ok) throw new Error("Failed to create playlist");
 
@@ -39,7 +38,9 @@ export default function NewPlaylistButton() {
             closeModal();
             router.push(`/playlist/${data.id}`);
         } catch {
-            setError(lang?.error_creating ?? "Error creating your new playlist");
+            setError(
+                lang?.error_creating ?? "Error creating your new playlist"
+            );
         } finally {
             setLoading(false);
         }
@@ -57,19 +58,19 @@ export default function NewPlaylistButton() {
             <div
                 role="button"
                 tabIndex={0}
-                className="library-item flex h-full w-full min-w-0 max-w-full cursor-pointer flex-col transition-transform md:hover:scale-110"
+                className="library-item flex h-full w-full max-w-full min-w-0 cursor-pointer flex-col transition-transform md:hover:scale-110"
                 onClick={() => setShowModal(true)}
                 onKeyDown={(e) => e.key === "Enter" && setShowModal(true)}
             >
                 <div className="cover relative aspect-square h-auto w-full">
                     <Image
                         alt=""
-                        className="cover absolute left-0 top-0 aspect-square h-auto w-full rounded-md"
+                        className="cover absolute top-0 left-0 aspect-square h-auto w-full rounded-md"
                         src="/rockit-background.png"
                         width={600}
                         height={600}
                     />
-                    <Plus className="cover absolute left-0 top-0 aspect-square h-auto w-full rounded-md p-6" />
+                    <Plus className="cover absolute top-0 left-0 aspect-square h-auto w-full rounded-md p-6" />
                 </div>
                 <label className="min-h-6 cursor-pointer truncate text-center font-semibold">
                     {lang?.newplaylist}
@@ -97,12 +98,17 @@ export default function NewPlaylistButton() {
 
                         <input
                             className={`w-full border-b border-solid bg-transparent text-xl font-bold outline-none ${
-                                error ? "border-red-500 text-red-400" : "border-neutral-600 text-white"
+                                error
+                                    ? "border-red-500 text-red-400"
+                                    : "border-neutral-600 text-white"
                             }`}
                             value={name}
                             type="text"
                             autoFocus
-                            placeholder={lang?.placeholder_playlist_name ?? "My perfect playlist"}
+                            placeholder={
+                                lang?.placeholder_playlist_name ??
+                                "My perfect playlist"
+                            }
                             onChange={(e) => {
                                 setName(e.target.value);
                                 setError("");

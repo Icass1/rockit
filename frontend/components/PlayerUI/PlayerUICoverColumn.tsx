@@ -44,7 +44,7 @@ export function PlayerUICoverColumn({ currentSong }: PlayerUICoverColumnProps) {
                     height={600}
                     width={600}
                     alt="Song Cover"
-                    className="absolute h-full w-full select-none rounded-xl"
+                    className="absolute h-full w-full rounded-xl select-none"
                 />
                 <div
                     className={`h-20 w-20 rounded-full bg-[#1a1a1a]/60 ${iconClassName}`}
@@ -59,7 +59,7 @@ export function PlayerUICoverColumn({ currentSong }: PlayerUICoverColumnProps) {
 
             {/* Song info */}
             <div className="flex w-full flex-col items-center justify-center px-2 text-center">
-                <h1 className="line-clamp-2 text-balance text-4xl font-bold leading-normal">
+                <h1 className="line-clamp-2 text-4xl leading-normal font-bold text-balance">
                     {currentSong?.name}
                 </h1>
                 <p className="mt-2 flex w-full items-center justify-center gap-1 text-xl font-medium text-gray-400">

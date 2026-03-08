@@ -61,7 +61,7 @@ export default function RenderAlbum({
                 />
 
                 <div className="z-50 mx-auto flex w-fit flex-row items-center gap-2">
-                    <span className="text-balance text-center text-2xl font-semibold">
+                    <span className="text-center text-2xl font-semibold text-balance">
                         {album.name}
                     </span>
                     <ListOptions

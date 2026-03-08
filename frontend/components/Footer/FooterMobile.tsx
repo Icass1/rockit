@@ -45,7 +45,7 @@ export default function FooterMobile() {
 
                 {/* Song info — p instead of label (label is for form elements) */}
                 <div className="flex min-w-0 flex-col">
-                    <p className="truncate font-semibold leading-tight">
+                    <p className="truncate leading-tight font-semibold">
                         {$currentSong?.name ?? ""}
                     </p>
                     <p className="truncate text-sm leading-tight text-neutral-400">

@@ -62,7 +62,7 @@ export default function SearchBarInput() {
 
             {/* Spinner — antes de la X nativa del input */}
             {searching && (
-                <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2">
+                <div className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2">
                     <div className="h-4 w-4 animate-spin rounded-full border-2 border-neutral-600 border-t-[#ec5588]" />
                 </div>
             )}

@@ -1,8 +1,8 @@
 "use client";
 
+import { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ReactNode } from "react";
 import {
     BaseAlbumWithoutSongsResponse,
     BasePlaylistResponse,
@@ -27,15 +27,15 @@ import ContextMenu from "@/components/ContextMenu/ContextMenu";
 import ContextMenuOption from "@/components/ContextMenu/Option";
 import ContextMenuSplitter from "@/components/ContextMenu/Splitter";
 import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
-import NewPlaylistButton from "@/components/Library/NewPlaylistButton";
-import PlayLibraryButton from "@/components/Library/PlayLibraryButton";
-import LoadingComponent from "@/components/Loading";
 import {
     ContentType,
     FilterMode,
     useLibraryData,
 } from "@/components/Library/hooks/useLibraryData";
 import { ViewMode } from "@/components/Library/LibraryFilters";
+import NewPlaylistButton from "@/components/Library/NewPlaylistButton";
+import PlayLibraryButton from "@/components/Library/PlayLibraryButton";
+import LoadingComponent from "@/components/Loading";
 
 interface LibraryListsProps {
     filterMode: FilterMode;
@@ -68,9 +68,15 @@ function songsListClass() {
 
 // ─── Small components ─────────────────────────────────────────────────────────
 
-function SectionHeader({ title, rightElement }: { title: string; rightElement?: ReactNode }) {
+function SectionHeader({
+    title,
+    rightElement,
+}: {
+    title: string;
+    rightElement?: ReactNode;
+}) {
     return (
-        <div className="flex items-center justify-between px-5 pb-3 pt-4 md:px-0">
+        <div className="flex items-center justify-between px-5 pt-4 pb-3 md:px-0">
             <h2 className="text-2xl font-bold">{title}</h2>
             {rightElement}
         </div>
@@ -220,7 +226,7 @@ function PlaylistCard({ playlist }: { playlist: BasePlaylistResponse }) {
         <AddListContextMenu list={playlist}>
             <Link
                 href={`/playlist/${playlist.publicId}`}
-                className="library-item flex h-auto w-full min-w-0 max-w-full flex-col transition-transform md:hover:scale-110"
+                className="library-item flex h-auto w-full max-w-full min-w-0 flex-col transition-transform md:hover:scale-110"
             >
                 <Image
                     alt={playlist.name}
@@ -248,7 +254,7 @@ function AlbumCard({ album }: { album: BaseAlbumWithoutSongsResponse }) {
         <AddListContextMenu list={album}>
             <Link
                 href={`/album/${album.publicId}`}
-                className="library-item flex h-auto w-full min-w-0 max-w-full flex-col transition-transform md:hover:scale-110"
+                className="library-item flex h-auto w-full max-w-full min-w-0 flex-col transition-transform md:hover:scale-110"
             >
                 <Image
                     alt={album.name}
@@ -325,7 +331,7 @@ function VideoCard({ video }: { video: BaseVideoResponse }) {
             tabIndex={0}
             onClick={handlePlay}
             onKeyDown={(e) => e.key === "Enter" && handlePlay()}
-            className="library-item flex h-auto w-full min-w-0 max-w-full flex-col transition-transform md:hover:scale-110"
+            className="library-item flex h-auto w-full max-w-full min-w-0 flex-col transition-transform md:hover:scale-110"
         >
             <div className="relative aspect-video w-full overflow-hidden rounded-md">
                 <Image
@@ -403,9 +409,11 @@ export function LibraryLists({
 
         return (
             <section>
-                <SectionHeader 
-                    title={lang.your_albums_playlists} 
-                    rightElement={hasContent ? <PlayLibraryButton /> : undefined}
+                <SectionHeader
+                    title={lang.your_albums_playlists}
+                    rightElement={
+                        hasContent ? <PlayLibraryButton /> : undefined
+                    }
                 />
                 {hasContent ? (
                     <div className={albumsGridClass(viewMode)}>
@@ -443,7 +451,8 @@ export function LibraryLists({
                     message={
                         searchQuery
                             ? `${lang.no_results ?? "No results"}: "${searchQuery}"`
-                            : (lang.no_albums ?? "No albums in your library yet")
+                            : (lang.no_albums ??
+                              "No albums in your library yet")
                     }
                 />
             );
@@ -492,7 +501,8 @@ export function LibraryLists({
                         message={
                             searchQuery
                                 ? `${lang.no_results ?? "No results"}: "${searchQuery}"`
-                                : (lang.no_songs ?? "No songs in your library yet")
+                                : (lang.no_songs ??
+                                  "No songs in your library yet")
                         }
                     />
                 );
@@ -521,7 +531,8 @@ export function LibraryLists({
                         message={
                             searchQuery
                                 ? `${lang.no_results ?? "No results"}: "${searchQuery}"`
-                                : (lang.no_videos ?? "No videos in your library yet")
+                                : (lang.no_videos ??
+                                  "No videos in your library yet")
                         }
                     />
                 );
@@ -550,7 +561,8 @@ export function LibraryLists({
                         message={
                             searchQuery
                                 ? `${lang.no_results ?? "No results"}: "${searchQuery}"`
-                                : (lang.no_stations ?? "No stations in your library yet")
+                                : (lang.no_stations ??
+                                  "No stations in your library yet")
                         }
                     />
                 );

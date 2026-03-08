@@ -10,14 +10,16 @@ import {
     Upload,
 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { ContentType } from "@/components/Library/hooks/useLibraryData";
 import { LibraryFilters, ViewMode } from "@/components/Library/LibraryFilters";
 import { LibraryLists } from "@/components/Library/LibraryLists";
 import UploadModal from "@/components/Library/UploadModal";
-import { ContentType } from "@/components/Library/hooks/useLibraryData";
 
 export default function LibraryClient() {
     const { langFile: lang } = useLanguage();
-    const [filterMode, setFilterMode] = useState<"default" | "asc" | "desc">("default");
+    const [filterMode, setFilterMode] = useState<"default" | "asc" | "desc">(
+        "default"
+    );
     const [searchQuery, setSearchQuery] = useState("");
     const [activeType, setActiveType] = useState<ContentType>("all");
     const [viewMode, setViewMode] = useState<ViewMode>("grid");
@@ -31,12 +33,14 @@ export default function LibraryClient() {
         );
 
     return (
-        <div className="webkit-scroll h-full w-full pb-24 pt-28 md:px-8">
+        <div className="webkit-scroll h-full w-full pt-28 pb-24 md:px-8">
             {/* DESKTOP HEADER */}
-            <header className="hidden md:flex items-center gap-3 mb-6">
+            <header className="mb-6 hidden items-center gap-3 md:flex">
                 {/* Left: title + pills */}
-                <div className="flex items-center gap-8 mr-4">
-                    <h1 className="text-4xl font-bold text-white shrink-0">{lang.library}</h1>
+                <div className="mr-4 flex items-center gap-8">
+                    <h1 className="shrink-0 text-4xl font-bold text-white">
+                        {lang.library}
+                    </h1>
                     <LibraryFilters
                         activeType={activeType}
                         setActiveType={setActiveType}
@@ -51,21 +55,30 @@ export default function LibraryClient() {
                         title="Sort"
                         className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-neutral-400 transition hover:text-white"
                     >
-                        {filterMode === "default" && <ClockArrowDown className="h-5 w-5" />}
-                        {filterMode === "asc" && <ArrowDownAZ className="h-5 w-5" />}
-                        {filterMode === "desc" && <ArrowUpAZ className="h-5 w-5" />}
+                        {filterMode === "default" && (
+                            <ClockArrowDown className="h-5 w-5" />
+                        )}
+                        {filterMode === "asc" && (
+                            <ArrowDownAZ className="h-5 w-5" />
+                        )}
+                        {filterMode === "desc" && (
+                            <ArrowUpAZ className="h-5 w-5" />
+                        )}
                     </button>
 
                     {/* View toggle */}
                     <button
-                        onClick={() => setViewMode(v => v === "grid" ? "list" : "grid")}
+                        onClick={() =>
+                            setViewMode((v) => (v === "grid" ? "list" : "grid"))
+                        }
                         title={viewMode === "grid" ? "List view" : "Grid view"}
                         className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-neutral-400 transition hover:text-white"
                     >
-                        {viewMode === "grid"
-                            ? <List className="h-5 w-5" />
-                            : <LayoutGrid className="h-5 w-5" />
-                        }
+                        {viewMode === "grid" ? (
+                            <List className="h-5 w-5" />
+                        ) : (
+                            <LayoutGrid className="h-5 w-5" />
+                        )}
                     </button>
 
                     {/* Upload */}
@@ -80,7 +93,7 @@ export default function LibraryClient() {
                     {/* Search - fixed width that expands on focus */}
                     <div className="relative">
                         <input
-                            className="h-8 w-56 rounded-full bg-neutral-900 pl-8 pr-3 text-sm font-medium shadow transition-[width] duration-200 focus:outline-none"
+                            className="h-8 w-56 rounded-full bg-neutral-900 pr-3 pl-8 text-sm font-medium shadow transition-[width] duration-200 focus:outline-none"
                             style={{
                                 backgroundImage: "url(/search-icon.png)",
                                 backgroundPosition: "10px center",
@@ -97,11 +110,11 @@ export default function LibraryClient() {
             </header>
 
             {/* MOBILE HEADER */}
-            <header className="flex flex-col gap-2 px-4 mb-4 md:hidden">
+            <header className="mb-4 flex flex-col gap-2 px-4 md:hidden">
                 {/* Row 1: search + upload */}
                 <div className="flex items-center gap-2">
                     <input
-                        className="h-9 flex-1 rounded-full bg-neutral-900 pl-9 pr-3 text-sm font-medium shadow focus:outline-none"
+                        className="h-9 flex-1 rounded-full bg-neutral-900 pr-3 pl-9 text-sm font-medium shadow focus:outline-none"
                         style={{
                             backgroundImage: "url(/search-icon.png)",
                             backgroundPosition: "12px center",

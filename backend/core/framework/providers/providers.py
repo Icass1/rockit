@@ -77,6 +77,14 @@ class Providers:
                 module: ModuleType = import_module(module_path)
 
                 try:
+                    if not hasattr(module, "provider"):
+                        logger.warning(f"{module_path} doesn't have 'provider' defined")
+                        continue
+
+                    if not hasattr(module, "name"):
+                        logger.warning(f"{module_path} doesn't have 'name' defined")
+                        continue
+
                     provider = module.provider
                     provider_name = module.name
                     if not isinstance(provider, BaseProvider):
@@ -100,9 +108,7 @@ class Providers:
                             )
                         )
                 except Exception as e:
-                    logger.warning(
-                        f"{module_path} doesn't have 'provider' or 'name' variable. Error {e}."
-                    )
+                    logger.error(f"Error loading {module_path}. Error {e}.")
 
         a_result_providers_in_db: AResult[List[ProviderRow]] = (
             await ProviderAccess.get_providers(session)

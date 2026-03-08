@@ -10,6 +10,7 @@ class BasePlaylistResponse(BaseModel):
     type: Literal["playlist"] = "playlist"
     provider: str
     publicId: str
+    url: str
     name: str
     songs: List[BaseSongForPlaylistResponse]
     internalImageUrl: str

@@ -150,6 +150,7 @@ export function PlayerUIQueueList({
                             provider: "mock",
                             audioSrc: null,
                             publicId: `auto-${mock.id}`,
+                            url: "",
                             name: mock.title,
                             album: {
                                 type: "album",
@@ -158,14 +159,15 @@ export function PlayerUIQueueList({
                                 internalImageUrl: "/image/song-placeholder.png",
                                 provider: "mock",
                                 publicId: `auto-album-${mock.id}`,
+                                url: "",
                                 artists: [
                                     {
                                         provider: "mock",
                                         publicId: "publicId",
                                         internalImageUrl:
                                             "/image/song-placeholder.png",
-                                        genres: [],
                                         name: mock.artist,
+                                        url: "",
                                     },
                                 ],
                             },
@@ -175,8 +177,8 @@ export function PlayerUIQueueList({
                                     publicId: "publicId",
                                     internalImageUrl:
                                         "/image/song-placeholder.png",
-                                    genres: [],
                                     name: mock.artist,
+                                    url: "",
                                 },
                             ],
                         },

@@ -11,6 +11,7 @@ class BaseAlbumWithoutSongsResponse(BaseModel):
     type: Literal["album"] = "album"
     provider: str
     publicId: str
+    url: str
     name: str
     artists: Sequence[BaseArtistResponse]
     releaseDate: str

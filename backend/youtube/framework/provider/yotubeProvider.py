@@ -176,10 +176,12 @@ class YoutubeProvider(BaseProvider):
             result=BaseVideoResponse(
                 provider=youtube_video.provider,
                 publicId=youtube_video.publicId,
+                url=youtube_video.url,
                 name=youtube_video.name,
                 videoUrl=youtube_video.youtubeUrl,
                 internalImageUrl=youtube_video.internalImageUrl or "",
                 duration=youtube_video.duration,
+                artists=youtube_video.artists,
             ),
         )
 

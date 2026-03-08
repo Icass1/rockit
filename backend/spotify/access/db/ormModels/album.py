@@ -16,6 +16,9 @@ from backend.spotify.access.db.associationTables.album_external_images import (
     album_external_images,
 )
 
+from backend.core.access.db.ormModels.media import CoreMediaRow
+from backend.core.access.db.ormModels.image import ImageRow
+
 if TYPE_CHECKING:
     from backend.spotify.access.db.ormModels.track import TrackRow
     from backend.spotify.access.db.ormModels.artist import ArtistRow
@@ -42,8 +45,12 @@ class AlbumRow(SpotifyBase, TableDateUpdated, TableDateAdded):
     # ORM relationship
     songs: Mapped[List["TrackRow"]] = relationship("TrackRow", back_populates="album")
 
-    artists: WriteOnlyMapped[List["ArtistRow"]] = relationship(
-        "ArtistRow", secondary=album_artists, back_populates="albums", lazy="write_only"
+    artists: Mapped[List["ArtistRow"]] = relationship(
+        "ArtistRow",
+        secondary=album_artists,
+        back_populates="albums",
+        lazy="selectin",
+        uselist=True,
     )
 
     external_images: WriteOnlyMapped[List["ExternalImageRow"]] = relationship(
@@ -58,6 +65,14 @@ class AlbumRow(SpotifyBase, TableDateUpdated, TableDateAdded):
         secondary=album_copyrights,
         back_populates="albums",
         lazy="write_only",
+    )
+
+    core_album: Mapped["CoreMediaRow"] = relationship(
+        CoreMediaRow, lazy="selectin", uselist=False
+    )
+
+    internal_image: Mapped["ImageRow"] = relationship(
+        ImageRow, lazy="selectin", uselist=False
     )
 
     def __init__(

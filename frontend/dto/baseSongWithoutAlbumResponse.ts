@@ -4,6 +4,7 @@ import { z } from "zod";
 export const BaseSongWithoutAlbumResponseSchema = z.object({
     provider: z.string(),
     publicId: z.string(),
+    url: z.string(),
     name: z.string(),
     artists: z.array(z.lazy(() => BaseArtistResponseSchema)),
     audioSrc: z.string().nullable(),

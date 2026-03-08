@@ -633,7 +633,7 @@ class SpotifyAccess:
             if raw.artists:
                 for a in raw.artists:
                     if a.id and a.id in artist_map:
-                        album_row.artists.add(artist_map[a.id])
+                        album_row.artists.append(artist_map[a.id])
 
             # Link copyrights
             if raw.copyrights:

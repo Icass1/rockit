@@ -8,6 +8,7 @@ export const BaseAlbumWithSongsResponseSchema = z.object({
     type: z.union([z.literal("album")]),
     provider: z.string(),
     publicId: z.string(),
+    url: z.string(),
     name: z.string(),
     artists: z.array(z.lazy(() => BaseArtistResponseSchema)),
     releaseDate: z.string(),

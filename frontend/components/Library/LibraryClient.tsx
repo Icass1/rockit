@@ -1,7 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Upload } from "lucide-react";
+import {
+    ArrowDownAZ,
+    ArrowUpAZ,
+    ClockArrowDown,
+    LayoutGrid,
+    List,
+    Upload,
+} from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LibraryFilters, ViewMode } from "@/components/Library/LibraryFilters";
 import { LibraryLists } from "@/components/Library/LibraryLists";
@@ -10,57 +17,117 @@ import { ContentType } from "@/components/Library/hooks/useLibraryData";
 
 export default function LibraryClient() {
     const { langFile: lang } = useLanguage();
-    const [filterMode, setFilterMode] = useState<"default" | "asc" | "desc">(
-        "default"
-    );
+    const [filterMode, setFilterMode] = useState<"default" | "asc" | "desc">("default");
     const [searchQuery, setSearchQuery] = useState("");
     const [activeType, setActiveType] = useState<ContentType>("all");
     const [viewMode, setViewMode] = useState<ViewMode>("grid");
     const [showUploadModal, setShowUploadModal] = useState(false);
 
-    if (!lang) return false;
+    if (!lang) return null;
+
+    const cycleSortMode = () =>
+        setFilterMode((m) =>
+            m === "default" ? "asc" : m === "asc" ? "desc" : "default"
+        );
 
     return (
-        <div className="webkit-scroll h-full w-full pb-24 pt-24 md:px-8">
-            <section className="flex flex-col gap-3 px-5 md:flex-row md:items-start md:justify-between md:px-0">
-                {/* Desktop title + upload button side by side */}
-                <div className="hidden shrink-0 items-center gap-4 md:flex">
-                    <h1 className="text-4xl font-bold text-white">
-                        {lang.library}
-                    </h1>
+        <div className="webkit-scroll h-full w-full pb-24 pt-28 md:px-8">
+            {/* DESKTOP HEADER */}
+            <header className="hidden md:flex items-center gap-3 mb-6">
+                {/* Left: title + pills */}
+                <div className="flex items-center gap-8 mr-4">
+                    <h1 className="text-4xl font-bold text-white shrink-0">{lang.library}</h1>
+                    <LibraryFilters
+                        activeType={activeType}
+                        setActiveType={setActiveType}
+                    />
+                </div>
+
+                {/* Right: sort + view toggle + upload + search */}
+                <div className="ml-auto flex shrink-0 items-center gap-1">
+                    {/* Sort */}
+                    <button
+                        onClick={cycleSortMode}
+                        title="Sort"
+                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-neutral-400 transition hover:text-white"
+                    >
+                        {filterMode === "default" && <ClockArrowDown className="h-5 w-5" />}
+                        {filterMode === "asc" && <ArrowDownAZ className="h-5 w-5" />}
+                        {filterMode === "desc" && <ArrowUpAZ className="h-5 w-5" />}
+                    </button>
+
+                    {/* View toggle */}
+                    <button
+                        onClick={() => setViewMode(v => v === "grid" ? "list" : "grid")}
+                        title={viewMode === "grid" ? "List view" : "Grid view"}
+                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-neutral-400 transition hover:text-white"
+                    >
+                        {viewMode === "grid"
+                            ? <List className="h-5 w-5" />
+                            : <LayoutGrid className="h-5 w-5" />
+                        }
+                    </button>
+
+                    {/* Upload */}
                     <button
                         onClick={() => setShowUploadModal(true)}
-                        title="Upload music"
-                        className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-800 text-white transition hover:bg-neutral-700"
+                        title={lang.upload ?? "Upload music"}
+                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-neutral-400 transition hover:text-white"
+                    >
+                        <Upload className="h-5 w-5" />
+                    </button>
+
+                    {/* Search - fixed width that expands on focus */}
+                    <div className="relative">
+                        <input
+                            className="h-8 w-56 rounded-full bg-neutral-900 pl-8 pr-3 text-sm font-medium shadow transition-[width] duration-200 focus:outline-none"
+                            style={{
+                                backgroundImage: "url(/search-icon.png)",
+                                backgroundPosition: "10px center",
+                                backgroundSize: "13px",
+                                backgroundRepeat: "no-repeat",
+                            }}
+                            type="search"
+                            placeholder={lang.search_library}
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                    </div>
+                </div>
+            </header>
+
+            {/* MOBILE HEADER */}
+            <header className="flex flex-col gap-2 px-4 mb-4 md:hidden">
+                {/* Row 1: search + upload */}
+                <div className="flex items-center gap-2">
+                    <input
+                        className="h-9 flex-1 rounded-full bg-neutral-900 pl-9 pr-3 text-sm font-medium shadow focus:outline-none"
+                        style={{
+                            backgroundImage: "url(/search-icon.png)",
+                            backgroundPosition: "12px center",
+                            backgroundSize: "14px",
+                            backgroundRepeat: "no-repeat",
+                        }}
+                        type="search"
+                        placeholder={lang.search_library}
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                    <button
+                        onClick={() => setShowUploadModal(true)}
+                        title={lang.upload ?? "Upload music"}
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-neutral-800 text-neutral-400 transition hover:bg-neutral-700 hover:text-white"
                     >
                         <Upload className="h-4 w-4" />
                     </button>
                 </div>
 
-                {/* Filters + mobile upload button */}
-                <div className="flex w-full items-start gap-3 md:flex-1">
-                    <div className="flex-1">
-                        <LibraryFilters
-                            filterMode={filterMode}
-                            setFilterMode={setFilterMode}
-                            searchQuery={searchQuery}
-                            setSearchQuery={setSearchQuery}
-                            activeType={activeType}
-                            setActiveType={setActiveType}
-                            viewMode={viewMode}
-                            setViewMode={setViewMode}
-                        />
-                    </div>
-                    {/* Mobile-only upload button (inline with search row) */}
-                    <button
-                        onClick={() => setShowUploadModal(true)}
-                        title="Upload music"
-                        className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-800 text-white transition hover:bg-neutral-700 md:hidden"
-                    >
-                        <Upload className="h-4 w-4" />
-                    </button>
-                </div>
-            </section>
+                {/* Row 2: pills */}
+                <LibraryFilters
+                    activeType={activeType}
+                    setActiveType={setActiveType}
+                />
+            </header>
 
             <LibraryLists
                 filterMode={filterMode}

@@ -24,7 +24,7 @@ export default function Slider({
     step,
     id,
     className = "",
-    barClassName = "bg-gradient-to-r from-[#ee1086] to-[#fb6467]",
+    barClassName = "bg-linear-to-r from-[#ee1086] to-[#fb6467]",
     readOnly = false,
 }: SliderProps) {
     // const m = 100 / ((max || 100) - (min || 0));
@@ -42,7 +42,7 @@ export default function Slider({
             {/* Barra de progreso */}
             <div
                 className={
-                    "absolute left-0 top-0 block h-full max-w-full rounded-full " +
+                    "absolute top-0 left-0 block h-full max-w-full rounded-full " +
                     barClassName
                 }
                 style={{ width: `${widthPercentage}%` }}

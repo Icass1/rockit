@@ -91,7 +91,7 @@ export default function BarGraph({
     const maxValue = Math.max(...localItems.map((item) => item.value));
 
     return (
-        <div className="h-[525px] overflow-hidden rounded-lg bg-neutral-800 p-2">
+        <div className="h-131 overflow-hidden rounded-lg bg-neutral-800 p-2">
             <label className="text-lg font-semibold">{name}</label>
 
             <div className="relative w-full">
@@ -116,7 +116,7 @@ export default function BarGraph({
                                 style={{ top: `${top}px` }}
                             >
                                 {item.image ? (
-                                    <div className="aspect-square h-auto w-[20px]">
+                                    <div className="aspect-square h-auto w-5">
                                         <Image
                                             className="h-full w-full rounded-sm object-cover"
                                             src={item.image}
@@ -134,9 +134,9 @@ export default function BarGraph({
                                 >
                                     {item.name}
                                 </Link>
-                                <div className="relative ml-auto flex w-full min-w-0 max-w-full flex-row items-center">
+                                <div className="relative ml-auto flex w-full max-w-full min-w-0 flex-row items-center">
                                     <div
-                                        className="block h-1 rounded bg-gradient-to-r from-[#ee1086] to-[#fb6467] transition-[width] duration-1000"
+                                        className="block h-1 rounded bg-linear-to-r from-[#ee1086] to-[#fb6467] transition-[width] duration-1000"
                                         style={{
                                             width: `calc(${(item.value / maxValue) * 100}%)`,
                                         }}

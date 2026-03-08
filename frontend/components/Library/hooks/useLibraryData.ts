@@ -39,13 +39,19 @@ const EMPTY: FilteredLibrary = {
     stations: [],
 };
 
-function filterBySearch<T extends { name?: string }>(
-    items: T[],
-    query: string
-): T[] {
+function filterBySearch<T extends { 
+    name?: string; 
+    artists?: Array<{ name: string }>; 
+    owner?: string;
+}>(items: T[], query: string): T[] {
     if (!query.trim()) return items;
     const q = query.toLowerCase();
-    return items.filter((item) => (item.name?.toLowerCase() ?? "").includes(q));
+    return items.filter((item) => {
+        if ((item.name?.toLowerCase() ?? "").includes(q)) return true;
+        if (item.artists?.some(a => a.name.toLowerCase().includes(q))) return true;
+        if ((item.owner?.toLowerCase() ?? "").includes(q)) return true;
+        return false;
+    });
 }
 
 function sortItems<T extends { name?: string }>(
@@ -74,7 +80,7 @@ export function useLibraryData({
     const filtered = useMemo<FilteredLibrary>(() => {
         if (!data) return EMPTY;
 
-        const apply = <T extends { name?: string }>(arr: T[]) =>
+        const apply = <T extends { name?: string; artists?: Array<{ name: string }>; owner?: string }>(arr: T[]) =>
             sortItems(filterBySearch(arr, searchQuery), filterMode);
 
         return {

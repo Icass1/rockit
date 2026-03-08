@@ -23,14 +23,14 @@ export default function PlayLibraryButton() {
     if (playingLibrary && $playing) {
         icon = (
             <Pause
-                className="relative left-1/2 top-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2"
+                className="relative top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2"
                 fill="white"
             />
         );
     } else {
         icon = (
             <Play
-                className="relative left-1/2 top-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2"
+                className="relative top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2"
                 fill="white"
             />
         );
@@ -111,7 +111,7 @@ export default function PlayLibraryButton() {
                     }
                 }}
                 title="Play albums in library"
-                className="h-8 w-8 cursor-pointer rounded-full bg-gradient-to-r from-[#ee1086] to-[#fb6467] shadow-[0px_0px_20px_3px_#0e0e0e] transition-transform md:h-16 md:w-16 md:hover:scale-105"
+                className="h-8 w-8 cursor-pointer rounded-full bg-linear-to-r from-[#ee1086] to-[#fb6467] shadow-[0px_0px_20px_3px_#0e0e0e] transition-transform md:h-10 md:w-10 md:hover:scale-105"
             >
                 {icon}
             </div>

@@ -49,15 +49,14 @@ interface LibraryListsProps {
 
 function albumsGridClass(viewMode: ViewMode) {
     if (viewMode === "list") {
-        // Mobile: 2-col grid. Desktop: full-width flex column (list view)
-        return "grid grid-cols-2 gap-x-5 gap-y-3 px-5 md:flex md:flex-col md:gap-x-0 md:gap-y-1";
+        return "grid grid-cols-2 gap-x-5 gap-y-3 px-5 md:grid-cols-[repeat(auto-fill,minmax(160px,1fr))]";
     }
-    return "grid grid-cols-2 gap-x-5 gap-y-3 px-5 md:grid-cols-[repeat(auto-fill,minmax(200px,1fr))]";
+    return "grid grid-cols-2 gap-x-5 gap-y-3 px-5 md:grid-cols-[repeat(auto-fill,minmax(180px,1fr))]";
 }
 
 function videosGridClass(viewMode: ViewMode) {
     if (viewMode === "list") {
-        return "grid grid-cols-2 gap-x-5 gap-y-3 px-5 md:flex md:flex-col md:gap-x-0 md:gap-y-1";
+        return "grid grid-cols-2 gap-x-5 gap-y-3 px-5 md:grid-cols-[repeat(auto-fill,minmax(200px,1fr))]";
     }
     return "grid grid-cols-2 gap-x-5 gap-y-3 px-5 md:grid-cols-[repeat(auto-fill,minmax(280px,1fr))]";
 }
@@ -69,11 +68,12 @@ function songsListClass() {
 
 // ─── Small components ─────────────────────────────────────────────────────────
 
-function SectionHeader({ title }: { title: string }) {
+function SectionHeader({ title, rightElement }: { title: string; rightElement?: ReactNode }) {
     return (
-        <h2 className="px-5 pb-3 pt-4 text-2xl font-bold md:px-0">
-            {title}
-        </h2>
+        <div className="flex items-center justify-between px-5 pb-3 pt-4 md:px-0">
+            <h2 className="text-2xl font-bold">{title}</h2>
+            {rightElement}
+        </div>
     );
 }
 
@@ -403,7 +403,10 @@ export function LibraryLists({
 
         return (
             <section>
-                <SectionHeader title={lang.your_albums_playlists} />
+                <SectionHeader 
+                    title={lang.your_albums_playlists} 
+                    rightElement={hasContent ? <PlayLibraryButton /> : undefined}
+                />
                 {hasContent ? (
                     <div className={albumsGridClass(viewMode)}>
                         <NewPlaylistButton />
@@ -570,14 +573,7 @@ export function LibraryLists({
     // ── Root render ───────────────────────────────────────────────────────────
 
     return (
-        <section className="mt-4">
-            {/* Play button — only visible in "all" view */}
-            {showAll && (
-                <div className="flex flex-row items-center justify-end px-5 py-2 md:px-0">
-                    <PlayLibraryButton />
-                </div>
-            )}
-
+        <section>
             {showAll && renderCombinedSection()}
             {activeType === "albums" && renderAlbumsOnly()}
             {activeType === "playlists" && renderPlaylistsOnly()}

@@ -13,6 +13,10 @@ import {
     FilterMode,
     useLibraryData,
 } from "@/components/Library/hooks/useLibraryData";
+import { ViewMode } from "@/components/Library/LibraryFilters";
+import NewPlaylistButton from "@/components/Library/NewPlaylistButton";
+import PlayLibraryButton from "@/components/Library/PlayLibraryButton";
+import LoadingComponent from "@/components/Loading";
 import {
     AlbumCard,
     PlaylistCard,
@@ -20,7 +24,6 @@ import {
     StationCard,
     VideoCard,
 } from "@/components/Library/LibraryCards";
-import { ViewMode } from "@/components/Library/LibraryFilters";
 import {
     AlbumListView,
     AlbumRow,
@@ -29,9 +32,6 @@ import {
     StationRow,
     VideoRow,
 } from "@/components/Library/LibraryRows";
-import NewPlaylistButton from "@/components/Library/NewPlaylistButton";
-import PlayLibraryButton from "@/components/Library/PlayLibraryButton";
-import LoadingComponent from "@/components/Loading";
 
 /* ------------------------------------------------------- */
 /* PROPS                                                   */
@@ -81,8 +81,8 @@ function SectionHeader({
     rightElement?: ReactNode;
 }) {
     return (
-        <div className="flex items-center justify-between px-5 pb-3 pt-4 md:px-0">
-            <h2 className="text-2xl font-bold">{title}</h2>
+        <div className="flex items-center justify-between px-4 pt-4 pb-3">
+            <h2 className="text-3xl font-bold">{title}</h2>
             {rightElement}
         </div>
     );
@@ -161,103 +161,39 @@ function MasonryAllGrid({
                  */
                 const wrapClass = "break-inside-avoid mb-4";
 
-// ─── Card / Row components ────────────────────────────────────────────────────
-
-function PlaylistCard({ playlist }: { playlist: BasePlaylistResponse }) {
-    return (
-        <AddListContextMenu list={playlist}>
-            <Link
-                href={`/playlist/${playlist.publicId}`}
-                className="library-item flex h-auto w-full min-w-0 max-w-full flex-col transition-transform md:hover:scale-110"
-            >
-                <Image
-                    alt={playlist.name}
-                    className="cover aspect-square h-auto w-full rounded-md"
-                    src={
-                        playlist.internalImageUrl ??
-                        rockIt.PLAYLIST_PLACEHOLDER_IMAGE_URL
-                    }
-                    width={600}
-                    height={600}
-                />
-                <label className="min-h-6 truncate text-center font-semibold">
-                    {playlist.name}
-                </label>
-                <label className="min-h-5 truncate text-center text-sm text-gray-400">
-                    {playlist.owner}
-                </label>
-            </Link>
-        </AddListContextMenu>
-    );
-}
-
-function AlbumCard({ album }: { album: BaseAlbumWithoutSongsResponse }) {
-    return (
-        <AddListContextMenu list={album}>
-            <Link
-                href={`/album/${album.publicId}`}
-                className="library-item flex h-auto w-full min-w-0 max-w-full flex-col transition-transform md:hover:scale-110"
-            >
-                <Image
-                    alt={album.name}
-                    className="cover aspect-square h-auto w-full rounded-md"
-                    src={
-                        album.internalImageUrl ??
-                        rockIt.ALBUM_PLACEHOLDER_IMAGE_URL
-                    }
-                    width={600}
-                    height={600}
-                />
-                <label className="mt-1 truncate text-center font-semibold">
-                    {album.name}
-                </label>
-                <div className="mx-auto flex max-w-full flex-row truncate text-center text-sm text-gray-400">
-                    {album.artists.map((artist, i) => (
-                        <label
-                            key={artist.publicId}
-                            className="truncate md:hover:underline"
-                        >
-                            {artist.name}
-                            {i < album.artists.length - 1 ? ", " : ""}
-                        </label>
-                    ))}
-                </div>
-            </Link>
-        </AddListContextMenu>
-    );
-}
-
-function SongRow({ song }: { song: BaseSongWithoutAlbumResponse }) {
-    const handlePlay = () => {
-        // TODO: implement song playback from library
-    };
-
-    return (
-        <div
-            role="button"
-            tabIndex={0}
-            onClick={handlePlay}
-            onKeyDown={(e) => e.key === "Enter" && handlePlay()}
-            className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 transition hover:bg-neutral-800"
-        >
-            <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md">
-                <Image
-                    src={
-                        song.internalImageUrl ??
-                        rockIt.SONG_PLACEHOLDER_IMAGE_URL
-                    }
-                    alt={song.name}
-                    fill
-                    className="object-cover"
-                />
-            </div>
-            <div className="min-w-0 flex-1">
-                <p className="truncate font-medium text-white">{song.name}</p>
-                <p className="truncate text-sm text-neutral-400">
-                    {song.artists?.map((a) => a.name).join(", ") ||
-                        "Unknown Artist"}
-                </p>
-            </div>
+                switch (item.kind) {
+                    case "album":
+                        return (
+                            <div key={`album-${item.data.publicId}`} className={wrapClass}>
+                                <AlbumCard album={item.data} />
+                            </div>
+                        );
+                    case "playlist":
+                        return (
+                            <div key={`playlist-${item.data.publicId}`} className={wrapClass}>
+                                <PlaylistCard playlist={item.data} />
+                            </div>
+                        );
+                    case "video":
+                        return (
+                            <div key={`video-${item.data.publicId}`} className={wrapClass}>
+                                <VideoCard video={item.data} />
+                            </div>
+                        );
+                    case "song":
+                        return (
+                            <div key={`song-${item.data.publicId}`} className={wrapClass}>
+                                <SongCard song={item.data} />
+                            </div>
+                        );
+                    case "station":
+                        return (
+                            <div key={`station-${item.data.publicId}`} className={wrapClass}>
+                                <StationCard station={item.data} />
+                            </div>
+                        );
+                }
+            })}
         </div>
     );
 }
@@ -283,27 +219,61 @@ function SectionedAllList({
     lang: any;
 }) {
     return (
-        <div
-            role="button"
-            tabIndex={0}
-            onClick={handlePlay}
-            onKeyDown={(e) => e.key === "Enter" && handlePlay()}
-            className="library-item flex h-auto w-full min-w-0 max-w-full flex-col transition-transform md:hover:scale-110"
-        >
-            <div className="relative aspect-video w-full overflow-hidden rounded-md">
-                <Image
-                    alt={video.name}
-                    className="object-cover"
-                    src={
-                        video.internalImageUrl ??
-                        rockIt.SONG_PLACEHOLDER_IMAGE_URL
-                    }
-                    fill
-                />
-            </div>
-            <label className="mt-1 truncate text-center font-semibold">
-                {video.name}
-            </label>
+        <div>
+            {playlists.length > 0 && (
+                <section>
+                    <SectionHeader title={lang.playlists} />
+                    <div className={ROW_LIST_CLASS}>
+                        {playlists.map((pl) => (
+                            <PlaylistRow key={pl.publicId} playlist={pl} />
+                        ))}
+                    </div>
+                </section>
+            )}
+
+            {albums.length > 0 && (
+                <section>
+                    <SectionHeader title={lang.albums} />
+                    <div className={ROW_LIST_CLASS}>
+                        {albums.map((al) => (
+                            <AlbumRow key={al.publicId} album={al} />
+                        ))}
+                    </div>
+                </section>
+            )}
+
+            {songs.length > 0 && (
+                <section>
+                    <SectionHeader title={lang.songs} />
+                    <div className={ROW_LIST_CLASS}>
+                        {songs.map((s) => (
+                            <SongRow key={s.publicId} song={s} />
+                        ))}
+                    </div>
+                </section>
+            )}
+
+            {videos.length > 0 && (
+                <section>
+                    <SectionHeader title={lang.yt_videos} />
+                    <div className={ROW_LIST_CLASS}>
+                        {videos.map((v) => (
+                            <VideoRow key={v.publicId} video={v} />
+                        ))}
+                    </div>
+                </section>
+            )}
+
+            {stations.length > 0 && (
+                <section>
+                    <SectionHeader title={lang.radio_stations} />
+                    <div className={ROW_LIST_CLASS}>
+                        {stations.map((st) => (
+                            <StationRow key={st.publicId} station={st} />
+                        ))}
+                    </div>
+                </section>
+            )}
         </div>
     );
 }
@@ -352,7 +322,7 @@ export function LibraryLists({
                         <>
                             {/* NewPlaylistButton sits above the masonry */}
                             <div className="px-4 py-2">
-                                <div className="w-full max-w-[250px]">
+                                <div className="w-full max-w-62.5">
                                     <NewPlaylistButton />
                                 </div>
                             </div>

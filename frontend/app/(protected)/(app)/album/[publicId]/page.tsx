@@ -48,15 +48,14 @@ export default async function AlbumPage({
 
     songsWithAlbum.sort((a, b) => a.trackNumber - b.trackNumber);
 
-    const info = ``;
-
     return (
         <RenderList
             title={albumResponse.name}
             artists={albumResponse.artists}
             media={songsWithAlbum}
             image={albumResponse.internalImageUrl}
-            info={info}
+            showMediaImage={false}
+            showMediaIndex
         />
     );
 }

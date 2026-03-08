@@ -14,5 +14,5 @@ class BaseVideoResponse(BaseModel):
     videoUrl: Optional[str] = None
     audioUrl: Optional[str] = None
     internalImageUrl: str
-    duration: Optional[int]
+    duration: int
     artists: List[BaseArtistResponse]

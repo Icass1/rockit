@@ -24,7 +24,7 @@ export default function Slider({
     step,
     id,
     className = "",
-    barClassName = "bg-gradient-to-r from-[#ee1086] to-[#fb6467]",
+    barClassName = "bg-linear-to-r from-[#ee1086] to-[#fb6467]",
     readOnly = false,
 }: SliderProps) {
     // const m = 100 / ((max || 100) - (min || 0));

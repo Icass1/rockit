@@ -142,4 +142,19 @@ export interface Lang {
     newplaylistname: string;
     cancel: string;
     create: string;
+    all: string;
+    error_enter_name: string;
+    error_creating: string;
+    placeholder_playlist_name: string;
+    creating: string;
+    add_list_randomly: string;
+    add_list_to_bottom: string;
+    download_list_to_device: string;
+    download_zip: string;
+    no_results: string;
+    no_albums: string;
+    no_songs: string;
+    no_videos: string;
+    no_stations: string;
+    upload: string;
 }

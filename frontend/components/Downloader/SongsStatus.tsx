@@ -69,7 +69,7 @@ function SongDownload({
             </div>
 
             <div className="flex w-full min-w-0 max-w-full flex-row items-center gap-2">
-                <label className="min-w-[30px] text-right text-xs font-semibold text-neutral-300">
+                <label className="min-w-7.5 text-right text-xs font-semibold text-neutral-300">
                     {Math.round(completed)}%
                 </label>
                 <div
@@ -77,7 +77,7 @@ function SongDownload({
                     style={{ gridArea: "progress-bar" }}
                 >
                     <div
-                        className="absolute h-full rounded-full bg-gradient-to-r from-[#ee1086] to-[#fb6467] transition-[width] duration-1000"
+                        className="bg-linear-to-r absolute h-full rounded-full from-[#ee1086] to-[#fb6467] transition-[width] duration-1000"
                         style={{ width: completed + "%" }}
                     ></div>
                 </div>

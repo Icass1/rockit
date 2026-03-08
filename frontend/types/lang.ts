@@ -156,5 +156,6 @@ export interface Lang {
     no_songs: string;
     no_videos: string;
     no_stations: string;
+    no_playlists: string;
     upload: string;
 }

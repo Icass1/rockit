@@ -10,3 +10,21 @@ export type {
     FilterMode,
 } from "@/components/Library/hooks/useLibraryData";
 export type { ViewMode } from "@/components/Library/LibraryFilters";
+
+// Sub-components (exported for potential reuse outside Library)
+export { AddListContextMenu } from "@/components/Library/LibraryContextMenu";
+export {
+    AlbumCard,
+    PlaylistCard,
+    VideoCard,
+    SongCard,
+    StationCard,
+} from "@/components/Library/LibraryCards";
+export {
+    AlbumRow,
+    PlaylistRow,
+    VideoRow,
+    SongRow,
+    StationRow,
+    AlbumListView,
+} from "@/components/Library/LibraryRows";

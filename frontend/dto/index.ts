@@ -111,6 +111,10 @@ export {
     type SpotifyAlbumResponse,
 } from "@/dto/spotifyAlbumResponse";
 export {
+    SpotifyArtistResponseSchema,
+    type SpotifyArtistResponse,
+} from "@/dto/spotifyArtistResponse";
+export {
     SpotifyExternalImageResponseSchema,
     type SpotifyExternalImageResponse,
 } from "@/dto/spotifyExternalImageResponse";

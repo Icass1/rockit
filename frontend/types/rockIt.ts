@@ -1,4 +1,3 @@
-import { BaseSongWithAlbumResponseSchema } from "@/dto";
 import * as z from "zod";
 
 export type DBListType = "album" | "playlist";
@@ -19,31 +18,13 @@ export const QueueListTypes: QueueListType[] = [
 
 // #region: RockItQueueListSong
 
-export const RockItQueueListSong = z.object({
-    publicId: z.string(),
-    type: z.string(),
-});
-export type RockItQueueListSong = z.infer<typeof RockItQueueListSong>;
-
 // #endregion
 
 // #region: RockItQueueSong
 
-export const RockItQueueSong = z.object({
-    index: z.number(),
-    list: RockItQueueListSong,
-    song: BaseSongWithAlbumResponseSchema,
-});
-export type RockItQueueSong = z.infer<typeof RockItQueueSong>;
-
 // #endregion
 
 // #region: DynamicLyricsItem
-
-export const DynamicLyricsItem = z.object({
-    lyrics: z.string(),
-    seconds: z.number(),
-});
 
 // #endregion
 

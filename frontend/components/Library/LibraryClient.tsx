@@ -33,7 +33,7 @@ export default function LibraryClient() {
         );
 
     return (
-        <div className="webkit-scroll h-full w-full pt-28 pb-24 md:px-8">
+        <div className="webkit-scroll h-full w-full pb-24 pt-28 md:px-8">
             {/* DESKTOP HEADER */}
             <header className="mb-6 hidden items-center gap-3 py-4 md:flex">
                 {/* Left: title + pills */}
@@ -93,7 +93,7 @@ export default function LibraryClient() {
                     {/* Search - fixed width that expands on focus */}
                     <div className="relative">
                         <input
-                            className="h-8 w-56 rounded-full bg-neutral-900 pr-3 pl-8 text-sm font-medium shadow transition-[width] duration-200 select-none focus:outline-none"
+                            className="h-8 w-56 rounded-full bg-neutral-900 pl-8 pr-3 text-sm font-medium shadow transition-[width] duration-200 focus:outline-none"
                             style={{
                                 backgroundImage: "url(/search-icon.png)",
                                 backgroundPosition: "10px center",
@@ -114,7 +114,7 @@ export default function LibraryClient() {
                 {/* Row 1: search + upload */}
                 <div className="flex items-center gap-2">
                     <input
-                        className="h-9 flex-1 rounded-full bg-neutral-900 pr-3 pl-9 text-sm font-medium shadow select-none focus:outline-none"
+                        className="h-9 flex-1 rounded-full bg-neutral-900 pl-9 pr-3 text-sm font-medium shadow focus:outline-none"
                         style={{
                             backgroundImage: "url(/search-icon.png)",
                             backgroundPosition: "12px center",

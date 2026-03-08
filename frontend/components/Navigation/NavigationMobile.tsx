@@ -63,7 +63,7 @@ export default function NavigationMobile() {
                         aria-current={isActive ? "page" : undefined}
                         aria-disabled={page.disabled}
                         className={[
-                            "mr-2 ml-2 flex h-full w-full items-center justify-center gap-2 rounded-md transition-all",
+                            "ml-2 mr-2 flex h-full w-full items-center justify-center gap-2 rounded-md transition-all",
                             isActive ? "bg-white text-black" : "text-white",
                             page.disabled
                                 ? "pointer-events-none opacity-50"

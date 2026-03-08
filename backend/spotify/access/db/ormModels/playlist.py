@@ -7,6 +7,8 @@ from backend.core.access.db.ormModels.declarativeMixin import (
     TableDateAdded,
     TableDateUpdated,
 )
+from backend.core.access.db.ormModels.image import ImageRow
+from backend.core.access.db.ormModels.media import CoreMediaRow
 
 from backend.spotify.access.db.base import SpotifyBase
 from backend.spotify.access.db.associationTables.playlist_external_images import (
@@ -40,6 +42,14 @@ class PlaylistRow(SpotifyBase, TableDateUpdated, TableDateAdded):
     )
     playlist_song_links: Mapped[List["PlaylistTrackRow"]] = relationship(
         "PlaylistTrackRow", back_populates="playlist"
+    )
+
+    core_playlist: Mapped["CoreMediaRow"] = relationship(
+        CoreMediaRow, lazy="selectin", uselist=False
+    )
+
+    internal_image: Mapped["ImageRow"] = relationship(
+        ImageRow, lazy="selectin", uselist=False
     )
 
     def __init__(

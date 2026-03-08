@@ -1,4 +1,6 @@
 import { cache } from "react";
+import { notFound } from "next/navigation";
+import { BaseSongWithAlbumResponse } from "@/dto";
 import { getAlbumAsync } from "@/lib/services/mediaService";
 import RenderList from "@/components/RenderList/RenderList";
 
@@ -34,16 +36,26 @@ export default async function AlbumPage({
 }) {
     const { publicId } = await params;
 
-    // const albumResponse = await getAlbum(publicId);
+    const albumResponse = await getAlbum(publicId);
 
-    // if (!albumResponse) notFound();
+    if (!albumResponse) notFound();
 
-    // const albumWithSongs = {
-    //     ...albumResponse,
-    //     externalImages: [],
-    // };
+    const songsWithAlbum: BaseSongWithAlbumResponse[] = albumResponse.songs.map(
+        (song) => {
+            return { ...song, album: { ...albumResponse, songs: [] } };
+        }
+    );
 
-    // albumWithSongs.songs.sort((a, b) => a.trackNumber - b.trackNumber);
+    songsWithAlbum.sort((a, b) => a.trackNumber - b.trackNumber);
 
-    return <RenderList />;
+    return (
+        <RenderList
+            title={albumResponse.name}
+            artists={albumResponse.artists}
+            media={songsWithAlbum}
+            image={albumResponse.internalImageUrl}
+            showMediaImage={false}
+            showMediaIndex
+        />
+    );
 }

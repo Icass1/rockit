@@ -3,6 +3,8 @@ from typing import List, TYPE_CHECKING, Dict
 from sqlalchemy import String, Integer, ForeignKey
 from sqlalchemy.orm import relationship, mapped_column, Mapped, WriteOnlyMapped
 
+from backend.core.access.db.ormModels.image import ImageRow
+from backend.core.access.db.ormModels.media import CoreMediaRow
 from backend.spotify.access.db.base import SpotifyBase
 from backend.core.access.db.ormModels.declarativeMixin import (
     TableDateAdded,
@@ -51,6 +53,14 @@ class ArtistRow(SpotifyBase, TableDateUpdated, TableDateAdded):
         secondary=artist_external_images,
         back_populates="artists",
         lazy="write_only",
+    )
+
+    internal_image: Mapped["ImageRow"] = relationship(
+        ImageRow, lazy="selectin", uselist=False
+    )
+
+    core_artist: Mapped["CoreMediaRow"] = relationship(
+        CoreMediaRow, lazy="selectin", uselist=False
     )
 
     def __init__(

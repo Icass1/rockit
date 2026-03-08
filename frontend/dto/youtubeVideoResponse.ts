@@ -1,16 +1,20 @@
-import { YoutubeChannelResponseSchema } from "@/dto";
+import { BaseArtistResponseSchema, YoutubeChannelResponseSchema } from "@/dto";
 import { z } from "zod";
 
 export const YoutubeVideoResponseSchema = z.object({
     provider: z.string(),
     publicId: z.string(),
-    youtubeId: z.string(),
+    url: z.string(),
     name: z.string(),
+    videoUrl: z.string().nullable(),
+    audioUrl: z.string().nullable(),
+    internalImageUrl: z.string(),
     duration: z.number(),
+    artists: z.array(z.lazy(() => BaseArtistResponseSchema)),
+    youtubeId: z.string(),
     viewCount: z.number(),
     likeCount: z.number(),
     commentCount: z.number(),
-    internalImageUrl: z.string().nullable(),
     channel: z.lazy(() => YoutubeChannelResponseSchema).nullable(),
     description: z.string().nullable(),
     youtubeUrl: z.string().nullable(),

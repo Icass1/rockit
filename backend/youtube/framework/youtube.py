@@ -17,6 +17,7 @@ from backend.youtube.framework.youtubeApi import youtube_api
 
 from backend.youtube.responses.videoResponse import YoutubeVideoResponse
 from backend.youtube.responses.channelResponse import YoutubeChannelResponse
+from backend.core.responses.baseArtistResponse import BaseArtistResponse
 
 from backend.youtube.youtubeApiTypes.rawYoutubeApiVideo import RawYoutubeVideo
 from backend.youtube.youtubeApiTypes.rawYoutubeApiChannel import RawYoutubeChannel
@@ -103,12 +104,25 @@ class YouTube:
             if video_row.tags:
                 tags = video_row.tags.split(",")
 
+            artists: List[BaseArtistResponse] = []
+            if channel_response:
+                artists = [
+                    BaseArtistResponse(
+                        provider=channel_response.provider,
+                        publicId=channel_response.publicId,
+                        url=f"https://www.youtube.com/channel/{channel_response.publicId}",
+                        name=channel_response.name,
+                        internalImageUrl=channel_response.internalImageUrl or "",
+                    )
+                ]
+
             return AResult(
                 code=AResultCode.OK,
                 message="OK",
                 result=YoutubeVideoResponse(
                     provider=YouTube.provider_name,
                     publicId=core_video.public_id,
+                    url=video_row.youtube_url or "",
                     youtubeId=video_row.youtube_id,
                     name=video_row.name,
                     duration=video_row.duration,
@@ -116,6 +130,7 @@ class YouTube:
                     likeCount=video_row.like_count,
                     commentCount=video_row.comment_count,
                     internalImageUrl=internal_image_url,
+                    artists=artists,
                     channel=channel_response,
                     description=video_row.description,
                     youtubeUrl=video_row.youtube_url,
@@ -262,12 +277,25 @@ class YouTube:
         if video_row.tags:
             tags = video_row.tags.split(",")
 
+        artists: List[BaseArtistResponse] = []
+        if channel_response:
+            artists = [
+                BaseArtistResponse(
+                    provider=channel_response.provider,
+                    publicId=channel_response.publicId,
+                    url=f"https://www.youtube.com/channel/{channel_response.publicId}",
+                    name=channel_response.name,
+                    internalImageUrl=channel_response.internalImageUrl or "",
+                )
+            ]
+
         return AResult(
             code=AResultCode.OK,
             message="OK",
             result=YoutubeVideoResponse(
                 provider=YouTube.provider_name,
                 publicId=core_video.public_id,
+                url=video_row.youtube_url or "",
                 youtubeId=video_row.youtube_id,
                 name=video_row.name,
                 duration=video_row.duration,
@@ -275,6 +303,7 @@ class YouTube:
                 likeCount=video_row.like_count,
                 commentCount=video_row.comment_count,
                 internalImageUrl=internal_image_url,
+                artists=artists,
                 channel=channel_response,
                 description=video_row.description,
                 youtubeUrl=video_row.youtube_url,

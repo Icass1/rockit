@@ -53,7 +53,7 @@ export default function MobilePlayerUI() {
         <div
             ref={divRef}
             className={[
-                "fixed right-0 left-0 z-40 flex h-[calc(100%-3rem)] w-screen overflow-hidden md:hidden",
+                "fixed left-0 right-0 z-40 flex h-[calc(100%-3rem)] w-screen overflow-hidden md:hidden",
                 // touch-action: pan-y lets the browser handle horizontal swipes natively
                 // will-change: transform hints GPU layer for smooth animation on iOS
                 atTop ? "top-0" : "top-full",
@@ -69,7 +69,7 @@ export default function MobilePlayerUI() {
         >
             {/* Blurred background cover */}
             <div
-                className="absolute inset-0 -top-5 -right-5 -bottom-5 -left-5 bg-cover bg-center"
+                className="absolute inset-0 -bottom-5 -left-5 -right-5 -top-5 bg-cover bg-center"
                 style={{
                     backgroundImage: `url(${coverSrc})`,
                     filter: "blur(10px) brightness(0.5)",
@@ -77,7 +77,7 @@ export default function MobilePlayerUI() {
             />
 
             {/* Top bar: close + options */}
-            <div className="absolute top-14 right-0 left-0 z-50 flex justify-between p-5">
+            <div className="absolute left-0 right-0 top-14 z-50 flex justify-between p-5">
                 <ChevronDown
                     className="h-8 w-8 cursor-pointer text-neutral-300"
                     onClick={() => rockIt.playerUIManager.hide()}
@@ -92,19 +92,19 @@ export default function MobilePlayerUI() {
             </div>
 
             {/* Main content */}
-            <div className="relative z-30 grid h-full w-full grid-rows-[1fr_min-content_min-content_min-content] items-center justify-center gap-y-2 px-4 pt-32 pb-20 text-white">
+            <div className="relative z-30 grid h-full w-full grid-rows-[1fr_min-content_min-content_min-content] items-center justify-center gap-y-2 px-4 pb-20 pt-32 text-white">
                 {/* Song artwork */}
                 <Image
                     src={coverSrc}
                     alt={$currentSong?.name ?? "Current song artwork"}
                     width={600}
                     height={600}
-                    className="relative left-1/2 aspect-square h-auto max-h-full min-h-0 w-auto max-w-full min-w-0 -translate-x-1/2 rounded-lg object-cover"
+                    className="relative left-1/2 aspect-square h-auto max-h-full min-h-0 w-auto min-w-0 max-w-full -translate-x-1/2 rounded-lg object-cover"
                     priority
                 />
 
                 {/* Title, artist, like */}
-                <div className="flex w-full max-w-md items-center justify-between pr-7 pl-5">
+                <div className="flex w-full max-w-md items-center justify-between pl-5 pr-7">
                     <div className="min-w-0 flex-1 text-left">
                         <h2 className="truncate text-xl font-[650]">
                             {$currentSong?.name}
@@ -195,7 +195,7 @@ export default function MobilePlayerUI() {
                 </div>
 
                 {/* Sub-panel triggers */}
-                <div className="safe-area-bottom absolute right-0 bottom-0 left-0 flex items-center justify-around bg-linear-to-t from-black/50 to-black/0 px-4 py-7 font-bold text-white">
+                <div className="safe-area-bottom bg-linear-to-t absolute bottom-0 left-0 right-0 flex items-center justify-around from-black/50 to-black/0 px-4 py-7 font-bold text-white">
                     <button
                         className="text-lg"
                         onClick={() => setQueueOpen(true)}

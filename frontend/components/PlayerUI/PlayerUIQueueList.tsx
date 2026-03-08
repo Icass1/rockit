@@ -76,7 +76,7 @@ export function PlayerUIQueueList({
                         <ContextMenu>
                             <ContextMenuTrigger>
                                 <div className="grid grid-cols-[1fr_45px] items-center">
-                                    <div className="w-full max-w-full min-w-0">
+                                    <div className="w-full min-w-0 max-w-full">
                                         <QueueSong song={queueSong} />
                                     </div>
                                     <GripVertical
@@ -150,6 +150,7 @@ export function PlayerUIQueueList({
                             provider: "mock",
                             audioSrc: null,
                             publicId: `auto-${mock.id}`,
+                            url: "",
                             name: mock.title,
                             album: {
                                 type: "album",
@@ -158,14 +159,15 @@ export function PlayerUIQueueList({
                                 internalImageUrl: "/image/song-placeholder.png",
                                 provider: "mock",
                                 publicId: `auto-album-${mock.id}`,
+                                url: "",
                                 artists: [
                                     {
                                         provider: "mock",
                                         publicId: "publicId",
                                         internalImageUrl:
                                             "/image/song-placeholder.png",
-                                        genres: [],
                                         name: mock.artist,
+                                        url: "",
                                     },
                                 ],
                             },
@@ -175,8 +177,8 @@ export function PlayerUIQueueList({
                                     publicId: "publicId",
                                     internalImageUrl:
                                         "/image/song-placeholder.png",
-                                    genres: [],
                                     name: mock.artist,
+                                    url: "",
                                 },
                             ],
                         },
@@ -194,7 +196,7 @@ export function PlayerUIQueueList({
                             <ContextMenu>
                                 <ContextMenuTrigger>
                                     <div className="grid grid-cols-[1fr_45px] items-center">
-                                        <div className="w-full max-w-full min-w-0">
+                                        <div className="w-full min-w-0 max-w-full">
                                             <QueueSong song={autoSong} />
                                         </div>
                                         <ListPlus className="h-full w-full p-1 pr-4" />

@@ -122,7 +122,9 @@ async def get_library_lists(request: Request) -> LibraryListsResponse:
             detail=a_result_albums.message(),
         )
 
-    return LibraryListsResponse(albums=a_result_albums.result(), playlists=[])
+    return LibraryListsResponse(
+        albums=a_result_albums.result(), playlists=[], songs=[], videos=[], stations=[]
+    )
 
 
 @router.get(path="/library/albums")

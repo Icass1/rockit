@@ -71,7 +71,7 @@ export default function HomeClient({ initialStats }: HomeClientProps) {
     }
 
     return (
-        <div className="webkit-scroll relative flex h-full flex-col pt-24 pb-24">
+        <div className="webkit-scroll relative flex h-full flex-col pb-24 pt-24">
             <SongsCarousel />
 
             <QuickSelectionsSection

@@ -9,6 +9,7 @@ class BaseSongWithoutAlbumResponse(BaseModel):
 
     provider: str
     publicId: str
+    url: str
     name: str
     artists: Sequence[BaseArtistResponse]
     audioSrc: str | None

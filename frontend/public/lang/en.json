@@ -140,5 +140,19 @@
     "newplaylistname:": "New Playlist Name",
     "cancel": "Cancel",
     "create": "Create",
-    "newplaylist": "New Playlist"
+    "newplaylist": "New Playlist",
+    "all": "All",
+    "error_enter_name": "Enter a name for your new playlist",
+    "error_creating": "Error creating your new playlist",
+    "placeholder_playlist_name": "My perfect playlist",
+    "creating": "Creating…",
+    "add_list_randomly": "Add list to queue randomly",
+    "add_list_to_bottom": "Add list to bottom of queue",
+    "download_list_to_device": "Download list to device",
+    "download_zip": "Download ZIP",
+    "no_results": "No results",
+    "no_albums": "No albums in your library yet",
+    "no_songs": "No songs in your library yet",
+    "no_videos": "No videos in your library yet",
+    "no_stations": "No stations in your library yet"
 }

@@ -7,3 +7,5 @@ class BaseStationResponse(BaseModel):
     provider: str
     publicId: str
     url: str
+    name: str
+    internalImageUrl: str

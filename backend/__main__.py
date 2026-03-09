@@ -1,3 +1,4 @@
+import sys
 import asyncio
 
 from backend.utils.logger import getLogger
@@ -5,15 +6,26 @@ from backend.core.access.db import rockit_db  # type: ignore
 
 logger = getLogger(__name__)
 
+command_to_run = sys.argv[1] if len(sys.argv) > 1 else ""
+
+print(command_to_run)
+
 
 async def main() -> None:
     logger.info("Future CLI in progress")
 
+    first_loop = True
+
     while True:
-        try:
-            command = input("> ")
-        except KeyboardInterrupt:
-            break
+        command: str
+        if first_loop and command_to_run != "":
+            command = command_to_run
+            first_loop = False
+        else:
+            try:
+                command = input("> ")
+            except KeyboardInterrupt:
+                break
 
         if command == "exit":
             break
@@ -25,6 +37,9 @@ async def main() -> None:
             await generate_zod_schemas()
         else:
             print("Command not found.")
+
+        if command_to_run != "":
+            break
 
     print("Bye!")
 

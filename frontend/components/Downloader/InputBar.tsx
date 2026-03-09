@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { ArrowDownToLine } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import useDev from "@/hooks/useDev";
 
 export default function InputBar() {
     const [url, setURL] = useState("");

@@ -8,6 +8,7 @@ from backend.core.responses.baseAlbumWithoutSongsResponse import (
 from backend.core.responses.baseSongWithoutAlbumResponse import (
     BaseSongWithoutAlbumResponse,
 )
+from backend.core.responses.baseStationResponse import BaseStationResponse
 from backend.core.responses.baseVideoResponse import BaseVideoResponse
 
 
@@ -16,4 +17,4 @@ class LibraryListsResponse(BaseModel):
     playlists: List[BasePlaylistResponse]
     songs: List[BaseSongWithoutAlbumResponse]
     videos: List[BaseVideoResponse]
-    stations: List[BaseSongWithoutAlbumResponse]
+    stations: List[BaseStationResponse]

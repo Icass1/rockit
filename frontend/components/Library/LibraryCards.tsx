@@ -6,6 +6,7 @@ import {
     BaseAlbumWithoutSongsResponse,
     BasePlaylistResponse,
     BaseSongWithoutAlbumResponse,
+    BaseStationResponse,
     BaseVideoResponse,
 } from "@/dto";
 import { rockIt } from "@/lib/rockit/rockIt";
@@ -145,11 +146,7 @@ export function SongCard({ song }: { song: BaseSongWithoutAlbumResponse }) {
 }
 
 /** Square station card — used only inside the masonry "All" view. */
-export function StationCard({
-    station,
-}: {
-    station: BaseSongWithoutAlbumResponse;
-}) {
+export function StationCard({ station }: { station: BaseStationResponse }) {
     return (
         <CardShell>
             <div className="library-item flex flex-col">

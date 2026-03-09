@@ -5,6 +5,7 @@ import {
     BaseAlbumWithoutSongsResponse,
     BasePlaylistResponse,
     BaseSongWithoutAlbumResponse,
+    BaseStationResponse,
     BaseVideoResponse,
 } from "@/dto";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -109,7 +110,7 @@ type MasonryItem =
     | { kind: "playlist"; data: BasePlaylistResponse }
     | { kind: "video"; data: BaseVideoResponse }
     | { kind: "song"; data: BaseSongWithoutAlbumResponse }
-    | { kind: "station"; data: BaseSongWithoutAlbumResponse };
+    | { kind: "station"; data: BaseStationResponse };
 
 function MasonryAllGrid({
     albums,
@@ -122,7 +123,7 @@ function MasonryAllGrid({
     playlists: BasePlaylistResponse[];
     videos: BaseVideoResponse[];
     songs: BaseSongWithoutAlbumResponse[];
-    stations: BaseSongWithoutAlbumResponse[];
+    stations: BaseStationResponse[];
 }) {
     /**
      * Interleave content types so the masonry looks varied rather than showing
@@ -223,21 +224,18 @@ function SectionedAllList({
     videos,
     songs,
     stations,
-    lang,
 }: {
     albums: BaseAlbumWithoutSongsResponse[];
     playlists: BasePlaylistResponse[];
     videos: BaseVideoResponse[];
     songs: BaseSongWithoutAlbumResponse[];
-    stations: BaseSongWithoutAlbumResponse[];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    lang: any;
+    stations: BaseStationResponse[];
 }) {
     return (
         <div>
             {playlists.length > 0 && (
                 <section>
-                    <SectionHeader title={lang.playlists} />
+                    <SectionHeader title="PLAYLISTS" />
                     <div className={ROW_LIST_CLASS}>
                         {playlists.map((pl) => (
                             <PlaylistRow key={pl.publicId} playlist={pl} />
@@ -248,7 +246,7 @@ function SectionedAllList({
 
             {albums.length > 0 && (
                 <section>
-                    <SectionHeader title={lang.albums} />
+                    <SectionHeader title="ALBUMS" />
                     <div className={ROW_LIST_CLASS}>
                         {albums.map((al) => (
                             <AlbumRow key={al.publicId} album={al} />
@@ -259,7 +257,7 @@ function SectionedAllList({
 
             {songs.length > 0 && (
                 <section>
-                    <SectionHeader title={lang.songs} />
+                    <SectionHeader title="SONGS" />
                     <div className={ROW_LIST_CLASS}>
                         {songs.map((s) => (
                             <SongRow key={s.publicId} song={s} />
@@ -270,7 +268,7 @@ function SectionedAllList({
 
             {videos.length > 0 && (
                 <section>
-                    <SectionHeader title={lang.yt_videos} />
+                    <SectionHeader title="VIDEOS" />
                     <div className={ROW_LIST_CLASS}>
                         {videos.map((v) => (
                             <VideoRow key={v.publicId} video={v} />
@@ -281,7 +279,7 @@ function SectionedAllList({
 
             {stations.length > 0 && (
                 <section>
-                    <SectionHeader title={lang.radio_stations} />
+                    <SectionHeader title="RADIO_STATIONS" />
                     <div className={ROW_LIST_CLASS}>
                         {stations.map((st) => (
                             <StationRow key={st.publicId} station={st} />
@@ -331,7 +329,6 @@ export function LibraryLists({
                             videos={filtered.videos}
                             songs={filtered.songs}
                             stations={filtered.stations}
-                            lang={lang}
                         />
                     ) : (
                         <>

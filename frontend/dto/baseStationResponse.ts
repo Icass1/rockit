@@ -4,6 +4,8 @@ export const BaseStationResponseSchema = z.object({
     provider: z.string(),
     publicId: z.string(),
     url: z.string(),
+    name: z.string(),
+    internalImageUrl: z.string(),
 });
 
 export type BaseStationResponse = z.infer<typeof BaseStationResponseSchema>;

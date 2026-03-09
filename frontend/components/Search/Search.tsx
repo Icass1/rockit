@@ -7,7 +7,6 @@ import SearchBarInput from "@/components/Search/SearchBarInput";
 import AlbumsSection from "@/components/Search/sections/AlbumsSection";
 import ArtistsSection from "@/components/Search/sections/ArtistsSection";
 import PlaylistsSection from "@/components/Search/sections/PlaylistsSection";
-import RadioSection from "@/components/Search/sections/RadioSection";
 import SongsSection from "@/components/Search/sections/SongsSection";
 import VideosSection from "@/components/Search/sections/VideosSection";
 

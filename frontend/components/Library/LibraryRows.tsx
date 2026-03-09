@@ -7,6 +7,7 @@ import {
     BaseAlbumWithoutSongsResponse,
     BasePlaylistResponse,
     BaseSongWithoutAlbumResponse,
+    BaseStationResponse,
     BaseVideoResponse,
 } from "@/dto";
 import { rockIt } from "@/lib/rockit/rockIt";
@@ -156,11 +157,7 @@ export function SongRow({ song }: { song: BaseSongWithoutAlbumResponse }) {
     );
 }
 
-export function StationRow({
-    station,
-}: {
-    station: BaseSongWithoutAlbumResponse;
-}) {
+export function StationRow({ station }: { station: BaseStationResponse }) {
     return (
         <div className="flex items-center gap-3 rounded-md px-2 py-2 hover:bg-neutral-800">
             <SquareCover

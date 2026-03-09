@@ -1,3 +1,4 @@
+import { StartDownloadRequest } from "@/dto";
 import { DBListType, DownloadInfo } from "@/types/rockIt";
 import { RESPONSE_UNDEFINED_MESSAGE, rockIt } from "@/lib/rockit/rockIt";
 import { createArrayAtom } from "@/lib/store";
@@ -33,10 +34,13 @@ export class DownloaderManager {
     // #region: Methods
 
     async downloadMediaToDBAsync(publicIds: string[]) {
-        const response = await apiPostFetch("/downloader/start-downloads", {
-            ids: publicIds,
-            title: "Download 1",
-        });
+        const response = await apiPostFetch<StartDownloadRequest>(
+            "/downloader/start-downloads",
+            {
+                ids: publicIds,
+                title: "Download 1",
+            }
+        );
 
         if (!response) {
             rockIt.notificationManager.notifyError(RESPONSE_UNDEFINED_MESSAGE);

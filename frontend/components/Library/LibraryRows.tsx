@@ -49,7 +49,7 @@ function SquareCover({ src, alt }: { src: string; alt: string }) {
 /** Wider 16:9 thumbnail for video rows. */
 function VideoCover({ src, alt }: { src: string; alt: string }) {
     return (
-        <div className="relative h-12 w-21.25 shrink-0 overflow-hidden rounded-md">
+        <div className="w-21.25 relative h-12 shrink-0 overflow-hidden rounded-md">
             <Image
                 src={src}
                 alt={alt}
@@ -188,7 +188,7 @@ export function StationRow({
 
 function ArtistGroupHeader({ name }: { name: string }) {
     return (
-        <h3 className="mt-6 mb-1 px-1 text-xs font-semibold tracking-widest text-neutral-400 uppercase">
+        <h3 className="mb-1 mt-6 px-1 text-xs font-semibold uppercase tracking-widest text-neutral-400">
             {name}
         </h3>
     );

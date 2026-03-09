@@ -57,7 +57,7 @@ export default function FooterMobile() {
                 {/* Like */}
                 {$currentSong && (
                     <span onClick={(e) => e.stopPropagation()}>
-                        <LikeButton songPublicId={$currentSong.publicId} />
+                        <LikeButton mediaPublicId={$currentSong.publicId} />
                     </span>
                 )}
 

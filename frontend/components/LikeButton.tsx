@@ -9,9 +9,13 @@ type FlameState = "hidden" | "enter" | "visible" | "exit";
 
 const FLAME_DURATION_MS = 1000;
 
-export default function LikeButton({ songPublicId }: { songPublicId: string }) {
-    const $likedSongs = useStore(rockIt.songManager.likedSongsAtom);
-    const isLiked = $likedSongs.includes(songPublicId);
+export default function LikeButton({
+    mediaPublicId,
+}: {
+    mediaPublicId: string;
+}) {
+    const $likedMedias = useStore(rockIt.mediaManager.likedMediaAtom);
+    const isLiked = $likedMedias.includes(mediaPublicId);
 
     const [flameState, setFlameState] = useState<FlameState>(
         isLiked ? "visible" : "hidden"
@@ -22,13 +26,15 @@ export default function LikeButton({ songPublicId }: { songPublicId: string }) {
     const dismissTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // React to like/unlike changes
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
     useEffect(() => {
         if (prevLiked.current === isLiked) return;
         prevLiked.current = isLiked;
 
         if (isLiked) {
-            setFlameState("enter");
+            queueMicrotask(() => {
+                setFlameState("enter");
+            });
         }
     }, [isLiked]);
 
@@ -52,7 +58,7 @@ export default function LikeButton({ songPublicId }: { songPublicId: string }) {
 
     const handleClick = () => {
         setHandTilt(true);
-        rockIt.songManager.toggleLikeSong(songPublicId);
+        rockIt.mediaManager.toggleLikeMedia(mediaPublicId);
     };
 
     const flameVisible = flameState !== "hidden";

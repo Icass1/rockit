@@ -203,9 +203,9 @@ export class ListManager {
             return;
         }
 
-        const current = rockIt.songManager.likedSongsAtom.get();
+        const current = rockIt.mediaManager.likedMediaAtom.get();
         const newLiked = [...new Set([...current, ...songPublicIds])];
-        rockIt.songManager.likedSongsAtom.set(newLiked);
+        rockIt.mediaManager.likedMediaAtom.set(newLiked);
 
         rockIt.notificationManager.notifyInfo("All songs liked.");
     }

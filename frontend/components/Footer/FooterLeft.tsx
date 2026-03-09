@@ -94,7 +94,7 @@ function FooterLeftForSong({
 
             {/* Actions */}
             <div className="hidden flex-row items-center gap-1 md:flex">
-                <LikeButton songPublicId={currentSong.publicId} />
+                <LikeButton mediaPublicId={currentSong.publicId} />
                 <SongPopupMenu song={currentSong}>
                     <EllipsisVertical className="h-6 w-5 text-gray-400 md:hover:scale-105 md:hover:text-white" />
                 </SongPopupMenu>

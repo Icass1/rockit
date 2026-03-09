@@ -4,13 +4,13 @@ import { CurrentListManager } from "@/lib/managers/currentListManager";
 import { DownloaderManager } from "@/lib/managers/downloaderManager";
 import { IndexedDBManager } from "@/lib/managers/indexedDBManager";
 import { ListManager } from "@/lib/managers/listManager";
+import { MediaManager } from "@/lib/managers/mediaManager";
 import { NotificationManager } from "@/lib/managers/notificationManager";
 import { PlayerUIManager } from "@/lib/managers/playerUIManager";
 import { PlaylistManager } from "@/lib/managers/playlistManager";
 import { QueueManager } from "@/lib/managers/queueManager";
 import { SearchManager } from "@/lib/managers/searchManager";
 import { ServiceWorkerManager } from "@/lib/managers/serviceWorkerManager";
-import { SongManager } from "@/lib/managers/songManager";
 import { StationManager } from "@/lib/managers/stationManager";
 import { UserManager } from "@/lib/managers/userManager";
 import { WebSocketManager } from "@/lib/managers/webSocketManger";
@@ -32,7 +32,7 @@ export class RockIt {
     // #region: Managers
 
     audioManager: AudioManager = new AudioManager();
-    songManager: SongManager = new SongManager();
+    mediaManager: MediaManager = new MediaManager();
     playlistManager: PlaylistManager = new PlaylistManager();
     albumManager: AlbumManager = new AlbumManager();
     serviceWorkerManager: ServiceWorkerManager = new ServiceWorkerManager();

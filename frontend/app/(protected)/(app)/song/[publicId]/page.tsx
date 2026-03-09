@@ -143,7 +143,7 @@ export default async function SongPage({
 
                     <div className="mt-4 flex flex-row justify-center gap-4">
                         <div className="flex select-none flex-row items-center gap-2 rounded bg-[#3030306f] p-2 hover:bg-[#313131]">
-                            <LikeButton songPublicId={song.publicId} />
+                            <LikeButton mediaPublicId={song.publicId} />
                             <span>Like</span>
                         </div>
                         <SongPopupMenu song={song}>

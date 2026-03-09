@@ -35,6 +35,10 @@ export {
     type BaseSongWithoutAlbumResponse,
 } from "@/dto/baseSongWithoutAlbumResponse";
 export {
+    BaseStationResponseSchema,
+    type BaseStationResponse,
+} from "@/dto/baseStationResponse";
+export {
     BaseVideoResponseSchema,
     type BaseVideoResponse,
 } from "@/dto/baseVideoResponse";
@@ -66,6 +70,10 @@ export {
     LibraryListsResponseSchema,
     type LibraryListsResponse,
 } from "@/dto/libraryListsResponse";
+export {
+    LikeMediaRequestSchema,
+    type LikeMediaRequest,
+} from "@/dto/likeMediaRequest";
 export { LoginRequestSchema, type LoginRequest } from "@/dto/loginRequest";
 export { LoginResponseSchema, type LoginResponse } from "@/dto/loginResponse";
 export {

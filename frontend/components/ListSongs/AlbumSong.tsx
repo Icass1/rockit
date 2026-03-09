@@ -97,7 +97,7 @@ export default function AlbumSong({
                 ) : (
                     <div></div>
                 )}
-                <LikeButton songPublicId={song.publicId} />
+                <LikeButton mediaPublicId={song.publicId} />
 
                 <label className="flex min-w-7 select-none items-center justify-center text-sm text-white/80">
                     {hovered && (innerWidth ?? 0) > 768 ? (

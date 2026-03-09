@@ -144,7 +144,7 @@ export default function PlaylistSong({
                                     <CheckCircle2 className="flex h-full w-full text-[#ec5588]" />
                                 </div>
                             )}
-                            <LikeButton songPublicId={song.song.publicId} />
+                            <LikeButton mediaPublicId={song.song.publicId} />
                             {/* <EllipsisVertical className="text-gray-400 flex md:hidden md:hover:text-white md:hover:scale-105" /> */}
 
                             <label className="flex min-w-7 select-none items-center justify-center text-sm text-white/80">

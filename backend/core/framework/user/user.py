@@ -1,33 +1,34 @@
 from typing import List, Tuple
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from backend.utils.logger import getLogger
 from backend.core.aResult import AResult, AResultCode
+
+from backend.core.enums.queueTypeEnum import QueueTypeEnum
+from backend.core.enums.mediaTypeEnum import MediaTypeEnum
+
+from backend.core.access.db.ormModels.user import UserRow
 from backend.core.access.db.ormModels.media import CoreMediaRow
 from backend.core.access.db.ormModels.provider import ProviderRow
-from backend.core.access.db.ormModels.user import UserRow
-from backend.core.access.db.ormModels.user_library_media import UserLibraryMediaRow
-from backend.core.access.db.ormModels.user_liked_media import UserLikedMediaRow
 from backend.core.access.db.ormModels.user_queue import UserQueueRow
 from backend.core.access.db.ormModels.user_seeks import UserSeeksRow
-from backend.core.enums.queueTypeEnum import QueueTypeEnum
-from backend.core.responses.baseAlbumWithoutSongsResponse import (
-    BaseAlbumWithoutSongsResponse,
-)
-from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
-from backend.utils.logger import getLogger
+from backend.core.access.db.ormModels.user_liked_media import UserLikedMediaRow
+from backend.core.access.db.ormModels.user_library_media import UserLibraryMediaRow
 
 from backend.core.access.userAccess import UserAccess
 from backend.core.access.mediaAccess import MediaAccess
-from backend.core.access.userLikedMediaAccess import UserLikedMediaAccess
 from backend.core.access.userQueueAccess import UserQueueAccess
-from backend.core.enums.mediaTypeEnum import MediaTypeEnum
+from backend.core.access.userLikedMediaAccess import UserLikedMediaAccess
 
 from backend.core.framework.provider.baseProvider import BaseProvider
 from backend.core.framework import providers
 
 from backend.core.responses.queueResponse import QueueResponse, QueueResponseItem
+from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from backend.core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
+from backend.core.responses.baseAlbumWithoutSongsResponse import (
+    BaseAlbumWithoutSongsResponse,
+)
 
 logger = getLogger(__name__)
 
@@ -202,34 +203,6 @@ class User:
         )
 
     @staticmethod
-    async def like_song(
-        session: AsyncSession, user_id: int, song_public_id: str
-    ) -> AResult[UserLikedMediaRow]:
-        """Like a single song by public_id."""
-
-        a_result_media: AResult[CoreMediaRow] = (
-            await MediaAccess.get_media_from_public_id_async(
-                session=session,
-                public_id=song_public_id,
-                media_type_keys=[MediaTypeEnum.SONG],
-            )
-        )
-        if a_result_media.is_not_ok():
-            logger.error(f"Error getting song media. {a_result_media.info()}")
-            return AResult(code=a_result_media.code(), message=a_result_media.message())
-
-        media: CoreMediaRow = a_result_media.result()
-
-        a_result: AResult[UserLikedMediaRow] = await UserLikedMediaAccess.add_like(
-            session=session, user_id=user_id, media_id=media.id
-        )
-        if a_result.is_not_ok():
-            logger.error(f"Error liking song. {a_result.info()}")
-            return AResult(code=a_result.code(), message=a_result.message())
-
-        return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
-
-    @staticmethod
     async def unlike_song(
         session: AsyncSession, user_id: int, song_public_id: str
     ) -> AResult[bool]:
@@ -248,7 +221,7 @@ class User:
 
         media: CoreMediaRow = a_result_media.result()
 
-        a_result: AResult[bool] = await UserLikedMediaAccess.remove_like(
+        a_result: AResult[bool] = await UserLikedMediaAccess.remove_like_async(
             session=session, user_id=user_id, media_id=media.id
         )
         if a_result.is_not_ok():
@@ -314,7 +287,7 @@ class User:
             song_media: CoreMediaRow = a_result_song_media.result()
 
             a_result_like: AResult[UserLikedMediaRow] = (
-                await UserLikedMediaAccess.add_like(
+                await UserLikedMediaAccess.add_like_async(
                     session=session, user_id=user_id, media_id=song_media.id
                 )
             )
@@ -379,8 +352,10 @@ class User:
 
             song_media: CoreMediaRow = a_result_song_media.result()
 
-            a_result_unlike: AResult[bool] = await UserLikedMediaAccess.remove_like(
-                session=session, user_id=user_id, media_id=song_media.id
+            a_result_unlike: AResult[bool] = (
+                await UserLikedMediaAccess.remove_like_async(
+                    session=session, user_id=user_id, media_id=song_media.id
+                )
             )
             if a_result_unlike.is_ok():
                 unliked_count += 1
@@ -388,36 +363,34 @@ class User:
         return AResult(code=AResultCode.OK, message="OK", result=unliked_count)
 
     @staticmethod
-    async def like_songs(
-        session: AsyncSession, user_id: int, song_public_ids: List[str]
+    async def like_media_async(
+        session: AsyncSession, user_id: int, public_ids: List[str]
     ) -> AResult[List[UserLikedMediaRow]]:
         """Like multiple songs by public_ids."""
 
-        liked_songs: List[UserLikedMediaRow] = []
+        liked_media: List[UserLikedMediaRow] = []
 
-        for song_public_id in song_public_ids:
+        for media_public_id in public_ids:
             a_result_media: AResult[CoreMediaRow] = (
                 await MediaAccess.get_media_from_public_id_async(
-                    session=session,
-                    public_id=song_public_id,
-                    media_type_keys=[MediaTypeEnum.SONG],
+                    session=session, public_id=media_public_id, media_type_keys=None
                 )
             )
             if a_result_media.is_not_ok():
-                logger.warning(
-                    f"Could not find media for song {song_public_id}. Skipping."
-                )
+                logger.warning(f"Could not find media {media_public_id}. Skipping.")
                 continue
 
             media: CoreMediaRow = a_result_media.result()
 
-            a_result: AResult[UserLikedMediaRow] = await UserLikedMediaAccess.add_like(
-                session=session, user_id=user_id, media_id=media.id
+            a_result: AResult[UserLikedMediaRow] = (
+                await UserLikedMediaAccess.add_like_async(
+                    session=session, user_id=user_id, media_id=media.id
+                )
             )
             if a_result.is_ok():
-                liked_songs.append(a_result.result())
+                liked_media.append(a_result.result())
 
-        return AResult(code=AResultCode.OK, message="OK", result=liked_songs)
+        return AResult(code=AResultCode.OK, message="OK", result=liked_media)
 
     @staticmethod
     async def unlike_songs(
@@ -443,7 +416,7 @@ class User:
 
             media: CoreMediaRow = a_result_media.result()
 
-            a_result: AResult[bool] = await UserLikedMediaAccess.remove_like(
+            a_result: AResult[bool] = await UserLikedMediaAccess.remove_like_async(
                 session=session, user_id=user_id, media_id=media.id
             )
             if a_result.is_ok():
@@ -458,7 +431,7 @@ class User:
         """Get all liked song public IDs for a user."""
 
         a_result: AResult[List[str]] = (
-            await UserLikedMediaAccess.get_user_liked_song_public_ids(
+            await UserLikedMediaAccess.get_user_liked_media_public_ids_async(
                 session=session, user_id=user_id
             )
         )

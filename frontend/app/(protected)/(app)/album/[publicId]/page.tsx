@@ -54,6 +54,7 @@ export default async function AlbumPage({
             artists={albumResponse.artists}
             media={songsWithAlbum}
             image={albumResponse.internalImageUrl}
+            imageBlur="http://localhost:8000/media/image/blur/9w4UGBJx10VtAg8IlbZcMRH3C2fLmeyT?q=3"
             showMediaImage={false}
             showMediaIndex
         />

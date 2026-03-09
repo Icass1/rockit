@@ -13,10 +13,6 @@ import {
     FilterMode,
     useLibraryData,
 } from "@/components/Library/hooks/useLibraryData";
-import { ViewMode } from "@/components/Library/LibraryFilters";
-import NewPlaylistButton from "@/components/Library/NewPlaylistButton";
-import PlayLibraryButton from "@/components/Library/PlayLibraryButton";
-import LoadingComponent from "@/components/Loading";
 import {
     AlbumCard,
     PlaylistCard,
@@ -24,6 +20,7 @@ import {
     StationCard,
     VideoCard,
 } from "@/components/Library/LibraryCards";
+import { ViewMode } from "@/components/Library/LibraryFilters";
 import {
     AlbumListView,
     AlbumRow,
@@ -32,6 +29,9 @@ import {
     StationRow,
     VideoRow,
 } from "@/components/Library/LibraryRows";
+import NewPlaylistButton from "@/components/Library/NewPlaylistButton";
+import PlayLibraryButton from "@/components/Library/PlayLibraryButton";
+import LoadingComponent from "@/components/Loading";
 
 /* ------------------------------------------------------- */
 /* PROPS                                                   */
@@ -81,7 +81,7 @@ function SectionHeader({
     rightElement?: ReactNode;
 }) {
     return (
-        <div className="flex items-center justify-between px-4 pt-4 pb-3">
+        <div className="flex items-center justify-between px-4 pb-3 pt-4">
             <h2 className="text-3xl font-bold">{title}</h2>
             {rightElement}
         </div>
@@ -164,31 +164,46 @@ function MasonryAllGrid({
                 switch (item.kind) {
                     case "album":
                         return (
-                            <div key={`album-${item.data.publicId}`} className={wrapClass}>
+                            <div
+                                key={`album-${item.data.publicId}`}
+                                className={wrapClass}
+                            >
                                 <AlbumCard album={item.data} />
                             </div>
                         );
                     case "playlist":
                         return (
-                            <div key={`playlist-${item.data.publicId}`} className={wrapClass}>
+                            <div
+                                key={`playlist-${item.data.publicId}`}
+                                className={wrapClass}
+                            >
                                 <PlaylistCard playlist={item.data} />
                             </div>
                         );
                     case "video":
                         return (
-                            <div key={`video-${item.data.publicId}`} className={wrapClass}>
+                            <div
+                                key={`video-${item.data.publicId}`}
+                                className={wrapClass}
+                            >
                                 <VideoCard video={item.data} />
                             </div>
                         );
                     case "song":
                         return (
-                            <div key={`song-${item.data.publicId}`} className={wrapClass}>
+                            <div
+                                key={`song-${item.data.publicId}`}
+                                className={wrapClass}
+                            >
                                 <SongCard song={item.data} />
                             </div>
                         );
                     case "station":
                         return (
-                            <div key={`station-${item.data.publicId}`} className={wrapClass}>
+                            <div
+                                key={`station-${item.data.publicId}`}
+                                className={wrapClass}
+                            >
                                 <StationCard station={item.data} />
                             </div>
                         );
@@ -322,7 +337,7 @@ export function LibraryLists({
                         <>
                             {/* NewPlaylistButton sits above the masonry */}
                             <div className="px-4 py-2">
-                                <div className="w-full max-w-62.5">
+                                <div className="max-w-62.5 w-full">
                                     <NewPlaylistButton />
                                 </div>
                             </div>

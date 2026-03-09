@@ -53,7 +53,7 @@ export function PiPInfo() {
                 </p>
             </div>
             {$currentSong && (
-                <LikeButton songPublicId={$currentSong.publicId} />
+                <LikeButton mediaPublicId={$currentSong.publicId} />
             )}
         </div>
     );

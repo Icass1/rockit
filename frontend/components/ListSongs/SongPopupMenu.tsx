@@ -41,7 +41,7 @@ export default function SongPopupMenu({
 
     const $networkStatus = useStore(networkStatus);
     const $playing = useStore(rockIt.audioManager.playingAtom);
-    const $likedSongs = useStore(rockIt.songManager.likedSongsAtom);
+    const $likedSongs = useStore(rockIt.mediaManager.likedMediaAtom);
     const $currentSong = useStore(rockIt.queueManager.currentSongAtom);
 
     if (!lang) return null;
@@ -66,7 +66,7 @@ export default function SongPopupMenu({
     };
 
     const handleLike = () => {
-        rockIt.songManager.toggleLikeSong(song.publicId);
+        rockIt.mediaManager.toggleLikeMedia(song.publicId);
     };
 
     const handleDownloadDevice = () => {

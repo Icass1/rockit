@@ -25,7 +25,7 @@ export default function AppClientLayout({
     const router = useRouter();
 
     useEffect(() => {
-        rockIt.songManager.fetchLikedSongs();
+        rockIt.mediaManager.fetchLikedMedia();
     }, []);
 
     const handleLinkDrop = (url: string) => {

@@ -1,7 +1,7 @@
 import os
-from fastapi import Depends, APIRouter, HTTPException, Request
 
 from fastapi.responses import FileResponse
+from fastapi import Depends, APIRouter, HTTPException, Request
 
 from backend.constants import IMAGES_PATH
 

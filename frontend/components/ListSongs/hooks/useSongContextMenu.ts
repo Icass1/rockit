@@ -15,7 +15,7 @@ export interface UserList {
 export function useSongContextMenu(song: BaseSongWithAlbumResponse) {
     const router = useRouter();
     const $networkStatus = useStore(networkStatus);
-    const $likedSongs = useStore(rockIt.songManager.likedSongsAtom);
+    const $likedSongs = useStore(rockIt.mediaManager.likedMediaAtom);
 
     const [userLists, setUserLists] = useState<UserList[]>([]);
 
@@ -39,7 +39,7 @@ export function useSongContextMenu(song: BaseSongWithAlbumResponse) {
     }, [song.publicId, userLists.length]);
 
     const handleToggleLike = useCallback(() => {
-        rockIt.songManager.toggleLikeSong(song.publicId);
+        rockIt.mediaManager.toggleLikeMedia(song.publicId);
     }, [song.publicId]);
 
     const handlePlayNext = useCallback(() => {

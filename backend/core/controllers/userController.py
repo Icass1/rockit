@@ -3,12 +3,13 @@ from typing import List
 from argon2 import PasswordHasher
 from fastapi import Depends, APIRouter, HTTPException, Request
 from logging import Logger
-from pydantic import BaseModel
 
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
 from backend.core.aResult import AResult
 from backend.constants import BACKEND_URL
+from backend.core.access.db.ormModels.user_liked_media import UserLikedMediaRow
+from backend.core.requests.likeMediaRequest import LikeMediaRequest
 from backend.utils.logger import getLogger
 
 from backend.core.middlewares.authMiddleware import AuthMiddleware
@@ -39,14 +40,6 @@ logger: Logger = getLogger(name=__name__)
 router = APIRouter(
     prefix="/user", dependencies=[Depends(dependency=AuthMiddleware.auth_dependency)]
 )
-
-like_router = APIRouter(
-    prefix="/like", dependencies=[Depends(dependency=AuthMiddleware.auth_dependency)]
-)
-
-
-class LikeSongsRequest(BaseModel):
-    song_public_ids: List[str]
 
 
 @router.get("/session")
@@ -212,7 +205,7 @@ async def remove_album_from_library(
     return OkResponse()
 
 
-@like_router.get("")
+@router.get("/like")
 async def get_liked_songs(request: Request) -> List[str]:
     """Get all liked song public IDs for the current user."""
 
@@ -237,34 +230,7 @@ async def get_liked_songs(request: Request) -> List[str]:
     return a_result.result()
 
 
-@like_router.put("/song/{song_public_id}")
-async def like_song(request: Request, song_public_id: str) -> OkResponse:
-    """Like a single song by public_id."""
-
-    session: AsyncSession = DBSessionMiddleware.get_session(request)
-
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
-    if a_result_user.is_not_ok():
-        logger.error(f"Error getting current user. {a_result_user.info()}")
-        raise HTTPException(
-            status_code=a_result_user.get_http_code(), detail=a_result_user.message()
-        )
-
-    a_result = await User.like_song(
-        session=session,
-        user_id=a_result_user.result().id,
-        song_public_id=song_public_id,
-    )
-    if a_result.is_not_ok():
-        logger.error(f"Error liking song. {a_result.info()}")
-        raise HTTPException(
-            status_code=a_result.get_http_code(), detail=a_result.message()
-        )
-
-    return OkResponse()
-
-
-@like_router.delete("/song/{song_public_id}")
+@router.delete("/like/song/{song_public_id}")
 async def unlike_song(request: Request, song_public_id: str) -> OkResponse:
     """Unlike a single song by public_id."""
 
@@ -291,9 +257,11 @@ async def unlike_song(request: Request, song_public_id: str) -> OkResponse:
     return OkResponse()
 
 
-@like_router.post("/songs")
-async def like_songs(request: Request, like_request: LikeSongsRequest) -> OkResponse:
-    """Like multiple songs by public_ids."""
+@router.post("/like/media")
+async def like_media_async(
+    request: Request, like_request: LikeMediaRequest
+) -> OkResponse:
+    """Like multiple media by public_ids."""
 
     session: AsyncSession = DBSessionMiddleware.get_session(request)
 
@@ -304,18 +272,15 @@ async def like_songs(request: Request, like_request: LikeSongsRequest) -> OkResp
             status_code=a_result_user.get_http_code(), detail=a_result_user.message()
         )
 
-    a_result = await User.like_songs(
+    a_result: AResult[List[UserLikedMediaRow]] = await User.like_media_async(
         session=session,
         user_id=a_result_user.result().id,
-        song_public_ids=like_request.song_public_ids,
+        public_ids=like_request.publicIds,
     )
     if a_result.is_not_ok():
-        logger.error(f"Error liking songs. {a_result.info()}")
+        logger.error(f"Error liking media. {a_result.info()}")
         raise HTTPException(
             status_code=a_result.get_http_code(), detail=a_result.message()
         )
 
     return OkResponse()
-
-
-router.include_router(like_router)

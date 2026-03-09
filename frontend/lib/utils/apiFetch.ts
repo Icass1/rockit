@@ -1,5 +1,5 @@
 import { BACKEND_URL } from "@/environment";
-import { z, ZodType } from "zod";
+import { ZodType } from "zod";
 
 interface ApiFetchOptions {
     method?: string;
@@ -56,7 +56,7 @@ export async function baseApiFetch(
     }
 }
 
-export async function apiPostFetch(path: string, body: object) {
+export async function apiPostFetch<T>(path: string, body: T) {
     return baseApiFetch(path, {
         method: "POST",
         body: JSON.stringify(body),

@@ -4,22 +4,22 @@ import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { BACKEND_URL } from "@/environment";
+import { useStore } from "@nanostores/react";
 import { Plus } from "lucide-react";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function NewPlaylistButton() {
     const [showModal, setShowModal] = useState(false);
     const [name, setName] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
-    const { langFile: lang } = useLanguage();
     const router = useRouter();
+
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     const handleCreate = async () => {
         if (!name.trim()) {
-            setError(
-                lang?.error_enter_name ?? "Enter a name for your new playlist"
-            );
+            setError($vocabulary.ENTER_NEW_PLAYLIST_NAME);
             return;
         }
 
@@ -38,9 +38,7 @@ export default function NewPlaylistButton() {
             closeModal();
             router.push(`/playlist/${data.id}`);
         } catch {
-            setError(
-                lang?.error_creating ?? "Error creating your new playlist"
-            );
+            setError($vocabulary.ERROR_CREATING_PLAYLIST);
         } finally {
             setLoading(false);
         }
@@ -73,7 +71,7 @@ export default function NewPlaylistButton() {
                     <Plus className="cover absolute left-0 top-0 aspect-square h-auto w-full rounded-md p-6" />
                 </div>
                 <label className="min-h-6 cursor-pointer truncate text-center font-semibold">
-                    {lang?.newplaylist}
+                    {$vocabulary?.newplaylist}
                 </label>
             </div>
 
@@ -88,7 +86,7 @@ export default function NewPlaylistButton() {
                 >
                     <div className="flex w-full max-w-sm flex-col gap-y-4 rounded-xl bg-neutral-900 p-6 shadow-2xl">
                         <label className="text-base font-semibold text-white">
-                            {lang?.newplaylistname ?? "Playlist name"}
+                            {$vocabulary?.newplaylistname ?? "Playlist name"}
                             {error && (
                                 <span className="ml-2 text-red-400">
                                     — {error}
@@ -106,7 +104,7 @@ export default function NewPlaylistButton() {
                             type="text"
                             autoFocus
                             placeholder={
-                                lang?.placeholder_playlist_name ??
+                                $vocabulary?.placeholder_playlist_name ??
                                 "My perfect playlist"
                             }
                             onChange={(e) => {
@@ -124,7 +122,7 @@ export default function NewPlaylistButton() {
                                 className="rounded-md border border-gray-600 px-4 py-2 text-sm text-gray-300 transition hover:border-gray-300 hover:text-white"
                                 onClick={closeModal}
                             >
-                                {lang?.cancel ?? "Cancel"}
+                                {$vocabulary?.cancel ?? "Cancel"}
                             </button>
                             <button
                                 className="rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-500 disabled:cursor-not-allowed disabled:opacity-50"
@@ -132,8 +130,8 @@ export default function NewPlaylistButton() {
                                 disabled={loading || !name.trim()}
                             >
                                 {loading
-                                    ? (lang?.creating ?? "Creating…")
-                                    : (lang?.create ?? "Create")}
+                                    ? ($vocabulary?.creating ?? "Creating…")
+                                    : ($vocabulary?.create ?? "Create")}
                             </button>
                         </div>
                     </div>

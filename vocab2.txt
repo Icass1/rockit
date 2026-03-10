@@ -1,0 +1,158 @@
+HOME	Home
+LIBRARY	Library
+SEARCH	Search
+SETTINGS	Settings
+FRIENDS	Friends
+STATS	Stats
+RADIO	Radio
+PINNED_LISTS	Pinned Lists
+DOWNLOADS	Downloads
+SEARCH_BAR	Search for artists, songs, albums...
+RECENT_PLAYED	Recently Played
+QUICK_SELECTIONS	Quick Selections
+YOU_MIGHT_LIKE	You Might Also Like
+FEATURED_ALBUMS	Featured Albums
+FEATURED_LISTS	Featured Lists
+YOUR_ALBUMS_PLAYLISTS	Your Albums and Playlists
+LIKED_SONGS	Liked Songs
+MOST_LISTENED	Most Listened
+RECENT_MIX	Recent Mix
+SEARCH_LIBRARY	Search in Library
+SEARCH_EMPTY1	It seems silence is also music...
+SEARCH_EMPTY2	But it's not very entertaining, is it? Find something to listen to!
+SONGS	Songs
+ALBUMS	Albums
+ARTISTS	Artists
+PLAYLISTS	Playlists
+RADIO_STATIONS	Radio Stations
+YT_VIDEOS	YouTube Videos
+LEVEL_ABBR	Lvl.
+FRIENDS_POINTS_DESCR	Earn points by listening to music, sharing songs, enjoying music with friends, or adding new friends. Keep going and level up!
+SHARED_2_YOU	Shared Songs for You
+SHARED_FROM	Shared from
+USERS_FRIENDS	Users and Friends
+SEARCH_USERS	Search Users
+PENDING_REQUESTS	Pending Requests
+FRIENDS_LIST	Friends List
+USERS_LIST	Users List
+SEND_SONG	Send Current Song
+RADIO_EMPTY1	No stations found
+RADIO_EMPTY2	From Brazilian samba to Australian rock, search and tune in to your next favorite beat!
+RADIO_SEARCH	Search for stations, genres, countries...
+STATISTICS	Statistics
+SHOWING_DATA	Showing data from
+NO_DATA	No registered data.
+USER_SETTINGS	User Settings
+DISPLAY_NAME	Display Name
+CHANGE_PASSWORD	Change Password
+NEW_PASSWORD	Enter New Password
+REPEAT_PASSWORD	Repeat New Password
+DOWNLOAD_APP	Download the App for Offline Listening
+SONGS_FROM	Songs from
+MORE_SONGS_FROM	More songs from
+TOP_SONGS	Top Songs
+TOP_ALBUMS	Top Albums
+ALBUMS_SINGLES	Albums and Singles
+RELATED_ARTISTS	Related Artists
+TO	to
+LOG_OUT	Log Out
+LIKE	Like
+LYRICS	Lyrics
+NO_LYRICS	Lyrics not available
+MORE_OPTIONS	More Options
+USER	User
+GENERAL	General
+MINUTES	Minutes
+NAME	Name
+SONG	Song
+ARTIST	Artist
+ALBUM	Album
+DATE_ADDED	Date Added
+DURATION	Duration
+PLACEHOLDER_SONG	Song Title
+PLACEHOLDER_ALBUM	Album Title
+PLACEHOLDER_ARTIST	Artist Name
+DOWNLOAD	Download
+UPDATE	Update
+LANGUAGE	Language
+CLEAR_DOWNLOADS	Clear Downloads
+LATEST_DOWNLOADS	Latest Downloads
+DOWNLOAD_INPUT_PLACEHOLDER	Enter a Spotify or YT Music URL
+BY	by
+DISC	Disc
+SONGS_LISTENED	Songs Listened
+MINUTES_LISTEND	Minutes listened
+MOST_LISTENED_ALBUMS	Most Listened Albums
+MOST_LISTENED_ARTISTS	Most Listened Artists
+MOST_LISTENED_SONGS	Most Listened Songs
+MINUTES_LISTENED_PER_DAY	Minutes listened per day
+USER_STATS	User stats
+GENERAL_STATS	General stats
+FRIENDS_STATS	Friends stats
+PLAY_SONG	Play song
+PLAY_NEXT	Play next
+ADD_SONG_TO_PLAYLIST	Add song to playlist
+ADD_TO_LIKED	Add to liked
+REMOVE_FROM_LIKED	Remove from liked
+ADD_TO_QUEUE	Add to queue
+SHARE_SONG	Share song
+COPY_SONG_URL	Copy song URL
+REMOVE_FROM_QUEUE	Remove from queue
+REMOVE_FROM_PLAYLIST	Remove from playlist
+DOWNLOAD_MP3	Download MP3
+DOWNLOAD_SONG_TO_DEVICE	Download song to device
+GO_TO_ARTIST	Go to artist
+GO_TO_ALBUM	Go to album
+PLAY_LIST	Play list
+OPEN_LIST	Open list
+OPEN_SONG	Open song
+ADD_LIST_TO_QUEUE	Add list to queue
+ADD_SONG_TO_QUEUE	Add song to queue
+REMOVE_FROM_LIBRARY	Remove from library
+ADD_TO_LIBRARY	Add to library
+UNPIN	Unpin
+PIN	Pin
+COPY_LIST_URL	Copy list URL
+GET_INFO	Get info
+AVERAGE_MINUTES_PER_SONG	Average minutes per song
+JANUARY	January
+FEBRUARY	February
+MARCH	March
+APRIL	April
+MAY	May
+JUNE	June
+JULY	July
+AUGUST	August
+SEPTEMBER	September
+OCTOBER	October
+NOVEMBER	November
+DECEMBER	December
+SONGSFORYOU	Songs Just For You
+HIDDENGEMS	Hidden Gems You Forgot
+COMMUNITYTOP	What Everyone's Listening To
+MOODSONGS	Songs For When You're Feeling
+RELAXED	Relaxed
+ENERGY	Energy
+FOCUS	Focus
+PARTY	Party
+YOUR	Your
+NEWPLAYLISTNAME:	New Playlist Name
+CANCEL	Cancel
+CREATE	Create
+NEWPLAYLIST	New Playlist
+ALL	All
+ERROR_ENTER_NAME	Enter a name for your new playlist
+ERROR_CREATING	Error creating your new playlist
+PLACEHOLDER_PLAYLIST_NAME	My perfect playlist
+CREATING	Creating…
+ADD_LIST_RANDOMLY	Add list to queue randomly
+ADD_LIST_TO_BOTTOM	Add list to bottom of queue
+DOWNLOAD_LIST_TO_DEVICE	Download list to device
+DOWNLOAD_ZIP	Download ZIP
+NO_RESULTS	No results
+NO_ALBUMS	No albums in your library yet
+NO_SONGS	No songs in your library yet
+NO_VIDEOS	No videos in your library yet
+NO_STATIONS	No stations in your library yet
+NO_PLAYLISTS	No playlists in your library yet
+UPLOAD	Upload

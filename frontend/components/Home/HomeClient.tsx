@@ -3,11 +3,11 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { HomeStatsResponse } from "@/dto";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { useStore } from "@nanostores/react";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { useHomeData } from "@/components/Home/hooks/useHomeData";
 import QuickSelectionsSection from "@/components/Home/sections/QuickSelectionsSection";
 import SongScrollSection from "@/components/Home/sections/SongScrollSection";
-import SongsCarousel from "@/components/Home/SongsCarousel";
 import Spinner from "@/components/Spinner";
 
 const MONTH_KEYS = [
@@ -42,10 +42,11 @@ interface HomeClientProps {
 }
 
 export default function HomeClient({ initialStats }: HomeClientProps) {
-    const { langFile: lang } = useLanguage();
     const data = useHomeData(initialStats);
     const router = useRouter();
     const previousMonthKey = useOnClient(getPreviousMonthKey, null);
+
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     useEffect(() => {
         if (data?.isEmpty) router.push("/library");
@@ -60,8 +61,6 @@ export default function HomeClient({ initialStats }: HomeClientProps) {
         );
     }
 
-    if (!lang) return null;
-
     if (!previousMonthKey) {
         return (
             <div className="flex h-screen flex-row items-center justify-center gap-2 text-xl font-semibold">
@@ -72,32 +71,32 @@ export default function HomeClient({ initialStats }: HomeClientProps) {
 
     return (
         <div className="webkit-scroll relative flex h-full flex-col pb-24 pt-24">
-            <SongsCarousel />
+            {/* <SongsCarousel /> */}
 
             <QuickSelectionsSection
-                title={lang.quick_selections}
+                title={$vocabulary.QUICK_SELECTIONS}
                 songs={data.randomSongsLastMonth}
             />
 
             <SongScrollSection
-                title={lang.recent_played}
+                title={$vocabulary.RECENTLY_PLAYED}
                 songs={data.songsByTimePlayed}
                 className="py-5"
             />
 
             <SongScrollSection
-                title={lang.hiddengems}
+                title={$vocabulary.HIDDEN_GEMS}
                 songs={data.hiddenGems}
             />
 
             <SongScrollSection
-                title={lang.communitytop}
+                title={$vocabulary.COMMUNITY_TOP}
                 songs={data.communityTop}
                 className="py-5"
             />
 
             <SongScrollSection
-                title={`${lang[previousMonthKey as keyof typeof lang]} Recap`}
+                title={`${$vocabulary[previousMonthKey as keyof typeof $vocabulary]} Recap`}
                 songs={data.monthlyTop}
             />
         </div>

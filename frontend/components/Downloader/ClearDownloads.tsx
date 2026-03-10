@@ -1,10 +1,10 @@
 "use client";
 
-import { useLanguage } from "@/contexts/LanguageContext";
+import { useStore } from "@nanostores/react";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function ClearDownloads() {
-    const { langFile: lang } = useLanguage();
-    if (!lang) return false;
+    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     return (
         <button
@@ -14,7 +14,7 @@ export default function ClearDownloads() {
                 console.log("Clear downloads clicked");
             }}
         >
-            {lang.clear_downloads}
+            {vocabulary.CLEAR_DOWNLOADS}
         </button>
     );
 }

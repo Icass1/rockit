@@ -9,7 +9,6 @@ import {
     ListX,
     PlayCircle,
 } from "lucide-react";
-import { useLanguage } from "@/contexts/LanguageContext";
 import useWindowSize from "@/hooks/useWindowSize";
 import { rockIt } from "@/lib/rockit/rockIt";
 import ContextMenuContent from "@/components/ContextMenu/Content";
@@ -17,7 +16,7 @@ import ContextMenu from "@/components/ContextMenu/ContextMenu";
 import ContextMenuOption from "@/components/ContextMenu/Option";
 import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
 import { useQueueDrag } from "@/components/PlayerUI/hooks/useQueueDrag";
-import { QueueSong } from "@/components/PlayerUI/QueueSong";
+import { QueueMedia } from "@/components/PlayerUI/QueueMedia";
 
 export default function MobilePlayerUIQueue({
     open,
@@ -33,9 +32,9 @@ export default function MobilePlayerUIQueue({
     // calcItemTop uses scrollRef.current.scrollTop directly (sync, not stale).
     const [queueScroll, setQueueScroll] = useState(0);
 
-    const { draggingSong, startDrag, calcItemTop } = useQueueDrag();
+    const { draggingMedia, startDrag, calcItemTop } = useQueueDrag();
 
-    // Scroll to current song when queue panel opens
+    // Scroll to current media when queue panel opens
     useEffect(() => {
         if (!scrollRef.current || !open) return;
         const currentIdx = rockIt.queueManager.queue?.findIndex(
@@ -47,21 +46,22 @@ export default function MobilePlayerUIQueue({
 
     const touchStart = (
         e: React.TouchEvent,
-        song: QueueResponseItem,
+        media: QueueResponseItem,
         index: number
     ) => {
-        startDrag(e.touches[0].clientY, song, index);
+        startDrag(e.touches[0].clientY, media, index);
     };
 
     // TODO: implement when queueManager supports reorder / remove
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const handleRemoveSong = (_song: QueueResponseItem) => {};
+    const handleRemoveMedia = (_media: QueueResponseItem) => {};
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const handlePlaySong = async (_song: QueueResponseItem) => {};
+    const handlePlayMedia = async (_media: QueueResponseItem) => {};
 
-    const { langFile: lang } = useLanguage();
+    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+
     const hasQueue = $queue && $queue.length > 0;
-    if (!lang || !hasQueue || !height) return null;
+    if (!hasQueue || !height) return null;
 
     // Use queueScroll state (updated via onScroll) instead of accessing ref during render
     const currentScrollTop = queueScroll;
@@ -84,7 +84,7 @@ export default function MobilePlayerUIQueue({
                 <div
                     ref={scrollRef}
                     onScroll={(e) => setQueueScroll(e.currentTarget.scrollTop)}
-                    className={`relative h-full ${!draggingSong ? "overflow-y-auto" : "overflow-y-hidden"}`}
+                    className={`relative h-full ${!draggingMedia ? "overflow-y-auto" : "overflow-y-hidden"}`}
                     // iOS momentum scrolling
                     style={
                         {
@@ -94,16 +94,16 @@ export default function MobilePlayerUIQueue({
                 >
                     <div className="min-h-5" />
                     <div style={{ height: $queue.length * 64 }}>
-                        {$queue.map((song, index) => {
+                        {$queue.map((media, index) => {
                             // Use queueScroll state for calcItemTop
                             const top = calcItemTop(
                                 index,
-                                song,
+                                media,
                                 currentScrollTop
                             );
                             const isDragging =
-                                draggingSong?.song.song.publicId ===
-                                song.song.publicId;
+                                draggingMedia?.media.media.publicId ===
+                                media.media.publicId;
 
                             // Virtual scroll: skip off-screen items
                             if (
@@ -115,7 +115,7 @@ export default function MobilePlayerUIQueue({
 
                             return (
                                 <div
-                                    key={`${song.song.publicId}-${song.queueMediaId}`}
+                                    key={`${media.media.publicId}-${media.queueMediaId}`}
                                     className={`absolute w-full ${isDragging ? "z-10" : "transition-[top] duration-500"}`}
                                     style={{
                                         top: `${top + 20}px`,
@@ -128,14 +128,14 @@ export default function MobilePlayerUIQueue({
                                         <ContextMenuTrigger>
                                             <div className="grid grid-cols-[1fr_45px] items-center">
                                                 <div className="w-full min-w-0 max-w-full">
-                                                    <QueueSong song={song} />
+                                                    <QueueMedia media={media} />
                                                 </div>
                                                 <GripVertical
                                                     className="h-full w-full p-1 pr-3"
                                                     onTouchStart={(e) =>
                                                         touchStart(
                                                             e,
-                                                            song,
+                                                            media,
                                                             index
                                                         )
                                                     }
@@ -144,37 +144,39 @@ export default function MobilePlayerUIQueue({
                                         </ContextMenuTrigger>
                                         <ContextMenuContent
                                             cover={
-                                                song.song.internalImageUrl ??
+                                                media.media.internalImageUrl ??
                                                 rockIt.SONG_PLACEHOLDER_IMAGE_URL
                                             }
-                                            title={song.song.name}
-                                            description={`${song.song.album.name} • ${song.song.artists.map((a) => a.name).join(", ")}`}
+                                            title={media.media.name}
+                                            // description={`${media.media.album.name} • ${media.media.artists.map((a) => a.name).join(", ")}`}
                                         >
                                             <ContextMenuOption
                                                 onClick={() =>
-                                                    handlePlaySong(song)
+                                                    handlePlayMedia(media)
                                                 }
                                             >
                                                 <PlayCircle className="h-5 w-5" />
-                                                {lang.play_song}
+                                                {vocabulary.PLAY_MEDIA}
                                             </ContextMenuOption>
                                             <ContextMenuOption
                                                 onClick={() =>
-                                                    handleRemoveSong(song)
+                                                    handleRemoveMedia(media)
                                                 }
                                             >
                                                 <ListX className="h-5 w-5" />
-                                                {lang.remove_from_queue}
+                                                {vocabulary.REMOVE_FROM_QUEUE}
                                             </ContextMenuOption>
                                             <ContextMenuOption
                                                 onClick={() =>
-                                                    rockIt.indexedDBManager.saveSongToIndexedDB(
-                                                        song.song
+                                                    rockIt.indexedDBManager.saveMediaToIndexedDB(
+                                                        media.media
                                                     )
                                                 }
                                             >
                                                 <HardDriveDownload className="h-5 w-5" />
-                                                {lang.download_song_to_device}
+                                                {
+                                                    vocabulary.DOWNLOAD_MEDIA_TO_DEVICE
+                                                }
                                             </ContextMenuOption>
                                         </ContextMenuContent>
                                     </ContextMenu>

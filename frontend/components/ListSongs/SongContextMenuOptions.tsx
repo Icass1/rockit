@@ -13,7 +13,7 @@ import {
     PlayCircle,
     Share2,
 } from "lucide-react";
-import type { Lang } from "@/types/lang";
+import type { Lang } from "@/types/vocabulary";
 import ContextMenuOption from "@/components/ContextMenu/Option";
 import ContextMenuSplitter from "@/components/ContextMenu/Splitter";
 import SubContextMenuContent from "@/components/ContextMenu/SubContextMenu/Content";

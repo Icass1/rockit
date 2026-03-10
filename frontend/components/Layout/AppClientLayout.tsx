@@ -3,8 +3,6 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { UrlMatchResponseSchema } from "@/dto";
-import type { Lang } from "@/types/lang";
-import { LanguageProvider } from "@/contexts/LanguageContext";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { apiFetch } from "@/lib/utils/apiFetch";
 import DropOverlay from "@/components/DropOverlay";
@@ -15,12 +13,8 @@ import PlayerUI from "@/components/PlayerUI/PlayerUI";
 
 export default function AppClientLayout({
     children,
-    lang,
-    langFile,
 }: {
     children: React.ReactNode;
-    lang: string;
-    langFile: Lang;
 }) {
     const router = useRouter();
 
@@ -42,7 +36,7 @@ export default function AppClientLayout({
     };
 
     return (
-        <LanguageProvider langFile={langFile} lang={lang}>
+        <>
             <DropOverlay onDropLink={handleLinkDrop} />
 
             <div className="fixed inset-0 bg-[#0b0b0b] md:left-12">
@@ -64,6 +58,6 @@ export default function AppClientLayout({
             <div className="fixed z-40 hidden md:bottom-24 md:left-0 md:top-0 md:block">
                 <Navigation />
             </div>
-        </LanguageProvider>
+        </>
     );
 }

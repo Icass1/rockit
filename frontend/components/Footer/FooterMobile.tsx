@@ -9,7 +9,7 @@ import Slider from "@/components/Slider";
 
 export default function FooterMobile() {
     const $playing = useStore(rockIt.audioManager.playingAtom);
-    const $currentSong = useStore(rockIt.queueManager.currentSongAtom);
+    const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
     const $currentTime = useStore(rockIt.audioManager.currentTimeAtom);
 
     return (
@@ -29,12 +29,12 @@ export default function FooterMobile() {
                 <div className="aspect-square h-full w-auto">
                     <Image
                         src={
-                            $currentSong?.internalImageUrl ??
+                            $currentMedia?.internalImageUrl ??
                             rockIt.SONG_PLACEHOLDER_IMAGE_URL
                         }
                         alt={
-                            $currentSong
-                                ? `${$currentSong.name} cover`
+                            $currentMedia
+                                ? `${$currentMedia.name} cover`
                                 : "Album cover"
                         }
                         width={56}
@@ -46,18 +46,18 @@ export default function FooterMobile() {
                 {/* Song info — p instead of label (label is for form elements) */}
                 <div className="flex min-w-0 flex-col">
                     <p className="truncate font-semibold leading-tight">
-                        {$currentSong?.name ?? ""}
+                        {$currentMedia?.name ?? ""}
                     </p>
                     <p className="truncate text-sm leading-tight text-neutral-400">
-                        {$currentSong?.artists.map((a) => a.name).join(", ") ??
+                        {$currentMedia?.artists.map((a) => a.name).join(", ") ??
                             ""}
                     </p>
                 </div>
 
                 {/* Like */}
-                {$currentSong && (
+                {$currentMedia && (
                     <span onClick={(e) => e.stopPropagation()}>
-                        <LikeButton mediaPublicId={$currentSong.publicId} />
+                        <LikeButton mediaPublicId={$currentMedia.publicId} />
                     </span>
                 )}
 
@@ -91,7 +91,7 @@ export default function FooterMobile() {
                 className="relative bottom-[0.15rem] mx-1 h-[0.15rem] w-auto rounded bg-neutral-700"
                 value={$currentTime ?? 0}
                 min={0}
-                max={$currentSong?.duration}
+                max={$currentMedia?.duration}
                 step={0.001}
             />
         </div>

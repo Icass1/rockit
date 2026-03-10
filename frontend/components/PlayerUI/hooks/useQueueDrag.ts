@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { QueueResponseItem } from "@/dto";
 
-interface DraggingSong {
+interface DraggingMedia {
     list: string;
-    song: QueueResponseItem;
+    media: QueueResponseItem;
     index: number;
 }
 
@@ -15,25 +15,25 @@ interface DraggingSong {
  *   Translates raw clientY into a position relative to the list. Default: 185.
  */
 export function useQueueDrag(containerOffsetFromTop = 185) {
-    const [draggingSong, setDraggingSong] = useState<
-        DraggingSong | undefined
+    const [draggingMedia, setDraggingMedia] = useState<
+        DraggingMedia | undefined
     >();
     const [draggingPosY, setDraggingPosY] = useState(0);
     const draggingPosYRef = useRef(0);
 
     const startDrag = (
         clientY: number,
-        song: QueueResponseItem,
+        media: QueueResponseItem,
         index: number,
         list = "queue"
     ) => {
-        setDraggingSong({ list, song, index });
+        setDraggingMedia({ list, media, index });
         setDraggingPosY(clientY);
         draggingPosYRef.current = clientY;
     };
 
     useEffect(() => {
-        if (!draggingSong) return;
+        if (!draggingMedia) return;
 
         const updatePos = (clientY: number) => {
             const rounded = Math.round(clientY * 100) / 100;
@@ -45,7 +45,7 @@ export function useQueueDrag(containerOffsetFromTop = 185) {
         const handleTouchMove = (e: TouchEvent) =>
             updatePos(e.touches[0].clientY);
         // TODO: implement reorder when queueManager.reorderQueue is available
-        const handleEnd = () => setDraggingSong(undefined);
+        const handleEnd = () => setDraggingMedia(undefined);
 
         document.addEventListener("mousemove", handleMouseMove);
         document.addEventListener("mouseup", handleEnd);
@@ -60,7 +60,7 @@ export function useQueueDrag(containerOffsetFromTop = 185) {
             document.removeEventListener("touchmove", handleTouchMove);
             document.removeEventListener("touchend", handleEnd);
         };
-    }, [draggingSong]);
+    }, [draggingMedia]);
 
     /**
      * Returns the `top` pixel value for a queue item given the current drag state.
@@ -68,31 +68,31 @@ export function useQueueDrag(containerOffsetFromTop = 185) {
      */
     const calcItemTop = (
         index: number,
-        song: QueueResponseItem,
+        media: QueueResponseItem,
         scrollTop: number
     ): number => {
-        if (!draggingSong) return index * 64;
+        if (!draggingMedia) return index * 64;
 
         const draggingTop = Math.max(
             draggingPosY - containerOffsetFromTop + scrollTop,
             0
         );
 
-        if (draggingSong.song.song.publicId === song.song.publicId) {
+        if (draggingMedia.media.media.publicId === media.media.publicId) {
             return draggingTop;
         }
 
         let top = index * 64;
 
-        if (draggingTop - 32 < top && draggingSong.index * 64 > top) {
+        if (draggingTop - 32 < top && draggingMedia.index * 64 > top) {
             top += 64;
         }
-        if (draggingTop + 32 > top && draggingSong.index * 64 < top) {
+        if (draggingTop + 32 > top && draggingMedia.index * 64 < top) {
             top -= 64;
         }
 
         return top;
     };
 
-    return { draggingSong, draggingPosY, startDrag, calcItemTop };
+    return { draggingMedia, draggingPosY, startDrag, calcItemTop };
 }

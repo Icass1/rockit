@@ -17,10 +17,10 @@ export class PlaylistManager {
         listPublicId: string,
         startSongPublicId?: string
     ) {
-        rockIt.queueManager.setSongs(songs, listType, listPublicId);
+        rockIt.queueManager.setMedia(songs, listType, listPublicId);
 
         if (startSongPublicId)
-            rockIt.queueManager.moveToSong(startSongPublicId);
+            rockIt.queueManager.moveToMedia(startSongPublicId);
         else rockIt.queueManager.setQueueMediaId(0);
 
         rockIt.audioManager.play();

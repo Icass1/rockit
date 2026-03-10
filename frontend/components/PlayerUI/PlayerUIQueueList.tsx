@@ -9,16 +9,15 @@ import {
     ListX,
     PlayCircle,
 } from "lucide-react";
-import { Lang } from "@/types/lang";
 import { rockIt } from "@/lib/rockit/rockIt";
 import ContextMenuContent from "@/components/ContextMenu/Content";
 import ContextMenu from "@/components/ContextMenu/ContextMenu";
 import ContextMenuOption from "@/components/ContextMenu/Option";
 import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
 import { useQueueDrag } from "@/components/PlayerUI/hooks/useQueueDrag";
-import { QueueSong } from "@/components/PlayerUI/QueueSong";
+import { QueueMedia } from "@/components/PlayerUI/QueueMedia";
 
-// Placeholder songs shown below the real queue (mockup until autoplay is implemented)
+// Placeholder medias shown below the real queue (mockup until autoplay is implemented)
 const AUTO_PLAY_MOCKS = [
     { id: "auto1", title: "Neon Nights", artist: "Synthwave Dreams" },
     { id: "auto2", title: "Midnight Ride", artist: "Retro Driver" },
@@ -27,37 +26,35 @@ const AUTO_PLAY_MOCKS = [
     { id: "auto5", title: "Echoes in the Dark", artist: "Shadow Sound" },
 ];
 
-interface PlayerUIQueueListProps {
-    queue: QueueResponseItem[];
-    queueScroll: number;
-    lang: Lang;
-}
-
 export function PlayerUIQueueList({
     queue,
     queueScroll,
-    lang,
-}: PlayerUIQueueListProps) {
+}: {
+    queue: QueueResponseItem[];
+    queueScroll: number;
+}) {
     const $currentQueueMediaId = useStore(
         rockIt.queueManager.currentQueueMediaIdAtom
     );
-    const { draggingSong, startDrag, calcItemTop } = useQueueDrag();
+    const { draggingMedia, startDrag, calcItemTop } = useQueueDrag();
+
+    const lang = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     // TODO: implement when queueManager.reorderQueue is available
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const handleRemoveSong = (_song: QueueResponseItem) => {};
+    const handleRemoveMedia = (_media: QueueResponseItem) => {};
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const handlePlaySong = async (_song: QueueResponseItem) => {};
+    const handlePlayMedia = async (_media: QueueResponseItem) => {};
 
     return (
         <>
             <div style={{ height: queue.length * 64 }} />
 
-            {queue.map((queueSong, index) => {
-                const top = calcItemTop(index, queueSong, queueScroll);
+            {queue.map((queueMedia, index) => {
+                const top = calcItemTop(index, queueMedia, queueScroll);
                 const isDragging =
-                    draggingSong?.song.song.publicId ===
-                    queueSong.song.publicId;
+                    draggingMedia?.media.media.publicId ===
+                    queueMedia.media.publicId;
 
                 // if (top > queueScroll || top < queueScroll) {
                 //     return null;
@@ -65,7 +62,7 @@ export function PlayerUIQueueList({
 
                 return (
                     <div
-                        key={`${queueSong.song.publicId}-${queueSong.queueMediaId}`}
+                        key={`${queueMedia.media.publicId}-${queueMedia.queueMediaId}`}
                         className={`absolute w-full ${isDragging ? "z-10" : "transition-[top] duration-200"}`}
                         style={{
                             top: `${top + 20}px`,
@@ -77,14 +74,14 @@ export function PlayerUIQueueList({
                             <ContextMenuTrigger>
                                 <div className="grid grid-cols-[1fr_45px] items-center">
                                     <div className="w-full min-w-0 max-w-full">
-                                        <QueueSong song={queueSong} />
+                                        <QueueMedia media={queueMedia} />
                                     </div>
                                     <GripVertical
                                         className="h-full w-full p-1 pr-3"
                                         onMouseDown={(e) =>
                                             startDrag(
                                                 e.clientY,
-                                                queueSong,
+                                                queueMedia,
                                                 index
                                             )
                                         }
@@ -92,38 +89,37 @@ export function PlayerUIQueueList({
                                 </div>
                             </ContextMenuTrigger>
                             <ContextMenuContent
-                                cover={
-                                    queueSong.song.internalImageUrl ??
-                                    rockIt.SONG_PLACEHOLDER_IMAGE_URL
-                                }
-                                title={queueSong.song.name}
-                                description={`${queueSong.song.album.name} • ${queueSong.song.artists.map((a) => a.name).join(", ")}`}
+                                cover={queueMedia.media.internalImageUrl}
+                                title={queueMedia.media.name}
+                                // description={`${queueMedia.media.album.name} • ${queueMedia.media.artists.map((a) => a.name).join(", ")}`}
                             >
                                 <ContextMenuOption
-                                    onClick={() => handlePlaySong(queueSong)}
+                                    onClick={() => handlePlayMedia(queueMedia)}
                                 >
                                     <PlayCircle className="h-5 w-5" />
-                                    {lang.play_song}
-                                </ContextMenuOption>
-                                <ContextMenuOption
-                                    onClick={() => handleRemoveSong(queueSong)}
-                                    disable={
-                                        $currentQueueMediaId ===
-                                        queueSong.queueMediaId
-                                    }
-                                >
-                                    <ListX className="h-5 w-5" />
-                                    {lang.remove_from_queue}
+                                    {lang.PLAY_MEDIA}
                                 </ContextMenuOption>
                                 <ContextMenuOption
                                     onClick={() =>
-                                        rockIt.indexedDBManager.saveSongToIndexedDB(
-                                            queueSong.song
+                                        handleRemoveMedia(queueMedia)
+                                    }
+                                    disable={
+                                        $currentQueueMediaId ===
+                                        queueMedia.queueMediaId
+                                    }
+                                >
+                                    <ListX className="h-5 w-5" />
+                                    {lang.REMOVE_FROM_QUEUE}
+                                </ContextMenuOption>
+                                <ContextMenuOption
+                                    onClick={() =>
+                                        rockIt.indexedDBManager.saveMediaToIndexedDB(
+                                            queueMedia.media
                                         )
                                     }
                                 >
                                     <HardDriveDownload className="h-5 w-5" />
-                                    {lang.download_song_to_device}
+                                    {lang.DOWNLOAD_MEDIA_TO_DEVICE}
                                 </ContextMenuOption>
                             </ContextMenuContent>
                         </ContextMenu>
@@ -138,12 +134,12 @@ export function PlayerUIQueueList({
                     Reproducciones automáticas a continuación
                 </h2>
                 {AUTO_PLAY_MOCKS.map((mock, i) => {
-                    const autoSong: QueueResponseItem = {
-                        queueMediaId: -i - 1, // Negative IDs for mock songs
+                    const autoMedia: QueueResponseItem = {
+                        queueMediaId: -i - 1, // Negative IDs for mock medias
                         listPublicId: "",
-                        song: {
+                        media: {
                             downloaded: false,
-                            internalImageUrl: "/image/song-placeholder.png",
+                            internalImageUrl: "/image/media-placeholder.png",
                             duration: 123,
                             discNumber: 1,
                             trackNumber: 1,
@@ -156,7 +152,8 @@ export function PlayerUIQueueList({
                                 type: "album",
                                 name: "Single",
                                 releaseDate: "2024-01-01",
-                                internalImageUrl: "/image/song-placeholder.png",
+                                internalImageUrl:
+                                    "/image/media-placeholder.png",
                                 provider: "mock",
                                 publicId: `auto-album-${mock.id}`,
                                 url: "",
@@ -165,7 +162,7 @@ export function PlayerUIQueueList({
                                         provider: "mock",
                                         publicId: "publicId",
                                         internalImageUrl:
-                                            "/image/song-placeholder.png",
+                                            "/image/media-placeholder.png",
                                         name: mock.artist,
                                         url: "",
                                     },
@@ -176,7 +173,7 @@ export function PlayerUIQueueList({
                                     provider: "mock",
                                     publicId: "publicId",
                                     internalImageUrl:
-                                        "/image/song-placeholder.png",
+                                        "/image/media-placeholder.png",
                                     name: mock.artist,
                                     url: "",
                                 },
@@ -197,46 +194,48 @@ export function PlayerUIQueueList({
                                 <ContextMenuTrigger>
                                     <div className="grid grid-cols-[1fr_45px] items-center">
                                         <div className="w-full min-w-0 max-w-full">
-                                            <QueueSong song={autoSong} />
+                                            <QueueMedia media={autoMedia} />
                                         </div>
                                         <ListPlus className="h-full w-full p-1 pr-4" />
                                     </div>
                                 </ContextMenuTrigger>
                                 <ContextMenuContent
                                     cover={
-                                        autoSong.song.internalImageUrl ??
+                                        autoMedia.media.internalImageUrl ??
                                         rockIt.SONG_PLACEHOLDER_IMAGE_URL
                                     }
-                                    title={autoSong.song.name}
-                                    description={`${autoSong.song.album.name} • ${autoSong.song.artists.map((a) => a.name).join(", ")}`}
+                                    title={autoMedia.media.name}
+                                    // description={`${autoMedia.media.album.name} • ${autoMedia.media.artists.map((a) => a.name).join(", ")}`}
                                 >
                                     <ContextMenuOption
-                                        onClick={() => handlePlaySong(autoSong)}
+                                        onClick={() =>
+                                            handlePlayMedia(autoMedia)
+                                        }
                                     >
                                         <PlayCircle className="h-5 w-5" />
-                                        {lang.play_song}
+                                        {lang.PLAY_MEDIA}
                                     </ContextMenuOption>
                                     <ContextMenuOption
                                         onClick={() =>
-                                            handleRemoveSong(autoSong)
+                                            handleRemoveMedia(autoMedia)
                                         }
                                         disable={
                                             $currentQueueMediaId ===
-                                            autoSong.queueMediaId
+                                            autoMedia.queueMediaId
                                         }
                                     >
                                         <ListX className="h-5 w-5" />
-                                        {lang.remove_from_queue}
+                                        {lang.REMOVE_FROM_QUEUE}
                                     </ContextMenuOption>
                                     <ContextMenuOption
                                         onClick={() =>
-                                            rockIt.indexedDBManager.saveSongToIndexedDB(
-                                                autoSong.song
+                                            rockIt.indexedDBManager.saveMediaToIndexedDB(
+                                                autoMedia.media
                                             )
                                         }
                                     >
                                         <HardDriveDownload className="h-5 w-5" />
-                                        {lang.download_song_to_device}
+                                        {lang.DOWNLOAD_MEDIA_TO_DEVICE}
                                     </ContextMenuOption>
                                 </ContextMenuContent>
                             </ContextMenu>

@@ -1,0 +1,33 @@
+export interface Vocabulary {
+    ALBUMS : string;
+    ALBUM: string;
+    USER: string;
+    PLAYLISTS: string;
+    SONGS: string;
+    SONG: string;
+    PLAY_MEDIA: string;
+    REMOVE_FROM_QUEUE: string;
+    DOWNLOAD_MEDIA_TO_DEVICE: string;
+    LATEST_DOWNLOADS: string;
+    CLEAR_DOWNLOADS: string;
+    PAUSE_SONG: string;
+    PLAY_SONG: string;
+    REMOVE_FROM_LIKED: string;
+    ADD_TO_LIKED: string;
+    PLAY_NEXT: string;
+    ADD_TO_QUEUE: string;
+    SHARE_SONG: string;
+    COPY_SONG_URL: string;
+    DOWNLOAD_MP3: string;
+    GO_TO_ARTIST: string;
+    GO_TO_ALBUM: string;
+    QUICK_SELECTIONS: string;
+    RECENTLY_PLAYED: string;
+    HIDDEN_GEMS: string;
+    COMMUNITY_TOP: string;
+    GENERAL: string;
+    FRIENDS: string;
+    USER_STATS: string;
+    GENERAL_STATS: string;
+    FRIENDS_STATS: string;
+}

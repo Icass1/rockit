@@ -1,11 +1,11 @@
-import { BaseSongWithAlbumResponse } from "@/dto";
+import { BaseSongWithAlbumResponse, BaseVideoResponse } from "@/dto";
 import { DBListType } from "@/types/rockIt";
 import { createArrayAtom } from "@/lib/store";
 
 export class IndexedDBManager {
     // #region: Atoms
 
-    private _songsInIndexedDBAtom = createArrayAtom<string>([]);
+    private _mediasInIndexedDBAtom = createArrayAtom<string>([]);
 
     // #endregion: Atoms
 
@@ -26,8 +26,8 @@ export class IndexedDBManager {
         throw "(downloadListToDeviceAsync) Method not implemented";
     }
 
-    saveSongToIndexedDB(song: BaseSongWithAlbumResponse) {
-        console.warn(song);
+    saveMediaToIndexedDB(media: BaseSongWithAlbumResponse | BaseVideoResponse) {
+        console.warn(media);
         throw "(downloadListToDeviceAsync) Method not implemented";
     }
 
@@ -35,12 +35,12 @@ export class IndexedDBManager {
 
     // #region: Getters
 
-    get songsInIndexedDBAtom() {
-        return this._songsInIndexedDBAtom.getReadonlyAtom();
+    get mediasInIndexedDBAtom() {
+        return this._mediasInIndexedDBAtom.getReadonlyAtom();
     }
 
-    get songsInIndexedDB() {
-        return this._songsInIndexedDBAtom.get();
+    get mediasInIndexedDB() {
+        return this._mediasInIndexedDBAtom.get();
     }
 
     // #endregion: Getters

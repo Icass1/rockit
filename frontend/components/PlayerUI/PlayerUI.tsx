@@ -3,7 +3,6 @@
 import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
-import { useLanguage } from "@/contexts/LanguageContext";
 import useWindowSize from "@/hooks/useWindowSize";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { PlayerUICoverColumn } from "@/components/PlayerUI/PlayerUICoverColumn";
@@ -11,15 +10,13 @@ import { PlayerUILyricsColumn } from "@/components/PlayerUI/PlayerUILyricsColumn
 import { PlayerUIQueueColumn } from "@/components/PlayerUI/PlayerUIQueueColumn";
 
 export default function PlayerUI() {
-    const $currentSong = useStore(rockIt.queueManager.currentSongAtom);
+    const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
     const $isPlayerUIVisible = useStore(rockIt.playerUIManager.visibleAtom);
     const $queue = useStore(rockIt.queueManager.queueAtom);
 
     const divRef = useRef<HTMLDivElement>(null);
     const innerWidth = useWindowSize().width;
     const shouldRender = innerWidth !== undefined && innerWidth > 768;
-
-    const { langFile: lang } = useLanguage();
 
     // Close player when clicking outside
     useEffect(() => {
@@ -50,7 +47,7 @@ export default function PlayerUI() {
         if (queueEl) queueEl.scrollTop = index * 64;
     }, [$isPlayerUIVisible]);
 
-    if (!lang || !$queue || !shouldRender) return null;
+    if (!shouldRender) return null;
 
     return (
         <div
@@ -64,9 +61,9 @@ export default function PlayerUI() {
             <div className="relative grid h-full w-full grid-cols-[1fr_1fr] gap-x-2 bg-black px-2 text-white lg:grid-cols-[30%_40%_30%]">
                 {/* Background blurred cover */}
                 <Image
-                    alt={$currentSong?.name ?? ""}
+                    alt={$currentMedia?.name ?? ""}
                     src={
-                        $currentSong?.internalImageUrl ??
+                        $currentMedia?.internalImageUrl ??
                         rockIt.SONG_PLACEHOLDER_IMAGE_URL
                     }
                     width={600}
@@ -75,8 +72,8 @@ export default function PlayerUI() {
                 />
 
                 <PlayerUILyricsColumn />
-                <PlayerUICoverColumn currentSong={$currentSong} />
-                <PlayerUIQueueColumn queue={$queue} lang={lang} />
+                <PlayerUICoverColumn currentMedia={$currentMedia} />
+                <PlayerUIQueueColumn queue={$queue} />
             </div>
         </div>
     );

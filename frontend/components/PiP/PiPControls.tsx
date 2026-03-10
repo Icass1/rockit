@@ -69,7 +69,7 @@ export function PiPControls({ show }: PiPControlsProps) {
             </button>
             <button
                 style={S.iconBtn}
-                onClick={() => rockIt.audioManager.togglePlayPauseOrSetSong()}
+                onClick={() => rockIt.audioManager.togglePlayPauseOrSetMedia()}
                 aria-label={$playing ? "Pause" : "Play"}
             >
                 {$playing ? (

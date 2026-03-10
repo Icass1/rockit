@@ -26,7 +26,7 @@ export default function FooterCenter() {
     const $playing = useStore(rockIt.audioManager.playingAtom);
     const $currentTime = useStore(rockIt.audioManager.currentTimeAtom);
     const $loading = useStore(rockIt.audioManager.loadingAtom);
-    const $currentSong = useStore(rockIt.queueManager.currentSongAtom);
+    const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
     const $queueType = useStore(rockIt.userManager.queueTypeAtom);
     const $repeatSong = useStore(rockIt.userManager.repeatModeAtom);
     const $currentStation = useStore(rockIt.stationManager.currentStationAtom);
@@ -117,11 +117,11 @@ export default function FooterCenter() {
                 <Slider
                     id="default-slider"
                     aria-label="Song progress"
-                    aria-valuetext={`${getTime($currentTime ?? 0)} of ${getTime($currentSong?.duration ?? 0)}`}
+                    aria-valuetext={`${getTime($currentTime ?? 0)} of ${getTime($currentMedia?.duration ?? 0)}`}
                     className="relative h-1 w-full min-w-0 max-w-full rounded bg-neutral-700"
                     value={$currentTime ?? 0}
                     min={0}
-                    max={$currentSong?.duration}
+                    max={$currentMedia?.duration}
                     step={0.001}
                     onChange={(e) =>
                         rockIt.audioManager.setCurrentTime(
@@ -130,7 +130,7 @@ export default function FooterCenter() {
                     }
                 />
                 <span className="min-w-6 text-xs font-semibold tabular-nums">
-                    {getTime($currentSong?.duration ?? 0)}
+                    {getTime($currentMedia?.duration ?? 0)}
                 </span>
             </div>
         </div>

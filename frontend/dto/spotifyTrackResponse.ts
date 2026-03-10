@@ -5,6 +5,7 @@ import {
 import { z } from "zod";
 
 export const SpotifyTrackResponseSchema = z.object({
+    type: z.union([z.literal("song")]),
     provider: z.string(),
     publicId: z.string(),
     url: z.string(),

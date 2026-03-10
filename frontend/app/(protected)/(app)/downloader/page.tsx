@@ -2,18 +2,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { RotateCw } from "lucide-react";
-import { Lang } from "@/types/lang";
 import { getUserInServer } from "@/lib/getUserInServer";
+import { rockIt } from "@/lib/rockit/rockIt";
 import ClearDownloads from "@/components/Downloader/ClearDownloads";
 import InputBar from "@/components/Downloader/InputBar";
 import SongsStatus from "@/components/Downloader/SongsStatus";
-
-async function getLanguage(): Promise<{ lang: string; langFile: Lang }> {
-    const res = await fetch("http://localhost:3000lang", {
-        cache: "no-store",
-    });
-    return res.json();
-}
 
 export default async function Downloads() {
     const user = await getUserInServer();
@@ -22,9 +15,7 @@ export default async function Downloads() {
         console.warn("Downloads -> /login");
         redirect("/login");
     }
-
-    const language = await getLanguage();
-    const lang = language.langFile;
+    const vocabulary = rockIt.vocabularyManager.vocabulary;
 
     // const downloads = await rockIt.downloaderManager.getDownloadsAsync();
 
@@ -55,7 +46,7 @@ export default async function Downloads() {
                 <div className="mx-2 mb-4 flex items-center justify-between">
                     <div className="flex flex-row items-center gap-2">
                         <label className="text-lg font-bold text-white">
-                            {lang.latest_downloads}
+                            {vocabulary.LATEST_DOWNLOADS}
                         </label>
                         <Link href={"#"}>
                             <RotateCw className="h-4 w-4"></RotateCw>

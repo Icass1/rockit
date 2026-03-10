@@ -3,16 +3,16 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { BaseSongWithAlbumResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
 import { Pause, Play } from "lucide-react";
+import { MediaType } from "@/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
 
-interface PlayerUICoverColumnProps {
-    currentSong: BaseSongWithAlbumResponse | undefined;
-}
-
-export function PlayerUICoverColumn({ currentSong }: PlayerUICoverColumnProps) {
+export function PlayerUICoverColumn({
+    currentMedia,
+}: {
+    currentMedia: MediaType | undefined;
+}) {
     const $playing = useStore(rockIt.audioManager.playingAtom);
     const [showIcon, setShowIcon] = useState(false);
 
@@ -33,17 +33,17 @@ export function PlayerUICoverColumn({ currentSong }: PlayerUICoverColumnProps) {
                 className="relative aspect-square w-full max-w-[70%] overflow-hidden rounded-lg"
                 onClick={() => {
                     setShowIcon(true);
-                    rockIt.audioManager.togglePlayPauseOrSetSong();
+                    rockIt.audioManager.togglePlayPauseOrSetMedia();
                 }}
             >
                 <Image
                     src={
-                        currentSong?.internalImageUrl ??
-                        rockIt.SONG_PLACEHOLDER_IMAGE_URL
+                        currentMedia?.internalImageUrl ??
+                        rockIt.MEDIA_PLACEHOLDER_IMAGE_URL
                     }
                     height={600}
                     width={600}
-                    alt="Song Cover"
+                    alt="Media Cover"
                     className="absolute h-full w-full select-none rounded-xl"
                 />
                 <div
@@ -57,22 +57,23 @@ export function PlayerUICoverColumn({ currentSong }: PlayerUICoverColumnProps) {
                 </div>
             </div>
 
-            {/* Song info */}
+            {/* Media info */}
             <div className="flex w-full flex-col items-center justify-center px-2 text-center">
                 <h1 className="line-clamp-2 text-balance text-4xl font-bold leading-normal">
-                    {currentSong?.name}
+                    {currentMedia?.name}
                 </h1>
                 <p className="mt-2 flex w-full items-center justify-center gap-1 text-xl font-medium text-gray-400">
                     <span className="max-w-[75%] truncate text-center md:hover:underline">
-                        {currentSong?.album.name}
+                        currentMedia?.album.name
                     </span>
                     <span>•</span>
-                    {currentSong?.artists && currentSong.artists.length > 0 ? (
+                    {currentMedia?.artists &&
+                    currentMedia.artists.length > 0 ? (
                         <Link
-                            href={`/artist/${currentSong.artists[0].publicId}`}
+                            href={`/artist/${currentMedia.artists[0].publicId}`}
                             className="truncate md:hover:underline"
                         >
-                            {currentSong.artists[0].name}
+                            {currentMedia.artists[0].name}
                         </Link>
                     ) : (
                         <span>Artista desconocido</span>

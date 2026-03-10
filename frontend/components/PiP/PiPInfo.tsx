@@ -40,7 +40,7 @@ const S = {
 };
 
 export function PiPInfo() {
-    const $currentSong = useStore(rockIt.queueManager.currentSongAtom);
+    const $currentSong = useStore(rockIt.queueManager.currentMediaAtom);
 
     return (
         <div style={S.infoRow as React.CSSProperties}>

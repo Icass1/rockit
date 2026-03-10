@@ -1,6 +1,7 @@
 import os
 import sys
 import asyncio
+from pathlib import Path
 from typing import Any, Dict, List
 
 from backend.utils.logger import getLogger
@@ -13,6 +14,8 @@ command_to_run = sys.argv[1] if len(sys.argv) > 1 else ""
 async def import_vocabulary() -> None:
     """Import vocabulary from Vocabulary.xlsx file."""
     from backend.core.access.db import rockit_db
+
+    types_path = Path("frontend/types/vocabulary.ts")
 
     try:
         import openpyxl
@@ -54,6 +57,8 @@ async def import_vocabulary() -> None:
     language_code_columns: List[str] = [str(h) for h in second_row[1:] if h is not None]
     logger.info(f"Found languages codes: {language_code_columns}")
 
+    types_content: List[str] = ["export interface Vocabulary {"]
+
     vocabulary_data: Dict[str, Dict[str, str]] = {
         lang: {} for lang in language_code_columns
     }
@@ -67,10 +72,17 @@ async def import_vocabulary() -> None:
 
         all_keys.append(str(key_cell))
 
+        types_content.append(f"    {key_cell}: string;")
+
         for col_idx, lang_code in enumerate(language_code_columns, start=2):
             value = sheet.cell(row=row_idx, column=col_idx).value
             if value:
                 vocabulary_data[lang_code][str(key_cell)] = str(value)
+
+
+    types_content.append("}")
+    types_content.append("")
+    types_path.write_text("\n".join(types_content))
 
     logger.info(f"Found {len(all_keys)} vocabulary keys")
 

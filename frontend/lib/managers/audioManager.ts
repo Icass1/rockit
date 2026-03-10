@@ -76,7 +76,7 @@ export class AudioManager {
         }
     }
 
-    togglePlayPauseOrSetSong() {
+    togglePlayPauseOrSetMedia() {
         if (!this._audio) {
             console.warn(
                 "(togglePlayPauseOrSetSong) Audio element not initialized"
@@ -98,19 +98,19 @@ export class AudioManager {
             return;
         }
         if (
-            rockIt.queueManager.currentSong &&
-            rockIt.queueManager.currentSong.audioSrc &&
+            rockIt.queueManager.currentMedia &&
+            rockIt.queueManager.currentMedia.audioSrc &&
             rockIt.queueManager.currentQueueMediaId != null &&
-            this._audio.src != rockIt.queueManager.currentSong.audioSrc
+            this._audio.src != rockIt.queueManager.currentMedia.audioSrc
         ) {
             console.log(
-                `(setSong) Setting audio src to ${rockIt.queueManager.currentSong.audioSrc}`
+                `(setSong) Setting audio src to ${rockIt.queueManager.currentMedia.audioSrc}`
             );
             this._audio.volume = this._currentVolume.get();
-            this._audio.src = rockIt.queueManager.currentSong.audioSrc;
+            this._audio.src = rockIt.queueManager.currentMedia.audioSrc;
 
             rockIt.webSocketManager.sendCurrentMedia({
-                mediaPublicId: rockIt.queueManager.currentSong.publicId,
+                mediaPublicId: rockIt.queueManager.currentMedia.publicId,
                 queueMediaId: rockIt.queueManager.currentQueueMediaId,
             });
         }
@@ -137,7 +137,7 @@ export class AudioManager {
     playStream(url: string) {
         if (!this._audio) return;
 
-        rockIt.queueManager.clearCurrentSong?.();
+        rockIt.queueManager.clearCurrentMedia?.();
 
         this._audio.src = url;
         this._audio.volume = this._currentVolume.get();
@@ -190,7 +190,7 @@ export class AudioManager {
         const timeFrom = this._audio.currentTime;
         this._audio.currentTime = time;
 
-        if (!rockIt.queueManager.currentSong?.publicId) {
+        if (!rockIt.queueManager.currentMedia?.publicId) {
             rockIt.notificationManager.notifyError(
                 "Current song is not defined to send seek."
             );
@@ -198,7 +198,7 @@ export class AudioManager {
         }
 
         rockIt.webSocketManager.sendSeek({
-            mediaPublicId: rockIt.queueManager.currentSong?.publicId,
+            mediaPublicId: rockIt.queueManager.currentMedia.publicId,
             timeFrom,
             timeTo: time,
         });
@@ -254,7 +254,7 @@ export class AudioManager {
     }
 
     private handleAudioEnded() {
-        const currentSong = rockIt.queueManager.currentSong;
+        const currentSong = rockIt.queueManager.currentMedia;
         const repeat = rockIt.userManager.repeatModeAtom.get();
         const queue = rockIt.queueManager.queue;
         const currentQueueMediaId = rockIt.queueManager.currentQueueMediaId;

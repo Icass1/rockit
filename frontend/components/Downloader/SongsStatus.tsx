@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { BaseSongWithAlbumResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
-import { useLanguage } from "@/contexts/LanguageContext";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 function SongDownload({
@@ -88,9 +87,6 @@ function SongDownload({
 
 export default function SongsStatus() {
     const $downloadInfo = useStore(rockIt.downloaderManager.downloadInfoAtom);
-
-    const { langFile: lang } = useLanguage();
-    if (!lang) return false;
 
     const someSelected = $downloadInfo.some((item) => item.selected);
 

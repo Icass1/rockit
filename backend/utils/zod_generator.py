@@ -133,7 +133,11 @@ def convert_type_to_zod(
                     convert_type_to_zod(arg, known_types, current_file, schema_refs)
                     for arg in non_none_args
                 ]
-                return f"z.union([{', '.join(union_parts)}]).nullable()"
+                is_optional = any(arg is type(None) for arg in args)
+                if is_optional:
+                    return f"z.union([{', '.join(union_parts)}]).nullable()"
+                else:
+                    return f"z.union([{', '.join(union_parts)}])"
         return "z.any()"
 
     return "z.any()"

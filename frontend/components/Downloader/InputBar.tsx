@@ -2,13 +2,9 @@
 
 import { useState } from "react";
 import { ArrowDownToLine } from "lucide-react";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function InputBar() {
     const [url, setURL] = useState("");
-
-    const { langFile: lang } = useLanguage();
-    if (!lang) return false;
 
     return (
         <div className="flex w-full flex-row items-center gap-2 px-2">
@@ -16,7 +12,7 @@ export default function InputBar() {
                 list="browsers"
                 type="search"
                 className="my-2 w-full rounded-full bg-neutral-800 px-4 py-2 focus:outline-0"
-                placeholder={lang.download_input_placeholder}
+                // placeholder={vocabulary.DOWNLOAD_INPUT_PLACEHOLDER}
                 value={url}
                 onChange={(e) => {
                     setURL(e.target.value);

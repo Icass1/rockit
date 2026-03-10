@@ -2,16 +2,10 @@
 
 import { useRef, useState } from "react";
 import { QueueResponseItem } from "@/dto";
-import { Lang } from "@/types/lang";
 import { PlayerUIQueueList } from "@/components/PlayerUI/PlayerUIQueueList";
 import { PlayerUIRelatedTab } from "@/components/PlayerUI/PlayerUIRelatedTab";
 
-interface PlayerUIQueueColumnProps {
-    queue: QueueResponseItem[];
-    lang: Lang;
-}
-
-export function PlayerUIQueueColumn({ queue, lang }: PlayerUIQueueColumnProps) {
+export function PlayerUIQueueColumn({ queue }: { queue: QueueResponseItem[] }) {
     const [currentTab, setCurrentTab] = useState<"queue" | "recommended">(
         "queue"
     );
@@ -44,7 +38,6 @@ export function PlayerUIQueueColumn({ queue, lang }: PlayerUIQueueColumnProps) {
                     <PlayerUIQueueList
                         queue={queue}
                         queueScroll={queueScroll}
-                        lang={lang}
                     />
                 ) : (
                     <PlayerUIRelatedTab />

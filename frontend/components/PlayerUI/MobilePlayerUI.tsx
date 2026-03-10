@@ -18,6 +18,7 @@ import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
 import LikeButton from "@/components/LikeButton";
 import SongPopupMenu from "@/components/ListSongs/SongPopupMenu";
+import MediaPopupMenu from "@/components/MediaPopupMenu";
 import { useMobilePlayerVisibility } from "@/components/PlayerUI/hooks/useMobilePlayerVisibility";
 import { useMobileSwipeDismiss } from "@/components/PlayerUI/hooks/useMobileSwipeDismiss";
 import MobilePlayerUILyrics from "@/components/PlayerUI/MobilePlayerUILyrics";
@@ -27,7 +28,7 @@ import Slider from "@/components/Slider";
 export default function MobilePlayerUI() {
     const $playing = useStore(rockIt.audioManager.playingAtom);
     const $currentTime = useStore(rockIt.audioManager.currentTimeAtom);
-    const $currentSong = useStore(rockIt.queueManager.currentSongAtom);
+    const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
     const $queueType = useStore(rockIt.userManager.queueTypeAtom);
 
     const { width: innerWidth } = useWindowSize();
@@ -47,7 +48,7 @@ export default function MobilePlayerUI() {
     if (hidden) return null;
 
     const coverSrc =
-        $currentSong?.internalImageUrl ?? rockIt.SONG_PLACEHOLDER_IMAGE_URL;
+        $currentMedia?.internalImageUrl ?? rockIt.SONG_PLACEHOLDER_IMAGE_URL;
 
     return (
         <div
@@ -82,10 +83,10 @@ export default function MobilePlayerUI() {
                     className="h-8 w-8 cursor-pointer text-neutral-300"
                     onClick={() => rockIt.playerUIManager.hide()}
                 />
-                {$currentSong ? (
-                    <SongPopupMenu song={$currentSong}>
+                {$currentMedia ? (
+                    <MediaPopupMenu media={$currentMedia}>
                         <Ellipsis className="h-6 w-8 text-neutral-300" />
-                    </SongPopupMenu>
+                    </MediaPopupMenu>
                 ) : (
                     <Ellipsis className="h-6 w-8 text-neutral-300" />
                 )}
@@ -96,7 +97,7 @@ export default function MobilePlayerUI() {
                 {/* Song artwork */}
                 <Image
                     src={coverSrc}
-                    alt={$currentSong?.name ?? "Current song artwork"}
+                    alt={$currentMedia?.name ?? "Current song artwork"}
                     width={600}
                     height={600}
                     className="relative left-1/2 aspect-square h-auto max-h-full min-h-0 w-auto min-w-0 max-w-full -translate-x-1/2 rounded-lg object-cover"
@@ -107,16 +108,16 @@ export default function MobilePlayerUI() {
                 <div className="flex w-full max-w-md items-center justify-between pl-5 pr-7">
                     <div className="min-w-0 flex-1 text-left">
                         <h2 className="truncate text-xl font-[650]">
-                            {$currentSong?.name}
+                            {$currentMedia?.name}
                         </h2>
                         <p className="truncate font-semibold text-gray-300">
-                            {$currentSong?.artists
+                            {$currentMedia?.artists
                                 .map((a) => a.name)
                                 .join(", ")}
                         </p>
                     </div>
-                    {$currentSong && (
-                        <LikeButton mediaPublicId={$currentSong.publicId} />
+                    {$currentMedia && (
+                        <LikeButton mediaPublicId={$currentMedia.publicId} />
                     )}
                 </div>
 
@@ -127,7 +128,7 @@ export default function MobilePlayerUI() {
                         value={$currentTime || 0}
                         className="h-2 w-full cursor-pointer appearance-none bg-neutral-700"
                         min={0}
-                        max={$currentSong?.duration}
+                        max={$currentMedia?.duration}
                         step={0.001}
                         onChange={(e) =>
                             rockIt.audioManager.setCurrentTime(
@@ -137,7 +138,7 @@ export default function MobilePlayerUI() {
                     />
                     <div className="mt-1 flex justify-between text-sm text-neutral-100">
                         <span>{getTime($currentTime || 0)}</span>
-                        <span>{getTime($currentSong?.duration || 0)}</span>
+                        <span>{getTime($currentMedia?.duration || 0)}</span>
                     </div>
                 </div>
 

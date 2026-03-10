@@ -21,7 +21,7 @@ type LyricsState =
  * - `computedIndex` — resolved index (timestamps > manual for dynamic lyrics)
  */
 export function useLyrics() {
-    const $currentSong = useStore(rockIt.queueManager.currentSongAtom);
+    const $currentSong = useStore(rockIt.queueManager.currentMediaAtom);
     const $currentTime = useStore(rockIt.audioManager.currentTimeAtom);
 
     const [lyricsState, setLyricsState] = useState<LyricsState>(() => {

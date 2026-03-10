@@ -1,28 +1,28 @@
 "use client";
 
 import { useState } from "react";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { useStore } from "@nanostores/react";
+import { rockIt } from "@/lib/rockit/rockIt";
 import UserStats from "@/components/Stats/UserStats";
 
 export default function StatsClient() {
     const [selectedSection, setSelectedSection] = useState<string>("user");
 
-    const { langFile: lang } = useLanguage();
-    if (!lang) return false;
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     const pages: { [key: string]: string } = {
-        user: lang.user,
-        general: lang.general,
-        friends: lang.friends,
+        user: $vocabulary.USER,
+        general: $vocabulary.GENERAL,
+        friends: $vocabulary.FRIENDS,
     };
 
     return (
         <div className="mb-20 mt-24 flex h-full w-full flex-col overflow-y-auto px-6 pt-24 md:mb-0 md:mt-3 md:px-12">
             <div className="flex flex-col items-center justify-between space-y-4 md:flex-row md:space-y-0">
                 <h2 className="text-center text-2xl font-bold md:text-left">
-                    {selectedSection === "user" && lang.user_stats}
-                    {selectedSection === "general" && lang.general_stats}
-                    {selectedSection === "friends" && lang.friends_stats}
+                    {selectedSection === "user" && $vocabulary.USER_STATS}
+                    {selectedSection === "general" && $vocabulary.GENERAL_STATS}
+                    {selectedSection === "friends" && $vocabulary.FRIENDS_STATS}
                 </h2>
 
                 <div className="flex space-x-1 rounded-lg bg-[#1a1a1a] px-1 py-1">

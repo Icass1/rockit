@@ -7,15 +7,15 @@ import { Pause, Play } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
 
-export function QueueSong({ song }: { song: QueueResponseItem }) {
+export function QueueMedia({ media }: { media: QueueResponseItem }) {
     const $currentQueueMediaId = useStore(
         rockIt.queueManager.currentQueueMediaIdAtom
     );
     const $playing = useStore(rockIt.audioManager.playingAtom);
 
-    const isCurrent = song.queueMediaId === $currentQueueMediaId;
+    const isCurrent = media.queueMediaId === $currentQueueMediaId;
 
-    // TODO: implement click handler when queueManager.playSongFromQueue is available
+    // TODO: implement click handler when queueManager.playMediaFromQueue is available
     const handleClick = () => {};
 
     return (
@@ -30,10 +30,10 @@ export function QueueSong({ song }: { song: QueueResponseItem }) {
             <div className="relative">
                 <Image
                     src={
-                        song.song.internalImageUrl ??
+                        media.media.internalImageUrl ??
                         rockIt.SONG_PLACEHOLDER_IMAGE_URL
                     }
-                    alt={song.song.name}
+                    alt={media.media.name}
                     className={`h-12 w-12 rounded object-cover ${isCurrent ? "brightness-50" : ""}`}
                     width={100}
                     height={100}
@@ -51,15 +51,15 @@ export function QueueSong({ song }: { song: QueueResponseItem }) {
 
             <div className="min-w-0 max-w-full flex-1">
                 <p className="truncate text-base font-semibold text-white">
-                    {song.song.name}
+                    {media.media.name}
                 </p>
                 <p className="truncate text-sm text-gray-300">
-                    {song.song.artists.map((a) => a.name).join(", ")}
+                    {media.media.artists.map((a) => a.name).join(", ")}
                 </p>
             </div>
 
             <p className="px-2 text-sm text-gray-300">
-                {getTime(song.song.duration)}
+                {getTime(media.media.duration)}
             </p>
         </li>
     );

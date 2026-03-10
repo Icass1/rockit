@@ -14,7 +14,7 @@ function SongPageCoverIcon({
     song: BaseSongWithAlbumResponse;
     hover: boolean;
 }) {
-    const $currentSong = useStore(rockIt.queueManager.currentSongAtom);
+    const $currentSong = useStore(rockIt.queueManager.currentMediaAtom);
     const $playing = useStore(rockIt.audioManager.playingAtom);
 
     const iconClassName =

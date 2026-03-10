@@ -40,7 +40,7 @@ interface PiPCoverProps {
 }
 
 export function PiPCover({ showControls }: PiPCoverProps) {
-    const $currentSong = useStore(rockIt.queueManager.currentSongAtom);
+    const $currentSong = useStore(rockIt.queueManager.currentMediaAtom);
 
     return (
         <div style={S.coverWrapper as React.CSSProperties}>

@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { BaseSongWithAlbumResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
 import {
     EllipsisVertical,
@@ -11,16 +10,14 @@ import {
     Play,
     PlayIcon,
 } from "lucide-react";
+import { MediaType } from "@/types/media";
 import { Station } from "@/types/station";
 import { rockIt } from "@/lib/rockit/rockIt";
+import Artists from "@/components/Artists/Artists";
 import LikeButton from "@/components/LikeButton";
-import SongPopupMenu from "@/components/ListSongs/SongPopupMenu";
+import MediaPopupMenu from "@/components/MediaPopupMenu";
 
-function FooterLeftForSong({
-    currentSong,
-}: {
-    currentSong: BaseSongWithAlbumResponse;
-}) {
+function FooterLeftForSong({ currentMedia }: { currentMedia: MediaType }) {
     const $playing = useStore(rockIt.audioManager.playingAtom);
     const $queue = useStore(rockIt.queueManager.queueAtom);
 
@@ -31,13 +28,13 @@ function FooterLeftForSong({
             {/* Album cover */}
             <div
                 className="group relative h-9 w-9 cursor-pointer rounded-md md:h-16 md:w-16"
-                onClick={() => rockIt.audioManager.togglePlayPauseOrSetSong()}
+                onClick={() => rockIt.audioManager.togglePlayPauseOrSetMedia()}
             >
                 <Image
                     width={64}
                     height={64}
-                    src={currentSong.internalImageUrl}
-                    alt={`Cover of ${currentSong.name}`}
+                    src={currentMedia.internalImageUrl}
+                    alt={`Cover of ${currentMedia.name}`}
                     className="absolute h-9 w-9 select-none rounded-md object-cover transition duration-300 group-hover:brightness-50 md:h-16 md:w-16"
                 />
                 <div className="absolute inset-0 flex items-center justify-center opacity-0 transition group-hover:opacity-100">
@@ -53,51 +50,37 @@ function FooterLeftForSong({
             <div className="relative h-full w-full min-w-0 max-w-full overflow-hidden">
                 <div className="relative top-1/2 flex -translate-y-1/2 flex-col">
                     <Link
-                        href={`/song/${currentSong.publicId}`}
+                        href={`/song/${currentMedia.publicId}`}
                         prefetch={false}
                         onClick={() => rockIt.playerUIManager.hide()}
                         className="w-full min-w-0 max-w-full truncate font-semibold md:hover:underline"
                     >
-                        {currentSong.name || "Unknown song"}
+                        {currentMedia.name || "Unknown song"}
                     </Link>
                     <div className="flex w-full flex-row gap-x-1 text-sm text-gray-400">
                         <div className="truncate">
-                            {currentSong.artists?.map((artist, index) => (
-                                <Link
-                                    key={artist.publicId}
-                                    href={`/artist/${artist.publicId}`}
-                                    prefetch={false}
-                                    onClick={() =>
-                                        rockIt.playerUIManager.hide()
-                                    }
-                                    className="md:hover:underline"
-                                >
-                                    {artist.name}
-                                    {index < currentSong.artists.length - 1
-                                        ? ", "
-                                        : ""}
-                                </Link>
-                            )) ?? <span>Unknown artist</span>}
+                            <Artists artists={currentMedia.artists}></Artists>
                         </div>
                         <span className="hidden select-none md:block">•</span>
-                        <Link
-                            href={`/album/${currentSong.album.publicId}`}
+                        <span>TODO</span>
+                        {/* <Link
+                            href={`/album/${currentMedia.album.publicId}`}
                             prefetch={false}
                             onClick={() => rockIt.playerUIManager.hide()}
                             className="hidden truncate md:inline-block md:hover:underline"
                         >
-                            {currentSong.album.name || "Unknown album"}
-                        </Link>
+                            {currentMedia.album.name || "Unknown album"}
+                        </Link> */}
                     </div>
                 </div>
             </div>
 
             {/* Actions */}
             <div className="hidden flex-row items-center gap-1 md:flex">
-                <LikeButton mediaPublicId={currentSong.publicId} />
-                <SongPopupMenu song={currentSong}>
+                <LikeButton mediaPublicId={currentMedia.publicId} />
+                <MediaPopupMenu media={currentMedia}>
                     <EllipsisVertical className="h-6 w-5 text-gray-400 md:hover:scale-105 md:hover:text-white" />
-                </SongPopupMenu>
+                </MediaPopupMenu>
             </div>
         </div>
     );
@@ -149,10 +132,10 @@ function FooterLeftForStation({ currentStation }: { currentStation: Station }) {
 }
 
 export default function FooterLeft() {
-    const $currentSong = useStore(rockIt.queueManager.currentSongAtom);
+    const $currentSong = useStore(rockIt.queueManager.currentMediaAtom);
     const $currentStation = useStore(rockIt.stationManager.currentStationAtom);
 
-    if ($currentSong) return <FooterLeftForSong currentSong={$currentSong} />;
+    if ($currentSong) return <FooterLeftForSong currentMedia={$currentSong} />;
     if ($currentStation)
         return <FooterLeftForStation currentStation={$currentStation} />;
 

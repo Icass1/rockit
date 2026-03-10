@@ -26,7 +26,7 @@ interface PiPProgressProps {
 
 export function PiPProgress({ show }: PiPProgressProps) {
     const $currentTime = useStore(rockIt.audioManager.currentTimeAtom);
-    const $currentSong = useStore(rockIt.queueManager.currentSongAtom);
+    const $currentSong = useStore(rockIt.queueManager.currentMediaAtom);
 
     const progress =
         (($currentTime ?? 0) / ($currentSong?.duration ?? 1)) * 100;

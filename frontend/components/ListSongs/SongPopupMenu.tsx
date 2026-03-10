@@ -17,7 +17,6 @@ import {
     PlayCircle,
     Share2,
 } from "lucide-react";
-import { useLanguage } from "@/contexts/LanguageContext";
 import useDev from "@/hooks/useDev";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { networkStatus } from "@/lib/stores/networkStatus";
@@ -35,16 +34,14 @@ export default function SongPopupMenu({
     children: ReactNode;
     song: BaseSongWithAlbumResponse;
 }) {
-    const { langFile: lang } = useLanguage();
     const router = useRouter();
     const dev = useDev();
 
     const $networkStatus = useStore(networkStatus);
     const $playing = useStore(rockIt.audioManager.playingAtom);
     const $likedSongs = useStore(rockIt.mediaManager.likedMediaAtom);
-    const $currentSong = useStore(rockIt.queueManager.currentSongAtom);
-
-    if (!lang) return null;
+    const $currentSong = useStore(rockIt.queueManager.currentMediaAtom);
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     const offline = $networkStatus === "offline";
 
@@ -62,7 +59,7 @@ export default function SongPopupMenu({
     // --- actions -------------------------------------------------------------
 
     const handlePlay = () => {
-        rockIt.audioManager.togglePlayPauseOrSetSong();
+        rockIt.audioManager.togglePlayPauseOrSetMedia();
     };
 
     const handleLike = () => {
@@ -70,7 +67,7 @@ export default function SongPopupMenu({
     };
 
     const handleDownloadDevice = () => {
-        rockIt.indexedDBManager.saveSongToIndexedDB(song);
+        rockIt.indexedDBManager.saveMediaToIndexedDB(song);
     };
 
     const handleServerDownload = () => {
@@ -117,12 +114,12 @@ export default function SongPopupMenu({
                     {isCurrentSong && $playing ? (
                         <>
                             <Pause className="h-5 w-5" />
-                            {lang.pause_song ?? "Pause song"}
+                            {$vocabulary.PAUSE_SONG ?? "Pause song"}
                         </>
                     ) : (
                         <>
                             <PlayCircle className="h-5 w-5" />
-                            {lang.play_song}
+                            {$vocabulary.PLAY_SONG}
                         </>
                     )}
                 </PopupMenuOption>
@@ -131,17 +128,19 @@ export default function SongPopupMenu({
                     disabled={offline || !song.downloaded}
                     onClick={handleLike}
                 >
-                    {isLiked ? lang.remove_from_liked : lang.add_to_liked}
+                    {isLiked
+                        ? $vocabulary.REMOVE_FROM_LIKED
+                        : $vocabulary.ADD_TO_LIKED}
                 </PopupMenuOption>
 
                 <PopupMenuOption disabled={!song.downloaded}>
                     <ListStart className="h-5 w-5" />
-                    {lang.play_next}
+                    {$vocabulary.PLAY_NEXT}
                 </PopupMenuOption>
 
                 <PopupMenuOption disabled={!song.downloaded}>
                     <ListEnd className="h-5 w-5" />
-                    {lang.add_to_queue}
+                    {$vocabulary.ADD_TO_QUEUE}
                 </PopupMenuOption>
 
                 <PopupMenuOption
@@ -149,22 +148,22 @@ export default function SongPopupMenu({
                     onClick={handleShare}
                 >
                     <Share2 className="h-5 w-5" />
-                    {lang.share_song}
+                    {$vocabulary.SHARE_SONG}
                 </PopupMenuOption>
 
                 <PopupMenuOption onClick={handleCopy}>
                     <Copy className="h-5 w-5" />
-                    {lang.copy_song_url}
+                    {$vocabulary.COPY_SONG_URL}
                 </PopupMenuOption>
 
                 <PopupMenuOption disabled>
                     <ListX className="h-5 w-5" />
-                    {lang.remove_from_queue}
+                    {$vocabulary.REMOVE_FROM_QUEUE}
                 </PopupMenuOption>
 
                 <PopupMenuOption disabled>
                     <Download className="h-5 w-5" />
-                    {lang.download_mp3}
+                    {$vocabulary.DOWNLOAD_MP3}
                 </PopupMenuOption>
 
                 <PopupMenuOption
@@ -172,7 +171,7 @@ export default function SongPopupMenu({
                     onClick={handleDownloadDevice}
                 >
                     <HardDriveDownload className="h-5 w-5" />
-                    {lang.download_song_to_device}
+                    {$vocabulary.DOWNLOAD_MEDIA_TO_DEVICE}
                 </PopupMenuOption>
 
                 {!song.downloaded && (
@@ -187,12 +186,12 @@ export default function SongPopupMenu({
 
                 <PopupMenuOption onClick={goToArtist}>
                     <Link className="h-5 w-5" />
-                    {lang.go_to_artist}
+                    {$vocabulary.GO_TO_ARTIST}
                 </PopupMenuOption>
 
                 <PopupMenuOption onClick={goToAlbum}>
                     <Link className="h-5 w-5" />
-                    {lang.go_to_album}
+                    {$vocabulary.GO_TO_ALBUM}
                 </PopupMenuOption>
 
                 {dev && (

@@ -1,9 +1,9 @@
 import {
-    BaseSongWithAlbumResponse,
     CurrentQueueMessageRequestItem,
     QueueResponseItem,
     QueueResponseSchema,
 } from "@/dto";
+import { MediaType } from "@/types/media";
 import { DBListType, QueueListType } from "@/types/rockIt";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createArrayAtom, createAtom } from "@/lib/store";
@@ -12,9 +12,7 @@ import { baseApiFetch } from "@/lib/utils/apiFetch";
 export class QueueManager {
     // #region: Atoms
 
-    private _currentSongAtom = createAtom<
-        BaseSongWithAlbumResponse | undefined
-    >();
+    private _currentMediaAtom = createAtom<MediaType | undefined>();
     private _currentListAtom = createAtom<string | undefined>();
 
     private _queueAtom = createArrayAtom<QueueResponseItem>([]);
@@ -48,24 +46,24 @@ export class QueueManager {
         this._queueAtom.set(
             responseParsed.queue.map((queueElement): QueueResponseItem => {
                 return {
-                    song: queueElement.song,
+                    media: queueElement.media,
                     queueMediaId: queueElement.queueMediaId,
                     listPublicId: queueElement.listPublicId,
                 };
             })
         );
 
-        const currentSong = this._queueAtom
+        const currentMedia = this._queueAtom
             .get()
             .find(
-                (song) =>
-                    song.queueMediaId == this._currentQueueMediaIdAtom.get()
+                (media) =>
+                    media.queueMediaId == this._currentQueueMediaIdAtom.get()
             );
 
-        console.log(currentSong?.song, currentSong?.listPublicId);
+        console.log(currentMedia?.media, currentMedia?.listPublicId);
 
-        this._currentSongAtom.set(currentSong?.song);
-        this._currentListAtom.set(currentSong?.listPublicId);
+        this._currentMediaAtom.set(currentMedia?.media);
+        this._currentListAtom.set(currentMedia?.listPublicId);
     }
 
     // #endregion: Constructor
@@ -109,15 +107,15 @@ export class QueueManager {
         }
     }
 
-    setSongs(
-        songs: BaseSongWithAlbumResponse[],
+    setMedia(
+        medias: MediaType[],
         listType: QueueListType,
         listPublicId: string
     ) {
-        const queueData: CurrentQueueMessageRequestItem[] = songs.map(
-            (song, index): CurrentQueueMessageRequestItem => {
+        const queueData: CurrentQueueMessageRequestItem[] = medias.map(
+            (media, index): CurrentQueueMessageRequestItem => {
                 return {
-                    publicId: song.publicId,
+                    publicId: media.publicId,
                     queueMediaId: index,
                 };
             }
@@ -129,55 +127,55 @@ export class QueueManager {
         });
 
         this._queueAtom.set(
-            songs.map((song, index) => {
+            medias.map((media, index) => {
                 return {
                     listPublicId: listPublicId,
-                    song,
+                    media,
                     queueMediaId: index,
                 };
             })
         );
     }
 
-    moveToSong(publicId: string) {
-        const song = this._queueAtom
+    moveToMedia(publicId: string) {
+        const media = this._queueAtom
             .get()
-            .find((song) => song.song.publicId == publicId);
-        if (!song) {
+            .find((media) => media.media.publicId == publicId);
+        if (!media) {
             rockIt.notificationManager.notifyError(
-                "(moveToSong) Song not found in queue."
+                "(moveToMedia) Media not found in queue."
             );
             return;
         }
         rockIt.webSocketManager.sendMediaClicked({ mediaPublicId: publicId });
-        this._currentQueueMediaIdAtom.set(song.queueMediaId);
-        this._currentSongAtom.set(song.song);
-        this._currentListAtom.set(song.listPublicId);
+        this._currentQueueMediaIdAtom.set(media.queueMediaId);
+        this._currentMediaAtom.set(media.media);
+        this._currentListAtom.set(media.listPublicId);
     }
 
     setQueueMediaId(queueMediaId: number) {
         this._currentQueueMediaIdAtom.set(queueMediaId);
 
-        const song = this._queueAtom
+        const media = this._queueAtom
             .get()
-            .find((song) => song.queueMediaId == queueMediaId);
+            .find((media) => media.queueMediaId == queueMediaId);
 
-        if (!song) {
+        if (!media) {
             rockIt.notificationManager.notifyError(
-                "(setIndex) Song not found in queue."
+                "(setIndex) Media not found in queue."
             );
             return;
         }
-        this._currentSongAtom.set(song.song);
-        this._currentListAtom.set(song.listPublicId);
+        this._currentMediaAtom.set(media.media);
+        this._currentListAtom.set(media.listPublicId);
     }
 
     setCurrentList(currentList: string | undefined) {
         this._currentListAtom.set(currentList);
     }
 
-    clearCurrentSong(): void {
-        this._currentSongAtom.set(undefined);
+    clearCurrentMedia(): void {
+        this._currentMediaAtom.set(undefined);
     }
 
     async addListToTopAsync(type: DBListType, publicId: string) {
@@ -195,12 +193,12 @@ export class QueueManager {
         throw "(addListToBottomAsync) Not implemented method";
     }
 
-    addSongNext(_song: BaseSongWithAlbumResponse) {
-        // TODO: Implement backend - add song to play next
+    addMediaNext(_media: MediaType) {
+        // TODO: Implement backend - add media to play next
     }
 
-    addSongToEnd(_song: BaseSongWithAlbumResponse) {
-        // TODO: Implement backend - add song to end of queue
+    addMediaToEnd(_media: MediaType) {
+        // TODO: Implement backend - add media to end of queue
     }
 
     shuffleQueue() {
@@ -218,7 +216,7 @@ export class QueueManager {
             [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
         }
 
-        // Keep current song at the front
+        // Keep current media at the front
         const currentIndex = shuffled.findIndex(
             (item) => item.queueMediaId === currentQueueMediaId
         );
@@ -238,7 +236,7 @@ export class QueueManager {
         const currentQueueMediaId = this.currentQueueMediaId;
         const restored = [...this._originalQueue];
 
-        // Keep current song at the front
+        // Keep current media at the front
         const currentIndex = restored.findIndex(
             (item) => item.queueMediaId === currentQueueMediaId
         );
@@ -260,12 +258,12 @@ export class QueueManager {
 
     // #region: Getters
 
-    get currentSongAtom() {
-        return this._currentSongAtom.getReadonlyAtom();
+    get currentMediaAtom() {
+        return this._currentMediaAtom.getReadonlyAtom();
     }
 
-    get currentSong() {
-        return this._currentSongAtom.get();
+    get currentMedia() {
+        return this._currentMediaAtom.get();
     }
 
     get currentListAtom() {

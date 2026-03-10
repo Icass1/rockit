@@ -9,10 +9,12 @@ from backend.core.access.db.ormModels.user_media_ended import UserMediaEndedRow 
 from backend.core.access.db.ormModels.user_liked_media import UserLikedMediaRow  # type: ignore
 from backend.core.access.db.ormModels.downloadStatus import DownloadStatusRow  # type: ignore
 from backend.core.access.db.ormModels.downloadGroup import DownloadGroupRow  # type: ignore
+from backend.core.access.db.ormModels.vocabulary import VocabularyRow  # type: ignore
 from backend.core.access.db.ormModels.requestLog import RequestLogRow  # type: ignore
 from backend.core.access.db.ormModels.user_seeks import UserSeeksRow  # type: ignore
 from backend.core.access.db.ormModels.user_queue import UserQueueRow  # type: ignore
 from backend.core.access.db.ormModels.download import DownloadRow  # type: ignore
+from backend.core.access.db.ormModels.language import LanguageRow  # type: ignore
 from backend.core.access.db.ormModels.provider import ProviderRow  # type: ignore
 from backend.core.access.db.ormModels.session import SessionRow  # type: ignore
 from backend.core.access.db.ormModels.media import CoreMediaRow  # type: ignore

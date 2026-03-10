@@ -20,7 +20,9 @@ from backend.spotify.responses.artistResponse import SpotifyArtistResponse
 
 logger: Logger = getLogger(name=__name__)
 router = APIRouter(
-    prefix="/spotify", dependencies=[Depends(dependency=AuthMiddleware.auth_dependency)]
+    prefix="/spotify",
+    dependencies=[Depends(dependency=AuthMiddleware.auth_dependency)],
+    tags=["Spotify"],
 )
 
 

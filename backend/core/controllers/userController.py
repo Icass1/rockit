@@ -38,7 +38,9 @@ ph = PasswordHasher(
 
 logger: Logger = getLogger(name=__name__)
 router = APIRouter(
-    prefix="/user", dependencies=[Depends(dependency=AuthMiddleware.auth_dependency)]
+    prefix="/user",
+    dependencies=[Depends(dependency=AuthMiddleware.auth_dependency)],
+    tags=["Core", "User"],
 )
 
 

@@ -234,6 +234,7 @@ All code, comments, documentation, and messages MUST be written in **English onl
 - Never call access directly from controller
 - Never create database sessions in access functions
 - Never write SQL queries in framework or controller layers - use access layer instead
+- Never return `dict` or raw types from endpoints - always use a BaseModel from responses
 
 ### Frontend
 - Never add `"use client"` to a `page.tsx`

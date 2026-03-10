@@ -8,7 +8,9 @@ from backend.core.middlewares.authMiddleware import AuthMiddleware
 
 logger: Logger = getLogger(name=__name__)
 router = APIRouter(
-    prefix="/stats", dependencies=[Depends(dependency=AuthMiddleware.auth_dependency)]
+    prefix="/stats",
+    dependencies=[Depends(dependency=AuthMiddleware.auth_dependency)],
+    tags=["Core", "Stats"],
 )
 
 

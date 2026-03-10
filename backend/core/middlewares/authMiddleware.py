@@ -1,18 +1,24 @@
 from datetime import datetime, timezone
+from logging import Logger
 
 from fastapi import HTTPException, Request
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
+from backend.utils.logger import getLogger
+from backend.constants import SESSION_COOKIE
+
+from backend.core.aResult import AResult, AResultCode
+
 from backend.core.access.db.ormModels.session import SessionRow
 from backend.core.access.db.ormModels.user import UserRow
-from backend.core.aResult import AResult, AResultCode
-from backend.core.access.userAccess import UserAccess
-from backend.constants import SESSION_COOKIE
-from backend.core.framework.auth.session import Session
-from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
-from backend.utils.logger import getLogger
 
-logger = getLogger(__name__)
+from backend.core.access.userAccess import UserAccess
+
+from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
+
+from backend.core.framework.auth.session import Session
+
+logger: Logger = getLogger(__name__)
 
 
 class AuthMiddleware:
@@ -36,10 +42,10 @@ class AuthMiddleware:
             )
 
         if a_result_session.result().expires_at < datetime.now(timezone.utc):
-            raise HTTPException(401, "Session has expired.")
+            raise HTTPException(status_code=401, detail="Session has expired.")
 
         if a_result_session.result().disabled:
-            raise HTTPException(401, "Session is disabled.")
+            raise HTTPException(status_code=401, detail="Session is disabled.")
 
         a_result_user: AResult[UserRow] = await UserAccess.get_user_from_id(
             session, user_id=a_result_session.result().user_id

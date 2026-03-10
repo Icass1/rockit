@@ -144,6 +144,14 @@ export {
     type UrlMatchResponse,
 } from "@/dto/urlMatchResponse";
 export {
+    UserVocabularyResponseSchema,
+    type UserVocabularyResponse,
+} from "@/dto/userVocabularyResponse";
+export {
+    VocabularyResponseSchema,
+    type VocabularyResponse,
+} from "@/dto/vocabularyResponse";
+export {
     YoutubeChannelResponseSchema,
     type YoutubeChannelResponse,
 } from "@/dto/youtubeChannelResponse";

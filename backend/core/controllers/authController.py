@@ -28,7 +28,7 @@ ph = PasswordHasher(
 )
 
 logger: Logger = getLogger(__name__)
-router = APIRouter(prefix="/auth")
+router = APIRouter(prefix="/auth", tags=["Core", "Auth"])
 
 
 @router.post("/login")

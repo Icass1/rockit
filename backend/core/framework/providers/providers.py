@@ -78,11 +78,11 @@ class Providers:
 
                 try:
                     if not hasattr(module, "provider"):
-                        logger.warning(f"{module_path} doesn't have 'provider' defined")
+                        logger.debug(f"{module_path} doesn't have 'provider' defined")
                         continue
 
                     if not hasattr(module, "name"):
-                        logger.warning(f"{module_path} doesn't have 'name' defined")
+                        logger.debug(f"{module_path} doesn't have 'name' defined")
                         continue
 
                     provider = module.provider

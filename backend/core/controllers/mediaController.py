@@ -28,7 +28,10 @@ from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumRe
 from backend.core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
 
 logger: Logger = getLogger(__name__)
-router = APIRouter(prefix="/media")
+router = APIRouter(
+    prefix="/media",
+    tags=["Core", "Media"],
+)
 
 
 @router.get("/song/{public_id}")

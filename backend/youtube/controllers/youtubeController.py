@@ -18,10 +18,12 @@ from backend.youtube.responses.videoResponse import YoutubeVideoResponse
 
 logger: Logger = getLogger(name=__name__)
 router = APIRouter(
-    prefix="/youtube", dependencies=[Depends(dependency=AuthMiddleware.auth_dependency)]
+    prefix="/youtube",
+    dependencies=[Depends(dependency=AuthMiddleware.auth_dependency)],
+    tags=["Youtube"],
 )
 
-public_router = APIRouter(prefix="/youtube")
+public_router = APIRouter(prefix="/youtube", tags=["Youtube", "Public"])
 
 
 @public_router.get("/video/{youtube_id}/stream")

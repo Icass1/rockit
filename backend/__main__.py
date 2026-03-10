@@ -1,18 +1,118 @@
+import os
 import sys
 import asyncio
+from typing import Any, Dict, List
 
 from backend.utils.logger import getLogger
-from backend.core.access.db import rockit_db  # type: ignore
 
 logger = getLogger(__name__)
 
 command_to_run = sys.argv[1] if len(sys.argv) > 1 else ""
 
-print(command_to_run)
+
+async def import_vocabulary() -> None:
+    """Import vocabulary from Vocabulary.xlsx file."""
+    from backend.core.access.db import rockit_db
+
+    try:
+        import openpyxl
+    except ImportError:
+        logger.error("openpyxl is required. Install with: pip install openpyxl")
+        return
+
+    file_path = os.path.join("Vocabulary.xlsx")
+
+    if not os.path.exists(file_path):
+        logger.error(f"Vocabulary.xlsx not found at {file_path}")
+        return
+
+    logger.info(f"Reading vocabulary from {file_path}")
+
+    workbook = openpyxl.load_workbook(file_path, data_only=True)
+    sheet = workbook.active
+    if sheet is None:
+        logger.error("No active sheet found in workbook")
+        workbook.close()
+        return
+
+    first_row: List[Any] = [cell.value for cell in sheet[1]]
+    logger.info(f"Found columns: {first_row}")
+
+    if not first_row or first_row[0] is None:
+        logger.error("First column must be 'KEY'")
+        return
+
+    if first_row[0] != "KEY":
+        logger.error("First column must be 'KEY'")
+        return
+
+    language_columns: List[str] = [str(h) for h in first_row[1:] if h is not None]
+    logger.info(f"Found languages: {language_columns}")
+
+    second_row: List[Any] = [cell.value for cell in sheet[2]]
+
+    language_code_columns: List[str] = [str(h) for h in second_row[1:] if h is not None]
+    logger.info(f"Found languages codes: {language_code_columns}")
+
+    vocabulary_data: Dict[str, Dict[str, str]] = {
+        lang: {} for lang in language_code_columns
+    }
+    all_keys: List[str] = []
+
+    max_row: int = sheet.max_row or 0
+    for row_idx in range(3, max_row + 1):
+        key_cell = sheet.cell(row=row_idx, column=1).value
+        if not key_cell:
+            continue
+
+        all_keys.append(str(key_cell))
+
+        for col_idx, lang_code in enumerate(language_code_columns, start=2):
+            value = sheet.cell(row=row_idx, column=col_idx).value
+            if value:
+                vocabulary_data[lang_code][str(key_cell)] = str(value)
+
+    logger.info(f"Found {len(all_keys)} vocabulary keys")
+
+    async with rockit_db.session_scope_async() as session:
+        from backend.core.framework.language import Language
+        from backend.core.framework.vocabulary import Vocabulary
+
+        for lang_name, lang_code in zip(language_columns, language_code_columns):
+            a_result = await Language.get_or_create_language(
+                session=session, lang_code=lang_code, language=lang_name
+            )
+            if a_result.is_ok():
+                logger.info(f"Language {lang_code} ready")
+            else:
+                logger.error(f"Error with language {lang_code}: {a_result.message()}")
+
+        a_result_import = await Vocabulary.import_vocabulary_from_dict(
+            session=session, vocabulary_data=vocabulary_data
+        )
+        if a_result_import.is_ok():
+            logger.info("Vocabulary imported successfully")
+        else:
+            logger.error(f"Error importing vocabulary: {a_result_import.message()}")
+
+        a_result_cleanup = await Vocabulary.remove_keys_not_in_import(
+            session=session, valid_keys=all_keys
+        )
+        if a_result_cleanup.is_ok():
+            logger.info("Cleanup completed")
+        else:
+            logger.error(f"Error during cleanup: {a_result_cleanup.message()}")
+
+    workbook.close()
+    logger.info("Import complete!")
 
 
 async def main() -> None:
     logger.info("Future CLI in progress")
+
+    from backend.core.access.db import rockit_db
+
+    await rockit_db.wait_for_session_local_async()
 
     first_loop = True
 
@@ -29,12 +129,24 @@ async def main() -> None:
 
         if command == "exit":
             break
+
         elif command == "reinit":
             await rockit_db.reinit()
+
         elif command == "zod":
             from backend.utils.zod_generator import generate_zod_schemas
 
             await generate_zod_schemas()
+
+        elif command == "import-vocabulary":
+            await import_vocabulary()
+
+        elif command == "init-db":
+            if hasattr(rockit_db, "engine"):
+                await rockit_db.engine.dispose()
+            await rockit_db.async_init()
+            logger.info("Database initialized")
+
         else:
             print("Command not found.")
 
@@ -47,4 +159,8 @@ async def main() -> None:
 if __name__ == "__main__":
     import asyncio
 
-    asyncio.run(main())
+    try:
+        loop = asyncio.get_running_loop()
+        loop.create_task(main())
+    except RuntimeError:
+        asyncio.run(main())

@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     from backend.core.access.db.ormEnums.repeatModeEnum import RepeatModeEnumRow
     from backend.core.access.db.ormModels.user_library_media import UserLibraryMediaRow
     from backend.core.access.db.ormModels.user_queue import UserQueueRow
+    from backend.core.access.db.ormModels.language import LanguageRow
 
 
 class UserRow(
@@ -43,12 +44,18 @@ class UserRow(
     cross_fade: Mapped[float] = mapped_column(
         DOUBLE_PRECISION, nullable=False, default=0
     )
-    lang: Mapped[str] = mapped_column(String, nullable=False, default="en")
+    lang_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("core.language.id"), nullable=False, default=1
+    )
     image: Mapped[str] = mapped_column(
         String, nullable=False, default="user-placeholder.png"
     )
     admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     super_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+
+    language: Mapped["LanguageRow"] = relationship(
+        "LanguageRow", back_populates=None, uselist=False
+    )
 
     repeat_mode_enum: Mapped["RepeatModeEnumRow"] = relationship(
         "RepeatModeEnumRow", back_populates="user", uselist=False
@@ -83,7 +90,7 @@ class UserRow(
         repeat_mode_key: int = 1,
         volume: float = 1,
         cross_fade: float = 0,
-        lang: str = "en",
+        lang_id: int = 1,
         image: str = "user-placeholder.png",
         admin: bool = False,
         super_admin: bool = False,
@@ -101,7 +108,7 @@ class UserRow(
         kwargs["repeat_mode_key"] = repeat_mode_key
         kwargs["volume"] = volume
         kwargs["cross_fade"] = cross_fade
-        kwargs["lang"] = lang
+        kwargs["lang_id"] = lang_id
         kwargs["image"] = image
         kwargs["admin"] = admin
         kwargs["super_admin"] = super_admin

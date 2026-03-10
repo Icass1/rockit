@@ -21,6 +21,7 @@ logger: Logger = getLogger(name=__name__)
 router = APIRouter(
     prefix="/downloader",
     dependencies=[Depends(dependency=AuthMiddleware.auth_dependency)],
+    tags=["Core", "Download"],
 )
 
 

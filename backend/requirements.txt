@@ -22,6 +22,7 @@ Deprecated==1.2.18
 deptry==0.23.0
 distlib==0.4.0
 ecdsa==0.19.1
+et_xmlfile==2.0.0
 exceptiongroup==1.2.2
 fastapi==0.103.2
 fastapi-cli==0.0.7
@@ -52,6 +53,7 @@ mypy_extensions==1.1.0
 nodeenv==1.10.0
 numpy==2.1.3
 opencv-python==4.10.0.84
+openpyxl==3.1.5
 packaging==25.0
 passlib==1.7.4
 pathspec==1.0.4

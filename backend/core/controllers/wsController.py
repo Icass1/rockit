@@ -15,7 +15,7 @@ from backend.core.framework.auth.session import Session
 from backend.core.framework.websocket.webSocketManager import ws_manager
 
 logger: Logger = getLogger(__name__)
-router = APIRouter(prefix="/ws")
+router = APIRouter(prefix="/ws", tags=["Core", "WS"])
 
 
 async def get_user_id_from_websocket(websocket: WebSocket) -> int:

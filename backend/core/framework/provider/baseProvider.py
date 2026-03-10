@@ -30,7 +30,7 @@ class BaseProvider:
         self._name = provider_name
 
     async def async_init(self, session: AsyncSession):
-        logger.warning(f"Provider {self} does not implement async_int")
+        logger.debug(f"Provider {self} does not implement async_int")
         """TODO"""
 
     def get_id(self) -> AResult[int]:

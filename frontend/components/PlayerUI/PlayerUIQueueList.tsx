@@ -140,7 +140,8 @@ export function PlayerUIQueueList({
                         media: {
                             type: "song",
                             downloaded: false,
-                            internalImageUrl: "/image/media-placeholder.png",
+                            internalImageUrl:
+                                rockIt.MEDIA_PLACEHOLDER_IMAGE_URL,
                             duration: 123,
                             discNumber: 1,
                             trackNumber: 1,
@@ -154,7 +155,7 @@ export function PlayerUIQueueList({
                                 name: "Single",
                                 releaseDate: "2024-01-01",
                                 internalImageUrl:
-                                    "/image/media-placeholder.png",
+                                    rockIt.MEDIA_PLACEHOLDER_IMAGE_URL,
                                 provider: "mock",
                                 publicId: `auto-album-${mock.id}`,
                                 url: "",
@@ -163,7 +164,7 @@ export function PlayerUIQueueList({
                                         provider: "mock",
                                         publicId: "publicId",
                                         internalImageUrl:
-                                            "/image/media-placeholder.png",
+                                            rockIt.MEDIA_PLACEHOLDER_IMAGE_URL,
                                         name: mock.artist,
                                         url: "",
                                     },
@@ -174,7 +175,7 @@ export function PlayerUIQueueList({
                                     provider: "mock",
                                     publicId: "publicId",
                                     internalImageUrl:
-                                        "/image/media-placeholder.png",
+                                        rockIt.MEDIA_PLACEHOLDER_IMAGE_URL,
                                     name: mock.artist,
                                     url: "",
                                 },

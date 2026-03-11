@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { BaseArtistResponseSchema, BaseSongWithAlbumResponse } from "@/dto";
 import { Play } from "lucide-react";
 import { AppError } from "@/lib/errors/AppError";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { baseApiFetch } from "@/lib/utils/apiFetch";
 
 export default async function ArtistPage({
@@ -109,7 +110,9 @@ export default async function ArtistPage({
                                             </span>
                                             <div className="relative h-10 w-10 md:h-12 md:w-12">
                                                 <Image
-                                                    src="/song-placeholder.png"
+                                                    src={
+                                                        rockIt.ALBUM_PLACEHOLDER_IMAGE_URL
+                                                    }
                                                     alt={`Album ${idx + 1}`}
                                                     width={48}
                                                     height={48}
@@ -140,7 +143,7 @@ export default async function ArtistPage({
                                 >
                                     <Image
                                         className="aspect-square w-full rounded-lg object-cover"
-                                        src="/song-placeholder.png"
+                                        src={rockIt.SONG_PLACEHOLDER_IMAGE_URL}
                                         alt={`Release ${idx + 1}`}
                                         width={192}
                                         height={192}
@@ -169,7 +172,7 @@ export default async function ArtistPage({
                                 >
                                     <Image
                                         className="aspect-square w-full rounded-full object-cover"
-                                        src="/user-placeholder.png"
+                                        src={rockIt.USER_PLACEHOLDER_IMAGE_URL}
                                         alt={`Artist ${idx + 1}`}
                                         width={192}
                                         height={192}

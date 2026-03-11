@@ -60,6 +60,8 @@ export class AudioManager {
         return AudioManager.#instance;
     }
 
+   
+
     // #endregion: Constructor
 
     // #region: Methods
@@ -108,6 +110,7 @@ export class AudioManager {
             );
             this._audio.volume = this._currentVolume.get();
             this._audio.src = rockIt.queueManager.currentMedia.audioSrc;
+            this._audio.currentTime = rockIt.userManager.user?.currentTime ?? 0;
 
             rockIt.webSocketManager.sendCurrentMedia({
                 mediaPublicId: rockIt.queueManager.currentMedia.publicId,

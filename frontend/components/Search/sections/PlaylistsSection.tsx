@@ -34,7 +34,7 @@ export default function PlaylistsSection({
                             className="aspect-square w-full rounded-lg object-cover"
                             src={
                                 playlist.imageUrl ||
-                                "image/song-placeholder.png"
+                                rockIt.PLAYLIST_PLACEHOLDER_IMAGE_URL
                             }
                             alt={`Cover of ${playlist.title}`}
                         />

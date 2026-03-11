@@ -32,7 +32,7 @@ export default function ArtistsSection({
                             width={350}
                             height={350}
                             className="aspect-square w-full rounded-full object-cover"
-                            src={artist.imageUrl || "/user-placeholder.png"}
+                            src={artist.imageUrl}
                             alt={`Image of ${artist.title}`}
                         />
                         <span className="mt-2 block truncate text-center font-semibold">

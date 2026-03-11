@@ -70,7 +70,14 @@ async def import_vocabulary() -> None:
         if not key_cell:
             continue
 
+        if type(key_cell) != str:
+            logger.warning(f"{key_cell} is not a number")
+            continue
+
         all_keys.append(str(key_cell))
+
+        if key_cell.startswith(" ") or key_cell.endswith(" "):
+            logger.critical(f"Traling spaces detected in key '{key_cell}'")
 
         types_content.append(f"    {key_cell}: string;")
 

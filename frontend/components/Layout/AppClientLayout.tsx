@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { UrlMatchResponseSchema } from "@/dto";
+import { UrlMatchResponseSchema, UserVocabularyResponse } from "@/dto";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { apiFetch } from "@/lib/utils/apiFetch";
 import DropOverlay from "@/components/DropOverlay";
@@ -12,15 +12,18 @@ import Navigation from "@/components/Navigation/Navigation";
 import PlayerUI from "@/components/PlayerUI/PlayerUI";
 
 export default function AppClientLayout({
+    vocabulary,
     children,
 }: {
+    vocabulary: UserVocabularyResponse;
     children: React.ReactNode;
 }) {
     const router = useRouter();
 
     useEffect(() => {
         rockIt.mediaManager.fetchLikedMedia();
-    }, []);
+        rockIt.vocabularyManager.setVocabulary(vocabulary);
+    }, [vocabulary]);
 
     const handleLinkDrop = (url: string) => {
         console.log("Dropped URL:", url);

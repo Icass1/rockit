@@ -16,7 +16,7 @@ export function LibraryFilters({
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     const pills: { key: ContentType; label: string }[] = [
-        { key: "all", label: $vocabulary.ALL ?? "All" },
+        { key: "all", label: $vocabulary.ALL },
         { key: "albums", label: $vocabulary.ALBUMS },
         { key: "playlists", label: $vocabulary.PLAYLISTS },
         { key: "songs", label: $vocabulary.SONGS },

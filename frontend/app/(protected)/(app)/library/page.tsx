@@ -1,5 +1,7 @@
+"use server";
+
 import LibraryClient from "@/components/Library/LibraryClient";
 
-export default function LibraryPage() {
+export default async function LibraryPage() {
     return <LibraryClient />;
 }

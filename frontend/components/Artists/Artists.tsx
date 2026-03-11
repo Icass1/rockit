@@ -1,9 +1,9 @@
-"use server";
+"use client";
 
 import Link from "next/link";
 import { BaseArtistResponse } from "@/dto";
 
-export default async function Artists({
+export default function Artists({
     artists,
 }: {
     artists: BaseArtistResponse[];

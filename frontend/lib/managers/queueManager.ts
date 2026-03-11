@@ -60,10 +60,9 @@ export class QueueManager {
                     media.queueMediaId == this._currentQueueMediaIdAtom.get()
             );
 
-        console.log(currentMedia?.media, currentMedia?.listPublicId);
-
         this._currentMediaAtom.set(currentMedia?.media);
         this._currentListAtom.set(currentMedia?.listPublicId);
+        rockIt.audioManager.setSong();
     }
 
     // #endregion: Constructor

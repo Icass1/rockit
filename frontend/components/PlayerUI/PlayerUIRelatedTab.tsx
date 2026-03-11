@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 const MOCK_COLUMNS = 5;
 const MOCK_SONGS_PER_COLUMN = 3;
@@ -31,7 +32,9 @@ export function PlayerUIRelatedTab() {
                                         >
                                             <Image
                                                 className="h-12 w-12 rounded-sm object-cover"
-                                                src="/song-placeholder.png"
+                                                src={
+                                                    rockIt.SONG_PLACEHOLDER_IMAGE_URL
+                                                }
                                                 alt={`Song ${n}`}
                                                 width={48}
                                                 height={48}
@@ -65,7 +68,7 @@ export function PlayerUIRelatedTab() {
                         >
                             <Image
                                 className="h-28 w-28 rounded-full object-cover"
-                                src="/user-placeholder.png"
+                                src={rockIt.USER_PLACEHOLDER_IMAGE_URL}
                                 alt={`Artist ${idx + 1}`}
                                 width={112}
                                 height={112}

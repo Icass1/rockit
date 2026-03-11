@@ -84,5 +84,9 @@ export class UserManager {
         return this._userAtom;
     }
 
+    get user() {
+        return this._userAtom.get();
+    }
+
     // #endregion
 }

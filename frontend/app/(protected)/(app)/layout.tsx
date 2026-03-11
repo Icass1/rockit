@@ -1,3 +1,4 @@
+import { rockIt } from "@/lib/rockit/rockIt";
 import AppClientLayout from "@/components/Layout/AppClientLayout";
 
 export default async function AppLayout({
@@ -5,5 +6,9 @@ export default async function AppLayout({
 }: {
     children: React.ReactNode;
 }) {
-    return <AppClientLayout>{children}</AppClientLayout>;
+    const vocabulary = await rockIt.vocabularyManager.getVocabulary();
+
+    return (
+        <AppClientLayout vocabulary={vocabulary}>{children}</AppClientLayout>
+    );
 }

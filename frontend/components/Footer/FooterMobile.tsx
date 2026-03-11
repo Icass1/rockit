@@ -86,7 +86,7 @@ export default function FooterMobile() {
             {/* Progress bar — readOnly, visual only */}
             <Slider
                 readOnly
-                id="footer-mobile-slider"
+                id="default-slider"
                 aria-label="Song progress"
                 className="relative bottom-[0.15rem] mx-1 h-[0.15rem] w-auto rounded bg-neutral-700"
                 value={$currentTime ?? 0}

@@ -10,7 +10,8 @@ export type ContentType =
     | "playlists"
     | "songs"
     | "videos"
-    | "stations";
+    | "stations"
+    | "shared";
 export type FilterMode = "default" | "asc" | "desc";
 
 interface UseLibraryDataProps {
@@ -24,6 +25,7 @@ type FilteredLibrary = {
     songs: LibraryListsResponse["songs"];
     videos: LibraryListsResponse["videos"];
     stations: LibraryListsResponse["stations"];
+    shared: LibraryListsResponse["shared"];
 };
 
 interface UseLibraryDataReturn extends FilteredLibrary {
@@ -37,6 +39,7 @@ const EMPTY: FilteredLibrary = {
     songs: [],
     videos: [],
     stations: [],
+    shared: [],
 };
 
 function filterBySearch<
@@ -99,6 +102,7 @@ export function useLibraryData({
             songs: apply(data.songs),
             videos: apply(data.videos),
             stations: apply(data.stations),
+            shared: apply(data.shared),
         };
     }, [data, searchQuery, filterMode]);
 

@@ -14,7 +14,6 @@ import Header from "@/components/Header/Header";
 import Navigation from "@/components/Navigation/Navigation";
 import NavigationMobile from "@/components/Navigation/NavigationMobile";
 import PlayerUI from "@/components/PlayerUI/PlayerUI";
-import { Fullscreen } from "lucide-react";
 
 export default function AppClientLayout({
     vocabulary,

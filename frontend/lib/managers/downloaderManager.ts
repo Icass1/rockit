@@ -66,6 +66,7 @@ export class DownloaderManager {
                 message: "In queue",
                 completed: 0,
                 selected: false,
+                status: "pending",
             },
         ]);
 
@@ -79,10 +80,15 @@ export class DownloaderManager {
     }
 
     private extractPublicId(url: string): string | null {
-        const spotifyMatch = url.match(/spotify\.com\/(track|album|playlist)\/([a-zA-Z0-9]+)/);
-        if (spotifyMatch) return `spotify:${spotifyMatch[1]}:${spotifyMatch[2]}`;
+        const spotifyMatch = url.match(
+            /spotify\.com\/(track|album|playlist)\/([a-zA-Z0-9]+)/
+        );
+        if (spotifyMatch)
+            return `spotify:${spotifyMatch[1]}:${spotifyMatch[2]}`;
 
-        const youtubeMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+        const youtubeMatch = url.match(
+            /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
+        );
         if (youtubeMatch) return `youtube:${youtubeMatch[1]}`;
 
         return null;

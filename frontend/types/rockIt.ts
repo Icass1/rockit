@@ -52,6 +52,7 @@ export const DownloadInfo = z.object({
     message: z.string(),
     selected: z.boolean(),
     publicId: z.string(),
+    status: z.string(),
 });
 
 export type DownloadInfo = z.infer<typeof DownloadInfo>;

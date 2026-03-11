@@ -60,8 +60,6 @@ export class AudioManager {
         return AudioManager.#instance;
     }
 
-   
-
     // #endregion: Constructor
 
     // #region: Methods

@@ -85,6 +85,22 @@ export {
     type MediaEndedMessageRequest,
 } from "@/dto/mediaEndedMessageRequest";
 export { OkResponseSchema, type OkResponse } from "@/dto/okResponse";
+export {
+    PlaylistContributorResponseSchema,
+    type PlaylistContributorResponse,
+} from "@/dto/playlistContributorResponse";
+export {
+    PlaylistListResponseSchema,
+    type PlaylistListResponse,
+} from "@/dto/playlistListResponse";
+export {
+    PlaylistMediaResponseSchema,
+    type PlaylistMediaResponse,
+} from "@/dto/playlistMediaResponse";
+export {
+    PlaylistResponseSchema,
+    type PlaylistResponse,
+} from "@/dto/playlistResponse";
 export { QueueResponseSchema, type QueueResponse } from "@/dto/queueResponse";
 export {
     QueueResponseItemSchema,

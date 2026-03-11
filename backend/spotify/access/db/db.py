@@ -11,7 +11,6 @@ from backend.spotify.access.db.ormModels.trackCache import CacheTrackRow  # type
 from backend.spotify.access.db.ormEnums.copyrightTypeEnum import CopyrightTypeEnumRow  # type: ignore
 
 # GENERAL TABLES
-from backend.core.access.db.ormModels.image import ImageRow  # type: ignore
 from backend.spotify.access.db.ormModels.externalImage import ExternalImageRow  # type: ignore
 from backend.spotify.access.db.ormModels.playlist import PlaylistRow  # type: ignore
 from backend.spotify.access.db.ormModels.copyright import CopyrightRow  # type: ignore

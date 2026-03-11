@@ -13,7 +13,6 @@ import {
     PlayCircle,
     Shuffle,
 } from "lucide-react";
-import { useLanguage } from "@/contexts/LanguageContext";
 import { rockIt } from "@/lib/rockit/rockIt";
 import ContextMenuContent from "@/components/ContextMenu/Content";
 import ContextMenu from "@/components/ContextMenu/ContextMenu";
@@ -32,7 +31,7 @@ export function AddListContextMenu({
     const isPinned = $pinnedLists.find(
         (_list) => _list.publicId === list.publicId
     );
-    const { langFile: lang } = useLanguage();
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     return (
         <ContextMenu>
@@ -44,7 +43,7 @@ export function AddListContextMenu({
                     }
                 >
                     <PlayCircle className="h-5 w-5" />
-                    {lang?.play_list ?? "Play list"}
+                    {$vocabulary.PLAY_LIST}
                 </ContextMenuOption>
 
                 <ContextMenuSplitter />
@@ -58,7 +57,7 @@ export function AddListContextMenu({
                     }
                 >
                     <ListStart className="h-5 w-5" />
-                    {lang?.add_list_to_queue ?? "Add list to top of queue"}
+                    {$vocabulary.ADD_LIST_TO_QUEUE}
                 </ContextMenuOption>
 
                 <ContextMenuOption
@@ -70,7 +69,7 @@ export function AddListContextMenu({
                     }
                 >
                     <Shuffle className="h-5 w-5" />
-                    {lang?.add_list_randomly ?? "Add list to queue randomly"}
+                    {$vocabulary.ADD_LIST_RANDOMLY}
                 </ContextMenuOption>
 
                 <ContextMenuOption
@@ -82,7 +81,7 @@ export function AddListContextMenu({
                     }
                 >
                     <ListEnd className="h-5 w-5" />
-                    {lang?.add_list_to_bottom ?? "Add list to bottom of queue"}
+                    {$vocabulary.ADD_LIST_TO_BOTTOM}
                 </ContextMenuOption>
 
                 <ContextMenuSplitter />
@@ -96,7 +95,7 @@ export function AddListContextMenu({
                     }
                 >
                     <Library className="h-5 w-5" />
-                    {lang?.remove_from_library ?? "Remove from library"}
+                    {$vocabulary.REMOVE_FROM_LIBRARY}
                 </ContextMenuOption>
 
                 {isPinned ? (
@@ -109,7 +108,7 @@ export function AddListContextMenu({
                         }
                     >
                         <PinOff className="h-5 w-5" />
-                        {lang?.unpin ?? "Unpin"}
+                        {$vocabulary.UNPIN}
                     </ContextMenuOption>
                 ) : (
                     <ContextMenuOption
@@ -121,7 +120,7 @@ export function AddListContextMenu({
                         }
                     >
                         <PinIcon className="h-5 w-5" />
-                        {lang?.pin ?? "Pin"}
+                        {$vocabulary.PIN}
                     </ContextMenuOption>
                 )}
 
@@ -136,7 +135,7 @@ export function AddListContextMenu({
                     }
                 >
                     <HardDriveDownload className="h-5 w-5" />
-                    {lang?.download_list_to_device ?? "Download list"}
+                    {$vocabulary.DOWNLOAD_LIST_TO_DEVICE}
                 </ContextMenuOption>
 
                 {list.type === "album" && (
@@ -149,7 +148,7 @@ export function AddListContextMenu({
                         }
                     >
                         <HardDriveDownload className="h-5 w-5" />
-                        {lang?.download_zip ?? "Download ZIP"}
+                        {$vocabulary.DOWNLOAD_ZIP}
                     </ContextMenuOption>
                 )}
             </ContextMenuContent>

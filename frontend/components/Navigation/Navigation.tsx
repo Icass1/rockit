@@ -18,7 +18,6 @@ import {
     ShieldEllipsis,
     Users,
 } from "lucide-react";
-import { useLanguage } from "@/contexts/LanguageContext";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function Navigation() {
@@ -43,56 +42,54 @@ export default function Navigation() {
 
     const $pinnedLists = useStore(rockIt.listManager.pinnedListsAtom);
 
-    const { langFile: lang } = useLanguage();
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     const activePage = usePathname();
 
     const user = useStore(rockIt.userManager.userAtom);
 
-    if (!lang) return false;
-
     const pages = [
         {
             name: "Home",
-            title: lang.home,
+            title: $vocabulary.HOME,
             href: "/",
             icon: Home,
         },
         {
             name: "Library",
-            title: lang.library,
+            title: $vocabulary.LIBRARY,
             href: "/library",
             icon: Library,
         },
         {
             name: "Search",
-            title: lang.search,
+            title: $vocabulary.SEARCH,
             href: "/search",
             icon: Search,
             disabled: false,
         },
         {
             name: "Friends",
-            title: lang.friends,
+            title: $vocabulary.FRIENDS,
             href: "/friends",
             icon: Users,
             disabled: true,
         },
         {
             name: "Radio",
-            title: lang.radio,
+            title: $vocabulary.RADIO,
             href: "/radio",
             icon: RadioTower,
         },
         {
             name: "Stats",
-            title: lang.stats,
+            title: $vocabulary.STATS,
             href: "/stats",
             icon: ChartLine,
         },
         {
             name: "Downloads",
-            title: lang.downloads,
+            title: $vocabulary.DOWNLOADS,
             href: "/downloader",
             icon: Download,
         },
@@ -109,7 +106,7 @@ export default function Navigation() {
     return (
         <div
             className={
-                "mx-auto h-full max-h-full min-h-0 select-none overflow-hidden bg-black/50 pb-4 pt-4 transition-all duration-[400ms]" +
+                "duration-400 mx-auto h-full max-h-full min-h-0 select-none overflow-hidden bg-black/50 pb-4 pt-4 transition-all" +
                 (open ? " w-56" : " w-12")
             }
             onMouseEnter={handleMouseEnter}
@@ -157,7 +154,7 @@ export default function Navigation() {
                     })}
 
                 <div
-                    className={`ml-2 h-1 rounded-full bg-neutral-600 transition-all duration-[400ms] ${
+                    className={`duration-400 ml-2 h-1 rounded-full bg-neutral-600 transition-all ${
                         open ? "w-52" : "w-8"
                     }`}
                 ></div>
@@ -170,7 +167,7 @@ export default function Navigation() {
                         <Pin className="h-5 w-5" />
                     </div>
                     <label className="text-md cursor-pointer font-semibold">
-                        {lang.pinned_lists}
+                        {$vocabulary.PINNED_LISTS}
                     </label>
                 </div>
                 <div className="flex h-full flex-col gap-4 overflow-y-scroll">

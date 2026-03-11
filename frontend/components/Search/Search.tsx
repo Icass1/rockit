@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { useStore } from "@nanostores/react";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { useSearchResults } from "@/components/Search/hooks/useSearchResults";
 import SearchBarInput from "@/components/Search/SearchBarInput";
 import AlbumsSection from "@/components/Search/sections/AlbumsSection";
@@ -11,16 +12,15 @@ import SongsSection from "@/components/Search/sections/SongsSection";
 import VideosSection from "@/components/Search/sections/VideosSection";
 
 function EmptyState() {
-    const { langFile: lang } = useLanguage();
-    if (!lang) return null;
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     return (
         <section className="flex flex-col items-center justify-center px-7 py-36 text-center text-white md:pl-12">
             <h2 className="text-2xl font-bold md:text-3xl">
-                {lang.search_empty1}
+                {$vocabulary.SEARCH_EMPTY1}
             </h2>
             <p className="mt-10 text-lg md:mt-2 md:text-xl">
-                {lang.search_empty2}
+                {$vocabulary.SEARCH_EMPTY2}
             </p>
             <div className="w-46 relative h-36 md:mt-10">
                 <Image

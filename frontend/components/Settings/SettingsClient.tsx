@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useStore } from "@nanostores/react";
 import { ChartLine, ImageUp } from "lucide-react";
-import { useLanguage } from "@/contexts/LanguageContext";
 import { rockIt } from "@/lib/rockit/rockIt";
 import ChangeLang from "@/components/Settings/ChangeLang";
 import CrossFadeInput from "@/components/Settings/CrossFadeInput";
@@ -16,9 +16,7 @@ import LogOutButton from "@/components/Settings/LogOutButton";
 import ServiceWorkerInfo from "@/components/Settings/ServiceWorkerInfo";
 
 export default function SettingsClient() {
-    const { langFile: lang } = useLanguage();
-
-    if (!lang) return false;
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     return (
         <div className="relative flex h-full flex-col overflow-y-auto pt-24 md:h-[calc(100%-6rem)] md:overflow-y-hidden">
@@ -53,11 +51,11 @@ export default function SettingsClient() {
 
                 <div className="flex h-full w-full flex-col gap-y-4 md:w-2/3 md:gap-y-6 md:overflow-y-auto md:pl-1 md:pr-[30%]">
                     <h2 className="bg-linear-to-b top-0 z-10 from-[rgb(11,11,11)] to-transparent py-2 text-center text-xl font-bold text-white md:sticky md:text-2xl">
-                        {lang.user_settings}
+                        {$vocabulary.USER_SETTINGS}
                     </h2>
                     <div>
                         <label className="mb-2 block text-sm text-gray-300 md:text-lg">
-                            {lang.display_name}
+                            {$vocabulary.DISPLAY_NAME}
                         </label>
                         <ChangeUsernameInput />
                     </div>
@@ -67,23 +65,23 @@ export default function SettingsClient() {
                     <form>
                         <div>
                             <label className="mb-2 block text-sm text-gray-300 md:text-lg">
-                                {lang.change_password}
+                                {$vocabulary.CHANGE_PASSWORD}
                             </label>
                             <input
                                 type="password"
                                 autoComplete="new-password"
-                                placeholder={lang.new_password}
+                                placeholder={$vocabulary.NEW_PASSWORD}
                                 className="w-full rounded-lg border border-[#333] bg-[#1e1e1e] p-3 text-white focus:outline-none focus:ring-2 focus:ring-[#ec5588]"
                             />
                         </div>
                         <div>
                             <label className="mb-2 block text-sm text-gray-300 md:text-lg">
-                                {lang.repeat_password}
+                                {$vocabulary.REPEAT_PASSWORD}
                             </label>
                             <input
                                 type="password"
                                 autoComplete="new-password"
-                                placeholder={lang.repeat_password}
+                                placeholder={$vocabulary.REPEAT_PASSWORD}
                                 className="w-full rounded-lg border border-[#333] bg-[#1e1e1e] p-3 text-white focus:outline-none focus:ring-2 focus:ring-[#ec5588]"
                             />
                         </div>

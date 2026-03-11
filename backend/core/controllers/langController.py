@@ -75,4 +75,7 @@ async def get_user_vocabulary(request: Request) -> UserVocabularyResponse:
             detail=a_result_vocabulary.message(),
         )
 
-    return UserVocabularyResponse(vocabulary=a_result_vocabulary.result())
+    return UserVocabularyResponse(
+        vocabulary=a_result_vocabulary.result(),
+        currentLang=a_result_user.result().language.lang_code,
+    )

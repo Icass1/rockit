@@ -54,7 +54,7 @@ class UserRow(
     super_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     language: Mapped["LanguageRow"] = relationship(
-        "LanguageRow", back_populates=None, uselist=False
+        "LanguageRow", back_populates=None, uselist=False, lazy="selectin"
     )
 
     repeat_mode_enum: Mapped["RepeatModeEnumRow"] = relationship(

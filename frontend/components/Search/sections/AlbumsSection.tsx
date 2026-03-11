@@ -4,22 +4,23 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BaseSearchResultsItem } from "@/dto/baseSearchResultsItem";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { useStore } from "@nanostores/react";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function AlbumsSection({
     albums,
 }: {
     albums: BaseSearchResultsItem[];
 }) {
-    const { langFile: lang } = useLanguage();
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const router = useRouter();
 
-    if (!lang || albums.length === 0) return null;
+    if (albums.length === 0) return null;
 
     return (
         <section className="py-2 text-white md:py-6 md:pl-12">
             <h2 className="px-5 text-left text-2xl font-bold md:px-0 md:text-3xl">
-                {lang.albums}
+                {$vocabulary.ALBUMS}
             </h2>
             <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pl-4 md:pr-14">
                 {albums.map((album) => {

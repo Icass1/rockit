@@ -1,5 +1,6 @@
 "use client";
 
+import { useStore } from "@nanostores/react";
 import {
     Copy,
     Download,
@@ -13,7 +14,7 @@ import {
     PlayCircle,
     Share2,
 } from "lucide-react";
-import type { Lang } from "@/types/vocabulary";
+import { rockIt } from "@/lib/rockit/rockIt";
 import ContextMenuOption from "@/components/ContextMenu/Option";
 import ContextMenuSplitter from "@/components/ContextMenu/Splitter";
 import SubContextMenuContent from "@/components/ContextMenu/SubContextMenu/Content";
@@ -54,7 +55,6 @@ function HandMetalIcon({ className }: { className: string }) {
 
 interface SongContextMenuOptionsProps {
     songId: string;
-    lang: Lang;
     offline: boolean;
     isLiked: boolean;
     canShare: boolean;
@@ -75,7 +75,6 @@ interface SongContextMenuOptionsProps {
 
 export default function SongContextMenuOptions({
     songId,
-    lang,
     offline,
     isLiked,
     canShare,
@@ -93,32 +92,35 @@ export default function SongContextMenuOptions({
     onGoToAlbum,
     onDevSendSongEnded,
 }: SongContextMenuOptionsProps) {
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     return (
         <>
             <ContextMenuOption onClick={onPlay}>
                 <PlayCircle className="h-5 w-5" />
-                {lang.play_song}
+                {$vocabulary.PLAY_SONG}
             </ContextMenuOption>
 
             <ContextMenuOption disable={offline} onClick={onToggleLike}>
                 <HandMetalIcon className="h-5 w-5 text-white" />
-                {isLiked ? lang.remove_from_liked : lang.add_to_liked}
+                {isLiked
+                    ? $vocabulary.REMOVE_FROM_LIKED
+                    : $vocabulary.ADD_TO_LIKED}
             </ContextMenuOption>
 
             <ContextMenuOption onClick={onPlayNext}>
                 <ListStart className="h-5 w-5" />
-                {lang.play_next}
+                {$vocabulary.PLAY_NEXT}
             </ContextMenuOption>
 
             <ContextMenuOption onClick={onAddToQueue}>
                 <ListEnd className="h-5 w-5" />
-                {lang.add_to_queue}
+                {$vocabulary.ADD_TO_QUEUE}
             </ContextMenuOption>
 
             <SubContextMenu onOpen={onFetchUserLists} onClose={() => {}}>
                 <SubContextMenuTrigger disable={offline}>
                     <ListPlusIcon className="h-5 w-5" />
-                    {lang.add_song_to_playlist}
+                    {$vocabulary.ADD_SONG_TO_PLAYLIST}
                 </SubContextMenuTrigger>
                 <SubContextMenuContent>
                     {userLists.map((list) => (
@@ -135,48 +137,48 @@ export default function SongContextMenuOptions({
 
             <ContextMenuOption disable={!canShare} onClick={onShare}>
                 <Share2 className="h-5 w-5" />
-                {lang.share_song}
+                {$vocabulary.SHARE_SONG}
             </ContextMenuOption>
 
             <ContextMenuOption onClick={onCopyUrl}>
                 <Copy className="h-5 w-5" />
-                {lang.copy_song_url}
+                {$vocabulary.COPY_SONG_URL}
             </ContextMenuOption>
 
             <ContextMenuSplitter />
 
             <ContextMenuOption className="hover:bg-red-700" disable>
                 <ListX className="h-5 w-5" />
-                {lang.remove_from_queue}
+                {$vocabulary.REMOVE_FROM_QUEUE}
             </ContextMenuOption>
 
             <ContextMenuOption className="hover:bg-red-700" disable>
                 <ListX className="h-5 w-5" />
-                {lang.remove_from_playlist}
+                {$vocabulary.REMOVE_FROM_PLAYLIST}
             </ContextMenuOption>
 
             <ContextMenuSplitter />
 
             <ContextMenuOption disable>
                 <Download className="h-5 w-5" />
-                {lang.download_mp3}
+                {$vocabulary.DOWNLOAD_MP3}
             </ContextMenuOption>
 
             <ContextMenuOption disable={offline} onClick={onDownloadToDevice}>
                 <HardDriveDownload className="h-5 w-5" />
-                {lang.download_song_to_device}
+                {$vocabulary.DOWNLOAD_SONG_TO_DEVICE}
             </ContextMenuOption>
 
             <ContextMenuSplitter />
 
             <ContextMenuOption onClick={onGoToArtist}>
                 <Link className="h-5 w-5" />
-                {lang.go_to_artist}
+                {$vocabulary.GO_TO_ARTIST}
             </ContextMenuOption>
 
             <ContextMenuOption onClick={onGoToAlbum}>
                 <Link className="h-5 w-5" />
-                {lang.go_to_album}
+                {$vocabulary.GO_TO_ALBUM}
             </ContextMenuOption>
 
             {dev && <ContextMenuSplitter />}

@@ -3,7 +3,6 @@
 import { type ReactNode } from "react";
 import { BaseSongWithAlbumResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
-import { useLanguage } from "@/contexts/LanguageContext";
 import useDev from "@/hooks/useDev";
 import { rockIt } from "@/lib/rockit/rockIt";
 import ContextMenuContent from "@/components/ContextMenu/Content";
@@ -23,7 +22,6 @@ export default function SongContextMenu({
     song: BaseSongWithAlbumResponse;
     onPlay?: () => void;
 }) {
-    const { langFile: lang } = useLanguage();
     const $currentListSongs = useStore(
         rockIt.currentListManager.currentListSongsAtom
     );
@@ -45,8 +43,6 @@ export default function SongContextMenu({
         handleGoToAlbum,
     } = useSongContextMenu(song);
 
-    if (!lang) return null;
-
     const handlePlay = onPlay
         ? onPlay
         : () => songHandleClick(song, [...$currentListSongs]);
@@ -61,7 +57,6 @@ export default function SongContextMenu({
             >
                 <SongContextMenuOptions
                     songId={song.publicId}
-                    lang={lang}
                     offline={offline}
                     isLiked={isLiked}
                     canShare={canShare}

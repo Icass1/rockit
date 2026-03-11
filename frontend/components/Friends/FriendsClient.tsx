@@ -55,14 +55,14 @@
 
 //                     <p className="text-4xl font-semibold text-white"></p>
 //                     <p className="text-md text-center text-gray-400 md:px-6">
-//                         {lang.friends_points_descr}
+//                         {$vocabulary.friends_points_descr}
 //                     </p>
 //                 </div>
 
 //                 {/* Columna central */}
 //                 <div className="relative my-14 flex flex-1 flex-col items-center md:my-0">
 //                     <h1 className="pb-4 text-2xl font-bold text-white md:text-3xl">
-//                         {lang.shared_2_you}
+//                         {$vocabulary.shared_2_you}
 //                     </h1>
 //                     <div className="h-[calc(100vh-30rem)] w-full space-y-6 overflow-y-scroll p-6 md:h-auto">
 //                         {Array.from({ length: 10 }).map((_, index) => (
@@ -94,7 +94,7 @@
 //                                 <div className="bg-linear-to-r absolute -right-2 -top-3 flex items-center space-x-2 rounded-md from-[#ee1086] to-[#ce5254] px-2 text-sm text-white">
 //                                     <Forward className="h-7" />
 //                                     <span>
-//                                         {lang.shared_from} &apos;user{" "}
+//                                         {$vocabulary.shared_from} &apos;user{" "}
 //                                         {index + 1}&apos;
 //                                     </span>
 //                                 </div>
@@ -107,7 +107,7 @@
 //                 <div className="flex h-fit flex-1 flex-col space-y-4 rounded-2xl bg-neutral-900 p-4 md:bg-neutral-800">
 //                     <div className="flex items-center justify-center py-3">
 //                         <h1 className="text-center text-2xl font-bold text-white md:text-3xl">
-//                             {lang.users_friends}
+//                             {$vocabulary.users_friends}
 //                         </h1>
 //                     </div>
 
@@ -123,7 +123,7 @@
 //                     {/* Lista de solicitudes */}
 //                     <div className="flex flex-col space-y-4 overflow-y-auto pt-3">
 //                         <h2 className="text-left font-semibold text-white">
-//                             {lang.pending_requests}
+//                             {$vocabulary.pending_requests}
 //                         </h2>
 //                         {/* Render solicitudes acá... igual que antes */}
 //                     </div>
@@ -131,7 +131,7 @@
 //                     {/* Lista de amigos */}
 //                     <div className="flex flex-col space-y-4 overflow-y-auto pt-3">
 //                         <h2 className="text-left font-semibold text-white">
-//                             {lang.friends_list}
+//                             {$vocabulary.friends_list}
 //                         </h2>
 //                         {/* Render amigos acá... */}
 //                     </div>
@@ -139,7 +139,7 @@
 //                     {/* Lista de usuarios */}
 //                     <div className="flex flex-col space-y-4 overflow-y-auto pt-3">
 //                         <h2 className="text-left font-semibold text-white">
-//                             {lang.users_list}
+//                             {$vocabulary.users_list}
 //                         </h2>
 //                         {/* Render usuarios acá... */}
 //                     </div>

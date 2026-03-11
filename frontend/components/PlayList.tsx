@@ -21,7 +21,7 @@ export function playListHandleClick({
 
     if (!window.navigator.onLine) {
         songsToAdd = songsToAdd.filter((song) =>
-            rockIt.indexedDBManager.songsInIndexedDB.includes(
+            rockIt.indexedDBManager.mediaInIndexedDB.includes(
                 song.song.publicId
             )
         );

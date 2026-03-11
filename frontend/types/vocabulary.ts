@@ -8,7 +8,7 @@ export interface Vocabulary {
     ADD_TO_LIKED: string;
     ADD_TO_QUEUE: string;
     ALBUM: string;
-    ALBUMS : string;
+    ALBUMS: string;
     ALBUMS_SINGLES: string;
     ALL: string;
     APRIL: string;
@@ -27,6 +27,7 @@ export interface Vocabulary {
     CREATING: string;
     DATE_ADDED: string;
     DECEMBER: string;
+    DEVICE_DOESNT_SUPPORT_SERVICE_WORKER: string;
     DISC: string;
     DISPLAY_NAME: string;
     DOWNLOAD: string;
@@ -41,6 +42,7 @@ export interface Vocabulary {
     DURATION: string;
     ENERGY: string;
     ENTER_NEW_PLAYLIST_NAME: string;
+    ERROR: string;
     ERROR_CREATING: string;
     ERROR_CREATING_PLAYLIST: string;
     ERROR_ENTER_NAME: string;
@@ -91,7 +93,9 @@ export interface Vocabulary {
     NO_LYRICS: string;
     NO_PLAYLISTS: string;
     NO_RESULTS: string;
+    NO_SERVICE_WORKER: string;
     NO_SONGS: string;
+    NO_STATE: string;
     NO_STATIONS: string;
     NO_VIDEOS: string;
     NOVEMBER: string;
@@ -121,6 +125,9 @@ export interface Vocabulary {
     RECENT_MIX: string;
     RECENT_PLAYED: string;
     RECENTLY_PLAYED: string;
+    REGISTER: string;
+    REGISTERED: string;
+    REGISTERING: string;
     RELATED_ARTISTS: string;
     RELAXED: string;
     REMOVE_FROM_LIBRARY: string;
@@ -148,17 +155,23 @@ export interface Vocabulary {
     SONGS_LISTENED: string;
     STATISTICS: string;
     STATS: string;
+    STOP: string;
     TO: string;
     TOP_ALBUMS: string;
     TOP_SONGS: string;
     UNPIN: string;
+    UNREGISTER: string;
+    UNREGISTERED: string;
+    UNREGISTERING: string;
     UPDATE: string;
+    UPDATING: string;
     UPLOAD: string;
     USER: string;
     USER_SETTINGS: string;
     USER_STATS: string;
     USERS_FRIENDS: string;
     USERS_LIST: string;
+    VIDEOS: string;
     YOU_MIGHT_LIKE: string;
     YOUR: string;
     YOUR_ALBUMS_PLAYLISTS: string;

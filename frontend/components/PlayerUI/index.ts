@@ -1,6 +1,6 @@
 export { default as PlayerUI } from "@/components/PlayerUI/PlayerUI";
 export { default as MobilePlayerUI } from "@/components/PlayerUI/MobilePlayerUI";
-export { QueueSong } from "@/components/PlayerUI/QueueMedia";
+export { QueueMedia } from "@/components/PlayerUI/QueueMedia";
 export { DynamicLyrics } from "@/components/PlayerUI/DynamicLyrics";
 export { PlayerUILyricsColumn } from "@/components/PlayerUI/PlayerUILyricsColumn";
 export { PlayerUICoverColumn } from "@/components/PlayerUI/PlayerUICoverColumn";

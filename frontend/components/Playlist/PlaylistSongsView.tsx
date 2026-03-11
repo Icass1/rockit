@@ -2,8 +2,8 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { BasePlaylistResponse, BaseSongForPlaylistResponse } from "@/dto";
+import { useStore } from "@nanostores/react";
 import { ArrowUp } from "lucide-react";
-import { useLanguage } from "@/contexts/LanguageContext";
 import useWindowSize from "@/hooks/useWindowSize";
 import { rockIt } from "@/lib/rockit/rockIt";
 import PlaylistSong from "@/components/ListSongs/PlaylistSong";
@@ -131,13 +131,12 @@ export default function PlaylistSongsView({
     };
 
     const renderColumn = (column: ColumnsType) => {
-        if (!lang) return false;
         const columnNames = {
-            name: lang.name,
-            album: lang.album,
-            artist: lang.artist,
-            addedAt: lang.date_added,
-            duration: lang.duration,
+            name: $vocabulary.NAME,
+            album: $vocabulary.ALBUM,
+            artist: $vocabulary.ARTIST,
+            addedAt: $vocabulary.DATE_ADDED,
+            duration: $vocabulary.DURATION,
         };
 
         return (
@@ -169,8 +168,7 @@ export default function PlaylistSongsView({
         }
     };
 
-    const { langFile: lang } = useLanguage();
-    if (!lang) return false;
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     if (!innerWidth) return;
 

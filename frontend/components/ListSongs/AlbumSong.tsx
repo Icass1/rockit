@@ -25,8 +25,8 @@ export default function AlbumSong({
         rockIt.queueManager.currentQueueMediaIdAtom
     );
     const $currentList = useStore(rockIt.queueManager.currentListAtom);
-    const $songsInIndexedDB = useStore(
-        rockIt.indexedDBManager.songsInIndexedDBAtom
+    const $mediaInIndexedDB = useStore(
+        rockIt.indexedDBManager.mediaInIndexedDBAtom
     );
 
     const $networkStatus = useStore(networkStatus);
@@ -34,21 +34,21 @@ export default function AlbumSong({
 
     const songUnavailable = useMemo(() => {
         const offline = $networkStatus === "offline";
-        const inCache = $songsInIndexedDB?.includes(song.publicId);
+        const inCache = $mediaInIndexedDB?.includes(song.publicId);
         const downloaded = song.downloaded;
 
         if (downloaded) return false;
         if (offline && inCache) return false;
 
         return true;
-    }, [$songsInIndexedDB, $networkStatus, song.downloaded, song.publicId]);
+    }, [$mediaInIndexedDB, $networkStatus, song.downloaded, song.publicId]);
 
     const songPlaying = useMemo(() => {
         return (
             $queue.find((song) => song.queueMediaId == $currentQueueMediaId)
                 ?.listPublicId == $currentList &&
             $queue.find((song) => song.queueMediaId == $currentQueueMediaId)
-                ?.song.publicId == song.publicId
+                ?.media.publicId == song.publicId
         );
     }, [song.publicId, $currentList, $queue, $currentQueueMediaId]);
 
@@ -58,7 +58,7 @@ export default function AlbumSong({
         <SongContextMenu song={song}>
             <div
                 className={
-                    "grid select-none grid-cols-[min-content_1fr_min-content_min-content_40px] items-center gap-2 rounded py-[0.5rem] transition-colors md:select-text md:gap-4 md:px-2 md:py-[0.65rem]" +
+                    "grid select-none grid-cols-[min-content_1fr_min-content_min-content_40px] items-center gap-2 rounded py-2 transition-colors md:select-text md:gap-4 md:px-2 md:py-[0.65rem]" +
                     (songUnavailable ? " pointer-events-none opacity-40" : "") +
                     (songPlaying ? " text-[#ec5588]" : "")
                 }
@@ -90,7 +90,7 @@ export default function AlbumSong({
                         {song.name}
                     </label>
                 </div>
-                {$songsInIndexedDB?.includes(song.publicId) ? (
+                {$mediaInIndexedDB?.includes(song.publicId) ? (
                     <div className="min-h-6 min-w-6">
                         <CheckCircle2 className="flex h-full w-full text-[#ec5588]" />
                     </div>

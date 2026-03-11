@@ -71,7 +71,7 @@ export default function NewPlaylistButton() {
                     <Plus className="cover absolute left-0 top-0 aspect-square h-auto w-full rounded-md p-6" />
                 </div>
                 <label className="min-h-6 cursor-pointer truncate text-center font-semibold">
-                    {$vocabulary?.newplaylist}
+                    {$vocabulary.NEW_PLAYLIST}
                 </label>
             </div>
 
@@ -86,7 +86,7 @@ export default function NewPlaylistButton() {
                 >
                     <div className="flex w-full max-w-sm flex-col gap-y-4 rounded-xl bg-neutral-900 p-6 shadow-2xl">
                         <label className="text-base font-semibold text-white">
-                            {$vocabulary?.newplaylistname ?? "Playlist name"}
+                            {$vocabulary.NEW_PLAYLIST_NAME}
                             {error && (
                                 <span className="ml-2 text-red-400">
                                     — {error}
@@ -103,10 +103,7 @@ export default function NewPlaylistButton() {
                             value={name}
                             type="text"
                             autoFocus
-                            placeholder={
-                                $vocabulary?.placeholder_playlist_name ??
-                                "My perfect playlist"
-                            }
+                            placeholder={$vocabulary.PLACEHOLDER_PLAYLIST_NAME}
                             onChange={(e) => {
                                 setName(e.target.value);
                                 setError("");
@@ -122,7 +119,7 @@ export default function NewPlaylistButton() {
                                 className="rounded-md border border-gray-600 px-4 py-2 text-sm text-gray-300 transition hover:border-gray-300 hover:text-white"
                                 onClick={closeModal}
                             >
-                                {$vocabulary?.cancel ?? "Cancel"}
+                                {$vocabulary.CANCEL}
                             </button>
                             <button
                                 className="rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-500 disabled:cursor-not-allowed disabled:opacity-50"
@@ -130,8 +127,8 @@ export default function NewPlaylistButton() {
                                 disabled={loading || !name.trim()}
                             >
                                 {loading
-                                    ? ($vocabulary?.creating ?? "Creating…")
-                                    : ($vocabulary?.create ?? "Create")}
+                                    ? $vocabulary.CREATING
+                                    : $vocabulary.CREATE}
                             </button>
                         </div>
                     </div>

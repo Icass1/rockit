@@ -4,18 +4,19 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BaseSearchResultsItem } from "@/dto";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { useStore } from "@nanostores/react";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function VideosSection({
     videos,
 }: {
     videos: BaseSearchResultsItem[];
 }) {
-    const { langFile: lang } = useLanguage();
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     const router = useRouter();
 
-    if (!lang || videos.length === 0) return null;
+    if (videos.length === 0) return null;
 
     return (
         <section className="py-2 text-white md:py-6 md:pl-12">

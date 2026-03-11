@@ -1,17 +1,21 @@
-import { useLanguage } from "@/contexts/LanguageContext";
+import { VocabularyResponseSchema } from "@/dto";
+import { useStore } from "@nanostores/react";
+import useFetch from "@/hooks/useFetch";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function ChangeLang() {
-    const { lang, langFile } = useLanguage();
-    if (!lang || !langFile) return false;
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $lang = useStore(rockIt.vocabularyManager.langAtom);
+
+    const avalibaleLangs = useFetch("/vocabulary", VocabularyResponseSchema);
 
     return (
         <div>
             <label className="mb-2 block text-sm text-gray-300 md:text-lg">
-                {langFile.language}
+                {$vocabulary.LANGUAGE}
             </label>
             <select
-                value={lang}
+                value={$lang}
                 onChange={(event) => {
                     rockIt.userManager.setLangAsync(event.currentTarget.value);
                 }}

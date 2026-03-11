@@ -41,18 +41,18 @@ async def import_vocabulary() -> None:
     first_row: List[Any] = [cell.value for cell in sheet[1]]
     logger.info(f"Found columns: {first_row}")
 
-    if not first_row or first_row[0] is None:
-        logger.error("First column must be 'KEY'")
-        return
-
-    if first_row[0] != "KEY":
-        logger.error("First column must be 'KEY'")
-        return
-
     language_columns: List[str] = [str(h) for h in first_row[1:] if h is not None]
     logger.info(f"Found languages: {language_columns}")
 
     second_row: List[Any] = [cell.value for cell in sheet[2]]
+
+    if not second_row or second_row[0] is None:
+        logger.error("First column must be 'KEY'")
+        return
+
+    if second_row[0] != "KEY":
+        logger.error("First column must be 'KEY'")
+        return
 
     language_code_columns: List[str] = [str(h) for h in second_row[1:] if h is not None]
     logger.info(f"Found languages codes: {language_code_columns}")
@@ -78,7 +78,6 @@ async def import_vocabulary() -> None:
             value = sheet.cell(row=row_idx, column=col_idx).value
             if value:
                 vocabulary_data[lang_code][str(key_cell)] = str(value)
-
 
     types_content.append("}")
     types_content.append("")

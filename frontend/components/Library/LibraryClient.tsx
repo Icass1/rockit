@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useStore } from "@nanostores/react";
 import {
     ArrowDownAZ,
     ArrowUpAZ,
@@ -9,14 +10,13 @@ import {
     List,
     Upload,
 } from "lucide-react";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { ContentType } from "@/components/Library/hooks/useLibraryData";
 import { LibraryFilters, ViewMode } from "@/components/Library/LibraryFilters";
 import { LibraryLists } from "@/components/Library/LibraryLists";
 import UploadModal from "@/components/Library/UploadModal";
 
 export default function LibraryClient() {
-    const { langFile: lang } = useLanguage();
     const [filterMode, setFilterMode] = useState<"default" | "asc" | "desc">(
         "default"
     );
@@ -24,8 +24,7 @@ export default function LibraryClient() {
     const [activeType, setActiveType] = useState<ContentType>("all");
     const [viewMode, setViewMode] = useState<ViewMode>("grid");
     const [showUploadModal, setShowUploadModal] = useState(false);
-
-    if (!lang) return null;
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     const cycleSortMode = () =>
         setFilterMode((m) =>
@@ -39,7 +38,7 @@ export default function LibraryClient() {
                 {/* Left: title + pills */}
                 <div className="mr-4 flex items-center gap-8">
                     <h1 className="shrink-0 select-none text-4xl font-bold text-white">
-                        {lang.library}
+                        {$vocabulary.LIBRARY}
                     </h1>
                     <LibraryFilters
                         activeType={activeType}
@@ -84,7 +83,7 @@ export default function LibraryClient() {
                     {/* Upload */}
                     <button
                         onClick={() => setShowUploadModal(true)}
-                        title={lang.upload ?? "Upload music"}
+                        title={$vocabulary.UPLOAD}
                         className="flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full text-neutral-400 transition hover:text-white"
                     >
                         <Upload className="h-5 w-5" />
@@ -101,7 +100,7 @@ export default function LibraryClient() {
                                 backgroundRepeat: "no-repeat",
                             }}
                             type="search"
-                            placeholder={lang.search_library}
+                            placeholder={$vocabulary.SEARCH_LIBRARY}
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
@@ -122,13 +121,13 @@ export default function LibraryClient() {
                             backgroundRepeat: "no-repeat",
                         }}
                         type="search"
-                        placeholder={lang.search_library}
+                        placeholder={$vocabulary.SEARCH_LIBRARY}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
                     <button
                         onClick={() => setShowUploadModal(true)}
-                        title={lang.upload ?? "Upload music"}
+                        title={$vocabulary.UPLOAD}
                         className="flex h-9 w-9 shrink-0 select-none items-center justify-center rounded-full bg-neutral-800 text-neutral-300 transition hover:bg-neutral-700 hover:text-white"
                     >
                         <Upload className="h-4 w-4" />

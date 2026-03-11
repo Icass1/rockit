@@ -53,13 +53,26 @@ for dirpath, dirnames, filenames in os.walk("backend"):
 
         module_name = file_name.replace(".py", "")
 
-        logger.info(f"Including router {module_name}.")
-
         module = import_module(f"{'.'.join(dirpath.split('/'))}.{module_name}")
         try:
-            app.include_router(module.router)
+            router_included = False
+            public_router_included = False
+
+            if hasattr(module, "router"):
+                app.include_router(module.router)
+                router_included = True
+
             if hasattr(module, "public_router"):
                 app.include_router(module.public_router)
+                public_router_included = True
+
+            if router_included and public_router_included:
+                logger.info(f"Included router and public of {module_name}.")
+            elif router_included:
+                logger.info(f"Included router of {module_name}.")
+            elif router_included:
+                logger.info(f"Included public router of {module_name}.")
+
         except Exception as e:
             logger.error(f"Error including router {module_name}. ({e})")
 

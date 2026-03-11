@@ -5,12 +5,11 @@ import { usePathname, useRouter } from "next/navigation";
 import { useStore } from "@nanostores/react";
 import type { DebouncedFunc } from "lodash";
 import debounce from "lodash/debounce";
-import { useLanguage } from "@/contexts/LanguageContext";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function SearchBarInput() {
     const [value, setValue] = useState("");
-    const { langFile: lang } = useLanguage();
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const pathname = usePathname();
     const router = useRouter();
     const searching = useStore(rockIt.searchManager.searchingAtom);
@@ -26,8 +25,6 @@ export default function SearchBarInput() {
 
         return () => searchDebounce.current?.cancel();
     }, []);
-
-    if (!lang) return null;
 
     return (
         <div className="relative top-1/2 mx-auto w-full -translate-y-1/2">
@@ -49,7 +46,6 @@ export default function SearchBarInput() {
                 onClick={() => {
                     if (pathname !== "/search") router.push("/search");
                 }}
-                // pr-16: espacio para spinner (16px) + X nativa (16px) + gaps
                 className="z-10 block h-10 w-full rounded-full bg-neutral-900 px-10 text-base font-semibold shadow focus:outline-0 md:z-50"
                 style={{
                     backgroundImage: "url(/search-icon.png)",
@@ -57,10 +53,9 @@ export default function SearchBarInput() {
                     backgroundSize: "14px",
                     backgroundRepeat: "no-repeat",
                 }}
-                placeholder={lang.search_bar}
+                placeholder={$vocabulary.SEARCH_BAR}
             />
 
-            {/* Spinner — antes de la X nativa del input */}
             {searching && (
                 <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2">
                     <div className="h-4 w-4 animate-spin rounded-full border-2 border-neutral-600 border-t-[#ec5588]" />

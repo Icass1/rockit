@@ -31,7 +31,7 @@ export function songHandleClick(
 
     // if (!window.navigator.onLine) {
     //     songsToAdd = songsToAdd.filter((song) =>
-    //         songsInIndexedDB.get()?.includes(song.song.publicId)
+    //         mediaInIndexedDB.get()?.includes(song.song.publicId)
     //     );
     // }
 

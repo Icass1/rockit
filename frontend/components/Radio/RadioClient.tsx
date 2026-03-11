@@ -8,7 +8,6 @@ import type { DebouncedFunc } from "lodash";
 import debounce from "lodash/debounce";
 import { ListPlus, Play, SearchX } from "lucide-react";
 import type { Station } from "@/types/station";
-import { useLanguage } from "@/contexts/LanguageContext";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { baseApiFetch } from "@/lib/utils/apiFetch";
 
@@ -88,17 +87,18 @@ function StationCard({ station }: { station: Station }) {
 }
 
 function EmptyState({ hasQuery }: { hasQuery: boolean }) {
-    const { langFile: lang } = useLanguage();
-    if (!lang) return null;
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     return (
         <div className="col-span-full flex flex-col items-center justify-center py-16 text-center">
             <SearchX className="mb-4 h-16 w-16 text-neutral-500" />
             <p className="text-xl font-semibold text-white">
-                {hasQuery ? lang.radio_empty1 : lang.radio_search}
+                {hasQuery ? $vocabulary.RADIO_EMPTY1 : $vocabulary.RADIO_SEARCH}
             </p>
             {hasQuery && (
-                <p className="mt-2 text-neutral-400">{lang.radio_empty2}</p>
+                <p className="mt-2 text-neutral-400">
+                    {$vocabulary.RADIO_EMPTY2}
+                </p>
             )}
         </div>
     );
@@ -118,7 +118,7 @@ function LoadingSkeleton() {
 }
 
 export default function RadioClient() {
-    const { langFile: lang } = useLanguage();
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const $currentStation = useStore(rockIt.stationManager.currentStationAtom);
 
     const router = useRouter();
@@ -176,12 +176,10 @@ export default function RadioClient() {
         debounceRef.current?.(value);
     };
 
-    if (!lang) return null;
-
     return (
         <div className="h-full overflow-y-auto p-3 pb-20 pt-16 text-white md:pb-24 md:pt-24">
             <h1 className="my-6 select-none text-center text-2xl font-bold md:text-3xl">
-                {lang.radio_stations} 📻
+                {$vocabulary.RADIO_STATIONS} 📻
             </h1>
 
             {$currentStation && (
@@ -197,7 +195,7 @@ export default function RadioClient() {
                         className="ml-auto shrink-0 text-xs text-pink-400 transition hover:text-white"
                         onClick={() => rockIt.stationManager.clearStation()}
                     >
-                        Stop
+                        {$vocabulary.STOP}
                     </button>
                 </div>
             )}
@@ -205,7 +203,7 @@ export default function RadioClient() {
             <div className="mx-auto mb-6 max-w-md">
                 <input
                     type="search"
-                    placeholder={lang.radio_search}
+                    placeholder={$vocabulary.RADIO_SEARCH}
                     value={query}
                     onChange={handleChange}
                     className="w-full rounded-full border border-neutral-700 bg-neutral-800 px-5 py-2 text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-pink-500"
@@ -214,7 +212,7 @@ export default function RadioClient() {
 
             {error && (
                 <p className="mb-4 text-center text-sm text-red-400">
-                    Error: {error}
+                    {$vocabulary.ERROR}: {error}
                 </p>
             )}
 

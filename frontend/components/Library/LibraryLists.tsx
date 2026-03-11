@@ -8,7 +8,8 @@ import {
     BaseStationResponse,
     BaseVideoResponse,
 } from "@/dto";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { useStore } from "@nanostores/react";
+import { rockIt } from "@/lib/rockit/rockIt";
 import {
     ContentType,
     FilterMode,
@@ -301,12 +302,12 @@ export function LibraryLists({
     activeType,
     viewMode,
 }: LibraryListsProps) {
-    const { langFile: lang } = useLanguage();
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const { filtered, loading } = useLibraryData({ filterMode, searchQuery });
 
     const showAll = activeType === "all";
 
-    if (loading || !lang) return <LoadingComponent />;
+    if (loading) return <LoadingComponent />;
 
     return (
         <section>
@@ -318,7 +319,7 @@ export function LibraryLists({
             {showAll && (
                 <>
                     <SectionHeader
-                        title={lang.your_albums_playlists}
+                        title={$vocabulary.YOUR_ALBUMS_PLAYLISTS}
                         rightElement={<PlayLibraryButton />}
                     />
 
@@ -353,7 +354,7 @@ export function LibraryLists({
             {/* ── ALBUMS tab ────────────────────────────────────────────── */}
             {activeType === "albums" &&
                 (filtered.albums.length === 0 ? (
-                    <EmptyState message={lang.no_albums ?? "No albums found"} />
+                    <EmptyState message={$vocabulary.NO_ALBUMS} />
                 ) : viewMode === "list" ? (
                     <AlbumListView albums={filtered.albums} />
                 ) : (
@@ -367,9 +368,7 @@ export function LibraryLists({
             {/* ── PLAYLISTS tab ─────────────────────────────────────────── */}
             {activeType === "playlists" &&
                 (filtered.playlists.length === 0 ? (
-                    <EmptyState
-                        message={lang.no_playlists ?? "No playlists found"}
-                    />
+                    <EmptyState message={$vocabulary.NO_PLAYLISTS} />
                 ) : viewMode === "list" ? (
                     <div className={ROW_LIST_CLASS}>
                         {filtered.playlists.map((pl) => (
@@ -388,7 +387,7 @@ export function LibraryLists({
             {/* ── SONGS (always rows — grid adds nothing for songs) ─────── */}
             {activeType === "songs" &&
                 (filtered.songs.length === 0 ? (
-                    <EmptyState message={lang.no_songs ?? "No songs found"} />
+                    <EmptyState message={$vocabulary.NO_SONGS} />
                 ) : (
                     <div className={ROW_LIST_CLASS}>
                         {filtered.songs.map((s) => (
@@ -400,7 +399,7 @@ export function LibraryLists({
             {/* ── VIDEOS tab ────────────────────────────────────────────── */}
             {activeType === "videos" &&
                 (filtered.videos.length === 0 ? (
-                    <EmptyState message={lang.no_videos ?? "No videos found"} />
+                    <EmptyState message={$vocabulary.NO_VIDEOS} />
                 ) : viewMode === "list" ? (
                     <div className={ROW_LIST_CLASS}>
                         {filtered.videos.map((v) => (
@@ -418,9 +417,7 @@ export function LibraryLists({
             {/* ── STATIONS (always rows) ────────────────────────────────── */}
             {activeType === "stations" &&
                 (filtered.stations.length === 0 ? (
-                    <EmptyState
-                        message={lang.no_stations ?? "No radio stations found"}
-                    />
+                    <EmptyState message={$vocabulary.NO_STATIONS} />
                 ) : (
                     <div className={ROW_LIST_CLASS}>
                         {filtered.stations.map((st) => (

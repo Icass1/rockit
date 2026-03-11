@@ -12,7 +12,6 @@ import {
     Users,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { useLanguage } from "@/contexts/LanguageContext";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 interface NavPage {
@@ -23,19 +22,24 @@ interface NavPage {
 }
 
 export default function NavigationMobile() {
-    const { langFile: lang } = useLanguage();
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const activePage = usePathname();
     const $user = useStore(rockIt.userManager.userAtom);
 
-    if (!lang || !$user) return null;
+    if (!$user) return null;
 
     // All nav items in one place — Settings no longer hardcoded outside
     const pages: NavPage[] = [
-        { title: lang.home, href: "/", icon: Home },
-        { title: lang.library, href: "/library", icon: Library },
-        { title: lang.search, href: "/search", icon: Search },
-        { title: lang.friends, href: "/friends", icon: Users, disabled: true },
-        { title: lang.settings, href: "/settings", icon: Settings },
+        { title: $vocabulary.HOME, href: "/", icon: Home },
+        { title: $vocabulary.LIBRARY, href: "/library", icon: Library },
+        { title: $vocabulary.SEARCH, href: "/search", icon: Search },
+        {
+            title: $vocabulary.FRIENDS,
+            href: "/friends",
+            icon: Users,
+            disabled: true,
+        },
+        { title: $vocabulary.SETTINGS, href: "/settings", icon: Settings },
         // Admin tab — only shown to admin users
         ...($user.admin
             ? [

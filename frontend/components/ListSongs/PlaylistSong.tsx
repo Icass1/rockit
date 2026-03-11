@@ -31,8 +31,8 @@ export default function PlaylistSong({
     );
     const $currentList = useStore(rockIt.queueManager.currentListAtom);
     const $networkStatus = useStore(networkStatus);
-    const $songsInIndexedDB = useStore(
-        rockIt.indexedDBManager.songsInIndexedDBAtom
+    const $mediaInIndexedDB = useStore(
+        rockIt.indexedDBManager.mediaInIndexedDBAtom
     );
 
     const router = useRouter();
@@ -43,10 +43,10 @@ export default function PlaylistSong({
         <SongContextMenu song={song.song}>
             <div
                 className={
-                    "flex select-none flex-row items-center gap-2 rounded px-2 py-[0.5rem] transition-colors md:select-text md:gap-4 " +
+                    "flex select-none flex-row items-center gap-2 rounded px-2 py-2 transition-colors md:select-text md:gap-4 " +
                     // If offline and the song is not saved to indexedDB or the song is not in the server database, disable that song
                     ((($networkStatus == "offline" &&
-                        !$songsInIndexedDB?.includes(song.song.publicId)) ||
+                        !$mediaInIndexedDB?.includes(song.song.publicId)) ||
                         !song.song.downloaded) &&
                         "pointer-events-none opacity-40") +
                     // If the song is playing and is from this playlist, change color, if the song has been added to the queue clicking the album, it won't show the color
@@ -55,7 +55,7 @@ export default function PlaylistSong({
                     )?.listPublicId == $currentList &&
                     $queue.find(
                         (song) => song.queueMediaId == $currentQueueMediaId
-                    )?.song.publicId == song.song.publicId
+                    )?.media.publicId == song.song.publicId
                         ? " text-[#ec5588]"
                         : "")
                 }
@@ -137,7 +137,7 @@ export default function PlaylistSong({
 
                         {/* Botones y tiempo (alineados a la derecha) */}
                         <div className="ml-auto flex w-fit items-center gap-x-2 md:gap-4">
-                            {$songsInIndexedDB?.includes(
+                            {$mediaInIndexedDB?.includes(
                                 song.song.publicId
                             ) && (
                                 <div className="min-h-6 min-w-6">

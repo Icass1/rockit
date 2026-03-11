@@ -78,7 +78,7 @@ export default function PlayLibraryButton() {
 
     //     if (!window.navigator.onLine) {
     //         songsToAdd = songsToAdd.filter((song) =>
-    //             songsInIndexedDB.get()?.includes(song.song.id)
+    //             mediaInIndexedDB.get()?.includes(song.song.id)
     //         );
     //     }
 

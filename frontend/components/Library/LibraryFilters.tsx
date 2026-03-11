@@ -1,6 +1,7 @@
 "use client";
 
-import { useLanguage } from "@/contexts/LanguageContext";
+import { useStore } from "@nanostores/react";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { ContentType } from "@/components/Library/hooks/useLibraryData";
 
 export type ViewMode = "grid" | "list";
@@ -12,16 +13,15 @@ export function LibraryFilters({
     activeType: ContentType;
     setActiveType: (type: ContentType) => void;
 }) {
-    const { langFile: lang } = useLanguage();
-    if (!lang) return null;
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     const pills: { key: ContentType; label: string }[] = [
-        { key: "all", label: lang.all ?? "All" },
-        { key: "albums", label: lang.albums },
-        { key: "playlists", label: lang.playlists },
-        { key: "songs", label: lang.songs },
-        { key: "videos", label: lang.yt_videos },
-        { key: "stations", label: lang.radio_stations },
+        { key: "all", label: $vocabulary.ALL ?? "All" },
+        { key: "albums", label: $vocabulary.ALBUMS },
+        { key: "playlists", label: $vocabulary.PLAYLISTS },
+        { key: "songs", label: $vocabulary.SONGS },
+        { key: "videos", label: $vocabulary.VIDEOS },
+        { key: "stations", label: $vocabulary.RADIO_STATIONS },
     ];
 
     return (

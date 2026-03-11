@@ -43,11 +43,11 @@ export function useSongContextMenu(song: BaseSongWithAlbumResponse) {
     }, [song.publicId]);
 
     const handlePlayNext = useCallback(() => {
-        rockIt.queueManager.addSongNext(song);
+        rockIt.queueManager.addMediaNext(song);
     }, [song]);
 
     const handleAddToQueue = useCallback(() => {
-        rockIt.queueManager.addSongToEnd(song);
+        rockIt.queueManager.addMediaToEnd(song);
     }, [song]);
 
     const handleShare = useCallback(() => {
@@ -65,7 +65,7 @@ export function useSongContextMenu(song: BaseSongWithAlbumResponse) {
     }, [song.publicId]);
 
     const handleDownloadToDevice = useCallback(() => {
-        rockIt.indexedDBManager.saveSongToIndexedDB(song);
+        rockIt.indexedDBManager.saveMediaToIndexedDB(song);
     }, [song]);
 
     const handleGoToArtist = useCallback(() => {

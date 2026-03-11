@@ -5,7 +5,7 @@ import { createArrayAtom } from "@/lib/store";
 export class IndexedDBManager {
     // #region: Atoms
 
-    private _mediasInIndexedDBAtom = createArrayAtom<string>([]);
+    private _mediaInIndexedDBAtom = createArrayAtom<string>([]);
 
     // #endregion: Atoms
 
@@ -35,12 +35,12 @@ export class IndexedDBManager {
 
     // #region: Getters
 
-    get mediasInIndexedDBAtom() {
-        return this._mediasInIndexedDBAtom.getReadonlyAtom();
+    get mediaInIndexedDBAtom() {
+        return this._mediaInIndexedDBAtom.getReadonlyAtom();
     }
 
-    get mediasInIndexedDB() {
-        return this._mediasInIndexedDBAtom.get();
+    get mediaInIndexedDB() {
+        return this._mediaInIndexedDBAtom.get();
     }
 
     // #endregion: Getters

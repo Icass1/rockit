@@ -31,8 +31,8 @@ export default function MobilePlayerUIQueue({
     // queueScroll state is only used for the virtual-scroll culling check.
     // calcItemTop uses scrollRef.current.scrollTop directly (sync, not stale).
     const [queueScroll, setQueueScroll] = useState(0);
-
     const { draggingMedia, startDrag, calcItemTop } = useQueueDrag();
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     // Scroll to current media when queue panel opens
     useEffect(() => {
@@ -57,8 +57,6 @@ export default function MobilePlayerUIQueue({
     const handleRemoveMedia = (_media: QueueResponseItem) => {};
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const handlePlayMedia = async (_media: QueueResponseItem) => {};
-
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     const hasQueue = $queue && $queue.length > 0;
     if (!hasQueue || !height) return null;
@@ -156,7 +154,7 @@ export default function MobilePlayerUIQueue({
                                                 }
                                             >
                                                 <PlayCircle className="h-5 w-5" />
-                                                {vocabulary.PLAY_MEDIA}
+                                                {$vocabulary.PLAY_MEDIA}
                                             </ContextMenuOption>
                                             <ContextMenuOption
                                                 onClick={() =>
@@ -164,7 +162,7 @@ export default function MobilePlayerUIQueue({
                                                 }
                                             >
                                                 <ListX className="h-5 w-5" />
-                                                {vocabulary.REMOVE_FROM_QUEUE}
+                                                {$vocabulary.REMOVE_FROM_QUEUE}
                                             </ContextMenuOption>
                                             <ContextMenuOption
                                                 onClick={() =>
@@ -175,7 +173,7 @@ export default function MobilePlayerUIQueue({
                                             >
                                                 <HardDriveDownload className="h-5 w-5" />
                                                 {
-                                                    vocabulary.DOWNLOAD_MEDIA_TO_DEVICE
+                                                    $vocabulary.DOWNLOAD_MEDIA_TO_DEVICE
                                                 }
                                             </ContextMenuOption>
                                         </ContextMenuContent>

@@ -1,19 +1,19 @@
 "use client";
 
 import Image from "next/image";
+import { useStore } from "@nanostores/react";
 import { Station } from "@/types/station";
-import { useLanguage } from "@/contexts/LanguageContext";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function RadioSection({ stations }: { stations: Station[] }) {
-    const { langFile: lang } = useLanguage();
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
-    if (!lang || stations.length === 0) return null;
+    if (stations.length === 0) return null;
 
     return (
         <section className="py-2 text-white md:py-6 md:pl-12">
             <h2 className="px-5 text-left text-2xl font-bold md:px-0 md:text-3xl">
-                {lang.radio_stations}
+                {$vocabulary.RADIO_STATIONS}
             </h2>
             <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pl-4 md:pr-14">
                 {stations.map((station) => (

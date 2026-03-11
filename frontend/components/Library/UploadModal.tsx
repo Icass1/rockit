@@ -2,8 +2,9 @@
 
 import { useCallback, useRef, useState } from "react";
 import { BACKEND_URL } from "@/environment";
+import { useStore } from "@nanostores/react";
 import { FileArchive, FileAudio, Upload, X } from "lucide-react";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -65,7 +66,7 @@ function parseFilename(filename: string): Omit<UploadFile, "id" | "file"> {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function UploadModal({ isOpen, onClose }: UploadModalProps) {
-    const { langFile: lang } = useLanguage();
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const [files, setFiles] = useState<UploadFile[]>([]);
     const [isDragging, setIsDragging] = useState(false);
     const [uploading, setUploading] = useState(false);
@@ -416,7 +417,7 @@ export default function UploadModal({ isOpen, onClose }: UploadModalProps) {
                             disabled={uploading}
                             className="rounded-md border border-neutral-600 px-4 py-2 text-sm text-neutral-300 transition hover:border-neutral-400 hover:text-white disabled:opacity-50"
                         >
-                            {lang?.cancel ?? "Cancel"}
+                            {$vocabulary.CANCEL}
                         </button>
                         <button
                             onClick={handleSubmit}

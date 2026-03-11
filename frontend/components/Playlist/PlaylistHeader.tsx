@@ -1,7 +1,8 @@
 "use client";
 
 import { BasePlaylistResponse } from "@/dto";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { useStore } from "@nanostores/react";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { getMinutes } from "@/lib/utils/getTime";
 import { useListDownload } from "@/components/List/hooks/useListDownload";
 import { ListCover } from "@/components/List/ListCover";
@@ -14,7 +15,7 @@ export default function PlaylistHeader({
     className: string;
     playlist: BasePlaylistResponse;
 }) {
-    const { langFile: lang } = useLanguage();
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     const { isDownloading, downloadProgress, anyDownloaded, allDownloaded } =
         useListDownload({
@@ -22,8 +23,6 @@ export default function PlaylistHeader({
             type: "playlist",
             songs: playlist.songs.map((song) => song.song),
         });
-
-    if (!lang) return false;
 
     const downloadCount = playlist.songs.filter(
         (s) => s.song.downloaded
@@ -69,8 +68,9 @@ export default function PlaylistHeader({
             </span>
 
             <span className="text-center text-sm text-stone-400">
-                {playlist.songs.length} {lang.songs} | {downloadCount} songs
-                downloaded | {getMinutes(totalDuration)} {lang.minutes}
+                {playlist.songs.length} {$vocabulary.SONGS} | {downloadCount}{" "}
+                songs downloaded | {getMinutes(totalDuration)}{" "}
+                {$vocabulary.MINUTES}
             </span>
         </div>
     );

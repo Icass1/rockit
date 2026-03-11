@@ -1,27 +1,29 @@
 import { useState } from "react";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { useStore } from "@nanostores/react";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function ServiceWorkerInfo() {
-    const [status, setStatus] = useState<string>("No data");
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const [status, setStatus] = useState<string>($vocabulary.NO_DATA);
 
     const handleGetInfo = async () => {
         if (!("serviceWorker" in navigator)) {
-            setStatus("Your device doesn't support service worker");
+            setStatus($vocabulary.DEVICE_DOESNT_SUPPORT_SERVICE_WORKER);
             return;
         }
 
         const data = await navigator.serviceWorker.getRegistration();
 
         if (!data) {
-            setStatus("No service worker.");
+            setStatus($vocabulary.NO_SERVICE_WORKER);
         } else {
-            setStatus(data.active?.state ?? "No state");
+            setStatus(data.active?.state ?? $vocabulary.NO_STATE);
         }
     };
 
     const handleUpdate = async () => {
         if (!("serviceWorker" in navigator)) {
-            setStatus("Your device doesn't support service worker");
+            setStatus($vocabulary.DEVICE_DOESNT_SUPPORT_SERVICE_WORKER);
             return;
         }
         // if (!serviceWorkerRegistration.get()) {
@@ -35,7 +37,7 @@ export default function ServiceWorkerInfo() {
 
     const handleUnregister = async () => {
         if (!("serviceWorker" in navigator)) {
-            setStatus("Your device doesn't support service worker");
+            setStatus($vocabulary.DEVICE_DOESNT_SUPPORT_SERVICE_WORKER);
             return;
         }
 
@@ -43,19 +45,19 @@ export default function ServiceWorkerInfo() {
         //     setStatus("No service worker registration found.");
         //     return;
         // }
-        setStatus("Unregistering.");
+        setStatus($vocabulary.UNREGISTERING);
         // await serviceWorkerRegistration.get()?.unregister();
         // serviceWorkerRegistration.set(undefined);
-        setStatus("Unregistered.");
+        setStatus($vocabulary.UNREGISTERED);
     };
 
     const handleRegister = async () => {
         if (!("serviceWorker" in navigator)) {
-            setStatus("Your device doesn't support service worker");
+            setStatus($vocabulary.DEVICE_DOESNT_SUPPORT_SERVICE_WORKER);
             return;
         }
 
-        setStatus("Registering.");
+        setStatus($vocabulary.REGISTERING);
 
         // const registration = await navigator.serviceWorker.register(
         //     "/service-worker.js",
@@ -65,11 +67,8 @@ export default function ServiceWorkerInfo() {
         //     }
         // );
         // serviceWorkerRegistration.set(registration);
-        setStatus("Registering.");
+        setStatus($vocabulary.REGISTERED);
     };
-
-    const { langFile: lang } = useLanguage();
-    if (!lang) return false;
 
     return (
         <div className="flex flex-col gap-y-1">
@@ -80,25 +79,25 @@ export default function ServiceWorkerInfo() {
                 onClick={handleGetInfo}
                 className="flex w-28 items-center justify-center gap-2 rounded-lg bg-[#1e1e1e] py-2 text-white shadow-md transition duration-300 active:bg-green-700 md:w-32 md:hover:bg-green-700"
             >
-                {lang.get_info}
+                {$vocabulary.GET_INFO}
             </button>
             <button
                 onClick={handleUpdate}
                 className="flex w-28 items-center justify-center gap-2 rounded-lg bg-[#1e1e1e] py-2 text-white shadow-md transition duration-300 active:bg-green-700 md:w-32 md:hover:bg-green-700"
             >
-                {lang.update}
+                {$vocabulary.UPDATE}
             </button>
             <button
                 onClick={handleRegister}
                 className="flex w-28 items-center justify-center gap-2 rounded-lg bg-[#1e1e1e] py-2 text-white shadow-md transition duration-300 active:bg-green-700 md:w-32 md:hover:bg-green-700"
             >
-                {"Register"}
+                {$vocabulary.REGISTER}
             </button>
             <button
                 onClick={handleUnregister}
                 className="flex w-28 items-center justify-center gap-2 rounded-lg bg-[#1e1e1e] py-2 text-white shadow-md transition duration-300 active:bg-green-700 md:w-32 md:hover:bg-green-700"
             >
-                {"Unregister"}
+                {$vocabulary.UNREGISTER}
             </button>
             <div className="gap-x-2">{status}</div>
         </div>

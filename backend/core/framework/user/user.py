@@ -86,7 +86,7 @@ class User:
                 QueueResponseItem(
                     queueMediaId=item.queue_media_id,
                     listPublicId=song.album.publicId,
-                    song=song,
+                    media=song,
                 )
             )
 

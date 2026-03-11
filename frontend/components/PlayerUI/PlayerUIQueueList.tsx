@@ -38,7 +38,7 @@ export function PlayerUIQueueList({
     );
     const { draggingMedia, startDrag, calcItemTop } = useQueueDrag();
 
-    const lang = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     // TODO: implement when queueManager.reorderQueue is available
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -97,7 +97,7 @@ export function PlayerUIQueueList({
                                     onClick={() => handlePlayMedia(queueMedia)}
                                 >
                                     <PlayCircle className="h-5 w-5" />
-                                    {lang.PLAY_MEDIA}
+                                    {$vocabulary.PLAY_MEDIA}
                                 </ContextMenuOption>
                                 <ContextMenuOption
                                     onClick={() =>
@@ -109,7 +109,7 @@ export function PlayerUIQueueList({
                                     }
                                 >
                                     <ListX className="h-5 w-5" />
-                                    {lang.REMOVE_FROM_QUEUE}
+                                    {$vocabulary.REMOVE_FROM_QUEUE}
                                 </ContextMenuOption>
                                 <ContextMenuOption
                                     onClick={() =>
@@ -119,7 +119,7 @@ export function PlayerUIQueueList({
                                     }
                                 >
                                     <HardDriveDownload className="h-5 w-5" />
-                                    {lang.DOWNLOAD_MEDIA_TO_DEVICE}
+                                    {$vocabulary.DOWNLOAD_MEDIA_TO_DEVICE}
                                 </ContextMenuOption>
                             </ContextMenuContent>
                         </ContextMenu>
@@ -138,6 +138,7 @@ export function PlayerUIQueueList({
                         queueMediaId: -i - 1, // Negative IDs for mock medias
                         listPublicId: "",
                         media: {
+                            type: "song",
                             downloaded: false,
                             internalImageUrl: "/image/media-placeholder.png",
                             duration: 123,
@@ -213,7 +214,7 @@ export function PlayerUIQueueList({
                                         }
                                     >
                                         <PlayCircle className="h-5 w-5" />
-                                        {lang.PLAY_MEDIA}
+                                        {$vocabulary.PLAY_MEDIA}
                                     </ContextMenuOption>
                                     <ContextMenuOption
                                         onClick={() =>
@@ -225,7 +226,7 @@ export function PlayerUIQueueList({
                                         }
                                     >
                                         <ListX className="h-5 w-5" />
-                                        {lang.REMOVE_FROM_QUEUE}
+                                        {$vocabulary.REMOVE_FROM_QUEUE}
                                     </ContextMenuOption>
                                     <ContextMenuOption
                                         onClick={() =>
@@ -235,7 +236,7 @@ export function PlayerUIQueueList({
                                         }
                                     >
                                         <HardDriveDownload className="h-5 w-5" />
-                                        {lang.DOWNLOAD_MEDIA_TO_DEVICE}
+                                        {$vocabulary.DOWNLOAD_MEDIA_TO_DEVICE}
                                     </ContextMenuOption>
                                 </ContextMenuContent>
                             </ContextMenu>

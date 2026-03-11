@@ -10,31 +10,9 @@ from typing import Union, get_args, get_origin, Literal, Optional, Sequence, Lis
 
 from pydantic import BaseModel
 
-from backend.utils.backendUtils import time_it
 from backend.utils.logger import getLogger
 
 logger = getLogger(__name__)
-
-
-@time_it
-def _format_with_prettier(content: str) -> str | None:
-    try:
-        import subprocess
-
-        result = subprocess.run(
-            ["prettier", "--stdin-filepath", "dummy.ts"],
-            input=content,
-            capture_output=True,
-            text=True,
-            cwd="frontend",
-        )
-        if result.returncode == 0:
-            return result.stdout
-        logger.warning(f"Prettier failed: {result.stderr}")
-        return None
-    except Exception as e:
-        logger.warning(f"Could not run prettier: {e}")
-        return None
 
 
 folders_to_process: List[str] = []
@@ -235,31 +213,26 @@ async def generate_zod_schemas() -> None:
 
     type_name_to_file: dict[str, str] = {v: k for k, v in known_types.items()}
 
-    pending_files: dict[Path, str] = {}
-
     for model_name, model in all_models.items():
         file_name = to_camel_case(model_name)
         schema, refs = generate_zod_schema(model, known_types, file_name)
 
         import_lines: list[str] = ['import { z } from "zod";']
+        schema_names_imported: set[str] = set()
 
         for ref_file in refs:
             if ref_file != file_name:
                 type_name = type_name_to_file.get(ref_file, "")
                 if type_name:
                     import_lines.append(f"import {{ {type_name}Schema }} from '@/dto';")
+                    schema_names_imported.add(type_name)
 
         output_lines = import_lines + ["", schema]
-        output_content = "\n".join(output_lines)
 
         output_path = output_dir / f"{file_name}.ts"
 
-        existing_content: str | None = None
-        if output_path.exists():
-            existing_content = output_path.read_text()
-
-        if output_content != existing_content:
-            pending_files[output_path] = output_content
+        output_path.write_text("\n".join(output_lines))
+        logger.info(f"Written {output_path}")
 
     # for output_path, output_content in pending_files.items():
     #     formatted_content = _format_with_prettier(output_content)
@@ -277,17 +250,6 @@ async def generate_zod_schemas() -> None:
             f"export {{ {model_name}Schema, type {model_name} }} from '@/dto/{file_name}';"
         )
 
-    index_content = "\n".join(index_lines)
-    index_path = output_dir / "index.ts"
-    existing_index = index_path.read_text() if index_path.exists() else None
-
-    if index_content != existing_index:
-        formatted_index = _format_with_prettier(index_content)
-        if formatted_index is None:
-            formatted_index = index_content
-        index_path.write_text(formatted_index)
-        logger.info(f"Written index.ts")
-
     generated_file_names: set[str] = {to_camel_case(m) for m in all_models}
     for existing_file in output_dir.glob("*.ts"):
         if existing_file.name == "index.ts":
@@ -296,3 +258,17 @@ async def generate_zod_schemas() -> None:
         if file_stem not in generated_file_names:
             existing_file.unlink()
             logger.info(f"Deleted {existing_file}")
+
+    (output_dir / "index.ts").write_text("\n".join(index_lines))
+    logger.info(f"Written index.ts")
+
+    # Execute prettier on the generated files.
+    try:
+        import subprocess
+
+        subprocess.run(
+            ["prettier", "--write", str(output_dir)], cwd="frontend", check=True
+        )
+        logger.info("Formatted generated files with Prettier")
+    except Exception as e:
+        logger.warning(f"Could not format files with Prettier: {e}")

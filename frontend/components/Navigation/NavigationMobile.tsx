@@ -4,12 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useStore } from "@nanostores/react";
 import {
+    Download,
     Home,
     Library,
     Search,
     Settings,
     ShieldEllipsis,
-    Users,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
@@ -34,10 +34,10 @@ export default function NavigationMobile() {
         { title: $vocabulary.LIBRARY, href: "/library", icon: Library },
         { title: $vocabulary.SEARCH, href: "/search", icon: Search },
         {
-            title: $vocabulary.FRIENDS,
-            href: "/friends",
-            icon: Users,
-            disabled: true,
+            title: $vocabulary.DOWNLOAD,
+            href: "/downloader",
+            icon: Download,
+            disabled: false,
         },
         { title: $vocabulary.SETTINGS, href: "/settings", icon: Settings },
         // Admin tab — only shown to admin users

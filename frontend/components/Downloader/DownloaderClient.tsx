@@ -99,10 +99,10 @@ function DonutChart({
                 </svg>
                 {/* Center label */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-2xl leading-none font-bold text-white tabular-nums">
+                    <span className="text-2xl font-bold tabular-nums leading-none text-white">
                         {total}
                     </span>
-                    <span className="mt-0.5 text-[9px] font-semibold tracking-widest text-neutral-500 uppercase">
+                    <span className="mt-0.5 text-[9px] font-semibold uppercase tracking-widest text-neutral-500">
                         total
                     </span>
                 </div>
@@ -153,21 +153,21 @@ function StatsPills({
 }) {
     return (
         <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full bg-neutral-800 px-3 py-1 text-xs font-bold text-white tabular-nums">
+            <span className="rounded-full bg-neutral-800 px-3 py-1 text-xs font-bold tabular-nums text-white">
                 {total} total
             </span>
             {active > 0 && (
-                <span className="rounded-full bg-[#ee1086]/15 px-3 py-1 text-xs font-bold text-[#ee1086] tabular-nums">
+                <span className="rounded-full bg-[#ee1086]/15 px-3 py-1 text-xs font-bold tabular-nums text-[#ee1086]">
                     {active} active
                 </span>
             )}
             {done > 0 && (
-                <span className="rounded-full bg-emerald-400/15 px-3 py-1 text-xs font-bold text-emerald-400 tabular-nums">
+                <span className="rounded-full bg-emerald-400/15 px-3 py-1 text-xs font-bold tabular-nums text-emerald-400">
                     {done} done
                 </span>
             )}
             {failed > 0 && (
-                <span className="rounded-full bg-red-400/15 px-3 py-1 text-xs font-bold text-red-400 tabular-nums">
+                <span className="rounded-full bg-red-400/15 px-3 py-1 text-xs font-bold tabular-nums text-red-400">
                     {failed} failed
                 </span>
             )}
@@ -223,7 +223,7 @@ function DesktopSidebar() {
         <aside className="hidden w-56 shrink-0 flex-col gap-6 md:flex">
             {/* Stat card */}
             <div className="flex flex-col items-center gap-4 rounded-2xl border border-neutral-800/50 bg-neutral-900/70 p-5">
-                <p className="self-start text-[10px] font-bold tracking-widest text-neutral-500 uppercase">
+                <p className="self-start text-[10px] font-bold uppercase tracking-widest text-neutral-500">
                     Stats
                 </p>
                 <DonutChart segments={segments} total={total} />
@@ -236,7 +236,7 @@ function DesktopSidebar() {
 
             {/* Sources card */}
             <div className="rounded-2xl border border-neutral-800/50 bg-neutral-900/70 p-5">
-                <p className="mb-3 text-[10px] font-bold tracking-widest text-neutral-500 uppercase">
+                <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-neutral-500">
                     Sources
                 </p>
                 <div className="flex flex-col gap-2.5">
@@ -277,7 +277,7 @@ export default function DownloaderClient() {
         useDownloadGroups();
 
     return (
-        <div className="h-full w-full overflow-y-auto pt-24 pb-20">
+        <div className="h-full w-full overflow-y-auto pb-20 pt-24">
             <div className="mx-auto max-w-5xl px-4 py-6 md:px-8 md:py-10">
                 {/* Header */}
                 <div className="mb-2 flex w-full flex-col items-center justify-center gap-4 text-center">
@@ -313,7 +313,7 @@ export default function DownloaderClient() {
                     {/* Feed — takes remaining space */}
                     <div className="min-w-0 flex-1">
                         <div className="mb-3 flex items-center justify-between">
-                            <h2 className="text-[10px] font-bold tracking-widest text-neutral-500 uppercase">
+                            <h2 className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
                                 Downloads
                             </h2>
                             <ClearButton />

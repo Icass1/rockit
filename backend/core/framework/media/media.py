@@ -203,7 +203,7 @@ class Media:
 
     @staticmethod
     async def get_playlist_async(
-        session: AsyncSession, public_id: str
+        session: AsyncSession, user_id: int, public_id: str
     ) -> AResult[BasePlaylistResponse]:
         """Get a playlist by public_id, dispatching to the matched provider."""
 
@@ -231,7 +231,7 @@ class Media:
             )
 
         a_result: AResult[BasePlaylistResponse] = await provider.get_playlist_async(
-            session=session, public_id=public_id
+            session=session, user_id=user_id, public_id=public_id
         )
         if a_result.is_not_ok():
             logger.error(f"Provider error getting playlist. {a_result.info()}")

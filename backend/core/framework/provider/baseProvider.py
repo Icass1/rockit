@@ -110,7 +110,7 @@ class BaseProvider:
         )
 
     async def get_playlist_async(
-        self, session: AsyncSession, public_id: str
+        self, session: AsyncSession, user_id: int, public_id: str
     ) -> AResult[BasePlaylistResponse]:
         """"""
         return AResult(

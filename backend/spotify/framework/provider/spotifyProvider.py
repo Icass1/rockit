@@ -171,7 +171,7 @@ class SpotifyProvider(BaseProvider):
         return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
 
     async def get_playlist_async(
-        self, session: AsyncSession, public_id: str
+        self, session: AsyncSession, user_id: int, public_id: str
     ) -> AResult[BasePlaylistResponse]:
         """Get a Spotify playlist by public_id."""
 

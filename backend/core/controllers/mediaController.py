@@ -6,9 +6,11 @@ from PIL import Image
 from logging import Logger
 from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import APIRouter, HTTPException, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 
 from backend.constants import IMAGES_PATH
+from backend.core.access.db.ormModels.user import UserRow
+from backend.core.middlewares.authMiddleware import AuthMiddleware
 from backend.utils.logger import getLogger
 from backend.core.aResult import AResult
 
@@ -83,12 +85,23 @@ async def get_artist(request: Request, public_id: str) -> BaseArtistResponse:
 
 
 @router.get("/playlist/{public_id}")
-async def get_playlist(request: Request, public_id: str) -> BasePlaylistResponse:
+async def get_playlist(
+    request: Request,
+    public_id: str,
+    _=Depends(dependency=AuthMiddleware.auth_dependency),
+) -> BasePlaylistResponse:
     """Get a playlist by its public_id."""
+
+    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
+    if a_result_user.is_not_ok():
+        logger.error(f"Error getting current user. {a_result_user.info()}")
+        raise HTTPException(
+            status_code=a_result_user.get_http_code(), detail=a_result_user.message()
+        )
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
     a_result: AResult[BasePlaylistResponse] = await Media.get_playlist_async(
-        session=session, public_id=public_id
+        session=session, user_id=a_result_user.result().id, public_id=public_id
     )
     if a_result.is_not_ok():
         raise HTTPException(

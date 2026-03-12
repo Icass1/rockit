@@ -16,11 +16,11 @@ from backend.core.responses.baseArtistResponse import BaseArtistResponse
 from backend.core.responses.baseAlbumWithoutSongsResponse import (
     BaseAlbumWithoutSongsResponse,
 )
-from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
-from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
-from backend.core.responses.baseSongForPlaylistResponse import (
-    BaseSongForPlaylistResponse,
+from backend.core.responses.basePlaylistResponse import (
+    BasePlaylistResponse,
+    PlaylistResponseItem,
 )
+from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from backend.core.responses.baseSongWithoutAlbumResponse import (
     BaseSongWithoutAlbumResponse,
 )
@@ -297,7 +297,7 @@ async def get_playlist_response_async(
         a_result_track_links.result() if a_result_track_links.is_ok() else []
     )
 
-    song_responses: List[BaseSongForPlaylistResponse] = []
+    song_responses: List[PlaylistResponseItem[BaseSongWithAlbumResponse]] = []
     for playlist_track_row, track_row in playlist_track_links:
         a_result_track: AResult[SpotifyTrackResponse] = await get_track_response_async(
             session=session, provider_name=provider_name, track_row=track_row
@@ -311,8 +311,8 @@ async def get_playlist_response_async(
         track_response: SpotifyTrackResponse = a_result_track.result()
 
         song_responses.append(
-            BaseSongForPlaylistResponse(
-                song=BaseSongWithAlbumResponse(
+            PlaylistResponseItem(
+                item=BaseSongWithAlbumResponse(
                     provider=track_response.provider,
                     publicId=track_response.publicId,
                     url=track_response.url,
@@ -347,11 +347,14 @@ async def get_playlist_response_async(
         code=AResultCode.OK,
         message="OK",
         result=BasePlaylistResponse(
+            type="playlist",
+            description=playlist_row.description or "",
             provider=provider_name,
             publicId=public_id,
             url=f"/playlist/{public_id}",
             name=playlist_row.name,
-            songs=song_responses,
+            medias=song_responses,
+            contributors=[],
             internalImageUrl=get_internal_image_url(
                 internal_image=playlist_row.internal_image
             ),

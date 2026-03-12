@@ -37,11 +37,11 @@ def add_init_to_orm():
             k = os.path.join(dirpath, filename)
 
             if not k.endswith(".py"):
-                logger.info(f"Skipping {k}")
+                logger.debug(f"Skipping {k}")
                 continue
 
             if filename in skip_files:
-                logger.info(f"Skipping {k}")
+                logger.debug(f"Skipping {k}")
                 continue
 
             file_path = k
@@ -147,7 +147,7 @@ def add_init_to_orm():
                 )
 
             if len(parameters) == 0:
-                logger.info(f"{file_path} has no parameters.")
+                logger.debug(f"{file_path} has no parameters.")
                 continue
 
             init_stmt = "\n"

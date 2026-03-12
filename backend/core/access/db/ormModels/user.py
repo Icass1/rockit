@@ -48,7 +48,7 @@ class UserRow(
         Integer, ForeignKey("core.language.id"), nullable=False, default=1
     )
     image: Mapped[str] = mapped_column(
-        String, nullable=False, default="user-placeholder.png"
+        String, nullable=False, default="/image/user-placeholder.png"
     )
     admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     super_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
@@ -91,7 +91,7 @@ class UserRow(
         volume: float = 1,
         cross_fade: float = 0,
         lang_id: int = 1,
-        image: str = "user-placeholder.png",
+        image: str = "/image/user-placeholder.png",
         admin: bool = False,
         super_admin: bool = False,
     ):

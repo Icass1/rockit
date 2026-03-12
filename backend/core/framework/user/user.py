@@ -1,6 +1,7 @@
 from typing import List, Tuple
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
 from backend.utils.logger import getLogger
 from backend.core.aResult import AResult, AResultCode
 
@@ -101,42 +102,83 @@ class User:
     @staticmethod
     async def get_user_library_medias(
         session: AsyncSession, user_id: int
-    ) -> AResult[List[BaseAlbumWithoutSongsResponse]]:
-        """Get all albums for a user."""
+    ) -> AResult[
+        List[
+            BaseAlbumWithoutSongsResponse
+            | BasePlaylistResponse
+            | BaseSongWithAlbumResponse
+        ]
+    ]:
+        """Get all media in user's library."""
 
-        a_result_albums: AResult[
+        a_result_medias: AResult[
             List[Tuple[UserLibraryMediaRow, CoreMediaRow, ProviderRow]]
         ] = await UserAccess.get_user_library_medias(session=session, user_id=user_id)
 
-        if a_result_albums.is_not_ok():
-            logger.error(f"Error getting user albums. {a_result_albums.info()}")
+        if a_result_medias.is_not_ok():
+            logger.error(f"Error getting user media. {a_result_medias.info()}")
             return AResult(
-                code=a_result_albums.code(), message=a_result_albums.message()
+                code=a_result_medias.code(), message=a_result_medias.message()
             )
 
-        albums: List[BaseAlbumWithoutSongsResponse] = []
-        for _, album, provider in a_result_albums.result():
+        library_medias: List[
+            BaseAlbumWithoutSongsResponse
+            | BasePlaylistResponse
+            | BaseSongWithAlbumResponse
+        ] = []
+
+        for _, media, provider in a_result_medias.result():
             provider_instance: BaseProvider | None = providers.find_provider(
                 provider_id=provider.id
             )
+
             if provider_instance is None:
                 logger.error(f"No provider found for provider_id {provider.id}.")
                 continue
 
-            a_result_album: AResult[BaseAlbumWithSongsResponse] = (
-                await provider_instance.get_album_async(
-                    session=session, public_id=album.public_id
+            if media.media_type_key == MediaTypeEnum.ALBUM.value:
+                a_result_album: AResult[BaseAlbumWithSongsResponse] = (
+                    await provider_instance.get_album_async(
+                        session=session, public_id=media.public_id
+                    )
                 )
-            )
-            if a_result_album.is_not_ok():
-                logger.error(
-                    f"Error getting album from provider. {a_result_album.info()}"
+                if a_result_album.is_not_ok():
+                    logger.error(
+                        f"Error getting album from provider. {a_result_album.info()}"
+                    )
+                    continue
+
+                library_medias.append(a_result_album.result())
+
+            elif media.media_type_key == MediaTypeEnum.PLAYLIST.value:
+                a_result_playlist: AResult[BasePlaylistResponse] = (
+                    await provider_instance.get_playlist_async(
+                        session=session, user_id=user_id, public_id=media.public_id
+                    )
                 )
-                continue
+                if a_result_playlist.is_not_ok():
+                    logger.error(
+                        f"Error getting playlist from provider. {a_result_playlist.info()}"
+                    )
+                    continue
 
-            albums.append(a_result_album.result())
+                library_medias.append(a_result_playlist.result())
 
-        return AResult(code=AResultCode.OK, message="OK", result=albums)
+            elif media.media_type_key == MediaTypeEnum.SONG.value:
+                a_result_song: AResult[BaseSongWithAlbumResponse] = (
+                    await provider_instance.get_song_async(
+                        session=session, public_id=media.public_id
+                    )
+                )
+                if a_result_song.is_not_ok():
+                    logger.error(
+                        f"Error getting song from provider. {a_result_song.info()}"
+                    )
+                    continue
+
+                library_medias.append(a_result_song.result())
+
+        return AResult(code=AResultCode.OK, message="OK", result=library_medias)
 
     @staticmethod
     async def add_media_to_library(

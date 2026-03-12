@@ -1,14 +1,18 @@
-from typing import List, Tuple
 from logging import Logger
+from typing import List, Tuple
 from sqlalchemy.future import select
 from sqlalchemy import Result, Select
-from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from backend.utils.backendUtils import create_id
+from backend.utils.logger import getLogger
+
 from backend.core.aResult import AResult, AResultCode
+
 from backend.core.enums.mediaTypeEnum import MediaTypeEnum
+
 from backend.core.access.db.ormModels.media import CoreMediaRow
-from backend.core.access.db.ormModels.provider import ProviderRow
+
 from backend.default.access.db.ormModels.playlist import PlaylistRow
 from backend.default.access.db.ormModels.playlist_media import PlaylistMediaRow
 from backend.default.access.db.ormModels.playlist_contributor import (
@@ -18,56 +22,20 @@ from backend.default.access.db.ormModels.user_disabled_playlist_media import (
     UserDisabledPlaylistMediaRow,
 )
 
-from backend.utils.backendUtils import create_id
-from backend.utils.logger import getLogger
-
 logger: Logger = getLogger(__name__)
-
-DEFAULT_PROVIDER_MODULE = "default.framework.provider.defaultProvider"
 
 
 class PlaylistAccess:
-    @staticmethod
-    async def get_default_provider_id(session: AsyncSession) -> AResult[int]:
-        try:
-            stmt: Select[Tuple[ProviderRow]] = select(ProviderRow).where(
-                ProviderRow.module == DEFAULT_PROVIDER_MODULE
-            )
-            result: Result[Tuple[ProviderRow]] = await session.execute(statement=stmt)
-            provider: ProviderRow | None = result.scalar_one_or_none()
-            if not provider:
-                provider = ProviderRow(name="Default", module=DEFAULT_PROVIDER_MODULE)
-                session.add(instance=provider)
-                await session.flush()
-                await session.refresh(instance=provider)
-            return AResult(code=AResultCode.OK, message="OK", result=provider.id)
-        except Exception as e:
-            logger.error(f"Error in get_default_provider_id: {e}", exc_info=True)
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
-                message=f"Failed to get default provider: {e}",
-            )
-
     @staticmethod
     async def create_playlist_async(
         session: AsyncSession,
         name: str,
         owner_id: int,
+        provider_id: int,
         description: str | None = None,
         is_public: bool = True,
     ) -> AResult[PlaylistRow]:
         try:
-            a_result_provider: AResult[int] = (
-                await PlaylistAccess.get_default_provider_id(session=session)
-            )
-            if a_result_provider.is_not_ok():
-                return AResult(
-                    code=a_result_provider.code(),
-                    message=a_result_provider.message(),
-                )
-
-            provider_id: int = a_result_provider.result()
-
             core_media: CoreMediaRow = CoreMediaRow(
                 public_id=create_id(32),
                 provider_id=provider_id,
@@ -105,8 +73,10 @@ class PlaylistAccess:
                 entity=PlaylistRow, ident=playlist_id
             )
             if not result:
+                logger.error(f"Playlist with {playlist_id} not found.")
                 return AResult(
-                    code=AResultCode.NOT_FOUND, message="Playlist not found."
+                    code=AResultCode.NOT_FOUND,
+                    message=f"Playlist {playlist_id} not found.",
                 )
             return AResult(code=AResultCode.OK, message="OK", result=result)
         except Exception as e:
@@ -348,11 +318,9 @@ class PlaylistAccess:
         session: AsyncSession, playlist_id: int
     ) -> AResult[List[PlaylistContributorRow]]:
         try:
-            stmt: Select[Tuple[PlaylistContributorRow]] = (
-                select(PlaylistContributorRow)
-                .where(PlaylistContributorRow.playlist_id == playlist_id)
-                .options(selectinload(PlaylistContributorRow.user_id))
-            )
+            stmt: Select[Tuple[PlaylistContributorRow]] = select(
+                PlaylistContributorRow
+            ).where(PlaylistContributorRow.playlist_id == playlist_id)
             result: Result[Tuple[PlaylistContributorRow]] = await session.execute(
                 statement=stmt
             )

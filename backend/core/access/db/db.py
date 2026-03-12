@@ -23,6 +23,7 @@ from backend.core.access.db.ormModels.error import ErrorRow  # type: ignore
 from backend.core.access.db.ormModels.user import UserRow  # type: ignore
 
 # ENUMS
+from backend.core.access.db.ormEnums.playlistContributorRoleEnum import PlaylistContributorRoleEnumRow  # type: ignore
 from backend.core.access.db.ormEnums.downloadStatusEnum import DownloadStatusEnumRow  # type: ignore
 from backend.core.access.db.ormEnums.skipDirectionEnum import SkipDirectionEnumRow  # type: ignore
 from backend.core.access.db.ormEnums.repeatModeEnum import RepeatModeEnumRow  # type: ignore

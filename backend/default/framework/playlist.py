@@ -1,5 +1,4 @@
 from logging import Logger
-from typing import List, Dict, Any
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
@@ -7,7 +6,18 @@ from sqlalchemy.orm import selectinload
 from backend.core.aResult import AResult, AResultCode
 from backend.core.access.db.ormModels.media import CoreMediaRow
 from backend.core.enums.mediaTypeEnum import MediaTypeEnum
+from backend.default.access.db.ormModels.playlist import PlaylistRow
 from backend.default.access.playlistAccess import PlaylistAccess
+from backend.default.framework.default import Default
+from backend.default.framework.models.playlist import (
+    PlaylistModel,
+    PlaylistMediaModel,
+    PlaylistContributorModel,
+    PlaylistWithDetailsModel,
+    MediaInfoModel,
+    PlaylistMediaAddModel,
+    PlaylistContributorAddModel,
+)
 from backend.utils.logger import getLogger
 
 logger: Logger = getLogger(__name__)
@@ -21,7 +31,7 @@ class Playlist:
     @staticmethod
     async def _get_media_info(
         session: AsyncSession, media_id: int
-    ) -> AResult[Dict[str, Any]]:
+    ) -> AResult[MediaInfoModel]:
         try:
             stmt = (
                 select(CoreMediaRow)
@@ -45,11 +55,11 @@ class Playlist:
             return AResult(
                 code=AResultCode.OK,
                 message="OK",
-                result={
-                    "media_type": media_type_key,
-                    "media_id": media.public_id,
-                    "provider_id": media.provider_id,
-                },
+                result=MediaInfoModel(
+                    media_type=media_type_key,
+                    media_id=media.public_id,
+                    provider_id=media.provider_id,
+                ),
             )
         except Exception as e:
             logger.error(f"Error getting media info: {e}", exc_info=True)
@@ -62,10 +72,19 @@ class Playlist:
         owner_id: int,
         description: str | None = None,
         is_public: bool = True,
-    ) -> AResult[Dict[str, Any]]:
+    ) -> AResult[PlaylistModel]:
+
+        a_result_provider_id: AResult[int] = Default.provider.get_id()
+        if a_result_provider_id.is_not_ok():
+            logger.error(f"Error getting provider id. {a_result_provider_id.info()}")
+            return AResult(
+                code=a_result_provider_id.code(), message=a_result_provider_id.message()
+            )
+
         a_result_playlist = await PlaylistAccess.create_playlist_async(
             session=session,
             name=name,
+            provider_id=a_result_provider_id.result(),
             owner_id=owner_id,
             description=description,
             is_public=is_public,
@@ -90,25 +109,27 @@ class Playlist:
         return AResult(
             code=AResultCode.OK,
             message="OK",
-            result={
-                "id": playlist.id,
-                "public_id": playlist.public_id,
-                "name": playlist.name,
-                "description": playlist.description,
-                "cover_image": playlist.cover_image,
-                "is_public": playlist.is_public,
-                "owner_id": playlist.owner_id,
-                "date_added": playlist.date_added.isoformat(),
-                "date_updated": playlist.date_updated.isoformat(),
-            },
+            result=PlaylistModel(
+                id=playlist.id,
+                public_id=playlist.public_id,
+                name=playlist.name,
+                description=playlist.description,
+                cover_image=playlist.cover_image,
+                is_public=playlist.is_public,
+                owner_id=playlist.owner_id,
+                date_added=playlist.date_added.isoformat(),
+                date_updated=playlist.date_updated.isoformat(),
+            ),
         )
 
     @staticmethod
     async def get_playlist_async(
         session: AsyncSession, playlist_id: int, user_id: int | None = None
-    ) -> AResult[Dict[str, Any]]:
-        a_result_playlist = await PlaylistAccess.get_playlist_by_id_async(
-            session=session, playlist_id=playlist_id
+    ) -> AResult[PlaylistWithDetailsModel]:
+        a_result_playlist: AResult[PlaylistRow] = (
+            await PlaylistAccess.get_playlist_by_id_async(
+                session=session, playlist_id=playlist_id
+            )
         )
         if a_result_playlist.is_not_ok():
             logger.error(
@@ -144,7 +165,7 @@ class Playlist:
             )
 
         medias = a_result_medias.result()
-        disabled_media_ids: List[int] = []
+        disabled_media_ids: list[int] = []
         if user_id:
             a_result_disabled = await PlaylistAccess.get_user_disabled_medias_async(
                 session=session, user_id=user_id, playlist_id=playlist.id
@@ -152,7 +173,7 @@ class Playlist:
             if a_result_disabled.is_ok():
                 disabled_media_ids = a_result_disabled.result()
 
-        visible_medias: List[Dict[str, Any]] = []
+        visible_medias: list[PlaylistMediaModel] = []
         for m in medias:
             if m.id not in disabled_media_ids:
                 media_row = await Playlist._get_media_info(
@@ -161,52 +182,54 @@ class Playlist:
                 if media_row.is_ok():
                     media_info = media_row.result()
                     visible_medias.append(
-                        {
-                            "id": m.id,
-                            "position": m.position,
-                            "media_type": media_info["media_type"],
-                            "media_id": media_info["media_id"],
-                            "provider_id": media_info["provider_id"],
-                        }
+                        PlaylistMediaModel(
+                            id=m.id,
+                            position=m.position,
+                            media_type=media_info.media_type,
+                            media_id=media_info.media_id,
+                            provider_id=media_info.provider_id,
+                        )
                     )
 
         a_result_contributors = await PlaylistAccess.get_contributors_async(
             session=session, playlist_id=playlist.id
         )
-        contributors: List[Dict[str, Any]] = []
+        contributors: list[PlaylistContributorModel] = []
         if a_result_contributors.is_ok():
             for c in a_result_contributors.result():
                 contributors.append(
-                    {
-                        "user_id": c.user_id,
-                        "role_key": c.role_key,
-                    }
+                    PlaylistContributorModel(
+                        user_id=c.user_id,
+                        role_key=c.role_key,
+                    )
                 )
 
         return AResult(
             code=AResultCode.OK,
             message="OK",
-            result={
-                "id": playlist.id,
-                "public_id": playlist.public_id,
-                "name": playlist.name,
-                "description": playlist.description,
-                "cover_image": playlist.cover_image,
-                "is_public": playlist.is_public,
-                "owner_id": playlist.owner_id,
-                "date_added": playlist.date_added.isoformat(),
-                "date_updated": playlist.date_updated.isoformat(),
-                "medias": visible_medias,
-                "contributors": contributors,
-            },
+            result=PlaylistWithDetailsModel(
+                id=playlist.id,
+                public_id=playlist.public_id,
+                name=playlist.name,
+                description=playlist.description,
+                cover_image=playlist.cover_image,
+                is_public=playlist.is_public,
+                owner_id=playlist.owner_id,
+                date_added=playlist.date_added.isoformat(),
+                date_updated=playlist.date_updated.isoformat(),
+                medias=visible_medias,
+                contributors=contributors,
+            ),
         )
 
     @staticmethod
     async def get_user_playlists_async(
         session: AsyncSession, user_id: int
-    ) -> AResult[List[Dict[str, Any]]]:
-        a_result_playlists = await PlaylistAccess.get_user_playlists_async(
-            session=session, user_id=user_id
+    ) -> AResult[list[PlaylistModel]]:
+        a_result_playlists: AResult[list[PlaylistRow]] = (
+            await PlaylistAccess.get_user_playlists_async(
+                session=session, user_id=user_id
+            )
         )
         if a_result_playlists.is_not_ok():
             logger.error(
@@ -219,20 +242,20 @@ class Playlist:
             )
 
         playlists = a_result_playlists.result()
-        result_playlists: List[Dict[str, Any]] = []
+        result_playlists: list[PlaylistModel] = []
         for p in playlists:
             result_playlists.append(
-                {
-                    "id": p.id,
-                    "public_id": p.public_id,
-                    "name": p.name,
-                    "description": p.description,
-                    "cover_image": p.cover_image,
-                    "is_public": p.is_public,
-                    "owner_id": p.owner_id,
-                    "date_added": p.date_added.isoformat(),
-                    "date_updated": p.date_updated.isoformat(),
-                }
+                PlaylistModel(
+                    id=p.id,
+                    public_id=p.public_id,
+                    name=p.name,
+                    description=p.description,
+                    cover_image=p.cover_image,
+                    is_public=p.is_public,
+                    owner_id=p.owner_id,
+                    date_added=p.date_added.isoformat(),
+                    date_updated=p.date_updated.isoformat(),
+                )
             )
 
         return AResult(
@@ -250,7 +273,7 @@ class Playlist:
         description: str | None = None,
         cover_image: str | None = None,
         is_public: bool | None = None,
-    ) -> AResult[Dict[str, Any]]:
+    ) -> AResult[PlaylistModel]:
         a_result_role = await PlaylistAccess.get_user_role_in_playlist_async(
             session=session, playlist_id=playlist_id, user_id=user_id
         )
@@ -287,17 +310,17 @@ class Playlist:
         return AResult(
             code=AResultCode.OK,
             message="OK",
-            result={
-                "id": playlist.id,
-                "public_id": playlist.public_id,
-                "name": playlist.name,
-                "description": playlist.description,
-                "cover_image": playlist.cover_image,
-                "is_public": playlist.is_public,
-                "owner_id": playlist.owner_id,
-                "date_added": playlist.date_added.isoformat(),
-                "date_updated": playlist.date_updated.isoformat(),
-            },
+            result=PlaylistModel(
+                id=playlist.id,
+                public_id=playlist.public_id,
+                name=playlist.name,
+                description=playlist.description,
+                cover_image=playlist.cover_image,
+                is_public=playlist.is_public,
+                owner_id=playlist.owner_id,
+                date_added=playlist.date_added.isoformat(),
+                date_updated=playlist.date_updated.isoformat(),
+            ),
         )
 
     @staticmethod
@@ -336,7 +359,7 @@ class Playlist:
         playlist_id: int,
         user_id: int,
         media_public_id: str,
-    ) -> AResult[Dict[str, Any]]:
+    ) -> AResult[PlaylistMediaAddModel]:
         a_result_role = await PlaylistAccess.get_user_role_in_playlist_async(
             session=session, playlist_id=playlist_id, user_id=user_id
         )
@@ -381,13 +404,13 @@ class Playlist:
         return AResult(
             code=AResultCode.OK,
             message="OK",
-            result={
-                "id": playlist_media.id,
-                "position": playlist_media.position,
-                "media_type": media_type_key,
-                "media_id": media_row.public_id,
-                "provider_id": media_row.provider_id,
-            },
+            result=PlaylistMediaAddModel(
+                id=playlist_media.id,
+                position=playlist_media.position,
+                media_type=media_type_key,
+                media_id=media_row.public_id,
+                provider_id=media_row.provider_id,
+            ),
         )
 
     @staticmethod
@@ -403,7 +426,7 @@ class Playlist:
         owner_id: int,
         new_user_id: int,
         role_key: int,
-    ) -> AResult[Dict[str, Any]]:
+    ) -> AResult[PlaylistContributorAddModel]:
         a_result_role = await PlaylistAccess.get_user_role_in_playlist_async(
             session=session, playlist_id=playlist_id, user_id=owner_id
         )
@@ -435,10 +458,10 @@ class Playlist:
         return AResult(
             code=AResultCode.OK,
             message="OK",
-            result={
-                "user_id": contributor.user_id,
-                "role_key": contributor.role_key,
-            },
+            result=PlaylistContributorAddModel(
+                user_id=contributor.user_id,
+                role_key=contributor.role_key,
+            ),
         )
 
     @staticmethod

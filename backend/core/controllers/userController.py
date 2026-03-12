@@ -29,6 +29,8 @@ from backend.core.responses.libraryListsResponse import LibraryListsResponse
 from backend.core.responses.baseAlbumWithoutSongsResponse import (
     BaseAlbumWithoutSongsResponse,
 )
+from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
+from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 
 ph = PasswordHasher(
     time_cost=2,
@@ -46,8 +48,9 @@ router = APIRouter(
 
 @router.get("/session")
 async def get_session(request: Request) -> SessionResponse:
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
+    """TODO"""
 
+    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
     if a_result_user.is_not_ok():
         logger.error("Error getting current user.")
         raise HTTPException(
@@ -57,7 +60,7 @@ async def get_session(request: Request) -> SessionResponse:
     image: str | None = a_result_user.result().image
 
     if image:
-        image = BACKEND_URL + "/image/" + image
+        image = BACKEND_URL + image
 
     return SessionResponse(
         username=a_result_user.result().username,
@@ -70,6 +73,7 @@ async def get_session(request: Request) -> SessionResponse:
 
 @router.get(path="/queue")
 async def get_queue(request: Request) -> QueueResponse:
+    """TODO"""
 
     a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
     if a_result_user.is_not_ok():
@@ -104,10 +108,14 @@ async def get_library_lists(request: Request) -> LibraryListsResponse:
             status_code=a_result_user.get_http_code(), detail=a_result_user.message()
         )
 
-    a_result_albums: AResult[List[BaseAlbumWithoutSongsResponse]] = (
-        await User.get_user_library_medias(
-            session=session, user_id=a_result_user.result().id
-        )
+    a_result_albums: AResult[
+        List[
+            BaseAlbumWithoutSongsResponse
+            | BasePlaylistResponse
+            | BaseSongWithAlbumResponse
+        ]
+    ] = await User.get_user_library_medias(
+        session=session, user_id=a_result_user.result().id
     )
 
     if a_result_albums.is_not_ok():
@@ -117,15 +125,36 @@ async def get_library_lists(request: Request) -> LibraryListsResponse:
             detail=a_result_albums.message(),
         )
 
+    library_media: List[
+        BaseAlbumWithoutSongsResponse | BasePlaylistResponse | BaseSongWithAlbumResponse
+    ] = a_result_albums.result()
+
+    albums: List[BaseAlbumWithoutSongsResponse] = [
+        m for m in library_media if isinstance(m, BaseAlbumWithoutSongsResponse)
+    ]
+    playlists: List[BasePlaylistResponse] = [
+        m for m in library_media if isinstance(m, BasePlaylistResponse)
+    ]
+    songs: List[BaseSongWithAlbumResponse] = [
+        m for m in library_media if isinstance(m, BaseSongWithAlbumResponse)
+    ]
+
     return LibraryListsResponse(
-        albums=a_result_albums.result(), playlists=[], songs=[], videos=[], stations=[]
+        albums=albums,
+        playlists=playlists,
+        songs=songs,
+        videos=[],
+        stations=[],
+        shared=[],
     )
 
 
 @router.get(path="/library/albums")
 async def get_user_library_medias(
     request: Request,
-) -> List[BaseAlbumWithoutSongsResponse]:
+) -> List[
+    BaseAlbumWithoutSongsResponse | BasePlaylistResponse | BaseSongWithAlbumResponse
+]:
     """Get all albums in the user's library."""
 
     session: AsyncSession = DBSessionMiddleware.get_session(request)
@@ -137,9 +166,13 @@ async def get_user_library_medias(
             status_code=a_result_user.get_http_code(), detail=a_result_user.message()
         )
 
-    a_result_albums: AResult[List[BaseAlbumWithoutSongsResponse]] = (
-        await User.get_user_library_medias(session, user_id=a_result_user.result().id)
-    )
+    a_result_albums: AResult[
+        List[
+            BaseAlbumWithoutSongsResponse
+            | BasePlaylistResponse
+            | BaseSongWithAlbumResponse
+        ]
+    ] = await User.get_user_library_medias(session, user_id=a_result_user.result().id)
 
     if a_result_albums.is_not_ok():
         logger.error(f"Error getting user albums. {a_result_albums.info()}")

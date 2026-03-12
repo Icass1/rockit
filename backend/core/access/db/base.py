@@ -5,4 +5,4 @@ global_metadata = MetaData(schema=None)
 
 
 CoreBase = declarative_base(metadata=global_metadata)
-CoreBase.metadata.schema = "main"
+CoreBase.metadata.schema = "core"

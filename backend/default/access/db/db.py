@@ -1,9 +1,6 @@
 # BASE
 from backend.default.access.db.base import DefaultBase
 
-# ENUMS
-from backend.default.access.db.ormEnums.playlistContributorRoleEnum import PlaylistContributorRoleEnumRow  # type: ignore
-
 # GENERAL TABLES
 from backend.default.access.db.ormModels.playlist import PlaylistRow  # type: ignore
 from backend.default.access.db.ormModels.playlist_media import PlaylistMediaRow  # type: ignore

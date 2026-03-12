@@ -9,13 +9,13 @@ from backend.core.access.db.ormModels.declarativeMixin import (
     TablePublicId,
 )
 from backend.default.access.db.base import DefaultBase
-from backend.core.access.db.ormModels.media import CoreMediaRow
 
 if TYPE_CHECKING:
-    from backend.core.access.db.ormModels.media import CoreMediaRow
-    from backend.core.access.db.ormModels.user import UserRow
     from backend.default.access.db.ormModels.playlist_contributor import (
         PlaylistContributorRow,
+    )
+    from backend.default.access.db.ormModels.playlist_media import (
+        PlaylistMediaRow,
     )
 
 
@@ -29,16 +29,15 @@ class PlaylistRow(DefaultBase, TablePublicId, TableDateUpdated, TableDateAdded):
     name: Mapped[str] = mapped_column(String, nullable=False)
     description: Mapped[str | None] = mapped_column(String, nullable=True)
     cover_image: Mapped[str] = mapped_column(
-        String, nullable=False, default="playlist-placeholder.png"
+        String, nullable=False, default="/image/playlist-placeholder.png"
     )
     is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     owner_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("core.user.id"), nullable=False
     )
 
-    owner: Mapped["UserRow"] = relationship("UserRow", back_populates=None)
-    playlist_medias: Mapped[List["CoreMediaRow"]] = relationship(
-        "CoreMediaRow", back_populates="playlist", uselist=True
+    playlist_medias: Mapped[List["PlaylistMediaRow"]] = relationship(
+        "PlaylistMediaRow", back_populates="playlist", uselist=True
     )
     contributors: Mapped[List["PlaylistContributorRow"]] = relationship(
         "PlaylistContributorRow", back_populates="playlist", uselist=True
@@ -51,7 +50,7 @@ class PlaylistRow(DefaultBase, TablePublicId, TableDateUpdated, TableDateAdded):
         name: str,
         owner_id: int,
         description: str | None = None,
-        cover_image: str = "playlist-placeholder.png",
+        cover_image: str = "/image/playlist-placeholder.png",
         is_public: bool = True,
     ):
         kwargs: Dict[str, None | bool | int | str] = {}

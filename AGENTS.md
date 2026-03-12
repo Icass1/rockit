@@ -34,11 +34,10 @@ npx tsc --noEmit     # TypeScript type checking
 ### Backend
 ```bash
 cd backend
-venv/bin/python -m pytest                         # Run all tests
-venv/bin/python -m pytest path/to/test_file.py   # Run specific test file
-venv/bin/python -m pytest -k "test_name"        # Run tests matching pattern
 venv/bin/python -m pyright                       # Type checking
 ```
+
+**Note:** There are currently no tests in this project.
 
 ## Architecture
 
@@ -208,6 +207,15 @@ export { default as HomeClient } from "./HomeClient";
 export { default as SongsCarousel } from "./SongsCarousel";
 ```
 
+### DTO (Data Transfer Objects)
+DTOs are **automatically generated** from backend responses. Never edit DTO files manually.
+
+To add a new field to a DTO:
+1. Modify or create a response in the `backend/*/responses/` folder
+2. Run `python3 -m backend zod` to regenerate the frontend DTOs
+
+The DTOs are located in `frontend/dto/` and should never be modified directly.
+
 ## Database
 
 ### ORM Models
@@ -235,6 +243,7 @@ All code, comments, documentation, and messages MUST be written in **English onl
 - Never create database sessions in access functions
 - Never write SQL queries in framework or controller layers - use access layer instead
 - Never return `dict` or raw types from endpoints - always use a BaseModel from responses
+- Never use dictionaries to return data from framework layer functions - always create a dataclass in `<provider>/framework/models/<model_name>.py`
 
 ### Frontend
 - Never add `"use client"` to a `page.tsx`

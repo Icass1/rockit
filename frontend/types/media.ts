@@ -1,3 +1,10 @@
-import { BaseSongWithAlbumResponse, BaseVideoResponse } from "@/dto";
+import {
+    BaseSongWithAlbumResponse,
+    BaseStationResponse,
+    BaseVideoResponse,
+} from "@/dto";
 
-export type MediaType = BaseSongWithAlbumResponse | BaseVideoResponse;
+export type MediaType =
+    | BaseSongWithAlbumResponse
+    | BaseVideoResponse
+    | BaseStationResponse;

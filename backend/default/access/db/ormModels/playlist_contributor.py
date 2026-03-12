@@ -1,7 +1,7 @@
-from typing import Dict
+from typing import Dict, TYPE_CHECKING
 
 from sqlalchemy import ForeignKey, Integer
-from sqlalchemy.orm import mapped_column, Mapped
+from sqlalchemy.orm import mapped_column, Mapped, relationship
 
 from backend.default.access.db.base import DefaultBase
 from backend.core.access.db.ormModels.declarativeMixin import (
@@ -9,6 +9,11 @@ from backend.core.access.db.ormModels.declarativeMixin import (
     TableAutoincrementId,
     TableDateUpdated,
 )
+
+if TYPE_CHECKING:
+    from backend.default.access.db.ormModels.playlist import (
+        PlaylistRow,
+    )
 
 
 class PlaylistContributorRow(
@@ -25,8 +30,12 @@ class PlaylistContributorRow(
     )
     role_key: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("default_schema.playlist_contributor_role_enum.key"),
+        ForeignKey("core.playlist_contributor_role_enum.key"),
         nullable=False,
+    )
+
+    playlist: Mapped["PlaylistRow"] = relationship(
+        "PlaylistRow", back_populates="contributors"
     )
 
     def __init__(self, playlist_id: int, user_id: int, role_key: int):

@@ -1,13 +1,15 @@
-import { BaseSongForPlaylistResponseSchema } from "@/dto";
+import { PlaylistContributorResponseSchema } from "@/dto";
 import { z } from "zod";
 
 export const BasePlaylistResponseSchema = z.object({
     type: z.union([z.literal("playlist")]),
+    description: z.string().nullable(),
     provider: z.string(),
     publicId: z.string(),
     url: z.string(),
     name: z.string(),
-    songs: z.array(z.lazy(() => BaseSongForPlaylistResponseSchema)),
+    medias: z.array(z.union([z.any(), z.any(), z.any(), z.any(), z.any()])),
+    contributors: z.array(z.lazy(() => PlaylistContributorResponseSchema)),
     internalImageUrl: z.string(),
     owner: z.string(),
 });

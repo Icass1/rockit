@@ -31,6 +31,8 @@ class SchemaInfo:
 
 schemas: List[SchemaInfo] = []
 
+modules: List[str] = []
+
 for dirpath, dirnames, filenames in os.walk("backend"):
     if not dirpath.endswith("/db"):
         continue
@@ -41,6 +43,13 @@ for dirpath, dirnames, filenames in os.walk("backend"):
 
     base = ".".join(dirpath.split("/"))
     module = f"{base}.db"
+    modules.append(module)
+
+modules_sorted: List[str] = sorted(
+    modules, key=lambda x: (0 if "core" in x else 1, x)  # "core" gets 0, others 1
+)
+
+for module in modules_sorted:
     logger.info(f"Importing module {module}")
     module = import_module(module)
 

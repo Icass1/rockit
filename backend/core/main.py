@@ -67,7 +67,7 @@ for dirpath, dirnames, filenames in os.walk("backend"):
                 public_router_included = True
 
             if router_included and public_router_included:
-                logger.info(f"Included router and public of {module_name}.")
+                logger.info(f"Included router and public router of {module_name}.")
             elif router_included:
                 logger.info(f"Included router of {module_name}.")
             elif router_included:

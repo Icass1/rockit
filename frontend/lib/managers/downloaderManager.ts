@@ -52,6 +52,48 @@ export class DownloaderManager {
         }
     }
 
+    async startDownloadAsync(url: string) {
+        const publicId = this.extractPublicId(url);
+        if (!publicId) {
+            rockIt.notificationManager.notifyError("Invalid URL");
+            return;
+        }
+
+        this._downloadInfoAtom.set([
+            ...this._downloadInfoAtom.get(),
+            {
+                publicId,
+                message: "In queue",
+                completed: 0,
+                selected: false,
+                status: "pending",
+            },
+        ]);
+
+        await this.downloadMediaToDBAsync([publicId]);
+    }
+
+    clearCompleted() {
+        const current = this._downloadInfoAtom.get();
+        const active = current.filter((d) => d.completed < 100);
+        this._downloadInfoAtom.set(active);
+    }
+
+    private extractPublicId(url: string): string | null {
+        const spotifyMatch = url.match(
+            /spotify\.com\/(track|album|playlist)\/([a-zA-Z0-9]+)/
+        );
+        if (spotifyMatch)
+            return `spotify:${spotifyMatch[1]}:${spotifyMatch[2]}`;
+
+        const youtubeMatch = url.match(
+            /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
+        );
+        if (youtubeMatch) return `youtube:${youtubeMatch[1]}`;
+
+        return null;
+    }
+
     // #endregion: Methods
 
     // #region: Getters

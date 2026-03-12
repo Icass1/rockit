@@ -22,6 +22,7 @@ export function LibraryFilters({
         { key: "songs", label: $vocabulary.SONGS },
         { key: "videos", label: $vocabulary.VIDEOS },
         { key: "stations", label: $vocabulary.RADIO_STATIONS },
+        { key: "shared", label: $vocabulary.SHARED_2_YOU },
     ];
 
     return (

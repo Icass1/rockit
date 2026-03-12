@@ -77,8 +77,14 @@ class RockItDB:
         """
         self.database: str = database
 
+        connection_string = (
+            f"postgresql+asyncpg://{username}:{password}@{host}:{port}/{self.database}"
+        )
+
+        logger.info(f"Using connection string '{connection_string}'")
+
         self.engine: AsyncEngine = create_async_engine(
-            f"postgresql+asyncpg://{username}:{password}@{host}:{port}/{self.database}",
+            url=connection_string,
             echo=verbose,
         )
 

@@ -19,7 +19,9 @@
     "python.analysis.autoImportCompletions": true,
     "python.analysis.inlayHints.callArgumentNames": "all",
     "python.analysis.inlayHints.functionReturnTypes": true,
-    "python.analysis.inlayHints.pytestParameters": true,
+    "python.analysis.extraPaths": [
+        "./backend"
+    ],
     "python.analysis.inlayHints.variableTypes": true,
     "python-envs.defaultEnvManager": "ms-python.python:venv",
     "css.lint.unknownAtRules": "ignore",

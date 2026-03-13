@@ -228,6 +228,18 @@ class ErrorRow(CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdded)
 - Database names → **snake_case**
 - Table names → **singular** (`user`, not `users`)
 
+### Public ID vs Internal ID
+Some database tables contain both `id` and `public_id`:
+- **`id`**: Numeric, auto-incrementing, used for internal references (foreign keys). **Never send to the client.**
+- **`public_id`**: UUID string, used for client communication (API responses, URLs, etc.)
+
+The `public_id` is always stored in the **core schema**. Tables in other schemas (e.g., `default`) do not have a `public_id` column — they reference core schema tables to obtain it.
+
+Example: A playlist in the `default` schema doesn't have a `public_id` column. It points to a row in the `core.media` table which contains the `public_id`.
+
+### Enum Columns
+When a database column stores an enum key, always convert it to an enum instance immediately after retrieval. Work with the enum instance throughout the codebase. Only convert to string at the response layer — **never call `.lower()`** on the enum when serializing.
+
 ## Language
 
 All code, comments, documentation, and messages MUST be written in **English only**.

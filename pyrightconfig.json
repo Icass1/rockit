@@ -1,5 +1,17 @@
 {
-  "typeCheckingMode": "strict",
-  "venvPath": ".",
-  "venv": "venv"
+    "typeCheckingMode": "strict",
+    "venvPath": ".",
+    "venv": "venv",
+    "include": [
+        "backend"
+    ],
+    "pythonVersion": "3.12",
+    "executionEnvironments": [
+        {
+            "root": ".",
+            "extraPaths": [
+                "./backend"
+            ]
+        }
+    ]
 }

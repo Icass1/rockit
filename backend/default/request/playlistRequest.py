@@ -1,6 +1,8 @@
 from typing import Optional
 from pydantic import BaseModel
 
+from backend.core.enums.playlistContributorRoleEnum import PlaylistContributorRoleEnum
+
 
 class CreatePlaylistRequest(BaseModel):
     name: str
@@ -16,13 +18,13 @@ class UpdatePlaylistRequest(BaseModel):
 
 
 class AddMediaToPlaylistRequest(BaseModel):
-    media_public_id: str
+    playlist_media_public_id: str
 
 
 class AddContributorRequest(BaseModel):
-    user_id: int
-    role_key: int
+    user_public_id: str
+    role: PlaylistContributorRoleEnum
 
 
 class RemoveContributorRequest(BaseModel):
-    user_id: int
+    target_user_public_id: str

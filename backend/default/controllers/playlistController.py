@@ -1,30 +1,21 @@
 from logging import Logger
-from typing import List, Union
+from typing import List
 from fastapi import Depends, APIRouter, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from backend.constants import BACKEND_URL
+from backend.default.framework.default import Default
 from backend.utils.logger import getLogger
+
 from backend.core.aResult import AResult
+
 from backend.core.middlewares.authMiddleware import AuthMiddleware
 from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
-from backend.core.responses.okResponse import OkResponse
-from backend.core.responses.basePlaylistResponse import (
-    BasePlaylistResponse,
-    PlaylistContributorResponse,
-    PlaylistResponseItem,
-)
-from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
-from backend.core.responses.baseVideoResponse import BaseVideoResponse
-from backend.core.responses.baseAlbumWithoutSongsResponse import (
-    BaseAlbumWithoutSongsResponse,
-)
-from backend.core.responses.basePlaylistForPlaylistResponse import (
-    BasePlaylistForPlaylistResponse,
-)
-from backend.core.responses.baseStationResponse import BaseStationResponse
-from backend.core.enums.playlistContributorRoleEnum import PlaylistContributorRoleEnum
-from backend.core.framework.media.media import Media
+
 from backend.core.access.userAccess import UserAccess
+
+from backend.core.responses.okResponse import OkResponse
+from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
 
 from backend.default.framework.playlist import Playlist
 from backend.default.framework.models.playlist import (
@@ -40,96 +31,13 @@ from backend.default.request.playlistRequest import (
     AddContributorRequest,
 )
 
-MediaItemType = Union[
-    PlaylistResponseItem[BaseSongWithAlbumResponse],
-    PlaylistResponseItem[BaseVideoResponse],
-    PlaylistResponseItem[BaseStationResponse],
-    PlaylistResponseItem[BasePlaylistForPlaylistResponse],
-    PlaylistResponseItem[BaseAlbumWithoutSongsResponse],
-]
-
-
-async def get_playlist_response(
-    session: AsyncSession,
-    playlist: PlaylistWithDetailsModel,
-    owner_name: str,
-) -> BasePlaylistResponse:
-    """Build a BasePlaylistResponse from a PlaylistWithDetailsModel."""
-
-    medias: List[MediaItemType] = []
-    for media in playlist.medias:
-        if media.media_type == "song":
-            a_result_song = await Media.get_song_async(
-                session=session, public_id=media.media_id
-            )
-            if a_result_song.is_ok():
-                medias.append(
-                    PlaylistResponseItem(
-                        item=a_result_song.result(),
-                        addedAt=playlist.date_added,
-                    )
-                )
-        elif media.media_type == "video":
-            a_result_video = await Media.get_video_async(
-                session=session, public_id=media.media_id
-            )
-            if a_result_video.is_ok():
-                medias.append(
-                    PlaylistResponseItem(
-                        item=a_result_video.result(),
-                        addedAt=playlist.date_added,
-                    )
-                )
-        elif media.media_type == "album":
-            a_result_album = await Media.get_album_async(
-                session=session, public_id=media.media_id
-            )
-            if a_result_album.is_ok():
-                medias.append(
-                    PlaylistResponseItem(
-                        item=a_result_album.result(),
-                        addedAt=playlist.date_added,
-                    )
-                )
-        elif media.media_type == "playlist":
-            a_result_playlist = await Media.get_playlist_async(
-                session=session, user_id=playlist.owner_id, public_id=media.media_id
-            )
-            if a_result_playlist.is_ok():
-                medias.append(
-                    PlaylistResponseItem(
-                        item=a_result_playlist.result(),
-                        addedAt=playlist.date_added,
-                    )
-                )
-
-    contributor_responses: List[PlaylistContributorResponse] = [
-        PlaylistContributorResponse(
-            user_id=c.user_id,
-            role=PlaylistContributorRoleEnum(c.role_key),
-        )
-        for c in playlist.contributors
-    ]
-
-    return BasePlaylistResponse(
-        type="playlist",
-        description=playlist.description or "",
-        provider="default",
-        publicId=playlist.public_id,
-        url=f"/playlist/{playlist.public_id}",
-        name=playlist.name,
-        medias=medias,
-        contributors=contributor_responses,
-        internalImageUrl=playlist.cover_image or "",
-        owner=owner_name,
-    )
-
 
 async def get_playlist_list_response(
     session: AsyncSession,
     playlists: List[PlaylistModel],
 ) -> List[BasePlaylistResponse]:
     """Build a list of BasePlaylistResponse from PlaylistModels."""
+
     from backend.core.access.userAccess import UserAccess
 
     result: List[BasePlaylistResponse] = []
@@ -144,14 +52,14 @@ async def get_playlist_list_response(
         result.append(
             BasePlaylistResponse(
                 type="playlist",
-                description=p.description or "",
-                provider="default",
+                description=p.description,
+                provider=Default.provider_name,
                 publicId=p.public_id,
                 url=f"/playlist/{p.public_id}",
                 name=p.name,
                 medias=[],
                 contributors=[],
-                internalImageUrl=p.cover_image or "",
+                internalImageUrl=p.cover_image,
                 owner=owner_name,
             )
         )
@@ -191,14 +99,14 @@ async def create_playlist_async(
     playlist: PlaylistModel = a_result.result()
     return BasePlaylistResponse(
         type="playlist",
-        description=playlist.description or "",
-        provider="default",
+        description=playlist.description,
+        provider=Default.provider_name,
         publicId=playlist.public_id,
         url=f"/playlist/{playlist.public_id}",
         name=playlist.name,
         medias=[],
         contributors=[],
-        internalImageUrl=playlist.cover_image or "",
+        internalImageUrl=BACKEND_URL + playlist.cover_image,
         owner=user.result().username,
     )
 
@@ -225,9 +133,9 @@ async def get_user_playlists_async(
     return await get_playlist_list_response(session=session, playlists=playlists)
 
 
-@router.get("/{playlist_id}", response_model=BasePlaylistResponse)
+@router.get("/{playlist_public_id}", response_model=BasePlaylistResponse)
 async def get_playlist_async(
-    request: Request, playlist_id: int
+    request: Request, playlist_public_id: str
 ) -> BasePlaylistResponse:
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
     user = AuthMiddleware.get_current_user(request)
@@ -235,7 +143,7 @@ async def get_playlist_async(
         raise HTTPException(status_code=401, detail="Not authenticated.")
 
     a_result: AResult[PlaylistWithDetailsModel] = await Playlist.get_playlist_async(
-        session=session, playlist_id=playlist_id, user_id=user.result().id
+        session=session, playlist_public_id=playlist_public_id, user_id=user.result().id
     )
     if a_result.is_not_ok():
         logger.error(f"Error getting playlist. {a_result.info()}")
@@ -251,14 +159,19 @@ async def get_playlist_async(
     if a_result_owner.is_ok():
         owner_name = a_result_owner.result().username
 
-    return await get_playlist_response(
-        session=session, playlist=playlist, owner_name=owner_name
+    a_result_response: AResult[BasePlaylistResponse] = (
+        await Playlist.build_playlist_response_async(
+            session=session, playlist=playlist, owner_name=owner_name
+        )
     )
+    if a_result_response.is_not_ok():
+        raise HTTPException(status_code=500, detail=a_result_response.message())
+    return a_result_response.result()
 
 
-@router.patch("/{playlist_id}", response_model=BasePlaylistResponse)
+@router.patch("/{playlist_public_id}", response_model=BasePlaylistResponse)
 async def update_playlist_async(
-    request: Request, playlist_id: int, update_request: UpdatePlaylistRequest
+    request: Request, playlist_public_id: str, update_request: UpdatePlaylistRequest
 ) -> BasePlaylistResponse:
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
     user = AuthMiddleware.get_current_user(request)
@@ -267,7 +180,7 @@ async def update_playlist_async(
 
     a_result: AResult[PlaylistModel] = await Playlist.update_playlist_async(
         session=session,
-        playlist_id=playlist_id,
+        playlist_public_id=playlist_public_id,
         user_id=user.result().id,
         name=update_request.name,
         description=update_request.description,
@@ -283,7 +196,9 @@ async def update_playlist_async(
     playlist: PlaylistModel = a_result.result()
     a_result_medias: AResult[PlaylistWithDetailsModel] = (
         await Playlist.get_playlist_async(
-            session=session, playlist_id=playlist_id, user_id=user.result().id
+            session=session,
+            playlist_public_id=playlist_public_id,
+            user_id=user.result().id,
         )
     )
     if a_result_medias.is_ok():
@@ -295,33 +210,40 @@ async def update_playlist_async(
         if a_result_owner.is_ok():
             owner_name = a_result_owner.result().username
 
-        return await get_playlist_response(
-            session=session, playlist=playlist_details, owner_name=owner_name
+        a_result_response: AResult[BasePlaylistResponse] = (
+            await Playlist.build_playlist_response_async(
+                session=session, playlist=playlist_details, owner_name=owner_name
+            )
         )
+        if a_result_response.is_not_ok():
+            raise HTTPException(status_code=500, detail=a_result_response.message())
+        return a_result_response.result()
 
     return BasePlaylistResponse(
         type="playlist",
-        description=playlist.description or "",
-        provider="default",
+        description=playlist.description,
+        provider=Default.provider_name,
         publicId=playlist.public_id,
         url=f"/playlist/{playlist.public_id}",
         name=playlist.name,
         medias=[],
         contributors=[],
-        internalImageUrl=playlist.cover_image or "",
+        internalImageUrl=playlist.cover_image,
         owner=user.result().username,
     )
 
 
-@router.delete("/{playlist_id}", response_model=OkResponse)
-async def delete_playlist_async(request: Request, playlist_id: int) -> OkResponse:
+@router.delete("/{playlist_public_id}", response_model=OkResponse)
+async def delete_playlist_async(
+    request: Request, playlist_public_id: str
+) -> OkResponse:
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
     user = AuthMiddleware.get_current_user(request)
     if user.is_not_ok():
         raise HTTPException(status_code=401, detail="Not authenticated.")
 
     a_result: AResult[bool] = await Playlist.delete_playlist_async(
-        session=session, playlist_id=playlist_id, user_id=user.result().id
+        session=session, playlist_public_id=playlist_public_id, user_id=user.result().id
     )
     if a_result.is_not_ok():
         logger.error(f"Error deleting playlist. {a_result.info()}")
@@ -332,9 +254,9 @@ async def delete_playlist_async(request: Request, playlist_id: int) -> OkRespons
     return OkResponse()
 
 
-@router.post("/{playlist_id}/media", response_model=BasePlaylistResponse)
+@router.post("/{playlist_public_id}/media", response_model=BasePlaylistResponse)
 async def add_media_to_playlist_async(
-    request: Request, playlist_id: int, media_request: AddMediaToPlaylistRequest
+    request: Request, playlist_public_id: str, media_request: AddMediaToPlaylistRequest
 ) -> BasePlaylistResponse:
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
     user = AuthMiddleware.get_current_user(request)
@@ -344,9 +266,9 @@ async def add_media_to_playlist_async(
     a_result: AResult[PlaylistMediaAddModel] = (
         await Playlist.add_media_to_playlist_async(
             session=session,
-            playlist_id=playlist_id,
+            playlist_public_id=playlist_public_id,
             user_id=user.result().id,
-            media_public_id=media_request.media_public_id,
+            media_public_id=media_request.playlist_media_public_id,
         )
     )
     if a_result.is_not_ok():
@@ -357,7 +279,9 @@ async def add_media_to_playlist_async(
 
     a_result_playlist: AResult[PlaylistWithDetailsModel] = (
         await Playlist.get_playlist_async(
-            session=session, playlist_id=playlist_id, user_id=user.result().id
+            session=session,
+            playlist_public_id=playlist_public_id,
+            user_id=user.result().id,
         )
     )
     if a_result_playlist.is_not_ok():
@@ -374,24 +298,34 @@ async def add_media_to_playlist_async(
     if a_result_owner.is_ok():
         owner_name = a_result_owner.result().username
 
-    return await get_playlist_response(
-        session=session, playlist=playlist, owner_name=owner_name
+    a_result_response: AResult[BasePlaylistResponse] = (
+        await Playlist.build_playlist_response_async(
+            session=session, playlist=playlist, owner_name=owner_name
+        )
     )
+    if a_result_response.is_not_ok():
+        raise HTTPException(status_code=500, detail=a_result_response.message())
+    return a_result_response.result()
 
 
-@router.delete("/{playlist_id}/media/{playlist_media_id}", response_model=OkResponse)
+@router.delete(
+    "/{playlist_public_id}/media/{playlist_media_public_id}", response_model=OkResponse
+)
 async def remove_media_from_playlist_async(
-    request: Request, playlist_id: int, playlist_media_id: int
+    request: Request, playlist_public_id: str, playlist_media_public_id: str
 ) -> OkResponse:
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
     user = AuthMiddleware.get_current_user(request)
     if user.is_not_ok():
         raise HTTPException(status_code=401, detail="Not authenticated.")
 
-    from backend.default.access.playlistAccess import PlaylistAccess
+    from backend.default.framework.playlist import Playlist
 
-    a_result: AResult[bool] = await PlaylistAccess.remove_media_from_playlist_async(
-        session=session, playlist_media_id=playlist_media_id
+    a_result: AResult[bool] = await Playlist.remove_media_from_playlist_async(
+        session=session,
+        playlist_public_id=playlist_public_id,
+        media_public_id=playlist_media_public_id,
+        user_id=user.result().id,
     )
     if a_result.is_not_ok():
         logger.error(f"Error removing media from playlist. {a_result.info()}")
@@ -402,9 +336,11 @@ async def remove_media_from_playlist_async(
     return OkResponse()
 
 
-@router.post("/{playlist_id}/contributor", response_model=BasePlaylistResponse)
+@router.post("/{playlist_public_id}/contributor", response_model=BasePlaylistResponse)
 async def add_contributor_async(
-    request: Request, playlist_id: int, contributor_request: AddContributorRequest
+    request: Request,
+    playlist_public_id: str,
+    contributor_request: AddContributorRequest,
 ) -> BasePlaylistResponse:
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
     user = AuthMiddleware.get_current_user(request)
@@ -414,10 +350,10 @@ async def add_contributor_async(
     a_result: AResult[PlaylistContributorAddModel] = (
         await Playlist.add_contributor_async(
             session=session,
-            playlist_id=playlist_id,
+            playlist_public_id=playlist_public_id,
             owner_id=user.result().id,
-            new_user_id=contributor_request.user_id,
-            role_key=contributor_request.role_key,
+            new_user_public_id=contributor_request.user_public_id,
+            role=contributor_request.role,
         )
     )
     if a_result.is_not_ok():
@@ -428,7 +364,9 @@ async def add_contributor_async(
 
     a_result_playlist: AResult[PlaylistWithDetailsModel] = (
         await Playlist.get_playlist_async(
-            session=session, playlist_id=playlist_id, user_id=user.result().id
+            session=session,
+            playlist_public_id=playlist_public_id,
+            user_id=user.result().id,
         )
     )
     if a_result_playlist.is_not_ok():
@@ -445,14 +383,22 @@ async def add_contributor_async(
     if a_result_owner.is_ok():
         owner_name = a_result_owner.result().username
 
-    return await get_playlist_response(
-        session=session, playlist=playlist, owner_name=owner_name
+    a_result_response: AResult[BasePlaylistResponse] = (
+        await Playlist.build_playlist_response_async(
+            session=session, playlist=playlist, owner_name=owner_name
+        )
     )
+    if a_result_response.is_not_ok():
+        raise HTTPException(status_code=500, detail=a_result_response.message())
+    return a_result_response.result()
 
 
-@router.delete("/{playlist_id}/contributor/{target_user_id}", response_model=OkResponse)
+@router.delete(
+    "/{playlist_public_id}/contributor/{target_user_public_id}",
+    response_model=OkResponse,
+)
 async def remove_contributor_async(
-    request: Request, playlist_id: int, target_user_id: int
+    request: Request, playlist_public_id: str, target_user_public_id: str
 ) -> OkResponse:
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
     user = AuthMiddleware.get_current_user(request)
@@ -461,9 +407,9 @@ async def remove_contributor_async(
 
     a_result: AResult[bool] = await Playlist.remove_contributor_async(
         session=session,
-        playlist_id=playlist_id,
+        playlist_public_id=playlist_public_id,
         owner_id=user.result().id,
-        target_user_id=target_user_id,
+        target_user_public_id=target_user_public_id,
     )
     if a_result.is_not_ok():
         logger.error(f"Error removing contributor. {a_result.info()}")
@@ -475,10 +421,11 @@ async def remove_contributor_async(
 
 
 @router.post(
-    "/{playlist_id}/media/{playlist_media_id}/disable", response_model=OkResponse
+    "/{playlist_public_id}/media/{playlist_media_public_id}/disable",
+    response_model=OkResponse,
 )
 async def disable_media_async(
-    request: Request, playlist_id: int, playlist_media_id: int
+    request: Request, playlist_public_id: str, playlist_media_public_id: str
 ) -> OkResponse:
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
     user = AuthMiddleware.get_current_user(request)
@@ -486,7 +433,10 @@ async def disable_media_async(
         raise HTTPException(status_code=401, detail="Not authenticated.")
 
     a_result: AResult[bool] = await Playlist.disable_media_for_user_async(
-        session=session, user_id=user.result().id, playlist_media_id=playlist_media_id
+        session=session,
+        playlist_public_id=playlist_public_id,
+        user_id=user.result().id,
+        playlist_media_public_id=playlist_media_public_id,
     )
     if a_result.is_not_ok():
         logger.error(f"Error disabling media. {a_result.info()}")
@@ -498,10 +448,11 @@ async def disable_media_async(
 
 
 @router.post(
-    "/{playlist_id}/media/{playlist_media_id}/enable", response_model=OkResponse
+    "/{playlist_public_id}/media/{playlist_media_public_id}/enable",
+    response_model=OkResponse,
 )
 async def enable_media_async(
-    request: Request, playlist_id: int, playlist_media_id: int
+    request: Request, playlist_public_id: str, playlist_media_public_id: str
 ) -> OkResponse:
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
     user = AuthMiddleware.get_current_user(request)
@@ -509,7 +460,10 @@ async def enable_media_async(
         raise HTTPException(status_code=401, detail="Not authenticated.")
 
     a_result: AResult[bool] = await Playlist.enable_media_for_user_async(
-        session=session, user_id=user.result().id, playlist_media_id=playlist_media_id
+        session=session,
+        playlist_public_id=playlist_public_id,
+        user_id=user.result().id,
+        playlist_media_public_id=playlist_media_public_id,
     )
     if a_result.is_not_ok():
         logger.error(f"Error enabling media. {a_result.info()}")

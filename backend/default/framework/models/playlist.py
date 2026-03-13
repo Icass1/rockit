@@ -1,6 +1,9 @@
 from dataclasses import dataclass
 from typing import List
 
+from backend.core.enums.mediaTypeEnum import MediaTypeEnum
+from backend.core.enums.playlistContributorRoleEnum import PlaylistContributorRoleEnum
+
 
 @dataclass
 class PlaylistModel:
@@ -8,7 +11,7 @@ class PlaylistModel:
     public_id: str
     name: str
     description: str | None
-    cover_image: str | None
+    cover_image: str
     is_public: bool
     owner_id: int
     date_added: str
@@ -19,7 +22,7 @@ class PlaylistModel:
 class PlaylistMediaModel:
     id: int
     position: int
-    media_type: str
+    media_type: MediaTypeEnum
     media_id: str
     provider_id: int
 
@@ -36,7 +39,7 @@ class PlaylistWithDetailsModel:
     public_id: str
     name: str
     description: str | None
-    cover_image: str | None
+    cover_image: str
     is_public: bool
     owner_id: int
     date_added: str
@@ -47,7 +50,7 @@ class PlaylistWithDetailsModel:
 
 @dataclass
 class MediaInfoModel:
-    media_type: str
+    media_type: MediaTypeEnum
     media_id: str
     provider_id: int
 
@@ -56,7 +59,7 @@ class MediaInfoModel:
 class PlaylistMediaAddModel:
     id: int
     position: int
-    media_type: str
+    media_type: MediaTypeEnum
     media_id: str
     provider_id: int
 
@@ -64,4 +67,4 @@ class PlaylistMediaAddModel:
 @dataclass
 class PlaylistContributorAddModel:
     user_id: int
-    role_key: int
+    role: PlaylistContributorRoleEnum

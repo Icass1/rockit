@@ -1,6 +1,4 @@
 from logging import Logger
-from typing import List
-from datetime import datetime
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.access.db.ormModels.user import UserRow
@@ -8,13 +6,7 @@ from backend.core.access.userAccess import UserAccess
 from backend.core.enums.mediaTypeEnum import MediaTypeEnum
 from backend.core.framework.media.media import Media
 from backend.core.framework.models.media import MediaModel
-from backend.core.responses.basePlaylistResponse import (
-    BasePlaylistResponse,
-    PlaylistResponseItem,
-)
-from backend.core.responses.baseSongWithAlbumResponse import (
-    BaseSongWithAlbumResponse,
-)
+from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
 from backend.utils.logger import getLogger
 from backend.core.aResult import AResult, AResultCode
 
@@ -25,8 +17,6 @@ from backend.default.framework.playlist import Playlist
 from backend.default.framework.models.playlist import PlaylistWithDetailsModel
 
 logger: Logger = getLogger(__name__)
-
-name = "Default"
 
 
 class DefaultProvider(BaseProvider):
@@ -64,7 +54,7 @@ class DefaultProvider(BaseProvider):
 
         a_result_playlist: AResult[PlaylistWithDetailsModel] = (
             await Playlist.get_playlist_async(
-                session=session, playlist_id=a_result_media.result().id, user_id=user_id
+                session=session, playlist_public_id=a_result_media.result().public_id, user_id=user_id
             )
         )
         if a_result_playlist.is_not_ok():
@@ -85,36 +75,23 @@ class DefaultProvider(BaseProvider):
         owner = a_result_owner.result()
         owner_name: str = owner.username
 
-        medias: List[PlaylistResponseItem[BaseSongWithAlbumResponse]] = []
-        for media in playlist.medias:
-            if media.media_type == "song":
-                a_result_song: AResult[BaseSongWithAlbumResponse] = (
-                    await Media.get_song_async(
-                        session=session, public_id=media.media_id
-                    )
-                )
-                if a_result_song.is_ok():
-                    medias.append(
-                        PlaylistResponseItem(
-                            item=a_result_song.result(),
-                            addedAt=datetime.now(),
-                        )
-                    )
-
-        playlist_response = BasePlaylistResponse(
-            type="playlist",
-            description=playlist.description,
-            provider="default",
-            publicId=playlist.public_id,
-            url=f"/playlist/{playlist.public_id}",
-            name=playlist.name,
-            medias=medias,
-            contributors=[],
-            internalImageUrl=playlist.cover_image or "",
-            owner=owner_name,
+        a_result_response: AResult[BasePlaylistResponse] = (
+            await Playlist.build_playlist_response_async(
+                session=session, playlist=playlist, owner_name=owner_name
+            )
         )
+        if a_result_response.is_not_ok():
+            logger.error(
+                f"Error building playlist response. {a_result_response.info()}"
+            )
+            return AResult(
+                code=a_result_response.code(), message=a_result_response.message()
+            )
 
-        return AResult(code=AResultCode.OK, message="OK", result=playlist_response)
+        return AResult(
+            code=AResultCode.OK, message="OK", result=a_result_response.result()
+        )
 
 
 provider = DefaultProvider()
+name = "Default"

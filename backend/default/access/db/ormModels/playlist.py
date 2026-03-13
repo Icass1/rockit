@@ -6,8 +6,9 @@ from sqlalchemy.orm import mapped_column, relationship, Mapped
 from backend.core.access.db.ormModels.declarativeMixin import (
     TableDateAdded,
     TableDateUpdated,
-    TablePublicId,
 )
+from backend.core.access.db.ormModels.media import CoreMediaRow
+
 from backend.default.access.db.base import DefaultBase
 
 if TYPE_CHECKING:
@@ -19,7 +20,7 @@ if TYPE_CHECKING:
     )
 
 
-class PlaylistRow(DefaultBase, TablePublicId, TableDateUpdated, TableDateAdded):
+class PlaylistRow(DefaultBase, TableDateUpdated, TableDateAdded):
     __tablename__ = "playlist"
     __table_args__ = ({"extend_existing": True},)
 
@@ -43,9 +44,12 @@ class PlaylistRow(DefaultBase, TablePublicId, TableDateUpdated, TableDateAdded):
         "PlaylistContributorRow", back_populates="playlist", uselist=True
     )
 
+    core_playlist: Mapped["CoreMediaRow"] = relationship(
+        CoreMediaRow, lazy="selectin", uselist=False
+    )
+
     def __init__(
         self,
-        public_id: str,
         id: int,
         name: str,
         owner_id: int,
@@ -54,7 +58,6 @@ class PlaylistRow(DefaultBase, TablePublicId, TableDateUpdated, TableDateAdded):
         is_public: bool = True,
     ):
         kwargs: Dict[str, None | bool | int | str] = {}
-        kwargs["public_id"] = public_id
         kwargs["id"] = id
         kwargs["name"] = name
         kwargs["owner_id"] = owner_id

@@ -10,6 +10,10 @@ from backend.core.access.db.ormModels.declarativeMixin import (
     TableDateUpdated,
 )
 
+from backend.core.access.db.ormEnums.playlistContributorRoleEnum import (
+    PlaylistContributorRoleEnumRow,
+)
+
 if TYPE_CHECKING:
     from backend.default.access.db.ormModels.playlist import (
         PlaylistRow,
@@ -36,6 +40,10 @@ class PlaylistContributorRow(
 
     playlist: Mapped["PlaylistRow"] = relationship(
         "PlaylistRow", back_populates="contributors"
+    )
+
+    role_enum: Mapped[PlaylistContributorRoleEnumRow] = relationship(
+        PlaylistContributorRoleEnumRow, uselist=False
     )
 
     def __init__(self, playlist_id: int, user_id: int, role_key: int):

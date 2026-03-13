@@ -67,6 +67,31 @@ class UserAccess:
             )
 
     @staticmethod
+    async def get_user_from_public_id_async(
+        session: AsyncSession, public_id: str
+    ) -> AResult[UserRow]:
+        try:
+            stmt: Select[Tuple[UserRow]] = select(UserRow).where(
+                UserRow.public_id == public_id
+            )
+            result: Result[Tuple[UserRow]] = await session.execute(statement=stmt)
+
+            user: UserRow | None = result.scalar_one_or_none()
+
+            if not user:
+                logger.error("User not found")
+                return AResult(code=AResultCode.NOT_FOUND, message="User not found")
+
+            return AResult(code=AResultCode.OK, message="OK", result=user)
+
+        except Exception as e:
+            logger.error(f"Error in get_user_from_public_id_async: {e}")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to get user from public_id: {e}",
+            )
+
+    @staticmethod
     async def create_user_async(
         session: AsyncSession, username: str, password: str
     ) -> AResult[UserRow]:

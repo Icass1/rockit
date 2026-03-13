@@ -47,7 +47,6 @@ class PlaylistAccess:
 
             playlist: PlaylistRow = PlaylistRow(
                 id=core_media.id,
-                public_id=create_id(32),
                 name=name,
                 owner_id=owner_id,
                 description=description,
@@ -263,6 +262,36 @@ class PlaylistAccess:
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
                 message=f"Failed to get playlist medias: {e}",
+            )
+
+    @staticmethod
+    async def get_playlist_media_by_media_id_async(
+        session: AsyncSession, playlist_id: int, media_id: int
+    ) -> AResult[PlaylistMediaRow]:
+        try:
+            stmt: Select[Tuple[PlaylistMediaRow]] = select(PlaylistMediaRow).where(
+                PlaylistMediaRow.playlist_id == playlist_id,
+                PlaylistMediaRow.media_id == media_id,
+            )
+            result: Result[Tuple[PlaylistMediaRow]] = await session.execute(
+                statement=stmt
+            )
+            playlist_media: PlaylistMediaRow | None = result.scalar_one_or_none()
+            if not playlist_media:
+                return AResult(
+                    code=AResultCode.NOT_FOUND,
+                    message="Playlist media not found.",
+                )
+            return AResult(
+                code=AResultCode.OK, message="OK", result=playlist_media
+            )
+        except Exception as e:
+            logger.error(
+                f"Error in get_playlist_media_by_media_id_async: {e}", exc_info=True
+            )
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to get playlist media: {e}",
             )
 
     @staticmethod

@@ -282,9 +282,7 @@ class PlaylistAccess:
                     code=AResultCode.NOT_FOUND,
                     message="Playlist media not found.",
                 )
-            return AResult(
-                code=AResultCode.OK, message="OK", result=playlist_media
-            )
+            return AResult(code=AResultCode.OK, message="OK", result=playlist_media)
         except Exception as e:
             logger.error(
                 f"Error in get_playlist_media_by_media_id_async: {e}", exc_info=True

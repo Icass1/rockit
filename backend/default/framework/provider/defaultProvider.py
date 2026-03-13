@@ -54,7 +54,9 @@ class DefaultProvider(BaseProvider):
 
         a_result_playlist: AResult[PlaylistWithDetailsModel] = (
             await Playlist.get_playlist_async(
-                session=session, playlist_public_id=a_result_media.result().public_id, user_id=user_id
+                session=session,
+                playlist_public_id=a_result_media.result().public_id,
+                user_id=user_id,
             )
         )
         if a_result_playlist.is_not_ok():

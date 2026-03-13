@@ -13,7 +13,6 @@ class CreatePlaylistRequest(BaseModel):
 class UpdatePlaylistRequest(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
-    cover_image: Optional[str] = None
     is_public: Optional[bool] = None
 
 

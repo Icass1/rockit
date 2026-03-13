@@ -6,7 +6,6 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.selectable import Select
 
-from backend.constants import BACKEND_URL
 from backend.core.aResult import AResult, AResultCode
 
 from backend.core.access.db.ormModels.media import CoreMediaRow
@@ -241,7 +240,7 @@ class Playlist:
                 public_id=playlist.core_playlist.public_id,
                 name=playlist.name,
                 description=playlist.description,
-                cover_image=playlist.cover_image,
+                image_url=Image.get_internal_image_url(playlist.image),
                 is_public=playlist.is_public,
                 owner_id=playlist.owner_id,
                 date_added=playlist.date_added.isoformat(),
@@ -300,7 +299,6 @@ class Playlist:
         user_id: int,
         name: str | None = None,
         description: str | None = None,
-        cover_image: str | None = None,
         is_public: bool | None = None,
     ) -> AResult[PlaylistModel]:
         a_result_playlist: AResult[PlaylistRow] = (
@@ -339,7 +337,6 @@ class Playlist:
                 playlist_id=playlist_id,
                 name=name,
                 description=description,
-                cover_image=cover_image,
                 is_public=is_public,
             )
         )
@@ -361,7 +358,7 @@ class Playlist:
                 public_id=playlist.core_playlist.public_id,
                 name=playlist.name,
                 description=playlist.description,
-                image_url=playlist.cover_image,
+                image_url=Image.get_internal_image_url(playlist.image),
                 is_public=playlist.is_public,
                 owner_id=playlist.owner_id,
                 date_added=playlist.date_added.isoformat(),
@@ -912,7 +909,7 @@ class Playlist:
                 name=playlist.name,
                 medias=medias,
                 contributors=contributor_responses,
-                imageUrl=BACKEND_URL + playlist.cover_image,
+                imageUrl=playlist.image_url,
                 owner=owner_name,
             ),
         )

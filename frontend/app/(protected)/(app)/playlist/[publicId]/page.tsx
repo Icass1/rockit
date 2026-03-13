@@ -1,8 +1,7 @@
 import { cache } from "react";
 import { notFound } from "next/navigation";
 import { getPlaylistAsync } from "@/lib/services/mediaService";
-import PlaylistHeader from "@/components/Playlist/PlaylistHeader";
-import PlaylistSongsView from "@/components/Playlist/PlaylistSongsView";
+import RenderList from "@/components/RenderList/RenderList";
 
 const getPlaylist = cache(async (publicId: string) => {
     const playlist = await getPlaylistAsync(publicId).catch(() => null);
@@ -42,13 +41,14 @@ export default async function PlaylistPage({
     }
 
     return (
-        <div className="relative flex h-full w-full flex-col gap-2 px-3 md:flex-row md:px-2">
-            <PlaylistHeader
-                playlist={playlistResponse}
-                className="hidden w-full md:flex"
-            />
-
-            <PlaylistSongsView playlist={playlistResponse} />
-        </div>
+        <RenderList
+            title={playlistResponse.name}
+            artists={[]}
+            media={playlistResponse.medias}
+            image={playlistResponse.imageUrl}
+            imageBlur="http://localhost:8000/media/image/blur/9w4UGBJx10VtAg8IlbZcMRH3C2fLmeyT?q=3"
+            showMediaImage={false}
+            showMediaIndex
+        />
     );
 }

@@ -183,7 +183,6 @@ async def update_playlist_async(
         user_id=user.result().id,
         name=update_request.name,
         description=update_request.description,
-        cover_image=update_request.cover_image,
         is_public=update_request.is_public,
     )
     if a_result.is_not_ok():

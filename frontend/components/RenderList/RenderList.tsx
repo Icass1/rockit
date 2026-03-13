@@ -96,8 +96,8 @@ export default async function RenderList({
                                 width={600}
                                 height={600}
                                 className="relative rounded-lg"
-                                placeholder={imageBlur ? "blur" : "empty"}
-                                blurDataURL={imageBlur}
+                                // placeholder={imageBlur ? "blur" : "empty"}
+                                // blurDataURL={imageBlur}
                             />
                         </div>
                         <span className="px-2 text-center text-2xl font-bold">

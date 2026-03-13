@@ -39,7 +39,7 @@ class PlaylistWithDetailsModel:
     public_id: str
     name: str
     description: str | None
-    cover_image: str
+    image_url: str
     is_public: bool
     owner_id: int
     date_added: str

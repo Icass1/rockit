@@ -42,10 +42,12 @@ class PlaylistAccess:
                 session=session, path="playlist-placeholder.png"
             )
             if a_result_image.is_not_ok():
-                logger.error(f"Error getting placeholder image: {a_result_image.info()}")
+                logger.error(
+                    f"Error getting placeholder image: {a_result_image.info()}"
+                )
                 return AResult(
                     code=AResultCode.GENERAL_ERROR,
-                    message="Failed to get placeholder image"
+                    message="Failed to get placeholder image",
                 )
 
             core_media: CoreMediaRow = CoreMediaRow(
@@ -103,8 +105,10 @@ class PlaylistAccess:
         session: AsyncSession, public_id: str
     ) -> AResult[PlaylistRow]:
         try:
-            stmt: Select[Tuple[PlaylistRow]] = select(PlaylistRow).where(
-                PlaylistRow.public_id == public_id
+            stmt: Select[Tuple[PlaylistRow]] = (
+                select(PlaylistRow)
+                .join(CoreMediaRow, PlaylistRow.id == CoreMediaRow.id)
+                .where(CoreMediaRow.public_id == public_id)
             )
             result: Result[Tuple[PlaylistRow]] = await session.execute(statement=stmt)
             playlist: PlaylistRow | None = result.scalar_one_or_none()
@@ -146,7 +150,6 @@ class PlaylistAccess:
         playlist_id: int,
         name: str | None = None,
         description: str | None = None,
-        cover_image: str | None = None,
         is_public: bool | None = None,
     ) -> AResult[PlaylistRow]:
         try:
@@ -161,8 +164,6 @@ class PlaylistAccess:
                 playlist.name = name
             if description is not None:
                 playlist.description = description
-            if cover_image is not None:
-                playlist.cover_image = cover_image
             if is_public is not None:
                 playlist.is_public = is_public
             await session.commit()

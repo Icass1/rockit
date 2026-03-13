@@ -64,6 +64,42 @@ class SpotifyProvider(BaseProvider):
     async def async_init(self, session: AsyncSession) -> None:
         await self.add_enum_contents(session=session)
 
+        albums = [
+            "0LnGhdkTo5SEoIosiydUaR",
+            "0pEfDPZko6TnNOgrZMe5nn",
+            "1GbtB4zTqAsyfZEsm1RZfx",
+            "1Gnrd76EubInPV4KjOJ1Zr",
+            "1zcm3UvHNHpseYOUfd0pna",
+            "2wrHaulTgqqkVKx0k7Kq4r",
+            "2yuTRGIackbcReLUXOYBqU",
+            "3EObaP2m31JK9UUhLcRGFU",
+            "3IILMjMMnoN2sKzgesX8KV",
+            "3kv1eLaL0W9Uci9mZGryzS",
+            "4KZGe18wZJbXL6JLW4KyLc",
+            "4p0XFT3wsFk8P4rK8PhKqM",
+            "4X87hQ57jTYQTcYTaJWK5w",
+            "58alCatewkjNm9IM1Ucj67",
+            "58JuUAfKGh6bKphiBtp7Nc",
+            "5Fliz4RQcDktb93l1uYDka",
+            "5kffKW0sSLo6tkLg1veUGC",
+            "5RS9xkMuDmeVISqGDBmnSa",
+            "5Se5MdfqD1nAitv3muKnCB",
+            "5TNzBp7QYsXIHrI5xxVuic",
+            "5WupqgR68HfuHt3BMJtgun",
+            "61foK8xa76FEOk36uOxoc9",
+            "6reTSIf5MoBco62rk8T7Q1",
+            "6SbrIpVsaJ5wgCQtMMwVR2",
+            "6wlsUpq6NrapsweMIOKt0y",
+            "6X9k3hSsvQck2OfKYdBbXr",
+            "78MOBi69w1MH2Iz8zOZMEe",
+            "7kiDOzNkoKCEgqGZrpPrej",
+            "7reiQf1lsaL4PRcrvhOUKG",
+            "7tB40pGzj6Tg0HePj2jWZt",
+            "7ygXmT175bKbOpiPjNwXOB",
+        ]
+
+        await Spotify.get_albums_async(session, albums)
+
     async def add_enum_contents(self, session: AsyncSession) -> None:
         """Populate provider-owned enum tables in the database."""
 

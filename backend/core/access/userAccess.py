@@ -7,11 +7,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from passlib.context import CryptContext
 
 from backend.core.aResult import AResult, AResultCode
+from backend.core.framework.media.image import Image
 from backend.core.access.db.ormModels.user import UserRow
 from backend.core.access.db.ormModels.media import CoreMediaRow
 from backend.core.access.db.ormModels.provider import ProviderRow
 from backend.core.access.db.ormModels.user_library_media import UserLibraryMediaRow
 from backend.core.access.db.ormModels.user_seeks import UserSeeksRow
+from backend.core.access.db.ormModels.image import ImageRow
 from backend.core.utils.safeAsyncCall import safe_async
 from backend.utils.backendUtils import create_id
 from backend.utils.logger import getLogger
@@ -98,9 +100,20 @@ class UserAccess:
         try:
             password_hash: str = pwd.hash(secret=password)
 
+            a_result_image: AResult[ImageRow] = await Image.get_image_from_path_async(
+                session=session, path="user-placeholder.png"
+            )
+            if a_result_image.is_not_ok():
+                logger.error(f"Error getting placeholder image: {a_result_image.info()}")
+                return AResult(
+                    code=AResultCode.GENERAL_ERROR,
+                    message="Failed to get placeholder image"
+                )
+
             user = UserRow(
                 public_id=create_id(32),
                 username=username,
+                image_id=a_result_image.result().id,
                 password_hash=password_hash,
             )
 

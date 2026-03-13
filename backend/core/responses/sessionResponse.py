@@ -8,7 +8,7 @@ class SessionResponse(BaseModel):
     image: str
     admin: bool
     queueType: QueueTypeEnum
-    currentTime: float | None
+    currentTimeMs: float | None
 
     @field_serializer("queueType")
     def serialize_queue_type(self, queue_type: QueueTypeEnum) -> str:

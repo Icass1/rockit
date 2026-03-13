@@ -8,10 +8,12 @@ from backend.utils.backendUtils import create_id
 from backend.utils.logger import getLogger
 
 from backend.core.aResult import AResult, AResultCode
+from backend.core.framework.media.image import Image
 
 from backend.core.enums.mediaTypeEnum import MediaTypeEnum
 
 from backend.core.access.db.ormModels.media import CoreMediaRow
+from backend.core.access.db.ormModels.image import ImageRow
 
 from backend.default.access.db.ormModels.playlist import PlaylistRow
 from backend.default.access.db.ormModels.playlist_media import PlaylistMediaRow
@@ -36,6 +38,16 @@ class PlaylistAccess:
         is_public: bool = True,
     ) -> AResult[PlaylistRow]:
         try:
+            a_result_image: AResult[ImageRow] = await Image.get_image_from_path_async(
+                session=session, path="playlist-placeholder.png"
+            )
+            if a_result_image.is_not_ok():
+                logger.error(f"Error getting placeholder image: {a_result_image.info()}")
+                return AResult(
+                    code=AResultCode.GENERAL_ERROR,
+                    message="Failed to get placeholder image"
+                )
+
             core_media: CoreMediaRow = CoreMediaRow(
                 public_id=create_id(32),
                 provider_id=provider_id,
@@ -48,6 +60,7 @@ class PlaylistAccess:
             playlist: PlaylistRow = PlaylistRow(
                 id=core_media.id,
                 name=name,
+                image_id=a_result_image.result().id,
                 owner_id=owner_id,
                 description=description,
                 is_public=is_public,

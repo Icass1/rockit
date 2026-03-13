@@ -1,6 +1,7 @@
 from logging import Logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from backend.constants import BACKEND_URL
 from backend.utils.logger import getLogger
 
 from backend.core.aResult import AResult, AResultCode
@@ -31,3 +32,11 @@ class Image:
         return AResult(
             code=AResultCode.OK, message="OK", result=a_result_image.result()
         )
+
+    @staticmethod
+    def get_internal_image_url(image: ImageRow | None) -> str:
+        """Return the internal image URL for a given image row, or empty string if None."""
+
+        if image is None:
+            return ""
+        return f"{BACKEND_URL}/media/image/{image.public_id}"

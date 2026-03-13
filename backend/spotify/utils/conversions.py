@@ -8,9 +8,10 @@ from backend.constants import BACKEND_URL
 
 from backend.core.aResult import AResult, AResultCode
 
-from backend.core.access.db.ormModels.image import ImageRow
 from backend.core.access.db.ormModels.media import CoreMediaRow
 from backend.core.access.mediaAccess import MediaAccess
+
+from backend.core.framework.media.image import Image
 
 from backend.core.responses.baseArtistResponse import BaseArtistResponse
 from backend.core.responses.baseAlbumWithoutSongsResponse import (
@@ -40,14 +41,6 @@ from backend.spotify.responses.songResponse import SpotifyTrackResponse
 logger = getLogger(__name__)
 
 
-def get_internal_image_url(image: ImageRow | None) -> str:
-    """Return the internal image URL for a given image row, or empty string if None."""
-
-    if image is None:
-        return ""
-    return f"{BACKEND_URL}/media/image/{image.public_id}"
-
-
 async def get_artist_response_async(
     session: AsyncSession,
     provider_name: str,
@@ -72,9 +65,7 @@ async def get_artist_response_async(
             publicId=public_id,
             url=f"/artist/{public_id}",
             name=artist_row.name,
-            imageUrl=get_internal_image_url(
-                image=artist_row.image
-            ),
+            imageUrl=Image.get_internal_image_url(image=artist_row.image),
             genres=genres,
         ),
     )
@@ -94,7 +85,7 @@ def get_album_without_songs_response(
             publicId=a.core_artist.public_id,
             url=f"/artist/{a.core_artist.public_id}",
             name=a.name,
-            imageUrl=get_internal_image_url(image=a.image),
+            imageUrl=Image.get_internal_image_url(image=a.image),
         )
         for a in album_row.artists
     ]
@@ -104,9 +95,7 @@ def get_album_without_songs_response(
         publicId=public_id,
         url=f"/album/{public_id}",
         name=album_row.name,
-        imageUrl=get_internal_image_url(
-            image=album_row.image
-        ),
+        imageUrl=Image.get_internal_image_url(image=album_row.image),
         artists=artist_responses,
         releaseDate=album_row.release_date,
     )
@@ -159,9 +148,7 @@ async def get_track_response_async(
             artists=artist_responses,
             audioSrc=audio_src,
             downloaded=is_downloaded,
-            imageUrl=get_internal_image_url(
-                image=track_row.image
-            ),
+            imageUrl=Image.get_internal_image_url(image=track_row.image),
             duration=track_row.duration,
             discNumber=track_row.disc_number,
             trackNumber=track_row.track_number,
@@ -203,7 +190,7 @@ async def get_album_with_songs_response_async(
             publicId=a.core_artist.public_id,
             url=f"/artist/{a.core_artist.public_id}",
             name=a.name,
-            imageUrl=get_internal_image_url(image=a.image),
+            imageUrl=Image.get_internal_image_url(image=a.image),
         )
         for a in album_row.artists
     ]
@@ -245,9 +232,7 @@ async def get_album_with_songs_response_async(
                 artists=track_artist_responses,
                 audioSrc=audio_src,
                 downloaded=is_downloaded,
-                imageUrl=get_internal_image_url(
-                    image=track_row.image
-                ),
+                imageUrl=Image.get_internal_image_url(image=track_row.image),
                 duration=track_row.duration,
                 discNumber=track_row.disc_number,
                 trackNumber=track_row.track_number,
@@ -269,9 +254,7 @@ async def get_album_with_songs_response_async(
             publicId=public_id,
             url=f"/album/{public_id}",
             name=album_row.name,
-            imageUrl=get_internal_image_url(
-                image=album_row.image
-            ),
+            imageUrl=Image.get_internal_image_url(image=album_row.image),
             artists=album_artist_responses,
             releaseDate=album_row.release_date,
             spotifyId=album_row.spotify_id,
@@ -355,9 +338,7 @@ async def get_playlist_response_async(
             name=playlist_row.name,
             medias=song_responses,
             contributors=[],
-            imageUrl=get_internal_image_url(
-                image=playlist_row.image
-            ),
+            imageUrl=Image.get_internal_image_url(image=playlist_row.image),
             owner=playlist_row.owner,
         ),
     )

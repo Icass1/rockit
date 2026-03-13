@@ -8,11 +8,15 @@ from sqlalchemy.sql.selectable import Select
 
 from backend.constants import BACKEND_URL
 from backend.core.aResult import AResult, AResultCode
+
 from backend.core.access.db.ormModels.media import CoreMediaRow
 from backend.core.access.userAccess import UserAccess
 from backend.core.enums.mediaTypeEnum import MediaTypeEnum
 from backend.core.enums.playlistContributorRoleEnum import PlaylistContributorRoleEnum
+
 from backend.core.framework.media.media import Media
+from backend.core.framework.media.image import Image
+
 from backend.core.responses.baseAlbumWithoutSongsResponse import (
     BaseAlbumWithoutSongsResponse,
 )
@@ -131,7 +135,7 @@ class Playlist:
                 public_id=playlist.core_playlist.public_id,
                 name=playlist.name,
                 description=playlist.description,
-                cover_image=playlist.cover_image,
+                image_url=Image.get_internal_image_url(playlist.image),
                 is_public=playlist.is_public,
                 owner_id=playlist.owner_id,
                 date_added=playlist.date_added.isoformat(),
@@ -275,7 +279,7 @@ class Playlist:
                     public_id=p.core_playlist.public_id,
                     name=p.name,
                     description=p.description,
-                    cover_image=p.cover_image,
+                    image_url=Image.get_internal_image_url(p.image),
                     is_public=p.is_public,
                     owner_id=p.owner_id,
                     date_added=p.date_added.isoformat(),
@@ -357,7 +361,7 @@ class Playlist:
                 public_id=playlist.core_playlist.public_id,
                 name=playlist.name,
                 description=playlist.description,
-                cover_image=playlist.cover_image,
+                image_url=playlist.cover_image,
                 is_public=playlist.is_public,
                 owner_id=playlist.owner_id,
                 date_added=playlist.date_added.isoformat(),

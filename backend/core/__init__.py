@@ -58,8 +58,8 @@ async def add_default_images(session: AsyncSession):
 
     for filename in os.listdir(source_dir):
         source_path = os.path.join(source_dir, filename)
-        if os.path.isfile(source_path):
-            dest_path = os.path.join(IMAGES_PATH, filename)
+        dest_path = os.path.join(IMAGES_PATH, filename)
+        if os.path.isfile(source_path) and not os.path.exists(dest_path):
             shutil.copy(source_path, dest_path)
             logger.info(f"Copied image: {filename}")
 

@@ -3,7 +3,6 @@ from typing import List
 from fastapi import Depends, APIRouter, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.constants import BACKEND_URL
 from backend.default.framework.default import Default
 from backend.utils.logger import getLogger
 
@@ -59,7 +58,7 @@ async def get_playlist_list_response(
                 name=p.name,
                 medias=[],
                 contributors=[],
-                imageUrl=p.cover_image,
+                imageUrl=p.image_url,
                 owner=owner_name,
             )
         )
@@ -106,7 +105,7 @@ async def create_playlist_async(
         name=playlist.name,
         medias=[],
         contributors=[],
-        imageUrl=BACKEND_URL + playlist.cover_image,
+        imageUrl=playlist.image_url,
         owner=user.result().username,
     )
 
@@ -228,7 +227,7 @@ async def update_playlist_async(
         name=playlist.name,
         medias=[],
         contributors=[],
-        imageUrl=playlist.cover_image,
+        imageUrl=playlist.image_url,
         owner=user.result().username,
     )
 

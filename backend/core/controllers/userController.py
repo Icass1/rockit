@@ -7,7 +7,6 @@ from logging import Logger
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
 from backend.core.aResult import AResult
-from backend.constants import BACKEND_URL
 from backend.core.access.db.ormModels.user_liked_media import UserLikedMediaRow
 from backend.core.requests.likeMediaRequest import LikeMediaRequest
 from backend.utils.logger import getLogger
@@ -31,6 +30,8 @@ from backend.core.responses.baseAlbumWithoutSongsResponse import (
 )
 from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
 from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
+from backend.core.access.db.ormModels.image import ImageRow
+from backend.core.framework.media.image import Image
 
 ph = PasswordHasher(
     time_cost=2,
@@ -57,17 +58,14 @@ async def get_session(request: Request) -> SessionResponse:
             status_code=a_result_user.get_http_code(), detail=a_result_user.message()
         )
 
-    image: str | None = a_result_user.result().image
-
-    if image:
-        image = BACKEND_URL + image
+    image: ImageRow = a_result_user.result().image
 
     return SessionResponse(
         username=a_result_user.result().username,
-        image=image,
+        image=Image.get_internal_image_url(image),
         admin=a_result_user.result().admin,
         queueType=QueueTypeEnum(value=a_result_user.result().queue_type_key),
-        currentTime=a_result_user.result().current_time,
+        currentTimeMs=a_result_user.result().current_time_ms,
     )
 
 

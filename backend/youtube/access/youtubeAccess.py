@@ -12,6 +12,7 @@ from backend.utils.backendUtils import create_id
 from backend.utils.logger import getLogger
 
 from backend.core.aResult import AResult, AResultCode
+from backend.core.framework.media.image import Image
 
 from backend.core.access.db.ormModels.image import ImageRow
 from backend.core.access.db.ormModels.media import CoreMediaRow
@@ -213,6 +214,19 @@ class YouTubeAccess:
                 )
                 if a_img.is_ok():
                     image_id = a_img.result().id
+
+            if image_id is None:
+                a_result_image: AResult[ImageRow] = await Image.get_image_from_path_async(
+                    session=session, path="album-placeholder.png"
+                )
+                if a_result_image.is_ok():
+                    image_id = a_result_image.result().id
+                else:
+                    logger.error(f"Error getting placeholder image: {a_result_image.info()}")
+                    return AResult(
+                        code=AResultCode.GENERAL_ERROR,
+                        message="Failed to get placeholder image"
+                    )
 
             core_artist = CoreMediaRow(
                 public_id=create_id(32),

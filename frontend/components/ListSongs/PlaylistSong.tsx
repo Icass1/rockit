@@ -78,7 +78,7 @@ export default function PlaylistSong({
                         width={40}
                         height={40}
                         src={
-                            song.song.internalImageUrl ??
+                            song.song.imageUrl ??
                             rockIt.SONG_PLACEHOLDER_IMAGE_URL
                         }
                         className="absolute bottom-0 left-0 right-0 top-0 rounded"

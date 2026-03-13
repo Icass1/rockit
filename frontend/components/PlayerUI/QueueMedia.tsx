@@ -30,7 +30,7 @@ export function QueueMedia({ media }: { media: QueueResponseItem }) {
             <div className="relative">
                 <Image
                     src={
-                        media.media.internalImageUrl ??
+                        media.media.imageUrl ??
                         rockIt.SONG_PLACEHOLDER_IMAGE_URL
                     }
                     alt={media.media.name}

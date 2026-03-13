@@ -49,5 +49,5 @@ class BasePlaylistResponse(BaseModel):
         ]
     ]
     contributors: List[PlaylistContributorResponse]
-    internalImageUrl: str
+    imageUrl: str
     owner: str

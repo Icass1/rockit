@@ -25,12 +25,12 @@ import {
 export default function ListOptions({
     type,
     publicId,
-    internalImageUrl,
+    imageUrl,
     allSongsInDatabase,
 }: {
     type: DBListType;
     publicId: string;
-    internalImageUrl?: string;
+    imageUrl?: string;
     allSongsInDatabase: boolean;
 }) {
     const $libraryLists = useStore(rockIt.listManager.libraryListsAtom);
@@ -101,7 +101,7 @@ export default function ListOptions({
                         rockIt.indexedDBManager.downloadListToDeviceAsync(
                             type,
                             publicId,
-                            internalImageUrl
+                            imageUrl
                         )
                     }
                 >

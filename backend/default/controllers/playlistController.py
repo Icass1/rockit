@@ -59,7 +59,7 @@ async def get_playlist_list_response(
                 name=p.name,
                 medias=[],
                 contributors=[],
-                internalImageUrl=p.cover_image,
+                imageUrl=p.cover_image,
                 owner=owner_name,
             )
         )
@@ -106,7 +106,7 @@ async def create_playlist_async(
         name=playlist.name,
         medias=[],
         contributors=[],
-        internalImageUrl=BACKEND_URL + playlist.cover_image,
+        imageUrl=BACKEND_URL + playlist.cover_image,
         owner=user.result().username,
     )
 
@@ -228,7 +228,7 @@ async def update_playlist_async(
         name=playlist.name,
         medias=[],
         contributors=[],
-        internalImageUrl=playlist.cover_image,
+        imageUrl=playlist.cover_image,
         owner=user.result().username,
     )
 

@@ -30,7 +30,7 @@ export default function SongPageTopArtistSongs({
                         className="w-40 flex-none transition hover:scale-105 md:w-48"
                     >
                         <Image
-                            src={song.album.internalImageUrl}
+                            src={song.album.imageUrl}
                             alt="Song Cover"
                             className="aspect-square w-full rounded-lg object-cover"
                         />

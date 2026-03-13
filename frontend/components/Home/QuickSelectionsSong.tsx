@@ -27,7 +27,7 @@ export default function QuickSelectionsSong({
                     width={100}
                     height={100}
                     className="aspect-square h-12 min-h-12 w-12 min-w-12 rounded-sm object-cover"
-                    src={song.internalImageUrl}
+                    src={song.imageUrl}
                     alt={`Cover of ${song.name}`}
                 />
                 <div className="flex w-full min-w-0 flex-col justify-center">

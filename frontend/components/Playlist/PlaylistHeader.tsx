@@ -44,7 +44,7 @@ export default function PlaylistHeader({
                 publicIds={playlist.songs.map((song) => song.song.publicId)}
                 type="playlist"
                 name={playlist.name}
-                imageUrl={playlist.internalImageUrl}
+                imageUrl={playlist.imageUrl}
                 isDownloading={isDownloading}
                 downloadProgress={downloadProgress}
                 anyDownloaded={anyDownloaded}
@@ -58,7 +58,7 @@ export default function PlaylistHeader({
                 <ListOptions
                     type="playlist"
                     publicId={playlist.publicId}
-                    internalImageUrl={playlist.internalImageUrl ?? undefined}
+                    imageUrl={playlist.imageUrl ?? undefined}
                     allSongsInDatabase={false}
                 />
             </div>

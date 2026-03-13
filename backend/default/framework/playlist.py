@@ -875,7 +875,7 @@ class Playlist:
                             publicId=playlist_result.publicId,
                             url=playlist_result.url,
                             name=playlist_result.name,
-                            internalImageUrl=playlist_result.internalImageUrl,
+                            imageUrl=playlist_result.imageUrl,
                             owner=playlist_result.owner,
                             description=playlist_result.description,
                             itemCount=len(playlist_result.medias),
@@ -908,7 +908,7 @@ class Playlist:
                 name=playlist.name,
                 medias=medias,
                 contributors=contributor_responses,
-                internalImageUrl=BACKEND_URL + playlist.cover_image,
+                imageUrl=BACKEND_URL + playlist.cover_image,
                 owner=owner_name,
             ),
         )

@@ -20,9 +20,9 @@ export class IndexedDBManager {
     async downloadListToDeviceAsync(
         type: DBListType,
         publicId: string,
-        internalImageUrl?: string
+        imageUrl?: string
     ) {
-        console.warn(type, publicId, internalImageUrl);
+        console.warn(type, publicId, imageUrl);
         throw "(downloadListToDeviceAsync) Method not implemented";
     }
 

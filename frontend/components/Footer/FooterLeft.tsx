@@ -33,7 +33,7 @@ function FooterLeftForSong({ currentMedia }: { currentMedia: MediaType }) {
                 <Image
                     width={64}
                     height={64}
-                    src={currentMedia.internalImageUrl}
+                    src={currentMedia.imageUrl}
                     alt={`Cover of ${currentMedia.name}`}
                     className="absolute h-9 w-9 select-none rounded-md object-cover transition duration-300 group-hover:brightness-50 md:h-16 md:w-16"
                 />

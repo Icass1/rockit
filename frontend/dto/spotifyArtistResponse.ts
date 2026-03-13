@@ -5,7 +5,7 @@ export const SpotifyArtistResponseSchema = z.object({
     publicId: z.string(),
     url: z.string(),
     name: z.string(),
-    internalImageUrl: z.string(),
+    imageUrl: z.string(),
     genres: z.array(z.string()),
 });
 

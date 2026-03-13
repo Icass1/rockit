@@ -48,7 +48,7 @@ export default function MobilePlayerUI() {
     if (hidden) return null;
 
     const coverSrc =
-        $currentMedia?.internalImageUrl ?? rockIt.SONG_PLACEHOLDER_IMAGE_URL;
+        $currentMedia?.imageUrl ?? rockIt.SONG_PLACEHOLDER_IMAGE_URL;
 
     return (
         <div

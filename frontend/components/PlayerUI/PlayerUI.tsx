@@ -63,7 +63,7 @@ export default function PlayerUI() {
                 <Image
                     alt={$currentMedia?.name ?? ""}
                     src={
-                        $currentMedia?.internalImageUrl ??
+                        $currentMedia?.imageUrl ??
                         rockIt.SONG_PLACEHOLDER_IMAGE_URL
                     }
                     width={600}

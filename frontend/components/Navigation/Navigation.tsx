@@ -185,7 +185,7 @@ export default function Navigation() {
                                     height={32}
                                     className="flex h-8 min-h-8 w-8 min-w-8 items-center justify-center rounded-sm"
                                     src={
-                                        list.internalImageUrl ??
+                                        list.imageUrl ??
                                         (list.type == "album"
                                             ? rockIt.ALBUM_PLACEHOLDER_IMAGE_URL
                                             : rockIt.PLAYLIST_PLACEHOLDER_IMAGE_URL)

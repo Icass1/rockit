@@ -26,8 +26,8 @@ class ChannelRow(YoutubeBase, TableDateUpdated, TableDateAdded):
     subscriber_count: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
     view_count: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
     video_count: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
-    internal_image_id: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("core.image.id"), nullable=True
+    image_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("core.image.id"), nullable=False
     )
     description: Mapped[str | None] = mapped_column(String, nullable=True)
 
@@ -40,20 +40,20 @@ class ChannelRow(YoutubeBase, TableDateUpdated, TableDateAdded):
         id: int,
         youtube_id: str,
         name: str,
+        image_id: int,
         subscriber_count: int = 0,
         view_count: int = 0,
         video_count: int = 0,
-        internal_image_id: int | None = None,
         description: str | None = None,
     ):
         kwargs: Dict[str, None | int | str] = {}
         kwargs["id"] = id
         kwargs["youtube_id"] = youtube_id
         kwargs["name"] = name
+        kwargs["image_id"] = image_id
         kwargs["subscriber_count"] = subscriber_count
         kwargs["view_count"] = view_count
         kwargs["video_count"] = video_count
-        kwargs["internal_image_id"] = internal_image_id
         kwargs["description"] = description
         for k, v in kwargs.items():
             setattr(self, k, v)

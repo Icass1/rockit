@@ -37,7 +37,7 @@ export async function Media({
             {showMediaImage && (
                 <Image
                     className="rounded"
-                    src={media.internalImageUrl}
+                    src={media.imageUrl}
                     alt={media.name}
                     width={40}
                     height={40}

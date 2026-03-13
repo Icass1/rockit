@@ -4,7 +4,7 @@ export const YoutubeChannelResponseSchema = z.object({
     provider: z.string(),
     publicId: z.string(),
     name: z.string(),
-    internalImageUrl: z.string().nullable(),
+    imageUrl: z.string().nullable(),
     subscriberCount: z.number(),
     videoCount: z.number(),
     viewCount: z.number(),

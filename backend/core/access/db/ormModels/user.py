@@ -13,12 +13,13 @@ from backend.core.access.db.ormModels.declarativeMixin import (
 
 if TYPE_CHECKING:
     from backend.core.access.db.ormModels.error import ErrorRow
-    from backend.core.access.db.ormModels.requestLog import RequestLogRow
+    from backend.core.access.db.ormModels.image import ImageRow
     from backend.core.access.db.ormModels.session import SessionRow
+    from backend.core.access.db.ormModels.language import LanguageRow
+    from backend.core.access.db.ormModels.user_queue import UserQueueRow
+    from backend.core.access.db.ormModels.requestLog import RequestLogRow
     from backend.core.access.db.ormEnums.repeatModeEnum import RepeatModeEnumRow
     from backend.core.access.db.ormModels.user_library_media import UserLibraryMediaRow
-    from backend.core.access.db.ormModels.user_queue import UserQueueRow
-    from backend.core.access.db.ormModels.language import LanguageRow
 
 
 class UserRow(
@@ -32,7 +33,7 @@ class UserRow(
     provider: Mapped[str | None] = mapped_column(String, nullable=True)
     provider_account_id: Mapped[str | None] = mapped_column(String, nullable=True)
     current_station: Mapped[str | None] = mapped_column(String, nullable=True)
-    current_time: Mapped[float | None] = mapped_column(DOUBLE_PRECISION, nullable=True)
+    current_time_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
     current_queue_media_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     queue_type_key: Mapped[int] = mapped_column(
         Integer, ForeignKey("core.queue_type_enum.key"), nullable=False, default=2
@@ -41,18 +42,17 @@ class UserRow(
         Integer, ForeignKey("core.repeat_mode_enum.key"), nullable=False, default=1
     )
     volume: Mapped[float] = mapped_column(DOUBLE_PRECISION, nullable=False, default=1)
-    cross_fade: Mapped[float] = mapped_column(
-        DOUBLE_PRECISION, nullable=False, default=0
-    )
+    cross_fade_ms: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     lang_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("core.language.id"), nullable=False, default=1
     )
-    image: Mapped[str] = mapped_column(
-        String, nullable=False, default="/image/user-placeholder.png"
-    )
     admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     super_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    image_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("core.image.id"), nullable=False
+    )
 
+    image: Mapped["ImageRow"] = relationship("ImageRow", lazy="selectin", uselist=False)
     language: Mapped["LanguageRow"] = relationship(
         "LanguageRow", back_populates=None, uselist=False, lazy="selectin"
     )
@@ -80,36 +80,36 @@ class UserRow(
         self,
         public_id: str,
         username: str,
+        image_id: int,
         password_hash: str | None = None,
         provider: str | None = None,
         provider_account_id: str | None = None,
         current_station: str | None = None,
-        current_time: float | None = None,
+        current_time_ms: int | None = None,
         current_queue_media_id: int | None = None,
         queue_type_key: int = 2,
         repeat_mode_key: int = 1,
         volume: float = 1,
-        cross_fade: float = 0,
+        cross_fade_ms: int = 0,
         lang_id: int = 1,
-        image: str = "/image/user-placeholder.png",
         admin: bool = False,
         super_admin: bool = False,
     ):
         kwargs: Dict[str, None | bool | float | int | str] = {}
         kwargs["public_id"] = public_id
         kwargs["username"] = username
+        kwargs["image_id"] = image_id
         kwargs["password_hash"] = password_hash
         kwargs["provider"] = provider
         kwargs["provider_account_id"] = provider_account_id
         kwargs["current_station"] = current_station
-        kwargs["current_time"] = current_time
+        kwargs["current_time_ms"] = current_time_ms
         kwargs["current_queue_media_id"] = current_queue_media_id
         kwargs["queue_type_key"] = queue_type_key
         kwargs["repeat_mode_key"] = repeat_mode_key
         kwargs["volume"] = volume
-        kwargs["cross_fade"] = cross_fade
+        kwargs["cross_fade_ms"] = cross_fade_ms
         kwargs["lang_id"] = lang_id
-        kwargs["image"] = image
         kwargs["admin"] = admin
         kwargs["super_admin"] = super_admin
         for k, v in kwargs.items():

@@ -10,7 +10,7 @@ export const BasePlaylistResponseSchema = z.object({
     name: z.string(),
     medias: z.array(z.union([z.any(), z.any(), z.any(), z.any(), z.any()])),
     contributors: z.array(z.lazy(() => PlaylistContributorResponseSchema)),
-    internalImageUrl: z.string(),
+    imageUrl: z.string(),
     owner: z.string(),
 });
 

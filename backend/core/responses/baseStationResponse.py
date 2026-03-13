@@ -8,4 +8,4 @@ class BaseStationResponse(BaseModel):
     publicId: str
     url: str
     name: str
-    internalImageUrl: str
+    imageUrl: str

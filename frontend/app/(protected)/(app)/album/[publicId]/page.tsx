@@ -24,7 +24,7 @@ export async function generateMetadata({
         openGraph: {
             title: album.name,
             type: "music.album",
-            images: [{ url: album.internalImageUrl, width: 600, height: 600 }],
+            images: [{ url: album.imageUrl, width: 600, height: 600 }],
         },
     };
 }
@@ -53,7 +53,7 @@ export default async function AlbumPage({
             title={albumResponse.name}
             artists={albumResponse.artists}
             media={songsWithAlbum}
-            image={albumResponse.internalImageUrl}
+            image={albumResponse.imageUrl}
             imageBlur="http://localhost:8000/media/image/blur/9w4UGBJx10VtAg8IlbZcMRH3C2fLmeyT?q=3"
             showMediaImage={false}
             showMediaIndex

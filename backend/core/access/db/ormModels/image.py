@@ -18,13 +18,13 @@ class ImageRow(
     __tablename__ = "image"
     __table_args__ = ({"schema": "core", "extend_existing": True},)
 
-    url: Mapped[str] = mapped_column(String, nullable=False)
+    url: Mapped[str | None] = mapped_column(String, nullable=True)
     path: Mapped[str] = mapped_column(String, nullable=False, unique=True)
 
-    def __init__(self, public_id: str, url: str, path: str):
-        kwargs: Dict[str, str] = {}
+    def __init__(self, public_id: str, path: str, url: str | None = None):
+        kwargs: Dict[str, None | str] = {}
         kwargs["public_id"] = public_id
-        kwargs["url"] = url
         kwargs["path"] = path
+        kwargs["url"] = url
         for k, v in kwargs.items():
             setattr(self, k, v)

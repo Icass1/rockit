@@ -9,7 +9,7 @@ export const YoutubeVideoResponseSchema = z.object({
     name: z.string(),
     videoSrc: z.string().nullable(),
     audioSrc: z.string().nullable(),
-    internalImageUrl: z.string(),
+    imageUrl: z.string(),
     duration: z.number(),
     artists: z.array(z.lazy(() => BaseArtistResponseSchema)),
     youtubeId: z.string(),

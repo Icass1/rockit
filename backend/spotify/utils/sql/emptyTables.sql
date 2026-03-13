@@ -15,7 +15,7 @@ TRUNCATE TABLE
     spotify.download_status,
     spotify.external_image,
     spotify.genre,
-    spotify.internal_image,
+    spotify.image,
     spotify.playlist,
     spotify.playlist_external_image,
     spotify.playlist_track,

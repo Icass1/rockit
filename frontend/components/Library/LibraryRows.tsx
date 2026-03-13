@@ -75,7 +75,7 @@ export function AlbumRow({ album }: { album: BaseAlbumWithoutSongsResponse }) {
             >
                 <SquareCover
                     src={
-                        album.internalImageUrl ??
+                        album.imageUrl ??
                         rockIt.ALBUM_PLACEHOLDER_IMAGE_URL
                     }
                     alt={album.name}
@@ -102,7 +102,7 @@ export function PlaylistRow({ playlist }: { playlist: BasePlaylistResponse }) {
             >
                 <SquareCover
                     src={
-                        playlist.internalImageUrl ??
+                        playlist.imageUrl ??
                         rockIt.PLAYLIST_PLACEHOLDER_IMAGE_URL
                     }
                     alt={playlist.name}
@@ -128,7 +128,7 @@ export function VideoRow({ video }: { video: BaseVideoResponse }) {
         >
             <VideoCover
                 src={
-                    video.internalImageUrl ?? rockIt.SONG_PLACEHOLDER_IMAGE_URL
+                    video.imageUrl ?? rockIt.SONG_PLACEHOLDER_IMAGE_URL
                 }
                 alt={video.name}
             />
@@ -143,7 +143,7 @@ export function SongRow({ song }: { song: BaseSongWithoutAlbumResponse }) {
     return (
         <div className="flex items-center gap-3 rounded-md px-2 py-2 hover:bg-neutral-800">
             <SquareCover
-                src={song.internalImageUrl ?? rockIt.SONG_PLACEHOLDER_IMAGE_URL}
+                src={song.imageUrl ?? rockIt.SONG_PLACEHOLDER_IMAGE_URL}
                 alt={song.name}
             />
             <div className="min-w-0 flex-1">
@@ -162,7 +162,7 @@ export function StationRow({ station }: { station: BaseStationResponse }) {
         <div className="flex items-center gap-3 rounded-md px-2 py-2 hover:bg-neutral-800">
             <SquareCover
                 src={
-                    station.internalImageUrl ??
+                    station.imageUrl ??
                     rockIt.STATION_PLACEHOLDER_IMAGE_URL
                 }
                 alt={station.name}

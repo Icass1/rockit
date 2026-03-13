@@ -38,7 +38,7 @@ export function PlayerUICoverColumn({
             >
                 <Image
                     src={
-                        currentMedia?.internalImageUrl ??
+                        currentMedia?.imageUrl ??
                         rockIt.MEDIA_PLACEHOLDER_IMAGE_URL
                     }
                     height={600}

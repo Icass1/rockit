@@ -23,7 +23,7 @@ export default function RecentlyPlayedSong({
                 width={400}
                 height={400}
                 className="aspect-square w-full rounded-lg object-cover"
-                src={song.internalImageUrl}
+                src={song.imageUrl}
                 alt={`Cover of ${song.name}`}
             />
             <span

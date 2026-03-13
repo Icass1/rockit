@@ -11,7 +11,7 @@ class BasePlaylistForPlaylistResponse(BaseModel):
     publicId: str
     url: str
     name: str
-    internalImageUrl: str
+    imageUrl: str
     owner: str
     description: Optional[str] = None
     itemCount: int = 0

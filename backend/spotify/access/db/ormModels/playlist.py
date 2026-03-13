@@ -26,7 +26,7 @@ class PlaylistRow(SpotifyBase, TableDateUpdated, TableDateAdded):
         Integer, ForeignKey("core.media.id"), primary_key=True
     )
     spotify_id: Mapped[str] = mapped_column(String, unique=True, nullable=False)
-    internal_image_id: Mapped[int | None] = mapped_column(
+    image_id: Mapped[int | None] = mapped_column(
         Integer, ForeignKey("core.image.id"), nullable=True
     )
     name: Mapped[str] = mapped_column(String, nullable=False)
@@ -48,9 +48,7 @@ class PlaylistRow(SpotifyBase, TableDateUpdated, TableDateAdded):
         CoreMediaRow, lazy="selectin", uselist=False
     )
 
-    internal_image: Mapped["ImageRow"] = relationship(
-        ImageRow, lazy="selectin", uselist=False
-    )
+    image: Mapped["ImageRow"] = relationship(ImageRow, lazy="selectin", uselist=False)
 
     def __init__(
         self,
@@ -58,7 +56,7 @@ class PlaylistRow(SpotifyBase, TableDateUpdated, TableDateAdded):
         spotify_id: str,
         name: str,
         owner: str,
-        internal_image_id: int | None = None,
+        image_id: int | None = None,
         followers: int = 0,
         description: str | None = None,
     ):
@@ -67,7 +65,7 @@ class PlaylistRow(SpotifyBase, TableDateUpdated, TableDateAdded):
         kwargs["spotify_id"] = spotify_id
         kwargs["name"] = name
         kwargs["owner"] = owner
-        kwargs["internal_image_id"] = internal_image_id
+        kwargs["image_id"] = image_id
         kwargs["followers"] = followers
         kwargs["description"] = description
         for k, v in kwargs.items():

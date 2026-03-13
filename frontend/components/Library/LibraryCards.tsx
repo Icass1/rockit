@@ -38,7 +38,7 @@ export function PlaylistCard({ playlist }: { playlist: BasePlaylistResponse }) {
                     <Image
                         alt={playlist.name}
                         src={
-                            playlist.internalImageUrl ??
+                            playlist.imageUrl ??
                             rockIt.PLAYLIST_PLACEHOLDER_IMAGE_URL
                         }
                         width={COVER_PX}
@@ -69,7 +69,7 @@ export function AlbumCard({ album }: { album: BaseAlbumWithoutSongsResponse }) {
                     <Image
                         alt={album.name}
                         src={
-                            album.internalImageUrl ??
+                            album.imageUrl ??
                             rockIt.ALBUM_PLACEHOLDER_IMAGE_URL
                         }
                         width={COVER_PX}
@@ -100,7 +100,7 @@ export function VideoCard({ video }: { video: BaseVideoResponse }) {
                 <div className="relative aspect-video w-full overflow-hidden rounded-md">
                     <Image
                         src={
-                            video.internalImageUrl ??
+                            video.imageUrl ??
                             rockIt.SONG_PLACEHOLDER_IMAGE_URL
                         }
                         alt={video.name}
@@ -125,7 +125,7 @@ export function SongCard({ song }: { song: BaseSongWithoutAlbumResponse }) {
                 <Image
                     alt={song.name}
                     src={
-                        song.internalImageUrl ??
+                        song.imageUrl ??
                         rockIt.SONG_PLACEHOLDER_IMAGE_URL
                     }
                     width={COVER_PX}
@@ -153,7 +153,7 @@ export function StationCard({ station }: { station: BaseStationResponse }) {
                 <Image
                     alt={station.name}
                     src={
-                        station.internalImageUrl ??
+                        station.imageUrl ??
                         rockIt.STATION_PLACEHOLDER_IMAGE_URL
                     }
                     width={COVER_PX}

@@ -51,7 +51,7 @@ export default function SongContextMenu({
         <ContextMenu>
             <ContextMenuTrigger>{children}</ContextMenuTrigger>
             <ContextMenuContent
-                cover={song.internalImageUrl}
+                cover={song.imageUrl}
                 title={song.name}
                 description={`${song.album.name} • ${song.artists.map((a) => a.name).join(", ")}`}
             >

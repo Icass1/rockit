@@ -3,6 +3,7 @@ import sys
 import asyncio
 from pathlib import Path
 from typing import Any, Dict, List
+from concurrent.futures import ThreadPoolExecutor
 
 from backend.utils.logger import getLogger
 
@@ -134,42 +135,47 @@ async def main() -> None:
 
     first_loop = True
 
-    while True:
-        command: str
-        if first_loop and command_to_run != "":
-            command = command_to_run
-            first_loop = False
-        else:
-            try:
-                command = input("> ")
-            except KeyboardInterrupt:
+    def run_input(prompt: str) -> str:
+        return input(prompt)
+
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        while True:
+            command: str
+            if first_loop and command_to_run != "":
+                command = command_to_run
+                first_loop = False
+            else:
+                try:
+                    future = executor.submit(run_input, "> ")
+                    command = future.result()
+                except KeyboardInterrupt:
+                    break
+
+            if command == "exit":
                 break
 
-        if command == "exit":
-            break
+            elif command == "reinit":
+                await rockit_db.reinit()
 
-        elif command == "reinit":
-            await rockit_db.reinit()
+            elif command == "zod":
+                from backend.utils.zod_generator import generate_zod_schemas
 
-        elif command == "zod":
-            from backend.utils.zod_generator import generate_zod_schemas
+                await generate_zod_schemas()
 
-            await generate_zod_schemas()
+            elif command == "import-vocabulary":
+                await import_vocabulary()
 
-        elif command == "import-vocabulary":
-            await import_vocabulary()
+            elif command == "init-db":
+                if hasattr(rockit_db, "engine"):
+                    await rockit_db.engine.dispose()
+                await rockit_db.async_init()
+                logger.info("Database initialized")
 
-        elif command == "init-db":
-            if hasattr(rockit_db, "engine"):
-                await rockit_db.engine.dispose()
-            await rockit_db.async_init()
-            logger.info("Database initialized")
+            else:
+                print("Command not found.")
 
-        else:
-            print("Command not found.")
-
-        if command_to_run != "":
-            break
+            if command_to_run != "":
+                break
 
     print("Bye!")
 

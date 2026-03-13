@@ -36,7 +36,7 @@ export async function generateMetadata({
             url: `https://${BACKEND_URL}/song/${publicId}`,
             images: [
                 {
-                    url: song.album.internalImageUrl,
+                    url: song.album.imageUrl,
                     width: 600,
                     height: 600,
                     alt: song.name,
@@ -49,7 +49,7 @@ export async function generateMetadata({
             description: `Listen to ${song.name} by ${song.artists[0].name}`,
             images: [
                 {
-                    url: song.album.internalImageUrl,
+                    url: song.album.imageUrl,
                     width: 600,
                     height: 600,
                     alt: song.name,
@@ -79,7 +79,7 @@ export default async function SongPage({
                         <div className="h-32 w-32 shrink-0 overflow-hidden rounded-full bg-neutral-300">
                             <Image
                                 src={
-                                    artist.internalImageUrl ??
+                                    artist.imageUrl ??
                                     rockIt.USER_PLACEHOLDER_IMAGE_URL
                                 }
                                 width={128}

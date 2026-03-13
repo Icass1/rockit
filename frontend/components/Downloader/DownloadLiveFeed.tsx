@@ -27,7 +27,7 @@ function useMediaMeta(publicId: string): MediaMeta | null {
                 setMeta({
                     name: data.name,
                     imageUrl:
-                        data.album?.internalImageUrl ??
+                        data.album?.imageUrl ??
                         rockIt.SONG_PLACEHOLDER_IMAGE_URL,
                 });
             })

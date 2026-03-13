@@ -34,7 +34,7 @@ class AlbumRow(SpotifyBase, TableDateUpdated, TableDateAdded):
         Integer, ForeignKey("core.media.id"), primary_key=True
     )
     spotify_id: Mapped[str] = mapped_column(String, unique=True, nullable=False)
-    internal_image_id: Mapped[int] = mapped_column(
+    image_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("core.image.id"), nullable=False
     )
     name: Mapped[str] = mapped_column(String, nullable=False)
@@ -71,15 +71,13 @@ class AlbumRow(SpotifyBase, TableDateUpdated, TableDateAdded):
         CoreMediaRow, lazy="selectin", uselist=False
     )
 
-    internal_image: Mapped["ImageRow"] = relationship(
-        ImageRow, lazy="selectin", uselist=False
-    )
+    image: Mapped["ImageRow"] = relationship(ImageRow, lazy="selectin", uselist=False)
 
     def __init__(
         self,
         id: int,
         spotify_id: str,
-        internal_image_id: int,
+        image_id: int,
         name: str,
         release_date: str,
         popularity: int,
@@ -88,7 +86,7 @@ class AlbumRow(SpotifyBase, TableDateUpdated, TableDateAdded):
         kwargs: Dict[str, int | str] = {}
         kwargs["id"] = id
         kwargs["spotify_id"] = spotify_id
-        kwargs["internal_image_id"] = internal_image_id
+        kwargs["image_id"] = image_id
         kwargs["name"] = name
         kwargs["release_date"] = release_date
         kwargs["popularity"] = popularity

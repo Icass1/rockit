@@ -6,7 +6,7 @@ class YoutubeChannelResponse(BaseModel):
     provider: str
     publicId: str
     name: str
-    internalImageUrl: Optional[str] = None
+    imageUrl: Optional[str] = None
     subscriberCount: int = 0
     videoCount: int = 0
     viewCount: int = 0

@@ -195,7 +195,7 @@ class YouTubeAccess:
             if existing:
                 return AResult(code=AResultCode.OK, message="OK", result=existing)
 
-            internal_image_id: int | None = None
+            image_id: int | None = None
             snippet: dict[str, Any] = raw.snippet or {}
             thumbnails: dict[str, Any] = snippet.get("thumbnails", {})
 
@@ -212,7 +212,7 @@ class YouTubeAccess:
                     session, thumbnail_url
                 )
                 if a_img.is_ok():
-                    internal_image_id = a_img.result().id
+                    image_id = a_img.result().id
 
             core_artist = CoreMediaRow(
                 public_id=create_id(32),
@@ -250,7 +250,7 @@ class YouTubeAccess:
                 subscriber_count=subscriber_count,
                 view_count=view_count,
                 video_count=video_count,
-                internal_image_id=internal_image_id,
+                image_id=image_id,
                 description=snippet.get("description"),
             )
             session.add(channel_row)
@@ -292,15 +292,15 @@ class YouTubeAccess:
             elif "default" in thumbnails:
                 thumbnail_url = thumbnails["default"].get("url", "")
 
-            internal_image_id: int | None = None
+            image_id: int | None = None
             if thumbnail_url:
                 a_img = await YouTubeAccess._download_and_create_internal_image(
                     session, thumbnail_url
                 )
                 if a_img.is_ok():
-                    internal_image_id = a_img.result().id
+                    image_id = a_img.result().id
 
-            if internal_image_id is None:
+            if image_id is None:
                 return AResult(
                     code=AResultCode.GENERAL_ERROR,
                     message="Failed to create internal image for video",
@@ -344,8 +344,8 @@ class YouTubeAccess:
                 id=core_video.id,
                 youtube_id=raw.id or "",
                 name=snippet.get("title", ""),
-                duration=duration,
-                internal_image_id=internal_image_id,
+                duration_ms=duration,
+                image_id=image_id,
                 channel_id=channel_id,
                 view_count=view_count,
                 like_count=like_count,

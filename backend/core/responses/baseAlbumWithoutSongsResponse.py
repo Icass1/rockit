@@ -15,4 +15,4 @@ class BaseAlbumWithoutSongsResponse(BaseModel):
     name: str
     artists: Sequence[BaseArtistResponse]
     releaseDate: str
-    internalImageUrl: str
+    imageUrl: str

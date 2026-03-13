@@ -8,6 +8,7 @@ from backend.core.access.db.ormModels.declarativeMixin import (
     TableDateUpdated,
 )
 from backend.core.access.db.ormModels.media import CoreMediaRow
+from backend.core.access.db.ormModels.image import ImageRow
 
 from backend.default.access.db.base import DefaultBase
 
@@ -29,8 +30,8 @@ class PlaylistRow(DefaultBase, TableDateUpdated, TableDateAdded):
     )
     name: Mapped[str] = mapped_column(String, nullable=False)
     description: Mapped[str | None] = mapped_column(String, nullable=True)
-    cover_image: Mapped[str] = mapped_column(
-        String, nullable=False, default="/image/playlist-placeholder.png"
+    image_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("core.image.id"), nullable=False
     )
     is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     owner_id: Mapped[int] = mapped_column(
@@ -47,22 +48,23 @@ class PlaylistRow(DefaultBase, TableDateUpdated, TableDateAdded):
     core_playlist: Mapped["CoreMediaRow"] = relationship(
         CoreMediaRow, lazy="selectin", uselist=False
     )
+    image: Mapped["ImageRow"] = relationship(ImageRow, lazy="selectin", uselist=False)
 
     def __init__(
         self,
         id: int,
         name: str,
+        image_id: int,
         owner_id: int,
         description: str | None = None,
-        cover_image: str = "/image/playlist-placeholder.png",
         is_public: bool = True,
     ):
         kwargs: Dict[str, None | bool | int | str] = {}
         kwargs["id"] = id
         kwargs["name"] = name
+        kwargs["image_id"] = image_id
         kwargs["owner_id"] = owner_id
         kwargs["description"] = description
-        kwargs["cover_image"] = cover_image
         kwargs["is_public"] = is_public
         for k, v in kwargs.items():
             setattr(self, k, v)

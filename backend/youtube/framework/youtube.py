@@ -70,20 +70,20 @@ class YouTube:
 
             a_result_internal_image: AResult[ImageRow] = (
                 await MediaAccess.get_image_from_id_async(
-                    session=session, id=video_row.internal_image_id
+                    session=session, id=video_row.image_id
                 )
             )
-            internal_image_url: str = ""
+            image_url: str = ""
             if a_result_internal_image.is_ok():
-                internal_image_url = f"{BACKEND_URL}/media/image/{a_result_internal_image.result().public_id}"
+                image_url = f"{BACKEND_URL}/media/image/{a_result_internal_image.result().public_id}"
 
             channel_response: YoutubeChannelResponse | None = None
             if channel:
                 channel_internal_image_url: str = ""
-                if channel.internal_image_id:
+                if channel.image_id:
                     a_result_channel_image: AResult[ImageRow] = (
                         await MediaAccess.get_image_from_id_async(
-                            session, id=channel.internal_image_id
+                            session, id=channel.image_id
                         )
                     )
                     if a_result_channel_image.is_ok():
@@ -93,7 +93,7 @@ class YouTube:
                     provider=YouTube.provider_name,
                     publicId=channel.youtube_id,
                     name=channel.name,
-                    internalImageUrl=channel_internal_image_url,
+                    imageUrl=channel_internal_image_url,
                     subscriberCount=channel.subscriber_count,
                     videoCount=channel.video_count,
                     viewCount=channel.view_count,
@@ -112,7 +112,7 @@ class YouTube:
                         publicId=channel_response.publicId,
                         url=f"https://www.youtube.com/channel/{channel_response.publicId}",
                         name=channel_response.name,
-                        internalImageUrl=channel_response.internalImageUrl or "",
+                        imageUrl=channel_response.imageUrl or "",
                     )
                 ]
 
@@ -129,7 +129,7 @@ class YouTube:
                     viewCount=video_row.view_count,
                     likeCount=video_row.like_count,
                     commentCount=video_row.comment_count,
-                    internalImageUrl=internal_image_url,
+                    imageUrl=image_url,
                     artists=artists,
                     channel=channel_response,
                     description=video_row.description,
@@ -243,20 +243,20 @@ class YouTube:
 
         a_result_internal_image: AResult[ImageRow] = (
             await MediaAccess.get_image_from_id_async(
-                session=session, id=video_row.internal_image_id
+                session=session, id=video_row.image_id
             )
         )
-        internal_image_url: str = ""
+        image_url: str = ""
         if a_result_internal_image.is_ok():
-            internal_image_url = f"{BACKEND_URL}/media/image/{a_result_internal_image.result().public_id}"
+            image_url = f"{BACKEND_URL}/media/image/{a_result_internal_image.result().public_id}"
 
         channel_response: YoutubeChannelResponse | None = None
         if fetched_channel:
             channel_internal_image_url: str = ""
-            if fetched_channel.internal_image_id:
+            if fetched_channel.image_id:
                 a_result_channel_image: AResult[ImageRow] = (
                     await MediaAccess.get_image_from_id_async(
-                        session, id=fetched_channel.internal_image_id
+                        session, id=fetched_channel.image_id
                     )
                 )
                 if a_result_channel_image.is_ok():
@@ -266,7 +266,7 @@ class YouTube:
                 provider=YouTube.provider_name,
                 publicId=fetched_channel.youtube_id,
                 name=fetched_channel.name,
-                internalImageUrl=channel_internal_image_url,
+                imageUrl=channel_internal_image_url,
                 subscriberCount=fetched_channel.subscriber_count,
                 videoCount=fetched_channel.video_count,
                 viewCount=fetched_channel.view_count,
@@ -285,7 +285,7 @@ class YouTube:
                     publicId=channel_response.publicId,
                     url=f"https://www.youtube.com/channel/{channel_response.publicId}",
                     name=channel_response.name,
-                    internalImageUrl=channel_response.internalImageUrl or "",
+                    imageUrl=channel_response.imageUrl or "",
                 )
             ]
 
@@ -302,7 +302,7 @@ class YouTube:
                 viewCount=video_row.view_count,
                 likeCount=video_row.like_count,
                 commentCount=video_row.comment_count,
-                internalImageUrl=internal_image_url,
+                imageUrl=image_url,
                 artists=artists,
                 channel=channel_response,
                 description=video_row.description,

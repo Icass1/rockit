@@ -6,7 +6,7 @@ export const BasePlaylistForPlaylistResponseSchema = z.object({
     publicId: z.string(),
     url: z.string(),
     name: z.string(),
-    internalImageUrl: z.string(),
+    imageUrl: z.string(),
     owner: z.string(),
     description: z.string().nullable(),
     itemCount: z.number(),

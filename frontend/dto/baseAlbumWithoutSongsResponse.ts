@@ -9,7 +9,7 @@ export const BaseAlbumWithoutSongsResponseSchema = z.object({
     name: z.string(),
     artists: z.array(z.lazy(() => BaseArtistResponseSchema)),
     releaseDate: z.string(),
-    internalImageUrl: z.string(),
+    imageUrl: z.string(),
 });
 
 export type BaseAlbumWithoutSongsResponse = z.infer<

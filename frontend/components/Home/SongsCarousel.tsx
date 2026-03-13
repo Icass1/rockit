@@ -88,7 +88,7 @@
 //                     alt={media.name}
 //                     width={300}
 //                     height={300}
-//                     src={media.internalImageUrl}
+//                     src={media.imageUrl}
 //                     className="relative top-1/2 aspect-square h-auto w-full -translate-y-1/2 transition-all duration-300"
 //                     style={{ filter: `brightness(${brightness})` }}
 //                     // Precarga las canciones adyacentes

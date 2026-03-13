@@ -31,7 +31,7 @@ export default async function ArtistPage({
             <div
                 className="bg-size-[120%] md:bg-size-[100%] relative w-full bg-top bg-no-repeat"
                 style={{
-                    backgroundImage: `url('${artist.internalImageUrl}')`,
+                    backgroundImage: `url('${artist.imageUrl}')`,
                     backgroundAttachment: "fixed",
                 }}
             >
@@ -72,7 +72,7 @@ export default async function ArtistPage({
                                                 <Image
                                                     src={
                                                         song.album
-                                                            .internalImageUrl
+                                                            .imageUrl
                                                     }
                                                     alt={song.name}
                                                     width={48}

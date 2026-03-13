@@ -13,7 +13,7 @@ export const BaseSongWithAlbumResponseSchema = z.object({
     artists: z.array(z.lazy(() => BaseArtistResponseSchema)),
     audioSrc: z.string().nullable(),
     downloaded: z.boolean(),
-    internalImageUrl: z.string(),
+    imageUrl: z.string(),
     duration: z.number(),
     discNumber: z.number(),
     trackNumber: z.number(),

@@ -89,7 +89,7 @@ export function PlayerUIQueueList({
                                 </div>
                             </ContextMenuTrigger>
                             <ContextMenuContent
-                                cover={queueMedia.media.internalImageUrl}
+                                cover={queueMedia.media.imageUrl}
                                 title={queueMedia.media.name}
                                 // description={`${queueMedia.media.album.name} • ${queueMedia.media.artists.map((a) => a.name).join(", ")}`}
                             >
@@ -140,7 +140,7 @@ export function PlayerUIQueueList({
                         media: {
                             type: "song",
                             downloaded: false,
-                            internalImageUrl:
+                            imageUrl:
                                 rockIt.MEDIA_PLACEHOLDER_IMAGE_URL,
                             duration: 123,
                             discNumber: 1,
@@ -154,7 +154,7 @@ export function PlayerUIQueueList({
                                 type: "album",
                                 name: "Single",
                                 releaseDate: "2024-01-01",
-                                internalImageUrl:
+                                imageUrl:
                                     rockIt.MEDIA_PLACEHOLDER_IMAGE_URL,
                                 provider: "mock",
                                 publicId: `auto-album-${mock.id}`,
@@ -163,7 +163,7 @@ export function PlayerUIQueueList({
                                     {
                                         provider: "mock",
                                         publicId: "publicId",
-                                        internalImageUrl:
+                                        imageUrl:
                                             rockIt.MEDIA_PLACEHOLDER_IMAGE_URL,
                                         name: mock.artist,
                                         url: "",
@@ -174,7 +174,7 @@ export function PlayerUIQueueList({
                                 {
                                     provider: "mock",
                                     publicId: "publicId",
-                                    internalImageUrl:
+                                    imageUrl:
                                         rockIt.MEDIA_PLACEHOLDER_IMAGE_URL,
                                     name: mock.artist,
                                     url: "",
@@ -203,7 +203,7 @@ export function PlayerUIQueueList({
                                 </ContextMenuTrigger>
                                 <ContextMenuContent
                                     cover={
-                                        autoMedia.media.internalImageUrl ??
+                                        autoMedia.media.imageUrl ??
                                         rockIt.SONG_PLACEHOLDER_IMAGE_URL
                                     }
                                     title={autoMedia.media.name}

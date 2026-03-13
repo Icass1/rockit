@@ -35,8 +35,8 @@ class ArtistRow(SpotifyBase, TableDateUpdated, TableDateAdded):
     name: Mapped[str] = mapped_column(String, nullable=False)
     followers: Mapped[int] = mapped_column(Integer, nullable=False)
     popularity: Mapped[int] = mapped_column(Integer, nullable=False)
-    internal_image_id: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("core.image.id"), nullable=True
+    image_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("core.image.id"), nullable=False
     )
 
     songs: Mapped[List["TrackRow"]] = relationship(
@@ -55,9 +55,7 @@ class ArtistRow(SpotifyBase, TableDateUpdated, TableDateAdded):
         lazy="write_only",
     )
 
-    internal_image: Mapped["ImageRow"] = relationship(
-        ImageRow, lazy="selectin", uselist=False
-    )
+    image: Mapped["ImageRow"] = relationship(ImageRow, lazy="selectin", uselist=False)
 
     core_artist: Mapped["CoreMediaRow"] = relationship(
         CoreMediaRow, lazy="selectin", uselist=False
@@ -70,14 +68,14 @@ class ArtistRow(SpotifyBase, TableDateUpdated, TableDateAdded):
         name: str,
         followers: int,
         popularity: int,
-        internal_image_id: int | None = None,
+        image_id: int,
     ):
-        kwargs: Dict[str, None | int | str] = {}
+        kwargs: Dict[str, int | str] = {}
         kwargs["id"] = id
         kwargs["spotify_id"] = spotify_id
         kwargs["name"] = name
         kwargs["followers"] = followers
         kwargs["popularity"] = popularity
-        kwargs["internal_image_id"] = internal_image_id
+        kwargs["image_id"] = image_id
         for k, v in kwargs.items():
             setattr(self, k, v)

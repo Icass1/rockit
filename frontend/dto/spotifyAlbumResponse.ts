@@ -13,7 +13,7 @@ export const SpotifyAlbumResponseSchema = z.object({
     name: z.string(),
     artists: z.array(z.lazy(() => BaseArtistResponseSchema)),
     releaseDate: z.string(),
-    internalImageUrl: z.string(),
+    imageUrl: z.string(),
     songs: z.array(z.lazy(() => BaseSongWithoutAlbumResponseSchema)),
     spotifyId: z.string(),
     externalImages: z.array(z.lazy(() => SpotifyExternalImageResponseSchema)),

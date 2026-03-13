@@ -142,7 +142,7 @@ export default function MobilePlayerUIQueue({
                                         </ContextMenuTrigger>
                                         <ContextMenuContent
                                             cover={
-                                                media.media.internalImageUrl ??
+                                                media.media.imageUrl ??
                                                 rockIt.SONG_PLACEHOLDER_IMAGE_URL
                                             }
                                             title={media.media.name}

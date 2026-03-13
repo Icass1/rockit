@@ -483,13 +483,13 @@ class SpotifyAccess:
                 return AResult(code=AResultCode.OK, message="OK", result=existing)
 
             # Download highest-res image
-            internal_image_id: int | None = None
+            image_id: int | None = None
             if raw.images:
                 a_img = await SpotifyAccess._download_and_create_internal_image(
                     session, raw.images[0].url
                 )
                 if a_img.is_ok():
-                    internal_image_id = a_img.result().id
+                    image_id = a_img.result().id
 
             core_artist = CoreMediaRow(
                 public_id=create_id(32),
@@ -512,7 +512,7 @@ class SpotifyAccess:
                 name=raw.name or "",
                 followers=followers,
                 popularity=popularity,
-                internal_image_id=internal_image_id,
+                image_id=image_id,
             )
             session.add(artist_row)
             await session.flush()
@@ -593,7 +593,7 @@ class SpotifyAccess:
                 disc_count = max((item.disc_number or 1) for item in raw.tracks.items)
 
             # Download highest-res image
-            internal_image_id: int | None = None
+            image_id: int | None = None
             if raw.images:
                 a_img: AResult[ImageRow] = (
                     await SpotifyAccess._download_and_create_internal_image(
@@ -601,9 +601,9 @@ class SpotifyAccess:
                     )
                 )
                 if a_img.is_ok():
-                    internal_image_id = a_img.result().id
+                    image_id = a_img.result().id
 
-            if internal_image_id is None:
+            if image_id is None:
                 return AResult(
                     code=AResultCode.GENERAL_ERROR,
                     message="Failed to create internal image for album",
@@ -620,7 +620,7 @@ class SpotifyAccess:
             album_row = AlbumRow(
                 id=core_album.id,
                 spotify_id=raw.id,
-                internal_image_id=internal_image_id,
+                image_id=image_id,
                 name=raw.name or "",
                 release_date=raw.release_date or "",
                 popularity=raw.popularity,
@@ -733,12 +733,12 @@ class SpotifyAccess:
                 id=core_song.id,
                 spotify_id=raw.id,
                 name=raw.name or "",
-                duration=(
-                    int(raw.duration_ms / 1000) if raw.duration_ms is not None else 0
+                duration_ms=(
+                    int(raw.duration_ms) if raw.duration_ms is not None else 0
                 ),
                 track_number=(raw.track_number if raw.track_number is not None else 0),
                 disc_number=raw.disc_number if raw.disc_number is not None else 1,
-                internal_image_id=album_row.internal_image_id,
+                image_id=album_row.image_id,
                 album_id=album_row.id,
                 isrc=isrc,
                 popularity=raw.popularity,
@@ -790,13 +790,13 @@ class SpotifyAccess:
                 return AResult(code=AResultCode.OK, message="OK", result=existing)
 
             # Download image
-            internal_image_id: int | None = None
+            image_id: int | None = None
             if raw.images:
                 a_img = await SpotifyAccess._download_and_create_internal_image(
                     session, raw.images[0].url
                 )
                 if a_img.is_ok():
-                    internal_image_id = a_img.result().id
+                    image_id = a_img.result().id
 
             owner = ""
             if raw.owner:
@@ -815,7 +815,7 @@ class SpotifyAccess:
                 spotify_id=raw.id,
                 name=raw.name or "",
                 owner=owner,
-                internal_image_id=internal_image_id,
+                image_id=image_id,
                 followers=0,
                 description=raw.description,
             )

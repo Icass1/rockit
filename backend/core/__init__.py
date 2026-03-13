@@ -1,12 +1,18 @@
 import sys
 import asyncio
+import os
+import shutil
 
 from logging import Logger
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from backend.utils.logger import getLogger
+from backend.constants import IMAGES_PATH
 from backend.core.access.db import rockit_db
 
 from backend.core.access.enumAccess import EnumAccess
+from backend.core.access.imageAccess import ImageAccess
 
 from backend.core.access.db.ormEnums.playlistContributorRoleEnum import (
     PlaylistContributorRoleEnumRow,
@@ -41,6 +47,35 @@ logger.info("\\__|  \\__| \\______/  \\_______|\\__|  \\__|\\______| \\____/")
 logger.info("")
 
 
+async def add_default_images(session: AsyncSession):
+    """Move default images from backend/images to IMAGES_PATH and add to database."""
+    source_dir = "backend/images"
+    if not os.path.exists(source_dir):
+        logger.info(f"Source images directory does not exist: {source_dir}")
+        return
+
+    os.makedirs(IMAGES_PATH, exist_ok=True)
+
+    for filename in os.listdir(source_dir):
+        source_path = os.path.join(source_dir, filename)
+        if os.path.isfile(source_path):
+            dest_path = os.path.join(IMAGES_PATH, filename)
+            shutil.copy(source_path, dest_path)
+            logger.info(f"Copied image: {filename}")
+
+            a_result = await ImageAccess.create_image_async(
+                session=session,
+                path=filename,
+                url=None,
+            )
+            if a_result.is_ok():
+                logger.info(f"Added image to database: {filename}")
+            else:
+                logger.error(
+                    f"Error adding image to database: {filename} - {a_result.message()}"
+                )
+
+
 async def add_initial_content():
     try:
         await rockit_db.async_init()
@@ -50,6 +85,8 @@ async def add_initial_content():
 
     async with rockit_db.session_scope_async() as session:
         await providers.async_init(session=session)
+
+        await add_default_images(session=session)
 
         await EnumAccess.check_enum_contents_async(
             session=session, enum_class=DownloadStatusEnum, table=DownloadStatusEnumRow
@@ -78,9 +115,7 @@ async def main():
 
 
 try:
-    # Try to get running loop
     loop = asyncio.get_running_loop()
-    loop.create_task(add_initial_content())
+    loop.create_task(main())
 except RuntimeError:
-    # No running loop → create one and run
     asyncio.run(main())

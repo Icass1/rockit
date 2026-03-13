@@ -24,8 +24,8 @@ class YoutubePlaylistRow(YoutubeBase, TableDateUpdated, TableDateAdded):
         Integer, ForeignKey("core.media.id"), primary_key=True
     )
     youtube_id: Mapped[str] = mapped_column(String, unique=True, nullable=False)
-    internal_image_id: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("core.image.id"), nullable=True
+    image_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("core.image.id"), nullable=False
     )
     name: Mapped[str] = mapped_column(String, nullable=False)
     owner: Mapped[str] = mapped_column(String, nullable=False)
@@ -47,9 +47,9 @@ class YoutubePlaylistRow(YoutubeBase, TableDateUpdated, TableDateAdded):
         self,
         id: int,
         youtube_id: str,
+        image_id: int,
         name: str,
         owner: str,
-        internal_image_id: int | None = None,
         video_count: int = 0,
         view_count: int = 0,
         description: str | None = None,
@@ -57,9 +57,9 @@ class YoutubePlaylistRow(YoutubeBase, TableDateUpdated, TableDateAdded):
         kwargs: Dict[str, None | int | str] = {}
         kwargs["id"] = id
         kwargs["youtube_id"] = youtube_id
+        kwargs["image_id"] = image_id
         kwargs["name"] = name
         kwargs["owner"] = owner
-        kwargs["internal_image_id"] = internal_image_id
         kwargs["video_count"] = video_count
         kwargs["view_count"] = view_count
         kwargs["description"] = description

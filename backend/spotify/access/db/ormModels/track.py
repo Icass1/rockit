@@ -30,11 +30,12 @@ class TrackRow(SpotifyBase, TableAutoincrementId, TableDateUpdated, TableDateAdd
     )
     spotify_id: Mapped[str] = mapped_column(String, unique=True, nullable=False)
     name: Mapped[str] = mapped_column(String, nullable=False)
-    duration: Mapped[int] = mapped_column(Integer, nullable=False)
+    duration_ms: Mapped[int] = mapped_column(Integer, nullable=False)
+    real_duration_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
     track_number: Mapped[int] = mapped_column(Integer, nullable=False)
     disc_number: Mapped[int] = mapped_column(Integer, nullable=False)
     popularity: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    internal_image_id: Mapped[int] = mapped_column(
+    image_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("core.image.id"), nullable=False
     )
     path: Mapped[str | None] = mapped_column(String, nullable=True)
@@ -61,21 +62,20 @@ class TrackRow(SpotifyBase, TableAutoincrementId, TableDateUpdated, TableDateAdd
         CoreMediaRow, lazy="selectin", uselist=False
     )
 
-    internal_image: Mapped["ImageRow"] = relationship(
-        ImageRow, lazy="selectin", uselist=False
-    )
+    image: Mapped["ImageRow"] = relationship(ImageRow, lazy="selectin", uselist=False)
 
     def __init__(
         self,
         id: int,
         spotify_id: str,
         name: str,
-        duration: int,
+        duration_ms: int,
         track_number: int,
         disc_number: int,
-        internal_image_id: int,
+        image_id: int,
         album_id: int,
         isrc: str,
+        real_duration_ms: int | None = None,
         popularity: int | None = None,
         path: str | None = None,
         download_url: str | None = None,
@@ -87,12 +87,13 @@ class TrackRow(SpotifyBase, TableAutoincrementId, TableDateUpdated, TableDateAdd
         kwargs["id"] = id
         kwargs["spotify_id"] = spotify_id
         kwargs["name"] = name
-        kwargs["duration"] = duration
+        kwargs["duration_ms"] = duration_ms
         kwargs["track_number"] = track_number
         kwargs["disc_number"] = disc_number
-        kwargs["internal_image_id"] = internal_image_id
+        kwargs["image_id"] = image_id
         kwargs["album_id"] = album_id
         kwargs["isrc"] = isrc
+        kwargs["real_duration_ms"] = real_duration_ms
         kwargs["popularity"] = popularity
         kwargs["path"] = path
         kwargs["download_url"] = download_url

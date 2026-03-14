@@ -63,6 +63,7 @@ export class RockIt {
         if (typeof window === "undefined") return;
 
         this.webSocketManager.init();
+        this.downloaderManager.init(this.webSocketManager);
     }
 }
 

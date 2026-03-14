@@ -12,7 +12,6 @@ from backend.core.aResult import AResult, AResultCode
 from backend.core.access.downloadAccess import DownloadAccess
 from backend.core.access.db.ormModels.downloadGroup import DownloadGroupRow
 from backend.core.access.db.ormModels.download import DownloadRow
-from backend.core.enums.mediaTypeEnum import MediaTypeEnum
 
 from backend.core.framework import providers
 from backend.core.framework.downloader import downloads_manager
@@ -45,24 +44,27 @@ class Downloader:
         group: DownloadGroupRow = a_result_group.result()
 
         for public_id in public_ids:
-            a_result_song: AResult[MediaModel] = (
-                await Media.get_media_from_public_id_async(
-                    session=session,
-                    public_id=public_id,
-                    media_type_keys=[MediaTypeEnum.SONG, MediaTypeEnum.VIDEO],
+            found_provider: BaseProvider | None = None
+            a_result_media: AResult[MediaModel] | None = None
+
+            for provider in providers.get_providers():
+                a_result_test: AResult[MediaModel] = (
+                    await Media.get_or_create_media_from_provider_async(
+                        session=session,
+                        provider=provider,
+                        public_id=public_id,
+                    )
                 )
-            )
-            if a_result_song.is_not_ok():
-                logger.error(f"Error getting song {public_id}. {a_result_song.info()}")
+                if a_result_test.is_ok():
+                    found_provider = provider
+                    a_result_media = a_result_test
+                    break
+
+            if found_provider is None or a_result_media is None:
+                logger.error(f"No provider could handle public_id {public_id}.")
                 continue
 
-            song: MediaModel = a_result_song.result()
-            provider: BaseProvider | None = providers.find_provider(
-                provider_id=song.provider_id
-            )
-            if provider is None:
-                logger.error(f"No provider found for song {public_id}.")
-                continue
+            song: MediaModel = a_result_media.result()
 
             a_result_download: AResult[DownloadRow] = (
                 await DownloadAccess.create_download(
@@ -80,7 +82,7 @@ class Downloader:
             download_row: DownloadRow = a_result_download.result()
 
             a_result_base_download: AResult[BaseDownload] = (
-                await provider.start_download_async(
+                await found_provider.start_download_async(
                     session=session,
                     public_id=public_id,
                     download_id=download_row.id,

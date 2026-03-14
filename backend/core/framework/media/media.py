@@ -335,3 +335,111 @@ class Media:
             return AResult(code=a_result.code(), message=a_result.message())
 
         return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+
+    @staticmethod
+    async def get_or_create_media_from_provider_async(
+        session: AsyncSession, provider: BaseProvider, public_id: str
+    ) -> AResult[MediaModel]:
+        """Get media from database, or create it via provider if not found."""
+
+        a_result_media: AResult[CoreMediaRow] = (
+            await MediaAccess.get_media_from_public_id_async(
+                session=session, public_id=public_id, media_type_keys=None
+            )
+        )
+
+        if a_result_media.is_ok():
+            return AResult(
+                code=AResultCode.OK,
+                message="OK",
+                result=MediaModel(
+                    public_id=a_result_media.result().public_id,
+                    id=a_result_media.result().id,
+                    provider_id=a_result_media.result().provider_id,
+                ),
+            )
+
+        if a_result_media.code() != AResultCode.NOT_FOUND:
+            logger.error(
+                f"Error getting media from database for public id {public_id}. {a_result_media.info()}"
+            )
+            return AResult(code=a_result_media.code(), message=a_result_media.message())
+
+        a_result_provider_id: AResult[int] = provider.get_id()
+        if a_result_provider_id.is_not_ok():
+            logger.error(f"Error getting provider id. {a_result_provider_id.info()}")
+            return AResult(
+                code=a_result_provider_id.code(), message=a_result_provider_id.message()
+            )
+
+        if ":" in public_id:
+            prefix: str = public_id.split(":")[0].lower()
+            if prefix == "youtube" or prefix == "ytvideo":
+                a_result_video: AResult[BaseVideoResponse] = (
+                    await provider.get_video_async(session=session, public_id=public_id)
+                )
+                if a_result_video.is_not_ok():
+                    if a_result_video.code() != AResultCode.NOT_IMPLEMENTED:
+                        logger.error(
+                            f"Provider error getting video. {a_result_video.info()}"
+                        )
+                        return AResult(
+                            code=a_result_video.code(), message=a_result_video.message()
+                        )
+                else:
+                    a_result_media_after: AResult[CoreMediaRow] = (
+                        await MediaAccess.get_media_from_public_id_async(
+                            session=session, public_id=public_id, media_type_keys=None
+                        )
+                    )
+                    if a_result_media_after.is_not_ok():
+                        logger.error(
+                            f"Error getting media after provider fetch. {a_result_media_after.info()}"
+                        )
+                        return AResult(
+                            code=a_result_media_after.code(),
+                            message=a_result_media_after.message(),
+                        )
+
+                    return AResult(
+                        code=AResultCode.OK,
+                        message="OK",
+                        result=MediaModel(
+                            public_id=a_result_media_after.result().public_id,
+                            id=a_result_media_after.result().id,
+                            provider_id=a_result_media_after.result().provider_id,
+                        ),
+                    )
+
+        a_result_song: AResult[BaseSongWithAlbumResponse] = (
+            await provider.get_song_async(session=session, public_id=public_id)
+        )
+        if a_result_song.is_not_ok():
+            if a_result_song.code() != AResultCode.NOT_IMPLEMENTED:
+                logger.error(f"Provider error getting song. {a_result_song.info()}")
+                return AResult(
+                    code=a_result_song.code(), message=a_result_song.message()
+                )
+
+        a_result_media_after: AResult[CoreMediaRow] = (
+            await MediaAccess.get_media_from_public_id_async(
+                session=session, public_id=public_id, media_type_keys=None
+            )
+        )
+        if a_result_media_after.is_not_ok():
+            logger.error(
+                f"Error getting media after provider fetch. {a_result_media_after.info()}"
+            )
+            return AResult(
+                code=a_result_media_after.code(), message=a_result_media_after.message()
+            )
+
+        return AResult(
+            code=AResultCode.OK,
+            message="OK",
+            result=MediaModel(
+                public_id=a_result_media_after.result().public_id,
+                id=a_result_media_after.result().id,
+                provider_id=a_result_media_after.result().provider_id,
+            ),
+        )

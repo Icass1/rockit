@@ -17,6 +17,7 @@ class YouTubeDownloader:
     async def download_as_mp3_async(
         youtube_url: str,
         download_id: int,
+        public_id: str,
         user_id: int,
         filename: str,
         progress_callback: Optional[
@@ -26,6 +27,7 @@ class YouTubeDownloader:
         return await YouTubeDownloader._download_async(
             youtube_url=youtube_url,
             download_id=download_id,
+            public_id=public_id,
             user_id=user_id,
             filename=filename,
             format_type="mp3",
@@ -36,6 +38,7 @@ class YouTubeDownloader:
     async def download_as_mp4_async(
         youtube_url: str,
         download_id: int,
+        public_id: str,
         user_id: int,
         filename: str,
         height: int = 1080,
@@ -46,6 +49,7 @@ class YouTubeDownloader:
         return await YouTubeDownloader._download_async(
             youtube_url=youtube_url,
             download_id=download_id,
+            public_id=public_id,
             user_id=user_id,
             filename=filename,
             format_type="mp4",
@@ -57,6 +61,7 @@ class YouTubeDownloader:
     async def _download_async(
         youtube_url: str,
         download_id: int,
+        public_id: str,
         user_id: int,
         filename: str,
         format_type: str,
@@ -121,6 +126,7 @@ class YouTubeDownloader:
                         ws_manager.broadcast_progress(
                             user_id=user_id,
                             download_id=download_id,
+                            group_public_id=public_id,
                             status="downloading",
                             progress=percent,
                             message=f"Downloading: {percent:.1f}%",
@@ -137,6 +143,7 @@ class YouTubeDownloader:
                     ws_manager.broadcast_progress(
                         user_id=user_id,
                         download_id=download_id,
+                        group_public_id=public_id,
                         status="converting",
                         progress=100,
                         message="Download finished, converting...",
@@ -154,6 +161,7 @@ class YouTubeDownloader:
             await ws_manager.broadcast_progress(
                 user_id=user_id,
                 download_id=download_id,
+                group_public_id=public_id,
                 status="starting",
                 progress=0,
                 message="Starting download...",
@@ -177,6 +185,7 @@ class YouTubeDownloader:
             await ws_manager.broadcast_progress(
                 user_id=user_id,
                 download_id=download_id,
+                group_public_id=public_id,
                 status="completed",
                 progress=100,
                 message="Download completed!",
@@ -193,6 +202,7 @@ class YouTubeDownloader:
             await ws_manager.broadcast_progress(
                 user_id=user_id,
                 download_id=download_id,
+                group_public_id=public_id,
                 status="error",
                 progress=0,
                 message=f"Error: {str(e)}",

@@ -1,8 +1,9 @@
-import { StartDownloadRequest } from "@/dto";
+import { StartDownloadResponseSchema, type DownloadProgressMessage } from "@/dto";
 import { DBListType, DownloadInfo } from "@/types/rockIt";
-import { RESPONSE_UNDEFINED_MESSAGE, rockIt } from "@/lib/rockit/rockIt";
+import { WebSocketManager } from "@/lib/managers/webSocketManger";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { createArrayAtom } from "@/lib/store";
-import { apiPostFetch } from "@/lib/utils/apiFetch";
+import { apiFetch } from "@/lib/utils/apiFetch";
 
 interface SongStatus {
     publicId: string;
@@ -29,26 +30,54 @@ export class DownloaderManager {
 
     constructor() {}
 
+    init(webSocketManager: WebSocketManager) {
+        webSocketManager.init();
+
+        webSocketManager.onMessage("download_progress", (msg: DownloadProgressMessage) => {
+            const download = msg as unknown as DownloadProgressMessage;
+            this.updateDownloadProgress(download.public_id, download.status, download.progress, download.message);
+        });
+    }
+
+    private updateDownloadProgress(publicId: string, status: string, progress: number, message: string) {
+        const current = this._downloadInfoAtom.get();
+        const index = current.findIndex((d) => d.publicId === publicId);
+
+        if (index === -1) {
+            return;
+        }
+
+        const updated = [...current];
+        updated[index] = {
+            ...updated[index],
+            status: status === "error" ? "error" : status === "completed" ? "completed" : "downloading",
+            completed: progress,
+            message: message,
+        };
+
+        this._downloadInfoAtom.set(updated);
+    }
+
     // #endregion
 
     // #region: Methods
 
     async downloadMediaToDBAsync(publicIds: string[]) {
-        const response = await apiPostFetch<StartDownloadRequest>(
-            "/downloader/start-downloads",
-            {
-                ids: publicIds,
-                title: "Download 1",
-            }
-        );
-
-        if (!response) {
-            rockIt.notificationManager.notifyError(RESPONSE_UNDEFINED_MESSAGE);
-            return;
-        }
-        if (!response.ok) {
+        try {
+            await apiFetch(
+                "/downloader/start-downloads",
+                StartDownloadResponseSchema,
+                {
+                    method: "POST",
+                    body: JSON.stringify({
+                        ids: publicIds,
+                        title: "Download 1",
+                    }),
+                    headers: { "Content-Type": "application/json" },
+                }
+            );
+        } catch {
             rockIt.notificationManager.notifyError("Unable to start download.");
-            return;
         }
     }
 

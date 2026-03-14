@@ -215,7 +215,7 @@ class YouTubeAccess:
                     internal_image_id = a_img.result().id
 
             core_artist = CoreMediaRow(
-                public_id=create_id(32),
+                public_id=f"youtube_channel:{raw.id}",
                 provider_id=provider_id,
                 media_type_key=MediaTypeEnum.ARTIST.value,
             )
@@ -307,7 +307,7 @@ class YouTubeAccess:
                 )
 
             core_video = CoreMediaRow(
-                public_id=create_id(32),
+                public_id=f"youtube:{raw.id}",
                 provider_id=provider_id,
                 media_type_key=MediaTypeEnum.VIDEO.value,
             )

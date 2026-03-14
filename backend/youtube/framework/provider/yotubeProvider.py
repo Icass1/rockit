@@ -113,14 +113,27 @@ class YoutubeProvider(BaseProvider):
         download_group_id: int,
         user_id: int,
     ) -> AResult[BaseDownload]:
-        """TODO"""
+        """Start download by ensuring video exists, then create download."""
 
-        a_result_video: AResult[VideoRow] = await Video.get_video_from_public_id_async(
+        a_result_video: AResult[BaseVideoResponse] = await self.get_video_async(
             session=session, public_id=public_id
         )
         if a_result_video.is_not_ok():
             logger.error(f"Error getting video from public id {public_id}")
             return AResult(code=a_result_video.code(), message=a_result_video.message())
+
+        a_result_video_row: AResult[VideoRow] = (
+            await Video.get_video_from_public_id_async(
+                session=session, public_id=public_id
+            )
+        )
+        if a_result_video_row.is_not_ok():
+            logger.error(f"Error getting video row for public id {public_id}")
+            return AResult(
+                code=a_result_video_row.code(), message=a_result_video_row.message()
+            )
+
+        video_row: VideoRow = a_result_video_row.result()
 
         return AResult(
             code=AResultCode.OK,
@@ -130,9 +143,9 @@ class YoutubeProvider(BaseProvider):
                 download_id=download_id,
                 download_group_id=download_group_id,
                 user_id=user_id,
-                youtube_url=a_result_video.result().youtube_url,
-                youtube_video_id=a_result_video.result().youtube_id,
-                video_id=a_result_video.result().id,
+                youtube_url=video_row.youtube_url,
+                youtube_video_id=video_row.youtube_id,
+                video_id=video_row.id,
             ),
         )
 
@@ -150,19 +163,12 @@ class YoutubeProvider(BaseProvider):
     async def get_video_async(
         self, session: AsyncSession, public_id: str
     ) -> AResult[BaseVideoResponse]:
-        """Get a video by public_id."""
+        """Get a video by public_id. Fetches from API and creates in DB if not found."""
 
-        a_result_video: AResult[VideoRow] = await Video.get_video_from_public_id_async(
-            session=session, public_id=public_id
-        )
-        if a_result_video.is_not_ok():
-            logger.error(f"Error getting video from public id {public_id}")
-            return AResult(code=a_result_video.code(), message=a_result_video.message())
-
-        video: VideoRow = a_result_video.result()
+        youtube_id: str = public_id.split(":", 1)[1] if ":" in public_id else public_id
 
         a_result: AResult[YoutubeVideoResponse] = await YouTube.get_video_async(
-            session=session, youtube_id=video.youtube_id
+            session=session, youtube_id=youtube_id
         )
         if a_result.is_not_ok():
             logger.error(f"Error getting video from YouTube. {a_result.info()}")

@@ -14,11 +14,17 @@ from backend.core.access.db.ormModels.user_queue import UserQueueRow
 from backend.core.access.db.ormModels.user_seeks import UserSeeksRow
 from backend.core.access.db.ormModels.user_liked_media import UserLikedMediaRow
 from backend.core.access.db.ormModels.user_library_media import UserLibraryMediaRow
+from backend.core.access.db.ormModels.user_media_clicked import UserMediaClickedRow
+from backend.core.access.db.ormModels.user_media_ended import UserMediaEndedRow
+from backend.core.access.db.ormModels.user_skipped_media import UserSkippedMediaRow
 
 from backend.core.access.userAccess import UserAccess
 from backend.core.access.mediaAccess import MediaAccess
 from backend.core.access.userQueueAccess import UserQueueAccess
 from backend.core.access.userLikedMediaAccess import UserLikedMediaAccess
+from backend.core.access.userMediaClickedAccess import UserMediaClickedAccess
+from backend.core.access.userMediaEndedAccess import UserMediaEndedAccess
+from backend.core.access.userSkippedMediaAccess import UserSkippedMediaAccess
 
 from backend.core.framework.provider.baseProvider import BaseProvider
 from backend.core.framework import providers
@@ -541,6 +547,97 @@ class User:
 
         if a_result.is_not_ok():
             logger.error(f"Error saving user queue. {a_result.info()}")
+            return AResultCode(code=a_result.code(), message=a_result.message())
+
+        return AResultCode(code=AResultCode.OK, message="OK")
+
+    @staticmethod
+    async def add_media_clicked_async(
+        session: AsyncSession, user_id: int, media_public_id: str
+    ) -> AResultCode:
+        """Record when a user clicks on a media."""
+        a_result_media: AResult[CoreMediaRow] = (
+            await MediaAccess.get_media_from_public_id_async(
+                session=session, public_id=media_public_id, media_type_keys=None
+            )
+        )
+        if a_result_media.is_not_ok():
+            logger.error(f"Error getting media. {a_result_media.info()}")
+            return AResultCode(
+                code=a_result_media.code(), message=a_result_media.message()
+            )
+
+        a_result: AResult[UserMediaClickedRow] = (
+            await UserMediaClickedAccess.add_click_async(
+                session=session,
+                user_id=user_id,
+                media_id=a_result_media.result().id,
+            )
+        )
+        if a_result.is_not_ok():
+            logger.error(f"Error adding media click. {a_result.info()}")
+            return AResultCode(code=a_result.code(), message=a_result.message())
+
+        return AResultCode(code=AResultCode.OK, message="OK")
+
+    @staticmethod
+    async def add_media_ended_async(
+        session: AsyncSession, user_id: int, media_public_id: str
+    ) -> AResultCode:
+        """Record when a media ends playback."""
+        a_result_media: AResult[CoreMediaRow] = (
+            await MediaAccess.get_media_from_public_id_async(
+                session=session, public_id=media_public_id, media_type_keys=None
+            )
+        )
+        if a_result_media.is_not_ok():
+            logger.error(f"Error getting media. {a_result_media.info()}")
+            return AResultCode(
+                code=a_result_media.code(), message=a_result_media.message()
+            )
+
+        a_result: AResult[UserMediaEndedRow] = (
+            await UserMediaEndedAccess.add_ended_async(
+                session=session,
+                user_id=user_id,
+                media_id=a_result_media.result().id,
+            )
+        )
+        if a_result.is_not_ok():
+            logger.error(f"Error adding media ended. {a_result.info()}")
+            return AResultCode(code=a_result.code(), message=a_result.message())
+
+        return AResultCode(code=AResultCode.OK, message="OK")
+
+    @staticmethod
+    async def add_skip_clicked_async(
+        session: AsyncSession,
+        user_id: int,
+        media_public_id: str,
+        skip_direction_key: int,
+    ) -> AResultCode:
+        """Record when a user clicks skip on a media."""
+        a_result_media: AResult[CoreMediaRow] = (
+            await MediaAccess.get_media_from_public_id_async(
+                session=session, public_id=media_public_id, media_type_keys=None
+            )
+        )
+        if a_result_media.is_not_ok():
+            logger.error(f"Error getting media. {a_result_media.info()}")
+            return AResultCode(
+                code=a_result_media.code(), message=a_result_media.message()
+            )
+
+        a_result: AResult[UserSkippedMediaRow] = (
+            await UserSkippedMediaAccess.add_skip_async(
+                session=session,
+                user_id=user_id,
+                media_id=a_result_media.result().id,
+                skip_direction_key=skip_direction_key,
+            )
+        )
+        if a_result.is_not_ok():
+            logger.error(f"Error adding skip click. {a_result.info()}")
             return AResultCode(code=a_result.code(), message=a_result.message())
 
         return AResultCode(code=AResultCode.OK, message="OK")

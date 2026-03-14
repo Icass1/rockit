@@ -13,7 +13,6 @@ export const LibraryListsResponseSchema = z.object({
     songs: z.array(z.lazy(() => BaseSongWithoutAlbumResponseSchema)),
     videos: z.array(z.lazy(() => BaseVideoResponseSchema)),
     stations: z.array(z.lazy(() => BaseStationResponseSchema)),
-    shared: z.array(z.lazy(() => BasePlaylistResponseSchema)),
 });
 
 export type LibraryListsResponse = z.infer<typeof LibraryListsResponseSchema>;

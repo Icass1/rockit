@@ -66,10 +66,17 @@ class WebSocketManager:
             self.disconnect(user_id, ws)
 
     async def broadcast_progress(
-        self, user_id: int, download_id: int, status: str, progress: float, message: str
+        self,
+        user_id: int,
+        download_id: int,
+        group_public_id: str,
+        status: str,
+        progress: float,
+        message: str,
     ) -> None:
         download_message: DownloadProgressMessage = DownloadProgressMessage(
             download_id=download_id,
+            public_id=group_public_id,
             status=status,
             progress=progress,
             message=message,
@@ -86,6 +93,16 @@ class WebSocketManager:
                 logger.info(
                     f"User {user_id} media ended. Media: {media_ended_msg.mediaPublicId}"
                 )
+
+                a_result_media_ended: AResultCode = await User.add_media_ended_async(
+                    session=session,
+                    user_id=user_id,
+                    media_public_id=media_ended_msg.mediaPublicId,
+                )
+                if a_result_media_ended.is_not_ok():
+                    logger.error(
+                        f"Error recording media ended. {a_result_media_ended.info()}"
+                    )
             elif message_type == "current_media":
                 current_media_msg = CurrentMediaMessageRequest(**data)
                 logger.info(
@@ -160,11 +177,32 @@ class WebSocketManager:
                 logger.info(
                     f"User {user_id} media clicked: {media_clicked_msg.mediaPublicId}"
                 )
+
+                a_result_media_clicked: AResultCode = (
+                    await User.add_media_clicked_async(
+                        session=session,
+                        user_id=user_id,
+                        media_public_id=media_clicked_msg.mediaPublicId,
+                    )
+                )
+                if a_result_media_clicked.is_not_ok():
+                    logger.error(
+                        f"Error recording media click. {a_result_media_clicked.info()}"
+                    )
             elif message_type == "skip_clicked":
                 skip_clicked_msg = SkipClickedMessageRequest(**data)
                 logger.info(
                     f"User {user_id} skip clicked. Media: {skip_clicked_msg.mediaPublicId}. Direction: {skip_clicked_msg.direction}"
                 )
+
+                a_result_skip: AResultCode = await User.add_skip_clicked_async(
+                    session=session,
+                    user_id=user_id,
+                    media_public_id=skip_clicked_msg.mediaPublicId,
+                    skip_direction_key=skip_clicked_msg.direction.value,
+                )
+                if a_result_skip.is_not_ok():
+                    logger.error(f"Error recording skip click. {a_result_skip.info()}")
             elif message_type == "seek":
                 seek_msg = SeekMessageRequest(**data)
 

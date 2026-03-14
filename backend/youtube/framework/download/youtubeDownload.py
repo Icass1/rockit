@@ -59,6 +59,7 @@ class YoutubeDownload(BaseDownload):
                 await YouTubeDownloader.download_as_mp4_async(
                     youtube_url=self.youtube_url,
                     download_id=self.download_id,
+                    public_id=self.public_id,
                     filename=filename,
                     user_id=self.user_id,
                     progress_callback=_progress_callback,

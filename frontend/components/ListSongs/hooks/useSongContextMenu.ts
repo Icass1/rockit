@@ -54,15 +54,12 @@ export function useSongContextMenu(song: BaseSongWithAlbumResponse) {
         navigator.share({
             title: "RockIt!",
             text: `${song.name} ${song.album.name} ${song.artists.map((a) => a.name).join(", ")}`,
-            url: `/song/${song.publicId}`,
         });
     }, [song]);
 
     const handleCopyUrl = useCallback(() => {
-        navigator.clipboard.writeText(
-            `${location.origin}/song/${song.publicId}`
-        );
-    }, [song.publicId]);
+        navigator.clipboard.writeText(window.location.href);
+    }, []);
 
     const handleDownloadToDevice = useCallback(() => {
         rockIt.indexedDBManager.saveMediaToIndexedDB(song);

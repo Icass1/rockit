@@ -26,13 +26,7 @@ export default function RecentlyPlayedSong({
                 src={song.imageUrl}
                 alt={`Cover of ${song.name}`}
             />
-            <span
-                className="mt-2 block truncate text-center font-semibold hover:underline"
-                onClick={(e) => {
-                    e.stopPropagation();
-                    router.push(`/song/${song.publicId}`);
-                }}
-            >
+            <span className="mt-2 block truncate text-center font-semibold hover:underline">
                 {song.name}
             </span>
             <span

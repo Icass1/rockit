@@ -52,9 +52,7 @@ export default function SongPopupMenu({
         typeof navigator !== "undefined" && "share" in navigator;
 
     const absoluteUrl =
-        typeof window !== "undefined"
-            ? `${window.location.origin}/song/${song.publicId}`
-            : "";
+        typeof window !== "undefined" ? window.location.href : "";
 
     // --- actions -------------------------------------------------------------
 

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
 import { BaseVideoResponseSchema } from "@/dto";
 import { apiFetch } from "@/lib/utils/apiFetch";
 import LoadingComponent from "@/components/Loading";
@@ -11,9 +10,6 @@ export default function YoutubeVideoClient({
 }: {
     youtubeId: string;
 }) {
-    const router = useRouter();
-
-    // Reference to now if useEffect has already ran, in developer mode, useEffect are executed twice.
     const hasRun = useRef(false);
 
     useEffect(() => {
@@ -21,15 +17,13 @@ export default function YoutubeVideoClient({
         hasRun.current = true;
 
         async function load() {
-            const video = await apiFetch(
+            await apiFetch(
                 `/youtube/video/${youtubeId}`,
                 BaseVideoResponseSchema
             );
-
-            router.replace(`/video/${video.publicId}`);
         }
         load();
-    }, [youtubeId, router]);
+    }, [youtubeId]);
 
     return <LoadingComponent />;
 }

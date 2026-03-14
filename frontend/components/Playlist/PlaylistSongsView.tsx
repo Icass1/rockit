@@ -1,13 +1,24 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { BasePlaylistResponse, BaseSongForPlaylistResponse } from "@/dto";
+import { BasePlaylistResponse, BaseSongWithAlbumResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
 import { ArrowUp } from "lucide-react";
 import useWindowSize from "@/hooks/useWindowSize";
 import { rockIt } from "@/lib/rockit/rockIt";
 import PlaylistSong from "@/components/ListSongs/PlaylistSong";
 import PlaylistHeader from "@/components/Playlist/PlaylistHeader";
+
+type MediaItem = {
+    item: {
+        publicId: string;
+        name: string;
+        duration?: number;
+        artists?: { name: string }[];
+        album?: { name: string };
+    };
+    addedAt?: string;
+};
 
 type ColumnsType = "name" | "album" | "artist" | "addedAt" | "duration";
 
@@ -25,16 +36,15 @@ export default function PlaylistSongsView({
         ascending: boolean;
     }>({ column: "addedAt", ascending: false });
 
-    const [songsToRender, setSongsToRender] = useState<
-        BaseSongForPlaylistResponse[]
-    >([]);
+    const [songsToRender, setSongsToRender] = useState<MediaItem[]>([]);
 
     const sortedSongs = useMemo(() => {
+        const medias = playlist.medias as MediaItem[];
         switch (filter.column) {
             case "name":
-                return playlist.songs.toSorted((a, b) => {
-                    const nameA = a.song.name.toLowerCase();
-                    const nameB = b.song.name.toLowerCase();
+                return medias.toSorted((a, b) => {
+                    const nameA = a.item.name.toLowerCase();
+                    const nameB = b.item.name.toLowerCase();
                     if (nameA < nameB) {
                         return filter.ascending ? 1 : -1;
                     }
@@ -44,7 +54,7 @@ export default function PlaylistSongsView({
                     return 0;
                 });
             case "addedAt":
-                return playlist.songs.toSorted((a, b) => {
+                return medias.toSorted((a, b) => {
                     if (!a.addedAt || !b.addedAt) {
                         return 0;
                     }
@@ -55,9 +65,9 @@ export default function PlaylistSongsView({
                     );
                 });
             case "album":
-                return playlist.songs.toSorted((a, b) => {
-                    const albumNameA = a.song.album.name.toLowerCase();
-                    const albumNameB = b.song.album.name.toLowerCase();
+                return medias.toSorted((a, b) => {
+                    const albumNameA = a.item.album?.name.toLowerCase() ?? "";
+                    const albumNameB = b.item.album?.name.toLowerCase() ?? "";
                     if (albumNameA < albumNameB) {
                         return filter.ascending ? 1 : -1;
                     }
@@ -67,15 +77,17 @@ export default function PlaylistSongsView({
                     return 0;
                 });
             case "artist":
-                return playlist.songs.toSorted((a, b) => {
-                    const artistsA = a.song.artists
-                        .map((artist) => artist.name)
-                        .join("")
-                        .toLowerCase();
-                    const artistsB = b.song.artists
-                        .map((artist) => artist.name)
-                        .join("")
-                        .toLowerCase();
+                return medias.toSorted((a, b) => {
+                    const artistsA =
+                        a.item.artists
+                            ?.map((artist) => artist.name)
+                            .join("")
+                            .toLowerCase() ?? "";
+                    const artistsB =
+                        b.item.artists
+                            ?.map((artist) => artist.name)
+                            .join("")
+                            .toLowerCase() ?? "";
                     if (artistsA < artistsB) {
                         return filter.ascending ? 1 : -1;
                     }
@@ -85,19 +97,19 @@ export default function PlaylistSongsView({
                     return 0;
                 });
             case "duration":
-                return playlist.songs.toSorted((a, b) => {
-                    if (a.song.duration < b.song.duration) {
+                return medias.toSorted((a, b) => {
+                    if ((a.item.duration ?? 0) < (b.item.duration ?? 0)) {
                         return filter.ascending ? 1 : -1;
                     }
-                    if (a.song.duration > b.song.duration) {
+                    if ((a.item.duration ?? 0) > (b.item.duration ?? 0)) {
                         return filter.ascending ? -1 : 1;
                     }
                     return 0;
                 });
             default:
-                return playlist.songs;
+                return medias;
         }
-    }, [filter, playlist.songs]);
+    }, [filter, playlist.medias]);
 
     useEffect(() => {
         setSongsToRender(sortedSongs);
@@ -105,7 +117,9 @@ export default function PlaylistSongsView({
 
     useEffect(() => {
         rockIt.currentListManager.setCurrentListSongs(
-            songsToRender.map((song) => song.song)
+            songsToRender.map(
+                (m) => m.item
+            ) as unknown as BaseSongWithAlbumResponse[]
         );
     }, [songsToRender]);
 
@@ -225,11 +239,11 @@ export default function PlaylistSongsView({
 
                     return (
                         <div
-                            key={song.song.publicId + index}
+                            key={song.item.publicId + index}
                             className="absolute left-0 right-0 h-14"
                             style={{ top: `${top}px` }}
                         >
-                            <PlaylistSong song={song} />
+                            <PlaylistSong song={song as never} />
                         </div>
                     );
                 } else {

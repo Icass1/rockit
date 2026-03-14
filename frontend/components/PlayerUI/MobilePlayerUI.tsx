@@ -13,6 +13,7 @@ import {
     SkipBack,
     SkipForward,
 } from "lucide-react";
+import { getMediaArtists, getMediaDuration } from "@/types/media";
 import useWindowSize from "@/hooks/useWindowSize";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
@@ -111,8 +112,8 @@ export default function MobilePlayerUI() {
                             {$currentMedia?.name}
                         </h2>
                         <p className="truncate font-semibold text-gray-300">
-                            {$currentMedia?.artists
-                                .map((a) => a.name)
+                            {getMediaArtists($currentMedia)
+                                ?.map((a: { name: string }) => a.name)
                                 .join(", ")}
                         </p>
                     </div>
@@ -128,7 +129,7 @@ export default function MobilePlayerUI() {
                         value={$currentTime || 0}
                         className="h-2 w-full cursor-pointer appearance-none bg-neutral-700"
                         min={0}
-                        max={$currentMedia?.duration}
+                        max={getMediaDuration($currentMedia)}
                         step={0.001}
                         onChange={(e) =>
                             rockIt.audioManager.setCurrentTime(
@@ -138,7 +139,9 @@ export default function MobilePlayerUI() {
                     />
                     <div className="mt-1 flex justify-between text-sm text-neutral-100">
                         <span>{getTime($currentTime || 0)}</span>
-                        <span>{getTime($currentMedia?.duration || 0)}</span>
+                        <span>
+                            {getTime(getMediaDuration($currentMedia) || 0)}
+                        </span>
                     </div>
                 </div>
 

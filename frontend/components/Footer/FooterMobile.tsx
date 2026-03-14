@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
 import { Pause, Play } from "lucide-react";
+import { getMediaArtists, getMediaDuration } from "@/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
 import LikeButton from "@/components/LikeButton";
 import Slider from "@/components/Slider";
@@ -49,8 +50,9 @@ export default function FooterMobile() {
                         {$currentMedia?.name ?? ""}
                     </p>
                     <p className="truncate text-sm leading-tight text-neutral-400">
-                        {$currentMedia?.artists.map((a) => a.name).join(", ") ??
-                            ""}
+                        {getMediaArtists($currentMedia)
+                            ?.map((a: { name: string }) => a.name)
+                            .join(", ") ?? ""}
                     </p>
                 </div>
 
@@ -91,7 +93,7 @@ export default function FooterMobile() {
                 className="relative bottom-[0.15rem] mx-1 h-[0.15rem] w-auto rounded bg-neutral-700"
                 value={$currentTime ?? 0}
                 min={0}
-                max={$currentMedia?.duration}
+                max={getMediaDuration($currentMedia)}
                 step={0.001}
             />
         </div>

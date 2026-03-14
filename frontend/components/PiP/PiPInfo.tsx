@@ -1,6 +1,7 @@
 "use client";
 
 import { useStore } from "@nanostores/react";
+import { getMediaArtists } from "@/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
 import LikeButton from "@/components/LikeButton";
 
@@ -49,7 +50,9 @@ export function PiPInfo() {
                     {$currentSong?.name}
                 </p>
                 <p style={S.artistName as React.CSSProperties}>
-                    {$currentSong?.artists.map((a) => a.name).join(", ")}
+                    {getMediaArtists($currentSong)
+                        ?.map((a: { name: string }) => a.name)
+                        .join(", ")}
                 </p>
             </div>
             {$currentSong && (

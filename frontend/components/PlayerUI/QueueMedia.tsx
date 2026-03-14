@@ -4,6 +4,7 @@ import Image from "next/image";
 import { QueueResponseItem } from "@/dto";
 import { useStore } from "@nanostores/react";
 import { Pause, Play } from "lucide-react";
+import { getMediaArtists, getMediaDuration } from "@/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
 
@@ -54,12 +55,14 @@ export function QueueMedia({ media }: { media: QueueResponseItem }) {
                     {media.media.name}
                 </p>
                 <p className="truncate text-sm text-gray-300">
-                    {media.media.artists.map((a) => a.name).join(", ")}
+                    {getMediaArtists(media.media)
+                        ?.map((a: { name: string }) => a.name)
+                        .join(", ")}
                 </p>
             </div>
 
             <p className="px-2 text-sm text-gray-300">
-                {getTime(media.media.duration)}
+                {getTime(getMediaDuration(media.media) ?? 0)}
             </p>
         </li>
     );

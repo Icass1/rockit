@@ -1,6 +1,7 @@
 "use client";
 
 import { useStore } from "@nanostores/react";
+import { getMediaDuration } from "@/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
 
@@ -29,7 +30,7 @@ export function PiPProgress({ show }: PiPProgressProps) {
     const $currentSong = useStore(rockIt.queueManager.currentMediaAtom);
 
     const progress =
-        (($currentTime ?? 0) / ($currentSong?.duration ?? 1)) * 100;
+        (($currentTime ?? 0) / (getMediaDuration($currentSong) ?? 1)) * 100;
 
     if (!show) return null;
 
@@ -43,7 +44,7 @@ export function PiPProgress({ show }: PiPProgressProps) {
                 className="pip-slider"
                 value={$currentTime ?? 0}
                 min={0}
-                max={$currentSong?.duration ?? 0}
+                max={getMediaDuration($currentSong) ?? 0}
                 step={0.001}
                 style={{ flexGrow: 1 }}
                 onChange={(e) =>
@@ -98,7 +99,7 @@ export function PiPProgress({ show }: PiPProgressProps) {
                 }
             `}</style>
             <span style={S.timeLabel as React.CSSProperties}>
-                {getTime($currentSong?.duration ?? 0)}
+                {getTime(getMediaDuration($currentSong) ?? 0)}
             </span>
         </div>
     );

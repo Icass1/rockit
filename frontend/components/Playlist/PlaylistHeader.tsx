@@ -21,16 +21,22 @@ export default function PlaylistHeader({
         useListDownload({
             publicId: playlist.publicId,
             type: "playlist",
-            songs: playlist.songs.map((song) => song.song),
+            songs: (
+                playlist.medias as {
+                    item: { publicId: string; downloaded?: boolean };
+                }[]
+            ).map((m) => ({
+                publicId: m.item.publicId,
+                downloaded: m.item.downloaded ?? false,
+            })),
         });
 
-    const downloadCount = playlist.songs.filter(
-        (s) => s.song.downloaded
-    ).length;
-    const totalDuration = playlist.songs.reduce(
-        (acc, s) => acc + (s.song.duration || 0),
-        0
-    );
+    const downloadCount = (
+        playlist.medias as { item: { downloaded?: boolean } }[]
+    ).filter((m) => m.item.downloaded).length;
+    const totalDuration = (
+        playlist.medias as { item: { duration?: number } }[]
+    ).reduce((acc, m) => acc + (m.item.duration || 0), 0);
 
     return (
         <div
@@ -41,7 +47,9 @@ export default function PlaylistHeader({
         >
             <ListCover
                 publicId={playlist.publicId}
-                publicIds={playlist.songs.map((song) => song.song.publicId)}
+                publicIds={(
+                    playlist.medias as { item: { publicId: string } }[]
+                ).map((m) => m.item.publicId)}
                 type="playlist"
                 name={playlist.name}
                 imageUrl={playlist.imageUrl}
@@ -68,7 +76,7 @@ export default function PlaylistHeader({
             </span>
 
             <span className="text-center text-sm text-stone-400">
-                {playlist.songs.length} {$vocabulary.SONGS} | {downloadCount}{" "}
+                {playlist.medias.length} {$vocabulary.SONGS} | {downloadCount}{" "}
                 songs downloaded | {getMinutes(totalDuration)}{" "}
                 {$vocabulary.MINUTES}
             </span>

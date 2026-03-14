@@ -10,7 +10,7 @@ import {
     Play,
     PlayIcon,
 } from "lucide-react";
-import { MediaType } from "@/types/media";
+import { getMediaArtists, MediaType } from "@/types/media";
 import { Station } from "@/types/station";
 import { rockIt } from "@/lib/rockit/rockIt";
 import Artists from "@/components/Artists/Artists";
@@ -59,7 +59,9 @@ function FooterLeftForSong({ currentMedia }: { currentMedia: MediaType }) {
                     </Link>
                     <div className="flex w-full flex-row gap-x-1 text-sm text-gray-400">
                         <div className="truncate">
-                            <Artists artists={currentMedia.artists}></Artists>
+                            <Artists
+                                artists={getMediaArtists(currentMedia) ?? []}
+                            ></Artists>
                         </div>
                         <span className="hidden select-none md:block">•</span>
                         <span>TODO</span>

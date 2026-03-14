@@ -10,6 +10,7 @@ import {
     SkipBack,
     SkipForward,
 } from "lucide-react";
+import { getMediaDuration } from "@/types/media";
 import { EQueueType } from "@/models/enums/queueType";
 import { ERepeatMode } from "@/models/enums/repeatMode";
 import { rockIt } from "@/lib/rockit/rockIt";
@@ -117,11 +118,11 @@ export default function FooterCenter() {
                 <Slider
                     id="default-slider"
                     aria-label="Song progress"
-                    aria-valuetext={`${getTime($currentTime ?? 0)} of ${getTime($currentMedia?.duration ?? 0)}`}
+                    aria-valuetext={`${getTime($currentTime ?? 0)} of ${getTime(getMediaDuration($currentMedia) ?? 0)}`}
                     className="relative h-1 w-full min-w-0 max-w-full rounded bg-neutral-700"
                     value={$currentTime ?? 0}
                     min={0}
-                    max={$currentMedia?.duration}
+                    max={getMediaDuration($currentMedia)}
                     step={0.001}
                     onChange={(e) =>
                         rockIt.audioManager.setCurrentTime(
@@ -130,7 +131,7 @@ export default function FooterCenter() {
                     }
                 />
                 <span className="min-w-6 text-xs font-semibold tabular-nums">
-                    {getTime($currentMedia?.duration ?? 0)}
+                    {getTime(getMediaDuration($currentMedia) ?? 0)}
                 </span>
             </div>
         </div>

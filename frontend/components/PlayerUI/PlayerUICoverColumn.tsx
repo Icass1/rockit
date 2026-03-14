@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useStore } from "@nanostores/react";
 import { Pause, Play } from "lucide-react";
-import { MediaType } from "@/types/media";
+import { getMediaArtists, MediaType } from "@/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 export function PlayerUICoverColumn({
@@ -67,13 +67,13 @@ export function PlayerUICoverColumn({
                         currentMedia?.album.name
                     </span>
                     <span>•</span>
-                    {currentMedia?.artists &&
-                    currentMedia.artists.length > 0 ? (
+                    {getMediaArtists(currentMedia) &&
+                    getMediaArtists(currentMedia)!.length > 0 ? (
                         <Link
-                            href={`/artist/${currentMedia.artists[0].publicId}`}
+                            href={`/artist/${getMediaArtists(currentMedia)![0].publicId}`}
                             className="truncate md:hover:underline"
                         >
-                            {currentMedia.artists[0].name}
+                            {getMediaArtists(currentMedia)![0].name}
                         </Link>
                     ) : (
                         <span>Artista desconocido</span>

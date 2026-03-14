@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { BaseSongForPlaylistResponse } from "@/dto";
 
 export type SortColumn = "name" | "album" | "artist" | "addedAt" | "duration";
 
@@ -8,7 +7,38 @@ interface SortState {
     ascending: boolean;
 }
 
-export function usePlaylistSort(songs: BaseSongForPlaylistResponse[]) {
+type PlaylistMediaItem = {
+    item: {
+        type: string;
+        provider: string;
+        publicId: string;
+        url: string;
+        name: string;
+        artists: {
+            provider: string;
+            publicId: string;
+            url: string;
+            name: string;
+            imageUrl: string;
+        }[];
+        audioSrc: string | null;
+        videoSrc: string | null;
+        imageUrl: string;
+        duration?: number;
+        duration_ms?: number;
+        album?: {
+            provider: string;
+            publicId: string;
+            url: string;
+            name: string;
+            imageUrl: string;
+        };
+        downloaded?: boolean;
+    };
+    addedAt?: string;
+};
+
+export function usePlaylistSort(songs: PlaylistMediaItem[]) {
     const [filter, setFilter] = useState<SortState>({
         column: "addedAt",
         ascending: false,
@@ -28,8 +58,8 @@ export function usePlaylistSort(songs: BaseSongForPlaylistResponse[]) {
         return [...songs].sort((a, b) => {
             switch (filter.column) {
                 case "name": {
-                    const na = a.song.name.toLowerCase();
-                    const nb = b.song.name.toLowerCase();
+                    const na = a.item.name.toLowerCase();
+                    const nb = b.item.name.toLowerCase();
                     return na < nb ? dir : na > nb ? -dir : 0;
                 }
                 case "addedAt": {
@@ -41,23 +71,25 @@ export function usePlaylistSort(songs: BaseSongForPlaylistResponse[]) {
                     );
                 }
                 case "album": {
-                    const aa = a.song.album.name.toLowerCase();
-                    const ab = b.song.album.name.toLowerCase();
+                    const aa = a.item.album?.name.toLowerCase() ?? "";
+                    const ab = b.item.album?.name.toLowerCase() ?? "";
                     return aa < ab ? dir : aa > ab ? -dir : 0;
                 }
                 case "artist": {
-                    const art_a = a.song.artists
-                        .map((x) => x.name)
+                    const art_a = a.item.artists
+                        .map((x: { name: string }) => x.name)
                         .join("")
                         .toLowerCase();
-                    const art_b = b.song.artists
-                        .map((x) => x.name)
+                    const art_b = b.item.artists
+                        .map((x: { name: string }) => x.name)
                         .join("")
                         .toLowerCase();
                     return art_a < art_b ? dir : art_a > art_b ? -dir : 0;
                 }
                 case "duration":
-                    return (a.song.duration - b.song.duration) * dir;
+                    return (
+                        ((a.item.duration ?? 0) - (b.item.duration ?? 0)) * dir
+                    );
                 default:
                     return 0;
             }

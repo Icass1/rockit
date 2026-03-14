@@ -86,9 +86,7 @@ export default function SongPageCover({
                 onClick={() => console.log("(SongPageCover) handleClick")}
             >
                 <Image
-                    src={
-                        song.album.imageUrl
-                    }
+                    src={song.album.imageUrl}
                     width={600}
                     height={600}
                     alt="Carátula de la canción"

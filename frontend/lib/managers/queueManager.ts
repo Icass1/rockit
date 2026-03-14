@@ -1,4 +1,6 @@
 import {
+    BaseSongWithAlbumResponse,
+    BaseVideoResponse,
     CurrentQueueMessageRequestItem,
     QueueResponseItem,
     QueueResponseSchema,
@@ -125,8 +127,12 @@ export class QueueManager {
             queueType: "SORTED",
         });
 
+        const validMedias = medias.filter(
+            (media): media is BaseSongWithAlbumResponse | BaseVideoResponse =>
+                media.type === "song" || media.type === "video"
+        );
         this._queueAtom.set(
-            medias.map((media, index) => {
+            validMedias.map((media, index) => {
                 return {
                     listPublicId: listPublicId,
                     media,

@@ -10,7 +10,6 @@ import LikeButton from "@/components/LikeButton";
 import SongContextMenu from "@/components/ListSongs/SongContextMenu";
 import "@/styles/Skeleton.css";
 import Image from "next/image";
-import { BaseSongForPlaylistResponse } from "@/dto";
 import { rockIt } from "@/lib/rockit/rockIt";
 import {
     PopupMenu,
@@ -18,11 +17,39 @@ import {
     PopupMenuTrigger,
 } from "@/components/PopupMenu";
 
-export default function PlaylistSong({
-    song,
-}: {
-    song: BaseSongForPlaylistResponse;
-}) {
+type PlaylistMediaItem = {
+    item: {
+        type: string;
+        provider: string;
+        publicId: string;
+        url: string;
+        name: string;
+        artists: {
+            provider: string;
+            publicId: string;
+            url: string;
+            name: string;
+            imageUrl: string;
+        }[];
+        audioSrc: string | null;
+        videoSrc: string | null;
+        imageUrl: string;
+        duration?: number;
+        duration_ms?: number;
+        album?: {
+            provider: string;
+            publicId: string;
+            url: string;
+            name: string;
+            imageUrl: string;
+        };
+        downloaded?: boolean;
+    };
+    addedAt?: string;
+};
+
+export default function PlaylistSong({ song }: { song: PlaylistMediaItem }) {
+    const media = song.item;
     const [hovered, setHovered] = useState(false);
 
     const $queue = useStore(rockIt.queueManager.queueAtom);
@@ -40,14 +67,16 @@ export default function PlaylistSong({
     if (!$queue) return <div className="skeleton h-10 w-full rounded"></div>;
 
     return (
-        <SongContextMenu song={song.song}>
+        <SongContextMenu
+            song={media as unknown as import("@/dto").BaseSongWithAlbumResponse}
+        >
             <div
                 className={
                     "flex select-none flex-row items-center gap-2 rounded px-2 py-2 transition-colors md:select-text md:gap-4 " +
                     // If offline and the song is not saved to indexedDB or the song is not in the server database, disable that song
                     ((($networkStatus == "offline" &&
-                        !$mediaInIndexedDB?.includes(song.song.publicId)) ||
-                        !song.song.downloaded) &&
+                        !$mediaInIndexedDB?.includes(media.publicId)) ||
+                        !media.downloaded) &&
                         "pointer-events-none opacity-40") +
                     // If the song is playing and is from this playlist, change color, if the song has been added to the queue clicking the album, it won't show the color
                     ($queue.find(
@@ -55,7 +84,7 @@ export default function PlaylistSong({
                     )?.listPublicId == $currentList &&
                     $queue.find(
                         (song) => song.queueMediaId == $currentQueueMediaId
-                    )?.media.publicId == song.song.publicId
+                    )?.media.publicId == media.publicId
                         ? " text-[#ec5588]"
                         : "")
                 }
@@ -64,8 +93,8 @@ export default function PlaylistSong({
                         rockIt.currentListManager.currentListSongsAtom.get(),
 
                         "album",
-                        song.song.album.publicId,
-                        song.song.publicId
+                        media.album?.publicId ?? "",
+                        media.publicId
                     )
                 }
                 onMouseEnter={() => setHovered(true)}
@@ -74,12 +103,11 @@ export default function PlaylistSong({
                 {/* Imagen */}
                 <div className="relative aspect-square h-10 w-auto rounded">
                     <Image
-                        alt={song.song.name}
+                        alt={media.name}
                         width={40}
                         height={40}
                         src={
-                            song.song.imageUrl ??
-                            rockIt.SONG_PLACEHOLDER_IMAGE_URL
+                            media.imageUrl ?? rockIt.SONG_PLACEHOLDER_IMAGE_URL
                         }
                         className="absolute bottom-0 left-0 right-0 top-0 rounded"
                     />
@@ -96,13 +124,13 @@ export default function PlaylistSong({
                             //     event.stopPropagation();
                             // }}
                         >
-                            {song.song.name}
+                            {media.name}
                         </span>
                     </div>
                     <div className="flex h-full w-full min-w-0 max-w-full flex-row items-center">
                         <div className="hidden flex-1 flex-row gap-2 truncate pr-2 md:flex">
                             <label className="text-md max-w-[50%] truncate">
-                                {song.song.artists.map((artist, index) => (
+                                {media.artists.map((artist, index) => (
                                     <span
                                         className="cursor-pointer md:hover:underline"
                                         key={index}
@@ -114,7 +142,7 @@ export default function PlaylistSong({
                                         }}
                                     >
                                         {artist.name}
-                                        {index < song.song.artists.length - 1
+                                        {index < media.artists.length - 1
                                             ? ", "
                                             : ""}
                                     </span>
@@ -126,25 +154,23 @@ export default function PlaylistSong({
                                 className="text-md cursor-pointer truncate md:hover:underline"
                                 onClick={(event) => {
                                     router.push(
-                                        `/album/${song.song.album.publicId}`
+                                        `/album/${media.album?.publicId}`
                                     );
                                     event.stopPropagation();
                                 }}
                             >
-                                {song.song.album.name}
+                                {media.album?.name}
                             </span>
                         </div>
 
                         {/* Botones y tiempo (alineados a la derecha) */}
                         <div className="ml-auto flex w-fit items-center gap-x-2 md:gap-4">
-                            {$mediaInIndexedDB?.includes(
-                                song.song.publicId
-                            ) && (
+                            {$mediaInIndexedDB?.includes(media.publicId) && (
                                 <div className="min-h-6 min-w-6">
                                     <CheckCircle2 className="flex h-full w-full text-[#ec5588]" />
                                 </div>
                             )}
-                            <LikeButton mediaPublicId={song.song.publicId} />
+                            <LikeButton mediaPublicId={media.publicId} />
                             {/* <EllipsisVertical className="text-gray-400 flex md:hidden md:hover:text-white md:hover:scale-105" /> */}
 
                             <label className="flex min-w-7 select-none items-center justify-center text-sm text-white/80">
@@ -156,7 +182,9 @@ export default function PlaylistSong({
                                         <PopupMenuContent></PopupMenuContent>
                                     </PopupMenu>
                                 ) : (
-                                    getTime(song.song.duration)
+                                    getTime(
+                                        media.duration ?? media.duration_ms ?? 0
+                                    )
                                 )}
                             </label>
                         </div>

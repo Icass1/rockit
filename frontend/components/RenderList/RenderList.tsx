@@ -6,6 +6,7 @@ import {
     BaseSongWithAlbumResponse,
     BaseVideoResponse,
 } from "@/dto";
+import { getMediaDuration } from "@/types/media";
 import { getTime } from "@/lib/utils/getTime";
 import Artists from "@/components/Artists/Artists";
 import LikeButton from "@/components/LikeButton";
@@ -52,7 +53,7 @@ export async function Media({
                 )}
             </div>
             <LikeButton mediaPublicId={media.publicId}></LikeButton>
-            <div>{getTime(media.duration)}</div>
+            <div>{getTime(getMediaDuration(media) ?? 0)}</div>
         </div>
     );
 }

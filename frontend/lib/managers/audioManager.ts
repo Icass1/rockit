@@ -1,3 +1,4 @@
+import { getMediaAudioSrc } from "@/types/media";
 import { ERepeatMode } from "@/models/enums/repeatMode";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createAtom } from "@/lib/store";
@@ -97,21 +98,22 @@ export class AudioManager {
             console.warn("(setSong) Audio element not initialized");
             return;
         }
+        const currentMedia = rockIt.queueManager.currentMedia;
+        const audioSrc = getMediaAudioSrc(currentMedia);
         if (
-            rockIt.queueManager.currentMedia &&
-            rockIt.queueManager.currentMedia.audioSrc &&
+            currentMedia &&
+            audioSrc &&
             rockIt.queueManager.currentQueueMediaId != null &&
-            this._audio.src != rockIt.queueManager.currentMedia.audioSrc
+            this._audio.src != audioSrc
         ) {
-            console.log(
-                `(setSong) Setting audio src to ${rockIt.queueManager.currentMedia.audioSrc}`
-            );
+            console.log(`(setSong) Setting audio src to ${audioSrc}`);
             this._audio.volume = this._currentVolume.get();
-            this._audio.src = rockIt.queueManager.currentMedia.audioSrc;
-            this._audio.currentTime = rockIt.userManager.user?.currentTime ?? 0;
+            this._audio.src = audioSrc;
+            this._audio.currentTime =
+                (rockIt.userManager.user?.currentTimeMs ?? 0) / 1000;
 
             rockIt.webSocketManager.sendCurrentMedia({
-                mediaPublicId: rockIt.queueManager.currentMedia.publicId,
+                mediaPublicId: currentMedia.publicId,
                 queueMediaId: rockIt.queueManager.currentQueueMediaId,
             });
         }

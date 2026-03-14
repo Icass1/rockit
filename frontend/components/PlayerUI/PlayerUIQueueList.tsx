@@ -140,8 +140,7 @@ export function PlayerUIQueueList({
                         media: {
                             type: "song",
                             downloaded: false,
-                            imageUrl:
-                                rockIt.MEDIA_PLACEHOLDER_IMAGE_URL,
+                            imageUrl: rockIt.MEDIA_PLACEHOLDER_IMAGE_URL,
                             duration: 123,
                             discNumber: 1,
                             trackNumber: 1,
@@ -154,8 +153,7 @@ export function PlayerUIQueueList({
                                 type: "album",
                                 name: "Single",
                                 releaseDate: "2024-01-01",
-                                imageUrl:
-                                    rockIt.MEDIA_PLACEHOLDER_IMAGE_URL,
+                                imageUrl: rockIt.MEDIA_PLACEHOLDER_IMAGE_URL,
                                 provider: "mock",
                                 publicId: `auto-album-${mock.id}`,
                                 url: "",

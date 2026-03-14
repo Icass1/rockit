@@ -87,8 +87,7 @@ export default function SongPageCover({
             >
                 <Image
                     src={
-                        song.album.imageUrl ??
-                        rockIt.SONG_PLACEHOLDER_IMAGE_URL
+                        song.album.imageUrl
                     }
                     width={600}
                     height={600}

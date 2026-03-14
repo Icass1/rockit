@@ -70,10 +70,7 @@ export default async function ArtistPage({
                                             <div className="relative h-10 w-10 md:h-12 md:w-12">
                                                 {/* Fixed: was <img>, Next.js <Image> for optimization */}
                                                 <Image
-                                                    src={
-                                                        song.album
-                                                            .imageUrl
-                                                    }
+                                                    src={song.album.imageUrl}
                                                     alt={song.name}
                                                     width={48}
                                                     height={48}

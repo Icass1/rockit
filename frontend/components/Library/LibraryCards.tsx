@@ -68,10 +68,7 @@ export function AlbumCard({ album }: { album: BaseAlbumWithoutSongsResponse }) {
                 >
                     <Image
                         alt={album.name}
-                        src={
-                            album.imageUrl ??
-                            rockIt.ALBUM_PLACEHOLDER_IMAGE_URL
-                        }
+                        src={album.imageUrl}
                         width={COVER_PX}
                         height={COVER_PX}
                         sizes={COVER_SIZES}
@@ -99,10 +96,7 @@ export function VideoCard({ video }: { video: BaseVideoResponse }) {
                 {/* 16:9 aspect ratio for video thumbnails */}
                 <div className="relative aspect-video w-full overflow-hidden rounded-md">
                     <Image
-                        src={
-                            video.imageUrl ??
-                            rockIt.SONG_PLACEHOLDER_IMAGE_URL
-                        }
+                        src={video.imageUrl}
                         alt={video.name}
                         fill
                         sizes={COVER_SIZES}
@@ -124,10 +118,7 @@ export function SongCard({ song }: { song: BaseSongWithoutAlbumResponse }) {
             <div className="library-item flex flex-col">
                 <Image
                     alt={song.name}
-                    src={
-                        song.imageUrl ??
-                        rockIt.SONG_PLACEHOLDER_IMAGE_URL
-                    }
+                    src={song.imageUrl}
                     width={COVER_PX}
                     height={COVER_PX}
                     sizes={COVER_SIZES}
@@ -152,10 +143,7 @@ export function StationCard({ station }: { station: BaseStationResponse }) {
             <div className="library-item flex flex-col">
                 <Image
                     alt={station.name}
-                    src={
-                        station.imageUrl ??
-                        rockIt.STATION_PLACEHOLDER_IMAGE_URL
-                    }
+                    src={station.imageUrl}
                     width={COVER_PX}
                     height={COVER_PX}
                     sizes={COVER_SIZES}

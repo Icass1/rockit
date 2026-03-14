@@ -493,16 +493,20 @@ class SpotifyAccess:
                     image_id = a_img.result().id
 
             if image_id is None:
-                a_result_image: AResult[ImageRow] = await Image.get_image_from_path_async(
-                    session=session, path="album-placeholder.png"
+                a_result_image: AResult[ImageRow] = (
+                    await Image.get_image_from_path_async(
+                        session=session, path="album-placeholder.png"
+                    )
                 )
                 if a_result_image.is_ok():
                     image_id = a_result_image.result().id
                 else:
-                    logger.error(f"Error getting placeholder image: {a_result_image.info()}")
+                    logger.error(
+                        f"Error getting placeholder image: {a_result_image.info()}"
+                    )
                     return AResult(
                         code=AResultCode.GENERAL_ERROR,
-                        message="Failed to get placeholder image"
+                        message="Failed to get placeholder image",
                     )
 
             core_artist = CoreMediaRow(

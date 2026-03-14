@@ -74,10 +74,7 @@ export function AlbumRow({ album }: { album: BaseAlbumWithoutSongsResponse }) {
                 className="flex items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-neutral-800"
             >
                 <SquareCover
-                    src={
-                        album.imageUrl ??
-                        rockIt.ALBUM_PLACEHOLDER_IMAGE_URL
-                    }
+                    src={album.imageUrl ?? rockIt.ALBUM_PLACEHOLDER_IMAGE_URL}
                     alt={album.name}
                 />
                 <div className="min-w-0 flex-1">
@@ -127,9 +124,7 @@ export function VideoRow({ video }: { video: BaseVideoResponse }) {
             className="flex items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-neutral-800"
         >
             <VideoCover
-                src={
-                    video.imageUrl ?? rockIt.SONG_PLACEHOLDER_IMAGE_URL
-                }
+                src={video.imageUrl ?? rockIt.SONG_PLACEHOLDER_IMAGE_URL}
                 alt={video.name}
             />
             <p className="min-w-0 flex-1 truncate font-medium text-white">
@@ -160,13 +155,7 @@ export function SongRow({ song }: { song: BaseSongWithoutAlbumResponse }) {
 export function StationRow({ station }: { station: BaseStationResponse }) {
     return (
         <div className="flex items-center gap-3 rounded-md px-2 py-2 hover:bg-neutral-800">
-            <SquareCover
-                src={
-                    station.imageUrl ??
-                    rockIt.STATION_PLACEHOLDER_IMAGE_URL
-                }
-                alt={station.name}
-            />
+            <SquareCover src={station.imageUrl} alt={station.name} />
             <div className="min-w-0 flex-1">
                 <p className="truncate font-medium text-white">
                     {station.name}

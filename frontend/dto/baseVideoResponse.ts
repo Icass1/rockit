@@ -10,7 +10,7 @@ export const BaseVideoResponseSchema = z.object({
     videoSrc: z.string().nullable(),
     audioSrc: z.string().nullable(),
     imageUrl: z.string(),
-    duration: z.number(),
+    duration_ms: z.number(),
     artists: z.array(z.lazy(() => BaseArtistResponseSchema)),
 });
 

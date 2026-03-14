@@ -104,10 +104,12 @@ class UserAccess:
                 session=session, path="user-placeholder.png"
             )
             if a_result_image.is_not_ok():
-                logger.error(f"Error getting placeholder image: {a_result_image.info()}")
+                logger.error(
+                    f"Error getting placeholder image: {a_result_image.info()}"
+                )
                 return AResult(
                     code=AResultCode.GENERAL_ERROR,
-                    message="Failed to get placeholder image"
+                    message="Failed to get placeholder image",
                 )
 
             user = UserRow(

@@ -180,7 +180,7 @@ class YoutubeProvider(BaseProvider):
                 name=youtube_video.name,
                 videoSrc=youtube_video.youtubeUrl,
                 imageUrl=youtube_video.imageUrl or "",
-                duration=youtube_video.duration,
+                duration_ms=youtube_video.duration_ms,
                 artists=youtube_video.artists,
             ),
         )

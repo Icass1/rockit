@@ -62,7 +62,7 @@ function Bar({
         <div
             ref={divRef}
             onMouseMove={handleMouseMove}
-            className="absolute block -translate-x-1/2 bg-gradient-to-t from-[#ee1086] to-[#fb6467] transition-all duration-300 ease-in-out md:hover:brightness-150"
+            className="absolute block -translate-x-1/2 bg-linear-to-t from-[#ee1086] to-[#fb6467] transition-all duration-300 ease-in-out md:hover:brightness-150"
             style={{
                 left: `calc((100% ) / ${dataLength} * ${index}  + (100%) / ${dataLength} / 2)`,
                 height: `calc((100%) * ${entry.minutes / maxValue})`,
@@ -70,7 +70,7 @@ function Bar({
                 width: `calc((100%) / ${dataLength} - 10px)`,
             }}
         >
-            <label className="absolute -bottom-5 right-1/2 origin-right -rotate-45 text-nowrap text-xs text-white">
+            <label className="absolute right-1/2 -bottom-5 origin-right -rotate-45 text-xs text-nowrap text-white">
                 {getDateDDMMYYYY(entry.start)} - {getDateDDMMYYYY(entry.end)}
             </label>
         </div>
@@ -112,7 +112,7 @@ export default function VerticalBarGraph({
     maxValue = scale * groups;
 
     return (
-        <div className="relative h-[500px] overflow-hidden rounded-lg bg-neutral-800 p-2">
+        <div className="relative h-125 overflow-hidden rounded-lg bg-neutral-800 p-2">
             <div
                 className="absolute"
                 style={{
@@ -126,14 +126,14 @@ export default function VerticalBarGraph({
                     return (
                         <div
                             key={index}
-                            className="absolute h-[1px] bg-neutral-600"
+                            className="absolute h-px bg-neutral-600"
                             style={{
                                 left: "0px",
                                 right: "0px",
                                 top: `${(index * 100) / groups}%`,
                             }}
                         >
-                            <label className="absolute right-[calc(100%_+_7px)] -translate-y-1/2 text-xs">
+                            <label className="absolute right-[calc(100%+7px)] -translate-y-1/2 text-xs">
                                 {scale * (groups - index)}
                             </label>
                         </div>
@@ -157,7 +157,7 @@ export default function VerticalBarGraph({
             </div>
 
             <div
-                className="absolute left-0 right-0 top-0 text-center text-xl font-semibold"
+                className="absolute top-0 right-0 left-0 text-center text-xl font-semibold"
                 style={{ height: marginTop }}
             >
                 {title}
@@ -171,13 +171,13 @@ export default function VerticalBarGraph({
                     top: marginTop,
                 }}
             >
-                <label className="-translate-1/2 absolute left-6 top-1/2 -rotate-90 text-nowrap text-xl font-semibold">
+                <label className="absolute top-1/2 left-6 -translate-1/2 -rotate-90 text-xl font-semibold text-nowrap">
                     Minutes listened
                 </label>
             </div>
 
             <div
-                className="absolute right-0 top-0 h-full"
+                className="absolute top-0 right-0 h-full"
                 style={{ width: marginRight }}
             />
 

@@ -2,75 +2,96 @@
 
 import { useState } from "react";
 import { useStore } from "@nanostores/react";
+import { BarChart2, User, Users } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import UserStats from "@/components/Stats/UserStats";
 
-export default function StatsClient() {
-    const [selectedSection, setSelectedSection] = useState<string>("user");
+type Section = "user" | "general" | "friends";
 
+function EmptySection({ label }: { label: string }) {
+    return (
+        <div className="flex h-64 flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-neutral-800 text-center">
+            <BarChart2 className="h-8 w-8 text-neutral-700" />
+            <p className="text-sm font-semibold text-neutral-600">{label}</p>
+            <p className="text-xs text-neutral-700">
+                Available once backend stats endpoints are ready
+            </p>
+        </div>
+    );
+}
+
+export default function StatsClient() {
+    const [section, setSection] = useState<Section>("user");
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
-    const pages: { [key: string]: string } = {
-        user: $vocabulary.USER,
-        general: $vocabulary.GENERAL,
-        friends: $vocabulary.FRIENDS,
+    const tabs: { id: Section; label: string; icon: React.ReactNode }[] = [
+        {
+            id: "user",
+            label: $vocabulary.USER ?? "User",
+            icon: <User className="h-3.5 w-3.5" />,
+        },
+        {
+            id: "general",
+            label: $vocabulary.GENERAL ?? "General",
+            icon: <BarChart2 className="h-3.5 w-3.5" />,
+        },
+        {
+            id: "friends",
+            label: $vocabulary.FRIENDS ?? "Friends",
+            icon: <Users className="h-3.5 w-3.5" />,
+        },
+    ];
+
+    const sectionTitle: Record<Section, string> = {
+        user: $vocabulary.USER_STATS ?? "User stats",
+        general: $vocabulary.GENERAL_STATS ?? "General stats",
+        friends: $vocabulary.FRIENDS_STATS ?? "Friends stats",
     };
 
     return (
-        <div className="mb-20 mt-24 flex h-full w-full flex-col overflow-y-auto px-6 pt-24 md:mb-0 md:mt-3 md:px-12">
-            <div className="flex flex-col items-center justify-between space-y-4 md:flex-row md:space-y-0">
-                <h2 className="text-center text-2xl font-bold md:text-left">
-                    {selectedSection === "user" && $vocabulary.USER_STATS}
-                    {selectedSection === "general" && $vocabulary.GENERAL_STATS}
-                    {selectedSection === "friends" && $vocabulary.FRIENDS_STATS}
-                </h2>
+        <div className="flex flex-col">
+            {/* Header row */}
+            <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                    <h1 className="text-2xl font-bold text-white">
+                        {sectionTitle[section]}
+                    </h1>
+                    <p className="mt-0.5 text-sm text-neutral-500">
+                        Showing data from the last 7 days
+                    </p>
+                </div>
 
-                <div className="flex space-x-1 rounded-lg bg-[#1a1a1a] px-1 py-1">
-                    {["user", "general", "friends"].map((section) => (
+                {/* Tab switcher */}
+                <div className="flex items-center gap-1 self-start rounded-xl bg-neutral-900 p-1 md:self-auto">
+                    {tabs.map((tab) => (
                         <button
-                            key={section}
-                            className={`rounded-md px-4 py-2 text-sm font-bold transition ${
-                                selectedSection === section
-                                    ? "bg-pink-700 text-white"
-                                    : "bg-zinc-800 text-gray-400 hover:bg-zinc-700"
-                            }`}
-                            onClick={() => setSelectedSection(section)}
+                            key={tab.id}
+                            type="button"
+                            className={[
+                                "flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold transition-all",
+                                section === tab.id
+                                    ? "bg-[#ee1086] text-white shadow-sm"
+                                    : "text-neutral-400 hover:text-white",
+                            ].join(" ")}
+                            onClick={() => setSection(tab.id)}
                         >
-                            {pages[section].charAt(0).toUpperCase() +
-                                pages[section].slice(1)}
+                            {tab.icon}
+                            {tab.label}
                         </button>
                     ))}
                 </div>
             </div>
 
-            <div className="my-4 h-full">
-                <div>
-                    {selectedSection === "user" && (
-                        <div>
-                            <UserStats />
-                            <div className="min-h-24" />
-                        </div>
-                    )}
+            {/* Content */}
+            {section === "user" && <UserStats />}
 
-                    {selectedSection === "general" && (
-                        <div className="text-center text-gray-400">
-                            <p>
-                                Aquí se mostrarán estadísticas generales de Rock
-                                It!
-                            </p>
-                        </div>
-                    )}
+            {section === "general" && (
+                <EmptySection label="General stats coming soon" />
+            )}
 
-                    {selectedSection === "friends" && (
-                        <div className="text-center text-gray-400">
-                            <p>
-                                Aquí se mostrarán estadísticas y comparativas
-                                con tus amigos.
-                            </p>
-                        </div>
-                    )}
-                </div>
-            </div>
+            {section === "friends" && (
+                <EmptySection label="Friends comparison coming soon" />
+            )}
         </div>
     );
 }

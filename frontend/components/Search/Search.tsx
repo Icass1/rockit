@@ -22,7 +22,7 @@ function EmptyState() {
             <p className="mt-10 text-lg md:mt-2 md:text-xl">
                 {$vocabulary.SEARCH_EMPTY2}
             </p>
-            <div className="w-46 relative h-36 md:mt-10">
+            <div className="relative h-36 w-46 md:mt-10">
                 <Image
                     src="/logo-banner.png"
                     alt="Rockit Logo"
@@ -62,7 +62,7 @@ function SearchResults() {
     const mediaResults = results.results;
 
     return (
-        <div className="overflow-y-auto pt-0 md:pt-24">
+        <div className="overflow-y-auto">
             <SongsSection
                 songs={mediaResults.filter((item) => item.type === "song")}
             />

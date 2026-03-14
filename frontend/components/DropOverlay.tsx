@@ -54,7 +54,7 @@ export default function DropOverlay({
     if (!show) return null;
 
     return (
-        <div className="z-999 fixed inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+        <div className="fixed inset-0 z-999 flex items-center justify-center bg-black/70 backdrop-blur-sm">
             <div className="rounded-xl border border-white/20 bg-[#1a1a1a] p-6 text-2xl text-white">
                 Drop the link to import it
             </div>

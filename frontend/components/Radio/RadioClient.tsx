@@ -177,8 +177,8 @@ export default function RadioClient() {
     };
 
     return (
-        <div className="h-full overflow-y-auto p-3 pb-20 pt-16 text-white md:pb-24 md:pt-24">
-            <h1 className="my-6 select-none text-center text-2xl font-bold md:text-3xl">
+        <div className="h-full overflow-y-auto p-3 text-white">
+            <h1 className="my-6 text-center text-2xl font-bold select-none md:text-3xl">
                 {$vocabulary.RADIO_STATIONS} 📻
             </h1>
 
@@ -206,7 +206,7 @@ export default function RadioClient() {
                     placeholder={$vocabulary.RADIO_SEARCH}
                     value={query}
                     onChange={handleChange}
-                    className="w-full rounded-full border border-neutral-700 bg-neutral-800 px-5 py-2 text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                    className="w-full rounded-full border border-neutral-700 bg-neutral-800 px-5 py-2 text-white placeholder-neutral-500 focus:ring-2 focus:ring-pink-500 focus:outline-none"
                 />
             </div>
 

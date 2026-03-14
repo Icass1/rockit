@@ -79,19 +79,19 @@ function DownloadMediaItem({ item }: { item: DownloadInfo }) {
             <div className="min-w-0 flex-1">
                 <div className="mb-1.5 flex items-center justify-between gap-2">
                     {meta ? (
-                        <p className="truncate text-sm font-medium leading-none text-white">
+                        <p className="truncate text-sm leading-none font-medium text-white">
                             {meta.name}
                         </p>
                     ) : (
                         <div className="skeleton h-3 w-2/3 rounded" />
                     )}
-                    <span className="shrink-0 text-xs font-bold tabular-nums text-neutral-400">
+                    <span className="shrink-0 text-xs font-bold text-neutral-400 tabular-nums">
                         {statusLabel(item)}
                     </span>
                 </div>
                 <div className="h-1 w-full overflow-hidden rounded-full bg-neutral-800">
                     <div
-                        className={`bg-linear-to-r h-full rounded-full transition-[width] duration-700 ${statusColor(item)}`}
+                        className={`h-full rounded-full bg-linear-to-r transition-[width] duration-700 ${statusColor(item)}`}
                         style={{
                             width: `${item.message === "Error" ? 100 : item.completed}%`,
                         }}
@@ -121,7 +121,7 @@ function DownloadGroup({ group }: { group: Group }) {
         <div className="overflow-hidden rounded-xl border border-neutral-800/50 bg-neutral-900/70">
             <button
                 type="button"
-                className="hover:bg-white/3 flex w-full items-center gap-2.5 px-4 py-3 text-left transition-colors"
+                className="flex w-full items-center gap-2.5 px-4 py-3 text-left transition-colors hover:bg-white/3"
                 onClick={() => setOpen((o) => !o)}
                 aria-expanded={open}
             >
@@ -142,7 +142,7 @@ function DownloadGroup({ group }: { group: Group }) {
                     {group.items.length}
                 </span>
                 {group.id === "active" && (
-                    <span className="text-xs tabular-nums text-neutral-500">
+                    <span className="text-xs text-neutral-500 tabular-nums">
                         {Math.round(
                             group.items.reduce((s, i) => s + i.completed, 0) /
                                 group.items.length

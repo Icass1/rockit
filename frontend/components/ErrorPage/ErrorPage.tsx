@@ -36,13 +36,13 @@ export default function ErrorPage({ code }: { code: ErrorCode }) {
         ERROR_CONTENT[code] ?? ERROR_CONTENT[500];
 
     return (
-        <div className="bg-linear-to-r relative flex h-screen w-full select-none flex-col items-center justify-center from-[#d185ca] to-[#ffbb9e]">
+        <div className="relative flex h-screen w-full flex-col items-center justify-center bg-linear-to-r from-[#d185ca] to-[#ffbb9e] select-none">
             <div className="flex h-auto flex-col items-center gap-8 md:flex-row">
                 <div className="w-full text-center text-black">
                     <h1 className="mb-4 text-6xl font-bold md:text-9xl">
                         {title}
                     </h1>
-                    <p className="mb-2 text-balance text-xl font-semibold md:text-3xl">
+                    <p className="mb-2 text-xl font-semibold text-balance md:text-3xl">
                         {subtitle}
                     </p>
                     <p className="text-sm font-medium md:text-base">
@@ -64,7 +64,7 @@ export default function ErrorPage({ code }: { code: ErrorCode }) {
                         height={500}
                         src="/brazovinilo.png"
                         alt="Vinyl Arm"
-                        className="absolute right-0 top-0 z-20 h-[70%] w-[70%] -translate-y-2 translate-x-10 rotate-[-20deg]"
+                        className="absolute top-0 right-0 z-20 h-[70%] w-[70%] translate-x-10 -translate-y-2 rotate-[-20deg]"
                     />
                 </div>
             </div>

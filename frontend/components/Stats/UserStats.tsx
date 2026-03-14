@@ -33,14 +33,14 @@ function SummaryCard({ icon, label, value, accent }: SummaryCardProps) {
     return (
         <div
             className={[
-                "flex flex-col gap-2 rounded-xl p-4",
+                "flex flex-col gap-2 rounded-xl p-3 md:p-4",
                 accent
                     ? "border border-[#ee1086]/20 bg-linear-to-br from-[#ee1086]/20 to-[#fb6467]/10"
                     : "border border-neutral-800/50 bg-neutral-900",
             ].join(" ")}
         >
             <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold tracking-wider text-neutral-500 uppercase">
+                <span className="text-[10px] font-semibold tracking-wider text-neutral-500 uppercase md:text-xs">
                     {label}
                 </span>
                 <span
@@ -49,7 +49,7 @@ function SummaryCard({ icon, label, value, accent }: SummaryCardProps) {
                     {icon}
                 </span>
             </div>
-            <span className="text-2xl font-bold text-white tabular-nums">
+            <span className="text-xl font-bold text-white tabular-nums md:text-2xl">
                 {value}
             </span>
         </div>
@@ -73,11 +73,18 @@ function Section({
     );
 }
 
-export default function UserStats() {
+export default function UserStats({}: {
+    range: "7d" | "30d" | "1y" | "custom";
+    customStart?: string;
+    customEnd?: string;
+}) {
     const s = MOCK_SUMMARY;
 
+    // TODO: When backend is ready, use useFetch with the range params:
+    // const [data] = useFetch(`/stats/user?range=${range}&start=${customStart}&end=${customEnd}`, StatsSchema);
+
     return (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3 md:gap-4">
             {/* Summary cards */}
             <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                 <SummaryCard

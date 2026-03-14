@@ -7,6 +7,14 @@ import { rockIt } from "@/lib/rockit/rockIt";
 import UserStats from "@/components/Stats/UserStats";
 
 type Section = "user" | "general" | "friends";
+type DateRange = "7d" | "30d" | "1y" | "custom";
+
+const RANGE_OPTIONS: { id: DateRange; label: string }[] = [
+    { id: "7d", label: "7 days" },
+    { id: "30d", label: "30 days" },
+    { id: "1y", label: "1 year" },
+    { id: "custom", label: "Custom" },
+];
 
 function EmptySection({ label }: { label: string }) {
     return (
@@ -22,6 +30,9 @@ function EmptySection({ label }: { label: string }) {
 
 export default function StatsClient() {
     const [section, setSection] = useState<Section>("user");
+    const [range, setRange] = useState<DateRange>("7d");
+    const [customStart, setCustomStart] = useState<string>("");
+    const [customEnd, setCustomEnd] = useState<string>("");
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     const tabs: { id: Section; label: string; icon: React.ReactNode }[] = [
@@ -48,47 +59,103 @@ export default function StatsClient() {
         friends: $vocabulary.FRIENDS_STATS ?? "Friends stats",
     };
 
+    const rangeLabel = (() => {
+        if (range === "custom" && customStart && customEnd) {
+            return `${customStart} → ${customEnd}`;
+        }
+        switch (range) {
+            case "7d":
+                return "7 days";
+            case "30d":
+                return "30 days";
+            case "1y":
+                return "1 year";
+            default:
+                return "7 days";
+        }
+    })();
+
     return (
-        <div className="flex flex-col">
-            {/* Header row */}
-            <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold text-white">
-                        {sectionTitle[section]}
-                    </h1>
-                    <p className="mt-0.5 text-sm text-neutral-500">
-                        Showing data from the last 7 days
-                    </p>
+        <div className="flex flex-col px-4 md:px-8">
+            {/* Header */}
+            <div className="mb-3 md:mb-6">
+                {/* Title */}
+                <h1 className="text-xl font-bold text-white md:text-2xl">
+                    {sectionTitle[section]}
+                </h1>
+
+                {/* Subtitle */}
+                <p className="mt-0.5 text-xs text-neutral-500 md:text-sm">
+                    Showing stats for {rangeLabel}
+                </p>
+
+                {/* Range pills + Tabs — same row */}
+                <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex flex-wrap items-center gap-1">
+                        {RANGE_OPTIONS.map((opt) => (
+                            <button
+                                key={opt.id}
+                                type="button"
+                                onClick={() => setRange(opt.id)}
+                                className={[
+                                    "rounded-full px-2.5 py-0.5 text-[10px] font-semibold transition-all md:px-3 md:py-1 md:text-xs",
+                                    range === opt.id
+                                        ? "bg-[#ee1086] text-white"
+                                        : "bg-neutral-800 text-neutral-400 hover:text-white",
+                                ].join(" ")}
+                            >
+                                {opt.label}
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className="flex items-center gap-1 rounded-xl bg-neutral-900 p-1">
+                        {tabs.map((tab) => (
+                            <button
+                                key={tab.id}
+                                type="button"
+                                onClick={() => setSection(tab.id)}
+                                className={[
+                                    "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all md:px-4 md:py-2 md:text-sm",
+                                    section === tab.id
+                                        ? "bg-[#ee1086] text-white shadow-sm"
+                                        : "text-neutral-400 hover:text-white",
+                                ].join(" ")}
+                            >
+                                {tab.icon}
+                                <span className="hidden sm:inline">{tab.label}</span>
+                            </button>
+                        ))}
+                    </div>
                 </div>
 
-                {/* Tab switcher */}
-                <div className="flex items-center gap-1 self-start rounded-xl bg-neutral-900 p-1 md:self-auto">
-                    {tabs.map((tab) => (
-                        <button
-                            key={tab.id}
-                            type="button"
-                            className={[
-                                "flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold transition-all",
-                                section === tab.id
-                                    ? "bg-[#ee1086] text-white shadow-sm"
-                                    : "text-neutral-400 hover:text-white",
-                            ].join(" ")}
-                            onClick={() => setSection(tab.id)}
-                        >
-                            {tab.icon}
-                            {tab.label}
-                        </button>
-                    ))}
-                </div>
+                {/* Custom inputs — extra row only when needed */}
+                {range === "custom" && (
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                        <input
+                            type="date"
+                            value={customStart}
+                            onChange={(e) => setCustomStart(e.target.value)}
+                            className="rounded-lg bg-neutral-800 px-3 py-1.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#ee1086]"
+                        />
+                        <span className="text-xs text-neutral-600">→</span>
+                        <input
+                            type="date"
+                            value={customEnd}
+                            onChange={(e) => setCustomEnd(e.target.value)}
+                            className="rounded-lg bg-neutral-800 px-3 py-1.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#ee1086]"
+                        />
+                    </div>
+                )}
             </div>
 
             {/* Content */}
-            {section === "user" && <UserStats />}
-
+            {section === "user" && (
+                <UserStats range={range} customStart={customStart} customEnd={customEnd} />
+            )}
             {section === "general" && (
                 <EmptySection label="General stats coming soon" />
             )}
-
             {section === "friends" && (
                 <EmptySection label="Friends comparison coming soon" />
             )}

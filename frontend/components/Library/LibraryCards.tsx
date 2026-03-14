@@ -92,10 +92,7 @@ export function AlbumCard({ album }: { album: BaseAlbumWithoutSongsResponse }) {
 export function VideoCard({ video }: { video: BaseVideoResponse }) {
     return (
         <CardShell>
-            <Link
-                href={`/video/${video.publicId}`}
-                className="library-item flex flex-col transition-transform md:hover:scale-105"
-            >
+            <div className="library-item flex flex-col transition-transform md:hover:scale-105">
                 {/* 16:9 aspect ratio for video thumbnails */}
                 <div className="relative aspect-video w-full overflow-hidden rounded-md">
                     <Image
@@ -112,7 +109,7 @@ export function VideoCard({ video }: { video: BaseVideoResponse }) {
                 <p className="mt-1 truncate text-center font-semibold">
                     {video.name}
                 </p>
-            </Link>
+            </div>
         </CardShell>
     );
 }

@@ -28,10 +28,6 @@ export default function RecentlyPlayedSong({
             />
             <span
                 className="mt-2 block truncate text-center font-semibold hover:underline"
-                onClick={(e) => {
-                    e.stopPropagation();
-                    router.push(`/song/${song.publicId}`);
-                }}
             >
                 {song.name}
             </span>

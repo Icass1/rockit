@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useStore } from "@nanostores/react";
 import {
     EllipsisVertical,
@@ -49,14 +48,11 @@ function FooterLeftForSong({ currentMedia }: { currentMedia: MediaType }) {
             {/* Song info */}
             <div className="relative h-full w-full min-w-0 max-w-full overflow-hidden">
                 <div className="relative top-1/2 flex -translate-y-1/2 flex-col">
-                    <Link
-                        href={`/song/${currentMedia.publicId}`}
-                        prefetch={false}
-                        onClick={() => rockIt.playerUIManager.hide()}
-                        className="w-full min-w-0 max-w-full truncate font-semibold md:hover:underline"
+                    <span
+                        className="w-full min-w-0 max-w-full truncate font-semibold"
                     >
                         {currentMedia.name || "Unknown song"}
-                    </Link>
+                    </span>
                     <div className="flex w-full flex-row gap-x-1 text-sm text-gray-400">
                         <div className="truncate">
                             <Artists artists={currentMedia.artists}></Artists>

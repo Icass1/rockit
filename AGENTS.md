@@ -2,6 +2,7 @@
 
 > Read this file before making any change. It covers architecture, conventions,
 > patterns and API routes for both frontend and backend.
+> You can read also the extended documentation located in docs/ where more detailed information is shown about frontend and backend rules
 
 ---
 

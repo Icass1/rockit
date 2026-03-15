@@ -33,7 +33,7 @@ export default function ChangeLang() {
                 onChange={(e) =>
                     rockIt.userManager.setLangAsync(e.currentTarget.value)
                 }
-                className="w-full rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-sm text-white transition-colors focus:border-[#ee1086] focus:outline-none focus:ring-1 focus:ring-[#ee1086]"
+                className="w-full rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-sm text-white transition-colors focus:border-[#ee1086] focus:ring-1 focus:ring-[#ee1086] focus:outline-none"
             >
                 {LANGUAGES.map((l) => (
                     <option key={l.value} value={l.value}>

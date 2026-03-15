@@ -123,7 +123,9 @@ export default function StatsClient() {
                                 ].join(" ")}
                             >
                                 {tab.icon}
-                                <span className="hidden sm:inline">{tab.label}</span>
+                                <span className="hidden sm:inline">
+                                    {tab.label}
+                                </span>
                             </button>
                         ))}
                     </div>
@@ -136,14 +138,14 @@ export default function StatsClient() {
                             type="date"
                             value={customStart}
                             onChange={(e) => setCustomStart(e.target.value)}
-                            className="rounded-lg bg-neutral-800 px-3 py-1.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#ee1086]"
+                            className="rounded-lg bg-neutral-800 px-3 py-1.5 text-xs text-white focus:ring-1 focus:ring-[#ee1086] focus:outline-none"
                         />
                         <span className="text-xs text-neutral-600">→</span>
                         <input
                             type="date"
                             value={customEnd}
                             onChange={(e) => setCustomEnd(e.target.value)}
-                            className="rounded-lg bg-neutral-800 px-3 py-1.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#ee1086]"
+                            className="rounded-lg bg-neutral-800 px-3 py-1.5 text-xs text-white focus:ring-1 focus:ring-[#ee1086] focus:outline-none"
                         />
                     </div>
                 )}
@@ -151,7 +153,11 @@ export default function StatsClient() {
 
             {/* Content */}
             {section === "user" && (
-                <UserStats range={range} customStart={customStart} customEnd={customEnd} />
+                <UserStats
+                    range={range}
+                    customStart={customStart}
+                    customEnd={customEnd}
+                />
             )}
             {section === "general" && (
                 <EmptySection label="General stats coming soon" />

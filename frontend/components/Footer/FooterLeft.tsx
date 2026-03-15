@@ -22,7 +22,7 @@ function FooterLeftForSong({ currentMedia }: { currentMedia: MediaType }) {
 
     if (!$queue) {
         return (
-            <div className="flex w-full max-w-full min-w-0 items-center gap-x-4 text-sm text-gray-400 md:w-1/3 opacity-0" />
+            <div className="flex w-full max-w-full min-w-0 items-center gap-x-4 text-sm text-gray-400 opacity-0 md:w-1/3" />
         );
     }
 

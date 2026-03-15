@@ -8,9 +8,9 @@ import { rockIt } from "@/lib/rockit/rockIt";
 import ChangeLang from "@/components/Settings/ChangeLang";
 import CrossFadeInput from "@/components/Settings/CrossFadeInput";
 import DownloadAppButton from "@/components/Settings/DownloadAppButton";
+import { useSettingsUser } from "@/components/Settings/hooks/useSettingsUser";
 import LogOutButton from "@/components/Settings/LogOutButton";
 import ServiceWorkerInfo from "@/components/Settings/ServiceWorkerInfo";
-import { useSettingsUser } from "@/components/Settings/hooks/useSettingsUser";
 
 function SettingsSection({
     title,
@@ -21,7 +21,7 @@ function SettingsSection({
 }) {
     return (
         <div className="flex flex-col gap-3 rounded-2xl border border-neutral-800/60 bg-neutral-900/50 p-4 md:p-5">
-            <h3 className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+            <h3 className="text-[10px] font-bold tracking-widest text-neutral-500 uppercase">
                 {title}
             </h3>
             {children}
@@ -77,7 +77,11 @@ function ProfileSidebar() {
     );
 }
 
-function PasswordSection({ vocabulary }: { vocabulary: Record<string, string> }) {
+function PasswordSection({
+    vocabulary,
+}: {
+    vocabulary: Record<string, string>;
+}) {
     return (
         <div className="flex flex-col gap-3">
             <div className="flex flex-col gap-1.5">
@@ -92,7 +96,7 @@ function PasswordSection({ vocabulary }: { vocabulary: Record<string, string> })
                     type="password"
                     autoComplete="new-password"
                     placeholder="••••••••"
-                    className="w-full rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-sm text-white transition-colors focus:border-[#ee1086] focus:outline-none focus:ring-1 focus:ring-[#ee1086]"
+                    className="w-full rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-sm text-white transition-colors focus:border-[#ee1086] focus:ring-1 focus:ring-[#ee1086] focus:outline-none"
                 />
             </div>
             <div className="flex flex-col gap-1.5">
@@ -107,14 +111,18 @@ function PasswordSection({ vocabulary }: { vocabulary: Record<string, string> })
                     type="password"
                     autoComplete="new-password"
                     placeholder="••••••••"
-                    className="w-full rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-sm text-white transition-colors focus:border-[#ee1086] focus:outline-none focus:ring-1 focus:ring-[#ee1086]"
+                    className="w-full rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-sm text-white transition-colors focus:border-[#ee1086] focus:ring-1 focus:ring-[#ee1086] focus:outline-none"
                 />
             </div>
         </div>
     );
 }
 
-function DisplayNameInput({ vocabulary }: { vocabulary: Record<string, string> }) {
+function DisplayNameInput({
+    vocabulary,
+}: {
+    vocabulary: Record<string, string>;
+}) {
     const { username, isLoading } = useSettingsUser();
 
     return (
@@ -130,7 +138,7 @@ function DisplayNameInput({ vocabulary }: { vocabulary: Record<string, string> }
                 type="text"
                 defaultValue={isLoading ? "" : username}
                 disabled={isLoading}
-                className="w-full rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-sm text-white transition-colors focus:border-[#ee1086] focus:outline-none focus:ring-1 focus:ring-[#ee1086] disabled:opacity-50"
+                className="w-full rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-sm text-white transition-colors focus:border-[#ee1086] focus:ring-1 focus:ring-[#ee1086] focus:outline-none disabled:opacity-50"
             />
         </div>
     );
@@ -141,51 +149,59 @@ export default function SettingsClient() {
 
     return (
         <div className="mx-auto max-w-4xl px-4 md:px-8 md:py-10 md:pb-10">
+            <h1 className="mb-6 text-2xl font-bold text-white">
+                {$vocabulary.USER_SETTINGS ?? "Settings"}
+            </h1>
 
-                <h1 className="mb-6 text-2xl font-bold text-white">
-                    {$vocabulary.USER_SETTINGS ?? "Settings"}
-                </h1>
-
-                <div className="flex flex-col gap-6 md:flex-row md:items-start md:gap-8">
-
-                    <div className="md:sticky md:top-0 md:w-64 md:shrink-0">
-                        <div className="rounded-2xl border border-neutral-800/60 bg-neutral-900/50 p-5">
-                            <ProfileSidebar />
-                        </div>
+            <div className="flex flex-col gap-6 md:flex-row md:items-start md:gap-8">
+                <div className="md:sticky md:top-0 md:w-64 md:shrink-0">
+                    <div className="rounded-2xl border border-neutral-800/60 bg-neutral-900/50 p-5">
+                        <ProfileSidebar />
                     </div>
+                </div>
 
-                    <div className="flex flex-1 flex-col gap-4 min-w-0">
+                <div className="flex min-w-0 flex-1 flex-col gap-4">
+                    <SettingsSection
+                        title={$vocabulary.DISPLAY_NAME ?? "Account"}
+                    >
+                        <DisplayNameInput
+                            vocabulary={
+                                $vocabulary as unknown as Record<string, string>
+                            }
+                        />
+                    </SettingsSection>
 
-                        <SettingsSection title={$vocabulary.DISPLAY_NAME ?? "Account"}>
-                            <DisplayNameInput vocabulary={$vocabulary as unknown as Record<string, string>} />
-                        </SettingsSection>
+                    <SettingsSection title={$vocabulary.LANGUAGE ?? "Language"}>
+                        <ChangeLang />
+                    </SettingsSection>
 
-                        <SettingsSection title={$vocabulary.LANGUAGE ?? "Language"}>
-                            <ChangeLang />
-                        </SettingsSection>
+                    <SettingsSection
+                        title={$vocabulary.CHANGE_PASSWORD ?? "Password"}
+                    >
+                        <div className="mb-1 flex items-center gap-2">
+                            <Lock className="h-3.5 w-3.5 text-neutral-500" />
+                            <span className="text-xs text-neutral-500">
+                                Leave blank to keep current password
+                            </span>
+                        </div>
+                        <PasswordSection
+                            vocabulary={
+                                $vocabulary as unknown as Record<string, string>
+                            }
+                        />
+                    </SettingsSection>
 
-                        <SettingsSection title={$vocabulary.CHANGE_PASSWORD ?? "Password"}>
-                            <div className="flex items-center gap-2 mb-1">
-                                <Lock className="h-3.5 w-3.5 text-neutral-500" />
-                                <span className="text-xs text-neutral-500">
-                                    Leave blank to keep current password
-                                </span>
-                            </div>
-                            <PasswordSection vocabulary={$vocabulary as unknown as Record<string, string>} />
-                        </SettingsSection>
+                    <SettingsSection title="Audio">
+                        <CrossFadeInput />
+                    </SettingsSection>
 
-                        <SettingsSection title="Audio">
-                            <CrossFadeInput />
-                        </SettingsSection>
+                    <SettingsSection title={$vocabulary.DOWNLOAD_APP ?? "App"}>
+                        <DownloadAppButton />
+                    </SettingsSection>
 
-                        <SettingsSection title={$vocabulary.DOWNLOAD_APP ?? "App"}>
-                            <DownloadAppButton />
-                        </SettingsSection>
-
-                        <SettingsSection title="Service Worker">
-                            <ServiceWorkerInfo />
-                        </SettingsSection>
-
+                    <SettingsSection title="Service Worker">
+                        <ServiceWorkerInfo />
+                    </SettingsSection>
                 </div>
             </div>
         </div>

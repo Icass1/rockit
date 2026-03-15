@@ -25,25 +25,25 @@ export default function ServiceWorkerInfo() {
             const reg = await navigator.serviceWorker.getRegistration();
             setStatus(
                 reg
-                    ? (reg.active?.state ?? ($vocabulary.NO_STATE ?? "No state"))
+                    ? (reg.active?.state ?? $vocabulary.NO_STATE ?? "No state")
                     : ($vocabulary.NO_SERVICE_WORKER ?? "No service worker")
             );
             return;
         }
 
         const labels: Record<SwAction, string> = {
-            GET_INFO:   "",
-            UPDATE:     $vocabulary.UPDATING   ?? "Updating…",
-            REGISTER:   $vocabulary.REGISTERING ?? "Registering…",
+            GET_INFO: "",
+            UPDATE: $vocabulary.UPDATING ?? "Updating…",
+            REGISTER: $vocabulary.REGISTERING ?? "Registering…",
             UNREGISTER: $vocabulary.UNREGISTERING ?? "Unregistering…",
         };
         setStatus(labels[action]);
     };
 
     const buttonLabels: Record<SwAction, string> = {
-        GET_INFO:   $vocabulary.GET_INFO   ?? "Get info",
-        UPDATE:     $vocabulary.UPDATE     ?? "Update",
-        REGISTER:   $vocabulary.REGISTER   ?? "Register",
+        GET_INFO: $vocabulary.GET_INFO ?? "Get info",
+        UPDATE: $vocabulary.UPDATE ?? "Update",
+        REGISTER: $vocabulary.REGISTER ?? "Register",
         UNREGISTER: $vocabulary.UNREGISTER ?? "Unregister",
     };
 
@@ -61,9 +61,7 @@ export default function ServiceWorkerInfo() {
                     </button>
                 ))}
             </div>
-            {status && (
-                <p className="text-xs text-neutral-500">{status}</p>
-            )}
+            {status && <p className="text-xs text-neutral-500">{status}</p>}
         </div>
     );
 }

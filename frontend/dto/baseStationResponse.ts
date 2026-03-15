@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const BaseStationResponseSchema = z.object({
-    type: z.union([z.literal("station")]),
+    type: z.union([z.literal("station")]).default("station"),
     provider: z.string(),
     publicId: z.string(),
     url: z.string(),

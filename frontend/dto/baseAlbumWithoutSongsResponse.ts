@@ -2,7 +2,7 @@ import { BaseArtistResponseSchema } from "@/dto";
 import { z } from "zod";
 
 export const BaseAlbumWithoutSongsResponseSchema = z.object({
-    type: z.union([z.literal("album")]),
+    type: z.union([z.literal("album")]).default("album"),
     provider: z.string(),
     publicId: z.string(),
     url: z.string(),

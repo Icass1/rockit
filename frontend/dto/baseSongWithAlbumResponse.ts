@@ -5,7 +5,7 @@ import {
 import { z } from "zod";
 
 export const BaseSongWithAlbumResponseSchema = z.object({
-    type: z.union([z.literal("song")]),
+    type: z.union([z.literal("song")]).default("song"),
     provider: z.string(),
     publicId: z.string(),
     url: z.string(),

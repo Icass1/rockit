@@ -51,7 +51,7 @@
         "-L",
         "5433:localhost:5432",
         "-J",
-        "gateway@rockhosting.org",
+        "gateway@ssh.rockhosting.org",
         "root@rockit.rockhosting.lan"
       ],
       "console": "integratedTerminal",

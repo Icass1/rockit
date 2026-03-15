@@ -2,7 +2,7 @@ import { PlaylistContributorResponseSchema } from "@/dto";
 import { z } from "zod";
 
 export const BasePlaylistResponseSchema = z.object({
-    type: z.union([z.literal("playlist")]),
+    type: z.union([z.literal("playlist")]).default("playlist"),
     description: z.string().nullable(),
     provider: z.string(),
     publicId: z.string(),

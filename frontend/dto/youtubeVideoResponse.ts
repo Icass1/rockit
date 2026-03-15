@@ -2,7 +2,7 @@ import { BaseArtistResponseSchema, YoutubeChannelResponseSchema } from "@/dto";
 import { z } from "zod";
 
 export const YoutubeVideoResponseSchema = z.object({
-    type: z.union([z.literal("video")]),
+    type: z.union([z.literal("video")]).default("video"),
     provider: z.string(),
     publicId: z.string(),
     url: z.string(),
@@ -19,7 +19,7 @@ export const YoutubeVideoResponseSchema = z.object({
     channel: z.lazy(() => YoutubeChannelResponseSchema).nullable(),
     description: z.string().nullable(),
     youtubeUrl: z.string().nullable(),
-    tags: z.array(z.string()),
+    tags: z.array(z.string()).default([]),
     publishedAt: z.string().nullable(),
     path: z.string().nullable(),
 });

@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const BasePlaylistForPlaylistResponseSchema = z.object({
-    type: z.union([z.literal("playlist")]),
+    type: z.union([z.literal("playlist")]).default("playlist"),
     provider: z.string(),
     publicId: z.string(),
     url: z.string(),
@@ -9,7 +9,7 @@ export const BasePlaylistForPlaylistResponseSchema = z.object({
     imageUrl: z.string(),
     owner: z.string(),
     description: z.string().nullable(),
-    itemCount: z.number(),
+    itemCount: z.number().default(0),
 });
 
 export type BasePlaylistForPlaylistResponse = z.infer<

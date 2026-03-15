@@ -5,9 +5,9 @@ export const YoutubeChannelResponseSchema = z.object({
     publicId: z.string(),
     name: z.string(),
     imageUrl: z.string().nullable(),
-    subscriberCount: z.number(),
-    videoCount: z.number(),
-    viewCount: z.number(),
+    subscriberCount: z.number().default(0),
+    videoCount: z.number().default(0),
+    viewCount: z.number().default(0),
     description: z.string().nullable(),
 });
 

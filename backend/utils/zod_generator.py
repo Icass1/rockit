@@ -173,6 +173,19 @@ def generate_zod_schema(
         zod_type = convert_type_to_zod(
             field_type, known_types, current_file, schema_refs
         )
+        # Handle default values from Pydantic Field(default_factory=list)
+        if field_info.default_factory is not None:
+            zod_type = f"{zod_type}.default([])"
+        elif field_info.default is not None:
+            default_val = field_info.default
+            if isinstance(default_val, list):
+                zod_type = f"{zod_type}.default([])"
+            elif isinstance(default_val, str):
+                zod_type = f'{zod_type}.default("{default_val}")'
+            elif isinstance(default_val, bool):
+                zod_type = f"{zod_type}.default({str(default_val).lower()})"
+            elif isinstance(default_val, (int, float)):
+                zod_type = f"{zod_type}.default({default_val})"
         fields[field_name] = zod_type
 
     if not fields:

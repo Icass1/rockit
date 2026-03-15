@@ -2,7 +2,7 @@ import { BaseArtistResponseSchema } from "@/dto";
 import { z } from "zod";
 
 export const BaseVideoResponseSchema = z.object({
-    type: z.union([z.literal("video")]),
+    type: z.union([z.literal("video")]).default("video"),
     provider: z.string(),
     publicId: z.string(),
     url: z.string(),

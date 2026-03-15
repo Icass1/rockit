@@ -26,7 +26,14 @@ export default function NavigationMobile() {
     const activePage = usePathname();
     const $user = useStore(rockIt.userManager.userAtom);
 
-    if (!$user) return null;
+    if (!$user) {
+        return (
+            <nav
+                aria-label="Mobile navigation"
+                className="safe-area-bottom mobile-nav-blur flex h-full w-full max-w-4xl touch-manipulation flex-row items-center justify-center bg-[#1a1a1a]/80 py-2 opacity-0"
+            />
+        );
+    }
 
     // All nav items in one place — Settings no longer hardcoded outside
     const pages: NavPage[] = [

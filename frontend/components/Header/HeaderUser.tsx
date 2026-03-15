@@ -16,7 +16,11 @@ export default function HeaderUser() {
     const router = useRouter();
     const $user = useStore(rockIt.userManager.userAtom);
 
-    if (!$user) return null;
+    if (!$user) {
+        return (
+            <div className="h-10 w-10 rounded-full bg-neutral-400 opacity-0" />
+        );
+    }
 
     const handleLogOut = () => rockIt.userManager.signOut();
 

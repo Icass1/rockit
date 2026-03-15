@@ -20,7 +20,11 @@ function FooterLeftForSong({ currentMedia }: { currentMedia: MediaType }) {
     const $playing = useStore(rockIt.audioManager.playingAtom);
     const $queue = useStore(rockIt.queueManager.queueAtom);
 
-    if (!$queue) return null;
+    if (!$queue) {
+        return (
+            <div className="flex w-full max-w-full min-w-0 items-center gap-x-4 text-sm text-gray-400 md:w-1/3 opacity-0" />
+        );
+    }
 
     return (
         <div className="grid w-full max-w-full min-w-0 grid-cols-[min-content_1fr_min-content] items-center gap-x-4 pr-2 md:w-1/3">

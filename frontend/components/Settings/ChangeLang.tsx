@@ -1,35 +1,45 @@
-import { VocabularyResponseSchema } from "@/dto";
+"use client";
+
 import { useStore } from "@nanostores/react";
-import useFetch from "@/hooks/useFetch";
 import { rockIt } from "@/lib/rockit/rockIt";
+
+const LANGUAGES = [
+    { value: "en", label: "English" },
+    { value: "es", label: "Español" },
+    { value: "eu", label: "Euskera" },
+    { value: "fr", label: "Français" },
+    { value: "it", label: "Italiano" },
+    { value: "de", label: "Deutsch" },
+    { value: "zh", label: "中文" },
+    { value: "ja", label: "日本語" },
+    { value: "ar", label: "عربي" },
+];
 
 export default function ChangeLang() {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const $lang = useStore(rockIt.vocabularyManager.langAtom);
 
-    const avalibaleLangs = useFetch("/vocabulary", VocabularyResponseSchema);
-
     return (
-        <div>
-            <label className="mb-2 block text-sm text-gray-300 md:text-lg">
+        <div className="flex flex-col gap-1.5">
+            <label
+                htmlFor="lang-select"
+                className="text-sm font-medium text-neutral-400"
+            >
                 {$vocabulary.LANGUAGE}
             </label>
             <select
+                id="lang-select"
                 value={$lang}
-                onChange={(event) => {
-                    rockIt.userManager.setLangAsync(event.currentTarget.value);
-                }}
-                className="w-full rounded-lg border border-[#333] bg-[#1e1e1e] p-3 text-white focus:ring-2 focus:ring-[#ec5588] focus:outline-none"
+                onChange={(e) =>
+                    rockIt.userManager.setLangAsync(e.currentTarget.value)
+                }
+                className="w-full rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-sm text-white transition-colors focus:border-[#ee1086] focus:outline-none focus:ring-1 focus:ring-[#ee1086]"
             >
-                <option value="en">English</option>
-                <option value="es">Español</option>
-                <option value="eu">Euskera</option>
-                <option value="fr">Français</option>
-                <option value="it">Italiano</option>
-                <option value="de">Deutsch</option>
-                <option value="zh">中文</option>
-                <option value="ja">日本語</option>
-                <option value="ar">عربي</option>
+                {LANGUAGES.map((l) => (
+                    <option key={l.value} value={l.value}>
+                        {l.label}
+                    </option>
+                ))}
             </select>
         </div>
     );

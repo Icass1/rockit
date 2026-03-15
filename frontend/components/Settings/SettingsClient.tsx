@@ -3,100 +3,189 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useStore } from "@nanostores/react";
-import { ChartLine, ImageUp } from "lucide-react";
+import { ChartLine, ImageUp, Lock } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import ChangeLang from "@/components/Settings/ChangeLang";
 import CrossFadeInput from "@/components/Settings/CrossFadeInput";
 import DownloadAppButton from "@/components/Settings/DownloadAppButton";
-import {
-    ChangeUsernameInput,
-    UserProfileSection,
-} from "@/components/Settings/hooks/useSettingsUser";
 import LogOutButton from "@/components/Settings/LogOutButton";
 import ServiceWorkerInfo from "@/components/Settings/ServiceWorkerInfo";
+import { useSettingsUser } from "@/components/Settings/hooks/useSettingsUser";
+
+function SettingsSection({
+    title,
+    children,
+}: {
+    title: string;
+    children: React.ReactNode;
+}) {
+    return (
+        <div className="flex flex-col gap-3 rounded-2xl border border-neutral-800/60 bg-neutral-900/50 p-4 md:p-5">
+            <h3 className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                {title}
+            </h3>
+            {children}
+        </div>
+    );
+}
+
+function ProfileSidebar() {
+    const { username, isLoading } = useSettingsUser();
+
+    return (
+        <div className="flex flex-col items-center gap-4">
+            <div className="group relative">
+                <Image
+                    src={rockIt.USER_PLACEHOLDER_IMAGE_URL}
+                    alt="Profile picture"
+                    width={200}
+                    height={200}
+                    className="h-32 w-32 rounded-full object-cover ring-2 ring-neutral-700 transition-all group-hover:ring-[#ee1086] md:h-44 md:w-44"
+                />
+                <button
+                    type="button"
+                    aria-label="Change profile picture"
+                    className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 transition-opacity group-hover:opacity-100"
+                >
+                    <ImageUp className="h-8 w-8 text-white md:h-10 md:w-10" />
+                </button>
+            </div>
+
+            {isLoading ? (
+                <div className="flex flex-col items-center gap-1">
+                    <div className="skeleton h-5 w-28 rounded" />
+                    <div className="skeleton h-4 w-20 rounded" />
+                </div>
+            ) : (
+                <div className="text-center">
+                    <p className="text-lg font-bold text-white">{username}</p>
+                    <p className="text-sm text-neutral-500">@{username}</p>
+                </div>
+            )}
+
+            <div className="flex flex-wrap justify-center gap-2">
+                <LogOutButton />
+                <Link
+                    href="/stats"
+                    className="flex items-center gap-1.5 rounded-xl bg-neutral-800 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 md:hidden"
+                >
+                    <ChartLine className="h-4 w-4" />
+                    Stats
+                </Link>
+            </div>
+        </div>
+    );
+}
+
+function PasswordSection({ vocabulary }: { vocabulary: Record<string, string> }) {
+    return (
+        <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-1.5">
+                <label
+                    htmlFor="new-password"
+                    className="text-sm font-medium text-neutral-400"
+                >
+                    {vocabulary.NEW_PASSWORD ?? "New password"}
+                </label>
+                <input
+                    id="new-password"
+                    type="password"
+                    autoComplete="new-password"
+                    placeholder="••••••••"
+                    className="w-full rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-sm text-white transition-colors focus:border-[#ee1086] focus:outline-none focus:ring-1 focus:ring-[#ee1086]"
+                />
+            </div>
+            <div className="flex flex-col gap-1.5">
+                <label
+                    htmlFor="repeat-password"
+                    className="text-sm font-medium text-neutral-400"
+                >
+                    {vocabulary.REPEAT_PASSWORD ?? "Repeat password"}
+                </label>
+                <input
+                    id="repeat-password"
+                    type="password"
+                    autoComplete="new-password"
+                    placeholder="••••••••"
+                    className="w-full rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-sm text-white transition-colors focus:border-[#ee1086] focus:outline-none focus:ring-1 focus:ring-[#ee1086]"
+                />
+            </div>
+        </div>
+    );
+}
+
+function DisplayNameInput({ vocabulary }: { vocabulary: Record<string, string> }) {
+    const { username, isLoading } = useSettingsUser();
+
+    return (
+        <div className="flex flex-col gap-1.5">
+            <label
+                htmlFor="display-name"
+                className="text-sm font-medium text-neutral-400"
+            >
+                {vocabulary.DISPLAY_NAME ?? "Display name"}
+            </label>
+            <input
+                id="display-name"
+                type="text"
+                defaultValue={isLoading ? "" : username}
+                disabled={isLoading}
+                className="w-full rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-sm text-white transition-colors focus:border-[#ee1086] focus:outline-none focus:ring-1 focus:ring-[#ee1086] disabled:opacity-50"
+            />
+        </div>
+    );
+}
 
 export default function SettingsClient() {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     return (
-        <div className="relative flex h-full flex-col overflow-y-auto pt-24 md:h-[calc(100%-6rem)] md:overflow-y-hidden">
-            <div className="flex w-full flex-col items-center gap-8 px-4 md:h-full md:flex-row md:items-start md:gap-16 md:px-0">
-                <div className="flex w-full flex-col items-center justify-center border-b border-gray-700 pb-8 md:mt-0 md:h-full md:w-1/3 md:border-r md:border-b-0 md:pb-0">
-                    <div className="group relative flex items-center justify-center">
-                        <Image
-                            src={rockIt.USER_PLACEHOLDER_IMAGE_URL}
-                            alt="User Profile Picture"
-                            width={360}
-                            height={360}
-                            className="aspect-square h-48 w-auto rounded-full bg-neutral-400 object-cover shadow-md transition duration-300 md:h-72"
-                        />
-                        <div className="absolute inset-0 flex aspect-square cursor-pointer items-center justify-center rounded-full bg-black/20 transition duration-300 md:h-full md:opacity-0 md:group-hover:opacity-100">
-                            <ImageUp className="h-16 w-16 text-white md:h-24 md:w-24" />
+        <div className="mx-auto max-w-4xl px-4 md:px-8 md:py-10 md:pb-10">
+
+                <h1 className="mb-6 text-2xl font-bold text-white">
+                    {$vocabulary.USER_SETTINGS ?? "Settings"}
+                </h1>
+
+                <div className="flex flex-col gap-6 md:flex-row md:items-start md:gap-8">
+
+                    <div className="md:sticky md:top-0 md:w-64 md:shrink-0">
+                        <div className="rounded-2xl border border-neutral-800/60 bg-neutral-900/50 p-5">
+                            <ProfileSidebar />
                         </div>
                     </div>
-                    <UserProfileSection />
 
-                    <div className="mt-2 flex flex-wrap items-center justify-center gap-2">
-                        <LogOutButton />
+                    <div className="flex flex-1 flex-col gap-4 min-w-0">
 
-                        <Link
-                            className="flex w-40 items-center justify-center gap-2 rounded-lg bg-blue-700 py-2 font-bold text-white shadow-md transition duration-300 hover:bg-blue-900 md:hidden"
-                            href="/stats"
-                        >
-                            <ChartLine className="h-5 w-5" />
-                            See User Stats
-                        </Link>
-                    </div>
-                </div>
+                        <SettingsSection title={$vocabulary.DISPLAY_NAME ?? "Account"}>
+                            <DisplayNameInput vocabulary={$vocabulary as unknown as Record<string, string>} />
+                        </SettingsSection>
 
-                <div className="flex h-full w-full flex-col gap-y-4 md:w-2/3 md:gap-y-6 md:overflow-y-auto md:pr-[30%] md:pl-1">
-                    <h2 className="top-0 z-10 bg-linear-to-b from-[rgb(11,11,11)] to-transparent py-2 text-center text-xl font-bold text-white md:sticky md:text-2xl">
-                        {$vocabulary.USER_SETTINGS}
-                    </h2>
-                    <div>
-                        <label className="mb-2 block text-sm text-gray-300 md:text-lg">
-                            {$vocabulary.DISPLAY_NAME}
-                        </label>
-                        <ChangeUsernameInput />
-                    </div>
+                        <SettingsSection title={$vocabulary.LANGUAGE ?? "Language"}>
+                            <ChangeLang />
+                        </SettingsSection>
 
-                    <ChangeLang />
+                        <SettingsSection title={$vocabulary.CHANGE_PASSWORD ?? "Password"}>
+                            <div className="flex items-center gap-2 mb-1">
+                                <Lock className="h-3.5 w-3.5 text-neutral-500" />
+                                <span className="text-xs text-neutral-500">
+                                    Leave blank to keep current password
+                                </span>
+                            </div>
+                            <PasswordSection vocabulary={$vocabulary as unknown as Record<string, string>} />
+                        </SettingsSection>
 
-                    <form>
-                        <div>
-                            <label className="mb-2 block text-sm text-gray-300 md:text-lg">
-                                {$vocabulary.CHANGE_PASSWORD}
-                            </label>
-                            <input
-                                type="password"
-                                autoComplete="new-password"
-                                placeholder={$vocabulary.NEW_PASSWORD}
-                                className="w-full rounded-lg border border-[#333] bg-[#1e1e1e] p-3 text-white focus:ring-2 focus:ring-[#ec5588] focus:outline-none"
-                            />
-                        </div>
-                        <div>
-                            <label className="mb-2 block text-sm text-gray-300 md:text-lg">
-                                {$vocabulary.REPEAT_PASSWORD}
-                            </label>
-                            <input
-                                type="password"
-                                autoComplete="new-password"
-                                placeholder={$vocabulary.REPEAT_PASSWORD}
-                                className="w-full rounded-lg border border-[#333] bg-[#1e1e1e] p-3 text-white focus:ring-2 focus:ring-[#ec5588] focus:outline-none"
-                            />
-                        </div>
-                    </form>
+                        <SettingsSection title="Audio">
+                            <CrossFadeInput />
+                        </SettingsSection>
 
-                    <div>
-                        <h2 className="mb-2 text-xl font-bold text-white md:text-2xl">
-                            Cross Fade
-                        </h2>
-                        <CrossFadeInput />
-                    </div>
+                        <SettingsSection title={$vocabulary.DOWNLOAD_APP ?? "App"}>
+                            <DownloadAppButton />
+                        </SettingsSection>
 
-                    <DownloadAppButton />
-                    <ServiceWorkerInfo />
-                    <div className="block min-h-24 md:min-h-16"></div>
+                        <SettingsSection title="Service Worker">
+                            <ServiceWorkerInfo />
+                        </SettingsSection>
+
                 </div>
             </div>
         </div>

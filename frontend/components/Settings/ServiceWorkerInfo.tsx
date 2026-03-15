@@ -1,105 +1,69 @@
+"use client";
+
 import { useState } from "react";
 import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
 
+const SW_ACTIONS = ["GET_INFO", "UPDATE", "REGISTER", "UNREGISTER"] as const;
+
+type SwAction = (typeof SW_ACTIONS)[number];
+
 export default function ServiceWorkerInfo() {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
-    const [status, setStatus] = useState<string>($vocabulary.NO_DATA);
+    const [status, setStatus] = useState<string>($vocabulary.NO_DATA ?? "—");
 
-    const handleGetInfo = async () => {
+    const handleAction = async (action: SwAction) => {
         if (!("serviceWorker" in navigator)) {
-            setStatus($vocabulary.DEVICE_DOESNT_SUPPORT_SERVICE_WORKER);
+            setStatus(
+                $vocabulary.DEVICE_DOESNT_SUPPORT_SERVICE_WORKER ??
+                    "Service Worker not supported"
+            );
             return;
         }
 
-        const data = await navigator.serviceWorker.getRegistration();
-
-        if (!data) {
-            setStatus($vocabulary.NO_SERVICE_WORKER);
-        } else {
-            setStatus(data.active?.state ?? $vocabulary.NO_STATE);
+        if (action === "GET_INFO") {
+            const reg = await navigator.serviceWorker.getRegistration();
+            setStatus(
+                reg
+                    ? (reg.active?.state ?? ($vocabulary.NO_STATE ?? "No state"))
+                    : ($vocabulary.NO_SERVICE_WORKER ?? "No service worker")
+            );
+            return;
         }
+
+        const labels: Record<SwAction, string> = {
+            GET_INFO:   "",
+            UPDATE:     $vocabulary.UPDATING   ?? "Updating…",
+            REGISTER:   $vocabulary.REGISTERING ?? "Registering…",
+            UNREGISTER: $vocabulary.UNREGISTERING ?? "Unregistering…",
+        };
+        setStatus(labels[action]);
     };
 
-    const handleUpdate = async () => {
-        if (!("serviceWorker" in navigator)) {
-            setStatus($vocabulary.DEVICE_DOESNT_SUPPORT_SERVICE_WORKER);
-            return;
-        }
-        // if (!serviceWorkerRegistration.get()) {
-        //     setStatus("No service worker registration found.");
-        //     return;
-        // }
-        setStatus("Updating.");
-        // await serviceWorkerRegistration.get()?.update();
-        setStatus("Updated.");
-    };
-
-    const handleUnregister = async () => {
-        if (!("serviceWorker" in navigator)) {
-            setStatus($vocabulary.DEVICE_DOESNT_SUPPORT_SERVICE_WORKER);
-            return;
-        }
-
-        // if (!serviceWorkerRegistration.get()) {
-        //     setStatus("No service worker registration found.");
-        //     return;
-        // }
-        setStatus($vocabulary.UNREGISTERING);
-        // await serviceWorkerRegistration.get()?.unregister();
-        // serviceWorkerRegistration.set(undefined);
-        setStatus($vocabulary.UNREGISTERED);
-    };
-
-    const handleRegister = async () => {
-        if (!("serviceWorker" in navigator)) {
-            setStatus($vocabulary.DEVICE_DOESNT_SUPPORT_SERVICE_WORKER);
-            return;
-        }
-
-        setStatus($vocabulary.REGISTERING);
-
-        // const registration = await navigator.serviceWorker.register(
-        //     "/service-worker.js",
-        //     {
-        //         scope: "/",
-        //         type: "module",
-        //     }
-        // );
-        // serviceWorkerRegistration.set(registration);
-        setStatus($vocabulary.REGISTERED);
+    const buttonLabels: Record<SwAction, string> = {
+        GET_INFO:   $vocabulary.GET_INFO   ?? "Get info",
+        UPDATE:     $vocabulary.UPDATE     ?? "Update",
+        REGISTER:   $vocabulary.REGISTER   ?? "Register",
+        UNREGISTER: $vocabulary.UNREGISTER ?? "Unregister",
     };
 
     return (
-        <div className="flex flex-col gap-y-1">
-            <h2 className="mb-2 text-xl font-bold text-white md:text-2xl">
-                Service Worker
-            </h2>
-            <button
-                onClick={handleGetInfo}
-                className="flex w-28 items-center justify-center gap-2 rounded-lg bg-[#1e1e1e] py-2 text-white shadow-md transition duration-300 active:bg-green-700 md:w-32 md:hover:bg-green-700"
-            >
-                {$vocabulary.GET_INFO}
-            </button>
-            <button
-                onClick={handleUpdate}
-                className="flex w-28 items-center justify-center gap-2 rounded-lg bg-[#1e1e1e] py-2 text-white shadow-md transition duration-300 active:bg-green-700 md:w-32 md:hover:bg-green-700"
-            >
-                {$vocabulary.UPDATE}
-            </button>
-            <button
-                onClick={handleRegister}
-                className="flex w-28 items-center justify-center gap-2 rounded-lg bg-[#1e1e1e] py-2 text-white shadow-md transition duration-300 active:bg-green-700 md:w-32 md:hover:bg-green-700"
-            >
-                {$vocabulary.REGISTER}
-            </button>
-            <button
-                onClick={handleUnregister}
-                className="flex w-28 items-center justify-center gap-2 rounded-lg bg-[#1e1e1e] py-2 text-white shadow-md transition duration-300 active:bg-green-700 md:w-32 md:hover:bg-green-700"
-            >
-                {$vocabulary.UNREGISTER}
-            </button>
-            <div className="gap-x-2">{status}</div>
+        <div className="flex flex-col gap-3">
+            <div className="flex flex-wrap gap-2">
+                {SW_ACTIONS.map((action) => (
+                    <button
+                        key={action}
+                        type="button"
+                        onClick={() => handleAction(action)}
+                        className="rounded-xl bg-neutral-800 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-neutral-700 active:bg-green-700"
+                    >
+                        {buttonLabels[action]}
+                    </button>
+                ))}
+            </div>
+            {status && (
+                <p className="text-xs text-neutral-500">{status}</p>
+            )}
         </div>
     );
 }

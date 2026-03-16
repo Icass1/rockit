@@ -7,6 +7,8 @@ from fastapi import FastAPI
 
 from backend.utils.logger import getLogger
 
+from backend.constants import FRONTEND_URL
+
 from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 from backend.core.middlewares.requestLogMiddleware import RequestLogMiddleware
 
@@ -30,7 +32,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[FRONTEND_URL],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

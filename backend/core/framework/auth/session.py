@@ -47,6 +47,7 @@ class Session:
             max_age=SESSION_DURATION,
             samesite="lax",
             secure=secure,
+            domain=".rockit.rockhosting.org" if ENVIRONMENT == "PROD" else None,
         )
 
         return AResultCode(code=AResultCode.OK, message="OK")
@@ -62,7 +63,7 @@ class Session:
         )
 
         if a_result_session.is_not_ok():
-            logger.error(f"Error getting session from id. {a_result_session.info()}")
+            logger.error(f"Error getting session from id '{session_id}'. {a_result_session.info()}")
             return AResult[SessionRow](
                 code=a_result_session.code(), message=a_result_session.message()
             )

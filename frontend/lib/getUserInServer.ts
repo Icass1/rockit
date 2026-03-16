@@ -6,10 +6,13 @@ export async function getUserInServer(): Promise<SessionResponse | undefined> {
     const cookieStore = await cookies();
     const session = cookieStore.get("session_id")?.value;
 
+    const headers: Record<string, string> = {};
+    if (session) {
+        headers.Cookie = `session_id=${session}`;
+    }
+
     const res = await fetch(`${BACKEND_URL}/user/session`, {
-        headers: {
-            Cookie: `session_id=${session}`,
-        },
+        headers,
         cache: "no-store",
     });
 

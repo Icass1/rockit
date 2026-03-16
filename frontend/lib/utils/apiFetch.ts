@@ -36,12 +36,18 @@ export async function baseApiFetch(
         const cookieStore = await cookies();
         const session = cookieStore.get("session_id")?.value;
 
+        const existingHeaders = typeof headers === "object" && !Array.isArray(headers)
+            ? headers as Record<string, string>
+            : {};
+
+        const requestHeaders: Record<string, string> = {
+            ...existingHeaders,
+            ...(session ? { Cookie: `session_id=${session}` } : {}),
+        };
+
         return fetch(`${BACKEND_URL}${path}`, {
             method,
-            headers: {
-                Cookie: `session_id=${session}`,
-                ...headers,
-            },
+            headers: requestHeaders,
             body,
             cache: "no-store",
         });

@@ -1,0 +1,17 @@
+FROM rockit-backend-base:latest
+
+ENV PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+COPY backend/ /app/backend
+
+RUN mkdir -p /app/media /app/images /app/temp /app/logs
+
+RUN chmod -R 755 /app
+
+ENV PYTHONPATH=/app
+
+EXPOSE 8000
+
+CMD ["uvicorn", "backend.core.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

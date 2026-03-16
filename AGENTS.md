@@ -73,6 +73,9 @@ pnpm dev
 # Build
 pnpm build
 
+# Production
+pnpm start
+
 # Lint
 pnpm lint
 

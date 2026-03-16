@@ -106,7 +106,7 @@ export default function Navigation() {
     return (
         <div
             className={
-                "mx-auto h-full max-h-full min-h-0 overflow-hidden bg-black/50 pt-4 pb-4 transition-all duration-400 select-none" +
+                "duration-400 mx-auto h-full max-h-full min-h-0 select-none overflow-hidden bg-black/50 pb-4 pt-4 transition-all" +
                 (open ? " w-56" : " w-12")
             }
             onMouseEnter={handleMouseEnter}
@@ -131,7 +131,7 @@ export default function Navigation() {
                                 id={"navigation-" + page.name}
                                 href={page.href}
                                 title={page.title}
-                                className={`relative mr-2 ml-2 flex h-8 items-center gap-2 rounded-md transition-all ${
+                                className={`relative ml-2 mr-2 flex h-8 items-center gap-2 rounded-md transition-all ${
                                     activePage === page.href
                                         ? "bg-white text-black"
                                         : "text-white md:hover:bg-[#414141]"
@@ -140,7 +140,7 @@ export default function Navigation() {
                                 <div className="relative flex h-8 w-8 items-center justify-center">
                                     {page.name == "Downloads" &&
                                         $downloads.length > 0 && (
-                                            <label className="absolute top-0 right-0 h-4 w-4 rounded-full bg-red-400 text-center text-xs">
+                                            <label className="absolute right-0 top-0 h-4 w-4 rounded-full bg-red-400 text-center text-xs">
                                                 {$downloads.length}
                                             </label>
                                         )}
@@ -154,13 +154,13 @@ export default function Navigation() {
                     })}
 
                 <div
-                    className={`ml-2 h-1 rounded-full bg-neutral-600 transition-all duration-400 ${
+                    className={`duration-400 ml-2 h-1 rounded-full bg-neutral-600 transition-all ${
                         open ? "w-52" : "w-8"
                     }`}
                 ></div>
 
                 <div
-                    className="mr-2 ml-2 flex h-4 cursor-pointer items-center gap-2 rounded-md transition-all"
+                    className="ml-2 mr-2 flex h-4 cursor-pointer items-center gap-2 rounded-md transition-all"
                     style={{ fontSize: open ? "" : "0 px" }}
                 >
                     <div className="flex h-8 w-8 items-center justify-center">
@@ -177,7 +177,7 @@ export default function Navigation() {
                                 key={list.publicId}
                                 href={`/${list.type}/${list.publicId}`}
                                 title={list.name}
-                                className={`mr-2 ml-2 flex h-8 cursor-pointer items-center gap-3 rounded-md transition-all md:hover:bg-[#414141]`}
+                                className={`ml-2 mr-2 flex h-8 cursor-pointer items-center gap-3 rounded-md transition-all md:hover:bg-[#414141]`}
                             >
                                 <Image
                                     alt={list.name}

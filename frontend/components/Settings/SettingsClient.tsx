@@ -21,7 +21,7 @@ function SettingsSection({
 }) {
     return (
         <div className="flex flex-col gap-3 rounded-2xl border border-neutral-800/60 bg-neutral-900/50 p-4 md:p-5">
-            <h3 className="text-[10px] font-bold tracking-widest text-neutral-500 uppercase">
+            <h3 className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
                 {title}
             </h3>
             {children}
@@ -96,7 +96,7 @@ function PasswordSection({
                     type="password"
                     autoComplete="new-password"
                     placeholder="••••••••"
-                    className="w-full rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-sm text-white transition-colors focus:border-[#ee1086] focus:ring-1 focus:ring-[#ee1086] focus:outline-none"
+                    className="w-full rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-sm text-white transition-colors focus:border-[#ee1086] focus:outline-none focus:ring-1 focus:ring-[#ee1086]"
                 />
             </div>
             <div className="flex flex-col gap-1.5">
@@ -111,7 +111,7 @@ function PasswordSection({
                     type="password"
                     autoComplete="new-password"
                     placeholder="••••••••"
-                    className="w-full rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-sm text-white transition-colors focus:border-[#ee1086] focus:ring-1 focus:ring-[#ee1086] focus:outline-none"
+                    className="w-full rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-sm text-white transition-colors focus:border-[#ee1086] focus:outline-none focus:ring-1 focus:ring-[#ee1086]"
                 />
             </div>
         </div>
@@ -138,7 +138,7 @@ function DisplayNameInput({
                 type="text"
                 defaultValue={isLoading ? "" : username}
                 disabled={isLoading}
-                className="w-full rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-sm text-white transition-colors focus:border-[#ee1086] focus:ring-1 focus:ring-[#ee1086] focus:outline-none disabled:opacity-50"
+                className="w-full rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-sm text-white transition-colors focus:border-[#ee1086] focus:outline-none focus:ring-1 focus:ring-[#ee1086] disabled:opacity-50"
             />
         </div>
     );

@@ -26,7 +26,7 @@ export default function CrossFadeInput() {
                     }
                     max={40}
                     min={0}
-                    className="w-20 rounded-xl border border-neutral-700 bg-neutral-800 px-3 py-2.5 text-center text-sm text-white transition-colors focus:border-[#ee1086] focus:ring-1 focus:ring-[#ee1086] focus:outline-none"
+                    className="w-20 rounded-xl border border-neutral-700 bg-neutral-800 px-3 py-2.5 text-center text-sm text-white transition-colors focus:border-[#ee1086] focus:outline-none focus:ring-1 focus:ring-[#ee1086]"
                 />
                 <span className="text-sm text-neutral-500">seconds</span>
             </div>

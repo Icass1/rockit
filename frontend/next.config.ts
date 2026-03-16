@@ -27,7 +27,7 @@ const nextConfig: NextConfig = {
                 pathname: "/image/**",
             },
         ],
-    }
+    },
 };
 
 export default nextConfig;

@@ -50,12 +50,12 @@ export function ListCover({
             />
 
             {isDownloading && (
-                <div className="absolute top-10 right-10 bottom-10 left-10">
+                <div className="absolute bottom-10 left-10 right-10 top-10">
                     <DownloadAnimation progress={downloadProgress} />
                 </div>
             )}
 
-            <div className="absolute right-3 bottom-3 flex h-16 w-auto flex-row gap-4 md:h-20">
+            <div className="absolute bottom-3 right-3 flex h-16 w-auto flex-row gap-4 md:h-20">
                 {anyDownloaded && <PlayListButton type={type} id={publicId} />}
                 {!allDownloaded && <DownloadListButton publicIds={publicIds} />}
             </div>

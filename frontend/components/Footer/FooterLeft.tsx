@@ -22,12 +22,12 @@ function FooterLeftForSong({ currentMedia }: { currentMedia: MediaType }) {
 
     if (!$queue) {
         return (
-            <div className="flex w-full max-w-full min-w-0 items-center gap-x-4 text-sm text-gray-400 opacity-0 md:w-1/3" />
+            <div className="flex w-full min-w-0 max-w-full items-center gap-x-4 text-sm text-gray-400 opacity-0 md:w-1/3" />
         );
     }
 
     return (
-        <div className="grid w-full max-w-full min-w-0 grid-cols-[min-content_1fr_min-content] items-center gap-x-4 pr-2 md:w-1/3">
+        <div className="grid w-full min-w-0 max-w-full grid-cols-[min-content_1fr_min-content] items-center gap-x-4 pr-2 md:w-1/3">
             {/* Album cover */}
             <div
                 className="group relative h-9 w-9 cursor-pointer rounded-md md:h-16 md:w-16"
@@ -38,7 +38,7 @@ function FooterLeftForSong({ currentMedia }: { currentMedia: MediaType }) {
                     height={64}
                     src={currentMedia.imageUrl}
                     alt={`Cover of ${currentMedia.name}`}
-                    className="absolute h-9 w-9 rounded-md object-cover transition duration-300 select-none group-hover:brightness-50 md:h-16 md:w-16"
+                    className="absolute h-9 w-9 select-none rounded-md object-cover transition duration-300 group-hover:brightness-50 md:h-16 md:w-16"
                 />
                 <div className="absolute inset-0 flex items-center justify-center opacity-0 transition group-hover:opacity-100">
                     {$playing ? (
@@ -50,9 +50,9 @@ function FooterLeftForSong({ currentMedia }: { currentMedia: MediaType }) {
             </div>
 
             {/* Song info */}
-            <div className="relative h-full w-full max-w-full min-w-0 overflow-hidden">
+            <div className="relative h-full w-full min-w-0 max-w-full overflow-hidden">
                 <div className="relative top-1/2 flex -translate-y-1/2 flex-col">
-                    <span className="w-full max-w-full min-w-0 truncate font-semibold">
+                    <span className="w-full min-w-0 max-w-full truncate font-semibold">
                         {currentMedia.name || "Unknown song"}
                     </span>
                     <div className="flex w-full flex-row gap-x-1 text-sm text-gray-400">
@@ -90,7 +90,7 @@ function FooterLeftForStation({ currentStation }: { currentStation: Station }) {
     const $playing = useStore(rockIt.audioManager.playingAtom);
 
     return (
-        <div className="flex w-full max-w-full min-w-0 items-center gap-x-4 md:w-1/3">
+        <div className="flex w-full min-w-0 max-w-full items-center gap-x-4 md:w-1/3">
             {/* Station cover — hover con CSS group, sin useState */}
             <div className="group relative h-9 w-9 overflow-hidden rounded-md md:h-16 md:w-16">
                 <Image
@@ -98,7 +98,7 @@ function FooterLeftForStation({ currentStation }: { currentStation: Station }) {
                     height={64}
                     src={currentStation.favicon}
                     alt={currentStation.name}
-                    className="absolute h-full w-full object-cover select-none"
+                    className="absolute h-full w-full select-none object-cover"
                 />
                 <div className="absolute inset-0 hidden items-center justify-center bg-neutral-500/70 group-hover:flex">
                     {$playing ? (
@@ -140,7 +140,7 @@ export default function FooterLeft() {
         return <FooterLeftForStation currentStation={$currentStation} />;
 
     return (
-        <div className="flex w-full max-w-full min-w-0 items-center gap-x-4 text-sm text-gray-400 md:w-1/3">
+        <div className="flex w-full min-w-0 max-w-full items-center gap-x-4 text-sm text-gray-400 md:w-1/3">
             Nothing playing
         </div>
     );

@@ -62,7 +62,7 @@ function Bar({
         <div
             ref={divRef}
             onMouseMove={handleMouseMove}
-            className="absolute block -translate-x-1/2 bg-linear-to-t from-[#ee1086] to-[#fb6467] transition-all duration-300 ease-in-out md:hover:brightness-150"
+            className="bg-linear-to-t absolute block -translate-x-1/2 from-[#ee1086] to-[#fb6467] transition-all duration-300 ease-in-out md:hover:brightness-150"
             style={{
                 left: `calc((100% ) / ${dataLength} * ${index}  + (100%) / ${dataLength} / 2)`,
                 height: `calc((100%) * ${entry.minutes / maxValue})`,
@@ -70,7 +70,7 @@ function Bar({
                 width: `calc((100%) / ${dataLength} - 10px)`,
             }}
         >
-            <label className="absolute right-1/2 -bottom-5 origin-right -rotate-45 text-xs text-nowrap text-white">
+            <label className="absolute -bottom-5 right-1/2 origin-right -rotate-45 text-nowrap text-xs text-white">
                 {getDateDDMMYYYY(entry.start)} - {getDateDDMMYYYY(entry.end)}
             </label>
         </div>
@@ -112,7 +112,7 @@ export default function VerticalBarGraph({
     maxValue = scale * groups;
 
     return (
-        <div className="relative h-125 overflow-hidden rounded-lg bg-neutral-800 p-2">
+        <div className="h-125 relative overflow-hidden rounded-lg bg-neutral-800 p-2">
             <div
                 className="absolute"
                 style={{
@@ -157,7 +157,7 @@ export default function VerticalBarGraph({
             </div>
 
             <div
-                className="absolute top-0 right-0 left-0 text-center text-xl font-semibold"
+                className="absolute left-0 right-0 top-0 text-center text-xl font-semibold"
                 style={{ height: marginTop }}
             >
                 {title}
@@ -171,13 +171,13 @@ export default function VerticalBarGraph({
                     top: marginTop,
                 }}
             >
-                <label className="absolute top-1/2 left-6 -translate-1/2 -rotate-90 text-xl font-semibold text-nowrap">
+                <label className="-translate-1/2 absolute left-6 top-1/2 -rotate-90 text-nowrap text-xl font-semibold">
                     Minutes listened
                 </label>
             </div>
 
             <div
-                className="absolute top-0 right-0 h-full"
+                className="absolute right-0 top-0 h-full"
                 style={{ width: marginRight }}
             />
 

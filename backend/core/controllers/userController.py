@@ -127,15 +127,21 @@ async def get_library_lists(request: Request) -> LibraryListsResponse:
         BaseAlbumWithoutSongsResponse | BasePlaylistResponse | BaseSongWithAlbumResponse
     ] = a_result_albums.result()
 
-    albums: List[BaseAlbumWithoutSongsResponse] = [
-        m for m in library_media if isinstance(m, BaseAlbumWithoutSongsResponse)
-    ] if library_media else []
-    playlists: List[BasePlaylistResponse] = [
-        m for m in library_media if isinstance(m, BasePlaylistResponse)
-    ] if library_media else []
-    songs: List[BaseSongWithAlbumResponse] = [
-        m for m in library_media if isinstance(m, BaseSongWithAlbumResponse)
-    ] if library_media else []
+    albums: List[BaseAlbumWithoutSongsResponse] = (
+        [m for m in library_media if isinstance(m, BaseAlbumWithoutSongsResponse)]
+        if library_media
+        else []
+    )
+    playlists: List[BasePlaylistResponse] = (
+        [m for m in library_media if isinstance(m, BasePlaylistResponse)]
+        if library_media
+        else []
+    )
+    songs: List[BaseSongWithAlbumResponse] = (
+        [m for m in library_media if isinstance(m, BaseSongWithAlbumResponse)]
+        if library_media
+        else []
+    )
 
     return LibraryListsResponse(
         albums=albums,

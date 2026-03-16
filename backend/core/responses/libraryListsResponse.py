@@ -1,5 +1,5 @@
 from typing import List
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
 from backend.core.responses.baseAlbumWithoutSongsResponse import (
@@ -11,9 +11,9 @@ from backend.core.responses.baseVideoResponse import BaseVideoResponse
 
 
 class LibraryListsResponse(BaseModel):
-    albums: List[BaseAlbumWithoutSongsResponse] = Field(default_factory=list)
-    playlists: List[BasePlaylistResponse] = Field(default_factory=list)
-    songs: List[BaseSongWithAlbumResponse] = Field(default_factory=list)
-    videos: List[BaseVideoResponse] = Field(default_factory=list)
-    stations: List[BaseStationResponse] = Field(default_factory=list)
-    shared: List[BasePlaylistResponse] = Field(default_factory=list)
+    albums: List[BaseAlbumWithoutSongsResponse]
+    playlists: List[BasePlaylistResponse]
+    songs: List[BaseSongWithAlbumResponse]
+    videos: List[BaseVideoResponse]
+    stations: List[BaseStationResponse]
+    shared: List[BasePlaylistResponse]

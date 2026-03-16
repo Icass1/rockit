@@ -73,7 +73,7 @@ export function PlayerUIQueueList({
                         <ContextMenu>
                             <ContextMenuTrigger>
                                 <div className="grid grid-cols-[1fr_45px] items-center">
-                                    <div className="w-full max-w-full min-w-0">
+                                    <div className="w-full min-w-0 max-w-full">
                                         <QueueMedia media={queueMedia} />
                                     </div>
                                     <GripVertical
@@ -193,7 +193,7 @@ export function PlayerUIQueueList({
                             <ContextMenu>
                                 <ContextMenuTrigger>
                                     <div className="grid grid-cols-[1fr_45px] items-center">
-                                        <div className="w-full max-w-full min-w-0">
+                                        <div className="w-full min-w-0 max-w-full">
                                             <QueueMedia media={autoMedia} />
                                         </div>
                                         <ListPlus className="h-full w-full p-1 pr-4" />

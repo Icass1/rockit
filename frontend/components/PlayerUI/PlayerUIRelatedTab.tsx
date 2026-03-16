@@ -16,7 +16,7 @@ export function PlayerUIRelatedTab() {
                     {Array.from({ length: MOCK_COLUMNS }).map((_, colIdx) => (
                         <div
                             key={colIdx}
-                            className="flex w-[calc(50%-10px)] max-w-75 flex-none snap-center flex-col gap-1"
+                            className="max-w-75 flex w-[calc(50%-10px)] flex-none snap-center flex-col gap-1"
                         >
                             {Array.from({ length: MOCK_SONGS_PER_COLUMN }).map(
                                 (_, songIdx) => {

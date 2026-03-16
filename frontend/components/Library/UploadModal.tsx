@@ -308,7 +308,7 @@ export default function UploadModal({ isOpen, onClose }: UploadModalProps) {
                                                             )
                                                         }
                                                         placeholder="Title"
-                                                        className="min-w-0 flex-1 rounded-md bg-neutral-700 px-2 py-1.5 text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                                                        className="min-w-0 flex-1 rounded-md bg-neutral-700 px-2 py-1.5 text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
                                                     />
                                                     <input
                                                         type="text"
@@ -325,7 +325,7 @@ export default function UploadModal({ isOpen, onClose }: UploadModalProps) {
                                                         }
                                                         placeholder="#"
                                                         inputMode="numeric"
-                                                        className="w-14 rounded-md bg-neutral-700 px-2 py-1.5 text-center text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                                                        className="w-14 rounded-md bg-neutral-700 px-2 py-1.5 text-center text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
                                                     />
                                                 </div>
                                                 {/* Row 2: Artist + Album + Year */}
@@ -344,7 +344,7 @@ export default function UploadModal({ isOpen, onClose }: UploadModalProps) {
                                                             )
                                                         }
                                                         placeholder="Artist"
-                                                        className="min-w-0 flex-1 rounded-md bg-neutral-700 px-2 py-1.5 text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                                                        className="min-w-0 flex-1 rounded-md bg-neutral-700 px-2 py-1.5 text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
                                                     />
                                                     <input
                                                         type="text"
@@ -360,7 +360,7 @@ export default function UploadModal({ isOpen, onClose }: UploadModalProps) {
                                                             )
                                                         }
                                                         placeholder="Album"
-                                                        className="min-w-0 flex-1 rounded-md bg-neutral-700 px-2 py-1.5 text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                                                        className="min-w-0 flex-1 rounded-md bg-neutral-700 px-2 py-1.5 text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
                                                     />
                                                     <input
                                                         type="text"
@@ -377,7 +377,7 @@ export default function UploadModal({ isOpen, onClose }: UploadModalProps) {
                                                         }
                                                         placeholder="Year"
                                                         inputMode="numeric"
-                                                        className="w-20 rounded-md bg-neutral-700 px-2 py-1.5 text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                                                        className="w-20 rounded-md bg-neutral-700 px-2 py-1.5 text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
                                                     />
                                                 </div>
                                             </div>

@@ -1,7 +1,13 @@
 {
-	"dependencies": {
-		"@ianvs/prettier-plugin-sort-imports": "^4.7.1",
-		"prettier": "^3.8.1",
-		"prettier-plugin-tailwindcss": "^0.7.2"
-	}
+    "scripts": {
+        "lint": "cd frontend/apps/web && pnpm run lint",
+        "prettier": "cd frontend/apps/web && pnpm run prettier"
+    },
+    "devDependencies": {
+        "eslint": "^9",
+        "eslint-config-next": "16.1.6",
+        "@ianvs/prettier-plugin-sort-imports": "^4.7.1",
+        "prettier": "^3.8.1",
+        "prettier-plugin-tailwindcss": "^0.7.2"
+    }
 }

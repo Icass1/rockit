@@ -2,7 +2,7 @@
 
 import { useStore } from "@nanostores/react";
 import { rockIt } from "@/packages/lib/rockit/rockIt";
-import { getMediaArtists } from "@/types/media";
+import { getMediaArtists } from "@/packages/types/media";
 import LikeButton from "@/components/LikeButton";
 
 const S = {

@@ -3,7 +3,7 @@
 import { useStore } from "@nanostores/react";
 import { rockIt } from "@/packages/lib/rockit/rockIt";
 import { getTime } from "@/packages/lib/utils/getTime";
-import { getMediaDuration } from "@/types/media";
+import { getMediaDuration } from "@/packages/types/media";
 
 const S = {
     progressRow: {

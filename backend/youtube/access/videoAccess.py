@@ -19,7 +19,7 @@ class VideoAccess:
     @staticmethod
     @safe_async
     async def update_video_path_async(
-        session: AsyncSession, video_id: int, path: str
+        session: AsyncSession, video_id: int, video_path: str
     ) -> AResultCode:
 
         video: VideoRow | None = await session.get(entity=VideoRow, ident=video_id)
@@ -31,7 +31,7 @@ class VideoAccess:
                 message=f"Video with id {video_id} not found.",
             )
 
-        video.path = path
+        video.video_path = video_path
 
         await session.flush()
         await session.commit()

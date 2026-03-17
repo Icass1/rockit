@@ -1,4 +1,12 @@
 export {
+    AddContributorRequestSchema,
+    type AddContributorRequest,
+} from "@/dto/addContributorRequest";
+export {
+    AddMediaToPlaylistRequestSchema,
+    type AddMediaToPlaylistRequest,
+} from "@/dto/addMediaToPlaylistRequest";
+export {
     ArtistSearchResultsItemSchema,
     type ArtistSearchResultsItem,
 } from "@/dto/artistSearchResultsItem";
@@ -42,6 +50,10 @@ export {
     BaseVideoResponseSchema,
     type BaseVideoResponse,
 } from "@/dto/baseVideoResponse";
+export {
+    CreatePlaylistRequestSchema,
+    type CreatePlaylistRequest,
+} from "@/dto/createPlaylistRequest";
 export {
     CurrentMediaMessageRequestSchema,
     type CurrentMediaMessageRequest,
@@ -107,6 +119,10 @@ export {
     type RegisterResponse,
 } from "@/dto/registerResponse";
 export {
+    RemoveContributorRequestSchema,
+    type RemoveContributorRequest,
+} from "@/dto/removeContributorRequest";
+export {
     SearchResultsResponseSchema,
     type SearchResultsResponse,
 } from "@/dto/searchResultsResponse";
@@ -147,6 +163,10 @@ export {
     type StartDownloadResponse,
 } from "@/dto/startDownloadResponse";
 export { StatsResponseSchema, type StatsResponse } from "@/dto/statsResponse";
+export {
+    UpdatePlaylistRequestSchema,
+    type UpdatePlaylistRequest,
+} from "@/dto/updatePlaylistRequest";
 export {
     UrlMatchResponseSchema,
     type UrlMatchResponse,

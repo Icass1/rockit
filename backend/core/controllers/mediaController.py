@@ -239,3 +239,37 @@ async def match_url(request: Request, url: str) -> UrlMatchResponse:
 
     path: str | None = providers.match_url(url)
     return UrlMatchResponse(path=path)
+
+
+@router.get("/url/add")
+async def add_from_url(
+    request: Request,
+    url: str,
+    playlist_public_id: str | None = None,
+    _=Depends(dependency=AuthMiddleware.auth_dependency),
+) -> BaseSongWithAlbumResponse | BaseVideoResponse:
+    """Add media from a URL to the database and optionally to a playlist."""
+
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+
+    a_result = await providers.add_from_url_async(session=session, url=url)
+    if a_result.is_not_ok():
+        raise HTTPException(
+            status_code=a_result.get_http_code(), detail=a_result.message()
+        )
+
+    media = a_result.result()
+
+    if playlist_public_id:
+        a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
+        if a_result_user.is_ok():
+            from backend.default.framework.playlist import Playlist
+
+            await Playlist.add_media_to_playlist_async(
+                session=session,
+                playlist_public_id=playlist_public_id,
+                user_id=a_result_user.result().id,
+                media_public_id=media.publicId,
+            )
+
+    return media

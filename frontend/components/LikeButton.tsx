@@ -11,11 +11,19 @@ const FLAME_DURATION_MS = 1000;
 
 export default function LikeButton({
     mediaPublicId,
+    isLiked: initialIsLiked = false,
 }: {
     mediaPublicId: string;
+    isLiked?: boolean;
 }) {
     const $likedMedias = useStore(rockIt.mediaManager.likedMediaAtom);
-    const isLiked = $likedMedias.includes(mediaPublicId);
+    const [mounted] = useState(() => {
+        if (typeof window === "undefined") return false;
+        return true;
+    });
+    const isLiked = mounted
+        ? $likedMedias.includes(mediaPublicId)
+        : initialIsLiked;
 
     const [flameState, setFlameState] = useState<FlameState>(
         isLiked ? "visible" : "hidden"
@@ -74,26 +82,27 @@ export default function LikeButton({
                 overflow: "visible",
             }}
         >
-            {flameVisible && (
-                <div
-                    className={[
-                        "flame-wrapper",
-                        flameState === "enter" ? "flame-wrapper--enter" : "",
-                        flameState === "exit" ? "flame-wrapper--exit" : "",
-                    ]
-                        .filter(Boolean)
-                        .join(" ")}
-                    onAnimationEnd={handleFlameAnimationEnd}
-                >
-                    <div className="flame-container">
-                        <div className="red flame" />
-                        <div className="orange flame" />
-                        <div className="yellow flame" />
-                        <div className="white flame" />
-                        <div className="blue circle" />
-                    </div>
+            <div
+                className={[
+                    "flame-wrapper",
+                    flameState === "enter" ? "flame-wrapper--enter" : "",
+                    flameState === "exit" ? "flame-wrapper--exit" : "",
+                ]
+                    .filter(Boolean)
+                    .join(" ")}
+                onAnimationEnd={handleFlameAnimationEnd}
+                style={{
+                    visibility: flameVisible ? "visible" : "hidden",
+                }}
+            >
+                <div className="flame-container">
+                    <div className="red flame" />
+                    <div className="orange flame" />
+                    <div className="yellow flame" />
+                    <div className="white flame" />
+                    <div className="blue circle" />
                 </div>
-            )}
+            </div>
 
             <div
                 role="button"

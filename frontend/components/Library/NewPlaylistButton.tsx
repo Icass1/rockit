@@ -3,10 +3,15 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { BACKEND_URL } from "@/environment";
+import { BasePlaylistResponseSchema, type BasePlaylistResponse } from "@/dto";
+import {
+    CreatePlaylistRequestSchema,
+    type CreatePlaylistRequest,
+} from "@/dto/createPlaylistRequest";
 import { useStore } from "@nanostores/react";
 import { Plus } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { apiPostFetch } from "@/lib/utils/apiFetch";
 
 export default function NewPlaylistButton() {
     const [showModal, setShowModal] = useState(false);
@@ -25,18 +30,21 @@ export default function NewPlaylistButton() {
 
         setLoading(true);
         try {
-            const res = await fetch(`${BACKEND_URL}/user/playlist/new`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                credentials: "include",
-                body: JSON.stringify({ name: name.trim() }),
-            });
+            const body: CreatePlaylistRequest = {
+                name: name.trim(),
+                description: null,
+                is_public: true,
+            };
+            const res = await apiPostFetch<CreatePlaylistRequest>(
+                "/default/playlist/create",
+                body
+            );
 
             if (!res.ok) throw new Error("Failed to create playlist");
 
-            const data = await res.json();
+            const data = BasePlaylistResponseSchema.parse(await res.json());
             closeModal();
-            router.push(`/playlist/${data.id}`);
+            router.push(`/playlist/${data.publicId}`);
         } catch {
             setError($vocabulary.ERROR_CREATING_PLAYLIST);
         } finally {

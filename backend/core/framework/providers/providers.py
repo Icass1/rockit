@@ -16,6 +16,9 @@ from backend.core.access.db.ormModels.provider import ProviderRow
 
 from backend.core.framework.provider.baseProvider import BaseProvider
 
+from backend.core.responses.baseVideoResponse import BaseVideoResponse
+from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
+
 logger: Logger = getLogger(__name__)
 
 
@@ -57,6 +60,19 @@ class Providers:
             if path is not None:
                 return path
         return None
+
+    async def add_from_url_async(
+        self, session: AsyncSession, url: str
+    ) -> AResult[BaseSongWithAlbumResponse | BaseVideoResponse]:
+        """Try all providers to add media from a URL."""
+        for provider in self._providers:
+            a_result = await provider.add_from_url_async(session=session, url=url)
+            if a_result.is_ok():
+                return a_result
+        return AResult(
+            code=AResultCode.NOT_FOUND,
+            message="No provider could handle this URL",
+        )
 
     async def search_providers(self, session: AsyncSession) -> AResultCode:
         logger.info("Searching providers...")

@@ -21,43 +21,40 @@ interface NavPage {
     disabled?: boolean;
 }
 
+const DEFAULT_VOCABULARY = {
+    HOME: "Home",
+    LIBRARY: "Library",
+    SEARCH: "Search",
+    DOWNLOAD: "Downloads",
+    SETTINGS: "Settings",
+};
+
 export default function NavigationMobile() {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const activePage = usePathname();
     const $user = useStore(rockIt.userManager.userAtom);
 
-    if (!$user) {
-        return (
-            <nav
-                aria-label="Mobile navigation"
-                className="safe-area-bottom mobile-nav-blur flex h-full w-full max-w-4xl touch-manipulation flex-row items-center justify-center bg-[#1a1a1a]/80 py-2 opacity-0"
-            />
-        );
-    }
+    const vocab =
+        $vocabulary && Object.keys($vocabulary).length > 0
+            ? $vocabulary
+            : DEFAULT_VOCABULARY;
 
-    // All nav items in one place — Settings no longer hardcoded outside
     const pages: NavPage[] = [
-        { title: $vocabulary.HOME, href: "/", icon: Home },
-        { title: $vocabulary.LIBRARY, href: "/library", icon: Library },
-        { title: $vocabulary.SEARCH, href: "/search", icon: Search },
+        { title: vocab.HOME, href: "/", icon: Home },
+        { title: vocab.LIBRARY, href: "/library", icon: Library },
+        { title: vocab.SEARCH, href: "/search", icon: Search },
         {
-            title: $vocabulary.DOWNLOAD,
+            title: vocab.DOWNLOAD,
             href: "/downloader",
             icon: Download,
             disabled: false,
         },
-        { title: $vocabulary.SETTINGS, href: "/settings", icon: Settings },
-        // Admin tab — only shown to admin users
-        ...($user.admin
-            ? [
-                  {
-                      title: "Admin",
-                      href: "/admin",
-                      icon: ShieldEllipsis,
-                  } satisfies NavPage,
-              ]
-            : []),
+        { title: vocab.SETTINGS, href: "/settings", icon: Settings },
     ];
+
+    if ($user?.admin) {
+        pages.push({ title: "Admin", href: "/admin", icon: ShieldEllipsis });
+    }
 
     return (
         <nav

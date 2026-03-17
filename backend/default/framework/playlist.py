@@ -126,6 +126,10 @@ class Playlist:
             role_key=PlaylistContributorRoleEnum.OWNER.value,
         )
 
+        await UserAccess.add_user_library_media(
+            session=session, user_id=owner_id, media_id=playlist.id
+        )
+
         return AResult(
             code=AResultCode.OK,
             message="OK",

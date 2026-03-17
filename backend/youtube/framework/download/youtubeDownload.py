@@ -89,7 +89,7 @@ class YoutubeDownload(BaseDownload):
             a_result_update: AResultCode = await Video.update_video_path_async(
                 session=session,
                 video_id=self.video_id,
-                path=final_relative_path,
+                video_path=final_relative_path,
             )
 
             if a_result_update.is_not_ok():

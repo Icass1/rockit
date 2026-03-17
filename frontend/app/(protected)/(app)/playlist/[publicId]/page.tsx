@@ -1,7 +1,7 @@
 import { cache } from "react";
 import { notFound } from "next/navigation";
 import { getPlaylistAsync } from "@/lib/services/mediaService";
-import RenderList from "@/components/RenderList/RenderList";
+import RenderListClient from "@/components/RenderList/RenderListClient";
 
 const getPlaylist = cache(async (publicId: string) => {
     const playlist = await getPlaylistAsync(publicId).catch(() => null);
@@ -40,15 +40,18 @@ export default async function PlaylistPage({
         notFound();
     }
 
+    const playlistMedia = playlistResponse.medias.map((m) => m.item);
+
     return (
-        <RenderList
+        <RenderListClient
+            playlistPublicId={publicId}
             title={playlistResponse.name}
             artists={[]}
-            media={playlistResponse.medias}
+            media={playlistMedia}
             image={playlistResponse.imageUrl}
             imageBlur="http://localhost:8000/media/image/blur/9w4UGBJx10VtAg8IlbZcMRH3C2fLmeyT?q=3"
-            showMediaImage={false}
-            showMediaIndex
+            showMediaImage
+            showMediaIndex={false}
         />
     );
 }

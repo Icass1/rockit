@@ -73,6 +73,7 @@ class PlaylistAccess:
             return AResult(code=AResultCode.OK, message="OK", result=playlist)
         except Exception as e:
             logger.error(f"Error in create_playlist_async: {e}", exc_info=True)
+            await session.rollback()
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
                 message=f"Failed to create playlist: {e}",

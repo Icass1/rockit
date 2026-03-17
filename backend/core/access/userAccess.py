@@ -126,6 +126,7 @@ class UserAccess:
             return AResult(code=AResultCode.OK, message="OK", result=user)
         except Exception as e:
             logger.error(f"Error in create_user_async: {e}")
+            await session.rollback()
             return AResult(
                 code=AResultCode.GENERAL_ERROR, message=f"Failed to create user: {e}"
             )
@@ -185,6 +186,7 @@ class UserAccess:
 
         except Exception as e:
             logger.error(f"Error in add_user_library_media: {e}")
+            await session.rollback()
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
                 message=f"Failed to add media to user library: {e}",

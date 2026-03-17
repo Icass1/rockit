@@ -13,8 +13,9 @@ from backend.core.responses.searchResponse import (
     ArtistSearchResultsItem,
     BaseSearchResultsItem,
 )
-
+from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from backend.core.responses.baseVideoResponse import BaseVideoResponse
+
 from backend.youtube.responses.videoResponse import YoutubeVideoResponse
 from backend.youtube.access.db.ormModels.video import VideoRow
 from backend.youtube.framework.download.youtubeDownload import YoutubeDownload
@@ -105,6 +106,51 @@ class YoutubeProvider(BaseProvider):
                 return path_template.format(match.group(1))
         return None
 
+    async def add_from_url_async(
+        self, session: AsyncSession, url: str
+    ) -> AResult[BaseVideoResponse | BaseSongWithAlbumResponse]:
+        """Add a YouTube video from URL to the database."""
+        video_id: str | None = None
+        for pattern, _ in YOUTUBE_URL_PATTERNS:
+            match = pattern.match(url)
+            if match:
+                video_id = match.group(1)
+                break
+
+        if not video_id:
+            return AResult(
+                code=AResultCode.BAD_REQUEST,
+                message="Invalid YouTube URL",
+            )
+
+        a_result: AResult[YoutubeVideoResponse] = await YouTube.get_video_async(
+            session=session, youtube_id=video_id
+        )
+        if a_result.is_not_ok():
+            return AResult(
+                code=a_result.code(),
+                message=a_result.message(),
+            )
+
+        youtube_video: YoutubeVideoResponse = a_result.result()
+
+        return AResult(
+            code=AResultCode.OK,
+            message="OK",
+            result=BaseVideoResponse(
+                provider=youtube_video.provider,
+                publicId=youtube_video.publicId,
+                url=youtube_video.url,
+                name=youtube_video.name,
+                imageUrl=youtube_video.imageUrl,
+                duration_ms=youtube_video.duration_ms,
+                artists=youtube_video.artists,
+                downloaded=youtube_video.downloaded,
+                videoSrc=youtube_video.videoSrc,
+                audioSrc=youtube_video.audioSrc,
+            ),
+        )
+
     async def start_download_async(
         self,
         session: AsyncSession,
@@ -178,10 +224,12 @@ class YoutubeProvider(BaseProvider):
                 publicId=youtube_video.publicId,
                 url=youtube_video.url,
                 name=youtube_video.name,
-                videoSrc=youtube_video.youtubeUrl,
                 imageUrl=youtube_video.imageUrl or "",
                 duration_ms=youtube_video.duration_ms,
                 artists=youtube_video.artists,
+                downloaded=youtube_video.downloaded,
+                videoSrc=youtube_video.videoSrc,
+                audioSrc=youtube_video.audioSrc,
             ),
         )
 

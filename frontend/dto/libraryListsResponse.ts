@@ -8,14 +8,12 @@ import {
 import { z } from "zod";
 
 export const LibraryListsResponseSchema = z.object({
-    albums: z
-        .array(z.lazy(() => BaseAlbumWithoutSongsResponseSchema))
-        .default([]),
-    playlists: z.array(z.lazy(() => BasePlaylistResponseSchema)).default([]),
-    songs: z.array(z.lazy(() => BaseSongWithAlbumResponseSchema)).default([]),
-    videos: z.array(z.lazy(() => BaseVideoResponseSchema)).default([]),
-    stations: z.array(z.lazy(() => BaseStationResponseSchema)).default([]),
-    shared: z.array(z.lazy(() => BasePlaylistResponseSchema)).default([]),
+    albums: z.array(z.lazy(() => BaseAlbumWithoutSongsResponseSchema)),
+    playlists: z.array(z.lazy(() => BasePlaylistResponseSchema)),
+    songs: z.array(z.lazy(() => BaseSongWithAlbumResponseSchema)),
+    videos: z.array(z.lazy(() => BaseVideoResponseSchema)),
+    stations: z.array(z.lazy(() => BaseStationResponseSchema)),
+    shared: z.array(z.lazy(() => BasePlaylistResponseSchema)),
 });
 
 export type LibraryListsResponse = z.infer<typeof LibraryListsResponseSchema>;

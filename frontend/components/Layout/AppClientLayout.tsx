@@ -4,10 +4,8 @@ import { useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { UrlMatchResponseSchema, UserVocabularyResponse } from "@/dto";
+import { UserVocabularyResponse } from "@/dto";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { apiFetch } from "@/lib/utils/apiFetch";
-import DropOverlay from "@/components/DropOverlay";
 import Footer from "@/components/Footer/Footer";
 import FooterMobile from "@/components/Footer/FooterMobile";
 import Header from "@/components/Header/Header";
@@ -29,22 +27,8 @@ export default function AppClientLayout({
         rockIt.vocabularyManager.setVocabulary(vocabulary);
     }, [vocabulary]);
 
-    const handleLinkDrop = (url: string) => {
-        apiFetch(`/media/url/match?url=${url}`, UrlMatchResponseSchema).then(
-            (data) => {
-                if (data.path) {
-                    router.push(data.path);
-                } else {
-                    rockIt.notificationManager.notifyError("Unkown URL.");
-                }
-            }
-        );
-    };
-
     return (
         <>
-            <DropOverlay onDropLink={handleLinkDrop} />
-
             {/* Mobile Header - only visible on small screens */}
             <div className="bg-linear-to-b fixed left-0 right-0 top-0 z-40 mx-auto block h-fit items-center justify-center from-black to-black/0 md:hidden">
                 <Link href="/" className="text-2xl font-bold text-white">

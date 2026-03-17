@@ -26,7 +26,7 @@ class VideoRow(YoutubeBase, TableAutoincrementId, TableDateUpdated, TableDateAdd
     )
     youtube_id: Mapped[str] = mapped_column(String, unique=True, nullable=False)
     name: Mapped[str] = mapped_column(String, nullable=False)
-    duration_ms: Mapped[int] = mapped_column(Integer, nullable=False)
+    duration_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
     real_duration_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
     view_count: Mapped[int] = mapped_column(BIGINT, nullable=False, default=0)
     like_count: Mapped[int] = mapped_column(BIGINT, nullable=False, default=0)
@@ -34,7 +34,8 @@ class VideoRow(YoutubeBase, TableAutoincrementId, TableDateUpdated, TableDateAdd
     image_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("core.image.id"), nullable=False
     )
-    path: Mapped[str | None] = mapped_column(String, nullable=True)
+    audio_path: Mapped[str | None] = mapped_column(String, nullable=True)
+    video_path: Mapped[str | None] = mapped_column(String, nullable=True)
     channel_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("youtube.channel.id"), nullable=False
     )
@@ -59,15 +60,16 @@ class VideoRow(YoutubeBase, TableAutoincrementId, TableDateUpdated, TableDateAdd
         id: int,
         youtube_id: str,
         name: str,
-        duration_ms: int,
         image_id: int,
         channel_id: int,
         youtube_url: str,
+        duration_ms: int | None = None,
         real_duration_ms: int | None = None,
         view_count: int = 0,
         like_count: int = 0,
         comment_count: int = 0,
-        path: str | None = None,
+        audio_path: str | None = None,
+        video_path: str | None = None,
         description: str | None = None,
         tags: str | None = None,
         published_at: str | None = None,
@@ -76,15 +78,16 @@ class VideoRow(YoutubeBase, TableAutoincrementId, TableDateUpdated, TableDateAdd
         kwargs["id"] = id
         kwargs["youtube_id"] = youtube_id
         kwargs["name"] = name
-        kwargs["duration_ms"] = duration_ms
         kwargs["image_id"] = image_id
         kwargs["channel_id"] = channel_id
         kwargs["youtube_url"] = youtube_url
+        kwargs["duration_ms"] = duration_ms
         kwargs["real_duration_ms"] = real_duration_ms
         kwargs["view_count"] = view_count
         kwargs["like_count"] = like_count
         kwargs["comment_count"] = comment_count
-        kwargs["path"] = path
+        kwargs["audio_path"] = audio_path
+        kwargs["video_path"] = video_path
         kwargs["description"] = description
         kwargs["tags"] = tags
         kwargs["published_at"] = published_at

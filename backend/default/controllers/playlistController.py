@@ -11,6 +11,7 @@ from backend.core.aResult import AResult
 from backend.core.middlewares.authMiddleware import AuthMiddleware
 from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 
+from backend.core.access.db.ormModels.user import UserRow
 from backend.core.access.userAccess import UserAccess
 
 from backend.core.responses.okResponse import OkResponse
@@ -23,7 +24,7 @@ from backend.default.framework.models.playlist import (
     PlaylistMediaAddModel,
     PlaylistContributorAddModel,
 )
-from backend.default.request.playlistRequest import (
+from backend.default.requests.playlistRequest import (
     CreatePlaylistRequest,
     UpdatePlaylistRequest,
     AddMediaToPlaylistRequest,
@@ -41,7 +42,7 @@ async def get_playlist_list_response(
 
     result: List[BasePlaylistResponse] = []
     for p in playlists:
-        a_result_owner = await UserAccess.get_user_from_id(
+        a_result_owner: AResult[UserRow] = await UserAccess.get_user_from_id(
             session=session, user_id=p.owner_id
         )
         owner_name: str = "Unknown"
@@ -67,7 +68,7 @@ async def get_playlist_list_response(
 
 logger: Logger = getLogger(__name__)
 router = APIRouter(
-    prefix="/playlist",
+    prefix="/default/playlist",
     dependencies=[Depends(dependency=AuthMiddleware.auth_dependency)],
     tags=["Default", "Playlist"],
 )

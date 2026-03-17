@@ -134,3 +134,16 @@ class BaseProvider:
         or None if it doesn't match this provider.
         """
         return None
+
+    async def add_from_url_async(
+        self, session: AsyncSession, url: str
+    ) -> AResult[BaseSongWithAlbumResponse | BaseVideoResponse]:
+        """Add media from a URL to the database.
+
+        Takes an external URL, adds the media to the database,
+        and returns the created media object.
+        """
+        return AResult(
+            code=AResultCode.NOT_IMPLEMENTED,
+            message=f"Provider '{self._name}' doesn't implement add_from_url_async.",
+        )

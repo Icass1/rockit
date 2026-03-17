@@ -29,7 +29,7 @@ export function getMediaDuration(
         return media.duration;
     }
     if (isVideo(media)) {
-        return media.duration_ms;
+        return media.duration_ms ?? undefined;
     }
     return undefined;
 }

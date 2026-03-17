@@ -1,5 +1,3 @@
-"use server";
-
 import Image from "next/image";
 import {
     BaseArtistResponse,
@@ -11,7 +9,7 @@ import { getTime } from "@/lib/utils/getTime";
 import Artists from "@/components/Artists/Artists";
 import LikeButton from "@/components/LikeButton";
 
-export async function Media({
+export function Media({
     index,
     media,
     substractArtists = [],
@@ -24,7 +22,7 @@ export async function Media({
     showMediaIndex: boolean;
     showMediaImage: boolean;
 }) {
-    const artists = media.artists.filter(
+    const artists = (media.artists ?? []).filter(
         (artist) => !substractArtists.includes(artist.name)
     );
 
@@ -58,7 +56,7 @@ export async function Media({
     );
 }
 
-export default async function RenderList({
+export default function RenderList({
     title,
     artists,
     image,

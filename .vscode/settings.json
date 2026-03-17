@@ -11,7 +11,10 @@
     },
     "editor.codeActionsOnSave": {
         // apply ESLint
-        "source.fixAll.eslint": "always"
+        "source.fixAll.eslint": "always",
+        "source.fixAll": "explicit",
+        "source.organizeImports": "explicit",
+        "source.sortMembers": "explicit"
     },
     // "python.analysis.typeCheckingMode": "strict",
     // "python.analysis.typeCheckingMode": "standard",

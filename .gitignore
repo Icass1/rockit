@@ -1,32 +1,46 @@
-# build output
-dist/
-
-# generated types
-.astro/
-
-# dependencies
-node_modules/
-
-# logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-
-# environment variables
-.env
-.env.production
-venv/
-
-# macOS-specific files
+# ============================
+# Sistema operativo
+# ============================
 .DS_Store
+Thumbs.db
+*.orig.*
 
-# jetbrains setting folder
+# ============================
+# IDEs
+# ============================
 .idea/
+.vscode/
 
-# dependencies
-/node_modules
-/.pnp
+# ============================
+# Python / Backend
+# ============================
+venv/
+env/
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+*.whl
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.log
+logs/
+site-packages/
+
+# ============================
+# Frontend - General
+# ============================
+node_modules/
+.pnp
 .pnp.*
 .yarn/*
 !.yarn/patches
@@ -34,62 +48,75 @@ venv/
 !.yarn/releases
 !.yarn/versions
 
-# testing
-/coverage
-
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# misc
-.DS_Store
-*.pem
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# env files (can opt-in for committing if needed)
-.env*
-
-# vercel
-.vercel
-
-# typescript
-*.tsbuildinfo
+# ============================
+# Frontend - Next.js (web)
+# ============================
+.next/
+out/
+.eslintcache
+tsconfig.tsbuildinfo
 next-env.d.ts
 
-site-packages
-/temp
-/backend/temp
-/songs
-/media
-/images
-__pycache__
-rest
+# ============================
+# Frontend - Expo / React Native (mobile)
+# ============================
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# React Native
+.metro-health-check*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.tsbuildinfo
+expo-env.d.ts
+
+# Android
+android/
+.gradle/
+
+# iOS
+ios/
+
+# ============================
+# Datos y archivos locales
+# ============================
+.env
+.env.*
+.env*.local
+!.env.example
+
+# Database
 *.db
+database/
 
-logs
+# Archivos de proyecto
+songs/
+images/
+temp/
+docs/
+backend/utils/json.json
 
-adapters--astrojs-node-8.3.4
-raw_spotify_album.json
-raw_spotify_search.json
-raw_spotify_song.json
-raw_yt_album.json
-raw_yt_playlist.json
-raw_yt_search.json
-raw_yt_song.json
-backend/json.json
-backend/types.out.py
-
+# Spotify cache
 .spotify
 .spotify_cache
 
+# Misc
+*.pem
+*.tsbuildinfo
 
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ESLint
 .eslintcache
-~$Vocabulary.xlsx
+
+# Excel temporal
+~$*.xlsx

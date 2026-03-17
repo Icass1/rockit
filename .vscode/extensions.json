@@ -10,6 +10,7 @@
         "usernamehw.errorlens",
         "ms-python.black-formatter",
         "yoavbls.pretty-ts-errors",
+        "expo.vscode-expo-tools",
     ],
     "unwantedRecommendations": []
 }

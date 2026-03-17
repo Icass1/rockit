@@ -64,6 +64,7 @@ next-env.d.ts
 dist/
 web-build/
 expo-env.d.ts
+frontend/apps/mobile/.gitignore
 
 # React Native
 .metro-health-check*

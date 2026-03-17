@@ -3,11 +3,11 @@
 import { useState } from "react";
 import { useStore } from "@nanostores/react";
 import { Download, Loader2 } from "lucide-react";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { rockIt } from "@/packages/lib/rockit/rockIt";
 import {
     clearResources,
     downloadResources,
-} from "@/lib/utils/downloadResources";
+} from "@/packages/lib/utils/downloadResources";
 
 export default function DownloadAppButton() {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
@@ -45,7 +45,7 @@ export default function DownloadAppButton() {
                     {resources.map((resource) => (
                         <span
                             key={resource}
-                            className="w-full min-w-0 max-w-full truncate text-xs text-neutral-400"
+                            className="w-full max-w-full min-w-0 truncate text-xs text-neutral-400"
                         >
                             {resource}
                         </span>

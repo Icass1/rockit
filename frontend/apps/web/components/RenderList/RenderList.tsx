@@ -3,9 +3,9 @@ import {
     BaseArtistResponse,
     BaseSongWithAlbumResponse,
     BaseVideoResponse,
-} from "@/dto";
+} from "@/packages/dto";
+import { getTime } from "@/packages/lib/utils/getTime";
 import { getMediaDuration } from "@/types/media";
-import { getTime } from "@/lib/utils/getTime";
 import Artists from "@/components/Artists/Artists";
 import LikeButton from "@/components/LikeButton";
 
@@ -75,9 +75,9 @@ export default function RenderList({
 }) {
     return (
         <div className="grid h-full w-full grid-cols-[1fr_3fr] gap-4">
-            <div className="z-1 h-full w-full min-w-0 max-w-full">
+            <div className="z-1 h-full w-full max-w-full min-w-0">
                 <div className="relative h-full w-full">
-                    <div className="relative left-1/2 top-1/2 flex h-fit w-fit -translate-x-1/2 -translate-y-1/2 flex-col p-1">
+                    <div className="relative top-1/2 left-1/2 flex h-fit w-fit -translate-x-1/2 -translate-y-1/2 flex-col p-1">
                         {/* Blurred glow layer */}
                         <div className="relative">
                             <Image
@@ -106,7 +106,7 @@ export default function RenderList({
                     </div>
                 </div>
             </div>
-            <div className="z-1 flex h-full w-full min-w-0 max-w-full flex-col gap-4 overflow-y-auto pb-96">
+            <div className="z-1 flex h-full w-full max-w-full min-w-0 flex-col gap-4 overflow-y-auto pb-96">
                 {media.map((media, index) => (
                     <Media
                         key={media.publicId}

@@ -35,12 +35,12 @@ function SummaryCard({ icon, label, value, accent }: SummaryCardProps) {
             className={[
                 "flex flex-col gap-2 rounded-xl p-3 md:p-4",
                 accent
-                    ? "bg-linear-to-br border border-[#ee1086]/20 from-[#ee1086]/20 to-[#fb6467]/10"
+                    ? "border border-[#ee1086]/20 bg-linear-to-br from-[#ee1086]/20 to-[#fb6467]/10"
                     : "border border-neutral-800/50 bg-neutral-900",
             ].join(" ")}
         >
             <div className="flex items-center justify-between">
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-neutral-500 md:text-xs">
+                <span className="text-[10px] font-semibold tracking-wider text-neutral-500 uppercase md:text-xs">
                     {label}
                 </span>
                 <span
@@ -49,7 +49,7 @@ function SummaryCard({ icon, label, value, accent }: SummaryCardProps) {
                     {icon}
                 </span>
             </div>
-            <span className="text-xl font-bold tabular-nums text-white md:text-2xl">
+            <span className="text-xl font-bold text-white tabular-nums md:text-2xl">
                 {value}
             </span>
         </div>
@@ -65,7 +65,7 @@ function Section({
 }) {
     return (
         <div className="rounded-xl border border-neutral-800/50 bg-neutral-900/60 p-4">
-            <h3 className="mb-4 text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+            <h3 className="mb-4 text-[10px] font-bold tracking-widest text-neutral-500 uppercase">
                 {title}
             </h3>
             {children}

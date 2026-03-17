@@ -17,7 +17,7 @@ export default function AlbumGrid({ albums }: { albums: RankedItem[] }) {
                         href={album.href}
                         className="group relative overflow-hidden rounded-xl bg-neutral-900 transition-transform hover:scale-[1.02] hover:shadow-xl"
                     >
-                        <div className="absolute left-2 top-2 z-10 flex h-5 w-5 items-center justify-center rounded-full bg-black/70 text-[10px] font-bold text-white backdrop-blur-sm">
+                        <div className="absolute top-2 left-2 z-10 flex h-5 w-5 items-center justify-center rounded-full bg-black/70 text-[10px] font-bold text-white backdrop-blur-sm">
                             {i + 1}
                         </div>
 
@@ -32,7 +32,7 @@ export default function AlbumGrid({ albums }: { albums: RankedItem[] }) {
                         </div>
 
                         <div className="p-2.5">
-                            <p className="truncate text-sm font-semibold leading-tight text-white">
+                            <p className="truncate text-sm leading-tight font-semibold text-white">
                                 {album.name}
                             </p>
                             {album.subtitle && (
@@ -44,11 +44,11 @@ export default function AlbumGrid({ albums }: { albums: RankedItem[] }) {
                             <div className="mt-2 flex items-center gap-1.5">
                                 <div className="relative h-1 flex-1 overflow-hidden rounded-full bg-neutral-800">
                                     <div
-                                        className="bg-linear-to-r absolute h-full rounded-full from-[#ee1086] to-[#fb6467]"
+                                        className="absolute h-full rounded-full bg-linear-to-r from-[#ee1086] to-[#fb6467]"
                                         style={{ width: `${pct}%` }}
                                     />
                                 </div>
-                                <span className="shrink-0 text-[10px] font-bold tabular-nums text-neutral-500">
+                                <span className="shrink-0 text-[10px] font-bold text-neutral-500 tabular-nums">
                                     {album.value}
                                 </span>
                             </div>

@@ -1,3 +1,4 @@
+import { BACKEND_URL } from "@/environment";
 import {
     CurrentMediaMessageRequest,
     CurrentQueueMessageRequest,
@@ -8,8 +9,7 @@ import {
     SeekMessageRequest,
     SkipClickedMessageRequest,
     type DownloadProgressMessage,
-} from "@/dto";
-import { BACKEND_URL } from "@/environment";
+} from "@/packages/dto";
 
 export type WebSocketMessageType =
     | "download_progress"

@@ -10,6 +10,7 @@
         "^react$",
         "^next",
         "<THIRD_PARTY_MODULES>",
+        "^@/packages",
         "^@/types",
         "^@/models",
         "^@/contexts",

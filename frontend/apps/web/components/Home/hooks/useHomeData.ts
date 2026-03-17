@@ -1,4 +1,7 @@
-import { BaseSongWithAlbumResponse, HomeStatsResponseSchema } from "@/dto";
+import {
+    BaseSongWithAlbumResponse,
+    HomeStatsResponseSchema,
+} from "@/packages/dto";
 import useFetch from "@/hooks/useFetch";
 
 export interface HomeData {

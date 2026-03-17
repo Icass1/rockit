@@ -1,7 +1,10 @@
 "use client";
 
 import { useMemo } from "react";
-import { LibraryListsResponse, LibraryListsResponseSchema } from "@/dto";
+import {
+    LibraryListsResponse,
+    LibraryListsResponseSchema,
+} from "@/packages/dto";
 import useFetch from "@/hooks/useFetch";
 
 export type ContentType =

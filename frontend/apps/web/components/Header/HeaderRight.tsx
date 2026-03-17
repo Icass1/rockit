@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useStore } from "@nanostores/react";
 import { Bell } from "lucide-react";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { rockIt } from "@/packages/lib/rockit/rockIt";
 import NotificationMenu from "@/components/Header/HeaderNotificationMenu";
 import OnlineUserIndicator from "@/components/Header/HeaderOnlineUsers";
 import HeaderUser from "@/components/Header/HeaderUser";
@@ -45,7 +45,7 @@ export default function HeaderRight() {
                     <Bell className="h-6 w-6" />
                     {notificationCount > 0 && (
                         <span
-                            className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white"
+                            className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white"
                             aria-hidden
                         >
                             {notificationCount > 9 ? "9+" : notificationCount}

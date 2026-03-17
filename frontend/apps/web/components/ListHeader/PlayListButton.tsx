@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { useStore } from "@nanostores/react";
 import { Pause, Play } from "lucide-react";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { rockIt } from "@/packages/lib/rockit/rockIt";
 
 export default function PlayListButton({
     id,
@@ -21,14 +21,14 @@ export default function PlayListButton({
     if (playingList && $playing) {
         icon = (
             <Pause
-                className="relative left-1/2 top-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2"
+                className="relative top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2"
                 fill="white"
             />
         );
     } else {
         icon = (
             <Play
-                className="relative left-1/2 top-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2"
+                className="relative top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2"
                 fill="white"
             />
         );
@@ -40,7 +40,7 @@ export default function PlayListButton({
             onClick={() => {
                 console.log(id, type);
             }}
-            className="bg-linear-to-r h-16 w-16 cursor-pointer rounded-full from-[#ee1086] to-[#fb6467] shadow-[0px_0px_20px_3px_#0e0e0e] transition-transform md:h-20 md:w-20 md:hover:scale-105"
+            className="h-16 w-16 cursor-pointer rounded-full bg-linear-to-r from-[#ee1086] to-[#fb6467] shadow-[0px_0px_20px_3px_#0e0e0e] transition-transform md:h-20 md:w-20 md:hover:scale-105"
         >
             {icon}
         </div>

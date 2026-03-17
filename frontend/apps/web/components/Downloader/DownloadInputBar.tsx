@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ArrowDownToLine } from "lucide-react";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { rockIt } from "@/packages/lib/rockit/rockIt";
 
 export default function DownloadInputBar() {
     const [url, setUrl] = useState("");
@@ -28,7 +28,7 @@ export default function DownloadInputBar() {
         <div className="flex w-full flex-row items-center justify-center gap-2 px-2 py-2">
             <input
                 type="url"
-                className="md:max-w-150 w-full max-w-full rounded-full bg-neutral-800 px-4 py-2 text-sm text-white placeholder-neutral-500 transition-all focus:outline-none focus:ring-2 focus:ring-[#ee1086]/40"
+                className="w-full max-w-full rounded-full bg-neutral-800 px-4 py-2 text-sm text-white placeholder-neutral-500 transition-all focus:ring-2 focus:ring-[#ee1086]/40 focus:outline-none md:max-w-150"
                 placeholder="Spotify or YouTube URL…"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}

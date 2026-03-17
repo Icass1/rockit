@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useStore } from "@nanostores/react";
 import type { DebouncedFunc } from "lodash";
 import debounce from "lodash/debounce";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { rockIt } from "@/packages/lib/rockit/rockIt";
 
 export default function SearchBarInput() {
     const [value, setValue] = useState("");
@@ -57,7 +57,7 @@ export default function SearchBarInput() {
             />
 
             {searching && (
-                <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2">
+                <div className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2">
                     <div className="h-4 w-4 animate-spin rounded-full border-2 border-neutral-600 border-t-[#ec5588]" />
                 </div>
             )}

@@ -1,10 +1,13 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { BaseArtistResponseSchema, BaseSongWithAlbumResponse } from "@/dto";
 import { Play } from "lucide-react";
-import { AppError } from "@/lib/errors/AppError";
-import { rockIt } from "@/lib/rockit/rockIt";
-import { baseApiFetch } from "@/lib/utils/apiFetch";
+import {
+    BaseArtistResponseSchema,
+    BaseSongWithAlbumResponse,
+} from "@/packages/dto";
+import { AppError } from "@/packages/lib/errors/AppError";
+import { rockIt } from "@/packages/lib/rockit/rockIt";
+import { baseApiFetch } from "@/packages/lib/utils/apiFetch";
 
 export default async function ArtistPage({
     params,
@@ -29,14 +32,14 @@ export default async function ArtistPage({
     return (
         <div className="flex h-full w-full flex-col overflow-y-scroll bg-[#0b0b0b] text-white">
             <div
-                className="bg-size-[120%] md:bg-size-[100%] relative w-full bg-top bg-no-repeat"
+                className="relative w-full bg-size-[120%] bg-top bg-no-repeat md:bg-size-[100%]"
                 style={{
                     backgroundImage: `url('${artist.imageUrl}')`,
                     backgroundAttachment: "fixed",
                 }}
             >
                 <div className="relative z-10 flex h-screen flex-col">
-                    <div className="min-h-1/2 bg-linear-to-b flex h-1/4 w-full items-end from-transparent to-black/50 p-4 md:h-1/2 md:p-8">
+                    <div className="flex h-1/4 min-h-1/2 w-full items-end bg-linear-to-b from-transparent to-black/50 p-4 md:h-1/2 md:p-8">
                         <h1 className="text-4xl font-extrabold md:text-8xl">
                             {artist.name}
                         </h1>
@@ -156,7 +159,7 @@ export default async function ArtistPage({
                         </div>
                     </section>
 
-                    <section className="bg-[#171717] pb-10 pt-3 text-white md:px-32">
+                    <section className="bg-[#171717] pt-3 pb-10 text-white md:px-32">
                         <h2 className="px-5 text-2xl font-bold">
                             Related Artists
                         </h2>

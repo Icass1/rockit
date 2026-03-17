@@ -1,9 +1,9 @@
 "use client";
 
-import { BasePlaylistResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
-import { rockIt } from "@/lib/rockit/rockIt";
-import { getMinutes } from "@/lib/utils/getTime";
+import { BasePlaylistResponse } from "@/packages/dto";
+import { rockIt } from "@/packages/lib/rockit/rockIt";
+import { getMinutes } from "@/packages/lib/utils/getTime";
 import { useListDownload } from "@/components/List/hooks/useListDownload";
 import { ListCover } from "@/components/List/ListCover";
 import ListOptions from "@/components/ListHeader/ListOptions";
@@ -41,7 +41,7 @@ export default function PlaylistHeader({
     return (
         <div
             className={
-                "h-104 relative top-24 flex flex-col gap-1 px-10 md:top-1/2 md:h-fit md:max-h-none md:w-full md:max-w-96 md:-translate-y-1/2 md:px-0 " +
+                "relative top-24 flex h-104 flex-col gap-1 px-10 md:top-1/2 md:h-fit md:max-h-none md:w-full md:max-w-96 md:-translate-y-1/2 md:px-0 " +
                 className
             }
         >
@@ -60,7 +60,7 @@ export default function PlaylistHeader({
             />
 
             <div className="mx-auto flex w-fit flex-row items-center gap-3">
-                <span className="text-balance text-2xl font-semibold">
+                <span className="text-2xl font-semibold text-balance">
                     {playlist.name}
                 </span>
                 <ListOptions

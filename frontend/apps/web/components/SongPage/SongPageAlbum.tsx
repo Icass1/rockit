@@ -2,10 +2,13 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { BaseAlbumWithSongsResponse, BaseSongWithAlbumResponse } from "@/dto";
-import { AlbumManager } from "@/lib/managers/albumManager";
-import { getAlbumAsync } from "@/lib/services/mediaService";
-import { getTime } from "@/lib/utils/getTime";
+import {
+    BaseAlbumWithSongsResponse,
+    BaseSongWithAlbumResponse,
+} from "@/packages/dto";
+import { AlbumManager } from "@/packages/lib/managers/albumManager";
+import { getAlbumAsync } from "@/packages/lib/services/mediaService";
+import { getTime } from "@/packages/lib/utils/getTime";
 
 export default function SongPageAlbum({
     albumPublicId,

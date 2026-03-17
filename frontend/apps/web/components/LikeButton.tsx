@@ -1,9 +1,9 @@
 "use client";
 
+import { rockIt } from "@/packages/lib/rockit/rockIt";
+import "@/styles/LikeButton.css";
 import { useEffect, useRef, useState } from "react";
 import { useStore } from "@nanostores/react";
-import "@/styles/LikeButton.css";
-import { rockIt } from "@/lib/rockit/rockIt";
 
 type FlameState = "hidden" | "enter" | "visible" | "exit";
 

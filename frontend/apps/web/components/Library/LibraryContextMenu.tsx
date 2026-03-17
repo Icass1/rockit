@@ -1,7 +1,6 @@
 "use client";
 
 import { ReactNode } from "react";
-import { BaseAlbumWithoutSongsResponse, BasePlaylistResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
 import {
     HardDriveDownload,
@@ -13,7 +12,11 @@ import {
     PlayCircle,
     Shuffle,
 } from "lucide-react";
-import { rockIt } from "@/lib/rockit/rockIt";
+import {
+    BaseAlbumWithoutSongsResponse,
+    BasePlaylistResponse,
+} from "@/packages/dto";
+import { rockIt } from "@/packages/lib/rockit/rockIt";
 import ContextMenuContent from "@/components/ContextMenu/Content";
 import ContextMenu from "@/components/ContextMenu/ContextMenu";
 import ContextMenuOption from "@/components/ContextMenu/Option";

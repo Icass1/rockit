@@ -4,12 +4,12 @@ import {
     CurrentQueueMessageRequestItem,
     QueueResponseItem,
     QueueResponseSchema,
-} from "@/dto";
-import { MediaType } from "@/types/media";
-import { DBListType, QueueListType } from "@/types/rockIt";
-import { rockIt } from "@/lib/rockit/rockIt";
-import { createArrayAtom, createAtom } from "@/lib/store";
-import { baseApiFetch } from "@/lib/utils/apiFetch";
+} from "@/packages/dto";
+import { rockIt } from "@/packages/lib/rockit/rockIt";
+import { createArrayAtom, createAtom } from "@/packages/lib/store";
+import { baseApiFetch } from "@/packages/lib/utils/apiFetch";
+import { MediaType } from "@/packages/types/media";
+import { DBListType, QueueListType } from "@/packages/types/rockIt";
 
 export class QueueManager {
     // #region: Atoms

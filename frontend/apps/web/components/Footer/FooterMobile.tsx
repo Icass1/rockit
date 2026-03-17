@@ -3,8 +3,8 @@
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
 import { Pause, Play } from "lucide-react";
-import { getMediaArtists, getMediaDuration } from "@/types/media";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { rockIt } from "@/packages/lib/rockit/rockIt";
+import { getMediaArtists, getMediaDuration } from "@/packages/types/media";
 import LikeButton from "@/components/LikeButton";
 import Slider from "@/components/Slider";
 
@@ -46,7 +46,7 @@ export default function FooterMobile() {
 
                 {/* Song info — p instead of label (label is for form elements) */}
                 <div className="flex min-w-0 flex-col">
-                    <p className="truncate font-semibold leading-tight">
+                    <p className="truncate leading-tight font-semibold">
                         {$currentMedia?.name ?? ""}
                     </p>
                     <p className="truncate text-sm leading-tight text-neutral-400">

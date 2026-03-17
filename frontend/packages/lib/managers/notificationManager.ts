@@ -1,4 +1,4 @@
-import { createArrayAtom } from "@/lib/store";
+import { createArrayAtom } from "@/packages/lib/store";
 
 export class NotificationManager {
     private _notificationsAtom = createArrayAtom<{

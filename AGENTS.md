@@ -25,11 +25,11 @@
 
 Rockit is a self-hosted music player.
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | Next.js 16, React 19, TypeScript, Tailwind CSS v4, Nanostores, Zod, Recharts |
-| Backend | FastAPI (async), SQLAlchemy (async), asyncpg, PostgreSQL |
-| External APIs | Spotipy (Spotify), yt-dlp (YouTube) |
+| Layer         | Technology                                                                   |
+| ------------- | ---------------------------------------------------------------------------- |
+| Frontend      | Next.js 16, React 19, TypeScript, Tailwind CSS v4, Nanostores, Zod, Recharts |
+| Backend       | FastAPI (async), SQLAlchemy (async), asyncpg, PostgreSQL                     |
+| External APIs | Spotipy (Spotify), yt-dlp (YouTube)                                          |
 
 ```
 rockit/
@@ -163,11 +163,11 @@ controllers/  →  framework/  →  access/
    (HTTP)        (Logic)        (DB)
 ```
 
-| Layer | Does | Must NOT do |
-|-------|------|-------------|
-| **controllers/** | Parse HTTP, validate with Pydantic, call framework, raise HTTPException | Call access directly, return dicts |
-| **framework/** | Business logic, orchestrate calls, apply rules | Call controllers, raise HTTPException, use raw SQL |
-| **access/** | SQLAlchemy CRUD, return ORM models | Call framework, contain business logic |
+| Layer            | Does                                                                    | Must NOT do                                        |
+| ---------------- | ----------------------------------------------------------------------- | -------------------------------------------------- |
+| **controllers/** | Parse HTTP, validate with Pydantic, call framework, raise HTTPException | Call access directly, return dicts                 |
+| **framework/**   | Business logic, orchestrate calls, apply rules                          | Call controllers, raise HTTPException, use raw SQL |
+| **access/**      | SQLAlchemy CRUD, return ORM models                                      | Call framework, contain business logic             |
 
 Folder naming: `controllers/` (plural), `framework/` (singular), `access/` (singular).
 
@@ -218,14 +218,14 @@ async def get_user(request: Request, user_id: int) -> UserResponse:
     return a_result.result()
 ```
 
-| AResultCode | HTTP |
-|-------------|------|
-| OK | 200 |
-| ALREADY_EXISTS | 200 |
-| NOT_FOUND | 404 |
-| BAD_REQUEST | 400 |
-| GENERAL_ERROR | 500 |
-| NOT_IMPLEMENTED | 501 |
+| AResultCode     | HTTP |
+| --------------- | ---- |
+| OK              | 200  |
+| ALREADY_EXISTS  | 200  |
+| NOT_FOUND       | 404  |
+| BAD_REQUEST     | 400  |
+| GENERAL_ERROR   | 500  |
+| NOT_IMPLEMENTED | 501  |
 
 ### 3.4 Database
 
@@ -255,12 +255,12 @@ class UserRow(CoreBase, TableAutoincrementId, TablePublicId, TableDateUpdated, T
     password_hash: Mapped[str | None] = mapped_column(String, nullable=True)
 ```
 
-| Mixin | Adds |
-|-------|------|
-| `TableAutoincrementId` | `id` (PK, internal only, NEVER send to client) |
-| `TablePublicId` | `public_id` (UUID string, use for all client API) |
-| `TableDateUpdated` | `date_updated` |
-| `TableDateAdded` | `date_added` |
+| Mixin                  | Adds                                              |
+| ---------------------- | ------------------------------------------------- |
+| `TableAutoincrementId` | `id` (PK, internal only, NEVER send to client)    |
+| `TablePublicId`        | `public_id` (UUID string, use for all client API) |
+| `TableDateUpdated`     | `date_updated`                                    |
+| `TableDateAdded`       | `date_added`                                      |
 
 ### 3.5 Authentication
 
@@ -304,111 +304,112 @@ These are the known routes. Use `public_id` for all resource identifiers.
 
 ### Auth — `/auth`
 
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| POST | `/auth/login` | No | Login with username/password → sets session cookie |
-| POST | `/auth/register` | No | Register new user |
-| POST | `/auth/logout` | Yes | Destroy session |
+| Method | Path             | Auth | Description                                        |
+| ------ | ---------------- | ---- | -------------------------------------------------- |
+| POST   | `/auth/login`    | No   | Login with username/password → sets session cookie |
+| POST   | `/auth/register` | No   | Register new user                                  |
+| POST   | `/auth/logout`   | Yes  | Destroy session                                    |
 
 ### Session — `/session`
 
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| GET | `/session` | Yes | Get current session info (user data) |
+| Method | Path       | Auth | Description                          |
+| ------ | ---------- | ---- | ------------------------------------ |
+| GET    | `/session` | Yes  | Get current session info (user data) |
 
 ### User — `/user`
 
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| GET | `/user` | Yes | Get current user profile |
-| PATCH | `/user/lang` | Yes | Set language preference |
-| PATCH | `/user/crossfade` | Yes | Set crossfade seconds |
-| PATCH | `/user/random-queue` | Yes | Toggle random queue |
-| PATCH | `/user/repeat-mode` | Yes | Cycle repeat mode |
-| GET | `/user/vocabulary` | Yes | Get i18n vocabulary for current lang |
+| Method | Path                 | Auth | Description                          |
+| ------ | -------------------- | ---- | ------------------------------------ |
+| GET    | `/user`              | Yes  | Get current user profile             |
+| PATCH  | `/user/lang`         | Yes  | Set language preference              |
+| PATCH  | `/user/crossfade`    | Yes  | Set crossfade seconds                |
+| PATCH  | `/user/random-queue` | Yes  | Toggle random queue                  |
+| PATCH  | `/user/repeat-mode`  | Yes  | Cycle repeat mode                    |
+| GET    | `/user/vocabulary`   | Yes  | Get i18n vocabulary for current lang |
 
 ### Media — `/media`
 
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| GET | `/media/search?q=` | Yes | Search across all providers |
-| GET | `/media/url/match?url=` | Yes | Match external URL to internal path |
-| GET | `/media/liked` | Yes | Get liked media list |
-| POST | `/media/like` | Yes | Like/unlike a media item |
+| Method | Path                    | Auth | Description                         |
+| ------ | ----------------------- | ---- | ----------------------------------- |
+| GET    | `/media/search?q=`      | Yes  | Search across all providers         |
+| GET    | `/media/url/match?url=` | Yes  | Match external URL to internal path |
+| GET    | `/media/liked`          | Yes  | Get liked media list                |
+| POST   | `/media/like`           | Yes  | Like/unlike a media item            |
 
 ### Song — `/song`
 
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| GET | `/song/{publicId}` | Yes | Get song by public ID |
-| GET | `/song/{publicId}?q=name,image,...` | Yes | Get song with specific fields |
+| Method | Path                                | Auth | Description                   |
+| ------ | ----------------------------------- | ---- | ----------------------------- |
+| GET    | `/song/{publicId}`                  | Yes  | Get song by public ID         |
+| GET    | `/song/{publicId}?q=name,image,...` | Yes  | Get song with specific fields |
 
 ### Album — `/album`
 
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| GET | `/album/{publicId}` | Yes | Get album with songs |
+| Method | Path                | Auth | Description          |
+| ------ | ------------------- | ---- | -------------------- |
+| GET    | `/album/{publicId}` | Yes  | Get album with songs |
 
 ### Artist — `/artist`
 
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| GET | `/artist/{id}` | Yes | Get artist info + top songs |
+| Method | Path           | Auth | Description                 |
+| ------ | -------------- | ---- | --------------------------- |
+| GET    | `/artist/{id}` | Yes  | Get artist info + top songs |
 
 ### Playlist — `/playlist`
 
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| GET | `/playlist/{publicId}` | Yes | Get playlist with songs |
-| POST | `/playlist` | Yes | Create new playlist |
-| PATCH | `/playlist/{publicId}` | Yes | Update playlist |
-| DELETE | `/playlist/{publicId}` | Yes | Delete playlist |
-| POST | `/playlist/{publicId}/song` | Yes | Add song to playlist |
-| DELETE | `/playlist/{publicId}/song/{songId}` | Yes | Remove song from playlist |
+| Method | Path                                 | Auth | Description               |
+| ------ | ------------------------------------ | ---- | ------------------------- |
+| GET    | `/playlist/{publicId}`               | Yes  | Get playlist with songs   |
+| POST   | `/playlist`                          | Yes  | Create new playlist       |
+| PATCH  | `/playlist/{publicId}`               | Yes  | Update playlist           |
+| DELETE | `/playlist/{publicId}`               | Yes  | Delete playlist           |
+| POST   | `/playlist/{publicId}/song`          | Yes  | Add song to playlist      |
+| DELETE | `/playlist/{publicId}/song/{songId}` | Yes  | Remove song from playlist |
 
 ### Library — `/library`
 
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| GET | `/library` | Yes | Get all user library lists (playlists, albums, etc.) |
+| Method | Path       | Auth | Description                                          |
+| ------ | ---------- | ---- | ---------------------------------------------------- |
+| GET    | `/library` | Yes  | Get all user library lists (playlists, albums, etc.) |
 
 ### Downloads — `/downloads`
 
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| POST | `/downloads/start` | Yes | Start a download (Spotify/YouTube URL) |
-| GET | `/downloads` | Yes | Get all user downloads |
-| POST | `/downloads/mark-seen/{publicId}` | Yes | Mark download as seen |
+| Method | Path                              | Auth | Description                            |
+| ------ | --------------------------------- | ---- | -------------------------------------- |
+| POST   | `/downloads/start`                | Yes  | Start a download (Spotify/YouTube URL) |
+| GET    | `/downloads`                      | Yes  | Get all user downloads                 |
+| POST   | `/downloads/mark-seen/{publicId}` | Yes  | Mark download as seen                  |
 
 ### Stats — `/stats`
 
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| GET | `/stats/home` | Yes | Home page stats (recently played, etc.) |
-| GET | `/stats/user?range=7d` | Yes | User listening stats (songs, minutes, top lists) |
+| Method | Path                   | Auth | Description                                      |
+| ------ | ---------------------- | ---- | ------------------------------------------------ |
+| GET    | `/stats/home`          | Yes  | Home page stats (recently played, etc.)          |
+| GET    | `/stats/user?range=7d` | Yes  | User listening stats (songs, minutes, top lists) |
 
 ### Spotify — `/spotify`
 
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| GET | `/spotify/track/{spotifyId}` | Yes | Get Spotify track info |
-| GET | `/spotify/album/{spotifyId}` | Yes | Get Spotify album info |
-| GET | `/spotify/artist/{spotifyId}` | Yes | Get Spotify artist info |
-| GET | `/spotify/playlist/{spotifyId}` | Yes | Get Spotify playlist |
+| Method | Path                            | Auth | Description             |
+| ------ | ------------------------------- | ---- | ----------------------- |
+| GET    | `/spotify/track/{spotifyId}`    | Yes  | Get Spotify track info  |
+| GET    | `/spotify/album/{spotifyId}`    | Yes  | Get Spotify album info  |
+| GET    | `/spotify/artist/{spotifyId}`   | Yes  | Get Spotify artist info |
+| GET    | `/spotify/playlist/{spotifyId}` | Yes  | Get Spotify playlist    |
 
 ### Vocabulary — `/vocabulary`
 
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| GET | `/vocabulary` | Yes | Get list of available languages |
+| Method | Path          | Auth | Description                     |
+| ------ | ------------- | ---- | ------------------------------- |
+| GET    | `/vocabulary` | Yes  | Get list of available languages |
 
 ### WebSocket — `/ws`
 
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| WS | `/ws` | Yes | Real-time: queue updates, download progress, playback sync |
+| Method | Path  | Auth | Description                                                |
+| ------ | ----- | ---- | ---------------------------------------------------------- |
+| WS     | `/ws` | Yes  | Real-time: queue updates, download progress, playback sync |
 
 **WebSocket message types sent by backend:**
+
 - `download_progress` — `{ publicId, completed, message }`
 - `current_queue` — full queue snapshot
 - `current_media` — currently playing media
@@ -491,11 +492,11 @@ frontend/
 
 **The most important rule.**
 
-| Rule | Detail |
-|------|--------|
-| `page.tsx` NEVER has `"use client"` | Pages are always Server Components |
+| Rule                                                 | Detail                                 |
+| ---------------------------------------------------- | -------------------------------------- |
+| `page.tsx` NEVER has `"use client"`                  | Pages are always Server Components     |
 | `"use client"` only when using hooks or browser APIs | useState, useEffect, useRouter, events |
-| Interactive logic goes in `*Client.tsx` | Page just imports and renders it |
+| Interactive logic goes in `*Client.tsx`              | Page just imports and renders it       |
 
 ```tsx
 // ✅ app/(protected)/(app)/somefeature/page.tsx
@@ -507,7 +508,7 @@ export default async function SomeFeaturePage() {
 }
 
 // ✅ components/SomeFeature/SomeFeatureClient.tsx
-"use client";
+("use client");
 export default function SomeFeatureClient({ initialData }) {
     const [state, setState] = useState(initialData);
     // hooks, events, etc.
@@ -520,7 +521,7 @@ export default function SomeFeatureClient({ initialData }) {
 
 ```tsx
 import { BACKEND_URL } from "@/environment";
-import { SomeSchema } from "@/dto";
+import { SomeSchema } from "@/packages/dto";
 
 async function getData() {
     const res = await fetch(`${BACKEND_URL}/some/endpoint`, {
@@ -535,8 +536,8 @@ async function getData() {
 **Client-side** (`useFetch` hook):
 
 ```tsx
+import { SomeResponseSchema } from "@/packages/dto";
 import useFetch from "@/hooks/useFetch";
-import { SomeResponseSchema } from "@/dto";
 
 const [data, refresh] = useFetch("/some/endpoint", SomeResponseSchema);
 ```
@@ -544,7 +545,7 @@ const [data, refresh] = useFetch("/some/endpoint", SomeResponseSchema);
 **Direct fetch** (in manager methods):
 
 ```tsx
-import { apiFetch } from "@/lib/utils/apiFetch";
+import { apiFetch } from "@/packages/lib/utils/apiFetch";
 
 const data = await apiFetch("/some/endpoint", SomeResponseSchema);
 ```
@@ -552,7 +553,9 @@ const data = await apiFetch("/some/endpoint", SomeResponseSchema);
 ### 5.4 State Management
 
 ```tsx
-import { createAtom, createArrayAtom } from "@/lib/store";
+import { createArrayAtom, createAtom } from "@/packages/lib/store";
+// React binding
+import { useStore } from "@nanostores/react";
 
 // Single value
 const playingAtom = createAtom<boolean>(false);
@@ -563,8 +566,6 @@ playingAtom.get();
 const queueAtom = createArrayAtom<Song>([]);
 queueAtom.push(song);
 
-// React binding
-import { useStore } from "@nanostores/react";
 const isPlaying = useStore(rockIt.audioManager.playingAtom);
 ```
 
@@ -573,7 +574,7 @@ const isPlaying = useStore(rockIt.audioManager.playingAtom);
 `rockIt` is the global singleton that exposes all managers:
 
 ```tsx
-import { rockIt } from "@/lib/rockit/rockIt";
+import { rockIt } from "@/packages/lib/rockit/rockIt";
 
 rockIt.audioManager.play();
 rockIt.audioManager.pause();
@@ -596,19 +597,20 @@ rockIt.mediaManager.fetchLikedMedia();
 rockIt.indexedDBManager.saveSongToIndexedDB(song);
 
 // Constants
-rockIt.BACKEND_URL
-rockIt.SONG_PLACEHOLDER_IMAGE_URL
-rockIt.USER_PLACEHOLDER_IMAGE_URL
+rockIt.BACKEND_URL;
+rockIt.SONG_PLACEHOLDER_IMAGE_URL;
+rockIt.USER_PLACEHOLDER_IMAGE_URL;
 ```
 
 ### 5.6 Error Handling
 
 ```tsx
+// notFound() for 404 in pages
+import { notFound } from "next/navigation";
+
 // Throw in pages/server code
 if (!res.ok) throw new AppError(res.status);
 
-// notFound() for 404 in pages
-import { notFound } from "next/navigation";
 if (!data) notFound();
 
 // error.tsx catches AppError automatically
@@ -668,7 +670,7 @@ python3 -m backend zod
 After adding a backend response model, run `zod` and import the generated schema:
 
 ```tsx
-import { SomeResponseSchema, type SomeResponse } from "@/dto";
+import { SomeResponseSchema, type SomeResponse } from "@/packages/dto";
 ```
 
 ### API Base URL
@@ -696,6 +698,7 @@ The WebSocket manager connects on app load and dispatches events to managers:
 ```
 
 Events from backend:
+
 - `download_progress` → `downloaderManager.downloadInfoAtom`
 - `current_queue` → `queueManager.queueAtom`
 - `current_media` → `queueManager.currentSongAtom`
@@ -801,13 +804,14 @@ cd backend && python3 -m backend zod
 
 ```tsx
 // components/Stats/UserStats.tsx — replace MOCK_* with real fetch
+import { UserStatsResponseSchema } from "@/packages/dto";
 import useFetch from "@/hooks/useFetch";
-import { UserStatsResponseSchema } from "@/dto";
 
 export default function UserStats({ range, customStart, customEnd }) {
-    const query = customStart && customEnd
-        ? `range=custom&start=${customStart}&end=${customEnd}`
-        : `range=${range}`;
+    const query =
+        customStart && customEnd
+            ? `range=custom&start=${customStart}&end=${customEnd}`
+            : `range=${range}`;
 
     const [data] = useFetch(`/stats/user?${query}`, UserStatsResponseSchema);
 
@@ -917,41 +921,41 @@ if (typeof window !== "undefined") { ... }
 
 ### Backend
 
-| File | Purpose |
-|------|---------|
-| `backend/core/main.py` | FastAPI app entry, router discovery |
-| `backend/core/aResult.py` | Result wrapper |
-| `backend/core/access/db/rockItDb.py` | DB connection manager |
-| `backend/core/access/db/ormModels/user.py` | User ORM model |
-| `backend/core/controllers/authController.py` | Auth endpoints |
-| `backend/core/controllers/mediaController.py` | Media endpoints |
-| `backend/core/controllers/statsController.py` | Stats endpoints |
-| `backend/core/framework/auth/session.py` | Session management |
-| `backend/core/framework/providers/providers.py` | Provider registry |
-| `backend/core/framework/provider/baseProvider.py` | Base provider interface |
-| `backend/core/middlewares/dbSessionMiddleware.py` | Session per request |
-| `backend/core/middlewares/authMiddleware.py` | Authentication |
-| `backend/constants.py` | Environment config |
-| `backend/spotify/framework/provider/spotifyProvider.py` | Spotify provider |
-| `backend/youtube/framework/provider/youtubeProvider.py` | YouTube provider |
+| File                                                    | Purpose                             |
+| ------------------------------------------------------- | ----------------------------------- |
+| `backend/core/main.py`                                  | FastAPI app entry, router discovery |
+| `backend/core/aResult.py`                               | Result wrapper                      |
+| `backend/core/access/db/rockItDb.py`                    | DB connection manager               |
+| `backend/core/access/db/ormModels/user.py`              | User ORM model                      |
+| `backend/core/controllers/authController.py`            | Auth endpoints                      |
+| `backend/core/controllers/mediaController.py`           | Media endpoints                     |
+| `backend/core/controllers/statsController.py`           | Stats endpoints                     |
+| `backend/core/framework/auth/session.py`                | Session management                  |
+| `backend/core/framework/providers/providers.py`         | Provider registry                   |
+| `backend/core/framework/provider/baseProvider.py`       | Base provider interface             |
+| `backend/core/middlewares/dbSessionMiddleware.py`       | Session per request                 |
+| `backend/core/middlewares/authMiddleware.py`            | Authentication                      |
+| `backend/constants.py`                                  | Environment config                  |
+| `backend/spotify/framework/provider/spotifyProvider.py` | Spotify provider                    |
+| `backend/youtube/framework/provider/youtubeProvider.py` | YouTube provider                    |
 
 ### Frontend
 
-| File | Purpose |
-|------|---------|
-| `frontend/app/layout.tsx` | Root layout |
-| `frontend/app/(protected)/layout.tsx` | Auth check |
-| `frontend/components/Layout/AppClientLayout.tsx` | App shell (nav, footer, player) |
-| `frontend/lib/store.ts` | createAtom / createArrayAtom |
-| `frontend/lib/rockit/rockIt.ts` | Global singleton |
-| `frontend/lib/managers/audioManager.ts` | Audio playback |
-| `frontend/lib/managers/queueManager.ts` | Queue |
-| `frontend/lib/managers/webSocketManger.ts` | WebSocket |
-| `frontend/lib/utils/apiFetch.ts` | Zod-validated fetch |
-| `frontend/lib/errors/AppError.ts` | Error class |
-| `frontend/lib/getUserInServer.ts` | Server-side session check |
-| `frontend/hooks/useFetch.ts` | Client-side fetch hook |
-| `frontend/dto/index.ts` | DTO barrel (auto-generated) |
-| `frontend/styles/base.css` | Reset, CSS vars, md breakpoint override |
-| `frontend/styles/components.css` | Scrollbars, slider, skeleton, safe-area |
-| `frontend/environment.ts` | BACKEND_URL |
+| File                                             | Purpose                                 |
+| ------------------------------------------------ | --------------------------------------- |
+| `frontend/app/layout.tsx`                        | Root layout                             |
+| `frontend/app/(protected)/layout.tsx`            | Auth check                              |
+| `frontend/components/Layout/AppClientLayout.tsx` | App shell (nav, footer, player)         |
+| `frontend/lib/store.ts`                          | createAtom / createArrayAtom            |
+| `frontend/lib/rockit/rockIt.ts`                  | Global singleton                        |
+| `frontend/lib/managers/audioManager.ts`          | Audio playback                          |
+| `frontend/lib/managers/queueManager.ts`          | Queue                                   |
+| `frontend/lib/managers/webSocketManger.ts`       | WebSocket                               |
+| `frontend/lib/utils/apiFetch.ts`                 | Zod-validated fetch                     |
+| `frontend/lib/errors/AppError.ts`                | Error class                             |
+| `frontend/lib/getUserInServer.ts`                | Server-side session check               |
+| `frontend/hooks/useFetch.ts`                     | Client-side fetch hook                  |
+| `frontend/dto/index.ts`                          | DTO barrel (auto-generated)             |
+| `frontend/styles/base.css`                       | Reset, CSS vars, md breakpoint override |
+| `frontend/styles/components.css`                 | Scrollbars, slider, skeleton, safe-area |
+| `frontend/environment.ts`                        | BACKEND_URL                             |

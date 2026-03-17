@@ -1,6 +1,5 @@
 "use client";
 
-import { QueueResponseItem } from "@/dto";
 import { useStore } from "@nanostores/react";
 import {
     GripVertical,
@@ -9,7 +8,8 @@ import {
     ListX,
     PlayCircle,
 } from "lucide-react";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { QueueResponseItem } from "@/packages/dto";
+import { rockIt } from "@/packages/lib/rockit/rockIt";
 import ContextMenuContent from "@/components/ContextMenu/Content";
 import ContextMenu from "@/components/ContextMenu/ContextMenu";
 import ContextMenuOption from "@/components/ContextMenu/Option";
@@ -73,7 +73,7 @@ export function PlayerUIQueueList({
                         <ContextMenu>
                             <ContextMenuTrigger>
                                 <div className="grid grid-cols-[1fr_45px] items-center">
-                                    <div className="w-full min-w-0 max-w-full">
+                                    <div className="w-full max-w-full min-w-0">
                                         <QueueMedia media={queueMedia} />
                                     </div>
                                     <GripVertical
@@ -193,7 +193,7 @@ export function PlayerUIQueueList({
                             <ContextMenu>
                                 <ContextMenuTrigger>
                                     <div className="grid grid-cols-[1fr_45px] items-center">
-                                        <div className="w-full min-w-0 max-w-full">
+                                        <div className="w-full max-w-full min-w-0">
                                             <QueueMedia media={autoMedia} />
                                         </div>
                                         <ListPlus className="h-full w-full p-1 pr-4" />

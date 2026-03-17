@@ -1,15 +1,15 @@
 "use client";
 
 import { ReactNode, useMemo } from "react";
+import { useStore } from "@nanostores/react";
 import {
     BaseAlbumWithoutSongsResponse,
     BasePlaylistResponse,
     BaseSongWithoutAlbumResponse,
     BaseStationResponse,
     BaseVideoResponse,
-} from "@/dto";
-import { useStore } from "@nanostores/react";
-import { rockIt } from "@/lib/rockit/rockIt";
+} from "@/packages/dto";
+import { rockIt } from "@/packages/lib/rockit/rockIt";
 import {
     ContentType,
     FilterMode,
@@ -83,7 +83,7 @@ function SectionHeader({
     rightElement?: ReactNode;
 }) {
     return (
-        <div className="flex items-center justify-between px-4 pb-3 pt-4">
+        <div className="flex items-center justify-between px-4 pt-4 pb-3">
             <h2 className="text-3xl font-bold">{title}</h2>
             {rightElement}
         </div>
@@ -335,7 +335,7 @@ export function LibraryLists({
                         <>
                             {/* NewPlaylistButton sits above the masonry */}
                             <div className="px-4 py-2">
-                                <div className="max-w-62.5 w-full">
+                                <div className="w-full max-w-62.5">
                                     <NewPlaylistButton />
                                 </div>
                             </div>

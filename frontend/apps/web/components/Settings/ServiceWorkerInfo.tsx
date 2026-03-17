@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useStore } from "@nanostores/react";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { rockIt } from "@/packages/lib/rockit/rockIt";
 
 const SW_ACTIONS = ["GET_INFO", "UPDATE", "REGISTER", "UNREGISTER"] as const;
 

@@ -5,8 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useStore } from "@nanostores/react";
 import { Pause, Play } from "lucide-react";
-import { getMediaArtists, MediaType } from "@/types/media";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { rockIt } from "@/packages/lib/rockit/rockIt";
+import { getMediaArtists, MediaType } from "@/packages/types/media";
 
 export function PlayerUICoverColumn({
     currentMedia,
@@ -44,7 +44,7 @@ export function PlayerUICoverColumn({
                     height={600}
                     width={600}
                     alt="Media Cover"
-                    className="absolute h-full w-full select-none rounded-xl"
+                    className="absolute h-full w-full rounded-xl select-none"
                 />
                 <div
                     className={`h-20 w-20 rounded-full bg-[#1a1a1a]/60 ${iconClassName}`}
@@ -59,7 +59,7 @@ export function PlayerUICoverColumn({
 
             {/* Media info */}
             <div className="flex w-full flex-col items-center justify-center px-2 text-center">
-                <h1 className="line-clamp-2 text-balance text-4xl font-bold leading-normal">
+                <h1 className="line-clamp-2 text-4xl leading-normal font-bold text-balance">
                     {currentMedia?.name}
                 </h1>
                 <p className="mt-2 flex w-full items-center justify-center gap-1 text-xl font-medium text-gray-400">

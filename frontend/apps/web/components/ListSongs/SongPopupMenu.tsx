@@ -2,7 +2,6 @@
 
 import { type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { BaseSongWithAlbumResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
 import {
     Copy,
@@ -17,9 +16,10 @@ import {
     PlayCircle,
     Share2,
 } from "lucide-react";
+import { BaseSongWithAlbumResponse } from "@/packages/dto";
+import { rockIt } from "@/packages/lib/rockit/rockIt";
+import { networkStatus } from "@/packages/lib/stores/networkStatus";
 import useDev from "@/hooks/useDev";
-import { rockIt } from "@/lib/rockit/rockIt";
-import { networkStatus } from "@/lib/stores/networkStatus";
 import {
     PopupMenu,
     PopupMenuContent,

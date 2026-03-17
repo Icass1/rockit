@@ -2,12 +2,12 @@
 
 // import { useEffect, useMemo, useRef } from "react";
 // import Image from "next/image";
-// import { StatsResponseSchema } from "@/dto";
+// import { StatsResponseSchema } from "@/packages/dto";
 // import { ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
-// import { MediaType } from "@/types/media";
+// import { MediaType } from "@/packages/types/media";
 // import useFetch from "@/hooks/useFetch";
 // import useWindowSize from "@/hooks/useWindowSize";
-// import { rockIt } from "@/lib/rockit/rockIt";
+// import { rockIt } from "@/packages/lib/rockit/rockIt";
 // import { useCarousel } from "@/components/Home/hooks/useCarousel";
 
 // // Constantes de layout

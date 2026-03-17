@@ -1,5 +1,5 @@
-import { QueueResponseItemSchema } from "@/dto";
 import { z } from "zod";
+import { QueueResponseItemSchema } from "@/packages/dto";
 
 export const QueueResponseSchema = z.object({
     currentQueueMediaId: z.number().nullable(),

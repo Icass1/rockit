@@ -2,8 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { BaseArtistResponseSchema } from "@/dto";
-import { apiFetch } from "@/lib/utils/apiFetch";
+import { BaseArtistResponseSchema } from "@/packages/dto";
+import { apiFetch } from "@/packages/lib/utils/apiFetch";
 import LoadingComponent from "@/components/Loading";
 
 export default function SpotifyArtistClient({

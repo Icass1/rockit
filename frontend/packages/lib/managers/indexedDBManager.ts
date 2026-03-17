@@ -1,6 +1,6 @@
-import { BaseSongWithAlbumResponse, BaseVideoResponse } from "@/dto";
-import { DBListType } from "@/types/rockIt";
-import { createArrayAtom } from "@/lib/store";
+import { BaseSongWithAlbumResponse, BaseVideoResponse } from "@/packages/dto";
+import { createArrayAtom } from "@/packages/lib/store";
+import { DBListType } from "@/packages/types/rockIt";
 
 export class IndexedDBManager {
     // #region: Atoms

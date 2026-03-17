@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { QueueResponseItem } from "@/dto";
+import { QueueResponseItem } from "@/packages/dto";
 import { PlayerUIQueueList } from "@/components/PlayerUI/PlayerUIQueueList";
 import { PlayerUIRelatedTab } from "@/components/PlayerUI/PlayerUIRelatedTab";
 
@@ -13,9 +13,9 @@ export function PlayerUIQueueColumn({ queue }: { queue: QueueResponseItem[] }) {
     const queueDivRef = useRef<HTMLDivElement>(null);
 
     return (
-        <div className="bg-linear-to-r z-10 flex h-full select-none flex-col overflow-hidden from-[rgba(0,0,0,0)] to-[rgba(0,0,0,0.5)]">
+        <div className="z-10 flex h-full flex-col overflow-hidden bg-linear-to-r from-[rgba(0,0,0,0)] to-[rgba(0,0,0,0.5)] select-none">
             {/* Tab selector */}
-            <div className="relative flex items-center justify-center gap-10 border-b border-white pb-4 pt-6">
+            <div className="relative flex items-center justify-center gap-10 border-b border-white pt-6 pb-4">
                 <TabButton
                     label="Queue"
                     active={currentTab === "queue"}
@@ -30,7 +30,7 @@ export function PlayerUIQueueColumn({ queue }: { queue: QueueResponseItem[] }) {
 
             {/* Scrollable content */}
             <div
-                className="relative flex-1 overflow-auto scroll-smooth pb-7 pt-3"
+                className="relative flex-1 overflow-auto scroll-smooth pt-3 pb-7"
                 ref={queueDivRef}
                 onScroll={(e) => setQueueScroll(e.currentTarget.scrollTop)}
             >

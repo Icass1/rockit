@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { QueueResponseItem } from "@/dto";
+import { QueueResponseItem } from "@/packages/dto";
 
 interface DraggingMedia {
     list: string;

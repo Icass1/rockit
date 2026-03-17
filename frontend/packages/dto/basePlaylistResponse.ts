@@ -1,5 +1,5 @@
-import { PlaylistContributorResponseSchema } from "@/dto";
 import { z } from "zod";
+import { PlaylistContributorResponseSchema } from "@/packages/dto";
 
 export const BasePlaylistResponseSchema = z.object({
     type: z.union([z.literal("playlist")]).default("playlist"),

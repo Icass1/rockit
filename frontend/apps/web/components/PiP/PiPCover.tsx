@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { rockIt } from "@/packages/lib/rockit/rockIt";
 import { PiPControls } from "@/components/PiP/PiPControls";
 import { PiPProgress } from "@/components/PiP/PiPProgress";
 

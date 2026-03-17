@@ -1,8 +1,8 @@
+import { z } from "zod";
 import {
     BaseArtistResponseSchema,
     BaseSongWithoutAlbumResponseSchema,
-} from "@/dto";
-import { z } from "zod";
+} from "@/packages/dto";
 
 export const BaseAlbumWithSongsResponseSchema = z.object({
     type: z.union([z.literal("album")]).default("album"),

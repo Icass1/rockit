@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { BaseSongWithoutAlbumResponseSchema } from "@/dto";
-import { apiFetch } from "@/lib/utils/apiFetch";
+import { BaseSongWithoutAlbumResponseSchema } from "@/packages/dto";
+import { apiFetch } from "@/packages/lib/utils/apiFetch";
 import LoadingComponent from "@/components/Loading";
 
 export default function SpotifyTrackClient({

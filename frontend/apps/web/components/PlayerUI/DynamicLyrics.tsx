@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { rockIt } from "@/packages/lib/rockit/rockIt";
 import { useLyrics } from "@/components/PlayerUI/hooks/useLyrics";
 
 // --------------------------------------------------------------------------
@@ -138,7 +138,7 @@ export function DynamicLyrics() {
             {!hasDynamicTimestamps && (
                 <div
                     ref={scrollContainerRef}
-                    className="hide-scroll-track hide-scroll-thumb absolute block h-full w-full min-w-0 max-w-full overflow-auto"
+                    className="hide-scroll-track hide-scroll-thumb absolute block h-full w-full max-w-full min-w-0 overflow-auto"
                     onScroll={(e) =>
                         setManualIndex(
                             Math.floor(e.currentTarget.scrollTop / 100)

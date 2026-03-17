@@ -1,4 +1,4 @@
-import { createAtom } from "@/lib/store";
+import { createAtom } from "@/packages/lib/store";
 
 export class PlayerUIManager {
     // #region: Atoms

@@ -3,15 +3,12 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { BasePlaylistResponseSchema, type BasePlaylistResponse } from "@/dto";
-import {
-    CreatePlaylistRequestSchema,
-    type CreatePlaylistRequest,
-} from "@/dto/createPlaylistRequest";
+import { type CreatePlaylistRequest } from "@/dto/createPlaylistRequest";
 import { useStore } from "@nanostores/react";
 import { Plus } from "lucide-react";
-import { rockIt } from "@/lib/rockit/rockIt";
-import { apiPostFetch } from "@/lib/utils/apiFetch";
+import { BasePlaylistResponseSchema } from "@/packages/dto";
+import { rockIt } from "@/packages/lib/rockit/rockIt";
+import { apiPostFetch } from "@/packages/lib/utils/apiFetch";
 
 export default function NewPlaylistButton() {
     const [showModal, setShowModal] = useState(false);
@@ -64,19 +61,19 @@ export default function NewPlaylistButton() {
             <div
                 role="button"
                 tabIndex={0}
-                className="library-item flex h-full w-full min-w-0 max-w-full cursor-pointer flex-col transition-transform md:hover:scale-110"
+                className="library-item flex h-full w-full max-w-full min-w-0 cursor-pointer flex-col transition-transform md:hover:scale-110"
                 onClick={() => setShowModal(true)}
                 onKeyDown={(e) => e.key === "Enter" && setShowModal(true)}
             >
                 <div className="cover relative aspect-square h-auto w-full">
                     <Image
                         alt=""
-                        className="cover absolute left-0 top-0 aspect-square h-auto w-full rounded-md"
+                        className="cover absolute top-0 left-0 aspect-square h-auto w-full rounded-md"
                         src="/rockit-background.png"
                         width={600}
                         height={600}
                     />
-                    <Plus className="cover absolute left-0 top-0 aspect-square h-auto w-full rounded-md p-6" />
+                    <Plus className="cover absolute top-0 left-0 aspect-square h-auto w-full rounded-md p-6" />
                 </div>
                 <label className="min-h-6 cursor-pointer truncate text-center font-semibold">
                     {$vocabulary.NEW_PLAYLIST}

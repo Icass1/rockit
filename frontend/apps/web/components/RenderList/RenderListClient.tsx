@@ -1,15 +1,15 @@
 "use client";
 
+import { z } from "zod";
 import {
     BaseArtistResponse,
     BaseSongWithAlbumResponse,
     BaseSongWithAlbumResponseSchema,
     BaseVideoResponse,
     BaseVideoResponseSchema,
-} from "@/dto";
-import { z } from "zod";
-import { rockIt } from "@/lib/rockit/rockIt";
-import { apiFetch } from "@/lib/utils/apiFetch";
+} from "@/packages/dto";
+import { rockIt } from "@/packages/lib/rockit/rockIt";
+import { apiFetch } from "@/packages/lib/utils/apiFetch";
 import DropOverlay from "@/components/DropOverlay";
 import RenderList from "@/components/RenderList/RenderList";
 

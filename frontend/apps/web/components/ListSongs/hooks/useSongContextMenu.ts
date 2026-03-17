@@ -1,9 +1,9 @@
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
-import { BaseSongWithAlbumResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
-import { rockIt } from "@/lib/rockit/rockIt";
-import { networkStatus } from "@/lib/stores/networkStatus";
+import { BaseSongWithAlbumResponse } from "@/packages/dto";
+import { rockIt } from "@/packages/lib/rockit/rockIt";
+import { networkStatus } from "@/packages/lib/stores/networkStatus";
 
 export interface UserList {
     id: string;

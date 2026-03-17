@@ -1,7 +1,7 @@
 "use client";
 
 import { useStore } from "@nanostores/react";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { rockIt } from "@/packages/lib/rockit/rockIt";
 import { ContentType } from "@/components/Library/hooks/useLibraryData";
 
 export type ViewMode = "grid" | "list";
@@ -34,7 +34,7 @@ export function LibraryFilters({
                 <button
                     key={key}
                     onClick={() => setActiveType(key)}
-                    className={`shrink-0 select-none rounded-full px-3 py-1 text-sm font-medium transition-colors ${
+                    className={`shrink-0 rounded-full px-3 py-1 text-sm font-medium transition-colors select-none ${
                         activeType === key
                             ? "bg-white text-black"
                             : "bg-neutral-800 text-white hover:bg-neutral-700"

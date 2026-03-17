@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useStore } from "@nanostores/react";
 import { LogOut, Settings } from "lucide-react";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { rockIt } from "@/packages/lib/rockit/rockIt";
 import {
     PopupMenu,
     PopupMenuContent,

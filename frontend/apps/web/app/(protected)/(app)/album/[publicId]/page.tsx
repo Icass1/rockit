@@ -1,7 +1,7 @@
 import { cache } from "react";
 import { notFound } from "next/navigation";
-import { BaseSongWithAlbumResponse } from "@/dto";
-import { getAlbumAsync } from "@/lib/services/mediaService";
+import { BaseSongWithAlbumResponse } from "@/packages/dto";
+import { getAlbumAsync } from "@/packages/lib/services/mediaService";
 import RenderList from "@/components/RenderList/RenderList";
 
 const getAlbum = cache(async (publicId: string) => {

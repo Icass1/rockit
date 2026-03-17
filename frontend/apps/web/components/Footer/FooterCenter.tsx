@@ -10,11 +10,11 @@ import {
     SkipBack,
     SkipForward,
 } from "lucide-react";
-import { getMediaDuration } from "@/types/media";
+import { rockIt } from "@/packages/lib/rockit/rockIt";
+import { getTime } from "@/packages/lib/utils/getTime";
+import { getMediaDuration } from "@/packages/types/media";
 import { EQueueType } from "@/models/enums/queueType";
 import { ERepeatMode } from "@/models/enums/repeatMode";
-import { rockIt } from "@/lib/rockit/rockIt";
-import { getTime } from "@/lib/utils/getTime";
 import Slider from "@/components/Slider";
 import Spinner from "@/components/Spinner";
 
@@ -119,7 +119,7 @@ export default function FooterCenter() {
                     id="default-slider"
                     aria-label="Song progress"
                     aria-valuetext={`${getTime($currentTime ?? 0)} of ${getTime(getMediaDuration($currentMedia) ?? 0)}`}
-                    className="relative h-1 w-full min-w-0 max-w-full rounded bg-neutral-700"
+                    className="relative h-1 w-full max-w-full min-w-0 rounded bg-neutral-700"
                     value={$currentTime ?? 0}
                     min={0}
                     max={getMediaDuration($currentMedia)}

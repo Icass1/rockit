@@ -1,10 +1,8 @@
 "use client";
 
-import { type ReactNode } from "react";
-import { BaseSongWithAlbumResponse } from "@/dto";
-import { useStore } from "@nanostores/react";
+import { BaseSongWithAlbumResponse } from "@/packages/dto";
+import { rockIt } from "@/packages/lib/rockit/rockIt";
 import useDev from "@/hooks/useDev";
-import { rockIt } from "@/lib/rockit/rockIt";
 import ContextMenuContent from "@/components/ContextMenu/Content";
 import ContextMenu from "@/components/ContextMenu/ContextMenu";
 import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
@@ -12,6 +10,8 @@ import { songHandleClick } from "@/components/ListSongs/HandleClick";
 import { useSongContextMenu } from "@/components/ListSongs/hooks/useSongContextMenu";
 import SongContextMenuOptions from "@/components/ListSongs/SongContextMenuOptions";
 import "@/styles/CheckBox.css";
+import { type ReactNode } from "react";
+import { useStore } from "@nanostores/react";
 
 export default function SongContextMenu({
     children,

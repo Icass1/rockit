@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { BaseArtistResponse } from "@/dto";
+import { BaseArtistResponse } from "@/packages/dto";
 
 export default function Artists({
     artists,

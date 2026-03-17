@@ -1,5 +1,5 @@
 import { PlayCircle } from "lucide-react";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { rockIt } from "@/packages/lib/rockit/rockIt";
 
 export function playListHandleClick({
     type,

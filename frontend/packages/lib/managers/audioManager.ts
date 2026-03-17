@@ -1,7 +1,7 @@
-import { getMediaAudioSrc } from "@/types/media";
+import { rockIt } from "@/packages/lib/rockit/rockIt";
+import { createAtom } from "@/packages/lib/store";
+import { getMediaAudioSrc } from "@/packages/types/media";
 import { ERepeatMode } from "@/models/enums/repeatMode";
-import { rockIt } from "@/lib/rockit/rockIt";
-import { createAtom } from "@/lib/store";
 
 export class AudioManager {
     static #instance: AudioManager;

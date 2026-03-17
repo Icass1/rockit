@@ -4,7 +4,7 @@ import { useCallback, useRef, useState } from "react";
 import { BACKEND_URL } from "@/environment";
 import { useStore } from "@nanostores/react";
 import { FileArchive, FileAudio, Upload, X } from "lucide-react";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { rockIt } from "@/packages/lib/rockit/rockIt";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -308,7 +308,7 @@ export default function UploadModal({ isOpen, onClose }: UploadModalProps) {
                                                             )
                                                         }
                                                         placeholder="Title"
-                                                        className="min-w-0 flex-1 rounded-md bg-neutral-700 px-2 py-1.5 text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
+                                                        className="min-w-0 flex-1 rounded-md bg-neutral-700 px-2 py-1.5 text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
                                                     />
                                                     <input
                                                         type="text"
@@ -325,7 +325,7 @@ export default function UploadModal({ isOpen, onClose }: UploadModalProps) {
                                                         }
                                                         placeholder="#"
                                                         inputMode="numeric"
-                                                        className="w-14 rounded-md bg-neutral-700 px-2 py-1.5 text-center text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
+                                                        className="w-14 rounded-md bg-neutral-700 px-2 py-1.5 text-center text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
                                                     />
                                                 </div>
                                                 {/* Row 2: Artist + Album + Year */}
@@ -344,7 +344,7 @@ export default function UploadModal({ isOpen, onClose }: UploadModalProps) {
                                                             )
                                                         }
                                                         placeholder="Artist"
-                                                        className="min-w-0 flex-1 rounded-md bg-neutral-700 px-2 py-1.5 text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
+                                                        className="min-w-0 flex-1 rounded-md bg-neutral-700 px-2 py-1.5 text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
                                                     />
                                                     <input
                                                         type="text"
@@ -360,7 +360,7 @@ export default function UploadModal({ isOpen, onClose }: UploadModalProps) {
                                                             )
                                                         }
                                                         placeholder="Album"
-                                                        className="min-w-0 flex-1 rounded-md bg-neutral-700 px-2 py-1.5 text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
+                                                        className="min-w-0 flex-1 rounded-md bg-neutral-700 px-2 py-1.5 text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
                                                     />
                                                     <input
                                                         type="text"
@@ -377,7 +377,7 @@ export default function UploadModal({ isOpen, onClose }: UploadModalProps) {
                                                         }
                                                         placeholder="Year"
                                                         inputMode="numeric"
-                                                        className="w-20 rounded-md bg-neutral-700 px-2 py-1.5 text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
+                                                        className="w-20 rounded-md bg-neutral-700 px-2 py-1.5 text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
                                                     />
                                                 </div>
                                             </div>

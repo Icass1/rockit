@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { SessionResponse, SessionResponseSchema } from "@/dto";
-import { baseApiFetch } from "@/lib/utils/apiFetch";
+import { SessionResponse, SessionResponseSchema } from "@/packages/dto";
+import { baseApiFetch } from "@/packages/lib/utils/apiFetch";
 
 type Session =
     | { status: "authenticated"; user: SessionResponse }

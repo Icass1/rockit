@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { BaseSongWithAlbumResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
 import { Download, Pause, Play } from "lucide-react";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { BaseSongWithAlbumResponse } from "@/packages/dto";
+import { rockIt } from "@/packages/lib/rockit/rockIt";
 
 function SongPageCoverIcon({
     song,
@@ -80,7 +80,7 @@ export default function SongPageCover({
     return (
         <div className="relative h-full w-full max-w-md">
             <div
-                className="relative aspect-square h-auto w-full max-w-md cursor-pointer select-none overflow-hidden rounded-lg object-cover"
+                className="relative aspect-square h-auto w-full max-w-md cursor-pointer overflow-hidden rounded-lg object-cover select-none"
                 onMouseEnter={() => setHover(true)}
                 onMouseLeave={() => setHover(false)}
                 onClick={() => console.log("(SongPageCover) handleClick")}

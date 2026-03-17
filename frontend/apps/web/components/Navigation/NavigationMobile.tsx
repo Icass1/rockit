@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useStore } from "@nanostores/react";
+import type { LucideIcon } from "lucide-react";
 import {
     Download,
     Home,
@@ -11,8 +12,7 @@ import {
     Settings,
     ShieldEllipsis,
 } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { rockIt } from "@/packages/lib/rockit/rockIt";
 
 interface NavPage {
     title: string;
@@ -71,7 +71,7 @@ export default function NavigationMobile() {
                         aria-current={isActive ? "page" : undefined}
                         aria-disabled={page.disabled}
                         className={[
-                            "ml-2 mr-2 flex h-full w-full items-center justify-center gap-2 rounded-md transition-all",
+                            "mr-2 ml-2 flex h-full w-full items-center justify-center gap-2 rounded-md transition-all",
                             isActive ? "bg-white text-black" : "text-white",
                             page.disabled
                                 ? "pointer-events-none opacity-50"

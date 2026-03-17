@@ -2,9 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { BaseSearchResultsItem } from "@/dto";
 import { useStore } from "@nanostores/react";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { BaseSearchResultsItem } from "@/packages/dto";
+import { rockIt } from "@/packages/lib/rockit/rockIt";
 
 export default function PlaylistsSection({
     playlists,
@@ -20,7 +20,7 @@ export default function PlaylistsSection({
             <h2 className="px-5 text-left text-2xl font-bold md:px-0 md:text-3xl">
                 {$vocabulary.PLAYLISTS}
             </h2>
-            <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pl-4 md:pr-14">
+            <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pr-14 md:pl-4">
                 {playlists.map((playlist) => (
                     <Link
                         href={playlist.url}

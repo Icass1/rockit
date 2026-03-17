@@ -1,11 +1,14 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { BasePlaylistResponse, BaseSongWithAlbumResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
 import { ArrowUp } from "lucide-react";
+import {
+    BasePlaylistResponse,
+    BaseSongWithAlbumResponse,
+} from "@/packages/dto";
+import { rockIt } from "@/packages/lib/rockit/rockIt";
 import useWindowSize from "@/hooks/useWindowSize";
-import { rockIt } from "@/lib/rockit/rockIt";
 import PlaylistSong from "@/components/ListSongs/PlaylistSong";
 import PlaylistHeader from "@/components/Playlist/PlaylistHeader";
 
@@ -156,7 +159,7 @@ export default function PlaylistSongsView({
         return (
             <label
                 className={
-                    "flex cursor-pointer select-none flex-row items-center font-semibold hover:underline " +
+                    "flex cursor-pointer flex-row items-center font-semibold select-none hover:underline " +
                     (filter.column == column ? "text-[#ec5588]" : "")
                 }
                 onClick={() => {
@@ -240,7 +243,7 @@ export default function PlaylistSongsView({
                     return (
                         <div
                             key={song.item.publicId + index}
-                            className="absolute left-0 right-0 h-14"
+                            className="absolute right-0 left-0 h-14"
                             style={{ top: `${top}px` }}
                         >
                             <PlaylistSong song={song as never} />

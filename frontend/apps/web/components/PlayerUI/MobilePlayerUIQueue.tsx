@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { QueueResponseItem } from "@/dto";
 import { useStore } from "@nanostores/react";
 import {
     GripVertical,
@@ -9,8 +8,9 @@ import {
     ListX,
     PlayCircle,
 } from "lucide-react";
+import { QueueResponseItem } from "@/packages/dto";
+import { rockIt } from "@/packages/lib/rockit/rockIt";
 import useWindowSize from "@/hooks/useWindowSize";
-import { rockIt } from "@/lib/rockit/rockIt";
 import ContextMenuContent from "@/components/ContextMenu/Content";
 import ContextMenu from "@/components/ContextMenu/ContextMenu";
 import ContextMenuOption from "@/components/ContextMenu/Option";
@@ -67,7 +67,7 @@ export default function MobilePlayerUIQueue({
     return (
         <div
             id="MobilePlayerUIQueue"
-            className="absolute z-50 grid h-[calc(100%-5rem)] w-full select-none grid-rows-[40px_1fr] rounded-t-lg bg-gray-700 pl-2 pt-4 transition-[top] duration-300 md:select-text"
+            className="absolute z-50 grid h-[calc(100%-5rem)] w-full grid-rows-[40px_1fr] rounded-t-lg bg-gray-700 pt-4 pl-2 transition-[top] duration-300 select-none md:select-text"
             style={{ top: open ? "80px" : `${height}px` }}
         >
             {/* Header */}
@@ -78,7 +78,7 @@ export default function MobilePlayerUIQueue({
                 Queue
             </button>
 
-            <div className="absolute bottom-0 left-0 right-0 top-12">
+            <div className="absolute top-12 right-0 bottom-0 left-0">
                 <div
                     ref={scrollRef}
                     onScroll={(e) => setQueueScroll(e.currentTarget.scrollTop)}
@@ -125,7 +125,7 @@ export default function MobilePlayerUIQueue({
                                     <ContextMenu>
                                         <ContextMenuTrigger>
                                             <div className="grid grid-cols-[1fr_45px] items-center">
-                                                <div className="w-full min-w-0 max-w-full">
+                                                <div className="w-full max-w-full min-w-0">
                                                     <QueueMedia media={media} />
                                                 </div>
                                                 <GripVertical
@@ -186,8 +186,8 @@ export default function MobilePlayerUIQueue({
                 </div>
 
                 {/* Fade overlays */}
-                <div className="bg-linear-to-t pointer-events-none absolute -top-1 h-10 w-full from-transparent to-gray-700" />
-                <div className="bg-linear-to-b pointer-events-none absolute bottom-0 h-10 w-full from-transparent to-gray-700" />
+                <div className="pointer-events-none absolute -top-1 h-10 w-full bg-linear-to-t from-transparent to-gray-700" />
+                <div className="pointer-events-none absolute bottom-0 h-10 w-full bg-linear-to-b from-transparent to-gray-700" />
             </div>
         </div>
     );

@@ -1,5 +1,8 @@
-import { BaseArtistResponseSchema, YoutubeChannelResponseSchema } from "@/dto";
 import { z } from "zod";
+import {
+    BaseArtistResponseSchema,
+    YoutubeChannelResponseSchema,
+} from "@/packages/dto";
 
 export const YoutubeVideoResponseSchema = z.object({
     type: z.union([z.literal("video")]).default("video"),

@@ -1,11 +1,11 @@
+import { z } from "zod";
 import {
     BaseAlbumWithoutSongsResponseSchema,
     BasePlaylistResponseSchema,
     BaseSongWithAlbumResponseSchema,
     BaseStationResponseSchema,
     BaseVideoResponseSchema,
-} from "@/dto";
-import { z } from "zod";
+} from "@/packages/dto";
 
 export const LibraryListsResponseSchema = z.object({
     albums: z.array(z.lazy(() => BaseAlbumWithoutSongsResponseSchema)),

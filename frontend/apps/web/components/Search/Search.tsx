@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { rockIt } from "@/packages/lib/rockit/rockIt";
 import { useSearchResults } from "@/components/Search/hooks/useSearchResults";
 import SearchBarInput from "@/components/Search/SearchBarInput";
 import AlbumsSection from "@/components/Search/sections/AlbumsSection";
@@ -22,7 +22,7 @@ function EmptyState() {
             <p className="mt-10 text-lg md:mt-2 md:text-xl">
                 {$vocabulary.SEARCH_EMPTY2}
             </p>
-            <div className="w-46 relative h-36 md:mt-10">
+            <div className="relative h-36 w-46 md:mt-10">
                 <Image
                     src="/logo-banner.png"
                     alt="Rockit Logo"

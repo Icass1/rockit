@@ -11,7 +11,7 @@ export default function Header() {
     const isRadio = pathname?.startsWith("/radio");
 
     return (
-        <header className="bg-linear-to-b relative z-50 grid w-full grid-cols-[33%_33%_32%] items-center justify-between from-black via-black/60 via-70% to-black/0 px-4 py-4 text-white">
+        <header className="relative z-50 grid w-full grid-cols-[33%_33%_32%] items-center justify-between bg-linear-to-b from-black via-black/60 via-70% to-black/0 px-4 py-4 text-white">
             {/* Blur overlay — fades out downward so content below stays visible */}
             <div
                 className="absolute inset-0 -z-10 backdrop-blur-[20px]"
@@ -23,7 +23,7 @@ export default function Header() {
                 }}
             />
 
-            <Link href="/" className="flex select-none items-center">
+            <Link href="/" className="flex items-center select-none">
                 <Image
                     width={2048}
                     height={614}

@@ -14,7 +14,7 @@ import {
     PlayCircle,
     Share2,
 } from "lucide-react";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { rockIt } from "@/packages/lib/rockit/rockIt";
 import ContextMenuOption from "@/components/ContextMenu/Option";
 import ContextMenuSplitter from "@/components/ContextMenu/Splitter";
 import SubContextMenuContent from "@/components/ContextMenu/SubContextMenu/Content";

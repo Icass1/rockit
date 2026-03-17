@@ -3,7 +3,7 @@
 import { User } from "lucide-react";
 
 //import { useStore } from "@nanostores/react";
-//import { rockIt } from "@/lib/rockit/rockIt";
+//import { rockIt } from "@/packages/lib/rockit/rockIt";
 
 export default function OnlineUserIndicator() {
     const $onlineUsers = 1263; // useStore(rockIt.userManager.onlineUsersAtom);

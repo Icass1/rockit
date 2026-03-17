@@ -126,7 +126,7 @@ export default function RankingList({
                                     item.isEntering || item.isExiting ? 0 : 1,
                             }}
                         >
-                            <span className="w-5 shrink-0 text-right text-xs font-bold tabular-nums text-neutral-600">
+                            <span className="w-5 shrink-0 text-right text-xs font-bold text-neutral-600 tabular-nums">
                                 {rank}
                             </span>
 
@@ -156,11 +156,11 @@ export default function RankingList({
                             <div className="flex w-2/5 shrink-0 items-center gap-2">
                                 <div className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-neutral-800">
                                     <div
-                                        className="bg-linear-to-r absolute h-full rounded-full from-[#ee1086] to-[#fb6467] transition-[width] duration-700"
+                                        className="absolute h-full rounded-full bg-linear-to-r from-[#ee1086] to-[#fb6467] transition-[width] duration-700"
                                         style={{ width: `${pct}%` }}
                                     />
                                 </div>
-                                <span className="w-8 shrink-0 text-right text-xs font-bold tabular-nums text-neutral-400">
+                                <span className="w-8 shrink-0 text-right text-xs font-bold text-neutral-400 tabular-nums">
                                     {valueLabel === "%"
                                         ? `${share}%`
                                         : item.value}

@@ -2,8 +2,8 @@ import {
     BaseAlbumWithSongsResponseSchema,
     BasePlaylistResponseSchema,
     BaseSongWithAlbumResponseSchema,
-} from "@/dto";
-import { baseApiFetch } from "@/lib/utils/apiFetch";
+} from "@/packages/dto";
+import { baseApiFetch } from "@/packages/lib/utils/apiFetch";
 
 export async function getAlbumAsync(publicId: string) {
     const response = await baseApiFetch(`/media/album/${publicId}`, {

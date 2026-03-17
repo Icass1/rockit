@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getUserInServer } from "@/lib/getUserInServer";
+import { getUserInServer } from "@/packages/lib/getUserInServer";
 
 export default async function ProtectedLayout({
     children,

@@ -1,14 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { BaseSongWithAlbumResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
 import { CheckCircle2, EllipsisVertical } from "lucide-react";
+import { BaseSongWithAlbumResponse } from "@/packages/dto";
+import { AlbumManager } from "@/packages/lib/managers/albumManager";
+import { rockIt } from "@/packages/lib/rockit/rockIt";
+import { networkStatus } from "@/packages/lib/stores/networkStatus";
+import { getTime } from "@/packages/lib/utils/getTime";
 import useWindowSize from "@/hooks/useWindowSize";
-import { AlbumManager } from "@/lib/managers/albumManager";
-import { rockIt } from "@/lib/rockit/rockIt";
-import { networkStatus } from "@/lib/stores/networkStatus";
-import { getTime } from "@/lib/utils/getTime";
 import LikeButton from "@/components/LikeButton";
 import SongContextMenu from "@/components/ListSongs/SongContextMenu";
 
@@ -58,7 +58,7 @@ export default function AlbumSong({
         <SongContextMenu song={song}>
             <div
                 className={
-                    "grid select-none grid-cols-[min-content_1fr_min-content_min-content_40px] items-center gap-2 rounded py-2 transition-colors md:select-text md:gap-4 md:px-2 md:py-[0.65rem]" +
+                    "grid grid-cols-[min-content_1fr_min-content_min-content_40px] items-center gap-2 rounded py-2 transition-colors select-none md:gap-4 md:px-2 md:py-[0.65rem] md:select-text" +
                     (songUnavailable ? " pointer-events-none opacity-40" : "") +
                     (songPlaying ? " text-[#ec5588]" : "")
                 }
@@ -82,11 +82,11 @@ export default function AlbumSong({
                 </label>
                 <div
                     className={
-                        "grid w-full min-w-0 max-w-full grid-cols-[1fr_max-content] items-center gap-1 truncate text-base font-semibold md:text-clip" +
+                        "grid w-full max-w-full min-w-0 grid-cols-[1fr_max-content] items-center gap-1 truncate text-base font-semibold md:text-clip" +
                         (songPlaying ? " text-[#ec5588]" : "")
                     }
                 >
-                    <label className="w-auto min-w-0 max-w-full truncate">
+                    <label className="w-auto max-w-full min-w-0 truncate">
                         {song.name}
                     </label>
                 </div>
@@ -99,7 +99,7 @@ export default function AlbumSong({
                 )}
                 <LikeButton mediaPublicId={song.publicId} />
 
-                <label className="flex min-w-7 select-none items-center justify-center text-sm text-white/80">
+                <label className="flex min-w-7 items-center justify-center text-sm text-white/80 select-none">
                     {hovered && (innerWidth ?? 0) > 768 ? (
                         <EllipsisVertical
                             className="h-5 w-5 text-gray-400 md:hover:scale-105 md:hover:text-white"

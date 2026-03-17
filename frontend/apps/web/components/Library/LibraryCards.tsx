@@ -8,8 +8,8 @@ import {
     BaseSongWithoutAlbumResponse,
     BaseStationResponse,
     BaseVideoResponse,
-} from "@/dto";
-import { rockIt } from "@/lib/rockit/rockIt";
+} from "@/packages/dto";
+import { rockIt } from "@/packages/lib/rockit/rockIt";
 import { AddListContextMenu } from "@/components/Library/LibraryContextMenu";
 
 /**
@@ -24,7 +24,7 @@ const COVER_SIZES = "(max-width: 640px) 50vw, 250px";
 
 /** Shared wrapper for every grid card — enforces the 250 px cap. */
 function CardShell({ children }: { children: React.ReactNode }) {
-    return <div className="max-w-62.5 mx-auto w-full">{children}</div>;
+    return <div className="mx-auto w-full max-w-62.5">{children}</div>;
 }
 
 export function PlaylistCard({ playlist }: { playlist: BasePlaylistResponse }) {

@@ -99,7 +99,6 @@ database/
 songs/
 images/
 temp/
-docs/
 backend/utils/json.json
 
 # Spotify cache

@@ -40,80 +40,50 @@ This document provides comprehensive documentation of the Rockit frontend archit
 ## Directory Structure
 
 ```
-frontend/
-├── app/                          # Next.js App Router
-│   ├── (protected)/              # Protected route group
-│   │   ├── (app)/                # Main app pages
-│   │   │   ├── page.tsx          # Home page
-│   │   │   ├── library/          # Library pages
-│   │   │   ├── search/           # Search pages
-│   │   │   ├── playlist/         # Playlist pages
-│   │   │   ├── album/           # Album pages
-│   │   │   ├── artist/          # Artist pages
-│   │   │   └── ...
-│   │   └── layout.tsx           # Auth check layout
-│   ├── login/                    # Login page
-│   ├── register/                 # Register page
-│   ├── layout.tsx               # Root layout
-│   └── not-found.tsx            # 404 page
+frontend/                           # Monorepo (pnpm workspaces)
+├── apps/
+│   ├── web/                       # Next.js web application
+│   │   ├── app/                   # Next.js App Router
+│   │   │   ├── (protected)/       # Protected route group
+│   │   │   │   ├── (app)/        # Main app pages
+│   │   │   │   │   └── page.tsx  # Home (Server Component)
+│   │   │   │   └── layout.tsx     # Auth check
+│   │   │   ├── login/            # Login page
+│   │   │   ├── register/         # Register page
+│   │   │   ├── layout.tsx        # Root layout
+│   │   │   └── not-found.tsx     # 404 page
+│   │   ├── components/            # Feature-based components
+│   │   │   ├── Home/
+│   │   │   │   └── HomeClient.tsx # Client wrapper
+│   │   │   └── ErrorPage/
+│   │   ├── styles/               # CSS files
+│   │   │   ├── globals.css       # Tailwind imports
+│   │   │   ├── base.css          # Reset, CSS vars
+│   │   │   ├── animations.css    # @keyframes
+│   │   │   └── components.css    # Scrollbars, slider, skeleton
+│   │   ├── environment.ts        # BACKEND_URL
+│   │   └── package.json
+│   │
+│   └── mobile/                    # Expo React Native app
+│       ├── app/                   # Expo file-based routing
+│       │   ├── _layout.tsx       # Root layout
+│       │   ├── (tabs)/           # Tab navigation
+│       │   └── modal.tsx
+│       └── package.json
 │
-├── components/                   # React components (feature-based)
-│   ├── Home/
-│   │   ├── HomeClient.tsx       # Client wrapper for home
-│   │   ├── SongsCarousel.tsx    # Sub-components
-│   │   ├── hooks/               # Feature-specific hooks
-│   │   │   └── useHomeData.ts
-│   │   └── index.ts             # Barrel export
-│   ├── Layout/
-│   │   ├── AppClientLayout.tsx  # Main app wrapper
-│   │   └── ...
-│   ├── PlayerUI/
-│   ├── Navigation/
-│   ├── Footer/
-│   ├── ErrorPage/
-│   └── ...
+├── packages/                       # Shared packages
+│   ├── config/                     # ESLint, TypeScript configs
+│   └── shared/                     # Shared code
+│       ├── src/
+│       │   ├── dto/                # Zod schemas (auto-generated)
+│       │   ├── lib/
+│       │   │   └── getUserInServer.ts
+│       │   └── index.ts           # Barrel export
+│       └── package.json
 │
-├── lib/                          # Business logic & utilities
-│   ├── managers/                # Manager classes
-│   │   ├── audioManager.ts     # Audio playback
-│   │   ├── queueManager.ts     # Queue management
-│   │   ├── playlistManager.ts   # Playlist CRUD
-│   │   ├── mediaManager.ts     # Media operations
-│   │   ├── searchManager.ts    # Search
-│   │   └── ...
-│   ├── rockit/                  # RockIt singleton
-│   │   └── rockIt.ts          # Main rockIt instance
-│   ├── utils/
-│   │   ├── apiFetch.ts         # API fetch utilities
-│   │   └── ...
-│   ├── errors/
-│   │   └── AppError.ts         # Custom error class
-│   └── store.ts                # Nanostores implementation
-│
-├── hooks/                       # Global React hooks
-│   ├── useFetch.ts             # Data fetching with Zod
-│   ├── useSession.ts           # Session management
-│   └── useWindowSize.ts        # Window size
-│
-├── dto/                         # Zod schemas (auto-generated from backend)
-│   ├── index.ts                # Barrel export
-│   ├── homeStatsResponse.ts   # Home stats DTO
-│   ├── baseSongWithAlbumResponse.ts
-│   └── ...
-│
-├── types/                       # TypeScript interfaces
-├── models/                      # Enums and models
-│   └── enums/
-│       └── repeatMode.ts       # RepeatMode enum
-│
-├── styles/                      # Global CSS
-│   ├── globals.css             # Tailwind imports
-│   ├── base.css                # Reset styles
-│   ├── animations.css          # Keyframes
-│   └── components.css         # Shared component styles
-│
-└── public/                      # Static assets
-    └── lang/                   # Vocabulary JSON files
+├── package.json                    # Workspace root
+├── pnpm-workspace.yaml             # pnpm config
+└── turbo.json                     # Turborepo config
 ```
 
 ---
@@ -156,7 +126,7 @@ frontend/
 ### Pattern
 
 ```tsx
-// app/(protected)/(app)/somefeature/page.tsx — Server Component
+// apps/web/app/(protected)/(app)/somefeature/page.tsx — Server Component
 import SomeFeatureClient from "@/components/SomeFeature/SomeFeatureClient";
 import { SomeResponseSchema } from "@/dto";
 
@@ -382,7 +352,7 @@ if (!res.ok) throw new AppError(res.status);
 `error.tsx` catches errors and renders the error page:
 
 ```tsx
-// app/(protected)/(app)/error.tsx
+// apps/web/app/(protected)/(app)/error.tsx
 "use client";
 
 import { AppError } from "@/lib/errors/AppError";
@@ -402,7 +372,7 @@ export default function Error({ error }: { error: Error; reset: () => void }) {
 ### 404 Page
 
 ```tsx
-// app/not-found.tsx
+// apps/web/app/not-found.tsx
 import ErrorPage from "@/components/ErrorPage/ErrorPage";
 
 export default function NotFound() {
@@ -417,7 +387,7 @@ export default function NotFound() {
 ### Server-Side Auth Check
 
 ```tsx
-// lib/getUserInServer.ts
+// packages/shared/src/lib/getUserInServer.ts
 import { cookies } from "next/headers";
 
 export async function getUserInServer() {
@@ -438,9 +408,9 @@ export async function getUserInServer() {
 ### Protected Layout
 
 ```tsx
-// app/(protected)/layout.tsx
+// apps/web/app/(protected)/layout.tsx
 import { redirect } from "next/navigation";
-import { getUserInServer } from "@/lib/getUserInServer";
+import { getUserInServer } from "@rockit/packages/shared";
 
 export default async function ProtectedLayout({
     children,
@@ -470,7 +440,7 @@ cd backend
 python3 -m backend zod
 ```
 
-Generated files go to `frontend/dto/` — **NEVER edit manually**.
+Generated files go to `frontend/packages/shared/src/dto/` — **NEVER edit manually**.
 
 ### Using DTOs
 
@@ -519,10 +489,10 @@ Use existing base DTOs for common types:
 
 | File | Purpose |
 |------|---------|
-| `globals.css` | Tailwind imports and utilities |
-| `base.css` | Reset and base styles |
-| `animations.css` | Keyframes and animations |
-| `components.css` | Shared component styles |
+| `apps/web/styles/globals.css` | Tailwind imports and utilities |
+| `apps/web/styles/base.css` | Reset and base styles |
+| `apps/web/styles/animations.css` | Keyframes and animations |
+| `apps/web/styles/components.css` | Shared component styles |
 
 ### Usage
 
@@ -541,13 +511,13 @@ Use existing base DTOs for common types:
 
 ### Adding a New Page
 
-1. **Create page.tsx** (Server Component)
-2. **Create *Client.tsx** (Client Component)
+1. **Create page.tsx** (Server Component) in `apps/web/app/(protected)/(app)/`
+2. **Create *Client.tsx** (Client Component) in `apps/web/components/`
 3. **Add barrel export** in components folder
 4. **Add DTO** if needed (via backend)
 
 ```tsx
-// app/(protected)/(app)/newfeature/page.tsx
+// apps/web/app/(protected)/(app)/newfeature/page.tsx
 import NewFeatureClient from "@/components/NewFeature/NewFeatureClient";
 
 async function getData() {
@@ -559,7 +529,7 @@ export default async function NewFeaturePage() {
     return <NewFeatureClient initialData={data} />;
 }
 
-// components/NewFeature/NewFeatureClient.tsx
+// apps/web/components/NewFeature/NewFeatureClient.tsx
 "use client";
 
 interface Props {
@@ -571,7 +541,7 @@ export default function NewFeatureClient({ initialData }: Props) {
     return <div>...</div>;
 }
 
-// components/NewFeature/index.ts
+// apps/web/components/NewFeature/index.ts (barrel export)
 export { default as NewFeatureClient } from "./NewFeatureClient";
 ```
 
@@ -788,39 +758,55 @@ export function useMenuContext() {
 
 ## Running the Frontend
 
+The frontend uses a pnpm monorepo setup. Commands run from the `frontend/` root.
+
 ```bash
 cd frontend
 
-# Development
-npm run dev
+# Install dependencies
+pnpm install
 
-# Build
-npm run build
+# Development (all apps)
+pnpm dev
 
-# Lint
-npm run lint
+# Development (web only)
+pnpm --filter frontend dev
+
+# Development (mobile only)
+pnpm --filter @rockit/mobile dev
+
+# Build (all apps)
+pnpm build
+
+# Lint (web)
+pnpm --filter frontend lint
 
 # Type check
-npx tsc --noEmit
+pnpm --filter frontend typecheck
+pnpm --filter @rockit/shared typecheck
+pnpm --filter @rockit/mobile typecheck
 ```
 
 ---
 
 ## Key Files Reference
 
-| File | Purpose |
-|------|---------|
-| `frontend/app/layout.tsx` | Root layout |
-| `frontend/app/(protected)/layout.tsx` | Auth check layout |
-| `frontend/app/(protected)/(app)/page.tsx` | Home page (Server) |
-| `frontend/components/Home/HomeClient.tsx` | Home page (Client) |
-| `frontend/lib/store.ts` | Nanostores implementation |
-| `frontend/lib/rockit/rockIt.ts` | RockIt singleton |
-| `frontend/lib/managers/audioManager.ts` | Audio playback |
-| `frontend/lib/utils/apiFetch.ts` | API fetch with Zod |
-| `frontend/lib/errors/AppError.ts` | Custom error class |
-| `frontend/hooks/useFetch.ts` | Fetch hook with Zod |
-| `frontend/dto/index.ts` | DTO barrel export |
+| File                                                         | Purpose                                 |
+| ------------------------------------------------------------ | --------------------------------------- |
+| `frontend/apps/web/app/layout.tsx`                           | Root layout                             |
+| `frontend/apps/web/app/(protected)/layout.tsx`              | Auth check layout                       |
+| `frontend/apps/web/app/(protected)/(app)/page.tsx`          | Home page (Server)                      |
+| `frontend/apps/web/components/Home/HomeClient.tsx`           | Home page (Client)                      |
+| `frontend/apps/web/components/ErrorPage/ErrorPage.tsx`      | Error page component                    |
+| `frontend/apps/web/styles/base.css`                          | Reset, CSS vars, md breakpoint override |
+| `frontend/apps/web/styles/components.css`                    | Scrollbars, slider, skeleton, safe-area |
+| `frontend/apps/web/environment.ts`                           | BACKEND_URL                             |
+| `frontend/packages/shared/src/lib/getUserInServer.ts`        | Server-side session check               |
+| `frontend/packages/shared/src/dto/index.ts`                  | DTO barrel export                       |
+| `frontend/packages/shared/src/index.ts`                      | Shared package barrel export            |
+| `frontend/apps/mobile/app/_layout.tsx`                       | Mobile root layout                      |
+| `frontend/apps/mobile/app/(tabs)/index.tsx`                  | Mobile home tab                         |
+| `frontend/apps/mobile/app/(tabs)/explore.tsx`                 | Mobile explore tab                      |
 
 ---
 

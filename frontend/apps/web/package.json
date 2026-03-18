@@ -12,6 +12,7 @@
     "dependencies": {
         "@nanostores/react": "^0.8.4",
         "@rockit/packages": "file:../../packages",
+        "@rockit/shared": "workspace:*",
         "@types/lodash": "^4.17.21",
         "lodash": "^4.17.21",
         "lucide-react": "^0.487.0",

@@ -1,11 +1,7 @@
 {
     "compilerOptions": {
         "target": "ES2017",
-        "lib": [
-            "dom",
-            "dom.iterable",
-            "esnext"
-        ],
+        "lib": ["dom", "dom.iterable", "esnext"],
         "allowJs": true,
         "skipLibCheck": true,
         "strict": true,
@@ -25,39 +21,18 @@
         ],
         "baseUrl": ".",
         "paths": {
-            "@/components/*": [
-                "./components/*"
-            ],
-            "@/dto": [
-                "node_modules/@rockit/packages/dto/index.ts"
-            ],
-            "@/dto/*": [
-                "node_modules/@rockit/packages/dto/*"
-            ],
-            "@/environment": [
-                "./environment"
-            ],
-            "@/hooks/*": [
-                "./hooks/*"
-            ],
-            "@/styles/*": [
-                "./styles/*"
-            ],
-            "@/lib/*": [
-                "node_modules/@rockit/packages/lib/*"
-            ],
-            "@/models/*": [
-                "node_modules/@rockit/packages/models/*"
-            ],
-            "@/packages/dto": [
-                "node_modules/@rockit/packages/dto/index.ts"
-            ],
-            "@/packages/dto/*": [
-                "node_modules/@rockit/packages/dto/*"
-            ],
-            "@/types/*": [
-                "node_modules/@rockit/packages/types/*"
-            ]
+            "@/components/*": ["./components/*"],
+            "@/dto": ["node_modules/@rockit/packages/dto/index.ts"],
+            "@/dto/*": ["node_modules/@rockit/packages/dto/*"],
+            "@/environment": ["./environment"],
+            "@/hooks/*": ["./hooks/*"],
+            "@/styles/*": ["./styles/*"],
+            "@/lib/*": ["node_modules/@rockit/packages/lib/*"],
+            "@/models/*": ["node_modules/@rockit/packages/models/*"],
+            "@/packages/dto": ["node_modules/@rockit/packages/dto/index.ts"],
+            "@/packages/dto/*": ["node_modules/@rockit/packages/dto/*"],
+            "@/types/*": ["node_modules/@rockit/packages/types/*"],
+            "@rockit/shared": ["node_modules/@rockit/shared/dist/index.js"]
         }
     },
     "include": [

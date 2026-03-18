@@ -422,70 +422,50 @@ These are the known routes. Use `public_id` for all resource identifiers.
 ### 5.1 Directory Structure
 
 ```
-frontend/
-├── app/
-│   ├── (protected)/
-│   │   ├── (app)/              # All main app pages
-│   │   │   ├── page.tsx        # Home (Server Component)
-│   │   │   ├── library/page.tsx
-│   │   │   ├── search/page.tsx
-│   │   │   ├── playlist/[publicId]/page.tsx
-│   │   │   ├── album/[publicId]/page.tsx
-│   │   │   ├── artist/[id]/page.tsx
-│   │   │   ├── song/[publicId]/page.tsx
-│   │   │   ├── downloader/page.tsx
-│   │   │   ├── stats/page.tsx
-│   │   │   └── settings/page.tsx
-│   │   └── layout.tsx          # Auth check
-│   ├── login/page.tsx
-│   ├── register/page.tsx
-│   └── not-found.tsx
+frontend/                           # Monorepo (pnpm workspaces)
+├── apps/
+│   ├── web/                       # Next.js web application
+│   │   ├── app/                   # Next.js App Router
+│   │   │   ├── (protected)/      # Protected route group
+│   │   │   │   ├── (app)/        # Main app pages
+│   │   │   │   │   └── page.tsx  # Home (Server Component)
+│   │   │   │   └── layout.tsx    # Auth check
+│   │   │   ├── login/            # Login page
+│   │   │   ├── register/         # Register page
+│   │   │   ├── layout.tsx        # Root layout
+│   │   │   └── not-found.tsx     # 404 page
+│   │   ├── components/            # Feature-based components
+│   │   │   ├── Home/
+│   │   │   │   └── HomeClient.tsx # Client wrapper
+│   │   │   └── ErrorPage/
+│   │   ├── styles/               # CSS files
+│   │   │   ├── globals.css       # Tailwind imports
+│   │   │   ├── base.css          # Reset, CSS vars
+│   │   │   ├── animations.css    # @keyframes
+│   │   │   └── components.css    # Scrollbars, slider, skeleton
+│   │   ├── environment.ts        # BACKEND_URL
+│   │   └── package.json
+│   │
+│   └── mobile/                    # Expo React Native app
+│       ├── app/                   # Expo file-based routing
+│       │   ├── _layout.tsx       # Root layout
+│       │   ├── (tabs)/           # Tab navigation
+│       │   └── modal.tsx
+│       └── package.json
 │
-├── components/                 # Feature-based components
-│   ├── [Feature]/
-│   │   ├── [Feature]Client.tsx # "use client" wrapper
-│   │   ├── hooks/
-│   │   │   └── use[Feature].ts
-│   │   └── index.ts            # Barrel export (required)
-│   └── Layout/
-│       └── AppClientLayout.tsx # Main shell (nav, footer, player)
+├── packages/                       # Shared packages
+│   ├── config/                     # ESLint, TypeScript configs
+│   └── shared/                     # Shared code
+│       ├── src/
+│       │   ├── dto/                # Zod schemas (auto-generated)
+│       │   ├── lib/
+│       │   │   └── getUserInServer.ts
+│       │   └── index.ts           # Barrel export
+│       └── package.json
 │
-├── lib/
-│   ├── managers/               # ALL business logic lives here
-│   │   ├── audioManager.ts
-│   │   ├── queueManager.ts
-│   │   ├── playlistManager.ts
-│   │   ├── mediaManager.ts
-│   │   ├── userManager.ts
-│   │   ├── searchManager.ts
-│   │   ├── downloaderManager.ts
-│   │   ├── vocabularyManager.ts
-│   │   ├── playerUIManager.ts
-│   │   ├── notificationManager.ts
-│   │   ├── webSocketManger.ts
-│   │   └── ...
-│   ├── rockit/rockIt.ts        # Singleton with all managers
-│   ├── store.ts                # createAtom / createArrayAtom
-│   ├── utils/
-│   │   └── apiFetch.ts         # Zod-validated fetch
-│   └── errors/AppError.ts
-│
-├── hooks/                      # Global hooks
-│   ├── useFetch.ts             # Fetch + Zod
-│   ├── useSession.ts
-│   └── useWindowSize.ts
-│
-├── dto/                        # AUTO-GENERATED — never edit
-│   └── index.ts                # Barrel export
-│
-├── types/                      # TypeScript interfaces
-├── models/enums/               # Shared enums
-├── styles/
-│   ├── globals.css             # Tailwind @import
-│   ├── base.css                # Reset, CSS vars, @custom-variant md
-│   ├── animations.css          # @keyframes
-│   └── components.css          # Scrollbars, slider, skeleton
-└── public/lang/                # Vocabulary JSON files (en, es, eu…)
+├── package.json                    # Workspace root
+├── pnpm-workspace.yaml             # pnpm config
+└── turbo.json                     # Turborepo config
 ```
 
 ### 5.2 Server vs Client Components
@@ -499,7 +479,7 @@ frontend/
 | Interactive logic goes in `*Client.tsx`              | Page just imports and renders it       |
 
 ```tsx
-// ✅ app/(protected)/(app)/somefeature/page.tsx
+// ✅ apps/web/app/(protected)/(app)/somefeature/page.tsx
 import SomeFeatureClient from "@/components/SomeFeature/SomeFeatureClient";
 
 export default async function SomeFeaturePage() {
@@ -520,8 +500,8 @@ export default function SomeFeatureClient({ initialData }) {
 **Server-side** (in `page.tsx`):
 
 ```tsx
-import { BACKEND_URL } from "@/environment";
 import { SomeSchema } from "@/dto";
+import { BACKEND_URL } from "@/environment";
 
 async function getData() {
     const res = await fetch(`${BACKEND_URL}/some/endpoint`, {
@@ -553,9 +533,9 @@ const data = await apiFetch("/some/endpoint", SomeResponseSchema);
 ### 5.4 State Management
 
 ```tsx
-import { createArrayAtom, createAtom } from "@/lib/store";
 // React binding
 import { useStore } from "@nanostores/react";
+import { createArrayAtom, createAtom } from "@/lib/store";
 
 // Single value
 const playingAtom = createAtom<boolean>(false);
@@ -658,14 +638,14 @@ bg-gradient-to-r from-[#ee1086] to-[#fb6467]
 
 ### DTO Generation
 
-Backend Pydantic response models are compiled to Zod schemas in `frontend/dto/`:
+Backend Pydantic response models are compiled to Zod schemas in `frontend/packages/shared/src/dto/`:
 
 ```bash
 cd backend
 python3 -m backend zod
 ```
 
-**Never edit files in `frontend/dto/` manually.**
+**Never edit files in `packages/shared/src/dto/` manually.**
 
 After adding a backend response model, run `zod` and import the generated schema:
 
@@ -676,7 +656,7 @@ import { SomeResponseSchema, type SomeResponse } from "@/dto";
 ### API Base URL
 
 ```tsx
-// frontend/environment.ts
+// frontend/apps/web/environment.ts
 export const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 ```
 
@@ -912,7 +892,7 @@ if (typeof window !== "undefined") { ... }
 - Never use `console.log` or `console.warn` in production code
 - Never use `window` or `document` without an SSR guard
 - Never use relative imports — always `@/`
-- Never edit files in `frontend/dto/` manually
+- Never edit files in `packages/shared/src/dto/` manually
 - Never return `null` based on nanostores atoms (causes hydration mismatch — return empty element instead)
 
 ---
@@ -941,21 +921,21 @@ if (typeof window !== "undefined") { ... }
 
 ### Frontend
 
-| File                                             | Purpose                                 |
-| ------------------------------------------------ | --------------------------------------- |
-| `frontend/app/layout.tsx`                        | Root layout                             |
-| `frontend/app/(protected)/layout.tsx`            | Auth check                              |
-| `frontend/components/Layout/AppClientLayout.tsx` | App shell (nav, footer, player)         |
-| `frontend/lib/store.ts`                          | createAtom / createArrayAtom            |
-| `frontend/lib/rockit/rockIt.ts`                  | Global singleton                        |
-| `frontend/lib/managers/audioManager.ts`          | Audio playback                          |
-| `frontend/lib/managers/queueManager.ts`          | Queue                                   |
-| `frontend/lib/managers/webSocketManger.ts`       | WebSocket                               |
-| `frontend/lib/utils/apiFetch.ts`                 | Zod-validated fetch                     |
-| `frontend/lib/errors/AppError.ts`                | Error class                             |
-| `frontend/lib/getUserInServer.ts`                | Server-side session check               |
-| `frontend/hooks/useFetch.ts`                     | Client-side fetch hook                  |
-| `frontend/dto/index.ts`                          | DTO barrel (auto-generated)             |
-| `frontend/styles/base.css`                       | Reset, CSS vars, md breakpoint override |
-| `frontend/styles/components.css`                 | Scrollbars, slider, skeleton, safe-area |
-| `frontend/environment.ts`                        | BACKEND_URL                             |
+| File                                                      | Purpose                                 |
+| --------------------------------------------------------- | --------------------------------------- |
+| `frontend/apps/web/app/layout.tsx`                        | Root layout                             |
+| `frontend/apps/web/app/(protected)/layout.tsx`            | Auth check                              |
+| `frontend/apps/web/components/Layout/AppClientLayout.tsx` | App shell (nav, footer, player)         |
+| `frontend/lib/store.ts`                                   | createAtom / createArrayAtom            |
+| `frontend/lib/rockit/rockIt.ts`                           | Global singleton                        |
+| `frontend/lib/managers/audioManager.ts`                   | Audio playback                          |
+| `frontend/lib/managers/queueManager.ts`                   | Queue                                   |
+| `frontend/lib/managers/webSocketManger.ts`                | WebSocket                               |
+| `frontend/lib/utils/apiFetch.ts`                          | Zod-validated fetch                     |
+| `frontend/lib/errors/AppError.ts`                         | Error class                             |
+| `frontend/packages/shared/src/lib/getUserInServer.ts`     | Server-side session check               |
+| `frontend/hooks/useFetch.ts`                              | Client-side fetch hook                  |
+| `frontend/packages/shared/src/dto/index.ts`               | DTO barrel (auto-generated)             |
+| `frontend/apps/web/styles/base.css`                       | Reset, CSS vars, md breakpoint override |
+| `frontend/apps/web/styles/components.css`                 | Scrollbars, slider, skeleton, safe-area |
+| `frontend/apps/web/environment.ts`                        | BACKEND_URL                             |

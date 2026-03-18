@@ -12,7 +12,7 @@ import {
     Settings,
     ShieldEllipsis,
 } from "lucide-react";
-import { rockIt } from "@/packages/lib/rockit/rockIt";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 interface NavPage {
     title: string;

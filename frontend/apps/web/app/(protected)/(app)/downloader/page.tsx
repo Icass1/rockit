@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getUserInServer } from "@/packages/lib/getUserInServer";
+import { getUserInServer } from "@/lib/getUserInServer";
 import DownloaderClient from "@/components/Downloader/DownloaderClient";
 
 export const metadata = {

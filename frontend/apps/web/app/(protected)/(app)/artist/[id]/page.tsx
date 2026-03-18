@@ -4,10 +4,10 @@ import { Play } from "lucide-react";
 import {
     BaseArtistResponseSchema,
     BaseSongWithAlbumResponse,
-} from "@/packages/dto";
-import { AppError } from "@/packages/lib/errors/AppError";
-import { rockIt } from "@/packages/lib/rockit/rockIt";
-import { baseApiFetch } from "@/packages/lib/utils/apiFetch";
+} from "@/dto";
+import { AppError } from "@/lib/errors/AppError";
+import { rockIt } from "@/lib/rockit/rockIt";
+import { baseApiFetch } from "@/lib/utils/apiFetch";
 
 export default async function ArtistPage({
     params,

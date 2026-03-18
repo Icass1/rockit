@@ -7,9 +7,9 @@ import {
     BaseSongWithAlbumResponseSchema,
     BaseVideoResponse,
     BaseVideoResponseSchema,
-} from "@/packages/dto";
-import { rockIt } from "@/packages/lib/rockit/rockIt";
-import { apiFetch } from "@/packages/lib/utils/apiFetch";
+} from "@/dto";
+import { rockIt } from "@/lib/rockit/rockIt";
+import { apiFetch } from "@/lib/utils/apiFetch";
 import DropOverlay from "@/components/DropOverlay";
 import RenderList from "@/components/RenderList/RenderList";
 

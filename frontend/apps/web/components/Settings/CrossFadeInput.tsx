@@ -1,7 +1,7 @@
 "use client";
 
 import { useStore } from "@nanostores/react";
-import { rockIt } from "@/packages/lib/rockit/rockIt";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function CrossFadeInput() {
     const $crossFade = useStore(rockIt.audioManager.crossFadeAtom);

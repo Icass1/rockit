@@ -3,8 +3,8 @@
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
 import { Pause, Play } from "lucide-react";
-import { rockIt } from "@/packages/lib/rockit/rockIt";
-import { getMediaArtists, getMediaDuration } from "@/packages/types/media";
+import { rockIt } from "@/lib/rockit/rockIt";
+import { getMediaArtists, getMediaDuration } from "@/types/media";
 import LikeButton from "@/components/LikeButton";
 import Slider from "@/components/Slider";
 

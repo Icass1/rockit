@@ -4,9 +4,9 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
 import { ChevronDown, ChevronRight } from "lucide-react";
-import type { BaseSongWithAlbumResponse } from "@/packages/dto";
-import { rockIt } from "@/packages/lib/rockit/rockIt";
-import type { DownloadInfo } from "@/packages/types/rockIt";
+import type { BaseSongWithAlbumResponse } from "@/dto";
+import { rockIt } from "@/lib/rockit/rockIt";
+import type { DownloadInfo } from "@/types/rockIt";
 
 // ─── Per-item metadata fetch ──────────────────────────────────────────────────
 

@@ -1,13 +1,13 @@
-import Image from "next/image";
+import Artists from "@/components/Artists/Artists";
+import LikeButton from "@/components/LikeButton";
 import {
     BaseArtistResponse,
     BaseSongWithAlbumResponse,
     BaseVideoResponse,
-} from "@/packages/dto";
-import { getTime } from "@/packages/lib/utils/getTime";
+} from "@/dto";
+import { getTime } from "@/lib/utils/getTime";
 import { getMediaDuration } from "@/types/media";
-import Artists from "@/components/Artists/Artists";
-import LikeButton from "@/components/LikeButton";
+import Image from "next/image";
 
 export function Media({
     index,

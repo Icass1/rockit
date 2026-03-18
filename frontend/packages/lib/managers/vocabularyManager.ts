@@ -1,10 +1,10 @@
 import {
     UserVocabularyResponse,
     UserVocabularyResponseSchema,
-} from "@/packages/dto";
-import { createAtom } from "@/packages/lib/store";
-import { apiFetch } from "@/packages/lib/utils/apiFetch";
-import { Vocabulary } from "@/packages/types/vocabulary";
+} from "@/dto";
+import { createAtom } from "@/lib/store";
+import { apiFetch } from "@/lib/utils/apiFetch";
+import { Vocabulary } from "@/types/vocabulary";
 
 export class VocabularyManager {
     private _vocabularyAtom = createAtom<Vocabulary>({} as Vocabulary);

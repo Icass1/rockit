@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { BaseSongWithAlbumResponse } from "@/packages/dto";
+import { BaseSongWithAlbumResponse } from "@/dto";
 import { songHandleClick } from "@/components/ListSongs/HandleClick";
 import SongContextMenu from "@/components/ListSongs/SongContextMenu";
 

@@ -2,8 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { BaseAlbumWithoutSongsResponseSchema } from "@/packages/dto";
-import { apiFetch } from "@/packages/lib/utils/apiFetch";
+import { BaseAlbumWithoutSongsResponseSchema } from "@/dto";
+import { apiFetch } from "@/lib/utils/apiFetch";
 import LoadingComponent from "@/components/Loading";
 
 export default function SpotifyAlbumClient({

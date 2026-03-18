@@ -1,6 +1,6 @@
-import { LikeMediaRequest } from "@/packages/dto";
-import { createArrayAtom } from "@/packages/lib/store";
-import { apiPostFetch, baseApiFetch } from "@/packages/lib/utils/apiFetch";
+import { LikeMediaRequest } from "@/dto";
+import { createArrayAtom } from "@/lib/store";
+import { apiPostFetch, baseApiFetch } from "@/lib/utils/apiFetch";
 
 export class MediaManager {
     // #region: Atoms

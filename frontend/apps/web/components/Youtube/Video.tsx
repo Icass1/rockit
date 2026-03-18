@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { BaseVideoResponseSchema } from "@/packages/dto";
-import { apiFetch } from "@/packages/lib/utils/apiFetch";
+import { BaseVideoResponseSchema } from "@/dto";
+import { apiFetch } from "@/lib/utils/apiFetch";
 import LoadingComponent from "@/components/Loading";
 
 export default function YoutubeVideoClient({

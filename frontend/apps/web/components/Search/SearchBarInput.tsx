@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useStore } from "@nanostores/react";
 import type { DebouncedFunc } from "lodash";
 import debounce from "lodash/debounce";
-import { rockIt } from "@/packages/lib/rockit/rockIt";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function SearchBarInput() {
     const [value, setValue] = useState("");

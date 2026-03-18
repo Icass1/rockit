@@ -10,7 +10,7 @@ import {
     List,
     Upload,
 } from "lucide-react";
-import { rockIt } from "@/packages/lib/rockit/rockIt";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { ContentType } from "@/components/Library/hooks/useLibraryData";
 import { LibraryFilters, ViewMode } from "@/components/Library/LibraryFilters";
 import { LibraryLists } from "@/components/Library/LibraryLists";

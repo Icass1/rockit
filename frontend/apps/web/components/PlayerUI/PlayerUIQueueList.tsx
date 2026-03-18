@@ -8,8 +8,8 @@ import {
     ListX,
     PlayCircle,
 } from "lucide-react";
-import { QueueResponseItem } from "@/packages/dto";
-import { rockIt } from "@/packages/lib/rockit/rockIt";
+import { QueueResponseItem } from "@/dto";
+import { rockIt } from "@/lib/rockit/rockIt";
 import ContextMenuContent from "@/components/ContextMenu/Content";
 import ContextMenu from "@/components/ContextMenu/ContextMenu";
 import ContextMenuOption from "@/components/ContextMenu/Option";

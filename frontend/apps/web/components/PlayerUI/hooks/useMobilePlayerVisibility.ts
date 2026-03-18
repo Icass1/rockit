@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useStore } from "@nanostores/react";
-import { rockIt } from "@/packages/lib/rockit/rockIt";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 /**
  * Manages the show/hide animation state of MobilePlayerUI.

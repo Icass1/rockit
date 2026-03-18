@@ -5,8 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useStore } from "@nanostores/react";
 import { Pause, Play } from "lucide-react";
-import { rockIt } from "@/packages/lib/rockit/rockIt";
-import { getMediaArtists, MediaType } from "@/packages/types/media";
+import { rockIt } from "@/lib/rockit/rockIt";
+import { getMediaArtists, MediaType } from "@/types/media";
 
 export function PlayerUICoverColumn({
     currentMedia,

@@ -1,6 +1,6 @@
 import { cache } from "react";
 import { notFound } from "next/navigation";
-import { getPlaylistAsync } from "@/packages/lib/services/mediaService";
+import { getPlaylistAsync } from "@/lib/services/mediaService";
 import RenderListClient from "@/components/RenderList/RenderListClient";
 
 const getPlaylist = cache(async (publicId: string) => {

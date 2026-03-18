@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useStore } from "@nanostores/react";
 import { Bell } from "lucide-react";
-import { rockIt } from "@/packages/lib/rockit/rockIt";
+import { rockIt } from "@/lib/rockit/rockIt";
 import NotificationMenu from "@/components/Header/HeaderNotificationMenu";
 import OnlineUserIndicator from "@/components/Header/HeaderOnlineUsers";
 import HeaderUser from "@/components/Header/HeaderUser";

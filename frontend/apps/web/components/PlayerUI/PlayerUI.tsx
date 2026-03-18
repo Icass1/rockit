@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
-import { rockIt } from "@/packages/lib/rockit/rockIt";
+import { rockIt } from "@/lib/rockit/rockIt";
 import useWindowSize from "@/hooks/useWindowSize";
 import { PlayerUICoverColumn } from "@/components/PlayerUI/PlayerUICoverColumn";
 import { PlayerUILyricsColumn } from "@/components/PlayerUI/PlayerUILyricsColumn";

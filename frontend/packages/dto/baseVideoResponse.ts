@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { BaseArtistResponseSchema } from "@/packages/dto";
+import { BaseArtistResponseSchema } from "@/dto";
 
 export const BaseVideoResponseSchema = z.object({
     type: z.union([z.literal("video")]).default("video"),

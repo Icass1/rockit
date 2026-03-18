@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { rockIt } from "@/packages/lib/rockit/rockIt";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 const MOCK_COLUMNS = 5;
 const MOCK_SONGS_PER_COLUMN = 3;

@@ -1,10 +1,10 @@
 import {
     SearchResultsResponse,
     SearchResultsResponseSchema,
-} from "@/packages/dto";
-import { rockIt } from "@/packages/lib/rockit/rockIt";
-import { createAtom } from "@/packages/lib/store";
-import { baseApiFetch } from "@/packages/lib/utils/apiFetch";
+} from "@/dto";
+import { rockIt } from "@/lib/rockit/rockIt";
+import { createAtom } from "@/lib/store";
+import { baseApiFetch } from "@/lib/utils/apiFetch";
 
 export class SearchManager {
     // #region Atoms

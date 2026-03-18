@@ -12,8 +12,8 @@ import {
     PinOff,
     Play,
 } from "lucide-react";
-import { rockIt } from "@/packages/lib/rockit/rockIt";
-import { DBListType } from "@/packages/types/rockIt";
+import { rockIt } from "@/lib/rockit/rockIt";
+import { DBListType } from "@/types/rockIt";
 import { playListHandleClick } from "@/components/PlayList";
 import {
     PopupMenu,

@@ -1,6 +1,6 @@
 "use client";
 
-import { AppError } from "@/packages/lib/errors/AppError";
+import { AppError } from "@/lib/errors/AppError";
 import ErrorPage from "@/components/ErrorPage/ErrorPage";
 
 export default function Error({ error }: { error: Error; reset: () => void }) {

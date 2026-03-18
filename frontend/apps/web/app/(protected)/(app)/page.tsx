@@ -1,6 +1,6 @@
-import { HomeStatsResponseSchema } from "@/dto";
-import { BACKEND_URL } from "@/environment";
 import HomeClient from "@/components/Home/HomeClient";
+import { BACKEND_URL } from "@/environment";
+import { HomeStatsResponseSchema } from "@/packages/dto";
 
 async function getHomeStats() {
     const baseUrl = BACKEND_URL;

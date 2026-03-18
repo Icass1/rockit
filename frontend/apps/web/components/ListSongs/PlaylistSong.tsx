@@ -1,8 +1,8 @@
 "use client";
 
-import { rockIt } from "@/packages/lib/rockit/rockIt";
-import { networkStatus } from "@/packages/lib/stores/networkStatus";
-import { getTime } from "@/packages/lib/utils/getTime";
+import { rockIt } from "@/lib/rockit/rockIt";
+import { networkStatus } from "@/lib/stores/networkStatus";
+import { getTime } from "@/lib/utils/getTime";
 import LikeButton from "@/components/LikeButton";
 import SongContextMenu from "@/components/ListSongs/SongContextMenu";
 import {
@@ -69,7 +69,7 @@ export default function PlaylistSong({ song }: { song: PlaylistMediaItem }) {
     return (
         <SongContextMenu
             song={
-                media as unknown as import("@/packages/dto").BaseSongWithAlbumResponse
+                media as unknown as import("@/dto").BaseSongWithAlbumResponse
             }
         >
             <div

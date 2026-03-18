@@ -1,5 +1,5 @@
-import { BaseSongWithAlbumResponse } from "@/packages/dto";
-import { createArrayAtom } from "@/packages/lib/store";
+import { BaseSongWithAlbumResponse } from "@/dto";
+import { createArrayAtom } from "@/lib/store";
 
 export class CurrentListManager {
     // #region: Atoms

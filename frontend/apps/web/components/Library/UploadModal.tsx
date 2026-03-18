@@ -4,7 +4,7 @@ import { useCallback, useRef, useState } from "react";
 import { BACKEND_URL } from "@/environment";
 import { useStore } from "@nanostores/react";
 import { FileArchive, FileAudio, Upload, X } from "lucide-react";
-import { rockIt } from "@/packages/lib/rockit/rockIt";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

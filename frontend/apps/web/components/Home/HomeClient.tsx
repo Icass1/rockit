@@ -3,8 +3,8 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { useStore } from "@nanostores/react";
-import { HomeStatsResponse } from "@/packages/dto";
-import { rockIt } from "@/packages/lib/rockit/rockIt";
+import { HomeStatsResponse } from "@/dto";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { useHomeData } from "@/components/Home/hooks/useHomeData";
 import QuickSelectionsSection from "@/components/Home/sections/QuickSelectionsSection";
 import SongScrollSection from "@/components/Home/sections/SongScrollSection";

@@ -521,7 +521,7 @@ export default function SomeFeatureClient({ initialData }) {
 
 ```tsx
 import { BACKEND_URL } from "@/environment";
-import { SomeSchema } from "@/packages/dto";
+import { SomeSchema } from "@/dto";
 
 async function getData() {
     const res = await fetch(`${BACKEND_URL}/some/endpoint`, {
@@ -536,7 +536,7 @@ async function getData() {
 **Client-side** (`useFetch` hook):
 
 ```tsx
-import { SomeResponseSchema } from "@/packages/dto";
+import { SomeResponseSchema } from "@/dto";
 import useFetch from "@/hooks/useFetch";
 
 const [data, refresh] = useFetch("/some/endpoint", SomeResponseSchema);
@@ -545,7 +545,7 @@ const [data, refresh] = useFetch("/some/endpoint", SomeResponseSchema);
 **Direct fetch** (in manager methods):
 
 ```tsx
-import { apiFetch } from "@/packages/lib/utils/apiFetch";
+import { apiFetch } from "@/lib/utils/apiFetch";
 
 const data = await apiFetch("/some/endpoint", SomeResponseSchema);
 ```
@@ -553,7 +553,7 @@ const data = await apiFetch("/some/endpoint", SomeResponseSchema);
 ### 5.4 State Management
 
 ```tsx
-import { createArrayAtom, createAtom } from "@/packages/lib/store";
+import { createArrayAtom, createAtom } from "@/lib/store";
 // React binding
 import { useStore } from "@nanostores/react";
 
@@ -574,7 +574,7 @@ const isPlaying = useStore(rockIt.audioManager.playingAtom);
 `rockIt` is the global singleton that exposes all managers:
 
 ```tsx
-import { rockIt } from "@/packages/lib/rockit/rockIt";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 rockIt.audioManager.play();
 rockIt.audioManager.pause();
@@ -670,7 +670,7 @@ python3 -m backend zod
 After adding a backend response model, run `zod` and import the generated schema:
 
 ```tsx
-import { SomeResponseSchema, type SomeResponse } from "@/packages/dto";
+import { SomeResponseSchema, type SomeResponse } from "@/dto";
 ```
 
 ### API Base URL
@@ -804,7 +804,7 @@ cd backend && python3 -m backend zod
 
 ```tsx
 // components/Stats/UserStats.tsx — replace MOCK_* with real fetch
-import { UserStatsResponseSchema } from "@/packages/dto";
+import { UserStatsResponseSchema } from "@/dto";
 import useFetch from "@/hooks/useFetch";
 
 export default function UserStats({ range, customStart, customEnd }) {

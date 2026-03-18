@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { BaseArtistResponse, BaseSongWithAlbumResponse } from "@/packages/dto";
-import { AlbumManager } from "@/packages/lib/managers/albumManager";
+import { BaseArtistResponse, BaseSongWithAlbumResponse } from "@/dto";
+import { AlbumManager } from "@/lib/managers/albumManager";
 
 export default function SongPageTopArtistSongs({
     artist,

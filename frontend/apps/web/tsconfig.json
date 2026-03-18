@@ -1,10 +1,15 @@
 {
     "compilerOptions": {
         "target": "ES2017",
-        "lib": ["dom", "dom.iterable", "esnext"],
+        "lib": [
+            "dom",
+            "dom.iterable",
+            "esnext"
+        ],
         "allowJs": true,
         "skipLibCheck": true,
         "strict": true,
+        "noImplicitAny": false,
         "noEmit": true,
         "esModuleInterop": true,
         "module": "esnext",
@@ -18,19 +23,58 @@
                 "name": "next"
             }
         ],
+        "baseUrl": ".",
         "paths": {
-            "@/*": ["./*"],
-            "@/packages/*": ["../../packages/*"]
+            "@/components/*": [
+                "./components/*"
+            ],
+            "@/dto": [
+                "node_modules/@rockit/packages/dto/index.ts"
+            ],
+            "@/dto/*": [
+                "node_modules/@rockit/packages/dto/*"
+            ],
+            "@/environment": [
+                "./environment"
+            ],
+            "@/hooks/*": [
+                "./hooks/*"
+            ],
+            "@/styles/*": [
+                "./styles/*"
+            ],
+            "@/lib/*": [
+                "node_modules/@rockit/packages/lib/*"
+            ],
+            "@/models/*": [
+                "node_modules/@rockit/packages/models/*"
+            ],
+            "@/packages/dto": [
+                "node_modules/@rockit/packages/dto/index.ts"
+            ],
+            "@/packages/dto/*": [
+                "node_modules/@rockit/packages/dto/*"
+            ],
+            "@/types/*": [
+                "node_modules/@rockit/packages/types/*"
+            ]
         }
     },
     "include": [
         "next-env.d.ts",
-        "**/*.ts",
-        "**/*.tsx",
+        "app/**/*.ts",
+        "app/**/*.tsx",
+        "components/**/*.ts",
+        "components/**/*.tsx",
+        "hooks/**/*.ts",
+        "hooks/**/*.tsx",
         ".next/types/**/*.ts",
-        ".next/dev/types/**/*.ts",
-        "**/*.mts",
-        "../../"
+        ".next/dev/types/**/*.ts"
     ],
-    "exclude": ["node_modules"]
+    "exclude": [
+        "node_modules",
+        "../../mobile",
+        "../../apps/mobile",
+        "../../packages"
+    ]
 }

@@ -3,11 +3,11 @@
 import { useMemo, useState } from "react";
 import { useStore } from "@nanostores/react";
 import { CheckCircle2, EllipsisVertical } from "lucide-react";
-import { BaseSongWithAlbumResponse } from "@/packages/dto";
-import { AlbumManager } from "@/packages/lib/managers/albumManager";
-import { rockIt } from "@/packages/lib/rockit/rockIt";
-import { networkStatus } from "@/packages/lib/stores/networkStatus";
-import { getTime } from "@/packages/lib/utils/getTime";
+import { BaseSongWithAlbumResponse } from "@/dto";
+import { AlbumManager } from "@/lib/managers/albumManager";
+import { rockIt } from "@/lib/rockit/rockIt";
+import { networkStatus } from "@/lib/stores/networkStatus";
+import { getTime } from "@/lib/utils/getTime";
 import useWindowSize from "@/hooks/useWindowSize";
 import LikeButton from "@/components/LikeButton";
 import SongContextMenu from "@/components/ListSongs/SongContextMenu";

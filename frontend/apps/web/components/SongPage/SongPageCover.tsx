@@ -4,8 +4,8 @@ import { useState } from "react";
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
 import { Download, Pause, Play } from "lucide-react";
-import { BaseSongWithAlbumResponse } from "@/packages/dto";
-import { rockIt } from "@/packages/lib/rockit/rockIt";
+import { BaseSongWithAlbumResponse } from "@/dto";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 function SongPageCoverIcon({
     song,

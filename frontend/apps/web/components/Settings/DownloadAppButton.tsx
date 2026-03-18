@@ -3,11 +3,11 @@
 import { useState } from "react";
 import { useStore } from "@nanostores/react";
 import { Download, Loader2 } from "lucide-react";
-import { rockIt } from "@/packages/lib/rockit/rockIt";
+import { rockIt } from "@/lib/rockit/rockIt";
 import {
     clearResources,
     downloadResources,
-} from "@/packages/lib/utils/downloadResources";
+} from "@/lib/utils/downloadResources";
 
 export default function DownloadAppButton() {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);

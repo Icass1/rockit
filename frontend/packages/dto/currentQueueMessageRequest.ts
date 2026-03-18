@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { CurrentQueueMessageRequestItemSchema } from "@/packages/dto";
+import { CurrentQueueMessageRequestItemSchema } from "@/dto";
 
 export const CurrentQueueMessageRequestSchema = z.object({
     queue: z.array(z.lazy(() => CurrentQueueMessageRequestItemSchema)),

@@ -2,7 +2,7 @@
 
 import { useStore } from "@nanostores/react";
 import { ChevronUp } from "lucide-react";
-import { rockIt } from "@/packages/lib/rockit/rockIt";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function TogglePlayerUI() {
     const $visible = useStore(rockIt.playerUIManager.visibleAtom);

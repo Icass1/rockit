@@ -2,7 +2,7 @@ import { z } from "zod";
 import {
     BaseAlbumWithoutSongsResponseSchema,
     BaseArtistResponseSchema,
-} from "@/packages/dto";
+} from "@/dto";
 
 export const SpotifyTrackResponseSchema = z.object({
     type: z.union([z.literal("song")]).default("song"),

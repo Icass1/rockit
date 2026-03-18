@@ -6,9 +6,9 @@ import { useRouter } from "next/navigation";
 import { type CreatePlaylistRequest } from "@/dto/createPlaylistRequest";
 import { useStore } from "@nanostores/react";
 import { Plus } from "lucide-react";
-import { BasePlaylistResponseSchema } from "@/packages/dto";
-import { rockIt } from "@/packages/lib/rockit/rockIt";
-import { apiPostFetch } from "@/packages/lib/utils/apiFetch";
+import { BasePlaylistResponseSchema } from "@/dto";
+import { rockIt } from "@/lib/rockit/rockIt";
+import { apiPostFetch } from "@/lib/utils/apiFetch";
 
 export default function NewPlaylistButton() {
     const [showModal, setShowModal] = useState(false);

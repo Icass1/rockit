@@ -1,7 +1,7 @@
 "use client";
 
 import { Dispatch, SetStateAction, useRef, useState } from "react";
-import { getDateDDMMYYYY } from "@/packages/lib/utils/getTime";
+import { getDateDDMMYYYY } from "@/lib/utils/getTime";
 
 function Bar({
     entry,

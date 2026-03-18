@@ -1,4 +1,4 @@
-import { BaseSongWithAlbumResponse } from "@/packages/dto";
+import { BaseSongWithAlbumResponse } from "@/dto";
 import QuickSelectionsSong from "@/components/Home/QuickSelectionsSong";
 
 const COLUMNS = 10;

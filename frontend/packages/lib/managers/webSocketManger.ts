@@ -9,7 +9,7 @@ import {
     SeekMessageRequest,
     SkipClickedMessageRequest,
     type DownloadProgressMessage,
-} from "@/packages/dto";
+} from "@/dto";
 
 export type WebSocketMessageType =
     | "download_progress"

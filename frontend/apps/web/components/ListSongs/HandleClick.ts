@@ -1,4 +1,4 @@
-import { BaseSongWithoutAlbumResponse } from "@/packages/dto";
+import { BaseSongWithoutAlbumResponse } from "@/dto";
 
 export function songHandleClick(
     song: BaseSongWithoutAlbumResponse,

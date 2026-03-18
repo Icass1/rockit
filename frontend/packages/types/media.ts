@@ -2,7 +2,7 @@ import {
     BaseSongWithAlbumResponse,
     BaseStationResponse,
     BaseVideoResponse,
-} from "@/packages/dto";
+} from "@/dto";
 
 export type MediaType =
     | BaseSongWithAlbumResponse

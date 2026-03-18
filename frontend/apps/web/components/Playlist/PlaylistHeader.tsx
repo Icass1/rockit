@@ -1,9 +1,9 @@
 "use client";
 
 import { useStore } from "@nanostores/react";
-import { BasePlaylistResponse } from "@/packages/dto";
-import { rockIt } from "@/packages/lib/rockit/rockIt";
-import { getMinutes } from "@/packages/lib/utils/getTime";
+import { BasePlaylistResponse } from "@/dto";
+import { rockIt } from "@/lib/rockit/rockIt";
+import { getMinutes } from "@/lib/utils/getTime";
 import { useListDownload } from "@/components/List/hooks/useListDownload";
 import { ListCover } from "@/components/List/ListCover";
 import ListOptions from "@/components/ListHeader/ListOptions";

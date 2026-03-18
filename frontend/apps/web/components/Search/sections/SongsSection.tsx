@@ -4,8 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useStore } from "@nanostores/react";
-import { BaseSearchResultsItem } from "@/packages/dto";
-import { rockIt } from "@/packages/lib/rockit/rockIt";
+import { BaseSearchResultsItem } from "@/dto";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function SongsSection({
     songs,

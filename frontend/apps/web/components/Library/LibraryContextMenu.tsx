@@ -15,8 +15,8 @@ import {
 import {
     BaseAlbumWithoutSongsResponse,
     BasePlaylistResponse,
-} from "@/packages/dto";
-import { rockIt } from "@/packages/lib/rockit/rockIt";
+} from "@/dto";
+import { rockIt } from "@/lib/rockit/rockIt";
 import ContextMenuContent from "@/components/ContextMenu/Content";
 import ContextMenu from "@/components/ContextMenu/ContextMenu";
 import ContextMenuOption from "@/components/ContextMenu/Option";

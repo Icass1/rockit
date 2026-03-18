@@ -9,9 +9,9 @@ import {
     Play,
     PlayIcon,
 } from "lucide-react";
-import { rockIt } from "@/packages/lib/rockit/rockIt";
-import { getMediaArtists, MediaType } from "@/packages/types/media";
-import { Station } from "@/packages/types/station";
+import { rockIt } from "@/lib/rockit/rockIt";
+import { getMediaArtists, MediaType } from "@/types/media";
+import { Station } from "@/types/station";
 import Artists from "@/components/Artists/Artists";
 import LikeButton from "@/components/LikeButton";
 import MediaPopupMenu from "@/components/MediaPopupMenu";

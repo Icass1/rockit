@@ -1,21 +1,21 @@
 import { BACKEND_URL } from "@/environment";
-import { AlbumManager } from "@/packages/lib/managers/albumManager";
-import { AudioManager } from "@/packages/lib/managers/audioManager";
-import { CurrentListManager } from "@/packages/lib/managers/currentListManager";
-import { DownloaderManager } from "@/packages/lib/managers/downloaderManager";
-import { IndexedDBManager } from "@/packages/lib/managers/indexedDBManager";
-import { ListManager } from "@/packages/lib/managers/listManager";
-import { MediaManager } from "@/packages/lib/managers/mediaManager";
-import { NotificationManager } from "@/packages/lib/managers/notificationManager";
-import { PlayerUIManager } from "@/packages/lib/managers/playerUIManager";
-import { PlaylistManager } from "@/packages/lib/managers/playlistManager";
-import { QueueManager } from "@/packages/lib/managers/queueManager";
-import { SearchManager } from "@/packages/lib/managers/searchManager";
-import { ServiceWorkerManager } from "@/packages/lib/managers/serviceWorkerManager";
-import { StationManager } from "@/packages/lib/managers/stationManager";
-import { UserManager } from "@/packages/lib/managers/userManager";
-import { VocabularyManager } from "@/packages/lib/managers/vocabularyManager";
-import { WebSocketManager } from "@/packages/lib/managers/webSocketManger";
+import { AlbumManager } from "@/lib/managers/albumManager";
+import { AudioManager } from "@/lib/managers/audioManager";
+import { CurrentListManager } from "@/lib/managers/currentListManager";
+import { DownloaderManager } from "@/lib/managers/downloaderManager";
+import { IndexedDBManager } from "@/lib/managers/indexedDBManager";
+import { ListManager } from "@/lib/managers/listManager";
+import { MediaManager } from "@/lib/managers/mediaManager";
+import { NotificationManager } from "@/lib/managers/notificationManager";
+import { PlayerUIManager } from "@/lib/managers/playerUIManager";
+import { PlaylistManager } from "@/lib/managers/playlistManager";
+import { QueueManager } from "@/lib/managers/queueManager";
+import { SearchManager } from "@/lib/managers/searchManager";
+import { ServiceWorkerManager } from "@/lib/managers/serviceWorkerManager";
+import { StationManager } from "@/lib/managers/stationManager";
+import { UserManager } from "@/lib/managers/userManager";
+import { VocabularyManager } from "@/lib/managers/vocabularyManager";
+import { WebSocketManager } from "@/lib/managers/webSocketManger";
 
 export const RESPONSE_UNDEFINED_MESSAGE = "Response is undefined.";
 

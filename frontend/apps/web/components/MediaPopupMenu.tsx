@@ -1,7 +1,7 @@
 "use client";
 
 import { ReactNode } from "react";
-import { MediaType } from "@/packages/types/media";
+import { MediaType } from "@/types/media";
 import SongPopupMenu from "@/components/ListSongs/SongPopupMenu";
 
 export default function MediaPopupMenu({

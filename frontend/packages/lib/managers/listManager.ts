@@ -1,14 +1,14 @@
 import {
     BaseAlbumWithoutSongsResponse,
     BasePlaylistResponse,
-} from "@/packages/dto";
+} from "@/dto";
 import {
     RESPONSE_UNDEFINED_MESSAGE,
     rockIt,
-} from "@/packages/lib/rockit/rockIt";
-import { createArrayAtom } from "@/packages/lib/store";
-import { baseApiFetch } from "@/packages/lib/utils/apiFetch";
-import { DBListType } from "@/packages/types/rockIt";
+} from "@/lib/rockit/rockIt";
+import { createArrayAtom } from "@/lib/store";
+import { baseApiFetch } from "@/lib/utils/apiFetch";
+import { DBListType } from "@/types/rockIt";
 
 export class ListManager {
     private _libraryListsAtom = createArrayAtom<{

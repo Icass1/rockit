@@ -8,8 +8,8 @@ import {
     BaseSongWithoutAlbumResponse,
     BaseStationResponse,
     BaseVideoResponse,
-} from "@/packages/dto";
-import { rockIt } from "@/packages/lib/rockit/rockIt";
+} from "@/dto";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { AddListContextMenu } from "@/components/Library/LibraryContextMenu";
 
 /**

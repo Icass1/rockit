@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
-import { rockIt } from "@/packages/lib/rockit/rockIt";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { useSearchResults } from "@/components/Search/hooks/useSearchResults";
 import SearchBarInput from "@/components/Search/SearchBarInput";
 import AlbumsSection from "@/components/Search/sections/AlbumsSection";

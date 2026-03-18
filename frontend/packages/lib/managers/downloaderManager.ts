@@ -1,11 +1,11 @@
-import { StartDownloadRequest } from "@/packages/dto";
+import { StartDownloadRequest } from "@/dto";
 import {
     RESPONSE_UNDEFINED_MESSAGE,
     rockIt,
-} from "@/packages/lib/rockit/rockIt";
-import { createArrayAtom } from "@/packages/lib/store";
-import { apiPostFetch } from "@/packages/lib/utils/apiFetch";
-import { DBListType, DownloadInfo } from "@/packages/types/rockIt";
+} from "@/lib/rockit/rockIt";
+import { createArrayAtom } from "@/lib/store";
+import { apiPostFetch } from "@/lib/utils/apiFetch";
+import { DBListType, DownloadInfo } from "@/types/rockIt";
 
 interface SongStatus {
     publicId: string;

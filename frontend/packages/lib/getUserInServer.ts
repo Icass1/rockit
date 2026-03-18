@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { BACKEND_URL } from "@/environment";
-import { SessionResponse, SessionResponseSchema } from "@/packages/dto";
+import { SessionResponse, SessionResponseSchema } from "@/dto";
 
 export async function getUserInServer(): Promise<SessionResponse | undefined> {
     const cookieStore = await cookies();

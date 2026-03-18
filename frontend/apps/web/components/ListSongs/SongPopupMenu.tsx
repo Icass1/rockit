@@ -16,9 +16,9 @@ import {
     PlayCircle,
     Share2,
 } from "lucide-react";
-import { BaseSongWithAlbumResponse } from "@/packages/dto";
-import { rockIt } from "@/packages/lib/rockit/rockIt";
-import { networkStatus } from "@/packages/lib/stores/networkStatus";
+import { BaseSongWithAlbumResponse } from "@/dto";
+import { rockIt } from "@/lib/rockit/rockIt";
+import { networkStatus } from "@/lib/stores/networkStatus";
 import useDev from "@/hooks/useDev";
 import {
     PopupMenu,

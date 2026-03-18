@@ -1,4 +1,4 @@
-import { rockIt } from "@/packages/lib/rockit/rockIt";
+import { rockIt } from "@/lib/rockit/rockIt";
 import AppClientLayout from "@/components/Layout/AppClientLayout";
 
 export default async function AppLayout({

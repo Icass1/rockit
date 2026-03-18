@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { rockIt } from "@/packages/lib/rockit/rockIt";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { useLyrics } from "@/components/PlayerUI/hooks/useLyrics";
 
 // --------------------------------------------------------------------------

@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useStore } from "@nanostores/react";
 import { ChartLine, ImageUp, Lock } from "lucide-react";
-import { rockIt } from "@/packages/lib/rockit/rockIt";
+import { rockIt } from "@/lib/rockit/rockIt";
 import ChangeLang from "@/components/Settings/ChangeLang";
 import CrossFadeInput from "@/components/Settings/CrossFadeInput";
 import DownloadAppButton from "@/components/Settings/DownloadAppButton";

@@ -13,9 +13,9 @@ import {
     SkipBack,
     SkipForward,
 } from "lucide-react";
-import { rockIt } from "@/packages/lib/rockit/rockIt";
-import { getTime } from "@/packages/lib/utils/getTime";
-import { getMediaArtists, getMediaDuration } from "@/packages/types/media";
+import { rockIt } from "@/lib/rockit/rockIt";
+import { getTime } from "@/lib/utils/getTime";
+import { getMediaArtists, getMediaDuration } from "@/types/media";
 import useWindowSize from "@/hooks/useWindowSize";
 import LikeButton from "@/components/LikeButton";
 import MediaPopupMenu from "@/components/MediaPopupMenu";

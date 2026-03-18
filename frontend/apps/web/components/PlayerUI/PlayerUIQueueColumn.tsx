@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { QueueResponseItem } from "@/packages/dto";
+import { QueueResponseItem } from "@/dto";
 import { PlayerUIQueueList } from "@/components/PlayerUI/PlayerUIQueueList";
 import { PlayerUIRelatedTab } from "@/components/PlayerUI/PlayerUIRelatedTab";
 

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
-import { rockIt } from "@/packages/lib/rockit/rockIt";
+import { rockIt } from "@/lib/rockit/rockIt";
 import DownloadInputBar from "@/components/Downloader/DownloadInputBar";
 import DownloadLiveFeed, {
     useDownloadGroups,

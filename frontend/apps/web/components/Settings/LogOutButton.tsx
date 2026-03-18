@@ -2,7 +2,7 @@
 
 import { useStore } from "@nanostores/react";
 import { LogOut } from "lucide-react";
-import { rockIt } from "@/packages/lib/rockit/rockIt";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function LogOutButton() {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);

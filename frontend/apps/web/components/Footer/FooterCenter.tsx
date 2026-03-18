@@ -10,9 +10,9 @@ import {
     SkipBack,
     SkipForward,
 } from "lucide-react";
-import { rockIt } from "@/packages/lib/rockit/rockIt";
-import { getTime } from "@/packages/lib/utils/getTime";
-import { getMediaDuration } from "@/packages/types/media";
+import { rockIt } from "@/lib/rockit/rockIt";
+import { getTime } from "@/lib/utils/getTime";
+import { getMediaDuration } from "@/types/media";
 import { EQueueType } from "@/models/enums/queueType";
 import { ERepeatMode } from "@/models/enums/repeatMode";
 import Slider from "@/components/Slider";

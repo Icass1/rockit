@@ -1,9 +1,9 @@
 "use client";
 
 import { useStore } from "@nanostores/react";
-import { rockIt } from "@/packages/lib/rockit/rockIt";
-import { getTime } from "@/packages/lib/utils/getTime";
-import { getMediaDuration } from "@/packages/types/media";
+import { rockIt } from "@/lib/rockit/rockIt";
+import { getTime } from "@/lib/utils/getTime";
+import { getMediaDuration } from "@/types/media";
 
 const S = {
     progressRow: {

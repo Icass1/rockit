@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useStore } from "@nanostores/react";
 import { BarChart2, User, Users } from "lucide-react";
-import { rockIt } from "@/packages/lib/rockit/rockIt";
+import { rockIt } from "@/lib/rockit/rockIt";
 import UserStats from "@/components/Stats/UserStats";
 
 type Section = "user" | "general" | "friends";

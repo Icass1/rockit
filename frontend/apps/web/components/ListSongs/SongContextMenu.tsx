@@ -1,7 +1,7 @@
 "use client";
 
-import { BaseSongWithAlbumResponse } from "@/packages/dto";
-import { rockIt } from "@/packages/lib/rockit/rockIt";
+import { BaseSongWithAlbumResponse } from "@/dto";
+import { rockIt } from "@/lib/rockit/rockIt";
 import useDev from "@/hooks/useDev";
 import ContextMenuContent from "@/components/ContextMenu/Content";
 import ContextMenu from "@/components/ContextMenu/ContextMenu";

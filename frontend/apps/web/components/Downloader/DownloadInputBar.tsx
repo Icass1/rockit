@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ArrowDownToLine } from "lucide-react";
-import { rockIt } from "@/packages/lib/rockit/rockIt";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function DownloadInputBar() {
     const [url, setUrl] = useState("");

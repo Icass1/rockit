@@ -6,8 +6,8 @@ import { ArrowUp } from "lucide-react";
 import {
     BasePlaylistResponse,
     BaseSongWithAlbumResponse,
-} from "@/packages/dto";
-import { rockIt } from "@/packages/lib/rockit/rockIt";
+} from "@/dto";
+import { rockIt } from "@/lib/rockit/rockIt";
 import useWindowSize from "@/hooks/useWindowSize";
 import PlaylistSong from "@/components/ListSongs/PlaylistSong";
 import PlaylistHeader from "@/components/Playlist/PlaylistHeader";

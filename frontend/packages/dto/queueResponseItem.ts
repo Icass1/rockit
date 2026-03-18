@@ -2,7 +2,7 @@ import { z } from "zod";
 import {
     BaseSongWithAlbumResponseSchema,
     BaseVideoResponseSchema,
-} from "@/packages/dto";
+} from "@/dto";
 
 export const QueueResponseItemSchema = z.object({
     queueMediaId: z.number(),

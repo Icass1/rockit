@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { BaseSearchResultsItemSchema } from "@/packages/dto";
+import { BaseSearchResultsItemSchema } from "@/dto";
 
 export const SearchResultsResponseSchema = z.object({
     results: z.array(z.lazy(() => BaseSearchResultsItemSchema)),

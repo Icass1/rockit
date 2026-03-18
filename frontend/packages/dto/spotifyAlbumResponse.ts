@@ -3,7 +3,7 @@ import {
     BaseArtistResponseSchema,
     BaseSongWithoutAlbumResponseSchema,
     SpotifyExternalImageResponseSchema,
-} from "@/packages/dto";
+} from "@/dto";
 
 export const SpotifyAlbumResponseSchema = z.object({
     type: z.union([z.literal("album")]).default("album"),

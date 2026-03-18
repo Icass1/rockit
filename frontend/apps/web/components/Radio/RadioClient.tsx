@@ -7,9 +7,9 @@ import { useStore } from "@nanostores/react";
 import type { DebouncedFunc } from "lodash";
 import debounce from "lodash/debounce";
 import { ListPlus, Play, SearchX } from "lucide-react";
-import { rockIt } from "@/packages/lib/rockit/rockIt";
-import { baseApiFetch } from "@/packages/lib/utils/apiFetch";
-import type { Station } from "@/packages/types/station";
+import { rockIt } from "@/lib/rockit/rockIt";
+import { baseApiFetch } from "@/lib/utils/apiFetch";
+import type { Station } from "@/types/station";
 
 function StationCard({ station }: { station: Station }) {
     const handlePlay = (e?: React.MouseEvent) => {

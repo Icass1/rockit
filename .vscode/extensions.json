@@ -11,6 +11,7 @@
         "ms-python.black-formatter",
         "yoavbls.pretty-ts-errors",
         "expo.vscode-expo-tools",
+        "PKief.material-icon-theme",
     ],
     "unwantedRecommendations": []
 }

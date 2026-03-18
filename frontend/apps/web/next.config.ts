@@ -3,6 +3,7 @@ import type { NextConfig } from "next";
 const isDev = process.env.NODE_ENV === "development" || true;
 
 const nextConfig: NextConfig = {
+    transpilePackages: ["@rockit/packages"],
     turbopack: {
         root: __dirname,
     },

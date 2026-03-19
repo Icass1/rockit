@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { SessionResponseSchema, type SessionResponse } from "@/dto";
 import { BACKEND_URL } from "@/environment";
+import { apiFetch } from "@/lib/utils/apiFetch";
 
 export async function getUserInServer(): Promise<SessionResponse | undefined> {
     const cookieStore = await cookies();
@@ -11,16 +12,16 @@ export async function getUserInServer(): Promise<SessionResponse | undefined> {
         headers.Cookie = `session_id=${session}`;
     }
 
-    const res = await fetch(`${BACKEND_URL}/session`, {
-        headers,
-        cache: "no-store",
-        credentials: "include",
-    });
+    try {
+        const session = await apiFetch("session", SessionResponseSchema);
+        // const res = await fetch(`${BACKEND_URL}/session`, {
+        //     headers,
+        //     cache: "no-store",
+        //     credentials: "include",
+        // });
 
-    if (!res.ok) return undefined;
-
-    const json = await res.json();
-    const parsed = SessionResponseSchema.parse(json);
-
-    return parsed;
+        return session;
+    } catch {
+        console.error(`Unable to connect with backend at ${BACKEND_URL}.`);
+    }
 }

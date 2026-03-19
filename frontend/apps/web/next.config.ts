@@ -1,3 +1,4 @@
+import path from "path";
 import type { NextConfig } from "next";
 
 const isDev = process.env.NODE_ENV === "development" || true;
@@ -5,7 +6,7 @@ const isDev = process.env.NODE_ENV === "development" || true;
 const nextConfig: NextConfig = {
     transpilePackages: ["@rockit/packages"],
     turbopack: {
-        root: __dirname,
+        root: path.resolve(__dirname, "..", ".."),
     },
     images: {
         // Only disable image optimization in dev

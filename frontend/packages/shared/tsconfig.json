@@ -18,6 +18,8 @@
         "paths": {
             "@/dto": ["./src/dto"],
             "@/dto/*": ["./src/dto/*"],
+            "@/lib/*": ["./src/lib/*"],
+            "@/types/*": ["./src/types/*"],
             "@/environment": ["./src/environment"]
         }
     },

@@ -5,28 +5,36 @@
       "name": "Full Stack (DEBUG)",
       "configurations": [
         "FastAPI Uvicorn (DEBUG)",
-        "NextJS Server",
+        "NextJS Server"
       ]
     },
     {
-      "name": "Full Stack ",
+      "name": "Full Stack",
       "configurations": [
         "FastAPI Uvicorn",
-        "NextJS Server",
+        "NextJS Server"
       ]
     },
     {
-      "name": "Full Stack SSH Tunel",
+      "name": "Full Stack SSH Tunnel",
       "configurations": [
         "SSH Tunnel",
         "FastAPI Uvicorn (DEBUG)",
-        "NextJS Server",
+        "NextJS Server"
+      ]
+    },
+    {
+      "name": "Full Stack Mobile (SSH Tunnel)",
+      "configurations": [
+        "SSH Tunnel",
+        "FastAPI Uvicorn (DEBUG)",
+        "Expo"
       ]
     },
     {
       "name": "Frontend",
       "configurations": [
-        "NextJS Server",
+        "NextJS Server"
       ]
     }
   ],
@@ -38,6 +46,26 @@
       "module": "uvicorn",
       "args": [
         "backend.core.main:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8000"
+      ],
+      "cwd": "${workspaceFolder}",
+      "justMyCode": true
+    },
+    {
+      "name": "FastAPI Uvicorn (DEBUG)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": [
+        "backend.core.main:app",
+        "--reload",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8000"
       ],
       "cwd": "${workspaceFolder}",
       "justMyCode": true
@@ -58,27 +86,26 @@
       "internalConsoleOptions": "neverOpen"
     },
     {
-      "name": "FastAPI Uvicorn (DEBUG)",
-      "type": "debugpy",
-      "request": "launch",
-      "module": "uvicorn",
-      "args": [
-        "backend.core.main:app",
-        "--reload"
-      ],
-      "cwd": "${workspaceFolder}",
-      "justMyCode": true
-    },
-    {
       "name": "NextJS Server",
       "type": "node",
       "request": "launch",
       "runtimeExecutable": "npm",
-      "runtimeArgs": [
-        "run",
-        "dev"
-      ],
+      "runtimeArgs": ["run", "dev"],
       "cwd": "${workspaceFolder}/frontend",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "name": "Expo",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "expo",
+        "start",
+        "--offline"
+      ],
+      "cwd": "${workspaceFolder}/frontend/apps/mobile",
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen"
     }

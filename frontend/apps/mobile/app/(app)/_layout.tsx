@@ -1,9 +1,11 @@
+import { useEffect } from "react";
 import { COLORS } from "@/constants/theme";
 import { Feather } from "@expo/vector-icons";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
-import { Tabs } from "expo-router";
+import { Tabs, useRouter } from "expo-router";
 import { Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { getSession } from "@/lib/session";
 import MiniPlayer from "@/components/layout/MiniPlayer";
 
 function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
@@ -69,6 +71,16 @@ const styles = StyleSheet.create({
 });
 
 export default function AppLayout() {
+    const router = useRouter();
+
+    useEffect(() => {
+        getSession().then((session) => {
+            if (!session) {
+                router.replace("/(auth)/login");
+            }
+        });
+    }, [router]);
+
     return (
         <Tabs
             tabBar={(props) => <CustomTabBar {...props} />}

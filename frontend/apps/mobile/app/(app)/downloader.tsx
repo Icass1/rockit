@@ -8,7 +8,7 @@ export default function DownloaderScreen() {
             <Header />
             <View style={styles.container}>
                 <View style={styles.content}>
-                    <Text style={styles.text}>Downloads — coming soon</Text>
+                    <Text style={styles.text}>Downloads coming soon</Text>
                 </View>
             </View>
         </>
@@ -18,5 +18,5 @@ export default function DownloaderScreen() {
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: COLORS.bg },
     content: { flex: 1, alignItems: "center", justifyContent: "center" },
-    text: { color: COLORS.white, fontSize: 16 },
+    text: { color: COLORS.gray400, fontSize: 16 },
 });

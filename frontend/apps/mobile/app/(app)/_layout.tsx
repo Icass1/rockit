@@ -3,24 +3,17 @@ import { Feather } from "@expo/vector-icons";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { Tabs } from "expo-router";
 import { Pressable, StyleSheet, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 import MiniPlayer from "@/components/layout/MiniPlayer";
 
 function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
-    const insets = useSafeAreaInsets();
-
     return (
-        <View style={{ backgroundColor: COLORS.bgCard }}>
+        <SafeAreaView
+            edges={["bottom"]}
+            style={{ backgroundColor: COLORS.bgCard }}
+        >
             <MiniPlayer />
-            <View
-                style={[
-                    styles.tabBar,
-                    {
-                        paddingBottom: insets.bottom,
-                        height: 50 + insets.bottom,
-                    },
-                ]}
-            >
+            <View style={styles.tabBar}>
                 {state.routes.map((route, index) => {
                     const { options } = descriptors[route.key];
                     const isFocused = state.index === index;
@@ -55,7 +48,7 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
                     );
                 })}
             </View>
-        </View>
+        </SafeAreaView>
     );
 }
 
@@ -65,9 +58,11 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.bgCard,
         borderTopWidth: StyleSheet.hairlineWidth,
         borderTopColor: COLORS.gray800,
+        height: 50,
     },
     tabItem: {
         flex: 1,
+        height: 50,
         alignItems: "center",
         justifyContent: "center",
     },

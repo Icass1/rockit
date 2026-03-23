@@ -1,123 +1,98 @@
-import { PLACEHOLDER } from "@/constants/assets";
 import { COLORS } from "@/constants/theme";
-import {
-    API_ENDPOINTS,
-    SessionResponse,
-    SessionResponseSchema,
-} from "@rockit/shared";
-import { Image } from "expo-image";
-import { useRouter } from "expo-router";
-import {
-    ActivityIndicator,
-    Alert,
-    Pressable,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
-} from "react-native";
-import { clearSessionCookie } from "@/lib/api";
-import { useApiFetch } from "@/lib/useApiFetch";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import Header from "@/components/layout/Header";
+import {
+    AccountSection,
+    AudioSection,
+    LanguageSection,
+    ProfileSection,
+} from "@/components/Settings";
+
+function SectionTitle({ children }: { children: string }) {
+    return (
+        <View style={sectionStyles.titleContainer}>
+            <Text style={sectionStyles.title}>{children.toUpperCase()}</Text>
+        </View>
+    );
+}
+
+const sectionStyles = StyleSheet.create({
+    titleContainer: {
+        marginBottom: 12,
+    },
+    title: {
+        color: COLORS.gray600,
+        fontSize: 12,
+        fontWeight: "700",
+        letterSpacing: 1.5,
+    },
+});
+
+function SettingsSection({
+    title,
+    children,
+}: {
+    title: string;
+    children: React.ReactNode;
+}) {
+    return (
+        <View style={styles.section}>
+            <SectionTitle>{title}</SectionTitle>
+            <View style={styles.sectionContent}>{children}</View>
+        </View>
+    );
+}
 
 export default function SettingsScreen() {
-    const router = useRouter();
-    const { data, loading, error } = useApiFetch<SessionResponse>(
-        API_ENDPOINTS.userSession,
-        SessionResponseSchema
-    );
-
-    async function handleLogout() {
-        await clearSessionCookie();
-        router.replace("/(auth)/login");
-    }
-
-    if (loading) {
-        return (
-            <>
-                <Header />
-                <View style={styles.centerContainer}>
-                    <ActivityIndicator size="large" color={COLORS.accent} />
-                </View>
-            </>
-        );
-    }
-
     return (
         <>
             <Header />
-            <View style={styles.container}>
-                <View style={styles.profileSection}>
-                    <Image
-                        source={data?.image || PLACEHOLDER.user}
-                        style={styles.avatar}
-                        contentFit="cover"
-                    />
-                    <Text style={styles.username}>
-                        {data?.username ?? "User"}
-                    </Text>
-                    {data?.admin && (
-                        <Text style={styles.adminBadge}>Admin</Text>
-                    )}
+            <ScrollView
+                style={styles.container}
+                contentContainerStyle={styles.content}
+                showsVerticalScrollIndicator={false}
+            >
+                <View style={styles.profileWrapper}>
+                    <ProfileSection />
                 </View>
 
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Account</Text>
+                <SettingsSection title="Account">
+                    <AccountSection />
+                </SettingsSection>
 
-                    <View style={styles.settingRow}>
-                        <Text style={styles.settingLabel}>Username</Text>
-                        <Text style={styles.settingValue}>
-                            {data?.username}
-                        </Text>
-                    </View>
-                </View>
+                <SettingsSection title="Language">
+                    <LanguageSection />
+                </SettingsSection>
 
-                <View style={styles.section}>
-                    <Pressable
-                        style={styles.logoutButton}
-                        onPress={handleLogout}
-                    >
-                        <Text style={styles.logoutText}>Log Out</Text>
-                    </Pressable>
-                </View>
-            </View>
+                <SettingsSection title="Audio">
+                    <AudioSection />
+                </SettingsSection>
+            </ScrollView>
         </>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: COLORS.bg },
-    centerContainer: {
+    container: {
         flex: 1,
         backgroundColor: COLORS.bg,
-        justifyContent: "center",
-        alignItems: "center",
     },
-    profileSection: { alignItems: "center", paddingVertical: 32 },
-    avatar: { width: 100, height: 100, borderRadius: 50 },
-    username: {
-        color: COLORS.white,
-        fontSize: 24,
-        fontWeight: "bold",
-        marginTop: 16,
+    content: {
+        paddingHorizontal: 16,
+        paddingBottom: 32,
     },
-    adminBadge: { color: COLORS.accent, fontSize: 12, marginTop: 4 },
-    section: { paddingHorizontal: 16, paddingVertical: 16 },
-    sectionTitle: { color: COLORS.gray400, fontSize: 14, marginBottom: 12 },
-    settingRow: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        paddingVertical: 12,
-        borderBottomWidth: StyleSheet.hairlineWidth,
-        borderBottomColor: COLORS.gray800,
+    section: {
+        marginBottom: 24,
     },
-    settingLabel: { color: COLORS.white, fontSize: 16 },
-    settingValue: { color: COLORS.gray400, fontSize: 16 },
-    logoutButton: {
-        backgroundColor: COLORS.accent,
-        borderRadius: 999,
-        paddingVertical: 14,
-        alignItems: "center",
+    sectionContent: {
+        backgroundColor: "rgba(26, 26, 26, 0.6)",
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: "rgba(38, 38, 38, 0.8)",
+        paddingHorizontal: 16,
+        paddingVertical: 0,
     },
-    logoutText: { color: COLORS.white, fontSize: 16, fontWeight: "600" },
+    profileWrapper: {
+        marginTop: 120,
+    },
 });

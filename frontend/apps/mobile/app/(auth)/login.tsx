@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { COLORS } from "@/constants/theme";
-import { AUTH_ENDPOINTS } from "@rockit/shared";
+import { AUTH_ENDPOINTS, isDevFakeMode } from "@rockit/shared";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import {
@@ -22,10 +22,17 @@ export default function LoginScreen() {
     const [password, setPassword] = useState("");
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+    const fakeMode = isDevFakeMode();
 
     async function handleLogin() {
         if (!username.trim() || !password.trim()) {
             setError("Please fill in all fields");
+            return;
+        }
+
+        if (fakeMode) {
+            await saveSessionCookie(new Response(null, { status: 200 }));
+            router.replace("/");
             return;
         }
 
@@ -93,6 +100,12 @@ export default function LoginScreen() {
                         autoCapitalize="none"
                         autoCorrect={false}
                     />
+
+                    {fakeMode && (
+                        <View style={styles.fakeModeBadge}>
+                            <Text style={styles.fakeModeText}>DEV MODE</Text>
+                        </View>
+                    )}
 
                     {error && <Text style={styles.error}>{error}</Text>}
 
@@ -190,5 +203,18 @@ const styles = StyleSheet.create({
     linkText: {
         color: COLORS.accent,
         fontSize: 14,
+    },
+    fakeModeBadge: {
+        backgroundColor: COLORS.accent,
+        borderRadius: 4,
+        marginBottom: 16,
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+        alignSelf: "center",
+    },
+    fakeModeText: {
+        color: COLORS.white,
+        fontSize: 12,
+        fontWeight: "bold",
     },
 });

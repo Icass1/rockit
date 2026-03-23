@@ -7,6 +7,7 @@ export {
     type RegisterRequest,
     type SessionResponse,
 } from "./auth/authSchemas";
+export { isDevFakeMode } from "./auth/authEnv";
 export { API_ENDPOINTS } from "./api/apiEndpoints";
 export {
     HomeStatsResponseSchema,

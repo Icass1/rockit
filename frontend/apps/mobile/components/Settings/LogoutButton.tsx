@@ -1,5 +1,6 @@
+import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { Alert, Pressable, StyleSheet, Text } from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { clearSessionCookie } from "@/lib/api";
 
 export default function LogoutButton() {
@@ -27,7 +28,10 @@ export default function LogoutButton() {
             ]}
             onPress={handleLogout}
         >
-            <Text style={styles.text}>Log Out</Text>
+            <View style={styles.content}>
+                <Feather name="log-out" size={18} color="#f87171" />
+                <Text style={styles.text}>Log Out</Text>
+            </View>
         </Pressable>
     );
 }
@@ -43,6 +47,11 @@ const styles = StyleSheet.create({
     },
     buttonPressed: {
         backgroundColor: "rgba(220, 38, 38, 0.3)",
+    },
+    content: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 8,
     },
     text: {
         color: "#f87171",

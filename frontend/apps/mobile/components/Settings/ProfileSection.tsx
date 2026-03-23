@@ -4,6 +4,7 @@ import { Image } from "expo-image";
 import { StyleSheet, Text, View } from "react-native";
 import { useSettingsUser } from "@/hooks/useSettingsUser";
 import LogoutButton from "./LogoutButton";
+import StatsButton from "./StatsButton";
 
 export default function ProfileSection() {
     const { username, image, admin, isLoading } = useSettingsUser();
@@ -39,6 +40,7 @@ export default function ProfileSection() {
             )}
 
             <View style={styles.actions}>
+                <StatsButton />
                 <LogoutButton />
             </View>
         </View>
@@ -86,6 +88,8 @@ const styles = StyleSheet.create({
         fontWeight: "600",
     },
     actions: {
+        flexDirection: "row",
+        gap: 12,
         marginTop: 8,
     },
     skeleton: {

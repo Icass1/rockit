@@ -1,22 +1,72 @@
-import { COLORS } from "@/constants/theme";
 import { StyleSheet, Text, View } from "react-native";
-import Header from "@/components/layout/Header";
+import { useDownloads } from "@/hooks/useDownloads";
+import {
+    DownloadEmptyState,
+    DownloadGroup,
+    DownloadInputBar,
+    StatsPills,
+} from "@/components/Downloader";
+import { Header, PageContainer, SectionTitle } from "@/components/layout";
+import { COLORS } from "@/constants/theme";
 
 export default function DownloaderScreen() {
+    const { groups, total, active, completed, failed, startDownload } =
+        useDownloads();
+
     return (
         <>
             <Header />
-            <View style={styles.container}>
-                <View style={styles.content}>
-                    <Text style={styles.text}>Downloads coming soon</Text>
+            <PageContainer>
+                <View style={styles.headerSection}>
+                    <Text style={styles.title}>Downloader</Text>
+                    <Text style={styles.subtitle}>
+                        Paste a Spotify or YouTube URL
+                    </Text>
                 </View>
-            </View>
+
+                <DownloadInputBar onSubmit={startDownload} />
+
+                {total > 0 && (
+                    <StatsPills
+                        total={total}
+                        active={active.length}
+                        done={completed.length}
+                        failed={failed.length}
+                    />
+                )}
+
+                <SectionTitle>Downloads</SectionTitle>
+
+                {total === 0 ? (
+                    <DownloadEmptyState />
+                ) : (
+                    <View style={styles.groups}>
+                        {groups.map((group) => (
+                            <DownloadGroup key={group.id} group={group} />
+                        ))}
+                    </View>
+                )}
+            </PageContainer>
         </>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: COLORS.bg },
-    content: { flex: 1, alignItems: "center", justifyContent: "center" },
-    text: { color: COLORS.gray400, fontSize: 16 },
+    headerSection: {
+        alignItems: "center",
+        marginVertical: 24,
+    },
+    title: {
+        fontSize: 24,
+        fontWeight: "bold",
+        color: COLORS.white,
+    },
+    subtitle: {
+        fontSize: 14,
+        color: COLORS.gray600,
+        marginTop: 4,
+    },
+    groups: {
+        gap: 8,
+    },
 });

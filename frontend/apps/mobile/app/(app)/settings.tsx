@@ -1,32 +1,11 @@
-import { COLORS } from "@/constants/theme";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
-import Header from "@/components/layout/Header";
+import { StyleSheet, View } from "react-native";
+import { Header, PageContainer, SectionTitle } from "@/components/layout";
 import {
     AccountSection,
     AudioSection,
     LanguageSection,
     ProfileSection,
 } from "@/components/Settings";
-
-function SectionTitle({ children }: { children: string }) {
-    return (
-        <View style={sectionStyles.titleContainer}>
-            <Text style={sectionStyles.title}>{children.toUpperCase()}</Text>
-        </View>
-    );
-}
-
-const sectionStyles = StyleSheet.create({
-    titleContainer: {
-        marginBottom: 12,
-    },
-    title: {
-        color: COLORS.gray600,
-        fontSize: 12,
-        fontWeight: "700",
-        letterSpacing: 1.5,
-    },
-});
 
 function SettingsSection({
     title,
@@ -47,14 +26,8 @@ export default function SettingsScreen() {
     return (
         <>
             <Header />
-            <ScrollView
-                style={styles.container}
-                contentContainerStyle={styles.content}
-                showsVerticalScrollIndicator={false}
-            >
-                <View style={styles.profileWrapper}>
-                    <ProfileSection />
-                </View>
+            <PageContainer>
+                <ProfileSection />
 
                 <SettingsSection title="Account">
                     <AccountSection />
@@ -67,20 +40,12 @@ export default function SettingsScreen() {
                 <SettingsSection title="Audio">
                     <AudioSection />
                 </SettingsSection>
-            </ScrollView>
+            </PageContainer>
         </>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: COLORS.bg,
-    },
-    content: {
-        paddingHorizontal: 16,
-        paddingBottom: 32,
-    },
     section: {
         marginBottom: 24,
     },
@@ -91,8 +56,5 @@ const styles = StyleSheet.create({
         borderColor: "rgba(38, 38, 38, 0.8)",
         paddingHorizontal: 16,
         paddingVertical: 0,
-    },
-    profileWrapper: {
-        marginTop: 120,
     },
 });

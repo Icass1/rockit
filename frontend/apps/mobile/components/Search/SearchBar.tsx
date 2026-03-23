@@ -1,0 +1,85 @@
+import { COLORS } from "@/constants/theme";
+import { Feather } from "@expo/vector-icons";
+import { ActivityIndicator, StyleSheet, TextInput, View } from "react-native";
+
+interface SearchBarProps {
+    value: string;
+    onChangeText: (text: string) => void;
+    isSearching: boolean;
+    onClear: () => void;
+}
+
+export default function SearchBar({
+    value,
+    onChangeText,
+    isSearching,
+    onClear,
+}: SearchBarProps) {
+    return (
+        <View style={styles.container}>
+            <View style={styles.inputContainer}>
+                <Feather
+                    name="search"
+                    size={18}
+                    color={COLORS.gray600}
+                    style={styles.icon}
+                />
+                <TextInput
+                    style={styles.input}
+                    placeholder="Search your music..."
+                    placeholderTextColor={COLORS.gray400}
+                    value={value}
+                    onChangeText={onChangeText}
+                    returnKeyType="search"
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                />
+                {value.length > 0 && !isSearching && (
+                    <Feather
+                        name="x"
+                        size={18}
+                        color={COLORS.gray600}
+                        style={styles.clearIcon}
+                        onPress={onClear}
+                    />
+                )}
+                {isSearching && (
+                    <ActivityIndicator
+                        size="small"
+                        color={COLORS.accent}
+                        style={styles.loader}
+                    />
+                )}
+            </View>
+        </View>
+    );
+}
+
+const styles = StyleSheet.create({
+    container: {
+        paddingHorizontal: 16,
+        paddingVertical: 16,
+    },
+    inputContainer: {
+        backgroundColor: "#202020",
+        borderRadius: 999,
+        flexDirection: "row",
+        alignItems: "center",
+        height: 44,
+        paddingHorizontal: 16,
+    },
+    icon: {
+        marginRight: 10,
+    },
+    input: {
+        flex: 1,
+        color: COLORS.white,
+        fontSize: 16,
+    },
+    clearIcon: {
+        marginLeft: 10,
+    },
+    loader: {
+        marginLeft: 10,
+    },
+});

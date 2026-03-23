@@ -24,18 +24,11 @@
       ]
     },
     {
-      "name": "Full Stack Mobile (SSH Tunnel)",
-      "configurations": [
-        "SSH Tunnel",
-        "FastAPI Uvicorn (DEBUG)",
-        "Expo Tunnel"
-      ]
-    },
-    {
       "name": "Full Stack Mobile (LAN)",
       "configurations": [
         "FastAPI Uvicorn (DEBUG)",
         "NextJS Server",
+        "SSH Tunnel",
         "Expo LAN"
       ]
     },
@@ -104,20 +97,6 @@
       "internalConsoleOptions": "neverOpen"
     },
     {
-      "name": "Expo Offline",
-      "type": "node",
-      "request": "launch",
-      "runtimeExecutable": "npx",
-      "runtimeArgs": [
-        "expo",
-        "start",
-        "--offline"
-      ],
-      "cwd": "${workspaceFolder}/frontend/apps/mobile",
-      "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen"
-    },
-    {
       "name": "Expo LAN",
       "type": "node",
       "request": "launch",
@@ -130,20 +109,6 @@
       "env": {
         "REACT_NATIVE_PACKAGER_HOSTNAME": "192.168.1.91"
       },
-      "cwd": "${workspaceFolder}/frontend/apps/mobile",
-      "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen"
-    },
-    {
-      "name": "Expo Tunnel",
-      "type": "node",
-      "request": "launch",
-      "runtimeExecutable": "npx",
-      "runtimeArgs": [
-        "expo",
-        "start",
-        "--tunnel"
-      ],
       "cwd": "${workspaceFolder}/frontend/apps/mobile",
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen"

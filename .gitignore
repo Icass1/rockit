@@ -40,6 +40,7 @@ site-packages/
 # Frontend - General
 # ============================
 node_modules/
+test/
 .pnp
 .pnp.*
 .yarn/*
@@ -61,6 +62,7 @@ next-env.d.ts
 # Frontend - Expo / React Native (mobile)
 # ============================
 .expo/
+.turbo/
 dist/
 web-build/
 expo-env.d.ts

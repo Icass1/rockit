@@ -32,7 +32,10 @@
             "@/packages/dto": ["node_modules/@rockit/packages/dto/index.ts"],
             "@/packages/dto/*": ["node_modules/@rockit/packages/dto/*"],
             "@/types/*": ["node_modules/@rockit/packages/types/*"],
-            "@rockit/shared": ["node_modules/@rockit/shared/dist/index.js"]
+            "@rockit/packages/shared": ["../../packages/shared/src/index.ts"],
+            "@rockit/packages/shared/*": ["../../packages/shared/src/*"],
+            "@rockit/shared": ["../../packages/shared/src/index.ts"],
+            "@rockit/shared/*": ["../../packages/shared/src/*"]
         }
     },
     "include": [
@@ -43,13 +46,10 @@
         "components/**/*.tsx",
         "hooks/**/*.ts",
         "hooks/**/*.tsx",
+        "../../packages/shared/src/**/*.ts",
+        "../../packages/shared/src/**/*.tsx",
         ".next/types/**/*.ts",
         ".next/dev/types/**/*.ts"
     ],
-    "exclude": [
-        "node_modules",
-        "../../mobile",
-        "../../apps/mobile",
-        "../../packages"
-    ]
+    "exclude": ["node_modules", "../../mobile", "../../apps/mobile"]
 }

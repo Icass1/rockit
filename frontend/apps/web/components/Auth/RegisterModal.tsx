@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { BACKEND_URL } from "@/environment";
+import { rockIt } from "@rockit/packages/shared";
 import UsernameInput from "@/components/Auth/UsernameInput";
 
 export default function SignupModal() {
@@ -31,36 +31,22 @@ export default function SignupModal() {
             return;
         }
 
-        try {
-            setLoading(true);
+        setLoading(true);
 
-            const response = await fetch(`${BACKEND_URL}/auth/register`, {
-                method: "POST",
-                credentials: "include",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    username,
-                    password,
-                    repeatPassword,
-                }),
-            });
+        const result = await rockIt.authManager.registerAsync(
+            username,
+            password,
+            repeatPassword
+        );
 
-            if (!response.ok) {
-                const text = await response.text();
-                setError(text || "Register failed");
-                setLoading(false);
-                return;
-            }
-
-            router.push("/");
-            router.refresh(); // fuerza sync del estado en layouts/server components
-        } catch (err) {
-            console.error(err);
-            setError("Network error");
+        if (!result.success) {
+            setError(result.error || "Register failed");
             setLoading(false);
+            return;
         }
+
+        router.push("/");
+        router.refresh();
     }, [loading, password, repeatPassword, router, username]);
 
     useEffect(() => {

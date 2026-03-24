@@ -1,0 +1,14 @@
+{
+    "name": "@rockit/packages",
+    "version": "0.1.0",
+    "private": true,
+    "exports": {
+        "./shared": "./shared/src/index.ts",
+        "./dto": "./shared/src/dto/index.ts",
+        "./dto/*": "./shared/src/dto/*",
+        "./lib/*": "./shared/src/lib/*",
+        "./models/*": "./shared/src/models/*",
+        "./types/*": "./shared/src/types/*",
+        "./environment": "./shared/src/environment"
+    }
+}

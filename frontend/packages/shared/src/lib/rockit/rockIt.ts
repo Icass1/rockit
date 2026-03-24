@@ -1,6 +1,7 @@
 import { BACKEND_URL } from "@/environment";
 import { AlbumManager } from "@/lib/managers/albumManager";
 import { AudioManager } from "@/lib/managers/audioManager";
+import { AuthManager } from "@/lib/managers/authManager";
 import { CurrentListManager } from "@/lib/managers/currentListManager";
 import { DownloaderManager } from "@/lib/managers/downloaderManager";
 import { IndexedDBManager } from "@/lib/managers/indexedDBManager";
@@ -39,6 +40,7 @@ export class RockIt {
 
     // #region: Managers
 
+    authManager: AuthManager = new AuthManager();
     audioManager: AudioManager = new AudioManager();
     mediaManager: MediaManager = new MediaManager();
     playlistManager: PlaylistManager = new PlaylistManager();

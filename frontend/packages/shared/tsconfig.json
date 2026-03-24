@@ -20,7 +20,8 @@
             "@/dto/*": ["./src/dto/*"],
             "@/lib/*": ["./src/lib/*"],
             "@/types/*": ["./src/types/*"],
-            "@/environment": ["./src/environment"]
+            "@/environment": ["./src/environment"],
+            "@/models/*": ["./src/models/*"]
         }
     },
     "include": ["**/*.ts", "**/*.tsx"],

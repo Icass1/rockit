@@ -5,11 +5,11 @@ import {
     QueueResponseItem,
     QueueResponseSchema,
 } from "@/dto";
+import { MediaType } from "@/types/media";
+import { DBListType, QueueListType } from "@/types/rockIt";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createArrayAtom, createAtom } from "@/lib/store";
 import { baseApiFetch } from "@/lib/utils/apiFetch";
-import { MediaType } from "@/types/media";
-import { DBListType, QueueListType } from "@/types/rockIt";
 
 export class QueueManager {
     // #region: Atoms
@@ -110,7 +110,7 @@ export class QueueManager {
 
     setMedia(
         medias: MediaType[],
-        listType: QueueListType,
+        _listType: QueueListType,
         listPublicId: string
     ) {
         const queueData: CurrentQueueMessageRequestItem[] = medias.map(

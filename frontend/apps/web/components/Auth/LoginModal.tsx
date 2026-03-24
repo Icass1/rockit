@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { BACKEND_URL } from "@/environment";
+import { rockIt } from "@rockit/packages/shared";
 
 export default function LoginModal() {
     const router = useRouter();
@@ -24,43 +24,20 @@ export default function LoginModal() {
             return;
         }
 
-        try {
-            setLoading(true);
+        setLoading(true);
 
-            const res = await fetch(`${BACKEND_URL}/auth/login`, {
-                method: "POST",
-                credentials: "include",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ username, password }),
-            });
+        const result = await rockIt.authManager.loginAsync(username, password);
 
-            if (!res.ok) {
-                let message = "Login failed";
-
-                try {
-                    const data = await res.json();
-                    message = data.detail || data.error || message;
-                } catch {
-                    message = await res.text();
-                }
-
-                setError(message);
-                setLoading(false);
-                return;
-            }
-
-            router.push("/");
-            router.refresh();
-        } catch (err) {
-            console.error(err);
-            setError("Network error");
+        if (!result.success) {
+            setError(result.error || "Login failed");
             setLoading(false);
+            return;
         }
+
+        router.push("/");
+        router.refresh();
     }, [username, password, router, loading]);
 
-    // Permitir Enter para enviar (como antes)
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key === "Enter") {

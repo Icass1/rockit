@@ -9,9 +9,9 @@ interface ApiFetchOptions {
     signal?: AbortSignal;
 }
 
-export async function apiFetch<T extends ZodType>(
+export async function apiFetch(
     path: string,
-    schema: T,
+    schema: any,
     options: ApiFetchOptions = {}
 ) {
     const res = await baseApiFetch(path, options);

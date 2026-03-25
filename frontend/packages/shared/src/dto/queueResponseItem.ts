@@ -1,8 +1,6 @@
 import { z } from "zod";
-import {
-    BaseSongWithAlbumResponseSchema,
-    BaseVideoResponseSchema,
-} from "@/dto";
+import { BaseSongWithAlbumResponseSchema } from "./baseSongWithAlbumResponse";
+import { BaseVideoResponseSchema } from "./baseVideoResponse";
 
 export const QueueResponseItemSchema = z.object({
     queueMediaId: z.number(),

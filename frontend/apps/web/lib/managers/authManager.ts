@@ -24,11 +24,12 @@ export class AuthManager {
 
             if (!res.ok) {
                 let message = "Login failed";
+                const text = await res.text();
                 try {
-                    const data = await res.json();
+                    const data = JSON.parse(text);
                     message = data.detail || data.error || message;
                 } catch {
-                    message = await res.text();
+                    message = text || message;
                 }
                 return { success: false, error: message };
             }
@@ -61,8 +62,15 @@ export class AuthManager {
             const res = await apiPostFetch("/auth/register", request);
 
             if (!res.ok) {
+                let message = "Register failed";
                 const text = await res.text();
-                return { success: false, error: text || "Register failed" };
+                try {
+                    const data = JSON.parse(text);
+                    message = data.detail || data.error || message;
+                } catch {
+                    message = text || message;
+                }
+                return { success: false, error: message };
             }
 
             RegisterResponseSchema.parse(await res.json());

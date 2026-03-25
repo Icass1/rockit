@@ -1,9 +1,7 @@
 import { z } from "zod";
-import {
-    BaseArtistResponseSchema,
-    BaseSongWithoutAlbumResponseSchema,
-    SpotifyExternalImageResponseSchema,
-} from "@/dto";
+import { BaseArtistResponseSchema } from "./baseArtistResponse";
+import { BaseSongWithoutAlbumResponseSchema } from "./baseSongWithoutAlbumResponse";
+import { SpotifyExternalImageResponseSchema } from "./spotifyExternalImageResponse";
 
 export const SpotifyAlbumResponseSchema = z.object({
     type: z.union([z.literal("album")]).default("album"),

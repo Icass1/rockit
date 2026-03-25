@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getUserInServer } from "@rockit/packages/shared";
+import { getUserInServer } from "@/lib/getUserInServer";
 
 export default async function ProtectedLayout({
     children,

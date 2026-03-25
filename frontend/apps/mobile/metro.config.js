@@ -13,4 +13,8 @@ config.resolver.nodeModulesPaths = [
     path.resolve(workspaceRoot, "node_modules"),
 ];
 
+config.resolver.alias = {
+    "@/dto": path.resolve(__dirname, "../../packages/shared/src/dto"),
+};
+
 module.exports = config;

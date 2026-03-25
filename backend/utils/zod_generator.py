@@ -221,7 +221,7 @@ async def generate_zod_schemas() -> None:
         file_name = to_camel_case(model_name)
         known_types[model_name] = file_name
 
-    output_dir = BASE_DIR / "frontend" / "dto"
+    output_dir = BASE_DIR / "frontend" / "packages" / "shared" / "src" / "dto"
     output_dir.mkdir(parents=True, exist_ok=True)
 
     type_name_to_file: dict[str, str] = {v: k for k, v in known_types.items()}
@@ -237,7 +237,7 @@ async def generate_zod_schemas() -> None:
             if ref_file != file_name:
                 type_name = type_name_to_file.get(ref_file, "")
                 if type_name:
-                    import_lines.append(f"import {{ {type_name}Schema }} from '@/dto';")
+                    import_lines.append(f"import {{ {type_name}Schema }} from './{ref_file}';")
                     schema_names_imported.add(type_name)
 
         output_lines = import_lines + ["", schema]
@@ -260,7 +260,7 @@ async def generate_zod_schemas() -> None:
     for model_name in sorted_models:
         file_name = to_camel_case(model_name)
         index_lines.append(
-            f"export {{ {model_name}Schema, type {model_name} }} from '@/dto/{file_name}';"
+            f"export {{ {model_name}Schema, type {model_name} }} from './{file_name}';"
         )
 
     generated_file_names: set[str] = {to_camel_case(m) for m in all_models}

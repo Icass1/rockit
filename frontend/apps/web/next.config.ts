@@ -5,6 +5,26 @@ const isDev = process.env.NODE_ENV === "development" || true;
 
 const nextConfig: NextConfig = {
     transpilePackages: ["@rockit/packages", "@rockit/shared"],
+    webpack: (config) => {
+        config.resolve.alias = {
+            ...config.resolve.alias,
+            "@/lib": path.resolve(__dirname, "./lib"),
+            "@/dto": path.resolve(__dirname, "../../packages/shared/src/dto"),
+            "@/environment": path.resolve(
+                __dirname,
+                "../../packages/shared/src/environment"
+            ),
+            "@/types": path.resolve(
+                __dirname,
+                "../../packages/shared/src/types"
+            ),
+            "@/models": path.resolve(
+                __dirname,
+                "../../packages/shared/src/models"
+            ),
+        };
+        return config;
+    },
     turbopack: {
         root: path.resolve(__dirname, "..", ".."),
     },

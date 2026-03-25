@@ -1,8 +1,6 @@
 import { z } from "zod";
-import {
-    BaseArtistResponseSchema,
-    YoutubeChannelResponseSchema,
-} from "@/dto";
+import { BaseArtistResponseSchema } from "./baseArtistResponse";
+import { YoutubeChannelResponseSchema } from "./youtubeChannelResponse";
 
 export const YoutubeVideoResponseSchema = z.object({
     type: z.union([z.literal("video")]).default("video"),
@@ -25,7 +23,8 @@ export const YoutubeVideoResponseSchema = z.object({
     youtubeUrl: z.string().nullable(),
     tags: z.array(z.string()).default([]),
     publishedAt: z.string().nullable(),
-    path: z.string().nullable(),
+    video_path: z.string().nullable(),
+    audio_path: z.string().nullable(),
 });
 
 export type YoutubeVideoResponse = z.infer<typeof YoutubeVideoResponseSchema>;

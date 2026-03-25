@@ -323,3 +323,132 @@ async def like_media_async(
         )
 
     return OkResponse()
+
+
+@router.get("")
+async def get_user(request: Request) -> dict:
+    """Get user settings."""
+    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
+    if a_result_user.is_not_ok():
+        raise HTTPException(
+            status_code=a_result_user.get_http_code(), detail=a_result_user.message()
+        )
+
+    user = a_result_user.result()
+    return {
+        "username": user.username,
+        "lang": user.language.code if user.language else "en",
+        "crossfade": user.cross_fade_ms,
+        "randomQueue": user.queue_type_key == 1,
+        "repeatMode": user.repeat_mode_enum.name if user.repeat_mode_enum else "none",
+    }
+
+
+@router.patch("/lang")
+async def update_lang(request: Request, payload: dict) -> OkResponse:
+    """Update user language."""
+    session: AsyncSession = DBSessionMiddleware.get_session(request)
+
+    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
+    if a_result_user.is_not_ok():
+        raise HTTPException(
+            status_code=a_result_user.get_http_code(), detail=a_result_user.message()
+        )
+
+    from backend.core.access.db.ormModels.language import LanguageRow
+    from sqlalchemy import select
+
+    lang_code = payload.get("lang", "en")
+    stmt = select(LanguageRow).where(LanguageRow.code == lang_code)
+    result = await session.execute(stmt)
+    language = result.scalar_one_or_none()
+
+    if not language:
+        raise HTTPException(status_code=400, detail="Invalid language code")
+
+    user = a_result_user.result()
+    user.lang_id = language.id
+    await session.commit()
+
+    return OkResponse()
+
+
+@router.patch("/crossfade")
+async def update_crossfade(request: Request, payload: dict) -> OkResponse:
+    """Update user crossfade."""
+    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
+    if a_result_user.is_not_ok():
+        raise HTTPException(
+            status_code=a_result_user.get_http_code(), detail=a_result_user.message()
+        )
+
+    crossfade = payload.get("crossfade", 0)
+    if not isinstance(crossfade, int) or crossfade < 0:
+        raise HTTPException(status_code=400, detail="Invalid crossfade value")
+
+    session: AsyncSession = DBSessionMiddleware.get_session(request)
+    user = a_result_user.result()
+    user.cross_fade_ms = crossfade
+    await session.commit()
+
+    return OkResponse()
+
+
+@router.patch("/password")
+async def update_password(request: Request, payload: dict) -> OkResponse:
+    """Update user password."""
+    session: AsyncSession = DBSessionMiddleware.get_session(request)
+
+    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
+    if a_result_user.is_not_ok():
+        raise HTTPException(
+            status_code=a_result_user.get_http_code(), detail=a_result_user.message()
+        )
+
+    new_password = payload.get("password", "")
+    if len(new_password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+
+    password_hash = ph.hash(new_password)
+    user = a_result_user.result()
+    user.password_hash = password_hash
+    await session.commit()
+
+    return OkResponse()
+
+
+@router.patch("/random-queue")
+async def toggle_random_queue(request: Request) -> OkResponse:
+    """Toggle random queue."""
+    session: AsyncSession = DBSessionMiddleware.get_session(request)
+
+    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
+    if a_result_user.is_not_ok():
+        raise HTTPException(
+            status_code=a_result_user.get_http_code(), detail=a_result_user.message()
+        )
+
+    user = a_result_user.result()
+    user.queue_type_key = 2 if user.queue_type_key == 1 else 1
+    await session.commit()
+
+    return OkResponse()
+
+
+@router.patch("/repeat-mode")
+async def cycle_repeat_mode(request: Request) -> OkResponse:
+    """Cycle repeat mode."""
+    session: AsyncSession = DBSessionMiddleware.get_session(request)
+
+    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
+    if a_result_user.is_not_ok():
+        raise HTTPException(
+            status_code=a_result_user.get_http_code(), detail=a_result_user.message()
+        )
+
+    user = a_result_user.result()
+    current_mode = user.repeat_mode_key
+    user.repeat_mode_key = 1 if current_mode >= 3 else current_mode + 1
+    await session.commit()
+
+    return OkResponse()

@@ -33,7 +33,7 @@ class AResultCode:
         if self._code == AResultCode.GENERAL_ERROR:
             return 500
         if self._code == AResultCode.NOT_FOUND:
-            return 404
+            return 401
         if self._code == AResultCode.BAD_REQUEST:
             return 400
         if self._code == AResultCode.NOT_IMPLEMENTED:

@@ -89,13 +89,12 @@ export async function apiFetch(
         );
     }
 
-    const sessionId = await getSessionCookie();
     return fetch(`${BACKEND_URL}${path}`, {
         ...options,
+        credentials: "include",
         headers: {
             "Content-Type": "application/json",
             ...options.headers,
-            ...(sessionId ? { Cookie: `session_id=${sessionId}` } : {}),
         },
     });
 }

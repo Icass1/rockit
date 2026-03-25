@@ -68,6 +68,7 @@ export default function RegisterScreen() {
                 `${BACKEND_URL}${AUTH_ENDPOINTS.register}`,
                 {
                     method: "POST",
+                    credentials: "include",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         username,

@@ -42,6 +42,7 @@ export default function LoginScreen() {
         try {
             const res = await fetch(`${BACKEND_URL}${AUTH_ENDPOINTS.login}`, {
                 method: "POST",
+                credentials: "include",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ username, password }),
             });

@@ -20,6 +20,7 @@ export default function AudioSection() {
                 `${process.env.EXPO_PUBLIC_BACKEND_URL ?? "http://localhost:8000"}/user/crossfade`,
                 {
                     method: "PATCH",
+                    credentials: "include",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ crossfade: num }),
                 }

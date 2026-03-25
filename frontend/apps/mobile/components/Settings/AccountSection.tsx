@@ -27,6 +27,7 @@ export default function AccountSection() {
                 `${process.env.EXPO_PUBLIC_BACKEND_URL ?? "http://localhost:8000"}/user/password`,
                 {
                     method: "PATCH",
+                    credentials: "include",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ password: newPassword }),
                 }

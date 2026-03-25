@@ -26,6 +26,7 @@ export default function LanguageSection() {
                 `${process.env.EXPO_PUBLIC_BACKEND_URL ?? "http://localhost:8000"}/user/lang`,
                 {
                     method: "PATCH",
+                    credentials: "include",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ lang: newLang }),
                 }

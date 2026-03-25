@@ -21,10 +21,10 @@ export class AuthManager {
             LoginRequestSchema.parse(request);
 
             const res = await apiPostFetch("/auth/login", request);
+            const text = await res.text();
 
             if (!res.ok) {
                 let message = "Login failed";
-                const text = await res.text();
                 try {
                     const data = JSON.parse(text);
                     message = data.detail || data.error || message;
@@ -34,7 +34,7 @@ export class AuthManager {
                 return { success: false, error: message };
             }
 
-            LoginResponseSchema.parse(await res.json());
+            LoginResponseSchema.parse(JSON.parse(text));
 
             const session = await getUserInClient();
             rockIt.userManager.userAtom.set(session);
@@ -60,10 +60,10 @@ export class AuthManager {
             RegisterRequestSchema.parse(request);
 
             const res = await apiPostFetch("/auth/register", request);
+            const text = await res.text();
 
             if (!res.ok) {
                 let message = "Register failed";
-                const text = await res.text();
                 try {
                     const data = JSON.parse(text);
                     message = data.detail || data.error || message;
@@ -73,7 +73,7 @@ export class AuthManager {
                 return { success: false, error: message };
             }
 
-            RegisterResponseSchema.parse(await res.json());
+            RegisterResponseSchema.parse(JSON.parse(text));
 
             const session = await getUserInClient();
             rockIt.userManager.userAtom.set(session);

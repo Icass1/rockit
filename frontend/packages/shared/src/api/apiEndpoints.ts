@@ -3,7 +3,7 @@ import { AUTH_ENDPOINTS } from "../auth/authEndpoints";
 export const API_ENDPOINTS = {
     ...AUTH_ENDPOINTS,
     homeStats: "/stats/home",
-    libraryLists: "/library",
+    libraryLists: "/user/library/lists",
     search: "/media/search",
     userSession: "/user/session",
     userSettings: "/user",

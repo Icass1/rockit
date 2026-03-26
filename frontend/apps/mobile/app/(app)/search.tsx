@@ -7,6 +7,7 @@ import {
     View,
 } from "react-native";
 import { Header, PageContainer } from "@/components/layout";
+import { MediaCardSkeleton } from "@/components/Media";
 import {
     EmptyState,
     SearchBar,
@@ -31,6 +32,32 @@ export default function SearchScreen() {
         justifyContent: "center" as const,
     };
 
+    function SearchSkeletons() {
+        return (
+            <View style={styles.skeletonsContainer}>
+                <View style={styles.skeletonSection}>
+                    <Text style={styles.skeletonTitle}>Songs</Text>
+                    {[1, 2, 3].map((i) => (
+                        <View key={i} style={styles.rowSkeleton}>
+                            <MediaCardSkeleton width={280} />
+                        </View>
+                    ))}
+                </View>
+                <View style={styles.skeletonSection}>
+                    <Text style={styles.skeletonTitle}>Albums</Text>
+                    <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                    >
+                        {[1, 2, 3, 4].map((i) => (
+                            <MediaCardSkeleton key={i} width={140} />
+                        ))}
+                    </ScrollView>
+                </View>
+            </View>
+        );
+    }
+
     return (
         <>
             <Header />
@@ -46,9 +73,7 @@ export default function SearchScreen() {
                     <View style={centeredStyle}>
                         {!query && !searching && !error && <EmptyState />}
                         {error && <Text style={styles.errorText}>{error}</Text>}
-                        {searching && !results.length && (
-                            <Text style={styles.loadingText}>Searching...</Text>
-                        )}
+                        {searching && !results.length && <SearchSkeletons />}
                     </View>
                 )}
 
@@ -106,5 +131,23 @@ const styles = StyleSheet.create({
     resultsContent: {
         paddingHorizontal: 16,
         paddingBottom: 32,
+    },
+    skeletonsContainer: {
+        paddingVertical: 20,
+    },
+    skeletonSection: {
+        marginBottom: 24,
+    },
+    skeletonTitle: {
+        color: COLORS.gray600,
+        fontSize: 12,
+        fontWeight: "700",
+        letterSpacing: 1.5,
+        marginBottom: 12,
+        paddingHorizontal: 16,
+    },
+    rowSkeleton: {
+        paddingHorizontal: 16,
+        paddingVertical: 8,
     },
 });

@@ -6,7 +6,7 @@ export default function EmptyState() {
     return (
         <View style={styles.container}>
             <Feather name="search" size={64} color={COLORS.gray600} />
-            <Text style={styles.title}>Search your music</Text>
+            <Text style={styles.title}>Silence is deafening</Text>
             <Text style={styles.subtitle}>
                 Find songs, albums, artists, playlists and more
             </Text>

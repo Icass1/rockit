@@ -7,6 +7,7 @@ interface SearchBarProps {
     onChangeText: (text: string) => void;
     isSearching: boolean;
     onClear: () => void;
+    placeholder?: string;
 }
 
 export default function SearchBar({
@@ -14,6 +15,7 @@ export default function SearchBar({
     onChangeText,
     isSearching,
     onClear,
+    placeholder = "Search music or videos...",
 }: SearchBarProps) {
     return (
         <View style={styles.container}>
@@ -26,7 +28,7 @@ export default function SearchBar({
                 />
                 <TextInput
                     style={styles.input}
-                    placeholder="Search your music..."
+                    placeholder={placeholder}
                     placeholderTextColor={COLORS.gray400}
                     value={value}
                     onChangeText={onChangeText}
@@ -58,7 +60,7 @@ export default function SearchBar({
 const styles = StyleSheet.create({
     container: {
         paddingHorizontal: 16,
-        paddingVertical: 16,
+        paddingVertical: 8,
     },
     inputContainer: {
         backgroundColor: "#202020",

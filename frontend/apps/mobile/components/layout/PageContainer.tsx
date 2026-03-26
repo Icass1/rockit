@@ -8,7 +8,7 @@ interface PageContainerProps {
 
 export default function PageContainer({
     children,
-    topPadding = 120,
+    topPadding = 150,
 }: PageContainerProps) {
     return (
         <ScrollView

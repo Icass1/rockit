@@ -1,0 +1,76 @@
+import { COLORS } from "@/constants/theme";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import type { ContentType } from "@/hooks/useLibraryData";
+
+interface LibraryFiltersProps {
+    activeType: ContentType;
+    onTypeChange: (type: ContentType) => void;
+}
+
+const TABS: { key: ContentType; label: string }[] = [
+    { key: "all", label: "All" },
+    { key: "albums", label: "Albums" },
+    { key: "playlists", label: "Playlists" },
+    { key: "songs", label: "Songs" },
+];
+
+export default function LibraryFilters({
+    activeType,
+    onTypeChange,
+}: LibraryFiltersProps) {
+    return (
+        <View style={styles.container}>
+            <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.scrollContent}
+            >
+                {TABS.map((tab) => (
+                    <Pressable
+                        key={tab.key}
+                        style={[
+                            styles.tab,
+                            activeType === tab.key && styles.tabActive,
+                        ]}
+                        onPress={() => onTypeChange(tab.key)}
+                    >
+                        <Text
+                            style={[
+                                styles.tabText,
+                                activeType === tab.key && styles.tabTextActive,
+                            ]}
+                        >
+                            {tab.label}
+                        </Text>
+                    </Pressable>
+                ))}
+            </ScrollView>
+        </View>
+    );
+}
+
+const styles = StyleSheet.create({
+    container: {
+        paddingVertical: 12,
+    },
+    scrollContent: {
+        gap: 8,
+    },
+    tab: {
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 999,
+        backgroundColor: COLORS.bgCard,
+    },
+    tabActive: {
+        backgroundColor: COLORS.white,
+    },
+    tabText: {
+        color: COLORS.gray400,
+        fontSize: 14,
+    },
+    tabTextActive: {
+        color: COLORS.bg,
+        fontWeight: "600",
+    },
+});

@@ -1,16 +1,12 @@
 import { COLORS } from "@/constants/theme";
-import { API_ENDPOINTS, HomeStatsResponseSchema } from "@rockit/shared";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
-import { useApiFetch } from "@/lib/useApiFetch";
+import { useHomeData } from "@/hooks/useHomeData";
 import { HomeContent } from "@/components/Home";
 import { PageContainer } from "@/components/layout";
 import Header from "@/components/layout/Header";
 
 export default function HomeScreen() {
-    const { data, loading, error } = useApiFetch(
-        API_ENDPOINTS.homeStats,
-        HomeStatsResponseSchema
-    );
+    const { data, loading, error } = useHomeData();
 
     if (loading) {
         return (
@@ -36,14 +32,7 @@ export default function HomeScreen() {
         );
     }
 
-    const hasContent =
-        data.songsByTimePlayed.length > 0 ||
-        data.randomSongsLastMonth.length > 0 ||
-        data.hiddenGems.length > 0 ||
-        data.communityTop.length > 0 ||
-        data.monthlyTop.length > 0;
-
-    if (!hasContent) {
+    if (data.isEmpty) {
         return (
             <>
                 <Header />

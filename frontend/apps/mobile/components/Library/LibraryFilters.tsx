@@ -12,6 +12,9 @@ const TABS: { key: ContentType; label: string }[] = [
     { key: "albums", label: "Albums" },
     { key: "playlists", label: "Playlists" },
     { key: "songs", label: "Songs" },
+    { key: "videos", label: "Videos" },
+    { key: "stations", label: "Stations" },
+    { key: "shared", label: "Shared" },
 ];
 
 export default function LibraryFilters({

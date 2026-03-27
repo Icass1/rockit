@@ -156,7 +156,23 @@ export {
     StartDownloadResponseSchema,
     type StartDownloadResponse,
 } from "./startDownloadResponse";
+export {
+    StatsHeatmapCellResponseSchema,
+    type StatsHeatmapCellResponse,
+} from "./statsHeatmapCellResponse";
+export {
+    StatsMinutesEntryResponseSchema,
+    type StatsMinutesEntryResponse,
+} from "./statsMinutesEntryResponse";
+export {
+    StatsRankedItemResponseSchema,
+    type StatsRankedItemResponse,
+} from "./statsRankedItemResponse";
 export { StatsResponseSchema, type StatsResponse } from "./statsResponse";
+export {
+    StatsSummaryResponseSchema,
+    type StatsSummaryResponse,
+} from "./statsSummaryResponse";
 export {
     UpdatePlaylistRequestSchema,
     type UpdatePlaylistRequest,
@@ -165,6 +181,10 @@ export {
     UrlMatchResponseSchema,
     type UrlMatchResponse,
 } from "./urlMatchResponse";
+export {
+    UserStatsResponseSchema,
+    type UserStatsResponse,
+} from "./userStatsResponse";
 export {
     UserVocabularyResponseSchema,
     type UserVocabularyResponse,

@@ -1,34 +1,23 @@
-import { StyleSheet, Text, View } from "react-native";
-import { Header, PageContainer } from "@/components/layout";
+import { ScrollView, StyleSheet } from "react-native";
+import { Header } from "@/components/layout";
+import StatsClient from "@/components/Stats/StatsClient";
 
 export default function StatsScreen() {
     return (
         <>
             <Header />
-            <PageContainer>
-                <View style={styles.container}>
-                    <Text style={styles.title}>Stats</Text>
-                    <Text style={styles.comingSoon}>Coming soon</Text>
-                </View>
-            </PageContainer>
+            <ScrollView
+                style={styles.container}
+                contentContainerStyle={styles.content}
+                showsVerticalScrollIndicator={false}
+            >
+                <StatsClient />
+            </ScrollView>
         </>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        alignItems: "center",
-        justifyContent: "center",
-        paddingTop: 40,
-    },
-    title: {
-        fontSize: 24,
-        fontWeight: "bold",
-        color: "#ffffff",
-    },
-    comingSoon: {
-        fontSize: 14,
-        color: "#525252",
-        marginTop: 8,
-    },
+    container: { flex: 1, backgroundColor: "#0b0b0b" },
+    content: { paddingTop: 120, paddingBottom: 32, paddingHorizontal: 16 },
 });

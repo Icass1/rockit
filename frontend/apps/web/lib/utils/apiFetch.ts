@@ -1,5 +1,5 @@
 import { BACKEND_URL } from "@/environment";
-import { ZodType } from "zod";
+import { z } from "zod";
 
 interface ApiFetchOptions {
     method?: string;
@@ -11,7 +11,7 @@ interface ApiFetchOptions {
 
 export async function apiFetch(
     path: string,
-    schema: any,
+    schema: z.ZodSchema,
     options: ApiFetchOptions = {}
 ) {
     const res = await baseApiFetch(path, options);

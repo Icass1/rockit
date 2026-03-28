@@ -4,7 +4,6 @@ import { apiFetch } from "./api";
 
 export function useApiFetch<T>(
     path: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     schema: { parse: (data: unknown) => T }
 ): { data: T | null; loading: boolean; error: string | null } {
     const [data, setData] = useState<T | null>(null);
@@ -42,7 +41,8 @@ export function useApiFetch<T>(
         return () => {
             cancelled = true;
         };
-    }, [path]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [path, schema]);
 
     return { data, loading, error };
 }

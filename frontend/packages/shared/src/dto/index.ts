@@ -71,9 +71,21 @@ export {
     type CurrentTimeMessageRequest,
 } from "./currentTimeMessageRequest";
 export {
+    DownloadGroupResponseSchema,
+    type DownloadGroupResponse,
+} from "./downloadGroupResponse";
+export {
+    DownloadItemResponseSchema,
+    type DownloadItemResponse,
+} from "./downloadItemResponse";
+export {
     DownloadProgressMessageSchema,
     type DownloadProgressMessage,
 } from "./downloadProgressMessage";
+export {
+    DownloadsResponseSchema,
+    type DownloadsResponse,
+} from "./downloadsResponse";
 export {
     HomeStatsResponseSchema,
     type HomeStatsResponse,

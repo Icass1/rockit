@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { COLORS } from "@/constants/theme";
+import { StartDownloadRequestSchema, StartDownloadResponseSchema } from "@/dto";
+import { z } from "zod";
 import { apiFetch, BACKEND_URL } from "@/lib/api";
+
+const ResponseSchema =
+    StartDownloadResponseSchema as unknown as z.ZodType<unknown>;
 
 export interface DownloadInfo {
     publicId: string;
@@ -24,10 +29,23 @@ export function useDownloads() {
     const wsRef = useRef<WebSocket | null>(null);
 
     const fetchDownloads = useCallback(async () => {
-        const res = await apiFetch("/downloads");
+        const res = await apiFetch("/downloader/downloads");
         if (res.ok) {
             const data = await res.json();
-            setDownloads(data);
+            const downloadGroups = data.downloads || [];
+            const flatDownloads: DownloadInfo[] = [];
+            for (const group of downloadGroups) {
+                for (const item of group.items || []) {
+                    flatDownloads.push({
+                        publicId: item.publicId,
+                        title: item.name,
+                        status: item.message,
+                        completed: item.completed,
+                        message: item.message,
+                    });
+                }
+            }
+            setDownloads(flatDownloads);
         }
     }, []);
 
@@ -94,11 +112,29 @@ export function useDownloads() {
     }, []);
 
     const startDownload = async (url: string) => {
-        const res = await apiFetch("/downloads/start", {
-            method: "POST",
-            body: JSON.stringify({ url }),
+        const addRes = await apiFetch(
+            `/media/url/add?url=${encodeURIComponent(url)}`
+        );
+        if (!(addRes as Response).ok) {
+            return { ok: false, status: 400, message: "Could not fetch media" };
+        }
+
+        const media = await (addRes as Response).json();
+        const publicId = media.publicId;
+
+        const body = StartDownloadRequestSchema.parse({
+            ids: [publicId],
+            title: "Download",
         });
-        if (res.ok) {
+        const res = await apiFetch(
+            "/downloader/start-downloads",
+            ResponseSchema,
+            {
+                method: "POST",
+                body: JSON.stringify(body),
+            }
+        );
+        if ((res as Response).ok) {
             await fetchDownloads();
         }
         return res;
@@ -109,7 +145,9 @@ export function useDownloads() {
             .filter((d) => d.completed === 100)
             .map((d) => d.publicId);
         for (const id of completedIds) {
-            await apiFetch(`/downloads/mark-seen/${id}`, { method: "POST" });
+            await apiFetch(`/downloader/downloads/${id}/seen`, {
+                method: "POST",
+            });
         }
         setDownloads((prev) => prev.filter((d) => d.completed !== 100));
     };

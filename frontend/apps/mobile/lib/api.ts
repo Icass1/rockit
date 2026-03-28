@@ -1,4 +1,5 @@
 import * as SecureStore from "expo-secure-store";
+import { ZodType } from "zod";
 
 const SESSION_KEY = "session_id_value";
 
@@ -190,7 +191,34 @@ export async function clearSessionCookie(): Promise<void> {
     await SecureStore.deleteItemAsync(SESSION_KEY);
 }
 
+export async function apiFetch<T>(
+    path: string,
+    schema: ZodType<T>,
+    options?: RequestInit
+): Promise<T>;
 export async function apiFetch(
+    path: string,
+    options?: RequestInit
+): Promise<Response>;
+export async function apiFetch<T>(
+    path: string,
+    schemaOrOptions?: ZodType<T> | RequestInit,
+    options?: RequestInit
+): Promise<T | Response> {
+    if (schemaOrOptions && "parse" in schemaOrOptions) {
+        const schema = schemaOrOptions as ZodType<T>;
+        const response = await doFetch(path, options);
+        const json = await response.json();
+        return schema.parse(json);
+    }
+    const response = await doFetch(
+        path,
+        schemaOrOptions as RequestInit | undefined
+    );
+    return response;
+}
+
+async function doFetch(
     path: string,
     options: RequestInit = {}
 ): Promise<Response> {

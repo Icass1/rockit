@@ -5,6 +5,7 @@ import { Image } from "expo-image";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 const SONGS_PER_COLUMN = 4;
+const MAX_ITEMS = 12;
 
 interface QuickSelectionsGridProps {
     title: string;
@@ -22,7 +23,7 @@ export default function QuickSelectionsGrid({
 }: QuickSelectionsGridProps) {
     if (items.length === 0) return null;
 
-    const songsPool = items.slice(0, 40);
+    const songsPool = items.slice(0, MAX_ITEMS);
 
     const columns = Math.ceil(items.length / SONGS_PER_COLUMN);
 

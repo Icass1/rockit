@@ -11,6 +11,8 @@ from backend.core.responses.statsMinutesEntryResponse import StatsMinutesEntryRe
 from backend.core.responses.statsRankedItemResponse import StatsRankedItemResponse
 from backend.core.responses.statsSummaryResponse import StatsSummaryResponse
 from backend.core.responses.userStatsResponse import UserStatsResponse
+from backend.core.responses.homeStatsResponse import HomeStatsResponse
+from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from backend.utils.logger import getLogger
 
 logger = getLogger(__name__)
@@ -239,7 +241,100 @@ def _generate_mock_heatmap() -> List[StatsHeatmapCellResponse]:
     return cells
 
 
+def _generate_mock_home_songs() -> List[BaseSongWithAlbumResponse]:
+    from backend.core.responses.baseArtistResponse import BaseArtistResponse
+    from backend.core.responses.baseAlbumWithoutSongsResponse import BaseAlbumWithoutSongsResponse
+    
+    shuffled = random.sample(MOCK_SONGS, len(MOCK_SONGS))
+    albums_shuffled = random.sample(MOCK_ALBUMS, len(MOCK_ALBUMS))
+    result = []
+    for i in range(min(len(shuffled), 10)):
+        name, artist, href = shuffled[i]
+        album_name, album_artist, _ = albums_shuffled[i % len(albums_shuffled)]
+        
+        artist_model = BaseArtistResponse(
+            provider="rockit",
+            publicId=f"artist-{i}",
+            url=f"https://rockit.local/artist/{artist.lower().replace(' ', '-')}",
+            name=artist,
+            imageUrl=random.choice(MOCK_IMAGE_URLS),
+        )
+        
+        album_model = BaseAlbumWithoutSongsResponse(
+            type="album",
+            provider="rockit",
+            publicId=f"album-{i}",
+            url=f"https://rockit.local/album/{album_name.lower().replace(' ', '-')}",
+            name=album_name,
+            artists=[artist_model],
+            releaseDate="2024-01-01",
+            imageUrl=random.choice(MOCK_IMAGE_URLS),
+        )
+        
+        result.append(
+            BaseSongWithAlbumResponse(
+                type="song",
+                provider="rockit",
+                publicId=f"home-song-{i+1}",
+                url=f"https://rockit.local{href}",
+                name=name,
+                artists=[artist_model],
+                audioSrc=None,
+                downloaded=False,
+                imageUrl=random.choice(MOCK_IMAGE_URLS),
+                duration=random.randint(180, 300),
+                discNumber=1,
+                trackNumber=i + 1,
+                album=album_model,
+            )
+        )
+    return result
+
+
 class StatsAccess:
+    @staticmethod
+    async def get_home_stats_async(
+        session: AsyncSession,
+        user_id: int,
+    ) -> AResult[HomeStatsResponse]:
+        try:
+            all_songs = _generate_mock_home_songs()
+            
+            random.shuffle(all_songs)
+            songs_by_time = all_songs[:10]
+            random.shuffle(all_songs)
+            random_songs = all_songs[:12]
+            random.shuffle(all_songs)
+            nostalgic = all_songs[:5]
+            random.shuffle(all_songs)
+            hidden_gems = all_songs[:6]
+            random.shuffle(all_songs)
+            community = all_songs[:5]
+            random.shuffle(all_songs)
+            monthly = all_songs[:5]
+            random.shuffle(all_songs)
+            mood = all_songs[:4]
+
+            return AResult(
+                code=AResultCode.OK,
+                message="OK",
+                result=HomeStatsResponse(
+                    songsByTimePlayed=songs_by_time,
+                    randomSongsLastMonth=random_songs,
+                    nostalgicMix=nostalgic,
+                    hiddenGems=hidden_gems,
+                    communityTop=community,
+                    monthlyTop=monthly,
+                    moodSongs=mood,
+                ),
+            )
+        except Exception as e:
+            logger.error(f"Error getting home stats: {e}", exc_info=True)
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Error getting home stats: {str(e)}",
+            )
+
     @staticmethod
     async def get_user_stats_async(
         session: AsyncSession,

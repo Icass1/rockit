@@ -1,7 +1,8 @@
-from fastapi import Depends, APIRouter, Request, Query
+from fastapi import Depends, APIRouter, Request, Query, HTTPException
 from logging import Logger
 
 from backend.core.responses.userStatsResponse import UserStatsResponse
+from backend.core.responses.homeStatsResponse import HomeStatsResponse
 from backend.core.middlewares.authMiddleware import AuthMiddleware
 from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 from backend.core.framework.stats import Stats
@@ -27,7 +28,7 @@ async def get_user_stats(
     a_result_user = AuthMiddleware.get_current_user(request=request)
 
     if a_result_user.is_not_ok():
-        raise Exception("User not authenticated")
+        raise HTTPException(status_code=401, detail="User not authenticated")
 
     a_result = await Stats.get_user_stats_async(
         session=session,
@@ -38,6 +39,28 @@ async def get_user_stats(
     )
 
     if a_result.is_not_ok():
-        raise Exception(a_result.message())
+        raise HTTPException(status_code=400, detail=a_result.message())
+
+    return a_result.result()
+
+
+@router.get("/home")
+async def get_home_stats(
+    request: Request,
+) -> HomeStatsResponse:
+    """Get home screen stats with recommended songs and playlists."""
+    session = DBSessionMiddleware.get_session(request=request)
+    a_result_user = AuthMiddleware.get_current_user(request=request)
+
+    if a_result_user.is_not_ok():
+        raise HTTPException(status_code=401, detail="User not authenticated")
+
+    a_result = await Stats.get_home_stats_async(
+        session=session,
+        user_id=a_result_user.result().id,
+    )
+
+    if a_result.is_not_ok():
+        raise HTTPException(status_code=400, detail=a_result.message())
 
     return a_result.result()

@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.core.aResult import AResult, AResultCode
 from backend.core.access.statsAccess import StatsAccess
 from backend.core.responses.userStatsResponse import UserStatsResponse
+from backend.core.responses.homeStatsResponse import HomeStatsResponse
 from backend.utils.logger import getLogger
 
 logger = getLogger(__name__)
@@ -47,6 +48,22 @@ def _get_group_by(range_value: RangeLiteral) -> str:
 
 
 class Stats:
+    @staticmethod
+    async def get_home_stats_async(
+        session: AsyncSession,
+        user_id: int,
+    ) -> AResult[HomeStatsResponse]:
+        a_result = await StatsAccess.get_home_stats_async(
+            session=session,
+            user_id=user_id,
+        )
+
+        if a_result.is_not_ok():
+            logger.error(f"Error getting home stats: {a_result.message()}", exc_info=True)
+            return AResult(code=a_result.code(), message=a_result.message())
+
+        return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+
     @staticmethod
     async def get_user_stats_async(
         session: AsyncSession,

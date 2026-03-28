@@ -4,6 +4,8 @@ import { LinearGradient } from "expo-linear-gradient";
 import { StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+export const HEADER_HEIGHT = 90;
+
 interface HeaderProps {
     showSearch?: boolean;
 }

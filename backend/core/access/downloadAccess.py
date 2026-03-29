@@ -71,6 +71,14 @@ class DownloadAccess:
             message=message,
         )
         session.add(row)
+
+        result = await session.execute(
+            select(DownloadRow).where(DownloadRow.id == download_id)
+        )
+        download_row: DownloadRow = result.scalar_one_or_none()
+        if download_row:
+            download_row.completed = round(float(completed), 2)
+
         return AResult(code=AResultCode.OK, message="OK", result=row)
 
     @staticmethod

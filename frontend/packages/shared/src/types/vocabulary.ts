@@ -135,6 +135,7 @@ export interface Vocabulary {
     REMOVE_FROM_PLAYLIST: string;
     REMOVE_FROM_QUEUE: string;
     REPEAT_PASSWORD: string;
+    SAVING: string;
     SEARCH: string;
     SEARCH_BAR: string;
     SEARCH_EMPTY1: string;

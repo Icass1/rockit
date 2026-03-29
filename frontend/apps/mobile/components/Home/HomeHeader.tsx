@@ -6,7 +6,10 @@ import { useApiFetch } from "@/lib/useApiFetch";
 
 export default function HomeHeader() {
     const greeting = useGreeting();
-    const { data: session } = useApiFetch("/session", SessionResponseSchema);
+    const { data: session } = useApiFetch(
+        "/user/session",
+        SessionResponseSchema
+    );
     const username = session?.username ?? "Rockit User";
 
     return (

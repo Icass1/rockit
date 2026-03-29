@@ -56,7 +56,7 @@ class YouTubeAccess:
             video: VideoRow | None = result.scalar_one_or_none()
 
             if not video:
-                logger.error("Video not found")
+                logger.warning("Video not found on local database")
                 return AResult(code=AResultCode.NOT_FOUND, message="Video not found")
 
             session.expunge(instance=video)

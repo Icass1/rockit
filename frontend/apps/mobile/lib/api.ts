@@ -10,7 +10,7 @@ export const BACKEND_URL =
 const FAKE_MODE = process.env.EXPO_PUBLIC_FAKE_AUTH === "true";
 
 const FAKE_RESPONSES: Record<string, unknown> = {
-    "/session": {
+    "/user/session": {
         username: "dev",
         image: "",
         admin: false,

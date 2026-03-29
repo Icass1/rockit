@@ -41,9 +41,9 @@
         "track": "internal"
       },
       "ios": {
-        "appleId": "",
-        "ascAppId": "",
-        "appleTeamId": ""
+        "appleId": "dummy",
+        "ascAppId": "dummy",
+        "appleTeamId": "dummy"
       }
     }
   }

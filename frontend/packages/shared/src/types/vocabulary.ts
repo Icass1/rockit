@@ -142,7 +142,6 @@ export interface Vocabulary {
     SEARCH_LIBRARY: string;
     SEARCH_USERS: string;
     SEND_SONG: string;
-    SAVING: string;
     SEPTEMBER: string;
     SETTINGS: string;
     SHARE_SONG: string;

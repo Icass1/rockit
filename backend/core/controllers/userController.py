@@ -359,7 +359,7 @@ async def update_lang(request: Request, payload: dict) -> OkResponse:
     from sqlalchemy import select
 
     lang_code = payload.get("lang", "en")
-    stmt = select(LanguageRow).where(LanguageRow.code == lang_code)
+    stmt = select(LanguageRow).where(LanguageRow.lang_code == lang_code)
     result = await session.execute(stmt)
     language = result.scalar_one_or_none()
 

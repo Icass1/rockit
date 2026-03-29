@@ -48,8 +48,11 @@ export default function DownloaderScreen() {
                     <DownloadEmptyState />
                 ) : (
                     <View style={styles.groups}>
-                        {groups.map((group) => (
-                            <DownloadGroup key={group.id} group={group} />
+                        {groups.map((group, groupIndex) => (
+                            <DownloadGroup
+                                key={`${group.id}-${groupIndex}`}
+                                group={group}
+                            />
                         ))}
                     </View>
                 )}

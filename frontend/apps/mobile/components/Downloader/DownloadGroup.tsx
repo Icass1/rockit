@@ -62,8 +62,11 @@ export default function DownloadGroup({ group }: DownloadGroupProps) {
             </Pressable>
             {isOpen && (
                 <View style={styles.items}>
-                    {group.items.map((item) => (
-                        <DownloadItem key={item.publicId} item={item} />
+                    {group.items.map((item, index) => (
+                        <DownloadItem
+                            key={`${item.publicId}-${index}`}
+                            item={item}
+                        />
                     ))}
                 </View>
             )}

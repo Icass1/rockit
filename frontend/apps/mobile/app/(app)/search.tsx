@@ -6,6 +6,7 @@ import {
     useWindowDimensions,
     View,
 } from "react-native";
+import { useVocabulary } from "@/lib/vocabulary";
 import { Header, PageContainer } from "@/components/layout";
 import { MediaCardSkeleton } from "@/components/Media";
 import {
@@ -17,6 +18,7 @@ import {
 
 export default function SearchScreen() {
     const { height } = useWindowDimensions();
+    const { vocabulary } = useVocabulary();
     const { results, searching, error, query, search, clearResults } =
         useSearch();
 
@@ -36,7 +38,9 @@ export default function SearchScreen() {
         return (
             <View style={styles.skeletonsContainer}>
                 <View style={styles.skeletonSection}>
-                    <Text style={styles.skeletonTitle}>Songs</Text>
+                    <Text style={styles.skeletonTitle}>
+                        {vocabulary.SONGS || "Songs"}
+                    </Text>
                     {[1, 2, 3].map((i) => (
                         <View key={i} style={styles.rowSkeleton}>
                             <MediaCardSkeleton width={280} />
@@ -44,7 +48,9 @@ export default function SearchScreen() {
                     ))}
                 </View>
                 <View style={styles.skeletonSection}>
-                    <Text style={styles.skeletonTitle}>Albums</Text>
+                    <Text style={styles.skeletonTitle}>
+                        {vocabulary.ALBUMS || "Albums"}
+                    </Text>
                     <ScrollView
                         horizontal
                         showsHorizontalScrollIndicator={false}
@@ -84,27 +90,27 @@ export default function SearchScreen() {
                         showsVerticalScrollIndicator={false}
                     >
                         <SearchSection
-                            title="Songs"
+                            title={vocabulary.SONGS || "Songs"}
                             items={songs}
                             layout="row"
                         />
                         <SearchSection
-                            title="Albums"
+                            title={vocabulary.ALBUMS || "Albums"}
                             items={albums}
                             layout="grid"
                         />
                         <SearchSection
-                            title="Artists"
+                            title={vocabulary.ARTISTS || "Artists"}
                             items={artists}
                             layout="artist"
                         />
                         <SearchSection
-                            title="Playlists"
+                            title={vocabulary.PLAYLISTS || "Playlists"}
                             items={playlists}
                             layout="grid"
                         />
                         <SearchSection
-                            title="Videos"
+                            title={vocabulary.VIDEOS || "Videos"}
                             items={videos}
                             layout="grid"
                         />

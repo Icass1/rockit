@@ -1,8 +1,8 @@
+import { DEFAULT_VOCABULARY } from "@rockit/shared";
 import * as SecureStore from "expo-secure-store";
 import { ZodType } from "zod";
 
 const SESSION_KEY = "session_id_value";
-
 
 export const BACKEND_URL =
     process.env.EXPO_PUBLIC_BACKEND_URL ?? "EXPO_PUBLIC_BACKEND_URL";
@@ -16,6 +16,10 @@ const FAKE_RESPONSES: Record<string, unknown> = {
         admin: false,
         queueType: null,
         currentTimeMs: null,
+    },
+    "/vocabulary/user": {
+        vocabulary: DEFAULT_VOCABULARY,
+        currentLang: "en",
     },
     "/stats/home": {
         songsByTimePlayed: [],

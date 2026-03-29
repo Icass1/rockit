@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { COLORS } from "@/constants/theme";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { useVocabulary } from "@/lib/vocabulary";
 
 const LANGUAGES = [
     { value: "en", label: "English" },
@@ -15,25 +16,15 @@ const LANGUAGES = [
 ];
 
 export default function LanguageSection() {
-    const [lang, setLang] = useState("en");
+    const { vocabulary, lang, setLanguage, isLoading } = useVocabulary();
     const [isSaving, setIsSaving] = useState(false);
 
     async function handleChange(newLang: string) {
-        setLang(newLang);
         setIsSaving(true);
         try {
-            const res = await fetch(
-                `${process.env.EXPO_PUBLIC_BACKEND_URL ?? "http://localhost:8000"}/user/lang`,
-                {
-                    method: "PATCH",
-                    credentials: "include",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ lang: newLang }),
-                }
-            );
-            if (!res.ok) throw new Error("Failed");
+            await setLanguage(newLang);
         } catch {
-            Alert.alert("Error", "Failed to save language");
+            Alert.alert(vocabulary.ERROR || "Error", "Failed to save language");
         } finally {
             setIsSaving(false);
         }
@@ -51,7 +42,7 @@ export default function LanguageSection() {
                 ]}
                 onPress={() => {
                     Alert.alert(
-                        "Select Language",
+                        vocabulary.LANGUAGE || "Select Language",
                         undefined,
                         LANGUAGES.map((l) => ({
                             text: l.label,
@@ -61,10 +52,16 @@ export default function LanguageSection() {
                     );
                 }}
             >
-                <Text style={styles.label}>Language</Text>
+                <Text style={styles.label}>
+                    {vocabulary.LANGUAGE || "Language"}
+                </Text>
                 <View style={styles.valueRow}>
                     <Text style={styles.value}>{selectedLabel}</Text>
-                    {isSaving && <Text style={styles.saving}>Saving...</Text>}
+                    {(isSaving || isLoading) && (
+                        <Text style={styles.saving}>
+                            {vocabulary.SAVING || "Saving..."}
+                        </Text>
+                    )}
                 </View>
             </Pressable>
         </View>

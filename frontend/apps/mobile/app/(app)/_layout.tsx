@@ -6,6 +6,7 @@ import { Tabs, useRouter } from "expo-router";
 import { Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { getSession } from "@/lib/session";
+import { useVocabulary } from "@/lib/vocabulary";
 import MiniPlayer from "@/components/layout/MiniPlayer";
 
 function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
@@ -72,6 +73,7 @@ const styles = StyleSheet.create({
 
 export default function AppLayout() {
     const router = useRouter();
+    const { vocabulary } = useVocabulary();
 
     useEffect(() => {
         getSession().then((session) => {
@@ -89,7 +91,7 @@ export default function AppLayout() {
             <Tabs.Screen
                 name="index"
                 options={{
-                    title: "Home",
+                    title: vocabulary.HOME || "Home",
                     tabBarIcon: ({ color, size }) => (
                         <Feather name="home" color={color} size={size} />
                     ),
@@ -98,7 +100,7 @@ export default function AppLayout() {
             <Tabs.Screen
                 name="library"
                 options={{
-                    title: "Library",
+                    title: vocabulary.LIBRARY || "Library",
                     tabBarIcon: ({ color, size }) => (
                         <Feather name="book-open" color={color} size={size} />
                     ),
@@ -107,7 +109,7 @@ export default function AppLayout() {
             <Tabs.Screen
                 name="search"
                 options={{
-                    title: "Search",
+                    title: vocabulary.SEARCH || "Search",
                     tabBarIcon: ({ color, size }) => (
                         <Feather name="search" color={color} size={size} />
                     ),
@@ -116,7 +118,7 @@ export default function AppLayout() {
             <Tabs.Screen
                 name="downloader"
                 options={{
-                    title: "Downloads",
+                    title: vocabulary.DOWNLOADS || "Downloads",
                     tabBarIcon: ({ color, size }) => (
                         <Feather name="download" color={color} size={size} />
                     ),
@@ -125,7 +127,7 @@ export default function AppLayout() {
             <Tabs.Screen
                 name="settings"
                 options={{
-                    title: "Settings",
+                    title: vocabulary.SETTINGS || "Settings",
                     tabBarIcon: ({ color, size }) => (
                         <Feather name="settings" color={color} size={size} />
                     ),

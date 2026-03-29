@@ -1,4 +1,5 @@
 import { StyleSheet, View } from "react-native";
+import { useVocabulary } from "@/lib/vocabulary";
 import { Header, PageContainer, SectionTitle } from "@/components/layout";
 import {
     AccountSection,
@@ -23,21 +24,23 @@ function SettingsSection({
 }
 
 export default function SettingsScreen() {
+    const { vocabulary } = useVocabulary();
+
     return (
         <>
             <Header />
             <PageContainer>
                 <ProfileSection />
 
-                <SettingsSection title="Account">
+                <SettingsSection title={vocabulary.DISPLAY_NAME || "Account"}>
                     <AccountSection />
                 </SettingsSection>
 
-                <SettingsSection title="Language">
+                <SettingsSection title={vocabulary.LANGUAGE || "Language"}>
                     <LanguageSection />
                 </SettingsSection>
 
-                <SettingsSection title="Audio">
+                <SettingsSection title={vocabulary.DOWNLOAD_APP || "Audio"}>
                     <AudioSection />
                 </SettingsSection>
             </PageContainer>

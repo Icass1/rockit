@@ -1,6 +1,7 @@
 import { COLORS } from "@/constants/theme";
 import type { UserStatsResponse } from "@rockit/shared";
 import { StyleSheet, Text, useWindowDimensions, View } from "react-native";
+import { useVocabulary } from "@/lib/vocabulary";
 import AlbumGrid from "./charts/AlbumGrid";
 import ListeningHeatmap from "./charts/ListeningHeatmap";
 import MinutesBarChart from "./charts/MinutesBarChart";
@@ -14,6 +15,7 @@ interface UserStatsProps {
 }
 
 export default function UserStats({ data, rangeLabel }: UserStatsProps) {
+    const { vocabulary } = useVocabulary();
     const { width } = useWindowDimensions();
     const isWide = width > 600;
 
@@ -21,13 +23,17 @@ export default function UserStats({ data, rangeLabel }: UserStatsProps) {
         <View style={styles.container}>
             <SummaryCards summary={data.summary} />
 
-            <StatsSectionCard title={`Minutes listened — ${rangeLabel}`}>
+            <StatsSectionCard
+                title={`${vocabulary.MINUTES_LISTENED || "Minutes listened"} — ${rangeLabel}`}
+            >
                 <MinutesBarChart data={data.minutes} />
             </StatsSectionCard>
 
             <View style={isWide ? styles.row : styles.column}>
                 <View style={styles.flex1}>
-                    <StatsSectionCard title="Top songs">
+                    <StatsSectionCard
+                        title={vocabulary.TOP_SONGS || "Top songs"}
+                    >
                         <RankingList
                             items={data.topSongs}
                             showImages
@@ -36,7 +42,11 @@ export default function UserStats({ data, rangeLabel }: UserStatsProps) {
                     </StatsSectionCard>
                 </View>
                 <View style={styles.flex1}>
-                    <StatsSectionCard title="Top artists">
+                    <StatsSectionCard
+                        title={
+                            vocabulary.MOST_LISTENED_ARTISTS || "Top artists"
+                        }
+                    >
                         <RankingList
                             items={data.topArtists}
                             showImages
@@ -47,14 +57,19 @@ export default function UserStats({ data, rangeLabel }: UserStatsProps) {
                 </View>
             </View>
 
-            <StatsSectionCard title="Top albums">
+            <StatsSectionCard title={vocabulary.TOP_ALBUMS || "Top albums"}>
                 <AlbumGrid albums={data.topAlbums} />
             </StatsSectionCard>
 
-            <StatsSectionCard title="Listening heatmap">
+            <StatsSectionCard
+                title={
+                    vocabulary.MINUTES_LISTENED_PER_DAY || "Listening heatmap"
+                }
+            >
                 <ListeningHeatmap data={data.heatmap} />
                 <Text style={styles.hint}>
-                    Darker cells = more minutes listened at that hour
+                    {vocabulary.MINUTES_LISTENED_PER_DAY ||
+                        "Darker cells = more minutes listened at that hour"}
                 </Text>
             </StatsSectionCard>
         </View>

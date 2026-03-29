@@ -6,6 +6,7 @@ import DateTimePicker, {
 } from "@react-native-community/datetimepicker";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { useUserStats, type Range } from "@/hooks/useUserStats";
+import { useVocabulary } from "@/lib/vocabulary";
 import UserStats from "./UserStats";
 
 const RANGE_OPTIONS: { label: string; value: Range }[] = [
@@ -56,6 +57,7 @@ function LoadingSkeleton() {
 }
 
 export default function StatsClient() {
+    const { vocabulary } = useVocabulary();
     const [section, setSection] = useState<"user" | "general" | "friends">(
         "user"
     );
@@ -78,7 +80,7 @@ export default function StatsClient() {
     }
 
     function formatDateForDisplay(dateStr: string): string {
-        if (!dateStr) return "Select date";
+        if (!dateStr) return vocabulary.SHOWING_DATA || "Select date";
         const parts = dateStr.split("-");
         if (parts.length !== 3) return dateStr;
         const date = new Date(

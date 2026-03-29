@@ -1,5 +1,7 @@
+import { COLORS } from "@/constants/theme";
 import { StyleSheet, Text, View } from "react-native";
 import { useDownloads } from "@/hooks/useDownloads";
+import { useVocabulary } from "@/lib/vocabulary";
 import {
     DownloadEmptyState,
     DownloadGroup,
@@ -7,9 +9,9 @@ import {
     StatsPills,
 } from "@/components/Downloader";
 import { Header, PageContainer, SectionTitle } from "@/components/layout";
-import { COLORS } from "@/constants/theme";
 
 export default function DownloaderScreen() {
+    const { vocabulary } = useVocabulary();
     const { groups, total, active, completed, failed, startDownload } =
         useDownloads();
 
@@ -18,9 +20,12 @@ export default function DownloaderScreen() {
             <Header />
             <PageContainer>
                 <View style={styles.headerSection}>
-                    <Text style={styles.title}>Downloader</Text>
+                    <Text style={styles.title}>
+                        {vocabulary.DOWNLOADS || "Downloader"}
+                    </Text>
                     <Text style={styles.subtitle}>
-                        Paste a Spotify or YouTube URL
+                        {vocabulary.DOWNLOAD_INPUT_PLACEHOLDER ||
+                            "Paste a Spotify or YouTube URL"}
                     </Text>
                 </View>
 
@@ -35,7 +40,9 @@ export default function DownloaderScreen() {
                     />
                 )}
 
-                <SectionTitle>Downloads</SectionTitle>
+                <SectionTitle>
+                    {vocabulary.DOWNLOADS || "Downloads"}
+                </SectionTitle>
 
                 {total === 0 ? (
                     <DownloadEmptyState />

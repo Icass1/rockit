@@ -6,6 +6,7 @@ import type {
 } from "@rockit/shared";
 import { StyleSheet, Text, View } from "react-native";
 import type { ContentType } from "@/hooks/useLibraryData";
+import { useVocabulary } from "@/lib/vocabulary";
 import SectionTitle from "@/components/layout/SectionTitle";
 import LibraryGrid from "@/components/Library/LibraryGrid";
 import LibraryListView from "@/components/Library/LibraryListView";
@@ -55,6 +56,8 @@ export default function LibraryContent({
     activeType,
     viewMode,
 }: LibraryContentProps) {
+    const { vocabulary } = useVocabulary();
+
     const gridItems = (items: any[], type: string) =>
         items.map((item) => ({
             publicId: item.publicId,
@@ -78,7 +81,9 @@ export default function LibraryContent({
             <View style={styles.container}>
                 {albums.length > 0 && (
                     <View style={styles.section}>
-                        <SectionTitle>Albums</SectionTitle>
+                        <SectionTitle>
+                            {vocabulary.ALBUMS || "Albums"}
+                        </SectionTitle>
                         {viewMode === "grid" ? (
                             <LibraryGrid items={gridItems(albums, "album")} />
                         ) : (
@@ -90,7 +95,9 @@ export default function LibraryContent({
                 )}
                 {playlists.length > 0 && (
                     <View style={styles.section}>
-                        <SectionTitle>Playlists</SectionTitle>
+                        <SectionTitle>
+                            {vocabulary.PLAYLISTS || "Playlists"}
+                        </SectionTitle>
                         {viewMode === "grid" ? (
                             <LibraryGrid
                                 items={gridItems(playlists, "playlist")}
@@ -104,7 +111,9 @@ export default function LibraryContent({
                 )}
                 {songs.length > 0 && (
                     <View style={styles.section}>
-                        <SectionTitle>Songs</SectionTitle>
+                        <SectionTitle>
+                            {vocabulary.SONGS || "Songs"}
+                        </SectionTitle>
                         <LibraryListView items={listItems(songs, "song")} />
                     </View>
                 )}
@@ -128,7 +137,9 @@ export default function LibraryContent({
     if (items.length === 0) {
         return (
             <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>No items found</Text>
+                <Text style={styles.emptyText}>
+                    {vocabulary.NO_RESULTS || "No items found"}
+                </Text>
             </View>
         );
     }

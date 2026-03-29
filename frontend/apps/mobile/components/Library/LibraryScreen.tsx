@@ -3,6 +3,7 @@ import { COLORS } from "@/constants/theme";
 import type { FilterMode } from "@rockit/shared";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useLibraryData, type ContentType } from "@/hooks/useLibraryData";
+import { useVocabulary } from "@/lib/vocabulary";
 import LibraryContent from "@/components/Library/LibraryContent";
 import LibraryFilters from "@/components/Library/LibraryFilters";
 import SearchBar from "@/components/Search/SearchBar";
@@ -20,6 +21,7 @@ export default function LibraryScreen({
     songs,
     loading: dataLoading,
 }: LibraryScreenProps) {
+    const { vocabulary } = useVocabulary();
     const [searchQuery, setSearchQuery] = useState("");
     const [activeType, setActiveType] = useState<ContentType>("all");
     const [sortMode] = useState<FilterMode>("default");
@@ -46,7 +48,9 @@ export default function LibraryScreen({
                 onChangeText={setSearchQuery}
                 isSearching={!!dataLoading}
                 onClear={() => setSearchQuery("")}
-                placeholder="Search in library..."
+                placeholder={
+                    vocabulary.SEARCH_LIBRARY || "Search in library..."
+                }
             />
 
             <View style={styles.controlsRow}>

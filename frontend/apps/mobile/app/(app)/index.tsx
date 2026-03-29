@@ -11,18 +11,12 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useHomeData } from "@/hooks/useHomeData";
+import { useVocabulary } from "@/lib/vocabulary";
 import FeaturedCarousel from "@/components/Home/FeaturedCarousel";
 import HomeHeader from "@/components/Home/HomeHeader";
 import HorizontalSongRow from "@/components/Home/HorizontalSongRow";
 import QuickSelectionsGrid from "@/components/Home/QuickSelectionsGrid";
 import Header, { HEADER_HEIGHT } from "@/components/layout/Header";
-
-const VOCABULARY = {
-    YOUR_MIX: "Your Mix",
-    QUICK_SELECTIONS: "Quick Selections",
-    HIDDEN_GEMS: "Hidden Gems",
-    COMMUNITY_TOP: "Community Top",
-};
 
 function useFadeIn(delay: number = 0) {
     const opacity = useRef(new Animated.Value(0)).current;
@@ -67,6 +61,7 @@ function getPreviousMonthName(): string {
 }
 
 export default function HomeScreen() {
+    const { vocabulary, isLoading } = useVocabulary();
     const { data, loading, error } = useHomeData();
 
     const section0 = useFadeIn(0);
@@ -84,7 +79,7 @@ export default function HomeScreen() {
         // The MiniPlayer component exists but has no playback logic yet
     };
 
-    if (loading) {
+    if (loading || isLoading) {
         return (
             <SafeAreaView style={styles.container} edges={["top"]}>
                 <Header />
@@ -101,7 +96,7 @@ export default function HomeScreen() {
                 <Header />
                 <View style={styles.centerContainer}>
                     <Text style={styles.errorText}>
-                        {error ?? "Failed to load"}
+                        {error ?? vocabulary.ERROR ?? "Failed to load"}
                     </Text>
                 </View>
             </SafeAreaView>
@@ -113,7 +108,9 @@ export default function HomeScreen() {
             <SafeAreaView style={styles.container} edges={["top"]}>
                 <Header />
                 <View style={styles.centerContainer}>
-                    <Text style={styles.emptyText}>No music yet</Text>
+                    <Text style={styles.emptyText}>
+                        {vocabulary.NO_SONGS ?? "No music yet"}
+                    </Text>
                 </View>
             </SafeAreaView>
         );
@@ -137,7 +134,7 @@ export default function HomeScreen() {
                     <Animated.View style={section1}>
                         <FeaturedCarousel
                             songs={data.songsByTimePlayed}
-                            title={VOCABULARY.YOUR_MIX}
+                            title={vocabulary.YOUR_MIX || "Your Mix"}
                             onSongPress={handleSongPress}
                         />
                     </Animated.View>
@@ -146,7 +143,10 @@ export default function HomeScreen() {
                 {data.randomSongsLastMonth.length > 0 && (
                     <Animated.View style={section2}>
                         <QuickSelectionsGrid
-                            title={VOCABULARY.QUICK_SELECTIONS}
+                            title={
+                                vocabulary.QUICK_SELECTIONS ||
+                                "Quick Selections"
+                            }
                             items={data.randomSongsLastMonth}
                             onMediaPress={handleSongPress}
                         />
@@ -156,7 +156,7 @@ export default function HomeScreen() {
                 {data.hiddenGems.length > 0 && (
                     <Animated.View style={section3}>
                         <HorizontalSongRow
-                            title={VOCABULARY.HIDDEN_GEMS}
+                            title={vocabulary.HIDDEN_GEMS || "Hidden Gems"}
                             songs={data.hiddenGems}
                             listKey="hidden-gems"
                             onSongPress={handleSongPress}
@@ -167,7 +167,7 @@ export default function HomeScreen() {
                 {data.communityTop.length > 0 && (
                     <Animated.View style={section4}>
                         <HorizontalSongRow
-                            title={VOCABULARY.COMMUNITY_TOP}
+                            title={vocabulary.COMMUNITY_TOP || "Community Top"}
                             songs={data.communityTop}
                             listKey="community"
                             onSongPress={handleSongPress}

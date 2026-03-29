@@ -3,6 +3,7 @@ import { COLORS } from "@/constants/theme";
 import { Feather } from "@expo/vector-icons";
 import type { StatsSummaryResponse } from "@rockit/shared";
 import { StyleSheet, Text, useWindowDimensions, View } from "react-native";
+import { useVocabulary } from "@/lib/vocabulary";
 
 interface SummaryCardsProps {
     summary: StatsSummaryResponse;
@@ -60,26 +61,29 @@ function SummaryCard({ label, value, icon, accent, onPress }: CardProps) {
 }
 
 export default function SummaryCards({ summary }: SummaryCardsProps) {
+    const { vocabulary } = useVocabulary();
     const { width } = useWindowDimensions();
     const numColumns = width > 500 ? 4 : 2;
     const [showMinutes, setShowMinutes] = useState(false);
 
     const minutesDisplay = showMinutes
-        ? `${Math.round(summary.minutesListened).toLocaleString()} min`
+        ? `${Math.round(summary.minutesListened).toLocaleString()} ${
+              vocabulary.MINUTES || "min"
+          }`
         : formatDuration(summary.minutesListened);
 
     const cards = [
         <SummaryCard
             key="songs"
             icon={<Feather name="music" size={16} color={COLORS.accent} />}
-            label="Songs played"
+            label={vocabulary.SONGS_LISTENED || "Songs played"}
             value={formatNumber(summary.songsListened)}
             accent
         />,
         <SummaryCard
             key="minutes"
             icon={<Feather name="clock" size={16} color={COLORS.gray600} />}
-            label="Time listened"
+            label={vocabulary.MINUTES_LISTEND || "Time listened"}
             value={minutesDisplay}
             onPress={() => setShowMinutes(!showMinutes)}
         />,
@@ -88,13 +92,13 @@ export default function SummaryCards({ summary }: SummaryCardsProps) {
             icon={
                 <Feather name="trending-up" size={16} color={COLORS.gray600} />
             }
-            label="Avg min / song"
+            label={vocabulary.AVERAGE_MINUTES_PER_SONG || "Avg min / song"}
             value={summary.avgMinutesPerSong.toFixed(1)}
         />,
         <SummaryCard
             key="streak"
             icon={<Feather name="zap" size={16} color={COLORS.gray600} />}
-            label="Day streak"
+            label={vocabulary.LEVEL_ABBR || "Day streak"}
             value={`${summary.currentStreak}d`}
         />,
     ];

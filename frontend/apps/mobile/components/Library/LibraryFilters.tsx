@@ -1,26 +1,29 @@
 import { COLORS } from "@/constants/theme";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { ContentType } from "@/hooks/useLibraryData";
+import { useVocabulary } from "@/lib/vocabulary";
 
 interface LibraryFiltersProps {
     activeType: ContentType;
     onTypeChange: (type: ContentType) => void;
 }
 
-const TABS: { key: ContentType; label: string }[] = [
-    { key: "all", label: "All" },
-    { key: "albums", label: "Albums" },
-    { key: "playlists", label: "Playlists" },
-    { key: "songs", label: "Songs" },
-    { key: "videos", label: "Videos" },
-    { key: "stations", label: "Stations" },
-    { key: "shared", label: "Shared" },
-];
-
 export default function LibraryFilters({
     activeType,
     onTypeChange,
 }: LibraryFiltersProps) {
+    const { vocabulary } = useVocabulary();
+
+    const TABS: { key: ContentType; label: string }[] = [
+        { key: "all", label: vocabulary.ALL || "All" },
+        { key: "albums", label: vocabulary.ALBUMS || "Albums" },
+        { key: "playlists", label: vocabulary.PLAYLISTS || "Playlists" },
+        { key: "songs", label: vocabulary.SONGS || "Songs" },
+        { key: "videos", label: vocabulary.VIDEOS || "Videos" },
+        { key: "stations", label: vocabulary.RADIO_STATIONS || "Stations" },
+        { key: "shared", label: vocabulary.SHARED_2_YOU || "Shared" },
+    ];
+
     return (
         <View style={styles.container}>
             <ScrollView

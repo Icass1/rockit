@@ -1,4 +1,5 @@
 export interface Vocabulary {
+    [key: string]: string;
     ADD_LIST_RANDOMLY: string;
     ADD_LIST_TO_BOTTOM: string;
     ADD_LIST_TO_QUEUE: string;
@@ -176,4 +177,5 @@ export interface Vocabulary {
     YOUR: string;
     YOUR_ALBUMS_PLAYLISTS: string;
     YT_VIDEOS: string;
+    SAVING: string;
 }

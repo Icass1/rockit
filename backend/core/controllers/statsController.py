@@ -20,8 +20,12 @@ router = APIRouter(
 async def get_user_stats(
     request: Request,
     range: str = Query(default="7d", description="Range: 7d, 30d, 1y, or custom"),
-    start: str | None = Query(default=None, description="Start date for custom range (ISO format)"),
-    end: str | None = Query(default=None, description="End date for custom range (ISO format)"),
+    start: str | None = Query(
+        default=None, description="Start date for custom range (ISO format)"
+    ),
+    end: str | None = Query(
+        default=None, description="End date for custom range (ISO format)"
+    ),
 ) -> UserStatsResponse:
     """Get user listening statistics."""
     session = DBSessionMiddleware.get_session(request=request)

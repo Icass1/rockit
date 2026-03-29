@@ -83,6 +83,30 @@ pnpm lint
 npx tsc --noEmit
 ```
 
+### Mobile (Expo)
+
+```bash
+cd frontend/apps/mobile
+
+# Prebuild (generates native directories)
+pnpm prebuild
+
+# Build Android APK
+pnpm build:android:preview    # Preview build (APK)
+pnpm build:android:production # Production build (APK)
+
+# Build iOS IPA
+pnpm build:ios:preview        # Preview build (IPA)
+pnpm build:ios:production     # Production build (IPA)
+
+# Build both platforms
+pnpm build:all:production
+
+# From root frontend directory
+pnpm mobile:build:android:preview
+pnpm mobile:build:ios:production
+```
+
 ---
 
 ## 3. Backend Architecture

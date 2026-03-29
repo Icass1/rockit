@@ -59,7 +59,9 @@ class Stats:
         )
 
         if a_result.is_not_ok():
-            logger.error(f"Error getting home stats: {a_result.message()}", exc_info=True)
+            logger.error(
+                f"Error getting home stats: {a_result.message()}", exc_info=True
+            )
             return AResult(code=a_result.code(), message=a_result.message())
 
         return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
@@ -84,7 +86,9 @@ class Stats:
         )
 
         if a_result.is_not_ok():
-            logger.error(f"Error getting user stats: {a_result.message()}", exc_info=True)
+            logger.error(
+                f"Error getting user stats: {a_result.message()}", exc_info=True
+            )
             return AResult(code=a_result.code(), message=a_result.message())
 
         return AResult(code=AResultCode.OK, message="OK", result=a_result.result())

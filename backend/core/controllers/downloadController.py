@@ -133,7 +133,9 @@ async def get_downloads(request: Request) -> DownloadsResponse:
                     DownloadItemResponse(
                         publicId=media.public_id,
                         name=media.public_id,
-                        completed=float(download.completed) if download.completed else 0.0,
+                        completed=(
+                            float(download.completed) if download.completed else 0.0
+                        ),
                         message=status_message,
                     )
                 )
@@ -142,7 +144,9 @@ async def get_downloads(request: Request) -> DownloadsResponse:
             DownloadGroupResponse(
                 publicId=group.public_id,
                 title=group.title,
-                dateStarted=group.date_started.isoformat() if group.date_started else "",
+                dateStarted=(
+                    group.date_started.isoformat() if group.date_started else ""
+                ),
                 success=group.success or 0,
                 fail=group.fail or 0,
                 items=items,

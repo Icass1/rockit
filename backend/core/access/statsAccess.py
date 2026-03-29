@@ -92,25 +92,25 @@ def _generate_mock_summary() -> StatsSummaryResponse:
         minutesListened=round(minutes, 1),
         avgMinutesPerSong=round(avg_duration, 2),
         currentStreak=random.randint(1, 14),
-        topGenre=random.choice([
-            "Alternative Hip-Hop",
-            "Pop",
-            "Indie Pop",
-            "Hip-Hop",
-            "Alternative Rock",
-            "R&B",
-            "Indie Rock",
-        ]),
+        topGenre=random.choice(
+            [
+                "Alternative Hip-Hop",
+                "Pop",
+                "Indie Pop",
+                "Hip-Hop",
+                "Alternative Rock",
+                "R&B",
+                "Indie Rock",
+            ]
+        ),
     )
 
 
 def _generate_mock_minutes(
-    start_date: datetime,
-    end_date: datetime,
-    group_by: str = "day"
+    start_date: datetime, end_date: datetime, group_by: str = "day"
 ) -> List[StatsMinutesEntryResponse]:
     entries = []
-    
+
     if group_by == "day":
         # Last 7 days
         current = start_date
@@ -142,9 +142,22 @@ def _generate_mock_minutes(
     elif group_by == "month":
         # Last 12 months - show every 2 months for better readability
         # when bars are narrow on mobile
-        month_names = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+        month_names = [
+            "Jan",
+            "Feb",
+            "Mar",
+            "Apr",
+            "May",
+            "Jun",
+            "Jul",
+            "Aug",
+            "Sep",
+            "Oct",
+            "Nov",
+            "Dec",
+        ]
         for i in range(12):
-            month_start = start_date + timedelta(days=30*i)
+            month_start = start_date + timedelta(days=30 * i)
             month_end = month_start + timedelta(days=30)
             label = month_names[i] if i % 2 == 0 else ""
             entries.append(
@@ -170,7 +183,7 @@ def _generate_mock_minutes(
                     label=day_names[i],
                 )
             )
-    
+
     return entries
 
 
@@ -243,15 +256,17 @@ def _generate_mock_heatmap() -> List[StatsHeatmapCellResponse]:
 
 def _generate_mock_home_songs() -> List[BaseSongWithAlbumResponse]:
     from backend.core.responses.baseArtistResponse import BaseArtistResponse
-    from backend.core.responses.baseAlbumWithoutSongsResponse import BaseAlbumWithoutSongsResponse
-    
+    from backend.core.responses.baseAlbumWithoutSongsResponse import (
+        BaseAlbumWithoutSongsResponse,
+    )
+
     shuffled = random.sample(MOCK_SONGS, len(MOCK_SONGS))
     albums_shuffled = random.sample(MOCK_ALBUMS, len(MOCK_ALBUMS))
     result = []
     for i in range(min(len(shuffled), 10)):
         name, artist, href = shuffled[i]
         album_name, album_artist, _ = albums_shuffled[i % len(albums_shuffled)]
-        
+
         artist_model = BaseArtistResponse(
             provider="rockit",
             publicId=f"artist-{i}",
@@ -259,7 +274,7 @@ def _generate_mock_home_songs() -> List[BaseSongWithAlbumResponse]:
             name=artist,
             imageUrl=random.choice(MOCK_IMAGE_URLS),
         )
-        
+
         album_model = BaseAlbumWithoutSongsResponse(
             type="album",
             provider="rockit",
@@ -270,7 +285,7 @@ def _generate_mock_home_songs() -> List[BaseSongWithAlbumResponse]:
             releaseDate="2024-01-01",
             imageUrl=random.choice(MOCK_IMAGE_URLS),
         )
-        
+
         result.append(
             BaseSongWithAlbumResponse(
                 type="song",
@@ -299,7 +314,7 @@ class StatsAccess:
     ) -> AResult[HomeStatsResponse]:
         try:
             all_songs = _generate_mock_home_songs()
-            
+
             random.shuffle(all_songs)
             songs_by_time = all_songs[:10]
             random.shuffle(all_songs)

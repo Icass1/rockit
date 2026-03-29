@@ -9,7 +9,20 @@
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",
     "clean": "turbo clean",
-    "clean:all": "turbo clean && rm -rf node_modules"
+    "clean:all": "turbo clean && rm -rf node_modules",
+    "mobile:prebuild": "cd apps/mobile && pnpm prebuild",
+    "mobile:build:android": "cd apps/mobile && pnpm build:android",
+    "mobile:build:android:dev": "cd apps/mobile && pnpm build:android:dev",
+    "mobile:build:android:preview": "cd apps/mobile && pnpm build:android:preview",
+    "mobile:build:android:production": "cd apps/mobile && pnpm build:android:production",
+    "mobile:build:ios": "cd apps/mobile && pnpm build:ios",
+    "mobile:build:ios:dev": "cd apps/mobile && pnpm build:ios:dev",
+    "mobile:build:ios:preview": "cd apps/mobile && pnpm build:ios:preview",
+    "mobile:build:ios:production": "cd apps/mobile && pnpm build:ios:production",
+    "mobile:build:all": "cd apps/mobile && pnpm build:all",
+    "mobile:build:all:production": "cd apps/mobile && pnpm build:all:production",
+    "mobile:submit:android": "cd apps/mobile && pnpm submit:android",
+    "mobile:submit:ios": "cd apps/mobile && pnpm submit:ios"
   },
   "devDependencies": {
     "turbo": "^2.3.3",

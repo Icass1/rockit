@@ -407,7 +407,9 @@ async def update_password(request: Request, payload: dict) -> OkResponse:
 
     new_password = payload.get("password", "")
     if len(new_password) < 6:
-        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+        raise HTTPException(
+            status_code=400, detail="Password must be at least 6 characters"
+        )
 
     password_hash = ph.hash(new_password)
     user = a_result_user.result()

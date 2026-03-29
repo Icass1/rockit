@@ -11,6 +11,7 @@ from colorama import Fore, Style, init
 # Import inspect module
 from backend.constants import CONSOLE_DUMP_LEVEL, LOG_DUMP_LEVEL, LOGS_PATH
 
+
 class DailyRotatingFileHandler(logging.FileHandler):
     """A file handler that rotates logs daily at midnight, naming files as log_YYYY-MM-DD.log."""
 
@@ -33,7 +34,9 @@ class DailyRotatingFileHandler(logging.FileHandler):
             self.stream.close()
             self.stream = None
         self.current_date = datetime.now().strftime("%Y-%m-%d")
-        self.base_filename = os.path.join(self.directory, f"log_{self.current_date}.log")
+        self.base_filename = os.path.join(
+            self.directory, f"log_{self.current_date}.log"
+        )
         # Remove old log files beyond the limit (10 files)
         self._cleanup_old_logs()
         # Reopen with the new filename
@@ -42,7 +45,11 @@ class DailyRotatingFileHandler(logging.FileHandler):
     def _cleanup_old_logs(self):
         """Delete log files beyond the limit (keep 10 most recent)."""
         try:
-            files = [f for f in os.listdir(self.directory) if f.startswith("log_") and f.endswith(".log")]
+            files = [
+                f
+                for f in os.listdir(self.directory)
+                if f.startswith("log_") and f.endswith(".log")
+            ]
             files.sort()
             while len(files) > 10:
                 os.remove(os.path.join(self.directory, files[0]))

@@ -237,7 +237,9 @@ async def generate_zod_schemas() -> None:
             if ref_file != file_name:
                 type_name = type_name_to_file.get(ref_file, "")
                 if type_name:
-                    import_lines.append(f"import {{ {type_name}Schema }} from './{ref_file}';")
+                    import_lines.append(
+                        f"import {{ {type_name}Schema }} from './{ref_file}';"
+                    )
                     schema_names_imported.add(type_name)
 
         output_lines = import_lines + ["", schema]

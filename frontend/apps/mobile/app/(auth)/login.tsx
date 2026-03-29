@@ -55,7 +55,7 @@ export default function LoginScreen() {
                 setError(data.detail ?? data.error ?? "Login failed");
             }
         } catch {
-            setError("Network error");
+            setError("Network error BACKEND_URL: " + BACKEND_URL);
         } finally {
             setLoading(false);
         }

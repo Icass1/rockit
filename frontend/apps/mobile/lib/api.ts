@@ -3,8 +3,9 @@ import { ZodType } from "zod";
 
 const SESSION_KEY = "session_id_value";
 
+
 export const BACKEND_URL =
-    process.env.EXPO_PUBLIC_BACKEND_URL ?? "http://localhost:8000";
+    process.env.EXPO_PUBLIC_BACKEND_URL ?? "EXPO_PUBLIC_BACKEND_URL";
 
 const FAKE_MODE = process.env.EXPO_PUBLIC_FAKE_AUTH === "true";
 

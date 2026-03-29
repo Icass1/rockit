@@ -9,7 +9,6 @@ Thumbs.db
 # IDEs
 # ============================
 .idea/
-.vscode/
 
 # ============================
 # Python / Backend
@@ -98,10 +97,11 @@ ios/
 database/
 
 # Archivos de proyecto
-songs/
-images/
-temp/
-backend/utils/json.json
+/songs/
+/media/
+/images/
+/temp/
+/backend/utils/json.json
 
 # Spotify cache
 .spotify

@@ -77,7 +77,26 @@ class Providers:
     async def search_providers(self, session: AsyncSession) -> AResultCode:
         logger.info("Searching providers...")
 
-        providers_found_data: List[Providers.ProviderData] = []
+        a_result_providers_in_db: AResult[List[ProviderRow]] = (
+            await ProviderAccess.get_providers(session)
+        )
+
+        if a_result_providers_in_db.is_not_ok():
+            logger.error(
+                f"Error getting providers in database. {a_result_providers_in_db.info()}"
+            )
+            return AResultCode(
+                code=a_result_providers_in_db.code(),
+                message=a_result_providers_in_db.message(),
+            )
+
+        providers_in_db: List[ProviderRow] = a_result_providers_in_db.result()
+
+        providers_by_module: dict[str, ProviderRow] = {
+            p.module: p for p in providers_in_db
+        }
+
+        new_providers: List[Providers.ProviderData] = []
 
         for dirpath, _, filenames in os.walk("."):
             dirpath = dirpath.replace("./", "")
@@ -90,9 +109,42 @@ class Providers:
             for filename in filenames:
                 base: str = ".".join(dirpath.split("/"))
                 module_path: str = f"{base}.{filename.replace('.py', '')}"
-                module: ModuleType = import_module(module_path)
+
+                if module_path in providers_by_module:
+                    db_provider = providers_by_module[module_path]
+                    if db_provider.disabled:
+                        logger.info(
+                            f"Provider '{db_provider.name}' is disabled, using BaseProvider"
+                        )
+                        disabled_provider = BaseProvider()
+                        disabled_provider.set_info(
+                            provider_id=db_provider.id, provider_name=db_provider.name
+                        )
+                        self._providers.append(disabled_provider)
+                    else:
+                        logger.info(f"Adding enabled provider {module_path}")
+                        try:
+                            module: ModuleType = import_module(module_path)
+                            if hasattr(module, "provider") and hasattr(module, "name"):
+                                provider = module.provider
+                                provider_name = module.name
+                                await provider.async_init(session)
+                                provider.set_info(
+                                    provider_id=db_provider.id,
+                                    provider_name=db_provider.name,
+                                )
+                                self._providers.append(provider)
+                            else:
+                                logger.error(
+                                    f"Module {module_path} missing provider or name"
+                                )
+                        except Exception as e:
+                            logger.error(f"Error loading {module_path}. Error {e}.")
+                    continue
 
                 try:
+                    module: ModuleType = import_module(module_path)
+
                     if not hasattr(module, "provider"):
                         logger.debug(f"{module_path} doesn't have 'provider' defined")
                         continue
@@ -112,11 +164,9 @@ class Providers:
                             f"Variable name in module {module_path} is not a str instance"
                         )
                     else:
-                        logger.info(f"Adding provider {module_path}")
+                        logger.info(f"Adding new provider {module_path}")
 
-                        await provider.async_init(session)
-
-                        providers_found_data.append(
+                        new_providers.append(
                             Providers.ProviderData(
                                 provider=provider,
                                 module_path=module_path,
@@ -126,41 +176,7 @@ class Providers:
                 except Exception as e:
                     logger.error(f"Error loading {module_path}. Error {e}.")
 
-        a_result_providers_in_db: AResult[List[ProviderRow]] = (
-            await ProviderAccess.get_providers(session)
-        )
-
-        if a_result_providers_in_db.is_not_ok():
-            logger.error(
-                f"Error getting providers in database. {a_result_providers_in_db.info()}"
-            )
-            return AResultCode(
-                code=a_result_providers_in_db.code(),
-                message=a_result_providers_in_db.message(),
-            )
-
-        providers_in_db: List[ProviderRow] = a_result_providers_in_db.result()
-
-        for provider in providers_in_db:
-            # Search db provider in providers_found_data
-            for index, provider_data in enumerate(providers_found_data):
-                if provider.module == provider_data.module_path:
-                    providers_found_data.pop(index)
-                    provider_data.provider.set_info(
-                        provider_id=provider.id, provider_name=provider.name
-                    )
-                    self._providers.append(provider_data.provider)
-                    break
-
-            # Handle provider in database not found.
-            else:
-                logger.error(f"Provider in database {provider.name} couldn't be found.")
-                return AResultCode(
-                    code=AResultCode.GENERAL_ERROR,
-                    message="A provider in database couldn't be found.",
-                )
-
-        for index, provider_data in enumerate(providers_found_data):
+        for provider_data in new_providers:
             self._providers.append(provider_data.provider)
 
             a_result_provider: AResult[ProviderRow] = await ProviderAccess.add_provider(

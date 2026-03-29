@@ -1,5 +1,4 @@
 export interface Vocabulary {
-    [key: string]: string;
     ADD_LIST_RANDOMLY: string;
     ADD_LIST_TO_BOTTOM: string;
     ADD_LIST_TO_QUEUE: string;
@@ -143,6 +142,7 @@ export interface Vocabulary {
     SEARCH_LIBRARY: string;
     SEARCH_USERS: string;
     SEND_SONG: string;
+    SAVING: string;
     SEPTEMBER: string;
     SETTINGS: string;
     SHARE_SONG: string;
@@ -177,5 +177,4 @@ export interface Vocabulary {
     YOUR: string;
     YOUR_ALBUMS_PLAYLISTS: string;
     YT_VIDEOS: string;
-    SAVING: string;
 }

@@ -1,5 +1,4 @@
 import { BACKEND_URL } from "@/environment";
-import { z } from "zod";
 
 interface ApiFetchOptions {
     method?: string;
@@ -9,11 +8,16 @@ interface ApiFetchOptions {
     signal?: AbortSignal;
 }
 
-export async function apiFetch(
+// Zod v4 compatible type that accepts any Zod schema
+type ZodSchema<T> = {
+    parse: (data: unknown) => T;
+};
+
+export async function apiFetch<T>(
     path: string,
-    schema: z.ZodSchema,
+    schema: ZodSchema<T>,
     options: ApiFetchOptions = {}
-) {
+): Promise<T> {
     const res = await baseApiFetch(path, options);
 
     const json = await res.json();

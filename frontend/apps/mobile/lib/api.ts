@@ -24,9 +24,11 @@ const FAKE_RESPONSES: Record<string, unknown> = {
     "/stats/home": {
         songsByTimePlayed: [],
         randomSongsLastMonth: [],
+        nostalgicMix: [],
         hiddenGems: [],
         communityTop: [],
         monthlyTop: [],
+        moodSongs: [],
     },
     "/stats/user": {
         summary: {
@@ -158,7 +160,7 @@ const FAKE_RESPONSES: Record<string, unknown> = {
     },
     "/media/liked": [],
     "/media/search": [],
-    "/downloads": [],
+    "/downloader/downloads": { downloads: [] },
     "/user": {
         username: "dev",
         lang: "en",

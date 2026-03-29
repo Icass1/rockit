@@ -66,9 +66,10 @@ class WebSocketManager:
             self.disconnect(user_id, ws)
 
     async def broadcast_progress(
-        self, user_id: int, download_id: int, status: str, progress: float, message: str
+        self, user_id: int, public_id: str, download_id: int, status: str, progress: float, message: str
     ) -> None:
         download_message: DownloadProgressMessage = DownloadProgressMessage(
+            publicId=public_id,
             download_id=download_id,
             status=status,
             progress=progress,

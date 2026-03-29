@@ -114,6 +114,15 @@ class DownloadsManager:
                                 download_id=d.download_id,
                                 status_key=status_key,
                             )
+                            if a_result.is_ok():
+                                from sqlalchemy import update as sql_update
+                                from backend.core.access.db.ormModels.download import DownloadRow
+                                await session.execute(
+                                    sql_update(DownloadRow)
+                                    .where(DownloadRow.id == d.download_id)
+                                    .values(completed=100.0)
+                                )
+                                await session.commit()
                             if a_result.is_not_ok():
                                 logger.error(
                                     f"Download {d.public_id} failed with error: {a_result.message()}"

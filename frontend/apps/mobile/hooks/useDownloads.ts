@@ -1,15 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { COLORS } from "@/constants/theme";
-import { StartDownloadRequestSchema, StartDownloadResponseSchema } from "@/dto";
-import { z } from "zod";
+import { StartDownloadRequestSchema } from "@/dto";
 import { apiFetch, BACKEND_URL } from "@/lib/api";
-
-const ResponseSchema =
-    StartDownloadResponseSchema as unknown as z.ZodType<unknown>;
 
 export interface DownloadInfo {
     publicId: string;
+    groupId: string;
     title: string;
+    subtitle: string | null;
+    imageUrl: string | null;
     status: string;
     completed: number;
     message: string;
@@ -38,9 +37,13 @@ export function useDownloads() {
                 for (const item of group.items || []) {
                     flatDownloads.push({
                         publicId: item.publicId,
+                        groupId: group.publicId,
                         title: item.name,
+                        subtitle: item.subtitle ?? null,
+                        imageUrl: item.imageUrl ?? null,
                         status: item.message,
-                        completed: item.completed,
+                        completed:
+                            item.message === "Done" ? 100 : item.completed,
                         message: item.message,
                     });
                 }
@@ -51,6 +54,7 @@ export function useDownloads() {
 
     useEffect(() => {
         let cancelled = false;
+        let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
 
         async function init() {
             if (!cancelled) {
@@ -72,14 +76,19 @@ export function useDownloads() {
                             const existing = prev.find(
                                 (d) => d.publicId === data.publicId
                             );
+                            const message =
+                                data.progress >= 100 ? "Done" : data.message;
+                            const completed =
+                                data.progress >= 100 ? 100 : data.progress;
+
                             if (existing) {
                                 return prev.map((d) =>
                                     d.publicId === data.publicId
                                         ? {
                                               ...d,
-                                              status: data.status,
-                                              completed: data.progress,
-                                              message: data.message,
+                                              status: message,
+                                              completed,
+                                              message,
                                           }
                                         : d
                                 );
@@ -88,10 +97,13 @@ export function useDownloads() {
                                 ...prev,
                                 {
                                     publicId: data.publicId,
+                                    groupId: "",
                                     title: data.message,
-                                    status: data.status,
-                                    completed: data.progress,
-                                    message: data.message,
+                                    subtitle: null,
+                                    imageUrl: null,
+                                    status: message,
+                                    completed,
+                                    message,
                                 },
                             ];
                         });
@@ -100,12 +112,28 @@ export function useDownloads() {
                     // ignore parse errors
                 }
             };
+
+            wsConnection.onclose = () => {
+                if (cancelled) return;
+                reconnectTimeout = setTimeout(() => {
+                    if (!cancelled) {
+                        init();
+                    }
+                }, 3000);
+            };
+
+            wsConnection.onerror = () => {
+                wsConnection.close();
+            };
         }
 
         init();
 
         return () => {
             cancelled = true;
+            if (reconnectTimeout) {
+                clearTimeout(reconnectTimeout);
+            }
             wsRef.current?.close();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -126,26 +154,24 @@ export function useDownloads() {
             ids: [publicId],
             title: "Download",
         });
-        const res = await apiFetch(
-            "/downloader/start-downloads",
-            ResponseSchema,
-            {
-                method: "POST",
-                body: JSON.stringify(body),
-            }
-        );
-        if ((res as Response).ok) {
+        const res = await apiFetch("/downloader/start-downloads", {
+            method: "POST",
+            body: JSON.stringify(body),
+        });
+        if (res.ok) {
             await fetchDownloads();
         }
         return res;
     };
 
     const clearCompleted = async () => {
-        const completedIds = downloads
-            .filter((d) => d.completed === 100)
-            .map((d) => d.publicId);
-        for (const id of completedIds) {
-            await apiFetch(`/downloader/downloads/${id}/seen`, {
+        const completedGroups = new Set(
+            downloads
+                .filter((d) => d.completed === 100 && d.groupId)
+                .map((d) => d.groupId)
+        );
+        for (const groupId of completedGroups) {
+            await apiFetch(`/downloader/downloads/${groupId}/seen`, {
                 method: "POST",
             });
         }
@@ -153,9 +179,12 @@ export function useDownloads() {
     };
 
     const active = downloads.filter(
-        (d) => d.completed < 100 && d.message !== "Error"
+        (d) =>
+            d.completed < 100 && d.message !== "Error" && d.message !== "Done"
     );
-    const completed = downloads.filter((d) => d.completed === 100);
+    const completed = downloads.filter(
+        (d) => d.completed === 100 || d.message === "Done"
+    );
     const failed = downloads.filter((d) => d.message === "Error");
 
     const groups: DownloadGroup[] = [

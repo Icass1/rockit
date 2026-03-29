@@ -22,7 +22,10 @@ from backend.core.access.db.ormModels.download import DownloadRow
 from backend.core.access.db.ormModels.downloadGroup import DownloadGroupRow
 from backend.core.access.mediaAccess import MediaAccess
 from backend.core.access.db.ormModels.media import CoreMediaRow
-from backend.core.enums.downloadStatusEnum import DownloadStatusEnum
+
+from backend.core.framework import providers
+
+from backend.core.enums.mediaTypeEnum import MediaTypeEnum
 
 logger: Logger = getLogger(name=__name__)
 router = APIRouter(
@@ -35,8 +38,21 @@ router = APIRouter(
 class DownloadItemResponse(BaseModel):
     publicId: str
     name: str
+    subtitle: str | None = None
+    imageUrl: str | None = None
     completed: float
     message: str
+
+
+STATUS_MESSAGES: dict[int, str] = {
+    1: "In queue",
+    2: "Downloading",
+    3: "Done",
+    4: "Error",
+    5: "Fetching",
+    6: "Starting",
+    7: "Waiting",
+}
 
 
 class DownloadGroupResponse(BaseModel):
@@ -122,20 +138,49 @@ async def get_downloads(request: Request) -> DownloadsResponse:
             )
             if a_result_media.is_ok():
                 media: CoreMediaRow = a_result_media.result()
-                status_message = "pending"
-                if download.status_key:
-                    try:
-                        status_enum = DownloadStatusEnum(download.status_key)
-                        status_message = status_enum.name.lower().replace("_", " ")
-                    except ValueError:
-                        status_message = str(download.status_key)
+
+                provider = providers.find_provider(media.provider_id)
+
+                media_name = media.public_id
+                image_url: str | None = None
+                subtitle: str | None = None
+
+                if provider:
+                    if media.media_type_key == MediaTypeEnum.SONG.value:
+                        a_result_song = await provider.get_song_async(
+                            session=session, public_id=media.public_id
+                        )
+                        if a_result_song.is_ok():
+                            song = a_result_song.result()
+                            media_name = song.name
+                            image_url = song.imageUrl
+                            if song.artists:
+                                subtitle = song.artists[0].name
+                    elif media.media_type_key == MediaTypeEnum.VIDEO.value:
+                        a_result_video = await provider.get_video_async(
+                            session=session, public_id=media.public_id
+                        )
+                        if a_result_video.is_ok():
+                            video = a_result_video.result()
+                            media_name = video.name
+                            image_url = video.imageUrl
+
+                status_message = STATUS_MESSAGES.get(download.status_key, "Unknown")
+
+                if download.status_key == 3:
+                    completed_val = 100.0
+                elif download.status_key == 4:
+                    completed_val = 0.0
+                else:
+                    completed_val = float(download.completed) if download.completed else 0.0
+
                 items.append(
                     DownloadItemResponse(
                         publicId=media.public_id,
-                        name=media.public_id,
-                        completed=(
-                            float(download.completed) if download.completed else 0.0
-                        ),
+                        name=media_name,
+                        subtitle=subtitle,
+                        imageUrl=image_url,
+                        completed=completed_val,
                         message=status_message,
                     )
                 )

@@ -10,7 +10,8 @@
         "newArchEnabled": true,
         "ios": {
             "supportsTablet": true,
-            "bundleIdentifier": "com.rockit.mobile"
+            "bundleIdentifier": "com.rockit.mobile",
+            "icon": "./assets/images/icon.png"
         },
         "android": {
             "adaptiveIcon": {
@@ -19,6 +20,7 @@
                 "backgroundImage": "./assets/images/android-icon-background-1024.png",
                 "monochromeImage": "./assets/images/android-icon-monochrome-1024.png"
             },
+            "icon": "./assets/images/icon.png",
             "edgeToEdgeEnabled": true,
             "predictiveBackGestureEnabled": false,
             "package": "com.rockit.mobile"

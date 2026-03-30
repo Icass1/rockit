@@ -68,6 +68,14 @@ export default function RankingList({
             renderItem={renderItem}
             keyExtractor={(item) => item.publicId}
             scrollEnabled={false}
+            initialNumToRender={10}
+            maxToRenderPerBatch={10}
+            removeClippedSubviews={true}
+            getItemLayout={(_, index) => ({
+                length: 44,
+                offset: 44 * index,
+                index,
+            })}
         />
     );
 }

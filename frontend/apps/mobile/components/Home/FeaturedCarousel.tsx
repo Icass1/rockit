@@ -118,6 +118,10 @@ export default function FeaturedCarousel({
                 onScrollEndDrag={handleScrollEndDrag}
                 onMomentumScrollEnd={handleMomentumScrollEnd}
                 getItemLayout={getItemLayout}
+                initialNumToRender={3}
+                maxToRenderPerBatch={3}
+                windowSize={3}
+                removeClippedSubviews={true}
                 renderItem={({ item: song }) => (
                     <TouchableOpacity
                         activeOpacity={0.9}

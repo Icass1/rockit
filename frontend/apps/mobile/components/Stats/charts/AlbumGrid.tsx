@@ -65,6 +65,9 @@ export default function AlbumGrid({ albums }: AlbumGridProps) {
             scrollEnabled={false}
             columnWrapperStyle={styles.row}
             contentContainerStyle={styles.grid}
+            initialNumToRender={6}
+            maxToRenderPerBatch={6}
+            removeClippedSubviews={true}
         />
     );
 }

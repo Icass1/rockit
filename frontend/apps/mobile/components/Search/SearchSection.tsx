@@ -81,6 +81,9 @@ export default function SearchSection({
                 columnWrapperStyle={
                     layout === "grid" ? styles.gridRow : undefined
                 }
+                initialNumToRender={10}
+                maxToRenderPerBatch={10}
+                removeClippedSubviews={true}
             />
         </View>
     );

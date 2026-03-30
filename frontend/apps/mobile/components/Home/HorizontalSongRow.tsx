@@ -42,6 +42,10 @@ export default function HorizontalSongRow({
                 renderItem={({ item }) => (
                     <SongCard song={item} songs={songs} onPress={handlePlay} />
                 )}
+                initialNumToRender={5}
+                maxToRenderPerBatch={5}
+                windowSize={5}
+                removeClippedSubviews={true}
             />
         </View>
     );

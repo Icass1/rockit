@@ -132,6 +132,10 @@ export default function HomeContent({ data }: HomeContentProps) {
             renderItem={renderItem}
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
+            initialNumToRender={5}
+            maxToRenderPerBatch={5}
+            windowSize={5}
+            removeClippedSubviews={true}
         />
     );
 }

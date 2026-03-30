@@ -4,10 +4,13 @@ import { Feather } from "@expo/vector-icons";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { Tabs, useRouter } from "expo-router";
 import { Pressable, StyleSheet, View } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { PlayerProvider } from "@/lib/PlayerContext";
 import { getSession } from "@/lib/session";
 import { useVocabulary } from "@/lib/vocabulary";
-import MiniPlayer from "@/components/layout/MiniPlayer";
+import Header from "@/components/layout/Header";
+import { FullPlayer, MiniPlayer } from "@/components/Player";
 
 function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
     return (
@@ -84,55 +87,96 @@ export default function AppLayout() {
     }, [router]);
 
     return (
-        <Tabs
-            tabBar={(props) => <CustomTabBar {...props} />}
-            screenOptions={{ headerShown: false }}
-        >
-            <Tabs.Screen
-                name="index"
-                options={{
-                    title: vocabulary.HOME,
-                    tabBarIcon: ({ color, size }) => (
-                        <Feather name="home" color={color} size={size} />
-                    ),
-                }}
-            />
-            <Tabs.Screen
-                name="library"
-                options={{
-                    title: vocabulary.LIBRARY,
-                    tabBarIcon: ({ color, size }) => (
-                        <Feather name="book-open" color={color} size={size} />
-                    ),
-                }}
-            />
-            <Tabs.Screen
-                name="search"
-                options={{
-                    title: vocabulary.SEARCH,
-                    tabBarIcon: ({ color, size }) => (
-                        <Feather name="search" color={color} size={size} />
-                    ),
-                }}
-            />
-            <Tabs.Screen
-                name="downloader"
-                options={{
-                    title: vocabulary.DOWNLOADS,
-                    tabBarIcon: ({ color, size }) => (
-                        <Feather name="download" color={color} size={size} />
-                    ),
-                }}
-            />
-            <Tabs.Screen
-                name="settings"
-                options={{
-                    title: vocabulary.SETTINGS,
-                    tabBarIcon: ({ color, size }) => (
-                        <Feather name="settings" color={color} size={size} />
-                    ),
-                }}
-            />
-        </Tabs>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+            <PlayerProvider>
+                <View style={{ flex: 1 }}>
+                    <Tabs
+                        tabBar={(props) => <CustomTabBar {...props} />}
+                        screenOptions={{ headerShown: false }}
+                    >
+                        <Tabs.Screen
+                            name="index"
+                            options={{
+                                title: vocabulary.HOME,
+                                tabBarIcon: ({ color, size }) => (
+                                    <Feather
+                                        name="home"
+                                        color={color}
+                                        size={size}
+                                    />
+                                ),
+                            }}
+                        />
+                        <Tabs.Screen
+                            name="library"
+                            options={{
+                                title: vocabulary.LIBRARY,
+                                tabBarIcon: ({ color, size }) => (
+                                    <Feather
+                                        name="book-open"
+                                        color={color}
+                                        size={size}
+                                    />
+                                ),
+                            }}
+                        />
+                        <Tabs.Screen
+                            name="search"
+                            options={{
+                                title: vocabulary.SEARCH,
+                                tabBarIcon: ({ color, size }) => (
+                                    <Feather
+                                        name="search"
+                                        color={color}
+                                        size={size}
+                                    />
+                                ),
+                            }}
+                        />
+                        <Tabs.Screen
+                            name="downloader"
+                            options={{
+                                title: vocabulary.DOWNLOADS,
+                                tabBarIcon: ({ color, size }) => (
+                                    <Feather
+                                        name="download"
+                                        color={color}
+                                        size={size}
+                                    />
+                                ),
+                            }}
+                        />
+                        <Tabs.Screen
+                            name="settings"
+                            options={{
+                                title: vocabulary.SETTINGS,
+                                tabBarIcon: ({ color, size }) => (
+                                    <Feather
+                                        name="settings"
+                                        color={color}
+                                        size={size}
+                                    />
+                                ),
+                            }}
+                        />
+                    </Tabs>
+
+                    <FullPlayer />
+
+                    <View
+                        style={{
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            zIndex: 150,
+                            pointerEvents: "box-none",
+                        }}
+                    >
+                        <Header />
+                    </View>
+                </View>
+            </PlayerProvider>
+        </GestureHandlerRootView>
     );
 }

@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useHomeData } from "@/hooks/useHomeData";
+import { usePlayer } from "@/lib/PlayerContext";
 import { useVocabulary } from "@/lib/vocabulary";
 import FeaturedCarousel from "@/components/Home/FeaturedCarousel";
 import HomeHeader from "@/components/Home/HomeHeader";
@@ -72,12 +73,13 @@ export default function HomeScreen() {
     const section4 = useFadeIn(320);
     const section5 = useFadeIn(400);
 
+    const { playMedia } = usePlayer();
+
     const handleSongPress = (
-        _song: BaseSongWithAlbumResponse,
-        _allSongs: BaseSongWithAlbumResponse[]
+        song: BaseSongWithAlbumResponse,
+        allSongs: BaseSongWithAlbumResponse[]
     ) => {
-        // TODO: Integrate with audio player when available
-        // The MiniPlayer component exists but has no playback logic yet
+        playMedia(song, allSongs);
     };
 
     if (loading || isLoading) {

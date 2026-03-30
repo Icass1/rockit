@@ -9,6 +9,13 @@
         "editor.defaultFormatter": "esbenp.prettier-vscode",
         "editor.formatOnSave": true
     },
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit"
+        }
+    },
     "editor.codeActionsOnSave": {
         // apply ESLint
         "source.fixAll.eslint": "always",
@@ -21,9 +28,14 @@
     "python.analysis.autoFormatStrings": true,
     "python.analysis.autoImportCompletions": true,
     "python.analysis.inlayHints.callArgumentNames": "all",
-    "python.analysis.inlayHints.functionReturnTypes": true,
+    "python.analysis.functionReturnTypes": true,
     "python.analysis.extraPaths": ["./backend"],
     "python.analysis.inlayHints.variableTypes": true,
     "python-envs.defaultEnvManager": "ms-python.python:venv",
-    "css.lint.unknownAtRules": "ignore"
+    "css.lint.unknownAtRules": "ignore",
+    "files.associations": {
+        "*.css": "tailwindcss"
+    },
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "files.autoSave": "onFocusChange"
 }

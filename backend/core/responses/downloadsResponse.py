@@ -5,6 +5,8 @@ from typing import List
 class DownloadItemResponse(BaseModel):
     publicId: str
     name: str
+    subtitle: str | None = None
+    imageUrl: str | None = None
     completed: float
     message: str
 

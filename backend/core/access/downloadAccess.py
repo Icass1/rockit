@@ -146,3 +146,76 @@ class DownloadAccess:
 
         download.status_key = status_key
         return AResult(code=AResultCode.OK, message="OK", result=download)
+
+    @staticmethod
+    @safe_async
+    async def get_download_groups_by_user_id(
+        session: AsyncSession,
+        user_id: int,
+    ) -> AResult[list[DownloadGroupRow]]:
+        """Get all download groups for a user, ordered by most recent first."""
+
+        result = await session.execute(
+            select(DownloadGroupRow)
+            .where(DownloadGroupRow.user_id == user_id)
+            .order_by(DownloadGroupRow.date_started.desc())
+        )
+        groups: list[DownloadGroupRow] = list(result.scalars().all())
+        return AResult(code=AResultCode.OK, message="OK", result=groups)
+
+    @staticmethod
+    @safe_async
+    async def get_downloads_by_group_id(
+        session: AsyncSession,
+        download_group_id: int,
+    ) -> AResult[list[DownloadRow]]:
+        """Get all download rows for a download group."""
+
+        result = await session.execute(
+            select(DownloadRow).where(
+                DownloadRow.download_group_id == download_group_id
+            )
+        )
+        downloads: list[DownloadRow] = list(result.scalars().all())
+        return AResult(code=AResultCode.OK, message="OK", result=downloads)
+
+    @staticmethod
+    @safe_async
+    async def get_download_group_by_public_id(
+        session: AsyncSession,
+        public_id: str,
+        user_id: int,
+    ) -> AResult[DownloadGroupRow]:
+        """Get a download group by public_id, scoped to a user."""
+
+        result = await session.execute(
+            select(DownloadGroupRow).where(
+                DownloadGroupRow.public_id == public_id,
+                DownloadGroupRow.user_id == user_id,
+            )
+        )
+        group: DownloadGroupRow | None = result.scalar_one_or_none()
+        if group is None:
+            return AResult(
+                code=AResultCode.NOT_FOUND,
+                message="Download group not found",
+            )
+        return AResult(code=AResultCode.OK, message="OK", result=group)
+
+    @staticmethod
+    @safe_async
+    async def delete_download_group_with_downloads(
+        session: AsyncSession,
+        group: DownloadGroupRow,
+    ) -> AResult[bool]:
+        """Delete a download group and all its child downloads."""
+
+        result = await session.execute(
+            select(DownloadRow).where(DownloadRow.download_group_id == group.id)
+        )
+        downloads: list[DownloadRow] = list(result.scalars().all())
+        for download in downloads:
+            await session.delete(download)
+
+        await session.delete(group)
+        return AResult(code=AResultCode.OK, message="OK", result=True)

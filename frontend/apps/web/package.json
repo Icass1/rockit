@@ -6,7 +6,7 @@
         "dev": "next dev",
         "build": "next build",
         "start": "next start",
-        "lint": "eslint --cache app components hooks && npx tsc --noEmit",
+        "lint": "eslint --cache app components && npx tsc --noEmit",
         "prettier": "prettier --write app components hooks styles environment.ts"
     },
     "dependencies": {

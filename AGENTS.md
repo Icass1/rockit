@@ -187,11 +187,15 @@ controllers/  →  framework/  →  access/
    (HTTP)        (Logic)        (DB)
 ```
 
-| Layer            | Does                                                                    | Must NOT do                                        |
-| ---------------- | ----------------------------------------------------------------------- | -------------------------------------------------- |
-| **controllers/** | Parse HTTP, validate with Pydantic, call framework, raise HTTPException | Call access directly, return dicts                 |
-| **framework/**   | Business logic, orchestrate calls, apply rules                          | Call controllers, raise HTTPException, use raw SQL |
-| **access/**      | SQLAlchemy CRUD, return ORM models                                      | Call framework, contain business logic             |
+| Layer            | Does                                                                    | Must NOT do                                     |
+| ---------------- | ----------------------------------------------------------------------- | ----------------------------------------------- |
+| **controllers/** | Parse HTTP, validate with Pydantic, call framework, raise HTTPException | Call access directly, return dicts, use raw SQL |
+
+> **Rule:** All request payloads and response bodies in controllers MUST be Pydantic `BaseModel` subclasses — never `dict`, `list`, or raw types.
+> | **framework/** | Business logic, orchestrate calls, apply rules | Call controllers, raise HTTPException, use raw SQL |
+> | **access/** | SQLAlchemy CRUD, SQL queries, return ORM models | Call framework, contain business logic |
+
+> **Rule:** SQL statements (raw SQL or SQLAlchemy queries) can ONLY live in `access/` files. Framework and controller layers must never contain SQL.
 
 Folder naming: `controllers/` (plural), `framework/` (singular), `access/` (singular).
 
@@ -901,7 +905,7 @@ if (typeof window !== "undefined") { ... }
 - Never raise exceptions inside framework or access layers
 - Never call access layer directly from controller
 - Never create database sessions inside access functions
-- Never write raw SQL in framework or controller layers
+- Never write raw SQL in framework or controller layers — SQL can only live in `access/` files
 - Never return `dict` or raw types from endpoints — always use a Pydantic `BaseModel`
 - Never send the internal `id` to the client — always use `public_id`
 

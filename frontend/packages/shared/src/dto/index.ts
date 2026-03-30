@@ -186,6 +186,18 @@ export {
     type StatsSummaryResponse,
 } from "./statsSummaryResponse";
 export {
+    UpdateCrossfadeRequestSchema,
+    type UpdateCrossfadeRequest,
+} from "./updateCrossfadeRequest";
+export {
+    UpdateLangRequestSchema,
+    type UpdateLangRequest,
+} from "./updateLangRequest";
+export {
+    UpdatePasswordRequestSchema,
+    type UpdatePasswordRequest,
+} from "./updatePasswordRequest";
+export {
     UpdatePlaylistRequestSchema,
     type UpdatePlaylistRequest,
 } from "./updatePlaylistRequest";
@@ -193,6 +205,10 @@ export {
     UrlMatchResponseSchema,
     type UrlMatchResponse,
 } from "./urlMatchResponse";
+export {
+    UserSettingsResponseSchema,
+    type UserSettingsResponse,
+} from "./userSettingsResponse";
 export {
     UserStatsResponseSchema,
     type UserStatsResponse,

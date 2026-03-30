@@ -18,6 +18,7 @@ from backend.core.access.db.ormModels.user_library_media import UserLibraryMedia
 
 from backend.core.access.userAccess import UserAccess
 from backend.core.access.mediaAccess import MediaAccess
+from backend.core.access.languageAccess import LanguageAccess
 from backend.core.access.userQueueAccess import UserQueueAccess
 from backend.core.access.userLikedMediaAccess import UserLikedMediaAccess
 
@@ -30,6 +31,7 @@ from backend.core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongs
 from backend.core.responses.baseAlbumWithoutSongsResponse import (
     BaseAlbumWithoutSongsResponse,
 )
+from backend.core.access.db.ormModels.language import LanguageRow
 
 logger = getLogger(__name__)
 
@@ -586,3 +588,110 @@ class User:
             return AResultCode(code=a_result.code(), message=a_result.message())
 
         return AResultCode(code=AResultCode.OK, message="OK")
+
+    @staticmethod
+    async def update_lang_async(
+        session: AsyncSession, user_id: int, lang_code: str
+    ) -> AResult[bool]:
+        """Update the user's language by language code."""
+
+        a_result_lang: AResult[LanguageRow] = (
+            await LanguageAccess.get_language_from_code(
+                session=session, lang_code=lang_code
+            )
+        )
+        if a_result_lang.is_not_ok():
+            logger.error(f"Error getting language. {a_result_lang.info()}")
+            return AResult(
+                code=AResultCode.BAD_REQUEST, message="Invalid language code"
+            )
+
+        a_result_user: AResult[UserRow] = await UserAccess.get_user_from_id(
+            session=session, user_id=user_id
+        )
+        if a_result_user.is_not_ok():
+            logger.error(f"Error getting user. {a_result_user.info()}")
+            return AResult(code=a_result_user.code(), message=a_result_user.message())
+
+        user: UserRow = a_result_user.result()
+        user.lang_id = a_result_lang.result().id
+        await session.commit()
+
+        return AResult(code=AResultCode.OK, message="OK", result=True)
+
+    @staticmethod
+    async def update_crossfade_async(
+        session: AsyncSession, user_id: int, crossfade_ms: int
+    ) -> AResult[bool]:
+        """Update the user's crossfade setting."""
+
+        a_result_user: AResult[UserRow] = await UserAccess.get_user_from_id(
+            session=session, user_id=user_id
+        )
+        if a_result_user.is_not_ok():
+            logger.error(f"Error getting user. {a_result_user.info()}")
+            return AResult(code=a_result_user.code(), message=a_result_user.message())
+
+        user: UserRow = a_result_user.result()
+        user.cross_fade_ms = crossfade_ms
+        await session.commit()
+
+        return AResult(code=AResultCode.OK, message="OK", result=True)
+
+    @staticmethod
+    async def update_password_async(
+        session: AsyncSession, user_id: int, password_hash: str
+    ) -> AResult[bool]:
+        """Update the user's password hash."""
+
+        a_result_user: AResult[UserRow] = await UserAccess.get_user_from_id(
+            session=session, user_id=user_id
+        )
+        if a_result_user.is_not_ok():
+            logger.error(f"Error getting user. {a_result_user.info()}")
+            return AResult(code=a_result_user.code(), message=a_result_user.message())
+
+        user: UserRow = a_result_user.result()
+        user.password_hash = password_hash
+        await session.commit()
+
+        return AResult(code=AResultCode.OK, message="OK", result=True)
+
+    @staticmethod
+    async def toggle_random_queue_async(
+        session: AsyncSession, user_id: int
+    ) -> AResult[bool]:
+        """Toggle the user's random queue mode."""
+
+        a_result_user: AResult[UserRow] = await UserAccess.get_user_from_id(
+            session=session, user_id=user_id
+        )
+        if a_result_user.is_not_ok():
+            logger.error(f"Error getting user. {a_result_user.info()}")
+            return AResult(code=a_result_user.code(), message=a_result_user.message())
+
+        user: UserRow = a_result_user.result()
+        user.queue_type_key = 2 if user.queue_type_key == 1 else 1
+        await session.commit()
+
+        return AResult(code=AResultCode.OK, message="OK", result=True)
+
+    @staticmethod
+    async def cycle_repeat_mode_async(
+        session: AsyncSession, user_id: int
+    ) -> AResult[bool]:
+        """Cycle the user's repeat mode."""
+
+        a_result_user: AResult[UserRow] = await UserAccess.get_user_from_id(
+            session=session, user_id=user_id
+        )
+        if a_result_user.is_not_ok():
+            logger.error(f"Error getting user. {a_result_user.info()}")
+            return AResult(code=a_result_user.code(), message=a_result_user.message())
+
+        user: UserRow = a_result_user.result()
+        current_mode: int = user.repeat_mode_key
+        user.repeat_mode_key = 1 if current_mode >= 3 else current_mode + 1
+        await session.commit()
+
+        return AResult(code=AResultCode.OK, message="OK", result=True)

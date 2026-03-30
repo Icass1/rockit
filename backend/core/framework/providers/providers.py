@@ -139,7 +139,7 @@ class Providers:
                                     f"Module {module_path} missing provider or name"
                                 )
                         except Exception as e:
-                            logger.error(f"Error loading {module_path}. Error {e}.")
+                            logger.exception(f"Error loading {module_path}. Error {e}.")
                     continue
 
                 try:

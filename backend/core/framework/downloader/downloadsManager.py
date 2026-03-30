@@ -116,7 +116,10 @@ class DownloadsManager:
                             )
                             if a_result.is_ok():
                                 from sqlalchemy import update as sql_update
-                                from backend.core.access.db.ormModels.download import DownloadRow
+                                from backend.core.access.db.ormModels.download import (
+                                    DownloadRow,
+                                )
+
                                 await session.execute(
                                     sql_update(DownloadRow)
                                     .where(DownloadRow.id == d.download_id)

@@ -18,18 +18,18 @@ everything else will hang from.
 
 ### 1. React Native ≠ Web
 
-| Web (apps/web) | React Native (apps/mobile) |
-|---|---|
-| `<div>` | `<View>` |
-| `<span>`, `<p>` | `<Text>` |
-| `<button onClick>` | `<Pressable onPress>` or `<TouchableOpacity>` |
-| `<img>` / `next/image` | `<Image>` from `expo-image` (NOT react-native Image) |
-| `<a>` / `Link` from next | `<Link>` from `expo-router` |
-| CSS classes / Tailwind | StyleSheet.create() or NativeWind |
-| `className="..."` | `style={styles.foo}` or `className` if NativeWind is set up |
-| `window`, `document` | Do NOT use these — they don't exist |
-| `localStorage` | `expo-secure-store` or `@react-native-async-storage/async-storage` |
-| `useRouter` from next | `useRouter` from `expo-router` |
+| Web (apps/web)           | React Native (apps/mobile)                                         |
+| ------------------------ | ------------------------------------------------------------------ |
+| `<div>`                  | `<View>`                                                           |
+| `<span>`, `<p>`          | `<Text>`                                                           |
+| `<button onClick>`       | `<Pressable onPress>` or `<TouchableOpacity>`                      |
+| `<img>` / `next/image`   | `<Image>` from `expo-image` (NOT react-native Image)               |
+| `<a>` / `Link` from next | `<Link>` from `expo-router`                                        |
+| CSS classes / Tailwind   | StyleSheet.create() or NativeWind                                  |
+| `className="..."`        | `style={styles.foo}` or `className` if NativeWind is set up        |
+| `window`, `document`     | Do NOT use these — they don't exist                                |
+| `localStorage`           | `expo-secure-store` or `@react-native-async-storage/async-storage` |
+| `useRouter` from next    | `useRouter` from `expo-router`                                     |
 
 **Never import from `next/*`** in the mobile app.
 **Never use HTML elements** (`div`, `span`, `p`, `button`, etc.) in React Native.
@@ -40,15 +40,15 @@ Every screen that touches screen edges MUST use safe area insets.
 Use `react-native-safe-area-context` which is already installed.
 
 ```tsx
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView } from "react-native-safe-area-context";
 
 // Wrap screens that need safe area
 export default function Screen() {
-  return (
-    <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
-      {/* content */}
-    </SafeAreaView>
-  );
+    return (
+        <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom"]}>
+            {/* content */}
+        </SafeAreaView>
+    );
 }
 ```
 
@@ -56,15 +56,15 @@ The tab bar handles bottom safe area automatically when using Expo Router Tabs.
 For custom bottom bars: use `useSafeAreaInsets()` hook to get `insets.bottom`.
 
 ```tsx
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 function CustomTabBar() {
-  const insets = useSafeAreaInsets();
-  return (
-    <View style={{ paddingBottom: insets.bottom + 8 }}>
-      {/* tab bar content */}
-    </View>
-  );
+    const insets = useSafeAreaInsets();
+    return (
+        <View style={{ paddingBottom: insets.bottom + 8 }}>
+            {/* tab bar content */}
+        </View>
+    );
 }
 ```
 
@@ -114,38 +114,45 @@ app/
 ```
 
 **Key rules:**
+
 - Every directory that has pages MUST have a `_layout.tsx`
 - `(groups)` in parentheses don't add URL segments
 - `[param]` is a dynamic route
 - Files in `app/` are routes. Files in `components/`, `hooks/`, `lib/` are NOT routes.
 
-### 5. Root layout _layout.tsx
+### 5. Root layout \_layout.tsx
 
 This is where providers go. It runs before any screen.
 
 ```tsx
 // app/_layout.tsx
-import { useEffect } from 'react';
-import { Stack } from 'expo-router';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
+import { useEffect } from "react";
+import { Stack } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 export default function RootLayout() {
-  return (
-    <SafeAreaProvider>
-      <StatusBar style="light" />
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="login" options={{ headerShown: false }} />
-        <Stack.Screen name="register" options={{ headerShown: false }} />
-        <Stack.Screen name="(modals)" options={{ presentation: 'modal' }} />
-      </Stack>
-    </SafeAreaProvider>
-  );
+    return (
+        <SafeAreaProvider>
+            <StatusBar style="light" />
+            <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="login" options={{ headerShown: false }} />
+                <Stack.Screen
+                    name="register"
+                    options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                    name="(modals)"
+                    options={{ presentation: "modal" }}
+                />
+            </Stack>
+        </SafeAreaProvider>
+    );
 }
 ```
 
-### 6. Tab layout (tabs)/_layout.tsx
+### 6. Tab layout (tabs)/\_layout.tsx
 
 ```tsx
 // app/(tabs)/_layout.tsx
@@ -177,8 +184,8 @@ export default function TabLayout() {
 `@nanostores/react` works identically in React Native:
 
 ```tsx
-import { useStore } from '@nanostores/react';
-import { rockIt } from '@/lib/rockit/rockIt'; // points to apps/mobile/lib/
+import { useStore } from "@nanostores/react";
+import { rockIt } from "@/lib/rockit/rockIt"; // points to apps/mobile/lib/
 
 const $playing = useStore(rockIt.audioManager.playingAtom);
 ```
@@ -193,30 +200,30 @@ and is not configured yet. Match the Rockit color palette:
 
 ```tsx
 const COLORS = {
-  bg: '#0b0b0b',
-  surface: '#1a1a1a',
-  surface2: '#262626',
-  pink: '#ee1086',
-  pinkMid: '#f53a76',
-  pinkLight: '#fb6467',
-  textPrimary: '#ffffff',
-  textSecondary: '#a3a3a3',
-  textMuted: '#737373',
+    bg: "#0b0b0b",
+    surface: "#1a1a1a",
+    surface2: "#262626",
+    pink: "#ee1086",
+    pinkMid: "#f53a76",
+    pinkLight: "#fb6467",
+    textPrimary: "#ffffff",
+    textSecondary: "#a3a3a3",
+    textMuted: "#737373",
 };
 ```
 
 ### 9. expo-image instead of next/image or react-native Image
 
 ```tsx
-import { Image } from 'expo-image';
+import { Image } from "expo-image";
 
 // expo-image has better caching, blurhash, and performance
 <Image
-  source={{ uri: song.imageUrl }}
-  style={{ width: 56, height: 56, borderRadius: 8 }}
-  contentFit="cover"
-  transition={200}
-/>
+    source={{ uri: song.imageUrl }}
+    style={{ width: 56, height: 56, borderRadius: 8 }}
+    contentFit="cover"
+    transition={200}
+/>;
 ```
 
 ### 10. No console.log in production code
@@ -232,6 +239,7 @@ Remove all console.log/warn before the task is complete.
 Build these files in `frontend/apps/mobile/`:
 
 #### 1. `app/_layout.tsx` — Root layout
+
 - `SafeAreaProvider` wrapper
 - `StatusBar` set to light
 - Root `Stack` with `headerShown: false` on all screens
@@ -239,11 +247,14 @@ Build these files in `frontend/apps/mobile/`:
 - Initialize rockIt on mount (stub for now — just set vocabulary atom)
 
 #### 2. `app/index.tsx` — Entry redirect
+
 - Redirect immediately to `/(tabs)`
 - Later this will check auth and redirect to `/login` if not authenticated
 
 #### 3. `app/(tabs)/_layout.tsx` — Tab bar
+
 Replicate the web's `NavigationMobile` tabs:
+
 - Home (house icon)
 - Library (library icon)
 - Search (search icon)
@@ -251,6 +262,7 @@ Replicate the web's `NavigationMobile` tabs:
 - Settings (settings icon)
 
 Tab bar style:
+
 - Background: `#1a1a1a`
 - Active tint: `#ee1086`
 - Inactive tint: `#737373`
@@ -259,28 +271,36 @@ Tab bar style:
 - Show labels on iOS, hide on Android (use `tabBarShowLabel: Platform.OS === 'ios'`)
 
 #### 4. `app/(tabs)/index.tsx` — Home placeholder
+
 - Dark background `#0b0b0b`
 - Centered text "Home — coming soon"
 - Use `SafeAreaView` with `edges={['top']}`
 
 #### 5. `app/(tabs)/library.tsx` — Library placeholder
+
 Same as above, "Library — coming soon"
 
 #### 6. `app/(tabs)/search.tsx` — Search placeholder
+
 Same pattern
 
 #### 7. `app/(tabs)/downloader.tsx` — Downloader placeholder
+
 Same pattern
 
 #### 8. `app/(tabs)/settings.tsx` — Settings placeholder
+
 Same pattern
 
 #### 9. `constants/colors.ts`
+
 Export the `COLORS` object from section 8 above.
 
 #### 10. `constants/api.ts`
+
 ```ts
-export const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL ?? 'http://localhost:8000';
+export const BACKEND_URL =
+    process.env.EXPO_PUBLIC_BACKEND_URL ?? "http://localhost:8000";
 ```
 
 ---
@@ -301,6 +321,7 @@ export const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL ?? 'http://localh
 ## Reference: web NavigationMobile tab order
 
 From `apps/web/components/Navigation/NavigationMobile.tsx`:
+
 ```
 Home     → href="/"
 Library  → href="/library"
@@ -308,12 +329,14 @@ Search   → href="/search"
 Downloader → href="/downloader" (mapped from downloads icon)
 Settings → href="/settings"
 ```
+
 Use lucide icons from `lucide-react-native` (already installed):
 `Home`, `Library`, `Search`, `Download`, `Settings`
 
 Import pattern:
+
 ```tsx
-import { Home } from 'lucide-react-native';
+import { Home } from "lucide-react-native";
 ```
 
 ---

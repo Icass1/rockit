@@ -23,14 +23,14 @@ This document provides comprehensive documentation of the Rockit backend archite
 
 ## Tech Stack
 
-| Component | Technology |
-|-----------|------------|
-| Web Framework | FastAPI (async) |
-| ORM | SQLAlchemy (async) |
-| Database Driver | asyncpg |
-| Database | PostgreSQL |
-| Password Hashing | bcrypt (via passlib/argon2) |
-| External APIs | Spotipy (Spotify), yt-dlp (YouTube) |
+| Component        | Technology                          |
+| ---------------- | ----------------------------------- |
+| Web Framework    | FastAPI (async)                     |
+| ORM              | SQLAlchemy (async)                  |
+| Database Driver  | asyncpg                             |
+| Database         | PostgreSQL                          |
+| Password Hashing | bcrypt (via passlib/argon2)         |
+| External APIs    | Spotipy (Spotify), yt-dlp (YouTube) |
 
 ---
 
@@ -124,11 +124,11 @@ controllers/  →  framework/  →  access/
 
 ### Rules
 
-| Layer | Responsibility | What it does | What it MUST NOT do |
-|-------|---------------|--------------|-------------------|
-| **Controllers** | Handle HTTP requests | Parse requests, validate with Pydantic, call framework, return responses, raise HTTPException | Call access layer directly, return raw dicts |
-| **Framework** | Business logic | Transform data, orchestrate operations, apply business rules | Call controllers, raise HTTPException, use raw SQL |
-| **Access** | Database operations | CRUD with SQLAlchemy ORM, return ORM models | Call framework, contain business logic |
+| Layer           | Responsibility       | What it does                                                                                  | What it MUST NOT do                                |
+| --------------- | -------------------- | --------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| **Controllers** | Handle HTTP requests | Parse requests, validate with Pydantic, call framework, return responses, raise HTTPException | Call access layer directly, return raw dicts       |
+| **Framework**   | Business logic       | Transform data, orchestrate operations, apply business rules                                  | Call controllers, raise HTTPException, use raw SQL |
+| **Access**      | Database operations  | CRUD with SQLAlchemy ORM, return ORM models                                                   | Call framework, contain business logic             |
 
 ### Example Flow
 
@@ -220,7 +220,7 @@ class UserRow(
 ):
     __tablename__ = "user"
     __table_args__ = ({"schema": "core", "extend_existing": True},)
-    
+
     username: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     password_hash: Mapped[str | None] = mapped_column(String, nullable=True)
     # ... more fields
@@ -228,13 +228,13 @@ class UserRow(
 
 **Available Mixins:**
 
-| Mixin | Adds |
-|-------|------|
-| `TableAutoincrementId` | `id` (auto-increment PK) |
-| `TablePublicId` | `public_id` (UUID string for client-facing IDs) |
-| `TableDateUpdated` | `date_updated` (auto-updated timestamp) |
-| `TableDateAdded` | `date_added` (creation timestamp) |
-| `TableAutoincrementKey` | `key` (for enums) |
+| Mixin                   | Adds                                            |
+| ----------------------- | ----------------------------------------------- |
+| `TableAutoincrementId`  | `id` (auto-increment PK)                        |
+| `TablePublicId`         | `public_id` (UUID string for client-facing IDs) |
+| `TableDateUpdated`      | `date_updated` (auto-updated timestamp)         |
+| `TableDateAdded`        | `date_added` (creation timestamp)               |
+| `TableAutoincrementKey` | `key` (for enums)                               |
 
 **Important:** The `public_id` is used for all client communication. The internal `id` should NEVER be sent to the client.
 
@@ -259,7 +259,7 @@ Enums use a special pattern:
 class RepeatModeEnumRow(CoreBase, TableAutoincrementKey):
     __tablename__ = "repeat_mode_enum"
     __table_args__ = ({"schema": "core"},)
-    
+
     name: Mapped[str] = mapped_column(String, nullable=False)
 ```
 
@@ -288,7 +288,7 @@ class AResult(Generic[T]):
         # OK requires a result
         # ALLOWED to not have result
         pass
-    
+
     def is_ok(self) -> bool
     def is_not_ok(self) -> bool
     def result() -> T           # Get the result (unsafe, check is_ok first)
@@ -302,12 +302,12 @@ class AResult(Generic[T]):
 ```python
 async def get_user_async(session: AsyncSession, user_id: int) -> AResult[UserRow]:
     """Get a user by ID."""
-    
+
     # 1. Call lower layer
     a_result: AResult[UserRow] = await UserAccess.get_user_from_id_async(
         session=session, user_id=user_id
     )
-    
+
     # 2. Check for errors
     if a_result.is_not_ok():
         logger.error(f"Error getting user. {a_result.info()}")
@@ -315,7 +315,7 @@ async def get_user_async(session: AsyncSession, user_id: int) -> AResult[UserRow
             code=a_result.code(),  # Propagate error code
             message=a_result.message()
         )
-    
+
     # 3. Return success
     return AResult(
         code=AResultCode.OK,
@@ -326,14 +326,14 @@ async def get_user_async(session: AsyncSession, user_id: int) -> AResult[UserRow
 
 ### HTTP Status Code Mapping
 
-| AResultCode | HTTP Status |
-|-------------|-------------|
-| OK | 200 |
-| ALREADY_EXISTS | 200 |
-| GENERAL_ERROR | 500 |
-| NOT_FOUND | 404 |
-| BAD_REQUEST | 400 |
-| NOT_IMPLEMENTED | 501 |
+| AResultCode     | HTTP Status |
+| --------------- | ----------- |
+| OK              | 200         |
+| ALREADY_EXISTS  | 200         |
+| GENERAL_ERROR   | 500         |
+| NOT_FOUND       | 404         |
+| BAD_REQUEST     | 400         |
+| NOT_IMPLEMENTED | 501         |
 
 ### Only Controllers Raise Exceptions
 
@@ -343,13 +343,13 @@ async def get_user_async(session: AsyncSession, user_id: int) -> AResult[UserRow
 async def get_user(request: Request, user_id: int) -> UserResponse:
     session = DBSessionMiddleware.get_session(request)
     a_result = await UserFramework.get_user_async(session, user_id)
-    
+
     if a_result.is_not_ok():
         raise HTTPException(
             status_code=a_result.get_http_code(),
             detail=a_result.message()
         )
-    
+
     return a_result.result()
 ```
 
@@ -396,7 +396,7 @@ class MyProvider(BaseProvider):
     async def search_async(self, query: str) -> AResult[List[BaseSearchResultsItem]]:
         # Implementation
         pass
-    
+
     def match_url(self, url: str) -> str | None:
         # Match URLs like https://myservice.com/track/abc123
         import re
@@ -472,12 +472,12 @@ Creates a database session for each request:
 class DBSessionMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         await rockit_db.wait_for_session_local_async()
-        
+
         async with rockit_db.session_scope_async() as session:
             request.state.db = session
             response = await call_next(request)
             return response
-    
+
     @staticmethod
     def get_session(request: Request) -> AsyncSession:
         return request.state.db
@@ -494,12 +494,12 @@ class AuthMiddleware:
         # Validates session cookie
         # Raises 401 if invalid
         pass
-    
+
     @staticmethod
     def get_current_user(request: Request) -> AResult[UserRow]:
         # Returns current user from session
         pass
-    
+
     @staticmethod
     def get_current_session_id(request: Request) -> AResult[str]:
         # Returns current session ID
@@ -532,6 +532,7 @@ class LoginResponse(BaseModel):
 ```
 
 **Important:**
+
 - Always use `public_id` for client-facing IDs
 - Response models must be Pydantic `BaseModel`, never `dict` or raw types
 - Place in `<business>/responses/`
@@ -584,11 +585,11 @@ async def set_user_volume_async(
         user = await session.get(UserRow, user_id)
         if not user:
             return AResult(code=AResultCode.NOT_FOUND, message="User not found")
-        
+
         user.volume = volume
         await session.commit()
         await session.refresh(user)
-        
+
         return AResult(code=AResultCode.OK, message="OK", result=user)
     except Exception as e:
         logger.error(f"Error setting volume: {e}")
@@ -604,7 +605,7 @@ class User:
     ) -> AResult[UserRow]:
         if volume < 0 or volume > 1:
             return AResult(code=AResultCode.BAD_REQUEST, message="Volume must be 0.0-1.0")
-        
+
         return await UserAccess.set_user_volume_async(session, user_id, volume)
 ```
 
@@ -618,19 +619,19 @@ async def set_volume(
 ) -> OkResponse:
     session = DBSessionMiddleware.get_session(request)
     a_result_user = AuthMiddleware.get_current_user(request)
-    
+
     if a_result_user.is_not_ok():
         raise HTTPException(status_code=a_result_user.get_http_code())
-    
+
     a_result = await User.set_volume_async(
         session=session,
         user_id=a_result_user.result().id,
         volume=payload.volume
     )
-    
+
     if a_result.is_not_ok():
         raise HTTPException(status_code=a_result.get_http_code())
-    
+
     return OkResponse()
 ```
 
@@ -700,13 +701,13 @@ results  # no type
 
 ### Naming
 
-| Type | Convention | Example |
-|------|------------|---------|
-| Controller files | Plural | `playlistController.py` |
-| Framework files | Singular | `playlist.py` |
-| Access files | Singular | `playlistAccess.py` |
-| Response files | `*Response.py` | `LoginResponse.py` |
-| Request files | `*Request.py` | `LoginRequest.py` |
+| Type             | Convention     | Example                 |
+| ---------------- | -------------- | ----------------------- |
+| Controller files | Plural         | `playlistController.py` |
+| Framework files  | Singular       | `playlist.py`           |
+| Access files     | Singular       | `playlistAccess.py`     |
+| Response files   | `*Response.py` | `LoginResponse.py`      |
+| Request files    | `*Request.py`  | `LoginRequest.py`       |
 
 ### Keyword Arguments
 
@@ -766,7 +767,7 @@ First line is brief description:
 ```python
 async def get_user_async(session: AsyncSession, user_id: int) -> AResult[UserRow]:
     """Get a user by their internal ID."""
-    
+
     # Code here
 ```
 
@@ -783,21 +784,21 @@ venv/bin/python -m black <file>
 
 ## Key Files Reference
 
-| File | Purpose |
-|------|---------|
-| `backend/core/main.py` | FastAPI app entry, router discovery |
-| `backend/core/aResult.py` | Result wrapper pattern |
-| `backend/core/access/db/rockItDb.py` | Database connection manager |
-| `backend/core/access/db/ormModels/user.py` | User ORM model |
-| `backend/core/controllers/authController.py` | Auth endpoints |
-| `backend/core/framework/auth/session.py` | Session management |
-| `backend/core/framework/providers/providers.py` | Provider discovery |
-| `backend/core/framework/provider/baseProvider.py` | Base provider interface |
-| `backend/core/middlewares/dbSessionMiddleware.py` | Session per request |
-| `backend/core/middlewares/authMiddleware.py` | Authentication |
-| `backend/constants.py` | Environment configuration |
-| `backend/spotify/framework/provider/spotifyProvider.py` | Spotify implementation |
-| `backend/youtube/framework/provider/youtubeProvider.py` | YouTube implementation |
+| File                                                    | Purpose                             |
+| ------------------------------------------------------- | ----------------------------------- |
+| `backend/core/main.py`                                  | FastAPI app entry, router discovery |
+| `backend/core/aResult.py`                               | Result wrapper pattern              |
+| `backend/core/access/db/rockItDb.py`                    | Database connection manager         |
+| `backend/core/access/db/ormModels/user.py`              | User ORM model                      |
+| `backend/core/controllers/authController.py`            | Auth endpoints                      |
+| `backend/core/framework/auth/session.py`                | Session management                  |
+| `backend/core/framework/providers/providers.py`         | Provider discovery                  |
+| `backend/core/framework/provider/baseProvider.py`       | Base provider interface             |
+| `backend/core/middlewares/dbSessionMiddleware.py`       | Session per request                 |
+| `backend/core/middlewares/authMiddleware.py`            | Authentication                      |
+| `backend/constants.py`                                  | Environment configuration           |
+| `backend/spotify/framework/provider/spotifyProvider.py` | Spotify implementation              |
+| `backend/youtube/framework/provider/youtubeProvider.py` | YouTube implementation              |
 
 ---
 

@@ -41,26 +41,26 @@ docker compose down
 
 The following environment variables are required. Set them in `.env.production`:
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `BACKEND_URL` | Backend URL | `http://localhost:8000` |
-| `SESSION_DURATION` | Session expiry (seconds) | `86400` |
-| `ENVIRONMENT` | Dev or Prod | `DEV` |
-| `MEDIA_PATH` | Path for media files | `/app/media` |
-| `IMAGES_PATH` | Path for images | `/app/images` |
-| `TEMP_PATH` | Path for temp files | `/app/temp` |
-| `LOGS_PATH` | Path for logs | `/app/logs` |
-| `LOG_DUMP_LEVEL` | Log level | `info` |
-| `CONSOLE_DUMP_LEVEL` | Console log level | `info` |
-| `DOWNLOAD_THREADS` | Download threads | `4` |
-| `CLIENT_ID` | Spotify client ID | - |
-| `CLIENT_SECRET` | Spotify client secret | - |
-| `YOUTUBE_API_KEY` | YouTube API key | - |
-| `DB_HOST` | Database host | `postgres` |
-| `DB_USER` | Database user | `rockit` |
-| `DB_PASSWORD` | Database password | `rockitpassword` |
-| `DB_PORT` | Database port | `5432` |
-| `DB_NAME` | Database name | `rockit` |
+| Variable             | Description              | Default                 |
+| -------------------- | ------------------------ | ----------------------- |
+| `BACKEND_URL`        | Backend URL              | `http://localhost:8000` |
+| `SESSION_DURATION`   | Session expiry (seconds) | `86400`                 |
+| `ENVIRONMENT`        | Dev or Prod              | `DEV`                   |
+| `MEDIA_PATH`         | Path for media files     | `/app/media`            |
+| `IMAGES_PATH`        | Path for images          | `/app/images`           |
+| `TEMP_PATH`          | Path for temp files      | `/app/temp`             |
+| `LOGS_PATH`          | Path for logs            | `/app/logs`             |
+| `LOG_DUMP_LEVEL`     | Log level                | `info`                  |
+| `CONSOLE_DUMP_LEVEL` | Console log level        | `info`                  |
+| `DOWNLOAD_THREADS`   | Download threads         | `4`                     |
+| `CLIENT_ID`          | Spotify client ID        | -                       |
+| `CLIENT_SECRET`      | Spotify client secret    | -                       |
+| `YOUTUBE_API_KEY`    | YouTube API key          | -                       |
+| `DB_HOST`            | Database host            | `postgres`              |
+| `DB_USER`            | Database user            | `rockit`                |
+| `DB_PASSWORD`        | Database password        | `rockitpassword`        |
+| `DB_PORT`            | Database port            | `5432`                  |
+| `DB_NAME`            | Database name            | `rockit`                |
 
 ## Services
 
@@ -153,12 +153,12 @@ docker compose up -d backend
 
 ## Docker Commands Reference
 
-| Command | Description |
-|---------|-------------|
-| `docker compose up -d` | Start all services in background |
-| `docker compose down` | Stop all services |
-| `docker compose restart` | Restart all services |
-| `docker compose logs -f` | Follow logs |
-| `docker compose ps` | Show running containers |
-| `docker compose exec backend sh` | Shell into backend container |
-| `docker compose exec postgres psql -U rockit` | Connect to postgres |
+| Command                                       | Description                      |
+| --------------------------------------------- | -------------------------------- |
+| `docker compose up -d`                        | Start all services in background |
+| `docker compose down`                         | Stop all services                |
+| `docker compose restart`                      | Restart all services             |
+| `docker compose logs -f`                      | Follow logs                      |
+| `docker compose ps`                           | Show running containers          |
+| `docker compose exec backend sh`              | Shell into backend container     |
+| `docker compose exec postgres psql -U rockit` | Connect to postgres              |

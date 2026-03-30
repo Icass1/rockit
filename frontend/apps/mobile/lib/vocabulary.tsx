@@ -7,13 +7,22 @@ import React, {
     type ReactNode,
 } from "react";
 import {
-    DEFAULT_VOCABULARY,
+    UpdateLangRequestSchema,
     UserVocabularyResponseSchema,
+    type Vocabulary,
 } from "@rockit/shared";
-import { apiFetch, BACKEND_URL } from "./api";
+import { apiGet, apiPatchNoResponse } from "./api";
+
+function createVocabularyProxy(data: Record<string, string>): Vocabulary {
+    return new Proxy(data, {
+        get(target, prop: string) {
+            return target[prop] ?? prop;
+        },
+    }) as Vocabulary;
+}
 
 interface VocabularyContextType {
-    vocabulary: Record<string, string>;
+    vocabulary: Vocabulary;
     lang: string;
     isLoading: boolean;
     refreshVocabulary: () => Promise<void>;
@@ -23,21 +32,21 @@ interface VocabularyContextType {
 const VocabularyContext = createContext<VocabularyContextType | null>(null);
 
 export function VocabularyProvider({ children }: { children: ReactNode }) {
-    const [vocabulary, setVocabulary] = useState(DEFAULT_VOCABULARY);
+    const [vocabulary, setVocabulary] = useState<Vocabulary>(
+        createVocabularyProxy({})
+    );
     const [lang, setLang] = useState("en");
     const [isLoading, setIsLoading] = useState(true);
 
     const refreshVocabulary = useCallback(async () => {
         setIsLoading(true);
         try {
-            const res = await apiFetch(
+            const res = await apiGet(
                 "/vocabulary/user",
-                UserVocabularyResponseSchema as any
+                UserVocabularyResponseSchema
             );
-            if (res && typeof res === "object" && "vocabulary" in res) {
-                setVocabulary((res as any).vocabulary);
-                setLang((res as any).currentLang);
-            }
+            setVocabulary(createVocabularyProxy(res.vocabulary));
+            setLang(res.currentLang);
         } catch {
             // Keep defaults on error
         } finally {
@@ -48,15 +57,12 @@ export function VocabularyProvider({ children }: { children: ReactNode }) {
     const setLanguage = useCallback(
         async (newLang: string) => {
             try {
-                const res = await fetch(`${BACKEND_URL}/user/lang`, {
-                    method: "PATCH",
-                    credentials: "include",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ lang: newLang }),
-                });
-                if (res.ok) {
-                    await refreshVocabulary();
-                }
+                await apiPatchNoResponse(
+                    "/user/lang",
+                    UpdateLangRequestSchema,
+                    { lang: newLang }
+                );
+                await refreshVocabulary();
             } catch {
                 // Error handling done in component
             }

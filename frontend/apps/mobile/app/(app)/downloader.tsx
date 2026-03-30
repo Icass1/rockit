@@ -20,12 +20,9 @@ export default function DownloaderScreen() {
             <Header />
             <PageContainer>
                 <View style={styles.headerSection}>
-                    <Text style={styles.title}>
-                        {vocabulary.DOWNLOADS || "Downloader"}
-                    </Text>
+                    <Text style={styles.title}>{vocabulary.DOWNLOADS}</Text>
                     <Text style={styles.subtitle}>
-                        {vocabulary.DOWNLOAD_INPUT_PLACEHOLDER ||
-                            "Paste a Spotify or YouTube URL"}
+                        {vocabulary.DOWNLOAD_INPUT_PLACEHOLDER}
                     </Text>
                 </View>
 
@@ -40,9 +37,7 @@ export default function DownloaderScreen() {
                     />
                 )}
 
-                <SectionTitle>
-                    {vocabulary.DOWNLOADS || "Downloads"}
-                </SectionTitle>
+                <SectionTitle>{vocabulary.DOWNLOADS}</SectionTitle>
 
                 {total === 0 ? (
                     <DownloadEmptyState />

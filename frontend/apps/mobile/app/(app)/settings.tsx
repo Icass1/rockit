@@ -32,15 +32,15 @@ export default function SettingsScreen() {
             <PageContainer>
                 <ProfileSection />
 
-                <SettingsSection title={vocabulary.DISPLAY_NAME || "Account"}>
+                <SettingsSection title={vocabulary.DISPLAY_NAME}>
                     <AccountSection />
                 </SettingsSection>
 
-                <SettingsSection title={vocabulary.LANGUAGE || "Language"}>
+                <SettingsSection title={vocabulary.LANGUAGE}>
                     <LanguageSection />
                 </SettingsSection>
 
-                <SettingsSection title={vocabulary.DOWNLOAD_APP || "Audio"}>
+                <SettingsSection title={vocabulary.DOWNLOAD_APP}>
                     <AudioSection />
                 </SettingsSection>
             </PageContainer>

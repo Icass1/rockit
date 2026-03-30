@@ -48,9 +48,7 @@ export default function LibraryScreen({
                 onChangeText={setSearchQuery}
                 isSearching={!!dataLoading}
                 onClear={() => setSearchQuery("")}
-                placeholder={
-                    vocabulary.SEARCH_LIBRARY || "Search in library..."
-                }
+                placeholder={vocabulary.SEARCH_LIBRARY}
             />
 
             <View style={styles.controlsRow}>

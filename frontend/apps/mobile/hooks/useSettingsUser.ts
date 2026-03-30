@@ -1,10 +1,6 @@
 import { useEffect, useState } from "react";
-import {
-    API_ENDPOINTS,
-    SessionResponse,
-    SessionResponseSchema,
-} from "@rockit/shared";
-import { apiFetch } from "@/lib/api";
+import { API_ENDPOINTS, SessionResponseSchema } from "@rockit/shared";
+import { apiGet } from "@/lib/api";
 
 interface SettingsUser {
     username: string;
@@ -23,26 +19,15 @@ export function useSettingsUser(): SettingsUser {
 
     useEffect(() => {
         let cancelled = false;
-        apiFetch(API_ENDPOINTS.userSession)
-            .then((res) => {
-                if (!res.ok) return null;
-                return res.json();
-            })
-            .then((data) => {
-                if (!cancelled && data) {
-                    try {
-                        const parsed = SessionResponseSchema.parse(
-                            data
-                        ) as SessionResponse;
-                        setUser({
-                            username: parsed.username ?? "",
-                            image: parsed.image ?? "",
-                            admin: parsed.admin ?? false,
-                            isLoading: false,
-                        });
-                    } catch {
-                        setUser((prev) => ({ ...prev, isLoading: false }));
-                    }
+        apiGet(API_ENDPOINTS.userSession, SessionResponseSchema)
+            .then((parsed) => {
+                if (!cancelled) {
+                    setUser({
+                        username: parsed.username ?? "",
+                        image: parsed.image ?? "",
+                        admin: parsed.admin ?? false,
+                        isLoading: false,
+                    });
                 }
             })
             .catch(() => {

@@ -1,11 +1,11 @@
 {
-  "name": "@rockit/config",
-  "version": "0.1.0",
-  "private": true,
-  "exports": {
-    "./tsconfig/base.json": "./tsconfig/base.json",
-    "./eslint/web": "./eslint/web.js",
-    "./eslint/mobile": "./eslint/mobile.js",
-    "./prettier": "./prettier.js"
-  }
+    "name": "@rockit/config",
+    "version": "0.1.0",
+    "private": true,
+    "exports": {
+        "./tsconfig/base.json": "./tsconfig/base.json",
+        "./eslint/web": "./eslint/web.js",
+        "./eslint/mobile": "./eslint/mobile.js",
+        "./prettier": "./prettier.js"
+    }
 }

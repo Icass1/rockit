@@ -1,6 +1,10 @@
 import React, { useState } from "react";
 import { COLORS } from "@/constants/theme";
-import { AUTH_ENDPOINTS, isDevFakeMode } from "@rockit/shared";
+import {
+    AUTH_ENDPOINTS,
+    isDevFakeMode,
+    LoginRequestSchema,
+} from "@rockit/shared";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import {
@@ -14,7 +18,7 @@ import {
     TextInput,
     View,
 } from "react-native";
-import { BACKEND_URL, saveSessionCookie } from "@/lib/api";
+import { apiPostRaw, BACKEND_URL, saveSessionCookie } from "@/lib/api";
 
 export default function LoginScreen() {
     const router = useRouter();
@@ -40,12 +44,11 @@ export default function LoginScreen() {
         setLoading(true);
 
         try {
-            const res = await fetch(`${BACKEND_URL}${AUTH_ENDPOINTS.login}`, {
-                method: "POST",
-                credentials: "include",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username, password }),
-            });
+            const res = await apiPostRaw(
+                AUTH_ENDPOINTS.login,
+                LoginRequestSchema,
+                { username, password }
+            );
 
             if (res.ok) {
                 await saveSessionCookie(res);

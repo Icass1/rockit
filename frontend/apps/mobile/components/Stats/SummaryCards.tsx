@@ -68,7 +68,7 @@ export default function SummaryCards({ summary }: SummaryCardsProps) {
 
     const minutesDisplay = showMinutes
         ? `${Math.round(summary.minutesListened).toLocaleString()} ${
-              vocabulary.MINUTES || "min"
+              vocabulary.MINUTES
           }`
         : formatDuration(summary.minutesListened);
 
@@ -76,14 +76,14 @@ export default function SummaryCards({ summary }: SummaryCardsProps) {
         <SummaryCard
             key="songs"
             icon={<Feather name="music" size={16} color={COLORS.accent} />}
-            label={vocabulary.SONGS_LISTENED || "Songs played"}
+            label={vocabulary.SONGS_LISTENED}
             value={formatNumber(summary.songsListened)}
             accent
         />,
         <SummaryCard
             key="minutes"
             icon={<Feather name="clock" size={16} color={COLORS.gray600} />}
-            label={vocabulary.MINUTES_LISTEND || "Time listened"}
+            label={vocabulary.MINUTES_LISTEND}
             value={minutesDisplay}
             onPress={() => setShowMinutes(!showMinutes)}
         />,
@@ -92,13 +92,13 @@ export default function SummaryCards({ summary }: SummaryCardsProps) {
             icon={
                 <Feather name="trending-up" size={16} color={COLORS.gray600} />
             }
-            label={vocabulary.AVERAGE_MINUTES_PER_SONG || "Avg min / song"}
+            label={vocabulary.AVERAGE_MINUTES_PER_SONG}
             value={summary.avgMinutesPerSong.toFixed(1)}
         />,
         <SummaryCard
             key="streak"
             icon={<Feather name="zap" size={16} color={COLORS.gray600} />}
-            label={vocabulary.LEVEL_ABBR || "Day streak"}
+            label={vocabulary.LEVEL_ABBR}
             value={`${summary.currentStreak}d`}
         />,
     ];

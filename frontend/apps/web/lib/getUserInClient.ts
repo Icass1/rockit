@@ -1,5 +1,5 @@
-import { BACKEND_URL } from "@/environment";
 import { SessionResponseSchema } from "@/dto";
+import { BACKEND_URL } from "@/environment";
 
 export async function getUserInClient() {
     const res = await fetch(`${BACKEND_URL}/user/session`, {

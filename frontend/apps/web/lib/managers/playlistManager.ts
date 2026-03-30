@@ -1,6 +1,6 @@
 import { BaseSongWithAlbumResponse } from "@/dto";
-import { rockIt } from "@/lib/rockit/rockIt";
 import { QueueListType } from "@/types/rockIt";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export class PlaylistManager {
     // #region: Constructor

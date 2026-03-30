@@ -25,15 +25,15 @@ This document provides comprehensive documentation of the Rockit frontend archit
 
 ## Tech Stack
 
-| Component | Technology |
-|-----------|------------|
-| Framework | Next.js 16 (App Router) |
-| Language | TypeScript |
+| Component        | Technology                              |
+| ---------------- | --------------------------------------- |
+| Framework        | Next.js 16 (App Router)                 |
+| Language         | TypeScript                              |
 | State Management | Nanostores (custom atom implementation) |
-| Data Validation | Zod |
-| Styling | Tailwind CSS v4 |
-| Icons | Lucide React |
-| Charts | Recharts |
+| Data Validation  | Zod                                     |
+| Styling          | Tailwind CSS v4                         |
+| Icons            | Lucide React                            |
+| Charts           | Recharts                                |
 
 ---
 
@@ -92,23 +92,23 @@ frontend/                           # Monorepo (pnpm workspaces)
 
 ### Route Groups
 
-| Group | Purpose | Auth Check |
-|-------|---------|------------|
-| `(protected)` | Requires authentication | Checked in layout |
-| `(app)` | Main application pages | Inherits from parent |
+| Group         | Purpose                 | Auth Check           |
+| ------------- | ----------------------- | -------------------- |
+| `(protected)` | Requires authentication | Checked in layout    |
+| `(app)`       | Main application pages  | Inherits from parent |
 
 ### Key Routes
 
-| Path | File | Description |
-|------|------|-------------|
-| `/` | `app/(protected)/(app)/page.tsx` | Home page |
-| `/library` | `app/(protected)/(app)/library/page.tsx` | User library |
-| `/search` | `app/(protected)/(app)/search/page.tsx` | Search |
-| `/playlist/[publicId]` | `app/(protected)/(app)/playlist/[publicId]/page.tsx` | Playlist |
-| `/album/[publicId]` | `app/(protected)/(app)/album/[publicId]/page.tsx` | Album |
-| `/artist/[publicId]` | `app/(protected)/(app)/artist/[publicId]/page.tsx` | Artist |
-| `/login` | `app/login/page.tsx` | Login (public) |
-| `/register` | `app/register/page.tsx` | Register (public) |
+| Path                   | File                                                 | Description       |
+| ---------------------- | ---------------------------------------------------- | ----------------- |
+| `/`                    | `app/(protected)/(app)/page.tsx`                     | Home page         |
+| `/library`             | `app/(protected)/(app)/library/page.tsx`             | User library      |
+| `/search`              | `app/(protected)/(app)/search/page.tsx`              | Search            |
+| `/playlist/[publicId]` | `app/(protected)/(app)/playlist/[publicId]/page.tsx` | Playlist          |
+| `/album/[publicId]`    | `app/(protected)/(app)/album/[publicId]/page.tsx`    | Album             |
+| `/artist/[publicId]`   | `app/(protected)/(app)/artist/[publicId]/page.tsx`   | Artist            |
+| `/login`               | `app/login/page.tsx`                                 | Login (public)    |
+| `/register`            | `app/register/page.tsx`                              | Register (public) |
 
 ---
 
@@ -116,19 +116,19 @@ frontend/                           # Monorepo (pnpm workspaces)
 
 **The most important rule in this codebase.**
 
-| Rule | Detail |
-|------|--------|
-| `page.tsx` files NEVER have `"use client"` | Pages are always Server Components |
+| Rule                                                          | Detail                                         |
+| ------------------------------------------------------------- | ---------------------------------------------- |
+| `page.tsx` files NEVER have `"use client"`                    | Pages are always Server Components             |
 | `"use client"` only on components using hooks or browser APIs | useState, useEffect, useRouter, event handlers |
-| Data fetching in pages happens on the server | Using `fetch` with `next: { revalidate }` |
-| Interactive logic is isolated in `*Client.tsx` | The page imports and renders it |
+| Data fetching in pages happens on the server                  | Using `fetch` with `next: { revalidate }`      |
+| Interactive logic is isolated in `*Client.tsx`                | The page imports and renders it                |
 
 ### Pattern
 
 ```tsx
 // apps/web/app/(protected)/(app)/somefeature/page.tsx — Server Component
+import { SomeFeatureResponse, SomeResponseSchema } from "@/dto";
 import SomeFeatureClient from "@/components/SomeFeature/SomeFeatureClient";
-import { SomeResponseSchema } from "@/dto";
 
 async function getData() {
     const res = await fetch(`${BACKEND_URL}/api/somefeature`, {
@@ -143,9 +143,7 @@ export default async function SomeFeaturePage() {
 }
 
 // components/SomeFeature/SomeFeatureClient.tsx — Client Component
-"use client";
-
-import { SomeFeatureResponse } from "@/dto";
+("use client");
 
 interface Props {
     initialData: SomeFeatureResponse;
@@ -163,8 +161,8 @@ export default function SomeFeatureClient({ initialData }: Props) {
 ### Server-Side (page.tsx)
 
 ```tsx
-import { BACKEND_URL } from "@/environment";
 import { HomeStatsResponseSchema } from "@/dto";
+import { BACKEND_URL } from "@/environment";
 
 async function getHomeStats() {
     const res = await fetch(`${BACKEND_URL}/stats/home`, {
@@ -205,7 +203,11 @@ const [stats] = useFetch("/stats/home", HomeStatsResponseSchema);
 
 ```tsx
 // lib/utils/apiFetch.ts
-export async function apiFetch<T extends ZodType>(path: string, schema: T, options?) {
+export async function apiFetch<T extends ZodType>(
+    path: string,
+    schema: T,
+    options?
+) {
     const res = await baseApiFetch(path, options);
     const json = await res.json();
     return schema.parse(json); // Zod validation
@@ -227,7 +229,10 @@ The project uses a custom atom implementation based on nanostores:
 
 ```tsx
 // lib/store.ts
-import { createAtom, createArrayAtom, Atom, ArrayAtom } from "@/lib/store";
+
+// React binding
+import { useStore } from "@nanostores/react";
+import { ArrayAtom, Atom, createArrayAtom, createAtom } from "@/lib/store";
 
 // Single value
 const playingAtom = createAtom<boolean>(false);
@@ -239,8 +244,6 @@ const queueAtom = createArrayAtom<Song>([]);
 queueAtom.push(newSong);
 const queue = queueAtom.get();
 
-// React binding
-import { useStore } from "@nanostores/react";
 const isPlaying = useStore(playingAtom);
 ```
 
@@ -261,7 +264,8 @@ export const SomeContext = createContext<SomeContextType | null>(null);
 
 export function useSomeContext() {
     const ctx = useContext(SomeContext);
-    if (!ctx) throw new Error("useSomeContext must be used inside SomeProvider");
+    if (!ctx)
+        throw new Error("useSomeContext must be used inside SomeProvider");
     return ctx;
 }
 ```
@@ -274,21 +278,21 @@ export function useSomeContext() {
 
 ### Available Managers
 
-| Manager | Purpose |
-|---------|---------|
-| `audioManager.ts` | Audio playback (play, pause, seek, volume) |
-| `queueManager.ts` | Queue management (add, remove, reorder) |
-| `playlistManager.ts` | Playlist CRUD operations |
-| `albumManager.ts` | Album operations |
-| `mediaManager.ts` | Media (song) operations |
-| `userManager.ts` | User session and preferences |
-| `searchManager.ts` | Search functionality |
-| `playerUIManager.ts` | Player UI state |
-| `webSocketManager.ts` | WebSocket communication |
-| `notificationManager.ts` | User notifications |
-| `vocabularyManager.ts` | Internationalization strings |
-| `currentListManager.ts` | Current list state |
-| `listManager.ts` | List operations |
+| Manager                  | Purpose                                    |
+| ------------------------ | ------------------------------------------ |
+| `audioManager.ts`        | Audio playback (play, pause, seek, volume) |
+| `queueManager.ts`        | Queue management (add, remove, reorder)    |
+| `playlistManager.ts`     | Playlist CRUD operations                   |
+| `albumManager.ts`        | Album operations                           |
+| `mediaManager.ts`        | Media (song) operations                    |
+| `userManager.ts`         | User session and preferences               |
+| `searchManager.ts`       | Search functionality                       |
+| `playerUIManager.ts`     | Player UI state                            |
+| `webSocketManager.ts`    | WebSocket communication                    |
+| `notificationManager.ts` | User notifications                         |
+| `vocabularyManager.ts`   | Internationalization strings               |
+| `currentListManager.ts`  | Current list state                         |
+| `listManager.ts`         | List operations                            |
 
 ### RockIt Singleton
 
@@ -393,13 +397,13 @@ import { cookies } from "next/headers";
 export async function getUserInServer() {
     const cookieStore = await cookies();
     const session = cookieStore.get("session_id")?.value;
-    
+
     if (!session) return null;
-    
+
     const res = await fetch(`${BACKEND_URL}/session`, {
         headers: { Cookie: `session_id=${session}` },
     });
-    
+
     if (!res.ok) return null;
     return SessionResponseSchema.parse(await res.json());
 }
@@ -418,11 +422,11 @@ export default async function ProtectedLayout({
     children: React.ReactNode;
 }) {
     const user = await getUserInServer();
-    
+
     if (!user) {
         redirect("/login");
     }
-    
+
     return <>{children}</>;
 }
 ```
@@ -446,7 +450,7 @@ Generated files go to `frontend/packages/shared/src/dto/` — **NEVER edit manua
 
 ```tsx
 // Import generated schema
-import { HomeStatsResponseSchema, HomeStatsResponse } from "@/dto";
+import { HomeStatsResponse, HomeStatsResponseSchema } from "@/dto";
 
 // Use in server-side fetch
 const data = HomeStatsResponseSchema.parse(await res.json());
@@ -459,15 +463,15 @@ const [data] = useFetch("/stats/home", HomeStatsResponseSchema);
 
 Use existing base DTOs for common types:
 
-| DTO | Purpose |
-|-----|---------|
-| `BaseSongWithAlbumResponse` | Songs with album info |
-| `BaseSongWithoutAlbumResponse` | Songs without album |
-| `BaseArtistResponse` | Artists |
-| `BaseAlbumWithSongsResponse` | Albums with songs |
-| `BaseAlbumWithoutSongsResponse` | Album info only |
-| `BasePlaylistResponse` | Playlists |
-| `BaseVideoResponse` | Videos |
+| DTO                             | Purpose               |
+| ------------------------------- | --------------------- |
+| `BaseSongWithAlbumResponse`     | Songs with album info |
+| `BaseSongWithoutAlbumResponse`  | Songs without album   |
+| `BaseArtistResponse`            | Artists               |
+| `BaseAlbumWithSongsResponse`    | Albums with songs     |
+| `BaseAlbumWithoutSongsResponse` | Album info only       |
+| `BasePlaylistResponse`          | Playlists             |
+| `BaseVideoResponse`             | Videos                |
 
 ---
 
@@ -487,21 +491,19 @@ Use existing base DTOs for common types:
 
 ### Global CSS Files
 
-| File | Purpose |
-|------|---------|
-| `apps/web/styles/globals.css` | Tailwind imports and utilities |
-| `apps/web/styles/base.css` | Reset and base styles |
-| `apps/web/styles/animations.css` | Keyframes and animations |
-| `apps/web/styles/components.css` | Shared component styles |
+| File                             | Purpose                        |
+| -------------------------------- | ------------------------------ |
+| `apps/web/styles/globals.css`    | Tailwind imports and utilities |
+| `apps/web/styles/base.css`       | Reset and base styles          |
+| `apps/web/styles/animations.css` | Keyframes and animations       |
+| `apps/web/styles/components.css` | Shared component styles        |
 
 ### Usage
 
 ```tsx
 // Tailwind classes
-<div className="bg-[#0b0b0b] text-white p-4">
-    <button className="bg-green-500 hover:bg-green-600">
-        Click me
-    </button>
+<div className="bg-[#0b0b0b] p-4 text-white">
+    <button className="bg-green-500 hover:bg-green-600">Click me</button>
 </div>
 ```
 
@@ -512,7 +514,7 @@ Use existing base DTOs for common types:
 ### Adding a New Page
 
 1. **Create page.tsx** (Server Component) in `apps/web/app/(protected)/(app)/`
-2. **Create *Client.tsx** (Client Component) in `apps/web/components/`
+2. **Create \*Client.tsx** (Client Component) in `apps/web/components/`
 3. **Add barrel export** in components folder
 4. **Add DTO** if needed (via backend)
 
@@ -530,7 +532,7 @@ export default async function NewFeaturePage() {
 }
 
 // apps/web/components/NewFeature/NewFeatureClient.tsx
-"use client";
+("use client");
 
 interface Props {
     initialData: SomeDataType;
@@ -557,11 +559,11 @@ import { createAtom } from "@/lib/store";
 
 export class SomeManager {
     private _someState = createAtom<string>("default");
-    
+
     get someState() {
         return this._someState.get();
     }
-    
+
     async doSomething(param: string) {
         // Business logic
     }
@@ -579,15 +581,15 @@ export class SomeManager {
 
 ```tsx
 // hooks/useSomeHook.ts
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export function useSomeHook() {
     const [state, setState] = useState("");
-    
+
     useEffect(() => {
         // Effect logic
     }, []);
-    
+
     return { state, setState };
 }
 ```
@@ -604,21 +606,20 @@ export function useSomeHook() {
 // ✅ Correct
 import { useFetch } from "@/hooks/useFetch";
 import { HomeClient } from "@/components/Home";
-
 // ❌ Wrong
 import { useFetch } from "../../hooks/useFetch";
 ```
 
 ### Naming
 
-| Type | Convention | Example |
-|------|------------|---------|
-| Pages | `page.tsx` | `app/(app)/library/page.tsx` |
-| Client wrappers | `*Client.tsx` | `HomeClient.tsx` |
-| Feature hooks | `use*` camelCase | `useHomeData.ts` |
-| Managers | `*Manager.ts` | `audioManager.ts` |
-| DTOs / Responses | `*Response.ts` | `homeStatsResponse.ts` |
-| Types | PascalCase | `RockItSong`, `Lang` |
+| Type             | Convention       | Example                      |
+| ---------------- | ---------------- | ---------------------------- |
+| Pages            | `page.tsx`       | `app/(app)/library/page.tsx` |
+| Client wrappers  | `*Client.tsx`    | `HomeClient.tsx`             |
+| Feature hooks    | `use*` camelCase | `useHomeData.ts`             |
+| Managers         | `*Manager.ts`    | `audioManager.ts`            |
+| DTOs / Responses | `*Response.ts`   | `homeStatsResponse.ts`       |
+| Types            | PascalCase       | `RockItSong`, `Lang`         |
 
 ### Barrel Exports
 
@@ -679,7 +680,7 @@ export default async function Page() {
 }
 
 // ClientWrapper.tsx (Client)
-"use client";
+("use client");
 export default function ClientWrapper({ initialData }) {
     // Interactive logic
 }
@@ -749,7 +750,8 @@ export const MenuContext = createContext<MenuContextType | null>(null);
 
 export function useMenuContext() {
     const ctx = useContext(MenuContext);
-    if (!ctx) throw new Error("useMenuContext must be used inside MenuProvider");
+    if (!ctx)
+        throw new Error("useMenuContext must be used inside MenuProvider");
     return ctx;
 }
 ```
@@ -791,22 +793,22 @@ pnpm --filter @rockit/mobile typecheck
 
 ## Key Files Reference
 
-| File                                                         | Purpose                                 |
-| ------------------------------------------------------------ | --------------------------------------- |
-| `frontend/apps/web/app/layout.tsx`                           | Root layout                             |
-| `frontend/apps/web/app/(protected)/layout.tsx`              | Auth check layout                       |
-| `frontend/apps/web/app/(protected)/(app)/page.tsx`          | Home page (Server)                      |
-| `frontend/apps/web/components/Home/HomeClient.tsx`           | Home page (Client)                      |
-| `frontend/apps/web/components/ErrorPage/ErrorPage.tsx`      | Error page component                    |
-| `frontend/apps/web/styles/base.css`                          | Reset, CSS vars, md breakpoint override |
-| `frontend/apps/web/styles/components.css`                    | Scrollbars, slider, skeleton, safe-area |
-| `frontend/apps/web/environment.ts`                           | BACKEND_URL                             |
-| `frontend/packages/shared/src/lib/getUserInServer.ts`        | Server-side session check               |
-| `frontend/packages/shared/src/dto/index.ts`                  | DTO barrel export                       |
-| `frontend/packages/shared/src/index.ts`                      | Shared package barrel export            |
-| `frontend/apps/mobile/app/_layout.tsx`                       | Mobile root layout                      |
-| `frontend/apps/mobile/app/(tabs)/index.tsx`                  | Mobile home tab                         |
-| `frontend/apps/mobile/app/(tabs)/explore.tsx`                 | Mobile explore tab                      |
+| File                                                   | Purpose                                 |
+| ------------------------------------------------------ | --------------------------------------- |
+| `frontend/apps/web/app/layout.tsx`                     | Root layout                             |
+| `frontend/apps/web/app/(protected)/layout.tsx`         | Auth check layout                       |
+| `frontend/apps/web/app/(protected)/(app)/page.tsx`     | Home page (Server)                      |
+| `frontend/apps/web/components/Home/HomeClient.tsx`     | Home page (Client)                      |
+| `frontend/apps/web/components/ErrorPage/ErrorPage.tsx` | Error page component                    |
+| `frontend/apps/web/styles/base.css`                    | Reset, CSS vars, md breakpoint override |
+| `frontend/apps/web/styles/components.css`              | Scrollbars, slider, skeleton, safe-area |
+| `frontend/apps/web/environment.ts`                     | BACKEND_URL                             |
+| `frontend/packages/shared/src/lib/getUserInServer.ts`  | Server-side session check               |
+| `frontend/packages/shared/src/dto/index.ts`            | DTO barrel export                       |
+| `frontend/packages/shared/src/index.ts`                | Shared package barrel export            |
+| `frontend/apps/mobile/app/_layout.tsx`                 | Mobile root layout                      |
+| `frontend/apps/mobile/app/(tabs)/index.tsx`            | Mobile home tab                         |
+| `frontend/apps/mobile/app/(tabs)/explore.tsx`          | Mobile explore tab                      |
 
 ---
 

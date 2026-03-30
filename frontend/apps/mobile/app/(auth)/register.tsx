@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { COLORS } from "@/constants/theme";
-import { AUTH_ENDPOINTS } from "@rockit/shared";
+import { AUTH_ENDPOINTS, RegisterRequestSchema } from "@rockit/shared";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import {
@@ -14,7 +14,7 @@ import {
     TextInput,
     View,
 } from "react-native";
-import { BACKEND_URL, saveSessionCookie } from "@/lib/api";
+import { apiPostRaw, BACKEND_URL, saveSessionCookie } from "@/lib/api";
 
 function validateUsername(value: string): string | null {
     if (value === "") return null;
@@ -64,18 +64,10 @@ export default function RegisterScreen() {
         setLoading(true);
 
         try {
-            const res = await fetch(
-                `${BACKEND_URL}${AUTH_ENDPOINTS.register}`,
-                {
-                    method: "POST",
-                    credentials: "include",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        username,
-                        password,
-                        repeatPassword,
-                    }),
-                }
+            const res = await apiPostRaw(
+                AUTH_ENDPOINTS.register,
+                RegisterRequestSchema,
+                { username, password, repeatPassword }
             );
 
             if (res.ok) {

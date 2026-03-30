@@ -1,6 +1,9 @@
 import { DEFAULT_VOCABULARY } from "@rockit/shared";
 import * as SecureStore from "expo-secure-store";
-import { ZodType } from "zod";
+
+type ZodSchema<T> = {
+    parse: (data: unknown) => T;
+};
 
 const SESSION_KEY = "session_id_value";
 
@@ -198,31 +201,67 @@ export async function clearSessionCookie(): Promise<void> {
     await SecureStore.deleteItemAsync(SESSION_KEY);
 }
 
-export async function apiFetch<T>(
+export async function apiGet<T>(
     path: string,
-    schema: ZodType<T>,
-    options?: RequestInit
-): Promise<T>;
-export async function apiFetch(
+    schema: ZodSchema<T>
+): Promise<T> {
+    const response = await doFetch(path, { method: "GET" });
+    const json = await response.json();
+    return schema.parse(json);
+}
+
+export async function apiPost<TBody, TResponse>(
     path: string,
-    options?: RequestInit
-): Promise<Response>;
-export async function apiFetch<T>(
+    bodySchema: ZodSchema<TBody>,
+    body: TBody,
+    responseSchema: ZodSchema<TResponse>
+): Promise<TResponse> {
+    bodySchema.parse(body);
+    const response = await doFetch(path, {
+        method: "POST",
+        body: JSON.stringify(body),
+    });
+    const json = await response.json();
+    return responseSchema.parse(json);
+}
+
+export async function apiPatch<TBody, TResponse>(
     path: string,
-    schemaOrOptions?: ZodType<T> | RequestInit,
-    options?: RequestInit
-): Promise<T | Response> {
-    if (schemaOrOptions && "parse" in schemaOrOptions) {
-        const schema = schemaOrOptions as ZodType<T>;
-        const response = await doFetch(path, options);
-        const json = await response.json();
-        return schema.parse(json);
-    }
-    const response = await doFetch(
-        path,
-        schemaOrOptions as RequestInit | undefined
-    );
-    return response;
+    bodySchema: ZodSchema<TBody>,
+    body: TBody,
+    responseSchema: ZodSchema<TResponse>
+): Promise<TResponse> {
+    bodySchema.parse(body);
+    const response = await doFetch(path, {
+        method: "PATCH",
+        body: JSON.stringify(body),
+    });
+    const json = await response.json();
+    return responseSchema.parse(json);
+}
+
+export async function apiPatchNoResponse<TBody>(
+    path: string,
+    bodySchema: ZodSchema<TBody>,
+    body: TBody
+): Promise<void> {
+    bodySchema.parse(body);
+    await doFetch(path, {
+        method: "PATCH",
+        body: JSON.stringify(body),
+    });
+}
+
+export async function apiPostRaw<TBody>(
+    path: string,
+    bodySchema: ZodSchema<TBody>,
+    body: TBody
+): Promise<Response> {
+    bodySchema.parse(body);
+    return doFetch(path, {
+        method: "POST",
+        body: JSON.stringify(body),
+    });
 }
 
 async function doFetch(

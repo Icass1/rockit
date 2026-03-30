@@ -38,9 +38,7 @@ export default function SearchScreen() {
         return (
             <View style={styles.skeletonsContainer}>
                 <View style={styles.skeletonSection}>
-                    <Text style={styles.skeletonTitle}>
-                        {vocabulary.SONGS || "Songs"}
-                    </Text>
+                    <Text style={styles.skeletonTitle}>{vocabulary.SONGS}</Text>
                     {[1, 2, 3].map((i) => (
                         <View key={i} style={styles.rowSkeleton}>
                             <MediaCardSkeleton width={280} />
@@ -49,7 +47,7 @@ export default function SearchScreen() {
                 </View>
                 <View style={styles.skeletonSection}>
                     <Text style={styles.skeletonTitle}>
-                        {vocabulary.ALBUMS || "Albums"}
+                        {vocabulary.ALBUMS}
                     </Text>
                     <ScrollView
                         horizontal
@@ -90,27 +88,27 @@ export default function SearchScreen() {
                         showsVerticalScrollIndicator={false}
                     >
                         <SearchSection
-                            title={vocabulary.SONGS || "Songs"}
+                            title={vocabulary.SONGS}
                             items={songs}
                             layout="row"
                         />
                         <SearchSection
-                            title={vocabulary.ALBUMS || "Albums"}
+                            title={vocabulary.ALBUMS}
                             items={albums}
                             layout="grid"
                         />
                         <SearchSection
-                            title={vocabulary.ARTISTS || "Artists"}
+                            title={vocabulary.ARTISTS}
                             items={artists}
                             layout="artist"
                         />
                         <SearchSection
-                            title={vocabulary.PLAYLISTS || "Playlists"}
+                            title={vocabulary.PLAYLISTS}
                             items={playlists}
                             layout="grid"
                         />
                         <SearchSection
-                            title={vocabulary.VIDEOS || "Videos"}
+                            title={vocabulary.VIDEOS}
                             items={videos}
                             layout="grid"
                         />

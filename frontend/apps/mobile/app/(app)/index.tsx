@@ -43,6 +43,7 @@ function useFadeIn(delay: number = 0) {
 }
 
 function getPreviousMonthName(): string {
+    // TODO: This should be keys in capital letters and then use vocabulary to get the correct translation.
     const MONTH_NAMES = [
         "January",
         "February",
@@ -96,7 +97,7 @@ export default function HomeScreen() {
                 <Header />
                 <View style={styles.centerContainer}>
                     <Text style={styles.errorText}>
-                        {error ?? vocabulary.ERROR ?? "Failed to load"}
+                        {error ?? vocabulary.ERROR}
                     </Text>
                 </View>
             </SafeAreaView>
@@ -108,9 +109,7 @@ export default function HomeScreen() {
             <SafeAreaView style={styles.container} edges={["top"]}>
                 <Header />
                 <View style={styles.centerContainer}>
-                    <Text style={styles.emptyText}>
-                        {vocabulary.NO_SONGS ?? "No music yet"}
-                    </Text>
+                    <Text style={styles.emptyText}>{vocabulary.NO_SONGS}</Text>
                 </View>
             </SafeAreaView>
         );
@@ -134,7 +133,7 @@ export default function HomeScreen() {
                     <Animated.View style={section1}>
                         <FeaturedCarousel
                             songs={data.songsByTimePlayed}
-                            title={vocabulary.YOUR_MIX || "Your Mix"}
+                            title={vocabulary.YOUR_MIX}
                             onSongPress={handleSongPress}
                         />
                     </Animated.View>
@@ -156,7 +155,7 @@ export default function HomeScreen() {
                 {data.hiddenGems.length > 0 && (
                     <Animated.View style={section3}>
                         <HorizontalSongRow
-                            title={vocabulary.HIDDEN_GEMS || "Hidden Gems"}
+                            title={vocabulary.HIDDEN_GEMS}
                             songs={data.hiddenGems}
                             listKey="hidden-gems"
                             onSongPress={handleSongPress}
@@ -167,7 +166,7 @@ export default function HomeScreen() {
                 {data.communityTop.length > 0 && (
                     <Animated.View style={section4}>
                         <HorizontalSongRow
-                            title={vocabulary.COMMUNITY_TOP || "Community Top"}
+                            title={vocabulary.COMMUNITY_TOP}
                             songs={data.communityTop}
                             listKey="community"
                             onSongPress={handleSongPress}

@@ -1,6 +1,6 @@
+import type { Station } from "@/types/station";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createAtom } from "@/lib/store";
-import type { Station } from "@/types/station";
 
 export class StationManager {
     // #region: Atoms

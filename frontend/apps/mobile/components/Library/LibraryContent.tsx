@@ -37,14 +37,14 @@ function formatSubtitle(type: string, item: any): string {
         case "album":
             return (
                 item.artists?.map((a: any) => a.name).join(", ") ||
-                "Unknown Artist"
+                "Unknown Artist" // TODO: This should use vocabulary.
             );
         case "playlist":
             return item.owner || "Unknown Owner";
         default:
             return (
                 item.artists?.map((a: any) => a.name).join(", ") ||
-                "Unknown Artist"
+                "Unknown Artist" // TODO: This should use vocabulary.
             );
     }
 }
@@ -81,9 +81,7 @@ export default function LibraryContent({
             <View style={styles.container}>
                 {albums.length > 0 && (
                     <View style={styles.section}>
-                        <SectionTitle>
-                            {vocabulary.ALBUMS || "Albums"}
-                        </SectionTitle>
+                        <SectionTitle>{vocabulary.ALBUMS}</SectionTitle>
                         {viewMode === "grid" ? (
                             <LibraryGrid items={gridItems(albums, "album")} />
                         ) : (
@@ -95,9 +93,7 @@ export default function LibraryContent({
                 )}
                 {playlists.length > 0 && (
                     <View style={styles.section}>
-                        <SectionTitle>
-                            {vocabulary.PLAYLISTS || "Playlists"}
-                        </SectionTitle>
+                        <SectionTitle>{vocabulary.PLAYLISTS}</SectionTitle>
                         {viewMode === "grid" ? (
                             <LibraryGrid
                                 items={gridItems(playlists, "playlist")}
@@ -111,9 +107,7 @@ export default function LibraryContent({
                 )}
                 {songs.length > 0 && (
                     <View style={styles.section}>
-                        <SectionTitle>
-                            {vocabulary.SONGS || "Songs"}
-                        </SectionTitle>
+                        <SectionTitle>{vocabulary.SONGS}</SectionTitle>
                         <LibraryListView items={listItems(songs, "song")} />
                     </View>
                 )}
@@ -137,9 +131,7 @@ export default function LibraryContent({
     if (items.length === 0) {
         return (
             <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>
-                    {vocabulary.NO_RESULTS || "No items found"}
-                </Text>
+                <Text style={styles.emptyText}>{vocabulary.NO_RESULTS}</Text>
             </View>
         );
     }

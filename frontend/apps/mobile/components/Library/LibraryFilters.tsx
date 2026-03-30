@@ -15,13 +15,13 @@ export default function LibraryFilters({
     const { vocabulary } = useVocabulary();
 
     const TABS: { key: ContentType; label: string }[] = [
-        { key: "all", label: vocabulary.ALL || "All" },
-        { key: "albums", label: vocabulary.ALBUMS || "Albums" },
-        { key: "playlists", label: vocabulary.PLAYLISTS || "Playlists" },
-        { key: "songs", label: vocabulary.SONGS || "Songs" },
-        { key: "videos", label: vocabulary.VIDEOS || "Videos" },
-        { key: "stations", label: vocabulary.RADIO_STATIONS || "Stations" },
-        { key: "shared", label: vocabulary.SHARED_2_YOU || "Shared" },
+        { key: "all", label: vocabulary.ALL },
+        { key: "albums", label: vocabulary.ALBUMS },
+        { key: "playlists", label: vocabulary.PLAYLISTS },
+        { key: "songs", label: vocabulary.SONGS },
+        { key: "videos", label: vocabulary.VIDEOS },
+        { key: "stations", label: vocabulary.RADIO_STATIONS },
+        { key: "shared", label: vocabulary.SHARED_2_YOU },
     ];
 
     return (

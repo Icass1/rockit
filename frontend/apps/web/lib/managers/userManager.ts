@@ -1,9 +1,9 @@
 import { SessionResponse } from "@/dto";
+import { EQueueType } from "@/models/enums/queueType";
+import { ERepeatMode } from "@/models/enums/repeatMode";
 import { getUserInClient } from "@/lib/getUserInClient";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createAtom } from "@/lib/store";
-import { EQueueType } from "@/models/enums/queueType";
-import { ERepeatMode } from "@/models/enums/repeatMode";
 
 export class UserManager {
     // #region: Atoms

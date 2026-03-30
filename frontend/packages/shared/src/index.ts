@@ -6,4 +6,5 @@ export * from "./environment";
 export * from "./dto";
 export * from "./utils/dateUtils";
 export * from "./utils/filterUtils";
-export { DEFAULT_VOCABULARY } from "./vocabulary";
+
+export { type Vocabulary } from "@/types/vocabulary";

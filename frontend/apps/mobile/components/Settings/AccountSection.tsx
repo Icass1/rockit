@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { COLORS } from "@/constants/theme";
+import { UpdatePasswordRequestSchema } from "@rockit/shared";
 import { Alert, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSettingsUser } from "@/hooks/useSettingsUser";
+import { apiPatchNoResponse } from "@/lib/api";
 import SettingRow from "./SettingRow";
 
 export default function AccountSection() {
@@ -23,16 +25,11 @@ export default function AccountSection() {
 
         setIsSaving(true);
         try {
-            const res = await fetch(
-                `${process.env.EXPO_PUBLIC_BACKEND_URL ?? "http://localhost:8000"}/user/password`,
-                {
-                    method: "PATCH",
-                    credentials: "include",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ password: newPassword }),
-                }
+            await apiPatchNoResponse(
+                "/user/password",
+                UpdatePasswordRequestSchema,
+                { password: newPassword }
             );
-            if (!res.ok) throw new Error("Failed");
             Alert.alert("Success", "Password updated");
             setNewPassword("");
             setRepeatPassword("");

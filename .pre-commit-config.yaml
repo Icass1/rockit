@@ -1,42 +1,49 @@
 repos:
-  - repo: local
-    hooks:
-      - id: pyright
-        name: pyright
-        entry: venv/bin/pyright
-        language: system
-        pass_filenames: false
-        always_run: true
-        stages: [pre-commit]
-        files: ^backend/
+    - repo: local
+      hooks:
+          - id: pyright
+            name: pyright
+            entry: venv/bin/pyright
+            language: system
+            pass_filenames: false
+            always_run: true
+            stages: [pre-commit]
+            files: ^backend/
 
-      - id: lint
-        name: pnpm lint
-        entry: bash
-        args: ["-c", "export PATH=\"$HOME/.nvm/versions/node/v20.18.3/bin:$PATH\" && cd frontend && pnpm run lint"]
-        language: system
-        pass_filenames: false
-        always_run: true
-        stages: [pre-commit]
-        files: ^frontend/
+          - id: lint
+            name: pnpm lint
+            entry: bash
+            args:
+                [
+                    "-c",
+                    'export PATH="$HOME/.nvm/versions/node/v20.18.3/bin:$PATH" && cd frontend && pnpm run lint',
+                ]
+            language: system
+            pass_filenames: false
+            always_run: true
+            stages: [pre-commit]
+            files: ^frontend/
 
-      - id: black
-        name: black
-        entry: venv/bin/black
-        args: ["backend"]
-        language: system
-        pass_filenames: false
-        always_run: true
-        stages: [pre-commit]
-        files: ^backend/
+          - id: black
+            name: black
+            entry: venv/bin/black
+            args: ["backend"]
+            language: system
+            pass_filenames: false
+            always_run: true
+            stages: [pre-commit]
+            files: ^backend/
 
-      - id: prettier
-        name: prettier
-        entry: bash
-        args: ["-c", "export PATH=\"$HOME/.nvm/versions/node/v20.18.3/bin:$PATH\" && cd frontend && prettier -w ."]
-        language: system
-        pass_filenames: false
-        always_run: true
-        stages: [pre-commit]
-        files: ^frontend/
-        
+          - id: prettier
+            name: prettier
+            entry: bash
+            args:
+                [
+                    "-c",
+                    'export PATH="$HOME/.nvm/versions/node/v20.18.3/bin:$PATH" && cd frontend && prettier -w .',
+                ]
+            language: system
+            pass_filenames: false
+            always_run: true
+            stages: [pre-commit]
+            files: ^frontend/

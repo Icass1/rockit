@@ -24,16 +24,14 @@ export default function UserStats({ data, rangeLabel }: UserStatsProps) {
             <SummaryCards summary={data.summary} />
 
             <StatsSectionCard
-                title={`${vocabulary.MINUTES_LISTENED || "Minutes listened"} — ${rangeLabel}`}
+                title={`${vocabulary.MINUTES_LISTENED} — ${rangeLabel}`}
             >
                 <MinutesBarChart data={data.minutes} />
             </StatsSectionCard>
 
             <View style={isWide ? styles.row : styles.column}>
                 <View style={styles.flex1}>
-                    <StatsSectionCard
-                        title={vocabulary.TOP_SONGS || "Top songs"}
-                    >
+                    <StatsSectionCard title={vocabulary.TOP_SONGS}>
                         <RankingList
                             items={data.topSongs}
                             showImages
@@ -42,11 +40,7 @@ export default function UserStats({ data, rangeLabel }: UserStatsProps) {
                     </StatsSectionCard>
                 </View>
                 <View style={styles.flex1}>
-                    <StatsSectionCard
-                        title={
-                            vocabulary.MOST_LISTENED_ARTISTS || "Top artists"
-                        }
-                    >
+                    <StatsSectionCard title={vocabulary.MOST_LISTENED_ARTISTS}>
                         <RankingList
                             items={data.topArtists}
                             showImages
@@ -57,19 +51,14 @@ export default function UserStats({ data, rangeLabel }: UserStatsProps) {
                 </View>
             </View>
 
-            <StatsSectionCard title={vocabulary.TOP_ALBUMS || "Top albums"}>
+            <StatsSectionCard title={vocabulary.TOP_ALBUMS}>
                 <AlbumGrid albums={data.topAlbums} />
             </StatsSectionCard>
 
-            <StatsSectionCard
-                title={
-                    vocabulary.MINUTES_LISTENED_PER_DAY || "Listening heatmap"
-                }
-            >
+            <StatsSectionCard title={vocabulary.MINUTES_LISTENED_PER_DAY}>
                 <ListeningHeatmap data={data.heatmap} />
                 <Text style={styles.hint}>
-                    {vocabulary.MINUTES_LISTENED_PER_DAY ||
-                        "Darker cells = more minutes listened at that hour"}
+                    {vocabulary.MINUTES_LISTENED_PER_DAY}
                 </Text>
             </StatsSectionCard>
         </View>

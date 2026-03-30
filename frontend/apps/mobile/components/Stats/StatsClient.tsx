@@ -80,7 +80,7 @@ export default function StatsClient() {
     }
 
     function formatDateForDisplay(dateStr: string): string {
-        if (!dateStr) return vocabulary.SHOWING_DATA || "Select date";
+        if (!dateStr) return vocabulary.SHOWING_DATA;
         const parts = dateStr.split("-");
         if (parts.length !== 3) return dateStr;
         const date = new Date(

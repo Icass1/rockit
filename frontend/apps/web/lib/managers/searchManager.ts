@@ -1,7 +1,4 @@
-import {
-    SearchResultsResponse,
-    SearchResultsResponseSchema,
-} from "@/dto";
+import { SearchResultsResponse, SearchResultsResponseSchema } from "@/dto";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createAtom } from "@/lib/store";
 import { baseApiFetch } from "@/lib/utils/apiFetch";

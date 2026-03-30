@@ -1,62 +1,62 @@
 services:
-  backend:
-    container_name: rockit-beta-backend
-    build:
-      context: .
-      dockerfile: Dockerfile.backend
-    restart: unless-stopped
-    environment:
-      BACKEND_URL: ${BACKEND_URL}
-      FRONTEND_URL: ${FRONTEND_URL}
-      CLIENT_ID: ${CLIENT_ID}
-      CLIENT_SECRET: ${CLIENT_SECRET}
-      YOUTUBE_API_KEY: ${YOUTUBE_API_KEY}
-      SESSION_DURATION: ${SESSION_DURATION:-86400}
-      ENVIRONMENT: ${ENVIRONMENT:-DEV}
-      MEDIA_PATH: ${MEDIA_PATH:-/app/media}
-      IMAGES_PATH: ${IMAGES_PATH:-/app/images}
-      TEMP_PATH: ${TEMP_PATH:-/app/temp}
-      LOGS_PATH: ${LOGS_PATH:-/app/logs}
-      LOG_DUMP_LEVEL: ${LOG_DUMP_LEVEL:-info}
-      CONSOLE_DUMP_LEVEL: ${CONSOLE_DUMP_LEVEL:-info}
-      DOWNLOAD_THREADS: ${DOWNLOAD_THREADS:-4}
-      DB_HOST: ${DB_HOST:-postgres-container}
-      DB_USER: ${DB_USER:-rockit}
-      DB_PASSWORD: ${DB_PASSWORD:-rockitpassword}
-      DB_PORT: ${DB_PORT:-5432}
-      DB_NAME: ${DB_NAME:-rockit}
-    volumes:
-      - ./media:/app/media
-      - ./images:/app/images
-      - ./temp:/app/temp
-      - ./logs:/app/logs
-    networks:
-      - rockit-beta
-      - postgres_postgres-network
-    ports:
-      - "9101:8000"
+    backend:
+        container_name: rockit-beta-backend
+        build:
+            context: .
+            dockerfile: Dockerfile.backend
+        restart: unless-stopped
+        environment:
+            BACKEND_URL: ${BACKEND_URL}
+            FRONTEND_URL: ${FRONTEND_URL}
+            CLIENT_ID: ${CLIENT_ID}
+            CLIENT_SECRET: ${CLIENT_SECRET}
+            YOUTUBE_API_KEY: ${YOUTUBE_API_KEY}
+            SESSION_DURATION: ${SESSION_DURATION:-86400}
+            ENVIRONMENT: ${ENVIRONMENT:-DEV}
+            MEDIA_PATH: ${MEDIA_PATH:-/app/media}
+            IMAGES_PATH: ${IMAGES_PATH:-/app/images}
+            TEMP_PATH: ${TEMP_PATH:-/app/temp}
+            LOGS_PATH: ${LOGS_PATH:-/app/logs}
+            LOG_DUMP_LEVEL: ${LOG_DUMP_LEVEL:-info}
+            CONSOLE_DUMP_LEVEL: ${CONSOLE_DUMP_LEVEL:-info}
+            DOWNLOAD_THREADS: ${DOWNLOAD_THREADS:-4}
+            DB_HOST: ${DB_HOST:-postgres-container}
+            DB_USER: ${DB_USER:-rockit}
+            DB_PASSWORD: ${DB_PASSWORD:-rockitpassword}
+            DB_PORT: ${DB_PORT:-5432}
+            DB_NAME: ${DB_NAME:-rockit}
+        volumes:
+            - ./media:/app/media
+            - ./images:/app/images
+            - ./temp:/app/temp
+            - ./logs:/app/logs
+        networks:
+            - rockit-beta
+            - postgres_postgres-network
+        ports:
+            - "9101:8000"
 
-  frontend:
-    container_name: rockit-beta-frontend
-    build:
-      context: .
-      dockerfile: Dockerfile.frontend
-      args:
-        NEXT_PUBLIC_BACKEND_URL: ${BACKEND_URL}
-    restart: unless-stopped
-    ports:
-      - "9100:3000"
-    depends_on:
-      - backend
-    networks:
-      - rockit-beta
+    frontend:
+        container_name: rockit-beta-frontend
+        build:
+            context: .
+            dockerfile: Dockerfile.frontend
+            args:
+                NEXT_PUBLIC_BACKEND_URL: ${BACKEND_URL}
+        restart: unless-stopped
+        ports:
+            - "9100:3000"
+        depends_on:
+            - backend
+        networks:
+            - rockit-beta
 
 networks:
-  rockit-beta:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 172.21.0.0/16
-          gateway: 172.21.0.1
-  postgres_postgres-network:
-    external: true
+    rockit-beta:
+        driver: bridge
+        ipam:
+            config:
+                - subnet: 172.21.0.0/16
+                  gateway: 172.21.0.1
+    postgres_postgres-network:
+        external: true

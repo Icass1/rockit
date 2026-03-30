@@ -91,7 +91,7 @@ export default function AppLayout() {
             <Tabs.Screen
                 name="index"
                 options={{
-                    title: vocabulary.HOME || "Home",
+                    title: vocabulary.HOME,
                     tabBarIcon: ({ color, size }) => (
                         <Feather name="home" color={color} size={size} />
                     ),
@@ -100,7 +100,7 @@ export default function AppLayout() {
             <Tabs.Screen
                 name="library"
                 options={{
-                    title: vocabulary.LIBRARY || "Library",
+                    title: vocabulary.LIBRARY,
                     tabBarIcon: ({ color, size }) => (
                         <Feather name="book-open" color={color} size={size} />
                     ),
@@ -109,7 +109,7 @@ export default function AppLayout() {
             <Tabs.Screen
                 name="search"
                 options={{
-                    title: vocabulary.SEARCH || "Search",
+                    title: vocabulary.SEARCH,
                     tabBarIcon: ({ color, size }) => (
                         <Feather name="search" color={color} size={size} />
                     ),
@@ -118,7 +118,7 @@ export default function AppLayout() {
             <Tabs.Screen
                 name="downloader"
                 options={{
-                    title: vocabulary.DOWNLOADS || "Downloads",
+                    title: vocabulary.DOWNLOADS,
                     tabBarIcon: ({ color, size }) => (
                         <Feather name="download" color={color} size={size} />
                     ),
@@ -127,7 +127,7 @@ export default function AppLayout() {
             <Tabs.Screen
                 name="settings"
                 options={{
-                    title: vocabulary.SETTINGS || "Settings",
+                    title: vocabulary.SETTINGS,
                     tabBarIcon: ({ color, size }) => (
                         <Feather name="settings" color={color} size={size} />
                     ),

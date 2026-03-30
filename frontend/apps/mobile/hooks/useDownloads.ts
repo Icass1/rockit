@@ -1,7 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { COLORS } from "@/constants/theme";
-import { StartDownloadRequestSchema } from "@/dto";
-import { apiFetch, BACKEND_URL } from "@/lib/api";
+import {
+    BaseSongWithAlbumResponseSchema,
+    DownloadsResponseSchema,
+    OkResponseSchema,
+    StartDownloadRequestSchema,
+    StartDownloadResponseSchema,
+} from "@rockit/shared";
+import { apiGet, apiPost, BACKEND_URL } from "@/lib/api";
 
 export interface DownloadInfo {
     publicId: string;
@@ -28,28 +34,27 @@ export function useDownloads() {
     const wsRef = useRef<WebSocket | null>(null);
 
     const fetchDownloads = useCallback(async () => {
-        const res = await apiFetch("/downloader/downloads");
-        if (res.ok) {
-            const data = await res.json();
-            const downloadGroups = data.downloads || [];
-            const flatDownloads: DownloadInfo[] = [];
-            for (const group of downloadGroups) {
-                for (const item of group.items || []) {
-                    flatDownloads.push({
-                        publicId: item.publicId,
-                        groupId: group.publicId,
-                        title: item.name,
-                        subtitle: item.subtitle ?? null,
-                        imageUrl: item.imageUrl ?? null,
-                        status: item.message,
-                        completed:
-                            item.message === "Done" ? 100 : item.completed,
-                        message: item.message,
-                    });
-                }
+        const data = await apiGet(
+            "/downloader/downloads",
+            DownloadsResponseSchema
+        );
+        const downloadGroups = data.downloads || [];
+        const flatDownloads: DownloadInfo[] = [];
+        for (const group of downloadGroups) {
+            for (const item of group.items || []) {
+                flatDownloads.push({
+                    publicId: item.publicId,
+                    groupId: group.publicId,
+                    title: item.name,
+                    subtitle: item.subtitle ?? null,
+                    imageUrl: item.imageUrl ?? null,
+                    status: item.message,
+                    completed: item.message === "Done" ? 100 : item.completed,
+                    message: item.message,
+                });
             }
-            setDownloads(flatDownloads);
         }
+        setDownloads(flatDownloads);
     }, []);
 
     useEffect(() => {
@@ -140,28 +145,24 @@ export function useDownloads() {
     }, []);
 
     const startDownload = async (url: string) => {
-        const addRes = await apiFetch(
-            `/media/url/add?url=${encodeURIComponent(url)}`
-        );
-        if (!(addRes as Response).ok) {
+        try {
+            const media = await apiGet(
+                `/media/url/add?url=${encodeURIComponent(url)}`,
+                BaseSongWithAlbumResponseSchema
+            );
+            const publicId = media.publicId;
+
+            await apiPost(
+                "/downloader/start-downloads",
+                StartDownloadRequestSchema,
+                { ids: [publicId], title: "Download" },
+                StartDownloadResponseSchema
+            );
+            await fetchDownloads();
+            return { ok: true };
+        } catch {
             return { ok: false, status: 400, message: "Could not fetch media" };
         }
-
-        const media = await (addRes as Response).json();
-        const publicId = media.publicId;
-
-        const body = StartDownloadRequestSchema.parse({
-            ids: [publicId],
-            title: "Download",
-        });
-        const res = await apiFetch("/downloader/start-downloads", {
-            method: "POST",
-            body: JSON.stringify(body),
-        });
-        if (res.ok) {
-            await fetchDownloads();
-        }
-        return res;
     };
 
     const clearCompleted = async () => {
@@ -171,9 +172,12 @@ export function useDownloads() {
                 .map((d) => d.groupId)
         );
         for (const groupId of completedGroups) {
-            await apiFetch(`/downloader/downloads/${groupId}/seen`, {
-                method: "POST",
-            });
+            await apiPost(
+                `/downloader/downloads/${groupId}/seen`,
+                StartDownloadRequestSchema,
+                { ids: [], title: "" },
+                OkResponseSchema
+            );
         }
         setDownloads((prev) => prev.filter((d) => d.completed !== 100));
     };

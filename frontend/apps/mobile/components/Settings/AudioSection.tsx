@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { COLORS } from "@/constants/theme";
+import { UpdateCrossfadeRequestSchema } from "@rockit/shared";
 import { Alert, StyleSheet, Text, TextInput, View } from "react-native";
+import { apiPatchNoResponse } from "@/lib/api";
 
 export default function AudioSection() {
     const [crossfade, setCrossfade] = useState("0");
@@ -16,16 +18,11 @@ export default function AudioSection() {
         setCrossfade(value);
         setIsSaving(true);
         try {
-            const res = await fetch(
-                `${process.env.EXPO_PUBLIC_BACKEND_URL ?? "http://localhost:8000"}/user/crossfade`,
-                {
-                    method: "PATCH",
-                    credentials: "include",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ crossfade: num }),
-                }
+            await apiPatchNoResponse(
+                "/user/crossfade",
+                UpdateCrossfadeRequestSchema,
+                { crossfade: num }
             );
-            if (!res.ok) throw new Error("Failed");
         } catch {
             Alert.alert("Error", "Failed to save crossfade");
         } finally {

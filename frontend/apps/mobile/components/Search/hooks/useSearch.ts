@@ -4,7 +4,7 @@ import {
     SearchResultsResponseSchema,
     type BaseSearchResultsItem,
 } from "@rockit/shared";
-import { apiFetch } from "@/lib/api";
+import { apiGet } from "@/lib/api";
 
 export interface SearchState {
     results: BaseSearchResultsItem[];
@@ -38,13 +38,10 @@ export function useSearch() {
             setError(null);
 
             try {
-                const res = await apiFetch(
-                    `${API_ENDPOINTS.search}?q=${encodeURIComponent(text)}`
+                const parsed = await apiGet(
+                    `${API_ENDPOINTS.search}?q=${encodeURIComponent(text)}`,
+                    SearchResultsResponseSchema
                 );
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-                const json = await res.json();
-                const parsed = SearchResultsResponseSchema.parse(json);
                 setResults(parsed.results);
             } catch (e) {
                 setError(e instanceof Error ? e.message : "Search failed");

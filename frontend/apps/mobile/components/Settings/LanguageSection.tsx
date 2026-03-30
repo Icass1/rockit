@@ -3,6 +3,7 @@ import { COLORS } from "@/constants/theme";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { useVocabulary } from "@/lib/vocabulary";
 
+// TODO: This should be a api call to get the supported languages.
 const LANGUAGES = [
     { value: "en", label: "English" },
     { value: "es", label: "Español" },
@@ -24,7 +25,7 @@ export default function LanguageSection() {
         try {
             await setLanguage(newLang);
         } catch {
-            Alert.alert(vocabulary.ERROR || "Error", "Failed to save language");
+            Alert.alert(vocabulary.ERROR, vocabulary.FAILED_TO_CHANGE_LANGUAGE);
         } finally {
             setIsSaving(false);
         }
@@ -42,7 +43,7 @@ export default function LanguageSection() {
                 ]}
                 onPress={() => {
                     Alert.alert(
-                        vocabulary.LANGUAGE || "Select Language",
+                        vocabulary.LANGUAGE,
                         undefined,
                         LANGUAGES.map((l) => ({
                             text: l.label,
@@ -52,15 +53,11 @@ export default function LanguageSection() {
                     );
                 }}
             >
-                <Text style={styles.label}>
-                    {vocabulary.LANGUAGE || "Language"}
-                </Text>
+                <Text style={styles.label}>{vocabulary.LANGUAGE}</Text>
                 <View style={styles.valueRow}>
                     <Text style={styles.value}>{selectedLabel}</Text>
                     {(isSaving || isLoading) && (
-                        <Text style={styles.saving}>
-                            {vocabulary.SAVING || "Saving..."}
-                        </Text>
+                        <Text style={styles.saving}>{vocabulary.SAVING}</Text>
                     )}
                 </View>
             </Pressable>

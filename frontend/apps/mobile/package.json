@@ -9,7 +9,7 @@
         "android": "expo run:android",
         "ios": "expo run:ios",
         "web": "expo start --web",
-        "lint": "expo lint",
+        "lint": "expo lint && npx tsc --noEmit",
         "prebuild": "expo prebuild",
         "build:android": "eas build --platform android",
         "build:android:dev": "eas build --platform android --profile development",

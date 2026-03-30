@@ -1,4 +1,3 @@
-import { DEFAULT_VOCABULARY } from "@rockit/shared";
 import * as SecureStore from "expo-secure-store";
 
 type ZodSchema<T> = {
@@ -19,10 +18,6 @@ const FAKE_RESPONSES: Record<string, unknown> = {
         admin: false,
         queueType: null,
         currentTimeMs: null,
-    },
-    "/vocabulary/user": {
-        vocabulary: DEFAULT_VOCABULARY,
-        currentLang: "en",
     },
     "/stats/home": {
         songsByTimePlayed: [],
@@ -252,16 +247,20 @@ export async function apiPatchNoResponse<TBody>(
     });
 }
 
-export async function apiPostRaw<TBody>(
+export async function apiPostAuth<TBody, TResponse>(
     path: string,
     bodySchema: ZodSchema<TBody>,
-    body: TBody
-): Promise<Response> {
+    body: TBody,
+    responseSchema: ZodSchema<TResponse>
+): Promise<{ response: Response; data: TResponse }> {
     bodySchema.parse(body);
-    return doFetch(path, {
+    const response = await doFetch(path, {
         method: "POST",
         body: JSON.stringify(body),
     });
+    const json = await response.json();
+    const data = responseSchema.parse(json);
+    return { response, data };
 }
 
 async function doFetch(

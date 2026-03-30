@@ -4,6 +4,7 @@ import {
     AUTH_ENDPOINTS,
     isDevFakeMode,
     LoginRequestSchema,
+    LoginResponseSchema,
 } from "@rockit/shared";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
@@ -18,7 +19,7 @@ import {
     TextInput,
     View,
 } from "react-native";
-import { apiPostRaw, BACKEND_URL, saveSessionCookie } from "@/lib/api";
+import { apiPostAuth, BACKEND_URL, saveSessionCookie } from "@/lib/api";
 
 export default function LoginScreen() {
     const router = useRouter();
@@ -44,18 +45,18 @@ export default function LoginScreen() {
         setLoading(true);
 
         try {
-            const res = await apiPostRaw(
+            const { response: res } = await apiPostAuth(
                 AUTH_ENDPOINTS.login,
                 LoginRequestSchema,
-                { username, password }
+                { username, password },
+                LoginResponseSchema
             );
 
             if (res.ok) {
                 await saveSessionCookie(res);
                 router.replace("/");
             } else {
-                const data = await res.json().catch(() => ({}));
-                setError(data.detail ?? data.error ?? "Login failed");
+                setError("Login failed"); // TODO: Use vocabulary
             }
         } catch {
             setError("Network error BACKEND_URL: " + BACKEND_URL);
@@ -66,7 +67,7 @@ export default function LoginScreen() {
 
     return (
         <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            behavior={Platform.OS === "ios" ? "padding" : "height"} // TODO: Create EPlatform enum and replace all platform checks with it
             style={styles.container}
         >
             <ScrollView
@@ -82,21 +83,20 @@ export default function LoginScreen() {
                 </View>
 
                 <View style={styles.form}>
-                    <Text style={styles.title}>Login</Text>
-
+                    <Text style={styles.title}>Login</Text>{" "}
+                    {/* TODO: Use vocabulary */}
                     <TextInput
                         style={styles.input}
-                        placeholder="Username"
+                        placeholder="Username" // TODO: Use vocabulary
                         placeholderTextColor={COLORS.gray400}
                         value={username}
                         onChangeText={setUsername}
                         autoCapitalize="none"
                         autoCorrect={false}
                     />
-
                     <TextInput
                         style={styles.input}
-                        placeholder="Password"
+                        placeholder="Password" // TODO: Use vocabulary
                         placeholderTextColor={COLORS.gray400}
                         value={password}
                         onChangeText={setPassword}
@@ -104,15 +104,12 @@ export default function LoginScreen() {
                         autoCapitalize="none"
                         autoCorrect={false}
                     />
-
                     {fakeMode && (
                         <View style={styles.fakeModeBadge}>
                             <Text style={styles.fakeModeText}>DEV MODE</Text>
                         </View>
                     )}
-
                     {error && <Text style={styles.error}>{error}</Text>}
-
                     <Pressable
                         style={[
                             styles.button,
@@ -124,16 +121,15 @@ export default function LoginScreen() {
                         {loading ? (
                             <ActivityIndicator color={COLORS.white} />
                         ) : (
-                            <Text style={styles.buttonText}>Login</Text>
+                            <Text style={styles.buttonText}>Login</Text> // TODO: Use vocabulary
                         )}
                     </Pressable>
-
                     <Pressable
                         style={styles.linkButton}
                         onPress={() => router.push("/(auth)/register")}
                     >
                         <Text style={styles.linkText}>
-                            Don&apos;t have an account? Register
+                            Don&apos;t have an account? Register // TODO: Use vocabulary
                         </Text>
                     </Pressable>
                 </View>

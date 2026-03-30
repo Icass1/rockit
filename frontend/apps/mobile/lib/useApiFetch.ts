@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { z } from "zod";
-import { apiFetch } from "./api";
+import { apiGet } from "./api";
 
 export function useApiFetch<T>(
     path: string,
@@ -13,35 +13,29 @@ export function useApiFetch<T>(
     useEffect(() => {
         let cancelled = false;
         setLoading(true);
-        apiFetch(path)
-            .then((res) => {
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                return res.json();
-            })
-            .then((json) => {
+        setError(null);
+        apiGet(path, schema)
+            .then((result) => {
                 if (!cancelled) {
-                    try {
-                        setData(schema.parse(json) as T);
-                    } catch (e) {
-                        if (e instanceof z.ZodError) {
-                            setError(e.message);
-                        } else {
-                            setError("Parse error");
-                        }
-                    }
+                    setData(result);
                     setLoading(false);
                 }
             })
             .catch((err) => {
                 if (!cancelled) {
-                    setError(err.message);
+                    if (err instanceof z.ZodError) {
+                        setError(err.message);
+                    } else {
+                        setError(
+                            err instanceof Error ? err.message : "Fetch error"
+                        );
+                    }
                     setLoading(false);
                 }
             });
         return () => {
             cancelled = true;
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [path, schema]);
 
     return { data, loading, error };

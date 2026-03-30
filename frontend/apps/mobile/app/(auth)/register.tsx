@@ -1,6 +1,10 @@
 import React, { useState } from "react";
 import { COLORS } from "@/constants/theme";
-import { AUTH_ENDPOINTS, RegisterRequestSchema } from "@rockit/shared";
+import {
+    AUTH_ENDPOINTS,
+    RegisterRequestSchema,
+    RegisterResponseSchema,
+} from "@rockit/shared";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import {
@@ -14,14 +18,14 @@ import {
     TextInput,
     View,
 } from "react-native";
-import { apiPostRaw, BACKEND_URL, saveSessionCookie } from "@/lib/api";
+import { apiPostAuth, saveSessionCookie } from "@/lib/api";
 
 function validateUsername(value: string): string | null {
     if (value === "") return null;
     if (value.length < 3 || value.length > 30)
-        return "Username must be between 3 and 30 characters";
+        return "Username must be between 3 and 30 characters"; // TODO: Use vocabulary
     if (!/^[a-zA-Z0-9_-]+$/.test(value))
-        return "Only letters, numbers, _ and - are allowed";
+        return "Only letters, numbers, _ and - are allowed"; // TODO: Use vocabulary
     return null;
 }
 
@@ -64,18 +68,18 @@ export default function RegisterScreen() {
         setLoading(true);
 
         try {
-            const res = await apiPostRaw(
+            const { response: res } = await apiPostAuth(
                 AUTH_ENDPOINTS.register,
                 RegisterRequestSchema,
-                { username, password, repeatPassword }
+                { username, password, repeatPassword },
+                RegisterResponseSchema
             );
 
             if (res.ok) {
                 await saveSessionCookie(res);
                 router.replace("/");
             } else {
-                const data = await res.json().catch(() => ({}));
-                setError(data.detail ?? data.error ?? "Registration failed");
+                setError("Registration failed");
             }
         } catch {
             setError("Network error");

@@ -7,4 +7,4 @@ export * from "./dto";
 export * from "./utils/dateUtils";
 export * from "./utils/filterUtils";
 
-export { type Vocabulary } from "@/types/vocabulary";
+export { type Vocabulary } from "./types/vocabulary";

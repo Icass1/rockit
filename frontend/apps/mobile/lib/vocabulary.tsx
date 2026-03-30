@@ -18,7 +18,7 @@ function createVocabularyProxy(data: Record<string, string>): Vocabulary {
         get(target, prop: string) {
             return target[prop] ?? prop;
         },
-    }) as Vocabulary;
+    }) as unknown as Vocabulary;
 }
 
 interface VocabularyContextType {

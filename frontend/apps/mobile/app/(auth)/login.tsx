@@ -20,6 +20,7 @@ import {
     View,
 } from "react-native";
 import { apiPostAuth, BACKEND_URL, saveSessionCookie } from "@/lib/api";
+import { useVocabulary } from "@/lib/vocabulary";
 
 export default function LoginScreen() {
     const router = useRouter();
@@ -28,6 +29,8 @@ export default function LoginScreen() {
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const fakeMode = isDevFakeMode();
+
+    const { refreshVocabulary } = useVocabulary();
 
     async function handleLogin() {
         if (!username.trim() || !password.trim()) {
@@ -55,6 +58,7 @@ export default function LoginScreen() {
             if (res.ok) {
                 await saveSessionCookie(res);
                 router.replace("/");
+                refreshVocabulary();
             } else {
                 setError("Login failed"); // TODO: Use vocabulary
             }
@@ -83,7 +87,7 @@ export default function LoginScreen() {
                 </View>
 
                 <View style={styles.form}>
-                    <Text style={styles.title}>Login</Text>{" "}
+                    <Text style={styles.title}>Login</Text>
                     {/* TODO: Use vocabulary */}
                     <TextInput
                         style={styles.input}
@@ -129,7 +133,8 @@ export default function LoginScreen() {
                         onPress={() => router.push("/(auth)/register")}
                     >
                         <Text style={styles.linkText}>
-                            Don&apos;t have an account? Register // TODO: Use vocabulary
+                            Don&apos;t have an account? Register // TODO: Use
+                            vocabulary
                         </Text>
                     </Pressable>
                 </View>

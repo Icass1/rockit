@@ -1,7 +1,7 @@
 {
     "expo": {
-        "name": "mobile",
-        "slug": "mobile",
+        "name": "RockIt",
+        "slug": "RockIt",
         "version": "1.0.0",
         "orientation": "portrait",
         "icon": "./assets/images/icon.png",
@@ -10,7 +10,7 @@
         "newArchEnabled": true,
         "ios": {
             "supportsTablet": true,
-            "bundleIdentifier": "com.anonymous.mobile"
+            "bundleIdentifier": "com.rockit.mobile"
         },
         "android": {
             "adaptiveIcon": {
@@ -21,7 +21,7 @@
             },
             "edgeToEdgeEnabled": true,
             "predictiveBackGestureEnabled": false,
-            "package": "com.anonymous.mobile"
+            "package": "com.rockit.mobile"
         },
         "web": {
             "output": "static",

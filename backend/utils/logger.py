@@ -1,4 +1,4 @@
-# type: ignore
+# pyright: reportMissingTypeArgument=false, reportUnknownMemberType=false, reportMissingParameterType=false, reportUnknownParameterType=false, reportUnknownVariableType=false, reportUnknownArgumentType=false, reportUnusedImport=false, reportUnusedVariable=false
 
 import os
 import sys
@@ -6,6 +6,7 @@ import logging
 import traceback
 import threading
 from datetime import datetime
+from typing import Any
 from colorama import Fore, Style, init
 
 # Import inspect module
@@ -15,7 +16,13 @@ from backend.constants import CONSOLE_DUMP_LEVEL, LOG_DUMP_LEVEL, LOGS_PATH
 class DailyRotatingFileHandler(logging.FileHandler):
     """A file handler that rotates logs daily at midnight, naming files as log_YYYY-MM-DD.log."""
 
-    def __init__(self, directory, mode="a", encoding=None, delay=False):
+    def __init__(
+        self,
+        directory: str,
+        mode: str = "a",
+        encoding: str | None = None,
+        delay: bool = False,
+    ) -> None:
         self.directory = directory
         self.current_date = datetime.now().strftime("%Y-%m-%d")
         self.base_filename = os.path.join(directory, f"log_{self.current_date}.log")
@@ -32,7 +39,7 @@ class DailyRotatingFileHandler(logging.FileHandler):
         """Close the current stream and start a new log file for the new day."""
         if self.stream:
             self.stream.close()
-            self.stream = None
+            self.stream = None  # type: ignore[assignment]
         self.current_date = datetime.now().strftime("%Y-%m-%d")
         self.base_filename = os.path.join(
             self.directory, f"log_{self.current_date}.log"
@@ -88,14 +95,14 @@ class CustomLogger(logging.Logger):
         if extra is None:
             extra = {}
 
-        extra["extrainfo"] = ""  # type: ignore
+        extra_dict: dict[str, Any] = extra  # type: ignore[assignment]
+        extra_dict["extrainfo"] = ""
 
         if "%20" in name:
             split_name = name.split("%20")
             name = split_name[0]
             class_name = split_name[1]
-            # type: ignore
-            extra["extrainfo"] = f"{name}.{class_name}.{func} - "
+            extra_dict["extrainfo"] = f"{name}.{class_name}.{func} - "
 
         return super().makeRecord(
             name, level, fn, lno, msg, args, exc_info, func, extra, sinfo

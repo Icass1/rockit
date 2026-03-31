@@ -1,6 +1,6 @@
 import random
 from datetime import datetime, timedelta, timezone
-from typing import List, Literal
+from typing import List
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -19,8 +19,6 @@ from backend.core.responses.homeStatsResponse import HomeStatsResponse
 from backend.utils.logger import getLogger
 
 logger = getLogger(__name__)
-
-RangeLiteral = Literal["7d", "30d", "1y", "custom"]
 
 MINUTES_CHART_DAYS = 8
 HEATMAP_DAYS = 7
@@ -89,7 +87,7 @@ MOCK_IMAGE_URLS = [
 
 
 def _parse_range(
-    range_value: RangeLiteral,
+    range_value: str,
     custom_start: str | None = None,
     custom_end: str | None = None,
 ) -> tuple[datetime, datetime]:
@@ -109,7 +107,7 @@ def _parse_range(
     return start_date, end_date
 
 
-def _get_group_by(range_value: RangeLiteral) -> str:
+def _get_group_by(range_value: str) -> str:
     if range_value == "7d":
         return "day"
     elif range_value == "30d":
@@ -118,6 +116,7 @@ def _get_group_by(range_value: RangeLiteral) -> str:
         return "month"
     elif range_value == "custom":
         return "week"
+
     return "day"
 
 
@@ -384,7 +383,7 @@ class Stats:
     async def get_user_stats_async(
         session: AsyncSession,
         user_id: int,
-        range_value: RangeLiteral,
+        range_value: str,
         custom_start: str | None = None,
         custom_end: str | None = None,
     ) -> AResult[UserStatsResponse]:

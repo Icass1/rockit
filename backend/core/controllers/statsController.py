@@ -1,8 +1,9 @@
-from fastapi import Depends, APIRouter, Request, Query, HTTPException
+from fastapi import Depends, APIRouter, Request, HTTPException
 from logging import Logger
 
 from backend.core.responses.userStatsResponse import UserStatsResponse
 from backend.core.responses.homeStatsResponse import HomeStatsResponse
+from backend.core.requests.userStatsRequest import UserStatsRequest
 from backend.core.middlewares.authMiddleware import AuthMiddleware
 from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 from backend.core.framework.stats import Stats
@@ -16,16 +17,10 @@ router = APIRouter(
 )
 
 
-@router.get("/user")
+@router.post("/user")
 async def get_user_stats(
     request: Request,
-    range: str = Query(default="7d", description="Range: 7d, 30d, 1y, or custom"),
-    start: str | None = Query(
-        default=None, description="Start date for custom range (ISO format)"
-    ),
-    end: str | None = Query(
-        default=None, description="End date for custom range (ISO format)"
-    ),
+    body: UserStatsRequest,
 ) -> UserStatsResponse:
     """Get user listening statistics."""
     session = DBSessionMiddleware.get_session(request=request)
@@ -37,9 +32,9 @@ async def get_user_stats(
     a_result = await Stats.get_user_stats_async(
         session=session,
         user_id=a_result_user.result().id,
-        range_value=range,  # type: ignore
-        custom_start=start,
-        custom_end=end,
+        range_value=body.range,
+        custom_start=body.start,
+        custom_end=body.end,
     )
 
     if a_result.is_not_ok():

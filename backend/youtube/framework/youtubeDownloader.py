@@ -2,9 +2,15 @@ import os
 import asyncio
 from typing import Any, Callable, Coroutine, Optional
 
-import yt_dlp  # type: ignore[import]
+from yt_dlp import YoutubeDL
 
 from backend.constants import TEMP_PATH
+
+
+def _create_youtube_dl(opts: Any) -> Any:
+    return YoutubeDL(opts)
+
+
 from backend.core.aResult import AResult, AResultCode
 from backend.core.framework.websocket.webSocketManager import ws_manager
 from backend.utils.logger import getLogger
@@ -161,7 +167,7 @@ class YouTubeDownloader:
 
             await loop.run_in_executor(
                 None,
-                lambda: yt_dlp.YoutubeDL(ydl_opts).download([youtube_url]),  # type: ignore[arg-type]
+                lambda: _create_youtube_dl(ydl_opts).download([youtube_url]),
             )
 
             final_filename: str = f"{filename}.{expected_ext}"

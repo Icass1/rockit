@@ -1,23 +1,31 @@
-# BASE
 from backend.spotify.access.db.base import SpotifyBase
 
-# CACHE TABLES
-from backend.spotify.access.db.ormModels.playlistCache import CachePlaylistRow  # type: ignore
-from backend.spotify.access.db.ormModels.artistCache import CacheArtistRow  # type: ignore
-from backend.spotify.access.db.ormModels.albumCache import CacheAlbumRow  # type: ignore
-from backend.spotify.access.db.ormModels.trackCache import CacheTrackRow  # type: ignore
+from backend.spotify.access.db.ormModels.playlistCache import (
+    CachePlaylistRow as CachePlaylistRow,
+)
+from backend.spotify.access.db.ormModels.artistCache import (
+    CacheArtistRow as CacheArtistRow,
+)
+from backend.spotify.access.db.ormModels.albumCache import (
+    CacheAlbumRow as CacheAlbumRow,
+)
+from backend.spotify.access.db.ormModels.trackCache import (
+    CacheTrackRow as CacheTrackRow,
+)
 
-# ENUMS
-from backend.spotify.access.db.ormEnums.copyrightTypeEnum import CopyrightTypeEnumRow  # type: ignore
+from backend.spotify.access.db.ormEnums.copyrightTypeEnum import (
+    CopyrightTypeEnumRow as CopyrightTypeEnumRow,
+)
 
-# GENERAL TABLES
-from backend.spotify.access.db.ormModels.externalImage import ExternalImageRow  # type: ignore
-from backend.spotify.access.db.ormModels.playlist import PlaylistRow  # type: ignore
-from backend.spotify.access.db.ormModels.copyright import CopyrightRow  # type: ignore
-from backend.spotify.access.db.ormModels.artist import ArtistRow  # type: ignore
-from backend.spotify.access.db.ormModels.album import AlbumRow  # type: ignore
-from backend.spotify.access.db.ormModels.genre import GenreRow  # type: ignore
-from backend.spotify.access.db.ormModels.track import TrackRow  # type: ignore
+from backend.spotify.access.db.ormModels.externalImage import (
+    ExternalImageRow as ExternalImageRow,
+)
+from backend.spotify.access.db.ormModels.playlist import PlaylistRow as PlaylistRow
+from backend.spotify.access.db.ormModels.copyright import CopyrightRow as CopyrightRow
+from backend.spotify.access.db.ormModels.artist import ArtistRow as ArtistRow
+from backend.spotify.access.db.ormModels.album import AlbumRow as AlbumRow
+from backend.spotify.access.db.ormModels.genre import GenreRow as GenreRow
+from backend.spotify.access.db.ormModels.track import TrackRow as TrackRow
 
 schemas = ["spotify", "spotify_cache"]
 base = SpotifyBase

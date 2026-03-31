@@ -1,4 +1,4 @@
-from typing import Generic, TypeVar
+from typing import Generic, TypeVar, cast, Optional
 
 T = TypeVar("T")
 
@@ -70,12 +70,12 @@ class AResultCode:
 class AResult(Generic[T]):
     _code: AResultCode
     _message: str
-    _result: T
+    _result: Optional[T]
 
-    def __init__(self, code: int, message: str, result: T | None = None):
+    def __init__(self, code: int, message: str, result: Optional[T] = None):
         self._code = AResultCode(code=code, message=message)
         self._message = message
-        self._result = result  # type: ignore
+        self._result = result
 
         if code == AResultCode.OK and result is None:
             raise ValueError("Must provide result when code is OK")
@@ -92,7 +92,7 @@ class AResult(Generic[T]):
         return self._code.get_http_code()
 
     def result(self) -> T:
-        return self._result
+        return cast(T, self._result)
 
     def message(self) -> str:
         return self._message

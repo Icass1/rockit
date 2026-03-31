@@ -3,10 +3,11 @@ import {
     ERepeatMode,
     SessionResponse,
     SessionResponseSchema,
+    UpdateLangRequestSchema,
 } from "@rockit/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createAtom } from "@/lib/store";
-import { baseApiFetch } from "@/lib/utils/apiFetch";
+import { apiPostFetch, baseApiFetch } from "@/lib/utils/apiFetch";
 
 export type QueueType = "SORTED" | "RANDOM";
 export type RepeatMode = "OFF" | "ONE" | "ALL";
@@ -51,6 +52,36 @@ export class UserManager {
         const currentIndex = modes.indexOf(current);
         const next = modes[(currentIndex + 1) % modes.length];
         this._repeatModeAtom.set(next);
+    }
+
+    async setLangAsync(langCode: string) {
+        try {
+            const res = await apiPostFetch<{ lang: string }>("/user/lang", {
+                lang: langCode,
+            });
+
+            if (!res.ok) {
+                rockIt.notificationManager.notifyError(
+                    "Failed to change language"
+                );
+                return false;
+            }
+
+            const sessionRes = await baseApiFetch("/session");
+            if (sessionRes?.ok) {
+                const json = await sessionRes.json();
+                const session = SessionResponseSchema.parse(json);
+                this._userAtom.set(session);
+            }
+
+            await rockIt.vocabularyManager.init();
+
+            return true;
+        } catch (e) {
+            console.warn("Error setting language:", e);
+            rockIt.notificationManager.notifyError("Failed to change language");
+            return false;
+        }
     }
 
     get queueTypeAtom() {

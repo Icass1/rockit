@@ -210,6 +210,10 @@ export {
     type UserSettingsResponse,
 } from "./userSettingsResponse";
 export {
+    UserStatsRequestSchema,
+    type UserStatsRequest,
+} from "./userStatsRequest";
+export {
     UserStatsResponseSchema,
     type UserStatsResponse,
 } from "./userStatsResponse";
@@ -225,6 +229,18 @@ export {
     YoutubeChannelResponseSchema,
     type YoutubeChannelResponse,
 } from "./youtubeChannelResponse";
+export {
+    YoutubeMusicAlbumResponseSchema,
+    type YoutubeMusicAlbumResponse,
+} from "./youtubeMusicAlbumResponse";
+export {
+    YoutubeMusicArtistResponseSchema,
+    type YoutubeMusicArtistResponse,
+} from "./youtubeMusicArtistResponse";
+export {
+    YoutubeMusicTrackResponseSchema,
+    type YoutubeMusicTrackResponse,
+} from "./youtubeMusicTrackResponse";
 export {
     YoutubeVideoResponseSchema,
     type YoutubeVideoResponse,

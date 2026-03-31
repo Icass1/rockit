@@ -176,8 +176,5 @@ export interface Vocabulary {
     YOU_MIGHT_LIKE: string;
     YOUR: string;
     YOUR_ALBUMS_PLAYLISTS: string;
-    YOUR_MIX: string;
     YT_VIDEOS: string;
-    FAILED_TO_CHANGE_LANGUAGE: string;
-    MINUTES_LISTENED: string;
 }

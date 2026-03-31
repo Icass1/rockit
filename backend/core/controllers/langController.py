@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List
 
 from fastapi import APIRouter, HTTPException, Request, Depends
 from logging import Logger
@@ -12,6 +12,7 @@ from backend.core.middlewares.authMiddleware import AuthMiddleware
 from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 
 from backend.core.framework.vocabulary import Vocabulary
+from backend.core.access.languageAccess import LanguageAccess
 
 from backend.core.access.db.ormModels.user import UserRow
 
@@ -79,3 +80,26 @@ async def get_user_vocabulary(request: Request) -> UserVocabularyResponse:
         vocabulary=a_result_vocabulary.result(),
         currentLang=a_result_user.result().language.lang_code,
     )
+
+
+@router.get("/languages")
+async def get_all_languages(request: Request) -> Dict[str, List[Dict[str, str]]]:
+    """Get all available languages."""
+
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+
+    a_result_languages = await LanguageAccess.get_all_languages(session=session)
+
+    if a_result_languages.is_not_ok():
+        logger.error(f"Error getting languages. {a_result_languages.info()}")
+        raise HTTPException(
+            status_code=a_result_languages.get_http_code(),
+            detail=a_result_languages.message(),
+        )
+
+    languages = [
+        {"langCode": lang.lang_code, "language": lang.language}
+        for lang in a_result_languages.result()
+    ]
+
+    return {"languages": languages}

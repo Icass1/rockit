@@ -1,86 +1,71 @@
-import { SessionResponse } from "@/dto";
-import { EQueueType } from "@/models/enums/queueType";
-import { ERepeatMode } from "@/models/enums/repeatMode";
-import { getUserInClient } from "@/lib/getUserInClient";
+import {
+    EQueueType,
+    ERepeatMode,
+    SessionResponse,
+    SessionResponseSchema,
+} from "@rockit/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createAtom } from "@/lib/store";
+import { baseApiFetch } from "@/lib/utils/apiFetch";
+
+export type QueueType = "SORTED" | "RANDOM";
+export type RepeatMode = "OFF" | "ONE" | "ALL";
 
 export class UserManager {
-    // #region: Atoms
-
-    private _queueTypeAtom = createAtom<EQueueType>(EQueueType.SORTED);
-    private _repeatModeAtom = createAtom<ERepeatMode>(ERepeatMode.OFF);
-
+    private _queueTypeAtom = createAtom<QueueType>("SORTED");
+    private _repeatModeAtom = createAtom<RepeatMode>("OFF");
     private _userAtom = createAtom<SessionResponse | undefined>();
 
-    // #endregion
-
-    // #region: Constructor
-
-    public async init() {
+    async init() {
         if (typeof window === "undefined") return;
-        const session = await getUserInClient();
-        if (!session) {
+
+        try {
+            const res = await baseApiFetch("/session");
+            if (res?.ok) {
+                const json = await res.json();
+                const session = SessionResponseSchema.parse(json);
+                this._userAtom.set(session);
+            }
+        } catch {
             console.warn("No session found in UserManager");
         }
-
-        this._userAtom.set(session);
     }
 
-    // #endregion
-
-    // #region: Methods
     toggleRandomQueue() {
-        const modes = Object.values(EQueueType).filter(
-            (v) => typeof v === "number"
-        ) as EQueueType[];
         const current = this._queueTypeAtom.get();
-        const next = modes[(modes.indexOf(current) + 1) % modes.length];
+        const next: QueueType = current === "SORTED" ? "RANDOM" : "SORTED";
         this._queueTypeAtom.set(next);
 
         if (!rockIt.queueManager.queue.length) return;
 
-        if (this._queueTypeAtom.get() == EQueueType.RANDOM) {
+        if (next === "RANDOM") {
             rockIt.queueManager.shuffleQueue();
-        } else if (this._queueTypeAtom.get() == EQueueType.SORTED) {
+        } else {
             rockIt.queueManager.restoreOriginalQueue();
         }
     }
 
-    cyclerepeatSong() {
-        const modes = Object.values(ERepeatMode).filter(
-            (v) => typeof v === "number"
-        ) as ERepeatMode[];
+    cycleRepeatMode() {
+        const modes: RepeatMode[] = ["OFF", "ONE", "ALL"];
         const current = this._repeatModeAtom.get();
-        const next = modes[(modes.indexOf(current) + 1) % modes.length];
+        const currentIndex = modes.indexOf(current);
+        const next = modes[(currentIndex + 1) % modes.length];
         this._repeatModeAtom.set(next);
     }
 
-    async setLangAsync(lang: string) {
-        console.log(lang);
-        throw "(setLangAsync) Method not implemented.";
-    }
-
-    async setCrossFadeAsync(crossFade: number) {
-        console.log(crossFade);
-        throw "(setCrossFadeAsync) Method not implemented.";
-    }
-
-    signOut() {}
-
-    // #endregion
-
-    // #region: Getters
-
     get queueTypeAtom() {
-        return this._queueTypeAtom;
+        return this._queueTypeAtom.getReadonlyAtom();
     }
 
     get repeatModeAtom() {
-        return this._repeatModeAtom;
+        return this._repeatModeAtom.getReadonlyAtom();
     }
 
     get userAtom() {
+        return this._userAtom.getReadonlyAtom();
+    }
+
+    get userAtomForDirectAccess() {
         return this._userAtom;
     }
 
@@ -88,5 +73,14 @@ export class UserManager {
         return this._userAtom.get();
     }
 
-    // #endregion
+    async signOut() {
+        try {
+            await baseApiFetch("/auth/logout", { method: "POST" });
+        } catch {
+            // Ignore logout errors
+        }
+        this._userAtom.set(undefined);
+        rockIt.searchManager.clearResults();
+        rockIt.currentListManager.clearCurrentList();
+    }
 }

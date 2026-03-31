@@ -1,55 +1,37 @@
-import { LikeMediaRequest } from "@/dto";
+import { LikeMediaRequest } from "@rockit/shared";
 import { createArrayAtom } from "@/lib/store";
 import { apiPostFetch, baseApiFetch } from "@/lib/utils/apiFetch";
 
 export class MediaManager {
-    // #region: Atoms
-
     private _likedMediaAtom = createArrayAtom<string>([]);
 
-    // #endregion: Atoms
-
-    // #region: Constructor
-
-    constructor() {}
-
-    // #endregion: Constructor
-
-    // #region: Methods
-
-    async fetchLikedMedia(): Promise<void> {
+    async fetchLikedMedia() {
         const res = await baseApiFetch("/user/like");
         if (!res?.ok) return;
         const data: string[] = await res.json();
-        this.likedMediaAtom.set(data);
+        this._likedMediaAtom.set(data);
     }
 
-    async toggleLikeMedia(mediaPublicId: string): Promise<void> {
-        const current = this.likedMediaAtom.get();
-        const isLiked = current.includes(mediaPublicId);
+    async toggleLikeMedia(publicId: string) {
+        const current = this._likedMediaAtom.get();
+        const isLiked = current.includes(publicId);
 
-        this.likedMediaAtom.set(
+        this._likedMediaAtom.set(
             isLiked
-                ? current.filter((id) => id !== mediaPublicId)
-                : [...current, mediaPublicId]
+                ? current.filter((id) => id !== publicId)
+                : [...current, publicId]
         );
 
         const res = await apiPostFetch<LikeMediaRequest>(`/user/like/media`, {
-            publicIds: [mediaPublicId],
+            publicIds: [publicId],
         });
 
         if (!res?.ok) {
-            this.likedMediaAtom.set(current);
+            this._likedMediaAtom.set(current);
         }
     }
-
-    // #endregion: Constructor
-
-    // #region: Getters
 
     get likedMediaAtom() {
         return this._likedMediaAtom;
     }
-
-    // #endregion: Getters
 }

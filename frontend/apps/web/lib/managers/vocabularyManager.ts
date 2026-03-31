@@ -1,35 +1,55 @@
-import { UserVocabularyResponse, UserVocabularyResponseSchema } from "@/dto";
-import { Vocabulary } from "@/types/vocabulary";
+import {
+    UserVocabularyResponse,
+    UserVocabularyResponseSchema,
+    type Vocabulary as VocabularyType,
+} from "@rockit/shared";
 import { createAtom } from "@/lib/store";
 import { apiFetch } from "@/lib/utils/apiFetch";
 
-function createVocabularyProxy(data: Record<string, string>): Vocabulary {
+function createVocabularyProxy(data: Record<string, string>): VocabularyType {
     return new Proxy(data, {
         get(target, prop: string) {
             return target[prop] ?? prop;
         },
-    }) as unknown as Vocabulary;
+    }) as unknown as VocabularyType;
 }
 
 export class VocabularyManager {
-    private _vocabularyAtom = createAtom<Vocabulary>(createVocabularyProxy({}));
+    private _vocabularyAtom = createAtom<VocabularyType>(
+        createVocabularyProxy({})
+    );
     private _langAtom = createAtom<string>("");
 
-    async getVocabulary() {
-        const data = await apiFetch(
-            "/vocabulary/user",
-            UserVocabularyResponseSchema
-        );
-        return data;
+    async init() {
+        try {
+            const data = await this.getVocabulary();
+            if (data) {
+                this.setVocabulary(data);
+            }
+        } catch {
+            // Vocabulary not available, likely no session
+        }
     }
 
-    async setVocabulary(data: UserVocabularyResponse) {
+    async getVocabulary() {
+        try {
+            const data = await apiFetch(
+                "/vocabulary/user",
+                UserVocabularyResponseSchema
+            );
+            return data;
+        } catch {
+            return null;
+        }
+    }
+
+    setVocabulary(data: UserVocabularyResponse) {
         this._vocabularyAtom.set(createVocabularyProxy(data.vocabulary));
         this._langAtom.set(data.currentLang);
     }
 
     get vocabularyAtom() {
-        return this._vocabularyAtom;
+        return this._vocabularyAtom.getReadonlyAtom();
     }
 
     get vocabulary() {
@@ -37,7 +57,7 @@ export class VocabularyManager {
     }
 
     get langAtom() {
-        return this._langAtom;
+        return this._langAtom.getReadonlyAtom();
     }
 
     get lang() {

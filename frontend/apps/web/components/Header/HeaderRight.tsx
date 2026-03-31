@@ -22,7 +22,8 @@ export default function HeaderRight() {
     }, []);
 
     const notificationCount =
-        rockIt.notificationManager.notifycationsAtom.get().length;
+        rockIt.notificationManager.notificationsAtomForDirectAccess.get()
+            .length;
 
     const closeNotifications = useCallback(
         () => setShowNotifications(false),

@@ -6,7 +6,10 @@ export default async function AppLayout({
 }: {
     children: React.ReactNode;
 }) {
-    const vocabulary = await rockIt.vocabularyManager.getVocabulary();
+    const vocabulary = (await rockIt.vocabularyManager.getVocabulary()) ?? {
+        vocabulary: {},
+        currentLang: "en",
+    };
 
     return (
         <AppClientLayout vocabulary={vocabulary}>{children}</AppClientLayout>

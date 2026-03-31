@@ -1,21 +1,9 @@
-import type { Station } from "@/types/station";
+import { type Station } from "@rockit/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createAtom } from "@/lib/store";
 
 export class StationManager {
-    // #region: Atoms
-
     private _currentStationAtom = createAtom<Station | undefined>();
-
-    // #endregion: Atoms
-
-    // #region: Constructor
-
-    constructor() {}
-
-    // #endregion: Constructor
-
-    // #region: Methods
 
     setAndPlayStation(station: Station): void {
         this._currentStationAtom.set(station);
@@ -28,13 +16,7 @@ export class StationManager {
         this._currentStationAtom.set(undefined);
     }
 
-    // #endregion: Methods
-
-    // #region: Getters
-
     get currentStationAtom() {
         return this._currentStationAtom.getReadonlyAtom();
     }
-
-    // #endregion: Getters
 }

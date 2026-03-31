@@ -1,7 +1,7 @@
 import { getMediaAudioSrc } from "@/types/media";
-import { ERepeatMode } from "@/models/enums/repeatMode";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createAtom } from "@/lib/store";
+import type { RepeatMode } from "./userManager";
 
 export class AudioManager {
     static #instance: AudioManager;
@@ -268,7 +268,7 @@ export class AudioManager {
             });
         }
 
-        if (repeat === ERepeatMode.ONE) {
+        if (repeat === "ONE") {
             this.play();
             return;
         }
@@ -281,7 +281,7 @@ export class AudioManager {
         if (nextIndex < queue.length) {
             rockIt.queueManager.setQueueMediaId(queue[nextIndex].queueMediaId);
             this.play();
-        } else if (repeat === ERepeatMode.ALL && queue.length > 0) {
+        } else if (repeat === "ALL" && queue.length > 0) {
             rockIt.queueManager.setQueueMediaId(queue[0].queueMediaId);
             this.play();
         } else {

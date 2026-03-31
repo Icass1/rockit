@@ -37,7 +37,7 @@ export class AuthManager {
             LoginResponseSchema.parse(JSON.parse(text));
 
             const session = await getUserInClient();
-            rockIt.userManager.userAtom.set(session);
+            rockIt.userManager.userAtomForDirectAccess.set(session);
 
             return { success: true };
         } catch (err) {
@@ -76,7 +76,7 @@ export class AuthManager {
             RegisterResponseSchema.parse(JSON.parse(text));
 
             const session = await getUserInClient();
-            rockIt.userManager.userAtom.set(session);
+            rockIt.userManager.userAtomForDirectAccess.set(session);
 
             return { success: true };
         } catch (err) {

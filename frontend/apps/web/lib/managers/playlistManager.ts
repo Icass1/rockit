@@ -1,17 +1,8 @@
-import { BaseSongWithAlbumResponse } from "@/dto";
-import { QueueListType } from "@/types/rockIt";
+import { BaseSongWithAlbumResponse, QueueListType } from "@rockit/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 export class PlaylistManager {
-    // #region: Constructor
-
-    constructor() {}
-
-    // #endregion
-
-    // #region: Methods
-
-    async playPlaylist(
+    static async playPlaylist(
         songs: BaseSongWithAlbumResponse[],
         listType: QueueListType,
         listPublicId: string,
@@ -19,12 +10,12 @@ export class PlaylistManager {
     ) {
         rockIt.queueManager.setMedia(songs, listType, listPublicId);
 
-        if (startSongPublicId)
+        if (startSongPublicId) {
             rockIt.queueManager.moveToMedia(startSongPublicId);
-        else rockIt.queueManager.setQueueMediaId(0);
+        } else {
+            rockIt.queueManager.setQueueMediaId(0);
+        }
 
         rockIt.audioManager.play();
     }
-
-    // #endregion
 }

@@ -1,38 +1,24 @@
-import { BaseSongWithAlbumResponse } from "@/dto";
+import { BaseSongWithAlbumResponse } from "@rockit/shared";
 import { createArrayAtom } from "@/lib/store";
 
 export class CurrentListManager {
-    // #region: Atoms
-
     private _currentListSongsAtom = createArrayAtom<BaseSongWithAlbumResponse>(
         []
     );
-
-    // #endregion: Atoms
-
-    // #region: Constructor
-
-    constructor() {}
-
-    // #endregion: Constructor
-
-    // #region: Methods
 
     setCurrentListSongs(songs: BaseSongWithAlbumResponse[]) {
         this._currentListSongsAtom.set(songs);
     }
 
-    // #endregion: Methods
-
-    // #region: Getters
+    clearCurrentList() {
+        this._currentListSongsAtom.set([]);
+    }
 
     get currentListSongsAtom() {
-        return this._currentListSongsAtom;
+        return this._currentListSongsAtom.getReadonlyAtom();
     }
 
     get currentListSongs() {
         return this._currentListSongsAtom.get();
     }
-
-    // #endregion: Getters
 }

@@ -10,15 +10,10 @@ import {
     SkipBack,
     SkipForward,
 } from "lucide-react";
+import { getMediaDuration } from "@/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
-import { getMediaDuration } from "@/types/media";
-import { EQueueType } from "@/models/enums/queueType";
-import { ERepeatMode } from "@/models/enums/repeatMode";
-import Slider from "@/components/Slider";
-import Spinner from "@/components/Spinner";
 
-// Shared button styles extracted as constants — easier to update globally
 const ICON_BTN =
     "cursor-pointer text-gray-400 transition-all md:hover:scale-105 md:hover:text-white";
 const ACTIVE = "text-[#ee1086]";
@@ -32,33 +27,30 @@ export default function FooterCenter() {
     const $repeatSong = useStore(rockIt.userManager.repeatModeAtom);
     const $currentStation = useStore(rockIt.stationManager.currentStationAtom);
 
-    // Station mode — hide playback controls, keep layout slot
     if ($currentStation) return <div className="hidden w-1/3 md:block" />;
 
-    const RepeatIcon = $repeatSong === ERepeatMode.ONE ? Repeat1 : Repeat;
-    const isRepeatActive =
-        $repeatSong === ERepeatMode.ONE || $repeatSong === ERepeatMode.ALL;
+    const RepeatIcon = $repeatSong === "ONE" ? Repeat1 : Repeat;
+    const isRepeatActive = $repeatSong === "ONE" || $repeatSong === "ALL";
 
     const repeatLabel =
-        $repeatSong === ERepeatMode.ONE
+        $repeatSong === "ONE"
             ? "Repeat one"
-            : $repeatSong === ERepeatMode.ALL
+            : $repeatSong === "ALL"
               ? "Repeat all"
               : "No repeat";
 
     return (
         <div className="hidden w-1/3 flex-col items-center justify-center space-y-1 md:flex">
-            {/* Playback controls */}
             <div className="grid grid-cols-5 items-center justify-items-center gap-2">
                 <button
                     aria-label={
                         $queueType ? "Disable shuffle" : "Enable shuffle"
                     }
-                    aria-pressed={$queueType === EQueueType.RANDOM}
+                    aria-pressed={$queueType === "RANDOM"}
                     onClick={() => rockIt.userManager.toggleRandomQueue()}
                 >
                     <Shuffle
-                        className={`h-4.5 w-4.5 transition-colors md:hover:scale-105 ${$queueType ? ACTIVE : "text-gray-400"}`}
+                        className={`h-4.5 w-4.5 transition-colors md:hover:scale-105 ${$queueType === "RANDOM" ? ACTIVE : "text-gray-400"}`}
                     />
                 </button>
 
@@ -72,7 +64,7 @@ export default function FooterCenter() {
                 </button>
 
                 {$loading ? (
-                    <Spinner />
+                    <CirclePlay className="h-8 w-8 animate-pulse text-gray-400" />
                 ) : (
                     <button
                         aria-label={$playing ? "Pause" : "Play"}
@@ -102,7 +94,7 @@ export default function FooterCenter() {
                 <button
                     aria-label={repeatLabel}
                     aria-pressed={isRepeatActive}
-                    onClick={() => rockIt.userManager.cyclerepeatSong()}
+                    onClick={() => rockIt.userManager.cycleRepeatMode()}
                 >
                     <RepeatIcon
                         className={`h-4.5 w-4.5 transition-colors md:hover:scale-105 ${isRepeatActive ? ACTIVE : "text-gray-400"}`}
@@ -115,11 +107,12 @@ export default function FooterCenter() {
                 <span className="min-w-6 text-xs font-semibold tabular-nums">
                     {getTime($currentTime ?? 0)}
                 </span>
-                <Slider
+                <input
+                    type="range"
                     id="default-slider"
                     aria-label="Song progress"
                     aria-valuetext={`${getTime($currentTime ?? 0)} of ${getTime(getMediaDuration($currentMedia) ?? 0)}`}
-                    className="relative h-1 w-full max-w-full min-w-0 rounded bg-neutral-700"
+                    className="h-1 w-full rounded bg-neutral-700 accent-[#ee1086]"
                     value={$currentTime ?? 0}
                     min={0}
                     max={getMediaDuration($currentMedia)}

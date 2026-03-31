@@ -1,54 +1,29 @@
-import { StartDownloadRequest } from "@/dto";
-import { DBListType, DownloadInfo } from "@/types/rockIt";
-import { RESPONSE_UNDEFINED_MESSAGE, rockIt } from "@/lib/rockit/rockIt";
+import { DBListType, StartDownloadRequest } from "@rockit/shared";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { createArrayAtom } from "@/lib/store";
 import { apiPostFetch } from "@/lib/utils/apiFetch";
 
-interface SongStatus {
+export interface DownloadInfo {
     publicId: string;
     message: string;
     completed: number;
+    status: "pending" | "downloading" | "done" | "error";
 }
 
 export class DownloaderManager {
-    // #region: Atoms
-
-    private _downloadedListsAtom = createArrayAtom<string>([]);
-    private _downloadedSongsAtom = createArrayAtom<string>([]);
-    private _downloadingListsAtom = createArrayAtom<{
-        type: DBListType;
-        publicId: string;
-    }>([]);
-    private _downloadingSongsAtom = createArrayAtom<string>([]);
-    private _downloadingSongsStatusAtom = createArrayAtom<SongStatus>([]);
     private _downloadInfoAtom = createArrayAtom<DownloadInfo>([]);
-
-    // #endregion: Getters
-
-    // #region: Constructor
-
-    constructor() {}
-
-    // #endregion
-
-    // #region: Methods
 
     async downloadMediaToDBAsync(publicIds: string[]) {
         const response = await apiPostFetch<StartDownloadRequest>(
             "/downloader/start-downloads",
             {
                 ids: publicIds,
-                title: "Download 1",
+                title: "Download",
             }
         );
 
-        if (!response) {
-            rockIt.notificationManager.notifyError(RESPONSE_UNDEFINED_MESSAGE);
-            return;
-        }
-        if (!response.ok) {
+        if (!response?.ok) {
             rockIt.notificationManager.notifyError("Unable to start download.");
-            return;
         }
     }
 
@@ -59,24 +34,34 @@ export class DownloaderManager {
             return;
         }
 
-        this._downloadInfoAtom.set([
-            ...this._downloadInfoAtom.get(),
-            {
-                publicId,
-                message: "In queue",
-                completed: 0,
-                selected: false,
-                status: "pending",
-            },
-        ]);
+        this._downloadInfoAtom.push({
+            publicId,
+            message: "In queue",
+            completed: 0,
+            status: "pending",
+        });
 
         await this.downloadMediaToDBAsync([publicId]);
     }
 
     clearCompleted() {
         const current = this._downloadInfoAtom.get();
-        const active = current.filter((d) => d.completed < 100);
-        this._downloadInfoAtom.set(active);
+        this._downloadInfoAtom.set(current.filter((d) => d.completed < 100));
+    }
+
+    updateDownloadProgress(
+        publicId: string,
+        completed: number,
+        message: string,
+        status: "pending" | "downloading" | "done" | "error"
+    ) {
+        const current = this._downloadInfoAtom.get();
+        const index = current.findIndex((d) => d.publicId === publicId);
+        if (index !== -1) {
+            const updated = [...current];
+            updated[index] = { publicId, completed, message, status };
+            this._downloadInfoAtom.set(updated);
+        }
     }
 
     private extractPublicId(url: string): string | null {
@@ -94,32 +79,7 @@ export class DownloaderManager {
         return null;
     }
 
-    // #endregion: Methods
-
-    // #region: Getters
-
-    get downloadedListsAtom() {
-        return this._downloadedListsAtom.getReadonlyAtom();
-    }
-
-    get downloadedSongsAtom() {
-        return this._downloadedSongsAtom.getReadonlyAtom();
-    }
-
-    get downloadingSongsStatusAtom() {
-        return this._downloadingSongsStatusAtom.getReadonlyAtom();
-    }
-
-    get downloadingListsAtom() {
-        return this._downloadingListsAtom.getReadonlyAtom();
-    }
-
-    get downloadingSongsAtom() {
-        return this._downloadingSongsAtom.getReadonlyAtom();
-    }
-
     get downloadInfoAtom() {
         return this._downloadInfoAtom.getReadonlyAtom();
     }
-    // #endregion: Getters
 }

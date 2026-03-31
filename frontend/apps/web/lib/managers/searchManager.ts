@@ -1,53 +1,37 @@
-import { SearchResultsResponse, SearchResultsResponseSchema } from "@/dto";
+import {
+    SearchResultsResponse,
+    SearchResultsResponseSchema,
+} from "@rockit/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createAtom } from "@/lib/store";
 import { baseApiFetch } from "@/lib/utils/apiFetch";
 
 export class SearchManager {
-    // #region Atoms
-
-    private _searchQueryAtom = createAtom<string>("");
+    private _queryAtom = createAtom<string>("");
     private _searchingAtom = createAtom<boolean>(false);
-    private _searchResultsAtom = createAtom<
-        SearchResultsResponse | undefined
-    >();
-
-    // #endregion
-
-    // Cancels the in-flight request when a new search fires
+    private _resultsAtom = createAtom<SearchResultsResponse | undefined>();
     private _abortController: AbortController | null = null;
-
-    // #region Methods
 
     async search(query: string) {
         this._abortController?.abort();
         this._abortController = new AbortController();
 
-        this._searchQueryAtom.set(query);
+        this._queryAtom.set(query);
         this._searchingAtom.set(true);
 
         try {
-            const [mediaRes] = await Promise.all([
-                baseApiFetch(`/media/search?q=${encodeURIComponent(query)}`, {
-                    signal: this._abortController.signal,
-                }),
-            ]);
+            const res = await baseApiFetch(
+                `/media/search?q=${encodeURIComponent(query)}`,
+                { signal: this._abortController.signal }
+            );
 
-            console.log(mediaRes);
-
-            let media: SearchResultsResponse | undefined;
-            console.log("1");
-            if (mediaRes?.ok) {
-                console.log("2");
-                const mediaJson = await mediaRes.json();
-                media = SearchResultsResponseSchema.parse(mediaJson);
+            if (res?.ok) {
+                const json = await res.json();
+                this._resultsAtom.set(SearchResultsResponseSchema.parse(json));
             }
-
-            console.log(media);
-            this._searchResultsAtom.set(media);
         } catch (e) {
-            rockIt.notificationManager.notifyError("Error searching music.");
             if (e instanceof Error && e.name === "AbortError") return;
+            rockIt.notificationManager.notifyError("Error searching music.");
         } finally {
             if (!this._abortController?.signal.aborted) {
                 this._searchingAtom.set(false);
@@ -58,24 +42,20 @@ export class SearchManager {
     clearResults() {
         this._abortController?.abort();
         this._abortController = null;
-        this._searchQueryAtom.set("");
-        this._searchResultsAtom.set(undefined);
+        this._queryAtom.set("");
+        this._resultsAtom.set(undefined);
         this._searchingAtom.set(false);
     }
 
-    // #endregion
-
-    // #region Getters
-
-    get searchQueryAtom() {
-        return this._searchQueryAtom;
+    get queryAtom() {
+        return this._queryAtom.getReadonlyAtom();
     }
-    get searchResultsAtom() {
-        return this._searchResultsAtom;
-    }
+
     get searchingAtom() {
-        return this._searchingAtom;
+        return this._searchingAtom.getReadonlyAtom();
     }
 
-    // #endregion
+    get resultsAtom() {
+        return this._resultsAtom.getReadonlyAtom();
+    }
 }

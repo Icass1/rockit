@@ -1,21 +1,43 @@
 import { createArrayAtom } from "@/lib/store";
 
-export class NotificationManager {
-    private _notificationsAtom = createArrayAtom<{
-        id: number;
-        message: string;
-    }>([]);
+export interface Notification {
+    id: number;
+    message: string;
+    type: "error" | "info" | "success";
+}
 
-    constructor() {}
+export class NotificationManager {
+    private _notificationsAtom = createArrayAtom<Notification>([]);
+    private _nextId = 0;
 
     notifyError(message: string) {
-        console.error(message);
-    }
-    notifyInfo(message: string) {
-        console.info(message);
+        const id = this._nextId++;
+        this._notificationsAtom.push({ id, message, type: "error" });
+        setTimeout(() => this.dismiss(id), 4000);
     }
 
-    get notifycationsAtom() {
+    notifyInfo(message: string) {
+        const id = this._nextId++;
+        this._notificationsAtom.push({ id, message, type: "info" });
+        setTimeout(() => this.dismiss(id), 4000);
+    }
+
+    notifySuccess(message: string) {
+        const id = this._nextId++;
+        this._notificationsAtom.push({ id, message, type: "success" });
+        setTimeout(() => this.dismiss(id), 4000);
+    }
+
+    dismiss(id: number) {
+        const current = this._notificationsAtom.get();
+        this._notificationsAtom.set(current.filter((n) => n.id !== id));
+    }
+
+    get notificationsAtom() {
+        return this._notificationsAtom.getReadonlyAtom();
+    }
+
+    get notificationsAtomForDirectAccess() {
         return this._notificationsAtom;
     }
 }

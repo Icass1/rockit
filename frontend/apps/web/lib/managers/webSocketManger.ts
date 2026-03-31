@@ -1,4 +1,5 @@
 import {
+    BACKEND_URL,
     CurrentMediaMessageRequest,
     CurrentQueueMessageRequest,
     CurrentTimeMessageRequest,
@@ -8,8 +9,7 @@ import {
     SeekMessageRequest,
     SkipClickedMessageRequest,
     type DownloadProgressMessage,
-} from "@/dto";
-import { BACKEND_URL } from "@/environment";
+} from "@rockit/shared";
 
 export type WebSocketMessageType =
     | "download_progress"
@@ -27,11 +27,23 @@ export class WebSocketManager {
     static #instance: WebSocketManager;
 
     private webSocket?: WebSocket;
-
-    private _init: boolean = false;
-
+    private _init = false;
     private _messageHandlers: Map<string, (message: WebSocketMessage) => void> =
         new Map();
+
+    private _onMessageHandler = (event: MessageEvent) => {
+        try {
+            const data = JSON.parse(event.data);
+            const parsed = DownloadProgressMessageSchema.parse(data);
+            const message: WebSocketMessage = parsed;
+            const handler = this._messageHandlers.get(message.type);
+            if (handler) {
+                handler(message);
+            }
+        } catch (error) {
+            console.warn("Error parsing WebSocket message:", error);
+        }
+    };
 
     constructor() {
         if (typeof window === "undefined") return;
@@ -54,35 +66,19 @@ export class WebSocketManager {
         this.webSocket = new WebSocket(`${BACKEND_URL}/ws`);
 
         this.webSocket.onopen = () => {
-            console.log("WebSocket connected");
+            this._init = true;
         };
 
-        this.webSocket.onmessage = (event) => {
-            try {
-                const data = JSON.parse(event.data);
-                const parsed = DownloadProgressMessageSchema.parse(data);
-                const message: WebSocketMessage = parsed;
-                console.log(message);
-                const handler = this._messageHandlers.get(message.type);
-                if (handler) {
-                    handler(message);
-                }
-            } catch (error) {
-                console.error("Error parsing WebSocket message:", error);
-            }
-        };
+        this.webSocket.onmessage = this._onMessageHandler;
 
-        this.webSocket.onclose = (event) => {
-            console.log("WebSocket closed:", event.code, event.reason);
+        this.webSocket.onclose = () => {
             this._init = false;
             this.attemptReconnect();
         };
 
-        this.webSocket.onerror = (error) => {
-            console.error("WebSocket error:", error);
+        this.webSocket.onerror = () => {
+            console.warn("WebSocket error");
         };
-
-        this._init = true;
     }
 
     private async attemptReconnect() {
@@ -95,34 +91,20 @@ export class WebSocketManager {
 
             try {
                 this.webSocket = new WebSocket(`${BACKEND_URL}/ws`);
+
                 this.webSocket.onopen = () => {
-                    console.log("WebSocket reconnected");
                     this._init = true;
                 };
-                this.webSocket.onmessage = (event) => {
-                    try {
-                        const data = JSON.parse(event.data);
-                        const parsed =
-                            DownloadProgressMessageSchema.parse(data);
-                        const message: WebSocketMessage = parsed;
-                        const handler = this._messageHandlers.get(message.type);
-                        if (handler) {
-                            handler(message);
-                        }
-                    } catch (error) {
-                        console.error(
-                            "Error parsing WebSocket message:",
-                            error
-                        );
-                    }
-                };
+
+                this.webSocket.onmessage = this._onMessageHandler;
+
                 this.webSocket.onclose = () => {
                     this._init = false;
                     this.attemptReconnect();
                 };
+
                 break;
-            } catch (error) {
-                console.error("Reconnection failed:", error);
+            } catch {
                 retries++;
             }
         }
@@ -130,15 +112,14 @@ export class WebSocketManager {
 
     async send(message: object) {
         if (!this.webSocket) {
-            console.warn("WebSocket not initialized");
-            return;
-        }
-
-        if (this.webSocket.readyState === WebSocket.CLOSED) {
             await this.init();
         }
 
-        if (this.webSocket.readyState === WebSocket.CONNECTING) {
+        if (this.webSocket?.readyState === WebSocket.CLOSED) {
+            await this.init();
+        }
+
+        if (this.webSocket?.readyState === WebSocket.CONNECTING) {
             await new Promise<void>((resolve) => {
                 const checkConnection = setInterval(() => {
                     if (this.webSocket?.readyState === WebSocket.OPEN) {
@@ -149,7 +130,7 @@ export class WebSocketManager {
             });
         }
 
-        this.webSocket.send(JSON.stringify(message));
+        this.webSocket?.send(JSON.stringify(message));
     }
 
     sendMediaEnded(data: MediaEndedMessageRequest) {

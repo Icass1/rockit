@@ -7,6 +7,7 @@ from backend.utils.logger import getLogger
 from backend.core.aResult import AResult, AResultCode
 
 from backend.core.framework.downloader.baseDownload import BaseDownload
+from backend.core.framework.websocket.webSocketManager import ws_manager
 
 from backend.youtube.framework.video import Video
 from backend.youtube.framework.youtubeDownloader import YouTubeDownloader
@@ -47,18 +48,44 @@ class YoutubeDownload(BaseDownload):
         logger.info(f"Downloading Youtube video with URL: {self.youtube_url}")
 
         try:
+            a_result_video = await Video.get_video_from_public_id_async(
+                session=session, public_id=self.public_id
+            )
+            video_title = self.public_id
+            video_artist = ""
+            if a_result_video.is_ok():
+                video = a_result_video.result()
+                video_title = video.name or self.public_id
+                if video.channel_id:
+                    from backend.youtube.access.youtubeAccess import YouTubeAccess
+
+                    a_result_channel = await YouTubeAccess.get_channel_id_async(
+                        session=session, id=video.channel_id
+                    )
+                    if a_result_channel.is_ok():
+                        video_artist = a_result_channel.result().name or ""
 
             filename: str = f"{self.youtube_video_id}_{self.download_id}"
 
             async def _progress_callback(progress: float, status: str):
-                await self.progress_callback(
-                    session=session, progress=progress, status=status
+                await ws_manager.broadcast_progress(
+                    user_id=self.user_id,
+                    download_id=self.download_id,
+                    public_id=self.public_id,
+                    title=video_title,
+                    artist=video_artist,
+                    status=status,
+                    progress=progress,
+                    message=f"{status}: {progress:.1f}%",
                 )
 
             a_result_download: AResult[str] = (
                 await YouTubeDownloader.download_as_mp4_async(
                     youtube_url=self.youtube_url,
                     download_id=self.download_id,
+                    public_id=self.public_id,
+                    title=video_title,
+                    artist=video_artist,
                     filename=filename,
                     user_id=self.user_id,
                     progress_callback=_progress_callback,
@@ -86,18 +113,17 @@ class YoutubeDownload(BaseDownload):
 
             shutil.move(downloaded_filename, final_path)
 
-            a_result_update: AResultCode = await Video.update_video_path_async(
-                session=session,
-                video_id=self.video_id,
-                video_path=final_relative_path,
-            )
-
-            if a_result_update.is_not_ok():
-                logger.error(f"Error updating video: {a_result_update.message()}")
-                return AResultCode(
-                    code=AResultCode.GENERAL_ERROR,
-                    message=f"Error updating video: {a_result_update.message()}",
+            try:
+                a_result_update: AResultCode = await Video.update_video_path_async(
+                    session=session,
+                    video_id=self.video_id,
+                    video_path=final_relative_path,
                 )
+
+                if a_result_update.is_not_ok():
+                    logger.warning(f"Could not update video path in DB: {a_result_update.message()}")
+            except Exception as e:
+                logger.warning(f"Could not update video path in DB: {e}")
 
             return AResultCode(code=AResultCode.OK, message="Download completed.")
 

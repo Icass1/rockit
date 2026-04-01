@@ -2,6 +2,7 @@ from logging import Logger
 from datetime import datetime, timezone
 
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.utils.safeAsyncCall import safe_async
@@ -46,6 +47,35 @@ class DownloadAccess:
         song_id: int,
     ) -> AResult[DownloadRow]:
         """Create a new download row for a single song and flush so its id is available."""
+
+        result = await session.execute(
+            select(DownloadRow)
+            .where(DownloadRow.media_id == song_id)
+            .where(DownloadRow.download_group_id == download_group_id)
+        )
+        existing = result.scalar_one_or_none()
+        if existing:
+            return AResult(code=AResultCode.OK, message="OK", result=existing)
+
+        result_any = await session.execute(
+            select(DownloadRow)
+            .where(DownloadRow.media_id == song_id)
+            .where(DownloadRow.status_key == 3)
+        )
+        existing_completed = result_any.scalar_one_or_none()
+        if existing_completed:
+            return AResult(
+                code=AResultCode.ALREADY_EXISTS,
+                message="Download already exists for this media",
+                result=existing_completed,
+            )
+
+        result_pending = await session.execute(
+            select(DownloadRow).where(DownloadRow.media_id == song_id)
+        )
+        existing_pending = result_pending.scalar_one_or_none()
+        if existing_pending:
+            return AResult(code=AResultCode.OK, message="OK", result=existing_pending)
 
         row: DownloadRow = DownloadRow(
             download_group_id=download_group_id,
@@ -175,6 +205,22 @@ class DownloadAccess:
             select(DownloadRow).where(
                 DownloadRow.download_group_id == download_group_id
             )
+        )
+        downloads: list[DownloadRow] = list(result.scalars().all())
+        return AResult(code=AResultCode.OK, message="OK", result=downloads)
+
+    @staticmethod
+    @safe_async
+    async def get_downloads_by_group_id_with_status(
+        session: AsyncSession,
+        download_group_id: int,
+    ) -> AResult[list[DownloadRow]]:
+        """Get all download rows for a download group with their status list."""
+
+        result = await session.execute(
+            select(DownloadRow)
+            .options(selectinload(DownloadRow.download_status_list))
+            .where(DownloadRow.download_group_id == download_group_id)
         )
         downloads: list[DownloadRow] = list(result.scalars().all())
         return AResult(code=AResultCode.OK, message="OK", result=downloads)

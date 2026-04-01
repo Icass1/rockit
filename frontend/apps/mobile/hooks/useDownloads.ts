@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { COLORS } from "@/constants/theme";
 import {
-    BaseSongWithAlbumResponseSchema,
     DownloadsResponseSchema,
+    MediaResponseSchema,
     OkResponseSchema,
     StartDownloadRequestSchema,
     StartDownloadResponseSchema,
@@ -93,6 +93,9 @@ export function useDownloads() {
                                     d.publicId === data.publicId
                                         ? {
                                               ...d,
+                                              title: data.title || d.title,
+                                              subtitle:
+                                                  data.artist || d.subtitle,
                                               status: message,
                                               completed,
                                               message,
@@ -100,13 +103,14 @@ export function useDownloads() {
                                         : d
                                 );
                             }
+                            if (!data.publicId) return prev;
                             return [
                                 ...prev,
                                 {
                                     publicId: data.publicId,
                                     groupId: "",
-                                    title: data.message,
-                                    subtitle: null,
+                                    title: data.title || data.publicId,
+                                    subtitle: data.artist || null,
                                     imageUrl: null,
                                     status: message,
                                     completed,
@@ -151,7 +155,7 @@ export function useDownloads() {
         try {
             const media = await apiGet(
                 `/media/url/add?url=${encodeURIComponent(url)}`,
-                BaseSongWithAlbumResponseSchema
+                MediaResponseSchema
             );
             const publicId = media.publicId;
 
@@ -183,6 +187,27 @@ export function useDownloads() {
             );
         }
         setDownloads((prev) => prev.filter((d) => d.completed !== 100));
+    };
+
+    const clearFailed = async () => {
+        const failedGroups = new Set(
+            downloads
+                .filter((d) => d.message === "Error" && d.groupId)
+                .map((d) => d.groupId)
+        );
+        for (const groupId of failedGroups) {
+            try {
+                await apiPost(
+                    `/downloader/downloads/${groupId}/seen`,
+                    StartDownloadRequestSchema,
+                    { ids: [], title: "" },
+                    OkResponseSchema
+                );
+            } catch {
+                // Ignore API errors, filter locally anyway
+            }
+        }
+        setDownloads((prev) => prev.filter((d) => d.message !== "Error"));
     };
 
     const active = downloads.filter(
@@ -230,5 +255,6 @@ export function useDownloads() {
         failed,
         startDownload,
         clearCompleted,
+        clearFailed,
     };
 }

@@ -80,6 +80,14 @@ class Downloader:
                 )
             )
             if a_result_download.is_not_ok():
+                if a_result_download.code() == AResultCode.ALREADY_EXISTS:
+                    existing_download = a_result_download.result()
+                    if existing_download.status_key == 3:
+                        logger.info(f"Download already completed for {public_id}, skipping")
+                        continue
+                    if existing_download.status_key in [1, 2, 5, 6, 7]:
+                        logger.info(f"Download already in progress for {public_id}, skipping")
+                        continue
                 logger.error(
                     f"Error creating download row for {public_id}. {a_result_download.info()}"
                 )
@@ -143,7 +151,7 @@ class Downloader:
 
         for group in groups:
             a_result_downloads: AResult[list[DownloadRow]] = (
-                await DownloadAccess.get_downloads_by_group_id(
+                await DownloadAccess.get_downloads_by_group_id_with_status(
                     session=session, download_group_id=group.id
                 )
             )
@@ -192,6 +200,8 @@ class Downloader:
                                 video = a_result_video.result()
                                 media_name = video.name
                                 image_url = video.imageUrl
+                                if video.artists:
+                                    subtitle = video.artists[0].name
 
                     status_message: str = STATUS_MESSAGES.get(
                         download.status_key, "Unknown"
@@ -207,10 +217,13 @@ class Downloader:
                         )
 
                     download_date: str = ""
-                    if download.download_status_list:
-                        last_status: DownloadStatusRow = download.download_status_list[-1]
-                        if last_status.date_added:
-                            download_date = last_status.date_added.isoformat()
+                    try:
+                        if download.download_status_list:
+                            last_status: DownloadStatusRow = download.download_status_list[-1]
+                            if last_status.date_added:
+                                download_date = last_status.date_added.isoformat()
+                    except Exception:
+                        pass
 
                     items.append(
                         DownloadItemResponse(

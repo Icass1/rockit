@@ -7,9 +7,10 @@ import DownloadItem from "./DownloadItem";
 
 interface DownloadGroupProps {
     group: DownloadGroupType;
+    onClear?: () => void;
 }
 
-export default function DownloadGroup({ group }: DownloadGroupProps) {
+export default function DownloadGroup({ group, onClear }: DownloadGroupProps) {
     const [isOpen, setIsOpen] = useState(group.isOpen);
 
     if (group.items.length === 0) return null;
@@ -43,6 +44,21 @@ export default function DownloadGroup({ group }: DownloadGroupProps) {
                     <Text style={styles.label}>{group.label}</Text>
                 </View>
                 <View style={styles.headerRight}>
+                    {onClear && (
+                        <Pressable
+                            onPress={(e) => {
+                                e.stopPropagation();
+                                onClear();
+                            }}
+                            hitSlop={8}
+                        >
+                            <Feather
+                                name="trash-2"
+                                size={14}
+                                color={COLORS.white}
+                            />
+                        </Pressable>
+                    )}
                     <View
                         style={[
                             styles.badge,

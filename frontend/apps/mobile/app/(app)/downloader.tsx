@@ -11,9 +11,25 @@ import {
 import { Header, PageContainer, SectionTitle } from "@/components/layout";
 
 export default function DownloaderScreen() {
-    const { vocabulary } = useVocabulary();
-    const { groups, total, active, completed, failed, startDownload } =
-        useDownloads();
+    const { vocabulary, isLoading: vocabLoading } = useVocabulary();
+    const {
+        groups,
+        total,
+        active,
+        completed,
+        failed,
+        startDownload,
+        clearFailed,
+    } = useDownloads();
+
+    if (vocabLoading) {
+        return (
+            <>
+                <Header />
+                <PageContainer />
+            </>
+        );
+    }
 
     return (
         <>
@@ -47,6 +63,11 @@ export default function DownloaderScreen() {
                             <DownloadGroup
                                 key={`${group.id}-${groupIndex}`}
                                 group={group}
+                                onClear={
+                                    group.id === "failed"
+                                        ? clearFailed
+                                        : undefined
+                                }
                             />
                         ))}
                     </View>
@@ -73,5 +94,18 @@ const styles = StyleSheet.create({
     },
     groups: {
         gap: 8,
+    },
+    clearButton: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 6,
+        paddingVertical: 8,
+        paddingHorizontal: 16,
+        marginTop: 8,
+    },
+    clearButtonText: {
+        fontSize: 13,
+        color: COLORS.gray400,
     },
 });

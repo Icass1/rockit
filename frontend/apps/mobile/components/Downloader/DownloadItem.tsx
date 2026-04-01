@@ -29,12 +29,19 @@ export default function DownloadItem({ item }: DownloadItemProps) {
     const progressWidth =
         item.message === "Error" ? 100 : Math.min(completed, 100);
 
+    const hasImage = item.imageUrl && item.imageUrl.length > 0;
+
     return (
         <View style={styles.container}>
-            <View style={styles.imageContainer}>
-                {item.imageUrl ? (
+            <View
+                style={[
+                    styles.imageContainer,
+                    hasImage && styles.imageContainerFilled,
+                ]}
+            >
+                {hasImage ? (
                     <Image
-                        source={{ uri: item.imageUrl }}
+                        source={{ uri: item.imageUrl! }}
                         style={styles.image}
                         contentFit="cover"
                         transition={200}
@@ -90,7 +97,9 @@ const styles = StyleSheet.create({
         height: 44,
         borderRadius: 6,
         overflow: "hidden",
-        backgroundColor: COLORS.bgCardLight,
+    },
+    imageContainerFilled: {
+        backgroundColor: COLORS.bgCard,
     },
     image: {
         width: "100%",

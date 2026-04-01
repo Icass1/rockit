@@ -76,6 +76,8 @@ class YouTube:
             image_url: str = ""
             if a_result_internal_image.is_ok():
                 image_url = f"{BACKEND_URL}/media/image/{a_result_internal_image.result().public_id}"
+            else:
+                image_url = f"https://i.ytimg.com/vi/{video_row.youtube_id}/maxresdefault.jpg"
 
             channel_response: YoutubeChannelResponse | None = None
             if channel:
@@ -88,6 +90,8 @@ class YouTube:
                     )
                     if a_result_channel_image.is_ok():
                         channel_internal_image_url = f"{BACKEND_URL}/media/image/{a_result_channel_image.result().public_id}"
+                    else:
+                        channel_internal_image_url = channel.image_url or ""
 
                 channel_response = YoutubeChannelResponse(
                     provider=YouTube.provider_name,
@@ -265,6 +269,8 @@ class YouTube:
         image_url: str = ""
         if a_result_internal_image.is_ok():
             image_url = f"{BACKEND_URL}/media/image/{a_result_internal_image.result().public_id}"
+        else:
+            image_url = f"https://i.ytimg.com/vi/{video_row.youtube_id}/maxresdefault.jpg"
 
         channel_response: YoutubeChannelResponse | None = None
         if fetched_channel:
@@ -277,6 +283,8 @@ class YouTube:
                 )
                 if a_result_channel_image.is_ok():
                     channel_internal_image_url = f"{BACKEND_URL}/media/image/{a_result_channel_image.result().public_id}"
+                else:
+                    channel_internal_image_url = fetched_channel.image_url or ""
 
             channel_response = YoutubeChannelResponse(
                 provider=YouTube.provider_name,

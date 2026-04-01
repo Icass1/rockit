@@ -53,6 +53,9 @@ class BaseDownload:
         await ws_manager.broadcast_progress(
             user_id=self.user_id,
             download_id=self.download_id,
+            public_id=self.public_id,
+            title=self.public_id,
+            artist="",
             status=status,
             progress=progress,
             message=message,

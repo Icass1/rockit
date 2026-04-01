@@ -2,7 +2,6 @@ from logging import Logger
 from datetime import datetime, timezone
 
 from sqlalchemy import select
-from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.utils.safeAsyncCall import safe_async
@@ -176,22 +175,6 @@ class DownloadAccess:
             select(DownloadRow).where(
                 DownloadRow.download_group_id == download_group_id
             )
-        )
-        downloads: list[DownloadRow] = list(result.scalars().all())
-        return AResult(code=AResultCode.OK, message="OK", result=downloads)
-
-    @staticmethod
-    @safe_async
-    async def get_downloads_by_group_id_with_status(
-        session: AsyncSession,
-        download_group_id: int,
-    ) -> AResult[list[DownloadRow]]:
-        """Get all download rows for a download group with their status list."""
-
-        result = await session.execute(
-            select(DownloadRow)
-            .options(selectinload(DownloadRow.download_status_list))
-            .where(DownloadRow.download_group_id == download_group_id)
         )
         downloads: list[DownloadRow] = list(result.scalars().all())
         return AResult(code=AResultCode.OK, message="OK", result=downloads)

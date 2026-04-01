@@ -1,6 +1,7 @@
 import React, { createContext, useCallback, useContext, useState } from "react";
 import type { BaseSongWithAlbumResponse } from "@rockit/shared";
-import { useAudioEngine } from "@/lib/audio/useAudioEngine";
+import { DEFAULT_CROSSFADE, useAudioEngine } from "@/lib/audio/useAudioEngine";
+import type { CrossfadeSettings } from "@/lib/audio/useAudioEngine";
 import { useQueue } from "@/lib/audio/useQueue";
 import type { RepeatMode } from "@/lib/audio/useQueue";
 
@@ -15,6 +16,8 @@ interface PlayerContextType {
     isPlayerVisible: boolean;
     shuffle: boolean;
     repeatMode: RepeatMode;
+    crossfadeSettings: CrossfadeSettings;
+    updateCrossfadeSettings: (s: Partial<CrossfadeSettings>) => void;
 
     playMedia: (
         media: BaseSongWithAlbumResponse,
@@ -42,6 +45,8 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
     const [isPlayerVisible, setIsPlayerVisible] = useState(false);
+    const [crossfadeSettings, setCrossfadeSettings] =
+        useState<CrossfadeSettings>(DEFAULT_CROSSFADE);
 
     const queue = useQueue();
     const engine = useAudioEngine({
@@ -52,6 +57,11 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         onPlayingChange: setIsPlaying,
         onLoadStart: () => setIsLoading(true),
         onLoaded: () => setIsLoading(false),
+        getNextUri: () => {
+            const nextIndex = queue.getNextIndex();
+            if (nextIndex === null) return null;
+            return queue.queue[nextIndex]?.audioSrc ?? null;
+        },
         onEnded: () => {
             const { action, index } = queue.resolveOnEnd();
             if (action === "replay") {
@@ -60,10 +70,18 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
                 const nextMedia = queue.queue[index];
                 if (nextMedia?.audioSrc) {
                     queue.setCurrentIndex(index);
-                    engine.loadAndPlay(nextMedia.audioSrc);
+                    engine.loadAndPlay(nextMedia.audioSrc, true);
                 }
             } else {
                 setIsPlaying(false);
+            }
+        },
+        onAutoAdvance: () => {
+            const { index } = queue.resolveOnEnd();
+            if (index !== null) {
+                queue.setCurrentIndex(index);
+                setCurrentTime(0);
+                setDuration(0);
             }
         },
     });
@@ -79,7 +97,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
             queue.setQueueAndPlay(media, newQueue);
             setCurrentTime(0);
             setDuration(0);
-            await engine.loadAndPlay(media.audioSrc);
+            await engine.loadAndPlay(media.audioSrc, false);
             setIsPlayerVisible(true);
         },
         [engine, queue]
@@ -118,7 +136,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         if (!nextMedia?.audioSrc) return;
         queue.setCurrentIndex(nextIndex);
         setCurrentTime(0);
-        await engine.loadAndPlay(nextMedia.audioSrc);
+        await engine.loadAndPlay(nextMedia.audioSrc, true);
     }, [engine, queue]);
 
     const skipBack = useCallback(async () => {
@@ -135,11 +153,19 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         if (!prevMedia?.audioSrc) return;
         queue.setCurrentIndex(prevIndex);
         setCurrentTime(0);
-        await engine.loadAndPlay(prevMedia.audioSrc);
+        await engine.loadAndPlay(prevMedia.audioSrc, true);
     }, [currentTime, engine, queue, seekTo]);
 
     const showPlayer = useCallback(() => setIsPlayerVisible(true), []);
     const hidePlayer = useCallback(() => setIsPlayerVisible(false), []);
+
+    const updateCrossfadeSettings = useCallback(
+        (settings: Partial<CrossfadeSettings>) => {
+            engine.updateCrossfadeSettings(settings);
+            setCrossfadeSettings((prev) => ({ ...prev, ...settings }));
+        },
+        [engine]
+    );
 
     return (
         <PlayerContext.Provider
@@ -154,6 +180,8 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
                 isPlayerVisible,
                 shuffle: queue.shuffle,
                 repeatMode: queue.repeatMode,
+                crossfadeSettings,
+                updateCrossfadeSettings,
                 playMedia,
                 pause,
                 play,

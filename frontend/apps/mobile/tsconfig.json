@@ -14,5 +14,6 @@
         ".expo/types/**/*.ts",
         "expo-env.d.ts",
         "../../packages/shared/src/dto/*.ts"
-    ]
+    ],
+    "exclude": ["node_modules"]
 }

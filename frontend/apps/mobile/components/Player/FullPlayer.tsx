@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import { COLORS } from "@/constants/theme";
 import { Feather } from "@expo/vector-icons";
+import BottomSheet from "@gorhom/bottom-sheet";
 import { Image } from "expo-image";
 import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
@@ -13,6 +14,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { usePlayer } from "@/lib/PlayerContext";
+import CrossfadeSettings from "./CrossfadeSettings";
 import PlayerControls from "./PlayerControls";
 import PlayerCover from "./PlayerCover";
 import PlayerLyrics from "./PlayerLyrics";
@@ -41,6 +43,7 @@ export default function FullPlayer() {
     const translateY = useSharedValue(SCREEN_HEIGHT);
     const queueSheetRef = useRef<any>(null);
     const lyricsSheetRef = useRef<any>(null);
+    const crossfadeSheetRef = useRef<any>(null);
     const subPanelOpen = useRef(false);
 
     useEffect(() => {
@@ -87,6 +90,11 @@ export default function FullPlayer() {
     const openLyrics = useCallback(() => {
         subPanelOpen.current = true;
         lyricsSheetRef.current?.expand();
+    }, []);
+
+    const openCrossfade = useCallback(() => {
+        subPanelOpen.current = true;
+        crossfadeSheetRef.current?.expand();
     }, []);
 
     if (!currentMedia && !isPlayerVisible) return null;
@@ -217,13 +225,18 @@ export default function FullPlayer() {
                                 />
                                 <Text style={styles.actionLabel}>Lyrics</Text>
                             </Pressable>
-                            <Pressable style={styles.actionButton}>
+                            <Pressable
+                                style={styles.actionButton}
+                                onPress={openCrossfade}
+                            >
                                 <Feather
-                                    name="radio"
+                                    name="sliders"
                                     size={20}
                                     color="rgba(255,255,255,0.7)"
                                 />
-                                <Text style={styles.actionLabel}>Related</Text>
+                                <Text style={styles.actionLabel}>
+                                    Crossfade
+                                </Text>
                             </Pressable>
                         </View>
                     </Animated.View>
@@ -232,6 +245,36 @@ export default function FullPlayer() {
 
             <PlayerQueue sheetRef={queueSheetRef} />
             <PlayerLyrics sheetRef={lyricsSheetRef} />
+            <BottomSheet
+                ref={crossfadeSheetRef}
+                index={-1}
+                snapPoints={["35%"]}
+                enablePanDownToClose
+                backgroundStyle={{
+                    backgroundColor: "#1c1c1e",
+                    borderTopLeftRadius: 20,
+                    borderTopRightRadius: 20,
+                }}
+                handleIndicatorStyle={{
+                    backgroundColor: "rgba(255,255,255,0.25)",
+                    width: 36,
+                }}
+                containerStyle={{ zIndex: 200, elevation: 200 }}
+            >
+                <View style={{ paddingHorizontal: 20, paddingTop: 8 }}>
+                    <Text
+                        style={{
+                            fontSize: 18,
+                            fontWeight: "700",
+                            color: "#fff",
+                            marginBottom: 12,
+                        }}
+                    >
+                        Crossfade
+                    </Text>
+                    <CrossfadeSettings />
+                </View>
+            </BottomSheet>
         </>
     );
 }

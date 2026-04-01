@@ -48,6 +48,7 @@ export function useQueue(): UseQueueReturn {
     const currentIndexRef = useRef(currentIndex);
     const shuffleRef = useRef(shuffle);
     const repeatRef = useRef(repeatMode);
+    const originalQueueRef = useRef<BaseSongWithAlbumResponse[]>([]);
 
     queueRef.current = queue;
     currentIndexRef.current = currentIndex;
@@ -128,11 +129,23 @@ export function useQueue(): UseQueueReturn {
             const next = !s;
             if (next) {
                 const q = queueRef.current;
+                originalQueueRef.current = [...q];
                 const items = toQueueItems(q);
                 const shuffled = shuffleQueue(items, currentIndexRef.current);
                 const newQueue = shuffled.map((item) => q[item.queueMediaId]);
                 setQueue(newQueue);
                 setCurrentIndex(0);
+            } else {
+                const original = originalQueueRef.current;
+                if (original.length > 0) {
+                    setQueue(original);
+                    const currentPublicId =
+                        queueRef.current[currentIndexRef.current]?.publicId;
+                    const restoredIndex = original.findIndex(
+                        (m) => m.publicId === currentPublicId
+                    );
+                    setCurrentIndex(restoredIndex >= 0 ? restoredIndex : 0);
+                }
             }
             return next;
         });

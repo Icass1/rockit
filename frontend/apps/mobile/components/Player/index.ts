@@ -6,3 +6,4 @@ export { default as PlayerProgress } from "./PlayerProgress";
 export { default as PlayerQueue } from "./PlayerQueue";
 export { default as PlayerLyrics } from "./PlayerLyrics";
 export { default as QueueItem } from "./QueueItem";
+export { default as CrossfadeSettings } from "./CrossfadeSettings";

@@ -31,6 +31,7 @@ from backend.core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongs
 from backend.core.responses.baseAlbumWithoutSongsResponse import (
     BaseAlbumWithoutSongsResponse,
 )
+from backend.core.responses.baseVideoResponse import BaseVideoResponse
 from backend.core.access.db.ormModels.language import LanguageRow
 
 logger = getLogger(__name__)
@@ -179,6 +180,20 @@ class User:
                     continue
 
                 library_medias.append(a_result_song.result())
+
+            elif media.media_type_key == MediaTypeEnum.VIDEO.value:
+                a_result_video: AResult[BaseVideoResponse] = (
+                    await provider_instance.get_video_async(
+                        session=session, public_id=media.public_id
+                    )
+                )
+                if a_result_video.is_not_ok():
+                    logger.error(
+                        f"Error getting video from provider. {a_result_video.info()}"
+                    )
+                    continue
+
+                library_medias.append(a_result_video.result())
 
         return AResult(code=AResultCode.OK, message="OK", result=library_medias)
 

@@ -32,6 +32,7 @@ from backend.core.responses.baseAlbumWithoutSongsResponse import (
 )
 from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
 from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
+from backend.core.responses.baseVideoResponse import BaseVideoResponse
 from backend.core.responses.userSettingsResponse import UserSettingsResponse
 from backend.core.requests.updateLangRequest import UpdateLangRequest
 from backend.core.requests.updateCrossfadeRequest import UpdateCrossfadeRequest
@@ -115,6 +116,7 @@ async def get_library_lists(request: Request) -> LibraryListsResponse:
             BaseAlbumWithoutSongsResponse
             | BasePlaylistResponse
             | BaseSongWithAlbumResponse
+            | BaseVideoResponse
         ]
     ] = await User.get_user_library_medias(
         session=session, user_id=a_result_user.result().id
@@ -128,7 +130,7 @@ async def get_library_lists(request: Request) -> LibraryListsResponse:
         )
 
     library_media: List[
-        BaseAlbumWithoutSongsResponse | BasePlaylistResponse | BaseSongWithAlbumResponse
+        BaseAlbumWithoutSongsResponse | BasePlaylistResponse | BaseSongWithAlbumResponse | BaseVideoResponse
     ] = a_result_albums.result()
 
     albums: List[BaseAlbumWithoutSongsResponse] = (
@@ -146,12 +148,17 @@ async def get_library_lists(request: Request) -> LibraryListsResponse:
         if library_media
         else []
     )
+    videos: List[BaseVideoResponse] = (
+        [m for m in library_media if isinstance(m, BaseVideoResponse)]
+        if library_media
+        else []
+    )
 
     return LibraryListsResponse(
         albums=albums,
         playlists=playlists,
         songs=songs,
-        videos=[],
+        videos=videos,
         stations=[],
         shared=[],
     )

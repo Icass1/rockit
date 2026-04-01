@@ -16,6 +16,7 @@ export default function SectionTitle({ children }: SectionTitleProps) {
 const styles = StyleSheet.create({
     container: {
         marginVertical: 12,
+        paddingHorizontal: 16,
     },
     title: {
         color: COLORS.gray600,

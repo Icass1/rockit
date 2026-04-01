@@ -10,11 +10,13 @@ import { LibraryScreen } from "@/components/Library";
 export default function LibraryPage() {
     const [sortMode] = useState<FilterMode>("default");
 
-    const { albums, playlists, songs, loading, error } = useLibraryData({
-        filterMode: sortMode,
-        searchQuery: "",
-        activeType: "all",
-    });
+    const { albums, playlists, songs, videos, loading, error } = useLibraryData(
+        {
+            filterMode: sortMode,
+            searchQuery: "",
+            activeType: "all",
+        }
+    );
 
     if (loading) {
         return (
@@ -41,11 +43,12 @@ export default function LibraryPage() {
     return (
         <>
             <Header />
-            <PageContainer>
+            <PageContainer horizontalPadding={0}>
                 <LibraryScreen
                     albums={albums}
                     playlists={playlists}
                     songs={songs}
+                    videos={videos}
                     loading={loading}
                 />
             </PageContainer>

@@ -60,11 +60,11 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
     },
     scrollContent: {
-        gap: 8,
+        gap: 4,
     },
     tab: {
-        paddingHorizontal: 16,
-        paddingVertical: 8,
+        paddingHorizontal: 14,
+        paddingVertical: 10,
         borderRadius: 999,
         backgroundColor: COLORS.bgCard,
     },

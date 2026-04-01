@@ -72,6 +72,12 @@ export function useLibraryData(options: {
                     imageUrl: s.imageUrl,
                     type: "song",
                 })),
+                ...data.videos.map((v) => ({
+                    name: v.name,
+                    publicId: v.publicId,
+                    imageUrl: v.imageUrl,
+                    type: "video",
+                })),
             ];
         } else if (options.activeType === "albums") {
             items = data.albums.map((a) => ({
@@ -93,6 +99,13 @@ export function useLibraryData(options: {
                 publicId: s.publicId,
                 imageUrl: s.imageUrl,
                 type: "song",
+            }));
+        } else if (options.activeType === "videos") {
+            items = data.videos.map((v) => ({
+                name: v.name,
+                publicId: v.publicId,
+                imageUrl: v.imageUrl,
+                type: "video",
             }));
         }
 

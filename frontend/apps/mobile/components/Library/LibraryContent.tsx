@@ -3,18 +3,22 @@ import type {
     BaseAlbumWithoutSongsResponse,
     BasePlaylistResponse,
     BaseSongWithoutAlbumResponse,
+    BaseVideoResponse,
 } from "@rockit/shared";
-import { StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import type { ContentType } from "@/hooks/useLibraryData";
 import { useVocabulary } from "@/lib/vocabulary";
 import SectionTitle from "@/components/layout/SectionTitle";
 import LibraryGrid from "@/components/Library/LibraryGrid";
 import LibraryListView from "@/components/Library/LibraryListView";
+import MediaCard from "@/components/Media/MediaCard";
+import MediaRow from "@/components/Media/MediaRow";
 
 interface LibraryContentProps {
     albums: BaseAlbumWithoutSongsResponse[];
     playlists: BasePlaylistResponse[];
     songs: BaseSongWithoutAlbumResponse[];
+    videos: BaseVideoResponse[];
     activeType: ContentType;
     viewMode: "grid" | "list";
 }
@@ -27,6 +31,8 @@ function getHref(type: string, publicId: string): string {
             return `/playlist/${publicId}`;
         case "song":
             return `/song/${publicId}`;
+        case "video":
+            return `/video/${publicId}`;
         default:
             return `/`;
     }
@@ -53,6 +59,7 @@ export default function LibraryContent({
     albums,
     playlists,
     songs,
+    videos,
     activeType,
     viewMode,
 }: LibraryContentProps) {
@@ -77,41 +84,89 @@ export default function LibraryContent({
         }));
 
     if (activeType === "all") {
+        const sections = [
+            ...(albums.length > 0
+                ? [
+                      {
+                          title: vocabulary.ALBUMS,
+                          data: gridItems(albums, "album"),
+                          renderType: viewMode as "grid" | "list",
+                      },
+                  ]
+                : []),
+            ...(playlists.length > 0
+                ? [
+                      {
+                          title: vocabulary.PLAYLISTS,
+                          data: gridItems(playlists, "playlist"),
+                          renderType: viewMode as "grid" | "list",
+                      },
+                  ]
+                : []),
+            ...(songs.length > 0
+                ? [
+                      {
+                          title: vocabulary.SONGS,
+                          data: listItems(songs, "song"),
+                          renderType: viewMode as "grid" | "list",
+                      },
+                  ]
+                : []),
+            ...(videos.length > 0
+                ? [
+                      {
+                          title: vocabulary.VIDEOS,
+                          data: listItems(videos, "video"),
+                          renderType: viewMode as "grid" | "list",
+                      },
+                  ]
+                : []),
+        ];
+
         return (
-            <View style={styles.container}>
-                {albums.length > 0 && (
-                    <View style={styles.section}>
-                        <SectionTitle>{vocabulary.ALBUMS}</SectionTitle>
-                        {viewMode === "grid" ? (
-                            <LibraryGrid items={gridItems(albums, "album")} />
+            <ScrollView
+                style={styles.container}
+                contentContainerStyle={styles.sectionListContent}
+                showsVerticalScrollIndicator={false}
+            >
+                {sections.map((section) => (
+                    <View key={section.title} style={styles.sectionWrapper}>
+                        <View style={styles.section}>
+                            <SectionTitle>{section.title}</SectionTitle>
+                        </View>
+                        {section.renderType === "grid" ? (
+                            <View style={styles.gridContainer}>
+                                {section.data.map((item, index) => (
+                                    <View
+                                        key={item.publicId}
+                                        style={styles.gridItemContainer}
+                                    >
+                                        <MediaCard
+                                            imageUrl={item.imageUrl}
+                                            title={item.name}
+                                            subtitle={item.subtitle}
+                                            href={item.href}
+                                        />
+                                    </View>
+                                ))}
+                            </View>
                         ) : (
-                            <LibraryListView
-                                items={listItems(albums, "album")}
-                            />
+                            <View>
+                                {section.data.map((item) => (
+                                    <MediaRow
+                                        key={item.publicId}
+                                        imageUrl={item.imageUrl}
+                                        title={item.name}
+                                        subtitle={item.subtitle}
+                                        href={item.href}
+                                    />
+                                ))}
+                            </View>
                         )}
                     </View>
-                )}
-                {playlists.length > 0 && (
-                    <View style={styles.section}>
-                        <SectionTitle>{vocabulary.PLAYLISTS}</SectionTitle>
-                        {viewMode === "grid" ? (
-                            <LibraryGrid
-                                items={gridItems(playlists, "playlist")}
-                            />
-                        ) : (
-                            <LibraryListView
-                                items={listItems(playlists, "playlist")}
-                            />
-                        )}
-                    </View>
-                )}
-                {songs.length > 0 && (
-                    <View style={styles.section}>
-                        <SectionTitle>{vocabulary.SONGS}</SectionTitle>
-                        <LibraryListView items={listItems(songs, "song")} />
-                    </View>
-                )}
-            </View>
+                ))}
+                <View style={{ height: 100 }} />
+            </ScrollView>
         );
     }
 
@@ -125,6 +180,9 @@ export default function LibraryContent({
             break;
         case "songs":
             items = songs;
+            break;
+        case "videos":
+            items = videos;
             break;
     }
 
@@ -140,12 +198,13 @@ export default function LibraryContent({
         albums: "album",
         playlists: "playlist",
         songs: "song",
+        videos: "video",
     };
 
     const itemType = typeMap[activeType] || "song";
     const formattedItems = listItems(items, itemType);
 
-    return viewMode === "grid" && activeType !== "songs" ? (
+    return viewMode === "grid" ? (
         <LibraryGrid items={formattedItems} />
     ) : (
         <LibraryListView items={formattedItems} />
@@ -156,8 +215,23 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
+    sectionWrapper: {
+        marginBottom: 0,
+    },
     section: {
-        marginBottom: 16,
+        marginBottom: 0,
+    },
+    sectionListContent: {
+        paddingHorizontal: 16,
+    },
+    gridContainer: {
+        flexDirection: "row",
+        flexWrap: "wrap",
+    },
+    gridItemContainer: {
+        width: "50%",
+        paddingHorizontal: 8,
+        paddingVertical: 8,
     },
     emptyContainer: {
         flex: 1,

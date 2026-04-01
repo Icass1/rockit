@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { COLORS } from "@/constants/theme";
+import { Feather } from "@expo/vector-icons";
 import type { FilterMode } from "@rockit/shared";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import { useLibraryData, type ContentType } from "@/hooks/useLibraryData";
 import { useVocabulary } from "@/lib/vocabulary";
 import LibraryContent from "@/components/Library/LibraryContent";
@@ -12,6 +13,7 @@ interface LibraryScreenProps {
     albums: ReturnType<typeof useLibraryData>["albums"];
     playlists: ReturnType<typeof useLibraryData>["playlists"];
     songs: ReturnType<typeof useLibraryData>["songs"];
+    videos: ReturnType<typeof useLibraryData>["videos"];
     loading?: boolean;
 }
 
@@ -19,6 +21,7 @@ export default function LibraryScreen({
     albums,
     playlists,
     songs,
+    videos,
     loading: dataLoading,
 }: LibraryScreenProps) {
     const { vocabulary } = useVocabulary();
@@ -31,6 +34,7 @@ export default function LibraryScreen({
         albums: filteredAlbums,
         playlists: filteredPlaylists,
         songs: filteredSongs,
+        videos: filteredVideos,
     } = useLibraryData({
         filterMode: sortMode,
         searchQuery,
@@ -40,6 +44,7 @@ export default function LibraryScreen({
     const finalAlbums = dataLoading ? albums : filteredAlbums;
     const finalPlaylists = dataLoading ? playlists : filteredPlaylists;
     const finalSongs = dataLoading ? songs : filteredSongs;
+    const finalVideos = dataLoading ? videos : filteredVideos;
 
     return (
         <>
@@ -52,50 +57,31 @@ export default function LibraryScreen({
             />
 
             <View style={styles.controlsRow}>
-                <LibraryFilters
-                    activeType={activeType}
-                    onTypeChange={setActiveType}
-                />
-                <View style={styles.viewToggle}>
-                    <Pressable
-                        style={[
-                            styles.viewButton,
-                            viewMode === "grid" && styles.viewButtonActive,
-                        ]}
-                        onPress={() => setViewMode("grid")}
-                    >
-                        <Text
-                            style={[
-                                styles.viewIcon,
-                                viewMode === "grid" && styles.viewIconActive,
-                            ]}
-                        >
-                            ▦
-                        </Text>
-                    </Pressable>
-                    <Pressable
-                        style={[
-                            styles.viewButton,
-                            viewMode === "list" && styles.viewButtonActive,
-                        ]}
-                        onPress={() => setViewMode("list")}
-                    >
-                        <Text
-                            style={[
-                                styles.viewIcon,
-                                viewMode === "list" && styles.viewIconActive,
-                            ]}
-                        >
-                            ☰
-                        </Text>
-                    </Pressable>
+                <View style={styles.filtersContainer}>
+                    <LibraryFilters
+                        activeType={activeType}
+                        onTypeChange={setActiveType}
+                    />
                 </View>
+                <Pressable
+                    style={styles.viewToggle}
+                    onPress={() =>
+                        setViewMode(viewMode === "grid" ? "list" : "grid")
+                    }
+                >
+                    <Feather
+                        name={viewMode === "grid" ? "list" : "grid"}
+                        size={28}
+                        color={COLORS.white}
+                    />
+                </Pressable>
             </View>
 
             <LibraryContent
                 albums={finalAlbums}
                 playlists={finalPlaylists}
                 songs={finalSongs}
+                videos={finalVideos}
                 activeType={activeType}
                 viewMode={viewMode}
             />
@@ -108,25 +94,13 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        paddingRight: 16,
+        paddingRight: 8,
+    },
+    filtersContainer: {
+        flex: 1,
     },
     viewToggle: {
-        flexDirection: "row",
-        gap: 4,
-    },
-    viewButton: {
-        padding: 8,
-        borderRadius: 4,
-        backgroundColor: COLORS.bgCard,
-    },
-    viewButtonActive: {
-        backgroundColor: COLORS.bgCardLight,
-    },
-    viewIcon: {
-        color: COLORS.gray400,
-        fontSize: 16,
-    },
-    viewIconActive: {
-        color: COLORS.white,
+        paddingVertical: 10,
+        paddingHorizontal: 12,
     },
 });

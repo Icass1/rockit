@@ -72,16 +72,20 @@ const styles = StyleSheet.create({
     },
     info: {
         marginTop: 6,
+        paddingHorizontal: 4,
+        alignItems: "center",
     },
     title: {
         color: COLORS.white,
         fontSize: 14,
-        fontWeight: "500",
+        fontWeight: "600",
+        textAlign: "center",
     },
     subtitle: {
         color: COLORS.gray400,
         fontSize: 12,
         marginTop: 2,
+        textAlign: "center",
     },
     pressed: {
         opacity: 0.7,

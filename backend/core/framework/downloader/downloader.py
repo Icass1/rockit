@@ -143,7 +143,7 @@ class Downloader:
 
         for group in groups:
             a_result_downloads: AResult[list[DownloadRow]] = (
-                await DownloadAccess.get_downloads_by_group_id(
+                await DownloadAccess.get_downloads_by_group_id_with_status(
                     session=session, download_group_id=group.id
                 )
             )

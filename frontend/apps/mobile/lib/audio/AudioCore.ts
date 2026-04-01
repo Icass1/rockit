@@ -1,23 +1,36 @@
-import { Audio, AVPlaybackStatus } from "expo-av";
+import { createAudioPlayer, setAudioModeAsync } from "expo-audio";
+import type { AudioPlayer, AudioStatus } from "expo-audio";
 
 export type DeckId = "A" | "B";
 
 interface DeckState {
-    sound: Audio.Sound | null;
+    player: AudioPlayer | null;
     uri: string | null;
     loaded: boolean;
+    subscription: { remove: () => void } | null;
 }
 
-type StatusCallback = (deckId: DeckId, status: AVPlaybackStatus) => void;
+type StatusCallback = (deckId: DeckId, status: AudioStatus) => void;
 
 export class AudioCore {
     private _decks: Record<DeckId, DeckState> = {
-        A: { sound: null, uri: null, loaded: false },
-        B: { sound: null, uri: null, loaded: false },
+        A: { player: null, uri: null, loaded: false, subscription: null },
+        B: { player: null, uri: null, loaded: false, subscription: null },
     };
 
     private _activeDeck: DeckId = "A";
     private _statusCallback: StatusCallback | null = null;
+
+    constructor() {
+        setAudioModeAsync({
+            allowsRecording: false,
+            shouldPlayInBackground: true,
+            interruptionMode: "doNotMix",
+            playsInSilentMode: true,
+            interruptionModeAndroid: "doNotMix",
+            shouldRouteThroughEarpiece: false,
+        });
+    }
 
     setStatusCallback(cb: StatusCallback) {
         this._statusCallback = cb;
@@ -34,60 +47,75 @@ export class AudioCore {
     async loadIntoDeck(deckId: DeckId, uri: string): Promise<void> {
         const deck = this._decks[deckId];
 
-        if (deck.uri === uri && deck.loaded && deck.sound) {
+        if (deck.uri === uri && deck.loaded && deck.player) {
             return;
         }
 
-        if (deck.sound) {
-            await deck.sound.unloadAsync();
-            deck.sound = null;
+        if (deck.player) {
+            deck.subscription?.remove();
+            deck.player.remove();
+            this._decks[deckId] = {
+                player: null,
+                uri: null,
+                loaded: false,
+                subscription: null,
+            };
         }
 
-        const { sound } = await Audio.Sound.createAsync(
-            { uri },
-            {
-                shouldPlay: false,
-                progressUpdateIntervalMillis: 500,
-                pitchCorrectionQuality: Audio.PitchCorrectionQuality.High,
-            },
-            (status) => this._statusCallback?.(deckId, status)
+        const player = createAudioPlayer({ uri }, { updateInterval: 0.5 });
+        player.shouldCorrectPitch = true;
+
+        const subscription = player.addListener(
+            "playbackStatusUpdate",
+            (status: AudioStatus) => {
+                this._statusCallback?.(deckId, status);
+            }
         );
 
-        deck.sound = sound;
-        deck.uri = uri;
-        deck.loaded = true;
+        this._decks[deckId] = {
+            player,
+            uri,
+            loaded: true,
+            subscription,
+        };
     }
 
     async playDeck(deckId: DeckId): Promise<void> {
-        const deck = this._decks[deckId];
-        if (!deck.sound) return;
-        await deck.sound.playAsync();
+        const { player } = this._decks[deckId];
+        if (!player) return;
+        player.play();
     }
 
     async pauseDeck(deckId: DeckId): Promise<void> {
-        const deck = this._decks[deckId];
-        if (!deck.sound) return;
-        await deck.sound.pauseAsync();
+        const { player } = this._decks[deckId];
+        if (!player) return;
+        player.pause();
     }
 
     async seekDeck(deckId: DeckId, seconds: number): Promise<void> {
-        const deck = this._decks[deckId];
-        if (!deck.sound) return;
-        await deck.sound.setPositionAsync(seconds * 1000);
+        const { player } = this._decks[deckId];
+        if (!player) return;
+        player.seekTo(seconds);
     }
 
     async setVolumeDeck(deckId: DeckId, volume: number): Promise<void> {
-        const deck = this._decks[deckId];
-        if (!deck.sound) return;
-        await deck.sound.setVolumeAsync(Math.max(0, Math.min(1, volume)));
+        const { player } = this._decks[deckId];
+        if (!player) return;
+        player.volume = Math.max(0, Math.min(1, volume));
     }
 
     async unloadDeck(deckId: DeckId): Promise<void> {
         const deck = this._decks[deckId];
-        if (deck.sound) {
-            await deck.sound.unloadAsync();
+        if (deck.player) {
+            deck.subscription?.remove();
+            deck.player.remove();
         }
-        this._decks[deckId] = { sound: null, uri: null, loaded: false };
+        this._decks[deckId] = {
+            player: null,
+            uri: null,
+            loaded: false,
+            subscription: null,
+        };
     }
 
     switchDecks(): DeckId {
@@ -100,7 +128,9 @@ export class AudioCore {
     }
 
     isLoaded(deckId: DeckId): boolean {
-        return this._decks[deckId].loaded;
+        return (
+            this._decks[deckId].loaded && this._decks[deckId].player !== null
+        );
     }
 
     async unloadAll(): Promise<void> {

@@ -3,6 +3,7 @@ import { COLORS } from "@/constants/theme";
 import { Feather } from "@expo/vector-icons";
 import BottomSheet from "@gorhom/bottom-sheet";
 import { Image } from "expo-image";
+import { VideoView } from "expo-video";
 import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
@@ -37,6 +38,9 @@ export default function FullPlayer() {
         duration,
         seekTo,
         hidePlayer,
+        videoPlayer,
+        videoOpacity,
+        activeMediaType,
     } = usePlayer();
 
     const insets = useSafeAreaInsets();
@@ -138,11 +142,27 @@ export default function FullPlayer() {
                         </View>
 
                         <View style={styles.coverContainer}>
-                            <PlayerCover
-                                uri={coverUri}
-                                mediaType={mediaType}
-                                size={Math.min(SCREEN_WIDTH - 48, 320)}
-                            />
+                            {activeMediaType === "video" && videoPlayer ? (
+                                <Animated.View
+                                    style={[
+                                        styles.videoContainer,
+                                        { opacity: videoOpacity },
+                                    ]}
+                                >
+                                    <VideoView
+                                        player={videoPlayer}
+                                        style={styles.videoView}
+                                        contentFit="contain"
+                                        nativeControls={false}
+                                    />
+                                </Animated.View>
+                            ) : (
+                                <PlayerCover
+                                    uri={coverUri}
+                                    mediaType={mediaType}
+                                    size={Math.min(SCREEN_WIDTH - 48, 320)}
+                                />
+                            )}
                         </View>
 
                         <View style={styles.songInfo}>
@@ -367,5 +387,15 @@ const styles = StyleSheet.create({
         fontSize: 11,
         color: "rgba(255,255,255,0.55)",
         fontWeight: "500",
+    },
+    videoContainer: {
+        width: Math.min(SCREEN_WIDTH - 48, 320),
+        aspectRatio: 16 / 9,
+        borderRadius: 12,
+        overflow: "hidden",
+        backgroundColor: "#000",
+    },
+    videoView: {
+        flex: 1,
     },
 });

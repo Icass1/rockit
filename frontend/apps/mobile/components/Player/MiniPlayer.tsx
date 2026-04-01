@@ -15,6 +15,7 @@ export default function MiniPlayer() {
         togglePlayPause,
         skipForward,
         showPlayer,
+        activeMediaType,
     } = usePlayer();
 
     const scale = useRef(new Animated.Value(1)).current;
@@ -45,12 +46,19 @@ export default function MiniPlayer() {
                 onPressIn={handlePressIn}
                 onPressOut={handlePressOut}
             >
-                <Image
-                    source={{ uri: currentMedia.imageUrl }}
-                    style={styles.thumbnail}
-                    contentFit="cover"
-                    transition={200}
-                />
+                <View style={styles.thumbnailContainer}>
+                    <Image
+                        source={{ uri: currentMedia.imageUrl }}
+                        style={styles.thumbnail}
+                        contentFit="cover"
+                        transition={200}
+                    />
+                    {activeMediaType === "video" && (
+                        <View style={styles.videoBadge}>
+                            <Feather name="video" size={10} color="#fff" />
+                        </View>
+                    )}
+                </View>
 
                 <View style={styles.info}>
                     <Text style={styles.title} numberOfLines={1}>
@@ -135,6 +143,17 @@ const styles = StyleSheet.create({
         height: 44,
         borderRadius: 8,
         backgroundColor: COLORS.bgCard,
+    },
+    thumbnailContainer: {
+        position: "relative",
+    },
+    videoBadge: {
+        position: "absolute",
+        bottom: 2,
+        right: 2,
+        backgroundColor: "rgba(0,0,0,0.7)",
+        borderRadius: 4,
+        padding: 2,
     },
     info: {
         flex: 1,

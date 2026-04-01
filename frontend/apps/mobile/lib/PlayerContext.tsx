@@ -1,7 +1,9 @@
 import React, { createContext, useCallback, useContext, useState } from "react";
 import type { BaseSongWithAlbumResponse } from "@rockit/shared";
-import { DEFAULT_CROSSFADE, useAudioEngine } from "@/lib/audio/useAudioEngine";
+import type { VideoPlayer } from "expo-video";
+import { DEFAULT_CROSSFADE } from "@/lib/audio/useAudioEngine";
 import type { CrossfadeSettings } from "@/lib/audio/useAudioEngine";
+import { useMediaEngine, type MediaType } from "@/lib/audio/useMediaEngine";
 import { useQueue } from "@/lib/audio/useQueue";
 import type { RepeatMode } from "@/lib/audio/useQueue";
 
@@ -18,6 +20,9 @@ interface PlayerContextType {
     repeatMode: RepeatMode;
     crossfadeSettings: CrossfadeSettings;
     updateCrossfadeSettings: (s: Partial<CrossfadeSettings>) => void;
+    videoPlayer: VideoPlayer | null;
+    videoOpacity: number;
+    activeMediaType: MediaType;
 
     playMedia: (
         media: BaseSongWithAlbumResponse,
@@ -39,6 +44,11 @@ interface PlayerContextType {
 
 const PlayerContext = createContext<PlayerContextType | null>(null);
 
+function getMediaType(media: BaseSongWithAlbumResponse | null): MediaType {
+    if (!media) return "audio";
+    return (media as any).type === "video" ? "video" : "audio";
+}
+
 export function PlayerProvider({ children }: { children: React.ReactNode }) {
     const [isPlaying, setIsPlaying] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -49,7 +59,15 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         useState<CrossfadeSettings>(DEFAULT_CROSSFADE);
 
     const queue = useQueue();
-    const engine = useAudioEngine({
+
+    const getUri = (
+        media: BaseSongWithAlbumResponse | undefined
+    ): string | null => {
+        if (!media) return null;
+        return (media as any).audioSrc ?? (media as any).videoSrc ?? null;
+    };
+
+    const mediaEngine = useMediaEngine({
         onTimeUpdate: (pos, dur) => {
             setCurrentTime(pos);
             setDuration(dur);
@@ -57,32 +75,35 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         onPlayingChange: setIsPlaying,
         onLoadStart: () => setIsLoading(true),
         onLoaded: () => setIsLoading(false),
-        getNextUri: () => {
-            const nextIndex = queue.getNextIndex();
-            if (nextIndex === null) return null;
-            return queue.queue[nextIndex]?.audioSrc ?? null;
-        },
         onEnded: () => {
             const { action, index } = queue.resolveOnEnd();
             if (action === "replay") {
-                engine.seekTo(0).then(() => engine.play());
+                mediaEngine.seekTo(0).then(() => mediaEngine.play());
             } else if (action === "play" && index !== null) {
                 const nextMedia = queue.queue[index];
-                if (nextMedia?.audioSrc) {
+                const uri = getUri(nextMedia);
+                if (uri) {
+                    const nextType = getMediaType(nextMedia);
                     queue.setCurrentIndex(index);
-                    engine.loadAndPlay(nextMedia.audioSrc, true);
+                    mediaEngine.loadAndPlay(uri, nextType, true);
                 }
             } else {
                 setIsPlaying(false);
             }
         },
         onAutoAdvance: () => {
-            const { index } = queue.resolveOnEnd();
-            if (index !== null) {
-                queue.setCurrentIndex(index);
-                setCurrentTime(0);
-                setDuration(0);
-            }
+            const nextIdx = queue.getNextIndex();
+            if (nextIdx !== null) queue.setCurrentIndex(nextIdx);
+        },
+        getNextUri: () => {
+            const nextIndex = queue.getNextIndex();
+            if (nextIndex === null) return null;
+            return getUri(queue.queue[nextIndex]);
+        },
+        getNextType: () => {
+            const nextIndex = queue.getNextIndex();
+            if (nextIndex === null) return "audio";
+            return getMediaType(queue.queue[nextIndex] ?? null);
         },
     });
 
@@ -91,27 +112,27 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
             media: BaseSongWithAlbumResponse,
             newQueue: BaseSongWithAlbumResponse[]
         ) => {
-            if (!media.audioSrc) {
-                return;
-            }
+            const uri = getUri(media);
+            if (!uri) return;
+            const type = getMediaType(media);
             queue.setQueueAndPlay(media, newQueue);
             setCurrentTime(0);
             setDuration(0);
-            await engine.loadAndPlay(media.audioSrc, false);
+            await mediaEngine.loadAndPlay(uri, type, false);
             setIsPlayerVisible(true);
         },
-        [engine, queue]
+        [mediaEngine, queue]
     );
 
     const play = useCallback(async () => {
-        await engine.play();
+        mediaEngine.play();
         setIsPlaying(true);
-    }, [engine]);
+    }, [mediaEngine]);
 
     const pause = useCallback(async () => {
-        await engine.pause();
+        mediaEngine.pause();
         setIsPlaying(false);
-    }, [engine]);
+    }, [mediaEngine]);
 
     const togglePlayPause = useCallback(async () => {
         if (isPlaying) {
@@ -123,21 +144,23 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
 
     const seekTo = useCallback(
         async (seconds: number) => {
-            await engine.seekTo(seconds);
+            await mediaEngine.seekTo(seconds);
             setCurrentTime(seconds);
         },
-        [engine]
+        [mediaEngine]
     );
 
     const skipForward = useCallback(async () => {
         const nextIndex = queue.getNextIndex();
         if (nextIndex === null) return;
         const nextMedia = queue.queue[nextIndex];
-        if (!nextMedia?.audioSrc) return;
+        const uri = getUri(nextMedia);
+        if (!uri) return;
+        const type = getMediaType(nextMedia);
         queue.setCurrentIndex(nextIndex);
         setCurrentTime(0);
-        await engine.loadAndPlay(nextMedia.audioSrc, true);
-    }, [engine, queue]);
+        await mediaEngine.loadAndPlay(uri, type, true);
+    }, [mediaEngine, queue]);
 
     const skipBack = useCallback(async () => {
         if (currentTime > 3) {
@@ -150,21 +173,23 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
             return;
         }
         const prevMedia = queue.queue[prevIndex];
-        if (!prevMedia?.audioSrc) return;
+        const uri = getUri(prevMedia);
+        if (!uri) return;
+        const type = getMediaType(prevMedia);
         queue.setCurrentIndex(prevIndex);
         setCurrentTime(0);
-        await engine.loadAndPlay(prevMedia.audioSrc, true);
-    }, [currentTime, engine, queue, seekTo]);
+        await mediaEngine.loadAndPlay(uri, type, true);
+    }, [currentTime, mediaEngine, queue, seekTo]);
 
     const showPlayer = useCallback(() => setIsPlayerVisible(true), []);
     const hidePlayer = useCallback(() => setIsPlayerVisible(false), []);
 
     const updateCrossfadeSettings = useCallback(
         (settings: Partial<CrossfadeSettings>) => {
-            engine.updateCrossfadeSettings(settings);
+            mediaEngine.updateCrossfadeSettings(settings);
             setCrossfadeSettings((prev) => ({ ...prev, ...settings }));
         },
-        [engine]
+        [mediaEngine]
     );
 
     return (
@@ -182,6 +207,9 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
                 repeatMode: queue.repeatMode,
                 crossfadeSettings,
                 updateCrossfadeSettings,
+                videoPlayer: mediaEngine.videoPlayer,
+                videoOpacity: mediaEngine.videoOpacity,
+                activeMediaType: mediaEngine.activeType,
                 playMedia,
                 pause,
                 play,

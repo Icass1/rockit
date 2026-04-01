@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
-import { Audio, AVPlaybackStatus } from "expo-av";
+import type { AudioStatus } from "expo-audio";
 import { AudioCore } from "./AudioCore";
 import { AudioCrossfade } from "./AudioCrossfade";
 import type { CrossfadeEffect } from "./AudioCrossfade";
@@ -53,17 +53,15 @@ export function useAudioEngine(
     const preloader = useMemo(() => new AudioPreloader(core), [core]);
 
     useEffect(() => {
-        core.setStatusCallback((deckId, status: AVPlaybackStatus) => {
+        core.setStatusCallback((deckId, status: AudioStatus) => {
             if (deckId !== core.activeDeck) return;
-            if (!status.isLoaded) return;
+            if (!status.currentTime && !status.duration) return;
 
-            const positionSec = status.positionMillis / 1000;
-            const durationSec = status.durationMillis
-                ? status.durationMillis / 1000
-                : 0;
+            const positionSec = status.currentTime ?? 0;
+            const durationSec = status.duration ?? 0;
 
             callbacksRef.current.onTimeUpdate(positionSec, durationSec);
-            callbacksRef.current.onPlayingChange(status.isPlaying);
+            callbacksRef.current.onPlayingChange(status.playing ?? false);
 
             const nextUri = callbacksRef.current.getNextUri();
             preloader.onTimeUpdate(positionSec, durationSec, nextUri);
@@ -154,16 +152,6 @@ export function useAudioEngine(
     );
 
     useEffect(() => {
-        Audio.setAudioModeAsync({
-            allowsRecordingIOS: false,
-            staysActiveInBackground: true,
-            interruptionModeIOS: 1,
-            playsInSilentModeIOS: true,
-            shouldDuckAndroid: true,
-            interruptionModeAndroid: 1,
-            playThroughEarpieceAndroid: false,
-        });
-
         return () => {
             core.unloadAll();
         };

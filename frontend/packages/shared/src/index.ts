@@ -12,3 +12,4 @@ export { type Station } from "./types/station";
 export * from "./types/rockIt";
 export * from "./models/enums/queueType";
 export * from "./models/enums/repeatMode";
+export * from "./audio/queueLogic";

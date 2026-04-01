@@ -133,7 +133,7 @@ export default function FullPlayer() {
                             <PlayerCover
                                 uri={coverUri}
                                 mediaType={mediaType}
-                                size={Math.min(SCREEN_WIDTH - 64, 340)}
+                                size={Math.min(SCREEN_WIDTH - 48, 320)}
                             />
                         </View>
 
@@ -259,7 +259,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "space-between",
         paddingHorizontal: 20,
-        paddingBottom: 12,
+        paddingBottom: 8,
     },
     topBarTitle: {
         flex: 1,
@@ -273,8 +273,8 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: "center",
         justifyContent: "center",
-        paddingVertical: 8,
-        maxHeight: 320,
+        paddingVertical: 4,
+        maxHeight: 450,
         minHeight: 180,
     },
     songInfo: {

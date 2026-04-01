@@ -1,183 +1,125 @@
+import { resolveNextOnEnd } from "@rockit/shared";
 import { getMediaAudioSrc } from "@/types/media";
+import type { RepeatMode } from "@/lib/managers/userManager";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createAtom } from "@/lib/store";
-import type { RepeatMode } from "./userManager";
+
+const WS_TIME_SYNC_INTERVAL_MS = 5000;
 
 export class AudioManager {
     static #instance: AudioManager;
 
     private _audio?: HTMLAudioElement;
 
-    // #region: Atoms
-
     private _playingAtom = createAtom<boolean>(false);
     private _loadingAtom = createAtom<boolean>(false);
     private _currentTimeAtom = createAtom<number>(0);
-    private _currentVolume = createAtom<number>(1);
+    private _volumeAtom = createAtom<number>(1);
     private _crossFadeAtom = createAtom<number>(0);
 
-    // #endregion: Atoms
-
-    private _mutePreviousVolume?: number;
-
     private _muted = false;
-
-    // #region: Constructor
+    private _mutePreviousVolume?: number;
+    private _lastWsSyncTime = 0;
 
     constructor() {
         if (typeof window === "undefined") return;
-
-        if (AudioManager.#instance) {
-            console.warn("Returning existing instance of AudioManager");
-            return AudioManager.#instance;
-        }
+        if (AudioManager.#instance) return AudioManager.#instance;
 
         this._audio = new Audio();
+        this._audio.preload = "auto";
 
-        this._audio.onplaying = (ev: Event) => {
-            this.handleAudioPlaying(ev);
-        };
-        this._audio.ontimeupdate = () => {
-            this.handleAudioTimeUpdate();
-        };
-        this._audio.onloadeddata = (ev: Event) => {
-            this.handleLoadedData(ev);
-        };
-        this._audio.onloadstart = (ev: Event) => {
-            this.handleLoadStart(ev);
-        };
-        this._audio.onpause = (ev: Event) => {
-            this.handleAudioPause(ev);
-        };
-        this._audio.onplay = (ev: Event) => {
-            this.handleAudioPlay(ev);
-        };
-        this._audio.onended = () => {
-            this.handleAudioEnded();
+        this._audio.onplaying = () => this._playingAtom.set(true);
+        this._audio.onpause = () => this._playingAtom.set(false);
+        this._audio.onplay = () => this._playingAtom.set(true);
+        this._audio.onloadstart = () => this._loadingAtom.set(true);
+        this._audio.onloadeddata = () => this._loadingAtom.set(false);
+        this._audio.ontimeupdate = () => this._handleTimeUpdate();
+        this._audio.onended = () => this._handleEnded();
+        this._audio.onerror = (e) => {
+            console.warn("AudioManager: audio error", e);
+            this._loadingAtom.set(false);
+            this._playingAtom.set(false);
         };
 
         AudioManager.#instance = this;
-
         return AudioManager.#instance;
     }
 
-    // #endregion: Constructor
+    play() {
+        if (!this._audio) return;
+        this._setSong();
+        this._audio.play().catch((err) => {
+            if (err.name !== "NotAllowedError") {
+                console.warn("AudioManager: play failed", err);
+            }
+        });
+    }
 
-    // #region: Methods
+    pause() {
+        this._audio?.pause();
+    }
 
     togglePlayPause() {
-        if (!this._audio) {
-            console.warn("(togglePlayPause) Audio element not initialized");
-            return;
-        }
+        if (!this._audio) return;
         if (this._audio.paused) {
-            this._audio.play();
+            this.play();
         } else {
-            this._audio.pause();
+            this.pause();
         }
     }
 
     togglePlayPauseOrSetMedia() {
-        if (!this._audio) {
-            console.warn(
-                "(togglePlayPauseOrSetSong) Audio element not initialized"
-            );
-            return;
-        }
+        if (!this._audio) return;
         this.setSong();
-
         if (this._audio.paused) {
-            this._audio.play();
+            this.play();
         } else {
-            this._audio.pause();
+            this.pause();
         }
-    }
-
-    setSong() {
-        if (!this._audio) {
-            console.warn("(setSong) Audio element not initialized");
-            return;
-        }
-        const currentMedia = rockIt.queueManager.currentMedia;
-        const audioSrc = getMediaAudioSrc(currentMedia);
-        if (
-            currentMedia &&
-            audioSrc &&
-            rockIt.queueManager.currentQueueMediaId != null &&
-            this._audio.src != audioSrc
-        ) {
-            console.log(`(setSong) Setting audio src to ${audioSrc}`);
-            this._audio.volume = this._currentVolume.get();
-            this._audio.src = audioSrc;
-            this._audio.currentTime =
-                (rockIt.userManager.user?.currentTimeMs ?? 0) / 1000;
-
-            rockIt.webSocketManager.sendCurrentMedia({
-                mediaPublicId: currentMedia.publicId,
-                queueMediaId: rockIt.queueManager.currentQueueMediaId,
-            });
-        }
-    }
-
-    play() {
-        if (!this._audio) {
-            console.warn("(play) Audio element not initialized");
-            return;
-        }
-
-        this.setSong();
-
-        this._audio.play();
-    }
-
-    pause() {
-        if (!this._audio) {
-            return;
-        }
-        this._audio.pause();
     }
 
     playStream(url: string) {
         if (!this._audio) return;
-
-        rockIt.queueManager.clearCurrentMedia?.();
-
+        rockIt.queueManager.clearCurrentMedia();
         this._audio.src = url;
-        this._audio.volume = this._currentVolume.get();
-        this._audio.play().catch((err) => {
-            console.error("AudioManager: stream play failed:", err);
-        });
+        this._audio.volume = this._volumeAtom.get();
+        this._audio
+            .play()
+            .catch((err) => console.warn("AudioManager: stream failed", err));
+    }
+
+    setCurrentTime(time: number) {
+        if (!this._audio) return;
+        const timeFrom = this._audio.currentTime;
+        this._audio.currentTime = time;
+
+        const publicId = rockIt.queueManager.currentMedia?.publicId;
+        if (publicId) {
+            rockIt.webSocketManager.sendSeek({
+                mediaPublicId: publicId,
+                timeFrom,
+                timeTo: time,
+            });
+        }
     }
 
     mute() {
-        if (!this._audio) {
-            console.warn("(mute) Audio element not initialized");
-            return false;
-        }
+        if (!this._audio) return;
         this._mutePreviousVolume = this.volume;
         this.volume = 0;
         this._muted = true;
     }
 
     unmute() {
-        if (!this._audio) {
-            console.warn("(unmute) Audio element not initialized");
-            return false;
-        }
+        if (!this._audio) return;
         if (this._mutePreviousVolume !== undefined) {
             this.volume = this._mutePreviousVolume;
             this._mutePreviousVolume = undefined;
-        } else {
-            console.warn("(unmute) No previous volume stored.");
         }
         this._muted = false;
     }
 
     toggleMute() {
-        if (!this._audio) {
-            console.warn("(toggleMute) Audio element not initialized");
-            return false;
-        }
         if (this._muted) {
             this.unmute();
         } else {
@@ -185,132 +127,99 @@ export class AudioManager {
         }
     }
 
-    setCurrentTime(time: number) {
-        if (!this._audio) {
-            console.warn("(setCurrentTime) Audio element not initialized");
-            return false;
+    setCrossFade(seconds: number) {
+        this._crossFadeAtom.set(Math.max(0, Math.min(12, seconds)));
+    }
+
+    setSong() {
+        this._setSong();
+    }
+
+    private _setSong() {
+        if (!this._audio) return;
+        const currentMedia = rockIt.queueManager.currentMedia;
+        const audioSrc = getMediaAudioSrc(currentMedia);
+
+        if (!currentMedia || !audioSrc) return;
+        if (this._audio.src === audioSrc) return;
+
+        this._audio.volume = this._volumeAtom.get();
+        this._audio.src = audioSrc;
+
+        const savedTimeMs = rockIt.userManager.user?.currentTimeMs ?? 0;
+        if (savedTimeMs > 0) {
+            this._audio.currentTime = savedTimeMs / 1000;
         }
-        const timeFrom = this._audio.currentTime;
-        this._audio.currentTime = time;
 
-        if (!rockIt.queueManager.currentMedia?.publicId) {
-            rockIt.notificationManager.notifyError(
-                "Current song is not defined to send seek."
-            );
-            return;
+        const queueMediaId = rockIt.queueManager.currentQueueMediaId;
+        if (queueMediaId !== null) {
+            rockIt.webSocketManager.sendCurrentMedia({
+                mediaPublicId: currentMedia.publicId,
+                queueMediaId,
+            });
         }
-
-        rockIt.webSocketManager.sendSeek({
-            mediaPublicId: rockIt.queueManager.currentMedia.publicId,
-            timeFrom,
-            timeTo: time,
-        });
     }
 
-    setSrc() {
-        throw new Error("(setSrc) Method not implemented.");
-    }
+    private _handleTimeUpdate() {
+        if (!this._audio) return;
+        const time = this._audio.currentTime;
+        this._currentTimeAtom.set(time);
 
-    simulateSongEnded() {
-        this.handleAudioEnded();
-    }
-
-    // #endregion: Methods
-
-    // #region: Handlers
-
-    private handleAudioPlaying(ev: Event) {
-        console.log("(handleAudioPlaying)", ev);
-    }
-
-    private handleAudioTimeUpdate() {
-        if (!this._audio) {
-            console.warn(
-                "(handleAudioTimeUpdate) Audio element not initialized"
-            );
-            return false;
+        const now = Date.now();
+        if (now - this._lastWsSyncTime >= WS_TIME_SYNC_INTERVAL_MS) {
+            this._lastWsSyncTime = now;
+            rockIt.webSocketManager.sendCurrentTime({ currentTime: time });
         }
-        this._currentTimeAtom.set(this._audio.currentTime);
-        rockIt.webSocketManager.sendCurrentTime({
-            currentTime: this._audio.currentTime,
-        });
     }
 
-    private handleLoadedData(ev: Event) {
-        console.log("(handleLoadedData)", ev);
-        this._loadingAtom.set(false);
-    }
-
-    private handleLoadStart(ev: Event) {
-        console.log("(handleLoadStart)", ev);
-        this._loadingAtom.set(true);
-    }
-
-    private handleAudioPause(ev: Event) {
-        this._playingAtom.set(false);
-        console.log("(handleAudioPause)", ev);
-    }
-
-    private handleAudioPlay(ev: Event) {
-        this._playingAtom.set(true);
-        console.log("(handleAudioPlay)", ev);
-    }
-
-    private handleAudioEnded() {
-        const currentSong = rockIt.queueManager.currentMedia;
-        const repeat = rockIt.userManager.repeatModeAtom.get();
-        const queue = rockIt.queueManager.queue;
-        const currentQueueMediaId = rockIt.queueManager.currentQueueMediaId;
-
-        if (currentSong) {
+    private _handleEnded() {
+        const currentMedia = rockIt.queueManager.currentMedia;
+        if (currentMedia) {
             rockIt.webSocketManager.sendMediaEnded({
-                mediaPublicId: currentSong.publicId,
+                mediaPublicId: currentMedia.publicId,
             });
         }
 
-        if (repeat === "ONE") {
-            this.play();
-            return;
-        }
+        const repeat = rockIt.userManager.repeatModeAtom.get() as RepeatMode;
+        const queue = rockIt.queueManager.queue;
+        const currentId = rockIt.queueManager.currentQueueMediaId;
 
-        const nextIndex =
-            queue.findIndex(
-                (item) => item.queueMediaId === currentQueueMediaId
-            ) + 1;
+        const queueItems = queue.map((item) => ({
+            publicId: item.media.publicId,
+            queueMediaId: item.queueMediaId,
+        }));
 
-        if (nextIndex < queue.length) {
-            rockIt.queueManager.setQueueMediaId(queue[nextIndex].queueMediaId);
+        const { action, nextId } = resolveNextOnEnd(
+            queueItems,
+            currentId,
+            repeat
+        );
+
+        if (action === "replay") {
             this.play();
-        } else if (repeat === "ALL" && queue.length > 0) {
-            rockIt.queueManager.setQueueMediaId(queue[0].queueMediaId);
+        } else if (action === "play" && nextId !== null) {
+            rockIt.queueManager.setQueueMediaId(nextId);
             this.play();
         } else {
-            this.pause();
+            this._playingAtom.set(false);
         }
     }
-    // #endregion: Handlers
-
-    // #region: Setters
 
     set volume(value: number) {
-        if (!this._audio) {
-            console.warn("Audio element not initialized");
-            return;
-        }
-        this._audio.volume = value;
-        this._currentVolume.set(value);
+        if (!this._audio) return;
+        const clamped = Math.max(0, Math.min(1, value));
+        this._audio.volume = clamped;
+        this._volumeAtom.set(clamped);
     }
-    // #endregion: Setters
-
-    // #region: Getters
 
     get volume(): number {
-        if (!this._audio) {
-            console.warn("Audio element not initialized");
-            return 1;
-        }
-        return this._audio?.volume;
+        return this._audio?.volume ?? 1;
     }
+
+    get currentTime(): number {
+        return this._currentTimeAtom.get();
+    }
+
     get playingAtom() {
         return this._playingAtom.getReadonlyAtom();
     }
@@ -323,16 +232,11 @@ export class AudioManager {
         return this._currentTimeAtom.getReadonlyAtom();
     }
 
-    get currentTime() {
-        return this._currentTimeAtom.get();
+    get volumeAtom() {
+        return this._volumeAtom.getReadonlyAtom();
     }
 
-    get volumeAtom() {
-        return this._currentVolume.getReadonlyAtom();
-    }
     get crossFadeAtom() {
         return this._crossFadeAtom.getReadonlyAtom();
     }
-
-    // #endregion: Getters
 }

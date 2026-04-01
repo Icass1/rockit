@@ -5,6 +5,7 @@ import {
     QueueResponseItem,
     QueueResponseSchema,
 } from "@/dto";
+import { shuffleQueue as shuffleQueueLogic } from "@rockit/shared";
 import { MediaType } from "@/types/media";
 import { DBListType, QueueListType } from "@/types/rockIt";
 import { rockIt } from "@/lib/rockit/rockIt";
@@ -194,16 +195,17 @@ export class QueueManager {
     }
 
     async addListToBottomAsync(type: DBListType, publicId: string) {
-        console.log(type, publicId);
+        void type;
+        void publicId;
         throw "(addListToBottomAsync) Not implemented method";
     }
 
     addMediaNext(_media: MediaType) {
-        // TODO: Implement backend - add media to play next
+        void _media;
     }
 
     addMediaToEnd(_media: MediaType) {
-        // TODO: Implement backend - add media to end of queue
+        void _media;
     }
 
     shuffleQueue() {
@@ -214,23 +216,21 @@ export class QueueManager {
 
         this._originalQueue = [...currentQueue];
 
-        // Fisher-Yates shuffle
-        const shuffled = [...currentQueue];
-        for (let i = shuffled.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-        }
+        const queueItems = currentQueue.map((item) => ({
+            publicId: item.media.publicId,
+            queueMediaId: item.queueMediaId,
+        }));
 
-        // Keep current media at the front
-        const currentIndex = shuffled.findIndex(
-            (item) => item.queueMediaId === currentQueueMediaId
+        const shuffledItems = shuffleQueueLogic(
+            queueItems,
+            currentQueueMediaId
         );
-        if (currentIndex > 0) {
-            [shuffled[0], shuffled[currentIndex]] = [
-                shuffled[currentIndex],
-                shuffled[0],
-            ];
-        }
+
+        const shuffled = shuffledItems.map((item) => {
+            return currentQueue.find(
+                (q) => q.queueMediaId === item.queueMediaId
+            )!;
+        });
 
         this._queueAtom.set(shuffled);
     }

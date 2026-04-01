@@ -11,6 +11,7 @@ export default function MiniPlayer() {
     const {
         currentMedia,
         isPlaying,
+        isLoading,
         togglePlayPause,
         skipForward,
         showPlayer,
@@ -69,7 +70,9 @@ export default function MiniPlayer() {
                     hitSlop={12}
                 >
                     <Feather
-                        name={isPlaying ? "pause" : "play"}
+                        name={
+                            isLoading ? "loader" : isPlaying ? "pause" : "play"
+                        }
                         size={22}
                         color={COLORS.white}
                     />

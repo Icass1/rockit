@@ -1,26 +1,21 @@
-import React, {
-    createContext,
-    useCallback,
-    useContext,
-    useEffect,
-    useRef,
-    useState,
-} from "react";
+import React, { createContext, useCallback, useContext, useState } from "react";
 import type { BaseSongWithAlbumResponse } from "@rockit/shared";
-import { Audio, AVPlaybackStatus } from "expo-av";
-
-export type RepeatMode = "none" | "one" | "all";
+import { useAudioEngine } from "@/lib/audio/useAudioEngine";
+import { useQueue } from "@/lib/audio/useQueue";
+import type { RepeatMode } from "@/lib/audio/useQueue";
 
 interface PlayerContextType {
     currentMedia: BaseSongWithAlbumResponse | null;
     queue: BaseSongWithAlbumResponse[];
     currentIndex: number;
     isPlaying: boolean;
+    isLoading: boolean;
     currentTime: number;
     duration: number;
     isPlayerVisible: boolean;
     shuffle: boolean;
     repeatMode: RepeatMode;
+
     playMedia: (
         media: BaseSongWithAlbumResponse,
         queue: BaseSongWithAlbumResponse[]
@@ -42,139 +37,63 @@ interface PlayerContextType {
 const PlayerContext = createContext<PlayerContextType | null>(null);
 
 export function PlayerProvider({ children }: { children: React.ReactNode }) {
-    const soundRef = useRef<Audio.Sound | null>(null);
-
-    const [currentMedia, setCurrentMedia] =
-        useState<BaseSongWithAlbumResponse | null>(null);
-    const [queue, setQueue] = useState<BaseSongWithAlbumResponse[]>([]);
-    const [currentIndex, setCurrentIndex] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
     const [isPlayerVisible, setIsPlayerVisible] = useState(false);
-    const [shuffle, setShuffle] = useState(false);
-    const [repeatMode, setRepeatMode] = useState<RepeatMode>("none");
 
-    const queueRef = useRef(queue);
-    const currentIndexRef = useRef(currentIndex);
-    const repeatModeRef = useRef(repeatMode);
-    const shuffleRef = useRef(shuffle);
-
-    useEffect(() => {
-        queueRef.current = queue;
-    }, [queue]);
-    useEffect(() => {
-        currentIndexRef.current = currentIndex;
-    }, [currentIndex]);
-    useEffect(() => {
-        repeatModeRef.current = repeatMode;
-    }, [repeatMode]);
-    useEffect(() => {
-        shuffleRef.current = shuffle;
-    }, [shuffle]);
-
-    const onPlaybackStatusUpdate = useCallback((status: AVPlaybackStatus) => {
-        if (!status.isLoaded) return;
-        setCurrentTime(status.positionMillis / 1000);
-        setDuration(status.durationMillis ? status.durationMillis / 1000 : 0);
-        setIsPlaying(status.isPlaying);
-
-        if (status.didJustFinish) {
-            const rMode = repeatModeRef.current;
-            const q = queueRef.current;
-            const idx = currentIndexRef.current;
-
-            if (rMode === "one") {
-                soundRef.current?.replayAsync();
-                return;
-            }
-            const nextIdx = shuffleRef.current
-                ? Math.floor(Math.random() * q.length)
-                : idx + 1;
-
-            if (nextIdx < q.length) {
-                loadAndPlay(q[nextIdx], q, nextIdx);
-            } else if (rMode === "all" && q.length > 0) {
-                loadAndPlay(q[0], q, 0);
+    const queue = useQueue();
+    const engine = useAudioEngine({
+        onTimeUpdate: (pos, dur) => {
+            setCurrentTime(pos);
+            setDuration(dur);
+        },
+        onPlayingChange: setIsPlaying,
+        onLoadStart: () => setIsLoading(true),
+        onLoaded: () => setIsLoading(false),
+        onEnded: () => {
+            const { action, index } = queue.resolveOnEnd();
+            if (action === "replay") {
+                engine.seekTo(0).then(() => engine.play());
+            } else if (action === "play" && index !== null) {
+                const nextMedia = queue.queue[index];
+                if (nextMedia?.audioSrc) {
+                    queue.setCurrentIndex(index);
+                    engine.loadAndPlay(nextMedia.audioSrc);
+                }
             } else {
                 setIsPlaying(false);
             }
-        }
-    }, []);
-
-    const loadAndPlay = useCallback(
-        async (
-            media: BaseSongWithAlbumResponse,
-            newQueue: BaseSongWithAlbumResponse[],
-            index: number
-        ) => {
-            if (soundRef.current) {
-                await soundRef.current.unloadAsync();
-                soundRef.current = null;
-            }
-
-            setCurrentMedia(media);
-            setQueue(newQueue);
-            setCurrentIndex(index);
-            setCurrentTime(0);
-            setDuration(0);
-
-            const audioUri = media.audioSrc;
-            if (!audioUri) {
-                setIsPlaying(false);
-                return;
-            }
-
-            const { sound } = await Audio.Sound.createAsync(
-                { uri: audioUri },
-                { shouldPlay: true, progressUpdateIntervalMillis: 500 },
-                onPlaybackStatusUpdate
-            );
-            soundRef.current = sound;
-            setIsPlaying(true);
         },
-        [onPlaybackStatusUpdate]
-    );
-
-    useEffect(() => {
-        Audio.setAudioModeAsync({
-            allowsRecordingIOS: false,
-            staysActiveInBackground: true,
-            interruptionModeIOS: 2,
-            playsInSilentModeIOS: true,
-            shouldDuckAndroid: true,
-            interruptionModeAndroid: 2,
-            playThroughEarpieceAndroid: false,
-        });
-
-        return () => {
-            soundRef.current?.unloadAsync();
-        };
-    }, []);
+    });
 
     const playMedia = useCallback(
         async (
             media: BaseSongWithAlbumResponse,
             newQueue: BaseSongWithAlbumResponse[]
         ) => {
-            const index = newQueue.findIndex(
-                (m) => m.publicId === media.publicId
-            );
-            await loadAndPlay(media, newQueue, Math.max(index, 0));
+            if (!media.audioSrc) {
+                return;
+            }
+            queue.setQueueAndPlay(media, newQueue);
+            setCurrentTime(0);
+            setDuration(0);
+            await engine.loadAndPlay(media.audioSrc);
             setIsPlayerVisible(true);
         },
-        [loadAndPlay]
+        [engine, queue]
     );
 
-    const pause = useCallback(async () => {
-        await soundRef.current?.pauseAsync();
-        setIsPlaying(false);
-    }, []);
-
     const play = useCallback(async () => {
-        await soundRef.current?.playAsync();
+        await engine.play();
         setIsPlaying(true);
-    }, []);
+    }, [engine]);
+
+    const pause = useCallback(async () => {
+        await engine.pause();
+        setIsPlaying(false);
+    }, [engine]);
 
     const togglePlayPause = useCallback(async () => {
         if (isPlaying) {
@@ -182,82 +101,42 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         } else {
             await play();
         }
-    }, [isPlaying, pause, play]);
+    }, [isPlaying, play, pause]);
 
-    const seekTo = useCallback(async (seconds: number) => {
-        await soundRef.current?.setPositionAsync(seconds * 1000);
-        setCurrentTime(seconds);
-    }, []);
+    const seekTo = useCallback(
+        async (seconds: number) => {
+            await engine.seekTo(seconds);
+            setCurrentTime(seconds);
+        },
+        [engine]
+    );
 
     const skipForward = useCallback(async () => {
-        const q = queueRef.current;
-        const idx = currentIndexRef.current;
-        const nextIdx = shuffleRef.current
-            ? Math.floor(Math.random() * q.length)
-            : idx + 1;
-
-        if (nextIdx < q.length) {
-            await loadAndPlay(q[nextIdx], q, nextIdx);
-        } else if (repeatModeRef.current === "all" && q.length > 0) {
-            await loadAndPlay(q[0], q, 0);
-        }
-    }, [loadAndPlay]);
+        const nextIndex = queue.getNextIndex();
+        if (nextIndex === null) return;
+        const nextMedia = queue.queue[nextIndex];
+        if (!nextMedia?.audioSrc) return;
+        queue.setCurrentIndex(nextIndex);
+        setCurrentTime(0);
+        await engine.loadAndPlay(nextMedia.audioSrc);
+    }, [engine, queue]);
 
     const skipBack = useCallback(async () => {
         if (currentTime > 3) {
             await seekTo(0);
             return;
         }
-        const idx = currentIndexRef.current;
-        const q = queueRef.current;
-        const prevIdx = idx - 1;
-        if (prevIdx >= 0) {
-            await loadAndPlay(q[prevIdx], q, prevIdx);
-        } else {
+        const prevIndex = queue.getPrevIndex();
+        if (prevIndex === null) {
             await seekTo(0);
+            return;
         }
-    }, [currentTime, loadAndPlay, seekTo]);
-
-    const toggleShuffle = useCallback(() => setShuffle((s) => !s), []);
-
-    const cycleRepeat = useCallback(() => {
-        setRepeatMode((r) => {
-            if (r === "none") return "all";
-            if (r === "all") return "one";
-            return "none";
-        });
-    }, []);
-
-    const removeFromQueue = useCallback((index: number) => {
-        setQueue((q) => {
-            const newQ = q.filter((_, i) => i !== index);
-            const curr = currentIndexRef.current;
-            if (index < curr) {
-                setCurrentIndex(curr - 1);
-            } else if (index === curr && curr >= newQ.length) {
-                setCurrentIndex(Math.max(0, newQ.length - 1));
-            }
-            return newQ;
-        });
-    }, []);
-
-    const reorderQueue = useCallback((fromIndex: number, toIndex: number) => {
-        setQueue((q) => {
-            const newQ = [...q];
-            const [moved] = newQ.splice(fromIndex, 1);
-            newQ.splice(toIndex, 0, moved);
-
-            const curr = currentIndexRef.current;
-            if (curr === fromIndex) {
-                setCurrentIndex(toIndex);
-            } else if (curr > fromIndex && curr <= toIndex) {
-                setCurrentIndex(curr - 1);
-            } else if (curr < fromIndex && curr >= toIndex) {
-                setCurrentIndex(curr + 1);
-            }
-            return newQ;
-        });
-    }, []);
+        const prevMedia = queue.queue[prevIndex];
+        if (!prevMedia?.audioSrc) return;
+        queue.setCurrentIndex(prevIndex);
+        setCurrentTime(0);
+        await engine.loadAndPlay(prevMedia.audioSrc);
+    }, [currentTime, engine, queue, seekTo]);
 
     const showPlayer = useCallback(() => setIsPlayerVisible(true), []);
     const hidePlayer = useCallback(() => setIsPlayerVisible(false), []);
@@ -265,15 +144,16 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     return (
         <PlayerContext.Provider
             value={{
-                currentMedia,
-                queue,
-                currentIndex,
+                currentMedia: queue.currentMedia,
+                queue: queue.queue,
+                currentIndex: queue.currentIndex,
                 isPlaying,
+                isLoading,
                 currentTime,
                 duration,
                 isPlayerVisible,
-                shuffle,
-                repeatMode,
+                shuffle: queue.shuffle,
+                repeatMode: queue.repeatMode,
                 playMedia,
                 pause,
                 play,
@@ -281,10 +161,10 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
                 seekTo,
                 skipForward,
                 skipBack,
-                toggleShuffle,
-                cycleRepeat,
-                removeFromQueue,
-                reorderQueue,
+                toggleShuffle: queue.toggleShuffle,
+                cycleRepeat: queue.cycleRepeat,
+                removeFromQueue: queue.removeFromQueue,
+                reorderQueue: queue.reorderQueue,
                 showPlayer,
                 hidePlayer,
             }}
@@ -299,3 +179,5 @@ export function usePlayer(): PlayerContextType {
     if (!ctx) throw new Error("usePlayer must be used inside PlayerProvider");
     return ctx;
 }
+
+export type { RepeatMode };

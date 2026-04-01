@@ -24,7 +24,7 @@ export default function UserStats({ data, rangeLabel }: UserStatsProps) {
             <SummaryCards summary={data.summary} />
 
             <StatsSectionCard
-                title={`${vocabulary.MINUTES_LISTENED} — ${rangeLabel}`}
+                title={`${vocabulary.MINUTES_LISTEND} — ${rangeLabel}`}
             >
                 <MinutesBarChart data={data.minutes} />
             </StatsSectionCard>

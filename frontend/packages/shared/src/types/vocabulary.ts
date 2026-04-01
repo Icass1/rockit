@@ -177,4 +177,6 @@ export interface Vocabulary {
     YOUR: string;
     YOUR_ALBUMS_PLAYLISTS: string;
     YT_VIDEOS: string;
+    YOUR_MIX: string;
+    FAILED_TO_CHANGE_LANGUAGE: string;
 }

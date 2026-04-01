@@ -18,6 +18,7 @@ export interface DownloadInfo {
     status: string;
     completed: number;
     message: string;
+    dateAdded: string;
 }
 
 export interface DownloadGroup {
@@ -51,6 +52,7 @@ export function useDownloads() {
                     status: item.message,
                     completed: item.message === "Done" ? 100 : item.completed,
                     message: item.message,
+                    dateAdded: item.dateAdded ?? "",
                 });
             }
         }
@@ -109,6 +111,7 @@ export function useDownloads() {
                                     status: message,
                                     completed,
                                     message,
+                                    dateAdded: "",
                                 },
                             ];
                         });

@@ -7,6 +7,7 @@ export const DownloadItemResponseSchema = z.object({
     imageUrl: z.string().nullable(),
     completed: z.number(),
     message: z.string(),
+    dateAdded: z.string().default(""),
 });
 
 export type DownloadItemResponse = z.infer<typeof DownloadItemResponseSchema>;

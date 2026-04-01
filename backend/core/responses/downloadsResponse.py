@@ -9,6 +9,7 @@ class DownloadItemResponse(BaseModel):
     imageUrl: str | None = None
     completed: float
     message: str
+    dateAdded: str = ""
 
 
 class DownloadGroupResponse(BaseModel):

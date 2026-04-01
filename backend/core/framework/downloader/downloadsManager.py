@@ -116,6 +116,7 @@ class DownloadsManager:
                             )
                             if a_result.is_ok():
                                 from sqlalchemy import update as sql_update
+                                from sqlalchemy import select
                                 from backend.core.access.db.ormModels.download import (
                                     DownloadRow,
                                 )
@@ -125,6 +126,33 @@ class DownloadsManager:
                                     .where(DownloadRow.id == d.download_id)
                                     .values(completed=100.0)
                                 )
+
+                                result = await session.execute(
+                                    select(DownloadRow).where(
+                                        DownloadRow.id == d.download_id
+                                    )
+                                )
+                                download_row = result.scalar_one_or_none()
+
+                                if download_row and download_row.media_id:
+                                    from backend.core.access.userAccess import UserAccess
+
+                                    a_result_library = (
+                                        await UserAccess.add_user_library_media(
+                                            session=session,
+                                            user_id=d.user_id,
+                                            media_id=download_row.media_id,
+                                        )
+                                    )
+                                    if a_result_library.is_ok():
+                                        logger.info(
+                                            f"Added media {download_row.media_id} to user library"
+                                        )
+                                    else:
+                                        logger.warning(
+                                            f"Could not add media to library: {a_result_library.message()}"
+                                        )
+
                                 await session.commit()
                             if a_result.is_not_ok():
                                 logger.error(

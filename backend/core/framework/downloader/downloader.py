@@ -13,6 +13,7 @@ from backend.core.access.downloadAccess import DownloadAccess
 from backend.core.access.mediaAccess import MediaAccess
 from backend.core.access.db.ormModels.downloadGroup import DownloadGroupRow
 from backend.core.access.db.ormModels.download import DownloadRow
+from backend.core.access.db.ormModels.downloadStatus import DownloadStatusRow
 from backend.core.access.db.ormModels.media import CoreMediaRow
 from backend.core.enums.mediaTypeEnum import MediaTypeEnum
 
@@ -205,6 +206,12 @@ class Downloader:
                             float(download.completed) if download.completed else 0.0
                         )
 
+                    download_date: str = ""
+                    if download.download_status_list:
+                        last_status: DownloadStatusRow = download.download_status_list[-1]
+                        if last_status.date_added:
+                            download_date = last_status.date_added.isoformat()
+
                     items.append(
                         DownloadItemResponse(
                             publicId=media.public_id,
@@ -213,6 +220,7 @@ class Downloader:
                             imageUrl=image_url,
                             completed=completed_val,
                             message=status_message,
+                            dateAdded=download_date,
                         )
                     )
 

@@ -129,9 +129,7 @@ async def get_library_lists(request: Request) -> LibraryListsResponse:
             detail=a_result_albums.message(),
         )
 
-    library_media: List[
-        BaseAlbumWithoutSongsResponse | BasePlaylistResponse | BaseSongWithAlbumResponse | BaseVideoResponse
-    ] = a_result_albums.result()
+    library_media = a_result_albums.result()
 
     albums: List[BaseAlbumWithoutSongsResponse] = (
         [m for m in library_media if isinstance(m, BaseAlbumWithoutSongsResponse)]
@@ -168,7 +166,7 @@ async def get_library_lists(request: Request) -> LibraryListsResponse:
 async def get_user_library_medias(
     request: Request,
 ) -> List[
-    BaseAlbumWithoutSongsResponse | BasePlaylistResponse | BaseSongWithAlbumResponse
+    BaseAlbumWithoutSongsResponse | BasePlaylistResponse | BaseSongWithAlbumResponse | BaseVideoResponse
 ]:
     """Get all albums in the user's library."""
 
@@ -186,6 +184,7 @@ async def get_user_library_medias(
             BaseAlbumWithoutSongsResponse
             | BasePlaylistResponse
             | BaseSongWithAlbumResponse
+            | BaseVideoResponse
         ]
     ] = await User.get_user_library_medias(session, user_id=a_result_user.result().id)
 

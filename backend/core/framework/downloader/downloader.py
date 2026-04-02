@@ -3,11 +3,10 @@ from typing import List
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
 )
-from backend.core.framework.media.media import Media
-from backend.core.framework.models.media import MediaModel
 from backend.utils.logger import getLogger
 
 from backend.core.aResult import AResult, AResultCode
+from backend.core.enums.mediaTypeEnum import MediaTypeEnum
 
 from backend.core.access.downloadAccess import DownloadAccess
 from backend.core.access.mediaAccess import MediaAccess
@@ -15,9 +14,10 @@ from backend.core.access.db.ormModels.downloadGroup import DownloadGroupRow
 from backend.core.access.db.ormModels.download import DownloadRow
 from backend.core.access.db.ormModels.downloadStatus import DownloadStatusRow
 from backend.core.access.db.ormModels.media import CoreMediaRow
-from backend.core.enums.mediaTypeEnum import MediaTypeEnum
 
 from backend.core.framework import providers
+from backend.core.framework.media.media import Media
+from backend.core.framework.models.media import MediaModel
 from backend.core.framework.downloader import downloads_manager
 from backend.core.framework.provider.baseProvider import BaseProvider
 from backend.core.framework.downloader.baseDownload import BaseDownload
@@ -83,10 +83,14 @@ class Downloader:
                 if a_result_download.code() == AResultCode.ALREADY_EXISTS:
                     existing_download = a_result_download.result()
                     if existing_download.status_key == 3:
-                        logger.info(f"Download already completed for {public_id}, skipping")
+                        logger.info(
+                            f"Download already completed for {public_id}, skipping"
+                        )
                         continue
                     if existing_download.status_key in [1, 2, 5, 6, 7]:
-                        logger.info(f"Download already in progress for {public_id}, skipping")
+                        logger.info(
+                            f"Download already in progress for {public_id}, skipping"
+                        )
                         continue
                 logger.error(
                     f"Error creating download row for {public_id}. {a_result_download.info()}"
@@ -219,7 +223,9 @@ class Downloader:
                     download_date: str = ""
                     try:
                         if download.download_status_list:
-                            last_status: DownloadStatusRow = download.download_status_list[-1]
+                            last_status: DownloadStatusRow = (
+                                download.download_status_list[-1]
+                            )
                             if last_status.date_added:
                                 download_date = last_status.date_added.isoformat()
                     except Exception:

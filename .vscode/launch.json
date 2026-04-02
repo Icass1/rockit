@@ -90,7 +90,7 @@
             "name": "NextJS Server",
             "type": "node",
             "request": "launch",
-            "runtimeExecutable": "npm",
+            "runtimeExecutable": "pnpm",
             "runtimeArgs": ["run", "dev"],
             "cwd": "${workspaceFolder}/frontend",
             "console": "integratedTerminal",

@@ -1,10 +1,4 @@
-import {
-    BaseAlbumWithoutSongsResponse,
-    BasePlaylistResponse,
-    DBListType,
-    LibraryListsResponse,
-    LibraryListsResponseSchema,
-} from "@rockit/shared";
+import { DBListType, LibraryListsResponseSchema } from "@rockit/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createArrayAtom } from "@/lib/store";
 import { baseApiFetch } from "@/lib/utils/apiFetch";

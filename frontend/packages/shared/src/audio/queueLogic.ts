@@ -3,6 +3,9 @@
  * All functions are stateless and return new arrays (immutable).
  */
 
+import { EQueueAction } from "@/models/enums/queueAction";
+import { ERepeatMode } from "@/models/enums/repeatMode";
+
 export interface QueueItem {
     publicId: string;
     queueMediaId: number;
@@ -72,17 +75,17 @@ export function getPrevQueueMediaId<T extends QueueItem>(
 export function resolveNextOnEnd<T extends QueueItem>(
     queue: T[],
     currentId: number | null,
-    repeatMode: "OFF" | "ONE" | "ALL"
-): { action: "replay" | "play" | "stop"; nextId: number | null } {
-    if (repeatMode === "ONE") {
-        return { action: "replay", nextId: currentId };
+    repeatMode: ERepeatMode
+): { action: EQueueAction; nextId: number | null } {
+    if (repeatMode === ERepeatMode.ONE) {
+        return { action: EQueueAction.REPLAY, nextId: currentId };
     }
     const nextId = getNextQueueMediaId(queue, currentId);
     if (nextId !== null) {
-        return { action: "play", nextId };
+        return { action: EQueueAction.PLAY, nextId };
     }
-    if (repeatMode === "ALL" && queue.length > 0) {
-        return { action: "play", nextId: queue[0].queueMediaId };
+    if (repeatMode === ERepeatMode.ALL && queue.length > 0) {
+        return { action: EQueueAction.PLAY, nextId: queue[0].queueMediaId };
     }
-    return { action: "stop", nextId: null };
+    return { action: EQueueAction.STOP, nextId: null };
 }

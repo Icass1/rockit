@@ -137,6 +137,9 @@ class SpotifyDownload(BaseDownload):
                 await YouTubeDownloader.download_as_mp3_async(
                     youtube_url=youtube_url,
                     download_id=self.download_id,
+                    public_id=self.public_id,
+                    title=track.name,
+                    artist=artist_names[0] if artist_names else "Unknown",
                     filename=filename,
                     user_id=self.user_id,
                     progress_callback=_progress_callback,

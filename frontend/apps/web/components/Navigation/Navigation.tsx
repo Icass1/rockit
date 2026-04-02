@@ -40,7 +40,6 @@ export default function Navigation() {
 
     const $downloads = [];
 
-    const $pinnedLists = useStore(rockIt.listManager.pinnedListsAtom);
 
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
@@ -170,7 +169,7 @@ export default function Navigation() {
                         {$vocabulary.PINNED_LISTS}
                     </label>
                 </div>
-                <div className="flex h-full flex-col gap-4 overflow-y-scroll">
+                {/* <div className="flex h-full flex-col gap-4 overflow-y-scroll">
                     {$pinnedLists.map((list) => {
                         return (
                             <Link
@@ -197,7 +196,7 @@ export default function Navigation() {
                             </Link>
                         );
                     })}
-                </div>
+                </div> */}
             </div>
         </div>
     );

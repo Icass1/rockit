@@ -13,17 +13,17 @@ import {
     SkipBack,
     SkipForward,
 } from "lucide-react";
-import { rockIt } from "@/lib/rockit/rockIt";
-import { getTime } from "@/lib/utils/getTime";
 import { getMediaArtists, getMediaDuration } from "@/types/media";
 import useWindowSize from "@/hooks/useWindowSize";
+import { rockIt } from "@/lib/rockit/rockIt";
+import { getTime } from "@/lib/utils/getTime";
 import LikeButton from "@/components/LikeButton";
 import MediaPopupMenu from "@/components/MediaPopupMenu";
 import { useMobilePlayerVisibility } from "@/components/PlayerUI/hooks/useMobilePlayerVisibility";
 import { useMobileSwipeDismiss } from "@/components/PlayerUI/hooks/useMobileSwipeDismiss";
 import MobilePlayerUILyrics from "@/components/PlayerUI/MobilePlayerUILyrics";
 import MobilePlayerUIQueue from "@/components/PlayerUI/MobilePlayerUIQueue";
-import Slider from "@/components/Slider";
+import Slider from "@/components/Slider/Slider";
 
 export default function MobilePlayerUI() {
     const $playing = useStore(rockIt.audioManager.playingAtom);

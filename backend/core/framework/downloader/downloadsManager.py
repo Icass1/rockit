@@ -9,6 +9,7 @@ from backend.core.aResult import AResultCode
 from backend.utils.logger import getLogger
 from backend.core.access.db import rockit_db
 from backend.core.access.downloadAccess import DownloadAccess
+from backend.core.access.userAccess import UserAccess
 from backend.core.enums.downloadStatusEnum import DownloadStatusEnum
 
 from backend.core.framework.downloader.baseDownload import BaseDownload
@@ -69,7 +70,6 @@ class DownloadsManager:
             while True:
                 await asyncio.sleep(0.4)
 
-                # Remove finished tasks and track completion
                 still_ongoing: List[Tuple[asyncio.Task[AResultCode], BaseDownload]] = []
                 for task, download in ongoing:
                     if task.done():
@@ -94,7 +94,6 @@ class DownloadsManager:
                         still_ongoing.append((task, download))
                 ongoing = still_ongoing
 
-                # Start new downloads if under limit
                 while len(ongoing) < self.max_download_threads and len(self.queue) > 0:
                     download: BaseDownload = self.queue.pop(0)
                     logger.info(f"Starting new async download: {download.public_id}")
@@ -115,43 +114,27 @@ class DownloadsManager:
                                 status_key=status_key,
                             )
                             if a_result.is_ok():
-                                from sqlalchemy import update as sql_update
-                                from sqlalchemy import select
-                                from backend.core.access.db.ormModels.download import (
-                                    DownloadRow,
+                                a_result_download_row = await DownloadAccess.get_download_by_id(
+                                    session=session, download_id=d.download_id
                                 )
-
-                                await session.execute(
-                                    sql_update(DownloadRow)
-                                    .where(DownloadRow.id == d.download_id)
-                                    .values(completed=100.0)
-                                )
-
-                                result = await session.execute(
-                                    select(DownloadRow).where(
-                                        DownloadRow.id == d.download_id
-                                    )
-                                )
-                                download_row = result.scalar_one_or_none()
-
-                                if download_row and download_row.media_id:
-                                    from backend.core.access.userAccess import UserAccess
-
-                                    a_result_library = (
-                                        await UserAccess.add_user_library_media(
-                                            session=session,
-                                            user_id=d.user_id,
-                                            media_id=download_row.media_id,
+                                if a_result_download_row.is_ok():
+                                    download_row = a_result_download_row.result()
+                                    if download_row.media_id:
+                                        a_result_library = (
+                                            await UserAccess.add_user_library_media(
+                                                session=session,
+                                                user_id=d.user_id,
+                                                media_id=download_row.media_id,
+                                            )
                                         )
-                                    )
-                                    if a_result_library.is_ok():
-                                        logger.info(
-                                            f"Added media {download_row.media_id} to user library"
-                                        )
-                                    else:
-                                        logger.warning(
-                                            f"Could not add media to library: {a_result_library.message()}"
-                                        )
+                                        if a_result_library.is_ok():
+                                            logger.info(
+                                                f"Added media {download_row.media_id} to user library"
+                                            )
+                                        else:
+                                            logger.warning(
+                                                f"Could not add media to library: {a_result_library.message()}"
+                                            )
 
                                 await session.commit()
                             if a_result.is_not_ok():

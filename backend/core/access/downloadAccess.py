@@ -101,13 +101,7 @@ class DownloadAccess:
             message=message,
         )
         session.add(row)
-
-        result = await session.execute(
-            select(DownloadRow).where(DownloadRow.id == download_id)
-        )
-        download_row: DownloadRow = result.scalar_one_or_none()
-        if download_row:
-            download_row.completed = round(float(completed), 2)
+        await session.flush()
 
         return AResult(code=AResultCode.OK, message="OK", result=row)
 
@@ -265,3 +259,22 @@ class DownloadAccess:
 
         await session.delete(group)
         return AResult(code=AResultCode.OK, message="OK", result=True)
+
+    @staticmethod
+    @safe_async
+    async def get_download_by_id(
+        session: AsyncSession,
+        download_id: int,
+    ) -> AResult[DownloadRow]:
+        """Get a download row by its id."""
+
+        result = await session.execute(
+            select(DownloadRow).where(DownloadRow.id == download_id)
+        )
+        download: DownloadRow | None = result.scalar_one_or_none()
+        if download is None:
+            return AResult(
+                code=AResultCode.NOT_FOUND,
+                message=f"Download {download_id} not found",
+            )
+        return AResult(code=AResultCode.OK, message="OK", result=download)

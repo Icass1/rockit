@@ -9,12 +9,12 @@ import {
     Play,
     PlayIcon,
 } from "lucide-react";
-import { rockIt } from "@/lib/rockit/rockIt";
 import { getMediaArtists, MediaType } from "@/types/media";
 import { Station } from "@/types/station";
+import { rockIt } from "@/lib/rockit/rockIt";
 import Artists from "@/components/Artists/Artists";
-import LikeButton from "@/components/LikeButton";
-import MediaPopupMenu from "@/components/MediaPopupMenu";
+import LikeButton from "@/components/LikeButton/LikeButton";
+import MediaPopupMenu from "@/components/PopupMenus/MediaPopupMenu";
 
 function FooterLeftForSong({ currentMedia }: { currentMedia: MediaType }) {
     const $playing = useStore(rockIt.audioManager.playingAtom);

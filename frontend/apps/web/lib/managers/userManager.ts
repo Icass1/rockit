@@ -3,18 +3,14 @@ import {
     ERepeatMode,
     SessionResponse,
     SessionResponseSchema,
-    UpdateLangRequestSchema,
 } from "@rockit/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createAtom } from "@/lib/store";
 import { apiPostFetch, baseApiFetch } from "@/lib/utils/apiFetch";
 
-export type QueueType = "SORTED" | "RANDOM";
-export type RepeatMode = "OFF" | "ONE" | "ALL";
-
 export class UserManager {
-    private _queueTypeAtom = createAtom<QueueType>("SORTED");
-    private _repeatModeAtom = createAtom<RepeatMode>("OFF");
+    private _queueTypeAtom = createAtom<EQueueType>(EQueueType.SORTED);
+    private _repeatModeAtom = createAtom<ERepeatMode>(ERepeatMode.OFF);
     private _userAtom = createAtom<SessionResponse | undefined>();
 
     async init() {
@@ -34,12 +30,10 @@ export class UserManager {
 
     toggleRandomQueue() {
         const current = this._queueTypeAtom.get();
-        const next: QueueType = current === "SORTED" ? "RANDOM" : "SORTED";
-        this._queueTypeAtom.set(next);
 
         if (!rockIt.queueManager.queue.length) return;
 
-        if (next === "RANDOM") {
+        if (current === EQueueType.RANDOM) {
             rockIt.queueManager.shuffleQueue();
         } else {
             rockIt.queueManager.restoreOriginalQueue();
@@ -47,7 +41,10 @@ export class UserManager {
     }
 
     cycleRepeatMode() {
-        const modes: RepeatMode[] = ["OFF", "ONE", "ALL"];
+        const modes: ERepeatMode[] = Object.values(ERepeatMode).map(
+            (a) => a[1]
+        );
+        console.log(modes);
         const current = this._repeatModeAtom.get();
         const currentIndex = modes.indexOf(current);
         const next = modes[(currentIndex + 1) % modes.length];

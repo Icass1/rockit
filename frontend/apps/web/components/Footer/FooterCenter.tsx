@@ -1,6 +1,7 @@
 "use client";
 
 import { useStore } from "@nanostores/react";
+import { ERepeatMode } from "@rockit/packages/shared";
 import {
     CirclePause,
     CirclePlay,
@@ -27,17 +28,19 @@ export default function FooterCenter() {
     const $repeatSong = useStore(rockIt.userManager.repeatModeAtom);
     const $currentStation = useStore(rockIt.stationManager.currentStationAtom);
 
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+
     if ($currentStation) return <div className="hidden w-1/3 md:block" />;
 
     const RepeatIcon = $repeatSong === "ONE" ? Repeat1 : Repeat;
     const isRepeatActive = $repeatSong === "ONE" || $repeatSong === "ALL";
 
     const repeatLabel =
-        $repeatSong === "ONE"
-            ? "Repeat one"
+        $repeatSong === ERepeatMode.ONE
+            ? $vocabulary.REPEAT_ONE
             : $repeatSong === "ALL"
-              ? "Repeat all"
-              : "No repeat";
+              ? $vocabulary.REPEAT_ALL
+              : $vocabulary.NO_REPEAT;
 
     return (
         <div className="hidden w-1/3 flex-col items-center justify-center space-y-1 md:flex">

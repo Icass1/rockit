@@ -34,7 +34,6 @@ export {
     BaseSearchResultsItemSchema,
     type BaseSearchResultsItem,
 } from "./baseSearchResultsItem";
-export { MediaResponseSchema, type MediaResponse } from "./mediaResponse";
 export {
     BaseSongWithAlbumResponseSchema,
     type BaseSongWithAlbumResponse,

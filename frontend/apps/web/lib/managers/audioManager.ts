@@ -1,6 +1,5 @@
-import { resolveNextOnEnd } from "@rockit/shared";
+import { ERepeatMode, resolveNextOnEnd } from "@rockit/shared";
 import { getMediaAudioSrc } from "@/types/media";
-import type { RepeatMode } from "@/lib/managers/userManager";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createAtom } from "@/lib/store";
 
@@ -180,7 +179,7 @@ export class AudioManager {
             });
         }
 
-        const repeat = rockIt.userManager.repeatModeAtom.get() as RepeatMode;
+        const repeat = rockIt.userManager.repeatModeAtom.get();
         const queue = rockIt.queueManager.queue;
         const currentId = rockIt.queueManager.currentQueueMediaId;
 

@@ -3,10 +3,10 @@
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
 import { Pause, Play } from "lucide-react";
-import { rockIt } from "@/lib/rockit/rockIt";
 import { getMediaArtists, getMediaDuration } from "@/types/media";
+import { rockIt } from "@/lib/rockit/rockIt";
 import LikeButton from "@/components/LikeButton";
-import Slider from "@/components/Slider";
+import Slider from "@/components/Slider/Slider";
 
 export default function FooterMobile() {
     const $playing = useStore(rockIt.audioManager.playingAtom);

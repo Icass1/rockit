@@ -3,7 +3,7 @@
 import { useStore } from "@nanostores/react";
 import { Volume1, Volume2, VolumeOff } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
-import Slider from "@/components/Slider";
+import Slider from "@/components/Slider/Slider";
 
 function VolumeIcon({ volume }: { volume: number }) {
     const className =

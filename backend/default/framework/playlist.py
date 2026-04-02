@@ -1,14 +1,11 @@
-from typing import List, Tuple, Union
+from typing import List, Union
 from logging import Logger
-from sqlalchemy import select
-from sqlalchemy.engine.result import Result
-from sqlalchemy.orm import selectinload
+
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.sql.selectable import Select
 
 from backend.core.aResult import AResult, AResultCode
 
-from backend.core.access.db.ormModels.media import CoreMediaRow
+from backend.core.access.mediaAccess import MediaAccess
 from backend.core.access.userAccess import UserAccess
 from backend.core.enums.mediaTypeEnum import MediaTypeEnum
 from backend.core.enums.playlistContributorRoleEnum import PlaylistContributorRoleEnum
@@ -57,19 +54,13 @@ class Playlist:
         session: AsyncSession, media_id: int
     ) -> AResult[MediaInfoModel]:
         try:
-            stmt = (
-                select(CoreMediaRow)
-                .where(CoreMediaRow.id == media_id)
-                .options(
-                    selectinload(CoreMediaRow.provider),
-                    selectinload(CoreMediaRow.media_type),
-                )
+            a_result = await MediaAccess.get_media_from_id_async(
+                session=session, id=media_id
             )
-            result = await session.execute(stmt)
-            media = result.scalar_one_or_none()
-            if not media:
-                return AResult(code=AResultCode.NOT_FOUND, message="Media not found")
+            if a_result.is_not_ok():
+                return AResult(code=a_result.code(), message=a_result.message())
 
+            media = a_result.result()
             media_type = MediaTypeEnum(media.media_type_key)
 
             return AResult(
@@ -455,13 +446,15 @@ class Playlist:
                 code=AResultCode.BAD_REQUEST, message="Insufficient permissions."
             )
 
-        stmt: Select[Tuple[CoreMediaRow]] = select(CoreMediaRow).where(
-            CoreMediaRow.public_id == media_public_id
+        a_result_media = await MediaAccess.get_media_from_public_id_async(
+            session=session,
+            public_id=media_public_id,
+            media_type_keys=None,
         )
-        result: Result[Tuple[CoreMediaRow]] = await session.execute(stmt)
-        media_row: CoreMediaRow | None = result.scalar_one_or_none()
-        if not media_row:
-            return AResult(code=AResultCode.NOT_FOUND, message="Media not found")
+        if a_result_media.is_not_ok():
+            return AResult(code=a_result_media.code(), message=a_result_media.message())
+
+        media_row = a_result_media.result()
 
         a_result: AResult[PlaylistMediaRow] = (
             await PlaylistAccess.add_media_to_playlist_async(
@@ -534,13 +527,15 @@ class Playlist:
                 code=AResultCode.BAD_REQUEST, message="Insufficient permissions."
             )
 
-        stmt: Select[Tuple[CoreMediaRow]] = select(CoreMediaRow).where(
-            CoreMediaRow.public_id == media_public_id
+        a_result_media = await MediaAccess.get_media_from_public_id_async(
+            session=session,
+            public_id=media_public_id,
+            media_type_keys=None,
         )
-        result: Result[Tuple[CoreMediaRow]] = await session.execute(stmt)
-        media_row: CoreMediaRow | None = result.scalar_one_or_none()
-        if not media_row:
-            return AResult(code=AResultCode.NOT_FOUND, message="Media not found")
+        if a_result_media.is_not_ok():
+            return AResult(code=a_result_media.code(), message=a_result_media.message())
+
+        media_row = a_result_media.result()
 
         a_result_playlist_media: AResult[PlaylistMediaRow] = (
             await PlaylistAccess.get_playlist_media_by_media_id_async(
@@ -720,13 +715,15 @@ class Playlist:
 
         playlist_id: int = a_result_playlist.result().id
 
-        stmt: Select[Tuple[CoreMediaRow]] = select(CoreMediaRow).where(
-            CoreMediaRow.public_id == playlist_media_public_id
+        a_result_media = await MediaAccess.get_media_from_public_id_async(
+            session=session,
+            public_id=playlist_media_public_id,
+            media_type_keys=None,
         )
-        result: Result[Tuple[CoreMediaRow]] = await session.execute(stmt)
-        media_row: CoreMediaRow | None = result.scalar_one_or_none()
-        if not media_row:
-            return AResult(code=AResultCode.NOT_FOUND, message="Media not found")
+        if a_result_media.is_not_ok():
+            return AResult(code=a_result_media.code(), message=a_result_media.message())
+
+        media_row = a_result_media.result()
 
         a_result_playlist_media: AResult[PlaylistMediaRow] = (
             await PlaylistAccess.get_playlist_media_by_media_id_async(
@@ -778,13 +775,15 @@ class Playlist:
 
         playlist_id: int = a_result_playlist.result().id
 
-        stmt: Select[Tuple[CoreMediaRow]] = select(CoreMediaRow).where(
-            CoreMediaRow.public_id == playlist_media_public_id
+        a_result_media = await MediaAccess.get_media_from_public_id_async(
+            session=session,
+            public_id=playlist_media_public_id,
+            media_type_keys=None,
         )
-        result: Result[Tuple[CoreMediaRow]] = await session.execute(stmt)
-        media_row: CoreMediaRow | None = result.scalar_one_or_none()
-        if not media_row:
-            return AResult(code=AResultCode.NOT_FOUND, message="Media not found")
+        if a_result_media.is_not_ok():
+            return AResult(code=a_result_media.code(), message=a_result_media.message())
+
+        media_row = a_result_media.result()
 
         a_result_playlist_media: AResult[PlaylistMediaRow] = (
             await PlaylistAccess.get_playlist_media_by_media_id_async(

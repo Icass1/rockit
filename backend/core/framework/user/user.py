@@ -110,6 +110,7 @@ class User:
             BaseAlbumWithoutSongsResponse
             | BasePlaylistResponse
             | BaseSongWithAlbumResponse
+            | BaseVideoResponse
         ]
     ]:
         """Get all media in user's library."""
@@ -128,6 +129,7 @@ class User:
             BaseAlbumWithoutSongsResponse
             | BasePlaylistResponse
             | BaseSongWithAlbumResponse
+            | BaseVideoResponse
         ] = []
 
         for _, media, provider in a_result_medias.result():

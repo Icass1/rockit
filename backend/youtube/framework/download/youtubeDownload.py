@@ -121,7 +121,9 @@ class YoutubeDownload(BaseDownload):
                 )
 
                 if a_result_update.is_not_ok():
-                    logger.warning(f"Could not update video path in DB: {a_result_update.message()}")
+                    logger.warning(
+                        f"Could not update video path in DB: {a_result_update.message()}"
+                    )
             except Exception as e:
                 logger.warning(f"Could not update video path in DB: {e}")
 

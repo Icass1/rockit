@@ -2,6 +2,8 @@
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
+> **Building APK/IPA**: See [BUILDINGAPKIPA.md](./BUILDINGAPKIPA.md) for instructions on building Android APK and iOS IPA files using Expo Application Services (EAS).
+
 ## Get started
 
 1. Install dependencies

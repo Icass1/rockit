@@ -380,6 +380,34 @@ class YoutubeMusicAccess:
             )
 
     @staticmethod
+    async def update_track_path_async(
+        session: AsyncSession,
+        track_id: int,
+        path: str,
+    ) -> AResultCode:
+        try:
+            stmt: Select[Tuple[TrackRow]] = select(TrackRow).where(
+                TrackRow.id == track_id
+            )
+            result: Result[Tuple[TrackRow]] = await session.execute(stmt)
+            track_row: TrackRow | None = result.scalar_one_or_none()
+            if not track_row:
+                logger.warning(f"Could not find track {track_id} to update path")
+                return AResultCode(
+                    code=AResultCode.NOT_FOUND,
+                    message=f"Track {track_id} not found",
+                )
+            track_row.path = path
+            await session.commit()
+            return AResultCode(code=AResultCode.OK, message="OK")
+        except Exception as e:
+            logger.error(f"Failed to update track path: {e}")
+            return AResultCode(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to update track path: {e}",
+            )
+
+    @staticmethod
     async def get_playlist_track_links_async(
         session: AsyncSession,
         playlist_id: int,

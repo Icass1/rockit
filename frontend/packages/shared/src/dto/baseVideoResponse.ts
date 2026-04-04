@@ -6,6 +6,7 @@ export const BaseVideoResponseSchema = z.object({
     provider: z.string(),
     publicId: z.string(),
     url: z.string(),
+    providerUrl: z.string(),
     name: z.string(),
     videoSrc: z.string().nullable(),
     audioSrc: z.string().nullable(),

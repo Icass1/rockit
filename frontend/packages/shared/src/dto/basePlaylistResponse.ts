@@ -7,6 +7,7 @@ export const BasePlaylistResponseSchema = z.object({
     provider: z.string(),
     publicId: z.string(),
     url: z.string(),
+    providerUrl: z.string(),
     name: z.string(),
     medias: z.array(z.union([z.any(), z.any(), z.any(), z.any(), z.any()])),
     contributors: z.array(z.lazy(() => PlaylistContributorResponseSchema)),

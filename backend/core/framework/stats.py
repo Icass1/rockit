@@ -291,13 +291,14 @@ def _generate_mock_home_songs() -> List[BaseSongWithAlbumResponse]:
     albums_shuffled = random.sample(MOCK_ALBUMS, len(MOCK_ALBUMS))
     result: List[BaseSongWithAlbumResponse] = []
     for i in range(min(len(shuffled), 10)):
-        name, artist, href = shuffled[i]
+        name, artist, _ = shuffled[i]
         album_name, _, _ = albums_shuffled[i % len(albums_shuffled)]
 
         artist_model = BaseArtistResponse(
             provider="rockit",
             publicId=f"artist-{i}",
             url=f"https://rockit.local/artist/{artist.lower().replace(' ', '-')}",
+            providerUrl="",
             name=artist,
             imageUrl=random.choice(MOCK_IMAGE_URLS),
         )
@@ -307,6 +308,7 @@ def _generate_mock_home_songs() -> List[BaseSongWithAlbumResponse]:
             provider="rockit",
             publicId=f"album-{i}",
             url=f"https://rockit.local/album/{album_name.lower().replace(' ', '-')}",
+            providerUrl="",
             name=album_name,
             artists=[artist_model],
             releaseDate="2024-01-01",
@@ -318,7 +320,7 @@ def _generate_mock_home_songs() -> List[BaseSongWithAlbumResponse]:
                 type="song",
                 provider="rockit",
                 publicId=f"home-song-{i + 1}",
-                url=f"https://rockit.local{href}",
+                providerUrl="",
                 name=name,
                 artists=[artist_model],
                 audioSrc=None,

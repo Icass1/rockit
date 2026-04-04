@@ -11,6 +11,7 @@ class BaseSearchResultsItem(BaseModel):
     type: Literal["album", "playlist", "artist", "song", "video", "radio"]
     title: str
     url: str
+    providerUrl: str
     imageUrl: str
     artists: List[ArtistSearchResultsItem]
     provider: str

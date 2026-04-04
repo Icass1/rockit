@@ -10,7 +10,7 @@ class BaseSongWithoutAlbumResponse(BaseModel):
     type: Literal["song"] = "song"
     provider: str
     publicId: str
-    url: str
+    providerUrl: str
     name: str
     artists: Sequence[BaseArtistResponse]
     audioSrc: str | None

@@ -4,6 +4,7 @@ export const SpotifyArtistResponseSchema = z.object({
     provider: z.string(),
     publicId: z.string(),
     url: z.string(),
+    providerUrl: z.string(),
     name: z.string(),
     imageUrl: z.string(),
     genres: z.array(z.string()),

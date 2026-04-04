@@ -38,6 +38,7 @@ class BasePlaylistResponse(BaseModel):
     provider: str
     publicId: str
     url: str
+    providerUrl: str
     name: str
     medias: Sequence[
         Union[

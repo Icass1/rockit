@@ -87,6 +87,7 @@ class YoutubeProvider(BaseProvider):
                 type="video",
                 title=v.title or "",
                 url=f"/youtube/video/{v.video_id}",
+                providerUrl=f"https://www.youtube.com/watch?v={v.video_id}",
                 imageUrl=self._get_thumbnail_url(v.thumbnails),
                 artists=[
                     ArtistSearchResultsItem(
@@ -143,7 +144,7 @@ class YoutubeProvider(BaseProvider):
             result=BaseVideoResponse(
                 provider=youtube_video.provider,
                 publicId=youtube_video.publicId,
-                url=youtube_video.url,
+                providerUrl=youtube_video.providerUrl,
                 name=youtube_video.name,
                 imageUrl=youtube_video.imageUrl,
                 duration_ms=youtube_video.duration_ms,
@@ -225,7 +226,7 @@ class YoutubeProvider(BaseProvider):
             result=BaseVideoResponse(
                 provider=youtube_video.provider,
                 publicId=youtube_video.publicId,
-                url=youtube_video.url,
+                providerUrl=youtube_video.providerUrl,
                 name=youtube_video.name,
                 imageUrl=youtube_video.imageUrl or "",
                 duration_ms=youtube_video.duration_ms,

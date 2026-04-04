@@ -4,7 +4,7 @@ export const BaseStationResponseSchema = z.object({
     type: z.union([z.literal("station")]).default("station"),
     provider: z.string(),
     publicId: z.string(),
-    url: z.string(),
+    providerUrl: z.string(),
     name: z.string(),
     imageUrl: z.string(),
 });

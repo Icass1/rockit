@@ -12,6 +12,7 @@ class BaseAlbumWithoutSongsResponse(BaseModel):
     provider: str
     publicId: str
     url: str
+    providerUrl: str
     name: str
     artists: Sequence[BaseArtistResponse]
     releaseDate: str

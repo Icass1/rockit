@@ -12,6 +12,7 @@ export const BaseSearchResultsItemSchema = z.object({
     ]),
     title: z.string(),
     url: z.string(),
+    providerUrl: z.string(),
     imageUrl: z.string(),
     artists: z.array(z.lazy(() => ArtistSearchResultsItemSchema)),
     provider: z.string(),

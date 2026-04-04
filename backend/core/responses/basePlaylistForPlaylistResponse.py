@@ -10,6 +10,7 @@ class BasePlaylistForPlaylistResponse(BaseModel):
     provider: str
     publicId: str
     url: str
+    providerUrl: str
     name: str
     imageUrl: str
     owner: str

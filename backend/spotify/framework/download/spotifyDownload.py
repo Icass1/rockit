@@ -129,9 +129,7 @@ class SpotifyDownload(BaseDownload):
             filename: str = f"{track.spotify_id}_{self.download_id}"
 
             async def _progress_callback(progress: float, status: str):
-                await self.progress_callback(
-                    session=session, progress=progress, status=status
-                )
+                await self.progress_callback(progress=progress, status=status)
 
             a_result_download: AResult[str] = (
                 await YouTubeDownloader.download_as_mp3_async(

@@ -10,6 +10,7 @@ from backend.utils.logger import getLogger
 # Core framework.
 from backend.core.framework.provider.baseProvider import BaseProvider
 from backend.core.framework.provider.types import AddFromUrlAResult
+from backend.core.framework.downloader.baseDownload import BaseDownload
 
 # Core responses.
 from backend.core.responses.searchResponse import (
@@ -33,8 +34,15 @@ from backend.youtubeMusic.utils.youtubeMusicApi import (
     YoutubeMusicPlaylist,
 )
 
+# Youtube Music access.
+from backend.youtubeMusic.access.youtubeMusicAccess import YoutubeMusicAccess
+from backend.youtubeMusic.access.db.ormModels.track import TrackRow
+
 # Youtube Music framework.
 from backend.youtubeMusic.framework.youtubeMusic import YoutubeMusic, youtube_music
+from backend.youtubeMusic.framework.download.youtubeMusicDownload import (
+    YoutubeMusicDownload,
+)
 
 logger: Logger = getLogger(__name__)
 
@@ -89,6 +97,7 @@ class YoutubeMusicProvider(BaseProvider):
                 type="song",
                 title=track.title,
                 url=f"/youtube-music/track/{track.youtube_id}",
+                providerUrl=f"https://music.youtube.com/watch?v={track.youtube_id}",
                 imageUrl=track.thumbnail_url,
                 artists=[
                     ArtistSearchResultsItem(
@@ -129,6 +138,7 @@ class YoutubeMusicProvider(BaseProvider):
                     provider="YouTube Music",
                     publicId="",
                     url="",
+                    providerUrl="",
                     name=artist_name,
                     imageUrl="",
                 )
@@ -139,6 +149,7 @@ class YoutubeMusicProvider(BaseProvider):
                 provider="YouTube Music",
                 publicId="",
                 url="",
+                providerUrl="",
                 name=track.album,
                 artists=[],
                 releaseDate="",
@@ -150,7 +161,7 @@ class YoutubeMusicProvider(BaseProvider):
                     item=BaseSongWithAlbumResponse(
                         provider="YouTube Music",
                         publicId=track.youtube_id,
-                        url=f"/youtube-music/track/{track.youtube_id}",
+                        providerUrl=f"https://music.youtube.com/watch?v={track.youtube_id}",
                         name=track.title,
                         artists=artists_list,
                         audioSrc=None,
@@ -174,6 +185,7 @@ class YoutubeMusicProvider(BaseProvider):
                 provider="YouTube Music",
                 publicId=public_id,
                 url=f"/youtube-music/playlist/{public_id}",
+                providerUrl=f"https://music.youtube.com/playlist?list={public_id}",
                 name=playlist.title,
                 medias=song_responses,
                 contributors=[],
@@ -332,6 +344,56 @@ class YoutubeMusicProvider(BaseProvider):
         return AResult(
             code=AResultCode.BAD_REQUEST,
             message="Unsupported YouTube Music resource type",
+        )
+
+    async def start_download_async(
+        self,
+        session: AsyncSession,
+        public_id: str,
+        download_id: int,
+        download_group_id: int,
+        user_id: int,
+    ) -> AResult[BaseDownload]:
+        """Create a YoutubeMusicDownload for the given track public_id."""
+
+        a_result: AResult[str] = (
+            await YoutubeMusicAccess.get_track_youtube_id_from_public_id_async(
+                session=session, public_id=public_id
+            )
+        )
+        if a_result.is_not_ok():
+            logger.error(
+                f"Error getting youtube_id for public_id {public_id}: {a_result.message()}"
+            )
+            return AResult(code=a_result.code(), message=a_result.message())
+
+        youtube_id: str = a_result.result()
+
+        a_result_track: AResult[TrackRow] = (
+            await YoutubeMusicAccess.get_track_by_youtube_id_async(
+                session=session, youtube_id=youtube_id
+            )
+        )
+        if a_result_track.is_not_ok():
+            logger.error(
+                f"Error getting track row for youtube_id {youtube_id}: {a_result_track.message()}"
+            )
+            return AResult(code=a_result_track.code(), message=a_result_track.message())
+
+        track: TrackRow = a_result_track.result()
+
+        return AResult(
+            code=AResultCode.OK,
+            message="OK",
+            result=YoutubeMusicDownload(
+                public_id=public_id,
+                download_id=download_id,
+                download_group_id=download_group_id,
+                user_id=user_id,
+                track_id=track.id,
+                youtube_id=youtube_id,
+                download_url=track.download_url,
+            ),
         )
 
     def match_url(self, url: str) -> str | None:

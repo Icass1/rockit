@@ -117,6 +117,7 @@ class YouTube:
                         provider=channel_response.provider,
                         publicId=channel_response.publicId,
                         url=f"https://www.youtube.com/channel/{channel_response.publicId}",
+                        providerUrl=f"https://www.youtube.com/channel/{channel_response.publicId}",
                         name=channel_response.name,
                         imageUrl=channel_response.imageUrl or "",
                     )
@@ -140,7 +141,7 @@ class YouTube:
                 result=YoutubeVideoResponse(
                     provider=YouTube.provider_name,
                     publicId=core_video.public_id,
-                    url=video_row.youtube_url or "",
+                    providerUrl=video_row.youtube_url or "",
                     youtubeId=video_row.youtube_id,
                     name=video_row.name,
                     duration_ms=video_row.duration_ms,
@@ -312,6 +313,7 @@ class YouTube:
                     provider=channel_response.provider,
                     publicId=channel_response.publicId,
                     url=f"https://www.youtube.com/channel/{channel_response.publicId}",
+                    providerUrl=f"https://www.youtube.com/channel/{channel_response.publicId}",
                     name=channel_response.name,
                     imageUrl=channel_response.imageUrl or "",
                 )
@@ -335,7 +337,7 @@ class YouTube:
             result=YoutubeVideoResponse(
                 provider=YouTube.provider_name,
                 publicId=core_video.public_id,
-                url=video_row.youtube_url or "",
+                providerUrl=video_row.youtube_url or "",
                 youtubeId=video_row.youtube_id,
                 name=video_row.name,
                 duration_ms=video_row.duration_ms,

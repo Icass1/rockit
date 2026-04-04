@@ -10,7 +10,7 @@ class BaseVideoResponse(BaseModel):
     type: Literal["video"] = "video"
     provider: str
     publicId: str
-    url: str
+    providerUrl: str
     name: str
     videoSrc: Optional[str] = None
     audioSrc: Optional[str] = None

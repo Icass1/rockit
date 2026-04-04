@@ -6,6 +6,7 @@ export const BaseAlbumWithoutSongsResponseSchema = z.object({
     provider: z.string(),
     publicId: z.string(),
     url: z.string(),
+    providerUrl: z.string(),
     name: z.string(),
     artists: z.array(z.lazy(() => BaseArtistResponseSchema)),
     releaseDate: z.string(),

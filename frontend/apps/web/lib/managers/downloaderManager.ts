@@ -1,4 +1,4 @@
-import { DBListType, StartDownloadRequest } from "@rockit/shared";
+import { StartDownloadRequest } from "@rockit/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createArrayAtom } from "@/lib/store";
 import { apiPostFetch } from "@/lib/utils/apiFetch";

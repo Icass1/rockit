@@ -1,5 +1,6 @@
 import { ERepeatMode, resolveNextOnEnd } from "@rockit/shared";
 import { getMediaAudioSrc } from "@/types/media";
+import { EQueueAction } from "@/models/enums/queueAction";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createAtom } from "@/lib/store";
 
@@ -194,9 +195,9 @@ export class AudioManager {
             repeat
         );
 
-        if (action === "replay") {
+        if (action === EQueueAction.REPLAY) {
             this.play();
-        } else if (action === "play" && nextId !== null) {
+        } else if (action === EQueueAction.PLAY && nextId !== null) {
             rockIt.queueManager.setQueueMediaId(nextId);
             this.play();
         } else {

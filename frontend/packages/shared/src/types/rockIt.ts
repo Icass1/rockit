@@ -1,6 +1,6 @@
 import * as z from "zod";
 
-export type DBListType = "album" | "playlist";
+export type ListType = "album" | "playlist";
 export type QueueListType =
     | "album"
     | "playlist"

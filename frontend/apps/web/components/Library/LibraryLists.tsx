@@ -1,7 +1,6 @@
 "use client";
 
 import { ReactNode, useMemo } from "react";
-import { useStore } from "@nanostores/react";
 import {
     BaseAlbumWithoutSongsResponse,
     BasePlaylistResponse,
@@ -9,6 +8,7 @@ import {
     BaseStationResponse,
     BaseVideoResponse,
 } from "@/dto";
+import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import {
     ContentType,
@@ -99,7 +99,7 @@ function EmptyState({ message }: { message: string }) {
 }
 
 /* ------------------------------------------------------- */
-/* MASONRY — "ALL" TAB                                     */
+/* MASONRY — ERepeatMode.ALL TAB                                     */
 /* ------------------------------------------------------- */
 
 /**

@@ -1,4 +1,4 @@
-import { DBListType, LibraryListsResponseSchema } from "@rockit/shared";
+import { LibraryListsResponseSchema, ListType } from "@rockit/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createArrayAtom } from "@/lib/store";
 import { baseApiFetch } from "@/lib/utils/apiFetch";
@@ -6,7 +6,7 @@ import { baseApiFetch } from "@/lib/utils/apiFetch";
 export class ListManager {
     private _libraryListsAtom = createArrayAtom<{
         publicId: string;
-        type: DBListType;
+        type: ListType;
     }>([]);
 
     async initLibrary() {
@@ -15,7 +15,7 @@ export class ListManager {
         const json = await res.json();
         const data = LibraryListsResponseSchema.parse(json);
 
-        const lists: { publicId: string; type: DBListType }[] = [];
+        const lists: { publicId: string; type: ListType }[] = [];
 
         for (const album of data.albums) {
             lists.push({ publicId: album.publicId, type: "album" });
@@ -27,7 +27,7 @@ export class ListManager {
         this._libraryListsAtom.set(lists);
     }
 
-    async addListToLibraryAsync(type: DBListType, publicId: string) {
+    async addListToLibraryAsync(type: ListType, publicId: string) {
         const response = await baseApiFetch(
             `/user/library/${type}/${publicId}`,
             {
@@ -46,7 +46,7 @@ export class ListManager {
         rockIt.notificationManager.notifySuccess("List added to library.");
     }
 
-    async removeListFromLibraryAsync(type: DBListType, publicId: string) {
+    async removeListFromLibraryAsync(type: ListType, publicId: string) {
         const response = await baseApiFetch(
             `/user/library/${type}/${publicId}`,
             {
@@ -68,7 +68,7 @@ export class ListManager {
         rockIt.notificationManager.notifySuccess("List removed from library.");
     }
 
-    async toggleListInLibraryAsync(type: DBListType, publicId: string) {
+    async toggleListInLibraryAsync(type: ListType, publicId: string) {
         if (this.listInLibrary(publicId)) {
             await this.removeListFromLibraryAsync(type, publicId);
         } else {
@@ -82,7 +82,7 @@ export class ListManager {
             .some((list) => list.publicId === publicId);
     }
 
-    async likeAllSongsAsync(type: DBListType, publicId: string) {
+    async likeAllSongsAsync(type: ListType, publicId: string) {
         let songPublicIds: string[];
 
         try {

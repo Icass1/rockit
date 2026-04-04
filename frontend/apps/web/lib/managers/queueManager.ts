@@ -7,7 +7,7 @@ import {
 } from "@/dto";
 import { shuffleQueue as shuffleQueueLogic } from "@rockit/shared";
 import { MediaType } from "@/types/media";
-import { DBListType, QueueListType } from "@/types/rockIt";
+import { ListType, QueueListType } from "@/types/rockIt";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createArrayAtom, createAtom } from "@/lib/store";
 import { baseApiFetch } from "@/lib/utils/apiFetch";
@@ -184,17 +184,17 @@ export class QueueManager {
         this._currentMediaAtom.set(undefined);
     }
 
-    async addListToTopAsync(type: DBListType, publicId: string) {
+    async addListToTopAsync(type: ListType, publicId: string) {
         console.log(type, publicId);
         throw "(addListToTopAsync) Not implemented method";
     }
 
-    async addListRandomAsync(type: DBListType, publicId: string) {
+    async addListRandomAsync(type: ListType, publicId: string) {
         console.log(type, publicId);
         throw "(addListRandomAsync) Not implemented method";
     }
 
-    async addListToBottomAsync(type: DBListType, publicId: string) {
+    async addListToBottomAsync(type: ListType, publicId: string) {
         void type;
         void publicId;
         throw "(addListToBottomAsync) Not implemented method";

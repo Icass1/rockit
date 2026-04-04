@@ -17,12 +17,12 @@ import { getMediaArtists, getMediaDuration } from "@/types/media";
 import useWindowSize from "@/hooks/useWindowSize";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
-import LikeButton from "@/components/LikeButton";
-import MediaPopupMenu from "@/components/MediaPopupMenu";
+import LikeButton from "@/components/LikeButton/LikeButton";
 import { useMobilePlayerVisibility } from "@/components/PlayerUI/hooks/useMobilePlayerVisibility";
 import { useMobileSwipeDismiss } from "@/components/PlayerUI/hooks/useMobileSwipeDismiss";
 import MobilePlayerUILyrics from "@/components/PlayerUI/MobilePlayerUILyrics";
 import MobilePlayerUIQueue from "@/components/PlayerUI/MobilePlayerUIQueue";
+import MediaPopupMenu from "@/components/PopupMenus/MediaPopupMenu";
 import Slider from "@/components/Slider/Slider";
 
 export default function MobilePlayerUI() {

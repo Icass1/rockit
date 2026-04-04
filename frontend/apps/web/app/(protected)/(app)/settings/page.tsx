@@ -1,11 +1,5 @@
-import SettingsClient from "@/app/(protected)/(app)/settings/SettingsClient";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { SettingsClient } from "@/components/Settings";
 
 export default async function SettingsPage() {
-    const vocabulary = (await rockIt.vocabularyManager.getVocabulary()) ?? {
-        vocabulary: {},
-        currentLang: "en",
-    };
-
-    return <SettingsClient vocabulary={vocabulary} />;
+    return <SettingsClient />;
 }

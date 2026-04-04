@@ -2,7 +2,6 @@
 
 // import { Downloads } from "@/components/MusicDownloader";
 import { useRef, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useStore } from "@nanostores/react";
@@ -39,7 +38,6 @@ export default function Navigation() {
     };
 
     const $downloads = [];
-
 
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 

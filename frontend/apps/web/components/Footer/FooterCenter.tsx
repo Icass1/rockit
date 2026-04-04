@@ -1,7 +1,7 @@
 "use client";
 
 import { useStore } from "@nanostores/react";
-import { ERepeatMode } from "@rockit/packages/shared";
+import { EQueueType, ERepeatMode } from "@rockit/packages/shared";
 import {
     CirclePause,
     CirclePlay,
@@ -25,20 +25,21 @@ export default function FooterCenter() {
     const $loading = useStore(rockIt.audioManager.loadingAtom);
     const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
     const $queueType = useStore(rockIt.userManager.queueTypeAtom);
-    const $repeatSong = useStore(rockIt.userManager.repeatModeAtom);
+    const $repeatMode = useStore(rockIt.userManager.repeatModeAtom);
     const $currentStation = useStore(rockIt.stationManager.currentStationAtom);
 
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     if ($currentStation) return <div className="hidden w-1/3 md:block" />;
 
-    const RepeatIcon = $repeatSong === "ONE" ? Repeat1 : Repeat;
-    const isRepeatActive = $repeatSong === "ONE" || $repeatSong === "ALL";
+    const RepeatIcon = $repeatMode === ERepeatMode.ONE ? Repeat1 : Repeat;
+    const isRepeatActive =
+        $repeatMode === ERepeatMode.ONE || $repeatMode === ERepeatMode.ALL;
 
     const repeatLabel =
-        $repeatSong === ERepeatMode.ONE
+        $repeatMode === ERepeatMode.ONE
             ? $vocabulary.REPEAT_ONE
-            : $repeatSong === "ALL"
+            : $repeatMode === ERepeatMode.ALL
               ? $vocabulary.REPEAT_ALL
               : $vocabulary.NO_REPEAT;
 
@@ -49,16 +50,16 @@ export default function FooterCenter() {
                     aria-label={
                         $queueType ? "Disable shuffle" : "Enable shuffle"
                     }
-                    aria-pressed={$queueType === "RANDOM"}
+                    aria-pressed={$queueType === EQueueType.RANDOM}
                     onClick={() => rockIt.userManager.toggleRandomQueue()}
                 >
                     <Shuffle
-                        className={`h-4.5 w-4.5 transition-colors md:hover:scale-105 ${$queueType === "RANDOM" ? ACTIVE : "text-gray-400"}`}
+                        className={`h-4.5 w-4.5 transition-colors md:hover:scale-105 ${$queueType === EQueueType.RANDOM ? ACTIVE : "text-gray-400"}`}
                     />
                 </button>
 
                 <button
-                    aria-label="Previous song"
+                    aria-label={$vocabulary.PREVIOUS_MEDIA}
                     onClick={() => rockIt.queueManager.skipBack()}
                 >
                     <SkipBack
@@ -86,7 +87,7 @@ export default function FooterCenter() {
                 )}
 
                 <button
-                    aria-label="Next song"
+                    aria-label={$vocabulary.NEXT_MEDIA}
                     onClick={() => rockIt.queueManager.skipForward()}
                 >
                     <SkipForward
@@ -113,7 +114,7 @@ export default function FooterCenter() {
                 <input
                     type="range"
                     id="default-slider"
-                    aria-label="Song progress"
+                    aria-label={$vocabulary.MEDIA_PROGRESS}
                     aria-valuetext={`${getTime($currentTime ?? 0)} of ${getTime(getMediaDuration($currentMedia) ?? 0)}`}
                     className="h-1 w-full rounded bg-neutral-700 accent-[#ee1086]"
                     value={$currentTime ?? 0}

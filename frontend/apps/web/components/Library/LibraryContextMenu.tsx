@@ -1,6 +1,7 @@
 "use client";
 
 import { ReactNode } from "react";
+import { BaseAlbumWithoutSongsResponse, BasePlaylistResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
 import {
     HardDriveDownload,
@@ -12,10 +13,6 @@ import {
     PlayCircle,
     Shuffle,
 } from "lucide-react";
-import {
-    BaseAlbumWithoutSongsResponse,
-    BasePlaylistResponse,
-} from "@/dto";
 import { rockIt } from "@/lib/rockit/rockIt";
 import ContextMenuContent from "@/components/ContextMenu/Content";
 import ContextMenu from "@/components/ContextMenu/ContextMenu";
@@ -30,21 +27,18 @@ export function AddListContextMenu({
     children: ReactNode;
     list: BasePlaylistResponse | BaseAlbumWithoutSongsResponse;
 }) {
-    const $pinnedLists = useStore(rockIt.listManager.pinnedListsAtom);
-    const isPinned = $pinnedLists.find(
-        (_list) => _list.publicId === list.publicId
-    );
+    // const $pinnedLists = useStore(rockIt.listManager.pinnedListsAtom);
+    // const isPinned = $pinnedLists.find(
+    //     (_list) => _list.publicId === list.publicId
+    // );
+    const isPinned = false;
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     return (
         <ContextMenu>
             <ContextMenuTrigger>{children}</ContextMenuTrigger>
             <ContextMenuContent>
-                <ContextMenuOption
-                    onClick={() =>
-                        rockIt.listManager.playAsync(list.type, list.publicId)
-                    }
-                >
+                <ContextMenuOption onClick={() => console.warn("TOOD")}>
                     <PlayCircle className="h-5 w-5" />
                     {$vocabulary.PLAY_LIST}
                 </ContextMenuOption>
@@ -103,11 +97,12 @@ export function AddListContextMenu({
 
                 {isPinned ? (
                     <ContextMenuOption
-                        onClick={() =>
-                            rockIt.listManager.unPinListAsync(
-                                list.type,
-                                list.publicId
-                            )
+                        onClick={
+                            () => console.warn("TOOD")
+                            // rockIt.listManager.unPinListAsync(
+                            //     list.type,
+                            //     list.publicId
+                            // )
                         }
                     >
                         <PinOff className="h-5 w-5" />
@@ -115,11 +110,12 @@ export function AddListContextMenu({
                     </ContextMenuOption>
                 ) : (
                     <ContextMenuOption
-                        onClick={() =>
-                            rockIt.listManager.pinListAsync(
-                                list.type,
-                                list.publicId
-                            )
+                        onClick={
+                            () => console.warn("TOOD")
+                            // rockIt.listManager.pinListAsync(
+                            //     list.type,
+                            //     list.publicId
+                            // )
                         }
                     >
                         <PinIcon className="h-5 w-5" />
@@ -130,11 +126,12 @@ export function AddListContextMenu({
                 <ContextMenuSplitter />
 
                 <ContextMenuOption
-                    onClick={() =>
-                        rockIt.listManager.downloadListToDeviceAsync(
-                            list.type,
-                            list.publicId
-                        )
+                    onClick={
+                        () => console.warn("TOOD")
+                        // rockIt.listManager.downloadListToDeviceAsync(
+                        //     list.type,
+                        //     list.publicId
+                        // )
                     }
                 >
                     <HardDriveDownload className="h-5 w-5" />
@@ -143,11 +140,12 @@ export function AddListContextMenu({
 
                 {list.type === "album" && (
                     <ContextMenuOption
-                        onClick={() =>
-                            rockIt.listManager.downloadListZipAsync(
-                                list.type,
-                                list.publicId
-                            )
+                        onClick={
+                            () => console.warn("TOOD")
+                            // rockIt.listManager.downloadListZipAsync(
+                            //     list.type,
+                            //     list.publicId
+                            // )
                         }
                     >
                         <HardDriveDownload className="h-5 w-5" />

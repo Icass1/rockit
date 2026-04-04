@@ -179,4 +179,10 @@ export interface Vocabulary {
     YT_VIDEOS: string;
     YOUR_MIX: string;
     FAILED_TO_CHANGE_LANGUAGE: string;
+    REPEAT_ONE: string;
+    REPEAT_ALL: string;
+    NO_REPEAT: string;
+    PREVIOUS_MEDIA: string;
+    NEXT_MEDIA: string;
+    MEDIA_PROGRESS: string;
 }

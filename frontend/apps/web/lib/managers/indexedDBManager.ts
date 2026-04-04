@@ -1,5 +1,5 @@
 import { BaseSongWithAlbumResponse, BaseVideoResponse } from "@/dto";
-import { DBListType } from "@/types/rockIt";
+import { ListType } from "@/types/rockIt";
 import { createArrayAtom } from "@/lib/store";
 
 export class IndexedDBManager {
@@ -18,7 +18,7 @@ export class IndexedDBManager {
     // #region: Methods
 
     async downloadListToDeviceAsync(
-        type: DBListType,
+        type: ListType,
         publicId: string,
         imageUrl?: string
     ) {

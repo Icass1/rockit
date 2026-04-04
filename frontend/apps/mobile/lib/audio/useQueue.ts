@@ -1,26 +1,19 @@
 import { useCallback, useRef, useState } from "react";
 import type { BaseSongWithAlbumResponse } from "@rockit/shared";
 import {
+    ERepeatMode,
     getNextQueueMediaId,
     getPrevQueueMediaId,
     resolveNextOnEnd,
     shuffleQueue,
 } from "@rockit/shared";
 
-export type RepeatMode = "none" | "one" | "all";
-
-function toSharedRepeat(mode: RepeatMode): "OFF" | "ONE" | "ALL" {
-    if (mode === "one") return "ONE";
-    if (mode === "all") return "ALL";
-    return "OFF";
-}
-
 interface UseQueueReturn {
     queue: BaseSongWithAlbumResponse[];
     currentIndex: number;
     currentMedia: BaseSongWithAlbumResponse | null;
     shuffle: boolean;
-    repeatMode: RepeatMode;
+    repeatMode: ERepeatMode;
     setQueueAndPlay: (
         media: BaseSongWithAlbumResponse,
         newQueue: BaseSongWithAlbumResponse[]
@@ -42,7 +35,7 @@ export function useQueue(): UseQueueReturn {
     const [queue, setQueue] = useState<BaseSongWithAlbumResponse[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [shuffle, setShuffle] = useState(false);
-    const [repeatMode, setRepeatMode] = useState<RepeatMode>("none");
+    const [repeatMode, setRepeatMode] = useState<ERepeatMode>(ERepeatMode.ONE);
 
     const queueRef = useRef(queue);
     const currentIndexRef = useRef(currentIndex);
@@ -119,7 +112,7 @@ export function useQueue(): UseQueueReturn {
         const { action, nextId } = resolveNextOnEnd(
             items,
             currentIndexRef.current,
-            toSharedRepeat(repeatRef.current)
+            repeatRef.current
         );
         return { action, index: nextId };
     }, []);
@@ -153,9 +146,9 @@ export function useQueue(): UseQueueReturn {
 
     const cycleRepeat = useCallback(() => {
         setRepeatMode((r) => {
-            if (r === "none") return "all";
-            if (r === "all") return "one";
-            return "none";
+            if (r === ERepeatMode.OFF) return ERepeatMode.ONE;
+            if (r === ERepeatMode.ONE) return ERepeatMode.ALL;
+            return ERepeatMode.OFF;
         });
     }, []);
 

@@ -3,7 +3,6 @@
 import { useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { UserVocabularyResponse } from "@/dto";
 import { rockIt } from "@/lib/rockit/rockIt";
 import Footer from "@/components/Footer/Footer";
@@ -18,8 +17,6 @@ export default function AppClientLayout({
     vocabulary: UserVocabularyResponse;
     children: React.ReactNode;
 }) {
-    const router = useRouter();
-
     useEffect(() => {
         rockIt.mediaManager.fetchLikedMedia();
         rockIt.vocabularyManager.setVocabulary(vocabulary);

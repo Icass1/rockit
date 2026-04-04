@@ -3,8 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useStore } from "@nanostores/react";
 import { BaseSearchResultsItem } from "@/dto";
+import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function VideosSection({
@@ -12,8 +12,6 @@ export default function VideosSection({
 }: {
     videos: BaseSearchResultsItem[];
 }) {
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
-
     const router = useRouter();
 
     if (videos.length === 0) return null;

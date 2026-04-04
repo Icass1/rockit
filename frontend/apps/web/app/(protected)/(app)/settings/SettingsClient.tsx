@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useStore } from "@nanostores/react";
 import type { UserVocabularyResponse, Vocabulary } from "@rockit/shared";
-import { Check, Globe, Repeat, Shuffle, Volume2 } from "lucide-react";
+import { Check, Globe } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 interface SettingsClientProps {

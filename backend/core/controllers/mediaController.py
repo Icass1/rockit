@@ -9,17 +9,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 
 from backend.constants import IMAGES_PATH
-from backend.core.access.db.ormModels.user import UserRow
-from backend.core.middlewares.authMiddleware import AuthMiddleware
 from backend.utils.logger import getLogger
 from backend.core.aResult import AResult
 
 from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
+from backend.core.middlewares.authMiddleware import AuthMiddleware
 
+from backend.core.access.db.ormModels.user import UserRow
 from backend.core.access.db.ormModels.image import ImageRow
 
 from backend.core.framework.media.media import Media
 from backend.core.framework import providers
+from backend.core.framework.provider.types import AddFromUrlAResult
 
 from backend.core.responses.urlMatchResponse import UrlMatchResponse
 from backend.core.responses.baseVideoResponse import BaseVideoResponse
@@ -247,13 +248,13 @@ async def add_from_url(
     url: str,
     playlist_public_id: str | None = None,
     _=Depends(dependency=AuthMiddleware.auth_dependency),
-) -> BaseSongWithAlbumResponse | BaseVideoResponse:
+) -> AddFromUrlAResult:
     """Add media from a URL to the database and optionally to a playlist."""
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
 
-    a_result: AResult[BaseSongWithAlbumResponse | BaseVideoResponse] = (
-        await providers.add_from_url_async(session=session, url=url)
+    a_result: AResult[AddFromUrlAResult] = await providers.add_from_url_async(
+        session=session, url=url
     )
     if a_result.is_not_ok():
         logger.error(f"Error adding media from URL. {a_result.info()}")
@@ -261,7 +262,7 @@ async def add_from_url(
             status_code=a_result.get_http_code(), detail=a_result.message()
         )
 
-    media: BaseSongWithAlbumResponse | BaseVideoResponse = a_result.result()
+    media: AddFromUrlAResult = a_result.result()
 
     if playlist_public_id:
         a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)

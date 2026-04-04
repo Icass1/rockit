@@ -17,7 +17,6 @@ from backend.core.access.db.ormModels.provider import ProviderRow
 from backend.core.framework.provider.baseProvider import BaseProvider
 from backend.core.framework.provider.types import AddFromUrlAResult
 
-
 logger: Logger = getLogger(__name__)
 
 

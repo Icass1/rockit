@@ -166,7 +166,10 @@ async def get_library_lists(request: Request) -> LibraryListsResponse:
 async def get_user_library_medias(
     request: Request,
 ) -> List[
-    BaseAlbumWithoutSongsResponse | BasePlaylistResponse | BaseSongWithAlbumResponse | BaseVideoResponse
+    BaseAlbumWithoutSongsResponse
+    | BasePlaylistResponse
+    | BaseSongWithAlbumResponse
+    | BaseVideoResponse
 ]:
     """Get all albums in the user's library."""
 

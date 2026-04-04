@@ -114,8 +114,10 @@ class DownloadsManager:
                                 status_key=status_key,
                             )
                             if a_result.is_ok():
-                                a_result_download_row = await DownloadAccess.get_download_by_id(
-                                    session=session, download_id=d.download_id
+                                a_result_download_row = (
+                                    await DownloadAccess.get_download_by_id(
+                                        session=session, download_id=d.download_id
+                                    )
                                 )
                                 if a_result_download_row.is_ok():
                                     download_row = a_result_download_row.result()

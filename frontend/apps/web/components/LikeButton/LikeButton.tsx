@@ -2,8 +2,12 @@
 
 import { rockIt } from "@/lib/rockit/rockIt";
 import "@/styles/LikeButton.css";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useStore } from "@nanostores/react";
+
+const subscribe = () => () => {};
+const getSnapshot = () => true;
+const getServerSnapshot = () => false;
 
 type FlameState = "hidden" | "enter" | "visible" | "exit";
 
@@ -17,11 +21,7 @@ export default function LikeButton({
     isLiked?: boolean;
 }) {
     const $likedMedias = useStore(rockIt.mediaManager.likedMediaAtom);
-    const [mounted, setMounted] = useState(false);
-
-    useEffect(() => {
-        setMounted(true);
-    }, []);
+    const mounted = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
     const isLiked = mounted
         ? $likedMedias.includes(mediaPublicId)

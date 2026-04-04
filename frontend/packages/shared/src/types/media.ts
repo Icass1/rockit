@@ -26,10 +26,10 @@ export function getMediaDuration(
 ): number | undefined {
     if (!media) return undefined;
     if (isSong(media)) {
-        return media.duration;
+        return media.duration_ms / 1000;
     }
     if (isVideo(media)) {
-        return media.duration_ms ?? undefined;
+        return media.duration_ms ? media.duration_ms / 1000 : undefined;
     }
     return undefined;
 }

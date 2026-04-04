@@ -7,9 +7,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.utils.logger import getLogger
 from backend.core.aResult import AResult, AResultCode
 
+# Core framework.
 if TYPE_CHECKING:
     from backend.core.framework.downloader.baseDownload import BaseDownload
+from backend.core.framework.provider.types import AddFromUrlAResult
 
+# Core responses.
 from backend.core.responses.baseVideoResponse import BaseVideoResponse
 from backend.core.responses.searchResponse import BaseSearchResultsItem
 from backend.core.responses.baseArtistResponse import BaseArtistResponse
@@ -137,7 +140,7 @@ class BaseProvider:
 
     async def add_from_url_async(
         self, session: AsyncSession, url: str
-    ) -> AResult[BaseSongWithAlbumResponse | BaseVideoResponse]:
+    ) -> AResult[AddFromUrlAResult]:
         """Add media from a URL to the database.
 
         Takes an external URL, adds the media to the database,

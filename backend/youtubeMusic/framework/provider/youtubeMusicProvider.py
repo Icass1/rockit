@@ -7,7 +7,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.core.aResult import AResult, AResultCode
 from backend.utils.logger import getLogger
 
+# Core framework.
 from backend.core.framework.provider.baseProvider import BaseProvider
+from backend.core.framework.provider.types import AddFromUrlAResult
+
+# Core responses.
 from backend.core.responses.searchResponse import (
     BaseSearchResultsItem,
     ArtistSearchResultsItem,
@@ -23,16 +27,23 @@ from backend.core.responses.baseAlbumWithoutSongsResponse import (
 from backend.core.responses.baseArtistResponse import BaseArtistResponse
 from backend.core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
 
+# Youtube Music utils.
 from backend.youtubeMusic.utils.youtubeMusicApi import (
     YoutubeMusicApi,
     YoutubeMusicPlaylist,
 )
-from backend.youtubeMusic.framework.youtubemusic import youtube_music
+
+# Youtube Music framework.
+from backend.youtubeMusic.framework.youtubeMusic import YoutubeMusic, youtube_music
 
 logger: Logger = getLogger(__name__)
 
 
-YOUTUBEMUSIC_URL_PATTERNS: List[Tuple[Pattern[str], str]] = [
+YOUTUBE_MUSIC_URL_PATTERNS: List[Tuple[Pattern[str], str]] = [
+    (
+        re.compile(r"https?://music\.youtube\.com/watch\?v=([a-zA-Z0-9_-]+)(?:&.*)?$"),
+        "/youtube-music/track/{}",
+    ),
     (
         re.compile(r"https?://music\.youtube\.com/track/([a-zA-Z0-9_-]+)"),
         "/youtube-music/track/{}",
@@ -46,7 +57,9 @@ YOUTUBEMUSIC_URL_PATTERNS: List[Tuple[Pattern[str], str]] = [
         "/youtube-music/artist/{}",
     ),
     (
-        re.compile(r"https?://music\.youtube\.com/playlist\?list=([a-zA-Z0-9_-]+)"),
+        re.compile(
+            r"https?://music\.youtube\.com/playlist\?list=([a-zA-Z0-9_-]+)(?:&.*)?$"
+        ),
         "/youtube-music/playlist/{}",
     ),
 ]
@@ -59,6 +72,7 @@ class YoutubeMusicProvider(BaseProvider):
     def set_info(self, provider_id: int, provider_name: str) -> None:
         self._id = provider_id
         self._name = provider_name
+        YoutubeMusic.set_provider(self)
 
     async def search_async(self, query: str) -> AResult[List[BaseSearchResultsItem]]:
         """Search YouTube Music and return a list of search items."""
@@ -142,7 +156,7 @@ class YoutubeMusicProvider(BaseProvider):
                         audioSrc=None,
                         downloaded=False,
                         imageUrl=track.thumbnail_url,
-                        duration=track.duration_ms,
+                        duration_ms=track.duration_ms,
                         discNumber=1,
                         trackNumber=1,
                         album=album_response,
@@ -210,9 +224,119 @@ class YoutubeMusicProvider(BaseProvider):
 
         return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
 
+    async def add_from_url_async(
+        self, session: AsyncSession, url: str
+    ) -> AResult[AddFromUrlAResult]:
+        """Add a YouTube Music track/album/artist/playlist from URL to the database."""
+        internal_path: str | None = self.match_url(url)
+        if not internal_path:
+            return AResult(
+                code=AResultCode.BAD_REQUEST,
+                message="Invalid YouTube Music URL",
+            )
+
+        parts = internal_path.strip("/").split("/")
+        if len(parts) < 2:
+            return AResult(
+                code=AResultCode.BAD_REQUEST,
+                message="Invalid YouTube Music URL path",
+            )
+
+        resource_id = parts[2]
+
+        if "youtube-music/track" in internal_path:
+            a_result_song: AResult[BaseSongWithAlbumResponse] = (
+                await YoutubeMusic.add_track_async(
+                    session=session, youtube_id=resource_id
+                )
+            )
+
+            if a_result_song.is_not_ok():
+                logger.error(
+                    f"Error adding YouTube Music track from URL. {a_result_song.info()}"
+                )
+                return AResult(
+                    code=a_result_song.code(), message=a_result_song.message()
+                )
+
+            else:
+                return AResult[AddFromUrlAResult](
+                    code=a_result_song.code(),
+                    message="OK",
+                    result=a_result_song.result(),
+                )
+        elif "youtube-music/album" in internal_path:
+            a_result_album: AResult[BaseAlbumWithSongsResponse] = (
+                await YoutubeMusic.add_album_async(
+                    session=session, youtube_id=resource_id
+                )
+            )
+
+            if a_result_album.is_not_ok():
+                logger.error(
+                    f"Error adding YouTube Music album from URL. {a_result_album.info()}"
+                )
+                return AResult(
+                    code=a_result_album.code(), message=a_result_album.message()
+                )
+
+            else:
+                return AResult[AddFromUrlAResult](
+                    code=a_result_album.code(),
+                    message="OK",
+                    result=a_result_album.result(),
+                )
+        elif "youtube-music/artist" in internal_path:
+            a_result_artist: AResult[BaseArtistResponse] = (
+                await YoutubeMusic.add_artist_async(
+                    session=session, youtube_id=resource_id
+                )
+            )
+
+            if a_result_artist.is_not_ok():
+                logger.error(
+                    f"Error adding YouTube Music artist from URL. {a_result_artist.info()}"
+                )
+                return AResult(
+                    code=a_result_artist.code(), message=a_result_artist.message()
+                )
+
+            else:
+                return AResult[AddFromUrlAResult](
+                    code=a_result_artist.code(),
+                    message="OK",
+                    result=a_result_artist.result(),
+                )
+        elif "youtube-music/playlist" in internal_path:
+            a_result_playlist: AResult[BasePlaylistResponse] = (
+                await self.get_playlist_async(
+                    session=session, user_id=0, public_id=resource_id
+                )
+            )
+
+            if a_result_playlist.is_not_ok():
+                logger.error(
+                    f"Error adding YouTube Music playlist from URL. {a_result_playlist.info()}"
+                )
+                return AResult(
+                    code=a_result_playlist.code(), message=a_result_playlist.message()
+                )
+
+            else:
+                return AResult[AddFromUrlAResult](
+                    code=a_result_playlist.code(),
+                    message="OK",
+                    result=a_result_playlist.result(),
+                )
+
+        return AResult(
+            code=AResultCode.BAD_REQUEST,
+            message="Unsupported YouTube Music resource type",
+        )
+
     def match_url(self, url: str) -> str | None:
         """Check if the URL is a YouTube Music URL and return the internal path."""
-        for pattern, path_template in YOUTUBEMUSIC_URL_PATTERNS:
+        for pattern, path_template in YOUTUBE_MUSIC_URL_PATTERNS:
             match: re.Match[str] | None = pattern.match(url)
             if match:
                 return path_template.format(match.group(1))

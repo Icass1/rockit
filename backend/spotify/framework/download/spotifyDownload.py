@@ -29,7 +29,7 @@ class SpotifyDownload(BaseDownload):
         title: str
         artists: list[str]
         album_title: str
-        duration_seconds: int
+        duration_ms: int
         isrc: str
 
     def __init__(
@@ -92,7 +92,7 @@ class SpotifyDownload(BaseDownload):
                     title=track.name,
                     artists=artist_names,
                     album_title=track.album.name,
-                    duration_seconds=track.duration,
+                    duration_ms=track.duration_ms,
                     isrc=track.isrc,
                 )
 

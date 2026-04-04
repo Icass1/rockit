@@ -149,7 +149,7 @@ async def get_track_response_async(
             audioSrc=audio_src,
             downloaded=is_downloaded,
             imageUrl=Image.get_internal_image_url(image=track_row.image),
-            duration=track_row.duration,
+            duration_ms=track_row.duration_ms,
             discNumber=track_row.disc_number,
             trackNumber=track_row.track_number,
             album=get_album_without_songs_response(
@@ -233,7 +233,7 @@ async def get_album_with_songs_response_async(
                 audioSrc=audio_src,
                 downloaded=is_downloaded,
                 imageUrl=Image.get_internal_image_url(image=track_row.image),
-                duration=track_row.duration,
+                duration_ms=track_row.duration_ms,
                 discNumber=track_row.disc_number,
                 trackNumber=track_row.track_number,
             )
@@ -304,7 +304,7 @@ async def get_playlist_response_async(
                     audioSrc=track_response.audioSrc,
                     downloaded=track_response.downloaded,
                     imageUrl=track_response.imageUrl,
-                    duration=track_response.duration,
+                    duration_ms=track_response.duration_ms,
                     discNumber=track_response.discNumber,
                     trackNumber=track_response.trackNumber,
                     album=track_response.album,

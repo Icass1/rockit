@@ -92,7 +92,7 @@ class SpotifyDownload(BaseDownload):
                     title=track.name,
                     artists=artist_names,
                     album_title=track.album.name,
-                    duration_seconds=track.duration,
+                    duration_seconds=track.duration_ms,
                     isrc=track.isrc,
                 )
 

@@ -324,7 +324,7 @@ def _generate_mock_home_songs() -> List[BaseSongWithAlbumResponse]:
                 audioSrc=None,
                 downloaded=False,
                 imageUrl=random.choice(MOCK_IMAGE_URLS),
-                duration=random.randint(180, 300),
+                duration_ms=random.randint(180, 300),
                 discNumber=1,
                 trackNumber=i + 1,
                 album=album_model,

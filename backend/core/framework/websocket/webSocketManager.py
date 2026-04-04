@@ -35,14 +35,14 @@ class WebSocketManager:
         if user_id not in self.active_connections:
             self.active_connections[user_id] = set()
         self.active_connections[user_id].add(websocket)
-        logger.info(f"WebSocket connected for user_id: {user_id}")
+        logger.info(f"WebSocket connected for user: {user_id}")
 
     def disconnect(self, user_id: int, websocket: WebSocket) -> None:
         if user_id in self.active_connections:
             self.active_connections[user_id].discard(websocket)
             if not self.active_connections[user_id]:
                 del self.active_connections[user_id]
-            logger.info(f"WebSocket disconnected for user_id: {user_id}")
+            logger.info(f"WebSocket disconnected for user: {user_id}")
 
     async def send_to_user(self, user_id: int, message: Any) -> None:
         if user_id not in self.active_connections:

@@ -210,6 +210,7 @@ class PlaylistAccess:
                 select(PlaylistMediaRow)
                 .where(PlaylistMediaRow.playlist_id == playlist_id)
                 .order_by(PlaylistMediaRow.position.desc())
+                .limit(1)
             )
             result: Result[Tuple[PlaylistMediaRow]] = await session.execute(
                 statement=stmt

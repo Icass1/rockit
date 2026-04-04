@@ -15,9 +15,8 @@ from backend.core.access.providerAccess import ProviderAccess
 from backend.core.access.db.ormModels.provider import ProviderRow
 
 from backend.core.framework.provider.baseProvider import BaseProvider
+from backend.core.framework.provider.types import AddFromUrlAResult
 
-from backend.core.responses.baseVideoResponse import BaseVideoResponse
-from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 
 logger: Logger = getLogger(__name__)
 
@@ -63,7 +62,7 @@ class Providers:
 
     async def add_from_url_async(
         self, session: AsyncSession, url: str
-    ) -> AResult[BaseSongWithAlbumResponse | BaseVideoResponse]:
+    ) -> AResult[AddFromUrlAResult]:
         """Try all providers to add media from a URL."""
         for provider in self._providers:
             a_result = await provider.add_from_url_async(session=session, url=url)

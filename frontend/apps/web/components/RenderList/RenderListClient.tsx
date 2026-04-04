@@ -44,7 +44,7 @@ export default function RenderListClient({
                 rockIt.notificationManager.notifyInfo(
                     "Media added successfully!"
                 );
-                window.location.reload();
+                // window.location.reload();
             })
             .catch(() => {
                 rockIt.notificationManager.notifyError("Failed to add media.");
@@ -58,7 +58,6 @@ export default function RenderListClient({
                 title={title}
                 artists={artists}
                 image={image}
-                imageBlur={imageBlur}
                 media={media}
                 showMediaIndex={showMediaIndex}
                 showMediaImage={showMediaImage}

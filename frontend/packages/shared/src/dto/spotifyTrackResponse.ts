@@ -12,7 +12,7 @@ export const SpotifyTrackResponseSchema = z.object({
     audioSrc: z.string().nullable(),
     downloaded: z.boolean(),
     imageUrl: z.string(),
-    duration: z.number(),
+    duration_ms: z.number(),
     discNumber: z.number(),
     trackNumber: z.number(),
     album: z.lazy(() => BaseAlbumWithoutSongsResponseSchema),

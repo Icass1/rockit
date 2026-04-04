@@ -16,6 +16,6 @@ class BaseSongWithoutAlbumResponse(BaseModel):
     audioSrc: str | None
     downloaded: bool
     imageUrl: str
-    duration: int
+    duration_ms: int
     discNumber: int
     trackNumber: int

@@ -7,6 +7,7 @@ from backend.utils.logger import getLogger
 
 from backend.core.aResult import AResult, AResultCode
 
+from backend.core.framework.provider.types import AddFromUrlAResult
 from backend.core.framework.provider.baseProvider import BaseProvider
 from backend.core.framework.downloader.baseDownload import BaseDownload
 
@@ -15,7 +16,6 @@ from backend.core.responses.searchResponse import (
     BaseSearchResultsItem,
 )
 from backend.core.responses.baseVideoResponse import BaseVideoResponse
-from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 
 from backend.youtube.access.db.ormModels.video import VideoRow
 
@@ -111,7 +111,7 @@ class YoutubeProvider(BaseProvider):
 
     async def add_from_url_async(
         self, session: AsyncSession, url: str
-    ) -> AResult[BaseVideoResponse | BaseSongWithAlbumResponse]:
+    ) -> AResult[AddFromUrlAResult]:
         """Add a YouTube video from URL to the database."""
         video_id: str | None = None
         for pattern, _ in YOUTUBE_URL_PATTERNS:

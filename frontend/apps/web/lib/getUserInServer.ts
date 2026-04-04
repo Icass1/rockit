@@ -15,8 +15,8 @@ export async function getUserInServer(): Promise<SessionResponse | undefined> {
     try {
         const session = await apiFetch("/user/session", SessionResponseSchema);
         return session;
-    } catch {
-        console.error(`Unable to connect with backend at ${BACKEND_URL}.`);
+    } catch (e) {
+        console.error(`Unable to connect with backend at ${BACKEND_URL}. ${e}`);
         return undefined;
     }
 }

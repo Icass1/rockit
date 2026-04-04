@@ -252,13 +252,16 @@ async def add_from_url(
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
 
-    a_result = await providers.add_from_url_async(session=session, url=url)
+    a_result: AResult[BaseSongWithAlbumResponse | BaseVideoResponse] = (
+        await providers.add_from_url_async(session=session, url=url)
+    )
     if a_result.is_not_ok():
+        logger.error(f"Error adding media from URL. {a_result.info()}")
         raise HTTPException(
             status_code=a_result.get_http_code(), detail=a_result.message()
         )
 
-    media = a_result.result()
+    media: BaseSongWithAlbumResponse | BaseVideoResponse = a_result.result()
 
     if playlist_public_id:
         a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)

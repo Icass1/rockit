@@ -17,16 +17,18 @@ export default function LikeButton({
     isLiked?: boolean;
 }) {
     const $likedMedias = useStore(rockIt.mediaManager.likedMediaAtom);
-    const [mounted] = useState(() => {
-        if (typeof window === "undefined") return false;
-        return true;
-    });
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
     const isLiked = mounted
         ? $likedMedias.includes(mediaPublicId)
         : initialIsLiked;
 
     const [flameState, setFlameState] = useState<FlameState>(
-        isLiked ? "visible" : "hidden"
+        initialIsLiked ? "visible" : "hidden"
     );
     const [handTilt, setHandTilt] = useState(false);
 

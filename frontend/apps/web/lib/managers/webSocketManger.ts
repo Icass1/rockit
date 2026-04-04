@@ -34,6 +34,7 @@ export class WebSocketManager {
     private _onMessageHandler = (event: MessageEvent) => {
         try {
             const data = JSON.parse(event.data);
+            console.log(data);
             const parsed = DownloadProgressMessageSchema.parse(data);
             const message: WebSocketMessage = parsed;
             const handler = this._messageHandlers.get(message.type);

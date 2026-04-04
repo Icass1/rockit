@@ -157,8 +157,8 @@ class YouTube:
                     audio_path=video_row.audio_path,
                     video_path=video_row.video_path,
                     downloaded=is_downloaded,
-                    videoSrc=video_src,
-                    audioSrc=audio_src,
+                    videoSrc=BACKEND_URL + video_src if video_src else None,
+                    audioSrc=BACKEND_URL + audio_src if audio_src else None,
                 ),
             )
 
@@ -352,7 +352,7 @@ class YouTube:
                 audio_path=video_row.audio_path,
                 video_path=video_row.video_path,
                 downloaded=is_downloaded,
-                videoSrc=video_src,
-                audioSrc=audio_src,
+                videoSrc=BACKEND_URL + video_src if video_src else None,
+                audioSrc=BACKEND_URL + audio_src if audio_src else None,
             ),
         )

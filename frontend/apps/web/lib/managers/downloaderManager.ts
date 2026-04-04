@@ -13,7 +13,7 @@ export interface DownloadInfo {
 export class DownloaderManager {
     private _downloadInfoAtom = createArrayAtom<DownloadInfo>([]);
 
-    async downloadMediaToDBAsync(publicIds: string[]) {
+    async downloadMediaAsync(publicIds: string[]) {
         const response = await apiPostFetch<StartDownloadRequest>(
             "/downloader/start-downloads",
             {
@@ -25,23 +25,6 @@ export class DownloaderManager {
         if (!response?.ok) {
             rockIt.notificationManager.notifyError("Unable to start download.");
         }
-    }
-
-    async startDownloadAsync(url: string) {
-        const publicId = this.extractPublicId(url);
-        if (!publicId) {
-            rockIt.notificationManager.notifyError("Invalid URL");
-            return;
-        }
-
-        this._downloadInfoAtom.push({
-            publicId,
-            message: "In queue",
-            completed: 0,
-            status: "pending",
-        });
-
-        await this.downloadMediaToDBAsync([publicId]);
     }
 
     clearCompleted() {
@@ -62,21 +45,6 @@ export class DownloaderManager {
             updated[index] = { publicId, completed, message, status };
             this._downloadInfoAtom.set(updated);
         }
-    }
-
-    private extractPublicId(url: string): string | null {
-        const spotifyMatch = url.match(
-            /spotify\.com\/(track|album|playlist)\/([a-zA-Z0-9]+)/
-        );
-        if (spotifyMatch)
-            return `spotify:${spotifyMatch[1]}:${spotifyMatch[2]}`;
-
-        const youtubeMatch = url.match(
-            /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
-        );
-        if (youtubeMatch) return `youtube:${youtubeMatch[1]}`;
-
-        return null;
     }
 
     get downloadInfoAtom() {

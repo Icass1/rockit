@@ -30,7 +30,7 @@ function SettingsSection({
 }
 
 function ProfileSidebar() {
-    const { username, isLoading } = useSettingsUser();
+    const { username } = useSettingsUser();
 
     return (
         <div className="flex flex-col items-center gap-4">
@@ -51,17 +51,10 @@ function ProfileSidebar() {
                 </button>
             </div>
 
-            {isLoading ? (
-                <div className="flex flex-col items-center gap-1">
-                    <div className="skeleton h-5 w-28 rounded" />
-                    <div className="skeleton h-4 w-20 rounded" />
-                </div>
-            ) : (
-                <div className="text-center">
-                    <p className="text-lg font-bold text-white">{username}</p>
-                    <p className="text-sm text-neutral-500">@{username}</p>
-                </div>
-            )}
+            <div className="text-center">
+                <p className="text-lg font-bold text-white">{username}</p>
+                <p className="text-sm text-neutral-500">@{username}</p>
+            </div>
 
             <div className="flex flex-wrap justify-center gap-2">
                 <LogOutButton />
@@ -123,7 +116,7 @@ function DisplayNameInput({
 }: {
     vocabulary: Record<string, string>;
 }) {
-    const { username, isLoading } = useSettingsUser();
+    const { username, isAuthenticated } = useSettingsUser();
 
     return (
         <div className="flex flex-col gap-1.5">
@@ -131,13 +124,13 @@ function DisplayNameInput({
                 htmlFor="display-name"
                 className="text-sm font-medium text-neutral-400"
             >
-                {vocabulary.DISPLAY_NAME ?? "Display name"}
+                {vocabulary.DISPLAY_NAME}
             </label>
             <input
                 id="display-name"
                 type="text"
-                defaultValue={isLoading ? "" : username}
-                disabled={isLoading}
+                defaultValue={username}
+                disabled={isAuthenticated}
                 className="w-full rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-sm text-white transition-colors focus:border-[#ee1086] focus:ring-1 focus:ring-[#ee1086] focus:outline-none disabled:opacity-50"
             />
         </div>

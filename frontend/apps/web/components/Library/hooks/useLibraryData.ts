@@ -78,13 +78,15 @@ export function useLibraryData({
     filterMode,
     searchQuery,
 }: UseLibraryDataProps): UseLibraryDataReturn {
-    // useFetch returns [data, refetch] — data is undefined until resolved
-    const [data] = useFetch("/user/library/lists", LibraryListsResponseSchema);
+    const [libraryData] = useFetch(
+        "/user/library/lists",
+        LibraryListsResponseSchema
+    );
 
-    const loading = data === undefined;
+    const loading = libraryData === undefined;
 
-    const filtered = useMemo<FilteredLibrary>(() => {
-        if (!data) return EMPTY;
+    const filtered = useMemo((): FilteredLibrary => {
+        if (!libraryData) return EMPTY;
 
         const apply = <
             T extends {
@@ -97,18 +99,20 @@ export function useLibraryData({
         ) => sortItems(filterBySearch(arr, searchQuery), filterMode);
 
         return {
-            albums: apply(data.albums),
-            playlists: apply(data.playlists),
-            songs: apply(data.songs),
-            videos: apply(data.videos),
-            stations: apply(data.stations),
-            shared: apply(data.shared),
+            albums: apply(libraryData.albums),
+            playlists: apply(libraryData.playlists),
+            songs: apply(libraryData.songs),
+            videos: apply(libraryData.videos),
+            stations: apply(libraryData.stations),
+            shared: apply(libraryData.shared),
         };
-    }, [data, searchQuery, filterMode]);
+    }, [libraryData, searchQuery, filterMode]);
 
-    return {
-        ...(data ?? EMPTY),
+    const result: UseLibraryDataReturn = {
+        ...filtered,
         loading,
         filtered,
     };
+
+    return result;
 }

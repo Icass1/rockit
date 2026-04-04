@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
-import React, { useEffect, useRef, useState } from "react";
-import { useContextMenu } from "@/components/ContextMenu/context";
+import { useEffect, useRef, useState } from "react";
 import { SubContextMenuContext } from "@/components/ContextMenu/SubContextMenu/context";
 import type SubContextMenuProps from "@/components/ContextMenu/SubContextMenu/Props";
 
@@ -13,14 +12,6 @@ export default function SubContextMenu({
     onOpen?: () => void;
     onClose?: () => void;
 }) {
-    const {
-        _setContextMenuOpen,
-        _setContextMenuPos,
-        _contextMenuDivRef,
-        _contextMenuOpen,
-        _contextMenuPos,
-    } = useContextMenu();
-
     const _triggerRef = useRef<HTMLDivElement>(null);
 
     const [_hover, setHover] = useState(false);

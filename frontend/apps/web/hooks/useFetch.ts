@@ -1,25 +1,33 @@
 import { useEffect, useState } from "react";
-import { z, ZodType } from "zod";
+import { z } from "zod";
 import { apiFetch } from "@/lib/utils/apiFetch";
 
-async function update<T extends ZodType>(
+type ZodSchema<T> = {
+    parse: (data: unknown) => T;
+};
+
+async function update<T>(
     path: string,
-    schema: T,
-    setData: React.Dispatch<React.SetStateAction<z.infer<T> | undefined>>
+    schema: ZodSchema<T>,
+    setData: React.Dispatch<React.SetStateAction<T | undefined>>
 ) {
-    const res = await apiFetch(path, schema);
-    setData(res);
+    try {
+        const res = await apiFetch<T>(path, schema as z.ZodSchema<T>);
+        setData(res);
+    } catch {
+        setData(undefined);
+    }
 }
 
-export default function useFetch<T extends ZodType>(
+export default function useFetch<T>(
     path: string,
-    schema: T
-): [z.infer<T> | undefined, () => void] {
-    const [data, setData] = useState<z.infer<T> | undefined>(undefined);
+    schema: ZodSchema<T>
+): [T | undefined, () => void] {
+    const [data, setData] = useState<T | undefined>(undefined);
 
     useEffect(() => {
-        update(path, schema, setData);
+        update(path, schema as z.ZodSchema<T>, setData);
     }, [path, schema]);
 
-    return [data, () => update(path, schema, setData)];
+    return [data, () => update(path, schema as z.ZodSchema<T>, setData)];
 }

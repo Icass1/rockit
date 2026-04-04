@@ -22,7 +22,6 @@ export default function ContextMenuContent({
         _contextMenuPos,
         _contextMenuDivRef,
         _setContextMenuOpen,
-        _setContextMenuPos,
     } = useContextMenu();
 
     const updatePos = (

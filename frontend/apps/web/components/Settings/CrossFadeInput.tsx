@@ -20,7 +20,7 @@ export default function CrossFadeInput() {
                     type="number"
                     value={$crossFade}
                     onChange={
-                        (e) =>
+                        () =>
                             console.warn(
                                 "CrossFade setting is currently not implemented"
                             ) // TODO: Implement CrossFade setting

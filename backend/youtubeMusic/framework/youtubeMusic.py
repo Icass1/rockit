@@ -1,8 +1,11 @@
+import os
+import re
 from typing import Dict, List, TYPE_CHECKING
 
+from fastapi import Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.constants import BACKEND_URL
+from backend.constants import BACKEND_URL, MEDIA_PATH
 from backend.utils.logger import getLogger
 from backend.core.aResult import AResult, AResultCode
 
@@ -35,15 +38,10 @@ if TYPE_CHECKING:
 
 logger = getLogger(__name__)
 
-PROVIDER_NAME = "YouTube Music"
-
 
 class YoutubeMusic:
     provider: BaseProvider
-
-    @staticmethod
-    def set_provider(provider: "BaseProvider") -> None:
-        YoutubeMusic.provider = provider
+    provider_name: str
 
     @staticmethod
     async def get_provider_id() -> AResult[int]:
@@ -403,7 +401,7 @@ class YoutubeMusic:
                     core_artist = artist.core_artist
                     artists_list.append(
                         BaseArtistResponse(
-                            provider="YouTube Music",
+                            provider=YoutubeMusic.provider_name,
                             publicId=core_artist.public_id,
                             url=f"{BACKEND_URL}/artist/{core_artist.public_id}",
                             providerUrl=f"https://music.youtube.com/channel/{artist.youtube_id}",
@@ -418,8 +416,15 @@ class YoutubeMusic:
             elif track_info.thumbnail_url:
                 image_url = track_info.thumbnail_url
 
+            is_downloaded = db_track.path is not None
+            audio_src = (
+                f"{BACKEND_URL}/youtube-music/audio/{public_id}"
+                if is_downloaded
+                else None
+            )
+
             album_data = BaseAlbumWithoutSongsResponse(
-                provider="YouTube Music",
+                provider=YoutubeMusic.provider_name,
                 publicId=db_track.album.core_album.public_id,
                 url=f"{BACKEND_URL}/album/{db_track.album.core_album.public_id}",
                 providerUrl=f"https://music.youtube.com/browse/{db_track.album.youtube_id}",
@@ -430,7 +435,7 @@ class YoutubeMusic:
             )
 
             response = YoutubeMusicTrackResponse(
-                provider="YouTube Music",
+                provider=YoutubeMusic.provider_name,
                 publicId=public_id,
                 providerUrl=f"https://music.youtube.com/watch?v={youtube_id}",
                 name=track_info.title,
@@ -438,8 +443,8 @@ class YoutubeMusic:
                 trackNumber=db_track.track_number,
                 discNumber=db_track.disc_number,
                 imageUrl=image_url,
-                audioSrc=None,
-                downloaded=False,
+                audioSrc=audio_src,
+                downloaded=is_downloaded,
                 artists=artists_list,
                 album=album_data,
                 youtubeId=youtube_id,
@@ -507,7 +512,7 @@ class YoutubeMusic:
                     core_artist = artist.core_artist
                     artists_list.append(
                         BaseArtistResponse(
-                            provider="YouTube Music",
+                            provider=YoutubeMusic.provider_name,
                             publicId=core_artist.public_id,
                             url=f"{BACKEND_URL}/artist/{core_artist.public_id}",
                             providerUrl=f"https://music.youtube.com/channel/{artist.youtube_id}",
@@ -534,7 +539,7 @@ class YoutubeMusic:
                             core_artist = artist.core_artist
                             track_artists_list.append(
                                 BaseArtistResponse(
-                                    provider="YouTube Music",
+                                    provider=YoutubeMusic.provider_name,
                                     publicId=core_artist.public_id,
                                     url=f"{BACKEND_URL}/artist/{core_artist.public_id}",
                                     providerUrl=f"https://music.youtube.com/channel/{artist.youtube_id}",
@@ -549,9 +554,16 @@ class YoutubeMusic:
                     elif album_info.thumbnail_url:
                         image_url = album_info.thumbnail_url
 
+                    is_downloaded = track.path is not None
+                    audio_src = (
+                        f"{BACKEND_URL}/youtube-music/audio/{core_track.public_id}"
+                        if is_downloaded
+                        else None
+                    )
+
                     songs_list.append(
                         YoutubeMusicTrackResponse(
-                            provider="YouTube Music",
+                            provider=YoutubeMusic.provider_name,
                             publicId=core_track.public_id,
                             providerUrl=f"https://music.youtube.com/watch?v={track.youtube_id}",
                             name=track.title,
@@ -559,11 +571,11 @@ class YoutubeMusic:
                             trackNumber=track.track_number,
                             discNumber=track.disc_number,
                             imageUrl=image_url,
-                            audioSrc=None,
-                            downloaded=False,
+                            audioSrc=audio_src,
+                            downloaded=is_downloaded,
                             artists=track_artists_list,
                             album=BaseAlbumWithoutSongsResponse(
-                                provider="YouTube Music",
+                                provider=YoutubeMusic.provider_name,
                                 publicId=public_id,
                                 url=f"{BACKEND_URL}/album/{public_id}",
                                 providerUrl=f"https://music.youtube.com/browse/{youtube_id}",
@@ -583,7 +595,7 @@ class YoutubeMusic:
                 image_url = album_info.thumbnail_url
 
             response = YoutubeMusicAlbumResponse(
-                provider="YouTube Music",
+                provider=YoutubeMusic.provider_name,
                 publicId=public_id,
                 url=f"{BACKEND_URL}/album/{public_id}",
                 providerUrl=f"https://music.youtube.com/browse/{youtube_id}",
@@ -673,7 +685,7 @@ class YoutubeMusic:
                             core_artist = artist.core_artist
                             track_artists_list.append(
                                 BaseArtistResponse(
-                                    provider="YouTube Music",
+                                    provider=YoutubeMusic.provider_name,
                                     publicId=core_artist.public_id,
                                     url=f"{BACKEND_URL}/artist/{core_artist.public_id}",
                                     providerUrl=f"https://music.youtube.com/channel/{artist.youtube_id}",
@@ -692,9 +704,16 @@ class YoutubeMusic:
                     if track.album and track.album.core_album:
                         album_public_id = track.album.core_album.public_id
 
+                    is_downloaded = track.path is not None
+                    audio_src = (
+                        f"{BACKEND_URL}/youtube-music/audio/{core_track.public_id}"
+                        if is_downloaded
+                        else None
+                    )
+
                     top_songs.append(
                         YoutubeMusicTrackResponse(
-                            provider="YouTube Music",
+                            provider=YoutubeMusic.provider_name,
                             publicId=core_track.public_id,
                             providerUrl=f"https://music.youtube.com/watch?v={track.youtube_id}",
                             name=track.title,
@@ -702,11 +721,11 @@ class YoutubeMusic:
                             trackNumber=track.track_number,
                             discNumber=track.disc_number,
                             imageUrl=image_url,
-                            audioSrc=None,
-                            downloaded=False,
+                            audioSrc=audio_src,
+                            downloaded=is_downloaded,
                             artists=track_artists_list,
                             album=BaseAlbumWithoutSongsResponse(
-                                provider="YouTube Music",
+                                provider=YoutubeMusic.provider_name,
                                 publicId=album_public_id,
                                 url=f"{BACKEND_URL}/album/{album_public_id}",
                                 providerUrl=(
@@ -732,7 +751,7 @@ class YoutubeMusic:
                 image_url = artist_info.thumbnail_url
 
             response = YoutubeMusicArtistResponse(
-                provider="YouTube Music",
+                provider=YoutubeMusic.provider_name,
                 publicId=public_id,
                 url=f"{BACKEND_URL}/artist/{public_id}",
                 providerUrl=f"https://music.youtube.com/channel/{youtube_id}",
@@ -779,7 +798,7 @@ class YoutubeMusic:
                 core_artist = artist.core_artist
                 artists_list.append(
                     BaseArtistResponse(
-                        provider=PROVIDER_NAME,
+                        provider=YoutubeMusic.provider_name,
                         publicId=core_artist.public_id,
                         url=f"{BACKEND_URL}/artist/{core_artist.public_id}",
                         providerUrl=f"https://music.youtube.com/channel/{artist.youtube_id}",
@@ -794,8 +813,13 @@ class YoutubeMusic:
         elif track_info.thumbnail_url:
             image_url = track_info.thumbnail_url
 
+        is_downloaded = db_track.path is not None
+        audio_src = (
+            f"{BACKEND_URL}/youtube-music/audio/{public_id}" if is_downloaded else None
+        )
+
         album_data = BaseAlbumWithoutSongsResponse(
-            provider=PROVIDER_NAME,
+            provider=YoutubeMusic.provider_name,
             publicId=db_track.album.core_album.public_id,
             url=f"{BACKEND_URL}/album/{db_track.album.core_album.public_id}",
             providerUrl=f"https://music.youtube.com/browse/{db_track.album.youtube_id}",
@@ -806,7 +830,7 @@ class YoutubeMusic:
         )
 
         response = YoutubeMusicTrackResponse(
-            provider=PROVIDER_NAME,
+            provider=YoutubeMusic.provider_name,
             publicId=public_id,
             providerUrl=f"https://music.youtube.com/watch?v={db_track.youtube_id}",
             name=track_info.title,
@@ -814,8 +838,8 @@ class YoutubeMusic:
             trackNumber=db_track.track_number,
             discNumber=db_track.disc_number,
             imageUrl=image_url,
-            audioSrc=None,
-            downloaded=False,
+            audioSrc=audio_src,
+            downloaded=is_downloaded,
             artists=artists_list,
             album=album_data,
             youtubeId=db_track.youtube_id,
@@ -849,7 +873,7 @@ class YoutubeMusic:
                 core_artist = artist.core_artist
                 artists_list.append(
                     BaseArtistResponse(
-                        provider=PROVIDER_NAME,
+                        provider=YoutubeMusic.provider_name,
                         publicId=core_artist.public_id,
                         url=f"{BACKEND_URL}/artist/{core_artist.public_id}",
                         providerUrl=f"https://music.youtube.com/channel/{artist.youtube_id}",
@@ -874,7 +898,7 @@ class YoutubeMusic:
                         core_artist = artist.core_artist
                         track_artists_list.append(
                             BaseArtistResponse(
-                                provider=PROVIDER_NAME,
+                                provider=YoutubeMusic.provider_name,
                                 publicId=core_artist.public_id,
                                 url=f"{BACKEND_URL}/artist/{core_artist.public_id}",
                                 providerUrl=f"https://music.youtube.com/channel/{artist.youtube_id}",
@@ -889,9 +913,16 @@ class YoutubeMusic:
                 elif album_info.thumbnail_url:
                     image_url = album_info.thumbnail_url
 
+                is_downloaded = track.path is not None
+                audio_src = (
+                    f"{BACKEND_URL}/youtube-music/audio/{core_track.public_id}"
+                    if is_downloaded
+                    else None
+                )
+
                 songs_list.append(
                     YoutubeMusicTrackResponse(
-                        provider=PROVIDER_NAME,
+                        provider=YoutubeMusic.provider_name,
                         publicId=core_track.public_id,
                         providerUrl=f"https://music.youtube.com/watch?v={track.youtube_id}",
                         name=track.title,
@@ -899,11 +930,11 @@ class YoutubeMusic:
                         trackNumber=track.track_number,
                         discNumber=track.disc_number,
                         imageUrl=image_url,
-                        audioSrc=None,
-                        downloaded=False,
+                        audioSrc=audio_src,
+                        downloaded=is_downloaded,
                         artists=track_artists_list,
                         album=BaseAlbumWithoutSongsResponse(
-                            provider=PROVIDER_NAME,
+                            provider=YoutubeMusic.provider_name,
                             publicId=public_id,
                             url=f"{BACKEND_URL}/album/{public_id}",
                             providerUrl=f"https://music.youtube.com/browse/{db_album.youtube_id}",
@@ -923,7 +954,7 @@ class YoutubeMusic:
             image_url = album_info.thumbnail_url
 
         response = YoutubeMusicAlbumResponse(
-            provider=PROVIDER_NAME,
+            provider=YoutubeMusic.provider_name,
             publicId=public_id,
             url=f"{BACKEND_URL}/album/{public_id}",
             providerUrl=f"https://music.youtube.com/browse/{db_album.youtube_id}",
@@ -971,7 +1002,7 @@ class YoutubeMusic:
                         core_artist = artist.core_artist
                         track_artists_list.append(
                             BaseArtistResponse(
-                                provider=PROVIDER_NAME,
+                                provider=YoutubeMusic.provider_name,
                                 publicId=core_artist.public_id,
                                 url=f"{BACKEND_URL}/artist/{core_artist.public_id}",
                                 providerUrl=f"https://music.youtube.com/channel/{artist.youtube_id}",
@@ -990,9 +1021,16 @@ class YoutubeMusic:
                 if track.album and track.album.core_album:
                     album_public_id = track.album.core_album.public_id
 
+                is_downloaded = track.path is not None
+                audio_src = (
+                    f"{BACKEND_URL}/youtube-music/audio/{core_track.public_id}"
+                    if is_downloaded
+                    else None
+                )
+
                 top_songs.append(
                     YoutubeMusicTrackResponse(
-                        provider=PROVIDER_NAME,
+                        provider=YoutubeMusic.provider_name,
                         publicId=core_track.public_id,
                         providerUrl=f"https://music.youtube.com/watch?v={track.youtube_id}",
                         name=track.title,
@@ -1000,11 +1038,11 @@ class YoutubeMusic:
                         trackNumber=track.track_number,
                         discNumber=track.disc_number,
                         imageUrl=image_url,
-                        audioSrc=None,
-                        downloaded=False,
+                        audioSrc=audio_src,
+                        downloaded=is_downloaded,
                         artists=track_artists_list,
                         album=BaseAlbumWithoutSongsResponse(
-                            provider=PROVIDER_NAME,
+                            provider=YoutubeMusic.provider_name,
                             publicId=album_public_id,
                             url=f"{BACKEND_URL}/album/{album_public_id}",
                             providerUrl=(
@@ -1030,7 +1068,7 @@ class YoutubeMusic:
             image_url = artist_info.thumbnail_url
 
         response = YoutubeMusicArtistResponse(
-            provider=PROVIDER_NAME,
+            provider=YoutubeMusic.provider_name,
             publicId=public_id,
             url=f"{BACKEND_URL}/artist/{public_id}",
             providerUrl=f"https://music.youtube.com/channel/{db_artist.youtube_id}",
@@ -1042,6 +1080,66 @@ class YoutubeMusic:
         )
 
         return AResult(code=AResultCode.OK, message="OK", result=response)
+
+    @staticmethod
+    async def get_audio_with_range_async(
+        session: AsyncSession, public_id: str, request: Request
+    ) -> AResult[tuple[bytes, int, str]]:
+        """Get audio file bytes with HTTP range support for HTML audio element seeking.
+
+        Returns: tuple of (content_bytes, status_code, content_range_header)
+        """
+        a_result_track = await YoutubeMusicAccess.get_track_by_public_id_async(
+            session=session, public_id=public_id
+        )
+        if a_result_track.is_not_ok():
+            logger.error(f"Error getting track. {a_result_track.info()}")
+            return AResult(code=a_result_track.code(), message=a_result_track.message())
+
+        track_row = a_result_track.result()
+
+        if not track_row.path:
+            logger.error(f"Track {public_id} has no audio file downloaded.")
+            return AResult(
+                code=AResultCode.NOT_FOUND, message="Audio file not downloaded"
+            )
+
+        full_path: str = os.path.join(MEDIA_PATH, track_row.path)
+        if not os.path.exists(full_path):
+            logger.error(f"Audio file not found at {full_path}")
+            return AResult(code=AResultCode.NOT_FOUND, message="Audio file not found")
+
+        file_size: int = os.path.getsize(full_path)
+        range_header: str | None = request.headers.get("Range")
+
+        if range_header:
+            range_match = re.match(r"bytes=(\d+)-(\d*)", range_header)
+            if range_match:
+                start: int = int(range_match.group(1))
+                end_str: str | None = range_match.group(2)
+                end: int = int(end_str) if end_str else file_size - 1
+            else:
+                start = 0
+                end = file_size - 1
+        else:
+            start = 0
+            end = file_size - 1
+
+        end = min(end, file_size - 1)
+        content_length: int = end - start + 1
+
+        with open(full_path, "rb") as f:
+            f.seek(start)
+            content: bytes = f.read(content_length)
+
+        content_range: str = f"bytes {start}-{end}/{file_size}"
+        status_code: int = 206 if range_header else 200
+
+        return AResult(
+            code=AResultCode.OK,
+            message="OK",
+            result=(content, status_code, content_range),
+        )
 
 
 youtube_music = YoutubeMusic()

@@ -72,6 +72,41 @@ class YoutubeMusicAccess:
             )
 
     @staticmethod
+    async def get_track_by_public_id_async(
+        session: AsyncSession,
+        public_id: str,
+    ) -> AResult[TrackRow]:
+        try:
+            stmt: Select[Tuple[TrackRow]] = (
+                select(TrackRow)
+                .join(
+                    CoreMediaRow,
+                    and_(
+                        CoreMediaRow.id == TrackRow.id,
+                        CoreMediaRow.media_type_key == MediaTypeEnum.SONG.value,
+                    ),
+                )
+                .where(CoreMediaRow.public_id == public_id)
+                .options(selectinload(TrackRow.album).selectinload(AlbumRow.core_album))
+            )
+            result: Result[Tuple[TrackRow]] = await session.execute(stmt)
+            track: TrackRow | None = result.scalar_one_or_none()
+
+            if not track:
+                logger.error("Track not found")
+                return AResult(code=AResultCode.NOT_FOUND, message="Track not found")
+
+            session.expunge(track)
+            return AResult(code=AResultCode.OK, message="OK", result=track)
+
+        except Exception as e:
+            logger.error(f"Failed to get track from public_id {public_id}: {e}")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to get track from public_id {public_id}: {e}",
+            )
+
+    @staticmethod
     async def get_track_by_youtube_id_async(
         session: AsyncSession,
         youtube_id: str,

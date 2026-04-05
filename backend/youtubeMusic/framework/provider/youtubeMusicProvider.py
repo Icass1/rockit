@@ -80,7 +80,8 @@ class YoutubeMusicProvider(BaseProvider):
     def set_info(self, provider_id: int, provider_name: str) -> None:
         self._id = provider_id
         self._name = provider_name
-        YoutubeMusic.set_provider(self)
+        YoutubeMusic.provider = self
+        YoutubeMusic.provider_name = provider_name
 
     async def search_async(self, query: str) -> AResult[List[BaseSearchResultsItem]]:
         """Search YouTube Music and return a list of search items."""

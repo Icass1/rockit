@@ -2,7 +2,7 @@ from typing import Dict, List, TYPE_CHECKING
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from constants import BACKEND_URL
+from backend.constants import BACKEND_URL
 from backend.utils.logger import getLogger
 from backend.core.aResult import AResult, AResultCode
 

@@ -49,10 +49,7 @@
             "reactCompiler": true
         },
         "extra": {
-            "router": {},
-            "eas": {
-                "projectId": "e64779ae-ee1c-4eae-b1fb-0164a7f377b0"
-            }
+            "router": {}
         },
         "owner": "ignacioprojects"
     }

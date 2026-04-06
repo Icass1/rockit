@@ -5,15 +5,19 @@ import { PlayableMedia } from "@/components/RenderList/PlayableMedia";
 export function Media({
     index,
     media,
+    allMedia,
     substractArtists = [],
     showMediaIndex,
     showMediaImage,
+    listPublicId,
 }: {
     index: number;
     media: TMedia;
+    allMedia?: TMedia[];
     substractArtists?: string[];
     showMediaIndex: boolean;
     showMediaImage: boolean;
+    listPublicId?: string;
 }) {
     const $media = useMedia(media);
 
@@ -22,9 +26,11 @@ export function Media({
             <PlayableMedia
                 index={index}
                 media={$media}
+                allMedia={allMedia}
                 substractArtists={substractArtists}
                 showMediaIndex={showMediaIndex}
                 showMediaImage={showMediaImage}
+                listPublicId={listPublicId}
             ></PlayableMedia>
         );
     }

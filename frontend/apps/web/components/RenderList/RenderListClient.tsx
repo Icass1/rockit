@@ -72,6 +72,7 @@ export default function RenderListClient({
                 media={media}
                 showMediaIndex={showMediaIndex}
                 showMediaImage={showMediaImage}
+                listPublicId={playlistPublicId}
             />
         </>
     );

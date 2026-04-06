@@ -11,6 +11,7 @@ export default function RenderList({
     media,
     showMediaIndex,
     showMediaImage,
+    listPublicId,
 }: {
     title: string;
     artists: BaseArtistResponse[];
@@ -18,6 +19,7 @@ export default function RenderList({
     media: TMedia[];
     showMediaIndex: boolean;
     showMediaImage: boolean;
+    listPublicId?: string;
 }) {
     return (
         <div className="grid h-full w-full grid-cols-[1fr_3fr] gap-4">
@@ -53,14 +55,16 @@ export default function RenderList({
                 </div>
             </div>
             <div className="z-1 flex h-full w-full max-w-full min-w-0 flex-col gap-4 overflow-y-auto pb-96">
-                {media.map((media, index) => (
+                {media.map((m, index) => (
                     <Media
-                        key={media.publicId}
+                        key={m.publicId}
                         index={index}
-                        media={media}
+                        media={m}
+                        allMedia={media}
                         substractArtists={artists.map((artist) => artist.name)}
                         showMediaImage={showMediaImage}
                         showMediaIndex={showMediaIndex}
+                        listPublicId={listPublicId}
                     />
                 ))}
             </div>

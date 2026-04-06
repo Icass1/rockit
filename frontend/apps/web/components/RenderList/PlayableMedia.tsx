@@ -8,8 +8,10 @@ import {
     isDownloadable,
     isSong,
     isVideo,
+    TMedia,
     TPlayableMedia,
 } from "@/models/types/media";
+import { QueueListType } from "@/models/types/rockIt";
 import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
@@ -32,15 +34,19 @@ function getArtistNames(
 export function PlayableMedia({
     index,
     media: _media,
+    allMedia,
     substractArtists = [],
     showMediaIndex,
     showMediaImage,
+    listPublicId,
 }: {
     index: number;
     media: TPlayableMedia;
+    allMedia?: TMedia[];
     substractArtists?: string[];
     showMediaIndex: boolean;
     showMediaImage: boolean;
+    listPublicId?: string;
 }) {
     const $media = useMedia(_media);
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
@@ -50,6 +56,14 @@ export function PlayableMedia({
     const handleClick = () => {
         if (isDownloadable($media) && $media.downloaded !== true) {
             rockIt.downloaderManager.downloadMediaAsync([$media.publicId]);
+        } else if (allMedia && allMedia.length > 0 && listPublicId) {
+            const playableMedia = allMedia.filter(
+                (m): m is TPlayableMedia =>
+                    m.type === "song" || m.type === "video"
+            );
+            rockIt.queueManager.setMedia(playableMedia, "album", listPublicId);
+            rockIt.queueManager.moveToMedia($media.publicId);
+            rockIt.audioManager.play();
         }
     };
 

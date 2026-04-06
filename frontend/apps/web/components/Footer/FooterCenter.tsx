@@ -14,6 +14,7 @@ import {
 import { getMediaDuration } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
+import Slider from "@/components/Slider/Slider";
 
 const ICON_BTN =
     "cursor-pointer text-gray-400 transition-all md:hover:scale-105 md:hover:text-white";
@@ -107,20 +108,34 @@ export default function FooterCenter() {
             </div>
 
             {/* Progress bar */}
-            <div className="flex h-7 w-full items-center space-x-2">
+            <div className="relative flex h-7 w-full items-center space-x-2">
                 <span className="min-w-6 text-xs font-semibold tabular-nums">
                     {getTime($currentTime ?? 0)}
                 </span>
-                <input
-                    type="range"
+                {/* <div className="relative h-1 w-full max-w-full min-w-0 rounded-full bg-neutral-700">
+                    <input
+                        type="range"
+                        id="default-slider"
+                        aria-label={$vocabulary.MEDIA_PROGRESS}
+                        aria-valuetext={`${getTime($currentTime ?? 0)} of ${getTime(getMediaDuration($currentMedia) ?? 0)}`}
+                        className="h-1 w-full rounded bg-neutral-700 accent-[#ee1086]"
+                        value={$currentTime ?? 0}
+                        min={0}
+                        max={getMediaDuration($currentMedia)}
+                        step={0.001}
+                        onChange={(e) =>
+                            rockIt.audioManager.setCurrentTime(
+                                Number(e.target.value)
+                            )
+                        }
+                    />
+                </div> */}
+                <Slider
                     id="default-slider"
-                    aria-label={$vocabulary.MEDIA_PROGRESS}
-                    aria-valuetext={`${getTime($currentTime ?? 0)} of ${getTime(getMediaDuration($currentMedia) ?? 0)}`}
                     className="h-1 w-full rounded bg-neutral-700 accent-[#ee1086]"
-                    value={$currentTime ?? 0}
+                    value={$currentTime}
                     min={0}
                     max={getMediaDuration($currentMedia)}
-                    step={0.001}
                     onChange={(e) =>
                         rockIt.audioManager.setCurrentTime(
                             Number(e.target.value)

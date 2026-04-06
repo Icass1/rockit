@@ -6,7 +6,7 @@ import {
     QueueResponseSchema,
 } from "@/dto";
 import { shuffleQueue as shuffleQueueLogic } from "@rockit/shared";
-import { PlayableMediaType } from "@/types/media";
+import { TPlayableMedia } from "@/models/types/media";
 import { ListType, QueueListType } from "@/models/types/rockIt";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createArrayAtom, createAtom } from "@/lib/store";
@@ -15,7 +15,7 @@ import { baseApiFetch } from "@/lib/utils/apiFetch";
 export class QueueManager {
     // #region: Atoms
 
-    private _currentMediaAtom = createAtom<PlayableMediaType | undefined>();
+    private _currentMediaAtom = createAtom<TPlayableMedia | undefined>();
     private _currentListAtom = createAtom<string | undefined>();
 
     private _queueAtom = createArrayAtom<QueueResponseItem>([]);
@@ -110,7 +110,7 @@ export class QueueManager {
     }
 
     setMedia(
-        medias: PlayableMediaType[],
+        medias: TPlayableMedia[],
         _listType: QueueListType,
         listPublicId: string
     ) {
@@ -200,11 +200,11 @@ export class QueueManager {
         throw "(addListToBottomAsync) Not implemented method";
     }
 
-    addMediaNext(_media: PlayableMediaType) {
+    addMediaNext(_media: TPlayableMedia) {
         void _media;
     }
 
-    addMediaToEnd(_media: PlayableMediaType) {
+    addMediaToEnd(_media: TPlayableMedia) {
         void _media;
     }
 

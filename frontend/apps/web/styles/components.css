@@ -76,8 +76,7 @@
    El thumb es invisible por defecto y aparece al hacer hover
    para dar sensación de "barra limpia" tipo Spotify.
    ─────────────────────────────────────────── */
-#default-slider,
-#mobile-player-slider {
+#default-slider {
     position: absolute;
     inset: 0;
     height: 100%;
@@ -87,8 +86,7 @@
     border-radius: 9999px;
 }
 
-#default-slider::-webkit-slider-thumb,
-#mobile-player-slider::-webkit-slider-thumb {
+#default-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     height: 10px;
     width: 10px;
@@ -96,16 +94,14 @@
     border-radius: 100%;
 }
 
-#default-slider:hover::-webkit-slider-thumb,
-#mobile-player-slider:hover::-webkit-slider-thumb {
+#default-slider:hover::-webkit-slider-thumb {
     -webkit-appearance: none;
     height: 13px;
     width: 13px;
     background-color: white;
 }
 
-#default-slider::-moz-range-thumb,
-#mobile-player-slider::-moz-range-thumb {
+#default-slider::-moz-range-thumb {
     border: none;
     appearance: none;
     height: 10px;
@@ -114,8 +110,7 @@
     border-radius: 100%;
 }
 
-#default-slider:hover::-moz-range-thumb,
-#mobile-player-slider:hover::-moz-range-thumb {
+#default-slider:hover::-moz-range-thumb {
     border: none;
     appearance: none;
     height: 13px;

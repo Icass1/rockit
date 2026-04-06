@@ -9,14 +9,18 @@ import {
     Play,
     PlayIcon,
 } from "lucide-react";
-import { getMediaArtists, MediaType } from "@/types/media";
+import { getMediaArtists, PlayableMediaType } from "@/types/media";
 import { Station } from "@/types/station";
 import { rockIt } from "@/lib/rockit/rockIt";
 import Artists from "@/components/Artists/Artists";
 import LikeButton from "@/components/LikeButton/LikeButton";
 import MediaPopupMenu from "@/components/PopupMenus/MediaPopupMenu";
 
-function FooterLeftForSong({ currentMedia }: { currentMedia: MediaType }) {
+function FooterLeftForSong({
+    currentMedia,
+}: {
+    currentMedia: PlayableMediaType;
+}) {
     const $playing = useStore(rockIt.audioManager.playingAtom);
     const $queue = useStore(rockIt.queueManager.queueAtom);
 

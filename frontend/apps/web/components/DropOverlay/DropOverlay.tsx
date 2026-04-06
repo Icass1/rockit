@@ -11,6 +11,7 @@ export default function DropOverlay({
 
     useEffect(() => {
         const handleDragOver = (event: DragEvent) => {
+            console.log("Drag over detected");
             event.preventDefault();
 
             // Show popup ONLY if dragging a link
@@ -26,10 +27,12 @@ export default function DropOverlay({
         };
 
         const handleDragLeave = () => {
+            console.log("Drag leave detected");
             setShow(false);
         };
 
         const handleDrop = (event: DragEvent) => {
+            console.log("Drop detected");
             event.preventDefault();
             setShow(false);
 

@@ -5,13 +5,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { useStore } from "@nanostores/react";
 import { Pause, Play } from "lucide-react";
+import { getMediaArtists, PlayableMediaType } from "@/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { getMediaArtists, MediaType } from "@/types/media";
 
 export function PlayerUICoverColumn({
     currentMedia,
 }: {
-    currentMedia: MediaType | undefined;
+    currentMedia: PlayableMediaType | undefined;
 }) {
     const $playing = useStore(rockIt.audioManager.playingAtom);
     const [showIcon, setShowIcon] = useState(false);

@@ -37,5 +37,9 @@
         "*.css": "tailwindcss"
     },
     "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.formatOnSaveTimeout": 5000,
+    "prettier.requireConfig": false,
+    "prettier.enabled": true,
     "files.autoSave": "onFocusChange"
 }

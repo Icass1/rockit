@@ -1,28 +1,73 @@
 import {
+    BaseAlbumWithSongsResponse,
+    BasePlaylistResponse,
     BaseSongWithAlbumResponse,
     BaseStationResponse,
     BaseVideoResponse,
 } from "../dto";
 
-export type MediaType =
+export type PlayableMediaType =
     | BaseSongWithAlbumResponse
     | BaseVideoResponse
     | BaseStationResponse;
 
-export function isSong(media: MediaType): media is BaseSongWithAlbumResponse {
+export type ListMediaType = BasePlaylistResponse | BaseAlbumWithSongsResponse;
+export type MediaType = PlayableMediaType | ListMediaType;
+export type DownloadableMediaType =
+    | BaseSongWithAlbumResponse
+    | BaseVideoResponse;
+
+export function isPlayable(media: MediaType): media is PlayableMediaType {
+    switch (media.type) {
+        case "song":
+            return true;
+        case "video":
+            return true;
+        case "station":
+            return true;
+    }
+    return false;
+}
+
+export function isDownloadable(
+    media: MediaType
+): media is DownloadableMediaType {
+    switch (media.type) {
+        case "song":
+            return true;
+        case "video":
+            return true;
+    }
+    return false;
+}
+
+export function isList(media: MediaType): media is ListMediaType {
+    switch (media.type) {
+        case "playlist":
+            return true;
+        case "album":
+            return true;
+    }
+    return false;
+}
+export function isSong(
+    media: PlayableMediaType
+): media is BaseSongWithAlbumResponse {
     return media.type === "song";
 }
 
-export function isVideo(media: MediaType): media is BaseVideoResponse {
+export function isVideo(media: PlayableMediaType): media is BaseVideoResponse {
     return media.type === "video";
 }
 
-export function isStation(media: MediaType): media is BaseStationResponse {
+export function isStation(
+    media: PlayableMediaType
+): media is BaseStationResponse {
     return media.type === "station";
 }
 
 export function getMediaDuration(
-    media: MediaType | undefined
+    media: PlayableMediaType | undefined
 ): number | undefined {
     if (!media) return undefined;
     if (isSong(media)) {
@@ -34,7 +79,7 @@ export function getMediaDuration(
     return undefined;
 }
 
-export function getMediaArtists(media: MediaType | undefined):
+export function getMediaArtists(media: PlayableMediaType | undefined):
     | {
           provider: string;
           publicId: string;
@@ -51,7 +96,7 @@ export function getMediaArtists(media: MediaType | undefined):
 }
 
 export function getMediaAudioSrc(
-    media: MediaType | undefined
+    media: PlayableMediaType | undefined
 ): string | undefined {
     if (!media) return undefined;
     if (isSong(media)) {

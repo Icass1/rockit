@@ -121,8 +121,10 @@ class YoutubeMusicAccess:
             track: TrackRow | None = result.scalar_one_or_none()
 
             if not track:
-                logger.error("Track not found")
-                return AResult(code=AResultCode.NOT_FOUND, message="Track not found")
+                logger.warning(f"Track {youtube_id} not found")
+                return AResult(
+                    code=AResultCode.NOT_FOUND, message=f"Track {youtube_id} not found"
+                )
 
             return AResult(code=AResultCode.OK, message="OK", result=track)
 
@@ -146,8 +148,10 @@ class YoutubeMusicAccess:
             album: AlbumRow | None = result.scalar_one_or_none()
 
             if not album:
-                logger.error("Album not found")
-                return AResult(code=AResultCode.NOT_FOUND, message="Album not found")
+                logger.error(f"Album {youtube_id} not found")
+                return AResult(
+                    code=AResultCode.NOT_FOUND, message=f"Album {youtube_id} not found"
+                )
 
             return AResult(code=AResultCode.OK, message="OK", result=album)
 

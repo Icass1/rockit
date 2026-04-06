@@ -46,12 +46,13 @@ def to_camel_case(name: str) -> str:
     return result
 
 
-def get_base_models_from_folder(folder: str) -> list[type[BaseModel]]:
+def get_base_models_from_folder(folder: str) -> tuple[list[type[BaseModel]], dict[str, type]]:
     base_models: list[type[BaseModel]] = []
+    type_aliases: dict[str, type] = {}
     folder_path = BASE_DIR / folder
 
     if not folder_path.exists():
-        return base_models
+        return base_models, type_aliases
 
     for file_path in folder_path.glob("*.py"):
         if file_path.name.startswith("_") or file_path.name == "baseModel.py":
@@ -72,7 +73,13 @@ def get_base_models_from_folder(folder: str) -> list[type[BaseModel]]:
                 if obj.__module__ == module.__name__:
                     base_models.append(obj)
 
-    return base_models
+        for _name, obj in module.__dict__.items():
+            if _name.startswith("_"):
+                continue
+            if hasattr(obj, "__origin__") and _name[0].isupper():
+                type_aliases[_name] = obj
+
+    return base_models, type_aliases
 
 
 def convert_type_to_zod(
@@ -81,13 +88,21 @@ def convert_type_to_zod(
     current_file: str,
     schema_refs: set[str],
 ) -> str:
+    from typing import ForwardRef
+
     origin = get_origin(field_type)
     args = get_args(field_type)
+
+    if isinstance(field_type, ForwardRef):
+        try:
+            field_type = field_type._evaluate(None, frozenset(), frozenset())
+        except Exception:
+            pass
 
     if origin is None:
         if field_type in PYTHON_TYPE_TO_ZOD:
             return PYTHON_TYPE_TO_ZOD[field_type]
-        if field_type.__name__ in known_types:
+        if hasattr(field_type, "__name__") and field_type.__name__ in known_types:
             target_file = known_types[field_type.__name__]
             if target_file != current_file:
                 schema_refs.add(target_file)
@@ -201,25 +216,48 @@ def generate_zod_schema(
     return ("\n".join(lines), schema_refs)
 
 
+def generate_zod_type_alias(
+    alias_name: str,
+    alias_type: type,
+    known_types: dict[str, str],
+    current_file: str,
+) -> tuple[str, set[str]]:
+    schema_refs: set[str] = set()
+    zod_type = convert_type_to_zod(alias_type, known_types, current_file, schema_refs)
+    lines = [
+        f"export const {alias_name}Schema = {zod_type};",
+        f"\nexport type {alias_name} = z.infer<typeof {alias_name}Schema>;",
+    ]
+    return ("\n".join(lines), schema_refs)
+
+
 async def generate_zod_schemas() -> None:
     all_models: dict[str, type[BaseModel]] = {}
+    type_aliases: dict[str, type] = {}
 
     for folder in folders_to_process:
         if not os.path.exists(folder):
             logger.warning(f"Folder {folder} does not exist")
             continue
 
-        models = get_base_models_from_folder(folder)
+        models, aliases = get_base_models_from_folder(folder)
         for model in models:
             if model.__name__ not in all_models:
                 all_models[model.__name__] = model
+        for alias_name, alias_type in aliases.items():
+            if alias_name not in type_aliases:
+                type_aliases[alias_name] = alias_type
 
     logger.info(f"Found {len(all_models)} BaseModel classes")
+    logger.info(f"Found {len(type_aliases)} type aliases")
 
     known_types: dict[str, str] = {}
     for model_name in all_models:
         file_name = to_camel_case(model_name)
         known_types[model_name] = file_name
+    for alias_name in type_aliases:
+        file_name = to_camel_case(alias_name)
+        known_types[alias_name] = file_name
 
     output_dir = BASE_DIR / "frontend" / "packages" / "shared" / "src" / "dto"
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -229,6 +267,29 @@ async def generate_zod_schemas() -> None:
     for model_name, model in all_models.items():
         file_name = to_camel_case(model_name)
         schema, refs = generate_zod_schema(model, known_types, file_name)
+
+        import_lines: list[str] = ['import { z } from "zod";']
+        schema_names_imported: set[str] = set()
+
+        for ref_file in refs:
+            if ref_file != file_name:
+                type_name = type_name_to_file.get(ref_file, "")
+                if type_name:
+                    import_lines.append(
+                        f"import {{ {type_name}Schema }} from './{ref_file}';"
+                    )
+                    schema_names_imported.add(type_name)
+
+        output_lines = import_lines + ["", schema]
+
+        output_path = output_dir / f"{file_name}.ts"
+
+        output_path.write_text("\n".join(output_lines))
+        logger.info(f"Written {output_path}")
+
+    for alias_name, alias_type in type_aliases.items():
+        file_name = to_camel_case(alias_name)
+        schema, refs = generate_zod_type_alias(alias_name, alias_type, known_types, file_name)
 
         import_lines: list[str] = ['import { z } from "zod";']
         schema_names_imported: set[str] = set()
@@ -259,13 +320,20 @@ async def generate_zod_schemas() -> None:
 
     index_lines: list[str] = []
     sorted_models: list[str] = sorted(all_models.keys())
+    sorted_aliases: list[str] = sorted(type_aliases.keys())
     for model_name in sorted_models:
         file_name = to_camel_case(model_name)
         index_lines.append(
             f"export {{ {model_name}Schema, type {model_name} }} from './{file_name}';"
         )
+    for alias_name in sorted_aliases:
+        file_name = to_camel_case(alias_name)
+        index_lines.append(
+            f"export {{ {alias_name}Schema, type {alias_name} }} from './{file_name}';"
+        )
 
     generated_file_names: set[str] = {to_camel_case(m) for m in all_models}
+    generated_file_names.update(to_camel_case(a) for a in type_aliases)
     for existing_file in output_dir.glob("*.ts"):
         if existing_file.name == "index.ts":
             continue

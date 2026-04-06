@@ -8,9 +8,10 @@ from backend.utils.logger import getLogger
 
 from backend.core.access.db import rockit_db
 
+from backend.core.framework.user.user import User
 from backend.core.framework.media.media import Media
 from backend.core.framework.models.media import MediaModel
-from backend.core.framework.user.user import User
+from backend.core.framework.downloader.types import DownloadStatus
 
 from backend.core.responses.downloadProgressMessage import DownloadProgressMessage
 from backend.core.requests.wsMessages import (
@@ -72,7 +73,7 @@ class WebSocketManager:
         public_id: str,
         title: str,
         artist: str,
-        status: str,
+        status: DownloadStatus,
         progress: float,
         message: str,
     ) -> None:

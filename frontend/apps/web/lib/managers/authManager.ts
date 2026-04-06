@@ -15,6 +15,13 @@ export interface AuthResult {
 }
 
 export class AuthManager {
+    async isLoggedInAsync(): Promise<boolean> {
+        const res = await fetch(`${rockIt.BACKEND_URL}/user/session`, {
+            credentials: "include",
+        });
+        return res.ok;
+    }
+
     async loginAsync(username: string, password: string): Promise<AuthResult> {
         try {
             const request: LoginRequest = { username, password };

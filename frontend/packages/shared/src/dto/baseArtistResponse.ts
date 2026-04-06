@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const BaseArtistResponseSchema = z.object({
+    type: z.union([z.literal("artist")]).default("artist"),
     provider: z.string(),
     publicId: z.string(),
     url: z.string(),

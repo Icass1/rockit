@@ -4,6 +4,7 @@ import {
     StartDownloadRequest,
 } from "@rockit/shared";
 import { EDownloadInfoStatus } from "@/models/enums/downloadInfoStatus";
+import { EEvent } from "@/models/enums/events";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { apiPostFetch } from "@/lib/utils/apiFetch";
 
@@ -39,34 +40,17 @@ export class DownloaderManager {
         }
     }
 
-    // clearCompleted() {
-    //     const current = this._downloadInfoAtom.get();
-    //     this._downloadInfoAtom.set(current.filter((d) => d.completed < 100));
-    // }
-
     updateDownloadProgress(data: DownloadProgressMessage) {
         console.log(data);
-        // if (data.status === EDownloadInfoStatus.Done) {
-        //     rockIt.eventManager.dispatchEvent(EEvent.MediaDownloaded, {
-        //         publicId,
-        //     });
-        // }
-
-        // const current = this._downloadInfoAtom.get();
-        // const index = current.findIndex((d) => d.publicId === publicId);
-        // if (index !== -1) {
-        //     const updated = [...current];
-        //     updated[index] = { publicId, completed, message, status };
-        //     this._downloadInfoAtom.set(updated);
-        //     if (status === EDownloadInfoStatus.Done) {
-        //         rockIt.eventManager.dispatchEvent(EEvent.MediaDownloaded, {
-        //             publicId,
-        //         });
-        //     }
-        // }
+        if (data.status === EDownloadInfoStatus.Completed) {
+            rockIt.eventManager.dispatchEvent(EEvent.MediaDownloaded, {
+                publicId: data.publicId,
+            });
+        }
+        rockIt.eventManager.dispatchEvent(EEvent.MediaDownloadStatus, {
+            publicId: data.publicId,
+            completed: data.progress,
+            message: data.message,
+        });
     }
-
-    // get downloadInfoAtom() {
-    //     return this._downloadInfoAtom.getReadonlyAtom();
-    // }
 }

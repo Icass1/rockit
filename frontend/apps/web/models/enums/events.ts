@@ -5,4 +5,5 @@ export enum EEvent {
     VolumeChanged = "VolumeChanged",
     MediaAddedToPlaylist = "MediaAddedToPlaylist",
     MediaDownloaded = "MediaDownloaded",
+    MediaDownloadStatus = "MediaDownloadStatus",
 }

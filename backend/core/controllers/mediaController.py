@@ -22,6 +22,7 @@ from backend.core.framework.media.media import Media
 from backend.core.framework import providers
 from backend.core.framework.provider.types import AddFromUrlAResult
 
+from backend.core.responses.mediaResponse import MediaResponse
 from backend.core.responses.urlMatchResponse import UrlMatchResponse
 from backend.core.responses.baseVideoResponse import BaseVideoResponse
 from backend.core.responses.searchResponse import SearchResultsResponse
@@ -29,7 +30,6 @@ from backend.core.responses.baseArtistResponse import BaseArtistResponse
 from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
 from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from backend.core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
-from core.responses.mediaResponse import MediaResponse
 
 logger: Logger = getLogger(__name__)
 router = APIRouter(

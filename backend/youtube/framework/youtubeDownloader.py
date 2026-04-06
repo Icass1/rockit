@@ -5,15 +5,17 @@ from typing import Any, Callable, Coroutine, Optional
 from yt_dlp import YoutubeDL
 
 from backend.constants import TEMP_PATH
+from backend.utils.logger import getLogger
+
+from backend.core.aResult import AResult, AResultCode
+
+from backend.core.framework.downloader.types import DownloadStatus
+from backend.core.framework.websocket.webSocketManager import ws_manager
 
 
 def _create_youtube_dl(opts: Any) -> Any:
     return YoutubeDL(opts)
 
-
-from backend.core.aResult import AResult, AResultCode
-from backend.core.framework.websocket.webSocketManager import ws_manager
-from backend.utils.logger import getLogger
 
 logger = getLogger(__name__)
 
@@ -29,7 +31,7 @@ class YouTubeDownloader:
         artist: str,
         filename: str,
         progress_callback: Optional[
-            Callable[[float, str], Coroutine[Any, Any, None]]
+            Callable[[float, DownloadStatus], Coroutine[Any, Any, None]]
         ] = None,
     ) -> AResult[str]:
         return await YouTubeDownloader._download_async(
@@ -55,7 +57,10 @@ class YouTubeDownloader:
         filename: str,
         height: int = 1080,
         progress_callback: Optional[
-            Callable[[float, str], Coroutine[Any, Any, None]]
+            Callable[
+                [float, DownloadStatus],
+                Coroutine[Any, Any, None],
+            ]
         ] = None,
     ) -> AResult[str]:
         return await YouTubeDownloader._download_async(
@@ -83,7 +88,10 @@ class YouTubeDownloader:
         format_type: str,
         height: int = 1080,
         progress_callback: Optional[
-            Callable[[float, str], Coroutine[Any, Any, None]]
+            Callable[
+                [float, DownloadStatus],
+                Coroutine[Any, Any, None],
+            ]
         ] = None,
     ) -> AResult[str]:
         output_path: str = TEMP_PATH

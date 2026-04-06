@@ -12,7 +12,10 @@ export type TPlayableMedia =
     | BaseVideoResponse
     | BaseStationResponse;
 
-export type TListMedia = BasePlaylistResponse | BaseAlbumWithSongsResponse;
+export type TListMedia =
+    | BasePlaylistResponse
+    | BaseAlbumWithSongsResponse
+    | BaseArtistResponse;
 export type TMedia = TPlayableMedia | TListMedia;
 export type DownloadableMediaType =
     | BaseSongWithAlbumResponse

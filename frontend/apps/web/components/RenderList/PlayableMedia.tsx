@@ -45,45 +45,15 @@ export function PlayableMedia({
     const $media = useMedia(_media);
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
-    const [isDownloaded, setIsDownloaded] = useState(
-        isDownloadable(_media) ? _media.downloaded === true : false
-    );
-
-    useEffect(() => {
-        if (isDownloadable(_media)) {
-            setIsDownloaded(_media.downloaded === true);
-        }
-    }, [_media, isDownloadable]);
-
-    useEffect(() => {
-        const handleMediaDownloaded = (data: { publicId: string }) => {
-            if (isDownloadable(_media) && data.publicId === _media.publicId) {
-                setIsDownloaded(true);
-            }
-        };
-
-        rockIt.eventManager.addEventListener(
-            EEvent.MediaDownloaded,
-            handleMediaDownloaded
-        );
-
-        return () => {
-            rockIt.eventManager.removeEventListener(
-                EEvent.MediaDownloaded,
-                handleMediaDownloaded
-            );
-        };
-    }, [_media.publicId, isDownloadable]);
-
     const artists = getArtistNames($media, substractArtists);
 
     const handleClick = () => {
-        if (isDownloadable($media) && !isDownloaded) {
+        if (isDownloadable($media) && $media.downloaded !== true) {
             rockIt.downloaderManager.downloadMediaAsync([$media.publicId]);
         }
     };
 
-    const downloaded = !isDownloadable($media) || isDownloaded;
+    const downloaded = !isDownloadable($media) || $media.downloaded === true;
 
     return (
         <MediaContextMenu media={$media}>

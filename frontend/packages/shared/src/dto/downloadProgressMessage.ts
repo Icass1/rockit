@@ -6,7 +6,13 @@ export const DownloadProgressMessageSchema = z.object({
     publicId: z.string(),
     title: z.string(),
     subTitle: z.string(),
-    status: z.string(),
+    status: z.union([
+        z.literal("converting"),
+        z.literal("completed"),
+        z.literal("downloading"),
+        z.literal("error"),
+        z.literal("starting"),
+    ]),
     progress: z.number(),
     message: z.string(),
 });

@@ -6,13 +6,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.constants import MEDIA_PATH
 from backend.utils.logger import getLogger
+
 from backend.core.aResult import AResult, AResultCode
 
 from backend.core.framework.downloader.baseDownload import BaseDownload
-from backend.youtube.framework.youtubeDownloader import YouTubeDownloader
+from backend.core.framework.downloader.types import DownloadStatus
+
 from backend.youtubeMusic.access.db.ormModels.track import TrackRow
 from backend.youtubeMusic.access.db.ormModels.artist import ArtistRow
 from backend.youtubeMusic.access.youtubeMusicAccess import YoutubeMusicAccess
+
+from backend.youtube.framework.youtubeDownloader import YouTubeDownloader
 
 logger = getLogger(__name__)
 
@@ -78,7 +82,7 @@ class YoutubeMusicDownload(BaseDownload):
 
             filename: str = f"{self.youtube_id}_{self.download_id}"
 
-            async def _progress_callback(progress: float, status: str):
+            async def _progress_callback(progress: float, status: DownloadStatus):
                 await self.progress_callback(progress=progress, status=status)
 
             a_result_download: AResult[str] = (

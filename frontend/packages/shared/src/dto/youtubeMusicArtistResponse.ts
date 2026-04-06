@@ -3,6 +3,7 @@ import { BaseAlbumWithoutSongsResponseSchema } from "./baseAlbumWithoutSongsResp
 import { BaseSongWithAlbumResponseSchema } from "./baseSongWithAlbumResponse";
 
 export const YoutubeMusicArtistResponseSchema = z.object({
+    type: z.union([z.literal("artist")]).default("artist"),
     provider: z.string(),
     publicId: z.string(),
     url: z.string(),

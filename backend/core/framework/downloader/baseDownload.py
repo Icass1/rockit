@@ -1,12 +1,14 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from backend.utils.logger import getLogger
+
 from backend.core.aResult import AResult, AResultCode
 
 from backend.core.access.db import rockit_db
-from backend.core.access.db.ormModels.downloadStatus import DownloadStatusRow
 from backend.core.access.downloadAccess import DownloadAccess
-from backend.core.framework.websocket.webSocketManager import ws_manager
-from backend.utils.logger import getLogger
+from backend.core.access.db.ormModels.downloadStatus import DownloadStatusRow
+
+from backend.core.framework.downloader.types import DownloadStatus
 
 logger = getLogger(__name__)
 
@@ -32,8 +34,10 @@ class BaseDownload:
 
         pass
 
-    async def progress_callback(self, progress: float, status: str):
+    async def progress_callback(self, progress: float, status: DownloadStatus):
         """Insert a download status row and broadcast progress via WebSocket."""
+
+        from backend.core.framework.websocket.webSocketManager import ws_manager
 
         message = f"{status}: {progress:.1f}%"
 

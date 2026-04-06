@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { BaseArtistResponse } from "@/dto";
+import { BaseArtistResponse, MediaResponseSchema } from "@/dto";
+import { MediaResponse } from "@rockit/packages/dto";
 import { EEvent } from "@/models/enums/events";
 import { IMediaAddedToPlaylistEvent } from "@/models/interfaces/events/mediaAddedToPlaylist";
 import { TMedia } from "@/models/types/media";
@@ -37,10 +38,11 @@ export default function RenderListClient({
         if (!playlistPublicId) return;
 
         const handleMediaAdded = (data: IMediaAddedToPlaylistEvent) => {
-            apiFetch(`/media/${data.publicId}`);
-
-            console.log("handleMediaAdded", data);
-            setMedia((prev) => [...prev]);
+            apiFetch(`/media/${data.publicId}`, MediaResponseSchema).then(
+                (data) => {
+                    setMedia((prev) => [...prev, data]);
+                }
+            );
         };
 
         rockIt.eventManager.addEventListener(

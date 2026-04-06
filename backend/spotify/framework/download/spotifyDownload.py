@@ -6,14 +6,18 @@ from dataclasses import dataclass
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.constants import MEDIA_PATH
-from backend.spotify.access.db.ormModels.artist import ArtistRow
-from backend.spotify.access.db.ormModels.track import TrackRow
 from backend.utils.logger import getLogger
+
 from backend.core.aResult import AResult, AResultCode
 
+from backend.core.framework.downloader.types import DownloadStatus
 from backend.core.framework.downloader.baseDownload import BaseDownload
-from backend.youtube.framework.youtubeApi import youtube_api, RawYoutubeSearchResult
+
 from backend.youtube.framework.youtubeDownloader import YouTubeDownloader
+from backend.youtube.framework.youtubeApi import youtube_api, RawYoutubeSearchResult
+
+from backend.spotify.access.db.ormModels.track import TrackRow
+from backend.spotify.access.db.ormModels.artist import ArtistRow
 from backend.spotify.access.spotifyAccess import SpotifyAccess
 from backend.spotify.access.trackAccess import TrackAccess
 
@@ -128,7 +132,7 @@ class SpotifyDownload(BaseDownload):
 
             filename: str = f"{track.spotify_id}_{self.download_id}"
 
-            async def _progress_callback(progress: float, status: str):
+            async def _progress_callback(progress: float, status: DownloadStatus):
                 await self.progress_callback(progress=progress, status=status)
 
             a_result_download: AResult[str] = (

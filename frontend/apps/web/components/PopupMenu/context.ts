@@ -1,15 +1,7 @@
-import { createContext, useContext, type RefObject } from "react";
+import { createContext, useContext } from "react";
+import { IPopupMenuContext } from "@/models/interfaces/popupMenu";
 
-interface PopupMenuContext {
-    open: boolean;
-    setOpen: (open: boolean) => void;
-    pos: [number, number];
-    setPos: (pos: [number, number]) => void;
-    contentRef: RefObject<HTMLDivElement>;
-    triggerRef: RefObject<HTMLDivElement>;
-}
-
-export const PopupMenuContext = createContext<PopupMenuContext | null>(null);
+export const PopupMenuContext = createContext<IPopupMenuContext | null>(null);
 
 export function usePopupMenu() {
     const ctx = useContext(PopupMenuContext);

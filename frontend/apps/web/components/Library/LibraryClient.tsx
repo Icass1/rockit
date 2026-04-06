@@ -10,26 +10,27 @@ import {
     List,
     Upload,
 } from "lucide-react";
+import { EContentType } from "@/models/enums/contentType";
+import { EFilterMode } from "@/models/enums/filterMode";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { ContentType } from "@/components/Library/hooks/useLibraryData";
+import { cycleEnum } from "@/lib/utils/cycleEnum";
 import { LibraryFilters, ViewMode } from "@/components/Library/LibraryFilters";
 import { LibraryLists } from "@/components/Library/LibraryLists";
 import UploadModal from "@/components/Library/UploadModal";
 
 export default function LibraryClient() {
-    const [filterMode, setFilterMode] = useState<"default" | "asc" | "desc">(
-        "default"
+    const [filterMode, setFilterMode] = useState<EFilterMode>(
+        EFilterMode.DEFAULT
     );
     const [searchQuery, setSearchQuery] = useState("");
-    const [activeType, setActiveType] = useState<ContentType>("all");
+    const [activeType, setActiveType] = useState<EContentType>(
+        EContentType.ALL
+    );
     const [viewMode, setViewMode] = useState<ViewMode>("grid");
     const [showUploadModal, setShowUploadModal] = useState(false);
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
-    const cycleSortMode = () =>
-        setFilterMode((m) =>
-            m === "default" ? "asc" : m === "asc" ? "desc" : "default"
-        );
+    const cycleSortMode = () => setFilterMode((m) => cycleEnum(EFilterMode, m));
 
     return (
         <div className="flex flex-col">
@@ -54,13 +55,13 @@ export default function LibraryClient() {
                         title="Sort"
                         className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-neutral-400 transition select-none hover:text-white"
                     >
-                        {filterMode === "default" && (
+                        {filterMode === EFilterMode.DEFAULT && (
                             <ClockArrowDown className="h-5 w-5" />
                         )}
-                        {filterMode === "asc" && (
+                        {filterMode === EFilterMode.ASC && (
                             <ArrowDownAZ className="h-5 w-5" />
                         )}
-                        {filterMode === "desc" && (
+                        {filterMode === EFilterMode.DESC && (
                             <ArrowUpAZ className="h-5 w-5" />
                         )}
                     </button>

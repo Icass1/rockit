@@ -9,7 +9,7 @@ import {
 } from "@rockit/shared";
 import { useApiFetch } from "@/lib/useApiFetch";
 
-export type ContentType =
+export type EContentType =
     | "all"
     | "albums"
     | "playlists"
@@ -40,7 +40,7 @@ interface UseLibraryDataResult {
 export function useLibraryData(options: {
     filterMode: FilterMode;
     searchQuery: string;
-    activeType: ContentType;
+    activeType: EContentType;
 }): UseLibraryDataResult {
     const { data, loading, error } = useApiFetch<LibraryListsResponse>(
         API_ENDPOINTS.libraryLists,

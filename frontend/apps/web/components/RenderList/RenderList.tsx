@@ -33,6 +33,7 @@ export function Media({
     const handleClick = () => {
         if (!media.downloaded) {
             rockIt.downloaderManager.downloadMediaAsync([media.publicId]);
+            return;
         }
     };
 

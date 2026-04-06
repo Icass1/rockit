@@ -1,11 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { QueueResponseItem } from "@/dto";
-
-interface DraggingMedia {
-    list: string;
-    media: QueueResponseItem;
-    index: number;
-}
+import { IDraggingMedia } from "@/models/interfaces/draggingMedia";
 
 /**
  * Shared drag-and-drop logic for queue lists.
@@ -16,7 +11,7 @@ interface DraggingMedia {
  */
 export function useQueueDrag(containerOffsetFromTop = 185) {
     const [draggingMedia, setDraggingMedia] = useState<
-        DraggingMedia | undefined
+        IDraggingMedia | undefined
     >();
     const [draggingPosY, setDraggingPosY] = useState(0);
     const draggingPosYRef = useRef(0);

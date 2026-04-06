@@ -1,11 +1,11 @@
 import { COLORS } from "@/constants/theme";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import type { ContentType } from "@/hooks/useLibraryData";
+import type { EContentType } from "@/hooks/useLibraryData";
 import { useVocabulary } from "@/lib/vocabulary";
 
 interface LibraryFiltersProps {
-    activeType: ContentType;
-    onTypeChange: (type: ContentType) => void;
+    activeType: EContentType;
+    onTypeChange: (type: EContentType) => void;
 }
 
 export default function LibraryFilters({
@@ -14,7 +14,7 @@ export default function LibraryFilters({
 }: LibraryFiltersProps) {
     const { vocabulary } = useVocabulary();
 
-    const TABS: { key: ContentType; label: string }[] = [
+    const TABS: { key: EContentType; label: string }[] = [
         { key: "all", label: vocabulary.ALL },
         { key: "albums", label: vocabulary.ALBUMS },
         { key: "playlists", label: vocabulary.PLAYLISTS },

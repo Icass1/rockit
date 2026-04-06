@@ -6,7 +6,7 @@ import type {
     BaseVideoResponse,
 } from "@rockit/shared";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
-import type { ContentType } from "@/hooks/useLibraryData";
+import type { EContentType } from "@/hooks/useLibraryData";
 import { useVocabulary } from "@/lib/vocabulary";
 import SectionTitle from "@/components/layout/SectionTitle";
 import LibraryGrid from "@/components/Library/LibraryGrid";
@@ -19,7 +19,7 @@ interface LibraryContentProps {
     playlists: BasePlaylistResponse[];
     songs: BaseSongWithoutAlbumResponse[];
     videos: BaseVideoResponse[];
-    activeType: ContentType;
+    activeType: EContentType;
     viewMode: "grid" | "list";
 }
 

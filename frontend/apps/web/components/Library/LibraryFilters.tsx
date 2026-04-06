@@ -1,28 +1,26 @@
 "use client";
 
 import { useStore } from "@nanostores/react";
+import { EContentType } from "@/models/enums/contentType";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { ContentType } from "@/components/Library/hooks/useLibraryData";
-
-export type ViewMode = "grid" | "list";
 
 export function LibraryFilters({
     activeType,
     setActiveType,
 }: {
-    activeType: ContentType;
-    setActiveType: (type: ContentType) => void;
+    activeType: EContentType;
+    setActiveType: (type: EContentType) => void;
 }) {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
-    const pills: { key: ContentType; label: string }[] = [
-        { key: "all", label: $vocabulary.ALL },
-        { key: "albums", label: $vocabulary.ALBUMS },
-        { key: "playlists", label: $vocabulary.PLAYLISTS },
-        { key: "songs", label: $vocabulary.SONGS },
-        { key: "videos", label: $vocabulary.VIDEOS },
-        { key: "stations", label: $vocabulary.RADIO_STATIONS },
-        { key: "shared", label: $vocabulary.SHARED_2_YOU },
+    const pills: { key: EContentType; label: string }[] = [
+        { key: EContentType.ALL, label: $vocabulary.ALL },
+        { key: EContentType.ALBUMS, label: $vocabulary.ALBUMS },
+        { key: EContentType.PLAYLISTS, label: $vocabulary.PLAYLISTS },
+        { key: EContentType.SONGS, label: $vocabulary.SONGS },
+        { key: EContentType.VIDEOS, label: $vocabulary.VIDEOS },
+        { key: EContentType.STATIONS, label: $vocabulary.RADIO_STATIONS },
+        { key: EContentType.SHARED, label: $vocabulary.SHARED_2_YOU },
     ];
 
     return (

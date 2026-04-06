@@ -1,15 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useStore } from "@nanostores/react";
+import { ELyricsStatus } from "@/models/enums/lyricsStatus";
+import { ILyricsTimestamp, TLyricsState } from "@/models/interfaces/lyrics";
 import { rockIt } from "@/lib/rockit/rockIt";
 
-type LyricsTimestamp = { time: number; index: number };
+type LyricsTimestamp = ILyricsTimestamp;
 
-type LyricsState =
-    | { status: "idle" }
-    | { status: "loading" }
-    | { status: "empty" }
-    | { status: "static"; lines: string[] }
-    | { status: "dynamic"; lines: string[]; timestamps: LyricsTimestamp[] };
+type LyricsState = TLyricsState;
 
 /**
  * Fetches lyrics for the current song and handles keyboard navigation.
@@ -25,8 +22,8 @@ export function useLyrics() {
     const $currentTime = useStore(rockIt.audioManager.currentTimeAtom);
 
     const [lyricsState, _setLyricsState] = useState<LyricsState>(() => {
-        if (!$currentSong?.publicId) return { status: "idle" };
-        return { status: "loading" };
+        if (!$currentSong?.publicId) return { status: ELyricsStatus.IDLE };
+        return { status: ELyricsStatus.LOADING };
     });
     const [manualIndex, setManualIndex] = useState(0);
 
@@ -35,7 +32,9 @@ export function useLyrics() {
 
     // --- Derived computed index ---
     const computedIndex =
-        lyricsState.status === "dynamic" && $currentSong && $currentTime != null
+        lyricsState.status === ELyricsStatus.DYNAMIC &&
+        $currentSong &&
+        $currentTime != null
             ? (lyricsState.timestamps
                   .toSorted((a, b) => b.time - a.time)
                   .find((ts) => ts.time < $currentTime + 0.5)?.index ?? 0)
@@ -100,15 +99,17 @@ export function useLyrics() {
     // re-registering the handler on every audio frame tick.
     useEffect(() => {
         if (
-            lyricsState.status !== "static" &&
-            lyricsState.status !== "dynamic"
+            lyricsState.status !== ELyricsStatus.STATIC &&
+            lyricsState.status !== ELyricsStatus.DYNAMIC
         ) {
             return;
         }
 
         const lineCount = lyricsState.lines.length;
         const timestamps =
-            lyricsState.status === "dynamic" ? lyricsState.timestamps : [];
+            lyricsState.status === ELyricsStatus.DYNAMIC
+                ? lyricsState.timestamps
+                : [];
 
         const handleKey = (e: KeyboardEvent) => {
             if (e.code !== "ArrowDown" && e.code !== "ArrowUp") return;

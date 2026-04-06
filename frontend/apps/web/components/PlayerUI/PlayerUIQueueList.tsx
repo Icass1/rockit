@@ -1,5 +1,6 @@
 "use client";
 
+import { QueueResponseItem } from "@/dto";
 import { useStore } from "@nanostores/react";
 import {
     GripVertical,
@@ -8,7 +9,6 @@ import {
     ListX,
     PlayCircle,
 } from "lucide-react";
-import { QueueResponseItem } from "@/dto";
 import { rockIt } from "@/lib/rockit/rockIt";
 import ContextMenuContent from "@/components/ContextMenu/Content";
 import ContextMenu from "@/components/ContextMenu/ContextMenu";
@@ -141,15 +141,16 @@ export function PlayerUIQueueList({
                             type: "song",
                             downloaded: false,
                             imageUrl: rockIt.MEDIA_PLACEHOLDER_IMAGE_URL,
-                            duration: 123,
+                            duration_ms: 123,
                             discNumber: 1,
                             trackNumber: 1,
+                            providerUrl: "",
                             provider: "mock",
                             audioSrc: null,
                             publicId: `auto-${mock.id}`,
-                            url: "",
                             name: mock.title,
                             album: {
+                                providerUrl: "",
                                 type: "album",
                                 name: "Single",
                                 releaseDate: "2024-01-01",
@@ -161,6 +162,7 @@ export function PlayerUIQueueList({
                                     {
                                         provider: "mock",
                                         publicId: "publicId",
+                                        providerUrl: "",
                                         imageUrl:
                                             rockIt.MEDIA_PLACEHOLDER_IMAGE_URL,
                                         name: mock.artist,
@@ -172,6 +174,7 @@ export function PlayerUIQueueList({
                                 {
                                     provider: "mock",
                                     publicId: "publicId",
+                                    providerUrl: "",
                                     imageUrl:
                                         rockIt.MEDIA_PLACEHOLDER_IMAGE_URL,
                                     name: mock.artist,

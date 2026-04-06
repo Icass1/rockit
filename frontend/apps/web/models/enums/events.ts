@@ -1,3 +1,6 @@
 export enum EEvent {
-    PLAYLIST_CREATED,
+    PlaylistCreated = "PlaylistCreated",
+    UserLogin = "UserLogin",
+    SongFinished = "SongFinished",
+    VolumeChanged = "VolumeChanged",
 }

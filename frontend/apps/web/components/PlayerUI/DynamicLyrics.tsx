@@ -60,13 +60,13 @@ export function DynamicLyrics() {
 
     // Early returns for non-renderable states
     if (
-        lyricsState.status === ELyricsStatus.IDLE ||
-        lyricsState.status === ELyricsStatus.LOADING ||
+        lyricsState.status === ELyricsStatus.Idle ||
+        lyricsState.status === ELyricsStatus.Loading ||
         lyricsState.status === ELyricsStatus.EMPTY
     ) {
         return (
             <div className="relative flex h-full w-full items-center justify-center px-4">
-                {lyricsState.status === ELyricsStatus.LOADING
+                {lyricsState.status === ELyricsStatus.Loading
                     ? "Loading lyrics…"
                     : "No lyrics found"}
             </div>
@@ -75,7 +75,7 @@ export function DynamicLyrics() {
 
     const { lines } = lyricsState;
     const timestamps =
-        lyricsState.status === ELyricsStatus.DYNAMIC
+        lyricsState.status === ELyricsStatus.Dynamic
             ? lyricsState.timestamps
             : [];
     const hasDynamicTimestamps = timestamps.length > 0;

@@ -11,9 +11,9 @@ import {
 import { useStore } from "@nanostores/react";
 import { EContentKind } from "@/models/enums/contentKind";
 import { EContentType } from "@/models/enums/contentType";
+import { EViewMode } from "@/models/enums/viewMode";
 import { ILibraryListsProps } from "@/models/interfaces/library";
 import { ILibraryMasonryItem } from "@/models/types/masonryItem";
-import { TViewMode } from "@/models/types/viewMode";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { useLibraryData } from "@/components/Library/hooks/useLibraryData";
 import {
@@ -34,14 +34,6 @@ import {
 import NewPlaylistButton from "@/components/Library/NewPlaylistButton";
 import PlayLibraryButton from "@/components/Library/PlayLibraryButton";
 import LoadingComponent from "@/components/Loading";
-
-/* ------------------------------------------------------- */
-/* PROPS                                                   */
-/* ------------------------------------------------------- */
-
-type LibraryListsProps = ILibraryListsProps & {
-    viewMode: TViewMode;
-};
 
 /* ------------------------------------------------------- */
 /* LAYOUT CONSTANTS                                        */
@@ -292,11 +284,11 @@ export function LibraryLists({
     searchQuery,
     activeType,
     viewMode,
-}: LibraryListsProps) {
+}: ILibraryListsProps) {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const { filtered, loading } = useLibraryData({ filterMode, searchQuery });
 
-    const showAll = activeType === EContentType.ALL;
+    const showAll = activeType === EContentType.All;
 
     if (loading) return <LoadingComponent />;
 
@@ -314,7 +306,7 @@ export function LibraryLists({
                         rightElement={<PlayLibraryButton />}
                     />
 
-                    {viewMode === "list" ? (
+                    {viewMode === EViewMode.List ? (
                         <SectionedAllList
                             albums={filtered.albums}
                             playlists={filtered.playlists}
@@ -343,10 +335,10 @@ export function LibraryLists({
             )}
 
             {/* ── ALBUMS tab ────────────────────────────────────────────── */}
-            {activeType === EContentType.ALBUMS &&
+            {activeType === EContentType.Albums &&
                 (filtered.albums.length === 0 ? (
                     <EmptyState message={$vocabulary.NO_ALBUMS} />
-                ) : viewMode === "list" ? (
+                ) : viewMode === EViewMode.List ? (
                     <AlbumListView albums={filtered.albums} />
                 ) : (
                     <div className={GRID_CLASS}>
@@ -357,10 +349,10 @@ export function LibraryLists({
                 ))}
 
             {/* ── PLAYLISTS tab ─────────────────────────────────────────── */}
-            {activeType === EContentType.PLAYLISTS &&
+            {activeType === EContentType.Playlists &&
                 (filtered.playlists.length === 0 ? (
                     <EmptyState message={$vocabulary.NO_PLAYLISTS} />
-                ) : viewMode === "list" ? (
+                ) : viewMode === EViewMode.List ? (
                     <div className={ROW_LIST_CLASS}>
                         {filtered.playlists.map((pl) => (
                             <PlaylistRow key={pl.publicId} playlist={pl} />
@@ -376,7 +368,7 @@ export function LibraryLists({
                 ))}
 
             {/* ── SONGS (always rows — grid adds nothing for songs) ─────── */}
-            {activeType === EContentType.SONGS &&
+            {activeType === EContentType.Songs &&
                 (filtered.songs.length === 0 ? (
                     <EmptyState message={$vocabulary.NO_SONGS} />
                 ) : (
@@ -388,10 +380,10 @@ export function LibraryLists({
                 ))}
 
             {/* ── VIDEOS tab ────────────────────────────────────────────── */}
-            {activeType === EContentType.VIDEOS &&
+            {activeType === EContentType.Videos &&
                 (filtered.videos.length === 0 ? (
                     <EmptyState message={$vocabulary.NO_VIDEOS} />
-                ) : viewMode === "list" ? (
+                ) : viewMode === EViewMode.List ? (
                     <div className={ROW_LIST_CLASS}>
                         {filtered.videos.map((v) => (
                             <VideoRow key={v.publicId} video={v} />
@@ -406,7 +398,7 @@ export function LibraryLists({
                 ))}
 
             {/* ── STATIONS (always rows) ────────────────────────────────── */}
-            {activeType === EContentType.STATIONS &&
+            {activeType === EContentType.Stations &&
                 (filtered.stations.length === 0 ? (
                     <EmptyState message={$vocabulary.NO_STATIONS} />
                 ) : (

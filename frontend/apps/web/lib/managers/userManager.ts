@@ -17,7 +17,7 @@ export class UserManager {
         if (typeof window === "undefined") return;
 
         try {
-            const res = await baseApiFetch("/session");
+            const res = await baseApiFetch("/user/session");
             if (res?.ok) {
                 const json = await res.json();
                 const session = SessionResponseSchema.parse(json);
@@ -64,7 +64,7 @@ export class UserManager {
                 return false;
             }
 
-            const sessionRes = await baseApiFetch("/session");
+            const sessionRes = await baseApiFetch("/user/session");
             if (sessionRes?.ok) {
                 const json = await sessionRes.json();
                 const session = SessionResponseSchema.parse(json);

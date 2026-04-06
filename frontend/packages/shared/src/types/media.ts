@@ -1,5 +1,6 @@
 import {
     BaseAlbumWithSongsResponse,
+    BaseArtistResponse,
     BasePlaylistResponse,
     BaseSongWithAlbumResponse,
     BaseStationResponse,
@@ -79,15 +80,9 @@ export function getMediaDuration(
     return undefined;
 }
 
-export function getMediaArtists(media: PlayableMediaType | undefined):
-    | {
-          provider: string;
-          publicId: string;
-          url: string;
-          name: string;
-          imageUrl: string;
-      }[]
-    | undefined {
+export function getMediaArtists(
+    media: PlayableMediaType | undefined
+): BaseArtistResponse[] | undefined {
     if (!media) return undefined;
     if (isSong(media) || isVideo(media)) {
         return media.artists;

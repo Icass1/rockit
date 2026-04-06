@@ -1,17 +1,36 @@
 import { EEvent } from "@/models/enums/events";
+import { IEventPayloadMap } from "@/models/interfaces/eventPayloadMap";
 
 export class EventManager {
     static #instance: EventManager;
 
-    constructor() {
-        if (EventManager.#instance) {
-            return EventManager.#instance;
+    private listeners = new Map<EEvent, Set<(data: any) => void>>();
+
+    static getInstance() {
+        if (!EventManager.#instance) {
+            EventManager.#instance = new EventManager();
         }
-        EventManager.#instance = this;
         return EventManager.#instance;
     }
 
-    addEventListener(event: EEvent) {
-        console.log("REST");
+    addEventListener<K extends EEvent>(
+        event: K,
+        handler: (data: IEventPayloadMap[K]) => void
+    ) {
+        if (!this.listeners.has(event)) {
+            this.listeners.set(event, new Set());
+        }
+        this.listeners.get(event)!.add(handler as (data: any) => void);
+    }
+
+    removeEventListener<K extends EEvent>(
+        event: K,
+        handler: (data: IEventPayloadMap[K]) => void
+    ) {
+        this.listeners.get(event)?.delete(handler as (data: any) => void);
+    }
+
+    dispatchEvent<K extends EEvent>(event: K, data: IEventPayloadMap[K]) {
+        this.listeners.get(event)?.forEach((handler) => handler(data));
     }
 }

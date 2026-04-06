@@ -1,9 +1,9 @@
 export enum EContentType {
-    ALL,
-    ALBUMS,
-    PLAYLISTS,
-    SONGS,
-    VIDEOS,
-    STATIONS,
-    SHARED,
+    All,
+    Albums,
+    Playlists,
+    Songs,
+    Videos,
+    Stations,
+    Shared,
 }

@@ -17,7 +17,6 @@ export default function RenderListClient({
     title,
     artists,
     image,
-    imageBlur,
     media,
     showMediaIndex,
     showMediaImage,
@@ -26,7 +25,6 @@ export default function RenderListClient({
     title: string;
     artists: BaseArtistResponse[];
     image: string;
-    imageBlur?: string;
     media: (BaseSongWithAlbumResponse | BaseVideoResponse)[];
     showMediaIndex: boolean;
     showMediaImage: boolean;

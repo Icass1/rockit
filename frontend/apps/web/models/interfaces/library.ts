@@ -1,10 +1,10 @@
 import { EContentType } from "@/models/enums/contentType";
 import { EFilterMode } from "@/models/enums/filterMode";
-import { TViewMode } from "@/models/types/viewMode";
+import { EViewMode } from "@/models/enums/viewMode";
 
 export interface ILibraryListsProps {
     filterMode: EFilterMode;
     searchQuery: string;
     activeType: EContentType;
-    viewMode: TViewMode;
+    viewMode: EViewMode;
 }

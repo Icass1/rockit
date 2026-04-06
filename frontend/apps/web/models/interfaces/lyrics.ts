@@ -6,12 +6,12 @@ export interface ILyricsTimestamp {
 }
 
 export type TLyricsState =
-    | { status: ELyricsStatus.IDLE }
-    | { status: ELyricsStatus.LOADING }
+    | { status: ELyricsStatus.Idle }
+    | { status: ELyricsStatus.Loading }
     | { status: ELyricsStatus.EMPTY }
-    | { status: ELyricsStatus.STATIC; lines: string[] }
+    | { status: ELyricsStatus.Static; lines: string[] }
     | {
-          status: ELyricsStatus.DYNAMIC;
+          status: ELyricsStatus.Dynamic;
           lines: string[];
           timestamps: ILyricsTimestamp[];
       };

@@ -1,12 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useStore } from "@nanostores/react";
 import { ELyricsStatus } from "@/models/enums/lyricsStatus";
-import { ILyricsTimestamp, TLyricsState } from "@/models/interfaces/lyrics";
+import { TLyricsState } from "@/models/interfaces/lyrics";
 import { rockIt } from "@/lib/rockit/rockIt";
-
-type LyricsTimestamp = ILyricsTimestamp;
-
-type LyricsState = TLyricsState;
 
 /**
  * Fetches lyrics for the current song and handles keyboard navigation.
@@ -21,9 +17,9 @@ export function useLyrics() {
     const $currentSong = useStore(rockIt.queueManager.currentMediaAtom);
     const $currentTime = useStore(rockIt.audioManager.currentTimeAtom);
 
-    const [lyricsState, _setLyricsState] = useState<LyricsState>(() => {
-        if (!$currentSong?.publicId) return { status: ELyricsStatus.IDLE };
-        return { status: ELyricsStatus.LOADING };
+    const [lyricsState, _setLyricsState] = useState<TLyricsState>(() => {
+        if (!$currentSong?.publicId) return { status: ELyricsStatus.Idle };
+        return { status: ELyricsStatus.Loading };
     });
     const [manualIndex, setManualIndex] = useState(0);
 
@@ -32,7 +28,7 @@ export function useLyrics() {
 
     // --- Derived computed index ---
     const computedIndex =
-        lyricsState.status === ELyricsStatus.DYNAMIC &&
+        lyricsState.status === ELyricsStatus.Dynamic &&
         $currentSong &&
         $currentTime != null
             ? (lyricsState.timestamps
@@ -99,15 +95,15 @@ export function useLyrics() {
     // re-registering the handler on every audio frame tick.
     useEffect(() => {
         if (
-            lyricsState.status !== ELyricsStatus.STATIC &&
-            lyricsState.status !== ELyricsStatus.DYNAMIC
+            lyricsState.status !== ELyricsStatus.Static &&
+            lyricsState.status !== ELyricsStatus.Dynamic
         ) {
             return;
         }
 
         const lineCount = lyricsState.lines.length;
         const timestamps =
-            lyricsState.status === ELyricsStatus.DYNAMIC
+            lyricsState.status === ELyricsStatus.Dynamic
                 ? lyricsState.timestamps
                 : [];
 

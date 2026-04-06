@@ -14,13 +14,13 @@ export function LibraryFilters({
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     const pills: { key: EContentType; label: string }[] = [
-        { key: EContentType.ALL, label: $vocabulary.ALL },
-        { key: EContentType.ALBUMS, label: $vocabulary.ALBUMS },
-        { key: EContentType.PLAYLISTS, label: $vocabulary.PLAYLISTS },
-        { key: EContentType.SONGS, label: $vocabulary.SONGS },
-        { key: EContentType.VIDEOS, label: $vocabulary.VIDEOS },
-        { key: EContentType.STATIONS, label: $vocabulary.RADIO_STATIONS },
-        { key: EContentType.SHARED, label: $vocabulary.SHARED_2_YOU },
+        { key: EContentType.All, label: $vocabulary.ALL },
+        { key: EContentType.Albums, label: $vocabulary.ALBUMS },
+        { key: EContentType.Playlists, label: $vocabulary.PLAYLISTS },
+        { key: EContentType.Songs, label: $vocabulary.SONGS },
+        { key: EContentType.Videos, label: $vocabulary.VIDEOS },
+        { key: EContentType.Stations, label: $vocabulary.RADIO_STATIONS },
+        { key: EContentType.Shared, label: $vocabulary.SHARED_2_YOU },
     ];
 
     return (

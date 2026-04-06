@@ -12,9 +12,10 @@ import {
 } from "lucide-react";
 import { EContentType } from "@/models/enums/contentType";
 import { EFilterMode } from "@/models/enums/filterMode";
+import { EViewMode } from "@/models/enums/viewMode";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { cycleEnum } from "@/lib/utils/cycleEnum";
-import { LibraryFilters, ViewMode } from "@/components/Library/LibraryFilters";
+import { LibraryFilters } from "@/components/Library/LibraryFilters";
 import { LibraryLists } from "@/components/Library/LibraryLists";
 import UploadModal from "@/components/Library/UploadModal";
 
@@ -24,9 +25,9 @@ export default function LibraryClient() {
     );
     const [searchQuery, setSearchQuery] = useState("");
     const [activeType, setActiveType] = useState<EContentType>(
-        EContentType.ALL
+        EContentType.All
     );
-    const [viewMode, setViewMode] = useState<ViewMode>("grid");
+    const [viewMode, setViewMode] = useState<EViewMode>(EViewMode.Grid);
     const [showUploadModal, setShowUploadModal] = useState(false);
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
@@ -69,12 +70,16 @@ export default function LibraryClient() {
                     {/* View toggle */}
                     <button
                         onClick={() =>
-                            setViewMode((v) => (v === "grid" ? "list" : "grid"))
+                            setViewMode((v) => cycleEnum(EViewMode, v))
                         }
-                        title={viewMode === "grid" ? "List view" : "Grid view"}
+                        title={
+                            viewMode === EViewMode.Grid
+                                ? "List view"
+                                : "Grid view"
+                        }
                         className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-neutral-400 transition select-none hover:text-white"
                     >
-                        {viewMode === "grid" ? (
+                        {viewMode === EViewMode.Grid ? (
                             <List className="h-5 w-5" />
                         ) : (
                             <LayoutGrid className="h-5 w-5" />

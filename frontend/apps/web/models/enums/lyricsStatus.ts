@@ -1,7 +1,7 @@
 export enum ELyricsStatus {
-    IDLE,
-    LOADING,
+    Idle,
+    Loading,
     EMPTY,
-    STATIC,
-    DYNAMIC,
+    Static,
+    Dynamic,
 }

@@ -1,9 +1,12 @@
 import Image from "next/image";
+import { BaseArtistResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
 import {
     getMediaDuration,
     isDownloadable,
-    PlayableMediaType,
+    isSong,
+    isVideo,
+    PlayableMediaType as TPlayableMedia,
 } from "@/types/media";
 import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
@@ -12,7 +15,19 @@ import Artists from "@/components/Artists/Artists";
 import LikeButton from "@/components/LikeButton/LikeButton";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 
-export function Media({
+function getArtistNames(
+    media: TPlayableMedia,
+    substractArtists: string[]
+): BaseArtistResponse[] {
+    if (isSong(media) || isVideo(media)) {
+        return media.artists.filter(
+            (artist) => !substractArtists.includes(artist.name)
+        );
+    }
+    return [];
+}
+
+export function PlayableMedia({
     index,
     media: _media,
     substractArtists = [],
@@ -20,24 +35,24 @@ export function Media({
     showMediaImage,
 }: {
     index: number;
-    media: PlayableMediaType;
+    media: TPlayableMedia;
     substractArtists?: string[];
     showMediaIndex: boolean;
     showMediaImage: boolean;
 }) {
     const $media = useMedia(_media);
-
-    const artists = ($media.artists ?? []).filter(
-        (artist) => !substractArtists.includes(artist.name)
-    );
-
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+
+    const artists = getArtistNames($media, substractArtists);
 
     const handleClick = () => {
         if (isDownloadable($media) && !$media.downloaded) {
             rockIt.downloaderManager.downloadMediaAsync([$media.publicId]);
         }
     };
+
+    // If the media is not downloadable, we consider it as downloaded to allow interaction with it.
+    const downloaded = !isDownloadable($media) || $media.downloaded;
 
     return (
         <MediaContextMenu media={$media}>
@@ -61,7 +76,7 @@ export function Media({
                 )}
                 <div className={`relative flex w-full flex-col`}>
                     <p
-                        className={`text-md font-semibold ${!$media.downloaded && "text-neutral-400 transition-colors duration-300 group-hover:text-transparent"}`}
+                        className={`text-md font-semibold ${!downloaded && "text-neutral-400 transition-colors duration-300 group-hover:text-transparent"}`}
                     >
                         {$media.name}
                     </p>
@@ -69,11 +84,11 @@ export function Media({
                         <div className="w-fit">
                             <Artists
                                 artists={artists}
-                                className={`${!$media.downloaded && "text-neutral-400 transition-colors duration-300 group-hover:text-transparent"}`}
+                                className={`${!downloaded && "text-neutral-400 transition-colors duration-300 group-hover:text-transparent"}`}
                             ></Artists>
                         </div>
                     )}
-                    {!$media.downloaded && (
+                    {!downloaded && (
                         <p className="absolute top-1/2 left-1/2 hidden -translate-x-1/2 -translate-y-1/2 rounded px-2 py-1 text-sm font-semibold text-white group-hover:block">
                             {$vocabulary.CLICK_TO_DOWNLOAD}
                         </p>

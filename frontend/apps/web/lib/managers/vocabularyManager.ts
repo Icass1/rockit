@@ -26,24 +26,29 @@ export class VocabularyManager {
             if (data) {
                 this.setVocabulary(data);
             }
-        } catch {
+        } catch (e) {
+            console.error("Error in VocabularyManager.init: " + e);
             // Vocabulary not available, likely no session
         }
     }
 
     async getVocabulary() {
         try {
+            console.log("TEST");
             const data = await apiFetch(
                 "/vocabulary/user",
                 UserVocabularyResponseSchema
             );
+            console.log("TEST", data);
             return data;
-        } catch {
+        } catch (e) {
+            console.error("Error in VocabularyManager.getVocabulary: " + e);
             return null;
         }
     }
 
     setVocabulary(data: UserVocabularyResponse) {
+        console.log("setVocabulary", data);
         this._vocabularyAtom.set(createVocabularyProxy(data.vocabulary));
         this._langAtom.set(data.currentLang);
     }

@@ -1,9 +1,9 @@
 "use client";
 
 import { useStore } from "@nanostores/react";
-import { rockIt } from "@/lib/rockit/rockIt";
 import { getMediaArtists } from "@/types/media";
-import LikeButton from "@/components/LikeButton";
+import { rockIt } from "@/lib/rockit/rockIt";
+import LikeButton from "@/components/LikeButton/LikeButton";
 
 const S = {
     infoRow: {

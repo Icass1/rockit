@@ -40,7 +40,7 @@ export default function FullPlayer() {
         hidePlayer,
         videoPlayer,
         videoOpacity,
-        activeMediaType,
+        hasVideo,
     } = usePlayer();
 
     const insets = useSafeAreaInsets();
@@ -142,7 +142,7 @@ export default function FullPlayer() {
                         </View>
 
                         <View style={styles.coverContainer}>
-                            {activeMediaType === "video" && videoPlayer ? (
+                            {hasVideo && videoPlayer ? (
                                 <Animated.View
                                     style={[
                                         styles.videoContainer,

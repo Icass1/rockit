@@ -7,6 +7,7 @@ import type {
 } from "@rockit/shared";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import type { EContentType } from "@/hooks/useLibraryData";
+import { usePlayer } from "@/lib/PlayerContext";
 import { useVocabulary } from "@/lib/vocabulary";
 import SectionTitle from "@/components/layout/SectionTitle";
 import LibraryGrid from "@/components/Library/LibraryGrid";
@@ -64,6 +65,15 @@ export default function LibraryContent({
     viewMode,
 }: LibraryContentProps) {
     const { vocabulary } = useVocabulary();
+    const { playMedia } = usePlayer();
+
+    const handleItemPress = (item: any, type: string) => {
+        if (type === "song") {
+            playMedia(item, songs as any);
+        } else if (type === "video") {
+            playMedia(item, videos as any);
+        }
+    };
 
     const gridItems = (items: any[], type: string) =>
         items.map((item) => ({
@@ -71,7 +81,14 @@ export default function LibraryContent({
             name: item.name,
             imageUrl: item.imageUrl,
             subtitle: formatSubtitle(type, item),
-            href: getHref(type, item.publicId),
+            href:
+                type === "album" || type === "playlist"
+                    ? getHref(type, item.publicId)
+                    : undefined,
+            onPress:
+                type === "song" || type === "video"
+                    ? () => handleItemPress(item, type)
+                    : undefined,
         }));
 
     const listItems = (items: any[], type: string) =>
@@ -80,7 +97,14 @@ export default function LibraryContent({
             name: item.name,
             imageUrl: item.imageUrl,
             subtitle: formatSubtitle(type, item),
-            href: getHref(type, item.publicId),
+            href:
+                type === "album" || type === "playlist"
+                    ? getHref(type, item.publicId)
+                    : undefined,
+            onPress:
+                type === "song" || type === "video"
+                    ? () => handleItemPress(item, type)
+                    : undefined,
         }));
 
     if (activeType === "all") {
@@ -146,6 +170,7 @@ export default function LibraryContent({
                                             title={item.name}
                                             subtitle={item.subtitle}
                                             href={item.href}
+                                            onPress={item.onPress}
                                         />
                                     </View>
                                 ))}
@@ -159,6 +184,7 @@ export default function LibraryContent({
                                         title={item.name}
                                         subtitle={item.subtitle}
                                         href={item.href}
+                                        onPress={item.onPress}
                                     />
                                 ))}
                             </View>

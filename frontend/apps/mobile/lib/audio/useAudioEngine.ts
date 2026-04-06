@@ -34,6 +34,10 @@ export interface AudioEngineControls {
     seekTo: (seconds: number) => Promise<void>;
     unload: () => Promise<void>;
     updateCrossfadeSettings: (settings: Partial<CrossfadeSettings>) => void;
+    // State getters for sync - exposed as refs
+    isPlayingRef: React.MutableRefObject<boolean>;
+    currentTimeRef: React.MutableRefObject<number>;
+    durationRef: React.MutableRefObject<number>;
 }
 
 export function useAudioEngine(
@@ -43,6 +47,11 @@ export function useAudioEngine(
     const crossfadeSettingsRef = useRef<CrossfadeSettings>({
         ...DEFAULT_CROSSFADE,
     });
+
+    // State for sync with video engine
+    const isPlayingRef = useRef(false);
+    const currentTimeRef = useRef(0);
+    const durationRef = useRef(0);
 
     useEffect(() => {
         callbacksRef.current = callbacks;
@@ -59,6 +68,11 @@ export function useAudioEngine(
 
             const positionSec = status.currentTime ?? 0;
             const durationSec = status.duration ?? 0;
+
+            // Update refs for sync
+            isPlayingRef.current = status.playing ?? false;
+            currentTimeRef.current = positionSec;
+            durationRef.current = durationSec;
 
             callbacksRef.current.onTimeUpdate(positionSec, durationSec);
             callbacksRef.current.onPlayingChange(status.playing ?? false);
@@ -164,5 +178,9 @@ export function useAudioEngine(
         seekTo,
         unload,
         updateCrossfadeSettings,
+        // Expose refs for video sync
+        isPlayingRef,
+        currentTimeRef,
+        durationRef,
     };
 }

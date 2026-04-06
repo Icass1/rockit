@@ -1,15 +1,14 @@
 /**
- * useMediaEngine — Master hook that routes audio vs video to the right engine
- * and handles cross-type transitions (audio↔video) with fade.
+ * useMediaEngine — Master hook that orchestrates audio vs video.
  *
- * Transition matrix:
- *   audio→audio:  dual-deck crossfade via useAudioEngine ✓
- *   audio→video:  audio volume fade out → video opacity+volume fade in
- *   video→audio:  video volume fade out → audio plays, video opacity fades out
- *   video→video:  video volume fade out → new video fade in (opacity)
+ * ARCHITECTURE RULE: expo-audio is ALWAYS the playback master.
+ * expo-video is ONLY a visual layer that syncs to audio state.
+ *
+ * - Audio-only track: uses only audioEngine
+ * - Video track: audioEngine is master, videoEngine syncs to it
  */
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { VideoPlayer } from "expo-video";
 import { useAudioEngine } from "./useAudioEngine";
 import type { CrossfadeSettings } from "./useAudioEngine";
@@ -32,16 +31,12 @@ interface MediaEngineCallbacks {
 }
 
 export interface MediaEngineControls {
-    activeType: MediaType;
-    videoPlayer: VideoPlayer;
+    hasVideo: boolean;
+    videoPlayer: VideoPlayer | null;
     videoOpacity: number;
-    loadAndPlay: (
-        uri: string,
-        type: MediaType,
-        useCrossfade?: boolean
-    ) => Promise<void>;
-    play: () => void;
-    pause: () => void;
+    loadTrack: (uri: string, hasVideo?: boolean) => Promise<void>;
+    play: () => Promise<void>;
+    pause: () => Promise<void>;
     seekTo: (seconds: number) => Promise<void>;
     setVolume: (volume: number) => void;
     unload: () => Promise<void>;
@@ -52,46 +47,35 @@ export function useMediaEngine(
     callbacks: MediaEngineCallbacks
 ): MediaEngineControls {
     const callbacksRef = useRef(callbacks);
-    const [activeType, setActiveType] = useState<MediaType>("audio");
+    const [hasVideo, setHasVideo] = useState(false);
     const [videoOpacity, setVideoOpacity] = useState(0);
-    const activeTypeRef = useRef<MediaType>("audio");
     const isFadingRef = useRef(false);
+    const currentUriRef = useRef<string | null>(null);
 
-    const updateCallbacks = () => {
+    // Always update callbacks ref
+    useEffect(() => {
         callbacksRef.current = callbacks;
-    };
-    callbacksRef.current = callbacks;
+    });
 
+    // AUDIO ENGINE - always the master
     const audioEngine = useAudioEngine({
         onTimeUpdate: (pos, dur) => {
-            if (activeTypeRef.current === "audio") {
-                callbacksRef.current.onTimeUpdate(pos, dur);
-            }
+            callbacksRef.current.onTimeUpdate(pos, dur);
         },
         onPlayingChange: (playing) => {
-            if (activeTypeRef.current === "audio") {
-                callbacksRef.current.onPlayingChange(playing);
-            }
+            callbacksRef.current.onPlayingChange(playing);
         },
         onEnded: () => {
-            if (activeTypeRef.current === "audio") {
-                callbacksRef.current.onEnded();
-            }
+            callbacksRef.current.onEnded();
         },
         onAutoAdvance: () => {
-            if (activeTypeRef.current === "audio") {
-                callbacksRef.current.onAutoAdvance();
-            }
+            callbacksRef.current.onAutoAdvance();
         },
         onLoadStart: () => {
-            if (activeTypeRef.current === "audio") {
-                callbacksRef.current.onLoadStart();
-            }
+            callbacksRef.current.onLoadStart();
         },
         onLoaded: () => {
-            if (activeTypeRef.current === "audio") {
-                callbacksRef.current.onLoaded();
-            }
+            callbacksRef.current.onLoaded();
         },
         getNextUri: () => {
             if (callbacksRef.current.getNextType() === "audio") {
@@ -101,57 +85,28 @@ export function useMediaEngine(
         },
     });
 
-    const videoEngine = useVideoEngine({
-        onTimeUpdate: (pos, dur) => {
-            if (activeTypeRef.current === "video") {
-                callbacksRef.current.onTimeUpdate(pos, dur);
-            }
-        },
-        onPlayingChange: (playing) => {
-            if (activeTypeRef.current === "video") {
-                callbacksRef.current.onPlayingChange(playing);
-            }
-        },
-        onEnded: () => {
-            if (activeTypeRef.current === "video") {
-                callbacksRef.current.onEnded();
-            }
-        },
-        onLoadStart: () => {
-            if (activeTypeRef.current === "video") {
-                callbacksRef.current.onLoadStart();
-            }
-        },
-        onLoaded: () => {
-            if (activeTypeRef.current === "video") {
-                callbacksRef.current.onLoaded();
-            }
-        },
-    });
+    // VIDEO ENGINE - only for visual sync, never playback master
+    const videoEngine = useVideoEngine();
 
-    const fadeVolume = useCallback(
-        (
-            startVol: number,
-            endVol: number,
-            setVol: (v: number) => void
-        ): Promise<void> => {
-            return new Promise((resolve) => {
-                const steps = Math.ceil(CROSS_FADE_DURATION_MS / FADE_TICK_MS);
-                let step = 0;
-                const interval = setInterval(() => {
-                    step++;
-                    const t = Math.min(step / steps, 1);
-                    const vol = startVol + (endVol - startVol) * t;
-                    setVol(vol);
-                    if (step >= steps) {
-                        clearInterval(interval);
-                        resolve();
-                    }
-                }, FADE_TICK_MS);
-            });
-        },
-        []
-    );
+    // SYNC: When hasVideo is true, sync video to audio state
+    useEffect(() => {
+        if (!hasVideo) return;
+
+        // Sync loop - video follows audio
+        const syncInterval = setInterval(() => {
+            if (audioEngine.isPlayingRef) {
+                videoEngine.syncToAudioState(
+                    audioEngine.isPlayingRef.current,
+                    audioEngine.currentTimeRef.current,
+                    1
+                );
+            }
+        }, 100);
+
+        return () => {
+            clearInterval(syncInterval);
+        };
+    }, [hasVideo]);
 
     const fadeOpacity = useCallback(
         (start: number, end: number): Promise<void> => {
@@ -172,128 +127,76 @@ export function useMediaEngine(
         []
     );
 
-    const loadAndPlay = useCallback(
-        async (uri: string, type: MediaType, useCrossfade = false) => {
-            const prev = activeTypeRef.current;
-            const next = type;
+    const loadTrack = useCallback(
+        async (uri: string, shouldHaveVideo: boolean = false) => {
+            const prevHasVideo = hasVideo;
+            const nextHasVideo = shouldHaveVideo;
 
-            if (prev === next) {
-                activeTypeRef.current = type;
-                setActiveType(type);
+            // Clean up previous video if switching from video to audio
+            if (prevHasVideo && !nextHasVideo) {
+                await videoEngine.detachVideo();
+                setVideoOpacity(0);
+            }
 
-                if (type === "audio") {
-                    await audioEngine.loadAndPlay(uri, useCrossfade);
-                } else {
-                    if (useCrossfade && !isFadingRef.current) {
-                        isFadingRef.current = true;
-                        await Promise.all([
-                            fadeOpacity(1, 0),
-                            fadeVolume(1, 0, (v) => videoEngine.setVolume(v)),
-                        ]);
-                        videoEngine.loadAndPlay(uri);
-                        await Promise.all([
-                            fadeOpacity(0, 1),
-                            fadeVolume(0, 1, (v) => videoEngine.setVolume(v)),
-                        ]);
-                        isFadingRef.current = false;
-                    } else {
-                        videoEngine.loadAndPlay(uri);
-                        setVideoOpacity(1);
-                    }
+            // Always load audio first (master)
+            await audioEngine.loadAndPlay(uri, false);
+
+            // Handle video if needed
+            if (nextHasVideo) {
+                if (!prevHasVideo) {
+                    setVideoOpacity(0);
                 }
-                return;
+                await videoEngine.attachVideo(uri);
+                await fadeOpacity(prevHasVideo ? 1 : 0, 1);
             }
 
-            isFadingRef.current = true;
-
-            if (prev === "audio" && next === "video") {
-                callbacksRef.current.onLoadStart();
-
-                videoEngine.setVolume(0);
-                setVideoOpacity(0);
-                videoEngine.loadAndPlay(uri);
-
-                await Promise.all([
-                    fadeVolume(1, 0, async () => {}),
-                    fadeOpacity(0, 1),
-                    fadeVolume(0, 1, (v) => videoEngine.setVolume(v)),
-                ]);
-
-                audioEngine.pause();
-
-                activeTypeRef.current = "video";
-                setActiveType("video");
-                callbacksRef.current.onLoaded();
-            } else if (prev === "video" && next === "audio") {
-                callbacksRef.current.onLoadStart();
-
-                await audioEngine.loadAndPlay(uri, false);
-
-                await Promise.all([
-                    fadeOpacity(1, 0),
-                    fadeVolume(1, 0, (v) => videoEngine.setVolume(v)),
-                ]);
-
-                videoEngine.pause();
-                setVideoOpacity(0);
-                videoEngine.setVolume(1);
-
-                activeTypeRef.current = "audio";
-                setActiveType("audio");
-                callbacksRef.current.onLoaded();
-            }
-
-            isFadingRef.current = false;
+            currentUriRef.current = uri;
+            setHasVideo(nextHasVideo);
         },
-        [audioEngine, videoEngine, fadeOpacity, fadeVolume]
+        [audioEngine, videoEngine, hasVideo, fadeOpacity]
     );
 
-    const play = useCallback(() => {
-        if (activeTypeRef.current === "audio") {
-            audioEngine.play();
-        } else {
-            videoEngine.play();
-        }
-    }, [audioEngine, videoEngine]);
+    const play = useCallback(async () => {
+        await audioEngine.play();
+    }, [audioEngine]);
 
-    const pause = useCallback(() => {
-        if (activeTypeRef.current === "audio") {
-            audioEngine.pause();
-        } else {
-            videoEngine.pause();
-        }
-    }, [audioEngine, videoEngine]);
+    const pause = useCallback(async () => {
+        await audioEngine.pause();
+    }, [audioEngine]);
 
     const seekTo = useCallback(
         async (seconds: number) => {
-            if (activeTypeRef.current === "audio") {
-                await audioEngine.seekTo(seconds);
-            } else {
-                videoEngine.seekTo(seconds);
-            }
+            await audioEngine.seekTo(seconds);
         },
-        [audioEngine, videoEngine]
+        [audioEngine]
     );
 
     const setVolume = useCallback(
         (volume: number) => {
-            if (activeTypeRef.current === "video") {
-                videoEngine.setVolume(volume);
+            // Volume affects video visual, audio volume is handled by audioEngine
+            if (hasVideo) {
+                videoEngine.syncToAudioState(
+                    audioEngine.isPlayingRef?.current ?? false,
+                    audioEngine.currentTimeRef?.current ?? 0,
+                    volume
+                );
             }
         },
-        [audioEngine, videoEngine]
+        [hasVideo, videoEngine, audioEngine]
     );
 
     const unload = useCallback(async () => {
         await audioEngine.unload();
-        videoEngine.unload();
-    }, [audioEngine, videoEngine]);
+        if (hasVideo) {
+            await videoEngine.detachVideo();
+        }
+    }, [audioEngine, videoEngine, hasVideo]);
 
     return {
-        activeType,
+        hasVideo,
         videoPlayer: videoEngine.player,
         videoOpacity,
-        loadAndPlay,
+        loadTrack,
         play,
         pause,
         seekTo,

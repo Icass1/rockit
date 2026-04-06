@@ -6,7 +6,8 @@ interface LibraryItemData {
     name: string;
     imageUrl?: string | null;
     subtitle?: string;
-    href: string;
+    href?: string;
+    onPress?: () => void;
 }
 
 interface LibraryGridProps {
@@ -29,6 +30,7 @@ export default function LibraryGrid({ items }: LibraryGridProps) {
                         title={item.name}
                         subtitle={item.subtitle}
                         href={item.href}
+                        onPress={item.onPress}
                     />
                 </View>
             ))}

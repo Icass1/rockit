@@ -6,7 +6,8 @@ interface LibraryItemData {
     name: string;
     imageUrl?: string | null;
     subtitle?: string;
-    href: string;
+    href?: string;
+    onPress?: () => void;
 }
 
 interface LibraryListViewProps {
@@ -25,6 +26,7 @@ export default function LibraryListView({ items }: LibraryListViewProps) {
                         title={item.name}
                         subtitle={item.subtitle}
                         href={item.href}
+                        onPress={item.onPress}
                     />
                 )}
                 showsVerticalScrollIndicator={false}

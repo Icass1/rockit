@@ -8,7 +8,7 @@ import {
     isDownloadable,
     isSong,
     isVideo,
-    PlayableMediaType as TPlayableMedia,
+    TPlayableMedia,
 } from "@/models/types/media";
 import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";

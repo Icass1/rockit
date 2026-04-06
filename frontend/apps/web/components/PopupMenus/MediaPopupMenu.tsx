@@ -1,7 +1,7 @@
 "use client";
 
 import { ReactNode } from "react";
-import { PlayableMediaType } from "@/models/types/media";
+import { TPlayableMedia } from "@/models/types/media";
 
 // import SongPopupMenu from "@/components/ListSongs/SongPopupMenu";
 
@@ -9,7 +9,7 @@ export default function MediaPopupMenu({
     media,
     children,
 }: {
-    media: PlayableMediaType;
+    media: TPlayableMedia;
     children: ReactNode;
 }) {
     if (media.type == "song") {

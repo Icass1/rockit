@@ -10,7 +10,7 @@ from backend.youtubeMusic.framework.youtubeMusic import youtube_music
 
 logger = getLogger(__name__)
 
-router = APIRouter(prefix="/youtube-music", tags=["youtube-music"])
+router = APIRouter(prefix="/youtube-music", tags=["Youtube Music"])
 
 
 @router.get("/audio/{public_id}")

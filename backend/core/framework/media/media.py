@@ -21,6 +21,7 @@ from backend.core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongs
 from backend.core.responses.baseArtistResponse import BaseArtistResponse
 from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
 from backend.core.responses.baseVideoResponse import BaseVideoResponse
+from core.responses.mediaResponse import MediaResponse
 from backend.core.responses.searchResponse import (
     BaseSearchResultsItem,
     SearchResultsResponse,
@@ -335,3 +336,73 @@ class Media:
             return AResult(code=a_result.code(), message=a_result.message())
 
         return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+
+    @staticmethod
+    async def get_media_async(
+        session: AsyncSession, public_id: str
+    ) -> AResult[MediaResponse]:
+        """Get a media item by public_id without specifying type. Returns song, album, artist, playlist, or video."""
+
+        a_result_media: AResult[CoreMediaRow] = (
+            await MediaAccess.get_media_from_public_id_async(
+                session=session, public_id=public_id, media_type_keys=None
+            )
+        )
+        if a_result_media.is_not_ok():
+            logger.error(
+                f"Error getting media from database for public id {public_id}. {a_result_media.info()}"
+            )
+            return AResult(code=a_result_media.code(), message=a_result_media.message())
+
+        media: CoreMediaRow = a_result_media.result()
+        provider: BaseProvider | None = providers.find_provider(media.provider_id)
+        if provider is None:
+            logger.error(f"No provider found for provider_id {media.provider_id}.")
+            return AResult(
+                code=AResultCode.NOT_FOUND, message="Provider not found for media"
+            )
+
+        media_type: MediaTypeEnum = MediaTypeEnum(media.media_type_key)
+
+        if media_type == MediaTypeEnum.SONG:
+            a_result = await provider.get_song_async(
+                session=session, public_id=public_id
+            )
+            if a_result.is_not_ok():
+                return AResult(code=a_result.code(), message=a_result.message())
+            return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+
+        elif media_type == MediaTypeEnum.ALBUM:
+            a_result = await provider.get_album_async(
+                session=session, public_id=public_id
+            )
+            if a_result.is_not_ok():
+                return AResult(code=a_result.code(), message=a_result.message())
+            return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+
+        elif media_type == MediaTypeEnum.ARTIST:
+            a_result = await provider.get_artist_async(
+                session=session, public_id=public_id
+            )
+            if a_result.is_not_ok():
+                return AResult(code=a_result.code(), message=a_result.message())
+            return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+
+        elif media_type == MediaTypeEnum.PLAYLIST:
+            a_result = await provider.get_playlist_async(
+                session=session, user_id=0, public_id=public_id
+            )
+            if a_result.is_not_ok():
+                return AResult(code=a_result.code(), message=a_result.message())
+            return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+
+        elif media_type == MediaTypeEnum.VIDEO:
+            a_result = await provider.get_video_async(
+                session=session, public_id=public_id
+            )
+            if a_result.is_not_ok():
+                return AResult(code=a_result.code(), message=a_result.message())
+            return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+
+        logger.error(f"Unknown media type: {media_type}")
+        return AResult(code=AResultCode.NOT_FOUND, message="Unknown media type")

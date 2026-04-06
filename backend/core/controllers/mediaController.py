@@ -29,6 +29,7 @@ from backend.core.responses.baseArtistResponse import BaseArtistResponse
 from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
 from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from backend.core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
+from core.responses.mediaResponse import MediaResponse
 
 logger: Logger = getLogger(__name__)
 router = APIRouter(
@@ -118,6 +119,22 @@ async def get_video_async(request: Request, public_id: str) -> BaseVideoResponse
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
     a_result: AResult[BaseVideoResponse] = await Media.get_video_async(
+        session=session, public_id=public_id
+    )
+    if a_result.is_not_ok():
+        raise HTTPException(
+            status_code=a_result.get_http_code(), detail=a_result.message()
+        )
+
+    return a_result.result()
+
+
+@router.get("/{public_id}")
+async def get_media(request: Request, public_id: str) -> MediaResponse:
+    """Get a media item by its public_id without specifying the type."""
+
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+    a_result: AResult[MediaResponse] = await Media.get_media_async(
         session=session, public_id=public_id
     )
     if a_result.is_not_ok():

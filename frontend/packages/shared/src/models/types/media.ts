@@ -7,18 +7,18 @@ import {
     BaseVideoResponse,
 } from "../../dto";
 
-export type PlayableMediaType =
+export type TPlayableMedia =
     | BaseSongWithAlbumResponse
     | BaseVideoResponse
     | BaseStationResponse;
 
-export type ListMediaType = BasePlaylistResponse | BaseAlbumWithSongsResponse;
-export type MediaType = PlayableMediaType | ListMediaType;
+export type TListMedia = BasePlaylistResponse | BaseAlbumWithSongsResponse;
+export type TMedia = TPlayableMedia | TListMedia;
 export type DownloadableMediaType =
     | BaseSongWithAlbumResponse
     | BaseVideoResponse;
 
-export function isPlayable(media: MediaType): media is PlayableMediaType {
+export function isPlayable(media: TMedia): media is TPlayableMedia {
     switch (media.type) {
         case "song":
             return true;
@@ -30,9 +30,7 @@ export function isPlayable(media: MediaType): media is PlayableMediaType {
     return false;
 }
 
-export function isDownloadable(
-    media: MediaType
-): media is DownloadableMediaType {
+export function isDownloadable(media: TMedia): media is DownloadableMediaType {
     switch (media.type) {
         case "song":
             return true;
@@ -42,7 +40,7 @@ export function isDownloadable(
     return false;
 }
 
-export function isList(media: MediaType): media is ListMediaType {
+export function isList(media: TMedia): media is TListMedia {
     switch (media.type) {
         case "playlist":
             return true;
@@ -52,23 +50,21 @@ export function isList(media: MediaType): media is ListMediaType {
     return false;
 }
 export function isSong(
-    media: PlayableMediaType
+    media: TPlayableMedia
 ): media is BaseSongWithAlbumResponse {
     return media.type === "song";
 }
 
-export function isVideo(media: PlayableMediaType): media is BaseVideoResponse {
+export function isVideo(media: TPlayableMedia): media is BaseVideoResponse {
     return media.type === "video";
 }
 
-export function isStation(
-    media: PlayableMediaType
-): media is BaseStationResponse {
+export function isStation(media: TPlayableMedia): media is BaseStationResponse {
     return media.type === "station";
 }
 
 export function getMediaDuration(
-    media: PlayableMediaType | undefined
+    media: TPlayableMedia | undefined
 ): number | undefined {
     if (!media) return undefined;
     if (isSong(media)) {
@@ -81,7 +77,7 @@ export function getMediaDuration(
 }
 
 export function getMediaArtists(
-    media: PlayableMediaType | undefined
+    media: TPlayableMedia | undefined
 ): BaseArtistResponse[] | undefined {
     if (!media) return undefined;
     if (isSong(media) || isVideo(media)) {
@@ -91,7 +87,7 @@ export function getMediaArtists(
 }
 
 export function getMediaAudioSrc(
-    media: PlayableMediaType | undefined
+    media: TPlayableMedia | undefined
 ): string | undefined {
     if (!media) return undefined;
     if (isSong(media)) {

@@ -7,7 +7,7 @@ class DownloadProgressMessage(BaseModel):
     download_id: int
     publicId: str
     title: str
-    artist: str
+    subTitle: str
     status: str
     progress: float
     message: str

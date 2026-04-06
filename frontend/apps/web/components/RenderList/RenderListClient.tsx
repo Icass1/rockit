@@ -1,14 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-    BaseArtistResponse,
-    BaseSongWithAlbumResponse,
-    BaseVideoResponse,
-} from "@/dto";
+import { BaseArtistResponse } from "@/dto";
 import { EEvent } from "@/models/enums/events";
 import { IMediaAddedToPlaylistEvent } from "@/models/interfaces/events/mediaAddedToPlaylist";
+import { TMedia } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { apiFetch } from "@/lib/utils/apiFetch";
 import DropOverlay from "@/components/DropOverlay/DropOverlay";
 import RenderList from "@/components/RenderList/RenderList";
 
@@ -25,7 +23,7 @@ export default function RenderListClient({
     title: string;
     artists: BaseArtistResponse[];
     image: string;
-    media: (BaseSongWithAlbumResponse | BaseVideoResponse)[];
+    media: TMedia[];
     showMediaIndex: boolean;
     showMediaImage: boolean;
 }) {
@@ -39,6 +37,8 @@ export default function RenderListClient({
         if (!playlistPublicId) return;
 
         const handleMediaAdded = (data: IMediaAddedToPlaylistEvent) => {
+            apiFetch(`/media/${data.publicId}`);
+
             console.log("handleMediaAdded", data);
             setMedia((prev) => [...prev]);
         };

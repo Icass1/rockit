@@ -77,10 +77,11 @@ class WebSocketManager:
         message: str,
     ) -> None:
         download_message: DownloadProgressMessage = DownloadProgressMessage(
+            type="download_progress",
             download_id=download_id,
             publicId=public_id,
             title=title,
-            artist=artist,
+            subTitle=artist,
             status=status,
             progress=progress,
             message=message,

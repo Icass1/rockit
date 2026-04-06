@@ -1,8 +1,10 @@
-import { StartDownloadRequest } from "@rockit/shared";
+import {
+    DownloadProgressMessage,
+    EWebSocketMessage,
+    StartDownloadRequest,
+} from "@rockit/shared";
 import { EDownloadInfoStatus } from "@/models/enums/downloadInfoStatus";
-import { EEvent } from "@/models/enums/events";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { createArrayAtom } from "@/lib/store";
 import { apiPostFetch } from "@/lib/utils/apiFetch";
 
 export interface DownloadInfo {
@@ -13,10 +15,14 @@ export interface DownloadInfo {
 }
 
 export class DownloaderManager {
-    private _downloadInfoAtom = createArrayAtom<DownloadInfo>([]);
+    // private _downloadInfoAtom = createArrayAtom<DownloadInfo>([]);
 
     async init() {
-        // rockIt.webSocketManager.onMessage("");
+        console.log("DownloaderManager.init");
+        rockIt.webSocketManager.onMessage(
+            EWebSocketMessage.DownloadProgress,
+            this.updateDownloadProgress.bind(this)
+        );
     }
 
     async downloadMediaAsync(publicIds: string[]) {
@@ -33,33 +39,34 @@ export class DownloaderManager {
         }
     }
 
-    clearCompleted() {
-        const current = this._downloadInfoAtom.get();
-        this._downloadInfoAtom.set(current.filter((d) => d.completed < 100));
+    // clearCompleted() {
+    //     const current = this._downloadInfoAtom.get();
+    //     this._downloadInfoAtom.set(current.filter((d) => d.completed < 100));
+    // }
+
+    updateDownloadProgress(data: DownloadProgressMessage) {
+        console.log(data);
+        // if (data.status === EDownloadInfoStatus.Done) {
+        //     rockIt.eventManager.dispatchEvent(EEvent.MediaDownloaded, {
+        //         publicId,
+        //     });
+        // }
+
+        // const current = this._downloadInfoAtom.get();
+        // const index = current.findIndex((d) => d.publicId === publicId);
+        // if (index !== -1) {
+        //     const updated = [...current];
+        //     updated[index] = { publicId, completed, message, status };
+        //     this._downloadInfoAtom.set(updated);
+        //     if (status === EDownloadInfoStatus.Done) {
+        //         rockIt.eventManager.dispatchEvent(EEvent.MediaDownloaded, {
+        //             publicId,
+        //         });
+        //     }
+        // }
     }
 
-    updateDownloadProgress(
-        publicId: string,
-        completed: number,
-        message: string,
-        status: EDownloadInfoStatus
-    ) {
-        const current = this._downloadInfoAtom.get();
-        const index = current.findIndex((d) => d.publicId === publicId);
-        if (index !== -1) {
-            const updated = [...current];
-            updated[index] = { publicId, completed, message, status };
-            this._downloadInfoAtom.set(updated);
-
-            if (status === EDownloadInfoStatus.Done) {
-                rockIt.eventManager.dispatchEvent(EEvent.MediaDownloaded, {
-                    publicId,
-                });
-            }
-        }
-    }
-
-    get downloadInfoAtom() {
-        return this._downloadInfoAtom.getReadonlyAtom();
-    }
+    // get downloadInfoAtom() {
+    //     return this._downloadInfoAtom.getReadonlyAtom();
+    // }
 }

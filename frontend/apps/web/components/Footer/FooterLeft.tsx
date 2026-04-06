@@ -10,17 +10,13 @@ import {
     PlayIcon,
 } from "lucide-react";
 import { Station } from "@/types/station";
-import { getMediaArtists, PlayableMediaType } from "@/models/types/media";
+import { getMediaArtists, TPlayableMedia } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
 import Artists from "@/components/Artists/Artists";
 import LikeButton from "@/components/LikeButton/LikeButton";
 import MediaPopupMenu from "@/components/PopupMenus/MediaPopupMenu";
 
-function FooterLeftForSong({
-    currentMedia,
-}: {
-    currentMedia: PlayableMediaType;
-}) {
+function FooterLeftForSong({ currentMedia }: { currentMedia: TPlayableMedia }) {
     const $playing = useStore(rockIt.audioManager.playingAtom);
     const $queue = useStore(rockIt.queueManager.queueAtom);
 

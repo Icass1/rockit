@@ -1,11 +1,11 @@
 import { Play } from "lucide-react";
-import { MediaType } from "@/models/types/media";
+import { TMedia } from "@/models/types/media";
 import ContextMenuOption from "@/components/ContextMenu/Option";
 
 export default function GenericContextMenuContent({
     media,
 }: {
-    media: MediaType;
+    media: TMedia;
 }) {
     return (
         <>

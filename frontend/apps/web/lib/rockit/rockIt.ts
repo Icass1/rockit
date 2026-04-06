@@ -65,4 +65,5 @@ if (typeof window !== "undefined") {
     rockIt.queueManager.init();
     rockIt.userManager.init();
     rockIt.listManager.initLibrary();
+    rockIt.downloaderManager.init();
 }

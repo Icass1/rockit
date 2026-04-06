@@ -594,7 +594,11 @@ class YoutubeMusicAccess:
         provider_id: int,
     ) -> AResult[AlbumRow]:
         try:
-            stmt = select(AlbumRow).where(AlbumRow.youtube_id == raw.youtube_id)
+            stmt = (
+                select(AlbumRow)
+                .where(AlbumRow.youtube_id == raw.youtube_id)
+                .options(selectinload(AlbumRow.core_album))
+            )
             result = await session.execute(stmt)
             existing: AlbumRow | None = result.scalar_one_or_none()
             if existing:
@@ -631,6 +635,7 @@ class YoutubeMusicAccess:
             )
             session.add(album_row)
             await session.flush()
+            album_row.core_album = core_album
 
             if raw.artists:
                 await session.refresh(album_row, attribute_names=["artists"])
@@ -649,7 +654,11 @@ class YoutubeMusicAccess:
             )
             await session.rollback()
             session.expire_all()
-            stmt = select(AlbumRow).where(AlbumRow.youtube_id == raw.youtube_id)
+            stmt = (
+                select(AlbumRow)
+                .where(AlbumRow.youtube_id == raw.youtube_id)
+                .options(selectinload(AlbumRow.core_album))
+            )
             result = await session.execute(stmt)
             existing = result.scalar_one_or_none()
             if existing:
@@ -724,6 +733,7 @@ class YoutubeMusicAccess:
             await session.flush()
             track_row.core_song = core_track
             track_row.album = album_row
+            track_row.image = a_img.result()
 
             for artist_name in raw.artists:
                 for yt_artist in artist_map.values():
@@ -740,7 +750,11 @@ class YoutubeMusicAccess:
             )
             await session.rollback()
             session.expire_all()
-            stmt = select(TrackRow).where(TrackRow.youtube_id == raw.youtube_id)
+            stmt = (
+                select(TrackRow)
+                .where(TrackRow.youtube_id == raw.youtube_id)
+                .options(selectinload(TrackRow.album).selectinload(AlbumRow.core_album))
+            )
             result = await session.execute(stmt)
             existing = result.scalar_one_or_none()
             if existing:

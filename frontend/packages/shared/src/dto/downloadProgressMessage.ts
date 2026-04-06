@@ -5,7 +5,7 @@ export const DownloadProgressMessageSchema = z.object({
     download_id: z.number(),
     publicId: z.string(),
     title: z.string(),
-    artist: z.string(),
+    subTitle: z.string(),
     status: z.string(),
     progress: z.number(),
     message: z.string(),

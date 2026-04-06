@@ -10,6 +10,7 @@ export * from "./utils/filterUtils";
 export { type Vocabulary } from "./models/types/vocabulary";
 export { type Station } from "./models/types/station";
 export * from "./models/types/rockIt";
+export * from "./models/types/webSocketMessages";
 export * from "./models/enums/queueType";
 export * from "./models/enums/repeatMode";
 export * from "./audio/queueLogic";

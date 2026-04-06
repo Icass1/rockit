@@ -1,16 +1,10 @@
+import { BACKEND_URL } from "@/environment";
 import {
-    BACKEND_URL,
-    CurrentMediaMessageRequest,
-    CurrentQueueMessageRequest,
-    CurrentTimeMessageRequest,
-    DownloadProgressMessageSchema,
-    MediaClickedMessageRequest,
-    MediaEndedMessageRequest,
-    SeekMessageRequest,
-    SkipClickedMessageRequest,
-    TestWebSocketMessageSchema,
+    EWebSocketMessage,
+    TWebSocketIncomingMessage,
+    type IWebSocketMessagePayloadMap,
+    type WebSocketMessageHandler,
 } from "@rockit/shared";
-import { TWebSocketMessages } from "@/models/types/webSocketMessages";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 export class WebSocketManager {
@@ -19,37 +13,23 @@ export class WebSocketManager {
     private webSocket?: WebSocket;
     private _init = false;
     private _messageHandlers: Map<
-        string,
-        ((message: TWebSocketMessages) => void)[]
+        EWebSocketMessage,
+        Set<WebSocketMessageHandler<EWebSocketMessage>>
     > = new Map();
 
     private _onMessageHandler = (event: MessageEvent) => {
         try {
-            const data = JSON.parse(event.data) as TWebSocketMessages;
+            const data = JSON.parse(event.data) as TWebSocketIncomingMessage;
 
-            let parsed: TWebSocketMessages | undefined = undefined;
+            console.log({ data });
 
-            switch (data.type) {
-                case "download_progress":
-                    parsed = DownloadProgressMessageSchema.parse(data);
-                    break;
-                case "test_web_socket_message":
-                    parsed = TestWebSocketMessageSchema.parse(data);
-                    break;
-                default:
-                    console.warn(
-                        `Received unkown type '${data}' from web socket.`
-                    );
-                    return;
-            }
-            if (!parsed) {
-                console.warn(`Parsed message is undefined ${parsed}`);
-                return;
-            }
-
-            const handlers = this._messageHandlers.get(parsed.type);
+            const type = data.type as EWebSocketMessage;
+            const handlers = this._messageHandlers.get(type);
             if (handlers) {
-                handlers.map((handler) => handler(parsed));
+                console.log({ handlers });
+                handlers.forEach((handler) =>
+                    handler(data as IWebSocketMessagePayloadMap[typeof type])
+                );
             }
         } catch (error) {
             console.warn("Error parsing WebSocket message:", error);
@@ -67,16 +47,25 @@ export class WebSocketManager {
         return WebSocketManager.#instance;
     }
 
-    onMessage(type: string, handler: (message: TWebSocketMessages) => void) {
-        console.log(
-            "WebSocketManager.onMessage",
-            type,
-            handler,
-            this._messageHandlers
-        );
-        const typeHandlers = this._messageHandlers.get(type);
-        if (typeHandlers) typeHandlers.push(handler);
-        else this._messageHandlers.set(type, [handler]);
+    onMessage<K extends EWebSocketMessage>(
+        type: K,
+        handler: WebSocketMessageHandler<K>
+    ) {
+        if (!this._messageHandlers.has(type)) {
+            this._messageHandlers.set(type, new Set());
+        }
+        this._messageHandlers
+            .get(type)!
+            .add(handler as WebSocketMessageHandler<EWebSocketMessage>);
+    }
+
+    offMessage<K extends EWebSocketMessage>(
+        type: K,
+        handler: WebSocketMessageHandler<K>
+    ) {
+        this._messageHandlers
+            .get(type)
+            ?.delete(handler as WebSocketMessageHandler<EWebSocketMessage>);
     }
 
     async init() {
@@ -143,49 +132,59 @@ export class WebSocketManager {
         this.webSocket?.send(JSON.stringify(message));
     }
 
-    sendMediaEnded(data: MediaEndedMessageRequest) {
+    sendMediaEnded(data: { mediaPublicId: string; queueMediaId: number }) {
         this.send({
             type: "media_ended",
             ...data,
         });
     }
 
-    sendCurrentMedia(data: CurrentMediaMessageRequest) {
+    sendCurrentMedia(data: {
+        mediaPublicId: string | null;
+        queueMediaId: number;
+    }) {
         this.send({
             type: "current_media",
             ...data,
         });
     }
 
-    sendCurrentQueue(data: CurrentQueueMessageRequest) {
+    sendCurrentQueue(data: {
+        queue: { publicId: string; queueMediaId: number }[];
+        queueType: string;
+    }) {
         this.send({
             type: "current_queue",
             ...data,
         });
     }
 
-    sendCurrentTime(data: CurrentTimeMessageRequest) {
+    sendCurrentTime(data: { currentTime: number }) {
         this.send({
             type: "current_time",
             ...data,
         });
     }
 
-    sendMediaClicked(data: MediaClickedMessageRequest) {
+    sendMediaClicked(data: { mediaPublicId: string }) {
         this.send({
             type: "media_clicked",
             ...data,
         });
     }
 
-    sendSkipClicked(data: SkipClickedMessageRequest) {
+    sendSkipClicked(data: { mediaPublicId: string; direction: string }) {
         this.send({
             type: "skip_clicked",
             ...data,
         });
     }
 
-    sendSeek(data: SeekMessageRequest) {
+    sendSeek(data: {
+        mediaPublicId: string;
+        timeFrom: number;
+        timeTo: number;
+    }) {
         this.send({
             type: "seek",
             ...data,

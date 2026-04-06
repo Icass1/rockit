@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { MediaType } from "@/models/types/media";
+import { TMedia } from "@/models/types/media";
 import ContextMenuContent from "@/components/ContextMenu/Content";
 import ContextMenu from "@/components/ContextMenu/ContextMenu";
 import ContextMenuOption from "@/components/ContextMenu/Option";
@@ -11,7 +11,7 @@ export default function MediaContextMenu({
     media,
 }: {
     children: ReactNode;
-    media: MediaType;
+    media: TMedia;
 }) {
     return (
         <ContextMenu>

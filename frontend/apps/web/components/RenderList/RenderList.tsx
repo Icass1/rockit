@@ -1,9 +1,6 @@
 import Image from "next/image";
-import {
-    BaseArtistResponse,
-    BaseSongWithAlbumResponse,
-    BaseVideoResponse,
-} from "@/dto";
+import { BaseArtistResponse } from "@/dto";
+import { TMedia } from "@/models/types/media";
 import Artists from "@/components/Artists/Artists";
 import { Media } from "@/components/RenderList/Media";
 
@@ -18,7 +15,7 @@ export default function RenderList({
     title: string;
     artists: BaseArtistResponse[];
     image: string;
-    media: (BaseSongWithAlbumResponse | BaseVideoResponse)[];
+    media: TMedia[];
     showMediaIndex: boolean;
     showMediaImage: boolean;
 }) {

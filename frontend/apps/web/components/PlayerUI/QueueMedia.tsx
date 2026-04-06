@@ -1,12 +1,12 @@
 "use client";
 
 import Image from "next/image";
+import { QueueResponseItem } from "@/dto";
 import { useStore } from "@nanostores/react";
 import { Pause, Play } from "lucide-react";
-import { QueueResponseItem } from "@/dto";
+import { getMediaArtists, getMediaDuration } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
-import { getMediaArtists, getMediaDuration } from "@/types/media";
 
 export function QueueMedia({ media }: { media: QueueResponseItem }) {
     const $currentQueueMediaId = useStore(

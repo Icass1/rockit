@@ -1,4 +1,6 @@
 import { EEvent } from "@/models/enums/events";
+import { IMediaAddedToPlaylistEvent } from "@/models/interfaces/events/mediaAddedToPlaylist";
+import { IMediaDownloadedEvent } from "@/models/interfaces/events/mediaDownloaded";
 import { IPlaylistCreatedEvent } from "@/models/interfaces/events/playlistCreated";
 import { ISongFinishedEvent } from "@/models/interfaces/events/songFinished";
 import { IUserLoginEvent } from "@/models/interfaces/events/userLogin";
@@ -9,4 +11,6 @@ export interface IEventPayloadMap {
     [EEvent.SongFinished]: ISongFinishedEvent;
     [EEvent.VolumeChanged]: IVolumeChangedEvent;
     [EEvent.PlaylistCreated]: IPlaylistCreatedEvent;
+    [EEvent.MediaAddedToPlaylist]: IMediaAddedToPlaylistEvent;
+    [EEvent.MediaDownloaded]: IMediaDownloadedEvent;
 }

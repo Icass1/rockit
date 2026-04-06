@@ -1,5 +1,5 @@
 import { BaseSongWithAlbumResponse, BaseVideoResponse } from "@/dto";
-import { ListType } from "@/types/rockIt";
+import { ListType } from "@/models/types/rockIt";
 import { createArrayAtom } from "@/lib/store";
 
 export class IndexedDBManager {

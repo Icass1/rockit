@@ -3,4 +3,6 @@ export enum EEvent {
     UserLogin = "UserLogin",
     SongFinished = "SongFinished",
     VolumeChanged = "VolumeChanged",
+    MediaAddedToPlaylist = "MediaAddedToPlaylist",
+    MediaDownloaded = "MediaDownloaded",
 }

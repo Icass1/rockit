@@ -7,9 +7,9 @@ export * from "./dto";
 export * from "./utils/dateUtils";
 export * from "./utils/filterUtils";
 
-export { type Vocabulary } from "./types/vocabulary";
-export { type Station } from "./types/station";
-export * from "./types/rockIt";
+export { type Vocabulary } from "./models/types/vocabulary";
+export { type Station } from "./models/types/station";
+export * from "./models/types/rockIt";
 export * from "./models/enums/queueType";
 export * from "./models/enums/repeatMode";
 export * from "./audio/queueLogic";

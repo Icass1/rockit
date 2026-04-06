@@ -186,6 +186,10 @@ export {
     type StatsSummaryResponse,
 } from "./statsSummaryResponse";
 export {
+    TestWebSocketMessageSchema,
+    type TestWebSocketMessage,
+} from "./testWebSocketMessage";
+export {
     UpdateCrossfadeRequestSchema,
     type UpdateCrossfadeRequest,
 } from "./updateCrossfadeRequest";

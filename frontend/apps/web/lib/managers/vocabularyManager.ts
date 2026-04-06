@@ -34,12 +34,10 @@ export class VocabularyManager {
 
     async getVocabulary() {
         try {
-            console.log("TEST");
             const data = await apiFetch(
                 "/vocabulary/user",
                 UserVocabularyResponseSchema
             );
-            console.log("TEST", data);
             return data;
         } catch (e) {
             console.error("Error in VocabularyManager.getVocabulary: " + e);
@@ -48,7 +46,6 @@ export class VocabularyManager {
     }
 
     setVocabulary(data: UserVocabularyResponse) {
-        console.log("setVocabulary", data);
         this._vocabularyAtom.set(createVocabularyProxy(data.vocabulary));
         this._langAtom.set(data.currentLang);
     }

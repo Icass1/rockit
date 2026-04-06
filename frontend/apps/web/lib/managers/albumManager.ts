@@ -1,5 +1,5 @@
 import { BaseSongWithAlbumResponse } from "@/dto";
-import { QueueListType } from "@/types/rockIt";
+import { QueueListType } from "@/models/types/rockIt";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 export class AlbumManager {

@@ -1,6 +1,6 @@
-import { ERepeatMode, resolveNextOnEnd } from "@rockit/shared";
-import { getMediaAudioSrc } from "@/types/media";
+import { resolveNextOnEnd } from "@rockit/shared";
 import { EQueueAction } from "@/models/enums/queueAction";
+import { getMediaAudioSrc } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createAtom } from "@/lib/store";
 

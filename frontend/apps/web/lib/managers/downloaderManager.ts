@@ -1,4 +1,6 @@
 import { StartDownloadRequest } from "@rockit/shared";
+import { EDownloadInfoStatus } from "@/models/enums/downloadInfoStatus";
+import { EEvent } from "@/models/enums/events";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createArrayAtom } from "@/lib/store";
 import { apiPostFetch } from "@/lib/utils/apiFetch";
@@ -7,11 +9,15 @@ export interface DownloadInfo {
     publicId: string;
     message: string;
     completed: number;
-    status: "pending" | "downloading" | "done" | "error";
+    status: EDownloadInfoStatus;
 }
 
 export class DownloaderManager {
     private _downloadInfoAtom = createArrayAtom<DownloadInfo>([]);
+
+    async init() {
+        // rockIt.webSocketManager.onMessage("");
+    }
 
     async downloadMediaAsync(publicIds: string[]) {
         const response = await apiPostFetch<StartDownloadRequest>(
@@ -36,7 +42,7 @@ export class DownloaderManager {
         publicId: string,
         completed: number,
         message: string,
-        status: "pending" | "downloading" | "done" | "error"
+        status: EDownloadInfoStatus
     ) {
         const current = this._downloadInfoAtom.get();
         const index = current.findIndex((d) => d.publicId === publicId);
@@ -44,6 +50,12 @@ export class DownloaderManager {
             const updated = [...current];
             updated[index] = { publicId, completed, message, status };
             this._downloadInfoAtom.set(updated);
+
+            if (status === EDownloadInfoStatus.Done) {
+                rockIt.eventManager.dispatchEvent(EEvent.MediaDownloaded, {
+                    publicId,
+                });
+            }
         }
     }
 

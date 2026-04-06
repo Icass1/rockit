@@ -1,8 +1,9 @@
 from pydantic import BaseModel
+from typing import Literal
 
 
 class DownloadProgressMessage(BaseModel):
-    type: str = "download_progress"
+    type: Literal["download_progress"]
     download_id: int
     publicId: str
     title: str

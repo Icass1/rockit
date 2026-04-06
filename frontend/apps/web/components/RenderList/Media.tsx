@@ -1,4 +1,4 @@
-import { isPlayable, MediaType as TMedia } from "@/types/media";
+import { isPlayable, MediaType as TMedia } from "@/models/types/media";
 import useMedia from "@/hooks/useMedia";
 import { PlayableMedia } from "@/components/RenderList/PlayableMedia";
 

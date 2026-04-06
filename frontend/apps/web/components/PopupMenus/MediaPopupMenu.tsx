@@ -1,7 +1,7 @@
 "use client";
 
 import { ReactNode } from "react";
-import { PlayableMediaType } from "@/types/media";
+import { PlayableMediaType } from "@/models/types/media";
 
 // import SongPopupMenu from "@/components/ListSongs/SongPopupMenu";
 

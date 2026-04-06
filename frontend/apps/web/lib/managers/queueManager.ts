@@ -7,7 +7,7 @@ import {
 } from "@/dto";
 import { shuffleQueue as shuffleQueueLogic } from "@rockit/shared";
 import { PlayableMediaType } from "@/types/media";
-import { ListType, QueueListType } from "@/types/rockIt";
+import { ListType, QueueListType } from "@/models/types/rockIt";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createArrayAtom, createAtom } from "@/lib/store";
 import { baseApiFetch } from "@/lib/utils/apiFetch";

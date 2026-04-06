@@ -11,7 +11,7 @@ import {
     SkipBack,
     SkipForward,
 } from "lucide-react";
-import { getMediaDuration } from "@/types/media";
+import { getMediaDuration } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
 

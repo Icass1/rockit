@@ -5,7 +5,7 @@ import {
     BaseSongWithAlbumResponse,
     BaseStationResponse,
     BaseVideoResponse,
-} from "../dto";
+} from "../../dto";
 
 export type PlayableMediaType =
     | BaseSongWithAlbumResponse

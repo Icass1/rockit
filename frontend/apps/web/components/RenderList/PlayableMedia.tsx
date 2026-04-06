@@ -1,13 +1,15 @@
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { BaseArtistResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
+import { EEvent } from "@/models/enums/events";
 import {
     getMediaDuration,
     isDownloadable,
     isSong,
     isVideo,
     PlayableMediaType as TPlayableMedia,
-} from "@/types/media";
+} from "@/models/types/media";
 import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
@@ -43,16 +45,45 @@ export function PlayableMedia({
     const $media = useMedia(_media);
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
+    const [isDownloaded, setIsDownloaded] = useState(
+        isDownloadable(_media) ? _media.downloaded === true : false
+    );
+
+    useEffect(() => {
+        if (isDownloadable(_media)) {
+            setIsDownloaded(_media.downloaded === true);
+        }
+    }, [_media, isDownloadable]);
+
+    useEffect(() => {
+        const handleMediaDownloaded = (data: { publicId: string }) => {
+            if (isDownloadable(_media) && data.publicId === _media.publicId) {
+                setIsDownloaded(true);
+            }
+        };
+
+        rockIt.eventManager.addEventListener(
+            EEvent.MediaDownloaded,
+            handleMediaDownloaded
+        );
+
+        return () => {
+            rockIt.eventManager.removeEventListener(
+                EEvent.MediaDownloaded,
+                handleMediaDownloaded
+            );
+        };
+    }, [_media.publicId, isDownloadable]);
+
     const artists = getArtistNames($media, substractArtists);
 
     const handleClick = () => {
-        if (isDownloadable($media) && !$media.downloaded) {
+        if (isDownloadable($media) && !isDownloaded) {
             rockIt.downloaderManager.downloadMediaAsync([$media.publicId]);
         }
     };
 
-    // If the media is not downloadable, we consider it as downloaded to allow interaction with it.
-    const downloaded = !isDownloadable($media) || $media.downloaded;
+    const downloaded = !isDownloadable($media) || isDownloaded;
 
     return (
         <MediaContextMenu media={$media}>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useStore } from "@nanostores/react";
-import { getMediaArtists } from "@/types/media";
+import { getMediaArtists } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
 import LikeButton from "@/components/LikeButton/LikeButton";
 

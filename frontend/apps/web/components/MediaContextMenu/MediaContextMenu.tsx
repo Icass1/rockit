@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { MediaType } from "@/types/media";
+import { MediaType } from "@/models/types/media";
 import ContextMenuContent from "@/components/ContextMenu/Content";
 import ContextMenu from "@/components/ContextMenu/ContextMenu";
 import ContextMenuOption from "@/components/ContextMenu/Option";

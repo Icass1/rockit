@@ -1,14 +1,14 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
     BaseArtistResponse,
     BaseSongWithAlbumResponse,
-    BaseSongWithAlbumResponseSchema,
     BaseVideoResponse,
-    BaseVideoResponseSchema,
 } from "@/dto";
+import { EEvent } from "@/models/enums/events";
+import { IMediaAddedToPlaylistEvent } from "@/models/interfaces/events/mediaAddedToPlaylist";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { apiFetch } from "@/lib/utils/apiFetch";
 import DropOverlay from "@/components/DropOverlay/DropOverlay";
 import RenderList from "@/components/RenderList/RenderList";
 
@@ -17,7 +17,7 @@ export default function RenderListClient({
     title,
     artists,
     image,
-    media,
+    media: initialMedia,
     showMediaIndex,
     showMediaImage,
 }: {
@@ -29,24 +29,35 @@ export default function RenderListClient({
     showMediaIndex: boolean;
     showMediaImage: boolean;
 }) {
-    const handleLinkDrop = (url: string) => {
-        const query = playlistPublicId
-            ? `?url=${url}&playlist_public_id=${playlistPublicId}`
-            : `?url=${url}`;
+    const [media, setMedia] = useState(initialMedia);
 
-        apiFetch(
-            `/media/url/add${query}`,
-            BaseSongWithAlbumResponseSchema.or(BaseVideoResponseSchema)
-        )
-            .then(() => {
-                rockIt.notificationManager.notifyInfo(
-                    "Media added successfully!"
-                );
-                // window.location.reload();
-            })
-            .catch(() => {
-                rockIt.notificationManager.notifyError("Failed to add media.");
-            });
+    useEffect(() => {
+        setMedia(initialMedia);
+    }, [initialMedia]);
+
+    useEffect(() => {
+        if (!playlistPublicId) return;
+
+        const handleMediaAdded = (data: IMediaAddedToPlaylistEvent) => {
+            console.log("handleMediaAdded", data);
+            setMedia((prev) => [...prev]);
+        };
+
+        rockIt.eventManager.addEventListener(
+            EEvent.MediaAddedToPlaylist,
+            handleMediaAdded
+        );
+
+        return () => {
+            rockIt.eventManager.removeEventListener(
+                EEvent.MediaAddedToPlaylist,
+                handleMediaAdded
+            );
+        };
+    }, [playlistPublicId]);
+
+    const handleLinkDrop = (url: string) => {
+        rockIt.playlistManager.addMediaToPlaylistAsync(url, playlistPublicId);
     };
 
     return (

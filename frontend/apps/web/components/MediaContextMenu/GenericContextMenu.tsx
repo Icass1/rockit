@@ -1,5 +1,5 @@
 import { Play } from "lucide-react";
-import { MediaType } from "@/types/media";
+import { MediaType } from "@/models/types/media";
 import ContextMenuOption from "@/components/ContextMenu/Option";
 
 export default function GenericContextMenuContent({

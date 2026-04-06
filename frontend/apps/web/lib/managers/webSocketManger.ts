@@ -8,39 +8,48 @@ import {
     MediaEndedMessageRequest,
     SeekMessageRequest,
     SkipClickedMessageRequest,
-    type DownloadProgressMessage,
+    TestWebSocketMessageSchema,
 } from "@rockit/shared";
+import { TWebSocketMessages } from "@/models/types/webSocketMessages";
 import { rockIt } from "@/lib/rockit/rockIt";
-
-export type WebSocketMessageType =
-    | "download_progress"
-    | "media_ended"
-    | "current_media"
-    | "current_queue"
-    | "current_time"
-    | "media_clicked"
-    | "skip_clicked"
-    | "seek";
-
-export type WebSocketMessage = DownloadProgressMessage;
 
 export class WebSocketManager {
     static #instance: WebSocketManager;
 
     private webSocket?: WebSocket;
     private _init = false;
-    private _messageHandlers: Map<string, (message: WebSocketMessage) => void> =
-        new Map();
+    private _messageHandlers: Map<
+        string,
+        ((message: TWebSocketMessages) => void)[]
+    > = new Map();
 
     private _onMessageHandler = (event: MessageEvent) => {
         try {
-            const data = JSON.parse(event.data);
-            console.log(data);
-            const parsed = DownloadProgressMessageSchema.parse(data);
-            const message: WebSocketMessage = parsed;
-            const handler = this._messageHandlers.get(message.type);
-            if (handler) {
-                handler(message);
+            const data = JSON.parse(event.data) as TWebSocketMessages;
+
+            let parsed: TWebSocketMessages | undefined = undefined;
+
+            switch (data.type) {
+                case "download_progress":
+                    parsed = DownloadProgressMessageSchema.parse(data);
+                    break;
+                case "test_web_socket_message":
+                    parsed = TestWebSocketMessageSchema.parse(data);
+                    break;
+                default:
+                    console.warn(
+                        `Received unkown type '${data}' from web socket.`
+                    );
+                    return;
+            }
+            if (!parsed) {
+                console.warn(`Parsed message is undefined ${parsed}`);
+                return;
+            }
+
+            const handlers = this._messageHandlers.get(parsed.type);
+            if (handlers) {
+                handlers.map((handler) => handler(parsed));
             }
         } catch (error) {
             console.warn("Error parsing WebSocket message:", error);
@@ -58,8 +67,16 @@ export class WebSocketManager {
         return WebSocketManager.#instance;
     }
 
-    onMessage(type: string, handler: (message: WebSocketMessage) => void) {
-        this._messageHandlers.set(type, handler);
+    onMessage(type: string, handler: (message: TWebSocketMessages) => void) {
+        console.log(
+            "WebSocketManager.onMessage",
+            type,
+            handler,
+            this._messageHandlers
+        );
+        const typeHandlers = this._messageHandlers.get(type);
+        if (typeHandlers) typeHandlers.push(handler);
+        else this._messageHandlers.set(type, [handler]);
     }
 
     async init() {

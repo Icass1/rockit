@@ -1,39 +1,16 @@
 "use client";
 
 import { useMemo } from "react";
-import { LibraryListsResponse, LibraryListsResponseSchema } from "@/dto";
+import { LibraryListsResponseSchema } from "@/dto";
+import { EFilterMode } from "@/models/enums/filterMode";
+import {
+    IUseLibraryDataProps,
+    IUseLibraryDataReturn,
+    TFilteredLibrary,
+} from "@/models/interfaces/useLibraryData";
 import useFetch from "@/hooks/useFetch";
 
-export type ContentType =
-    | "all"
-    | "albums"
-    | "playlists"
-    | "songs"
-    | "videos"
-    | "stations"
-    | "shared";
-export type FilterMode = "default" | "asc" | "desc";
-
-interface UseLibraryDataProps {
-    filterMode: FilterMode;
-    searchQuery: string;
-}
-
-type FilteredLibrary = {
-    albums: LibraryListsResponse["albums"];
-    playlists: LibraryListsResponse["playlists"];
-    songs: LibraryListsResponse["songs"];
-    videos: LibraryListsResponse["videos"];
-    stations: LibraryListsResponse["stations"];
-    shared: LibraryListsResponse["shared"];
-};
-
-interface UseLibraryDataReturn extends FilteredLibrary {
-    loading: boolean;
-    filtered: FilteredLibrary;
-}
-
-const EMPTY: FilteredLibrary = {
+const EMPTY: TFilteredLibrary = {
     albums: [],
     playlists: [],
     songs: [],
@@ -62,13 +39,13 @@ function filterBySearch<
 
 function sortItems<T extends { name?: string }>(
     items: T[],
-    mode: FilterMode
+    mode: EFilterMode
 ): T[] {
-    if (mode === "default") return items;
+    if (mode === EFilterMode.DEFAULT) return items;
     return [...items].sort((a, b) => {
         const nameA = a.name?.toLowerCase() ?? "";
         const nameB = b.name?.toLowerCase() ?? "";
-        return mode === "asc"
+        return mode === EFilterMode.ASC
             ? nameA.localeCompare(nameB)
             : nameB.localeCompare(nameA);
     });
@@ -77,15 +54,13 @@ function sortItems<T extends { name?: string }>(
 export function useLibraryData({
     filterMode,
     searchQuery,
-}: UseLibraryDataProps): UseLibraryDataReturn {
-    const [libraryData] = useFetch(
+}: IUseLibraryDataProps): IUseLibraryDataReturn {
+    const { data: libraryData, loading } = useFetch(
         "/user/library/lists",
         LibraryListsResponseSchema
     );
 
-    const loading = libraryData === undefined;
-
-    const filtered = useMemo((): FilteredLibrary => {
+    const filtered = useMemo((): TFilteredLibrary => {
         if (!libraryData) return EMPTY;
 
         const apply = <
@@ -108,7 +83,7 @@ export function useLibraryData({
         };
     }, [libraryData, searchQuery, filterMode]);
 
-    const result: UseLibraryDataReturn = {
+    const result: IUseLibraryDataReturn = {
         ...filtered,
         loading,
         filtered,

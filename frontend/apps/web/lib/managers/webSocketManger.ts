@@ -10,6 +10,7 @@ import {
     SkipClickedMessageRequest,
     type DownloadProgressMessage,
 } from "@rockit/shared";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export type WebSocketMessageType =
     | "download_progress"
@@ -64,22 +65,7 @@ export class WebSocketManager {
     async init() {
         if (this._init) return;
 
-        this.webSocket = new WebSocket(`${BACKEND_URL}/ws`);
-
-        this.webSocket.onopen = () => {
-            this._init = true;
-        };
-
-        this.webSocket.onmessage = this._onMessageHandler;
-
-        this.webSocket.onclose = () => {
-            this._init = false;
-            this.attemptReconnect();
-        };
-
-        this.webSocket.onerror = () => {
-            console.warn("WebSocket error");
-        };
+        this.attemptReconnect();
     }
 
     private async attemptReconnect() {
@@ -87,8 +73,14 @@ export class WebSocketManager {
         let retries = 0;
 
         while (retries < maxRetries) {
-            await new Promise((resolve) => setTimeout(resolve, 2000 * retries));
+            await new Promise((resolve) =>
+                setTimeout(resolve, Math.max(2000 * retries, 2000))
+            );
             if (this.webSocket?.readyState === WebSocket.OPEN) break;
+
+            if (!rockIt.userManager.user) {
+                continue;
+            }
 
             try {
                 this.webSocket = new WebSocket(`${BACKEND_URL}/ws`);

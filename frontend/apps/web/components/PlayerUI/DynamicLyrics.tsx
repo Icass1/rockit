@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { ELyricsStatus } from "@/models/enums/lyricsStatus";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { useLyrics } from "@/components/PlayerUI/hooks/useLyrics";
 
@@ -59,13 +60,13 @@ export function DynamicLyrics() {
 
     // Early returns for non-renderable states
     if (
-        lyricsState.status === "idle" ||
-        lyricsState.status === "loading" ||
-        lyricsState.status === "empty"
+        lyricsState.status === ELyricsStatus.IDLE ||
+        lyricsState.status === ELyricsStatus.LOADING ||
+        lyricsState.status === ELyricsStatus.EMPTY
     ) {
         return (
             <div className="relative flex h-full w-full items-center justify-center px-4">
-                {lyricsState.status === "loading"
+                {lyricsState.status === ELyricsStatus.LOADING
                     ? "Loading lyrics…"
                     : "No lyrics found"}
             </div>
@@ -74,7 +75,9 @@ export function DynamicLyrics() {
 
     const { lines } = lyricsState;
     const timestamps =
-        lyricsState.status === "dynamic" ? lyricsState.timestamps : [];
+        lyricsState.status === ELyricsStatus.DYNAMIC
+            ? lyricsState.timestamps
+            : [];
     const hasDynamicTimestamps = timestamps.length > 0;
 
     const commonStyles =

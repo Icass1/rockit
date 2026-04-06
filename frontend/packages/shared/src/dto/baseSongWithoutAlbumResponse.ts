@@ -5,7 +5,6 @@ export const BaseSongWithoutAlbumResponseSchema = z.object({
     type: z.union([z.literal("song")]).default("song"),
     provider: z.string(),
     publicId: z.string(),
-    url: z.string(),
     providerUrl: z.string(),
     name: z.string(),
     artists: z.array(z.lazy(() => BaseArtistResponseSchema)),

@@ -9,12 +9,13 @@ import {
     BaseVideoResponse,
 } from "@/dto";
 import { useStore } from "@nanostores/react";
+import { EContentKind } from "@/models/enums/contentKind";
+import { EContentType } from "@/models/enums/contentType";
+import { ILibraryListsProps } from "@/models/interfaces/library";
+import { ILibraryMasonryItem } from "@/models/types/masonryItem";
+import { TViewMode } from "@/models/types/viewMode";
 import { rockIt } from "@/lib/rockit/rockIt";
-import {
-    ContentType,
-    FilterMode,
-    useLibraryData,
-} from "@/components/Library/hooks/useLibraryData";
+import { useLibraryData } from "@/components/Library/hooks/useLibraryData";
 import {
     AlbumCard,
     PlaylistCard,
@@ -22,7 +23,6 @@ import {
     StationCard,
     VideoCard,
 } from "@/components/Library/LibraryCards";
-import { ViewMode } from "@/components/Library/LibraryFilters";
 import {
     AlbumListView,
     AlbumRow,
@@ -39,12 +39,9 @@ import LoadingComponent from "@/components/Loading";
 /* PROPS                                                   */
 /* ------------------------------------------------------- */
 
-interface LibraryListsProps {
-    filterMode: FilterMode;
-    searchQuery: string;
-    activeType: ContentType;
-    viewMode: ViewMode;
-}
+type LibraryListsProps = ILibraryListsProps & {
+    viewMode: TViewMode;
+};
 
 /* ------------------------------------------------------- */
 /* LAYOUT CONSTANTS                                        */
@@ -106,12 +103,6 @@ function EmptyState({ message }: { message: string }) {
  * A discriminated union so we can render all content types in one flat list
  * while keeping TypeScript happy without casting.
  */
-type MasonryItem =
-    | { kind: "album"; data: BaseAlbumWithoutSongsResponse }
-    | { kind: "playlist"; data: BasePlaylistResponse }
-    | { kind: "video"; data: BaseVideoResponse }
-    | { kind: "song"; data: BaseSongWithoutAlbumResponse }
-    | { kind: "station"; data: BaseStationResponse };
 
 function MasonryAllGrid({
     albums,
@@ -131,16 +122,16 @@ function MasonryAllGrid({
      * all albums first, then all playlists, etc.
      * Strategy: zip by index across all arrays, cycling until exhausted.
      */
-    const items = useMemo<MasonryItem[]>(() => {
-        const buckets: MasonryItem[][] = [
-            albums.map((d) => ({ kind: "album" as const, data: d })),
-            playlists.map((d) => ({ kind: "playlist" as const, data: d })),
-            videos.map((d) => ({ kind: "video" as const, data: d })),
-            songs.map((d) => ({ kind: "song" as const, data: d })),
-            stations.map((d) => ({ kind: "station" as const, data: d })),
+    const items = useMemo<ILibraryMasonryItem[]>(() => {
+        const buckets: ILibraryMasonryItem[][] = [
+            albums.map((d) => ({ kind: EContentKind.ALBUM, data: d })),
+            playlists.map((d) => ({ kind: EContentKind.PLAYLIST, data: d })),
+            videos.map((d) => ({ kind: EContentKind.VIDEO, data: d })),
+            songs.map((d) => ({ kind: EContentKind.SONG, data: d })),
+            stations.map((d) => ({ kind: EContentKind.STATION, data: d })),
         ];
 
-        const result: MasonryItem[] = [];
+        const result: ILibraryMasonryItem[] = [];
         const maxLen = Math.max(...buckets.map((b) => b.length));
 
         for (let i = 0; i < maxLen; i++) {
@@ -164,7 +155,7 @@ function MasonryAllGrid({
                 const wrapClass = "break-inside-avoid mb-4";
 
                 switch (item.kind) {
-                    case "album":
+                    case EContentKind.ALBUM:
                         return (
                             <div
                                 key={`album-${item.data.publicId}`}
@@ -173,7 +164,7 @@ function MasonryAllGrid({
                                 <AlbumCard album={item.data} />
                             </div>
                         );
-                    case "playlist":
+                    case EContentKind.PLAYLIST:
                         return (
                             <div
                                 key={`playlist-${item.data.publicId}`}
@@ -182,7 +173,7 @@ function MasonryAllGrid({
                                 <PlaylistCard playlist={item.data} />
                             </div>
                         );
-                    case "video":
+                    case EContentKind.VIDEO:
                         return (
                             <div
                                 key={`video-${item.data.publicId}`}
@@ -191,7 +182,7 @@ function MasonryAllGrid({
                                 <VideoCard video={item.data} />
                             </div>
                         );
-                    case "song":
+                    case EContentKind.SONG:
                         return (
                             <div
                                 key={`song-${item.data.publicId}`}
@@ -200,7 +191,7 @@ function MasonryAllGrid({
                                 <SongCard song={item.data} />
                             </div>
                         );
-                    case "station":
+                    case EContentKind.STATION:
                         return (
                             <div
                                 key={`station-${item.data.publicId}`}
@@ -305,7 +296,7 @@ export function LibraryLists({
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const { filtered, loading } = useLibraryData({ filterMode, searchQuery });
 
-    const showAll = activeType === "all";
+    const showAll = activeType === EContentType.ALL;
 
     if (loading) return <LoadingComponent />;
 
@@ -352,7 +343,7 @@ export function LibraryLists({
             )}
 
             {/* ── ALBUMS tab ────────────────────────────────────────────── */}
-            {activeType === "albums" &&
+            {activeType === EContentType.ALBUMS &&
                 (filtered.albums.length === 0 ? (
                     <EmptyState message={$vocabulary.NO_ALBUMS} />
                 ) : viewMode === "list" ? (
@@ -366,7 +357,7 @@ export function LibraryLists({
                 ))}
 
             {/* ── PLAYLISTS tab ─────────────────────────────────────────── */}
-            {activeType === "playlists" &&
+            {activeType === EContentType.PLAYLISTS &&
                 (filtered.playlists.length === 0 ? (
                     <EmptyState message={$vocabulary.NO_PLAYLISTS} />
                 ) : viewMode === "list" ? (
@@ -385,7 +376,7 @@ export function LibraryLists({
                 ))}
 
             {/* ── SONGS (always rows — grid adds nothing for songs) ─────── */}
-            {activeType === "songs" &&
+            {activeType === EContentType.SONGS &&
                 (filtered.songs.length === 0 ? (
                     <EmptyState message={$vocabulary.NO_SONGS} />
                 ) : (
@@ -397,7 +388,7 @@ export function LibraryLists({
                 ))}
 
             {/* ── VIDEOS tab ────────────────────────────────────────────── */}
-            {activeType === "videos" &&
+            {activeType === EContentType.VIDEOS &&
                 (filtered.videos.length === 0 ? (
                     <EmptyState message={$vocabulary.NO_VIDEOS} />
                 ) : viewMode === "list" ? (
@@ -415,7 +406,7 @@ export function LibraryLists({
                 ))}
 
             {/* ── STATIONS (always rows) ────────────────────────────────── */}
-            {activeType === "stations" &&
+            {activeType === EContentType.STATIONS &&
                 (filtered.stations.length === 0 ? (
                     <EmptyState message={$vocabulary.NO_STATIONS} />
                 ) : (

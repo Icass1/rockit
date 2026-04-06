@@ -1,22 +1,11 @@
 import { BACKEND_URL } from "@/environment";
-
-interface ApiFetchOptions {
-    method?: string;
-    headers?: HeadersInit;
-    body?: BodyInit | null;
-    auth?: boolean;
-    signal?: AbortSignal;
-}
+import { IApiFetchOptions, TZodSchema } from "@/models/types/api";
 
 // Zod v4 compatible type that accepts any Zod schema
-type ZodSchema<T> = {
-    parse: (data: unknown) => T;
-};
-
 export async function apiFetch<T>(
     path: string,
-    schema: ZodSchema<T>,
-    options: ApiFetchOptions = {}
+    schema: TZodSchema<T>,
+    options: IApiFetchOptions = {}
 ): Promise<T> {
     const res = await baseApiFetch(path, options);
 
@@ -27,7 +16,7 @@ export async function apiFetch<T>(
 
 export async function baseApiFetch(
     path: string,
-    options: ApiFetchOptions = {}
+    options: IApiFetchOptions = {}
 ) {
     const { method = "GET", headers, body, signal } = options;
 

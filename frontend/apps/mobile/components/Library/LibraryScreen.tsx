@@ -3,7 +3,7 @@ import { COLORS } from "@/constants/theme";
 import { Feather } from "@expo/vector-icons";
 import type { FilterMode } from "@rockit/shared";
 import { Pressable, StyleSheet, View } from "react-native";
-import { useLibraryData, type ContentType } from "@/hooks/useLibraryData";
+import { useLibraryData, type EContentType } from "@/hooks/useLibraryData";
 import { useVocabulary } from "@/lib/vocabulary";
 import LibraryContent from "@/components/Library/LibraryContent";
 import LibraryFilters from "@/components/Library/LibraryFilters";
@@ -26,7 +26,7 @@ export default function LibraryScreen({
 }: LibraryScreenProps) {
     const { vocabulary } = useVocabulary();
     const [searchQuery, setSearchQuery] = useState("");
-    const [activeType, setActiveType] = useState<ContentType>("all");
+    const [activeType, setActiveType] = useState<EContentType>("all");
     const [sortMode] = useState<FilterMode>("default");
     const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 

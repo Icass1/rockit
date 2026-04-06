@@ -1,33 +1,47 @@
-import { useEffect, useState } from "react";
-import { z } from "zod";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { IUseFetch } from "@/models/interfaces/useFetch";
+import { TZodSchema } from "@/models/types/api";
 import { apiFetch } from "@/lib/utils/apiFetch";
-
-type ZodSchema<T> = {
-    parse: (data: unknown) => T;
-};
 
 async function update<T>(
     path: string,
-    schema: ZodSchema<T>,
-    setData: React.Dispatch<React.SetStateAction<T | undefined>>
+    schema: TZodSchema<T>,
+    setData: Dispatch<SetStateAction<T | undefined>>,
+    setLoading: Dispatch<SetStateAction<boolean>>,
+    setError: Dispatch<SetStateAction<boolean | undefined>>
 ) {
+    setLoading(true);
     try {
-        const res = await apiFetch<T>(path, schema as z.ZodSchema<T>);
+        console.log({ path });
+        const res = await apiFetch<T>(path, schema);
+        console.log({ res });
         setData(res);
-    } catch {
+        setError(false);
+    } catch (e) {
+        console.error(`Error in useFetch.update. ${e}`);
         setData(undefined);
+        setError(true);
+    } finally {
+        setLoading(false);
     }
 }
 
 export default function useFetch<T>(
     path: string,
-    schema: ZodSchema<T>
-): [T | undefined, () => void] {
+    schema: TZodSchema<T>
+): IUseFetch<T> {
     const [data, setData] = useState<T | undefined>(undefined);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<boolean | undefined>(undefined);
 
     useEffect(() => {
-        update(path, schema as z.ZodSchema<T>, setData);
+        update(path, schema, setData, setLoading, setError);
     }, [path, schema]);
 
-    return [data, () => update(path, schema as z.ZodSchema<T>, setData)];
+    return {
+        data: data,
+        update: () => update(path, schema, setData, setLoading, setError),
+        loading,
+        error,
+    };
 }

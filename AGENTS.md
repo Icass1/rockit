@@ -574,7 +574,7 @@ playingAtom.get();
 const queueAtom = createArrayAtom<Song>([]);
 queueAtom.push(song);
 
-const isPlaying = useStore(rockIt.audioManager.playingAtom);
+const isPlaying = useStore(rockIt.mediaPlayerManager.playingAtom);
 ```
 
 ### 5.5 RockIt Singleton
@@ -584,8 +584,8 @@ const isPlaying = useStore(rockIt.audioManager.playingAtom);
 ```tsx
 import { rockIt } from "@/lib/rockit/rockIt";
 
-rockIt.audioManager.play();
-rockIt.audioManager.pause();
+rockIt.mediaPlayerManager.play();
+rockIt.mediaPlayerManager.pause();
 rockIt.queueManager.skipForward();
 rockIt.queueManager.skipBack();
 rockIt.queueManager.addSongNext(song);
@@ -710,7 +710,7 @@ Events from backend:
 - `download_progress` → `downloaderManager.downloadInfoAtom`
 - `current_queue` → `queueManager.queueAtom`
 - `current_media` → `queueManager.currentSongAtom`
-- `current_time` → `audioManager.currentTimeAtom`
+- `current_time` → `mediaPlayerManager.currentTimeAtom`
 
 ---
 
@@ -956,7 +956,7 @@ if (typeof window !== "undefined") { ... }
 | `frontend/apps/web/components/Layout/AppClientLayout.tsx` | App shell (nav, footer, player)         |
 | `frontend/lib/store.ts`                                   | createAtom / createArrayAtom            |
 | `frontend/lib/rockit/rockIt.ts`                           | Global singleton                        |
-| `frontend/lib/managers/audioManager.ts`                   | Audio playback                          |
+| `frontend/lib/managers/mediaPlayerManager.ts`             | Audio playback                          |
 | `frontend/lib/managers/queueManager.ts`                   | Queue                                   |
 | `frontend/lib/managers/webSocketManger.ts`                | WebSocket                               |
 | `frontend/lib/utils/apiFetch.ts`                          | Zod-validated fetch                     |

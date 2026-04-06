@@ -1,8 +1,6 @@
-import { useEffect, useState } from "react";
 import Image from "next/image";
 import { BaseArtistResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
-import { EEvent } from "@/models/enums/events";
 import {
     getMediaDuration,
     isDownloadable,
@@ -11,7 +9,6 @@ import {
     TMedia,
     TPlayableMedia,
 } from "@/models/types/media";
-import { QueueListType } from "@/models/types/rockIt";
 import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
@@ -63,7 +60,7 @@ export function PlayableMedia({
             );
             rockIt.queueManager.setMedia(playableMedia, "album", listPublicId);
             rockIt.queueManager.moveToMedia($media.publicId);
-            rockIt.audioManager.play();
+            rockIt.mediaPlayerManager.play();
         }
     };
 

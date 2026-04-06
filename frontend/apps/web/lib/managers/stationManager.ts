@@ -9,7 +9,7 @@ export class StationManager {
         this._currentStationAtom.set(station);
 
         const streamUrl = station.url_resolved || station.url;
-        rockIt.audioManager.playStream(streamUrl);
+        rockIt.mediaPlayerManager.playStream(streamUrl);
     }
 
     clearStation(): void {

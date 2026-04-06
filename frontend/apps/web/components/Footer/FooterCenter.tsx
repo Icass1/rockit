@@ -21,9 +21,9 @@ const ICON_BTN =
 const ACTIVE = "text-[#ee1086]";
 
 export default function FooterCenter() {
-    const $playing = useStore(rockIt.audioManager.playingAtom);
-    const $currentTime = useStore(rockIt.audioManager.currentTimeAtom);
-    const $loading = useStore(rockIt.audioManager.loadingAtom);
+    const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
+    const $currentTime = useStore(rockIt.mediaPlayerManager.currentTimeAtom);
+    const $loading = useStore(rockIt.mediaPlayerManager.loadingAtom);
     const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
     const $queueType = useStore(rockIt.userManager.queueTypeAtom);
     const $repeatMode = useStore(rockIt.userManager.repeatModeAtom);
@@ -75,8 +75,8 @@ export default function FooterCenter() {
                         aria-label={$playing ? "Pause" : "Play"}
                         onClick={() =>
                             $playing
-                                ? rockIt.audioManager.pause()
-                                : rockIt.audioManager.play()
+                                ? rockIt.mediaPlayerManager.pause()
+                                : rockIt.mediaPlayerManager.play()
                         }
                     >
                         {$playing ? (
@@ -124,7 +124,7 @@ export default function FooterCenter() {
                         max={getMediaDuration($currentMedia)}
                         step={0.001}
                         onChange={(e) =>
-                            rockIt.audioManager.setCurrentTime(
+                            rockIt.mediaPlayerManager.setCurrentTime(
                                 Number(e.target.value)
                             )
                         }
@@ -137,7 +137,7 @@ export default function FooterCenter() {
                     min={0}
                     max={getMediaDuration($currentMedia)}
                     onChange={(e) =>
-                        rockIt.audioManager.setCurrentTime(
+                        rockIt.mediaPlayerManager.setCurrentTime(
                             Number(e.target.value)
                         )
                     }

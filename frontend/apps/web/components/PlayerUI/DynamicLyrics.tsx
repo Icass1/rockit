@@ -88,7 +88,9 @@ export function DynamicLyrics() {
 
     const seekTo = (lineIndex: number) => {
         if (!hasDynamicTimestamps) return;
-        rockIt.audioManager.setCurrentTime(timestamps[lineIndex].time + 0.01);
+        rockIt.mediaPlayerManager.setCurrentTime(
+            timestamps[lineIndex].time + 0.01
+        );
     };
 
     return (

@@ -87,7 +87,7 @@ export default function LoginModal() {
                         height={307}
                         src="/logo-banner.png"
                         className="w-1/2"
-                        alt="Rock It!"
+                        alt="RockIt!"
                         priority
                     />
                 </div>

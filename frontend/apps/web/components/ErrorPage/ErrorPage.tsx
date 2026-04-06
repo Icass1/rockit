@@ -21,7 +21,7 @@ const ERROR_CONTENT: Record<
         title: "404",
         subtitle: "🎵 This track doesn't exist",
         description:
-            "We couldn't find what you were looking for, but don't worry — Rock It! still plays on.",
+            "We couldn't find what you were looking for, but don't worry — RockIt! still plays on.",
     },
     500: {
         title: "500",

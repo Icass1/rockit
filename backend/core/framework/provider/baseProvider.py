@@ -91,7 +91,7 @@ class BaseProvider:
         """TODO"""
         return AResult(
             code=AResultCode.NOT_IMPLEMENTED,
-            message=f"Provider '{self._name} doesn't implement get_song_async method.'",
+            message=f"Provider '{self._name} doesn't implement get_song_async method. Trying to get song with public_id: {public_id}'",
         )
 
     async def get_album_async(

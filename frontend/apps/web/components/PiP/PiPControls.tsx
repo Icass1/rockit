@@ -48,7 +48,7 @@ interface PiPControlsProps {
 }
 
 export function PiPControls({ show }: PiPControlsProps) {
-    const $playing = useStore(rockIt.audioManager.playingAtom);
+    const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
     const $repeatMode = useStore(rockIt.userManager.repeatModeAtom);
 
     if (!show) return null;
@@ -69,7 +69,9 @@ export function PiPControls({ show }: PiPControlsProps) {
             </button>
             <button
                 style={S.iconBtn}
-                onClick={() => rockIt.audioManager.togglePlayPauseOrSetMedia()}
+                onClick={() =>
+                    rockIt.mediaPlayerManager.togglePlayPauseOrSetMedia()
+                }
                 aria-label={$playing ? "Pause" : "Play"}
             >
                 {$playing ? (

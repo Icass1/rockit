@@ -15,7 +15,7 @@ import { rockIt } from "@/lib/rockit/rockIt";
  */
 export function useLyrics() {
     const $currentSong = useStore(rockIt.queueManager.currentMediaAtom);
-    const $currentTime = useStore(rockIt.audioManager.currentTimeAtom);
+    const $currentTime = useStore(rockIt.mediaPlayerManager.currentTimeAtom);
 
     const [lyricsState, _setLyricsState] = useState<TLyricsState>(() => {
         if (!$currentSong?.publicId) return { status: ELyricsStatus.Idle };
@@ -117,7 +117,7 @@ export function useLyrics() {
                     : Math.max(current - 1, 0);
 
             if (timestamps.length > 0) {
-                rockIt.audioManager.setCurrentTime(
+                rockIt.mediaPlayerManager.setCurrentTime(
                     timestamps[next].time + 0.01
                 );
             }

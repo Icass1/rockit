@@ -1,7 +1,6 @@
 import {
     BaseSongWithAlbumResponse,
     BaseSongWithAlbumResponseSchema,
-    BaseVideoResponse,
     BaseVideoResponseSchema,
     QueueListType,
 } from "@rockit/shared";
@@ -24,7 +23,7 @@ export class PlaylistManager {
             rockIt.queueManager.setQueueMediaId(0);
         }
 
-        rockIt.audioManager.play();
+        rockIt.mediaPlayerManager.play();
     }
 
     static async addMediaToPlaylistAsync(

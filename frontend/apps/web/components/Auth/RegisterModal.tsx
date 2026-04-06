@@ -67,7 +67,7 @@ export default function SignupModal() {
                 height={614}
                 src="/logo-banner.png"
                 className="w-1/3"
-                alt="Rock It!"
+                alt="RockIt!"
                 priority
             />
 

@@ -7,6 +7,7 @@ export * from "./dto";
 export * from "./utils/dateUtils";
 export * from "./utils/filterUtils";
 
+export * from "./models/types/media";
 export { type Vocabulary } from "./models/types/vocabulary";
 export { type Station } from "./models/types/station";
 export * from "./models/types/rockIt";

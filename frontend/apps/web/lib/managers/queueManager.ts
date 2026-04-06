@@ -5,8 +5,10 @@ import {
     QueueResponseItem,
     QueueResponseSchema,
 } from "@/dto";
-import { shuffleQueue as shuffleQueueLogic } from "@rockit/shared";
-import { TPlayableMedia } from "@/models/types/media";
+import {
+    shuffleQueue as shuffleQueueLogic,
+    TPlayableMedia,
+} from "@rockit/shared";
 import { ListType, QueueListType } from "@/models/types/rockIt";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createArrayAtom, createAtom } from "@/lib/store";
@@ -65,7 +67,7 @@ export class QueueManager {
 
         this._currentMediaAtom.set(currentMedia?.media);
         this._currentListAtom.set(currentMedia?.listPublicId);
-        rockIt.audioManager.setSong();
+        rockIt.mediaPlayerManager.setMedia();
     }
 
     // #endregion: Constructor
@@ -86,7 +88,7 @@ export class QueueManager {
 
         if (currentIndex > 0) {
             this.setQueueMediaId(queue[currentIndex - 1].queueMediaId);
-            rockIt.audioManager.play();
+            rockIt.mediaPlayerManager.play();
         }
     }
 
@@ -105,7 +107,7 @@ export class QueueManager {
         const nextIndex = currentIndex + 1;
         if (nextIndex < queue.length) {
             this.setQueueMediaId(queue[nextIndex].queueMediaId);
-            rockIt.audioManager.play();
+            rockIt.mediaPlayerManager.play();
         }
     }
 

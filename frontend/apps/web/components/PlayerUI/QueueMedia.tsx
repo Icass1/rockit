@@ -12,7 +12,7 @@ export function QueueMedia({ media }: { media: QueueResponseItem }) {
     const $currentQueueMediaId = useStore(
         rockIt.queueManager.currentQueueMediaIdAtom
     );
-    const $playing = useStore(rockIt.audioManager.playingAtom);
+    const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
 
     const isCurrent = media.queueMediaId === $currentQueueMediaId;
 

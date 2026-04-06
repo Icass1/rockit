@@ -187,7 +187,7 @@ export default function TabLayout() {
 import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt"; // points to apps/mobile/lib/
 
-const $playing = useStore(rockIt.audioManager.playingAtom);
+const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
 ```
 
 The `lib/managers/` in mobile will be a copy/adaptation of the web managers.

@@ -101,3 +101,13 @@ export function getMediaAudioSrc(
     }
     return undefined;
 }
+
+export function getMediaVideoSrc(
+    media: TPlayableMedia | undefined
+): string | undefined {
+    if (!media) return undefined;
+    if (isVideo(media)) {
+        return media.videoSrc ?? undefined;
+    }
+    return undefined;
+}

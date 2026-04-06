@@ -4,7 +4,7 @@ import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function CrossFadeInput() {
-    const $crossFade = useStore(rockIt.audioManager.crossFadeAtom);
+    const $crossFade = useStore(rockIt.mediaPlayerManager.crossFadeAtom);
 
     return (
         <div className="flex flex-col gap-1.5">

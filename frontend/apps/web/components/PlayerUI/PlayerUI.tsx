@@ -3,8 +3,9 @@
 import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { isVideo, TPlayableMedia } from "@rockit/shared";
 import useWindowSize from "@/hooks/useWindowSize";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { PlayerUICoverColumn } from "@/components/PlayerUI/PlayerUICoverColumn";
 import { PlayerUILyricsColumn } from "@/components/PlayerUI/PlayerUILyricsColumn";
 import { PlayerUIQueueColumn } from "@/components/PlayerUI/PlayerUIQueueColumn";
@@ -15,8 +16,17 @@ export default function PlayerUI() {
     const $queue = useStore(rockIt.queueManager.queueAtom);
 
     const divRef = useRef<HTMLDivElement>(null);
+    const videoContainerRef = useRef<HTMLDivElement>(null);
     const innerWidth = useWindowSize().width;
     const shouldRender = innerWidth !== undefined && innerWidth > 768;
+
+    useEffect(() => {
+        if (videoContainerRef.current && $currentMedia?.type === "video") {
+            rockIt.mediaPlayerManager.attachVideoToContainer(
+                videoContainerRef.current
+            );
+        }
+    }, [$currentMedia]);
 
     // Close player when clicking outside
     useEffect(() => {
@@ -73,6 +83,12 @@ export default function PlayerUI() {
 
                 <PlayerUILyricsColumn />
                 <PlayerUICoverColumn currentMedia={$currentMedia} />
+                {$currentMedia?.type === "video" && (
+                    <div
+                        ref={videoContainerRef}
+                        className="absolute inset-0 h-full w-full"
+                    />
+                )}
                 <PlayerUIQueueColumn queue={$queue} />
             </div>
         </div>

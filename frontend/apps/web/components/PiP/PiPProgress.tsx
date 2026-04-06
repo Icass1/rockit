@@ -26,7 +26,7 @@ interface PiPProgressProps {
 }
 
 export function PiPProgress({ show }: PiPProgressProps) {
-    const $currentTime = useStore(rockIt.audioManager.currentTimeAtom);
+    const $currentTime = useStore(rockIt.mediaPlayerManager.currentTimeAtom);
     const $currentSong = useStore(rockIt.queueManager.currentMediaAtom);
 
     const progress =
@@ -48,7 +48,9 @@ export function PiPProgress({ show }: PiPProgressProps) {
                 step={0.001}
                 style={{ flexGrow: 1 }}
                 onChange={(e) =>
-                    rockIt.audioManager.setCurrentTime(Number(e.target.value))
+                    rockIt.mediaPlayerManager.setCurrentTime(
+                        Number(e.target.value)
+                    )
                 }
             />
             <style>{`

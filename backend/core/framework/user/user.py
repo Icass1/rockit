@@ -73,26 +73,54 @@ class User:
                 logger.error(f"No provider found for provider_id {media.provider_id}.")
                 continue
 
-            a_result_song: AResult[BaseSongWithAlbumResponse] = (
-                await provider.get_song_async(
-                    session=session, public_id=media.public_id
-                )
-            )
-            if a_result_song.is_not_ok():
-                logger.error(
-                    f"Error getting song from provider. {a_result_song.info()}"
-                )
-                continue
+            list_public_id: str = ""
 
-            song: BaseSongWithAlbumResponse = a_result_song.result()
-
-            queue.append(
-                QueueResponseItem(
-                    queueMediaId=item.queue_media_id,
-                    listPublicId=song.album.publicId,
-                    media=song,
+            if media.media_type_key == MediaTypeEnum.VIDEO.value:
+                a_result_video: AResult[BaseVideoResponse] = (
+                    await provider.get_video_async(
+                        session=session, public_id=media.public_id
+                    )
                 )
-            )
+                if a_result_video.is_not_ok():
+                    logger.error(
+                        f"Error getting video from provider. {a_result_video.info()}"
+                    )
+                    continue
+
+                video: BaseVideoResponse = a_result_video.result()
+
+                queue.append(
+                    QueueResponseItem(
+                        queueMediaId=item.queue_media_id,
+                        listPublicId=list_public_id,
+                        media=video,
+                    )
+                )
+            elif media.media_type_key == MediaTypeEnum.SONG.value:
+                a_result_song: AResult[BaseSongWithAlbumResponse] = (
+                    await provider.get_song_async(
+                        session=session, public_id=media.public_id
+                    )
+                )
+                if a_result_song.is_not_ok():
+                    logger.error(
+                        f"Error getting song from provider. {a_result_song.info()}"
+                    )
+                    continue
+
+                song: BaseSongWithAlbumResponse = a_result_song.result()
+
+                queue.append(
+                    QueueResponseItem(
+                        queueMediaId=item.queue_media_id,
+                        listPublicId=song.album.publicId,
+                        media=song,
+                    )
+                )
+            else:
+                logger.warning(
+                    f"Unsupported media type {MediaTypeEnum(media.media_type_key)} in user queue. Skipping."
+                )
 
         return AResult(
             code=AResultCode.OK,

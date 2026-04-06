@@ -17,7 +17,7 @@ import LikeButton from "@/components/LikeButton/LikeButton";
 import MediaPopupMenu from "@/components/PopupMenus/MediaPopupMenu";
 
 function FooterLeftForSong({ currentMedia }: { currentMedia: TPlayableMedia }) {
-    const $playing = useStore(rockIt.audioManager.playingAtom);
+    const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
     const $queue = useStore(rockIt.queueManager.queueAtom);
 
     if (!$queue) {
@@ -31,7 +31,9 @@ function FooterLeftForSong({ currentMedia }: { currentMedia: TPlayableMedia }) {
             {/* Album cover */}
             <div
                 className="group relative h-9 w-9 cursor-pointer rounded-md md:h-16 md:w-16"
-                onClick={() => rockIt.audioManager.togglePlayPauseOrSetMedia()}
+                onClick={() =>
+                    rockIt.mediaPlayerManager.togglePlayPauseOrSetMedia()
+                }
             >
                 <Image
                     width={64}
@@ -87,7 +89,7 @@ function FooterLeftForSong({ currentMedia }: { currentMedia: TPlayableMedia }) {
 }
 
 function FooterLeftForStation({ currentStation }: { currentStation: Station }) {
-    const $playing = useStore(rockIt.audioManager.playingAtom);
+    const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
 
     return (
         <div className="flex w-full max-w-full min-w-0 items-center gap-x-4 md:w-1/3">
@@ -104,12 +106,12 @@ function FooterLeftForStation({ currentStation }: { currentStation: Station }) {
                     {$playing ? (
                         <PauseIcon
                             className="h-6 w-6 cursor-pointer text-white"
-                            onClick={() => rockIt.audioManager.pause()}
+                            onClick={() => rockIt.mediaPlayerManager.pause()}
                         />
                     ) : (
                         <PlayIcon
                             className="h-6 w-6 cursor-pointer text-white"
-                            onClick={() => rockIt.audioManager.play()}
+                            onClick={() => rockIt.mediaPlayerManager.play()}
                         />
                     )}
                 </div>

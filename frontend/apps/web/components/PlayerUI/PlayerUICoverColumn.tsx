@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useStore } from "@nanostores/react";
+import { getMediaArtists, TPlayableMedia } from "@rockit/shared";
 import { Pause, Play } from "lucide-react";
-import { getMediaArtists, TPlayableMedia } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 export function PlayerUICoverColumn({
@@ -13,7 +13,7 @@ export function PlayerUICoverColumn({
 }: {
     currentMedia: TPlayableMedia | undefined;
 }) {
-    const $playing = useStore(rockIt.audioManager.playingAtom);
+    const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
     const [showIcon, setShowIcon] = useState(false);
 
     useEffect(() => {
@@ -33,7 +33,7 @@ export function PlayerUICoverColumn({
                 className="relative aspect-square w-full max-w-[70%] overflow-hidden rounded-lg"
                 onClick={() => {
                     setShowIcon(true);
-                    rockIt.audioManager.togglePlayPauseOrSetMedia();
+                    rockIt.mediaPlayerManager.togglePlayPauseOrSetMedia();
                 }}
             >
                 <Image

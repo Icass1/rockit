@@ -1,5 +1,4 @@
 import { AlbumManager } from "@/lib/managers/albumManager";
-import { AudioManager } from "@/lib/managers/audioManager";
 import { AuthManager } from "@/lib/managers/authManager";
 import { CurrentListManager } from "@/lib/managers/currentListManager";
 import { DownloaderManager } from "@/lib/managers/downloaderManager";
@@ -7,6 +6,7 @@ import { EventManager } from "@/lib/managers/eventManager";
 import { IndexedDBManager } from "@/lib/managers/indexedDBManager";
 import { ListManager } from "@/lib/managers/listManager";
 import { MediaManager } from "@/lib/managers/mediaManager";
+import { MediaPlayerManager } from "@/lib/managers/mediaPlayerManager";
 import { NotificationManager } from "@/lib/managers/notificationManager";
 import { PlayerUIManager } from "@/lib/managers/playerUIManager";
 import { PlaylistManager } from "@/lib/managers/playlistManager";
@@ -46,7 +46,7 @@ export class RockIt {
     playlistManager = PlaylistManager;
     albumManager = AlbumManager;
     authManager = new AuthManager();
-    audioManager = new AudioManager();
+    mediaPlayerManager = new MediaPlayerManager();
     queueManager = new QueueManager();
     playerUIManager = new PlayerUIManager();
     indexedDBManager = new IndexedDBManager();

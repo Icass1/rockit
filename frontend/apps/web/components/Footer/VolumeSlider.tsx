@@ -8,7 +8,7 @@ import Slider from "@/components/Slider/Slider";
 function VolumeIcon({ volume }: { volume: number }) {
     const className =
         "h-5.5 w-5.5 cursor-pointer text-gray-400 md:hover:text-white";
-    const onClick = () => rockIt.audioManager.toggleMute();
+    const onClick = () => rockIt.mediaPlayerManager.toggleMute();
 
     if (volume === 0)
         return <VolumeOff className={className} onClick={onClick} />;
@@ -18,7 +18,7 @@ function VolumeIcon({ volume }: { volume: number }) {
 }
 
 export default function VolumeSlider() {
-    const $volume = useStore(rockIt.audioManager.volumeAtom);
+    const $volume = useStore(rockIt.mediaPlayerManager.volumeAtom);
     const volume = $volume ?? 0;
 
     return (
@@ -32,7 +32,8 @@ export default function VolumeSlider() {
                 max={1}
                 step={0.001}
                 onChange={(e) => {
-                    rockIt.audioManager.volume = Number(e.target.value) ** 2;
+                    rockIt.mediaPlayerManager.volume =
+                        Number(e.target.value) ** 2;
                 }}
             />
         </div>

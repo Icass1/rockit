@@ -18,7 +18,7 @@ export default function PlayLibraryButton() {
         ? true
         : false;
 
-    const $playing = useStore(rockIt.audioManager.playingAtom);
+    const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
 
     if (playingLibrary && $playing) {
         icon = (
@@ -103,9 +103,9 @@ export default function PlayLibraryButton() {
             <div
                 onClick={() => {
                     if (playingLibrary && $playing) {
-                        rockIt.audioManager.play();
+                        rockIt.mediaPlayerManager.play();
                     } else if (playingLibrary) {
-                        rockIt.audioManager.pause();
+                        rockIt.mediaPlayerManager.pause();
                     } else {
                         console.warn("PlayLibraryButton playLibraryHandler");
                     }

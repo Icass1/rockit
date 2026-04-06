@@ -21,6 +21,6 @@ export class AlbumManager {
             rockIt.queueManager.moveToMedia(startSongPublicId);
         else rockIt.queueManager.setQueueMediaId(0);
 
-        rockIt.audioManager.play();
+        rockIt.mediaPlayerManager.play();
     }
 }

@@ -280,7 +280,7 @@ export function useSomeContext() {
 
 | Manager                  | Purpose                                    |
 | ------------------------ | ------------------------------------------ |
-| `audioManager.ts`        | Audio playback (play, pause, seek, volume) |
+| `mediaPlayerManager.ts`  | Audio playback (play, pause, seek, volume) |
 | `queueManager.ts`        | Queue management (add, remove, reorder)    |
 | `playlistManager.ts`     | Playlist CRUD operations                   |
 | `albumManager.ts`        | Album operations                           |
@@ -298,11 +298,11 @@ export function useSomeContext() {
 
 ```tsx
 // lib/rockit/rockIt.ts
-import { AudioManager } from "@/lib/managers/audioManager";
+import { AudioManager } from "@/lib/managers/mediaPlayerManager";
 import { QueueManager } from "@/lib/managers/queueManager";
 
 export class RockIt {
-    audioManager: AudioManager = new AudioManager();
+    mediaPlayerManager: AudioManager = new AudioManager();
     queueManager: QueueManager = new QueueManager();
     // ... all managers
 }
@@ -314,7 +314,7 @@ export const rockIt = new RockIt();
 
 ```tsx
 // ✅ CORRECT — Logic in manager
-const handlePlay = () => rockIt.audioManager.play(song);
+const handlePlay = () => rockIt.mediaPlayerManager.play(song);
 
 // ❌ WRONG — Logic in component
 const handlePlay = () => {
@@ -617,7 +617,7 @@ import { useFetch } from "../../hooks/useFetch";
 | Pages            | `page.tsx`       | `app/(app)/library/page.tsx` |
 | Client wrappers  | `*Client.tsx`    | `HomeClient.tsx`             |
 | Feature hooks    | `use*` camelCase | `useHomeData.ts`             |
-| Managers         | `*Manager.ts`    | `audioManager.ts`            |
+| Managers         | `*Manager.ts`    | `mediaPlayerManager.ts`      |
 | DTOs / Responses | `*Response.ts`   | `homeStatsResponse.ts`       |
 | Types            | PascalCase       | `RockItSong`, `Lang`         |
 
@@ -714,7 +714,7 @@ export default function Error({ error }) {
 
 ```tsx
 // Play a song
-rockIt.audioManager.play(song);
+rockIt.mediaPlayerManager.play(song);
 
 // Add to queue
 rockIt.queueManager.addToQueue(song);
@@ -737,7 +737,7 @@ play() {
 import { useStore } from "@nanostores/react";
 
 function SomeComponent() {
-    const isPlaying = useStore(rockIt.audioManager._playingAtom);
+    const isPlaying = useStore(rockIt.mediaPlayerManager._playingAtom);
     return <div>{isPlaying ? "Playing" : "Paused"}</div>;
 }
 ```

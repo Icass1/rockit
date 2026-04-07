@@ -24,7 +24,7 @@
                 "resourceClass": "m-medium"
             },
             "env": {
-                "EXPO_PUBLIC_BACKEND_URL": "https://api.beta.rockit.rockhosting.org"
+                "EXPO_PUBLIC_BACKEND_URL": "https://api-beta-rockit.rockhosting.org"
             }
         },
         "production": {

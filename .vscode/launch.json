@@ -3,11 +3,17 @@
     "compounds": [
         {
             "name": "Full Stack (DEBUG)",
-            "configurations": ["FastAPI Uvicorn (DEBUG)", "NextJS Server"]
+            "configurations": [
+                "FastAPI Uvicorn (DEBUG)",
+                "NextJS Server"
+            ]
         },
         {
             "name": "Full Stack",
-            "configurations": ["FastAPI Uvicorn", "NextJS Server"]
+            "configurations": [
+                "FastAPI Uvicorn",
+                "NextJS Server"
+            ]
         },
         {
             "name": "Full Stack SSH Tunnel",
@@ -36,7 +42,9 @@
         },
         {
             "name": "Frontend",
-            "configurations": ["NextJS Server"]
+            "configurations": [
+                "NextJS Server"
+            ]
         }
     ],
     "configurations": [
@@ -80,7 +88,7 @@
                 "-L",
                 "5433:localhost:5432",
                 "-J",
-                "gateway@ssh.rockhosting.org",
+                "gateway@no-proxy.rockhosting.org",
                 "root@rockit.rockhosting.lan"
             ],
             "console": "integratedTerminal",
@@ -91,7 +99,10 @@
             "type": "node",
             "request": "launch",
             "runtimeExecutable": "pnpm",
-            "runtimeArgs": ["run", "dev"],
+            "runtimeArgs": [
+                "run",
+                "dev"
+            ],
             "cwd": "${workspaceFolder}/frontend",
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen"
@@ -101,7 +112,11 @@
             "type": "node",
             "request": "launch",
             "runtimeExecutable": "npx",
-            "runtimeArgs": ["expo", "start", "--offline"],
+            "runtimeArgs": [
+                "expo",
+                "start",
+                "--offline"
+            ],
             "cwd": "${workspaceFolder}/frontend/apps/mobile",
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen"

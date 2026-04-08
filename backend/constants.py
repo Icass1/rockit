@@ -50,7 +50,6 @@ def get_env_int(name: str) -> int:
 
 
 BACKEND_URL = get_env_str("BACKEND_URL")
-FRONTEND_URL = get_env_str("FRONTEND_URL")
 CORS_URLS = get_env_str("CORS_URLS", possible_values=None)
 SESSION_DURATION = get_env_int("SESSION_DURATION")
 ENVIRONMENT = get_env_str("ENVIRONMENT", ["DEV", "PROD"])

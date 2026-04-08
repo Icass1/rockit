@@ -1,13 +1,14 @@
 import asyncio
 import os
 from importlib import import_module
+from typing import List
 
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
 
 from backend.utils.logger import getLogger
 
-from backend.constants import FRONTEND_URL, CORS_URLS
+from backend.constants import CORS_URLS
 
 from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 from backend.core.middlewares.requestLogMiddleware import RequestLogMiddleware
@@ -30,7 +31,7 @@ app = FastAPI(
     docs_url="/docs",
 )
 
-cors_origins = [FRONTEND_URL]
+cors_origins: List[str] = []
 if CORS_URLS and CORS_URLS != "NONE":
     cors_origins.extend([url.strip() for url in CORS_URLS.split(",") if url.strip()])
 

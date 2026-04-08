@@ -4,11 +4,10 @@ type ZodSchema<T> = {
     parse: (data: unknown) => T;
 };
 
-const SESSION_KEY = "session_id_value";
+const SESSION_KEY = "session_id";
 
 export const BACKEND_URL =
     process.env.EXPO_PUBLIC_BACKEND_URL ?? "EXPO_PUBLIC_BACKEND_URL";
-
 
 export async function getSessionCookie(): Promise<string | null> {
     return SecureStore.getItemAsync(SESSION_KEY);
@@ -16,9 +15,19 @@ export async function getSessionCookie(): Promise<string | null> {
 
 export async function saveSessionCookie(response: Response): Promise<void> {
     const setCookie = response.headers.get("set-cookie");
+    console.log("saveSessionCookie 1", {
+        setCookie,
+        "response.headers": response.headers,
+        "set-cookie": response.headers.get("set-cookie"),
+        "Set-Cookie": response.headers.get("Set-Cookie"),
+    });
     if (!setCookie) return;
 
     const match = setCookie.match(/session_id=([^;,\s]+)/);
+    console.log("saveSessionCookie 2", {
+        match,
+    });
+
     if (match?.[1]) {
         await SecureStore.setItemAsync(SESSION_KEY, match[1]);
     }
@@ -99,7 +108,6 @@ async function doFetch(
     path: string,
     options: RequestInit = {}
 ): Promise<Response> {
-
     return fetch(`${BACKEND_URL}${path}`, {
         ...options,
         credentials: "include",

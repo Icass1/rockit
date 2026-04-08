@@ -5,9 +5,13 @@ from sqlalchemy import Result, Select, Update, update
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.core.aResult import AResult, AResultCode
-from backend.core.access.db.ormModels.session import SessionRow
 from backend.utils.logger import getLogger
+
+from backend.core.aResult import AResult, AResultCode
+
+from backend.core.enums.platformEnum import PlatformEnum
+
+from backend.core.access.db.ormModels.session import SessionRow
 
 logger: Logger = getLogger(name=__name__)
 
@@ -19,11 +23,15 @@ class SessionAccess:
         session: AsyncSession,
         session_id: str,
         user_id: int,
+        platform: PlatformEnum,
         expires_at: datetime,
     ) -> AResult[SessionRow]:
         try:
             session_row = SessionRow(
-                session_id=session_id, user_id=user_id, expires_at=expires_at
+                session_id=session_id,
+                user_id=user_id,
+                expires_at=expires_at,
+                platform_key=platform.value,
             )
 
             session.add(session_row)

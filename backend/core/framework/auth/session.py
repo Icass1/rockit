@@ -4,12 +4,21 @@ from fastapi import Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import timedelta, datetime, timezone
 
+from backend.utils.logger import getLogger
+from backend.constants import (
+    ENVIRONMENT,
+    SESSION_DURATION,
+    SESSION_COOKIE,
+    PROD_WEB_SESSION_DOMAIN,
+    PROD_MOBILE_SESSION_DOMAIN,
+)
+
 from backend.core.aResult import AResult, AResultCode
+
+from backend.core.enums.platformEnum import PlatformEnum
+
 from backend.core.access.sessionAccess import SessionAccess
 from backend.core.access.db.ormModels.session import SessionRow
-
-from backend.constants import ENVIRONMENT, SESSION_DURATION, SESSION_COOKIE
-from backend.utils.logger import getLogger
 
 logger: Logger = getLogger(name=__name__)
 
@@ -17,7 +26,7 @@ logger: Logger = getLogger(name=__name__)
 class Session:
     @staticmethod
     async def create_session_async(
-        session: AsyncSession, response: Response, user_id: int
+        session: AsyncSession, response: Response, platform: PlatformEnum, user_id: int
     ) -> AResultCode:
         session_id = str(uuid.uuid4())
         expires_at: datetime = datetime.now(tz=timezone.utc) + timedelta(
@@ -25,7 +34,11 @@ class Session:
         )
 
         a_result_sesion: AResult[SessionRow] = await SessionAccess.create_session_async(
-            session, session_id=session_id, user_id=user_id, expires_at=expires_at
+            session,
+            session_id=session_id,
+            user_id=user_id,
+            expires_at=expires_at,
+            platform=platform,
         )
         if a_result_sesion.is_not_ok():
             logger.error(f"Error creating session {a_result_sesion.info()}")
@@ -40,6 +53,13 @@ class Session:
         else:
             raise Exception(f"ENVIRONMENT is not DEV or PROD, {ENVIRONMENT=}")
 
+        domain = None
+        if ENVIRONMENT == "PROD":
+            if platform == PlatformEnum.WEB:
+                domain = PROD_WEB_SESSION_DOMAIN
+            elif platform == PlatformEnum.MOBILE:
+                domain = PROD_MOBILE_SESSION_DOMAIN
+
         response.set_cookie(
             key=SESSION_COOKIE,
             value=session_id,
@@ -47,7 +67,7 @@ class Session:
             max_age=SESSION_DURATION,
             samesite="lax",
             secure=secure,
-            domain="beta-rockit.rockhosting.org" if ENVIRONMENT == "PROD" else None,
+            domain=domain,
         )
 
         return AResultCode(code=AResultCode.OK, message="OK")

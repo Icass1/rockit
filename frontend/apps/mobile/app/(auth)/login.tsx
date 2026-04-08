@@ -10,6 +10,7 @@ import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import {
     ActivityIndicator,
+    Alert,
     KeyboardAvoidingView,
     Platform,
     Pressable,
@@ -19,7 +20,7 @@ import {
     TextInput,
     View,
 } from "react-native";
-import { apiPostAuth, BACKEND_URL, saveSessionCookie } from "@/lib/api";
+import { apiPostAuth, saveSessionCookie } from "@/lib/api";
 import { useVocabulary } from "@/lib/vocabulary";
 
 export default function LoginScreen() {
@@ -51,11 +52,14 @@ export default function LoginScreen() {
             const { response: res } = await apiPostAuth(
                 AUTH_ENDPOINTS.login,
                 LoginRequestSchema,
-                { username, password },
+                { username, password, platform: "MOBILE" },
                 LoginResponseSchema
             );
 
+            console.log("Login response status:", res.status, res.ok); // Debug log, remove in production
+
             if (res.ok) {
+                console.log("Login successful, saving session cookie..."); // Debug log, remove in production
                 await saveSessionCookie(res);
                 router.replace("/");
                 refreshVocabulary();

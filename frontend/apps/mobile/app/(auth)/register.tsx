@@ -71,7 +71,7 @@ export default function RegisterScreen() {
             const { response: res } = await apiPostAuth(
                 AUTH_ENDPOINTS.register,
                 RegisterRequestSchema,
-                { username, password, repeatPassword },
+                { username, password, repeatPassword, platform: "MOBILE" },
                 RegisterResponseSchema
             );
 

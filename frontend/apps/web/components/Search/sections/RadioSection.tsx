@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
+import { Station } from "@/models/types/station";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { Station } from "@/types/station";
 
 export default function RadioSection({ stations }: { stations: Station[] }) {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);

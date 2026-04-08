@@ -49,7 +49,6 @@ export default async function PlaylistPage({
             artists={[]}
             media={playlistMedia}
             image={playlistResponse.imageUrl}
-            imageBlur="http://localhost:8000/media/image/blur/9w4UGBJx10VtAg8IlbZcMRH3C2fLmeyT?q=3"
             showMediaImage
             showMediaIndex={false}
         />

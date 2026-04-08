@@ -88,16 +88,8 @@ def convert_type_to_zod(
     current_file: str,
     schema_refs: set[str],
 ) -> str:
-    from typing import ForwardRef
-
     origin = get_origin(field_type)
     args = get_args(field_type)
-
-    if isinstance(field_type, ForwardRef):
-        try:
-            field_type = field_type._evaluate(None, frozenset(), frozenset())
-        except Exception:
-            pass
 
     if origin is None:
         if field_type in PYTHON_TYPE_TO_ZOD:

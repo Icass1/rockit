@@ -57,18 +57,22 @@ export default function MediaRow({
         </View>
     );
 
+    if (onPress) {
+        return (
+            <Pressable
+                onPress={onPress}
+                style={({ pressed }) => pressed && styles.pressed}
+            >
+                {content}
+            </Pressable>
+        );
+    }
+
     if (href) {
         return <Link href={href as any}>{content}</Link>;
     }
 
-    return (
-        <Pressable
-            onPress={onPress}
-            style={({ pressed }) => pressed && styles.pressed}
-        >
-            {content}
-        </Pressable>
-    );
+    return content;
 }
 
 const styles = StyleSheet.create({

@@ -16,7 +16,7 @@ async def import_vocabulary() -> None:
     """Import vocabulary from Vocabulary.xlsx file."""
     from backend.core.access.db import rockit_db
 
-    types_path = Path("frontend/packages/shared/src/types/vocabulary.ts")
+    types_path = Path("frontend/packages/shared/src/models/types/vocabulary.ts")
 
     try:
         import openpyxl

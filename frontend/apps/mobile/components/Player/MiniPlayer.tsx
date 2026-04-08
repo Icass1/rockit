@@ -15,7 +15,7 @@ export default function MiniPlayer() {
         togglePlayPause,
         skipForward,
         showPlayer,
-        activeMediaType,
+        hasVideo,
     } = usePlayer();
 
     const scale = useRef(new Animated.Value(1)).current;
@@ -53,7 +53,7 @@ export default function MiniPlayer() {
                         contentFit="cover"
                         transition={200}
                     />
-                    {activeMediaType === "video" && (
+                    {hasVideo && (
                         <View style={styles.videoBadge}>
                             <Feather name="video" size={10} color="#fff" />
                         </View>

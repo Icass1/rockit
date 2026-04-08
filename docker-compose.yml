@@ -1,3 +1,4 @@
+
 services:
     backend:
         container_name: rockit-beta-backend
@@ -48,6 +49,19 @@ services:
             - "9100:3000"
         depends_on:
             - backend
+        networks:
+            - rockit-beta
+
+    expo:
+        container_name: rockit-beta-expo
+        build:
+            context: ./frontend
+            dockerfile: ../Dockerfile.expo
+        restart: unless-stopped
+        environment:
+            EXPO_PUBLIC_BACKEND_URL: ${BACKEND_URL}
+        ports:
+            - "9102:8081"
         networks:
             - rockit-beta
 

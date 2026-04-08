@@ -62,7 +62,7 @@ export class AudioCore {
             };
         }
 
-        const player = createAudioPlayer({ uri }, { updateInterval: 0.5 });
+        const player = createAudioPlayer(uri, { updateInterval: 0.5 });
         player.shouldCorrectPitch = true;
 
         const subscription = player.addListener(

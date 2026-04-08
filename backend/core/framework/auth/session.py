@@ -47,7 +47,7 @@ class Session:
             max_age=SESSION_DURATION,
             samesite="lax",
             secure=secure,
-            domain=".rockit.rockhosting.org" if ENVIRONMENT == "PROD" else None,
+            domain="beta-rockit.rockhosting.org" if ENVIRONMENT == "PROD" else None,
         )
 
         return AResultCode(code=AResultCode.OK, message="OK")

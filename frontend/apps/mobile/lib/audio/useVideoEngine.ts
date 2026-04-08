@@ -1,62 +1,78 @@
 /**
- * useVideoEngine — Manages expo-video player for video media.
- * Exposes a VideoPlayer ref for rendering via VideoView in components.
- * Handles volume fade for cross-type transitions (audio↔video).
+ * useVideoEngine — Manages expo-video player as visual layer only.
+ * Should ONLY be used when track has video. Audio engine is the real playback master.
+ * Handles video rendering and syncs to audio engine state.
  */
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useVideoPlayer, type VideoPlayer } from "expo-video";
 
 interface VideoEngineCallbacks {
-    onTimeUpdate: (positionSec: number, durationSec: number) => void;
-    onPlayingChange: (isPlaying: boolean) => void;
-    onEnded: () => void;
-    onLoadStart: () => void;
-    onLoaded: () => void;
+    onTimeUpdate?: (positionSec: number, durationSec: number) => void;
+    onPlayingChange?: (isPlaying: boolean) => void;
+    onEnded?: () => void;
+    onLoadStart?: () => void;
+    onLoaded?: () => void;
 }
 
 export interface VideoEngineControls {
-    player: VideoPlayer;
-    loadAndPlay: (uri: string) => void;
-    play: () => void;
-    pause: () => void;
-    seekTo: (seconds: number) => void;
-    setVolume: (volume: number) => void;
-    unload: () => void;
+    player: VideoPlayer | null;
+    hasVideo: boolean;
+    attachVideo: (uri: string) => Promise<void>;
+    detachVideo: () => Promise<void>;
+    syncToAudioState: (
+        playing: boolean,
+        position: number,
+        volume?: number
+    ) => void;
 }
 
 export function useVideoEngine(
-    callbacks: VideoEngineCallbacks
+    callbacks?: VideoEngineCallbacks
 ): VideoEngineControls {
     const callbacksRef = useRef(callbacks);
     useEffect(() => {
-        callbacksRef.current = callbacks;
+        if (callbacks) {
+            callbacksRef.current = callbacks;
+        }
     });
 
-    const player = useVideoPlayer("", (p) => {
+    const [hasVideo, setHasVideo] = useState(false);
+    const [player, setPlayer] = useState<VideoPlayer | null>(null);
+
+    // Create player with null source (lazy initialization)
+    const videoPlayer = useVideoPlayer(null, (p) => {
         p.loop = false;
         p.volume = 1;
     });
 
     useEffect(() => {
-        const sub1 = player.addListener("playingChange", ({ isPlaying }) => {
-            callbacksRef.current.onPlayingChange(isPlaying);
+        setPlayer(videoPlayer);
+
+        const sub1 = videoPlayer.addListener(
+            "playingChange",
+            ({ isPlaying }) => {
+                callbacksRef.current?.onPlayingChange?.(isPlaying);
+            }
+        );
+
+        const sub2 = videoPlayer.addListener(
+            "timeUpdate",
+            ({ currentTime }) => {
+                const duration = videoPlayer.duration ?? 0;
+                callbacksRef.current?.onTimeUpdate?.(currentTime, duration);
+            }
+        );
+
+        const sub3 = videoPlayer.addListener("playToEnd", () => {
+            callbacksRef.current?.onEnded?.();
         });
 
-        const sub2 = player.addListener("timeUpdate", ({ currentTime }) => {
-            const duration = player.duration ?? 0;
-            callbacksRef.current.onTimeUpdate(currentTime, duration);
-        });
-
-        const sub3 = player.addListener("playToEnd", () => {
-            callbacksRef.current.onEnded();
-        });
-
-        const sub4 = player.addListener("statusChange", ({ status }) => {
+        const sub4 = videoPlayer.addListener("statusChange", ({ status }) => {
             if (status === "loading") {
-                callbacksRef.current.onLoadStart();
+                callbacksRef.current?.onLoadStart?.();
             } else if (status === "readyToPlay") {
-                callbacksRef.current.onLoaded();
+                callbacksRef.current?.onLoaded?.();
             }
         });
 
@@ -66,50 +82,51 @@ export function useVideoEngine(
             sub3.remove();
             sub4.remove();
         };
-    }, [player]);
+    }, [videoPlayer]);
 
-    const loadAndPlay = useCallback(
-        (uri: string) => {
-            player.replace({ uri });
-            player.play();
+    const attachVideo = useCallback(
+        async (uri: string) => {
+            callbacksRef.current?.onLoadStart?.();
+            await videoPlayer.replaceAsync({ uri });
+            setHasVideo(true);
+            callbacksRef.current?.onLoaded?.();
         },
-        [player]
+        [videoPlayer]
     );
 
-    const play = useCallback(() => {
-        player.play();
-    }, [player]);
+    const detachVideo = useCallback(async () => {
+        await videoPlayer.pause();
+        videoPlayer.volume = 0;
+        setHasVideo(false);
+    }, [videoPlayer]);
 
-    const pause = useCallback(() => {
-        player.pause();
-    }, [player]);
+    const syncToAudioState = useCallback(
+        (playing: boolean, position: number, volume: number = 1) => {
+            if (!hasVideo) return;
 
-    const seekTo = useCallback(
-        (seconds: number) => {
-            player.currentTime = seconds;
+            // Sync position
+            if (Math.abs(videoPlayer.currentTime - position) > 0.5) {
+                videoPlayer.currentTime = position;
+            }
+
+            // Sync volume
+            videoPlayer.volume = volume;
+
+            // Sync play/pause
+            if (playing && !videoPlayer.playing) {
+                videoPlayer.play();
+            } else if (!playing && videoPlayer.playing) {
+                videoPlayer.pause();
+            }
         },
-        [player]
+        [hasVideo, videoPlayer]
     );
-
-    const setVolume = useCallback(
-        (volume: number) => {
-            player.volume = Math.max(0, Math.min(1, volume));
-        },
-        [player]
-    );
-
-    const unload = useCallback(() => {
-        player.pause();
-        player.volume = 0;
-    }, [player]);
 
     return {
-        player,
-        loadAndPlay,
-        play,
-        pause,
-        seekTo,
-        setVolume,
-        unload,
+        player: videoPlayer,
+        hasVideo,
+        attachVideo,
+        detachVideo,
+        syncToAudioState,
     };
 }

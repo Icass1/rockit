@@ -114,7 +114,13 @@ export function useQueue(): UseQueueReturn {
             currentIndexRef.current,
             repeatRef.current
         );
-        return { action, index: nextId };
+        // Map EQueueAction enum to string literals
+        const actionMap = {
+            1: "replay",
+            2: "play",
+            3: "stop",
+        } as const;
+        return { action: actionMap[action], index: nextId };
     }, []);
 
     const toggleShuffle = useCallback(() => {

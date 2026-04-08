@@ -1,11 +1,11 @@
 import React, { createContext, useCallback, useContext, useState } from "react";
 import type { BaseSongWithAlbumResponse } from "@rockit/shared";
+import { ERepeatMode } from "@rockit/shared";
 import type { VideoPlayer } from "expo-video";
 import { DEFAULT_CROSSFADE } from "@/lib/audio/useAudioEngine";
 import type { CrossfadeSettings } from "@/lib/audio/useAudioEngine";
-import { useMediaEngine, type MediaType } from "@/lib/audio/useMediaEngine";
+import { useMediaEngine } from "@/lib/audio/useMediaEngine";
 import { useQueue } from "@/lib/audio/useQueue";
-import type { RepeatMode } from "@/lib/audio/useQueue";
 
 interface PlayerContextType {
     currentMedia: BaseSongWithAlbumResponse | null;
@@ -17,12 +17,12 @@ interface PlayerContextType {
     duration: number;
     isPlayerVisible: boolean;
     shuffle: boolean;
-    repeatMode: RepeatMode;
+    repeatMode: ERepeatMode;
     crossfadeSettings: CrossfadeSettings;
     updateCrossfadeSettings: (s: Partial<CrossfadeSettings>) => void;
     videoPlayer: VideoPlayer | null;
     videoOpacity: number;
-    activeMediaType: MediaType;
+    hasVideo: boolean;
 
     playMedia: (
         media: BaseSongWithAlbumResponse,
@@ -44,9 +44,9 @@ interface PlayerContextType {
 
 const PlayerContext = createContext<PlayerContextType | null>(null);
 
-function getMediaType(media: BaseSongWithAlbumResponse | null): MediaType {
-    if (!media) return "audio";
-    return (media as any).type === "video" ? "video" : "audio";
+function hasVideoSource(media: BaseSongWithAlbumResponse | null): boolean {
+    if (!media) return false;
+    return !!(media as any).videoSrc;
 }
 
 export function PlayerProvider({ children }: { children: React.ReactNode }) {
@@ -83,9 +83,9 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
                 const nextMedia = queue.queue[index];
                 const uri = getUri(nextMedia);
                 if (uri) {
-                    const nextType = getMediaType(nextMedia);
+                    const nextHasVideo = hasVideoSource(nextMedia);
                     queue.setCurrentIndex(index);
-                    mediaEngine.loadAndPlay(uri, nextType, true);
+                    mediaEngine.loadTrack(uri, nextHasVideo);
                 }
             } else {
                 setIsPlaying(false);
@@ -103,7 +103,9 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         getNextType: () => {
             const nextIndex = queue.getNextIndex();
             if (nextIndex === null) return "audio";
-            return getMediaType(queue.queue[nextIndex] ?? null);
+            return hasVideoSource(queue.queue[nextIndex] ?? null)
+                ? "video"
+                : "audio";
         },
     });
 
@@ -114,11 +116,11 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         ) => {
             const uri = getUri(media);
             if (!uri) return;
-            const type = getMediaType(media);
+            const shouldHaveVideo = hasVideoSource(media);
             queue.setQueueAndPlay(media, newQueue);
             setCurrentTime(0);
             setDuration(0);
-            await mediaEngine.loadAndPlay(uri, type, false);
+            await mediaEngine.loadTrack(uri, shouldHaveVideo);
             setIsPlayerVisible(true);
         },
         [mediaEngine, queue]
@@ -156,10 +158,10 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         const nextMedia = queue.queue[nextIndex];
         const uri = getUri(nextMedia);
         if (!uri) return;
-        const type = getMediaType(nextMedia);
+        const shouldHaveVideo = hasVideoSource(nextMedia);
         queue.setCurrentIndex(nextIndex);
         setCurrentTime(0);
-        await mediaEngine.loadAndPlay(uri, type, true);
+        await mediaEngine.loadTrack(uri, shouldHaveVideo);
     }, [mediaEngine, queue]);
 
     const skipBack = useCallback(async () => {
@@ -175,10 +177,10 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         const prevMedia = queue.queue[prevIndex];
         const uri = getUri(prevMedia);
         if (!uri) return;
-        const type = getMediaType(prevMedia);
+        const shouldHaveVideo = hasVideoSource(prevMedia);
         queue.setCurrentIndex(prevIndex);
         setCurrentTime(0);
-        await mediaEngine.loadAndPlay(uri, type, true);
+        await mediaEngine.loadTrack(uri, shouldHaveVideo);
     }, [currentTime, mediaEngine, queue, seekTo]);
 
     const showPlayer = useCallback(() => setIsPlayerVisible(true), []);
@@ -209,7 +211,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
                 updateCrossfadeSettings,
                 videoPlayer: mediaEngine.videoPlayer,
                 videoOpacity: mediaEngine.videoOpacity,
-                activeMediaType: mediaEngine.activeType,
+                hasVideo: mediaEngine.hasVideo,
                 playMedia,
                 pause,
                 play,
@@ -235,5 +237,3 @@ export function usePlayer(): PlayerContextType {
     if (!ctx) throw new Error("usePlayer must be used inside PlayerProvider");
     return ctx;
 }
-
-export type { RepeatMode };

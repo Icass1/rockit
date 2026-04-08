@@ -187,5 +187,4 @@ export interface Vocabulary {
     MEDIA_PROGRESS: string;
     GETTING_INFO: string;
     CLICK_TO_DOWNLOAD: string;
-    TEST_TEST: string;
 }

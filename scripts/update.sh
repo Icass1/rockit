@@ -2,10 +2,10 @@
 
 set -e
 
-echo "=== Starting update process ==="
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$SCRIPT_DIR/.."
 
-# Go to project root
-cd "$(dirname "$0")"
+echo "=== Starting update process ==="
 
 # =====================
 # BACKEND

@@ -1,11 +1,11 @@
 import { COLORS } from "@/constants/theme";
 import { Feather } from "@expo/vector-icons";
+import { ERepeatMode } from "@rockit/shared";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { usePlayer } from "@/lib/PlayerContext";
-import type { RepeatMode } from "@/lib/PlayerContext";
 
-function getRepeatColor(mode: RepeatMode, accent: string): string {
-    if (mode === "none") return "rgba(255,255,255,0.5)";
+function getRepeatColor(mode: ERepeatMode, accent: string): string {
+    if (mode === ERepeatMode.OFF) return "rgba(255,255,255,0.5)";
     return accent;
 }
 
@@ -77,7 +77,7 @@ export default function PlayerControls() {
                         size={22}
                         color={getRepeatColor(repeatMode, COLORS.accent)}
                     />
-                    {repeatMode === "one" && (
+                    {repeatMode === ERepeatMode.ONE && (
                         <View style={styles.repeatOneBadge}>
                             <Text
                                 style={{

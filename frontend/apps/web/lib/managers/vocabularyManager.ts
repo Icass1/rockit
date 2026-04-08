@@ -21,28 +21,21 @@ export class VocabularyManager {
     private _langAtom = createAtom<string>("");
 
     async init() {
-        try {
-            const data = await this.getVocabulary();
-            if (data) {
-                this.setVocabulary(data);
-            }
-        } catch (e) {
-            console.error("Error in VocabularyManager.init: " + e);
-            // Vocabulary not available, likely no session
+        const data = await this.getVocabulary();
+        if (data.isOk()) {
+            this.setVocabulary(data.result);
+            return;
         }
+        console.error(
+            "Error in VocabularyManager.init: " +
+                data.message +
+                "   " +
+                data.detail
+        );
     }
 
     async getVocabulary() {
-        try {
-            const data = await apiFetch(
-                "/vocabulary/user",
-                UserVocabularyResponseSchema
-            );
-            return data;
-        } catch (e) {
-            console.error("Error in VocabularyManager.getVocabulary: " + e);
-            return null;
-        }
+        return await apiFetch("/vocabulary/user", UserVocabularyResponseSchema);
     }
 
     setVocabulary(data: UserVocabularyResponse) {

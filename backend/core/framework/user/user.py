@@ -292,15 +292,15 @@ class User:
         )
 
     @staticmethod
-    async def unlike_song(
-        session: AsyncSession, user_id: int, song_public_id: str
+    async def unlike_media(
+        session: AsyncSession, user_id: int, media_public_id: str
     ) -> AResult[bool]:
         """Unlike a single song by public_id."""
 
         a_result_media: AResult[CoreMediaRow] = (
             await MediaAccess.get_media_from_public_id_async(
                 session=session,
-                public_id=song_public_id,
+                public_id=media_public_id,
                 media_type_keys=[MediaTypeEnum.SONG],
             )
         )
@@ -514,7 +514,7 @@ class User:
         return AResult(code=AResultCode.OK, message="OK", result=unliked_count)
 
     @staticmethod
-    async def get_user_liked_song_public_ids(
+    async def get_user_liked_media_public_ids(
         session: AsyncSession, user_id: int
     ) -> AResult[List[str]]:
         """Get all liked song public IDs for a user."""

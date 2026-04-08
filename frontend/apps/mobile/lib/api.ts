@@ -15,18 +15,10 @@ export async function getSessionCookie(): Promise<string | null> {
 
 export async function saveSessionCookie(response: Response): Promise<void> {
     const setCookie = response.headers.get("set-cookie");
-    console.log("saveSessionCookie 1", {
-        setCookie,
-        "response.headers": response.headers,
-        "set-cookie": response.headers.get("set-cookie"),
-        "Set-Cookie": response.headers.get("Set-Cookie"),
-    });
+
     if (!setCookie) return;
 
     const match = setCookie.match(/session_id=([^;,\s]+)/);
-    console.log("saveSessionCookie 2", {
-        match,
-    });
 
     if (match?.[1]) {
         await SecureStore.setItemAsync(SESSION_KEY, match[1]);

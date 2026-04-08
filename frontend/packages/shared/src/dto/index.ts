@@ -98,6 +98,10 @@ export {
     LikeMediaRequestSchema,
     type LikeMediaRequest,
 } from "./likeMediaRequest";
+export {
+    LikedMediaResponseSchema,
+    type LikedMediaResponse,
+} from "./likedMediaResponse";
 export { LoginRequestSchema, type LoginRequest } from "./loginRequest";
 export { LoginResponseSchema, type LoginResponse } from "./loginResponse";
 export {

@@ -1,33 +1,54 @@
-import { LikeMediaRequest } from "@rockit/shared";
+import {
+    LikedMediaResponseSchema,
+    LikeMediaRequestSchema,
+} from "@rockit/shared";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { createArrayAtom } from "@/lib/store";
-import { apiPostFetch, baseApiFetch } from "@/lib/utils/apiFetch";
+import { apiFetch, apiPostFetch } from "@/lib/utils/apiFetch";
 
 export class MediaManager {
     private _likedMediaAtom = createArrayAtom<string>([]);
 
     async fetchLikedMedia() {
-        const res = await baseApiFetch("/user/like");
-        if (!res?.ok) return;
-        const data: string[] = await res.json();
-        this._likedMediaAtom.set(data);
+        const res = await apiFetch(
+            "/user/liked-media",
+            LikedMediaResponseSchema
+        );
+
+        if (res.isOk()) {
+            this._likedMediaAtom.set(res.result.media);
+        } else {
+            console.error("Error getting liked media", res.message, res.detail);
+        }
     }
 
     async toggleLikeMedia(publicId: string) {
         const current = this._likedMediaAtom.get();
         const isLiked = current.includes(publicId);
 
-        this._likedMediaAtom.set(
-            isLiked
-                ? current.filter((id) => id !== publicId)
-                : [...current, publicId]
+        const res = await apiPostFetch(
+            `/user/like/media`,
+            LikeMediaRequestSchema,
+            {
+                publicIds: [publicId],
+            }
         );
 
-        const res = await apiPostFetch<LikeMediaRequest>(`/user/like/media`, {
-            publicIds: [publicId],
-        });
-
-        if (!res?.ok) {
-            this._likedMediaAtom.set(current);
+        if (res.isOk()) {
+            this._likedMediaAtom.set(
+                isLiked
+                    ? current.filter((id) => id !== publicId)
+                    : [...current, publicId]
+            );
+        } else {
+            if (isLiked)
+                rockIt.notificationManager.notifyError(
+                    rockIt.vocabularyManager.vocabulary.ERROR_UNLIKING_MEDIA
+                );
+            else
+                rockIt.notificationManager.notifyError(
+                    rockIt.vocabularyManager.vocabulary.ERROR_LIKING_MEDI
+                );
         }
     }
 

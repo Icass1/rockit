@@ -4,7 +4,7 @@ import {
 } from "@rockit/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createAtom } from "@/lib/store";
-import { baseApiFetch } from "@/lib/utils/apiFetch";
+import { apiFetch } from "@/lib/utils/apiFetch";
 
 export class SearchManager {
     private _queryAtom = createAtom<string>("");
@@ -19,23 +19,17 @@ export class SearchManager {
         this._queryAtom.set(query);
         this._searchingAtom.set(true);
 
-        try {
-            const res = await baseApiFetch(
-                `/media/search?q=${encodeURIComponent(query)}`,
-                { signal: this._abortController.signal }
-            );
+        const res = await apiFetch(
+            `/media/search?q=${encodeURIComponent(query)}`,
+            SearchResultsResponseSchema,
+            { signal: this._abortController.signal }
+        );
+        this._searchingAtom.set(false);
 
-            if (res?.ok) {
-                const json = await res.json();
-                this._resultsAtom.set(SearchResultsResponseSchema.parse(json));
-            }
-        } catch (e) {
-            if (e instanceof Error && e.name === "AbortError") return;
+        if (res.isOk()) {
+            this._resultsAtom.set(res.result);
+        } else {
             rockIt.notificationManager.notifyError("Error searching music.");
-        } finally {
-            if (!this._abortController?.signal.aborted) {
-                this._searchingAtom.set(false);
-            }
         }
     }
 

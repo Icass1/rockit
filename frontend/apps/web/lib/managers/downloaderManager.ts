@@ -1,7 +1,8 @@
 import {
     DownloadProgressMessage,
     EWebSocketMessage,
-    StartDownloadRequest,
+    StartDownloadRequestSchema,
+    StartDownloadResponseSchema,
 } from "@rockit/shared";
 import { EDownloadInfoStatus } from "@/models/enums/downloadInfoStatus";
 import { EEvent } from "@/models/enums/events";
@@ -27,16 +28,29 @@ export class DownloaderManager {
     }
 
     async downloadMediaAsync(publicIds: string[]) {
-        const response = await apiPostFetch<StartDownloadRequest>(
+        const response = await apiPostFetch(
             "/downloader/start-downloads",
+            StartDownloadRequestSchema,
+            StartDownloadResponseSchema,
             {
                 ids: publicIds,
                 title: "Download",
             }
         );
 
-        if (!response?.ok) {
-            rockIt.notificationManager.notifyError("Unable to start download.");
+        if (response.isOk()) {
+            rockIt.notificationManager.notifySuccess(
+                rockIt.vocabularyManager.vocabulary.DOWNLOAD_STARTED
+            );
+        } else {
+            rockIt.notificationManager.notifyError(
+                rockIt.vocabularyManager.vocabulary.ERROR_STARTING_DOWNLOAD
+            );
+            console.error(
+                "Error starting download",
+                response.message,
+                response.detail
+            );
         }
     }
 

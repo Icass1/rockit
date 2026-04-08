@@ -3,6 +3,7 @@ import {
     BaseVideoResponse,
     CurrentQueueMessageRequestItem,
     QueueResponseItem,
+    QueueResponseItemSchema,
     QueueResponseSchema,
 } from "@/dto";
 import {
@@ -12,7 +13,7 @@ import {
 import { ListType, QueueListType } from "@/models/types/rockIt";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createArrayAtom, createAtom } from "@/lib/store";
-import { baseApiFetch } from "@/lib/utils/apiFetch";
+import { apiFetch } from "@/lib/utils/apiFetch";
 
 export class QueueManager {
     // #region: Atoms
@@ -34,40 +35,41 @@ export class QueueManager {
 
     async init() {
         if (typeof window === "undefined") return;
-        const response = await baseApiFetch("/user/queue");
+        const response = await apiFetch("/user/queue", QueueResponseSchema);
 
-        if (!response) {
-            rockIt.notificationManager.notifyError("Failed to load queue.");
+        if (response.isNotOk()) {
+            rockIt.notificationManager.notifyError(
+                rockIt.vocabularyManager.vocabulary.ERROR_GETTING_QUEUE
+            );
             return;
         }
-        if (response.status != 200) {
-            rockIt.notificationManager.notifyError("Failed to load queue.");
-            return;
-        }
 
-        const responseParsed = QueueResponseSchema.parse(await response.json());
-
-        this._currentQueueMediaIdAtom.set(responseParsed.currentQueueMediaId);
-        this._queueAtom.set(
-            responseParsed.queue.map((queueElement): QueueResponseItem => {
-                return {
-                    media: queueElement.media,
-                    queueMediaId: queueElement.queueMediaId,
-                    listPublicId: queueElement.listPublicId,
-                };
-            })
-        );
-
-        const currentMedia = this._queueAtom
-            .get()
-            .find(
-                (media) =>
-                    media.queueMediaId == this._currentQueueMediaIdAtom.get()
+        if (response.isOk()) {
+            this._currentQueueMediaIdAtom.set(
+                response.result.currentQueueMediaId
+            );
+            this._queueAtom.set(
+                response.result.queue.map((queueElement): QueueResponseItem => {
+                    return {
+                        media: queueElement.media,
+                        queueMediaId: queueElement.queueMediaId,
+                        listPublicId: queueElement.listPublicId,
+                    };
+                })
             );
 
-        this._currentMediaAtom.set(currentMedia?.media);
-        this._currentListAtom.set(currentMedia?.listPublicId);
-        rockIt.mediaPlayerManager.setMedia();
+            const currentMedia = this._queueAtom
+                .get()
+                .find(
+                    (media) =>
+                        media.queueMediaId ==
+                        this._currentQueueMediaIdAtom.get()
+                );
+
+            this._currentMediaAtom.set(currentMedia?.media);
+            this._currentListAtom.set(currentMedia?.listPublicId);
+            rockIt.mediaPlayerManager.setMedia();
+        }
     }
 
     // #endregion: Constructor

@@ -17,7 +17,16 @@ export default function useMedia<T extends TMedia>(media: T) {
             }
             apiFetch(`/media/${data.publicId}`, MediaResponseSchema).then(
                 (data) => {
-                    if (data.type === media.type) setMedia(data as T);
+                    if (data.isOk()) {
+                        if (data.result.type === media.type)
+                            setMedia(data.result as T);
+                    } else {
+                        console.error(
+                            "Error gettting media",
+                            data.message,
+                            data.detail
+                        );
+                    }
                 }
             );
         };
@@ -32,7 +41,7 @@ export default function useMedia<T extends TMedia>(media: T) {
                 handleDownloaded
             );
         };
-    }, [media.publicId, media.type]);
+    }, [media]);
 
     return _media;
 }

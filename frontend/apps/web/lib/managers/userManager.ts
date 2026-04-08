@@ -1,13 +1,14 @@
 import {
     EQueueType,
     ERepeatMode,
+    OkResponseSchema,
     SessionResponse,
     SessionResponseSchema,
     UpdateLangRequestSchema,
 } from "@rockit/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createAtom } from "@/lib/store";
-import { apiPostFetch, baseApiFetch } from "@/lib/utils/apiFetch";
+import { apiFetch, apiPostFetch } from "@/lib/utils/apiFetch";
 
 export class UserManager {
     private _queueTypeAtom = createAtom<EQueueType>(EQueueType.SORTED);
@@ -17,15 +18,14 @@ export class UserManager {
     async init() {
         if (typeof window === "undefined") return;
 
-        try {
-            const res = await baseApiFetch("/user/session");
-            if (res?.ok) {
-                const json = await res.json();
-                const session = SessionResponseSchema.parse(json);
-                this._userAtom.set(session);
-            }
-        } catch {
-            console.warn("No session found in UserManager");
+        const res = await apiFetch("/user/session", SessionResponseSchema);
+
+        if (res.isOk()) {
+            this._userAtom.set(res.result);
+        } else if (res.isNotOk()) {
+            console.error(res.detail);
+        } else {
+            console.error("Unkown error", res.message);
         }
     }
 
@@ -53,37 +53,28 @@ export class UserManager {
     }
 
     async setLangAsync(langCode: string) {
-        try {
-            const res = await apiPostFetch(
-                "/user/lang",
-                UpdateLangRequestSchema,
-                {
-                    lang: langCode,
-                }
+        const res = await apiPostFetch(
+            "/user/lang",
+            UpdateLangRequestSchema,
+            OkResponseSchema,
+            {
+                lang: langCode,
+            }
+        );
+
+        if (res.isOk()) {
+            rockIt.notificationManager.notifySuccess(
+                rockIt.vocabularyManager.vocabulary.LANGUAGE_CHANGED
             );
-
-            if (!res.ok) {
-                rockIt.notificationManager.notifyError(
-                    "Failed to change language"
-                );
-                return false;
-            }
-
-            const sessionRes = await baseApiFetch("/user/session");
-            if (sessionRes?.ok) {
-                const json = await sessionRes.json();
-                const session = SessionResponseSchema.parse(json);
-                this._userAtom.set(session);
-            }
-
             await rockIt.vocabularyManager.init();
-
-            return true;
-        } catch (e) {
-            console.warn("Error setting language:", e);
-            rockIt.notificationManager.notifyError("Failed to change language");
-            return false;
+        } else {
+            rockIt.notificationManager.notifySuccess(
+                rockIt.vocabularyManager.vocabulary.ERROR_CHANGING_LANGUAGE
+            );
+            console.error("Error changing language", res.message, res.detail);
         }
+
+        return true;
     }
 
     get queueTypeAtom() {
@@ -107,13 +98,17 @@ export class UserManager {
     }
 
     async signOut() {
-        try {
-            await baseApiFetch("/auth/logout", { method: "POST" });
-        } catch {
-            // Ignore logout errors
+        const response = await apiFetch("/auth/logout", OkResponseSchema);
+        if (response.isOk()) {
+            this._userAtom.set(undefined);
+            rockIt.searchManager.clearResults();
+            rockIt.currentListManager.clearCurrentList();
+        } else {
+            console.error(
+                "Error logging out",
+                response.message,
+                response.detail
+            );
         }
-        this._userAtom.set(undefined);
-        rockIt.searchManager.clearResults();
-        rockIt.currentListManager.clearCurrentList();
     }
 }

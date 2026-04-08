@@ -14,9 +14,15 @@ async function update<T>(
     try {
         console.log({ path });
         const res = await apiFetch<T>(path, schema);
-        console.log({ res });
-        setData(res);
-        setError(false);
+
+        if (res.isOk()) {
+            setData(res.result);
+            setError(false);
+        } else {
+            console.error("Error calling", path, res.message, res.detail);
+            setData(undefined);
+            setError(true);
+        }
     } catch (e) {
         console.error(`Error in useFetch.update. ${e}`);
         setData(undefined);

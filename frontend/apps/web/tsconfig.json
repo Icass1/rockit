@@ -31,9 +31,6 @@
             "@/dto": [
                 "../../packages/shared/src/dto/index.ts"
             ],
-            "@/dto/*": [
-                "../../packages/shared/src/dto/*"
-            ],
             "@/environment": [
                 "../../packages/shared/src/environment"
             ],
@@ -49,12 +46,6 @@
             "@/models/*": [
                 "../../packages/shared/src/models/*",
                 "./models/*"
-            ],
-            "@/packages/dto": [
-                "../../packages/shared/src/dto/index.ts"
-            ],
-            "@/packages/dto/*": [
-                "../../packages/shared/src/dto/*"
             ],
             "@/types/*": [
                 "../../packages/shared/src/types/*"

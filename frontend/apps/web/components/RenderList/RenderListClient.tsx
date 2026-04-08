@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { BaseArtistResponse, MediaResponseSchema } from "@/dto";
-import { MediaResponse } from "@rockit/packages/dto";
 import { EEvent } from "@/models/enums/events";
 import { IMediaAddedToPlaylistEvent } from "@/models/interfaces/events/mediaAddedToPlaylist";
 import { TMedia } from "@/models/types/media";
@@ -40,7 +39,14 @@ export default function RenderListClient({
         const handleMediaAdded = (data: IMediaAddedToPlaylistEvent) => {
             apiFetch(`/media/${data.publicId}`, MediaResponseSchema).then(
                 (data) => {
-                    setMedia((prev) => [...prev, data]);
+                    if (data.isOk()) setMedia((prev) => [...prev, data.result]);
+                    else {
+                        console.error(
+                            "Failed to fetch media data for added media:",
+                            data.message,
+                            data.detail
+                        );
+                    }
                 }
             );
         };

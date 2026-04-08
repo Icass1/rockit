@@ -39,6 +39,10 @@ async def login(
     a_result_user: AResult[UserRow] = await Password.login_user_async(
         session=session, username=payload.username, password=payload.password
     )
+
+    if a_result_user.code() == AResultCode.NOT_FOUND:
+        raise HTTPException(status_code=400, detail="Invalid credentials.")
+
     if a_result_user.is_not_ok():
         logger.error(f"Error loging in user. {a_result_user.info()}")
         raise HTTPException(

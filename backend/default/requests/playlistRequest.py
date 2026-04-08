@@ -7,7 +7,7 @@ from backend.core.enums.playlistContributorRoleEnum import PlaylistContributorRo
 class CreatePlaylistRequest(BaseModel):
     name: str
     description: Optional[str] = None
-    is_public: bool = True
+    isPublic: bool = True
 
 
 class UpdatePlaylistRequest(BaseModel):

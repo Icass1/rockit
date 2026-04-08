@@ -89,7 +89,7 @@ async def create_playlist_async(
         name=create_request.name,
         owner_id=user.result().id,
         description=create_request.description,
-        is_public=create_request.is_public,
+        is_public=create_request.isPublic,
     )
     if a_result.is_not_ok():
         logger.error(f"Error creating playlist. {a_result.info()}")

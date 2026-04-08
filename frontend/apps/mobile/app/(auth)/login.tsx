@@ -10,7 +10,6 @@ import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import {
     ActivityIndicator,
-    Alert,
     KeyboardAvoidingView,
     Platform,
     Pressable,

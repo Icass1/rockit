@@ -33,6 +33,7 @@ from backend.core.responses.baseAlbumWithoutSongsResponse import (
 from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
 from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from backend.core.responses.baseVideoResponse import BaseVideoResponse
+from core.responses.likedMediaResponse import LikedMediaResponse
 from backend.core.responses.userSettingsResponse import UserSettingsResponse
 from backend.core.requests.updateLangRequest import UpdateLangRequest
 from backend.core.requests.updateCrossfadeRequest import UpdateCrossfadeRequest
@@ -50,6 +51,25 @@ router = APIRouter(
     dependencies=[Depends(dependency=AuthMiddleware.auth_dependency)],
     tags=["Core", "User"],
 )
+
+
+@router.get("")
+async def get_user(request: Request) -> UserSettingsResponse:
+    """Get user settings."""
+    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
+    if a_result_user.is_not_ok():
+        raise HTTPException(
+            status_code=a_result_user.get_http_code(), detail=a_result_user.message()
+        )
+
+    user: UserRow = a_result_user.result()
+    return UserSettingsResponse(
+        username=user.username,
+        lang=user.language.lang_code,
+        crossfade=user.cross_fade_ms,
+        randomQueue=user.queue_type_key == 1,
+        repeatMode=user.repeat_mode_enum.value,
+    )
 
 
 @router.get("/session")
@@ -162,7 +182,7 @@ async def get_library_lists(request: Request) -> LibraryListsResponse:
     )
 
 
-@router.get(path="/library/albums")
+@router.get(path="/library/medias")
 async def get_user_library_medias(
     request: Request,
 ) -> List[
@@ -201,7 +221,7 @@ async def get_user_library_medias(
     return a_result_albums.result()
 
 
-@router.post(path="/library/album/{album_public_id}")
+@router.get(path="/library/album/{album_public_id}")
 async def add_media_to_library(request: Request, album_public_id: str) -> OkResponse:
     """Add an album to the user's library."""
 
@@ -257,9 +277,9 @@ async def remove_album_from_library(
     return OkResponse()
 
 
-@router.get("/like")
-async def get_liked_songs(request: Request) -> List[str]:
-    """Get all liked song public IDs for the current user."""
+@router.get("/liked-media")
+async def get_liked_media(request: Request) -> LikedMediaResponse:
+    """Get all liked media public IDs for the current user."""
 
     session: AsyncSession = DBSessionMiddleware.get_session(request)
 
@@ -270,21 +290,21 @@ async def get_liked_songs(request: Request) -> List[str]:
             status_code=a_result_user.get_http_code(), detail=a_result_user.message()
         )
 
-    a_result: AResult[List[str]] = await User.get_user_liked_song_public_ids(
+    a_result: AResult[List[str]] = await User.get_user_liked_media_public_ids(
         session=session, user_id=a_result_user.result().id
     )
     if a_result.is_not_ok():
-        logger.error(f"Error getting liked songs. {a_result.info()}")
+        logger.error(f"Error getting liked media. {a_result.info()}")
         raise HTTPException(
             status_code=a_result.get_http_code(), detail=a_result.message()
         )
 
-    return a_result.result()
+    return LikedMediaResponse(media=a_result.result())
 
 
-@router.delete("/like/song/{song_public_id}")
-async def unlike_song(request: Request, song_public_id: str) -> OkResponse:
-    """Unlike a single song by public_id."""
+@router.delete("/like/media/{media_public_id}")
+async def unlike_media(request: Request, media_public_id: str) -> OkResponse:
+    """Unlike a single media by public_id."""
 
     session: AsyncSession = DBSessionMiddleware.get_session(request)
 
@@ -295,13 +315,13 @@ async def unlike_song(request: Request, song_public_id: str) -> OkResponse:
             status_code=a_result_user.get_http_code(), detail=a_result_user.message()
         )
 
-    a_result = await User.unlike_song(
+    a_result = await User.unlike_media(
         session=session,
         user_id=a_result_user.result().id,
-        song_public_id=song_public_id,
+        media_public_id=media_public_id,
     )
     if a_result.is_not_ok():
-        logger.error(f"Error unliking song. {a_result.info()}")
+        logger.error(f"Error unliking media. {a_result.info()}")
         raise HTTPException(
             status_code=a_result.get_http_code(), detail=a_result.message()
         )
@@ -310,9 +330,7 @@ async def unlike_song(request: Request, song_public_id: str) -> OkResponse:
 
 
 @router.post("/like/media")
-async def like_media_async(
-    request: Request, like_request: LikeMediaRequest
-) -> OkResponse:
+async def like_media_async(request: Request, payload: LikeMediaRequest) -> OkResponse:
     """Like multiple media by public_ids."""
 
     session: AsyncSession = DBSessionMiddleware.get_session(request)
@@ -327,7 +345,7 @@ async def like_media_async(
     a_result: AResult[List[UserLikedMediaRow]] = await User.like_media_async(
         session=session,
         user_id=a_result_user.result().id,
-        public_ids=like_request.publicIds,
+        public_ids=payload.publicIds,
     )
     if a_result.is_not_ok():
         logger.error(f"Error liking media. {a_result.info()}")
@@ -336,25 +354,6 @@ async def like_media_async(
         )
 
     return OkResponse()
-
-
-@router.get("")
-async def get_user(request: Request) -> UserSettingsResponse:
-    """Get user settings."""
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
-    if a_result_user.is_not_ok():
-        raise HTTPException(
-            status_code=a_result_user.get_http_code(), detail=a_result_user.message()
-        )
-
-    user: UserRow = a_result_user.result()
-    return UserSettingsResponse(
-        username=user.username,
-        lang=user.language.lang_code,
-        crossfade=user.cross_fade_ms,
-        randomQueue=user.queue_type_key == 1,
-        repeatMode=user.repeat_mode_enum.value,
-    )
 
 
 @router.patch("/lang")

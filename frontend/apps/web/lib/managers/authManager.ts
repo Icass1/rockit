@@ -1,6 +1,9 @@
-import { LoginRequestSchema, RegisterRequestSchema } from "@/dto";
-import { LoginResponseSchema } from "@/dto/loginResponse";
-import { RegisterResponseSchema } from "@/dto/registerResponse";
+import {
+    LoginRequestSchema,
+    LoginResponseSchema,
+    RegisterRequestSchema,
+    RegisterResponseSchema,
+} from "@/dto";
 import { getUserInClient } from "@/lib/getUserInClient";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { apiPostFetch } from "@/lib/utils/apiFetch";
@@ -19,34 +22,25 @@ export class AuthManager {
     }
 
     async loginAsync(username: string, password: string): Promise<AuthResult> {
-        try {
-            const res = await apiPostFetch("/auth/login", LoginRequestSchema, {
+        const res = await apiPostFetch(
+            "/auth/login",
+            LoginRequestSchema,
+            LoginResponseSchema,
+            {
                 username,
                 password,
                 platform: "WEB",
-            });
-            const text = await res.text();
-
-            if (!res.ok) {
-                let message = "Login failed";
-                try {
-                    const data = JSON.parse(text);
-                    message = data.detail || data.error || message;
-                } catch {
-                    message = text || message;
-                }
-                return { success: false, error: message };
             }
+        );
 
-            LoginResponseSchema.parse(JSON.parse(text));
-
+        if (res.isOk()) {
             const session = await getUserInClient();
             rockIt.userManager.userAtomForDirectAccess.set(session);
-
             return { success: true };
-        } catch (err) {
-            console.error(err);
-            return { success: false, error: "Network error" };
+        } else if (res.isNotOk()) {
+            return { success: false, error: res.detail.toString() };
+        } else {
+            return { success: false, error: "Unkown error." };
         }
     }
 
@@ -55,39 +49,26 @@ export class AuthManager {
         password: string,
         repeatPassword: string
     ): Promise<AuthResult> {
-        try {
-            const res = await apiPostFetch(
-                "/auth/register",
-                RegisterRequestSchema,
-                {
-                    username,
-                    password,
-                    repeatPassword,
-                    platform: "WEB",
-                }
-            );
-            const text = await res.text();
-
-            if (!res.ok) {
-                let message = "Register failed";
-                try {
-                    const data = JSON.parse(text);
-                    message = data.detail || data.error || message;
-                } catch {
-                    message = text || message;
-                }
-                return { success: false, error: message };
+        const res = await apiPostFetch(
+            "/auth/register",
+            RegisterRequestSchema,
+            RegisterResponseSchema,
+            {
+                username,
+                password,
+                repeatPassword,
+                platform: "WEB",
             }
+        );
 
-            RegisterResponseSchema.parse(JSON.parse(text));
-
+        if (res.isOk()) {
             const session = await getUserInClient();
             rockIt.userManager.userAtomForDirectAccess.set(session);
-
             return { success: true };
-        } catch (err) {
-            console.error(err);
-            return { success: false, error: "Network error" };
+        } else if (res.isNotOk()) {
+            return { success: false, error: res.detail.toString() };
+        } else {
+            return { success: false, error: "Unkown error." };
         }
     }
 }

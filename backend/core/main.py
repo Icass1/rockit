@@ -7,7 +7,7 @@ from fastapi import FastAPI
 
 from backend.utils.logger import getLogger
 
-from backend.constants import FRONTEND_URL
+from backend.constants import FRONTEND_URL, CORS_URLS
 
 from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 from backend.core.middlewares.requestLogMiddleware import RequestLogMiddleware
@@ -30,9 +30,13 @@ app = FastAPI(
     docs_url="/docs",
 )
 
+cors_origins = [FRONTEND_URL]
+if CORS_URLS and CORS_URLS != "NONE":
+    cors_origins.extend([url.strip() for url in CORS_URLS.split(",") if url.strip()])
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[FRONTEND_URL],
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

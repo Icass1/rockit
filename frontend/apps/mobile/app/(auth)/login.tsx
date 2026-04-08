@@ -62,8 +62,9 @@ export default function LoginScreen() {
             } else {
                 setError("Login failed"); // TODO: Use vocabulary
             }
-        } catch {
-            setError("Network error BACKEND_URL: " + BACKEND_URL);
+        } catch (e: unknown) {
+            const errMsg = e instanceof Error ? e.message : String(e);
+            setError("Network error: " + errMsg);
         } finally {
             setLoading(false);
         }

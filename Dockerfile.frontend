@@ -7,6 +7,7 @@ WORKDIR /app
 FROM base AS deps
 WORKDIR /app
 COPY frontend/package.json frontend/pnpm-lock.yaml* ./
+COPY frontend/pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile --ignore-scripts
 
 FROM base AS builder
@@ -14,7 +15,9 @@ WORKDIR /app
 ARG NEXT_PUBLIC_BACKEND_URL
 ENV NEXT_PUBLIC_BACKEND_URL=${NEXT_PUBLIC_BACKEND_URL}
 COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/pnpm-workspace.yaml ./
 COPY frontend/ /app
+RUN pnpm install --frozen-lockfile --ignore-scripts
 RUN pnpm build
 
 FROM base AS runner
@@ -22,10 +25,15 @@ WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
-COPY --from=builder /app/apps/web/out ./apps/web/out
+COPY --from=builder /app/apps/web/.next ./apps/web/.next
 COPY --from=builder /app/apps/web/package.json ./apps/web/package.json
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/packages ./packages
+COPY --from=builder /app/apps ./apps
+COPY --from=builder /app/pnpm-workspace.yaml ./
+COPY --from=builder /app/pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile --ignore-scripts
 USER nextjs
 EXPOSE 3000
 ENV PORT=3000

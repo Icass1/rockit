@@ -1,9 +1,0 @@
-FROM node:22-alpine
-
-RUN apk add --no-cache libc6-compat
-
-RUN corepack enable && corepack prepare pnpm@latest --activate
-
-ENV NEXT_TELEMETRY_DISABLED=1
-
-WORKDIR /app

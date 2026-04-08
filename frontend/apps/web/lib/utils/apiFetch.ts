@@ -56,7 +56,11 @@ export async function baseApiFetch(
     }
 }
 
-export async function apiPostFetch<T>(path: string, body: T) {
+export async function apiPostFetch<T>(
+    path: string,
+    schema: TZodSchema<T>,
+    body: T
+) {
     return baseApiFetch(path, {
         method: "POST",
         body: JSON.stringify(body),

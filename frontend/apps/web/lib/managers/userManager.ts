@@ -3,6 +3,7 @@ import {
     ERepeatMode,
     SessionResponse,
     SessionResponseSchema,
+    UpdateLangRequestSchema,
 } from "@rockit/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createAtom } from "@/lib/store";
@@ -53,9 +54,13 @@ export class UserManager {
 
     async setLangAsync(langCode: string) {
         try {
-            const res = await apiPostFetch<{ lang: string }>("/user/lang", {
-                lang: langCode,
-            });
+            const res = await apiPostFetch(
+                "/user/lang",
+                UpdateLangRequestSchema,
+                {
+                    lang: langCode,
+                }
+            );
 
             if (!res.ok) {
                 rockIt.notificationManager.notifyError(

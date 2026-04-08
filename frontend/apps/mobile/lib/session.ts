@@ -10,7 +10,7 @@ const FAKE_SESSION: SessionResponse = {
     username: "dev",
     image: "",
     admin: false,
-    queueType: null,
+    queueType: "RANDOM",
     currentTimeMs: null,
 };
 

@@ -52,6 +52,8 @@ def get_env_int(name: str) -> int:
 BACKEND_URL = get_env_str("BACKEND_URL")
 CORS_URLS = get_env_str("CORS_URLS", possible_values=None)
 SESSION_DURATION = get_env_int("SESSION_DURATION")
+PROD_WEB_SESSION_DOMAIN = get_env_str("PROD_WEB_SESSION_DOMAIN")
+PROD_MOBILE_SESSION_DOMAIN = get_env_str("PROD_MOBILE_SESSION_DOMAIN")
 ENVIRONMENT = get_env_str("ENVIRONMENT", ["DEV", "PROD"])
 MEDIA_PATH = get_env_str("MEDIA_PATH")
 IMAGES_PATH = get_env_str("IMAGES_PATH")
@@ -66,6 +68,7 @@ CLIENT_ID = get_env_str("CLIENT_ID")
 CLIENT_SECRET = get_env_str("CLIENT_SECRET")
 YOUTUBE_API_KEY = get_env_str("YOUTUBE_API_KEY")
 
+
 DB_HOST = get_env_str("DB_HOST")
 DB_USER = get_env_str("DB_USER")
 DB_PASSWORD = get_env_str("DB_PASSWORD")
@@ -74,6 +77,9 @@ DB_NAME = get_env_str("DB_NAME")
 
 SESSION_COOKIE = "session_id"
 
+print("Environment variables loaded:")
+for key, value in env_vars.items():
+    print(f"{key}: {value}")
 
 if error:
     exit()

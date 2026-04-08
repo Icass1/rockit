@@ -4,6 +4,7 @@ import types
 import inspect
 import datetime
 import importlib
+from enum import Enum
 from pathlib import Path
 from collections.abc import Sequence as ABCSequence
 from typing import Union, get_args, get_origin, Literal, Optional, Sequence, List, Dict
@@ -90,6 +91,15 @@ def convert_type_to_zod(
 ) -> str:
     origin = get_origin(field_type)
     args = get_args(field_type)
+
+    # Handle Enum types
+    if origin is None and inspect.isclass(field_type) and issubclass(field_type, Enum):
+        enum_members = list(field_type)
+        if enum_members and all(isinstance(m.value, str) for m in enum_members):
+            literal_parts = [f'"{m.value}"' for m in enum_members]
+            return f"z.enum([{', '.join(literal_parts)}])"
+        literal_parts = [f'"{m.name}"' for m in enum_members]
+        return f"z.enum([{', '.join(literal_parts)}])"
 
     if origin is None:
         if field_type in PYTHON_TYPE_TO_ZOD:

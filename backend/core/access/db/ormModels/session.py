@@ -32,17 +32,23 @@ class SessionRow(CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdde
         "UserRow", back_populates="sessions", foreign_keys=[user_id]
     )
 
+    platform_key: Mapped[int] = mapped_column(
+        Integer, ForeignKey("core.platform_enum.key"), nullable=False
+    )
+
     def __init__(
         self,
         session_id: str,
         user_id: int,
         expires_at: datetime,
+        platform_key: int,
         disabled: bool = False,
     ):
         kwargs: Dict[str, bool | datetime | int | str] = {}
         kwargs["session_id"] = session_id
         kwargs["user_id"] = user_id
         kwargs["expires_at"] = expires_at
+        kwargs["platform_key"] = platform_key
         kwargs["disabled"] = disabled
         for k, v in kwargs.items():
             setattr(self, k, v)

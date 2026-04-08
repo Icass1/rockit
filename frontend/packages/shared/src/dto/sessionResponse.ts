@@ -4,7 +4,7 @@ export const SessionResponseSchema = z.object({
     username: z.string(),
     image: z.string(),
     admin: z.boolean(),
-    queueType: z.any(),
+    queueType: z.enum(["RANDOM", "SORTED"]),
     currentTimeMs: z.number().nullable(),
 });
 

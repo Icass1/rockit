@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import datetime
 from typing import List
 
 from backend.core.enums.mediaTypeEnum import MediaTypeEnum
@@ -14,8 +15,8 @@ class PlaylistModel:
     image_url: str
     is_public: bool
     owner_id: int
-    date_added: str
-    date_updated: str
+    date_added: datetime
+    date_updated: datetime
 
 
 @dataclass
@@ -42,8 +43,8 @@ class PlaylistWithDetailsModel:
     image_url: str
     is_public: bool
     owner_id: int
-    date_added: str
-    date_updated: str
+    date_added: datetime
+    date_updated: datetime
     medias: List[PlaylistMediaModel]
     contributors: List[PlaylistContributorModel]
 

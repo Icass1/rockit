@@ -3,7 +3,6 @@
 import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
-import { isVideo, TPlayableMedia } from "@rockit/shared";
 import useWindowSize from "@/hooks/useWindowSize";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { PlayerUICoverColumn } from "@/components/PlayerUI/PlayerUICoverColumn";

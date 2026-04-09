@@ -7,6 +7,9 @@ from backend.core.enums.playlistContributorRoleEnum import PlaylistContributorRo
 from backend.core.responses.baseAlbumWithoutSongsResponse import (
     BaseAlbumWithoutSongsResponse,
 )
+from backend.core.responses.baseAlbumWithSongsResponse import (
+    BaseAlbumWithSongsResponse,
+)
 from backend.core.responses.basePlaylistForPlaylistResponse import (
     BasePlaylistForPlaylistResponse,
 )
@@ -46,6 +49,7 @@ class BasePlaylistResponse(BaseModel):
             PlaylistResponseItem[BaseStationResponse],
             PlaylistResponseItem[BasePlaylistForPlaylistResponse],
             PlaylistResponseItem[BaseAlbumWithoutSongsResponse],
+            PlaylistResponseItem[BaseAlbumWithSongsResponse],
         ]
     ]
     contributors: List[PlaylistContributorResponse]

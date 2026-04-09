@@ -1,7 +1,6 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { COLORS } from "@/constants/theme";
-import type { FilterMode, LibraryListsResponse } from "@rockit/shared";
-import { filterBySearch, sortItems } from "@rockit/shared";
+import type { FilterMode } from "@rockit/shared";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { useLibraryData, type EContentType } from "@/hooks/useLibraryData";
 import { PageContainer } from "@/components/layout";

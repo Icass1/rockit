@@ -16,6 +16,9 @@ from backend.core.framework.media.image import Image
 from backend.core.responses.baseAlbumWithoutSongsResponse import (
     BaseAlbumWithoutSongsResponse,
 )
+from backend.core.responses.baseAlbumWithSongsResponse import (
+    BaseAlbumWithSongsResponse,
+)
 from backend.core.responses.basePlaylistForPlaylistResponse import (
     BasePlaylistForPlaylistResponse,
 )
@@ -132,8 +135,8 @@ class Playlist:
                 image_url=Image.get_internal_image_url(playlist.image),
                 is_public=playlist.is_public,
                 owner_id=playlist.owner_id,
-                date_added=playlist.date_added.isoformat(),
-                date_updated=playlist.date_updated.isoformat(),
+                date_added=playlist.date_added,
+                date_updated=playlist.date_updated,
             ),
         )
 
@@ -238,8 +241,8 @@ class Playlist:
                 image_url=Image.get_internal_image_url(playlist.image),
                 is_public=playlist.is_public,
                 owner_id=playlist.owner_id,
-                date_added=playlist.date_added.isoformat(),
-                date_updated=playlist.date_updated.isoformat(),
+                date_added=playlist.date_added,
+                date_updated=playlist.date_updated,
                 medias=visible_medias,
                 contributors=contributors,
             ),
@@ -276,8 +279,8 @@ class Playlist:
                     image_url=Image.get_internal_image_url(p.image),
                     is_public=p.is_public,
                     owner_id=p.owner_id,
-                    date_added=p.date_added.isoformat(),
-                    date_updated=p.date_updated.isoformat(),
+                    date_added=p.date_added,
+                    date_updated=p.date_updated,
                 )
             )
 
@@ -356,8 +359,8 @@ class Playlist:
                 image_url=Image.get_internal_image_url(playlist.image),
                 is_public=playlist.is_public,
                 owner_id=playlist.owner_id,
-                date_added=playlist.date_added.isoformat(),
-                date_updated=playlist.date_updated.isoformat(),
+                date_added=playlist.date_added,
+                date_updated=playlist.date_updated,
             ),
         )
 
@@ -830,6 +833,7 @@ class Playlist:
                 PlaylistResponseItem[BaseStationResponse],
                 PlaylistResponseItem[BasePlaylistForPlaylistResponse],
                 PlaylistResponseItem[BaseAlbumWithoutSongsResponse],
+                PlaylistResponseItem[BaseAlbumWithSongsResponse],
             ]
         ] = []
         for media in playlist.medias:

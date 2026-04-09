@@ -1,4 +1,5 @@
 import re
+from datetime import datetime, timezone
 from logging import Logger
 from typing import List, Tuple, Pattern
 
@@ -174,7 +175,7 @@ class YoutubeMusicProvider(BaseProvider):
                         trackNumber=1,
                         album=album_response,
                     ),
-                    addedAt=None,
+                    addedAt=datetime.now(timezone.utc),
                 )
             )
 

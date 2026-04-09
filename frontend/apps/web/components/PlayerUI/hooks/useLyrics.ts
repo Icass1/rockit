@@ -17,7 +17,7 @@ export function useLyrics() {
     const $currentSong = useStore(rockIt.queueManager.currentMediaAtom);
     const $currentTime = useStore(rockIt.mediaPlayerManager.currentTimeAtom);
 
-    const [lyricsState, _setLyricsState] = useState<TLyricsState>(() => {
+    const [lyricsState] = useState<TLyricsState>(() => {
         if (!$currentSong?.publicId) return { status: ELyricsStatus.Idle };
         return { status: ELyricsStatus.Loading };
     });

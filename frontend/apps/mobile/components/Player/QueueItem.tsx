@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { COLORS } from "@/constants/theme";
 import { Feather } from "@expo/vector-icons";
-import type { BaseSongWithAlbumResponse, TQueueMedia } from "@rockit/shared";
+import type { TQueueMedia } from "@rockit/shared";
 import { Image } from "expo-image";
 import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 import { Swipeable } from "react-native-gesture-handler";

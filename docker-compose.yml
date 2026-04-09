@@ -63,8 +63,10 @@ services:
         restart: unless-stopped
         environment:
             EXPO_PUBLIC_BACKEND_URL: ${BACKEND_URL}
+            EXPO_TOKEN: ${EXPO_TOKEN}
+            REACT_NATIVE_PACKAGER_HOSTNAME: ${REACT_NATIVE_PACKAGER_HOSTNAME:-rockit.rockhosting.lan}
         ports:
-            - "9102:8081"
+            - "9102:9102"
         networks:
             - rockit-beta
 

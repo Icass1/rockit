@@ -2,17 +2,38 @@ FROM node:22-alpine AS base
 RUN apk add --no-cache libc6-compat
 RUN corepack enable && corepack prepare pnpm@10.33.0 --activate
 WORKDIR /app
+ENV NEXT_TELEMETRY_DISABLED=1
 
 FROM base AS deps
 WORKDIR /app
 COPY frontend/pnpm-workspace.yaml frontend/package.json frontend/pnpm-lock.yaml* ./
-COPY frontend/apps/mobile/package.json ./apps/mobile/
 RUN pnpm install --frozen-lockfile --ignore-scripts
+
+FROM base AS builder
+WORKDIR /app
+ARG EXPO_PUBLIC_BACKEND_URL
+ENV EXPO_PUBLIC_BACKEND_URL=${EXPO_PUBLIC_BACKEND_URL}
+ENV REACT_NATIVE_PACKAGER_HOSTNAME=${REACT_NATIVE_PACKAGER_HOSTNAME:-rockit.rockhosting.lan}
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/pnpm-workspace.yaml ./
+COPY --from=deps /app/pnpm-lock.yaml ./
+COPY --from=deps /app/package.json ./
+COPY frontend/ ./frontend/
+RUN cd frontend && pnpm install --frozen-lockfile --ignore-scripts
 
 FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=development
-COPY --from=deps /app/node_modules ./node_modules
-COPY frontend/ ./frontend
-EXPOSE 8081
-CMD ["npx", "expo", "start", "--offline"]
+ENV EXPO_PUBLIC_BACKEND_URL=${EXPO_PUBLIC_BACKEND_URL}
+ENV REACT_NATIVE_PACKAGER_HOSTNAME=${REACT_NATIVE_PACKAGER_HOSTNAME:-rockit.rockhosting.lan}
+COPY --from=builder /app/frontend/node_modules ./frontend/node_modules
+COPY --from=builder /app/frontend/pnpm-workspace.yaml ./frontend/
+COPY --from=builder /app/frontend/pnpm-lock.yaml ./frontend/
+COPY --from=builder /app/frontend/package.json ./frontend/
+COPY --from=builder /app/frontend/packages ./frontend/packages
+COPY --from=builder /app/frontend/apps ./frontend/apps
+COPY --from=builder /app/frontend/pnpm-workspace.yaml ./frontend/
+COPY --from=builder /app/frontend/pnpm-lock.yaml ./frontend/
+EXPOSE 9102
+WORKDIR /app/frontend/apps/mobile
+CMD ["npx", "expo", "start", "--host", "localhost", "--port", "9102"]

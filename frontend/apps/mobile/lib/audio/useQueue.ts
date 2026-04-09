@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from "react";
-import type { BaseSongWithAlbumResponse } from "@rockit/shared";
+import type { TQueueMedia } from "@rockit/shared";
 import {
     ERepeatMode,
     getNextQueueMediaId,
@@ -9,15 +9,12 @@ import {
 } from "@rockit/shared";
 
 interface UseQueueReturn {
-    queue: BaseSongWithAlbumResponse[];
+    queue: TQueueMedia[];
     currentIndex: number;
-    currentMedia: BaseSongWithAlbumResponse | null;
+    currentMedia: TQueueMedia | null;
     shuffle: boolean;
     repeatMode: ERepeatMode;
-    setQueueAndPlay: (
-        media: BaseSongWithAlbumResponse,
-        newQueue: BaseSongWithAlbumResponse[]
-    ) => number;
+    setQueueAndPlay: (media: TQueueMedia, newQueue: TQueueMedia[]) => number;
     getNextIndex: () => number | null;
     getPrevIndex: () => number | null;
     resolveOnEnd: () => {
@@ -32,7 +29,7 @@ interface UseQueueReturn {
 }
 
 export function useQueue(): UseQueueReturn {
-    const [queue, setQueue] = useState<BaseSongWithAlbumResponse[]>([]);
+    const [queue, setQueue] = useState<TQueueMedia[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [shuffle, setShuffle] = useState(false);
     const [repeatMode, setRepeatMode] = useState<ERepeatMode>(ERepeatMode.ONE);
@@ -41,7 +38,7 @@ export function useQueue(): UseQueueReturn {
     const currentIndexRef = useRef(currentIndex);
     const shuffleRef = useRef(shuffle);
     const repeatRef = useRef(repeatMode);
-    const originalQueueRef = useRef<BaseSongWithAlbumResponse[]>([]);
+    const originalQueueRef = useRef<TQueueMedia[]>([]);
 
     queueRef.current = queue;
     currentIndexRef.current = currentIndex;
@@ -50,14 +47,11 @@ export function useQueue(): UseQueueReturn {
 
     const currentMedia = queue[currentIndex] ?? null;
 
-    const toQueueItems = (q: BaseSongWithAlbumResponse[]) =>
+    const toQueueItems = (q: TQueueMedia[]) =>
         q.map((item, i) => ({ publicId: item.publicId, queueMediaId: i }));
 
     const setQueueAndPlay = useCallback(
-        (
-            media: BaseSongWithAlbumResponse,
-            newQueue: BaseSongWithAlbumResponse[]
-        ): number => {
+        (media: TQueueMedia, newQueue: TQueueMedia[]): number => {
             let finalQueue = [...newQueue];
 
             if (shuffleRef.current) {

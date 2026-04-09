@@ -1,11 +1,12 @@
-from PIL import Image, ImageDraw, ImageFilter
-from contextvars import ContextVar
-from collections import Counter
+import inspect
+from io import BytesIO
+from functools import wraps
 from datetime import datetime
 from datetime import timezone
-from functools import wraps
+from collections import Counter
+from contextvars import ContextVar
+from PIL import Image, ImageDraw, ImageFilter
 from typing import Any, Callable, List, TypeVar
-from io import BytesIO
 
 import requests
 import random
@@ -24,15 +25,33 @@ T = TypeVar("T")
 
 
 def time_it(func: Callable[..., T]) -> Callable[..., T]:
-    @wraps(func)
-    def wrapper(*args: Any, **kwargs: Any) -> T:
-        start = time.time()
-        result: T = func(*args, **kwargs)
-        logger.info(f"Time taken by {func.__name__} is {round(time.time()-start, 3)}s")
+    # Get file and line number once at decoration time
+    file = inspect.getsourcefile(func)
+    line = inspect.getsourcelines(func)[1]
 
-        return result
+    if inspect.iscoroutinefunction(func):
 
-    return wrapper
+        @wraps(func)
+        async def async_wrapper(*args: Any, **kwargs: Any) -> T:
+            start = time.time()
+            result = await func(*args, **kwargs)
+            duration = round(time.time() - start, 3)
+            logger.info(f"[{file}:{line}] {func.__name__} took {duration}s")
+            return result
+
+        return async_wrapper  # type: ignore
+
+    else:
+
+        @wraps(func)
+        def sync_wrapper(*args: Any, **kwargs: Any) -> T:
+            start = time.time()
+            result = func(*args, **kwargs)
+            duration = round(time.time() - start, 3)
+            logger.info(f"[{file}:{line}] {func.__name__} took {duration}s")
+            return result
+
+        return sync_wrapper
 
 
 call_depth = ContextVar[int]("call_depth", default=0)

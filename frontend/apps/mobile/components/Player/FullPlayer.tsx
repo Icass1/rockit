@@ -24,6 +24,8 @@ import PlayerQueue from "./PlayerQueue";
 
 const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get("window");
 
+const OFFSET_Y = SCREEN_HEIGHT + 50;
+
 const SPRING_CONFIG = {
     damping: 50,
     stiffness: 300,
@@ -44,22 +46,26 @@ export default function FullPlayer() {
     } = usePlayer();
 
     const insets = useSafeAreaInsets();
-    const translateY = useSharedValue(SCREEN_HEIGHT);
+    const translateY = useSharedValue(SCREEN_HEIGHT + 10);
     const queueSheetRef = useRef<any>(null);
     const lyricsSheetRef = useRef<any>(null);
     const crossfadeSheetRef = useRef<any>(null);
     const subPanelOpen = useRef(false);
 
+    // console.log(translateY.value);
+
     useEffect(() => {
+        console.log("isPlayerVisible changed:", isPlayerVisible);
         if (isPlayerVisible) {
             translateY.value = withSpring(0, SPRING_CONFIG);
         } else {
-            translateY.value = withSpring(SCREEN_HEIGHT, SPRING_CONFIG);
+            translateY.value = withSpring(OFFSET_Y, SPRING_CONFIG);
         }
     }, [isPlayerVisible, translateY]);
 
     const handleHide = useCallback(() => {
-        translateY.value = withTiming(SCREEN_HEIGHT, { duration: 280 });
+        console.log("hiding player");
+        translateY.value = withTiming(OFFSET_Y, { duration: 280 });
         hidePlayer();
     }, [hidePlayer, translateY]);
 
@@ -75,7 +81,7 @@ export default function FullPlayer() {
                 event.translationY > SCREEN_HEIGHT / 3 || event.velocityY > 800;
 
             if (shouldDismiss) {
-                translateY.value = withSpring(SCREEN_HEIGHT, SPRING_CONFIG);
+                translateY.value = withSpring(OFFSET_Y, SPRING_CONFIG);
                 runOnJS(handleHide)();
             } else {
                 translateY.value = withSpring(0, SPRING_CONFIG);
@@ -84,6 +90,7 @@ export default function FullPlayer() {
 
     const animatedStyle = useAnimatedStyle(() => ({
         transform: [{ translateY: translateY.value }],
+        pointerEvents: translateY.value > SCREEN_HEIGHT / 2 ? "none" : "auto",
     }));
 
     const openQueue = useCallback(() => {
@@ -101,10 +108,16 @@ export default function FullPlayer() {
         crossfadeSheetRef.current?.expand();
     }, []);
 
-    if (!currentMedia && !isPlayerVisible) return null;
+    console.log(
+        "currentMedia?.name, isPlayerVisible",
+        currentMedia?.name,
+        isPlayerVisible
+    );
 
-    const coverUri = currentMedia?.imageUrl ?? null;
-    const mediaType = currentMedia?.type ?? "song";
+    if (!isPlayerVisible) return null;
+
+    const coverUri = currentMedia?.imageUrl;
+    const mediaType = currentMedia?.type;
 
     return (
         <>

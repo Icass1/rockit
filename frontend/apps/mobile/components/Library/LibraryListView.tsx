@@ -4,7 +4,7 @@ import MediaRow from "@/components/Media/MediaRow";
 interface LibraryItemData {
     publicId: string;
     name: string;
-    imageUrl?: string | null;
+    imageUrl: string;
     subtitle?: string;
     href?: string;
     onPress?: () => void;
@@ -15,6 +15,7 @@ interface LibraryListViewProps {
 }
 
 export default function LibraryListView({ items }: LibraryListViewProps) {
+    console.log("LibraryListView", items);
     return (
         <View style={styles.container}>
             <FlatList

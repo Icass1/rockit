@@ -37,7 +37,10 @@ async def login(
 ) -> LoginResponse:
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
     a_result_user: AResult[UserRow] = await Password.login_user_async(
-        session=session, username=payload.username, password=payload.password
+        session=session,
+        username=payload.username,
+        password=payload.password,
+        platform=payload.platform,
     )
 
     if a_result_user.code() == AResultCode.NOT_FOUND:

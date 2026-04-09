@@ -81,7 +81,7 @@ export default function PlayerQueue({ sheetRef }: PlayerQueueProps) {
             </View>
 
             <View style={styles.listContainer}>
-                <DraggableFlatList
+                {/* <DraggableFlatList
                     data={queue}
                     keyExtractor={(item) => item.publicId}
                     renderItem={renderItem}
@@ -90,7 +90,7 @@ export default function PlayerQueue({ sheetRef }: PlayerQueueProps) {
                     activationDistance={10}
                     contentContainerStyle={styles.listContent}
                     showsVerticalScrollIndicator={false}
-                />
+                /> */}
             </View>
         </BottomSheet>
     );

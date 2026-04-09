@@ -42,6 +42,7 @@ export function useLibraryData(options: {
     searchQuery: string;
     activeType: EContentType;
 }): UseLibraryDataResult {
+    console.log("Calling", API_ENDPOINTS.libraryLists);
     const { data, loading, error } = useApiFetch<LibraryListsResponse>(
         API_ENDPOINTS.libraryLists,
         LibraryListsResponseSchema

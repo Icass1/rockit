@@ -1,5 +1,9 @@
 import React, { createContext, useCallback, useContext, useState } from "react";
-import type { BaseSongWithAlbumResponse } from "@rockit/shared";
+import type {
+    BaseSongWithoutAlbumResponse,
+    BaseVideoResponse,
+    TQueueMedia,
+} from "@rockit/shared";
 import { ERepeatMode } from "@rockit/shared";
 import type { VideoPlayer } from "expo-video";
 import { DEFAULT_CROSSFADE } from "@/lib/audio/useAudioEngine";
@@ -8,8 +12,8 @@ import { useMediaEngine } from "@/lib/audio/useMediaEngine";
 import { useQueue } from "@/lib/audio/useQueue";
 
 interface PlayerContextType {
-    currentMedia: BaseSongWithAlbumResponse | null;
-    queue: BaseSongWithAlbumResponse[];
+    currentMedia: TQueueMedia | null;
+    queue: TQueueMedia[];
     currentIndex: number;
     isPlaying: boolean;
     isLoading: boolean;
@@ -24,10 +28,7 @@ interface PlayerContextType {
     videoOpacity: number;
     hasVideo: boolean;
 
-    playMedia: (
-        media: BaseSongWithAlbumResponse,
-        queue: BaseSongWithAlbumResponse[]
-    ) => Promise<void>;
+    playMedia: (media: TQueueMedia, queue: TQueueMedia[]) => Promise<void>;
     pause: () => Promise<void>;
     play: () => Promise<void>;
     togglePlayPause: () => Promise<void>;
@@ -44,7 +45,9 @@ interface PlayerContextType {
 
 const PlayerContext = createContext<PlayerContextType | null>(null);
 
-function hasVideoSource(media: BaseSongWithAlbumResponse | null): boolean {
+function hasVideoSource(
+    media: BaseSongWithoutAlbumResponse | BaseVideoResponse | null
+): boolean {
     if (!media) return false;
     return !!(media as any).videoSrc;
 }
@@ -61,7 +64,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     const queue = useQueue();
 
     const getUri = (
-        media: BaseSongWithAlbumResponse | undefined
+        media: BaseSongWithoutAlbumResponse | BaseVideoResponse | undefined
     ): string | null => {
         if (!media) return null;
         return (media as any).audioSrc ?? (media as any).videoSrc ?? null;
@@ -110,10 +113,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     });
 
     const playMedia = useCallback(
-        async (
-            media: BaseSongWithAlbumResponse,
-            newQueue: BaseSongWithAlbumResponse[]
-        ) => {
+        async (media: TQueueMedia, newQueue: TQueueMedia[]) => {
             const uri = getUri(media);
             if (!uri) return;
             const shouldHaveVideo = hasVideoSource(media);

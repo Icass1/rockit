@@ -353,34 +353,8 @@ class YoutubeMusic:
         public_id: str,
     ) -> AResult[BaseSongWithAlbumResponse]:
         try:
-            a_result_youtube_id = (
-                await YoutubeMusicAccess.get_track_youtube_id_from_public_id_async(
-                    session=session, public_id=public_id
-                )
-            )
-            if a_result_youtube_id.is_not_ok():
-                logger.error(f"Error getting youtube_id. {a_result_youtube_id.info()}")
-                return AResult(
-                    code=a_result_youtube_id.code(),
-                    message=a_result_youtube_id.message(),
-                )
-
-            youtube_id = a_result_youtube_id.result()
-
-            a_result_track = await YoutubeMusicApi.get_track_info_async(
-                youtube_id=youtube_id
-            )
-            if a_result_track.is_not_ok():
-                logger.error(f"Error getting track info. {a_result_track.info()}")
-                return AResult(
-                    code=a_result_track.code(),
-                    message=a_result_track.message(),
-                )
-
-            track_info = a_result_track.result()
-
-            a_result_db_track = await YoutubeMusicAccess.get_track_by_youtube_id_async(
-                session=session, youtube_id=youtube_id
+            a_result_db_track = await YoutubeMusicAccess.get_track_by_public_id_async(
+                session=session, public_id=public_id
             )
             if a_result_db_track.is_not_ok():
                 logger.error(f"Error getting track from DB. {a_result_db_track.info()}")
@@ -413,8 +387,6 @@ class YoutubeMusic:
             image_url = ""
             if db_track.image and db_track.image.url:
                 image_url = db_track.image.url
-            elif track_info.thumbnail_url:
-                image_url = track_info.thumbnail_url
 
             is_downloaded = db_track.path is not None
             audio_src = (
@@ -436,10 +408,11 @@ class YoutubeMusic:
 
             response = YoutubeMusicTrackResponse(
                 provider=YoutubeMusic.provider_name,
+                youtubeId=db_track.youtube_id,
                 publicId=public_id,
-                providerUrl=f"https://music.youtube.com/watch?v={youtube_id}",
-                name=track_info.title,
-                duration_ms=track_info.duration_ms,
+                providerUrl=f"https://music.youtube.com/watch?v={db_track.youtube_id}",
+                name=db_track.title,
+                duration_ms=db_track.duration_ms,
                 trackNumber=db_track.track_number,
                 discNumber=db_track.disc_number,
                 imageUrl=image_url,
@@ -447,7 +420,6 @@ class YoutubeMusic:
                 downloaded=is_downloaded,
                 artists=artists_list,
                 album=album_data,
-                youtubeId=youtube_id,
             )
 
             return AResult(code=AResultCode.OK, message="OK", result=response)

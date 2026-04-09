@@ -1,12 +1,11 @@
 import type { ReactNode } from "react";
-import { PLACEHOLDER } from "@/constants/assets";
 import { COLORS } from "@/constants/theme";
 import { Image } from "expo-image";
 import { Link } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 interface MediaRowProps {
-    imageUrl?: string | null;
+    imageUrl: string;
     title: string;
     subtitle?: string;
     href?: string;
@@ -14,7 +13,6 @@ interface MediaRowProps {
     imageSize?: number;
     circularImage?: boolean;
     rightElement?: ReactNode;
-    placeholderUrl?: number;
 }
 
 export default function MediaRow({
@@ -26,9 +24,10 @@ export default function MediaRow({
     imageSize = 48,
     circularImage = false,
     rightElement,
-    placeholderUrl,
 }: MediaRowProps) {
-    const imageSource = imageUrl || placeholderUrl || PLACEHOLDER.song;
+    const imageSource = imageUrl;
+
+    console.log(onPress);
 
     const imageStyle = circularImage
         ? { width: imageSize, height: imageSize, borderRadius: imageSize / 2 }

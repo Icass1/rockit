@@ -1,3 +1,4 @@
+import asyncio
 from typing import List, Tuple
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -33,6 +34,7 @@ from backend.core.responses.baseAlbumWithoutSongsResponse import (
 )
 from backend.core.responses.baseVideoResponse import BaseVideoResponse
 from backend.core.access.db.ormModels.language import LanguageRow
+from backend.utils.backendUtils import time_it
 
 logger = getLogger(__name__)
 
@@ -131,6 +133,7 @@ class User:
         )
 
     @staticmethod
+    @time_it
     async def get_user_library_medias(
         session: AsyncSession, user_id: int
     ) -> AResult[
@@ -160,14 +163,26 @@ class User:
             | BaseVideoResponse
         ] = []
 
-        for _, media, provider in a_result_medias.result():
+        logger.debug(
+            f"Found {len(a_result_medias.result())} media items in user library."
+        )
+
+        async def process_media(
+            media: CoreMediaRow, provider_row: ProviderRow
+        ) -> (
+            BaseAlbumWithoutSongsResponse
+            | BasePlaylistResponse
+            | BaseSongWithAlbumResponse
+            | BaseVideoResponse
+            | None
+        ):
             provider_instance: BaseProvider | None = providers.find_provider(
-                provider_id=provider.id
+                provider_id=provider_row.id
             )
 
             if provider_instance is None:
-                logger.error(f"No provider found for provider_id {provider.id}.")
-                continue
+                logger.error(f"No provider found for provider_id {provider_row.id}.")
+                return None
 
             if media.media_type_key == MediaTypeEnum.ALBUM.value:
                 a_result_album: AResult[BaseAlbumWithSongsResponse] = (
@@ -179,9 +194,11 @@ class User:
                     logger.error(
                         f"Error getting album from provider. {a_result_album.info()}"
                     )
-                    continue
+                    return None
 
-                library_medias.append(a_result_album.result())
+                logger.debug("Album media added to library medias.")
+
+                return a_result_album.result()
 
             elif media.media_type_key == MediaTypeEnum.PLAYLIST.value:
                 a_result_playlist: AResult[BasePlaylistResponse] = (
@@ -193,9 +210,11 @@ class User:
                     logger.error(
                         f"Error getting playlist from provider. {a_result_playlist.info()}"
                     )
-                    continue
+                    return None
 
-                library_medias.append(a_result_playlist.result())
+                logger.debug("Playlist media added to library medias.")
+
+                return a_result_playlist.result()
 
             elif media.media_type_key == MediaTypeEnum.SONG.value:
                 a_result_song: AResult[BaseSongWithAlbumResponse] = (
@@ -207,9 +226,11 @@ class User:
                     logger.error(
                         f"Error getting song from provider. {a_result_song.info()}"
                     )
-                    continue
+                    return None
 
-                library_medias.append(a_result_song.result())
+                logger.debug("Song media added to library medias.")
+
+                return a_result_song.result()
 
             elif media.media_type_key == MediaTypeEnum.VIDEO.value:
                 a_result_video: AResult[BaseVideoResponse] = (
@@ -221,9 +242,22 @@ class User:
                     logger.error(
                         f"Error getting video from provider. {a_result_video.info()}"
                     )
-                    continue
+                    return None
 
-                library_medias.append(a_result_video.result())
+                logger.debug("Video media added to library medias.")
+
+                return a_result_video.result()
+
+            return None
+
+        results = await asyncio.gather(
+            *[
+                process_media(media, provider)
+                for _, media, provider in a_result_medias.result()
+            ]
+        )
+
+        library_medias = [r for r in results if r is not None]
 
         return AResult(code=AResultCode.OK, message="OK", result=library_medias)
 

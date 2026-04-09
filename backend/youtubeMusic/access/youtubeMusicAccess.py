@@ -87,7 +87,10 @@ class YoutubeMusicAccess:
                     ),
                 )
                 .where(CoreMediaRow.public_id == public_id)
-                .options(selectinload(TrackRow.album).selectinload(AlbumRow.core_album))
+                .options(
+                    selectinload(TrackRow.album).selectinload(AlbumRow.core_album),
+                    selectinload(TrackRow.image),
+                )
             )
             result: Result[Tuple[TrackRow]] = await session.execute(stmt)
             track: TrackRow | None = result.scalar_one_or_none()

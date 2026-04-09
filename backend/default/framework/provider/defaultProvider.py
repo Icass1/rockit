@@ -2,6 +2,7 @@ from logging import Logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.utils.logger import getLogger
+from backend.utils.backendUtils import time_it
 from backend.core.aResult import AResult, AResultCode
 
 from backend.core.enums.mediaTypeEnum import MediaTypeEnum
@@ -38,6 +39,7 @@ class DefaultProvider(BaseProvider):
     async def add_enum_contents(self, session: AsyncSession) -> None:
         """Populate provider-owned enum tables in the database."""
 
+    @time_it
     async def get_playlist_async(
         self, session: AsyncSession, user_id: int, public_id: str
     ) -> AResult[BasePlaylistResponse]:

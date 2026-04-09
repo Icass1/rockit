@@ -6,17 +6,20 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from passlib.context import CryptContext
 
+from backend.utils.backendUtils import create_id, time_it
+from backend.utils.logger import getLogger
+
 from backend.core.aResult import AResult, AResultCode
-from backend.core.framework.media.image import Image
+from backend.core.utils.safeAsyncCall import safe_async
+
 from backend.core.access.db.ormModels.user import UserRow
 from backend.core.access.db.ormModels.media import CoreMediaRow
 from backend.core.access.db.ormModels.provider import ProviderRow
 from backend.core.access.db.ormModels.user_library_media import UserLibraryMediaRow
 from backend.core.access.db.ormModels.user_seeks import UserSeeksRow
 from backend.core.access.db.ormModels.image import ImageRow
-from backend.core.utils.safeAsyncCall import safe_async
-from backend.utils.backendUtils import create_id
-from backend.utils.logger import getLogger
+
+from backend.core.framework.media.image import Image
 
 pwd = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -132,6 +135,7 @@ class UserAccess:
             )
 
     @staticmethod
+    @time_it
     async def get_user_library_medias(
         session: AsyncSession, user_id: int
     ) -> AResult[List[Tuple[UserLibraryMediaRow, CoreMediaRow, ProviderRow]]]:

@@ -11,6 +11,7 @@ export function useApiFetch<T>(
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
+        console.log("useApiFetch.useEffect", path);
         let cancelled = false;
         setLoading(true);
         setError(null);

@@ -131,7 +131,11 @@ async def get_library_lists(request: Request) -> LibraryListsResponse:
             status_code=a_result_user.get_http_code(), detail=a_result_user.message()
         )
 
-    a_result_albums: AResult[
+    logger.debug(
+        f"Getting library lists for user {a_result_user.result().username} (id: {a_result_user.result().id})"
+    )
+
+    a_result_library_media: AResult[
         List[
             BaseAlbumWithoutSongsResponse
             | BasePlaylistResponse
@@ -142,14 +146,14 @@ async def get_library_lists(request: Request) -> LibraryListsResponse:
         session=session, user_id=a_result_user.result().id
     )
 
-    if a_result_albums.is_not_ok():
-        logger.error(f"Error getting user albums. {a_result_albums.info()}")
+    if a_result_library_media.is_not_ok():
+        logger.error(f"Error getting user albums. {a_result_library_media.info()}")
         raise HTTPException(
-            status_code=a_result_albums.get_http_code(),
-            detail=a_result_albums.message(),
+            status_code=a_result_library_media.get_http_code(),
+            detail=a_result_library_media.message(),
         )
 
-    library_media = a_result_albums.result()
+    library_media = a_result_library_media.result()
 
     albums: List[BaseAlbumWithoutSongsResponse] = (
         [m for m in library_media if isinstance(m, BaseAlbumWithoutSongsResponse)]

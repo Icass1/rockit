@@ -2,8 +2,9 @@ import { COLORS } from "@/constants/theme";
 import type {
     BaseAlbumWithoutSongsResponse,
     BasePlaylistResponse,
-    BaseSongWithoutAlbumResponse,
+    BaseSongWithAlbumResponse,
     BaseVideoResponse,
+    TQueueMedia,
 } from "@rockit/shared";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import type { EContentType } from "@/hooks/useLibraryData";
@@ -18,7 +19,7 @@ import MediaRow from "@/components/Media/MediaRow";
 interface LibraryContentProps {
     albums: BaseAlbumWithoutSongsResponse[];
     playlists: BasePlaylistResponse[];
-    songs: BaseSongWithoutAlbumResponse[];
+    songs: BaseSongWithAlbumResponse[];
     videos: BaseVideoResponse[];
     activeType: EContentType;
     viewMode: "grid" | "list";
@@ -67,11 +68,12 @@ export default function LibraryContent({
     const { vocabulary } = useVocabulary();
     const { playMedia } = usePlayer();
 
-    const handleItemPress = (item: any, type: string) => {
+    const handleItemPress = (item: TQueueMedia, type: string) => {
+        console.log("handleItemPress");
         if (type === "song") {
-            playMedia(item, songs as any);
+            playMedia(item, songs);
         } else if (type === "video") {
-            playMedia(item, videos as any);
+            playMedia(item, videos);
         }
     };
 
@@ -160,7 +162,7 @@ export default function LibraryContent({
                         </View>
                         {section.renderType === "grid" ? (
                             <View style={styles.gridContainer}>
-                                {section.data.map((item, index) => (
+                                {section.data.map((item, _) => (
                                     <View
                                         key={item.publicId}
                                         style={styles.gridItemContainer}

@@ -12,6 +12,8 @@ export type TPlayableMedia =
     | BaseVideoResponse
     | BaseStationResponse;
 
+export type TQueueMedia = BaseSongWithAlbumResponse | BaseVideoResponse;
+
 export type TListMedia =
     | BasePlaylistResponse
     | BaseAlbumWithSongsResponse

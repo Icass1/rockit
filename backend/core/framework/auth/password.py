@@ -1,10 +1,13 @@
 from passlib.context import CryptContext
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from backend.utils.logger import getLogger
+
+from backend.core.enums.platformEnum import PlatformEnum
 from backend.core.aResult import AResult, AResultCode
+
 from backend.core.access.userAccess import UserAccess
 from backend.core.access.db.ormModels.user import UserRow
-from backend.utils.logger import getLogger
 
 logger = getLogger(__name__)
 
@@ -18,7 +21,7 @@ class Password:
 
     @staticmethod
     async def login_user_async(
-        session: AsyncSession, username: str, password: str
+        session: AsyncSession, username: str, password: str, platform: PlatformEnum
     ) -> AResult[UserRow]:
         a_result_user: AResult[UserRow] = await UserAccess.get_user_from_username_async(
             session, username
@@ -40,6 +43,6 @@ class Password:
         if not await Password.verify_password(password, user.password_hash):
             return AResult(code=AResultCode.BAD_REQUEST, message="Invalid credentials")
 
-        logger.info(f"User {username} logged in successfully.")
+        logger.info(f"User {username} logged in successfully from {platform.name}.")
 
         return AResult(code=AResultCode.OK, message="OK", result=user)

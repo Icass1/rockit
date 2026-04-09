@@ -3,21 +3,23 @@ import { Image } from "expo-image";
 import { StyleSheet, View } from "react-native";
 
 interface PlayerCoverProps {
-    uri: string | null;
-    mediaType: string;
+    uri: string | undefined;
+    mediaType: string | undefined;
     size?: number;
 }
 
-function getAspectRatio(mediaType: string): number {
+function getAspectRatio(mediaType: string | undefined): number {
     switch (mediaType) {
         case "video":
             return 16 / 9;
+        case "song":
+            return 1;
         default:
             return 1;
     }
 }
 
-function getBorderRadius(mediaType: string): number {
+function getBorderRadius(mediaType: string | undefined): number {
     switch (mediaType) {
         case "video":
             return 10;

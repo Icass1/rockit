@@ -4,6 +4,7 @@ from typing import List, Any, Pattern
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.utils.logger import getLogger
+from backend.utils.backendUtils import time_it
 
 from backend.core.aResult import AResult, AResultCode
 
@@ -197,6 +198,7 @@ class YoutubeProvider(BaseProvider):
         default = thumb_dict.get("default", {})
         return str(medium.get("url") or high.get("url") or default.get("url") or "")
 
+    @time_it
     async def get_video_async(
         self, session: AsyncSession, public_id: str
     ) -> AResult[BaseVideoResponse]:

@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.aResult import AResult, AResultCode
 from backend.utils.logger import getLogger
+from backend.utils.backendUtils import time_it
 
 # Core framework.
 from backend.core.framework.provider.baseProvider import BaseProvider
@@ -195,6 +196,7 @@ class YoutubeMusicProvider(BaseProvider):
             ),
         )
 
+    @time_it
     async def get_song_async(
         self, session: AsyncSession, public_id: str
     ) -> AResult[BaseSongWithAlbumResponse]:

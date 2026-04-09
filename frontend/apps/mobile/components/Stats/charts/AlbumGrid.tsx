@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { COLORS } from "@/constants/theme";
 import type { StatsRankedItemResponse } from "@rockit/shared";
 import { Image } from "expo-image";
@@ -12,55 +13,64 @@ export default function AlbumGrid({ albums }: AlbumGridProps) {
     const router = useRouter();
     const maxValue = albums[0]?.value || 1;
 
-    const renderItem = ({
-        item,
-        index,
-    }: {
-        item: StatsRankedItemResponse;
-        index: number;
-    }) => (
-        <Pressable
-            style={styles.card}
-            onPress={() => router.push(item.href as any)}
-        >
-            <View style={styles.rankBadge}>
-                <Text style={styles.rankText}>{index + 1}</Text>
-            </View>
-            <View style={styles.imageContainer}>
-                {item.imageUrl ? (
-                    <Image
-                        source={{ uri: item.imageUrl }}
-                        style={styles.image}
-                        contentFit="cover"
-                    />
-                ) : (
-                    <View style={[styles.image, styles.placeholderImage]} />
-                )}
-            </View>
-            <Text style={styles.name} numberOfLines={1}>
-                {item.name}
-            </Text>
-            {item.subtitle && (
-                <Text style={styles.subtitle} numberOfLines={1}>
-                    {item.subtitle}
+    const handlePress = useCallback(
+        (href: string) => {
+            router.push(href as any);
+        },
+        [router]
+    );
+
+    const renderItem = useCallback(
+        ({ item, index }: { item: StatsRankedItemResponse; index: number }) => (
+            <Pressable
+                style={styles.card}
+                onPress={() => handlePress(item.href)}
+            >
+                <View style={styles.rankBadge}>
+                    <Text style={styles.rankText}>{index + 1}</Text>
+                </View>
+                <View style={styles.imageContainer}>
+                    {item.imageUrl ? (
+                        <Image
+                            source={{ uri: item.imageUrl }}
+                            style={styles.image}
+                            contentFit="cover"
+                        />
+                    ) : (
+                        <View style={[styles.image, styles.placeholderImage]} />
+                    )}
+                </View>
+                <Text style={styles.name} numberOfLines={1}>
+                    {item.name}
                 </Text>
-            )}
-            <View style={styles.progressContainer}>
-                <View
-                    style={[
-                        styles.progressBar,
-                        { width: `${(item.value / maxValue) * 100}%` },
-                    ]}
-                />
-            </View>
-        </Pressable>
+                {item.subtitle && (
+                    <Text style={styles.subtitle} numberOfLines={1}>
+                        {item.subtitle}
+                    </Text>
+                )}
+                <View style={styles.progressContainer}>
+                    <View
+                        style={[
+                            styles.progressBar,
+                            { width: `${(item.value / maxValue) * 100}%` },
+                        ]}
+                    />
+                </View>
+            </Pressable>
+        ),
+        [handlePress, maxValue]
+    );
+
+    const keyExtractor = useCallback(
+        (item: StatsRankedItemResponse) => item.publicId,
+        []
     );
 
     return (
         <FlatList
             data={albums}
             renderItem={renderItem}
-            keyExtractor={(item) => item.publicId}
+            keyExtractor={keyExtractor}
             numColumns={2}
             scrollEnabled={false}
             columnWrapperStyle={styles.row}

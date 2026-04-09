@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { memo, useRef } from "react";
 import { COLORS } from "@/constants/theme";
 import type { BaseSongWithAlbumResponse } from "@rockit/shared";
 import { Image } from "expo-image";
@@ -15,7 +15,11 @@ interface SongCardProps {
     ) => void;
 }
 
-export default function SongCard({ song, songs, onPress }: SongCardProps) {
+const SongCard = memo(function SongCard({
+    song,
+    songs,
+    onPress,
+}: SongCardProps) {
     const scale = useRef(new Animated.Value(1)).current;
 
     const handlePressIn = () =>
@@ -55,7 +59,9 @@ export default function SongCard({ song, songs, onPress }: SongCardProps) {
             </TouchableOpacity>
         </Animated.View>
     );
-}
+});
+
+export default SongCard;
 
 const styles = StyleSheet.create({
     image: {

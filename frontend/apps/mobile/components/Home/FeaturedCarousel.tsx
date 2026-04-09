@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { COLORS } from "@/constants/theme";
 import type { BaseSongWithAlbumResponse } from "@rockit/shared";
 import { Image } from "expo-image";
@@ -18,6 +18,43 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const CARD_WIDTH = SCREEN_WIDTH - 48;
 const CARD_HEIGHT = 220;
 const AUTO_SCROLL_INTERVAL = 4000;
+
+interface FeaturedCarouselCardProps {
+    song: BaseSongWithAlbumResponse;
+    onPress: () => void;
+}
+
+const FeaturedCarouselCard = memo(function FeaturedCarouselCard({
+    song,
+    onPress,
+}: FeaturedCarouselCardProps) {
+    return (
+        <TouchableOpacity
+            activeOpacity={0.9}
+            style={styles.card}
+            onPress={onPress}
+        >
+            <Image
+                source={{ uri: song.imageUrl }}
+                style={styles.image}
+                contentFit="cover"
+                transition={200}
+            />
+            <LinearGradient
+                colors={["transparent", "rgba(0,0,0,0.85)"]}
+                style={styles.gradient}
+            />
+            <View style={styles.info}>
+                <Text style={styles.songName} numberOfLines={1}>
+                    {song.name}
+                </Text>
+                <Text style={styles.artistName} numberOfLines={1}>
+                    {song.artists[0]?.name}
+                </Text>
+            </View>
+        </TouchableOpacity>
+    );
+});
 
 interface FeaturedCarouselProps {
     songs: BaseSongWithAlbumResponse[];
@@ -68,38 +105,60 @@ export default function FeaturedCarousel({
         };
     }, [songs.length, startAutoScroll]);
 
-    const handleScrollBeginDrag = () => {
+    const handleScrollBeginDrag = useCallback(() => {
         isUserScrolling.current = true;
         if (intervalRef.current) clearInterval(intervalRef.current);
-    };
+    }, []);
 
-    const handleScrollEndDrag = () => {
+    const handleScrollEndDrag = useCallback(() => {
         isUserScrolling.current = false;
         if (songs.length > 1) startAutoScroll();
-    };
+    }, [songs.length, startAutoScroll]);
 
-    const handleMomentumScrollEnd = (
-        e: NativeSyntheticEvent<NativeScrollEvent>
-    ) => {
-        const index = Math.round(
-            e.nativeEvent.contentOffset.x / (CARD_WIDTH + 12)
-        );
-        setActiveIndex(Math.max(0, Math.min(index, songs.length - 1)));
-    };
+    const handleMomentumScrollEnd = useCallback(
+        (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+            const index = Math.round(
+                e.nativeEvent.contentOffset.x / (CARD_WIDTH + 12)
+            );
+            setActiveIndex(Math.max(0, Math.min(index, songs.length - 1)));
+        },
+        [songs.length]
+    );
 
-    const handlePlaySong = (song: BaseSongWithAlbumResponse) => {
-        if (onSongPress) {
-            onSongPress(song, songs);
-        }
-    };
+    const handlePlaySong = useCallback(
+        (song: BaseSongWithAlbumResponse) => {
+            if (onSongPress) {
+                onSongPress(song, songs);
+            }
+        },
+        [onSongPress, songs]
+    );
+
+    const renderItem = useCallback(
+        ({ item }: { item: BaseSongWithAlbumResponse }) => (
+            <FeaturedCarouselCard
+                song={item}
+                onPress={() => handlePlaySong(item)}
+            />
+        ),
+        [handlePlaySong]
+    );
+
+    const keyExtractor = useCallback(
+        (item: BaseSongWithAlbumResponse) => item.publicId,
+        []
+    );
+
+    const getItemLayout = useCallback(
+        (_: unknown, index: number) => ({
+            length: CARD_WIDTH + 12,
+            offset: (CARD_WIDTH + 12) * index,
+            index,
+        }),
+        []
+    );
 
     if (songs.length === 0) return null;
-
-    const getItemLayout = (_: unknown, index: number) => ({
-        length: CARD_WIDTH + 12,
-        offset: (CARD_WIDTH + 12) * index,
-        index,
-    });
 
     return (
         <View style={styles.container}>
@@ -108,7 +167,8 @@ export default function FeaturedCarousel({
                 ref={flatListRef}
                 data={songs}
                 horizontal
-                keyExtractor={(item) => item.publicId}
+                renderItem={renderItem}
+                keyExtractor={keyExtractor}
                 showsHorizontalScrollIndicator={false}
                 snapToInterval={CARD_WIDTH + 12}
                 snapToAlignment="start"
@@ -122,32 +182,6 @@ export default function FeaturedCarousel({
                 maxToRenderPerBatch={3}
                 windowSize={3}
                 removeClippedSubviews={true}
-                renderItem={({ item: song }) => (
-                    <TouchableOpacity
-                        activeOpacity={0.9}
-                        style={styles.card}
-                        onPress={() => handlePlaySong(song)}
-                    >
-                        <Image
-                            source={{ uri: song.imageUrl }}
-                            style={styles.image}
-                            contentFit="cover"
-                            transition={200}
-                        />
-                        <LinearGradient
-                            colors={["transparent", "rgba(0,0,0,0.85)"]}
-                            style={styles.gradient}
-                        />
-                        <View style={styles.info}>
-                            <Text style={styles.songName} numberOfLines={1}>
-                                {song.name}
-                            </Text>
-                            <Text style={styles.artistName} numberOfLines={1}>
-                                {song.artists[0]?.name}
-                            </Text>
-                        </View>
-                    </TouchableOpacity>
-                )}
             />
             {songs.length > 1 && (
                 <View style={styles.dotsContainer}>

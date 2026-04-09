@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import type { BaseSearchResultsItem } from "@rockit/shared";
 import { useRouter } from "expo-router";
 import { FlatList, StyleSheet, View } from "react-native";
@@ -21,14 +22,15 @@ export default function SearchSection({
 }: SearchSectionProps) {
     const router = useRouter();
 
-    if (items.length === 0) return null;
+    const handlePress = useCallback(
+        (item: BaseSearchResultsItem) => {
+            router.push(item.url as any);
+        },
+        [router]
+    );
 
-    function handlePress(item: BaseSearchResultsItem) {
-        router.push(item.url as any);
-    }
-
-    function renderGridItem({ item }: { item: BaseSearchResultsItem }) {
-        return (
+    const renderGridItem = useCallback(
+        ({ item }: { item: BaseSearchResultsItem }) => (
             <View style={styles.gridItem}>
                 <MediaCard
                     imageUrl={item.imageUrl}
@@ -37,22 +39,24 @@ export default function SearchSection({
                     onPress={() => handlePress(item)}
                 />
             </View>
-        );
-    }
+        ),
+        [handlePress]
+    );
 
-    function renderRowItem({ item }: { item: BaseSearchResultsItem }) {
-        return (
+    const renderRowItem = useCallback(
+        ({ item }: { item: BaseSearchResultsItem }) => (
             <MediaRow
                 imageUrl={item.imageUrl}
                 title={item.title}
                 subtitle={item.artists?.map((a) => a.name).join(", ")}
                 onPress={() => handlePress(item)}
             />
-        );
-    }
+        ),
+        [handlePress]
+    );
 
-    function renderArtistItem({ item }: { item: BaseSearchResultsItem }) {
-        return (
+    const renderArtistItem = useCallback(
+        ({ item }: { item: BaseSearchResultsItem }) => (
             <View style={styles.artistItem}>
                 <ArtistAvatar
                     imageUrl={item.imageUrl}
@@ -60,22 +64,31 @@ export default function SearchSection({
                     onPress={() => handlePress(item)}
                 />
             </View>
-        );
-    }
+        ),
+        [handlePress]
+    );
+
+    const renderItem =
+        layout === "grid"
+            ? renderGridItem
+            : layout === "artist"
+              ? renderArtistItem
+              : renderRowItem;
+
+    const keyExtractor = useCallback(
+        (item: BaseSearchResultsItem) => item.url,
+        []
+    );
+
+    if (items.length === 0) return null;
 
     return (
         <View style={styles.container}>
             <SectionTitle>{title}</SectionTitle>
             <FlatList
                 data={items}
-                keyExtractor={(item) => item.url}
-                renderItem={
-                    layout === "grid"
-                        ? renderGridItem
-                        : layout === "artist"
-                          ? renderArtistItem
-                          : renderRowItem
-                }
+                renderItem={renderItem}
+                keyExtractor={keyExtractor}
                 scrollEnabled={false}
                 numColumns={layout === "grid" ? 2 : 1}
                 columnWrapperStyle={

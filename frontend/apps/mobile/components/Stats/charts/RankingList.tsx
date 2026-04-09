@@ -1,3 +1,4 @@
+import { useCallback, useMemo } from "react";
 import { COLORS } from "@/constants/theme";
 import type { StatsRankedItemResponse } from "@rockit/shared";
 import { Image } from "expo-image";
@@ -19,63 +20,78 @@ export default function RankingList({
 }: RankingListProps) {
     const router = useRouter();
 
-    const sortedItems = [...items].sort((a, b) => b.value - a.value);
-    const displayItems = maxItems
-        ? sortedItems.slice(0, maxItems)
-        : sortedItems;
+    const displayItems = useMemo(() => {
+        const sorted = [...items].sort((a, b) => b.value - a.value);
+        return maxItems ? sorted.slice(0, maxItems) : sorted;
+    }, [items, maxItems]);
+
     const maxValue = displayItems[0]?.value || 1;
 
-    const renderItem = ({
-        item,
-        index,
-    }: {
-        item: StatsRankedItemResponse;
-        index: number;
-    }) => (
-        <Pressable
-            style={styles.row}
-            onPress={() => router.push(item.href as any)}
-        >
-            <Text style={styles.rank}>{index + 1}</Text>
-            {showImages && item.imageUrl && (
-                <Image
-                    source={{ uri: item.imageUrl }}
-                    style={styles.image}
-                    contentFit="cover"
-                />
-            )}
-            <Text style={styles.name} numberOfLines={1}>
-                {item.name}
-            </Text>
-            <View style={styles.progressContainer}>
-                <View
-                    style={[
-                        styles.progressBar,
-                        { width: `${(item.value / maxValue) * 100}%` },
-                    ]}
-                />
-            </View>
-            <Text style={styles.value}>
-                {item.value}
-                {valueLabel}
-            </Text>
-        </Pressable>
+    const handlePress = useCallback(
+        (href: string) => {
+            router.push(href as any);
+        },
+        [router]
+    );
+
+    const renderItem = useCallback(
+        ({ item, index }: { item: StatsRankedItemResponse; index: number }) => (
+            <Pressable
+                style={styles.row}
+                onPress={() => handlePress(item.href)}
+            >
+                <Text style={styles.rank}>{index + 1}</Text>
+                {showImages && item.imageUrl && (
+                    <Image
+                        source={{ uri: item.imageUrl }}
+                        style={styles.image}
+                        contentFit="cover"
+                    />
+                )}
+                <Text style={styles.name} numberOfLines={1}>
+                    {item.name}
+                </Text>
+                <View style={styles.progressContainer}>
+                    <View
+                        style={[
+                            styles.progressBar,
+                            { width: `${(item.value / maxValue) * 100}%` },
+                        ]}
+                    />
+                </View>
+                <Text style={styles.value}>
+                    {item.value}
+                    {valueLabel}
+                </Text>
+            </Pressable>
+        ),
+        [handlePress, maxValue, showImages, valueLabel]
+    );
+
+    const keyExtractor = useCallback(
+        (item: StatsRankedItemResponse) => item.publicId,
+        []
+    );
+
+    const getItemLayout = useCallback(
+        (_: unknown, index: number) => ({
+            length: 44,
+            offset: 44 * index,
+            index,
+        }),
+        []
     );
 
     return (
         <FlatList
             data={displayItems}
             renderItem={renderItem}
-            keyExtractor={(item) => item.publicId}
+            keyExtractor={keyExtractor}
             scrollEnabled={false}
             initialNumToRender={10}
             maxToRenderPerBatch={10}
             removeClippedSubviews={true}
-            getItemLayout={(_, index) => ({
-                length: 44,
-                offset: 44 * index,
-                index,
-            })}
+            getItemLayout={getItemLayout}
         />
     );
 }

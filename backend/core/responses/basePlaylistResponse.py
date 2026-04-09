@@ -2,7 +2,6 @@ from typing import Generic, List, Literal, Optional, Sequence, TypeVar, Union
 from datetime import datetime
 
 from pydantic import BaseModel, field_serializer
-from pydantic.generics import GenericModel
 
 from backend.core.enums.playlistContributorRoleEnum import PlaylistContributorRoleEnum
 from backend.core.responses.baseAlbumWithoutSongsResponse import (
@@ -27,7 +26,7 @@ class PlaylistContributorResponse(BaseModel):
         return role.name
 
 
-class PlaylistResponseItem(GenericModel, Generic[T]):
+class PlaylistResponseItem(BaseModel, Generic[T]):
     item: T
     addedAt: datetime
 

@@ -165,6 +165,8 @@ async def search(request: Request, q: str) -> SearchResultsResponse:
 async def get_image(request: Request, public_id: str) -> FileResponse:
     """Get an image by its public_id."""
 
+    logger.debug(f"Getting image with public_id: {public_id}")
+
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
     a_result: AResult[ImageRow] = await Media.get_image_async(
         session=session, public_id=public_id

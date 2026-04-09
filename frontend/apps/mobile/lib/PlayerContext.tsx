@@ -21,6 +21,9 @@ import type { CrossfadeSettings } from "@/lib/audio/useAudioEngine";
 import { DEFAULT_CROSSFADE } from "@/lib/audio/useAudioEngine";
 import { useMediaEngine } from "@/lib/audio/useMediaEngine";
 import { useQueue } from "@/lib/audio/useQueue";
+import { webSocketManager } from "@/lib/webSocketManager";
+
+const WS_TIME_SYNC_INTERVAL_MS = 5000;
 
 interface PlayerTimeContextType {
     currentTime: number;
@@ -91,6 +94,10 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
 
     const queue = useQueue();
     const audioIntegrationInitialized = useRef(false);
+    const lastWsSyncTimeRef = useRef(0);
+    const currentTimeRef = useRef(0);
+    const queueRef = useRef(queue);
+    queueRef.current = queue;
 
     useEffect(() => {
         if (!audioIntegrationInitialized.current) {
@@ -160,21 +167,35 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     const mediaEngine = useMediaEngine({
         onTimeUpdate: (pos, dur) => {
             setCurrentTime(pos);
+            currentTimeRef.current = pos;
             setDuration(dur);
+
+            const now = Date.now();
+            if (now - lastWsSyncTimeRef.current >= WS_TIME_SYNC_INTERVAL_MS) {
+                lastWsSyncTimeRef.current = now;
+                webSocketManager.sendCurrentTime({ currentTime: pos });
+            }
         },
         onPlayingChange: setIsPlaying,
         onLoadStart: () => setIsLoading(true),
         onLoaded: () => setIsLoading(false),
         onEnded: () => {
-            const { action, index } = queue.resolveOnEnd();
+            const currentMedia = queueRef.current.currentMedia;
+            if (currentMedia) {
+                webSocketManager.sendMediaEnded({
+                    mediaPublicId: currentMedia.publicId,
+                });
+            }
+
+            const { action, index } = queueRef.current.resolveOnEnd();
             if (action === "replay") {
                 mediaEngine.seekTo(0).then(() => mediaEngine.play());
             } else if (action === "play" && index !== null) {
-                const nextMedia = queue.queue[index];
+                const nextMedia = queueRef.current.queue[index];
                 const uri = getUri(nextMedia);
                 if (uri) {
                     const nextHasVideo = hasVideoSource(nextMedia);
-                    queue.setCurrentIndex(index);
+                    queueRef.current.setCurrentIndex(index);
                     mediaEngine.loadTrack(uri, nextHasVideo);
                 }
             } else {
@@ -204,11 +225,23 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
             const uri = getUri(media);
             if (!uri) return;
             const shouldHaveVideo = hasVideoSource(media);
-            queue.setQueueAndPlay(media, newQueue);
+            const index = queue.setQueueAndPlay(media, newQueue);
             setCurrentTime(0);
+            currentTimeRef.current = 0;
             setDuration(0);
             await mediaEngine.loadTrack(uri, shouldHaveVideo);
-            // setIsPlayerVisible(true);
+            webSocketManager.sendMediaClicked({ mediaPublicId: media.publicId });
+            webSocketManager.sendCurrentMedia({
+                mediaPublicId: media.publicId,
+                queueMediaId: index,
+            });
+            webSocketManager.sendCurrentQueue({
+                queue: newQueue.map((m, i) => ({
+                    publicId: m.publicId,
+                    queueMediaId: i,
+                })),
+                queueType: queue.shuffle ? "RANDOM" : "SORTED",
+            });
         },
         [mediaEngine, queue]
     );

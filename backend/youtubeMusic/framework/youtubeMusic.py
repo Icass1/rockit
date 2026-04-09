@@ -385,8 +385,8 @@ class YoutubeMusic:
                     )
 
             image_url = ""
-            if db_track.image and db_track.image.url:
-                image_url = db_track.image.url
+            if db_track.image and db_track.image.public_id:
+                image_url = BACKEND_URL + "/media/image/" + db_track.image.public_id
 
             is_downloaded = db_track.path is not None
             audio_src = (
@@ -521,10 +521,12 @@ class YoutubeMusic:
                             )
 
                     image_url = ""
-                    if track.image and track.image.url:
-                        image_url = track.image.url
-                    elif album_info.thumbnail_url:
-                        image_url = album_info.thumbnail_url
+                    if track.image and track.image.public_id:
+                        image_url = (
+                            BACKEND_URL + "/media/image/" + track.image.public_id
+                        )
+                    # elif album_info.thumbnail_url:
+                    #     image_url = album_info.thumbnail_url
 
                     is_downloaded = track.path is not None
                     audio_src = (
@@ -561,8 +563,8 @@ class YoutubeMusic:
                     )
 
             image_url = ""
-            if db_album.image and db_album.image.url:
-                image_url = db_album.image.url
+            if db_album.image and db_album.image.public_id:
+                image_url = BACKEND_URL + "/media/image/" + db_album.image.public_id
             elif album_info.thumbnail_url:
                 image_url = album_info.thumbnail_url
 
@@ -667,10 +669,12 @@ class YoutubeMusic:
                             )
 
                     image_url = ""
-                    if track.image and track.image.url:
-                        image_url = track.image.url
-                    elif artist_info.thumbnail_url:
-                        image_url = artist_info.thumbnail_url
+                    if track.image and track.image.public_id:
+                        image_url = (
+                            BACKEND_URL + "/media/image/" + track.image.public_id
+                        )
+                    # elif artist_info.thumbnail_url:
+                    #     image_url = artist_info.thumbnail_url
 
                     album_public_id = ""
                     if track.album and track.album.core_album:
@@ -717,10 +721,10 @@ class YoutubeMusic:
                     )
 
             image_url = ""
-            if db_artist.image and db_artist.image.url:
-                image_url = db_artist.image.url
-            elif artist_info.thumbnail_url:
-                image_url = artist_info.thumbnail_url
+            if db_artist.image and db_artist.image.public_id:
+                image_url = BACKEND_URL + "/media/image/" + db_artist.image.public_id
+            # elif artist_info.thumbnail_url:
+            #     image_url = artist_info.thumbnail_url
 
             response = YoutubeMusicArtistResponse(
                 provider=YoutubeMusic.provider_name,
@@ -780,10 +784,10 @@ class YoutubeMusic:
                 )
 
         image_url = ""
-        if db_track.image and db_track.image.url:
-            image_url = db_track.image.url
-        elif track_info.thumbnail_url:
-            image_url = track_info.thumbnail_url
+        if db_track.image and db_track.image.public_id:
+            image_url = BACKEND_URL + "/media/image/" + db_track.image.public_id
+        # elif track_info.thumbnail_url:
+        #     image_url = track_info.thumbnail_url
 
         is_downloaded = db_track.path is not None
         audio_src = (
@@ -880,10 +884,10 @@ class YoutubeMusic:
                         )
 
                 image_url = ""
-                if track.image and track.image.url:
-                    image_url = track.image.url
-                elif album_info.thumbnail_url:
-                    image_url = album_info.thumbnail_url
+                if track.image and track.image.public_id:
+                    image_url = BACKEND_URL + "/media/image/" + track.image.public_id
+                # elif album_info.thumbnail_url:
+                #     image_url = album_info.thumbnail_url
 
                 is_downloaded = track.path is not None
                 audio_src = (
@@ -920,10 +924,10 @@ class YoutubeMusic:
                 )
 
         image_url = ""
-        if db_album.image and db_album.image.url:
-            image_url = db_album.image.url
-        elif album_info.thumbnail_url:
-            image_url = album_info.thumbnail_url
+        if db_album.image and db_album.image.public_id:
+            image_url = BACKEND_URL + "/media/image/" + db_album.image.public_id
+        # elif album_info.thumbnail_url:
+        #     image_url = album_info.thumbnail_url
 
         response = YoutubeMusicAlbumResponse(
             provider=YoutubeMusic.provider_name,
@@ -984,10 +988,10 @@ class YoutubeMusic:
                         )
 
                 image_url = ""
-                if track.image and track.image.url:
-                    image_url = track.image.url
-                elif artist_info.thumbnail_url:
-                    image_url = artist_info.thumbnail_url
+                if track.image and track.image.public_id:
+                    image_url = BACKEND_URL + "/media/image/" + track.image.public_id
+                # elif artist_info.thumbnail_url:
+                #     image_url = artist_info.thumbnail_url
 
                 album_public_id = ""
                 if track.album and track.album.core_album:
@@ -1034,10 +1038,10 @@ class YoutubeMusic:
                 )
 
         image_url = ""
-        if db_artist.image and db_artist.image.url:
-            image_url = db_artist.image.url
-        elif artist_info.thumbnail_url:
-            image_url = artist_info.thumbnail_url
+        if db_artist.image and db_artist.image.public_id:
+            image_url = BACKEND_URL + "/media/image/" + db_artist.image.public_id
+        # elif artist_info.thumbnail_url:
+        #     image_url = artist_info.thumbnail_url
 
         response = YoutubeMusicArtistResponse(
             provider=YoutubeMusic.provider_name,

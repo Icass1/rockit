@@ -26,6 +26,21 @@ class Video:
         return AResultCode(code=AResultCode.OK, message="OK")
 
     @staticmethod
+    async def update_video_real_duration_async(
+        session: AsyncSession, video_id: int, real_duration_ms: int | None
+    ) -> AResultCode:
+
+        a_result: AResultCode = await VideoAccess.update_video_real_duration_async(
+            session=session, video_id=video_id, real_duration_ms=real_duration_ms
+        )
+
+        if a_result.is_not_ok():
+            logger.error(f"Error updating video real duration. {a_result.info()}")
+            return AResultCode(code=a_result.code(), message=a_result.message())
+
+        return AResultCode(code=AResultCode.OK, message="OK")
+
+    @staticmethod
     async def get_video_from_public_id_async(
         session: AsyncSession, public_id: str
     ) -> AResult[VideoRow]:

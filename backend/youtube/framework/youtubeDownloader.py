@@ -1,6 +1,7 @@
-import os
 import asyncio
-from typing import Any, Callable, Coroutine, Optional
+import os
+import subprocess
+from typing import Any, Callable, Coroutine, Dict, List, Optional
 
 from yt_dlp import YoutubeDL
 
@@ -16,8 +17,28 @@ from backend.core.framework.downloader.types import DownloadStatus
 from backend.core.framework.websocket.webSocketManager import ws_manager
 
 
-def _create_youtube_dl(opts: Any) -> Any:
-    return YoutubeDL(opts)
+def _create_youtube_dl(opts: Dict[str, Any]) -> YoutubeDL:
+    return YoutubeDL(opts)  # type: ignore[arg-type]
+
+
+def _get_duration_with_ffprobe(filepath: str) -> Optional[int]:
+    try:
+        cmd: List[str] = [
+            "ffprobe",
+            "-v",
+            "error",
+            "-show_entries",
+            "format=duration",
+            "-of",
+            "default=noprint_wrappers=1:nokey=1",
+            filepath,
+        ]
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+        if result.returncode == 0 and result.stdout.strip():
+            return int(float(result.stdout.strip()) * 1000)
+    except Exception:
+        pass
+    return None
 
 
 logger = getLogger(__name__)
@@ -43,9 +64,7 @@ async def _insert_and_broadcast(
             )
         )
         if a_result.is_not_ok():
-            logger.error(
-                f"Error inserting download status. {a_result.info()}"
-            )
+            logger.error(f"Error inserting download status. {a_result.info()}")
 
     await ws_manager.broadcast_progress(
         user_id=user_id,
@@ -72,7 +91,7 @@ class YouTubeDownloader:
         progress_callback: Optional[
             Callable[[float, DownloadStatus], Coroutine[Any, Any, None]]
         ] = None,
-    ) -> AResult[str]:
+    ) -> AResult[Dict[str, Any]]:
         return await YouTubeDownloader._download_async(
             youtube_url=youtube_url,
             download_id=download_id,
@@ -101,7 +120,7 @@ class YouTubeDownloader:
                 Coroutine[Any, Any, None],
             ]
         ] = None,
-    ) -> AResult[str]:
+    ) -> AResult[Dict[str, Any]]:
         return await YouTubeDownloader._download_async(
             youtube_url=youtube_url,
             download_id=download_id,
@@ -132,7 +151,7 @@ class YouTubeDownloader:
                 Coroutine[Any, Any, None],
             ]
         ] = None,
-    ) -> AResult[str]:
+    ) -> AResult[Dict[str, Any]]:
         output_path: str = TEMP_PATH
         os.makedirs(output_path, exist_ok=True)
 
@@ -140,7 +159,7 @@ class YouTubeDownloader:
 
         expected_ext: str
         if format_type == "mp3":
-            ydl_opts: dict[str, Any] = {
+            ydl_opts: Dict[str, Any] = {
                 "format": "bestaudio/best",
                 "outtmpl": output_template,
                 "postprocessors": [
@@ -175,8 +194,8 @@ class YouTubeDownloader:
 
         loop: asyncio.AbstractEventLoop = asyncio.get_event_loop()
 
-        def progress_hook(d: dict[str, Any]) -> None:
-            status: str | None = d.get("status")
+        def progress_hook(d: Dict[str, Any]) -> None:
+            status: Optional[str] = d.get("status")
             if status == "downloading":
                 total_bytes: float = float(
                     d.get("total_bytes") or d.get("total_bytes_estimate", 0)
@@ -245,11 +264,13 @@ class YouTubeDownloader:
             final_path: str = os.path.join(output_path, final_filename)
 
             if not os.path.exists(final_path):
-                files: list[str] = os.listdir(output_path)
-                matching: list[str] = [f for f in files if f.startswith(filename)]
+                files: List[str] = os.listdir(output_path)
+                matching: List[str] = [f for f in files if f.startswith(filename)]
                 if matching:
                     final_path = os.path.join(output_path, matching[0])
                     final_filename = matching[0]
+
+            real_duration_ms: Optional[int] = _get_duration_with_ffprobe(final_path)
 
             await _insert_and_broadcast(
                 download_id=download_id,
@@ -265,7 +286,7 @@ class YouTubeDownloader:
             return AResult(
                 code=AResultCode.OK,
                 message="Download completed",
-                result=final_path,
+                result={"filepath": final_path, "duration_ms": real_duration_ms},
             )
 
         except Exception as e:

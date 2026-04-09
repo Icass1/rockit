@@ -1,6 +1,6 @@
 import os
 import shutil
-from typing import List
+from typing import Any, Dict, List
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -85,7 +85,7 @@ class YoutubeMusicDownload(BaseDownload):
             async def _progress_callback(progress: float, status: DownloadStatus):
                 await self.progress_callback(progress=progress, status=status)
 
-            a_result_download: AResult[str] = (
+            a_result_download: AResult[Dict[str, Any]] = (
                 await YouTubeDownloader.download_as_mp3_async(
                     youtube_url=youtube_url,
                     download_id=self.download_id,
@@ -105,7 +105,8 @@ class YoutubeMusicDownload(BaseDownload):
                     message=f"Download failed: {a_result_download.message()}",
                 )
 
-            downloaded_filename: str = a_result_download.result()
+            downloaded_result: Dict[str, Any] = a_result_download.result()
+            downloaded_filename: str = downloaded_result["filepath"]
 
             logger.info(f"Track downloaded successfully: {downloaded_filename}")
 

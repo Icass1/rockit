@@ -1,5 +1,6 @@
 import os
 import shutil
+from typing import Any, Dict, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.constants import MEDIA_PATH
@@ -66,7 +67,7 @@ class YoutubeDownload(BaseDownload):
 
             filename: str = f"{self.youtube_video_id}_{self.download_id}"
 
-            a_result_download: AResult[str] = (
+            a_result_download: AResult[dict[str, Any]] = (
                 await YouTubeDownloader.download_as_mp4_async(
                     youtube_url=self.youtube_url,
                     download_id=self.download_id,
@@ -85,7 +86,9 @@ class YoutubeDownload(BaseDownload):
                     message=f"Download failed: {a_result_download.message()}",
                 )
 
-            downloaded_filename: str = a_result_download.result()
+            downloaded_result: Dict[str, Any] = a_result_download.result()
+            downloaded_filename: str = downloaded_result["filepath"]
+            real_duration_ms: Optional[int] = downloaded_result.get("duration_ms")
 
             logger.info(f"Video downloaded successfully: {downloaded_filename}")
 
@@ -110,8 +113,21 @@ class YoutubeDownload(BaseDownload):
                     logger.warning(
                         f"Could not update video path in DB: {a_result_update.message()}"
                     )
+
+                if real_duration_ms is not None:
+                    a_result_duration: AResultCode = (
+                        await Video.update_video_real_duration_async(
+                            session=session,
+                            video_id=self.video_id,
+                            real_duration_ms=real_duration_ms,
+                        )
+                    )
+                    if a_result_duration.is_not_ok():
+                        logger.warning(
+                            f"Could not update video real duration in DB: {a_result_duration.message()}"
+                        )
             except Exception as e:
-                logger.warning(f"Could not update video path in DB: {e}")
+                logger.warning(f"Could not update video in DB: {e}")
 
             return AResultCode(code=AResultCode.OK, message="Download completed.")
 

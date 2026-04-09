@@ -40,6 +40,28 @@ class VideoAccess:
 
     @staticmethod
     @safe_async
+    async def update_video_real_duration_async(
+        session: AsyncSession, video_id: int, real_duration_ms: int | None
+    ) -> AResultCode:
+
+        video: VideoRow | None = await session.get(entity=VideoRow, ident=video_id)
+
+        if not video:
+            logger.error(f"Video with id {video_id} not found.")
+            return AResultCode(
+                code=AResultCode.NOT_FOUND,
+                message=f"Video with id {video_id} not found.",
+            )
+
+        video.real_duration_ms = real_duration_ms
+
+        await session.flush()
+        await session.commit()
+
+        return AResultCode(code=AResultCode.OK, message="OK")
+
+    @staticmethod
+    @safe_async
     async def get_video_from_public_id_async(
         session: AsyncSession, public_id: str
     ) -> AResult[VideoRow]:

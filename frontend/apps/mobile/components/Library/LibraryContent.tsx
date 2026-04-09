@@ -1,3 +1,4 @@
+import { useCallback, useMemo } from "react";
 import { COLORS } from "@/constants/theme";
 import type {
     BaseAlbumWithoutSongsResponse,
@@ -6,9 +7,8 @@ import type {
     BaseVideoResponse,
     TQueueMedia,
 } from "@rockit/shared";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { SectionList, StyleSheet, Text, View } from "react-native";
 import type { EContentType } from "@/hooks/useLibraryData";
-import { usePlayer } from "@/lib/PlayerContext";
 import { useVocabulary } from "@/lib/vocabulary";
 import SectionTitle from "@/components/layout/SectionTitle";
 import LibraryGrid from "@/components/Library/LibraryGrid";
@@ -23,6 +23,7 @@ interface LibraryContentProps {
     videos: BaseVideoResponse[];
     activeType: EContentType;
     viewMode: "grid" | "list";
+    playMedia?: (media: TQueueMedia, queue: TQueueMedia[]) => Promise<void>;
 }
 
 function getHref(type: string, publicId: string): string {
@@ -45,16 +46,34 @@ function formatSubtitle(type: string, item: any): string {
         case "album":
             return (
                 item.artists?.map((a: any) => a.name).join(", ") ||
-                "Unknown Artist" // TODO: This should use vocabulary.
+                "Unknown Artist"
             );
         case "playlist":
             return item.owner || "Unknown Owner";
         default:
             return (
                 item.artists?.map((a: any) => a.name).join(", ") ||
-                "Unknown Artist" // TODO: This should use vocabulary.
+                "Unknown Artist"
             );
     }
+}
+
+type ItemType = "album" | "playlist" | "song" | "video";
+
+interface FormattedItem {
+    publicId: string;
+    name: string;
+    imageUrl: string;
+    subtitle?: string;
+    href?: string;
+    originalItem: any;
+    itemType: ItemType;
+}
+
+interface Section {
+    title: string;
+    data: FormattedItem[];
+    renderType: "grid" | "list";
 }
 
 export default function LibraryContent({
@@ -64,136 +83,154 @@ export default function LibraryContent({
     videos,
     activeType,
     viewMode,
+    playMedia,
 }: LibraryContentProps) {
     const { vocabulary } = useVocabulary();
-    const { playMedia } = usePlayer();
 
-    const handleItemPress = (item: TQueueMedia, type: string) => {
-        if (type === "song") {
-            playMedia(item, songs);
-        } else if (type === "video") {
-            playMedia(item, videos);
+    const handleItemPress = useCallback(
+        (item: TQueueMedia, type: string) => {
+            if (!playMedia) return;
+
+            if (type === "song") {
+                playMedia(item, songs as TQueueMedia[]);
+            } else if (type === "video") {
+                playMedia(item, videos as TQueueMedia[]);
+            }
+        },
+        [playMedia, songs, videos]
+    );
+
+    const sections: Section[] = useMemo(() => {
+        const result: Section[] = [];
+
+        const createItems = (items: any[], type: ItemType): FormattedItem[] =>
+            items.map((item) => ({
+                publicId: item.publicId,
+                name: item.name,
+                imageUrl: item.imageUrl || "",
+                subtitle: formatSubtitle(type, item),
+                href:
+                    type === "album" || type === "playlist"
+                        ? getHref(type, item.publicId)
+                        : undefined,
+                originalItem: item,
+                itemType: type,
+            }));
+
+        if (albums.length > 0) {
+            result.push({
+                title: vocabulary.ALBUMS,
+                data: createItems(albums, "album"),
+                renderType: viewMode,
+            });
         }
-    };
+        if (playlists.length > 0) {
+            result.push({
+                title: vocabulary.PLAYLISTS,
+                data: createItems(playlists, "playlist"),
+                renderType: viewMode,
+            });
+        }
+        if (songs.length > 0) {
+            result.push({
+                title: vocabulary.SONGS,
+                data: createItems(songs, "song"),
+                renderType: viewMode,
+            });
+        }
+        if (videos.length > 0) {
+            result.push({
+                title: vocabulary.VIDEOS,
+                data: createItems(videos, "video"),
+                renderType: viewMode,
+            });
+        }
+        return result;
+    }, [albums, playlists, songs, videos, vocabulary, viewMode]);
 
-    const gridItems = (items: any[], type: string) =>
-        items.map((item) => ({
-            publicId: item.publicId,
-            name: item.name,
-            imageUrl: item.imageUrl,
-            subtitle: formatSubtitle(type, item),
-            href:
-                type === "album" || type === "playlist"
-                    ? getHref(type, item.publicId)
-                    : undefined,
-            onPress:
-                type === "song" || type === "video"
-                    ? () => handleItemPress(item, type)
-                    : undefined,
-        }));
+    const onItemPress = useCallback(
+        (item: any, itemType: ItemType) => {
+            if (itemType === "song" || itemType === "video") {
+                handleItemPress(item, itemType);
+            }
+        },
+        [handleItemPress]
+    );
 
-    const listItems = (items: any[], type: string) =>
-        items.map((item) => ({
-            publicId: item.publicId,
-            name: item.name,
-            imageUrl: item.imageUrl,
-            subtitle: formatSubtitle(type, item),
-            href:
-                type === "album" || type === "playlist"
-                    ? getHref(type, item.publicId)
-                    : undefined,
-            onPress:
-                type === "song" || type === "video"
-                    ? () => handleItemPress(item, type)
-                    : undefined,
-        }));
+    const renderSectionHeader = useCallback(
+        ({ section }: { section: Section }) => (
+            <View style={styles.sectionHeader}>
+                <SectionTitle>{section.title}</SectionTitle>
+            </View>
+        ),
+        []
+    );
+
+    const renderItem = useCallback(
+        ({ item, section }: { item: FormattedItem; section: Section }) => {
+            const onPress =
+                item.itemType === "song" || item.itemType === "video"
+                    ? () => onItemPress(item.originalItem, item.itemType)
+                    : undefined;
+
+            if (section.renderType === "grid") {
+                return (
+                    <View style={styles.gridItemWrapper}>
+                        <MediaCard
+                            imageUrl={item.imageUrl}
+                            title={item.name}
+                            subtitle={item.subtitle}
+                            href={item.href}
+                            onPress={onPress}
+                        />
+                    </View>
+                );
+            }
+            return (
+                <MediaRow
+                    imageUrl={item.imageUrl}
+                    title={item.name}
+                    subtitle={item.subtitle}
+                    href={item.href}
+                    onPress={onPress}
+                />
+            );
+        },
+        [onItemPress]
+    );
+
+    const keyExtractor = useCallback(
+        (item: FormattedItem, index: number) =>
+            `${item.itemType}-${item.publicId}-${index}`,
+        []
+    );
 
     if (activeType === "all") {
-        const sections = [
-            ...(albums.length > 0
-                ? [
-                      {
-                          title: vocabulary.ALBUMS,
-                          data: gridItems(albums, "album"),
-                          renderType: viewMode as "grid" | "list",
-                      },
-                  ]
-                : []),
-            ...(playlists.length > 0
-                ? [
-                      {
-                          title: vocabulary.PLAYLISTS,
-                          data: gridItems(playlists, "playlist"),
-                          renderType: viewMode as "grid" | "list",
-                      },
-                  ]
-                : []),
-            ...(songs.length > 0
-                ? [
-                      {
-                          title: vocabulary.SONGS,
-                          data: listItems(songs, "song"),
-                          renderType: viewMode as "grid" | "list",
-                      },
-                  ]
-                : []),
-            ...(videos.length > 0
-                ? [
-                      {
-                          title: vocabulary.VIDEOS,
-                          data: listItems(videos, "video"),
-                          renderType: viewMode as "grid" | "list",
-                      },
-                  ]
-                : []),
-        ];
+        if (sections.length === 0) {
+            return (
+                <View style={styles.emptyContainer}>
+                    <Text style={styles.emptyText}>
+                        {vocabulary.NO_RESULTS}
+                    </Text>
+                </View>
+            );
+        }
 
         return (
-            <ScrollView
-                style={styles.container}
-                contentContainerStyle={styles.sectionListContent}
+            <SectionList
+                sections={sections}
+                renderItem={renderItem}
+                renderSectionHeader={renderSectionHeader}
+                keyExtractor={keyExtractor}
+                contentContainerStyle={styles.listContent}
                 showsVerticalScrollIndicator={false}
-            >
-                {sections.map((section) => (
-                    <View key={section.title} style={styles.sectionWrapper}>
-                        <View style={styles.section}>
-                            <SectionTitle>{section.title}</SectionTitle>
-                        </View>
-                        {section.renderType === "grid" ? (
-                            <View style={styles.gridContainer}>
-                                {section.data.map((item, _) => (
-                                    <View
-                                        key={item.publicId}
-                                        style={styles.gridItemContainer}
-                                    >
-                                        <MediaCard
-                                            imageUrl={item.imageUrl}
-                                            title={item.name}
-                                            subtitle={item.subtitle}
-                                            href={item.href}
-                                            onPress={item.onPress}
-                                        />
-                                    </View>
-                                ))}
-                            </View>
-                        ) : (
-                            <View>
-                                {section.data.map((item) => (
-                                    <MediaRow
-                                        key={item.publicId}
-                                        imageUrl={item.imageUrl}
-                                        title={item.name}
-                                        subtitle={item.subtitle}
-                                        href={item.href}
-                                        onPress={item.onPress}
-                                    />
-                                ))}
-                            </View>
-                        )}
-                    </View>
-                ))}
-                <View style={{ height: 100 }} />
-            </ScrollView>
+                stickySectionHeadersEnabled={false}
+                initialNumToRender={10}
+                maxToRenderPerBatch={10}
+                windowSize={5}
+                removeClippedSubviews={true}
+                ListFooterComponent={<View style={{ height: 100 }} />}
+            />
         );
     }
 
@@ -221,7 +258,7 @@ export default function LibraryContent({
         );
     }
 
-    const typeMap: Record<string, string> = {
+    const typeMap: Record<string, ItemType> = {
         albums: "album",
         playlists: "playlist",
         songs: "song",
@@ -229,36 +266,36 @@ export default function LibraryContent({
     };
 
     const itemType = typeMap[activeType] || "song";
-    const formattedItems = listItems(items, itemType);
+    const formattedItems = items.map((item) => ({
+        publicId: item.publicId,
+        name: item.name,
+        imageUrl: item.imageUrl || "",
+        subtitle: formatSubtitle(itemType, item),
+        href:
+            itemType === "album" || itemType === "playlist"
+                ? getHref(itemType, item.publicId)
+                : undefined,
+        originalItem: item,
+        itemType,
+    }));
 
     return viewMode === "grid" ? (
-        <LibraryGrid items={formattedItems} />
+        <LibraryGrid items={formattedItems} onItemPress={onItemPress} />
     ) : (
-        <LibraryListView items={formattedItems} />
+        <LibraryListView items={formattedItems} onItemPress={onItemPress} />
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    sectionWrapper: {
-        marginBottom: 0,
-    },
-    section: {
-        marginBottom: 0,
-    },
-    sectionListContent: {
+    listContent: {
         paddingHorizontal: 16,
     },
-    gridContainer: {
-        flexDirection: "row",
-        flexWrap: "wrap",
+    sectionHeader: {
+        marginBottom: 8,
     },
-    gridItemContainer: {
+    gridItemWrapper: {
         width: "50%",
-        paddingHorizontal: 8,
-        paddingVertical: 8,
+        padding: 4,
     },
     emptyContainer: {
         flex: 1,

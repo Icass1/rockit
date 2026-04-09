@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { PLACEHOLDER } from "@/constants/assets";
 import { COLORS } from "@/constants/theme";
 import { Image } from "expo-image";
@@ -15,7 +16,7 @@ interface MediaCardProps {
     showContextMenu?: boolean;
 }
 
-export default function MediaCard({
+const MediaCardInner = memo(function MediaCardInner({
     imageUrl,
     title,
     subtitle,
@@ -62,7 +63,9 @@ export default function MediaCard({
     }
 
     return content;
-}
+});
+
+export default MediaCardInner;
 
 const styles = StyleSheet.create({
     container: {

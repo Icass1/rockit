@@ -1,57 +1,95 @@
-import { StyleSheet, View } from "react-native";
+import { memo, useCallback } from "react";
+import { FlatList, StyleSheet, View } from "react-native";
 import MediaCard from "@/components/Media/MediaCard";
+
+type ItemType = "album" | "playlist" | "song" | "video";
 
 interface LibraryItemData {
     publicId: string;
     name: string;
-    imageUrl?: string | null;
+    imageUrl: string | null | undefined;
     subtitle?: string;
     href?: string;
-    onPress?: () => void;
+    originalItem: any;
+    itemType: ItemType;
 }
 
 interface LibraryGridProps {
     items: LibraryItemData[];
+    onItemPress?: (item: any, itemType: ItemType) => void;
 }
 
-export default function LibraryGrid({ items }: LibraryGridProps) {
+const GridItem = memo(function GridItem({
+    item,
+    onPress,
+}: {
+    item: LibraryItemData;
+    onPress?: () => void;
+}) {
     return (
-        <View style={styles.container}>
-            {items.map((item, index) => (
-                <View
-                    key={item.publicId}
-                    style={[
-                        styles.gridItem,
-                        index % 2 === 0 ? styles.leftItem : styles.rightItem,
-                    ]}
-                >
-                    <MediaCard
-                        imageUrl={item.imageUrl}
-                        title={item.name}
-                        subtitle={item.subtitle}
-                        href={item.href}
-                        onPress={item.onPress}
-                    />
-                </View>
-            ))}
-        </View>
+        <MediaCard
+            imageUrl={item.imageUrl}
+            title={item.name}
+            subtitle={item.subtitle}
+            href={item.href}
+            onPress={onPress}
+        />
+    );
+});
+
+export default function LibraryGrid({ items, onItemPress }: LibraryGridProps) {
+    const renderItem = useCallback(
+        ({ item }: { item: LibraryItemData }) => (
+            <View style={styles.itemWrapper}>
+                <GridItem
+                    item={item}
+                    onPress={
+                        onItemPress &&
+                        (item.itemType === "song" || item.itemType === "video")
+                            ? () =>
+                                  onItemPress(item.originalItem, item.itemType)
+                            : undefined
+                    }
+                />
+            </View>
+        ),
+        [onItemPress]
+    );
+
+    const keyExtractor = useCallback(
+        (item: LibraryItemData, index: number) =>
+            `${item.itemType}-${item.publicId}-${index}`,
+        []
+    );
+
+    return (
+        <FlatList
+            data={items}
+            renderItem={renderItem}
+            keyExtractor={keyExtractor}
+            numColumns={2}
+            columnWrapperStyle={styles.row}
+            contentContainerStyle={styles.container}
+            showsVerticalScrollIndicator={false}
+            initialNumToRender={6}
+            maxToRenderPerBatch={6}
+            windowSize={5}
+            removeClippedSubviews={true}
+        />
     );
 }
 
 const styles = StyleSheet.create({
     container: {
-        flexDirection: "row",
-        flexWrap: "wrap",
         paddingHorizontal: 16,
+        paddingBottom: 100,
     },
-    gridItem: {
-        width: "50%",
+    row: {
+        gap: 4,
+    },
+    itemWrapper: {
+        flex: 1,
+        maxWidth: "50%",
         padding: 4,
-    },
-    leftItem: {
-        paddingRight: 2,
-    },
-    rightItem: {
-        paddingLeft: 2,
     },
 });

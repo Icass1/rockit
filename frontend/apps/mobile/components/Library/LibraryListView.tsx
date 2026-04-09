@@ -1,6 +1,8 @@
-import { useCallback } from "react";
+import { memo, useCallback } from "react";
 import { FlatList, StyleSheet, View } from "react-native";
 import MediaRow from "@/components/Media/MediaRow";
+
+type ItemType = "album" | "playlist" | "song" | "video";
 
 interface LibraryItemData {
     publicId: string;
@@ -8,24 +10,55 @@ interface LibraryItemData {
     imageUrl: string;
     subtitle?: string;
     href?: string;
-    onPress?: () => void;
+    originalItem: any;
+    itemType: ItemType;
 }
 
 interface LibraryListViewProps {
     items: LibraryItemData[];
+    onItemPress?: (item: any, itemType: ItemType) => void;
 }
 
-export default function LibraryListView({ items }: LibraryListViewProps) {
+const ListItem = memo(function ListItem({
+    item,
+    onPress,
+}: {
+    item: LibraryItemData;
+    onPress?: () => void;
+}) {
+    return (
+        <MediaRow
+            imageUrl={item.imageUrl}
+            title={item.name}
+            subtitle={item.subtitle}
+            href={item.href}
+            onPress={onPress}
+        />
+    );
+});
+
+export default function LibraryListView({
+    items,
+    onItemPress,
+}: LibraryListViewProps) {
     const renderItem = useCallback(
         ({ item }: { item: LibraryItemData }) => (
-            <MediaRow
-                imageUrl={item.imageUrl}
-                title={item.name}
-                subtitle={item.subtitle}
-                href={item.href}
-                onPress={item.onPress}
+            <ListItem
+                item={item}
+                onPress={
+                    onItemPress &&
+                    (item.itemType === "song" || item.itemType === "video")
+                        ? () => onItemPress(item.originalItem, item.itemType)
+                        : undefined
+                }
             />
         ),
+        [onItemPress]
+    );
+
+    const keyExtractor = useCallback(
+        (item: LibraryItemData, index: number) =>
+            `${item.itemType}-${item.publicId}-${index}`,
         []
     );
 
@@ -33,7 +66,7 @@ export default function LibraryListView({ items }: LibraryListViewProps) {
         <View style={styles.container}>
             <FlatList
                 data={items}
-                keyExtractor={(item) => item.publicId}
+                keyExtractor={keyExtractor}
                 renderItem={renderItem}
                 showsVerticalScrollIndicator={false}
                 initialNumToRender={10}
@@ -49,5 +82,6 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         paddingHorizontal: 16,
+        paddingBottom: 100,
     },
 });

@@ -1,6 +1,8 @@
 services:
     backend:
         container_name: rockit-beta-backend
+        env_file: ".env.production"
+
         build:
             context: .
             dockerfile: Dockerfile.backend

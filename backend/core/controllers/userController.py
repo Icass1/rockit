@@ -33,7 +33,7 @@ from backend.core.responses.baseAlbumWithoutSongsResponse import (
 from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
 from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from backend.core.responses.baseVideoResponse import BaseVideoResponse
-from core.responses.likedMediaResponse import LikedMediaResponse
+from backend.core.responses.likedMediaResponse import LikedMediaResponse
 from backend.core.responses.userSettingsResponse import UserSettingsResponse
 from backend.core.requests.updateLangRequest import UpdateLangRequest
 from backend.core.requests.updateCrossfadeRequest import UpdateCrossfadeRequest

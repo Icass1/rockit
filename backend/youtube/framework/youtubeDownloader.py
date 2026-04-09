@@ -8,6 +8,9 @@ from backend.constants import TEMP_PATH
 from backend.utils.logger import getLogger
 
 from backend.core.aResult import AResult, AResultCode
+from backend.core.access.db import rockit_db
+from backend.core.access.downloadAccess import DownloadAccess
+from backend.core.access.db.ormModels.downloadStatus import DownloadStatusRow
 
 from backend.core.framework.downloader.types import DownloadStatus
 from backend.core.framework.websocket.webSocketManager import ws_manager
@@ -18,6 +21,42 @@ def _create_youtube_dl(opts: Any) -> Any:
 
 
 logger = getLogger(__name__)
+
+
+async def _insert_and_broadcast(
+    download_id: int,
+    user_id: int,
+    public_id: str,
+    title: str,
+    artist: str,
+    status: DownloadStatus,
+    progress: float,
+    message: str,
+) -> None:
+    async with rockit_db.session_scope_async() as session:
+        a_result: AResult[DownloadStatusRow] = (
+            await DownloadAccess.create_download_status(
+                session=session,
+                download_id=download_id,
+                completed=progress,
+                message=message,
+            )
+        )
+        if a_result.is_not_ok():
+            logger.error(
+                f"Error inserting download status. {a_result.info()}"
+            )
+
+    await ws_manager.broadcast_progress(
+        user_id=user_id,
+        download_id=download_id,
+        public_id=public_id,
+        title=title,
+        artist=artist,
+        status=status,
+        progress=progress,
+        message=message,
+    )
 
 
 class YouTubeDownloader:
@@ -147,9 +186,9 @@ class YouTubeDownloader:
                     percent: float = (downloaded_bytes / total_bytes) * 100
                     loop.call_soon_threadsafe(
                         asyncio.create_task,
-                        ws_manager.broadcast_progress(
-                            user_id=user_id,
+                        _insert_and_broadcast(
                             download_id=download_id,
+                            user_id=user_id,
                             public_id=public_id,
                             title=title,
                             artist=artist,
@@ -166,9 +205,9 @@ class YouTubeDownloader:
             elif status == "finished":
                 loop.call_soon_threadsafe(
                     asyncio.create_task,
-                    ws_manager.broadcast_progress(
-                        user_id=user_id,
+                    _insert_and_broadcast(
                         download_id=download_id,
+                        user_id=user_id,
                         public_id=public_id,
                         title=title,
                         artist=artist,
@@ -186,9 +225,9 @@ class YouTubeDownloader:
         ydl_opts["progress_hooks"] = [progress_hook]
 
         try:
-            await ws_manager.broadcast_progress(
-                user_id=user_id,
+            await _insert_and_broadcast(
                 download_id=download_id,
+                user_id=user_id,
                 public_id=public_id,
                 title=title,
                 artist=artist,
@@ -212,9 +251,9 @@ class YouTubeDownloader:
                     final_path = os.path.join(output_path, matching[0])
                     final_filename = matching[0]
 
-            await ws_manager.broadcast_progress(
-                user_id=user_id,
+            await _insert_and_broadcast(
                 download_id=download_id,
+                user_id=user_id,
                 public_id=public_id,
                 title=title,
                 artist=artist,
@@ -231,9 +270,9 @@ class YouTubeDownloader:
 
         except Exception as e:
             logger.error(f"Error downloading YouTube video: {e}", exc_info=True)
-            await ws_manager.broadcast_progress(
-                user_id=user_id,
+            await _insert_and_broadcast(
                 download_id=download_id,
+                user_id=user_id,
                 public_id=public_id,
                 title=title,
                 artist=artist,

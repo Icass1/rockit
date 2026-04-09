@@ -6,9 +6,7 @@ from backend.constants import MEDIA_PATH
 from backend.utils.logger import getLogger
 from backend.core.aResult import AResult, AResultCode
 
-from backend.core.framework.downloader.types import DownloadStatus
 from backend.core.framework.downloader.baseDownload import BaseDownload
-from backend.core.framework.websocket.webSocketManager import ws_manager
 
 from backend.youtube.framework.video import Video
 from backend.youtube.framework.youtubeDownloader import YouTubeDownloader
@@ -68,21 +66,6 @@ class YoutubeDownload(BaseDownload):
 
             filename: str = f"{self.youtube_video_id}_{self.download_id}"
 
-            async def _progress_callback(
-                progress: float,
-                status: DownloadStatus,
-            ):
-                await ws_manager.broadcast_progress(
-                    user_id=self.user_id,
-                    download_id=self.download_id,
-                    public_id=self.public_id,
-                    title=video_title,
-                    artist=video_artist,
-                    status=status,
-                    progress=progress,
-                    message=f"{status}: {progress:.1f}%",
-                )
-
             a_result_download: AResult[str] = (
                 await YouTubeDownloader.download_as_mp4_async(
                     youtube_url=self.youtube_url,
@@ -92,7 +75,6 @@ class YoutubeDownload(BaseDownload):
                     artist=video_artist,
                     filename=filename,
                     user_id=self.user_id,
-                    progress_callback=_progress_callback,
                 )
             )
 

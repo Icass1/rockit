@@ -41,4 +41,6 @@ class Register:
                 detail=a_result_user.message(),
             )
 
+        logger.info(f"User {username} created successfully.")
+
         return a_result_user

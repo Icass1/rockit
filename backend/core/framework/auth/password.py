@@ -25,7 +25,9 @@ class Password:
         )
 
         if a_result_user.is_not_ok():
-            logger.error(f"Error getting user from username. {a_result_user.info()}")
+            logger.error(
+                f"Error getting user from username {username}. {a_result_user.info()}"
+            )
             return AResult(code=a_result_user.code(), message=a_result_user.message())
 
         user: UserRow = a_result_user.result()
@@ -37,5 +39,7 @@ class Password:
 
         if not await Password.verify_password(password, user.password_hash):
             return AResult(code=AResultCode.BAD_REQUEST, message="Invalid credentials")
+
+        logger.info(f"User {username} logged in successfully.")
 
         return AResult(code=AResultCode.OK, message="OK", result=user)

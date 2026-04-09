@@ -1,20 +1,23 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { COLORS } from "@/constants/theme";
-import type { FilterMode } from "@rockit/shared";
+import type { FilterMode, LibraryListsResponse } from "@rockit/shared";
+import { filterBySearch, sortItems } from "@rockit/shared";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
-import { useLibraryData } from "@/hooks/useLibraryData";
+import { useLibraryData, type EContentType } from "@/hooks/useLibraryData";
 import { PageContainer } from "@/components/layout";
 import Header from "@/components/layout/Header";
-import { LibraryScreen } from "@/components/Library";
+import LibraryScreen from "@/components/Library/LibraryScreen";
 
 export default function LibraryPage() {
     const [sortMode] = useState<FilterMode>("default");
+    const [searchQuery, setSearchQuery] = useState("");
+    const [activeType, setActiveType] = useState<EContentType>("all");
 
     const { albums, playlists, songs, videos, loading, error } = useLibraryData(
         {
             filterMode: sortMode,
-            searchQuery: "",
-            activeType: "all",
+            searchQuery,
+            activeType,
         }
     );
 
@@ -49,7 +52,11 @@ export default function LibraryPage() {
                     playlists={playlists}
                     songs={songs}
                     videos={videos}
-                    loading={loading}
+                    searchQuery={searchQuery}
+                    onSearchChange={setSearchQuery}
+                    activeType={activeType}
+                    onTypeChange={setActiveType}
+                    sortMode={sortMode}
                 />
             </PageContainer>
         </>

@@ -1,20 +1,25 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { COLORS } from "@/constants/theme";
 import { Feather } from "@expo/vector-icons";
-import type { FilterMode } from "@rockit/shared";
+import type { FilterMode, LibraryListsResponse } from "@rockit/shared";
+import { filterBySearch, sortItems } from "@rockit/shared";
 import { Pressable, StyleSheet, View } from "react-native";
-import { useLibraryData, type EContentType } from "@/hooks/useLibraryData";
+import type { EContentType } from "@/hooks/useLibraryData";
 import { useVocabulary } from "@/lib/vocabulary";
 import LibraryContent from "@/components/Library/LibraryContent";
 import LibraryFilters from "@/components/Library/LibraryFilters";
 import SearchBar from "@/components/Search/SearchBar";
 
 interface LibraryScreenProps {
-    albums: ReturnType<typeof useLibraryData>["albums"];
-    playlists: ReturnType<typeof useLibraryData>["playlists"];
-    songs: ReturnType<typeof useLibraryData>["songs"];
-    videos: ReturnType<typeof useLibraryData>["videos"];
-    loading?: boolean;
+    albums: LibraryListsResponse["albums"];
+    playlists: LibraryListsResponse["playlists"];
+    songs: LibraryListsResponse["songs"];
+    videos: LibraryListsResponse["videos"];
+    searchQuery: string;
+    onSearchChange: (query: string) => void;
+    activeType: EContentType;
+    onTypeChange: (type: EContentType) => void;
+    sortMode: FilterMode;
 }
 
 export default function LibraryScreen({
@@ -22,37 +27,54 @@ export default function LibraryScreen({
     playlists,
     songs,
     videos,
-    loading: dataLoading,
+    searchQuery,
+    onSearchChange,
+    activeType,
+    onTypeChange,
+    sortMode,
 }: LibraryScreenProps) {
     const { vocabulary } = useVocabulary();
-    const [searchQuery, setSearchQuery] = useState("");
-    const [activeType, setActiveType] = useState<EContentType>("all");
-    const [sortMode] = useState<FilterMode>("default");
     const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
-    const {
-        albums: filteredAlbums,
-        playlists: filteredPlaylists,
-        songs: filteredSongs,
-        videos: filteredVideos,
-    } = useLibraryData({
-        filterMode: sortMode,
-        searchQuery,
-        activeType,
-    });
+    const filteredAlbums = useMemo(() => {
+        const filtered =
+            activeType === "all" || activeType === "albums"
+                ? filterBySearch(albums, searchQuery)
+                : [];
+        return sortItems(filtered, sortMode);
+    }, [albums, searchQuery, activeType, sortMode]);
 
-    const finalAlbums = dataLoading ? albums : filteredAlbums;
-    const finalPlaylists = dataLoading ? playlists : filteredPlaylists;
-    const finalSongs = dataLoading ? songs : filteredSongs;
-    const finalVideos = dataLoading ? videos : filteredVideos;
+    const filteredPlaylists = useMemo(() => {
+        const filtered =
+            activeType === "all" || activeType === "playlists"
+                ? filterBySearch(playlists, searchQuery)
+                : [];
+        return sortItems(filtered, sortMode);
+    }, [playlists, searchQuery, activeType, sortMode]);
+
+    const filteredSongs = useMemo(() => {
+        const filtered =
+            activeType === "all" || activeType === "songs"
+                ? filterBySearch(songs, searchQuery)
+                : [];
+        return sortItems(filtered, sortMode);
+    }, [songs, searchQuery, activeType, sortMode]);
+
+    const filteredVideos = useMemo(() => {
+        const filtered =
+            activeType === "all" || activeType === "videos"
+                ? filterBySearch(videos, searchQuery)
+                : [];
+        return sortItems(filtered, sortMode);
+    }, [videos, searchQuery, activeType, sortMode]);
 
     return (
         <>
             <SearchBar
                 value={searchQuery}
-                onChangeText={setSearchQuery}
-                isSearching={!!dataLoading}
-                onClear={() => setSearchQuery("")}
+                onChangeText={onSearchChange}
+                isSearching={false}
+                onClear={() => onSearchChange("")}
                 placeholder={vocabulary.SEARCH_LIBRARY}
             />
 
@@ -60,7 +82,7 @@ export default function LibraryScreen({
                 <View style={styles.filtersContainer}>
                     <LibraryFilters
                         activeType={activeType}
-                        onTypeChange={setActiveType}
+                        onTypeChange={onTypeChange}
                     />
                 </View>
                 <Pressable
@@ -78,10 +100,10 @@ export default function LibraryScreen({
             </View>
 
             <LibraryContent
-                albums={finalAlbums}
-                playlists={finalPlaylists}
-                songs={finalSongs}
-                videos={finalVideos}
+                albums={filteredAlbums}
+                playlists={filteredPlaylists}
+                songs={filteredSongs}
+                videos={filteredVideos}
                 activeType={activeType}
                 viewMode={viewMode}
             />

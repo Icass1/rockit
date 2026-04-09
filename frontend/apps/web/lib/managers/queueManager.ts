@@ -3,7 +3,6 @@ import {
     BaseVideoResponse,
     CurrentQueueMessageRequestItem,
     QueueResponseItem,
-    QueueResponseItemSchema,
     QueueResponseSchema,
 } from "@/dto";
 import {

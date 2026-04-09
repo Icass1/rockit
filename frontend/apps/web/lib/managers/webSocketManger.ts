@@ -1,6 +1,13 @@
 import { BACKEND_URL } from "@/environment";
 import {
+    CurrentMediaMessageRequest,
+    CurrentQueueMessageRequest,
+    CurrentTimeMessageRequest,
     EWebSocketMessage,
+    MediaClickedMessageRequest,
+    MediaEndedMessageRequest,
+    SeekMessageRequest,
+    SkipClickedMessageRequest,
     TWebSocketIncomingMessage,
     type IWebSocketMessagePayloadMap,
     type WebSocketMessageHandler,
@@ -132,59 +139,49 @@ export class WebSocketManager {
         this.webSocket?.send(JSON.stringify(message));
     }
 
-    sendMediaEnded(data: { mediaPublicId: string; queueMediaId: number }) {
+    sendMediaEnded(data: MediaEndedMessageRequest) {
         this.send({
             type: "media_ended",
             ...data,
         });
     }
 
-    sendCurrentMedia(data: {
-        mediaPublicId: string | null;
-        queueMediaId: number;
-    }) {
+    sendCurrentMedia(data: CurrentMediaMessageRequest) {
         this.send({
             type: "current_media",
             ...data,
         });
     }
 
-    sendCurrentQueue(data: {
-        queue: { publicId: string; queueMediaId: number }[];
-        queueType: string;
-    }) {
+    sendCurrentQueue(data: CurrentQueueMessageRequest) {
         this.send({
             type: "current_queue",
             ...data,
         });
     }
 
-    sendCurrentTime(data: { currentTime: number }) {
+    sendCurrentTime(data: CurrentTimeMessageRequest) {
         this.send({
             type: "current_time",
             ...data,
         });
     }
 
-    sendMediaClicked(data: { mediaPublicId: string }) {
+    sendMediaClicked(data: MediaClickedMessageRequest) {
         this.send({
             type: "media_clicked",
             ...data,
         });
     }
 
-    sendSkipClicked(data: { mediaPublicId: string; direction: string }) {
+    sendSkipClicked(data: SkipClickedMessageRequest) {
         this.send({
             type: "skip_clicked",
             ...data,
         });
     }
 
-    sendSeek(data: {
-        mediaPublicId: string;
-        timeFrom: number;
-        timeTo: number;
-    }) {
+    sendSeek(data: SeekMessageRequest) {
         this.send({
             type: "seek",
             ...data,

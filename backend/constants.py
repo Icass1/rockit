@@ -21,7 +21,7 @@ error = False
 def get_env_str(name: str, possible_values: List[str] | None = None) -> str:
     global error
     var = os.getenv(name)
-    if not var:
+    if var is None:
         print(f"Environment variable '{name}' is not set")
         error = True
         return "NONE"

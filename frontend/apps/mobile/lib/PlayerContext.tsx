@@ -1,4 +1,11 @@
-import React, { createContext, useCallback, useContext, useState } from "react";
+import React, {
+    createContext,
+    useCallback,
+    useContext,
+    useEffect,
+    useRef,
+    useState,
+} from "react";
 import type {
     BaseSongWithoutAlbumResponse,
     BaseVideoResponse,
@@ -6,6 +13,10 @@ import type {
 } from "@rockit/shared";
 import { ERepeatMode } from "@rockit/shared";
 import type { VideoPlayer } from "expo-video";
+import {
+    AudioIntegrationService,
+    type LockScreenMetadata,
+} from "@/lib/audio/AudioIntegration";
 import { DEFAULT_CROSSFADE } from "@/lib/audio/useAudioEngine";
 import type { CrossfadeSettings } from "@/lib/audio/useAudioEngine";
 import { useMediaEngine } from "@/lib/audio/useMediaEngine";
@@ -52,6 +63,15 @@ function hasVideoSource(
     return !!(media as any).videoSrc;
 }
 
+function getLockScreenMetadata(media: TQueueMedia): LockScreenMetadata {
+    return {
+        title: media.name,
+        artist: media.artists?.[0]?.name,
+        albumTitle: "album" in media ? (media as any).album?.name : undefined,
+        artworkUrl: media.imageUrl,
+    };
+}
+
 export function PlayerProvider({ children }: { children: React.ReactNode }) {
     const [isPlaying, setIsPlaying] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -62,6 +82,65 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         useState<CrossfadeSettings>(DEFAULT_CROSSFADE);
 
     const queue = useQueue();
+    const audioIntegrationInitialized = useRef(false);
+
+    useEffect(() => {
+        if (!audioIntegrationInitialized.current) {
+            audioIntegrationInitialized.current = true;
+            AudioIntegrationService.setCallbacks({
+                onPlay: () => {
+                    play();
+                },
+                onPause: () => {
+                    pause();
+                },
+                onSeekForward: (seconds) => {
+                    seekTo(currentTime + seconds);
+                },
+                onSeekBackward: (seconds) => {
+                    seekTo(Math.max(0, currentTime - seconds));
+                },
+                onNextTrack: () => {
+                    skipForward();
+                },
+                onPreviousTrack: () => {
+                    skipBack();
+                },
+                onBluetoothConnect: () => {
+                    if (!isPlaying && queue.currentMedia) {
+                        play();
+                    }
+                },
+                onBluetoothDisconnect: () => {
+                    // Optionally pause when Bluetooth disconnects
+                },
+                onHeadsetConnect: () => {
+                    if (!isPlaying && queue.currentMedia) {
+                        play();
+                    }
+                },
+                onHeadsetDisconnect: () => {
+                    // Optionally pause when headset disconnects
+                },
+            });
+        }
+    }, []);
+
+    useEffect(() => {
+        if (isPlayerVisible && queue.currentMedia) {
+            const metadata = getLockScreenMetadata(queue.currentMedia);
+            AudioIntegrationService.setLockScreenActive(true, metadata, {
+                showSeekForward: true,
+                showSeekBackward: true,
+            });
+        } else {
+            AudioIntegrationService.setLockScreenActive(false);
+        }
+    }, [queue.currentMedia, isPlayerVisible]);
+
+    useEffect(() => {
+        AudioIntegrationService.updatePlaybackState(isPlaying);
+    }, [isPlaying]);
 
     const getUri = (
         media: BaseSongWithoutAlbumResponse | BaseVideoResponse | undefined

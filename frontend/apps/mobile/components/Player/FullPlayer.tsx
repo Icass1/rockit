@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { COLORS } from "@/constants/theme";
 import { Feather } from "@expo/vector-icons";
 import BottomSheet from "@gorhom/bottom-sheet";
@@ -41,36 +41,73 @@ export default function FullPlayer() {
         seekTo,
         hidePlayer,
         videoPlayer,
-        videoOpacity,
         hasVideo,
     } = usePlayer();
 
     const insets = useSafeAreaInsets();
     const translateY = useSharedValue(SCREEN_HEIGHT + 10);
+    const isHiding = useSharedValue(false);
+    const [keepMounted, setKeepMounted] = useState(false);
+    const prevVisible = useRef(isPlayerVisible);
     const queueSheetRef = useRef<any>(null);
     const lyricsSheetRef = useRef<any>(null);
     const crossfadeSheetRef = useRef<any>(null);
     const subPanelOpen = useRef(false);
 
-    // console.log(translateY.value);
+    const hidePlayerRef = useRef(hidePlayer);
+    hidePlayerRef.current = hidePlayer;
+
+    const callHidePlayer = useCallback(() => {
+        hidePlayerRef.current();
+    }, []);
+
+    const onHideComplete = useCallback(() => {
+        isHiding.value = false;
+        setKeepMounted(false);
+        callHidePlayer();
+    }, [isHiding, callHidePlayer]);
 
     useEffect(() => {
-        console.log("isPlayerVisible changed:", isPlayerVisible);
-        if (isPlayerVisible) {
+        if (isPlayerVisible && !prevVisible.current) {
+            isHiding.value = false;
+            setKeepMounted(false);
             translateY.value = withSpring(0, SPRING_CONFIG);
-        } else {
-            translateY.value = withSpring(OFFSET_Y, SPRING_CONFIG);
+        } else if (!isPlayerVisible && prevVisible.current) {
+            isHiding.value = true;
+            setKeepMounted(true);
+            translateY.value = withTiming(
+                OFFSET_Y,
+                { duration: 280 },
+                (finished) => {
+                    "worklet";
+                    if (finished) {
+                        runOnJS(onHideComplete)();
+                    }
+                }
+            );
         }
-    }, [isPlayerVisible, translateY]);
+        prevVisible.current = isPlayerVisible;
+    }, [isPlayerVisible, translateY, isHiding, onHideComplete]);
 
     const handleHide = useCallback(() => {
-        console.log("hiding player");
-        translateY.value = withTiming(OFFSET_Y, { duration: 280 });
-        hidePlayer();
-    }, [hidePlayer, translateY]);
+        if (isHiding.value) return;
+        isHiding.value = true;
+        setKeepMounted(true);
+        prevVisible.current = false;
+        translateY.value = withTiming(
+            OFFSET_Y,
+            { duration: 280 },
+            (finished) => {
+                "worklet";
+                if (finished) {
+                    runOnJS(onHideComplete)();
+                }
+            }
+        );
+    }, [translateY, isHiding, onHideComplete]);
 
     const panGesture = Gesture.Pan()
-        .onStart(() => {})
+        .runOnJS(true)
         .onUpdate((event) => {
             if (event.translationY > 0) {
                 translateY.value = event.translationY;
@@ -79,10 +116,8 @@ export default function FullPlayer() {
         .onEnd((event) => {
             const shouldDismiss =
                 event.translationY > SCREEN_HEIGHT / 3 || event.velocityY > 800;
-
             if (shouldDismiss) {
-                translateY.value = withSpring(OFFSET_Y, SPRING_CONFIG);
-                runOnJS(handleHide)();
+                handleHide();
             } else {
                 translateY.value = withSpring(0, SPRING_CONFIG);
             }
@@ -108,16 +143,10 @@ export default function FullPlayer() {
         crossfadeSheetRef.current?.expand();
     }, []);
 
-    console.log(
-        "currentMedia?.name, isPlayerVisible",
-        currentMedia?.name,
-        isPlayerVisible
-    );
-
-    if (!isPlayerVisible) return null;
-
     const coverUri = currentMedia?.imageUrl;
     const mediaType = currentMedia?.type;
+
+    if (!isPlayerVisible && !keepMounted) return null;
 
     return (
         <>
@@ -156,19 +185,14 @@ export default function FullPlayer() {
 
                         <View style={styles.coverContainer}>
                             {hasVideo && videoPlayer ? (
-                                <Animated.View
-                                    style={[
-                                        styles.videoContainer,
-                                        { opacity: videoOpacity },
-                                    ]}
-                                >
+                                <View style={styles.videoContainer}>
                                     <VideoView
                                         player={videoPlayer}
                                         style={styles.videoView}
                                         contentFit="contain"
                                         nativeControls={false}
                                     />
-                                </Animated.View>
+                                </View>
                             ) : (
                                 <PlayerCover
                                     uri={coverUri}

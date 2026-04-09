@@ -1,10 +1,13 @@
 /**
- * useVideoEngine — Manages expo-video player as visual layer only.
- * Should ONLY be used when track has video. Audio engine is the real playback master.
- * Handles video rendering and syncs to audio engine state.
+ * useVideoEngine — Manages expo-video player for video tracks.
+ *
+ * expo-video handles both the audio and visual tracks of a video file.
+ * Background playback is enabled via staysActiveInBackground.
+ * This engine is used exclusively for video content; audio-only tracks
+ * go through useAudioEngine instead.
  */
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useVideoPlayer, type VideoPlayer } from "expo-video";
 
 interface VideoEngineCallbacks {
@@ -16,15 +19,9 @@ interface VideoEngineCallbacks {
 }
 
 export interface VideoEngineControls {
-    player: VideoPlayer | null;
-    hasVideo: boolean;
+    player: VideoPlayer;
     attachVideo: (uri: string) => Promise<void>;
-    detachVideo: () => Promise<void>;
-    syncToAudioState: (
-        playing: boolean,
-        position: number,
-        volume?: number
-    ) => void;
+    detachVideo: () => void;
 }
 
 export function useVideoEngine(
@@ -32,37 +29,26 @@ export function useVideoEngine(
 ): VideoEngineControls {
     const callbacksRef = useRef(callbacks);
     useEffect(() => {
-        if (callbacks) {
-            callbacksRef.current = callbacks;
-        }
+        callbacksRef.current = callbacks;
     });
 
-    const [hasVideo, setHasVideo] = useState(false);
-    const [player, setPlayer] = useState<VideoPlayer | null>(null);
-
-    // Create player with null source (lazy initialization)
     const videoPlayer = useVideoPlayer(null, (p) => {
         p.loop = false;
-        p.volume = 1;
+        p.muted = false;
+        // Allow playback to continue when the app goes to background or
+        // the screen is turned off.
+        p.staysActiveInBackground = true;
     });
 
     useEffect(() => {
-        setPlayer(videoPlayer);
+        const sub1 = videoPlayer.addListener("playingChange", ({ isPlaying }) => {
+            callbacksRef.current?.onPlayingChange?.(isPlaying);
+        });
 
-        const sub1 = videoPlayer.addListener(
-            "playingChange",
-            ({ isPlaying }) => {
-                callbacksRef.current?.onPlayingChange?.(isPlaying);
-            }
-        );
-
-        const sub2 = videoPlayer.addListener(
-            "timeUpdate",
-            ({ currentTime }) => {
-                const duration = videoPlayer.duration ?? 0;
-                callbacksRef.current?.onTimeUpdate?.(currentTime, duration);
-            }
-        );
+        const sub2 = videoPlayer.addListener("timeUpdate", ({ currentTime }) => {
+            const duration = videoPlayer.duration ?? 0;
+            callbacksRef.current?.onTimeUpdate?.(currentTime, duration);
+        });
 
         const sub3 = videoPlayer.addListener("playToEnd", () => {
             callbacksRef.current?.onEnded?.();
@@ -86,47 +72,18 @@ export function useVideoEngine(
 
     const attachVideo = useCallback(
         async (uri: string) => {
-            callbacksRef.current?.onLoadStart?.();
             await videoPlayer.replaceAsync({ uri });
-            setHasVideo(true);
-            callbacksRef.current?.onLoaded?.();
         },
         [videoPlayer]
     );
 
-    const detachVideo = useCallback(async () => {
-        await videoPlayer.pause();
-        videoPlayer.volume = 0;
-        setHasVideo(false);
+    const detachVideo = useCallback(() => {
+        videoPlayer.pause();
     }, [videoPlayer]);
-
-    const syncToAudioState = useCallback(
-        (playing: boolean, position: number, volume: number = 1) => {
-            if (!hasVideo) return;
-
-            // Sync position
-            if (Math.abs(videoPlayer.currentTime - position) > 0.5) {
-                videoPlayer.currentTime = position;
-            }
-
-            // Sync volume
-            videoPlayer.volume = volume;
-
-            // Sync play/pause
-            if (playing && !videoPlayer.playing) {
-                videoPlayer.play();
-            } else if (!playing && videoPlayer.playing) {
-                videoPlayer.pause();
-            }
-        },
-        [hasVideo, videoPlayer]
-    );
 
     return {
         player: videoPlayer,
-        hasVideo,
         attachVideo,
         detachVideo,
-        syncToAudioState,
     };
 }

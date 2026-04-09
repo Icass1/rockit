@@ -1,12 +1,21 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { COLORS } from "@/constants/theme";
 import { UpdateCrossfadeRequestSchema } from "@rockit/shared";
-import { Alert, StyleSheet, Text, TextInput, View } from "react-native";
+import { Alert, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 import { apiPatchNoResponse } from "@/lib/api";
+import { AudioIntegrationService } from "@/lib/audio/AudioIntegration";
 
 export default function AudioSection() {
     const [crossfade, setCrossfade] = useState("0");
     const [isSaving, setIsSaving] = useState(false);
+    const [autoPlayBluetooth, setAutoPlayBluetooth] = useState(true);
+    const [autoPlayHeadset, setAutoPlayHeadset] = useState(true);
+
+    useEffect(() => {
+        const config = AudioIntegrationService.getConfig();
+        setAutoPlayBluetooth(config.autoPlayOnBluetoothConnect);
+        setAutoPlayHeadset(config.autoPlayOnWiredHeadsetConnect);
+    }, []);
 
     async function handleChange(value: string) {
         const num = parseInt(value, 10);
@@ -30,6 +39,20 @@ export default function AudioSection() {
         }
     }
 
+    const handleBluetoothToggle = useCallback(async (value: boolean) => {
+        setAutoPlayBluetooth(value);
+        AudioIntegrationService.setConfig({
+            autoPlayOnBluetoothConnect: value,
+        });
+    }, []);
+
+    const handleHeadsetToggle = useCallback(async (value: boolean) => {
+        setAutoPlayHeadset(value);
+        AudioIntegrationService.setConfig({
+            autoPlayOnWiredHeadsetConnect: value,
+        });
+    }, []);
+
     return (
         <View style={styles.container}>
             <View style={styles.row}>
@@ -47,6 +70,37 @@ export default function AudioSection() {
                     <Text style={styles.suffix}>seconds</Text>
                 </View>
             </View>
+
+            <View style={styles.row}>
+                <View style={styles.labelContainer}>
+                    <Text style={styles.label}>Auto-play on Bluetooth</Text>
+                    <Text style={styles.description}>
+                        Start playing when a Bluetooth device connects
+                    </Text>
+                </View>
+                <Switch
+                    value={autoPlayBluetooth}
+                    onValueChange={handleBluetoothToggle}
+                    trackColor={{ false: COLORS.gray800, true: COLORS.accent }}
+                    thumbColor={COLORS.white}
+                />
+            </View>
+
+            <View style={styles.row}>
+                <View style={styles.labelContainer}>
+                    <Text style={styles.label}>Auto-play on Headset</Text>
+                    <Text style={styles.description}>
+                        Start playing when wired headset connects
+                    </Text>
+                </View>
+                <Switch
+                    value={autoPlayHeadset}
+                    onValueChange={handleHeadsetToggle}
+                    trackColor={{ false: COLORS.gray800, true: COLORS.accent }}
+                    thumbColor={COLORS.white}
+                />
+            </View>
+
             {isSaving && <Text style={styles.saving}>Saving...</Text>}
         </View>
     );
@@ -67,6 +121,15 @@ const styles = StyleSheet.create({
     label: {
         color: COLORS.white,
         fontSize: 16,
+    },
+    labelContainer: {
+        flex: 1,
+        marginRight: 16,
+    },
+    description: {
+        color: COLORS.gray600,
+        fontSize: 12,
+        marginTop: 4,
     },
     inputRow: {
         flexDirection: "row",

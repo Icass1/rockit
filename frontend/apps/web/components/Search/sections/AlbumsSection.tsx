@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { BaseSearchResultsItem } from "@/dto/baseSearchResultsItem";
+import { BaseSearchResultsItem } from "@/dto";
 import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
 

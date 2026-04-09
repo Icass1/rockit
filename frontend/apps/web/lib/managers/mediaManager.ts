@@ -29,6 +29,7 @@ export class MediaManager {
         const res = await apiPostFetch(
             `/user/like/media`,
             LikeMediaRequestSchema,
+            LikedMediaResponseSchema,
             {
                 publicIds: [publicId],
             }
@@ -47,7 +48,7 @@ export class MediaManager {
                 );
             else
                 rockIt.notificationManager.notifyError(
-                    rockIt.vocabularyManager.vocabulary.ERROR_LIKING_MEDI
+                    rockIt.vocabularyManager.vocabulary.ERROR_LIKING_MEDIA
                 );
         }
     }

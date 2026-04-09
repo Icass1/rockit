@@ -34,22 +34,27 @@ export class PlaylistManager {
             ? `?url=${url}&playlist_public_id=${playlistPublicId}`
             : `?url=${url}`;
 
-        try {
-            const media = await apiFetch(
-                `/media/url/add${query}`,
-                BaseSongWithAlbumResponseSchema.or(BaseVideoResponseSchema)
-            );
+        const media = await apiFetch(
+            `/media/url/add${query}`,
+            BaseSongWithAlbumResponseSchema.or(BaseVideoResponseSchema)
+        );
 
+        if (media.isOk()) {
             rockIt.notificationManager.notifyInfo("Media added successfully!");
 
             if (playlistPublicId) {
                 rockIt.eventManager.dispatchEvent(EEvent.MediaAddedToPlaylist, {
-                    publicId: media.publicId,
+                    publicId: media.result.publicId,
                     playlistPublicId,
                 });
             }
-        } catch {
+        } else {
             rockIt.notificationManager.notifyError("Failed to add media.");
+            console.error(
+                "Error adding media to playlist",
+                media.message,
+                media.detail
+            );
         }
     }
 }

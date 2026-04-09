@@ -20,6 +20,7 @@ export interface Vocabulary {
     CANCEL: string;
     CHANGE_PASSWORD: string;
     CLEAR_DOWNLOADS: string;
+    CLICK_TO_DOWNLOAD: string;
     COMMUNITY_TOP: string;
     COPY_LIST_URL: string;
     COPY_SONG_URL: string;
@@ -37,15 +38,22 @@ export interface Vocabulary {
     DOWNLOAD_MEDIA_TO_DEVICE: string;
     DOWNLOAD_MP3: string;
     DOWNLOAD_SONG_TO_DEVICE: string;
+    DOWNLOAD_STARTED: string;
     DOWNLOAD_ZIP: string;
     DOWNLOADS: string;
     DURATION: string;
     ENERGY: string;
     ENTER_NEW_PLAYLIST_NAME: string;
     ERROR: string;
+    ERROR_CHANGING_LANGUAGE: string;
     ERROR_CREATING: string;
     ERROR_CREATING_PLAYLIST: string;
     ERROR_ENTER_NAME: string;
+    ERROR_GETTING_QUEUE: string;
+    ERROR_LIKING_MEDIA: string;
+    ERROR_STARTING_DOWNLOAD: string;
+    ERROR_UNLIKING_MEDIA: string;
+    FAILED_TO_CHANGE_LANGUAGE: string;
     FEATURED_ALBUMS: string;
     FEATURED_LISTS: string;
     FEBRUARY: string;
@@ -57,6 +65,7 @@ export interface Vocabulary {
     GENERAL: string;
     GENERAL_STATS: string;
     GET_INFO: string;
+    GETTING_INFO: string;
     GO_TO_ALBUM: string;
     GO_TO_ARTIST: string;
     HIDDEN_GEMS: string;
@@ -65,6 +74,7 @@ export interface Vocabulary {
     JULY: string;
     JUNE: string;
     LANGUAGE: string;
+    LANGUAGE_CHANGED: string;
     LATEST_DOWNLOADS: string;
     LEVEL_ABBR: string;
     LIBRARY: string;
@@ -74,6 +84,7 @@ export interface Vocabulary {
     LYRICS: string;
     MARCH: string;
     MAY: string;
+    MEDIA_PROGRESS: string;
     MINUTES: string;
     MINUTES_LISTEND: string;
     MINUTES_LISTENED_PER_DAY: string;
@@ -88,10 +99,12 @@ export interface Vocabulary {
     NEW_PASSWORD: string;
     NEW_PLAYLIST: string;
     NEW_PLAYLIST_NAME: string;
+    NEXT_MEDIA: string;
     NO_ALBUMS: string;
     NO_DATA: string;
     NO_LYRICS: string;
     NO_PLAYLISTS: string;
+    NO_REPEAT: string;
     NO_RESULTS: string;
     NO_SERVICE_WORKER: string;
     NO_SONGS: string;
@@ -116,6 +129,7 @@ export interface Vocabulary {
     PLAY_NEXT: string;
     PLAY_SONG: string;
     PLAYLISTS: string;
+    PREVIOUS_MEDIA: string;
     QUICK_SELECTIONS: string;
     RADIO: string;
     RADIO_EMPTY1: string;
@@ -134,6 +148,8 @@ export interface Vocabulary {
     REMOVE_FROM_LIKED: string;
     REMOVE_FROM_PLAYLIST: string;
     REMOVE_FROM_QUEUE: string;
+    REPEAT_ALL: string;
+    REPEAT_ONE: string;
     REPEAT_PASSWORD: string;
     SAVING: string;
     SEARCH: string;
@@ -176,15 +192,6 @@ export interface Vocabulary {
     YOU_MIGHT_LIKE: string;
     YOUR: string;
     YOUR_ALBUMS_PLAYLISTS: string;
-    YT_VIDEOS: string;
     YOUR_MIX: string;
-    FAILED_TO_CHANGE_LANGUAGE: string;
-    REPEAT_ONE: string;
-    REPEAT_ALL: string;
-    NO_REPEAT: string;
-    PREVIOUS_MEDIA: string;
-    NEXT_MEDIA: string;
-    MEDIA_PROGRESS: string;
-    GETTING_INFO: string;
-    CLICK_TO_DOWNLOAD: string;
+    YT_VIDEOS: string;
 }

@@ -1,6 +1,8 @@
+import { useEffect, useState } from "react";
 import { COLORS } from "@/constants/theme";
 import Slider from "@react-native-community/slider";
 import { StyleSheet, Text, View } from "react-native";
+import { usePlayerTime } from "@/lib/PlayerContext";
 
 function formatTime(seconds: number): string {
     if (!isFinite(seconds) || isNaN(seconds)) return "0:00";
@@ -10,30 +12,41 @@ function formatTime(seconds: number): string {
 }
 
 interface PlayerProgressProps {
-    currentTime: number;
-    duration: number;
     onSeek: (seconds: number) => void;
 }
 
-export default function PlayerProgress({
-    currentTime,
-    duration,
-    onSeek,
-}: PlayerProgressProps) {
+export default function PlayerProgress({ onSeek }: PlayerProgressProps) {
+    const { currentTime, duration } = usePlayerTime();
+
+    const [isSeeking, setIsSeeking] = useState(false);
+    const [seekValue, setSeekValue] = useState(currentTime);
+
+    // Sync displayed position from parent only when the user is not dragging
+    useEffect(() => {
+        if (!isSeeking) setSeekValue(currentTime);
+    }, [currentTime, isSeeking]);
+
     return (
         <View style={styles.container}>
             <Slider
                 style={styles.slider}
                 minimumValue={0}
                 maximumValue={duration > 0 ? duration : 1}
-                value={currentTime}
-                onSlidingComplete={onSeek}
+                value={seekValue}
+                onValueChange={(v) => {
+                    setIsSeeking(true);
+                    setSeekValue(v);
+                }}
+                onSlidingComplete={(v) => {
+                    setIsSeeking(false);
+                    onSeek(v);
+                }}
                 minimumTrackTintColor={COLORS.accent}
                 maximumTrackTintColor="rgba(255,255,255,0.25)"
                 thumbTintColor={COLORS.white}
             />
             <View style={styles.labels}>
-                <Text style={styles.time}>{formatTime(currentTime)}</Text>
+                <Text style={styles.time}>{formatTime(seekValue)}</Text>
                 <Text style={styles.time}>{formatTime(duration)}</Text>
             </View>
         </View>

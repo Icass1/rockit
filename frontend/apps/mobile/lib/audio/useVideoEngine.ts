@@ -38,6 +38,8 @@ export function useVideoEngine(
         // Allow playback to continue when the app goes to background or
         // the screen is turned off.
         p.staysActiveInBackground = true;
+        // Fire time updates every 250 ms (same interval as audio engine)
+        p.timeUpdateEventInterval = 0.25;
     });
 
     useEffect(() => {
@@ -47,7 +49,9 @@ export function useVideoEngine(
 
         const sub2 = videoPlayer.addListener("timeUpdate", ({ currentTime }) => {
             const duration = videoPlayer.duration ?? 0;
-            callbacksRef.current?.onTimeUpdate?.(currentTime, duration);
+            if (duration > 0) {
+                callbacksRef.current?.onTimeUpdate?.(currentTime, duration);
+            }
         });
 
         const sub3 = videoPlayer.addListener("playToEnd", () => {
@@ -59,6 +63,13 @@ export function useVideoEngine(
                 callbacksRef.current?.onLoadStart?.();
             } else if (status === "readyToPlay") {
                 callbacksRef.current?.onLoaded?.();
+                // Emit an initial time update so the player context has the
+                // correct duration as soon as the video is ready.
+                const duration = videoPlayer.duration ?? 0;
+                callbacksRef.current?.onTimeUpdate?.(
+                    videoPlayer.currentTime ?? 0,
+                    duration
+                );
             }
         });
 
@@ -79,6 +90,9 @@ export function useVideoEngine(
 
     const detachVideo = useCallback(() => {
         videoPlayer.pause();
+        // Replace with null to fully stop audio from the video track so it
+        // doesn't keep playing in the background when an audio track takes over.
+        videoPlayer.replaceAsync(null);
     }, [videoPlayer]);
 
     return {

@@ -1,3 +1,4 @@
+import { memo, useCallback } from "react";
 import type { BaseSongWithAlbumResponse } from "@rockit/shared";
 import { FlatList, StyleSheet, Text, View } from "react-native";
 import SongCard from "./SongCard";
@@ -12,22 +13,22 @@ interface HorizontalSongRowProps {
     ) => void;
 }
 
-export default function HorizontalSongRow({
+const ItemSeparator = () => <View style={{ width: 12 }} />;
+
+function HorizontalSongRow({
     title,
     songs,
     listKey,
     onSongPress,
 }: HorizontalSongRowProps) {
-    if (songs.length === 0) return null;
+    const renderItem = useCallback(
+        ({ item }: { item: BaseSongWithAlbumResponse }) => (
+            <SongCard song={item} songs={songs} onPress={onSongPress} />
+        ),
+        [songs, onSongPress]
+    );
 
-    const handlePlay = (
-        song: BaseSongWithAlbumResponse,
-        allSongs: BaseSongWithAlbumResponse[]
-    ) => {
-        if (onSongPress) {
-            onSongPress(song, allSongs);
-        }
-    };
+    if (songs.length === 0) return null;
 
     return (
         <View style={styles.container}>
@@ -38,10 +39,8 @@ export default function HorizontalSongRow({
                 keyExtractor={(item) => item.publicId}
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.listContent}
-                ItemSeparatorComponent={() => <View style={{ width: 12 }} />}
-                renderItem={({ item }) => (
-                    <SongCard song={item} songs={songs} onPress={handlePlay} />
-                )}
+                ItemSeparatorComponent={ItemSeparator}
+                renderItem={renderItem}
                 initialNumToRender={5}
                 maxToRenderPerBatch={5}
                 windowSize={5}
@@ -64,3 +63,5 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
     },
 });
+
+export default memo(HorizontalSongRow);

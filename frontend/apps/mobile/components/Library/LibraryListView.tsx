@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { FlatList, StyleSheet, View } from "react-native";
 import MediaRow from "@/components/Media/MediaRow";
 
@@ -15,21 +16,25 @@ interface LibraryListViewProps {
 }
 
 export default function LibraryListView({ items }: LibraryListViewProps) {
-    console.log("LibraryListView", items);
+    const renderItem = useCallback(
+        ({ item }: { item: LibraryItemData }) => (
+            <MediaRow
+                imageUrl={item.imageUrl}
+                title={item.name}
+                subtitle={item.subtitle}
+                href={item.href}
+                onPress={item.onPress}
+            />
+        ),
+        []
+    );
+
     return (
         <View style={styles.container}>
             <FlatList
                 data={items}
                 keyExtractor={(item) => item.publicId}
-                renderItem={({ item }) => (
-                    <MediaRow
-                        imageUrl={item.imageUrl}
-                        title={item.name}
-                        subtitle={item.subtitle}
-                        href={item.href}
-                        onPress={item.onPress}
-                    />
-                )}
+                renderItem={renderItem}
                 showsVerticalScrollIndicator={false}
                 initialNumToRender={10}
                 maxToRenderPerBatch={10}

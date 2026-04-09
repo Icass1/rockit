@@ -69,7 +69,6 @@ export default function LibraryContent({
     const { playMedia } = usePlayer();
 
     const handleItemPress = (item: TQueueMedia, type: string) => {
-        console.log("handleItemPress");
         if (type === "song") {
             playMedia(item, songs);
         } else if (type === "video") {

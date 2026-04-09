@@ -1,19 +1,19 @@
 import { useRef } from "react";
 import { COLORS } from "@/constants/theme";
 import { Feather } from "@expo/vector-icons";
-import type { BaseSongWithAlbumResponse } from "@rockit/shared";
+import type { BaseSongWithAlbumResponse, TQueueMedia } from "@rockit/shared";
 import { Image } from "expo-image";
 import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 import { Swipeable } from "react-native-gesture-handler";
 
 interface QueueItemProps {
-    media: BaseSongWithAlbumResponse;
+    media: TQueueMedia;
     index: number;
     isActive: boolean;
     isDragging?: boolean;
     drag?: () => void;
     onDelete: (index: number) => void;
-    onPlay: (media: BaseSongWithAlbumResponse, index: number) => void;
+    onPlay: (media: TQueueMedia, index: number) => void;
 }
 
 export default function QueueItem({

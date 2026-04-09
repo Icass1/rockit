@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { memo, type ReactNode } from "react";
 import { COLORS } from "@/constants/theme";
 import { Image } from "expo-image";
 import { Link } from "expo-router";
@@ -15,7 +15,7 @@ interface MediaRowProps {
     rightElement?: ReactNode;
 }
 
-export default function MediaRow({
+function MediaRow({
     imageUrl,
     title,
     subtitle,
@@ -26,8 +26,6 @@ export default function MediaRow({
     rightElement,
 }: MediaRowProps) {
     const imageSource = imageUrl;
-
-    console.log(onPress);
 
     const imageStyle = circularImage
         ? { width: imageSize, height: imageSize, borderRadius: imageSize / 2 }
@@ -106,3 +104,5 @@ const styles = StyleSheet.create({
         opacity: 0.7,
     },
 });
+
+export default memo(MediaRow);

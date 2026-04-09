@@ -9,7 +9,7 @@ const CARD_WIDTH = 140;
 interface SongCardProps {
     song: BaseSongWithAlbumResponse;
     songs: BaseSongWithAlbumResponse[];
-    onPress: (
+    onPress?: (
         song: BaseSongWithAlbumResponse,
         songs: BaseSongWithAlbumResponse[]
     ) => void;
@@ -35,7 +35,7 @@ export default function SongCard({ song, songs, onPress }: SongCardProps) {
     return (
         <Animated.View style={{ transform: [{ scale }], width: CARD_WIDTH }}>
             <TouchableOpacity
-                onPress={() => onPress(song, songs)}
+                onPress={() => onPress?.(song, songs)}
                 onPressIn={handlePressIn}
                 onPressOut={handlePressOut}
                 activeOpacity={1}

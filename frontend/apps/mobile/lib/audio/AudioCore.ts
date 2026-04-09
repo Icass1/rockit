@@ -107,6 +107,7 @@ export class AudioCore {
     async unloadDeck(deckId: DeckId): Promise<void> {
         const deck = this._decks[deckId];
         if (deck.player) {
+            deck.player.pause();
             deck.subscription?.remove();
             deck.player.remove();
         }

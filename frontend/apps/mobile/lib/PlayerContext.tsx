@@ -17,10 +17,20 @@ import {
     AudioIntegrationService,
     type LockScreenMetadata,
 } from "@/lib/audio/AudioIntegration";
-import { DEFAULT_CROSSFADE } from "@/lib/audio/useAudioEngine";
 import type { CrossfadeSettings } from "@/lib/audio/useAudioEngine";
+import { DEFAULT_CROSSFADE } from "@/lib/audio/useAudioEngine";
 import { useMediaEngine } from "@/lib/audio/useMediaEngine";
 import { useQueue } from "@/lib/audio/useQueue";
+
+interface PlayerTimeContextType {
+    currentTime: number;
+    duration: number;
+}
+
+const PlayerTimeContext = createContext<PlayerTimeContextType>({
+    currentTime: 0,
+    duration: 0,
+});
 
 interface PlayerContextType {
     currentMedia: TQueueMedia | null;
@@ -28,8 +38,6 @@ interface PlayerContextType {
     currentIndex: number;
     isPlaying: boolean;
     isLoading: boolean;
-    currentTime: number;
-    duration: number;
     isPlayerVisible: boolean;
     shuffle: boolean;
     repeatMode: ERepeatMode;
@@ -200,7 +208,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
             setCurrentTime(0);
             setDuration(0);
             await mediaEngine.loadTrack(uri, shouldHaveVideo);
-            setIsPlayerVisible(true);
+            // setIsPlayerVisible(true);
         },
         [mediaEngine, queue]
     );
@@ -281,8 +289,6 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
                 currentIndex: queue.currentIndex,
                 isPlaying,
                 isLoading,
-                currentTime,
-                duration,
                 isPlayerVisible,
                 shuffle: queue.shuffle,
                 repeatMode: queue.repeatMode,
@@ -306,7 +312,9 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
                 hidePlayer,
             }}
         >
-            {children}
+            <PlayerTimeContext.Provider value={{ currentTime, duration }}>
+                {children}
+            </PlayerTimeContext.Provider>
         </PlayerContext.Provider>
     );
 }
@@ -315,4 +323,8 @@ export function usePlayer(): PlayerContextType {
     const ctx = useContext(PlayerContext);
     if (!ctx) throw new Error("usePlayer must be used inside PlayerProvider");
     return ctx;
+}
+
+export function usePlayerTime(): PlayerTimeContextType {
+    return useContext(PlayerTimeContext);
 }

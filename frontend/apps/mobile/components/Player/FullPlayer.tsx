@@ -36,8 +36,6 @@ export default function FullPlayer() {
     const {
         currentMedia,
         isPlayerVisible,
-        currentTime,
-        duration,
         seekTo,
         hidePlayer,
         videoPlayer,
@@ -107,7 +105,6 @@ export default function FullPlayer() {
     }, [translateY, isHiding, onHideComplete]);
 
     const panGesture = Gesture.Pan()
-        .runOnJS(true)
         .onUpdate((event) => {
             if (event.translationY > 0) {
                 translateY.value = event.translationY;
@@ -117,7 +114,7 @@ export default function FullPlayer() {
             const shouldDismiss =
                 event.translationY > SCREEN_HEIGHT / 3 || event.velocityY > 800;
             if (shouldDismiss) {
-                handleHide();
+                runOnJS(handleHide)();
             } else {
                 translateY.value = withSpring(0, SPRING_CONFIG);
             }
@@ -238,11 +235,7 @@ export default function FullPlayer() {
                         </View>
 
                         <View style={styles.progressContainer}>
-                            <PlayerProgress
-                                currentTime={currentTime}
-                                duration={duration}
-                                onSeek={seekTo}
-                            />
+                            <PlayerProgress onSeek={seekTo} />
                         </View>
 
                         <View style={styles.controlsContainer}>

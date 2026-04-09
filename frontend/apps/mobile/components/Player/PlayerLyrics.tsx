@@ -6,7 +6,7 @@ import BottomSheet, {
 } from "@gorhom/bottom-sheet";
 import type { BottomSheetBackdropProps } from "@gorhom/bottom-sheet";
 import { StyleSheet, Text, View } from "react-native";
-import { usePlayer } from "@/lib/PlayerContext";
+import { usePlayer, usePlayerTime } from "@/lib/PlayerContext";
 
 interface LyricsLine {
     text: string;
@@ -24,7 +24,8 @@ interface PlayerLyricsProps {
 }
 
 export default function PlayerLyrics({ sheetRef }: PlayerLyricsProps) {
-    const { currentMedia, currentTime } = usePlayer();
+    const { currentMedia } = usePlayer();
+    const { currentTime } = usePlayerTime();
     const [lyricsState, setLyricsState] = useState<LyricsState>({
         status: "idle",
     });

@@ -342,10 +342,8 @@ export class MediaPlayerManager {
     private _handleEnded() {
         const currentMedia = rockIt.queueManager.currentMedia;
         if (currentMedia) {
-            const queueMediaId = rockIt.queueManager.currentQueueMediaId;
             rockIt.webSocketManager.sendMediaEnded({
                 mediaPublicId: currentMedia.publicId,
-                queueMediaId: queueMediaId ?? 0,
             });
         }
 

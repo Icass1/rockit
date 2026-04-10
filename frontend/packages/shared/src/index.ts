@@ -15,3 +15,5 @@ export * from "./models/types/webSocketMessages";
 export * from "./models/enums/queueType";
 export * from "./models/enums/repeatMode";
 export * from "./audio/queueLogic";
+
+export * from "./services/mediaService";

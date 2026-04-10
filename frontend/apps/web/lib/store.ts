@@ -8,16 +8,13 @@ type Primitive = boolean | number | string;
 
 export type ReadonlyIfObject<Value> = Value extends undefined
     ? Value
-    : Value extends (...args: unknown[]) => unknown
+    : Value extends (...args: any) => any
       ? Value
       : Value extends Primitive
         ? Value
-        : // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          Value extends any[]
+        : Value extends object
           ? Readonly<Value>
-          : Value extends object
-            ? Readonly<Value>
-            : Value;
+          : Value;
 
 // ─────────────────────────────────────────────
 // Tipos públicos — contratos de los átomos
@@ -96,11 +93,11 @@ export function createAtom<T>(
         },
         listen(listener) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            return baseAtom.listen(listener as any);
+            return baseAtom.listen(listener);
         },
         notify(oldValue) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            return baseAtom.notify(oldValue as any);
+            return baseAtom.notify(oldValue);
         },
         off() {
             return baseAtom.off();
@@ -121,11 +118,11 @@ export function createAtom<T>(
                 },
                 listen(listener) {
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    return baseAtom.listen(listener as any);
+                    return baseAtom.listen(listener);
                 },
                 notify(oldValue) {
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    return baseAtom.notify(oldValue as any);
+                    return baseAtom.notify(oldValue);
                 },
                 off() {
                     return baseAtom.off();
@@ -178,11 +175,11 @@ export function createArrayAtom<T>(
         },
         listen(listener) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            return baseAtom.listen(listener as any);
+            return baseAtom.listen(listener);
         },
         notify(oldValue) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            return baseAtom.notify(oldValue as any);
+            return baseAtom.notify(oldValue);
         },
         off() {
             return baseAtom.off();

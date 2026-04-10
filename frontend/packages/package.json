@@ -10,5 +10,8 @@
         "./models/*": "./shared/src/models/*",
         "./types/*": "./shared/src/types/*",
         "./environment": "./shared/src/environment"
+    },
+    "dependencies": {
+        "@types/node": "^25.6.0"
     }
 }

@@ -71,14 +71,14 @@ function hasVideoSource(
     media: BaseSongWithoutAlbumResponse | BaseVideoResponse | null
 ): boolean {
     if (!media) return false;
-    return !!(media as any).videoSrc;
+    return "videoSrc" in media && !!media.videoSrc;
 }
 
 function getLockScreenMetadata(media: TQueueMedia): LockScreenMetadata {
     return {
         title: media.name,
         artist: media.artists?.[0]?.name,
-        albumTitle: "album" in media ? (media as any).album?.name : undefined,
+        albumTitle: "album" in media ? media.album?.name : undefined,
         artworkUrl: media.imageUrl,
     };
 }
@@ -161,7 +161,10 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         media: BaseSongWithoutAlbumResponse | BaseVideoResponse | undefined
     ): string | null => {
         if (!media) return null;
-        return (media as any).audioSrc ?? (media as any).videoSrc ?? null;
+        if (media.type === "video") {
+            return media.audioSrc ?? media.videoSrc ?? null;
+        }
+        return media.audioSrc;
     };
 
     const mediaEngine = useMediaEngine({
@@ -230,7 +233,9 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
             currentTimeRef.current = 0;
             setDuration(0);
             await mediaEngine.loadTrack(uri, shouldHaveVideo);
-            webSocketManager.sendMediaClicked({ mediaPublicId: media.publicId });
+            webSocketManager.sendMediaClicked({
+                mediaPublicId: media.publicId,
+            });
             webSocketManager.sendCurrentMedia({
                 mediaPublicId: media.publicId,
                 queueMediaId: index,

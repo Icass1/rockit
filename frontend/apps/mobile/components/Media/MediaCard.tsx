@@ -59,7 +59,7 @@ const MediaCardInner = memo(function MediaCardInner({
     }
 
     if (href) {
-        return <Link href={href as any}>{content}</Link>;
+        return <Link href={href as never}>{content}</Link>;
     }
 
     return content;

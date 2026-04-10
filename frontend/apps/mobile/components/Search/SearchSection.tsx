@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import type { BaseSearchResultsItem } from "@rockit/shared";
-import { useRouter } from "expo-router";
 import { FlatList, StyleSheet, View } from "react-native";
+import { useTypedRouter } from "@/lib/useTypedRouter";
 import SectionTitle from "@/components/layout/SectionTitle";
 import ArtistAvatar from "@/components/Media/ArtistAvatar";
 import MediaCard from "@/components/Media/MediaCard";
@@ -20,13 +20,13 @@ export default function SearchSection({
     items,
     layout = "row",
 }: SearchSectionProps) {
-    const router = useRouter();
+    const { push } = useTypedRouter();
 
     const handlePress = useCallback(
         (item: BaseSearchResultsItem) => {
-            router.push(item.url as any);
+            push(item.url);
         },
-        [router]
+        [push]
     );
 
     const renderGridItem = useCallback(

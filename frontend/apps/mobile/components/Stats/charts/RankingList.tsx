@@ -2,8 +2,8 @@ import { useCallback, useMemo } from "react";
 import { COLORS } from "@/constants/theme";
 import type { StatsRankedItemResponse } from "@rockit/shared";
 import { Image } from "expo-image";
-import { useRouter } from "expo-router";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { useTypedRouter } from "@/lib/useTypedRouter";
 
 interface RankingListProps {
     items: StatsRankedItemResponse[];
@@ -18,7 +18,7 @@ export default function RankingList({
     valueLabel = "",
     maxItems,
 }: RankingListProps) {
-    const router = useRouter();
+    const { push } = useTypedRouter();
 
     const displayItems = useMemo(() => {
         const sorted = [...items].sort((a, b) => b.value - a.value);
@@ -29,9 +29,11 @@ export default function RankingList({
 
     const handlePress = useCallback(
         (href: string) => {
-            router.push(href as any);
+            if (href) {
+                push(href);
+            }
         },
-        [router]
+        [push]
     );
 
     const renderItem = useCallback(

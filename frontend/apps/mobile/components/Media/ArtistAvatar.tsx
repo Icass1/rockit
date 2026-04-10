@@ -41,7 +41,7 @@ export default function ArtistAvatar({
     );
 
     if (href) {
-        return <Link href={href as any}>{content}</Link>;
+        return <Link href={href as never}>{content}</Link>;
     }
 
     return (

@@ -2,22 +2,24 @@ import { useCallback } from "react";
 import { COLORS } from "@/constants/theme";
 import type { StatsRankedItemResponse } from "@rockit/shared";
 import { Image } from "expo-image";
-import { useRouter } from "expo-router";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { useTypedRouter } from "@/lib/useTypedRouter";
 
 interface AlbumGridProps {
     albums: StatsRankedItemResponse[];
 }
 
 export default function AlbumGrid({ albums }: AlbumGridProps) {
-    const router = useRouter();
+    const { push } = useTypedRouter();
     const maxValue = albums[0]?.value || 1;
 
     const handlePress = useCallback(
         (href: string) => {
-            router.push(href as any);
+            if (href) {
+                push(href);
+            }
         },
-        [router]
+        [push]
     );
 
     const renderItem = useCallback(

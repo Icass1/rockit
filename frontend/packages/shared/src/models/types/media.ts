@@ -1,6 +1,8 @@
 import {
+    BaseAlbumWithoutSongsResponse,
     BaseAlbumWithSongsResponse,
     BaseArtistResponse,
+    BasePlaylistForPlaylistResponse,
     BasePlaylistResponse,
     BaseSongWithAlbumResponse,
     BaseStationResponse,
@@ -16,7 +18,9 @@ export type TQueueMedia = BaseSongWithAlbumResponse | BaseVideoResponse;
 
 export type TListMedia =
     | BasePlaylistResponse
+    | BasePlaylistForPlaylistResponse
     | BaseAlbumWithSongsResponse
+    | BaseAlbumWithoutSongsResponse
     | BaseArtistResponse;
 export type TMedia = TPlayableMedia | TListMedia;
 export type DownloadableMediaType =

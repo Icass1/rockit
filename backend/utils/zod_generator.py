@@ -47,7 +47,9 @@ def to_camel_case(name: str) -> str:
     return result
 
 
-def get_base_models_from_folder(folder: str) -> tuple[list[type[BaseModel]], dict[str, type]]:
+def get_base_models_from_folder(
+    folder: str,
+) -> tuple[list[type[BaseModel]], dict[str, type]]:
     base_models: list[type[BaseModel]] = []
     type_aliases: dict[str, type] = {}
     folder_path = BASE_DIR / folder
@@ -83,16 +85,41 @@ def get_base_models_from_folder(folder: str) -> tuple[list[type[BaseModel]], dic
     return base_models, type_aliases
 
 
+def _parse_type_from_repr(
+    type_repr: str, known_types: dict[str, type]
+) -> tuple[str, list[type]] | None:
+    """Parse a type from its repr string like '<class '...PlaylistResponseItem[BaseSongWithAlbumResponse]'>'."""
+    match = re.match(r"^<class '(.+)'>$", type_repr)
+    if match:
+        type_repr = match.group(1)
+    match = re.match(r"^([\w.]+)\[([\w,.\s]+)\]$", type_repr)
+    if not match:
+        return None
+    full_base_name = match.group(1)
+    base_name = full_base_name.split(".")[-1]
+    if base_name not in known_types:
+        return None
+    args_str = match.group(2)
+    type_args: List[type] = []
+    for part in args_str.split(","):
+        part = part.strip().split(".")[-1]
+        if part in known_types:
+            type_args.append(known_types[part])
+    if type_args:
+        return (base_name, type_args)
+    return None
+
+
 def convert_type_to_zod(
     field_type: type,
     known_types: dict[str, str],
+    known_type_objects: dict[str, type],
     current_file: str,
     schema_refs: set[str],
 ) -> str:
     origin = get_origin(field_type)
     args = get_args(field_type)
 
-    # Handle Enum types
     if origin is None and inspect.isclass(field_type) and issubclass(field_type, Enum):
         enum_members = list(field_type)
         if enum_members and all(isinstance(m.value, str) for m in enum_members):
@@ -109,19 +136,51 @@ def convert_type_to_zod(
             if target_file != current_file:
                 schema_refs.add(target_file)
             return f"z.lazy(() => {field_type.__name__}Schema)"
+        if hasattr(field_type, "model_fields"):
+            parsed = _parse_type_from_repr(repr(field_type), known_type_objects)
+            if parsed:
+                base_name, type_args = parsed
+                target_file = known_types[base_name]
+                if target_file != current_file:
+                    schema_refs.add(target_file)
+                inner_types = [
+                    convert_type_to_zod(
+                        arg, known_types, known_type_objects, current_file, schema_refs
+                    )
+                    for arg in type_args
+                ]
+                inner = ", ".join(inner_types)
+                return f"z.lazy(() => {base_name}Schema).unwrap().extend({{ item: z.union([{inner}]) }})"
         return "z.any()"
+
+    if origin is not None and args and hasattr(origin, "__name__"):
+        base_name = origin.__name__
+        if base_name in known_types and base_name not in ("Sequence", "List"):
+            target_file = known_types[base_name]
+            if target_file != current_file:
+                schema_refs.add(target_file)
+            inner_types = [
+                convert_type_to_zod(
+                    arg, known_types, known_type_objects, current_file, schema_refs
+                )
+                for arg in args
+            ]
+            inner = ", ".join(inner_types)
+            return f"z.lazy(() => {base_name}Schema).unwrap().extend({{ item: z.union([{inner}]) }})"
 
     if origin is list or origin is Sequence or origin is ABCSequence:
         if args:
             inner_type = convert_type_to_zod(
-                args[0], known_types, current_file, schema_refs
+                args[0], known_types, known_type_objects, current_file, schema_refs
             )
             return f"z.array({inner_type})"
         return "z.array(z.any())"
 
     if origin is Optional:
         if args:
-            inner = convert_type_to_zod(args[0], known_types, current_file, schema_refs)
+            inner = convert_type_to_zod(
+                args[0], known_types, known_type_objects, current_file, schema_refs
+            )
             return f"{inner}.nullable()"
         return "z.string().nullable()"
 
@@ -142,13 +201,19 @@ def convert_type_to_zod(
             if len(non_none_args) == 1:
                 return (
                     convert_type_to_zod(
-                        non_none_args[0], known_types, current_file, schema_refs
+                        non_none_args[0],
+                        known_types,
+                        known_type_objects,
+                        current_file,
+                        schema_refs,
                     )
                     + ".nullable()"
                 )
             if len(non_none_args) > 1:
                 union_parts = [
-                    convert_type_to_zod(arg, known_types, current_file, schema_refs)
+                    convert_type_to_zod(
+                        arg, known_types, known_type_objects, current_file, schema_refs
+                    )
                     for arg in non_none_args
                 ]
                 is_optional = any(arg is type(None) for arg in args)
@@ -161,10 +226,10 @@ def convert_type_to_zod(
     if origin is dict or origin is Dict:
         if args:
             key_type = convert_type_to_zod(
-                args[0], known_types, current_file, schema_refs
+                args[0], known_types, known_type_objects, current_file, schema_refs
             )
             value_type = convert_type_to_zod(
-                args[1], known_types, current_file, schema_refs
+                args[1], known_types, known_type_objects, current_file, schema_refs
             )
             return f"z.record({key_type}, {value_type})"
         return "z.record(z.string(), z.any())"
@@ -175,6 +240,7 @@ def convert_type_to_zod(
 def generate_zod_schema(
     model: type[BaseModel],
     known_types: dict[str, str],
+    known_type_objects: dict[str, type],
     current_file: str,
 ) -> tuple[str, set[str]]:
     lines: list[str] = []
@@ -188,7 +254,7 @@ def generate_zod_schema(
             fields[field_name] = "z.any()"
             continue
         zod_type = convert_type_to_zod(
-            field_type, known_types, current_file, schema_refs
+            field_type, known_types, known_type_objects, current_file, schema_refs
         )
         # Handle default values from Pydantic Field(default_factory=list)
         if field_info.default_factory is not None:
@@ -222,10 +288,13 @@ def generate_zod_type_alias(
     alias_name: str,
     alias_type: type,
     known_types: dict[str, str],
+    known_type_objects: dict[str, type],
     current_file: str,
 ) -> tuple[str, set[str]]:
     schema_refs: set[str] = set()
-    zod_type = convert_type_to_zod(alias_type, known_types, current_file, schema_refs)
+    zod_type = convert_type_to_zod(
+        alias_type, known_types, known_type_objects, current_file, schema_refs
+    )
     lines = [
         f"export const {alias_name}Schema = {zod_type};",
         f"\nexport type {alias_name} = z.infer<typeof {alias_name}Schema>;",
@@ -254,12 +323,15 @@ async def generate_zod_schemas() -> None:
     logger.info(f"Found {len(type_aliases)} type aliases")
 
     known_types: dict[str, str] = {}
-    for model_name in all_models:
+    known_type_objects: dict[str, type] = {}
+    for model_name, model in all_models.items():
         file_name = to_camel_case(model_name)
         known_types[model_name] = file_name
-    for alias_name in type_aliases:
+        known_type_objects[model_name] = model
+    for alias_name, alias_type in type_aliases.items():
         file_name = to_camel_case(alias_name)
         known_types[alias_name] = file_name
+        known_type_objects[alias_name] = alias_type
 
     output_dir = BASE_DIR / "frontend" / "packages" / "shared" / "src" / "dto"
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -268,7 +340,9 @@ async def generate_zod_schemas() -> None:
 
     for model_name, model in all_models.items():
         file_name = to_camel_case(model_name)
-        schema, refs = generate_zod_schema(model, known_types, file_name)
+        schema, refs = generate_zod_schema(
+            model, known_types, known_type_objects, file_name
+        )
 
         import_lines: list[str] = ['import { z } from "zod";']
         schema_names_imported: set[str] = set()
@@ -291,7 +365,9 @@ async def generate_zod_schemas() -> None:
 
     for alias_name, alias_type in type_aliases.items():
         file_name = to_camel_case(alias_name)
-        schema, refs = generate_zod_type_alias(alias_name, alias_type, known_types, file_name)
+        schema, refs = generate_zod_type_alias(
+            alias_name, alias_type, known_types, known_type_objects, file_name
+        )
 
         import_lines: list[str] = ['import { z } from "zod";']
         schema_names_imported: set[str] = set()

@@ -25,7 +25,7 @@ function MediaRow({
     circularImage = false,
     rightElement,
 }: MediaRowProps) {
-    console.log("imageUrl", imageUrl);
+    console.log("MediaRow href:", { href });
 
     const imageStyle = circularImage
         ? { width: imageSize, height: imageSize, borderRadius: imageSize / 2 }
@@ -66,7 +66,7 @@ function MediaRow({
     }
 
     if (href) {
-        return <Link href={href as never}>{content}</Link>;
+        return <Link href={("(app)/" + href) as never}>{content}</Link>;
     }
 
     return content;

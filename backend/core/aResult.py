@@ -38,6 +38,8 @@ class AResultCode:
             return 400
         if self._code == AResultCode.NOT_IMPLEMENTED:
             return 501
+        if self._code == AResultCode.VALIDATION_ERROR:
+            return 403
 
         raise Exception(f"Code {self._code} not implemented")
 
@@ -60,6 +62,8 @@ class AResultCode:
             return "BAD_REQUEST"
         if self._code == AResultCode.NOT_IMPLEMENTED:
             return "NOT_IMPLEMENTED"
+        if self._code == AResultCode.VALIDATION_ERROR:
+            return "VALIDATION_ERROR"
 
         raise Exception(f"Code {self._code} not implemented")
 

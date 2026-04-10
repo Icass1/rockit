@@ -496,7 +496,12 @@ class YoutubeMusicAccess:
             os.makedirs(os.path.dirname(full_path), exist_ok=True)
             with open(full_path, "wb") as f:
                 f.write(response.content)
-            img = ImageRow(public_id=create_id(32), url=url, path=filename)
+            img = ImageRow(
+                public_id=create_id(32), url=url, path="youtubeMusic/" + filename
+            )
+            logger.debug(
+                f"Image created: {img.public_id} from url {url} saved to {img.path}"
+            )
             session.add(img)
             await session.flush()
             return AResult(code=AResultCode.OK, message="OK", result=img)

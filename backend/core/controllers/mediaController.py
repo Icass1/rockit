@@ -180,6 +180,9 @@ async def get_image(request: Request, public_id: str) -> FileResponse:
     image_path: str = IMAGES_PATH + "/" + image.path
 
     if not os.path.exists(image_path):
+        logger.error(
+            f"Image with public_id {public_id} found in database but not in filesystem at path {image_path}"
+        )
         raise HTTPException(
             status_code=404, detail="Image in database but not in filesystem."
         )

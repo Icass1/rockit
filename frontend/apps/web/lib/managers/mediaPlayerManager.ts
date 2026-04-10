@@ -164,7 +164,6 @@ export class MediaPlayerManager {
         if (!this._audio) return;
         rockIt.queueManager.clearCurrentMedia();
         this._audio.src = url;
-        console.log("playStream", { url });
         this._audio.volume = this._volumeAtom.get();
         this._audio
             .play()
@@ -288,8 +287,6 @@ export class MediaPlayerManager {
 
         this._video.volume = this._volumeAtom.get();
         this._video.src = videoSrc;
-
-        console.log("setVideo", { videoSrc });
 
         if (useSavedCurrentTime) {
             const savedTimeMs = rockIt.userManager.user?.currentTimeMs ?? 0;

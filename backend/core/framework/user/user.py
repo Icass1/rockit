@@ -607,7 +607,7 @@ class User:
 
     @staticmethod
     async def update_user_current_time(
-        session: AsyncSession, user_id: int, current_time: float
+        session: AsyncSession, user_id: int, current_time_ms: int
     ) -> AResult[bool]:
         """Update user's current playback time."""
 
@@ -619,7 +619,7 @@ class User:
             return AResult(code=a_result_user.code(), message=a_result_user.message())
 
         user: UserRow = a_result_user.result()
-        user.current_time = current_time
+        user.current_time_ms = current_time_ms
 
         await session.commit()
 

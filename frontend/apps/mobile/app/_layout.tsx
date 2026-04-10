@@ -6,6 +6,7 @@ import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { VocabularyProvider } from "@/lib/vocabulary";
+import { webSocketManager } from "@/lib/webSocketManager";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -21,6 +22,7 @@ const RockItTheme = {
 export default function RootLayout() {
     useEffect(() => {
         SplashScreen.hideAsync();
+        webSocketManager.init();
     }, []);
 
     return (

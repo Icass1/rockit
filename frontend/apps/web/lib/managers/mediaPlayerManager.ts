@@ -8,7 +8,7 @@ import { EQueueAction } from "@/models/enums/queueAction";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createAtom } from "@/lib/store";
 
-const WS_TIME_SYNC_INTERVAL_MS = 5000;
+const WS_TIME_SYNC_INTERVAL_MS = 1000;
 
 export class MediaPlayerManager {
     static #instance: MediaPlayerManager;
@@ -42,7 +42,7 @@ export class MediaPlayerManager {
         this._audio.ontimeupdate = () => this._handleTimeUpdate();
         this._audio.onended = () => this._handleEnded();
         this._audio.onerror = (e) => {
-            console.warn("MediaPlayerManager: audio error", e);
+            console.error("MediaPlayerManager: audio error", e);
             this._loadingAtom.set(false);
             this._playingAtom.set(false);
         };
@@ -58,7 +58,7 @@ export class MediaPlayerManager {
         this._video.ontimeupdate = () => this._handleTimeUpdate();
         this._video.onended = () => this._handleEnded();
         this._video.onerror = (e) => {
-            console.warn("MediaPlayerManager: video error", e);
+            console.error("MediaPlayerManager: video error", e);
             this._loadingAtom.set(false);
             this._playingAtom.set(false);
         };
@@ -68,7 +68,10 @@ export class MediaPlayerManager {
     }
 
     play() {
-        console.log("MediaPlayerManager.play");
+        console.log(
+            "MediaPlayerManager.play",
+            rockIt.queueManager.currentMedia
+        );
 
         const currentMedia = rockIt.queueManager.currentMedia;
         if (!currentMedia) return;
@@ -161,6 +164,7 @@ export class MediaPlayerManager {
         if (!this._audio) return;
         rockIt.queueManager.clearCurrentMedia();
         this._audio.src = url;
+        console.log("playStream", { url });
         this._audio.volume = this._volumeAtom.get();
         this._audio
             .play()
@@ -231,19 +235,19 @@ export class MediaPlayerManager {
         this._crossFadeAtom.set(Math.max(0, Math.min(12, seconds)));
     }
 
-    setMedia() {
+    setMedia(useSavedCurrentTime: boolean = false) {
         console.log("MediaPlayerManager.setMedia");
         const currentMedia = rockIt.queueManager.currentMedia;
         if (!currentMedia) return;
 
         if (currentMedia?.type === "video") {
-            this.setVideo();
+            this.setVideo(useSavedCurrentTime);
         } else {
-            this.setAudio();
+            this.setAudio(useSavedCurrentTime);
         }
     }
 
-    private setAudio() {
+    private setAudio(useSavedCurrentTime: boolean = false) {
         console.log("MediaPlayerManager.setAudio");
 
         this.clearVideo();
@@ -258,15 +262,19 @@ export class MediaPlayerManager {
         this._audio.volume = this._volumeAtom.get();
         this._audio.src = audioSrc;
 
-        const savedTimeMs = rockIt.userManager.user?.currentTimeMs ?? 0;
-        if (savedTimeMs > 0) {
-            this._audio.currentTime = savedTimeMs / 1000;
+        if (useSavedCurrentTime) {
+            const savedTimeMs = rockIt.userManager.user?.currentTimeMs ?? 0;
+            if (savedTimeMs > 0) {
+                this._audio.currentTime = savedTimeMs / 1000;
+            }
+        } else {
+            this._audio.currentTime = 0;
         }
 
         this._sendCurrentMedia(currentMedia);
     }
 
-    private setVideo() {
+    private setVideo(useSavedCurrentTime: boolean = false) {
         console.log("MediaPlayerManager.setVideo");
 
         this.clearAudio();
@@ -281,9 +289,15 @@ export class MediaPlayerManager {
         this._video.volume = this._volumeAtom.get();
         this._video.src = videoSrc;
 
-        const savedTimeMs = rockIt.userManager.user?.currentTimeMs ?? 0;
-        if (savedTimeMs > 0) {
-            this._video.currentTime = savedTimeMs / 1000;
+        console.log("setVideo", { videoSrc });
+
+        if (useSavedCurrentTime) {
+            const savedTimeMs = rockIt.userManager.user?.currentTimeMs ?? 0;
+            if (savedTimeMs > 0) {
+                this._video.currentTime = savedTimeMs / 1000;
+            }
+        } else {
+            this._video.currentTime = 0;
         }
 
         this._sendCurrentMedia(currentMedia);
@@ -295,7 +309,8 @@ export class MediaPlayerManager {
 
         this._video.pause();
         this._video.currentTime = 0;
-        this._video.src = "";
+        this._video.removeAttribute("src");
+        this._video.load();
     }
 
     private clearAudio() {
@@ -304,7 +319,8 @@ export class MediaPlayerManager {
 
         this._audio.pause();
         this._audio.currentTime = 0;
-        this._audio.src = "";
+        this._audio.removeAttribute("src");
+        this._audio.load();
     }
 
     private _sendCurrentMedia(currentMedia: TPlayableMedia) {
@@ -335,7 +351,9 @@ export class MediaPlayerManager {
         const now = Date.now();
         if (now - this._lastWsSyncTime >= WS_TIME_SYNC_INTERVAL_MS) {
             this._lastWsSyncTime = now;
-            rockIt.webSocketManager.sendCurrentTime({ currentTime: time });
+            rockIt.webSocketManager.sendCurrentTime({
+                currentTimeMs: Math.round(time * 1000),
+            });
         }
     }
 

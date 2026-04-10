@@ -26,6 +26,7 @@ export class WebSocketManager {
 
     private _webSocket?: WebSocket;
     private _init = false;
+    private _connecting = false;
     private _messageHandlers: Map<
         EWebSocketMessage,
         Set<WebSocketMessageHandler<EWebSocketMessage>>
@@ -78,12 +79,14 @@ export class WebSocketManager {
     }
 
     async init() {
-        if (this._init) return;
+        if (this._init || this._connecting) return;
 
         this._attemptReconnect();
     }
 
     private async _attemptReconnect() {
+        if (this._connecting) return;
+        this._connecting = true;
         const maxRetries = 5;
         let retries = 0;
 
@@ -104,12 +107,14 @@ export class WebSocketManager {
 
                 this._webSocket.onopen = () => {
                     this._init = true;
+                    this._connecting = false;
                 };
 
                 this._webSocket.onmessage = this._onMessageHandler;
 
                 this._webSocket.onclose = () => {
                     this._init = false;
+                    this._connecting = false;
                     this._attemptReconnect();
                 };
 
@@ -118,6 +123,7 @@ export class WebSocketManager {
                 retries++;
             }
         }
+        this._connecting = false;
     }
 
     async send(message: object) {

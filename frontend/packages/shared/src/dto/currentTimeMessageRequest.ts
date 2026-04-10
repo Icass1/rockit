@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const CurrentTimeMessageRequestSchema = z.object({
-    currentTime: z.number(),
+    currentTimeMs: z.number(),
 });
 
 export type CurrentTimeMessageRequest = z.infer<

@@ -58,6 +58,13 @@ export function PlayableMedia({
                 (m): m is TPlayableMedia =>
                     m.type === "song" || m.type === "video"
             );
+
+            console.log(
+                "PlayableMedia.handleClick: playableMedia",
+                playableMedia,
+                $media.publicId
+            );
+
             rockIt.queueManager.setMedia(playableMedia, "album", listPublicId);
             rockIt.queueManager.moveToMedia($media.publicId);
             rockIt.mediaPlayerManager.play();

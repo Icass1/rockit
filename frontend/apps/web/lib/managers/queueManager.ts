@@ -67,7 +67,7 @@ export class QueueManager {
 
             this._currentMediaAtom.set(currentMedia?.media);
             this._currentListAtom.set(currentMedia?.listPublicId);
-            rockIt.mediaPlayerManager.setMedia();
+            rockIt.mediaPlayerManager.setMedia(true);
         }
     }
 

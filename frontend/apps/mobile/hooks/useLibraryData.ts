@@ -48,6 +48,8 @@ export function useLibraryData(options: {
         LibraryListsResponseSchema
     );
 
+    console.log(data);
+
     const filtered = useMemo(() => {
         if (!data) return [];
 

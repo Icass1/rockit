@@ -23,7 +23,7 @@ import { useMediaEngine } from "@/lib/audio/useMediaEngine";
 import { useQueue } from "@/lib/audio/useQueue";
 import { webSocketManager } from "@/lib/webSocketManager";
 
-const WS_TIME_SYNC_INTERVAL_MS = 5000;
+const WS_TIME_SYNC_INTERVAL_MS = 1000;
 
 interface PlayerTimeContextType {
     currentTime: number;
@@ -176,7 +176,9 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
             const now = Date.now();
             if (now - lastWsSyncTimeRef.current >= WS_TIME_SYNC_INTERVAL_MS) {
                 lastWsSyncTimeRef.current = now;
-                webSocketManager.sendCurrentTime({ currentTime: pos });
+                webSocketManager.sendCurrentTime({
+                    currentTimeMs: Math.round(pos * 1000),
+                });
             }
         },
         onPlayingChange: setIsPlaying,

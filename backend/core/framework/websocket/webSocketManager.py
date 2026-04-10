@@ -160,7 +160,7 @@ class WebSocketManager:
                     await User.update_user_current_time(
                         session=session,
                         user_id=user_id,
-                        current_time=current_time_msg.currentTime,
+                        current_time_ms=current_time_msg.currentTimeMs,
                     )
                 )
                 if a_result_update_current_time.is_not_ok():

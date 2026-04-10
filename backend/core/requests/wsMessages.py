@@ -28,7 +28,7 @@ class CurrentQueueMessageRequest(BaseModel):
 
 
 class CurrentTimeMessageRequest(BaseModel):
-    currentTime: float
+    currentTimeMs: int
 
 
 class MediaClickedMessageRequest(BaseModel):

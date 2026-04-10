@@ -2,12 +2,15 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { COLORS } from "@/constants/theme";
 import {
     DownloadsResponseSchema,
+    EWebSocketMessage,
     MediaResponseSchema,
     OkResponseSchema,
     StartDownloadRequestSchema,
     StartDownloadResponseSchema,
 } from "@rockit/shared";
-import { apiGet, apiPost, BACKEND_URL } from "@/lib/api";
+import type { DownloadProgressMessage } from "@rockit/shared";
+import { apiGet, apiPost } from "@/lib/api";
+import { webSocketManager } from "@/lib/webSocketManager";
 
 export interface DownloadInfo {
     publicId: string;
@@ -32,7 +35,6 @@ export interface DownloadGroup {
 
 export function useDownloads() {
     const [downloads, setDownloads] = useState<DownloadInfo[]>([]);
-    const wsRef = useRef<WebSocket | null>(null);
 
     const fetchDownloads = useCallback(async () => {
         const data = await apiGet(
@@ -61,92 +63,59 @@ export function useDownloads() {
 
     useEffect(() => {
         let cancelled = false;
-        let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
 
-        async function init() {
-            if (!cancelled) {
-                await fetchDownloads();
-            }
+        const handleDownloadProgress = (data: DownloadProgressMessage) => {
+            if (cancelled) return;
+            setDownloads((prev) => {
+                const existing = prev.find((d) => d.publicId === data.publicId);
+                const message = data.progress >= 100 ? "Done" : data.message;
+                const completed = data.progress >= 100 ? 100 : data.progress;
 
-            const protocol = BACKEND_URL.startsWith("https") ? "wss" : "ws";
-            const wsUrl = `${protocol}://${BACKEND_URL.replace(/^https?:\/\//, "")}/ws`;
-
-            const wsConnection = new WebSocket(wsUrl);
-            wsRef.current = wsConnection;
-
-            wsConnection.onmessage = (event) => {
-                if (cancelled) return;
-                try {
-                    const data = JSON.parse(event.data);
-                    if (data.type === "download_progress") {
-                        setDownloads((prev) => {
-                            const existing = prev.find(
-                                (d) => d.publicId === data.publicId
-                            );
-                            const message =
-                                data.progress >= 100 ? "Done" : data.message;
-                            const completed =
-                                data.progress >= 100 ? 100 : data.progress;
-
-                            if (existing) {
-                                return prev.map((d) =>
-                                    d.publicId === data.publicId
-                                        ? {
-                                              ...d,
-                                              title: data.title || d.title,
-                                              subtitle:
-                                                  data.artist || d.subtitle,
-                                              status: message,
-                                              completed,
-                                              message,
-                                          }
-                                        : d
-                                );
-                            }
-                            if (!data.publicId) return prev;
-                            return [
-                                ...prev,
-                                {
-                                    publicId: data.publicId,
-                                    groupId: "",
-                                    title: data.title || data.publicId,
-                                    subtitle: data.artist || null,
-                                    imageUrl: null,
-                                    status: message,
-                                    completed,
-                                    message,
-                                    dateAdded: "",
-                                },
-                            ];
-                        });
-                    }
-                } catch {
-                    // ignore parse errors
+                if (existing) {
+                    return prev.map((d) =>
+                        d.publicId === data.publicId
+                            ? {
+                                  ...d,
+                                  title: data.title || d.title,
+                                  subtitle: data.subTitle || d.subtitle,
+                                  status: message,
+                                  completed,
+                                  message,
+                              }
+                            : d
+                    );
                 }
-            };
+                if (!data.publicId) return prev;
+                return [
+                    ...prev,
+                    {
+                        publicId: data.publicId,
+                        groupId: "",
+                        title: data.title || data.publicId,
+                        subtitle: data.subTitle || null,
+                        imageUrl: null,
+                        status: message,
+                        completed,
+                        message,
+                        dateAdded: "",
+                    },
+                ];
+            });
+        };
 
-            wsConnection.onclose = () => {
-                if (cancelled) return;
-                reconnectTimeout = setTimeout(() => {
-                    if (!cancelled) {
-                        init();
-                    }
-                }, 3000);
-            };
+        webSocketManager.onMessage(
+            EWebSocketMessage.DownloadProgress,
+            handleDownloadProgress
+        );
 
-            wsConnection.onerror = () => {
-                wsConnection.close();
-            };
-        }
-
-        init();
+        fetchDownloads();
 
         return () => {
             cancelled = true;
-            if (reconnectTimeout) {
-                clearTimeout(reconnectTimeout);
-            }
-            wsRef.current?.close();
+            webSocketManager.offMessage(
+                EWebSocketMessage.DownloadProgress,
+                handleDownloadProgress
+            );
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);

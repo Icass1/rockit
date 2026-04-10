@@ -31,7 +31,7 @@ export function Media({
                 showMediaIndex={showMediaIndex}
                 showMediaImage={showMediaImage}
                 listPublicId={listPublicId}
-            ></PlayableMedia>
+            />
         );
     }
     return <div>Unsupported media type</div>;

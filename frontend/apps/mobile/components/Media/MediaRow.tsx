@@ -25,7 +25,7 @@ function MediaRow({
     circularImage = false,
     rightElement,
 }: MediaRowProps) {
-    const imageSource = imageUrl;
+    console.log("imageUrl", imageUrl);
 
     const imageStyle = circularImage
         ? { width: imageSize, height: imageSize, borderRadius: imageSize / 2 }
@@ -34,7 +34,7 @@ function MediaRow({
     const content = (
         <View style={styles.container}>
             <Image
-                source={imageSource}
+                source={imageUrl}
                 style={[styles.image, imageStyle]}
                 contentFit="cover"
             />

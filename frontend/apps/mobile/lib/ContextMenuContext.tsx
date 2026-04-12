@@ -7,11 +7,10 @@ import {
     type ReactNode,
 } from "react";
 import type { BottomSheetModal } from "@gorhom/bottom-sheet";
-import ContextMenuSheet from "@/components/ContextMenu/ContextMenuSheet";
 
 export interface ContextMenuOption {
     label: string;
-    icon: string; // Feather icon name
+    icon: string;
     onPress: () => void;
     destructive?: boolean;
 }
@@ -21,7 +20,6 @@ export interface ContextMenuConfig {
     title: string;
     subtitle?: string;
     options: ContextMenuOption[];
-    /** If provided, a back arrow is shown in the header that calls this */
     backAction?: () => void;
 }
 
@@ -59,7 +57,6 @@ export function ContextMenuProvider({ children }: { children: ReactNode }) {
     return (
         <ContextMenuContext.Provider value={{ show, hide, config, sheetRef }}>
             {children}
-            <ContextMenuSheet />
         </ContextMenuContext.Provider>
     );
 }

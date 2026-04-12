@@ -10,6 +10,14 @@ export {
     type AddMediaToPlaylistRequest,
 } from "./addMediaToPlaylistRequest";
 export {
+    AddVersionRequestSchema,
+    type AddVersionRequest,
+} from "./addVersionRequest";
+export {
+    AllBuildsResponseSchema,
+    type AllBuildsResponse,
+} from "./allBuildsResponse";
+export {
     ArtistSearchResultsItemSchema,
     type ArtistSearchResultsItem,
 } from "./artistSearchResultsItem";
@@ -53,6 +61,7 @@ export {
     BaseVideoResponseSchema,
     type BaseVideoResponse,
 } from "./baseVideoResponse";
+export { BuildResponseSchema, type BuildResponse } from "./buildResponse";
 export {
     CreatePlaylistRequestSchema,
     type CreatePlaylistRequest,
@@ -93,6 +102,15 @@ export {
     HomeStatsResponseSchema,
     type HomeStatsResponse,
 } from "./homeStatsResponse";
+export { LanguageItemSchema, type LanguageItem } from "./languageItem";
+export {
+    LanguagesResponseSchema,
+    type LanguagesResponse,
+} from "./languagesResponse";
+export {
+    LatestVersionResponseSchema,
+    type LatestVersionResponse,
+} from "./latestVersionResponse";
 export {
     LibraryListsResponseSchema,
     type LibraryListsResponse,

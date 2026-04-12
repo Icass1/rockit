@@ -5,12 +5,14 @@ import {
     BasePlaylistForPlaylistResponse,
     BasePlaylistResponse,
     BaseSongWithAlbumResponse,
+    BaseSongWithoutAlbumResponse,
     BaseStationResponse,
     BaseVideoResponse,
 } from "../../dto";
 
 export type TPlayableMedia =
     | BaseSongWithAlbumResponse
+    | BaseSongWithoutAlbumResponse
     | BaseVideoResponse
     | BaseStationResponse;
 

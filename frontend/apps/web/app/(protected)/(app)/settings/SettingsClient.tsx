@@ -2,9 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useStore } from "@nanostores/react";
-import type { UserVocabularyResponse, Vocabulary } from "@rockit/shared";
+import {
+    LanguagesResponseSchema,
+    type UserVocabularyResponse,
+    type Vocabulary,
+} from "@rockit/shared";
 import { Check, Globe } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { apiFetch } from "@/lib/utils/apiFetch";
 
 interface SettingsClientProps {
     vocabulary: UserVocabularyResponse;
@@ -29,22 +34,16 @@ export default function SettingsClient({ vocabulary }: SettingsClientProps) {
 
     useEffect(() => {
         async function fetchLanguages() {
-            try {
-                const res = await fetch(
-                    `${rockIt.BACKEND_URL}/vocabulary/languages`,
-                    {
-                        credentials: "include",
-                    }
-                );
-                if (res.ok) {
-                    const data = await res.json();
-                    setLanguages(data.languages || []);
-                }
-            } catch (e) {
-                console.warn("Failed to fetch languages:", e);
-            } finally {
-                setLoading(false);
+            const result = await apiFetch(
+                "/vocabulary/languages",
+                LanguagesResponseSchema
+            );
+            if (result.isOk()) {
+                setLanguages(result.result.languages);
+            } else {
+                console.warn("Failed to fetch languages:", result.detail);
             }
+            setLoading(false);
         }
         fetchLanguages();
     }, []);

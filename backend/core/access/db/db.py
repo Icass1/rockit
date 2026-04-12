@@ -25,13 +25,14 @@ from backend.core.access.db.ormModels.downloadGroup import (
 )
 from backend.core.access.db.ormModels.vocabulary import VocabularyRow as VocabularyRow
 from backend.core.access.db.ormModels.requestLog import RequestLogRow as RequestLogRow
+from backend.core.access.db.ormModels.appVersion import AppVersionRow as AppVersionRow
 from backend.core.access.db.ormModels.user_seeks import UserSeeksRow as UserSeeksRow
 from backend.core.access.db.ormModels.user_queue import UserQueueRow as UserQueueRow
 from backend.core.access.db.ormModels.download import DownloadRow as DownloadRow
 from backend.core.access.db.ormModels.language import LanguageRow as LanguageRow
 from backend.core.access.db.ormModels.provider import ProviderRow as ProviderRow
-from backend.core.access.db.ormModels.session import SessionRow as SessionRow
 from backend.core.access.db.ormModels.media import CoreMediaRow as CoreMediaRow
+from backend.core.access.db.ormModels.session import SessionRow as SessionRow
 from backend.core.access.db.ormModels.image import ImageRow as ImageRow
 from backend.core.access.db.ormModels.error import ErrorRow as ErrorRow
 from backend.core.access.db.ormModels.user import UserRow as UserRow

@@ -13,6 +13,8 @@ import { getSession } from "@/lib/session";
 import { useVocabulary } from "@/lib/vocabulary";
 import Header from "@/components/layout/Header";
 import { FullPlayer, MiniPlayer } from "@/components/Player";
+import UpdateModal from "@/components/UpdateModal";
+import { useVersionCheck } from "@/hooks/useVersionCheck";
 
 function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
     return (
@@ -81,6 +83,7 @@ const styles = StyleSheet.create({
 export default function AppLayout() {
     const router = useRouter();
     const { vocabulary } = useVocabulary();
+    const { updateAvailable, apkUrl, latestVersion } = useVersionCheck();
 
     useEffect(() => {
         getSession().then((session) => {
@@ -168,6 +171,12 @@ export default function AppLayout() {
                             </Tabs>
 
                             <FullPlayer />
+
+                            <UpdateModal
+                                visible={updateAvailable}
+                                apkUrl={apkUrl}
+                                latestVersion={latestVersion}
+                            />
 
                             <View
                                 style={{

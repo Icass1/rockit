@@ -65,6 +65,13 @@ class AuthMiddleware:
         request.state.session_id = session_id
 
     @staticmethod
+    async def admin_dependency(request: Request) -> None:
+        await AuthMiddleware.auth_dependency(request)
+        user: UserRow = request.state.user
+        if not user.admin:
+            raise HTTPException(status_code=403, detail="Admin access required.")
+
+    @staticmethod
     def get_current_user(request: Request) -> AResult[UserRow]:
         try:
             return AResult(code=AResultCode.OK, message="OK", result=request.state.user)

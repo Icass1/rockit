@@ -101,6 +101,7 @@ async def import_vocabulary() -> None:
     async with rockit_db.session_scope_async() as session:
         from backend.core.framework.language import Language
         from backend.core.framework.vocabulary import Vocabulary
+        from backend.core.framework.models.vocabulary import VocabularyImportData
 
         for lang_name, lang_code in zip(language_columns, language_code_columns):
             a_result = await Language.get_or_create_language(
@@ -111,8 +112,9 @@ async def import_vocabulary() -> None:
             else:
                 logger.error(f"Error with language {lang_code}: {a_result.message()}")
 
+        import_data = VocabularyImportData(vocabulary=vocabulary_data)
         a_result_import = await Vocabulary.import_vocabulary_from_dict(
-            session=session, vocabulary_data=vocabulary_data
+            session=session, vocabulary_data=import_data
         )
         if a_result_import.is_ok():
             logger.info("Vocabulary imported successfully")

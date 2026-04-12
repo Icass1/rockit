@@ -1,5 +1,5 @@
 from logging import Logger
-from typing import Dict, List
+from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.utils.logger import getLogger
@@ -10,6 +10,11 @@ from backend.core.access.db.ormModels.language import LanguageRow
 
 from backend.core.access.vocabularyAccess import VocabularyAccess
 from backend.core.access.languageAccess import LanguageAccess
+from backend.core.framework.models.vocabulary import (
+    LanguageVocabulary,
+    AllVocabulary,
+    VocabularyImportData,
+)
 
 logger: Logger = getLogger(__name__)
 
@@ -18,7 +23,7 @@ class Vocabulary:
     @staticmethod
     async def get_all_vocabulary(
         session: AsyncSession,
-    ) -> AResult[Dict[str, Dict[str, str]]]:
+    ) -> AResult[AllVocabulary]:
         """Get all vocabulary organized by language."""
 
         a_result_languages: AResult[List[LanguageRow]] = (
@@ -37,9 +42,10 @@ class Vocabulary:
                 code=a_result_vocabulary.code(), message=a_result_vocabulary.message()
             )
 
-        all_vocabulary: Dict[str, Dict[str, str]] = {}
-        for lang in a_result_languages.result():
-            all_vocabulary[lang.lang_code] = {}
+        languages_dict: dict[str, LanguageVocabulary] = {
+            lang.lang_code: LanguageVocabulary(lang_code=lang.lang_code)
+            for lang in a_result_languages.result()
+        }
 
         for vocab in a_result_vocabulary.result():
             lang_code = next(
@@ -50,8 +56,10 @@ class Vocabulary:
                 ),
                 None,
             )
-            if lang_code:
-                all_vocabulary[lang_code][vocab.key] = vocab.value
+            if lang_code and lang_code in languages_dict:
+                languages_dict[lang_code].translations[vocab.key] = vocab.value
+
+        all_vocabulary = AllVocabulary(languages=list(languages_dict.values()))
 
         return AResult(
             code=AResultCode.OK,
@@ -62,7 +70,7 @@ class Vocabulary:
     @staticmethod
     async def get_vocabulary_by_lang_id(
         session: AsyncSession, lang_id: int
-    ) -> AResult[Dict[str, str]]:
+    ) -> AResult[dict[str, str]]:
         """Get vocabulary for a specific language."""
 
         a_result_vocabulary = await VocabularyAccess.get_vocabulary_dict_by_lang_id(
@@ -84,11 +92,12 @@ class Vocabulary:
     @staticmethod
     async def import_vocabulary_from_dict(
         session: AsyncSession,
-        vocabulary_data: Dict[str, Dict[str, str]],
+        vocabulary_data: VocabularyImportData,
     ) -> AResult[bool]:
-        """Import vocabulary from a dictionary {lang_code: {key: value}}."""
+        """Import vocabulary from a VocabularyImportData dataclass."""
 
-        for lang_code, translations in vocabulary_data.items():
+        vocabulary_dict = vocabulary_data.vocabulary
+        for lang_code, translations in vocabulary_dict.items():
             a_result_lang = await LanguageAccess.get_language_from_code(
                 session=session, lang_code=lang_code
             )

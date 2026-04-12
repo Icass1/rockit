@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict
 
 from fastapi import APIRouter, HTTPException, Request, Depends
 from logging import Logger
@@ -12,10 +12,12 @@ from backend.core.middlewares.authMiddleware import AuthMiddleware
 from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 
 from backend.core.framework.vocabulary import Vocabulary
+from backend.core.framework.models.vocabulary import AllVocabulary
 from backend.core.access.languageAccess import LanguageAccess
 
 from backend.core.access.db.ormModels.user import UserRow
 
+from backend.core.responses.languagesResponse import LanguageItem, LanguagesResponse
 from backend.core.responses.userVocabularyResponse import UserVocabularyResponse
 from backend.core.responses.vocabularyResponse import VocabularyResponse
 
@@ -33,7 +35,7 @@ async def get_all_vocabulary(request: Request) -> VocabularyResponse:
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
 
-    a_result_vocabulary: AResult[Dict[str, Dict[str, str]]] = (
+    a_result_vocabulary: AResult[AllVocabulary] = (
         await Vocabulary.get_all_vocabulary(session=session)
     )
 
@@ -44,7 +46,9 @@ async def get_all_vocabulary(request: Request) -> VocabularyResponse:
             detail=a_result_vocabulary.message(),
         )
 
-    return VocabularyResponse(vocabulary=a_result_vocabulary.result())
+    vocab = a_result_vocabulary.result()
+    vocab_dict = {lang.lang_code: lang.translations for lang in vocab.languages}
+    return VocabularyResponse(vocabulary=vocab_dict)
 
 
 @router.get("/user")
@@ -83,7 +87,7 @@ async def get_user_vocabulary(request: Request) -> UserVocabularyResponse:
 
 
 @router.get("/languages")
-async def get_all_languages(request: Request) -> Dict[str, List[Dict[str, str]]]:
+async def get_all_languages(request: Request) -> LanguagesResponse:
     """Get all available languages."""
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
@@ -98,8 +102,8 @@ async def get_all_languages(request: Request) -> Dict[str, List[Dict[str, str]]]
         )
 
     languages = [
-        {"langCode": lang.lang_code, "language": lang.language}
+        LanguageItem(langCode=lang.lang_code, language=lang.language)
         for lang in a_result_languages.result()
     ]
 
-    return {"languages": languages}
+    return LanguagesResponse(languages=languages)

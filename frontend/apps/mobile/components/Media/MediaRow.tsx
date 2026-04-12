@@ -25,8 +25,6 @@ function MediaRow({
     circularImage = false,
     rightElement,
 }: MediaRowProps) {
-    console.log("MediaRow href:", { href });
-
     const imageStyle = circularImage
         ? { width: imageSize, height: imageSize, borderRadius: imageSize / 2 }
         : { width: imageSize, height: imageSize, borderRadius: 4 };

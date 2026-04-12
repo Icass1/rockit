@@ -366,10 +366,11 @@ class YoutubeMusicApi:
                             thumbnail = thumb_url
 
                     author = ""
-                    author_val = entry_dict.get("author")
+                    author_val: Any = entry_dict.get("author")
                     if author_val:
                         if isinstance(author_val, dict):
-                            author = str(author_val.get("name", ""))
+                            author_val_typed = cast(dict[str, Any], author_val)
+                            author = str(author_val_typed.get("name", ""))
                         else:
                             author = str(author_val)
 

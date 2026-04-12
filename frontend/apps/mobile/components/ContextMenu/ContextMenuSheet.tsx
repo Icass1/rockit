@@ -1,21 +1,28 @@
-import { useCallback } from "react";
+import { useCallback, type RefObject } from "react";
 import { COLORS } from "@/constants/theme";
 import { Feather } from "@expo/vector-icons";
 import {
+    BottomSheetBackdrop,
     BottomSheetModal,
     BottomSheetScrollView,
-    BottomSheetBackdrop,
     type BottomSheetBackdropProps,
+    type BottomSheetModal as BottomSheetModalType,
 } from "@gorhom/bottom-sheet";
 import { Image } from "expo-image";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { useContextMenu } from "@/lib/ContextMenuContext";
+import type { ContextMenuConfig } from "@/lib/ContextMenuContext";
 
 const SNAP_POINTS = ["85%"];
 
-export default function ContextMenuSheet() {
-    const { sheetRef, config } = useContextMenu();
+interface ContextMenuSheetProps {
+    config: ContextMenuConfig | null;
+    sheetRef: RefObject<BottomSheetModalType | null>;
+}
 
+export default function ContextMenuSheet({
+    config,
+    sheetRef,
+}: ContextMenuSheetProps) {
     const renderBackdrop = useCallback(
         (props: BottomSheetBackdropProps) => (
             <BottomSheetBackdrop
@@ -69,7 +76,12 @@ export default function ContextMenuSheet() {
                                     contentFit="cover"
                                 />
                             ) : (
-                                <View style={[styles.image, styles.imagePlaceholder]} />
+                                <View
+                                    style={[
+                                        styles.image,
+                                        styles.imagePlaceholder,
+                                    ]}
+                                />
                             )}
                             <Text style={styles.title} numberOfLines={2}>
                                 {config.title}

@@ -7,14 +7,15 @@ import { Tabs, useRouter } from "expo-router";
 import { Pressable, StyleSheet, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ContextMenuProvider } from "@/lib/ContextMenuContext";
+import { useVersionCheck } from "@/hooks/useVersionCheck";
+import { ContextMenuProvider, useContextMenu } from "@/lib/ContextMenuContext";
 import { PlayerProvider } from "@/lib/PlayerContext";
 import { getSession } from "@/lib/session";
 import { useVocabulary } from "@/lib/vocabulary";
+import ContextMenuSheet from "@/components/ContextMenu/ContextMenuSheet";
 import Header from "@/components/layout/Header";
 import { FullPlayer, MiniPlayer } from "@/components/Player";
 import UpdateModal from "@/components/UpdateModal";
-import { useVersionCheck } from "@/hooks/useVersionCheck";
 
 function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
     return (
@@ -80,9 +81,10 @@ const styles = StyleSheet.create({
     },
 });
 
-export default function AppLayout() {
+function AppLayoutContent() {
     const router = useRouter();
     const { vocabulary } = useVocabulary();
+    const { config, sheetRef } = useContextMenu();
     const { updateAvailable, apkUrl, latestVersion } = useVersionCheck();
 
     useEffect(() => {
@@ -94,104 +96,111 @@ export default function AppLayout() {
     }, [router]);
 
     return (
+        <PlayerProvider>
+            <View style={{ flex: 1 }}>
+                <Tabs
+                    tabBar={(props) => <CustomTabBar {...props} />}
+                    screenOptions={{ headerShown: false }}
+                >
+                    <Tabs.Screen
+                        name="index"
+                        options={{
+                            title: vocabulary.HOME,
+                            tabBarIcon: ({ color, size }) => (
+                                <Feather
+                                    name="home"
+                                    color={color}
+                                    size={size}
+                                />
+                            ),
+                        }}
+                    />
+                    <Tabs.Screen
+                        name="library"
+                        options={{
+                            title: vocabulary.LIBRARY,
+                            tabBarIcon: ({ color, size }) => (
+                                <Feather
+                                    name="book-open"
+                                    color={color}
+                                    size={size}
+                                />
+                            ),
+                        }}
+                    />
+                    <Tabs.Screen
+                        name="search"
+                        options={{
+                            title: vocabulary.SEARCH,
+                            tabBarIcon: ({ color, size }) => (
+                                <Feather
+                                    name="search"
+                                    color={color}
+                                    size={size}
+                                />
+                            ),
+                        }}
+                    />
+                    <Tabs.Screen
+                        name="downloader"
+                        options={{
+                            title: vocabulary.DOWNLOADS,
+                            tabBarIcon: ({ color, size }) => (
+                                <Feather
+                                    name="download"
+                                    color={color}
+                                    size={size}
+                                />
+                            ),
+                        }}
+                    />
+                    <Tabs.Screen
+                        name="settings"
+                        options={{
+                            title: vocabulary.SETTINGS,
+                            tabBarIcon: ({ color, size }) => (
+                                <Feather
+                                    name="settings"
+                                    color={color}
+                                    size={size}
+                                />
+                            ),
+                        }}
+                    />
+                </Tabs>
+
+                <FullPlayer />
+
+                <UpdateModal
+                    visible={updateAvailable}
+                    apkUrl={apkUrl}
+                    latestVersion={latestVersion}
+                />
+
+                <View
+                    style={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        zIndex: 150,
+                        pointerEvents: "box-none",
+                    }}
+                >
+                    <Header />
+                </View>
+            </View>
+            <ContextMenuSheet config={config} sheetRef={sheetRef} />
+        </PlayerProvider>
+    );
+}
+
+export default function AppLayout() {
+    return (
         <GestureHandlerRootView style={{ flex: 1 }}>
             <BottomSheetModalProvider>
                 <ContextMenuProvider>
-                    <PlayerProvider>
-                        <View style={{ flex: 1 }}>
-                            <Tabs
-                                tabBar={(props) => <CustomTabBar {...props} />}
-                                screenOptions={{ headerShown: false }}
-                            >
-                                <Tabs.Screen
-                                    name="index"
-                                    options={{
-                                        title: vocabulary.HOME,
-                                        tabBarIcon: ({ color, size }) => (
-                                            <Feather
-                                                name="home"
-                                                color={color}
-                                                size={size}
-                                            />
-                                        ),
-                                    }}
-                                />
-                                <Tabs.Screen
-                                    name="library"
-                                    options={{
-                                        title: vocabulary.LIBRARY,
-                                        tabBarIcon: ({ color, size }) => (
-                                            <Feather
-                                                name="book-open"
-                                                color={color}
-                                                size={size}
-                                            />
-                                        ),
-                                    }}
-                                />
-                                <Tabs.Screen
-                                    name="search"
-                                    options={{
-                                        title: vocabulary.SEARCH,
-                                        tabBarIcon: ({ color, size }) => (
-                                            <Feather
-                                                name="search"
-                                                color={color}
-                                                size={size}
-                                            />
-                                        ),
-                                    }}
-                                />
-                                <Tabs.Screen
-                                    name="downloader"
-                                    options={{
-                                        title: vocabulary.DOWNLOADS,
-                                        tabBarIcon: ({ color, size }) => (
-                                            <Feather
-                                                name="download"
-                                                color={color}
-                                                size={size}
-                                            />
-                                        ),
-                                    }}
-                                />
-                                <Tabs.Screen
-                                    name="settings"
-                                    options={{
-                                        title: vocabulary.SETTINGS,
-                                        tabBarIcon: ({ color, size }) => (
-                                            <Feather
-                                                name="settings"
-                                                color={color}
-                                                size={size}
-                                            />
-                                        ),
-                                    }}
-                                />
-                            </Tabs>
-
-                            <FullPlayer />
-
-                            <UpdateModal
-                                visible={updateAvailable}
-                                apkUrl={apkUrl}
-                                latestVersion={latestVersion}
-                            />
-
-                            <View
-                                style={{
-                                    position: "absolute",
-                                    top: 0,
-                                    left: 0,
-                                    right: 0,
-                                    zIndex: 150,
-                                    pointerEvents: "box-none",
-                                }}
-                            >
-                                <Header />
-                            </View>
-                        </View>
-                    </PlayerProvider>
+                    <AppLayoutContent />
                 </ContextMenuProvider>
             </BottomSheetModalProvider>
         </GestureHandlerRootView>

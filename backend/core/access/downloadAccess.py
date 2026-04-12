@@ -1,7 +1,7 @@
 from logging import Logger
 from datetime import datetime, timezone
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -181,11 +181,26 @@ class DownloadAccess:
 
         result = await session.execute(
             select(DownloadGroupRow)
-            .where(DownloadGroupRow.user_id == user_id)
+            .where(DownloadGroupRow.user_id == user_id, DownloadGroupRow.seen == False)
             .order_by(DownloadGroupRow.date_started.desc())
         )
         groups: list[DownloadGroupRow] = list(result.scalars().all())
         return AResult(code=AResultCode.OK, message="OK", result=groups)
+
+    @staticmethod
+    @safe_async
+    async def mark_download_group_seen(
+        session: AsyncSession,
+        group: DownloadGroupRow,
+    ) -> AResult[bool]:
+        """Mark a download group as seen."""
+
+        await session.execute(
+            update(DownloadGroupRow)
+            .where(DownloadGroupRow.id == group.id)
+            .values(seen=True)
+        )
+        return AResult(code=AResultCode.OK, message="OK", result=True)
 
     @staticmethod
     @safe_async

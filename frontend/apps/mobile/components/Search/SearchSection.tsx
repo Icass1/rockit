@@ -1,8 +1,14 @@
 import { useCallback } from "react";
 import type { BaseSearchResultsItem } from "@rockit/shared";
-import { API_ENDPOINTS, UserPlaylistsResponseSchema } from "@rockit/shared";
+import {
+    API_ENDPOINTS,
+    BaseSongWithAlbumResponseSchema,
+    BaseVideoResponseSchema,
+    EEvent,
+    EventManager,
+    UserPlaylistsResponseSchema,
+} from "@rockit/shared";
 import { FlatList, StyleSheet, View } from "react-native";
-import { z } from "zod";
 import { apiGet } from "@/lib/api";
 import {
     useContextMenu,
@@ -39,9 +45,15 @@ export default function SearchSection({
                     icon: "heart",
                     onPress: async () => {
                         hide();
-                        await apiGet(
+                        const result = await apiGet(
                             `${API_ENDPOINTS.mediaAddFromUrl}?url=${encodeURIComponent(item.providerUrl)}`,
-                            z.unknown()
+                            BaseSongWithAlbumResponseSchema.or(
+                                BaseVideoResponseSchema
+                            )
+                        );
+                        EventManager.getInstance().dispatchEvent(
+                            EEvent.MediaAddedToLibrary,
+                            { publicId: result.publicId }
                         );
                     },
                 },
@@ -83,9 +95,23 @@ export default function SearchSection({
                     icon: "music" as const,
                     onPress: async () => {
                         hide();
-                        await apiGet(
+                        const result = await apiGet(
                             `${API_ENDPOINTS.mediaAddFromUrl}?url=${encodeURIComponent(item.providerUrl)}&playlist_public_id=${encodeURIComponent(pl.publicId)}`,
-                            z.unknown()
+                            BaseSongWithAlbumResponseSchema.or(
+                                BaseVideoResponseSchema
+                            )
+                        );
+                        const eventManager = EventManager.getInstance();
+                        eventManager.dispatchEvent(
+                            EEvent.MediaAddedToLibrary,
+                            { publicId: result.publicId }
+                        );
+                        eventManager.dispatchEvent(
+                            EEvent.MediaAddedToPlaylist,
+                            {
+                                publicId: result.publicId,
+                                playlistPublicId: pl.publicId,
+                            }
                         );
                     },
                 })),

@@ -6,4 +6,5 @@ export enum EEvent {
     MediaAddedToPlaylist = "MediaAddedToPlaylist",
     MediaDownloaded = "MediaDownloaded",
     MediaDownloadStatus = "MediaDownloadStatus",
+    MediaAddedToLibrary = "MediaAddedToLibrary",
 }

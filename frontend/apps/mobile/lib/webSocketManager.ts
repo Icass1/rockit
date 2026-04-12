@@ -2,12 +2,15 @@ import {
     CurrentMediaMessageRequest,
     CurrentQueueMessageRequest,
     CurrentTimeMessageRequest,
+    EEvent,
     EWebSocketMessage,
+    EventManager,
     MediaClickedMessageRequest,
     MediaEndedMessageRequest,
     SeekMessageRequest,
     SkipClickedMessageRequest,
     TWebSocketIncomingMessage,
+    type DownloadProgressMessage,
     type IWebSocketMessagePayloadMap,
     type WebSocketMessageHandler,
 } from "@rockit/shared";
@@ -44,6 +47,21 @@ export class WebSocketManager {
                 handlers.forEach((handler) =>
                     handler(data as IWebSocketMessagePayloadMap[typeof type])
                 );
+            }
+
+            if (type === EWebSocketMessage.DownloadProgress) {
+                const msg = data as DownloadProgressMessage;
+                const eventManager = EventManager.getInstance();
+                if (msg.status === "completed") {
+                    eventManager.dispatchEvent(EEvent.MediaDownloaded, {
+                        publicId: msg.publicId,
+                    });
+                }
+                eventManager.dispatchEvent(EEvent.MediaDownloadStatus, {
+                    publicId: msg.publicId,
+                    completed: msg.progress,
+                    message: msg.message,
+                });
             }
         } catch (error) {
             console.warn("Error parsing WebSocket message:", error);

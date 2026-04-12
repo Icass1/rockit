@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import {
-    EWebSocketMessage,
+    EEvent,
+    EventManager,
     MediaResponseSchema,
+    type IMediaDownloadedEvent,
     type TMedia,
 } from "@rockit/shared";
-import type { DownloadProgressMessage } from "@rockit/shared";
 import { apiGet } from "@/lib/api";
-import { webSocketManager } from "@/lib/webSocketManager";
 
 export function useMedia<T extends TMedia>(media: T): T {
     const [_media, setMedia] = useState<T>(media);
@@ -16,9 +16,8 @@ export function useMedia<T extends TMedia>(media: T): T {
     }, [media]);
 
     useEffect(() => {
-        const handleDownloadProgress = (data: DownloadProgressMessage) => {
+        const handleDownloaded = (data: IMediaDownloadedEvent) => {
             if (data.publicId !== media.publicId) return;
-            if ((data.progress ?? 0) < 100) return;
 
             apiGet(`/media/${media.publicId}`, MediaResponseSchema)
                 .then((result) => {
@@ -31,14 +30,12 @@ export function useMedia<T extends TMedia>(media: T): T {
                 );
         };
 
-        webSocketManager.onMessage(
-            EWebSocketMessage.DownloadProgress,
-            handleDownloadProgress
-        );
+        const eventManager = EventManager.getInstance();
+        eventManager.addEventListener(EEvent.MediaDownloaded, handleDownloaded);
         return () => {
-            webSocketManager.offMessage(
-                EWebSocketMessage.DownloadProgress,
-                handleDownloadProgress
+            eventManager.removeEventListener(
+                EEvent.MediaDownloaded,
+                handleDownloaded
             );
         };
     }, [media.publicId, media.type]);

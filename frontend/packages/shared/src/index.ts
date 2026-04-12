@@ -23,6 +23,7 @@ export * from "./models/interfaces/events/userLogin";
 export * from "./models/interfaces/events/playlistCreated";
 export * from "./models/interfaces/events/volumeChanged";
 export * from "./models/interfaces/events/songFinished";
+export * from "./models/interfaces/events/mediaAddedToLibrary";
 export * from "./models/interfaces/events/mediaAddedToPlaylist";
 export * from "./models/interfaces/events/mediaDownloaded";
 export * from "./models/interfaces/events/mediaDownloadStatus";

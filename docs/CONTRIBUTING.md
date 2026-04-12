@@ -1,30 +1,24 @@
-# RockIt - Music Player Project
-
-## Overview
-
-RockIt is a full-stack music player application that integrates with Spotify and YouTube
-to provide a unified music streaming experience. The application consists of a Next.js
-frontend and a FastAPI backend with PostgreSQL database.
+# RockIt — Contributing Guide
 
 ## Tech Stack
 
-- Frontend: Next.js (React) with TypeScript
-- Backend: FastAPI with SQLAlchemy ORM (async)
+- Frontend: Next.js (React) + TypeScript
+- Backend: FastAPI + SQLAlchemy ORM (async)
 - Database: PostgreSQL
 - Music Providers: Spotify, YouTube
 
 ## Architecture
 
-Backend (3-Layer Business Structure):
+Backend (3 layers):
 
-1. controllers/ - Only interacts with framework layer
-2. framework/ - Only interacts with access layer
-3. access/ - Only interacts with database
+1. controllers/ — only framework
+2. framework/ — only access
+3. access/ — only database
 
 Frontend:
 
-- Server Components: page.tsx files (no "use client")
-- Client Components: \*Client.tsx files with hooks
+- Server Components: page.tsx (no "use client")
+- Client Components: \*Client.tsx with hooks
 - Business Logic: Managers in lib/managers/
 - API Validation: Zod schemas in dto/
 
@@ -32,49 +26,28 @@ Frontend:
 
 Backend:
 
-- All functions return AResult (never raise exceptions)
-- Static classes with @staticmethod decorators
-- Everything is async
-- Session scope pattern for database operations
+- every function return AResult (never raise)
+- static classes + @staticmethod
+- everything async
+- session scope for DB
 
 Frontend:
 
-- Never add "use client" to page.tsx
-- Never put business logic in components (use managers)
-- Always validate API responses with Zod
-- Use absolute imports with @/
+- NEVER "use client" in page.tsx
+- NEVER business logic in components (use managers)
+- ALWAYS validate API with Zod
+- absolute imports @/
 
 Database:
 
-- Models follow: CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdded
-- Table names: singular (user, not users)
-- Column names: snake_case
+- Models: CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdded
+- tables: singular (user NOT users)
+- columns: snake_case
 
-## Project Structure
+## Running
 
-frontend/ - Next.js application
-app/ - Routes and pages
-components/ - React components
-contexts/ - React contexts
-dto/ - Zod schemas for API responses
-hooks/ - Custom React hooks
-lib/managers/ - Business logic (audio, queue, playlist)
-styles/ - CSS files
+Backend: `fastapi dev backend/main.py`
 
-backend/ - FastAPI application
-core/ - Core business (auth, users, sessions)
-default/ - Default business logic (Playlist created by users are here)
-rockit/ - RockIt integration (music uploaded by users to the database)
-spotify/ - Spotify integration
-youtube/ - YouTube integration
+Frontend: `cd frontend && pnpm run dev`
 
-## Running the Project
-
-Backend:
-fastapi dev backend/main.py
-
-Frontend:
-cd frontend && pnpm run dev
-
-Docker:
-docker compose up -d --build
+Docker: `docker compose up -d --build`

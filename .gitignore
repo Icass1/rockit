@@ -122,3 +122,8 @@ pnpm-debug.log*
 
 # Excel temporal
 ~$*.xlsx
+
+
+.agents/
+
+*.original.md

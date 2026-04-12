@@ -1,137 +1,95 @@
-# Building APK and IPA with Expo Application Services (EAS)
-
-This guide explains how to build Android APK and iOS IPA files for the Rockit mobile app using Expo's cloud build service (EAS Build).
+# Building APK/IPA with EAS
 
 ## Prerequisites
 
-1. **Expo Account**: Create a free account at [expo.dev](https://expo.dev).
-2. **Project Setup**: The mobile app is located at `frontend/apps/mobile/`.
-3. **EAS CLI**: Install globally with `npm install -g eas-cli`.
+1. Expo account: expo.dev
+2. Mobile app: frontend/apps/mobile/
+3. EAS CLI: `npm install -g eas-cli`
 
-## Authentication
+## Auth
 
-### Option 1: Environment Variable (Recommended for CI)
+### Option 1: Env var (recommended for CI)
 
-Create an EXPO_TOKEN at [expo.dev/settings/access-tokens](https://expo.dev/settings/access-tokens) and set it as an environment variable:
+Create token at expo.dev/settings/access-tokens:
 
 ```bash
 export EXPO_TOKEN=your_token_here
 ```
 
-### Option 2: Interactive Login
+### Option 2: Interactive
 
-Run `eas login` and follow the prompts.
+`eas login`
 
-## Project Configuration
+## Config
 
-### Initialize EAS Project
-
-If the project hasn't been linked to EAS yet, run:
+### Init EAS (if not linked)
 
 ```bash
 cd frontend/apps/mobile
 eas init --non-interactive --force
 ```
 
-This creates a project on Expo servers and updates `app.json`.
+Config: eas.json with profiles (development, preview, production)
 
-### Configuration Files
+## Build APK
 
-The project already includes `eas.json` with build profiles:
-
-- **development**: Debug APK for internal testing
-- **preview**: Preview APK for internal distribution  
-- **production**: Production APK for store submission
-
-The `eas.json` is located at `frontend/apps/mobile/eas.json`.
-
-## Building APK (Android)
-
-### Preview APK (Recommended for testing)
+### Preview (testing)
 
 ```bash
 cd frontend/apps/mobile
-EXPO_TOKEN=your_token_here eas build --platform android --profile preview --wait
+EXPO_TOKEN=your_token eas build --platform android --profile preview --wait
 ```
 
-### Production APK
+### Production
 
 ```bash
-EXPO_TOKEN=your_token_here eas build --platform android --profile production --wait
+EXPO_TOKEN=your_token eas build --platform android --profile production --wait
 ```
 
-**Note**: Production builds may require `google-services.json` for Firebase services. Place it in `frontend/apps/mobile/`.
+Note: prod builds may need google-services.json for Firebase.
 
-## Building IPA (iOS)
+## Build IPA
 
-### Preview IPA
+### Preview
 
 ```bash
-EXPO_TOKEN=your_token_here eas build --platform ios --profile preview --wait
+EXPO_TOKEN=your_token eas build --platform ios --profile preview --wait
 ```
 
-### Production IPA
+### Production
 
 ```bash
-EXPO_TOKEN=your_token_here eas build --platform ios --profile production --wait
+EXPO_TOKEN=your_token eas build --platform ios --profile production --wait
 ```
 
-**Note**: iOS builds require Apple Developer credentials configured in EAS.
+Note: iOS needs Apple Developer credentials in EAS.
 
-## Using Package Scripts
-
-The mobile app includes npm scripts for convenience:
+## Package Scripts
 
 ```bash
-# From frontend/apps/mobile directory
-
-# Android
+# From frontend/apps/mobile
 pnpm build:android:preview
 pnpm build:android:production
-
-# iOS  
 pnpm build:ios:preview
 pnpm build:ios:production
-
-# Both platforms
 pnpm build:all:production
 ```
 
-## Build Artifacts
+## Download
 
-After a successful build, you can download the APK/IPA from:
-- The Expo dashboard: [expo.dev](https://expo.dev)
-- Using the provided download URL in build output
+- Expo dashboard: expo.dev
+- URL in build output
 
 ## Troubleshooting
 
-### "EAS project not configured"
-Run `eas init --non-interactive --force`.
+- "EAS not configured": `eas init --non-interactive --force`
+- "eas not found": `npm install -g eas-cli`
+- "Expo account required": set EXPO_TOKEN or `eas login`
 
-### "eas: not found"
-Install EAS CLI: `npm install -g eas-cli`.
+iOS: check Apple Developer, bundle ID, certificates, provisioning.
 
-### "Expo user account required"
-Set `EXPO_TOKEN` environment variable or run `eas login`.
+Android: check google-services.json, package name, signing config.
 
-### iOS Build Failures
-- Ensure Apple Developer account is properly configured
-- Check that bundle identifier matches in `app.json`
-- Verify distribution certificates and provisioning profiles
+## Env Vars
 
-### Android Build Failures  
-- Ensure `google-services.json` is present for production builds
-- Check that package name matches in `app.json`
-- Verify signing configuration
-
-## Environment Variables
-
-You can set environment variables in the Expo dashboard for different build profiles. Common variables include:
-- `EXPO_TOKEN`: Authentication token
-- `BACKEND_URL`: Backend API URL for the build
-
-## Additional Resources
-
-- [EAS Build Documentation](https://docs.expo.dev/build/introduction/)
-- [EAS Submit](https://docs.eas.dev/submit/introduction/) - For submitting to app stores
-- [Configuration Guide](https://docs.expo.dev/build/configuration/)
+Set in Expo dashboard: EXPO_TOKEN, BACKEND_URL

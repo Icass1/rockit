@@ -1,6 +1,6 @@
-# RockIt!
+# RockIt Setup
 
-## Installation
+## Install
 
 ```bash
 git clone https://github.com/Icass1/rockit.git
@@ -15,55 +15,48 @@ source venv/bin/activate
 pip install -r backend/requirements.txt
 ```
 
-## Install node dependencies
+## Install node deps
 
 ```bash
 cd frontend
 pnpm i
 ```
 
-## Setup .env file
-
-Create .env file from tamplate.
+## Setup .env
 
 ```bash
 cp example.env .env
 ```
 
-Then, fill all the settings.
+Fill all settings.
 
-## Start server
+## Start servers
 
-RockIt needs two separate servers to run, frontend and backend.
+Two servers needed:
 
-- Backend (in the root folder)
-    ```bash
-    fastapi dev backend/main.py
-    ```
-- Frontend (in the frontend folder)
-    ```bash
-    pnpm run dev
-    ```
+Backend (root): `fastapi dev backend/main.py`
 
-# Docker
+Frontend (frontend/): `pnpm run dev`
 
-## Docker base images
+---
+
+## Docker
+
+### Base images
 
 ```bash
-# Backend base image image
 docker build -f Dockerfile.backend.base -t rockit-backend-base .
-# Frontend base image image
 docker build -f Dockerfile.frontend.base -t rockit-frontend-base .
 ```
 
-## Docker compose
-
-Build Docker Images and start containers
+### Compose
 
 ```bash
 docker compose up -d --build
 ```
 
-## Paleta oficial:
+---
 
-from-[#ee1086] to-[#fb6467]
+## Color palette
+
+`from-[#ee1086] to-[#fb6467]`

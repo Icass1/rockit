@@ -1,164 +1,136 @@
 # Docker Compose Guide
 
-This guide covers how to run and update the Rockit Docker Compose system.
-
 ## Prerequisites
 
 - Docker
 - Docker Compose v2+
-- `.env.production` file in the project root
+- .env.production in project root
 
 ## Quick Start
 
-### 1. Build Base Images
-
-Build the base images first (these contain dependencies that rarely change):
+### 1. Build base images
 
 ```bash
 docker build -t rockit-backend-base:latest -f Dockerfile.backend.base .
 docker build -t rockit-frontend-base:latest -f Dockerfile.frontend.base .
 ```
 
-### 2. Build Services
+### 2. Build services
 
 ```bash
 docker compose build
 ```
 
-### 3. Start Services
+### 3. Start
 
 ```bash
 docker compose up -d
 ```
 
-### 4. Stop Services
+### 4. Stop
 
 ```bash
 docker compose down
 ```
 
-## Environment Variables
+## Env Vars
 
-The following environment variables are required. Set them in `.env.production`:
+Set in .env.production:
 
-| Variable             | Description              | Default                 |
-| -------------------- | ------------------------ | ----------------------- |
-| `BACKEND_URL`        | Backend URL              | `http://localhost:8000` |
-| `SESSION_DURATION`   | Session expiry (seconds) | `86400`                 |
-| `ENVIRONMENT`        | Dev or Prod              | `DEV`                   |
-| `MEDIA_PATH`         | Path for media files     | `/app/media`            |
-| `IMAGES_PATH`        | Path for images          | `/app/images`           |
-| `TEMP_PATH`          | Path for temp files      | `/app/temp`             |
-| `LOGS_PATH`          | Path for logs            | `/app/logs`             |
-| `LOG_DUMP_LEVEL`     | Log level                | `info`                  |
-| `CONSOLE_DUMP_LEVEL` | Console log level        | `info`                  |
-| `DOWNLOAD_THREADS`   | Download threads         | `4`                     |
-| `CLIENT_ID`          | Spotify client ID        | -                       |
-| `CLIENT_SECRET`      | Spotify client secret    | -                       |
-| `YOUTUBE_API_KEY`    | YouTube API key          | -                       |
-| `DB_HOST`            | Database host            | `postgres`              |
-| `DB_USER`            | Database user            | `rockit`                |
-| `DB_PASSWORD`        | Database password        | `rockitpassword`        |
-| `DB_PORT`            | Database port            | `5432`                  |
-| `DB_NAME`            | Database name            | `rockit`                |
+| Var                | Desc                 | Default               |
+| ------------------ | -------------------- | --------------------- |
+| BACKEND_URL        | Backend URL          | http://localhost:8000 |
+| SESSION_DURATION   | Session expiry (sec) | 86400                 |
+| ENVIRONMENT        | Dev/Prod             | DEV                   |
+| MEDIA_PATH         | Media files          | /app/media            |
+| IMAGES_PATH        | Images               | /app/images           |
+| TEMP_PATH          | Temp files           | /app/temp             |
+| LOGS_PATH          | Logs                 | /app/logs             |
+| LOG_DUMP_LEVEL     | Log level            | info                  |
+| CONSOLE_DUMP_LEVEL | Console              | info                  |
+| DOWNLOAD_THREADS   | Threads              | 4                     |
+| CLIENT_ID          | Spotify ID           | -                     |
+| CLIENT_SECRET      | Spotify secret       | -                     |
+| YOUTUBE_API_KEY    | YouTube key          | -                     |
+| DB_HOST            | Postgres             | postgres              |
+| DB_USER            | DB user              | rockit                |
+| DB_PASSWORD        | DB pass              | rockitpassword        |
+| DB_PORT            | Port                 | 5432                  |
+| DB_NAME            | DB name              | rockit                |
 
 ## Services
 
 ### Postgres
 
-PostgreSQL 16 database. Data persists in `postgres_data` volume.
+PostgreSQL 16. Data in postgres_data volume.
 
 ### Backend
 
-FastAPI application running on port 8000.
-
-- Image: `rockit-backend-base` + source code
-- Volumes: media, images, temp, logs
-- Depends on: postgres
+FastAPI on port 8000. Image: rockit-backend-base + source. Volumes: media, images, temp, logs. Depends: postgres.
 
 ### Frontend
 
-Next.js 16 application running on port 3000 (exposed as 9100).
+Next.js on port 3000 (exposed 9100). Image: rockit-frontend-base + source. Depends: backend.
 
-- Image: `rockit-frontend-base` + source code
-- Depends on: backend
-- Access at: http://localhost:9100
+## Update
 
-## Updating Images
-
-### Rebuild After Code Changes
+### Rebuild after code changes
 
 ```bash
-docker compose build
-docker compose up -d
+docker compose build && docker compose up -d
 ```
 
-### Rebuild Base Images (dependencies changed)
+### Rebuild base images (deps changed)
 
 ```bash
-# Rebuild base images
 docker build -t rockit-backend-base:latest -f Dockerfile.backend.base .
 docker build -t rockit-frontend-base:latest -f Dockerfile.frontend.base .
-
-# Rebuild services
-docker compose build --no-cache
-docker compose up -d
+docker compose build --no-cache && docker compose up -d
 ```
 
-### Pull Latest Code and Rebuild
+### Pull latest + rebuild
 
 ```bash
-# Pull latest code
 git pull
-
-# Rebuild services
-docker compose build
-docker compose up -d
+docker compose build && docker compose up -d
 ```
 
 ## Troubleshooting
 
-### View Logs
+### Logs
 
 ```bash
-# All services
-docker compose logs -f
-
-# Specific service
-docker compose logs -f backend
-docker compose logs -f frontend
-docker compose logs -f postgres
+docker compose logs -f          # all
+docker compose logs -f backend # specific
 ```
 
-### Restart a Service
+### Restart
 
 ```bash
 docker compose restart backend
 docker compose restart frontend
 ```
 
-### Clean Start (removes volumes)
+### Clean start (removes volumes)
 
 ```bash
-docker compose down -v
-docker compose up -d
+docker compose down -v && docker compose up -d
 ```
 
-### Rebuild Single Service
+### Rebuild single
 
 ```bash
-docker compose build backend
-docker compose up -d backend
+docker compose build backend && docker compose up -d backend
 ```
 
-## Docker Commands Reference
+## Commands
 
-| Command                                       | Description                      |
-| --------------------------------------------- | -------------------------------- |
-| `docker compose up -d`                        | Start all services in background |
-| `docker compose down`                         | Stop all services                |
-| `docker compose restart`                      | Restart all services             |
-| `docker compose logs -f`                      | Follow logs                      |
-| `docker compose ps`                           | Show running containers          |
-| `docker compose exec backend sh`              | Shell into backend container     |
-| `docker compose exec postgres psql -U rockit` | Connect to postgres              |
+| Cmd                                         | Desc         |
+| ------------------------------------------- | ------------ |
+| docker compose up -d                        | Start        |
+| docker compose down                         | Stop         |
+| docker compose restart                      | Restart      |
+| docker compose logs -f                      | Follow logs  |
+| docker compose ps                           | Containers   |
+| docker compose exec backend sh              | Shell        |
+| docker compose exec postgres psql -U rockit | Postgres CLI |

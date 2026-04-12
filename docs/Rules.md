@@ -1,109 +1,105 @@
-create a claude.md file with the following information:
+create claude.md file:
 
-this is a music player called rockit.
+- music player called rockit
+- nextjs frontend, fastapi backend, postgressql database with sqlalchemy orm async
+- frontend in frontend/, backend in backend/
+- 5 businesses: core, default, spotify, youtube, rockit
 
-this is project that uses nextjs to serve the frontend without any computation in the nextjs server. the frontend communicates directly with a fastapi server which communicates to a postgressql database using sqlalchemy orm async.
+RULE: NOTHING from other business in core. Not even provider list.
 
-all the frontend is in the frontend directory and all the backend in the backend directory.
+Each business has 3 layers: controller, framework, access. Controller → framework → access → database. Controller NEVER calls access or database directly.
 
-inside the backend directory there are 5 businesses currently, core, default, spotify, youtube, and rockit.
+File structure (core example):
 
-THERE CAN'T BE ANYTHING OF ANY other business IN CORE.
-
-not even a list of providers, nothing.
-
-each business has 3 layers controller, framework and access. the controller only interacts with the framework and the framework only interacts with the access and the access only intereacts with the database. the controller never calls the access or the framework the database etc.
-
-each business a similar file structure, this is an exmaple inside core of user and session stuff:
-backend
-core
-access
-db
-ormModels
+```
+backend/
+core/
+access/
+db/
+ormModels/
 user.py
 session.py
-ormEnums
+ormEnums/
 associationTables
-db.py (Imports all tables in ormModels and ormEnums)
-base.py (Contains the declarative_base)
-controller
-userController.py (Routes for the user like queue or session to get user information)
-authController.py (Routes like login register logout)
-enums
-repeatSongEnum.py (For the repeat song mode selected by the user)
-framework
-user
+db.py (imports all tables)
+base.py (declarative_base)
+controller/
+userController.py (queue, session, user info)
+authController.py (login, register, logout)
+enums/
+repeatSongEnum.py
+framework/
+user/
 user.py
-auth
+auth/
 session.py
-register.py (register using password)
-password.py (login using password)
-google.py (TODO login using Google)
-middlewares
-authMiddleware.py (Used in router dependencies inside the controllers that need authentication)
-requests (clases that extend pydantic BaseModel that are used in ALL post endpoints as payload)
+register.py
+password.py
+google.py (TODO)
+middlewares/
+authMiddleware.py (auth dependency)
+requests/ (pydantic BaseModel for POST payload)
 loginRequest.py
 registerRequest.py
-responses (clases that extend pydantic BaseModel that are always returned in all endpoints)
+responses/ (pydantic BaseModel for endpoints)
 sessionResponse.py
-okResponse.py (For a simple 200 with message OK)
-utils (general utils)
+okResponse.py (200 OK message)
+utils/
+```
 
-all files inside framework and access are static clases where all methods use @staticmethod.
-all methods must contain a comment like this.
+- all framework/access: static classes, @staticmethod
+- every method: docstring like `"""..."""
+- everything async
+- everything type strict
 
-def function() -> str:
-"""..."""
+- every function return AResult, NEVER raise exception
+- HTTPException ONLY in controller or middleware
 
-everything should be async.
-everything is type strict.
+Log:
 
-every function must retrun a AResult like this, never raise an exception
-fastapi HTTPException can only be raised in controller or middleware.
-
-to log things use from backend.utils.logger import getLogger and then do logger = getLogger(**main**) after the imports and before any class or endpoint definition. getLogger returns a logging.Logger class
-
-Every AResult should be checked.
-
+```python
 from backend.utils.logger import getLogger
 from backend.core.aResult import AResult, AResultCode
 
-logger = getLogger(**main**)
+logger = getLogger(__name__)
 
 class ClassInsideFramework:
-@staticmethod
-async def function() -> AResult[str]:
-"""..."""
+    @staticmethod
+    async def function() -> AResult[str]:
+        """..."""
 
-        a_result_example_string_variable: AResult[str] = await method_that_returns_a_string()
-        if a_result_example_string_variable.is_not_ok():
-            logger.error(f"Error getting user from database. {a_result_example_string_variable.info()}")
-            return AResult(code=AResultCode.GENERAL_ERROR, message=a_result_example_string_variable.message())
+        a_result = await method()
+        if a_result.is_not_ok():
+            logger.error(f"Error. {a_result.info()}")
+            return AResult(code=AResultCode.GENERAL_ERROR, message=a_result.message())
 
-        return AResult(code=AResultCode.OK, message="OK", result=a_result_example_string_variable.result())
+        return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+```
 
-if you are using a value returned by an AResult many times you can do something like user: UserRow = a_result_user.result() after checking the ARresult
+Check every AResult. Use result() after checking:
 
-ALL VARIABLES SHOULD CONTAIN the type like number: int = 3, string: string or a_result_text: AResult[str]. all keyword function parameters should be passed. like AResult(code=AResultCode.OK, message="OK", result=a_result_example_string_variable.result()) not AResult(AResultCode.OK, "OK", a_result_example_string_variable.result())
+```python
+user: UserRow = a_result_user.result()
+```
 
-the order of the imports is:
+ALL VARIABLES: type required. keyword args required.
 
-first external imports in order of length. the first one should be the shortest import and the last one should be the longest
-space
-then backend.utils
-space
-from backend.core.aResult import AResult, AResultCode
-then backend.core.access
-then backend.core.framework
-then backend.core.middleware
-space
-then backend.core.responses
-then backend.core.requests
-space
-if you are inside another business the same order as core but for that business.
+Import order:
 
-table definitions inside ormModels and ormEnums are like ErrorRow(CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdded) for example.
+1. external (shortest → longest)
+2. backend.utils
+3. backend.core.aResult
+4. backend.core.access
+5. backend.core.framework
+6. backend.core.middleware
+7. backend.core.responses
+8. backend.core.requests
 
-all database names are snake_case, all tables are singular names, is user not users.
+Same order for other businesses.
 
-association tables are for example to connect a playlist row with many song rows, with a table called playlist_songs that contains a column for playlist id and another for song id
+ORM: `ErrorRow(CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdded)`
+
+- table names: singular (user NOT users)
+- columns: snake_case
+
+Association tables: connect playlist_songs with playlist_id + song_id

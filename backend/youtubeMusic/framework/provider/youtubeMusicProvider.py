@@ -72,6 +72,18 @@ YOUTUBE_MUSIC_URL_PATTERNS: List[Tuple[Pattern[str], str]] = [
         ),
         "/youtube-music/playlist/{}",
     ),
+    (
+        re.compile(r"https?://music\.youtube\.com/browse/(MPREb_[a-zA-Z0-9_-]+)"),
+        "/youtube-music/album/{}",
+    ),
+    (
+        re.compile(r"https?://music\.youtube\.com/browse/(RDCLAK[a-zA-Z0-9_-]+)"),
+        "/youtube-music/album/{}",
+    ),
+    (
+        re.compile(r"https?://music\.youtube\.com/browse/VL([a-zA-Z0-9_-]+)"),
+        "/youtube-music/playlist/{}",
+    ),
 ]
 
 

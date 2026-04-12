@@ -13,4 +13,7 @@ export const API_ENDPOINTS = {
     userPassword: "/user/password",
     userRandomQueue: "/user/random-queue",
     userRepeatMode: "/user/repeat-mode",
+    userQueue: "/user/queue",
+    userPlaylists: "/default/playlist",
+    mediaAddFromUrl: "/media/url/add",
 } as const;

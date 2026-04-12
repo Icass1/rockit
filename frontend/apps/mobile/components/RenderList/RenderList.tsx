@@ -4,7 +4,7 @@ import { COLORS } from "@/constants/theme";
 import type { BaseArtistResponse, TQueueMedia } from "@rockit/shared";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { usePlayer } from "@/lib/PlayerContext";
 
@@ -104,75 +104,57 @@ export default memo(function RenderList({
         [playMedia, media]
     );
 
-    const renderItem = useCallback(
-        ({ item, index }: { item: BaseMediaItem; index: number }) => (
-            <MediaItemComponent
-                media={item}
-                index={index}
-                showIndex={showMediaIndex}
-                showImage={showMediaImage}
-                onPress={() => handleMediaPress(item)}
-            />
-        ),
-        [showMediaIndex, showMediaImage, handleMediaPress]
-    );
-
-    const keyExtractor = useCallback(
-        (item: BaseMediaItem) => item.publicId,
-        []
-    );
-
-    const ListHeader = useCallback(() => {
-        const artistNames = artists.map((a) => a.name).join(", ");
-
-        return (
-            <View style={styles.header}>
-                <LinearGradient
-                    colors={[COLORS.bgCard, "transparent"]}
-                    style={styles.gradient}
-                />
-                <View style={styles.imageContainer}>
-                    <Image
-                        source={{ uri: imageUrl || PLACEHOLDER.playlist }}
-                        style={styles.coverImage}
-                        contentFit="cover"
-                    />
-                </View>
-                <View style={styles.titleContainer}>
-                    <Text style={styles.title} numberOfLines={2}>
-                        {title}
-                    </Text>
-                    {artistNames && (
-                        <Text style={styles.subtitle} numberOfLines={1}>
-                            {artistNames}
-                        </Text>
-                    )}
-                    {subtitle && (
-                        <Text style={styles.extraSubtitle} numberOfLines={1}>
-                            {subtitle}
-                        </Text>
-                    )}
-                    <Text style={styles.mediaCount}>
-                        {media.length} {media.length === 1 ? "song" : "songs"}
-                    </Text>
-                </View>
-            </View>
-        );
-    }, [title, subtitle, imageUrl, artists, media.length]);
+    const artistNames = artists.map((a) => a.name).join(", ");
 
     return (
         <SafeAreaView style={styles.container} edges={["top"]}>
-            <FlatList
-                data={media}
-                keyExtractor={keyExtractor}
-                renderItem={renderItem}
-                ListHeaderComponent={ListHeader}
+            <ScrollView
                 contentContainerStyle={styles.listContent}
                 showsVerticalScrollIndicator={false}
-                initialNumToRender={10}
-                maxToRenderPerBatch={10}
-                windowSize={10}
-            />
+            >
+                <View style={styles.header}>
+                    <LinearGradient
+                        colors={[COLORS.bgCard, "transparent"]}
+                        style={styles.gradient}
+                    />
+                    <View style={styles.imageContainer}>
+                        <Image
+                            source={{ uri: imageUrl || PLACEHOLDER.playlist }}
+                            style={styles.coverImage}
+                            contentFit="cover"
+                        />
+                    </View>
+                    <View style={styles.titleContainer}>
+                        <Text style={styles.title} numberOfLines={2}>
+                            {title}
+                        </Text>
+                        {artistNames && (
+                            <Text style={styles.subtitle} numberOfLines={1}>
+                                {artistNames}
+                            </Text>
+                        )}
+                        {subtitle && (
+                            <Text style={styles.extraSubtitle} numberOfLines={1}>
+                                {subtitle}
+                            </Text>
+                        )}
+                        <Text style={styles.mediaCount}>
+                            {media.length}{" "}
+                            {media.length === 1 ? "song" : "songs"}
+                        </Text>
+                    </View>
+                </View>
+                {media.map((item, index) => (
+                    <MediaItemComponent
+                        key={item.publicId}
+                        media={item}
+                        index={index}
+                        showIndex={showMediaIndex}
+                        showImage={showMediaImage}
+                        onPress={() => handleMediaPress(item)}
+                    />
+                ))}
+            </ScrollView>
         </SafeAreaView>
     );
 });

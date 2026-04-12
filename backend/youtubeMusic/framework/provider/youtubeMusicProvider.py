@@ -86,33 +86,99 @@ class YoutubeMusicProvider(BaseProvider):
         YoutubeMusic.provider_name = provider_name
 
     async def search_async(self, query: str) -> AResult[List[BaseSearchResultsItem]]:
-        """Search YouTube Music and return a list of search items."""
+        """Search YouTube Music and return songs, artists, albums and playlists."""
+        import asyncio
 
-        a_result = await YoutubeMusicApi.search_track_async(query=query, max_results=10)
-        if a_result.is_not_ok():
-            logger.error(f"YouTube Music search error: {a_result.info()}")
-            return AResult(code=a_result.code(), message=a_result.message())
+        (
+            a_tracks,
+            a_artists,
+            a_albums,
+            a_playlists,
+        ) = await asyncio.gather(
+            YoutubeMusicApi.search_track_async(query=query, max_results=5),
+            YoutubeMusicApi.search_artists_async(query=query, max_results=5),
+            YoutubeMusicApi.search_albums_async(query=query, max_results=5),
+            YoutubeMusicApi.search_playlists_async(query=query, max_results=5),
+        )
 
-        tracks = a_result.result()
+        result: List[BaseSearchResultsItem] = []
 
-        result: List[BaseSearchResultsItem] = [
-            BaseSearchResultsItem(
-                type="song",
-                title=track.title,
-                url=f"/youtube-music/track/{track.youtube_id}",
-                providerUrl=f"https://music.youtube.com/watch?v={track.youtube_id}",
-                imageUrl=track.thumbnail_url,
-                artists=[
-                    ArtistSearchResultsItem(
-                        name=artist_name,
-                        url="",
+        if a_tracks.is_ok():
+            for track in a_tracks.result():
+                result.append(
+                    BaseSearchResultsItem(
+                        type="song",
+                        title=track.title,
+                        url=f"/youtube-music/track/{track.youtube_id}",
+                        providerUrl=f"https://music.youtube.com/watch?v={track.youtube_id}",
+                        imageUrl=track.thumbnail_url,
+                        artists=[
+                            ArtistSearchResultsItem(name=name, url="")
+                            for name in track.artists
+                        ],
+                        provider="YouTube Music",
                     )
-                    for artist_name in track.artists
-                ],
-                provider="YouTube Music",
-            )
-            for track in tracks
-        ]
+                )
+        else:
+            logger.error(f"YouTube Music track search error: {a_tracks.info()}")
+
+        if a_artists.is_ok():
+            for artist in a_artists.result():
+                result.append(
+                    BaseSearchResultsItem(
+                        type="artist",
+                        title=artist.name,
+                        url=f"/youtube-music/artist/{artist.youtube_id}",
+                        providerUrl=f"https://music.youtube.com/channel/{artist.youtube_id}",
+                        imageUrl=artist.thumbnail_url,
+                        artists=[],
+                        provider="YouTube Music",
+                    )
+                )
+        else:
+            logger.error(f"YouTube Music artist search error: {a_artists.info()}")
+
+        if a_albums.is_ok():
+            for album in a_albums.result():
+                result.append(
+                    BaseSearchResultsItem(
+                        type="album",
+                        title=album.title,
+                        url=f"/youtube-music/album/{album.youtube_id}",
+                        providerUrl=f"https://music.youtube.com/browse/{album.youtube_id}",
+                        imageUrl=album.thumbnail_url,
+                        artists=[
+                            ArtistSearchResultsItem(name=name, url="")
+                            for name in album.artists
+                        ],
+                        provider="YouTube Music",
+                    )
+                )
+        else:
+            logger.error(f"YouTube Music album search error: {a_albums.info()}")
+
+        if a_playlists.is_ok():
+            for playlist in a_playlists.result():
+                result.append(
+                    BaseSearchResultsItem(
+                        type="playlist",
+                        title=playlist.title,
+                        url=f"/youtube-music/playlist/{playlist.youtube_id}",
+                        providerUrl=f"https://music.youtube.com/browse/{playlist.youtube_id}",
+                        imageUrl=playlist.thumbnail_url,
+                        artists=(
+                            [ArtistSearchResultsItem(name=playlist.author, url="")]
+                            if playlist.author
+                            else []
+                        ),
+                        provider="YouTube Music",
+                    )
+                )
+        else:
+            logger.error(f"YouTube Music playlist search error: {a_playlists.info()}")
+
+        if not result:
+            return AResult(code=AResultCode.NOT_FOUND, message="No results found")
 
         return AResult(code=AResultCode.OK, message="OK", result=result)
 

@@ -42,6 +42,8 @@ export default function FullPlayer() {
         hasVideo,
     } = usePlayer();
 
+    console.log({ isPlayerVisible });
+
     const insets = useSafeAreaInsets();
     const translateY = useSharedValue(SCREEN_HEIGHT + 10);
     const isHiding = useSharedValue(false);

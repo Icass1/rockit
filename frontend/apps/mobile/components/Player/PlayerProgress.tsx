@@ -18,6 +18,8 @@ interface PlayerProgressProps {
 export default function PlayerProgress({ onSeek }: PlayerProgressProps) {
     const { currentTime, duration } = usePlayerTime();
 
+    console.log({ duration, currentTime });
+
     const [isSeeking, setIsSeeking] = useState(false);
     const [seekValue, setSeekValue] = useState(currentTime);
 

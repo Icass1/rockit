@@ -89,9 +89,15 @@ class WebSocketManager:
         )
         await self.send_to_user(user_id=user_id, message=download_message)
 
-    async def handle_client_message(self, user_id: int, data: dict[str, Any]) -> None:
-        message_type = data.get("type")
-        # logger.info(f"Received WebSocket message from user {user_id}: {message_type}")
+    async def handle_client_message(self, user_id: int, data: Dict[str, Any]) -> None:
+        message_type: str | None = data.get("type")
+        logger.debug(f"Received WebSocket message from user {user_id}: {message_type}")
+
+        if not message_type:
+            logger.warning(
+                f"Received WebSocket message without type from user {user_id}"
+            )
+            return
 
         async with rockit_db.session_scope_async() as session:
             if message_type == "media_ended":

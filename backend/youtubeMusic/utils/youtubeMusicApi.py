@@ -54,6 +54,30 @@ class YoutubeMusicPlaylistTrack:
 
 
 @dataclass
+class YoutubeMusicAlbumResult:
+    youtube_id: str
+    title: str
+    artists: List[str]
+    thumbnail_url: str
+    release_year: Optional[int]
+
+
+@dataclass
+class YoutubeMusicArtistResult:
+    youtube_id: str
+    name: str
+    thumbnail_url: str
+
+
+@dataclass
+class YoutubeMusicPlaylistResult:
+    youtube_id: str
+    title: str
+    author: str
+    thumbnail_url: str
+
+
+@dataclass
 class YoutubeMusicPlaylist:
     youtube_id: str
     title: str
@@ -164,6 +188,210 @@ class YoutubeMusicApi:
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
                 message=f"Failed to search tracks: {e}",
+            )
+
+    @staticmethod
+    async def search_artists_async(
+        query: str, max_results: int = 5
+    ) -> AResult[List[YoutubeMusicArtistResult]]:
+        try:
+            from ytmusicapi import YTMusic
+            import asyncio
+
+            loop = None
+            try:
+                loop = asyncio.get_event_loop()
+            except RuntimeError:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+
+            def _search() -> Any:
+                yt = YTMusic()
+                return yt.search(query, filter="artists", limit=max_results)
+
+            results: Any = await loop.run_in_executor(None, _search)
+
+            if not results:
+                return AResult(code=AResultCode.OK, message="OK", result=[])
+
+            artists: List[YoutubeMusicArtistResult] = []
+            for entry in results[:max_results]:
+                try:
+                    entry_dict: Dict[str, Any] = cast(Dict[str, Any], entry)
+                    browse_id = entry_dict.get("browseId", "")
+                    if not browse_id:
+                        continue
+
+                    thumbnail = ""
+                    thumbnails = entry_dict.get("thumbnails")
+                    if thumbnails and len(thumbnails) > 0:
+                        thumb = cast(Dict[str, Any], thumbnails[-1])
+                        thumb_url = cast(Optional[str], thumb.get("url"))
+                        if thumb_url is not None:
+                            thumbnail = thumb_url
+
+                    artists.append(
+                        YoutubeMusicArtistResult(
+                            youtube_id=str(browse_id),
+                            name=str(entry_dict.get("artist", "")),
+                            thumbnail_url=thumbnail,
+                        )
+                    )
+                except Exception:
+                    logger.debug(f"Skipping artist entry due to error: {entry}")
+                    continue
+
+            return AResult(code=AResultCode.OK, message="OK", result=artists)
+
+        except Exception as e:
+            logger.error(f"Failed to search artists: {e}")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to search artists: {e}",
+            )
+
+    @staticmethod
+    async def search_albums_async(
+        query: str, max_results: int = 5
+    ) -> AResult[List[YoutubeMusicAlbumResult]]:
+        try:
+            from ytmusicapi import YTMusic
+            import asyncio
+
+            loop = None
+            try:
+                loop = asyncio.get_event_loop()
+            except RuntimeError:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+
+            def _search() -> Any:
+                yt = YTMusic()
+                return yt.search(query, filter="albums", limit=max_results)
+
+            results: Any = await loop.run_in_executor(None, _search)
+
+            if not results:
+                return AResult(code=AResultCode.OK, message="OK", result=[])
+
+            albums: List[YoutubeMusicAlbumResult] = []
+            for entry in results[:max_results]:
+                try:
+                    entry_dict: Dict[str, Any] = cast(Dict[str, Any], entry)
+                    browse_id = entry_dict.get("browseId", "")
+                    if not browse_id:
+                        continue
+
+                    thumbnail = ""
+                    thumbnails = entry_dict.get("thumbnails")
+                    if thumbnails and len(thumbnails) > 0:
+                        thumb = cast(Dict[str, Any], thumbnails[-1])
+                        thumb_url = cast(Optional[str], thumb.get("url"))
+                        if thumb_url is not None:
+                            thumbnail = thumb_url
+
+                    artist_names: List[str] = []
+                    artists_val = entry_dict.get("artists")
+                    if artists_val:
+                        artist_names = [str(a.get("name", "")) for a in artists_val]
+
+                    release_year: Optional[int] = None
+                    year_val = entry_dict.get("year")
+                    if year_val is not None:
+                        try:
+                            release_year = int(year_val)
+                        except (ValueError, TypeError):
+                            pass
+
+                    albums.append(
+                        YoutubeMusicAlbumResult(
+                            youtube_id=str(browse_id),
+                            title=str(entry_dict.get("title", "")),
+                            artists=artist_names,
+                            thumbnail_url=thumbnail,
+                            release_year=release_year,
+                        )
+                    )
+                except Exception:
+                    logger.debug(f"Skipping album entry due to error: {entry}")
+                    continue
+
+            return AResult(code=AResultCode.OK, message="OK", result=albums)
+
+        except Exception as e:
+            logger.error(f"Failed to search albums: {e}")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to search albums: {e}",
+            )
+
+    @staticmethod
+    async def search_playlists_async(
+        query: str, max_results: int = 5
+    ) -> AResult[List[YoutubeMusicPlaylistResult]]:
+        try:
+            from ytmusicapi import YTMusic
+            import asyncio
+
+            loop = None
+            try:
+                loop = asyncio.get_event_loop()
+            except RuntimeError:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+
+            def _search() -> Any:
+                yt = YTMusic()
+                return yt.search(query, filter="playlists", limit=max_results)
+
+            results: Any = await loop.run_in_executor(None, _search)
+
+            if not results:
+                return AResult(code=AResultCode.OK, message="OK", result=[])
+
+            playlists: List[YoutubeMusicPlaylistResult] = []
+            for entry in results[:max_results]:
+                try:
+                    entry_dict: Dict[str, Any] = cast(Dict[str, Any], entry)
+                    browse_id = entry_dict.get("browseId", "")
+                    if not browse_id:
+                        continue
+
+                    thumbnail = ""
+                    thumbnails = entry_dict.get("thumbnails")
+                    if thumbnails and len(thumbnails) > 0:
+                        thumb = cast(Dict[str, Any], thumbnails[-1])
+                        thumb_url = cast(Optional[str], thumb.get("url"))
+                        if thumb_url is not None:
+                            thumbnail = thumb_url
+
+                    author = ""
+                    author_val = entry_dict.get("author")
+                    if author_val:
+                        if isinstance(author_val, dict):
+                            author = str(author_val.get("name", ""))
+                        else:
+                            author = str(author_val)
+
+                    playlists.append(
+                        YoutubeMusicPlaylistResult(
+                            youtube_id=str(browse_id),
+                            title=str(entry_dict.get("title", "")),
+                            author=author,
+                            thumbnail_url=thumbnail,
+                        )
+                    )
+                except Exception:
+                    logger.debug(f"Skipping playlist entry due to error: {entry}")
+                    continue
+
+            return AResult(code=AResultCode.OK, message="OK", result=playlists)
+
+        except Exception as e:
+            logger.error(f"Failed to search playlists: {e}")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to search playlists: {e}",
             )
 
     @staticmethod

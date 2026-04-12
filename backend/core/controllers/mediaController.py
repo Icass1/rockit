@@ -282,7 +282,7 @@ async def add_from_url(
         session=session, url=url
     )
     if a_result.is_not_ok():
-        logger.error(f"Error adding media from URL. {a_result.info()}")
+        logger.error(f"Error adding media from URL '{url}'. {a_result.info()}")
         raise HTTPException(
             status_code=a_result.get_http_code(), detail=a_result.message()
         )

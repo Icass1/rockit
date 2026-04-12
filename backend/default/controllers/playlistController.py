@@ -30,6 +30,7 @@ from backend.default.requests.playlistRequest import (
     AddMediaToPlaylistRequest,
     AddContributorRequest,
 )
+from backend.default.responses.userPlaylistsResponse import UserPlaylistsResponse
 
 
 async def get_playlist_list_response(
@@ -113,10 +114,10 @@ async def create_playlist_async(
     )
 
 
-@router.get("/", response_model=List[BasePlaylistResponse])
+@router.get("/")
 async def get_user_playlists_async(
     request: Request,
-) -> List[BasePlaylistResponse]:
+) -> UserPlaylistsResponse:
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
     user = AuthMiddleware.get_current_user(request)
     if user.is_not_ok():
@@ -132,7 +133,9 @@ async def get_user_playlists_async(
         )
 
     playlists: list[PlaylistModel] = a_result.result()
-    return await get_playlist_list_response(session=session, playlists=playlists)
+    return UserPlaylistsResponse(
+        playlists=await get_playlist_list_response(session=session, playlists=playlists)
+    )
 
 
 @router.get("/{playlist_public_id}", response_model=BasePlaylistResponse)

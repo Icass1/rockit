@@ -1,7 +1,13 @@
 import { useCallback } from "react";
 import type { BaseSearchResultsItem } from "@rockit/shared";
+import { API_ENDPOINTS, UserPlaylistsResponseSchema } from "@rockit/shared";
 import { FlatList, StyleSheet, View } from "react-native";
-import { useTypedRouter } from "@/lib/useTypedRouter";
+import { z } from "zod";
+import { apiGet } from "@/lib/api";
+import {
+    useContextMenu,
+    type ContextMenuConfig,
+} from "@/lib/ContextMenuContext";
 import SectionTitle from "@/components/layout/SectionTitle";
 import ArtistAvatar from "@/components/Media/ArtistAvatar";
 import MediaCard from "@/components/Media/MediaCard";
@@ -20,13 +26,79 @@ export default function SearchSection({
     items,
     layout = "row",
 }: SearchSectionProps) {
-    const { push } = useTypedRouter();
+    const { show, hide } = useContextMenu();
+
+    const buildMainMenu = useCallback(
+        (item: BaseSearchResultsItem): ContextMenuConfig => ({
+            imageUrl: item.imageUrl,
+            title: item.title,
+            subtitle: item.artists?.map((a) => a.name).join(", "),
+            options: [
+                {
+                    label: "Add to library",
+                    icon: "heart",
+                    onPress: async () => {
+                        hide();
+                        await apiGet(
+                            `${API_ENDPOINTS.mediaAddFromUrl}?url=${encodeURIComponent(item.providerUrl)}`,
+                            z.unknown()
+                        );
+                    },
+                },
+                {
+                    label: "Add to playlist",
+                    icon: "plus-circle",
+                    onPress: () => showPlaylistPicker(item),
+                },
+            ],
+        }),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [hide, show]
+    );
+
+    const showPlaylistPicker = useCallback(
+        async (item: BaseSearchResultsItem) => {
+            let playlists: {
+                publicId: string;
+                name: string;
+                imageUrl: string;
+            }[] = [];
+            try {
+                const res = await apiGet(
+                    API_ENDPOINTS.userPlaylists,
+                    UserPlaylistsResponseSchema
+                );
+                playlists = res.playlists;
+            } catch {
+                // fall through with empty list
+            }
+
+            show({
+                imageUrl: item.imageUrl,
+                title: "Add to playlist",
+                subtitle: item.title,
+                backAction: () => show(buildMainMenu(item)),
+                options: playlists.map((pl) => ({
+                    label: pl.name,
+                    icon: "music" as const,
+                    onPress: async () => {
+                        hide();
+                        await apiGet(
+                            `${API_ENDPOINTS.mediaAddFromUrl}?url=${encodeURIComponent(item.providerUrl)}&playlist_public_id=${encodeURIComponent(pl.publicId)}`,
+                            z.unknown()
+                        );
+                    },
+                })),
+            });
+        },
+        [show, hide, buildMainMenu]
+    );
 
     const handlePress = useCallback(
         (item: BaseSearchResultsItem) => {
-            push(item.url);
+            show(buildMainMenu(item));
         },
-        [push]
+        [show, buildMainMenu]
     );
 
     const renderGridItem = useCallback(

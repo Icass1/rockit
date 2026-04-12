@@ -11,8 +11,14 @@ import type {
     BaseVideoResponse,
     TQueueMedia,
 } from "@rockit/shared";
-import { ERepeatMode } from "@rockit/shared";
+import {
+    API_ENDPOINTS,
+    ERepeatMode,
+    QueueResponseSchema,
+    SessionResponseSchema,
+} from "@rockit/shared";
 import type { VideoPlayer } from "expo-video";
+import { apiGet } from "@/lib/api";
 import {
     AudioIntegrationService,
     type LockScreenMetadata,
@@ -157,6 +163,48 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         AudioIntegrationService.updatePlaybackState(isPlaying);
     }, [isPlaying]);
 
+    useEffect(() => {
+        async function restoreSession() {
+            try {
+                const [queueResponse, sessionResponse] = await Promise.all([
+                    apiGet(API_ENDPOINTS.userQueue, QueueResponseSchema),
+                    apiGet(API_ENDPOINTS.userSession, SessionResponseSchema),
+                ]);
+
+                if (queueResponse.currentQueueMediaId === null) return;
+
+                const currentItem = queueResponse.queue.find(
+                    (item) =>
+                        item.queueMediaId === queueResponse.currentQueueMediaId
+                );
+                if (!currentItem) return;
+
+                const queueMedia = queueResponse.queue.map(
+                    (item) => item.media
+                );
+                const currentMedia = currentItem.media;
+
+                queue.setQueueAndPlay(currentMedia, queueMedia);
+
+                const uri = getUri(currentMedia);
+                if (!uri) return;
+
+                await mediaEngine.loadTrack(uri, hasVideoSource(currentMedia));
+                await mediaEngine.pause();
+
+                if (sessionResponse.currentTimeMs !== null) {
+                    await mediaEngine.seekTo(
+                        sessionResponse.currentTimeMs / 1000
+                    );
+                }
+            } catch {
+                // No active session or queue — start fresh
+            }
+        }
+
+        restoreSession();
+    }, []);
+
     const getUri = (
         media: BaseSongWithoutAlbumResponse | BaseVideoResponse | undefined
     ): string | null => {
@@ -171,6 +219,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         onTimeUpdate: (pos, dur) => {
             setCurrentTime(pos);
             currentTimeRef.current = pos;
+            console.log("setDuration", dur);
             setDuration(dur);
 
             const now = Date.now();
@@ -202,6 +251,10 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
                     const nextHasVideo = hasVideoSource(nextMedia);
                     queueRef.current.setCurrentIndex(index);
                     mediaEngine.loadTrack(uri, nextHasVideo);
+                    webSocketManager.sendCurrentMedia({
+                        mediaPublicId: nextMedia.publicId,
+                        queueMediaId: index,
+                    });
                 }
             } else {
                 setIsPlaying(false);
@@ -233,6 +286,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
             const index = queue.setQueueAndPlay(media, newQueue);
             setCurrentTime(0);
             currentTimeRef.current = 0;
+            console.log("setDuration(0)");
             setDuration(0);
             await mediaEngine.loadTrack(uri, shouldHaveVideo);
             webSocketManager.sendMediaClicked({
@@ -289,6 +343,10 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         queue.setCurrentIndex(nextIndex);
         setCurrentTime(0);
         await mediaEngine.loadTrack(uri, shouldHaveVideo);
+        webSocketManager.sendCurrentMedia({
+            mediaPublicId: nextMedia.publicId,
+            queueMediaId: nextIndex,
+        });
     }, [mediaEngine, queue]);
 
     const skipBack = useCallback(async () => {
@@ -308,6 +366,10 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         queue.setCurrentIndex(prevIndex);
         setCurrentTime(0);
         await mediaEngine.loadTrack(uri, shouldHaveVideo);
+        webSocketManager.sendCurrentMedia({
+            mediaPublicId: prevMedia.publicId,
+            queueMediaId: prevIndex,
+        });
     }, [currentTime, mediaEngine, queue, seekTo]);
 
     const showPlayer = useCallback(() => setIsPlayerVisible(true), []);

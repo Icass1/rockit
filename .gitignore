@@ -101,6 +101,7 @@ database/
 /media/
 /images/
 /temp/
+/builds/
 /backend/utils/json.json
 
 # Spotify cache
@@ -127,3 +128,4 @@ pnpm-debug.log*
 .agents/
 
 *.original.md
+

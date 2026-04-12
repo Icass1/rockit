@@ -7,10 +7,11 @@ from backend.core.access.db.base import CoreBase
 from backend.core.access.db.ormModels.declarativeMixin import (
     TableAutoincrementId,
     TableDateAdded,
+    TableDateUpdated,
 )
 
 
-class AppVersionRow(CoreBase, TableAutoincrementId, TableDateAdded):
+class AppVersionRow(CoreBase, TableAutoincrementId, TableDateAdded, TableDateUpdated):
     __tablename__ = "app_version"
     __table_args__ = ({"schema": "core", "extend_existing": True},)
 

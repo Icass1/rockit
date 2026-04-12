@@ -1,13 +1,20 @@
+import base64
+import os
+import uuid
+
 from fastapi import APIRouter, Depends, HTTPException, Request
 from logging import Logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.access.adminVersionAccess import AdminVersionAccess
 from backend.core.requests.addVersionRequest import AddVersionRequest
+from backend.core.requests.uploadApkRequest import UploadApkRequest
 from backend.core.responses.buildResponse import AllBuildsResponse, BuildResponse
+from backend.core.responses.okResponse import OkResponse
+from backend.core.responses.uploadApkResponse import UploadApkResponse
 from backend.core.middlewares.authMiddleware import AuthMiddleware
 from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
-from backend.core.responses.okResponse import OkResponse
+from backend.constants import BUILDS_PATH
 from backend.utils.logger import getLogger
 
 logger: Logger = getLogger(__name__)
@@ -61,3 +68,42 @@ async def add_build(request: Request, payload: AddVersionRequest) -> OkResponse:
         )
 
     return OkResponse()
+
+
+@router.post("/builds/upload")
+async def upload_apk(request: Request, payload: UploadApkRequest) -> UploadApkResponse:
+    if not payload.fileName.endswith(".apk"):
+        raise HTTPException(status_code=400, detail="Only .apk files are allowed.")
+
+    os.makedirs(BUILDS_PATH, exist_ok=True)
+
+    file_ext = os.path.splitext(payload.fileName)[1]
+    unique_filename = f"{uuid.uuid4()}{file_ext}"
+    file_path = os.path.join(BUILDS_PATH, unique_filename)
+
+    try:
+        file_content = base64.b64decode(payload.fileContent)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid base64 content.")
+
+    with open(file_path, "wb") as f:
+        f.write(file_content)
+
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+    a_result = await AdminVersionAccess.add_version_async(
+        session=session,
+        version=payload.version,
+        apk_filename=unique_filename,
+        description=payload.description,
+    )
+
+    if a_result.is_not_ok():
+        os.remove(file_path)
+        logger.error(f"Error adding build. {a_result.info()}")
+        raise HTTPException(
+            status_code=a_result.get_http_code(), detail=a_result.message()
+        )
+
+    return UploadApkResponse(
+        message="Build uploaded successfully.", id=a_result.result().id
+    )

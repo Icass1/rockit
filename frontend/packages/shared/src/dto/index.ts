@@ -231,6 +231,14 @@ export {
     type UpdatePlaylistRequest,
 } from "./updatePlaylistRequest";
 export {
+    UploadApkRequestSchema,
+    type UploadApkRequest,
+} from "./uploadApkRequest";
+export {
+    UploadApkResponseSchema,
+    type UploadApkResponse,
+} from "./uploadApkResponse";
+export {
     UrlMatchResponseSchema,
     type UrlMatchResponse,
 } from "./urlMatchResponse";

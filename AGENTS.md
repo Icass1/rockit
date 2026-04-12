@@ -967,3 +967,43 @@ if (typeof window !== "undefined") { ... }
 | `frontend/apps/web/styles/base.css`                       | Reset, CSS vars, md breakpoint override |
 | `frontend/apps/web/styles/components.css`                 | Scrollbars, slider, skeleton, safe-area |
 | `frontend/apps/web/environment.ts`                        | BACKEND_URL                             |
+
+---
+
+## 11. Frontend Models and Enums
+
+All shared TypeScript enums for the frontend should be defined in `frontend/apps/web/lib/models.ts`. This file serves as a central location for enum definitions used across components.
+
+### Creating a New Enum
+
+1. Add the enum to `frontend/apps/web/models/enums/*`:
+
+```typescript
+export enum EAdminClientTab {
+    BUILDS = "builds",
+    USERS = "users",
+    SETTINGS = "settings",
+}
+```
+
+2. Import it in your component:
+
+```typescript
+import { EAdminClientTab } from "@/lib/models";
+```
+
+### Vocabulary Manager
+
+All user-facing strings should use `rockIt.vocabularyManager.vocabularyAtom` via the `useStore` hook from `@nanostores/react`:
+
+```tsx
+const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+```
+
+Then use `$vocabulary.YOUR_KEY` for any text. The vocabulary proxy returns the key itself if not found, so you can add new keys without updating types.
+
+When adding new vocabulary keys:
+
+- Use prefix based on feature (e.g., `ADMIN_` for admin, `SETTINGS_` for settings)
+- Add keys incrementally as you need them
+- The backend stores vocabulary per language, so keys need to be added to the database

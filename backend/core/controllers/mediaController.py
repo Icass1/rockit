@@ -129,13 +129,13 @@ async def get_video_async(request: Request, public_id: str) -> BaseVideoResponse
     return a_result.result()
 
 
-@router.get("/{public_id}")
-async def get_media(request: Request, public_id: str) -> MediaResponse:
-    """Get a media item by its public_id without specifying the type."""
+@router.get("/search")
+async def search(request: Request, q: str) -> SearchResultsResponse:
+    """Search all providers and return aggregated results."""
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-    a_result: AResult[MediaResponse] = await Media.get_media_async(
-        session=session, public_id=public_id
+    a_result: AResult[SearchResultsResponse] = await Media.search_async(
+        session=session, query=q
     )
     if a_result.is_not_ok():
         raise HTTPException(
@@ -145,13 +145,15 @@ async def get_media(request: Request, public_id: str) -> MediaResponse:
     return a_result.result()
 
 
-@router.get("/search")
-async def search(request: Request, q: str) -> SearchResultsResponse:
-    """Search all providers and return aggregated results."""
+@router.get("/{public_id}")
+async def get_media(request: Request, public_id: str) -> MediaResponse:
+    """Get a media item by its public_id without specifying the type."""
+
+    logger.debug(f"Media.get_media_async called with public_id: {public_id}")
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-    a_result: AResult[SearchResultsResponse] = await Media.search_async(
-        session=session, query=q
+    a_result: AResult[MediaResponse] = await Media.get_media_async(
+        session=session, public_id=public_id
     )
     if a_result.is_not_ok():
         raise HTTPException(

@@ -262,12 +262,12 @@ class Media:
             )
             tasks.append(task)
 
-        # Run all searches concurrently
+        # Run all searches concurrently.
         search_results: List[AResult[List[BaseSearchResultsItem]]] = (
             await asyncio.gather(*tasks, return_exceptions=False)
         )
 
-        # Collect results
+        # Collect results.
         for a_result in search_results:
             if a_result.is_not_ok():
                 if a_result.code() != AResultCode.NOT_IMPLEMENTED:

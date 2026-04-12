@@ -1,8 +1,8 @@
+import { EventManager } from "@rockit/packages/shared";
 import { AlbumManager } from "@/lib/managers/albumManager";
 import { AuthManager } from "@/lib/managers/authManager";
 import { CurrentListManager } from "@/lib/managers/currentListManager";
 import { DownloaderManager } from "@/lib/managers/downloaderManager";
-import { EventManager } from "@/lib/managers/eventManager";
 import { IndexedDBManager } from "@/lib/managers/indexedDBManager";
 import { ListManager } from "@/lib/managers/listManager";
 import { MediaManager } from "@/lib/managers/mediaManager";

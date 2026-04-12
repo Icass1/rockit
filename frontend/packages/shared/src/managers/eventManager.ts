@@ -1,5 +1,5 @@
-import { EEvent } from "@/models/enums/events";
-import { IEventPayloadMap } from "@/models/interfaces/eventPayloadMap";
+import { EEvent } from "../models/enums/events";
+import { IEventPayloadMap } from "../models/interfaces/eventPayloadMap";
 
 export class EventManager {
     static #instance: EventManager;

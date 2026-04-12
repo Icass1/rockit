@@ -17,3 +17,14 @@ export * from "./models/enums/repeatMode";
 export * from "./audio/queueLogic";
 
 export * from "./services/mediaService";
+
+export * from "./models/enums/events";
+export * from "./models/interfaces/events/userLogin";
+export * from "./models/interfaces/events/playlistCreated";
+export * from "./models/interfaces/events/volumeChanged";
+export * from "./models/interfaces/events/songFinished";
+export * from "./models/interfaces/events/mediaAddedToPlaylist";
+export * from "./models/interfaces/events/mediaDownloaded";
+export * from "./models/interfaces/events/mediaDownloadStatus";
+export * from "./models/interfaces/eventPayloadMap";
+export * from "./managers/eventManager";

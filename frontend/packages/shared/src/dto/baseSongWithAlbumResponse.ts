@@ -18,7 +18,7 @@ export const BaseSongWithAlbumResponseSchema = z.object({
     duration_ms: z.number(),
     discNumber: z.number(),
     trackNumber: z.number(),
-    album: z.lazy(() => BaseAlbumWithoutSongsResponseSchema),
+    album: z.lazy(() => BaseAlbumWithoutSongsResponseSchema).optional(),
 });
 
 export type BaseSongWithAlbumResponse = z.infer<

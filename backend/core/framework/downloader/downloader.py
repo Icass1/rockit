@@ -266,7 +266,7 @@ class Downloader:
     async def mark_download_seen_async(
         session: AsyncSession, user_id: int, public_id: str
     ) -> AResult[bool]:
-        """Delete a download group and all its child downloads by public_id."""
+        """Mark a download group as seen by public_id."""
 
         a_result_group: AResult[DownloadGroupRow] = (
             await DownloadAccess.get_download_group_by_public_id(
@@ -277,15 +277,11 @@ class Downloader:
             logger.error(f"Error getting download group. {a_result_group.info()}")
             return AResult(code=a_result_group.code(), message=a_result_group.message())
 
-        a_result_delete: AResult[bool] = (
-            await DownloadAccess.delete_download_group_with_downloads(
-                session=session, group=a_result_group.result()
-            )
+        a_result_mark: AResult[bool] = await DownloadAccess.mark_download_group_seen(
+            session=session, group=a_result_group.result()
         )
-        if a_result_delete.is_not_ok():
-            logger.error(f"Error deleting download group. {a_result_delete.info()}")
-            return AResult(
-                code=a_result_delete.code(), message=a_result_delete.message()
-            )
+        if a_result_mark.is_not_ok():
+            logger.error(f"Error marking download group seen. {a_result_mark.info()}")
+            return AResult(code=a_result_mark.code(), message=a_result_mark.message())
 
         return AResult(code=AResultCode.OK, message="OK", result=True)

@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import TYPE_CHECKING, Dict, List
 
-from sqlalchemy import TIMESTAMP, ForeignKey, Integer, String
+from sqlalchemy import TIMESTAMP, Boolean, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.core.access.db.base import CoreBase
@@ -37,6 +37,7 @@ class DownloadGroupRow(
     )
     success: Mapped[int | None] = mapped_column(Integer, nullable=True)
     fail: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    seen: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     downloads: Mapped[List["DownloadRow"]] = relationship(
         "DownloadRow", back_populates="download_group"
@@ -52,8 +53,9 @@ class DownloadGroupRow(
         status_key: int = 1,
         success: int | None = None,
         fail: int | None = None,
+        seen: bool = False,
     ):
-        kwargs: Dict[str, None | datetime | int | str] = {}
+        kwargs: Dict[str, None | bool | datetime | int | str] = {}
         kwargs["public_id"] = public_id
         kwargs["user_id"] = user_id
         kwargs["title"] = title
@@ -62,5 +64,6 @@ class DownloadGroupRow(
         kwargs["status_key"] = status_key
         kwargs["success"] = success
         kwargs["fail"] = fail
+        kwargs["seen"] = seen
         for k, v in kwargs.items():
             setattr(self, k, v)

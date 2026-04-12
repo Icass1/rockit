@@ -68,89 +68,82 @@ class YoutubeMusicApi:
         query: str, max_results: int = 5
     ) -> AResult[List[YoutubeMusicTrack]]:
         try:
-            from urllib.parse import quote
-
-            ydl_opts: Dict[str, Any] = {
-                "quiet": True,
-                "no_warnings": True,
-                "extract_flat": False,
-            }
-
-            loop = None
+            from ytmusicapi import YTMusic
             import asyncio
 
+            logger.debug(f"Searching YouTube Music: {query}")
+
+            loop = None
             try:
                 loop = asyncio.get_event_loop()
             except RuntimeError:
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
 
-            encoded_query = quote(query)
-            search_url = f"https://music.youtube.com/search?q={encoded_query}"
-            logger.debug(f"Searching YouTube Music: {search_url}")
-
             def _search() -> Any:
-                opts: Any = ydl_opts
-                with YoutubeDL(opts) as ydl:
-                    try:
-                        return ydl.extract_info(search_url, download=False)
-                    except Exception as e:
-                        logger.debug(f"Search failed for query: {search_url}")
-                        logger.debug(f"Error: {e}")
-                        return None
+                yt = YTMusic()
+                return yt.search(query, filter="songs", limit=max_results)
 
-            info: Any = await loop.run_in_executor(None, _search)
+            results: Any = await loop.run_in_executor(None, _search)
 
-            logger.debug(f"Search info for query '{query}': {info}")
-
-            if not info or "entries" not in info:
+            if not results:
                 logger.error(f"No results found for query: {query}")
                 return AResult(
                     code=AResultCode.NOT_FOUND,
                     message="No results found",
                 )
 
-            entries: Any = info["entries"]
             tracks: List[YoutubeMusicTrack] = []
-            for entry in entries:
+            for entry in results[:max_results]:
                 try:
                     entry_dict: Dict[str, Any] = cast(Dict[str, Any], entry)
 
-                    entry_id = entry_dict.get("id", "")
-                    if not entry_id:
-                        logger.debug(f"Skipping entry with missing ID: {entry_dict}")
+                    video_id = entry_dict.get("videoId", "")
+                    if not video_id:
                         continue
 
                     duration_ms = 0
-                    duration_val = entry_dict.get("duration")
-                    if duration_val is not None:
-                        duration_ms = int(duration_val) * 1000
+                    duration_seconds = entry_dict.get("duration_seconds")
+                    if duration_seconds is not None:
+                        duration_ms = int(duration_seconds) * 1000
 
                     thumbnail = ""
                     thumbnails = entry_dict.get("thumbnails")
                     if thumbnails and len(thumbnails) > 0:
-                        thumb = cast(Dict[str, Any], thumbnails[0])
+                        thumb = cast(Dict[str, Any], thumbnails[-1])
                         thumb_url = cast(Optional[str], thumb.get("url"))
                         if thumb_url is not None:
                             thumbnail = thumb_url
 
                     artists: List[str] = []
-                    artist_val = entry_dict.get("artist")
-                    if artist_val is not None:
-                        artists = [str(artist_val)]
-                    else:
-                        artists_val = entry_dict.get("artists")
-                        if artists_val is not None:
-                            artists = [str(a) for a in artists_val]
+                    artists_val = entry_dict.get("artists")
+                    if artists_val:
+                        artists = [str(a.get("name", "")) for a in artists_val]
+
+                    album = ""
+                    album_val = entry_dict.get("album")
+                    album_youtube_id: Optional[str] = None
+                    if album_val:
+                        album = str(album_val.get("name", ""))
+                        album_youtube_id = album_val.get("id")
+
+                    release_year: Optional[int] = None
+                    year_val = entry_dict.get("year")
+                    if year_val is not None:
+                        try:
+                            release_year = int(year_val)
+                        except (ValueError, TypeError):
+                            pass
 
                     track = YoutubeMusicTrack(
-                        youtube_id=str(entry_id),
+                        youtube_id=str(video_id),
                         title=str(entry_dict.get("title", "")),
                         artists=artists,
-                        album=str(entry_dict.get("album", "")),
+                        album=album,
+                        album_youtube_id=album_youtube_id,
                         duration_ms=duration_ms,
                         thumbnail_url=thumbnail,
-                        isrc=entry_dict.get("isrc"),
+                        release_year=release_year,
                     )
                     tracks.append(track)
                 except Exception:

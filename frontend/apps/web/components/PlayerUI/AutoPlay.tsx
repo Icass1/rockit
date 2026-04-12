@@ -6,7 +6,7 @@ export default function AutoPlay() {
                 Reproducciones automáticas a continuación
             </h2>
 
-            <p>TODO</p>
+            <p>AutoPlay TODO</p>
 
             {/* {AUTO_PLAY_MOCKS.map((mock, i) => {
                 const autoMedia: QueueResponseItem = {

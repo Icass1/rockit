@@ -196,8 +196,6 @@ class User:
                     )
                     return None
 
-                logger.debug("Album media added to library medias.")
-
                 return a_result_album.result()
 
             elif media.media_type_key == MediaTypeEnum.PLAYLIST.value:
@@ -211,8 +209,6 @@ class User:
                         f"Error getting playlist from provider. {a_result_playlist.info()}"
                     )
                     return None
-
-                logger.debug("Playlist media added to library medias.")
 
                 return a_result_playlist.result()
 
@@ -228,8 +224,6 @@ class User:
                     )
                     return None
 
-                logger.debug("Song media added to library medias.")
-
                 return a_result_song.result()
 
             elif media.media_type_key == MediaTypeEnum.VIDEO.value:
@@ -243,8 +237,6 @@ class User:
                         f"Error getting video from provider. {a_result_video.info()}"
                     )
                     return None
-
-                logger.debug("Video media added to library medias.")
 
                 return a_result_video.result()
 
@@ -263,59 +255,59 @@ class User:
 
     @staticmethod
     async def add_media_to_library(
-        session: AsyncSession, user_id: int, album_public_id: str
+        session: AsyncSession, user_id: int, media_public_id: str
     ) -> AResult[UserLibraryMediaRow]:
-        """Add an album to user's library by public_id."""
+        """Add any media to user's library by public_id."""
 
-        a_result_album: AResult[CoreMediaRow] = (
+        a_result_media: AResult[CoreMediaRow] = (
             await MediaAccess.get_media_from_public_id_async(
                 session=session,
-                public_id=album_public_id,
-                media_type_keys=[MediaTypeEnum.ALBUM],
+                public_id=media_public_id,
+                media_type_keys=None,
             )
         )
-        if a_result_album.is_not_ok():
-            logger.error(f"Error getting album. {a_result_album.info()}")
-            return AResult(code=a_result_album.code(), message=a_result_album.message())
+        if a_result_media.is_not_ok():
+            logger.error(f"Error getting media. {a_result_media.info()}")
+            return AResult(code=a_result_media.code(), message=a_result_media.message())
 
-        a_result_user_album: AResult[UserLibraryMediaRow] = (
+        a_result_user_media: AResult[UserLibraryMediaRow] = (
             await UserAccess.add_user_library_media(
-                session=session, user_id=user_id, media_id=a_result_album.result().id
+                session=session, user_id=user_id, media_id=a_result_media.result().id
             )
         )
-        if a_result_user_album.is_not_ok():
-            logger.error(f"Error adding album to library. {a_result_user_album.info()}")
+        if a_result_user_media.is_not_ok():
+            logger.error(f"Error adding media to library. {a_result_user_media.info()}")
             return AResult(
-                code=a_result_user_album.code(), message=a_result_user_album.message()
+                code=a_result_user_media.code(), message=a_result_user_media.message()
             )
 
         return AResult(
-            code=AResultCode.OK, message="OK", result=a_result_user_album.result()
+            code=AResultCode.OK, message="OK", result=a_result_user_media.result()
         )
 
     @staticmethod
-    async def remove_album_from_library(
-        session: AsyncSession, user_id: int, album_public_id: str
+    async def remove_media_from_library(
+        session: AsyncSession, user_id: int, media_public_id: str
     ) -> AResult[bool]:
-        """Remove an album from user's library by public_id."""
+        """Remove media from user's library by public_id."""
 
-        a_result_album: AResult[CoreMediaRow] = (
+        a_result_media: AResult[CoreMediaRow] = (
             await MediaAccess.get_media_from_public_id_async(
                 session=session,
-                public_id=album_public_id,
-                media_type_keys=[MediaTypeEnum.ALBUM],
+                public_id=media_public_id,
+                media_type_keys=None,
             )
         )
-        if a_result_album.is_not_ok():
-            logger.error(f"Error getting album. {a_result_album.info()}")
-            return AResult(code=a_result_album.code(), message=a_result_album.message())
+        if a_result_media.is_not_ok():
+            logger.error(f"Error getting media. {a_result_media.info()}")
+            return AResult(code=a_result_media.code(), message=a_result_media.message())
 
         a_result_removed: AResult[bool] = await UserAccess.remove_user_library_media(
-            session=session, user_id=user_id, media_id=a_result_album.result().id
+            session=session, user_id=user_id, media_id=a_result_media.result().id
         )
         if a_result_removed.is_not_ok():
             logger.error(
-                f"Error removing album from library. {a_result_removed.info()}"
+                f"Error removing media from library. {a_result_removed.info()}"
             )
             return AResult(
                 code=a_result_removed.code(), message=a_result_removed.message()

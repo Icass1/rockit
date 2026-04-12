@@ -18,8 +18,9 @@ from backend.core.middlewares.authMiddleware import AuthMiddleware
 from backend.core.access.db.ormModels.user import UserRow
 from backend.core.access.db.ormModels.image import ImageRow
 
-from backend.core.framework.media.media import Media
 from backend.core.framework import providers
+from backend.core.framework.user.user import User
+from backend.core.framework.media.media import Media
 from backend.core.framework.provider.types import AddFromUrlAResult
 
 from backend.core.responses.mediaResponse import MediaResponse
@@ -288,16 +289,30 @@ async def add_from_url(
 
     media: AddFromUrlAResult = a_result.result()
 
-    if playlist_public_id:
-        a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
-        if a_result_user.is_ok():
-            from backend.default.framework.playlist import Playlist
+    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
+    if a_result_user.is_not_ok():
+        logger.error(f"Error getting current user. {a_result_user.info()}")
+        raise HTTPException(
+            status_code=a_result_user.get_http_code(), detail=a_result_user.message()
+        )
 
-            await Playlist.add_media_to_playlist_async(
-                session=session,
-                playlist_public_id=playlist_public_id,
-                user_id=a_result_user.result().id,
-                media_public_id=media.publicId,
-            )
+    user: UserRow = a_result_user.result()
+
+    if playlist_public_id:
+        from backend.default.framework.playlist import Playlist
+
+        await Playlist.add_media_to_playlist_async(
+            session=session,
+            playlist_public_id=playlist_public_id,
+            user_id=user.id,
+            media_public_id=media.publicId,
+        )
+    else:
+
+        await User.add_media_to_library(
+            session=session,
+            user_id=user.id,
+            media_public_id=media.publicId,
+        )
 
     return media

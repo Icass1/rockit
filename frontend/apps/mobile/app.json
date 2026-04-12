@@ -7,23 +7,23 @@
         "icon": "./assets/images/icon.png",
         "scheme": "mobile",
         "userInterfaceStyle": "automatic",
-        "newArchEnabled": true,
         "ios": {
             "supportsTablet": true,
             "bundleIdentifier": "com.rockit.mobile",
             "icon": "./assets/images/icon.png",
             "infoPlist": {
-                "UIBackgroundModes": ["audio"]
+                "UIBackgroundModes": [
+                    "audio"
+                ]
             }
         },
         "android": {
             "adaptiveIcon": {
                 "backgroundColor": "#000000",
-                "foregroundImage": "./assets/images/android-icon-foreground-1024.png",
-                "backgroundImage": "./assets/images/android-icon-background-1024.png"
+                "foregroundImage": "...",
+                "monochromeImage": "./assets/images/android-icon-monochromatic-1024.png"
             },
             "icon": "./assets/images/icon.png",
-            "edgeToEdgeEnabled": true,
             "predictiveBackGestureEnabled": false,
             "package": "com.rockit.mobile",
             "permissions": [

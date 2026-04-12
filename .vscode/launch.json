@@ -3,34 +3,49 @@
     "compounds": [
         {
             "name": "Full Stack Web",
-            "configurations": ["FastAPI Uvicorn", "NextJS Server"]
+            "configurations": [
+                "FastAPI Uvicorn (DEBUG)",
+                "NextJS Server"
+            ]
         },
         {
             "name": "Full Stack Web (Tunnel)",
-            "configurations": ["SSH Tunnel", "FastAPI Uvicorn", "NextJS Server"]
+            "configurations": [
+                "SSH Tunnel",
+                "FastAPI Uvicorn",
+                "NextJS Server"
+            ]
         },
         {
             "name": "Full Stack Mobile",
-            "configurations": ["FastAPI Uvicorn", "NextJS Server", "Expo LAN"]
+            "configurations": [
+                "FastAPI Uvicorn (DEBUG)",
+                "NextJS Server",
+                "Expo LAN"
+            ]
         },
         {
             "name": "Full Stack Mobile (Tunnel)",
             "configurations": [
                 "SSH Tunnel",
-                "FastAPI Uvicorn",
+                "FastAPI Uvicorn (DEBUG)",
                 "NextJS Server",
                 "Expo LAN"
             ]
         },
         {
             "name": "Full Stack Mobile + Web",
-            "configurations": ["FastAPI Uvicorn", "NextJS Server", "Expo LAN"]
+            "configurations": [
+                "FastAPI Uvicorn (DEBUG)",
+                "NextJS Server",
+                "Expo LAN"
+            ]
         },
         {
             "name": "Full Stack Mobile + Web (Tunnel)",
             "configurations": [
                 "SSH Tunnel",
-                "FastAPI Uvicorn",
+                "FastAPI Uvicorn (DEBUG)",
                 "NextJS Server",
                 "Expo LAN"
             ]
@@ -44,6 +59,22 @@
             "module": "uvicorn",
             "args": [
                 "backend.core.main:app",
+                "--host",
+                "0.0.0.0",
+                "--port",
+                "8000"
+            ],
+            "cwd": "${workspaceFolder}",
+            "justMyCode": true
+        },
+        {
+            "name": "FastAPI Uvicorn (DEBUG)",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "uvicorn",
+            "args": [
+                "backend.core.main:app",
+                "--reload",
                 "--host",
                 "0.0.0.0",
                 "--port",
@@ -72,7 +103,10 @@
             "type": "node",
             "request": "launch",
             "runtimeExecutable": "pnpm",
-            "runtimeArgs": ["run", "dev"],
+            "runtimeArgs": [
+                "run",
+                "dev"
+            ],
             "cwd": "${workspaceFolder}/frontend",
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen"
@@ -82,7 +116,11 @@
             "type": "node",
             "request": "launch",
             "runtimeExecutable": "npx",
-            "runtimeArgs": ["expo", "start", "--offline"],
+            "runtimeArgs": [
+                "expo",
+                "start",
+                "--offline"
+            ],
             "cwd": "${workspaceFolder}/frontend/apps/mobile",
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen"

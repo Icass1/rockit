@@ -225,9 +225,9 @@ async def get_user_library_medias(
     return a_result_albums.result()
 
 
-@router.get(path="/library/album/{album_public_id}")
-async def add_media_to_library(request: Request, album_public_id: str) -> OkResponse:
-    """Add an album to the user's library."""
+@router.get(path="/library/media/{media_public_id}")
+async def add_media_to_library(request: Request, media_public_id: str) -> OkResponse:
+    """Add media to the user's library."""
 
     session: AsyncSession = DBSessionMiddleware.get_session(request)
 
@@ -241,10 +241,10 @@ async def add_media_to_library(request: Request, album_public_id: str) -> OkResp
     a_result: AResult[UserLibraryMediaRow] = await User.add_media_to_library(
         session=session,
         user_id=a_result_user.result().id,
-        album_public_id=album_public_id,
+        media_public_id=media_public_id,
     )
     if a_result.is_not_ok():
-        logger.error(f"Error adding album to library. {a_result.info()}")
+        logger.error(f"Error adding media to library. {a_result.info()}")
         raise HTTPException(
             status_code=a_result.get_http_code(), detail=a_result.message()
         )
@@ -252,11 +252,11 @@ async def add_media_to_library(request: Request, album_public_id: str) -> OkResp
     return OkResponse()
 
 
-@router.delete(path="/library/album/{album_public_id}")
-async def remove_album_from_library(
-    request: Request, album_public_id: str
+@router.delete(path="/library/media/{media_public_id}")
+async def remove_media_from_library(
+    request: Request, media_public_id: str
 ) -> OkResponse:
-    """Remove an album from the user's library."""
+    """Remove media from the user's library."""
 
     session: AsyncSession = DBSessionMiddleware.get_session(request)
 
@@ -267,13 +267,13 @@ async def remove_album_from_library(
             status_code=a_result_user.get_http_code(), detail=a_result_user.message()
         )
 
-    a_result: AResult[bool] = await User.remove_album_from_library(
+    a_result: AResult[bool] = await User.remove_media_from_library(
         session=session,
         user_id=a_result_user.result().id,
-        album_public_id=album_public_id,
+        media_public_id=media_public_id,
     )
     if a_result.is_not_ok():
-        logger.error(f"Error removing album from library. {a_result.info()}")
+        logger.error(f"Error removing media from library. {a_result.info()}")
         raise HTTPException(
             status_code=a_result.get_http_code(), detail=a_result.message()
         )

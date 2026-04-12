@@ -64,7 +64,7 @@ function FooterLeftForSong({ currentMedia }: { currentMedia: TPlayableMedia }) {
                             ></Artists>
                         </div>
                         <span className="hidden select-none md:block">•</span>
-                        <span>TODO</span>
+                        <span>FooterLeftForSong TODO</span>
                         {/* <Link
                             href={`/album/${currentMedia.album.publicId}`}
                             prefetch={false}

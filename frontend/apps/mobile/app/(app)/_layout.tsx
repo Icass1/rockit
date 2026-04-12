@@ -22,6 +22,7 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
             <View style={styles.tabBar}>
                 {state.routes.map((route, index) => {
                     const { options } = descriptors[route.key];
+                    if (!options.tabBarIcon) return null;
                     const isFocused = state.index === index;
 
                     const onPress = () => {
@@ -61,6 +62,7 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
 const styles = StyleSheet.create({
     tabBar: {
         flexDirection: "row",
+        width: "100%",
         backgroundColor: COLORS.bgCard,
         borderTopWidth: StyleSheet.hairlineWidth,
         borderTopColor: COLORS.gray800,

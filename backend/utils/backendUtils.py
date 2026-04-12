@@ -36,7 +36,7 @@ def time_it(func: Callable[..., T]) -> Callable[..., T]:
             start = time.time()
             result = await func(*args, **kwargs)
             duration = round(time.time() - start, 3)
-            logger.info(f"[{file}:{line}] {func.__name__} took {duration}s")
+            logger.debug(f"[{file}:{line}] {func.__name__} took {duration}s")
             return result
 
         return async_wrapper  # type: ignore

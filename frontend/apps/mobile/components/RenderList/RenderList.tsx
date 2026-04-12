@@ -1,90 +1,23 @@
-import { memo, useCallback } from "react";
+import { memo } from "react";
 import { PLACEHOLDER } from "@/constants/assets";
 import { COLORS } from "@/constants/theme";
-import type { BaseArtistResponse, TQueueMedia } from "@rockit/shared";
+import type { BaseArtistResponse, TMedia } from "@rockit/shared";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { usePlayer } from "@/lib/PlayerContext";
-
-interface BaseMediaItem {
-    publicId: string;
-    name: string;
-    imageUrl?: string;
-    artists?: { name: string }[];
-    duration_ms?: number | null;
-    [key: string]: unknown;
-}
+import { Media } from "./Media";
 
 interface RenderListProps {
     title: string;
     subtitle?: string;
     imageUrl: string;
     artists?: BaseArtistResponse[];
-    media: BaseMediaItem[];
+    media: TMedia[];
     showMediaIndex?: boolean;
     showMediaImage?: boolean;
+    substractArtists?: string[];
 }
-
-function formatDuration(durationMs: number): string {
-    const totalSeconds = Math.floor(durationMs / 1000);
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
-}
-
-const MediaItemComponent = memo(function MediaItemComponent({
-    media,
-    index,
-    showIndex,
-    showImage,
-    onPress,
-}: {
-    media: BaseMediaItem;
-    index: number;
-    showIndex: boolean;
-    showImage: boolean;
-    onPress: () => void;
-}) {
-    const title = media.name;
-    const artistNames = media.artists?.map((a) => a.name).join(", ") || "";
-    const duration = media.duration_ms ?? null;
-
-    return (
-        <Pressable
-            onPress={onPress}
-            style={({ pressed }) => [
-                styles.mediaItem,
-                pressed && styles.pressed,
-            ]}
-        >
-            {showIndex && (
-                <View style={styles.indexContainer}>
-                    <Text style={styles.indexText}>{index + 1}</Text>
-                </View>
-            )}
-            {showImage && (
-                <Image
-                    source={{ uri: media.imageUrl || PLACEHOLDER.song }}
-                    style={styles.mediaImage}
-                    contentFit="cover"
-                />
-            )}
-            <View style={styles.mediaInfo}>
-                <Text style={styles.mediaTitle} numberOfLines={1}>
-                    {title}
-                </Text>
-                <Text style={styles.mediaArtist} numberOfLines={1}>
-                    {artistNames}
-                </Text>
-            </View>
-            {duration !== null && duration > 0 && (
-                <Text style={styles.duration}>{formatDuration(duration)}</Text>
-            )}
-        </Pressable>
-    );
-});
 
 export default memo(function RenderList({
     title,
@@ -94,16 +27,8 @@ export default memo(function RenderList({
     media,
     showMediaIndex = false,
     showMediaImage = true,
+    substractArtists = [],
 }: RenderListProps) {
-    const { playMedia } = usePlayer();
-
-    const handleMediaPress = useCallback(
-        (item: BaseMediaItem) => {
-            playMedia(item as TQueueMedia, media as TQueueMedia[]);
-        },
-        [playMedia, media]
-    );
-
     const artistNames = artists.map((a) => a.name).join(", ");
 
     return (
@@ -129,12 +54,15 @@ export default memo(function RenderList({
                             {title}
                         </Text>
                         {artistNames && (
-                            <Text style={styles.subtitle} numberOfLines={1}>
+                            <Text style={styles.artistText} numberOfLines={1}>
                                 {artistNames}
                             </Text>
                         )}
                         {subtitle && (
-                            <Text style={styles.extraSubtitle} numberOfLines={1}>
+                            <Text
+                                style={styles.extraSubtitle}
+                                numberOfLines={1}
+                            >
                                 {subtitle}
                             </Text>
                         )}
@@ -145,13 +73,14 @@ export default memo(function RenderList({
                     </View>
                 </View>
                 {media.map((item, index) => (
-                    <MediaItemComponent
+                    <Media
                         key={item.publicId}
                         media={item}
+                        allMedia={media}
                         index={index}
-                        showIndex={showMediaIndex}
-                        showImage={showMediaImage}
-                        onPress={() => handleMediaPress(item)}
+                        showMediaIndex={showMediaIndex}
+                        showMediaImage={showMediaImage}
+                        substractArtists={substractArtists}
                     />
                 ))}
             </ScrollView>
@@ -203,7 +132,7 @@ const styles = StyleSheet.create({
         fontWeight: "700",
         textAlign: "center",
     },
-    subtitle: {
+    artistText: {
         color: COLORS.gray400,
         fontSize: 14,
         marginTop: 4,
@@ -217,47 +146,5 @@ const styles = StyleSheet.create({
         color: COLORS.gray400,
         fontSize: 12,
         marginTop: 8,
-    },
-    mediaItem: {
-        flexDirection: "row",
-        alignItems: "center",
-        paddingVertical: 10,
-        paddingHorizontal: 16,
-        gap: 12,
-    },
-    pressed: {
-        opacity: 0.7,
-    },
-    indexContainer: {
-        width: 24,
-        alignItems: "center",
-    },
-    indexText: {
-        color: COLORS.gray400,
-        fontSize: 14,
-    },
-    mediaImage: {
-        width: 48,
-        height: 48,
-        borderRadius: 4,
-        backgroundColor: COLORS.bgCard,
-    },
-    mediaInfo: {
-        flex: 1,
-        minWidth: 0,
-    },
-    mediaTitle: {
-        color: COLORS.white,
-        fontSize: 15,
-        fontWeight: "500",
-    },
-    mediaArtist: {
-        color: COLORS.gray400,
-        fontSize: 13,
-        marginTop: 2,
-    },
-    duration: {
-        color: COLORS.gray400,
-        fontSize: 13,
     },
 });

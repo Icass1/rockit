@@ -11,7 +11,6 @@
 ### 1. Build base images
 
 ```bash
-docker build -t rockit-backend-base:latest -f Dockerfile.backend.base .
 docker build -t rockit-frontend-base:latest -f Dockerfile.frontend.base .
 ```
 
@@ -66,7 +65,7 @@ PostgreSQL 16. Data in postgres_data volume.
 
 ### Backend
 
-FastAPI on port 8000. Image: rockit-backend-base + source. Volumes: media, images, temp, logs. Depends: postgres.
+FastAPI on port 8000. Volumes: media, images, temp, logs. Depends: postgres.
 
 ### Frontend
 
@@ -83,7 +82,6 @@ docker compose build && docker compose up -d
 ### Rebuild base images (deps changed)
 
 ```bash
-docker build -t rockit-backend-base:latest -f Dockerfile.backend.base .
 docker build -t rockit-frontend-base:latest -f Dockerfile.frontend.base .
 docker compose build --no-cache && docker compose up -d
 ```

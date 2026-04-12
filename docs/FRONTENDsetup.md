@@ -45,7 +45,6 @@ Frontend (frontend/): `pnpm run dev`
 ### Base images
 
 ```bash
-docker build -f Dockerfile.backend.base -t rockit-backend-base .
 docker build -f Dockerfile.frontend.base -t rockit-frontend-base .
 ```
 

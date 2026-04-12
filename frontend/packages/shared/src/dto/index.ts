@@ -1,3 +1,6 @@
+// This file is generated using: python3 -m backend zod
+// Do not modify this file manually.
+
 export {
     AddContributorRequestSchema,
     type AddContributorRequest,
@@ -213,6 +216,10 @@ export {
     UrlMatchResponseSchema,
     type UrlMatchResponse,
 } from "./urlMatchResponse";
+export {
+    UserPlaylistsResponseSchema,
+    type UserPlaylistsResponse,
+} from "./userPlaylistsResponse";
 export {
     UserSettingsResponseSchema,
     type UserSettingsResponse,

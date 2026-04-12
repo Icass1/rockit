@@ -58,7 +58,12 @@ async def import_vocabulary() -> None:
     language_code_columns: List[str] = [str(h) for h in second_row[1:] if h is not None]
     logger.info(f"Found languages codes: {language_code_columns}")
 
-    types_content: List[str] = ["export interface Vocabulary {"]
+    types_content: List[str] = [
+        "// This file is generated using: python3 -m backend import_vocabulary",
+        "// Do not modify this file manually.",
+        "",
+        "export interface Vocabulary {",
+    ]
 
     vocabulary_data: Dict[str, Dict[str, str]] = {
         lang: {} for lang in language_code_columns

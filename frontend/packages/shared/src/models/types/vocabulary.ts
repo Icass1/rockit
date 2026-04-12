@@ -1,3 +1,6 @@
+// This file is generated using: python3 -m backend import_vocabulary
+// Do not modify this file manually.
+
 export interface Vocabulary {
     ADD_LIST_RANDOMLY: string;
     ADD_LIST_TO_BOTTOM: string;

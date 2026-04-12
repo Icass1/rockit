@@ -338,6 +338,10 @@ async def generate_zod_schemas() -> None:
 
     type_name_to_file: dict[str, str] = {v: k for k, v in known_types.items()}
 
+    GENERATED_FILE_HEADER = """// This file is generated using: python3 -m backend zod
+// Do not modify this file manually.
+"""
+
     for model_name, model in all_models.items():
         file_name = to_camel_case(model_name)
         schema, refs = generate_zod_schema(
@@ -356,7 +360,7 @@ async def generate_zod_schemas() -> None:
                     )
                     schema_names_imported.add(type_name)
 
-        output_lines = import_lines + ["", schema]
+        output_lines = [GENERATED_FILE_HEADER] + import_lines + ["", schema]
 
         output_path = output_dir / f"{file_name}.ts"
 
@@ -381,7 +385,7 @@ async def generate_zod_schemas() -> None:
                     )
                     schema_names_imported.add(type_name)
 
-        output_lines = import_lines + ["", schema]
+        output_lines = [GENERATED_FILE_HEADER] + import_lines + ["", schema]
 
         output_path = output_dir / f"{file_name}.ts"
 
@@ -420,7 +424,9 @@ async def generate_zod_schemas() -> None:
             existing_file.unlink()
             logger.info(f"Deleted {existing_file}")
 
-    (output_dir / "index.ts").write_text("\n".join(index_lines))
+    (output_dir / "index.ts").write_text(
+        GENERATED_FILE_HEADER + "\n" + "\n".join(index_lines)
+    )
     logger.info(f"Written index.ts")
 
     # Execute prettier on the generated files.

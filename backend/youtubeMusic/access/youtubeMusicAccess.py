@@ -19,6 +19,9 @@ from backend.youtubeMusic.access.db.ormModels.album import AlbumRow
 from backend.youtubeMusic.access.db.ormModels.artist import ArtistRow
 from backend.youtubeMusic.access.db.ormModels.playlist import PlaylistRow
 from backend.youtubeMusic.access.db.ormModels.playlist_track import PlaylistTrackRow
+from backend.youtubeMusic.access.db.associationTables.track_album_artists import (
+    track_artists,
+)
 
 if TYPE_CHECKING:
     from backend.youtubeMusic.utils.youtubeMusicApi import (
@@ -666,7 +669,11 @@ class YoutubeMusicAccess:
             for artist_name in raw.artists:
                 for yt_artist in artist_map.values():
                     if yt_artist.name == artist_name:
-                        track_row.artists.add(yt_artist)
+                        await session.execute(
+                            track_artists.insert().values(
+                                track_id=track_row.id, artist_id=yt_artist.id
+                            )
+                        )
                         break
 
             await session.flush()

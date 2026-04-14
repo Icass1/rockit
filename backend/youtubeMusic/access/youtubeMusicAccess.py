@@ -1,6 +1,3 @@
-import uuid
-import os
-import requests as req
 from typing import Dict, List, Tuple, cast, TYPE_CHECKING
 
 from sqlalchemy.future import select
@@ -13,19 +10,15 @@ from backend.utils.backendUtils import create_id
 from backend.utils.logger import getLogger
 
 from backend.core.aResult import AResult, AResultCode
-
-from backend.core.access.db.ormModels.image import ImageRow
-from backend.core.access.db.ormModels.media import CoreMediaRow
 from backend.core.enums.mediaTypeEnum import MediaTypeEnum
-from backend.core.framework.media.image import Image
+
+from backend.core.access.db.ormModels.media import CoreMediaRow
 
 from backend.youtubeMusic.access.db.ormModels.track import TrackRow
 from backend.youtubeMusic.access.db.ormModels.album import AlbumRow
 from backend.youtubeMusic.access.db.ormModels.artist import ArtistRow
 from backend.youtubeMusic.access.db.ormModels.playlist import PlaylistRow
 from backend.youtubeMusic.access.db.ormModels.playlist_track import PlaylistTrackRow
-
-from backend.constants import IMAGES_PATH
 
 if TYPE_CHECKING:
     from backend.youtubeMusic.utils.youtubeMusicApi import (
@@ -481,42 +474,11 @@ class YoutubeMusicAccess:
             )
 
     @staticmethod
-    async def _download_and_create_internal_image(
-        session: AsyncSession,
-        url: str,
-    ) -> AResult[ImageRow]:
-        try:
-            response = req.get(url, timeout=10)
-            if response.status_code != 200:
-                return AResult(
-                    code=AResultCode.GENERAL_ERROR, message="Image download failed"
-                )
-            filename = str(uuid.uuid4()) + ".jpg"
-            full_path = os.path.join(IMAGES_PATH, "youtubeMusic", filename)
-            os.makedirs(os.path.dirname(full_path), exist_ok=True)
-            with open(full_path, "wb") as f:
-                f.write(response.content)
-            img = ImageRow(
-                public_id=create_id(32), url=url, path="youtubeMusic/" + filename
-            )
-            logger.debug(
-                f"Image created: {img.public_id} from url {url} saved to {img.path}"
-            )
-            session.add(img)
-            await session.flush()
-            return AResult(code=AResultCode.OK, message="OK", result=img)
-        except Exception as e:
-            logger.error(f"Failed to download/create internal image: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
-                message=f"Failed to download/create internal image: {e}",
-            )
-
-    @staticmethod
-    async def get_or_create_artist(
+    async def get_or_create_artist_with_image_id_async(
         session: AsyncSession,
         raw: "YoutubeMusicArtist",
         provider_id: int,
+        image_id: int,
     ) -> AResult[ArtistRow]:
         try:
             stmt = select(ArtistRow).where(ArtistRow.youtube_id == raw.youtube_id)
@@ -524,31 +486,6 @@ class YoutubeMusicAccess:
             existing: ArtistRow | None = result.scalar_one_or_none()
             if existing:
                 return AResult(code=AResultCode.OK, message="OK", result=existing)
-
-            a_img: AResult[ImageRow] = (
-                await YoutubeMusicAccess._download_and_create_internal_image(
-                    session, raw.thumbnail_url
-                )
-            )
-            image_id: int
-            if a_img.is_ok():
-                image_id = a_img.result().id
-            else:
-                a_result_image: AResult[ImageRow] = (
-                    await Image.get_image_from_path_async(
-                        session=session, path="artist-placeholder.png"
-                    )
-                )
-                if a_result_image.is_ok():
-                    image_id = a_result_image.result().id
-                else:
-                    logger.error(
-                        f"Error getting placeholder image: {a_result_image.info()}"
-                    )
-                    return AResult(
-                        code=AResultCode.GENERAL_ERROR,
-                        message="Failed to get placeholder image",
-                    )
 
             core_artist = CoreMediaRow(
                 public_id=create_id(32),
@@ -595,11 +532,12 @@ class YoutubeMusicAccess:
             )
 
     @staticmethod
-    async def get_or_create_album(
+    async def get_or_create_album_with_image_id_async(
         session: AsyncSession,
         raw: "YoutubeMusicAlbum",
         artist_map: Dict[str, ArtistRow],
         provider_id: int,
+        image_id: int,
     ) -> AResult[AlbumRow]:
         try:
             stmt = (
@@ -611,19 +549,6 @@ class YoutubeMusicAccess:
             existing: AlbumRow | None = result.scalar_one_or_none()
             if existing:
                 return AResult(code=AResultCode.OK, message="OK", result=existing)
-
-            a_img: AResult[ImageRow] = (
-                await YoutubeMusicAccess._download_and_create_internal_image(
-                    session, raw.thumbnail_url
-                )
-            )
-            if a_img.is_ok():
-                image_id = a_img.result().id
-            else:
-                return AResult(
-                    code=AResultCode.GENERAL_ERROR,
-                    message="Failed to create internal image for album",
-                )
 
             core_album = CoreMediaRow(
                 public_id=create_id(32),
@@ -687,12 +612,13 @@ class YoutubeMusicAccess:
             )
 
     @staticmethod
-    async def get_or_create_track(
+    async def get_or_create_track_with_image_id_async(
         session: AsyncSession,
         raw: "YoutubeMusicTrack",
         artist_map: Dict[str, ArtistRow],
         album_row: AlbumRow,
         provider_id: int,
+        image_id: int,
     ) -> AResult[TrackRow]:
         try:
             stmt = (
@@ -704,19 +630,6 @@ class YoutubeMusicAccess:
             existing: TrackRow | None = result.scalar_one_or_none()
             if existing:
                 return AResult(code=AResultCode.OK, message="OK", result=existing)
-
-            a_img: AResult[ImageRow] = (
-                await YoutubeMusicAccess._download_and_create_internal_image(
-                    session, raw.thumbnail_url
-                )
-            )
-            if a_img.is_ok():
-                image_id = a_img.result().id
-            else:
-                return AResult(
-                    code=AResultCode.GENERAL_ERROR,
-                    message="Failed to create internal image for track",
-                )
 
             core_track = CoreMediaRow(
                 public_id=create_id(32),
@@ -741,7 +654,6 @@ class YoutubeMusicAccess:
             await session.flush()
             track_row.core_song = core_track
             track_row.album = album_row
-            track_row.image = a_img.result()
 
             for artist_name in raw.artists:
                 for yt_artist in artist_map.values():

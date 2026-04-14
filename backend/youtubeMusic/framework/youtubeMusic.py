@@ -1,13 +1,11 @@
 import os
 import re
-import uuid
-import requests as req
 from typing import Dict, List, TYPE_CHECKING
 
 from fastapi import Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.constants import BACKEND_URL, MEDIA_PATH, IMAGES_PATH
+from backend.constants import BACKEND_URL, MEDIA_PATH
 from backend.utils.logger import getLogger
 from backend.core.aResult import AResult, AResultCode
 
@@ -19,7 +17,7 @@ from backend.core.responses.baseAlbumWithoutSongsResponse import (
 from backend.core.responses.baseArtistResponse import BaseArtistResponse
 
 from backend.core.access.db.ormModels.image import ImageRow
-from backend.core.utils.backendUtils import create_id
+from backend.core.framework.media.image import Image
 
 from backend.youtubeMusic.utils.youtubeMusicApi import YoutubeMusicApi
 from backend.youtubeMusic.utils.youtubeMusicApi import (
@@ -29,7 +27,7 @@ from backend.youtubeMusic.utils.youtubeMusicApi import (
 )
 
 from backend.youtubeMusic.access.youtubeMusicAccess import YoutubeMusicAccess
-from backend.youtubeMusic.access.db.ormModels.image import YoutubeMusicImageRow
+from backend.youtubeMusic.framework.download.imageDownload import ImageDownload
 
 from backend.youtubeMusic.responses.songResponse import YoutubeMusicTrackResponse
 from backend.youtubeMusic.responses.albumResponse import YoutubeMusicAlbumResponse
@@ -56,6 +54,96 @@ class YoutubeMusic:
             logger.error(f"Error getting provider id. {a_result.info()}")
             return AResult(code=a_result.code(), message=a_result.message())
         return a_result
+
+    @staticmethod
+    async def get_or_create_image_async(
+        session: AsyncSession,
+        url: str,
+    ) -> AResult[ImageRow]:
+        return await ImageDownload.download_and_create_internal_image_async(
+            session=session, url=url
+        )
+
+    @staticmethod
+    async def get_or_create_artist_async(
+        session: AsyncSession,
+        raw: "YoutubeMusicArtist",
+        provider_id: int,
+    ) -> AResult["ArtistRow"]:
+        a_result_img = await ImageDownload.download_and_create_internal_image_async(
+            session=session, url=raw.thumbnail_url
+        )
+        image_id: int
+        if a_result_img.is_ok():
+            image_id = a_result_img.result().id
+        else:
+            a_result_image = await Image.get_image_from_path_async(
+                session=session, path="artist-placeholder.png"
+            )
+            if a_result_image.is_ok():
+                image_id = a_result_image.result().id
+            else:
+                logger.error(
+                    f"Error getting placeholder image: {a_result_image.info()}"
+                )
+                return AResult(
+                    code=a_result_image.code(), message=a_result_image.message()
+                )
+
+        return await YoutubeMusicAccess.get_or_create_artist_with_image_id_async(
+            session=session,
+            raw=raw,
+            provider_id=provider_id,
+            image_id=image_id,
+        )
+
+    @staticmethod
+    async def get_or_create_album_async(
+        session: AsyncSession,
+        raw: "YoutubeMusicAlbum",
+        artist_map: Dict[str, "ArtistRow"],
+        provider_id: int,
+    ) -> AResult["AlbumRow"]:
+        a_result_img = await ImageDownload.download_and_create_internal_image_async(
+            session=session, url=raw.thumbnail_url
+        )
+        if a_result_img.is_not_ok():
+            logger.error(f"Error creating image: {a_result_img.info()}")
+            return AResult(code=a_result_img.code(), message=a_result_img.message())
+        image_id = a_result_img.result().id
+
+        return await YoutubeMusicAccess.get_or_create_album_with_image_id_async(
+            session=session,
+            raw=raw,
+            artist_map=artist_map,
+            provider_id=provider_id,
+            image_id=image_id,
+        )
+
+    @staticmethod
+    async def get_or_create_track_async(
+        session: AsyncSession,
+        raw: "YoutubeMusicTrack",
+        artist_map: Dict[str, "ArtistRow"],
+        album_row: "AlbumRow",
+        provider_id: int,
+    ) -> AResult["TrackRow"]:
+        a_result_img = await ImageDownload.download_and_create_internal_image_async(
+            session=session, url=raw.thumbnail_url
+        )
+        if a_result_img.is_not_ok():
+            logger.error(f"Error creating image: {a_result_img.info()}")
+            return AResult(code=a_result_img.code(), message=a_result_img.message())
+        image_id = a_result_img.result().id
+
+        return await YoutubeMusicAccess.get_or_create_track_with_image_id_async(
+            session=session,
+            raw=raw,
+            artist_map=artist_map,
+            album_row=album_row,
+            provider_id=provider_id,
+            image_id=image_id,
+        )
 
     @staticmethod
     async def add_track_async(
@@ -130,13 +218,13 @@ class YoutubeMusic:
                 name=artist_name,
                 thumbnail_url=track_api.thumbnail_url,
             )
-            a_result_artist = await YoutubeMusicAccess.get_or_create_artist(
+            a_result_artist = await YoutubeMusic.get_or_create_artist_async(
                 session=session, raw=artist_api, provider_id=provider_id
             )
             if a_result_artist.is_ok():
                 artist_map[artist_name] = a_result_artist.result()
 
-        a_result_album = await YoutubeMusicAccess.get_or_create_album(
+        a_result_album = await YoutubeMusic.get_or_create_album_async(
             session=session,
             raw=album_api,
             artist_map=artist_map,
@@ -146,7 +234,7 @@ class YoutubeMusic:
             return AResult(code=a_result_album.code(), message=a_result_album.message())
         album_row = a_result_album.result()
 
-        a_result_track = await YoutubeMusicAccess.get_or_create_track(
+        a_result_track = await YoutubeMusic.get_or_create_track_async(
             session=session,
             raw=track_api,
             artist_map=artist_map,
@@ -224,13 +312,13 @@ class YoutubeMusic:
                 name=artist_name,
                 thumbnail_url=album_api.thumbnail_url,
             )
-            a_result_artist = await YoutubeMusicAccess.get_or_create_artist(
+            a_result_artist = await YoutubeMusic.get_or_create_artist_async(
                 session=session, raw=artist_api, provider_id=provider_id
             )
             if a_result_artist.is_ok():
                 artist_map[artist_name] = a_result_artist.result()
 
-        a_result_album = await YoutubeMusicAccess.get_or_create_album(
+        a_result_album = await YoutubeMusic.get_or_create_album_async(
             session=session,
             raw=album_api,
             artist_map=artist_map,
@@ -241,7 +329,7 @@ class YoutubeMusic:
         album_row = a_result_album.result()
 
         for track_api in tracks_api:
-            await YoutubeMusicAccess.get_or_create_track(
+            await YoutubeMusic.get_or_create_track_async(
                 session=session,
                 raw=track_api,
                 artist_map=artist_map,
@@ -309,7 +397,7 @@ class YoutubeMusic:
             )
         provider_id = a_result_provider_id.result()
 
-        a_result_artist = await YoutubeMusicAccess.get_or_create_artist(
+        a_result_artist = await YoutubeMusic.get_or_create_artist_async(
             session=session, raw=artist_api, provider_id=provider_id
         )
         if a_result_artist.is_not_ok():
@@ -327,7 +415,7 @@ class YoutubeMusic:
                 release_year=None,
                 thumbnail_url=track_api.thumbnail_url,
             )
-            a_result_album = await YoutubeMusicAccess.get_or_create_album(
+            a_result_album = await YoutubeMusic.get_or_create_album_async(
                 session=session,
                 raw=album_api,
                 artist_map={},
@@ -340,7 +428,7 @@ class YoutubeMusic:
             album_row = album_artist_map.get(track_api.album)
             if not album_row:
                 continue
-            await YoutubeMusicAccess.get_or_create_track(
+            await YoutubeMusic.get_or_create_track_async(
                 session=session,
                 raw=track_api,
                 artist_map={artist_row.name: artist_row},

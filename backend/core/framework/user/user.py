@@ -16,6 +16,7 @@ from backend.core.access.db.ormModels.user_queue import UserQueueRow
 from backend.core.access.db.ormModels.user_seeks import UserSeeksRow
 from backend.core.access.db.ormModels.user_liked_media import UserLikedMediaRow
 from backend.core.access.db.ormModels.user_library_media import UserLibraryMediaRow
+from backend.core.access.db.ormModels.user_media_clicked import UserMediaClickedRow
 
 from backend.core.access.userAccess import UserAccess
 from backend.core.access.mediaAccess import MediaAccess
@@ -764,5 +765,35 @@ class User:
         current_mode: int = user.repeat_mode_key
         user.repeat_mode_key = 1 if current_mode >= 3 else current_mode + 1
         await session.commit()
+
+        return AResult(code=AResultCode.OK, message="OK", result=True)
+
+    @staticmethod
+    async def add_user_media_clicked_async(
+        session: AsyncSession, user_id: int, media_public_id: str
+    ) -> AResult[bool]:
+        """Record that a user clicked on a media item."""
+
+        a_result_media: AResult[CoreMediaRow] = (
+            await MediaAccess.get_media_from_public_id_async(
+                session=session,
+                public_id=media_public_id,
+                media_type_keys=None,
+            )
+        )
+        if a_result_media.is_not_ok():
+            logger.error(f"Error getting media. {a_result_media.info()}")
+            return AResult(code=a_result_media.code(), message=a_result_media.message())
+
+        a_result: AResult[UserMediaClickedRow] = (
+            await UserAccess.add_user_media_clicked_async(
+                session=session,
+                user_id=user_id,
+                media_id=a_result_media.result().id,
+            )
+        )
+        if a_result.is_not_ok():
+            logger.error(f"Error adding media click. {a_result.info()}")
+            return AResult(code=a_result.code(), message=a_result.message())
 
         return AResult(code=AResultCode.OK, message="OK", result=True)

@@ -17,6 +17,7 @@ from backend.core.access.db.ormModels.media import CoreMediaRow
 from backend.core.access.db.ormModels.provider import ProviderRow
 from backend.core.access.db.ormModels.user_library_media import UserLibraryMediaRow
 from backend.core.access.db.ormModels.user_seeks import UserSeeksRow
+from backend.core.access.db.ormModels.user_media_clicked import UserMediaClickedRow
 from backend.core.access.db.ormModels.image import ImageRow
 
 from backend.core.framework.media.image import Image
@@ -237,3 +238,25 @@ class UserAccess:
         session.add(instance=user)
 
         return AResult(code=AResultCode.OK, message="OK", result=user)
+
+    @staticmethod
+    async def add_user_media_clicked_async(
+        session: AsyncSession, user_id: int, media_id: int
+    ) -> AResult[UserMediaClickedRow]:
+        """Record that a user clicked on a media item."""
+        try:
+            user_media_clicked = UserMediaClickedRow(
+                user_id=user_id, media_id=media_id
+            )
+            session.add(instance=user_media_clicked)
+            await session.commit()
+            await session.refresh(instance=user_media_clicked)
+            return AResult(code=AResultCode.OK, message="OK", result=user_media_clicked)
+
+        except Exception as e:
+            logger.error(f"Error in add_user_media_clicked_async: {e}")
+            await session.rollback()
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to add media click: {e}",
+            )

@@ -179,6 +179,17 @@ class WebSocketManager:
                 logger.info(
                     f"User {user_id} media clicked: {media_clicked_msg.mediaPublicId}"
                 )
+
+                a_result_clicked: AResult[bool] = await User.add_user_media_clicked_async(
+                    session=session,
+                    user_id=user_id,
+                    media_public_id=media_clicked_msg.mediaPublicId,
+                )
+                if a_result_clicked.is_not_ok():
+                    logger.error(
+                        f"Error adding user media clicked for user {user_id}. {a_result_clicked.info()}"
+                    )
+                    return
             elif message_type == "skip_clicked":
                 skip_clicked_msg = SkipClickedMessageRequest(**data)
                 logger.info(

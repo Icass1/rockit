@@ -1,5 +1,5 @@
 import { COLORS } from "@/constants/theme";
-import { StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 
 interface PageContainerProps {
     children?: React.ReactNode;
@@ -14,17 +14,18 @@ export default function PageContainer({
 }: PageContainerProps) {
     return (
         <View style={styles.container}>
-            <View
-                style={[
+            <ScrollView
+                contentContainerStyle={[
                     styles.content,
                     {
                         paddingTop: topPadding,
                         paddingHorizontal: horizontalPadding,
                     },
                 ]}
+                showsVerticalScrollIndicator={false}
             >
                 {children}
-            </View>
+            </ScrollView>
         </View>
     );
 }
@@ -35,7 +36,6 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.bg,
     },
     content: {
-        flex: 1,
         paddingHorizontal: 16,
         paddingBottom: 0,
     },

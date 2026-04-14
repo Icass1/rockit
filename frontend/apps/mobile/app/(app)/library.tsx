@@ -4,7 +4,6 @@ import type { FilterMode } from "@rockit/shared";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { ELibraryActiveType } from "@/models/enums/libraryActiveType";
 import { useLibraryData } from "@/hooks/useLibraryData";
-import { PageContainer } from "@/components/layout";
 import Header from "@/components/layout/Header";
 import LibraryScreen from "@/components/Library/LibraryScreen";
 
@@ -48,7 +47,7 @@ export default function LibraryPage() {
     return (
         <>
             <Header />
-            <PageContainer horizontalPadding={0}>
+            <View style={{ flex: 1 }}>
                 <LibraryScreen
                     albums={albums}
                     playlists={playlists}
@@ -60,7 +59,7 @@ export default function LibraryPage() {
                     onTypeChange={setActiveType}
                     sortMode={sortMode}
                 />
-            </PageContainer>
+            </View>
         </>
     );
 }

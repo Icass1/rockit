@@ -1,11 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { COLORS } from "@/constants/theme";
-import BottomSheet, {
-    BottomSheetBackdrop,
-    BottomSheetScrollView,
-} from "@gorhom/bottom-sheet";
-import type { BottomSheetBackdropProps } from "@gorhom/bottom-sheet";
-import { StyleSheet, Text, View } from "react-native";
 import { usePlayer, usePlayerTime } from "@/lib/PlayerContext";
 
 interface LyricsLine {
@@ -19,17 +14,17 @@ type LyricsState =
     | { status: "empty" }
     | { status: "ready"; lines: LyricsLine[]; dynamic: boolean };
 
-interface PlayerLyricsProps {
-    sheetRef: React.RefObject<any>;
-}
-
-export default function PlayerLyrics({ sheetRef }: PlayerLyricsProps) {
+/**
+ * PlayerLyrics — inline lyrics panel rendered inside the tabs panel.
+ * Replaces the old BottomSheet-based implementation.
+ * Dynamic (synced) lyrics are ready to wire in; static display works today.
+ */
+export default function PlayerLyrics() {
     const { currentMedia } = usePlayer();
     const { currentTime } = usePlayerTime();
     const [lyricsState, setLyricsState] = useState<LyricsState>({
         status: "idle",
     });
-    const snapPoints = useMemo(() => ["60%", "92%"], []);
 
     useEffect(() => {
         if (!currentMedia?.publicId) {
@@ -39,91 +34,78 @@ export default function PlayerLyrics({ sheetRef }: PlayerLyricsProps) {
 
         setLyricsState({ status: "loading" });
 
+        // TODO: fetch from your lyrics API endpoint, e.g.:
+        // fetchLyrics(currentMedia.publicId)
+        //   .then(lines => setLyricsState({ status: "ready", lines, dynamic: true }))
+        //   .catch(() => setLyricsState({ status: "empty" }));
+
+        // Stub: show "no lyrics" for now
         setLyricsState({ status: "empty" });
     }, [currentMedia?.publicId]);
 
+    // Highlights the active line for synced lyrics
     const activeIndex = useMemo(() => {
         if (lyricsState.status !== "ready" || !lyricsState.dynamic) return -1;
         let idx = 0;
         for (let i = 0; i < lyricsState.lines.length; i++) {
             const t = lyricsState.lines[i].time;
-            if (t !== undefined && t <= currentTime + 0.3) {
-                idx = i;
-            }
+            if (t !== undefined && t <= currentTime + 0.3) idx = i;
         }
         return idx;
     }, [lyricsState, currentTime]);
 
-    const renderBackdrop = useCallback(
-        (props: BottomSheetBackdropProps) => (
-            <BottomSheetBackdrop
-                {...props}
-                disappearsOnIndex={-1}
-                appearsOnIndex={0}
-                opacity={0.5}
-            />
-        ),
-        []
-    );
-
     return (
-        <BottomSheet
-            ref={sheetRef}
-            index={-1}
-            snapPoints={snapPoints}
-            enablePanDownToClose
-            backdropComponent={renderBackdrop}
-            backgroundStyle={styles.background}
-            handleIndicatorStyle={styles.handle}
-            containerStyle={{ zIndex: 200, elevation: 200 }}
-        >
+        <View style={styles.container}>
             <View style={styles.header}>
                 <Text style={styles.headerTitle}>Lyrics</Text>
                 {currentMedia && (
                     <Text style={styles.headerSubtitle} numberOfLines={1}>
-                        {currentMedia.name} — {currentMedia.artists[0]?.name}
+                        {currentMedia.name}
+                        {currentMedia.artists[0]?.name
+                            ? ` — ${currentMedia.artists[0].name}`
+                            : ""}
                     </Text>
                 )}
             </View>
 
-            <BottomSheetScrollView contentContainerStyle={styles.content}>
+            <ScrollView
+                contentContainerStyle={styles.content}
+                showsVerticalScrollIndicator={false}
+            >
                 {lyricsState.status === "loading" && (
-                    <Text style={styles.emptyText}>Loading lyrics…</Text>
+                    <Text style={styles.stateText}>Loading lyrics…</Text>
                 )}
-                {lyricsState.status === "empty" && (
-                    <Text style={styles.emptyText}>No lyrics available</Text>
+
+                {(lyricsState.status === "empty" ||
+                    lyricsState.status === "idle") && (
+                    <Text style={styles.stateText}>No lyrics available</Text>
                 )}
+
                 {lyricsState.status === "ready" &&
                     lyricsState.lines.map((line, i) => (
                         <Text
                             key={i}
                             style={[
                                 styles.lyricLine,
-                                lyricsState.dynamic && i === activeIndex
-                                    ? styles.lyricLineActive
-                                    : null,
-                                lyricsState.dynamic && i < activeIndex
-                                    ? styles.lyricLinePast
-                                    : null,
+                                lyricsState.dynamic &&
+                                    i === activeIndex &&
+                                    styles.lyricLineActive,
+                                lyricsState.dynamic &&
+                                    i < activeIndex &&
+                                    styles.lyricLinePast,
                             ]}
                         >
                             {line.text}
                         </Text>
                     ))}
-            </BottomSheetScrollView>
-        </BottomSheet>
+            </ScrollView>
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
-    background: {
-        backgroundColor: "#1c1c1e",
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
-    },
-    handle: {
-        backgroundColor: "rgba(255,255,255,0.25)",
-        width: 36,
+    container: {
+        flex: 1,
     },
     header: {
         paddingHorizontal: 20,
@@ -143,14 +125,14 @@ const styles = StyleSheet.create({
     },
     content: {
         paddingHorizontal: 24,
-        paddingTop: 16,
+        paddingTop: 20,
         paddingBottom: 60,
     },
-    emptyText: {
-        color: COLORS.gray400,
+    stateText: {
         fontSize: 16,
+        color: COLORS.gray400,
         textAlign: "center",
-        marginTop: 40,
+        marginTop: 48,
     },
     lyricLine: {
         fontSize: 22,

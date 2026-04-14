@@ -11,6 +11,7 @@ interface QueueItemProps {
     index: number;
     isActive: boolean;
     isDragging?: boolean;
+    /** Provide when used inside DraggableFlatList to enable drag-to-reorder */
     drag?: () => void;
     onDelete: (index: number) => void;
     onPlay: (media: TQueueMedia, index: number) => void;
@@ -91,18 +92,21 @@ export default function QueueItem({
                     </Text>
                 </View>
 
-                <Pressable
-                    style={styles.dragHandle}
-                    onLongPress={drag}
-                    delayLongPress={150}
-                    hitSlop={8}
-                >
-                    <Feather
-                        name="menu"
-                        size={18}
-                        color="rgba(255,255,255,0.35)"
-                    />
-                </Pressable>
+                {/* Drag handle — only active when drag prop is provided */}
+                {drag && (
+                    <Pressable
+                        style={styles.dragHandle}
+                        onLongPress={drag}
+                        delayLongPress={150}
+                        hitSlop={8}
+                    >
+                        <Feather
+                            name="menu"
+                            size={18}
+                            color="rgba(255,255,255,0.35)"
+                        />
+                    </Pressable>
+                )}
             </Pressable>
         </Swipeable>
     );

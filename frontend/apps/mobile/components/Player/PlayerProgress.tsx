@@ -17,11 +17,10 @@ interface PlayerProgressProps {
 
 export default function PlayerProgress({ onSeek }: PlayerProgressProps) {
     const { currentTime, duration } = usePlayerTime();
-
     const [isSeeking, setIsSeeking] = useState(false);
     const [seekValue, setSeekValue] = useState(currentTime);
 
-    // Sync displayed position from parent only when the user is not dragging
+    // Follow playback position unless the user is actively scrubbing
     useEffect(() => {
         if (!isSeeking) setSeekValue(currentTime);
     }, [currentTime, isSeeking]);
@@ -54,8 +53,14 @@ export default function PlayerProgress({ onSeek }: PlayerProgressProps) {
 }
 
 const styles = StyleSheet.create({
-    container: { width: "100%", paddingHorizontal: 4 },
-    slider: { width: "100%", height: 40 },
+    container: {
+        width: "100%",
+        paddingHorizontal: 4,
+    },
+    slider: {
+        width: "100%",
+        height: 40,
+    },
     labels: {
         flexDirection: "row",
         justifyContent: "space-between",

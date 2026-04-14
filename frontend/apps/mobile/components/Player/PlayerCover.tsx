@@ -12,10 +12,8 @@ function getAspectRatio(mediaType: string | undefined): number {
     switch (mediaType) {
         case "video":
             return 16 / 9;
-        case "song":
-            return 1;
         default:
-            return 1;
+            return 1; // square for songs, radio, etc.
     }
 }
 
@@ -24,9 +22,9 @@ function getBorderRadius(mediaType: string | undefined): number {
         case "video":
             return 10;
         case "radio":
-            return 999;
+            return 999; // full circle for radio
         default:
-            return 14;
+            return 16;
     }
 }
 
@@ -61,9 +59,9 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.bgCard,
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.4,
-        shadowRadius: 16,
-        elevation: 12,
+        shadowOpacity: 0.45,
+        shadowRadius: 20,
+        elevation: 14,
     },
     image: {
         width: "100%",

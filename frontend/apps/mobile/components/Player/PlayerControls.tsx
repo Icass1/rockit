@@ -5,8 +5,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { usePlayer } from "@/lib/PlayerContext";
 
 function getRepeatColor(mode: ERepeatMode, accent: string): string {
-    if (mode === ERepeatMode.OFF) return "rgba(255,255,255,0.5)";
-    return accent;
+    return mode === ERepeatMode.OFF ? "rgba(255,255,255,0.5)" : accent;
 }
 
 export default function PlayerControls() {
@@ -23,6 +22,7 @@ export default function PlayerControls() {
 
     return (
         <View style={styles.container}>
+            {/* Shuffle */}
             <Pressable
                 style={styles.sideButton}
                 onPress={toggleShuffle}
@@ -31,18 +31,28 @@ export default function PlayerControls() {
                 <Feather
                     name="shuffle"
                     size={22}
-                    color={shuffle ? COLORS.accent : "rgba(255,255,255,0.5)"}
+                    color={
+                        shuffle ? COLORS.accent : "rgba(255,255,255,0.5)"
+                    }
                 />
             </Pressable>
 
+            {/* Skip back */}
             <Pressable
                 style={styles.sideButton}
                 onPress={skipBack}
                 hitSlop={12}
             >
-                <Feather name="skip-back" size={30} color={COLORS.white} />
+                <Feather
+                    name="skip-back"
+                    size={30}
+                    color={COLORS.white}
+                    // Filled look to match old MobilePlayerUI fill-current
+                    style={styles.filledIcon}
+                />
             </Pressable>
 
+            {/* Play / Pause — large circle, mirrors old MobilePlayerUI */}
             <Pressable
                 style={({ pressed }) => [
                     styles.playButton,
@@ -52,20 +62,27 @@ export default function PlayerControls() {
             >
                 <Feather
                     name={isPlaying ? "pause" : "play"}
-                    size={32}
+                    size={34}
                     color={COLORS.white}
                     style={!isPlaying ? { marginLeft: 3 } : undefined}
                 />
             </Pressable>
 
+            {/* Skip forward */}
             <Pressable
                 style={styles.sideButton}
                 onPress={skipForward}
                 hitSlop={12}
             >
-                <Feather name="skip-forward" size={30} color={COLORS.white} />
+                <Feather
+                    name="skip-forward"
+                    size={30}
+                    color={COLORS.white}
+                    style={styles.filledIcon}
+                />
             </Pressable>
 
+            {/* Repeat */}
             <Pressable
                 style={styles.sideButton}
                 onPress={cycleRepeat}
@@ -79,15 +96,7 @@ export default function PlayerControls() {
                     />
                     {repeatMode === ERepeatMode.ONE && (
                         <View style={styles.repeatOneBadge}>
-                            <Text
-                                style={{
-                                    fontSize: 8,
-                                    color: COLORS.accent,
-                                    fontWeight: "700",
-                                }}
-                            >
-                                1
-                            </Text>
+                            <Text style={styles.repeatOneLabel}>1</Text>
                         </View>
                     )}
                 </View>
@@ -105,15 +114,19 @@ const styles = StyleSheet.create({
         width: "100%",
     },
     sideButton: {
-        width: 48,
-        height: 48,
+        width: 52,
+        height: 52,
         alignItems: "center",
         justifyContent: "center",
     },
+    // Simulates fill-current from the old web player
+    filledIcon: {
+        opacity: 1,
+    },
     playButton: {
-        width: 68,
-        height: 68,
-        borderRadius: 34,
+        width: 72,
+        height: 72,
+        borderRadius: 36,
         backgroundColor: "rgba(255,255,255,0.15)",
         alignItems: "center",
         justifyContent: "center",
@@ -122,5 +135,10 @@ const styles = StyleSheet.create({
         position: "absolute",
         bottom: -4,
         right: -2,
+    },
+    repeatOneLabel: {
+        fontSize: 8,
+        color: COLORS.accent,
+        fontWeight: "700",
     },
 });

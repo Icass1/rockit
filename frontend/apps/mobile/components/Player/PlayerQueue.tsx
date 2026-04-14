@@ -1,140 +1,86 @@
-// NOTE:
-// Queue UI temporarily disabled.
-// Previous implementation used BottomSheet + DraggableFlatList.
-// Restore when queue feature is prioritized again.
-
-/*
-import { useCallback, useMemo } from "react";
+import { FlatList, StyleSheet, Text, View } from "react-native";
 import { COLORS } from "@/constants/theme";
-import type { BottomSheetBackdropProps } from "@gorhom/bottom-sheet";
-import { BottomSheetBackdrop } from "@gorhom/bottom-sheet";
-import type { TQueueMedia } from "@rockit/shared";
-import { StyleSheet, View, Text } from "react-native";
-import { type RenderItemParams } from "react-native-draggable-flatlist";
 import { usePlayer } from "@/lib/PlayerContext";
 import QueueItem from "./QueueItem";
-*/
+import type { TQueueMedia } from "@rockit/shared";
 
-interface PlayerQueueProps {
-    sheetRef: React.RefObject<any>;
-}
+/**
+ * PlayerQueue — inline queue list rendered inside the tabs panel.
+ * Replaces the old BottomSheet + DraggableFlatList implementation.
+ * Swipe-to-delete still works via the Swipeable in QueueItem.
+ * Drag-to-reorder is a TODO once DraggableFlatList is re-integrated.
+ */
+export default function PlayerQueue() {
+    const { queue, currentMedia, removeFromQueue, playMedia } = usePlayer();
 
-// TODO: re-enable queue UI when BottomSheet integration is restored
-export default function PlayerQueue({ sheetRef }: PlayerQueueProps) {
-    /*
-    const { queue, currentMedia, removeFromQueue, reorderQueue, playMedia } =
-        usePlayer();
+    if (!queue || queue.length === 0) {
+        return (
+            <View style={styles.empty}>
+                <Text style={styles.emptyText}>Your queue is empty</Text>
+            </View>
+        );
+    }
 
-    const snapPoints = useMemo(() => ["50%", "92%"], []);
+    return (
+        <View style={styles.container}>
+            <View style={styles.header}>
+                <Text style={styles.headerTitle}>Queue</Text>
+                <Text style={styles.headerCount}>{queue.length} songs</Text>
+            </View>
 
-    const renderBackdrop = useCallback(
-        (props: BottomSheetBackdropProps) => (
-            <BottomSheetBackdrop
-                {...props}
-                disappearsOnIndex={-1}
-                appearsOnIndex={0}
-                opacity={0.5}
+            <FlatList
+                data={queue}
+                keyExtractor={(item) => item.publicId}
+                renderItem={({ item, index }) => (
+                    <QueueItem
+                        media={item}
+                        index={index}
+                        isActive={item.publicId === currentMedia?.publicId}
+                        onDelete={(idx) => removeFromQueue(idx)}
+                        onPlay={(media: TQueueMedia) =>
+                            playMedia(media, queue)
+                        }
+                    />
+                )}
+                contentContainerStyle={styles.list}
+                showsVerticalScrollIndicator={false}
             />
-        ),
-        []
+        </View>
     );
-
-    const renderItem = useCallback(
-        ({ item, getIndex, drag, isActive }: RenderItemParams<TQueueMedia>) => {
-            const index = getIndex() ?? 0;
-            return (
-                <QueueItem
-                    media={item}
-                    index={index}
-                    isActive={item.publicId === currentMedia?.publicId}
-                    isDragging={isActive}
-                    drag={drag}
-                    onDelete={removeFromQueue}
-                    onPlay={(media) => {
-                        playMedia(media, queue);
-                    }}
-                />
-            );
-        },
-        [currentMedia, removeFromQueue, playMedia, queue]
-    );
-
-    const handleDragEnd = useCallback(
-        ({ from, to }: { from: number; to: number }) => {
-            reorderQueue(from, to);
-        },
-        [reorderQueue]
-    );
-
-    // return (
-    //     <BottomSheet
-    //         ref={sheetRef}
-    //         index={-1}
-    //         snapPoints={snapPoints}
-    //         enablePanDownToClose
-    //         backdropComponent={renderBackdrop}
-    //         backgroundStyle={styles.background}
-    //         handleIndicatorStyle={styles.handle}
-    //         containerStyle={{ zIndex: 200, elevation: 200 }}
-    //     >
-    //         <View style={styles.header}>
-    //             <Text style={styles.headerTitle}>Queue</Text>
-    //             <Text style={styles.headerCount}>{queue.length} songs</Text>
-    //         </View>
-
-    //         <View style={styles.listContainer}>
-    //             <DraggableFlatList
-    //                 data={queue}
-    //                 keyExtractor={(item) => item.publicId}
-    //                 renderItem={renderItem}
-    //                 onDragEnd={handleDragEnd}
-    //                 autoscrollThreshold={50}
-    //                 activationDistance={10}
-    //                 contentContainerStyle={styles.listContent}
-    //                 showsVerticalScrollIndicator={false}
-    //             />
-    //         </View>
-    //     </BottomSheet>
-    // );
-    */
-
-    /*
-    const styles = StyleSheet.create({
-        background: {
-            backgroundColor: "#1c1c1e",
-            borderTopLeftRadius: 20,
-            borderTopRightRadius: 20,
-        },
-        handle: {
-            backgroundColor: "rgba(255,255,255,0.25)",
-            width: 36,
-        },
-        header: {
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-            paddingHorizontal: 20,
-            paddingVertical: 12,
-            borderBottomWidth: StyleSheet.hairlineWidth,
-            borderBottomColor: "rgba(255,255,255,0.1)",
-        },
-        headerTitle: {
-            fontSize: 18,
-            fontWeight: "700",
-            color: COLORS.white,
-        },
-        headerCount: {
-            fontSize: 14,
-            color: COLORS.gray400,
-        },
-        listContainer: {
-            flex: 1,
-        },
-        listContent: {
-            paddingBottom: 40,
-        },
-    });
-    */
-
-    return null;
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+    },
+    header: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        paddingHorizontal: 20,
+        paddingVertical: 12,
+        borderBottomWidth: StyleSheet.hairlineWidth,
+        borderBottomColor: "rgba(255,255,255,0.1)",
+    },
+    headerTitle: {
+        fontSize: 18,
+        fontWeight: "700",
+        color: COLORS.white,
+    },
+    headerCount: {
+        fontSize: 14,
+        color: COLORS.gray400,
+    },
+    list: {
+        paddingBottom: 40,
+    },
+    empty: {
+        flex: 1,
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    emptyText: {
+        fontSize: 16,
+        color: COLORS.gray400,
+    },
+});

@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import Image from "next/image";
 import { BaseArtistResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
@@ -50,11 +51,21 @@ export function PlayableMedia({
 
     const artists = getArtistNames($media, substractArtists);
 
-    const handleClick = () => {
+    const handleClick = useCallback(() => {
+        console.log("handleClick", $media);
         if (isDownloadable($media) && $media.downloaded !== true) {
             rockIt.downloaderManager.downloadMediaAsync([$media.publicId]);
         } else if (allMedia && allMedia.length > 0 && listPublicId) {
-            const playableMedia = allMedia.filter(
+            const tempAllMedia = [...allMedia];
+
+            // Replace this media in allMedia in case it has been downloaded
+            for (let i = 0; i < tempAllMedia.length; i++) {
+                if (tempAllMedia[i].publicId == $media.publicId) {
+                    tempAllMedia[i] = $media;
+                }
+            }
+
+            const playableMedia = tempAllMedia.filter(
                 (m): m is TPlayableMedia =>
                     m.type === "song" || m.type === "video"
             );
@@ -69,7 +80,7 @@ export function PlayableMedia({
             rockIt.queueManager.moveToMedia($media.publicId);
             rockIt.mediaPlayerManager.play();
         }
-    };
+    }, [$media, allMedia, listPublicId]);
 
     const downloaded = !isDownloadable($media) || $media.downloaded === true;
 

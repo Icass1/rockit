@@ -12,7 +12,6 @@ export default function useMedia<T extends TMedia>(media: T) {
     useEffect(() => {
         const handleDownloaded = (data: IMediaDownloadedEvent) => {
             if (data.publicId != media.publicId) {
-                console.error("This should never happen", data, media);
                 return;
             }
             apiFetch(`/media/${data.publicId}`, MediaResponseSchema).then(

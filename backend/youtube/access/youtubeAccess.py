@@ -132,7 +132,7 @@ class YouTubeAccess:
                 return AResult(
                     code=AResultCode.GENERAL_ERROR, message="Image download failed"
                 )
-            filename = str(uuid.uuid4()) + ".jpg"
+            filename = "youtube/" + str(uuid.uuid4()) + ".jpg"
             full_path = os.path.join(IMAGES_PATH, filename)
             with open(full_path, "wb") as f:
                 f.write(response.content)

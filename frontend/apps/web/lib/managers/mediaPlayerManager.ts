@@ -250,15 +250,38 @@ export class MediaPlayerManager {
         console.log("MediaPlayerManager.setAudio");
 
         this.clearVideo();
+        console.log({
+            "!this._audio": !this._audio,
+        });
         if (!this._audio) return;
         const currentMedia = rockIt.queueManager.currentMedia;
+        console.log({
+            "!currentMedia": !currentMedia,
+            "currentMedia?.type": currentMedia?.type,
+        });
         if (!currentMedia || currentMedia?.type === "video") return;
 
+        console.log({ currentMedia });
+
         const audioSrc = getMediaAudioSrc(currentMedia);
+        console.log({ audioSrc });
+        console.log(
+            "if (!currentMedia || !audioSrc) return;",
+            currentMedia,
+            audioSrc,
+            !currentMedia || !audioSrc
+        );
         if (!currentMedia || !audioSrc) return;
+        console.log(
+            "if (this._audio.src === audioSrc) return;",
+            this._audio.src,
+            audioSrc,
+            this._audio.src === audioSrc
+        );
         if (this._audio.src === audioSrc) return;
 
         this._audio.volume = this._volumeAtom.get();
+        console.log(audioSrc);
         this._audio.src = audioSrc;
 
         if (useSavedCurrentTime) {

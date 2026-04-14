@@ -16,10 +16,7 @@ export interface AuthResult {
 
 export class AuthManager {
     async isLoggedInAsync(): Promise<boolean> {
-        const res = await apiFetch(
-            `${rockIt.BACKEND_URL}/user/session`,
-            SessionResponseSchema
-        );
+        const res = await apiFetch("/user/session", SessionResponseSchema);
         return res.isOk();
     }
 

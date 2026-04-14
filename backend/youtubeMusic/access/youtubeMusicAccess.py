@@ -83,6 +83,7 @@ class YoutubeMusicAccess:
                 .options(
                     selectinload(TrackRow.album).selectinload(AlbumRow.core_album),
                     selectinload(TrackRow.image),
+                    selectinload(TrackRow.core_song),
                 )
             )
             result: Result[Tuple[TrackRow]] = await session.execute(stmt)
@@ -92,7 +93,6 @@ class YoutubeMusicAccess:
                 logger.error("Track not found")
                 return AResult(code=AResultCode.NOT_FOUND, message="Track not found")
 
-            session.expunge(track)
             return AResult(code=AResultCode.OK, message="OK", result=track)
 
         except Exception as e:
@@ -111,7 +111,11 @@ class YoutubeMusicAccess:
             stmt: Select[Tuple[TrackRow]] = (
                 select(TrackRow)
                 .where(TrackRow.youtube_id == youtube_id)
-                .options(selectinload(TrackRow.album).selectinload(AlbumRow.core_album))
+                .options(
+                    selectinload(TrackRow.album).selectinload(AlbumRow.core_album),
+                    selectinload(TrackRow.image),
+                    selectinload(TrackRow.core_song),
+                )
             )
             result: Result[Tuple[TrackRow]] = await session.execute(stmt)
             track: TrackRow | None = result.scalar_one_or_none()
@@ -624,7 +628,11 @@ class YoutubeMusicAccess:
             stmt = (
                 select(TrackRow)
                 .where(TrackRow.youtube_id == raw.youtube_id)
-                .options(selectinload(TrackRow.album).selectinload(AlbumRow.core_album))
+                .options(
+                    selectinload(TrackRow.album).selectinload(AlbumRow.core_album),
+                    selectinload(TrackRow.image),
+                    selectinload(TrackRow.core_song),
+                )
             )
             result = await session.execute(stmt)
             existing: TrackRow | None = result.scalar_one_or_none()
@@ -673,7 +681,11 @@ class YoutubeMusicAccess:
             stmt = (
                 select(TrackRow)
                 .where(TrackRow.youtube_id == raw.youtube_id)
-                .options(selectinload(TrackRow.album).selectinload(AlbumRow.core_album))
+                .options(
+                    selectinload(TrackRow.album).selectinload(AlbumRow.core_album),
+                    selectinload(TrackRow.image),
+                    selectinload(TrackRow.core_song),
+                )
             )
             result = await session.execute(stmt)
             existing = result.scalar_one_or_none()

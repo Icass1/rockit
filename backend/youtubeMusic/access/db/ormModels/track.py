@@ -1,7 +1,7 @@
 from typing import List, TYPE_CHECKING, Dict
 
 from sqlalchemy import String, ForeignKey, Integer
-from sqlalchemy.orm import relationship, mapped_column, Mapped, WriteOnlyMapped
+from sqlalchemy.orm import relationship, mapped_column, Mapped
 
 from backend.core.access.db.ormModels.declarativeMixin import (
     TableDateAdded,
@@ -46,11 +46,11 @@ class TrackRow(
     isrc: Mapped[str | None] = mapped_column(String, nullable=True)
     download_url: Mapped[str | None] = mapped_column(String, nullable=True)
 
-    artists: WriteOnlyMapped[List["ArtistRow"]] = relationship(
+    artists: Mapped[List["ArtistRow"]] = relationship(
         "ArtistRow",
         secondary=track_artists,
         back_populates="tracks",
-        lazy="write_only",
+        lazy="selectin",
     )
 
     album: Mapped["AlbumRow"] = relationship("AlbumRow", back_populates="tracks")

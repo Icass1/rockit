@@ -26,10 +26,10 @@ export default function AlbumsSection({
                 {albums.map((album) => {
                     return (
                         <Link
-                            href={album.url}
+                            href={album.providerUrl}
                             prefetch={false}
                             className="w-36 flex-none transition md:w-48 md:hover:scale-105"
-                            key={album.url}
+                            key={album.providerUrl}
                         >
                             <Image
                                 width={350}

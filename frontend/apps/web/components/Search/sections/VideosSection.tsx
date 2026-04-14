@@ -22,10 +22,10 @@ export default function VideosSection({
             <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pr-14 md:pl-4">
                 {videos.map((video) => (
                     <Link
-                        href={video.url}
+                        href={video.providerUrl}
                         prefetch={false}
                         className="w-64 flex-none transition md:w-80 md:hover:scale-105"
-                        key={video.url}
+                        key={video.providerUrl}
                     >
                         <Image
                             width={350}
@@ -40,7 +40,7 @@ export default function VideosSection({
                         <span className="block truncate text-center text-sm text-gray-400">
                             {video.artists.map((artist, i) => (
                                 <button
-                                    key={artist.url}
+                                    key={artist.name}
                                     className="md:hover:underline"
                                     onClick={(e) => {
                                         e.preventDefault();

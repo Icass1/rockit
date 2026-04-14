@@ -57,6 +57,7 @@ interface PlayerContextType {
     hasVideo: boolean;
 
     playMedia: (media: TQueueMedia, queue: TQueueMedia[]) => Promise<void>;
+    playNext: (media: TQueueMedia, newQueue: TQueueMedia[]) => Promise<void>;
     pause: () => Promise<void>;
     play: () => Promise<void>;
     togglePlayPause: () => Promise<void>;
@@ -67,6 +68,8 @@ interface PlayerContextType {
     cycleRepeat: () => void;
     removeFromQueue: (index: number) => void;
     reorderQueue: (fromIndex: number, toIndex: number) => void;
+    addToQueueEnd: (media: TQueueMedia | TQueueMedia[]) => void;
+    addToQueueNext: (media: TQueueMedia | TQueueMedia[]) => void;
     showPlayer: () => void;
     hidePlayer: () => void;
 }
@@ -145,6 +148,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
                 },
             });
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -203,6 +207,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         }
 
         restoreSession();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const getUri = (
@@ -398,6 +403,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
                 videoOpacity: mediaEngine.videoOpacity,
                 hasVideo: mediaEngine.hasVideo,
                 playMedia,
+                playNext: queue.playNext,
                 pause,
                 play,
                 togglePlayPause,
@@ -408,6 +414,8 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
                 cycleRepeat: queue.cycleRepeat,
                 removeFromQueue: queue.removeFromQueue,
                 reorderQueue: queue.reorderQueue,
+                addToQueueEnd: queue.addToQueueEnd,
+                addToQueueNext: queue.addToQueueNext,
                 showPlayer,
                 hidePlayer,
             }}

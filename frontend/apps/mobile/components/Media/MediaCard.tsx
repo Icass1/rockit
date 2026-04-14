@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useCallback } from "react";
 import { COLORS } from "@/constants/theme";
 import {
     BaseSearchResultsItem,
@@ -9,6 +9,8 @@ import {
 import { Image } from "expo-image";
 import { Link } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import useFullMediaOptions from "@/hooks/contextMenuOptions/useFullMediaOptions";
+import { useContextMenu } from "@/lib/ContextMenuContext";
 
 interface MediaCardProps {
     media: TMedia | BaseSearchResultsItem;
@@ -21,6 +23,22 @@ const MediaCardInner = memo(function MediaCardInner({
     aspectRatio = 1,
     onPress,
 }: MediaCardProps) {
+    const { show } = useContextMenu();
+    const fullOptions = useFullMediaOptions(
+        media as Parameters<typeof useFullMediaOptions>[0],
+        [],
+        false
+    );
+
+    const handleLongPress = useCallback(() => {
+        show({
+            imageUrl: media.imageUrl,
+            title: media.name,
+            subtitle: getMediaSubtitle(media),
+            options: fullOptions,
+        });
+    }, [show, media, fullOptions]);
+
     const content = (
         <View style={styles.container}>
             <Image
@@ -43,6 +61,8 @@ const MediaCardInner = memo(function MediaCardInner({
         return (
             <Pressable
                 onPress={onPress}
+                onLongPress={handleLongPress}
+                delayLongPress={250}
                 style={({ pressed }) => pressed && styles.pressed}
             >
                 {content}
@@ -51,7 +71,11 @@ const MediaCardInner = memo(function MediaCardInner({
     }
 
     if (isNavigable(media)) {
-        return <Link href={("/(app)/" + media.url) as never}>{content}</Link>;
+        return (
+            <Pressable onLongPress={handleLongPress} delayLongPress={250}>
+                <Link href={("/(app)/" + media.url) as never}>{content}</Link>
+            </Pressable>
+        );
     }
 
     return content;

@@ -23,10 +23,10 @@ export default function ArtistsSection({
             <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pr-14 md:pl-4">
                 {artists.map((artist) => (
                     <Link
-                        href={artist.url}
+                        href={artist.providerUrl}
                         prefetch={false}
                         className="w-36 flex-none transition md:w-48 md:hover:scale-105"
-                        key={artist.url}
+                        key={artist.providerUrl}
                     >
                         <Image
                             width={350}

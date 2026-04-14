@@ -1,8 +1,10 @@
-import { memo, useRef } from "react";
+import { memo, useCallback, useRef } from "react";
 import { COLORS } from "@/constants/theme";
 import type { BaseSongWithAlbumResponse } from "@rockit/shared";
 import { Image } from "expo-image";
 import { Animated, StyleSheet, Text, TouchableOpacity } from "react-native";
+import useFullMediaOptions from "@/hooks/contextMenuOptions/useFullMediaOptions";
+import { useContextMenu } from "@/lib/ContextMenuContext";
 
 const CARD_WIDTH = 140;
 
@@ -21,6 +23,8 @@ const SongCard = memo(function SongCard({
     onPress,
 }: SongCardProps) {
     const scale = useRef(new Animated.Value(1)).current;
+    const { show } = useContextMenu();
+    const fullOptions = useFullMediaOptions(song, songs);
 
     const handlePressIn = () =>
         Animated.spring(scale, {
@@ -36,12 +40,23 @@ const SongCard = memo(function SongCard({
             speed: 50,
         }).start();
 
+    const handleLongPress = useCallback(() => {
+        show({
+            imageUrl: song.imageUrl,
+            title: song.name,
+            subtitle: song.artists?.[0]?.name ?? "",
+            options: fullOptions,
+        });
+    }, [show, song, fullOptions]);
+
     return (
         <Animated.View style={{ transform: [{ scale }], width: CARD_WIDTH }}>
             <TouchableOpacity
                 onPress={() => onPress?.(song, songs)}
                 onPressIn={handlePressIn}
                 onPressOut={handlePressOut}
+                onLongPress={handleLongPress}
+                delayLongPress={250}
                 activeOpacity={1}
             >
                 <Image

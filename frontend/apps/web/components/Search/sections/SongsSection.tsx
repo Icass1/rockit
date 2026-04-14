@@ -26,10 +26,10 @@ export default function SongsSection({
                 {songs.map((song) => {
                     return (
                         <Link
-                            href={song.url}
+                            href={song.providerUrl}
                             prefetch={false}
                             className="w-36 flex-none transition md:w-48 md:hover:scale-105"
-                            key={song.url}
+                            key={song.providerUrl}
                         >
                             <Image
                                 width={350}
@@ -44,7 +44,7 @@ export default function SongsSection({
                             <span className="block truncate text-center text-sm text-gray-400">
                                 {song.artists.map((artist, i) => (
                                     <button
-                                        key={artist.url}
+                                        key={artist.name}
                                         className="md:hover:underline"
                                         onClick={(e) => {
                                             e.preventDefault();

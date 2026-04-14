@@ -26,6 +26,9 @@ interface UseQueueReturn {
     removeFromQueue: (index: number) => void;
     reorderQueue: (fromIndex: number, toIndex: number) => void;
     setCurrentIndex: (index: number) => void;
+    addToQueueEnd: (media: TQueueMedia | TQueueMedia[]) => void;
+    addToQueueNext: (media: TQueueMedia | TQueueMedia[]) => void;
+    playNext: (media: TQueueMedia, newQueue: TQueueMedia[]) => Promise<void>;
 }
 
 export function useQueue(): UseQueueReturn {
@@ -178,6 +181,31 @@ export function useQueue(): UseQueueReturn {
         });
     }, []);
 
+    const addToQueueEnd = useCallback((media: TQueueMedia | TQueueMedia[]) => {
+        setQueue((q) => {
+            const items = Array.isArray(media) ? media : [media];
+            return [...q, ...items];
+        });
+    }, []);
+
+    const addToQueueNext = useCallback((media: TQueueMedia | TQueueMedia[]) => {
+        setQueue((q) => {
+            const items = Array.isArray(media) ? media : [media];
+            const nextIndex = currentIndexRef.current + 1;
+            const newQ = [...q];
+            newQ.splice(nextIndex, 0, ...items);
+            return newQ;
+        });
+    }, []);
+
+    const playNext = useCallback(
+        async (media: TQueueMedia, newQueue: TQueueMedia[]): Promise<void> => {
+            const index = setQueueAndPlay(media, newQueue);
+            setCurrentIndex(index);
+        },
+        [setQueueAndPlay]
+    );
+
     return {
         queue,
         currentIndex,
@@ -193,5 +221,8 @@ export function useQueue(): UseQueueReturn {
         removeFromQueue,
         reorderQueue,
         setCurrentIndex,
+        addToQueueEnd,
+        addToQueueNext,
+        playNext,
     };
 }

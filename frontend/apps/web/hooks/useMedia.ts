@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { MediaResponseSchema } from "@/dto";
 import { EEvent } from "@/models/enums/events";
 import { IMediaDownloadedEvent } from "@/models/interfaces/events/mediaDownloaded";
-import { TMedia } from "@/models/types/media";
+import { isSearchResult, TMedia } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { apiFetch } from "@/lib/utils/apiFetch";
 
@@ -10,6 +10,8 @@ export default function useMedia<T extends TMedia>(media: T) {
     const [_media, setMedia] = useState<T>(media);
 
     useEffect(() => {
+        if (isSearchResult(media)) return;
+
         const handleDownloaded = (data: IMediaDownloadedEvent) => {
             if (data.publicId != media.publicId) {
                 return;

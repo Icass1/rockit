@@ -5,25 +5,11 @@ import {
     LibraryListsResponse,
     LibraryListsResponseSchema,
     sortItems,
+    TMedia,
     type FilterMode,
 } from "@rockit/shared";
+import { ELibraryActiveType } from "@/models/enums/libraryActiveType";
 import { useApiFetch } from "@/lib/useApiFetch";
-
-export type EContentType =
-    | "all"
-    | "albums"
-    | "playlists"
-    | "songs"
-    | "videos"
-    | "stations"
-    | "shared";
-
-interface LibraryItem {
-    name: string;
-    publicId: string;
-    imageUrl: string;
-    type: string;
-}
 
 interface UseLibraryDataResult {
     albums: LibraryListsResponse["albums"];
@@ -32,7 +18,7 @@ interface UseLibraryDataResult {
     videos: LibraryListsResponse["videos"];
     stations: LibraryListsResponse["stations"];
     shared: LibraryListsResponse["shared"];
-    filtered: LibraryItem[];
+    filtered: TMedia[];
     loading: boolean;
     error: string | null;
 }
@@ -40,7 +26,7 @@ interface UseLibraryDataResult {
 export function useLibraryData(options: {
     filterMode: FilterMode;
     searchQuery: string;
-    activeType: EContentType;
+    activeType: ELibraryActiveType;
 }): UseLibraryDataResult {
     const { data, loading, error } = useApiFetch<LibraryListsResponse>(
         API_ENDPOINTS.libraryLists,
@@ -50,63 +36,23 @@ export function useLibraryData(options: {
     const filtered = useMemo(() => {
         if (!data) return [];
 
-        let items: LibraryItem[] = [];
+        let items: TMedia[] = [];
 
-        if (options.activeType === "all") {
+        if (options.activeType === ELibraryActiveType.All) {
             items = [
-                ...data.albums.map((a) => ({
-                    name: a.name,
-                    publicId: a.publicId,
-                    imageUrl: a.imageUrl,
-                    type: "album",
-                })),
-                ...data.playlists.map((p) => ({
-                    name: p.name,
-                    publicId: p.publicId,
-                    imageUrl: p.imageUrl,
-                    type: "playlist",
-                })),
-                ...data.songs.map((s) => ({
-                    name: s.name,
-                    publicId: s.publicId,
-                    imageUrl: s.imageUrl,
-                    type: "song",
-                })),
-                ...data.videos.map((v) => ({
-                    name: v.name,
-                    publicId: v.publicId,
-                    imageUrl: v.imageUrl,
-                    type: "video",
-                })),
+                ...data.albums,
+                ...data.playlists,
+                ...data.songs,
+                ...data.videos,
             ];
-        } else if (options.activeType === "albums") {
-            items = data.albums.map((a) => ({
-                name: a.name,
-                publicId: a.publicId,
-                imageUrl: a.imageUrl,
-                type: "album",
-            }));
-        } else if (options.activeType === "playlists") {
-            items = data.playlists.map((p) => ({
-                name: p.name,
-                publicId: p.publicId,
-                imageUrl: p.imageUrl,
-                type: "playlist",
-            }));
-        } else if (options.activeType === "songs") {
-            items = data.songs.map((s) => ({
-                name: s.name,
-                publicId: s.publicId,
-                imageUrl: s.imageUrl,
-                type: "song",
-            }));
-        } else if (options.activeType === "videos") {
-            items = data.videos.map((v) => ({
-                name: v.name,
-                publicId: v.publicId,
-                imageUrl: v.imageUrl,
-                type: "video",
-            }));
+        } else if (options.activeType === ELibraryActiveType.Albums) {
+            items = data.albums;
+        } else if (options.activeType === ELibraryActiveType.Playlists) {
+            items = data.playlists;
+        } else if (options.activeType === ELibraryActiveType.Songs) {
+            items = data.songs;
+        } else if (options.activeType === ELibraryActiveType.Videos) {
+            items = data.videos;
         }
 
         const searched = filterBySearch(items, options.searchQuery);

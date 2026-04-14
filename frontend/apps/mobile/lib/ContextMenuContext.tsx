@@ -6,11 +6,12 @@ import {
     useState,
     type ReactNode,
 } from "react";
+import { Feather } from "@expo/vector-icons";
 import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 
 export interface ContextMenuOption {
     label: string;
-    icon: string;
+    icon: React.ComponentProps<typeof Feather>["name"];
     onPress: () => void;
     destructive?: boolean;
 }

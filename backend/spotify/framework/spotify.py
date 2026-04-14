@@ -87,8 +87,7 @@ class Spotify:
                 items.append(
                     BaseSearchResultsItem(
                         type="song",
-                        title=track.name,
-                        url=f"/spotify/track/{track.id}",
+                        name=track.name,
                         providerUrl=f"https://open.spotify.com/track/{track.id}",
                         imageUrl=track_image_url,
                         artists=track_artists,
@@ -111,8 +110,7 @@ class Spotify:
                 items.append(
                     BaseSearchResultsItem(
                         type="album",
-                        title=album.name,
-                        url=f"/spotify/album/{album.id}",
+                        name=album.name,
                         providerUrl=f"https://open.spotify.com/album/{album.id}",
                         imageUrl=album_image_url,
                         artists=album_artists,
@@ -130,8 +128,7 @@ class Spotify:
                 items.append(
                     BaseSearchResultsItem(
                         type="artist",
-                        title=artist.name,
-                        url=f"/spotify/artist/{artist.id}",
+                        name=artist.name,
                         providerUrl=f"https://open.spotify.com/artist/{artist.id}",
                         imageUrl=artist_image_url,
                         artists=[],
@@ -149,8 +146,7 @@ class Spotify:
                 items.append(
                     BaseSearchResultsItem(
                         type="playlist",
-                        title=playlist.name,
-                        url=f"/spotify/playlist/{playlist.id}",
+                        name=playlist.name,
                         providerUrl=f"https://open.spotify.com/playlist/{playlist.id}",
                         imageUrl=playlist_image_url,
                         artists=[],

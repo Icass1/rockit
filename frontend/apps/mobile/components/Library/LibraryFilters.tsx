@@ -1,11 +1,11 @@
 import { COLORS } from "@/constants/theme";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import type { EContentType } from "@/hooks/useLibraryData";
+import { ELibraryActiveType } from "@/models/enums/libraryActiveType";
 import { useVocabulary } from "@/lib/vocabulary";
 
 interface LibraryFiltersProps {
-    activeType: EContentType;
-    onTypeChange: (type: EContentType) => void;
+    activeType: ELibraryActiveType;
+    onTypeChange: (type: ELibraryActiveType) => void;
 }
 
 export default function LibraryFilters({
@@ -14,14 +14,14 @@ export default function LibraryFilters({
 }: LibraryFiltersProps) {
     const { vocabulary } = useVocabulary();
 
-    const TABS: { key: EContentType; label: string }[] = [
-        { key: "all", label: vocabulary.ALL },
-        { key: "albums", label: vocabulary.ALBUMS },
-        { key: "playlists", label: vocabulary.PLAYLISTS },
-        { key: "songs", label: vocabulary.SONGS },
-        { key: "videos", label: vocabulary.VIDEOS },
-        { key: "stations", label: vocabulary.RADIO_STATIONS },
-        { key: "shared", label: vocabulary.SHARED_2_YOU },
+    const TABS: { key: ELibraryActiveType; label: string }[] = [
+        { key: ELibraryActiveType.All, label: vocabulary.ALL },
+        { key: ELibraryActiveType.Albums, label: vocabulary.ALBUMS },
+        { key: ELibraryActiveType.Playlists, label: vocabulary.PLAYLISTS },
+        { key: ELibraryActiveType.Songs, label: vocabulary.SONGS },
+        { key: ELibraryActiveType.Videos, label: vocabulary.VIDEOS },
+        { key: ELibraryActiveType.Stations, label: vocabulary.RADIO_STATIONS },
+        { key: ELibraryActiveType.Shared, label: vocabulary.SHARED_2_YOU },
     ];
 
     return (

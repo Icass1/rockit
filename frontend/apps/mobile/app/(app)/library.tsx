@@ -2,7 +2,8 @@ import { useState } from "react";
 import { COLORS } from "@/constants/theme";
 import type { FilterMode } from "@rockit/shared";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
-import { useLibraryData, type EContentType } from "@/hooks/useLibraryData";
+import { ELibraryActiveType } from "@/models/enums/libraryActiveType";
+import { useLibraryData } from "@/hooks/useLibraryData";
 import { PageContainer } from "@/components/layout";
 import Header from "@/components/layout/Header";
 import LibraryScreen from "@/components/Library/LibraryScreen";
@@ -10,7 +11,9 @@ import LibraryScreen from "@/components/Library/LibraryScreen";
 export default function LibraryPage() {
     const [sortMode] = useState<FilterMode>("default");
     const [searchQuery, setSearchQuery] = useState("");
-    const [activeType, setActiveType] = useState<EContentType>("all");
+    const [activeType, setActiveType] = useState<ELibraryActiveType>(
+        ELibraryActiveType.All
+    );
 
     const { albums, playlists, songs, videos, loading, error } = useLibraryData(
         {

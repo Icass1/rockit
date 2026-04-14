@@ -106,7 +106,7 @@ export default function ContextMenuSheet({
                                 onPress={option.onPress}
                             >
                                 <Feather
-                                    name={option.icon as any}
+                                    name={option.icon}
                                     size={20}
                                     color={
                                         option.destructive

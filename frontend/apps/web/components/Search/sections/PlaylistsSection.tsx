@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useStore } from "@nanostores/react";
 import { BaseSearchResultsItem } from "@/dto";
+import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function PlaylistsSection({
@@ -32,14 +32,11 @@ export default function PlaylistsSection({
                             width={350}
                             height={350}
                             className="aspect-square w-full rounded-lg object-cover"
-                            src={
-                                playlist.imageUrl ||
-                                rockIt.PLAYLIST_PLACEHOLDER_IMAGE_URL
-                            }
-                            alt={`Cover of ${playlist.title}`}
+                            src={playlist.imageUrl}
+                            alt={`Cover of ${playlist.name}`}
                         />
                         <span className="mt-2 block truncate text-center font-semibold">
-                            {playlist.title}
+                            {playlist.name}
                         </span>
                         <span className="block truncate text-center text-sm text-gray-400">
                             {playlist.artists[0]?.name || "Unknown"}

@@ -32,10 +32,10 @@ export default function VideosSection({
                             height={197}
                             className="aspect-video w-full rounded-lg object-cover"
                             src={video.imageUrl}
-                            alt={`Thumbnail of ${video.title}`}
+                            alt={`Thumbnail of ${video.name}`}
                         />
                         <span className="mt-2 block truncate text-left font-semibold">
-                            {video.title}
+                            {video.name}
                         </span>
                         <span className="block truncate text-center text-sm text-gray-400">
                             {video.artists.map((artist, i) => (

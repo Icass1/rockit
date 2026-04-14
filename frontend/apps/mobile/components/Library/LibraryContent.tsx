@@ -1,14 +1,19 @@
 import { useCallback, useMemo } from "react";
 import { COLORS } from "@/constants/theme";
-import type {
-    BaseAlbumWithoutSongsResponse,
-    BasePlaylistResponse,
-    BaseSongWithAlbumResponse,
-    BaseVideoResponse,
-    TQueueMedia,
+import {
+    isPlayable,
+    isQueueable,
+    isSearchResult,
+    TPlayableMedia,
+    type BaseAlbumWithoutSongsResponse,
+    type BasePlaylistResponse,
+    type BaseSongWithAlbumResponse,
+    type BaseVideoResponse,
+    type TMedia,
+    type TQueueMedia,
 } from "@rockit/shared";
 import { SectionList, StyleSheet, Text, View } from "react-native";
-import type { EContentType } from "@/hooks/useLibraryData";
+import { ELibraryActiveType } from "@/models/enums/libraryActiveType";
 import { useVocabulary } from "@/lib/vocabulary";
 import SectionTitle from "@/components/layout/SectionTitle";
 import LibraryGrid from "@/components/Library/LibraryGrid";
@@ -21,58 +26,16 @@ interface LibraryContentProps {
     playlists: BasePlaylistResponse[];
     songs: BaseSongWithAlbumResponse[];
     videos: BaseVideoResponse[];
-    activeType: EContentType;
+    activeType: ELibraryActiveType;
     viewMode: "grid" | "list";
     playMedia?: (media: TQueueMedia, queue: TQueueMedia[]) => Promise<void>;
 }
 
-function getHref(type: string, publicId: string): string {
-    switch (type) {
-        case "album":
-            return `/album/${publicId}`;
-        case "playlist":
-            return `/playlist/${publicId}`;
-        case "song":
-            return `/song/${publicId}`;
-        case "video":
-            return `/video/${publicId}`;
-        default:
-            return `/`;
-    }
-}
-
-function formatSubtitle(type: string, item: any): string {
-    switch (type) {
-        case "album":
-            return (
-                item.artists?.map((a: any) => a.name).join(", ") ||
-                "Unknown Artist"
-            );
-        case "playlist":
-            return item.owner || "Unknown Owner";
-        default:
-            return (
-                item.artists?.map((a: any) => a.name).join(", ") ||
-                "Unknown Artist"
-            );
-    }
-}
-
 type ItemType = "album" | "playlist" | "song" | "video";
-
-interface FormattedItem {
-    publicId: string;
-    name: string;
-    imageUrl: string;
-    subtitle?: string;
-    href?: string;
-    originalItem: any;
-    itemType: ItemType;
-}
 
 interface Section {
     title: string;
-    data: FormattedItem[];
+    data: TMedia[];
     renderType: "grid" | "list";
 }
 
@@ -88,13 +51,13 @@ export default function LibraryContent({
     const { vocabulary } = useVocabulary();
 
     const handleItemPress = useCallback(
-        (item: TQueueMedia, type: string) => {
+        (item: TPlayableMedia) => {
             if (!playMedia) return;
 
-            if (type === "song") {
-                playMedia(item, songs as TQueueMedia[]);
-            } else if (type === "video") {
-                playMedia(item, videos as TQueueMedia[]);
+            if (item.type === "song") {
+                playMedia(item, songs);
+            } else if (item.type === "video") {
+                playMedia(item, videos);
             }
         },
         [playMedia, songs, videos]
@@ -103,19 +66,8 @@ export default function LibraryContent({
     const sections: Section[] = useMemo(() => {
         const result: Section[] = [];
 
-        const createItems = (items: any[], type: ItemType): FormattedItem[] =>
-            items.map((item) => ({
-                publicId: item.publicId,
-                name: item.name,
-                imageUrl: item.imageUrl || "",
-                subtitle: formatSubtitle(type, item),
-                href:
-                    type === "album" || type === "playlist"
-                        ? getHref(type, item.publicId)
-                        : undefined,
-                originalItem: item,
-                itemType: type,
-            }));
+        const createItems = (items: TMedia[], type: ItemType): TMedia[] =>
+            items.filter((item) => item.type === type);
 
         if (albums.length > 0) {
             result.push({
@@ -149,10 +101,8 @@ export default function LibraryContent({
     }, [albums, playlists, songs, videos, vocabulary, viewMode]);
 
     const onItemPress = useCallback(
-        (item: any, itemType: ItemType) => {
-            if (itemType === "song" || itemType === "video") {
-                handleItemPress(item, itemType);
-            }
+        (item: TMedia) => {
+            if (isPlayable(item)) handleItemPress(item);
         },
         [handleItemPress]
     );
@@ -167,45 +117,30 @@ export default function LibraryContent({
     );
 
     const renderItem = useCallback(
-        ({ item, section }: { item: FormattedItem; section: Section }) => {
-            const onPress =
-                item.itemType === "song" || item.itemType === "video"
-                    ? () => onItemPress(item.originalItem, item.itemType)
-                    : undefined;
+        ({ item, section }: { item: TMedia; section: Section }) => {
+            const onPress = isQueueable(item)
+                ? () => onItemPress(item)
+                : undefined;
 
             if (section.renderType === "grid") {
                 return (
                     <View style={styles.gridItemWrapper}>
-                        <MediaCard
-                            imageUrl={item.imageUrl}
-                            title={item.name}
-                            subtitle={item.subtitle}
-                            href={item.href}
-                            onPress={onPress}
-                        />
+                        <MediaCard media={item} onPress={onPress} />
                     </View>
                 );
             }
-            return (
-                <MediaRow
-                    imageUrl={item.imageUrl}
-                    title={item.name}
-                    subtitle={item.subtitle}
-                    href={item.href}
-                    onPress={onPress}
-                />
-            );
+            return <MediaRow media={item} onPress={onPress} />;
         },
         [onItemPress]
     );
 
     const keyExtractor = useCallback(
-        (item: FormattedItem, index: number) =>
-            `${item.itemType}-${item.publicId}-${index}`,
+        (item: TMedia, index: number) =>
+            `${item.type}-${isSearchResult(item) ? item.providerUrl : item.publicId}-${index}`,
         []
     );
 
-    if (activeType === "all") {
+    if (activeType === ELibraryActiveType.All) {
         if (sections.length === 0) {
             return (
                 <View style={styles.emptyContainer}>
@@ -236,16 +171,16 @@ export default function LibraryContent({
 
     let items: any[] = [];
     switch (activeType) {
-        case "albums":
+        case ELibraryActiveType.Albums:
             items = albums;
             break;
-        case "playlists":
+        case ELibraryActiveType.Playlists:
             items = playlists;
             break;
-        case "songs":
+        case ELibraryActiveType.Songs:
             items = songs;
             break;
-        case "videos":
+        case ELibraryActiveType.Videos:
             items = videos;
             break;
     }
@@ -258,31 +193,10 @@ export default function LibraryContent({
         );
     }
 
-    const typeMap: Record<string, ItemType> = {
-        albums: "album",
-        playlists: "playlist",
-        songs: "song",
-        videos: "video",
-    };
-
-    const itemType = typeMap[activeType] || "song";
-    const formattedItems = items.map((item) => ({
-        publicId: item.publicId,
-        name: item.name,
-        imageUrl: item.imageUrl || "",
-        subtitle: formatSubtitle(itemType, item),
-        href:
-            itemType === "album" || itemType === "playlist"
-                ? getHref(itemType, item.publicId)
-                : undefined,
-        originalItem: item,
-        itemType,
-    }));
-
     return viewMode === "grid" ? (
-        <LibraryGrid items={formattedItems} onItemPress={onItemPress} />
+        <LibraryGrid items={items} onItemPress={onItemPress} />
     ) : (
-        <LibraryListView items={formattedItems} onItemPress={onItemPress} />
+        <LibraryListView items={items} onItemPress={onItemPress} />
     );
 }
 

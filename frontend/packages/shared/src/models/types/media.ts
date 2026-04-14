@@ -4,6 +4,7 @@ import {
     BaseArtistResponse,
     BasePlaylistForPlaylistResponse,
     BasePlaylistResponse,
+    BaseSearchResultsItem,
     BaseSongWithAlbumResponse,
     BaseSongWithoutAlbumResponse,
     BaseStationResponse,
@@ -16,7 +17,10 @@ export type TPlayableMedia =
     | BaseVideoResponse
     | BaseStationResponse;
 
-export type TQueueMedia = BaseSongWithAlbumResponse | BaseVideoResponse;
+export type TQueueMedia =
+    | BaseSongWithAlbumResponse
+    | BaseSongWithoutAlbumResponse
+    | BaseVideoResponse;
 
 export type TListMedia =
     | BasePlaylistResponse
@@ -24,10 +28,28 @@ export type TListMedia =
     | BaseAlbumWithSongsResponse
     | BaseAlbumWithoutSongsResponse
     | BaseArtistResponse;
-export type TMedia = TPlayableMedia | TListMedia;
+
 export type DownloadableMediaType =
     | BaseSongWithAlbumResponse
+    | BaseSongWithoutAlbumResponse
     | BaseVideoResponse;
+
+export type TMediaWithSearch =
+    | TPlayableMedia
+    | TListMedia
+    | BaseSearchResultsItem;
+
+export type TMedia = TPlayableMedia | TListMedia;
+
+export function isQueueable(media: TMedia): media is TQueueMedia {
+    switch (media.type) {
+        case "song":
+            return true;
+        case "video":
+            return true;
+    }
+    return false;
+}
 
 export function isPlayable(media: TMedia): media is TPlayableMedia {
     switch (media.type) {
@@ -39,6 +61,13 @@ export function isPlayable(media: TMedia): media is TPlayableMedia {
             return true;
     }
     return false;
+}
+
+export function isSearchResult(
+    media: TMediaWithSearch
+): media is BaseSearchResultsItem {
+    if ((media as BaseSearchResultsItem)?.searchResult) return false;
+    return true;
 }
 
 export function isDownloadable(media: TMedia): media is DownloadableMediaType {
@@ -61,12 +90,37 @@ export function isList(media: TMedia): media is TListMedia {
     return false;
 }
 export function isSong(
-    media: TPlayableMedia
+    media: TMedia
+): media is BaseSongWithAlbumResponse | BaseSongWithoutAlbumResponse {
+    return media.type === "song";
+}
+
+export function isSongWithAlbum(
+    media: TMedia
 ): media is BaseSongWithAlbumResponse {
     return media.type === "song";
 }
 
-export function isVideo(media: TPlayableMedia): media is BaseVideoResponse {
+export function isNavigable(
+    media: TMediaWithSearch
+): media is
+    | BaseAlbumWithSongsResponse
+    | BaseAlbumWithoutSongsResponse
+    | BasePlaylistResponse
+    | BaseArtistResponse {
+    if (isSearchResult(media)) return false;
+    switch (media.type) {
+        case "playlist":
+            return true;
+        case "album":
+            return true;
+        case "artist":
+            return true;
+    }
+    return false;
+}
+
+export function isVideo(media: TMedia): media is BaseVideoResponse {
     return media.type === "video";
 }
 
@@ -87,6 +141,25 @@ export function getMediaDuration(
     return undefined;
 }
 
+export function getMediaSubtitle(media: TMediaWithSearch): string {
+    if (isSearchResult(media)) {
+        return media.artists.map((artist) => artist.name).join(", ");
+    } else if (isSongWithAlbum(media)) {
+        return (
+            media.artists.map((artist) => artist.name).join(", ") +
+            " | " +
+            media.album.name
+        );
+    } else if (isSong(media)) {
+        return media.artists.map((artist) => artist.name).join(", ");
+    } else {
+        console.log(
+            `Get subtitle implementation missing for media type ${media.type}`
+        );
+        return "";
+    }
+}
+
 export function getMediaArtists(
     media: TPlayableMedia | undefined
 ): BaseArtistResponse[] | undefined {
@@ -101,7 +174,7 @@ export function getMediaAlbum(
     media: TPlayableMedia | undefined
 ): BaseAlbumWithoutSongsResponse | undefined {
     if (!media) return undefined;
-    if (isSong(media)) {
+    if (isSongWithAlbum(media)) {
         return media.album;
     }
     return undefined;

@@ -15,7 +15,10 @@ config.resolver.nodeModulesPaths = [
 
 config.resolver.alias = {
     "@/dto": path.resolve(__dirname, "../../packages/shared/src/dto"),
-    "@/models": path.resolve(__dirname, "../../packages/shared/src/models"),
+    "@/models": [
+        path.resolve(__dirname, "../../packages/shared/src/models"),
+        path.resolve(__dirname, "../../apps/mobile/models"),
+    ],
 };
 
 module.exports = config;

@@ -1,40 +1,21 @@
 import { memo, useCallback } from "react";
+import { TMedia, TQueueMedia } from "@rockit/shared";
 import { FlatList, StyleSheet, View } from "react-native";
 import MediaRow from "@/components/Media/MediaRow";
 
-type ItemType = "album" | "playlist" | "song" | "video";
-
-interface LibraryItemData {
-    publicId: string;
-    name: string;
-    imageUrl: string;
-    subtitle?: string;
-    href?: string;
-    originalItem: any;
-    itemType: ItemType;
-}
-
 interface LibraryListViewProps {
-    items: LibraryItemData[];
-    onItemPress?: (item: any, itemType: ItemType) => void;
+    items: TMedia[];
+    onItemPress?: (item: TQueueMedia) => void;
 }
 
 const ListItem = memo(function ListItem({
     item,
     onPress,
 }: {
-    item: LibraryItemData;
+    item: TMedia;
     onPress?: () => void;
 }) {
-    return (
-        <MediaRow
-            imageUrl={item.imageUrl}
-            title={item.name}
-            subtitle={item.subtitle}
-            href={item.href}
-            onPress={onPress}
-        />
-    );
+    return <MediaRow media={item} onPress={onPress} />;
 });
 
 export default function LibraryListView({
@@ -42,13 +23,13 @@ export default function LibraryListView({
     onItemPress,
 }: LibraryListViewProps) {
     const renderItem = useCallback(
-        ({ item }: { item: LibraryItemData }) => (
+        ({ item }: { item: TMedia }) => (
             <ListItem
                 item={item}
                 onPress={
                     onItemPress &&
-                    (item.itemType === "song" || item.itemType === "video")
-                        ? () => onItemPress(item.originalItem, item.itemType)
+                    (item.type === "song" || item.type === "video")
+                        ? () => onItemPress(item)
                         : undefined
                 }
             />
@@ -57,8 +38,8 @@ export default function LibraryListView({
     );
 
     const keyExtractor = useCallback(
-        (item: LibraryItemData, index: number) =>
-            `${item.itemType}-${item.publicId}-${index}`,
+        (item: TMedia, index: number) =>
+            `${item.type}-${item.publicId}-${index}`,
         []
     );
 

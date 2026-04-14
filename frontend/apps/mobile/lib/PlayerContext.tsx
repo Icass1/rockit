@@ -219,7 +219,6 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         onTimeUpdate: (pos, dur) => {
             setCurrentTime(pos);
             currentTimeRef.current = pos;
-            console.log("setDuration", dur);
             setDuration(dur);
 
             const now = Date.now();
@@ -286,7 +285,6 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
             const index = queue.setQueueAndPlay(media, newQueue);
             setCurrentTime(0);
             currentTimeRef.current = 0;
-            console.log("setDuration(0)");
             setDuration(0);
             await mediaEngine.loadTrack(uri, shouldHaveVideo);
             webSocketManager.sendMediaClicked({

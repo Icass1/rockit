@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useStore } from "@nanostores/react";
 import { BaseSearchResultsItem } from "@/dto";
+import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function ArtistsSection({
@@ -33,10 +33,10 @@ export default function ArtistsSection({
                             height={350}
                             className="aspect-square w-full rounded-full object-cover"
                             src={artist.imageUrl}
-                            alt={`Image of ${artist.title}`}
+                            alt={`Image of ${artist.name}`}
                         />
                         <span className="mt-2 block truncate text-center font-semibold">
-                            {artist.title}
+                            {artist.name}
                         </span>
                     </Link>
                 ))}

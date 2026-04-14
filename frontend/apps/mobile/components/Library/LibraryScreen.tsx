@@ -4,7 +4,7 @@ import { Feather } from "@expo/vector-icons";
 import type { FilterMode, LibraryListsResponse } from "@rockit/shared";
 import { filterBySearch, sortItems } from "@rockit/shared";
 import { Pressable, StyleSheet, View } from "react-native";
-import type { EContentType } from "@/hooks/useLibraryData";
+import { ELibraryActiveType } from "@/models/enums/libraryActiveType";
 import { usePlayer } from "@/lib/PlayerContext";
 import { useVocabulary } from "@/lib/vocabulary";
 import LibraryContent from "@/components/Library/LibraryContent";
@@ -18,8 +18,8 @@ interface LibraryScreenProps {
     videos: LibraryListsResponse["videos"];
     searchQuery: string;
     onSearchChange: (query: string) => void;
-    activeType: EContentType;
-    onTypeChange: (type: EContentType) => void;
+    activeType: ELibraryActiveType;
+    onTypeChange: (type: ELibraryActiveType) => void;
     sortMode: FilterMode;
 }
 
@@ -40,7 +40,8 @@ export default function LibraryScreen({
 
     const filteredAlbums = useMemo(() => {
         const filtered =
-            activeType === "all" || activeType === "albums"
+            activeType === ELibraryActiveType.All ||
+            activeType === ELibraryActiveType.Albums
                 ? filterBySearch(albums, searchQuery)
                 : [];
         return sortItems(filtered, sortMode);
@@ -48,7 +49,8 @@ export default function LibraryScreen({
 
     const filteredPlaylists = useMemo(() => {
         const filtered =
-            activeType === "all" || activeType === "playlists"
+            activeType === ELibraryActiveType.All ||
+            activeType === ELibraryActiveType.Playlists
                 ? filterBySearch(playlists, searchQuery)
                 : [];
         return sortItems(filtered, sortMode);
@@ -56,7 +58,8 @@ export default function LibraryScreen({
 
     const filteredSongs = useMemo(() => {
         const filtered =
-            activeType === "all" || activeType === "songs"
+            activeType === ELibraryActiveType.All ||
+            activeType === ELibraryActiveType.Songs
                 ? filterBySearch(songs, searchQuery)
                 : [];
         return sortItems(filtered, sortMode);
@@ -64,7 +67,8 @@ export default function LibraryScreen({
 
     const filteredVideos = useMemo(() => {
         const filtered =
-            activeType === "all" || activeType === "videos"
+            activeType === ELibraryActiveType.All ||
+            activeType === ELibraryActiveType.Videos
                 ? filterBySearch(videos, searchQuery)
                 : [];
         return sortItems(filtered, sortMode);

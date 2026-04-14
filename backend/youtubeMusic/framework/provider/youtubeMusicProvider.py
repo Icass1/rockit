@@ -120,8 +120,7 @@ class YoutubeMusicProvider(BaseProvider):
                 result.append(
                     BaseSearchResultsItem(
                         type="song",
-                        title=track.title,
-                        url=f"/youtube-music/track/{track.youtube_id}",
+                        name=track.title,
                         providerUrl=f"https://music.youtube.com/watch?v={track.youtube_id}",
                         imageUrl=track.thumbnail_url,
                         artists=[
@@ -139,8 +138,7 @@ class YoutubeMusicProvider(BaseProvider):
                 result.append(
                     BaseSearchResultsItem(
                         type="artist",
-                        title=artist.name,
-                        url=f"/youtube-music/artist/{artist.youtube_id}",
+                        name=artist.name,
                         providerUrl=f"https://music.youtube.com/channel/{artist.youtube_id}",
                         imageUrl=artist.thumbnail_url,
                         artists=[],
@@ -155,8 +153,7 @@ class YoutubeMusicProvider(BaseProvider):
                 result.append(
                     BaseSearchResultsItem(
                         type="album",
-                        title=album.title,
-                        url=f"/youtube-music/album/{album.youtube_id}",
+                        name=album.title,
                         providerUrl=f"https://music.youtube.com/browse/{album.youtube_id}",
                         imageUrl=album.thumbnail_url,
                         artists=[
@@ -174,8 +171,7 @@ class YoutubeMusicProvider(BaseProvider):
                 result.append(
                     BaseSearchResultsItem(
                         type="playlist",
-                        title=playlist.title,
-                        url=f"/youtube-music/playlist/{playlist.youtube_id}",
+                        name=playlist.title,
                         providerUrl=f"https://music.youtube.com/browse/{playlist.youtube_id}",
                         imageUrl=playlist.thumbnail_url,
                         artists=(

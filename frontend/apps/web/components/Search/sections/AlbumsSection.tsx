@@ -36,10 +36,10 @@ export default function AlbumsSection({
                                 height={350}
                                 className="aspect-square w-full rounded-lg object-cover"
                                 src={album.imageUrl}
-                                alt={`Cover of ${album.title}`}
+                                alt={`Cover of ${album.name}`}
                             />
                             <span className="mt-2 block truncate text-center font-semibold">
-                                {album.title}
+                                {album.name}
                             </span>
                             <span className="block truncate text-center text-sm text-gray-400">
                                 {album.artists.map((artist, i) => (

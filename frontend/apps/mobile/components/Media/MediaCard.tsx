@@ -1,48 +1,40 @@
 import { memo } from "react";
-import { PLACEHOLDER } from "@/constants/assets";
 import { COLORS } from "@/constants/theme";
+import {
+    BaseSearchResultsItem,
+    getMediaSubtitle,
+    isNavigable,
+    TMedia,
+} from "@rockit/shared";
 import { Image } from "expo-image";
 import { Link } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 interface MediaCardProps {
-    imageUrl?: string | null;
-    title: string;
-    subtitle?: string;
-    href?: string;
+    media: TMedia | BaseSearchResultsItem;
     onPress?: () => void;
     aspectRatio?: number;
-    placeholderUrl?: number;
-    showContextMenu?: boolean;
 }
 
 const MediaCardInner = memo(function MediaCardInner({
-    imageUrl,
-    title,
-    subtitle,
-    href,
-    onPress,
+    media,
     aspectRatio = 1,
-    placeholderUrl,
+    onPress,
 }: MediaCardProps) {
-    const imageSource = imageUrl || placeholderUrl || PLACEHOLDER.song;
-
     const content = (
         <View style={styles.container}>
             <Image
-                source={imageSource}
+                source={media.imageUrl}
                 style={[styles.image, aspectRatio !== 1 && { aspectRatio }]}
                 contentFit="cover"
             />
             <View style={styles.info}>
                 <Text style={styles.title} numberOfLines={2}>
-                    {title}
+                    {media.name}
                 </Text>
-                {subtitle && (
-                    <Text style={styles.subtitle} numberOfLines={1}>
-                        {subtitle}
-                    </Text>
-                )}
+                <Text style={styles.subtitle} numberOfLines={1}>
+                    {getMediaSubtitle(media)}
+                </Text>
             </View>
         </View>
     );
@@ -58,8 +50,8 @@ const MediaCardInner = memo(function MediaCardInner({
         );
     }
 
-    if (href) {
-        return <Link href={href as never}>{content}</Link>;
+    if (isNavigable(media)) {
+        return <Link href={("/(app)/" + media.url) as never}>{content}</Link>;
     }
 
     return content;

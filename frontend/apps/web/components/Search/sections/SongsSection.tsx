@@ -3,8 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useStore } from "@nanostores/react";
 import { BaseSearchResultsItem } from "@/dto";
+import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function SongsSection({
@@ -36,10 +36,10 @@ export default function SongsSection({
                                 height={350}
                                 className="aspect-square w-full rounded-lg object-cover"
                                 src={song.imageUrl}
-                                alt={`Cover of ${song.title}`}
+                                alt={`Cover of ${song.name}`}
                             />
                             <span className="mt-2 block truncate text-center font-semibold">
-                                {song.title}
+                                {song.name}
                             </span>
                             <span className="block truncate text-center text-sm text-gray-400">
                                 {song.artists.map((artist, i) => (

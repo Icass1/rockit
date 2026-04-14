@@ -86,8 +86,7 @@ class YoutubeProvider(BaseProvider):
         result: List[BaseSearchResultsItem] = [
             BaseSearchResultsItem(
                 type="video",
-                title=v.title or "",
-                url=f"/youtube/video/{v.video_id}",
+                name=v.title or "",
                 providerUrl=f"https://www.youtube.com/watch?v={v.video_id}",
                 imageUrl=self._get_thumbnail_url(v.thumbnails),
                 artists=[

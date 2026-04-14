@@ -37,7 +37,7 @@ export default function SearchSection({
     const buildMainMenu = useCallback(
         (item: BaseSearchResultsItem): ContextMenuConfig => ({
             imageUrl: item.imageUrl,
-            title: item.title,
+            title: item.name,
             subtitle: item.artists?.map((a) => a.name).join(", "),
             options: [
                 {
@@ -88,7 +88,7 @@ export default function SearchSection({
             show({
                 imageUrl: item.imageUrl,
                 title: "Add to playlist",
-                subtitle: item.title,
+                subtitle: item.name,
                 backAction: () => show(buildMainMenu(item)),
                 options: playlists.map((pl) => ({
                     label: pl.name,
@@ -102,10 +102,9 @@ export default function SearchSection({
                             )
                         );
                         const eventManager = EventManager.getInstance();
-                        eventManager.dispatchEvent(
-                            EEvent.MediaAddedToLibrary,
-                            { publicId: result.publicId }
-                        );
+                        eventManager.dispatchEvent(EEvent.MediaAddedToLibrary, {
+                            publicId: result.publicId,
+                        });
                         eventManager.dispatchEvent(
                             EEvent.MediaAddedToPlaylist,
                             {
@@ -130,12 +129,7 @@ export default function SearchSection({
     const renderGridItem = useCallback(
         ({ item }: { item: BaseSearchResultsItem }) => (
             <View style={styles.gridItem}>
-                <MediaCard
-                    imageUrl={item.imageUrl}
-                    title={item.title}
-                    subtitle={item.artists?.map((a) => a.name).join(", ")}
-                    onPress={() => handlePress(item)}
-                />
+                <MediaCard media={item} onPress={() => handlePress(item)} />
             </View>
         ),
         [handlePress]
@@ -143,12 +137,7 @@ export default function SearchSection({
 
     const renderRowItem = useCallback(
         ({ item }: { item: BaseSearchResultsItem }) => (
-            <MediaRow
-                imageUrl={item.imageUrl}
-                title={item.title}
-                subtitle={item.artists?.map((a) => a.name).join(", ")}
-                onPress={() => handlePress(item)}
-            />
+            <MediaRow media={item} onPress={() => handlePress(item)} />
         ),
         [handlePress]
     );
@@ -158,7 +147,7 @@ export default function SearchSection({
             <View style={styles.artistItem}>
                 <ArtistAvatar
                     imageUrl={item.imageUrl}
-                    name={item.title}
+                    name={item.name}
                     onPress={() => handlePress(item)}
                 />
             </View>
@@ -174,7 +163,7 @@ export default function SearchSection({
               : renderRowItem;
 
     const keyExtractor = useCallback(
-        (item: BaseSearchResultsItem) => item.url,
+        (item: BaseSearchResultsItem) => item.providerUrl,
         []
     );
 

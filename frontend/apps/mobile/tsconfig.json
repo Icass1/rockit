@@ -3,11 +3,22 @@
     "compilerOptions": {
         "strict": true,
         "paths": {
-            "@/*": ["./*"],
-            "@/dto": ["../../packages/shared/src/dto/index.ts"],
-            "@/dto/*": ["../../packages/shared/src/dto/*"],
-            "@/models/*": ["../../packages/shared/src/models/*"],
-            "@/environment": ["../../packages/shared/src/environment.ts"]
+            "@/*": [
+                "./*"
+            ],
+            "@/dto": [
+                "../../packages/shared/src/dto/index.ts"
+            ],
+            "@/dto/*": [
+                "../../packages/shared/src/dto/*"
+            ],
+            "@/models/*": [
+                "../../packages/shared/src/models/*",
+                "../../apps/mobile/models/*",
+            ],
+            "@/environment": [
+                "../../packages/shared/src/environment.ts"
+            ]
         }
     },
     "include": [
@@ -17,5 +28,7 @@
         "expo-env.d.ts",
         "../../packages/shared/src/dto/*.ts"
     ],
-    "exclude": ["node_modules"]
+    "exclude": [
+        "node_modules"
+    ]
 }

@@ -1,55 +1,69 @@
-import { memo, type ReactNode } from "react";
+import { memo, ReactNode, useCallback } from "react";
 import { COLORS } from "@/constants/theme";
+import {
+    BaseSearchResultsItem,
+    getMediaSubtitle,
+    isNavigable,
+    TMedia,
+} from "@rockit/shared";
 import { Image } from "expo-image";
 import { Link } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { ContextMenuOption, useContextMenu } from "@/lib/ContextMenuContext";
+import { useVocabulary } from "@/lib/vocabulary";
 
 interface MediaRowProps {
-    imageUrl: string;
-    title: string;
-    subtitle?: string;
-    href?: string;
+    media: TMedia | BaseSearchResultsItem;
     onPress?: () => void;
-    imageSize?: number;
-    circularImage?: boolean;
     rightElement?: ReactNode;
 }
 
-function MediaRow({
-    imageUrl,
-    title,
-    subtitle,
-    href,
-    onPress,
-    imageSize = 48,
-    circularImage = false,
-    rightElement,
-}: MediaRowProps) {
-    const imageStyle = circularImage
-        ? { width: imageSize, height: imageSize, borderRadius: imageSize / 2 }
-        : { width: imageSize, height: imageSize, borderRadius: 4 };
+function MediaRow({ media, onPress, rightElement }: MediaRowProps) {
+    const { show } = useContextMenu();
+    const { vocabulary } = useVocabulary();
+
+    // const imageStyle = circularImage
+    //     ? { width: imageSize, height: imageSize, borderRadius: imageSize / 2 }
+    //     : { width: imageSize, height: imageSize, borderRadius: 4 };
+
+    const imageStyle = "";
+
+    const handleLongPress = useCallback(() => {
+        const options: ContextMenuOption[] = [];
+
+        options.push({
+            label: vocabulary.REMOVE_FROM_LIBRARY,
+            icon: "trash",
+            onPress: () => {},
+        });
+
+        show({
+            imageUrl: media.imageUrl,
+            title: media.name,
+            subtitle: getMediaSubtitle(media),
+            options: options,
+        });
+    }, [media, vocabulary, show]);
 
     const content = (
-        <View style={styles.container}>
+        <Pressable style={styles.container} onLongPress={handleLongPress}>
             <Image
-                source={imageUrl}
+                source={media.imageUrl}
                 style={[styles.image, imageStyle]}
                 contentFit="cover"
             />
             <View style={styles.info}>
                 <Text style={styles.title} numberOfLines={1}>
-                    {title}
+                    {media.name}
                 </Text>
-                {subtitle && (
-                    <Text style={styles.subtitle} numberOfLines={1}>
-                        {subtitle}
-                    </Text>
-                )}
+                <Text style={styles.subtitle} numberOfLines={1}>
+                    {getMediaSubtitle(media)}
+                </Text>
             </View>
             {rightElement && (
                 <View style={styles.rightElement}>{rightElement}</View>
             )}
-        </View>
+        </Pressable>
     );
 
     if (onPress) {
@@ -63,8 +77,8 @@ function MediaRow({
         );
     }
 
-    if (href) {
-        return <Link href={("(app)/" + href) as never}>{content}</Link>;
+    if (isNavigable(media)) {
+        return <Link href={("(app)/" + media.url) as never}>{content}</Link>;
     }
 
     return content;

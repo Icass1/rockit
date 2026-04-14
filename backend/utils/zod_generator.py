@@ -186,7 +186,14 @@ def convert_type_to_zod(
 
     if origin is Literal:
         if args:
-            literal_parts = [f'z.literal("{arg}")' for arg in args]
+            literal_parts: List[str] = []
+            for arg in args:
+                if isinstance(arg, bool):
+                    literal_parts.append(f"z.literal({str(arg).lower()})")
+                elif isinstance(arg, str):
+                    literal_parts.append(f'z.literal("{arg}")')
+                else:
+                    literal_parts.append(f"z.literal({arg})")
             return f"z.union([{', '.join(literal_parts)}])"
         return "z.string()"
 

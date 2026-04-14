@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { BaseArtistResponse, MediaResponseSchema } from "@/dto";
+import { TMedia } from "@rockit/packages/shared";
 import { EEvent } from "@/models/enums/events";
 import { IMediaAddedToPlaylistEvent } from "@/models/interfaces/events/mediaAddedToPlaylist";
-import { TMedia } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { apiFetch } from "@/lib/utils/apiFetch";
 import DropOverlay from "@/components/DropOverlay/DropOverlay";

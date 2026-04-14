@@ -1,6 +1,7 @@
 import { memo, useCallback } from "react";
-import { PLACEHOLDER } from "@/constants/assets";
+import useHandlePlay from "@/callbacks/handlePlay";
 import { COLORS } from "@/constants/theme";
+import { Feather } from "@expo/vector-icons";
 import {
     getMediaDuration,
     isDownloadable,
@@ -9,14 +10,13 @@ import {
     type BaseArtistResponse,
     type TMedia,
     type TPlayableMedia,
-    type TQueueMedia,
 } from "@rockit/shared";
-import { Feather } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { useContextMenu } from "@/lib/ContextMenuContext";
-import { usePlayer } from "@/lib/PlayerContext";
+import useBaseMediaOptions from "@/hooks/contextMenuOptions/useMediaOptions";
+import useBasePlayableMediaOptions from "@/hooks/contextMenuOptions/usePlayableMediaOptions";
 import { useMedia } from "@/hooks/useMedia";
+import { useContextMenu } from "@/lib/ContextMenuContext";
 
 function formatDuration(seconds: number): string {
     const totalSeconds = Math.floor(seconds);
@@ -30,9 +30,7 @@ function getArtistNames(
     substractArtists: string[]
 ): BaseArtistResponse[] {
     if (isSong(media) || isVideo(media)) {
-        return media.artists.filter(
-            (a) => !substractArtists.includes(a.name)
-        );
+        return media.artists.filter((a) => !substractArtists.includes(a.name));
     }
     return [];
 }
@@ -53,39 +51,31 @@ export const PlayableMedia = memo(function PlayableMedia({
     showMediaImage: boolean;
 }) {
     const $media = useMedia(_media);
-    const { playMedia } = usePlayer();
     const { show } = useContextMenu();
 
-    const downloaded = !isDownloadable($media) || $media.downloaded;
+    const mediaOptions = useBaseMediaOptions($media);
+    const playableMediaOptions = useBasePlayableMediaOptions(
+        $media,
+        allMedia ?? []
+    );
+
+    const handlePlay = useHandlePlay($media, allMedia ?? []);
+
     const artists = getArtistNames($media, substractArtists);
     const duration = getMediaDuration($media);
-
-    const handlePlay = useCallback(() => {
-        if (!allMedia || allMedia.length === 0) return;
-        const queueMedia = allMedia.filter(
-            (m): m is TQueueMedia => m.type === "song" || m.type === "video"
-        );
-        if (queueMedia.length === 0) return;
-        playMedia($media as TQueueMedia, queueMedia);
-    }, [$media, allMedia, playMedia]);
+    const downloaded = !isDownloadable($media) || $media.downloaded;
 
     const handleLongPress = useCallback(() => {
         show({
-            imageUrl: $media.imageUrl ?? undefined,
+            imageUrl: $media.imageUrl,
             title: $media.name,
             subtitle:
                 artists.length > 0
                     ? artists.map((a) => a.name).join(", ")
                     : undefined,
-            options: [
-                {
-                    label: "Play",
-                    icon: "play",
-                    onPress: handlePlay,
-                },
-            ],
+            options: [...mediaOptions, ...playableMediaOptions],
         });
-    }, [$media, artists, show, handlePlay]);
+    }, [$media, artists, mediaOptions, playableMediaOptions, show]);
 
     return (
         <Pressable
@@ -104,7 +94,7 @@ export const PlayableMedia = memo(function PlayableMedia({
             {showMediaImage && (
                 <View style={styles.imageWrapper}>
                     <Image
-                        source={{ uri: $media.imageUrl || PLACEHOLDER.song }}
+                        source={{ uri: $media.imageUrl }}
                         style={styles.image}
                         contentFit="cover"
                     />

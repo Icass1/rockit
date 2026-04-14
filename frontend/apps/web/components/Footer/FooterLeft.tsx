@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useStore } from "@nanostores/react";
 import {
     EllipsisVertical,
@@ -9,7 +10,11 @@ import {
     Play,
     PlayIcon,
 } from "lucide-react";
-import { getMediaArtists, TPlayableMedia } from "@/models/types/media";
+import {
+    getMediaAlbum,
+    getMediaArtists,
+    TPlayableMedia,
+} from "@/models/types/media";
 import { Station } from "@/models/types/station";
 import { rockIt } from "@/lib/rockit/rockIt";
 import Artists from "@/components/Artists/Artists";
@@ -25,6 +30,8 @@ function FooterLeftForSong({ currentMedia }: { currentMedia: TPlayableMedia }) {
             <div className="flex w-full max-w-full min-w-0 items-center gap-x-4 text-sm text-gray-400 opacity-0 md:w-1/3" />
         );
     }
+
+    const album = getMediaAlbum(currentMedia);
 
     return (
         <div className="grid w-full max-w-full min-w-0 grid-cols-[min-content_1fr_min-content] items-center gap-x-4 pr-2 md:w-1/3">
@@ -63,16 +70,23 @@ function FooterLeftForSong({ currentMedia }: { currentMedia: TPlayableMedia }) {
                                 artists={getMediaArtists(currentMedia) ?? []}
                             ></Artists>
                         </div>
-                        <span className="hidden select-none md:block">•</span>
-                        <span>FooterLeftForSong TODO</span>
-                        {/* <Link
-                            href={`/album/${currentMedia.album.publicId}`}
-                            prefetch={false}
-                            onClick={() => rockIt.playerUIManager.hide()}
-                            className="hidden truncate md:inline-block md:hover:underline"
-                        >
-                            {currentMedia.album.name || "Unknown album"}
-                        </Link> */}
+                        {album && (
+                            <>
+                                <span className="hidden select-none md:block">
+                                    •
+                                </span>
+                                <Link
+                                    href={album.url}
+                                    prefetch={false}
+                                    onClick={() =>
+                                        rockIt.playerUIManager.hide()
+                                    }
+                                    className="hidden truncate md:inline-block md:hover:underline"
+                                >
+                                    {album.name}{" "}
+                                </Link>
+                            </>
+                        )}
                     </div>
                 </div>
             </div>

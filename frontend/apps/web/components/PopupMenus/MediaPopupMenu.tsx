@@ -12,10 +12,10 @@ export default function MediaPopupMenu({
     media: TPlayableMedia;
     children?: ReactNode;
 }) {
-    if (media.type == "song") {
+    if (media.type === "song") {
         // return <SongPopupMenu song={media}>{children}</SongPopupMenu>;
-    } else if (media.type == "video") {
-        return <div>MediaPopupMenu TODO</div>;
+    } else if (media.type === "video") {
+        // return <VideoPopupMenu song={media}>{children}</VideoPopupMenu>;
     }
     return <>{children}</>;
 }

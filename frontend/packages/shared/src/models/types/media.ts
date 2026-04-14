@@ -97,6 +97,16 @@ export function getMediaArtists(
     return undefined;
 }
 
+export function getMediaAlbum(
+    media: TPlayableMedia | undefined
+): BaseAlbumWithoutSongsResponse | undefined {
+    if (!media) return undefined;
+    if (isSong(media)) {
+        return media.album;
+    }
+    return undefined;
+}
+
 export function getMediaAudioSrc(
     media: TPlayableMedia | undefined
 ): string | undefined {

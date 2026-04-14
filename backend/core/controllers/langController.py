@@ -35,8 +35,8 @@ async def get_all_vocabulary(request: Request) -> VocabularyResponse:
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
 
-    a_result_vocabulary: AResult[AllVocabulary] = (
-        await Vocabulary.get_all_vocabulary(session=session)
+    a_result_vocabulary: AResult[AllVocabulary] = await Vocabulary.get_all_vocabulary(
+        session=session
     )
 
     if a_result_vocabulary.is_not_ok():

@@ -19,6 +19,7 @@ from backend.core.access.db.ormModels.user_library_media import UserLibraryMedia
 from backend.core.access.db.ormModels.user_seeks import UserSeeksRow
 from backend.core.access.db.ormModels.user_media_clicked import UserMediaClickedRow
 from backend.core.access.db.ormModels.user_skipped_media import UserSkippedMediaRow
+from backend.core.access.db.ormModels.user_media_listened import UserMediaListenedRow
 from backend.core.access.db.ormModels.image import ImageRow
 
 from backend.core.framework.media.image import Image
@@ -246,9 +247,7 @@ class UserAccess:
     ) -> AResult[UserMediaClickedRow]:
         """Record that a user clicked on a media item."""
         try:
-            user_media_clicked = UserMediaClickedRow(
-                user_id=user_id, media_id=media_id
-            )
+            user_media_clicked = UserMediaClickedRow(user_id=user_id, media_id=media_id)
             session.add(instance=user_media_clicked)
             await session.commit()
             await session.refresh(instance=user_media_clicked)
@@ -285,3 +284,19 @@ class UserAccess:
                 code=AResultCode.GENERAL_ERROR,
                 message=f"Failed to add media skip: {e}",
             )
+
+    @staticmethod
+    @safe_async
+    async def add_user_media_listened_async(
+        session: AsyncSession, user_id: int, media_id: int
+    ) -> AResult[UserMediaListenedRow]:
+        """Record that a user has listened to a media item (>=90% of song)."""
+
+        user_media_listened = UserMediaListenedRow(
+            user_id=user_id,
+            media_id=media_id,
+        )
+        session.add(instance=user_media_listened)
+        await session.commit()
+        await session.refresh(instance=user_media_listened)
+        return AResult(code=AResultCode.OK, message="OK", result=user_media_listened)

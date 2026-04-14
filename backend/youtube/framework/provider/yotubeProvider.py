@@ -238,6 +238,21 @@ class YoutubeProvider(BaseProvider):
             ),
         )
 
+    async def get_media_duration_ms_async(
+        self, session: AsyncSession, public_id: str
+    ) -> AResult[int]:
+        """Get the duration of a YouTube video in milliseconds."""
+        a_result_video: AResult[VideoRow] = await Video.get_video_from_public_id_async(
+            session=session, public_id=public_id
+        )
+        if a_result_video.is_not_ok():
+            return AResult(code=a_result_video.code(), message=a_result_video.message())
+
+        video: VideoRow = a_result_video.result()
+        duration_ms = video.duration_ms or 0
+
+        return AResult(code=AResultCode.OK, message="OK", result=duration_ms)
+
 
 provider = YoutubeProvider()
 name = "YouTube"

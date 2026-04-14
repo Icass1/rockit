@@ -53,7 +53,9 @@ class Media:
 
         result: List[MediaModel] = [
             MediaModel(
-                public_id=media.public_id, id=media.id, provider_id=media.provider_id
+                public_id=media.public_id,
+                id=media.id,
+                provider_id=media.provider_id,
             )
             for media in a_result.result()
         ]

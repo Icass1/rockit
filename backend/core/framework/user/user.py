@@ -19,6 +19,7 @@ from backend.core.access.db.ormModels.user_liked_media import UserLikedMediaRow
 from backend.core.access.db.ormModels.user_library_media import UserLibraryMediaRow
 from backend.core.access.db.ormModels.user_media_clicked import UserMediaClickedRow
 from backend.core.access.db.ormModels.user_skipped_media import UserSkippedMediaRow
+from backend.core.access.db.ormModels.user_media_listened import UserMediaListenedRow
 
 from backend.core.access.userAccess import UserAccess
 from backend.core.access.mediaAccess import MediaAccess
@@ -602,7 +603,7 @@ class User:
 
     @staticmethod
     async def update_user_current_time(
-        session: AsyncSession, user_id: int, current_time_ms: int
+        session: AsyncSession, user_id: int, current_time_ms: int, media_public_id: str
     ) -> AResult[bool]:
         """Update user's current playback time."""
 
@@ -615,6 +616,7 @@ class User:
 
         user: UserRow = a_result_user.result()
         user.current_time_ms = current_time_ms
+        user.current_media_public_id = media_public_id
 
         await session.commit()
 
@@ -802,7 +804,10 @@ class User:
 
     @staticmethod
     async def add_user_skipped_media_async(
-        session: AsyncSession, user_id: int, media_public_id: str, direction: SkipDirectionEnum
+        session: AsyncSession,
+        user_id: int,
+        media_public_id: str,
+        direction: SkipDirectionEnum,
     ) -> AResult[bool]:
         """Record that a user skipped a media item."""
 
@@ -827,6 +832,25 @@ class User:
         )
         if a_result.is_not_ok():
             logger.error(f"Error adding media skip. {a_result.info()}")
+            return AResult(code=a_result.code(), message=a_result.message())
+
+        return AResult(code=AResultCode.OK, message="OK", result=True)
+
+    @staticmethod
+    async def add_user_media_listened_async(
+        session: AsyncSession, user_id: int, media_id: int
+    ) -> AResult[bool]:
+        """Record that a user has listened to a media item (>=90% of song)."""
+
+        a_result: AResult[UserMediaListenedRow] = (
+            await UserAccess.add_user_media_listened_async(
+                session=session,
+                user_id=user_id,
+                media_id=media_id,
+            )
+        )
+        if a_result.is_not_ok():
+            logger.error(f"Error adding media listened. {a_result.info()}")
             return AResult(code=a_result.code(), message=a_result.message())
 
         return AResult(code=AResultCode.OK, message="OK", result=True)

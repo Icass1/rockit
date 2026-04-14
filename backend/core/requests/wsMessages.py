@@ -29,6 +29,7 @@ class CurrentQueueMessageRequest(BaseModel):
 
 class CurrentTimeMessageRequest(BaseModel):
     currentTimeMs: int
+    mediaPublicId: str
 
 
 class MediaClickedMessageRequest(BaseModel):

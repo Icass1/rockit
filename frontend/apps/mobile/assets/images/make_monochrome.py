@@ -21,7 +21,7 @@ except ImportError:
 
 def hex_to_rgb(hex_color: str) -> tuple[int, int, int]:
     hex_color = hex_color.lstrip("#")
-    r, g, b = (int(hex_color[i:i+2], 16) for i in (0, 2, 4))
+    r, g, b = (int(hex_color[i : i + 2], 16) for i in (0, 2, 4))
     return r, g, b
 
 
@@ -42,10 +42,18 @@ def make_monochrome(input_path: str, output_path: str, color: str = "#FFFFFF") -
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Convert a PNG to a monochrome silhouette.")
-    parser.add_argument("input", help="Input PNG file (must have transparent background)")
-    parser.add_argument("output", nargs="?", help="Output PNG file (defaults to <input>_mono.png)")
-    parser.add_argument("--color", default="#FFFFFF", help="Fill color in hex (default: #FFFFFF)")
+    parser = argparse.ArgumentParser(
+        description="Convert a PNG to a monochrome silhouette."
+    )
+    parser.add_argument(
+        "input", help="Input PNG file (must have transparent background)"
+    )
+    parser.add_argument(
+        "output", nargs="?", help="Output PNG file (defaults to <input>_mono.png)"
+    )
+    parser.add_argument(
+        "--color", default="#FFFFFF", help="Fill color in hex (default: #FFFFFF)"
+    )
     args = parser.parse_args()
 
     input_path = Path(args.input)

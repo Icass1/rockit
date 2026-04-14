@@ -26,6 +26,7 @@ from backend.spotify.enums.copyrightTypeEnum import CopyrightTypeEnum
 
 from backend.spotify.access.db.ormEnums.copyrightTypeEnum import CopyrightTypeEnumRow
 from backend.spotify.access.spotifyAccess import SpotifyAccess
+from backend.spotify.access.trackAccess import TrackAccess
 from backend.spotify.access.db.ormModels.track import TrackRow
 
 logger: Logger = getLogger(__name__)
@@ -252,6 +253,35 @@ class SpotifyProvider(BaseProvider):
             if match:
                 return path_template.format(match.group(1))
         return None
+
+    async def get_media_duration_ms_async(
+        self, session: AsyncSession, public_id: str
+    ) -> AResult[int]:
+        """Get the duration of a Spotify track in milliseconds."""
+        a_result_spotify_id: AResult[str] = (
+            await SpotifyAccess.get_track_spotify_id_from_public_id_async(
+                session=session, public_id=public_id
+            )
+        )
+        if a_result_spotify_id.is_not_ok():
+            return AResult(
+                code=a_result_spotify_id.code(), message=a_result_spotify_id.message()
+            )
+
+        spotify_id: str = a_result_spotify_id.result()
+
+        a_result_track: AResult[TrackRow] = (
+            await TrackAccess.get_track_by_spotify_id_async(
+                session=session, spotify_id=spotify_id
+            )
+        )
+        if a_result_track.is_not_ok():
+            return AResult(code=a_result_track.code(), message=a_result_track.message())
+
+        track: TrackRow = a_result_track.result()
+        duration_ms = track.duration_ms or 0
+
+        return AResult(code=AResultCode.OK, message="OK", result=duration_ms)
 
 
 provider = SpotifyProvider()

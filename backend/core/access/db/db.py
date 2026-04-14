@@ -11,8 +11,8 @@ from backend.core.access.db.ormModels.user_media_clicked import (
 from backend.core.access.db.ormModels.user_library_media import (
     UserLibraryMediaRow as UserLibraryMediaRow,
 )
-from backend.core.access.db.ormModels.user_media_ended import (
-    UserMediaEndedRow as UserMediaEndedRow,
+from backend.core.access.db.ormModels.user_media_listened import (
+    UserMediaListenedRow as UserMediaListenedRow,
 )
 from backend.core.access.db.ormModels.user_liked_media import (
     UserLikedMediaRow as UserLikedMediaRow,

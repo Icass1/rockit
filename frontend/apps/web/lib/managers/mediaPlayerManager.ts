@@ -375,6 +375,7 @@ export class MediaPlayerManager {
             this._lastWsSyncTime = now;
             rockIt.webSocketManager.sendCurrentTime({
                 currentTimeMs: Math.round(time * 1000),
+                mediaPublicId: currentMedia.publicId,
             });
         }
     }

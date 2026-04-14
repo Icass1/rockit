@@ -1,0 +1,54 @@
+
+> @rockit/frontend@ lint /root/rockit/frontend
+> turbo lint
+
+
+   • Packages in scope: @rockit/config, @rockit/shared, frontend, mobile
+   • Running lint in 4 packages
+   • Remote caching disabled
+
+frontend:lint: cache miss, executing 662148115d82ce5d
+@rockit/shared:build: cache hit, replaying logs ba3034a7e4114dec
+@rockit/shared:build: 
+@rockit/shared:build: > @rockit/shared@0.1.0 build /root/rockit/frontend/packages/shared
+@rockit/shared:build: > tsup
+@rockit/shared:build: 
+@rockit/shared:build: CLI Building entry: src/index.ts
+@rockit/shared:build: CLI Using tsconfig: tsconfig.json
+@rockit/shared:build: CLI tsup v8.5.1
+@rockit/shared:build: CLI Using tsup config: /root/rockit/frontend/packages/shared/tsup.config.ts
+@rockit/shared:build: CLI Target: es2020
+@rockit/shared:build: CLI Cleaning output folder
+@rockit/shared:build: ESM Build start
+@rockit/shared:build: CJS Build start
+@rockit/shared:build: ESM dist/index.mjs     37.64 KB
+@rockit/shared:build: ESM dist/index.mjs.map 86.20 KB
+@rockit/shared:build: ESM ⚡️ Build success in 130ms
+@rockit/shared:build: CJS dist/index.js     51.32 KB
+@rockit/shared:build: CJS dist/index.js.map 87.95 KB
+@rockit/shared:build: CJS ⚡️ Build success in 131ms
+@rockit/shared:build: DTS Build start
+@rockit/shared:build: DTS ⚡️ Build success in 3219ms
+@rockit/shared:build: DTS dist/index.d.mts 119.02 KB
+@rockit/shared:build: DTS dist/index.d.ts  119.02 KB
+mobile:lint: cache miss, executing 69132bf47087cca1
+frontend:lint: 
+frontend:lint: > frontend@0.1.0 lint /root/rockit/frontend/apps/web
+frontend:lint: > eslint --cache app components && npx tsc --noEmit
+frontend:lint: 
+mobile:lint: 
+mobile:lint: > mobile@1.0.0 lint /root/rockit/frontend/apps/mobile
+mobile:lint: > expo lint && npx tsc --noEmit
+mobile:lint: 
+mobile:lint: env: load .env
+mobile:lint: env: export REACT_NATIVE_PACKAGER_HOSTNAME EXPO_PUBLIC_BACKEND_URL
+mobile:lint: lib/PlayerContext.tsx(233,50): error TS2345: Argument of type '{ currentTimeMs: number; }' is not assignable to parameter of type '{ currentTimeMs: number; mediaPublicId: string; }'.
+mobile:lint:   Property 'mediaPublicId' is missing in type '{ currentTimeMs: number; }' but required in type '{ currentTimeMs: number; mediaPublicId: string; }'.
+mobile:lint:  ELIFECYCLE  Command failed with exit code 2.
+
+ Tasks:    2 successful, 3 total
+Cached:    1 cached, 3 total
+  Time:    12.807s 
+Failed:    mobile#lint
+
+ ELIFECYCLE  Command failed with exit code 2.

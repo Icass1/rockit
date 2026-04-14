@@ -13,8 +13,8 @@ if TYPE_CHECKING:
     from backend.core.access.db.ormModels.media import CoreMediaRow
 
 
-class UserMediaEndedRow(CoreBase, TableAutoincrementId, TableDateAdded):
-    __tablename__ = "user_media_ended"
+class UserMediaListenedRow(CoreBase, TableAutoincrementId, TableDateAdded):
+    __tablename__ = "user_media_listened"
     __table_args__ = ({"schema": "core", "extend_existing": True},)
 
     user_id: Mapped[int] = mapped_column(

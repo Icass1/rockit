@@ -230,8 +230,11 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
             const now = Date.now();
             if (now - lastWsSyncTimeRef.current >= WS_TIME_SYNC_INTERVAL_MS) {
                 lastWsSyncTimeRef.current = now;
+                const mediaPublicId =
+                    queueRef.current.currentMedia?.publicId ?? "";
                 webSocketManager.sendCurrentTime({
                     currentTimeMs: Math.round(pos * 1000),
+                    mediaPublicId,
                 });
             }
         },

@@ -482,6 +482,33 @@ class YoutubeMusicProvider(BaseProvider):
                 return path_template.format(match.group(1))
         return None
 
+    async def get_media_duration_ms_async(
+        self, session: AsyncSession, public_id: str
+    ) -> AResult[int]:
+        """Get the duration of a YouTube Music track in milliseconds."""
+        a_result: AResult[str] = (
+            await YoutubeMusicAccess.get_track_youtube_id_from_public_id_async(
+                session=session, public_id=public_id
+            )
+        )
+        if a_result.is_not_ok():
+            return AResult(code=a_result.code(), message=a_result.message())
+
+        youtube_id: str = a_result.result()
+
+        a_result_track: AResult[TrackRow] = (
+            await YoutubeMusicAccess.get_track_by_youtube_id_async(
+                session=session, youtube_id=youtube_id
+            )
+        )
+        if a_result_track.is_not_ok():
+            return AResult(code=a_result_track.code(), message=a_result_track.message())
+
+        track: TrackRow = a_result_track.result()
+        duration_ms = track.duration_ms or 0
+
+        return AResult(code=AResultCode.OK, message="OK", result=duration_ms)
+
 
 provider = YoutubeMusicProvider()
 name = "YouTube Music"

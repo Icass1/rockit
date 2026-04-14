@@ -150,3 +150,12 @@ class BaseProvider:
             code=AResultCode.NOT_IMPLEMENTED,
             message=f"Provider '{self._name}' doesn't implement add_from_url_async.",
         )
+
+    async def get_media_duration_ms_async(
+        self, session: AsyncSession, public_id: str
+    ) -> AResult[int]:
+        """Get the duration of a media item in milliseconds."""
+        return AResult(
+            code=AResultCode.NOT_IMPLEMENTED,
+            message=f"Provider '{self._name}' doesn't implement get_media_duration_ms_async.",
+        )

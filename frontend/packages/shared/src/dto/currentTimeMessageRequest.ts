@@ -5,6 +5,7 @@ import { z } from "zod";
 
 export const CurrentTimeMessageRequestSchema = z.object({
     currentTimeMs: z.number(),
+    mediaPublicId: z.string(),
 });
 
 export type CurrentTimeMessageRequest = z.infer<

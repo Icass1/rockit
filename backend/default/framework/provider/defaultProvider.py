@@ -98,6 +98,12 @@ class DefaultProvider(BaseProvider):
             code=AResultCode.OK, message="OK", result=a_result_response.result()
         )
 
+    async def get_media_duration_ms_async(
+        self, session: AsyncSession, public_id: str
+    ) -> AResult[int]:
+        """Get the duration of a default playlist in milliseconds."""
+        return AResult(code=AResultCode.OK, message="OK", result=0)
+
 
 provider = DefaultProvider()
 name = "Default"

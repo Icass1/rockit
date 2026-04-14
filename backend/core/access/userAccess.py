@@ -18,6 +18,7 @@ from backend.core.access.db.ormModels.provider import ProviderRow
 from backend.core.access.db.ormModels.user_library_media import UserLibraryMediaRow
 from backend.core.access.db.ormModels.user_seeks import UserSeeksRow
 from backend.core.access.db.ormModels.user_media_clicked import UserMediaClickedRow
+from backend.core.access.db.ormModels.user_skipped_media import UserSkippedMediaRow
 from backend.core.access.db.ormModels.image import ImageRow
 
 from backend.core.framework.media.image import Image
@@ -259,4 +260,28 @@ class UserAccess:
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
                 message=f"Failed to add media click: {e}",
+            )
+
+    @staticmethod
+    async def add_user_skipped_media_async(
+        session: AsyncSession, user_id: int, media_id: int, skip_direction_key: int
+    ) -> AResult[UserSkippedMediaRow]:
+        """Record that a user skipped a media item."""
+        try:
+            user_skipped_media = UserSkippedMediaRow(
+                user_id=user_id,
+                media_id=media_id,
+                skip_direction_key=skip_direction_key,
+            )
+            session.add(instance=user_skipped_media)
+            await session.commit()
+            await session.refresh(instance=user_skipped_media)
+            return AResult(code=AResultCode.OK, message="OK", result=user_skipped_media)
+
+        except Exception as e:
+            logger.error(f"Error in add_user_skipped_media_async: {e}")
+            await session.rollback()
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to add media skip: {e}",
             )

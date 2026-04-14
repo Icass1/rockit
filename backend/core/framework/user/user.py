@@ -8,6 +8,7 @@ from backend.core.aResult import AResult, AResultCode
 
 from backend.core.enums.queueTypeEnum import QueueTypeEnum
 from backend.core.enums.mediaTypeEnum import MediaTypeEnum
+from backend.core.enums.skipDirectionEnum import SkipDirectionEnum
 
 from backend.core.access.db.ormModels.user import UserRow
 from backend.core.access.db.ormModels.media import CoreMediaRow
@@ -17,6 +18,7 @@ from backend.core.access.db.ormModels.user_seeks import UserSeeksRow
 from backend.core.access.db.ormModels.user_liked_media import UserLikedMediaRow
 from backend.core.access.db.ormModels.user_library_media import UserLibraryMediaRow
 from backend.core.access.db.ormModels.user_media_clicked import UserMediaClickedRow
+from backend.core.access.db.ormModels.user_skipped_media import UserSkippedMediaRow
 
 from backend.core.access.userAccess import UserAccess
 from backend.core.access.mediaAccess import MediaAccess
@@ -794,6 +796,37 @@ class User:
         )
         if a_result.is_not_ok():
             logger.error(f"Error adding media click. {a_result.info()}")
+            return AResult(code=a_result.code(), message=a_result.message())
+
+        return AResult(code=AResultCode.OK, message="OK", result=True)
+
+    @staticmethod
+    async def add_user_skipped_media_async(
+        session: AsyncSession, user_id: int, media_public_id: str, direction: SkipDirectionEnum
+    ) -> AResult[bool]:
+        """Record that a user skipped a media item."""
+
+        a_result_media: AResult[CoreMediaRow] = (
+            await MediaAccess.get_media_from_public_id_async(
+                session=session,
+                public_id=media_public_id,
+                media_type_keys=None,
+            )
+        )
+        if a_result_media.is_not_ok():
+            logger.error(f"Error getting media. {a_result_media.info()}")
+            return AResult(code=a_result_media.code(), message=a_result_media.message())
+
+        a_result: AResult[UserSkippedMediaRow] = (
+            await UserAccess.add_user_skipped_media_async(
+                session=session,
+                user_id=user_id,
+                media_id=a_result_media.result().id,
+                skip_direction_key=direction.value,
+            )
+        )
+        if a_result.is_not_ok():
+            logger.error(f"Error adding media skip. {a_result.info()}")
             return AResult(code=a_result.code(), message=a_result.message())
 
         return AResult(code=AResultCode.OK, message="OK", result=True)

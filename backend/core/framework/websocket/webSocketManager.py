@@ -195,6 +195,18 @@ class WebSocketManager:
                 logger.info(
                     f"User {user_id} skip clicked. Media: {skip_clicked_msg.mediaPublicId}. Direction: {skip_clicked_msg.direction}"
                 )
+
+                a_result_skip: AResult[bool] = await User.add_user_skipped_media_async(
+                    session=session,
+                    user_id=user_id,
+                    media_public_id=skip_clicked_msg.mediaPublicId,
+                    direction=skip_clicked_msg.direction,
+                )
+                if a_result_skip.is_not_ok():
+                    logger.error(
+                        f"Error adding user media skip for user {user_id}. {a_result_skip.info()}"
+                    )
+                    return
             elif message_type == "seek":
                 seek_msg = SeekMessageRequest(**data)
 

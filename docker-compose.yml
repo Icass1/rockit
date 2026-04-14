@@ -21,6 +21,7 @@ services:
             IMAGES_PATH: ${IMAGES_PATH:-/app/images}
             TEMP_PATH: ${TEMP_PATH:-/app/temp}
             LOGS_PATH: ${LOGS_PATH:-/app/logs}
+            BUILDS_PATH: ${BUILDS_PATH:-/app/builds}
             LOG_DUMP_LEVEL: ${LOG_DUMP_LEVEL:-info}
             CONSOLE_DUMP_LEVEL: ${CONSOLE_DUMP_LEVEL:-info}
             DOWNLOAD_THREADS: ${DOWNLOAD_THREADS:-4}

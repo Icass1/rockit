@@ -211,14 +211,16 @@ class Downloader:
                         download.status_key, "Unknown"
                     )
 
+                    completed_val: float = 0.0
                     if download.status_key == 3:
-                        completed_val: float = 100.0
+                        completed_val = 100.0
                     elif download.status_key == 4:
                         completed_val = 0.0
-                    else:
-                        completed_val = (
-                            float(download.completed) if download.completed else 0.0
+                    elif download.download_status_list:
+                        last_status: DownloadStatusRow = (
+                            download.download_status_list[-1]
                         )
+                        completed_val = float(last_status.completed)
 
                     download_date: str = ""
                     try:

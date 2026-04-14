@@ -1,9 +1,11 @@
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useVocabulary } from "@/lib/vocabulary";
 
 export default function StatsButton() {
     const router = useRouter();
+    const { vocabulary } = useVocabulary();
 
     return (
         <Pressable
@@ -15,7 +17,7 @@ export default function StatsButton() {
         >
             <View style={styles.content}>
                 <Feather name="bar-chart-2" size={18} color="#60a5fa" />
-                <Text style={styles.text}>Stats</Text>
+                <Text style={styles.text}>{vocabulary.STATS}</Text>
             </View>
         </Pressable>
     );

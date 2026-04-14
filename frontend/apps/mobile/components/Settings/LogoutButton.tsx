@@ -2,15 +2,17 @@ import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { clearSessionCookie } from "@/lib/api";
+import { useVocabulary } from "@/lib/vocabulary";
 
 export default function LogoutButton() {
     const router = useRouter();
+    const { vocabulary } = useVocabulary();
 
     async function handleLogout() {
-        Alert.alert("Log Out", "Are you sure you want to log out?", [
-            { text: "Cancel", style: "cancel" },
+        Alert.alert(vocabulary.LOG_OUT, "Are you sure you want to log out?", [
+            { text: vocabulary.CANCEL, style: "cancel" },
             {
-                text: "Log Out",
+                text: vocabulary.LOG_OUT,
                 style: "destructive",
                 onPress: async () => {
                     await clearSessionCookie();
@@ -30,7 +32,7 @@ export default function LogoutButton() {
         >
             <View style={styles.content}>
                 <Feather name="log-out" size={18} color="#f87171" />
-                <Text style={styles.text}>Log Out</Text>
+                <Text style={styles.text}>{vocabulary.LOG_OUT}</Text>
             </View>
         </Pressable>
     );

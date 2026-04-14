@@ -4,10 +4,12 @@ import { UpdatePasswordRequestSchema } from "@rockit/shared";
 import { Alert, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSettingsUser } from "@/hooks/useSettingsUser";
 import { apiPatchNoResponse } from "@/lib/api";
+import { useVocabulary } from "@/lib/vocabulary";
 import SettingRow from "./SettingRow";
 
 export default function AccountSection() {
     const { username, isLoading } = useSettingsUser();
+    const { vocabulary } = useVocabulary();
     const [showPasswordForm, setShowPasswordForm] = useState(false);
     const [newPassword, setNewPassword] = useState("");
     const [repeatPassword, setRepeatPassword] = useState("");
@@ -15,14 +17,16 @@ export default function AccountSection() {
 
     async function handlePasswordChange() {
         if (newPassword !== repeatPassword) {
-            Alert.alert("Error", "Passwords don't match");
+            Alert.alert(vocabulary.ERROR, "Passwords don't match");
             return;
         }
         if (newPassword.length < 6) {
-            Alert.alert("Error", "Password must be at least 6 characters");
+            Alert.alert(
+                vocabulary.ERROR,
+                "Password must be at least 6 characters"
+            );
             return;
         }
-
         setIsSaving(true);
         try {
             await apiPatchNoResponse(
@@ -35,7 +39,7 @@ export default function AccountSection() {
             setRepeatPassword("");
             setShowPasswordForm(false);
         } catch {
-            Alert.alert("Error", "Failed to update password");
+            Alert.alert(vocabulary.ERROR, "Failed to update password");
         } finally {
             setIsSaving(false);
         }
@@ -44,7 +48,7 @@ export default function AccountSection() {
     return (
         <View style={styles.container}>
             <SettingRow
-                label="Username"
+                label={vocabulary.USER}
                 value={
                     <Text style={styles.value}>
                         {isLoading ? "..." : username || "—"}
@@ -52,7 +56,6 @@ export default function AccountSection() {
                 }
                 isLast={!showPasswordForm}
             />
-
             {showPasswordForm ? (
                 <View style={styles.passwordForm}>
                     <Text style={styles.hint}>
@@ -60,7 +63,7 @@ export default function AccountSection() {
                     </Text>
                     <TextInput
                         style={styles.input}
-                        placeholder="New password"
+                        placeholder={vocabulary.NEW_PASSWORD}
                         placeholderTextColor={COLORS.gray600}
                         secureTextEntry
                         value={newPassword}
@@ -68,7 +71,7 @@ export default function AccountSection() {
                     />
                     <TextInput
                         style={styles.input}
-                        placeholder="Repeat password"
+                        placeholder={vocabulary.REPEAT_PASSWORD}
                         placeholderTextColor={COLORS.gray600}
                         secureTextEntry
                         value={repeatPassword}
@@ -83,7 +86,7 @@ export default function AccountSection() {
                                 setRepeatPassword("");
                             }}
                         >
-                            Cancel
+                            {vocabulary.CANCEL}
                         </Text>
                         <Text
                             style={[
@@ -94,7 +97,7 @@ export default function AccountSection() {
                                 isSaving ? undefined : handlePasswordChange
                             }
                         >
-                            {isSaving ? "Saving..." : "Save"}
+                            {isSaving ? vocabulary.SAVING : "Save"}
                         </Text>
                     </View>
                 </View>
@@ -103,7 +106,7 @@ export default function AccountSection() {
                     style={styles.changePassword}
                     onPress={() => setShowPasswordForm(true)}
                 >
-                    Change Password
+                    {vocabulary.CHANGE_PASSWORD}
                 </Text>
             )}
         </View>

@@ -52,7 +52,6 @@ export function PlayableMedia({
     const artists = getArtistNames($media, substractArtists);
 
     const handleClick = useCallback(() => {
-        console.log("handleClick", $media);
         if (isDownloadable($media) && $media.downloaded !== true) {
             rockIt.downloaderManager.downloadMediaAsync([$media.publicId]);
         } else if (allMedia && allMedia.length > 0 && listPublicId) {

@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { COLORS } from "@/constants/theme";
 import { Feather } from "@expo/vector-icons";
 import { Image } from "expo-image";
@@ -19,12 +19,23 @@ export default function MiniPlayer() {
     } = usePlayer();
 
     const scale = useRef(new Animated.Value(1)).current;
+    const { isPlayerVisible } = usePlayer();
+    const opacity = useRef(new Animated.Value(isPlayerVisible ? 0 : 1)).current;
+    useEffect(() => {
+        Animated.timing(opacity, {
+            toValue: isPlayerVisible ? 0 : 1,
+            duration: 120,
+            useNativeDriver: true,
+        }).start();
+    }, [isPlayerVisible, opacity]);
+
     const handlePressIn = () =>
         Animated.spring(scale, {
             toValue: 0.98,
             useNativeDriver: true,
             speed: 50,
         }).start();
+
     const handlePressOut = () =>
         Animated.spring(scale, {
             toValue: 1,
@@ -35,9 +46,12 @@ export default function MiniPlayer() {
     if (!currentMedia) return null;
 
     return (
-        <Animated.View style={[styles.wrapper, { transform: [{ scale }] }]}>
+        <Animated.View
+            style={[styles.wrapper, { transform: [{ scale }], opacity }]}
+        >
             <View style={[StyleSheet.absoluteFill, styles.blurFallback]} />
 
+            {/* Active accent strip on the left edge */}
             <View style={[styles.accent, isPlaying && styles.accentActive]} />
 
             <Pressable
@@ -69,6 +83,7 @@ export default function MiniPlayer() {
                     </Text>
                 </View>
 
+                {/* Play / Pause */}
                 <Pressable
                     style={styles.controlButton}
                     onPress={(e) => {
@@ -86,6 +101,7 @@ export default function MiniPlayer() {
                     />
                 </Pressable>
 
+                {/* Skip forward */}
                 <Pressable
                     style={styles.controlButton}
                     onPress={(e) => {
@@ -102,6 +118,7 @@ export default function MiniPlayer() {
                 </Pressable>
             </Pressable>
 
+            {/* Progress track hint at the very bottom */}
             <View style={styles.progressTrack} />
         </Animated.View>
     );
@@ -115,10 +132,10 @@ const styles = StyleSheet.create({
         borderTopColor: "rgba(255,255,255,0.12)",
         overflow: "hidden",
         position: "relative",
-        backgroundColor: "rgba(18, 18, 18, 0.92)",
+        backgroundColor: "rgba(0,0,0,0.7)",
     },
     blurFallback: {
-        backgroundColor: "rgba(18, 18, 18, 0.92)",
+        backgroundColor: "rgba(0,0,0,0.7)",
     },
     accent: {
         position: "absolute",
@@ -135,17 +152,18 @@ const styles = StyleSheet.create({
         flex: 1,
         flexDirection: "row",
         alignItems: "center",
-        paddingHorizontal: 12,
+        paddingLeft: 0,
+        paddingRight: 12,
         gap: 12,
-    },
-    thumbnail: {
-        width: 44,
-        height: 44,
-        borderRadius: 8,
-        backgroundColor: COLORS.bgCard,
     },
     thumbnailContainer: {
         position: "relative",
+    },
+    thumbnail: {
+        width: MINI_PLAYER_HEIGHT,
+        height: MINI_PLAYER_HEIGHT,
+        borderRadius: 0,
+        backgroundColor: COLORS.bgCard,
     },
     videoBadge: {
         position: "absolute",

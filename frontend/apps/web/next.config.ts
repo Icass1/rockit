@@ -50,6 +50,7 @@ const nextConfig: NextConfig = {
             },
         ],
     },
+    allowedDevOrigins: ["ignaciodev"],
 };
 
 export default nextConfig;

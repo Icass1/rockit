@@ -31,10 +31,13 @@ python3 -m backend import-vocabulary
 # =====================
 echo "=== Updating Frontend ==="
 
+pnpm self-update
+
+pnpm install
+
 cd frontend
 
 # Install/update pnpm
-pnpm self-update
 
 # Install all dependencies
 pnpm install

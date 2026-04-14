@@ -1,11 +1,13 @@
 import os
 import re
+import uuid
+import requests as req
 from typing import Dict, List, TYPE_CHECKING
 
 from fastapi import Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.constants import BACKEND_URL, MEDIA_PATH
+from backend.constants import BACKEND_URL, MEDIA_PATH, IMAGES_PATH
 from backend.utils.logger import getLogger
 from backend.core.aResult import AResult, AResultCode
 
@@ -16,6 +18,9 @@ from backend.core.responses.baseAlbumWithoutSongsResponse import (
 )
 from backend.core.responses.baseArtistResponse import BaseArtistResponse
 
+from backend.core.access.db.ormModels.image import ImageRow
+from backend.core.utils.backendUtils import create_id
+
 from backend.youtubeMusic.utils.youtubeMusicApi import YoutubeMusicApi
 from backend.youtubeMusic.utils.youtubeMusicApi import (
     YoutubeMusicTrack,
@@ -24,6 +29,7 @@ from backend.youtubeMusic.utils.youtubeMusicApi import (
 )
 
 from backend.youtubeMusic.access.youtubeMusicAccess import YoutubeMusicAccess
+from backend.youtubeMusic.access.db.ormModels.image import YoutubeMusicImageRow
 
 from backend.youtubeMusic.responses.songResponse import YoutubeMusicTrackResponse
 from backend.youtubeMusic.responses.albumResponse import YoutubeMusicAlbumResponse

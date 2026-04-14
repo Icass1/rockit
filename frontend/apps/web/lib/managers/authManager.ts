@@ -3,10 +3,11 @@ import {
     LoginResponseSchema,
     RegisterRequestSchema,
     RegisterResponseSchema,
+    SessionResponseSchema,
 } from "@/dto";
 import { getUserInClient } from "@/lib/getUserInClient";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { apiPostFetch } from "@/lib/utils/apiFetch";
+import { apiFetch, apiPostFetch } from "@/lib/utils/apiFetch";
 
 export interface AuthResult {
     success: boolean;
@@ -15,10 +16,11 @@ export interface AuthResult {
 
 export class AuthManager {
     async isLoggedInAsync(): Promise<boolean> {
-        const res = await fetch(`${rockIt.BACKEND_URL}/user/session`, {
-            credentials: "include",
-        });
-        return res.ok;
+        const res = await apiFetch(
+            `${rockIt.BACKEND_URL}/user/session`,
+            SessionResponseSchema
+        );
+        return res.isOk();
     }
 
     async loginAsync(username: string, password: string): Promise<AuthResult> {

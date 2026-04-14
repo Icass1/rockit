@@ -5,6 +5,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { PlayerProvider } from "@/lib/PlayerContext";
 import { VocabularyProvider } from "@/lib/vocabulary";
 import { webSocketManager } from "@/lib/webSocketManager";
 
@@ -31,16 +32,20 @@ export default function RootLayout() {
                 <VocabularyProvider>
                     <ThemeProvider value={RockItTheme}>
                         <StatusBar style="light" />
-                        <Stack
-                            screenOptions={{
-                                headerShown: false,
-                                contentStyle: { backgroundColor: "#0b0b0b" },
-                            }}
-                        >
-                            <Stack.Screen name="(app)" />
-                            <Stack.Screen name="(auth)" />
-                            <Stack.Screen name="stats" />
-                        </Stack>
+                        <PlayerProvider>
+                            <Stack
+                                screenOptions={{
+                                    headerShown: false,
+                                    contentStyle: {
+                                        backgroundColor: "#0b0b0b",
+                                    },
+                                }}
+                            >
+                                <Stack.Screen name="(app)" />
+                                <Stack.Screen name="(auth)" />
+                                <Stack.Screen name="stats" />
+                            </Stack>
+                        </PlayerProvider>
                     </ThemeProvider>
                 </VocabularyProvider>
             </SafeAreaProvider>

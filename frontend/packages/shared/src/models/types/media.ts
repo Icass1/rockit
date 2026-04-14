@@ -66,8 +66,8 @@ export function isPlayable(media: TMedia): media is TPlayableMedia {
 export function isSearchResult(
     media: TMediaWithSearch
 ): media is BaseSearchResultsItem {
-    if ((media as BaseSearchResultsItem)?.searchResult) return false;
-    return true;
+    if ((media as BaseSearchResultsItem)?.searchResult) return true;
+    return false;
 }
 
 export function isDownloadable(media: TMedia): media is DownloadableMediaType {

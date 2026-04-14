@@ -178,6 +178,60 @@ async def main() -> None:
                 await rockit_db.async_init()
                 logger.info("Database initialized")
 
+            elif command == "cleanup-images":
+                from backend.core.access.imageAccess import ImageAccess
+                from backend.constants import IMAGES_PATH
+
+                db_paths: set[str] = set()
+                fs_paths: set[str] = set()
+
+                async with rockit_db.session_scope_async() as session:
+                    a_result = await ImageAccess.get_all_images_async(session=session)
+                    if a_result.is_not_ok():
+                        logger.error(f"Error getting images: {a_result.message()}")
+                        continue
+
+                    for img in a_result.result():
+                        db_paths.add(img.path)
+
+                logger.info(f"Found {len(db_paths)} images in database")
+
+                for root, _, files in os.walk(IMAGES_PATH):
+                    for file in files:
+                        rel_path = os.path.relpath(
+                            os.path.join(root, file), IMAGES_PATH
+                        )
+                        fs_paths.add(rel_path)
+
+                logger.info(f"Found {len(fs_paths)} images in filesystem")
+
+                extra_files = fs_paths - db_paths
+
+                if not extra_files:
+                    logger.info("No extra images to clean up")
+                    continue
+
+                logger.info(f"Extra images ({len(extra_files)}):")
+                for path in sorted(extra_files):
+                    logger.info(f"  - {path}")
+
+                confirm = input("Delete these files? This cannot be undone (y/N): ")
+                if confirm.lower() != "y":
+                    logger.info("Cancelled")
+                    continue
+
+                deleted_count = 0
+                for rel_path in extra_files:
+                    full_path = os.path.join(IMAGES_PATH, rel_path)
+                    try:
+                        os.remove(full_path)
+                        logger.info(f"Deleted: {rel_path}")
+                        deleted_count += 1
+                    except Exception as e:
+                        logger.error(f"Error deleting {rel_path}: {e}")
+
+                logger.info(f"Deleted {deleted_count} files")
+
             else:
                 print("Command not found.")
 

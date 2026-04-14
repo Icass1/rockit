@@ -58,6 +58,7 @@ def main(path: str):
         )
         resized_image.save(path.replace(".jpg", ".png"))
     else:
+        image.save(path.replace(".jpg", ".png"))
         print("No border detected")
 
 

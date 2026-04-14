@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import List, Tuple
 
 from sqlalchemy.sql import Select
 from sqlalchemy import Result, select
@@ -15,6 +15,23 @@ logger = getLogger(__name__)
 
 
 class ImageAccess:
+    @staticmethod
+    async def get_all_images_async(session: AsyncSession) -> AResult[List[ImageRow]]:
+        """Get all images from the database."""
+
+        try:
+            stmt: Select[Tuple[ImageRow]] = select(ImageRow)
+            result: Result[Tuple[ImageRow]] = await session.execute(stmt)
+            rows: List[ImageRow] = list(result.scalars().all())
+
+            return AResult(code=AResultCode.OK, message="OK", result=rows)
+
+        except Exception as e:
+            logger.error(f"Error getting all images: {e}", exc_info=True)
+            return AResult(
+                code=AResultCode.GENERAL_ERROR, message="Error getting all images"
+            )
+
     @staticmethod
     async def get_image_from_path_async(
         session: AsyncSession,

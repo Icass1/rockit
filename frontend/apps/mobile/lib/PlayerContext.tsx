@@ -14,6 +14,7 @@ import type {
 import {
     API_ENDPOINTS,
     ERepeatMode,
+    isVideo,
     QueueResponseSchema,
     SessionResponseSchema,
 } from "@rockit/shared";
@@ -214,7 +215,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         media: BaseSongWithoutAlbumResponse | BaseVideoResponse | undefined
     ): string | null => {
         if (!media) return null;
-        if (media.type === "video") {
+        if (isVideo(media)) {
             return media.audioSrc ?? media.videoSrc ?? null;
         }
         return media.audioSrc;

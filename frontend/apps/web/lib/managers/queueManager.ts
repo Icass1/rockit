@@ -132,8 +132,8 @@ export class QueueManager {
         });
 
         const validMedias = medias.filter(
-            (media): media is BaseSongWithAlbumResponse | BaseVideoResponse =>
-                media.type === "song" || media.type === "video"
+            (m): m is BaseSongWithAlbumResponse | BaseVideoResponse =>
+                m.type === "song" || m.type === "video"
         );
         this._queueAtom.set(
             validMedias.map((media, index) => {

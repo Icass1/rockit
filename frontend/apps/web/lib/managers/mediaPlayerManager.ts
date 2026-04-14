@@ -1,6 +1,8 @@
 import {
     getMediaAudioSrc,
     getMediaVideoSrc,
+    isSong,
+    isVideo,
     resolveNextOnEnd,
     TPlayableMedia,
 } from "@rockit/shared";
@@ -78,9 +80,9 @@ export class MediaPlayerManager {
 
         console.log(currentMedia.type);
 
-        if (currentMedia.type === "video") {
+        if (isVideo(currentMedia)) {
             this.playVideo();
-        } else if (currentMedia.type == "song") {
+        } else if (isSong(currentMedia)) {
             this.playAudio();
         } else if (currentMedia.type == "station") {
             console.warn("Not implemented");
@@ -121,14 +123,14 @@ export class MediaPlayerManager {
         const currentMedia = rockIt.queueManager.currentMedia;
         if (!currentMedia) return;
 
-        if (currentMedia?.type === "video") {
+        if (isVideo(currentMedia)) {
             if (!this._video) return;
             if (this._video.paused) {
                 this.play();
             } else {
                 this.pause();
             }
-        } else if (currentMedia?.type === "song") {
+        } else if (isSong(currentMedia)) {
             if (!this._audio) return;
             if (this._audio.paused) {
                 this.play();
@@ -143,7 +145,7 @@ export class MediaPlayerManager {
         if (!currentMedia) return;
 
         this.setMedia();
-        if (currentMedia?.type === "video") {
+        if (isVideo(currentMedia)) {
             if (!this._video) return;
             if (this._video.paused) {
                 this.play();
@@ -176,7 +178,7 @@ export class MediaPlayerManager {
         const currentMedia = rockIt.queueManager.currentMedia;
         if (!currentMedia) return;
 
-        if (currentMedia?.type === "video") {
+        if (isVideo(currentMedia)) {
             if (!this._video) return;
             const timeFrom = this._video.currentTime;
             this._video.currentTime = time;
@@ -201,7 +203,7 @@ export class MediaPlayerManager {
         const currentMedia = rockIt.queueManager.currentMedia;
         if (!currentMedia) return;
 
-        if (currentMedia?.type === "video") {
+        if (isVideo(currentMedia)) {
             if (!this._video) return;
             this._mutePreviousVolume = this.volume;
             this.volume = 0;
@@ -239,7 +241,7 @@ export class MediaPlayerManager {
         const currentMedia = rockIt.queueManager.currentMedia;
         if (!currentMedia) return;
 
-        if (currentMedia?.type === "video") {
+        if (isVideo(currentMedia)) {
             this.setVideo(useSavedCurrentTime);
         } else {
             this.setAudio(useSavedCurrentTime);
@@ -259,7 +261,7 @@ export class MediaPlayerManager {
             "!currentMedia": !currentMedia,
             "currentMedia?.type": currentMedia?.type,
         });
-        if (!currentMedia || currentMedia?.type === "video") return;
+        if (!currentMedia || isVideo(currentMedia)) return;
 
         console.log({ currentMedia });
 
@@ -358,7 +360,7 @@ export class MediaPlayerManager {
         if (!currentMedia) return;
 
         let time = 0;
-        if (currentMedia?.type === "video") {
+        if (isVideo(currentMedia)) {
             if (!this._video) return;
             time = this._video.currentTime;
         } else {
@@ -414,7 +416,7 @@ export class MediaPlayerManager {
         const currentMedia = rockIt.queueManager.currentMedia;
         const clamped = Math.max(0, Math.min(1, value));
 
-        if (currentMedia?.type === "video") {
+        if (currentMedia && isVideo(currentMedia)) {
             if (!this._video) return;
             this._video.volume = clamped;
         } else {
@@ -426,7 +428,7 @@ export class MediaPlayerManager {
 
     get volume(): number {
         const currentMedia = rockIt.queueManager.currentMedia;
-        if (currentMedia?.type === "video") {
+        if (currentMedia && isVideo(currentMedia)) {
             return this._video?.volume ?? 1;
         }
         return this._audio?.volume ?? 1;

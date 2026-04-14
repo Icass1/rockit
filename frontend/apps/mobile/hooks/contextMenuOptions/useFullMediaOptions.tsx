@@ -1,6 +1,8 @@
 import { useCallback } from "react";
 import type { TMedia, TQueueMedia } from "@rockit/shared";
 import {
+    isPlayable,
+    isQueueable,
     LikedMediaResponseSchema,
     LikeMediaRequestSchema,
 } from "@rockit/shared";
@@ -19,27 +21,27 @@ export default function useFullMediaOptions(
         usePlayer();
     const { hide } = useContextMenu();
 
-    const queueMedia: TQueueMedia[] = allMedia.filter(
-        (m): m is TQueueMedia => m.type === "song" || m.type === "video"
-    );
+    const queueMedia: TQueueMedia[] = allMedia.filter(isQueueable);
 
-    const isPlayable = media.type === "song" || media.type === "video";
-
-    const playableAsQueueMedia = isPlayable ? (media as TQueueMedia) : null;
+    const playableAsQueueMedia = isPlayable(media)
+        ? (media as TQueueMedia)
+        : null;
 
     const handlePlay = useCallback(() => {
-        if (!isPlayable) return;
+        if (!isPlayable(media)) return;
         if (!allMedia || allMedia.length === 0) return;
         if (!playableAsQueueMedia) return;
-        const queueMediaItems = allMedia.filter(
-            (m): m is TQueueMedia => m.type === "song" || m.type === "video"
-        );
+        const queueMediaItems = allMedia.filter(isQueueable);
         if (queueMediaItems.length === 0) return;
         playMedia(playableAsQueueMedia, queueMediaItems);
-    }, [isPlayable, playableAsQueueMedia, allMedia, playMedia]);
+    }, [media, allMedia, playMedia, playableAsQueueMedia]);
 
     const handlePlayNext = useCallback(async () => {
-        if (!isPlayable || queueMedia.length === 0 || !playableAsQueueMedia)
+        if (
+            !isPlayable(media) ||
+            queueMedia.length === 0 ||
+            !playableAsQueueMedia
+        )
             return;
         if (shuffle) {
             const randomIdx = Math.floor(Math.random() * queueMedia.length);
@@ -50,7 +52,7 @@ export default function useFullMediaOptions(
             addToQueueNext(playableAsQueueMedia);
         }
     }, [
-        isPlayable,
+        media,
         queueMedia,
         shuffle,
         playNext,
@@ -59,12 +61,16 @@ export default function useFullMediaOptions(
     ]);
 
     const handleAddToQueueEnd = useCallback(() => {
-        if (!isPlayable || queueMedia.length === 0) return;
+        if (!isPlayable(media) || queueMedia.length === 0) return;
         addToQueueEnd(queueMedia);
-    }, [isPlayable, queueMedia, addToQueueEnd]);
+    }, [media, queueMedia, addToQueueEnd]);
 
     const handleShufflePlay = useCallback(async () => {
-        if (!isPlayable || queueMedia.length === 0 || !playableAsQueueMedia)
+        if (
+            !isPlayable(media) ||
+            queueMedia.length === 0 ||
+            !playableAsQueueMedia
+        )
             return;
 
         const shuffled = [...queueMedia];
@@ -77,7 +83,7 @@ export default function useFullMediaOptions(
         const first = shuffled[randomIdx];
         const rest = shuffled.filter((_, i) => i !== randomIdx);
         await playMedia(first, [first, ...rest]);
-    }, [isPlayable, queueMedia, playMedia, playableAsQueueMedia]);
+    }, [media, queueMedia, playMedia, playableAsQueueMedia]);
 
     const handleToggleLike = useCallback(async () => {
         try {
@@ -127,7 +133,7 @@ export default function useFullMediaOptions(
         hide();
     }, [hide]);
 
-    if (showPlayOption && isPlayable) {
+    if (showPlayOption && isPlayable(media)) {
         options.push({
             label: "Play",
             icon: "play",
@@ -153,7 +159,7 @@ export default function useFullMediaOptions(
         });
     }
 
-    if (isPlayable) {
+    if (isPlayable(media)) {
         options.push({
             label: "Add to playlist",
             icon: "list",

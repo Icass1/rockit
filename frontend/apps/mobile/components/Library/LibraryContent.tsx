@@ -54,10 +54,9 @@ export default function LibraryContent({
         (item: TPlayableMedia) => {
             if (!playMedia) return;
 
-            if (item.type === "song") {
-                playMedia(item, songs);
-            } else if (item.type === "video") {
-                playMedia(item, videos);
+            if (isQueueable(item)) {
+                const allQueueable = [...songs, ...videos].filter(isQueueable);
+                playMedia(item, allQueueable);
             }
         },
         [playMedia, songs, videos]

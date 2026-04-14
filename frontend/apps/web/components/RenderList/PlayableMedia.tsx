@@ -5,6 +5,7 @@ import { useStore } from "@nanostores/react";
 import {
     getMediaDuration,
     isDownloadable,
+    isPlayable,
     isSong,
     isVideo,
     TMedia,
@@ -64,10 +65,7 @@ export function PlayableMedia({
                 }
             }
 
-            const playableMedia = tempAllMedia.filter(
-                (m): m is TPlayableMedia =>
-                    m.type === "song" || m.type === "video"
-            );
+            const playableMedia = tempAllMedia.filter(isPlayable);
 
             console.log(
                 "PlayableMedia.handleClick: playableMedia",

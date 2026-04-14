@@ -1,5 +1,5 @@
 import { memo, useCallback } from "react";
-import { TMedia, TQueueMedia } from "@rockit/shared";
+import { isQueueable, TMedia, TQueueMedia } from "@rockit/shared";
 import { FlatList, StyleSheet, View } from "react-native";
 import MediaRow from "@/components/Media/MediaRow";
 
@@ -27,8 +27,7 @@ export default function LibraryListView({
             <ListItem
                 item={item}
                 onPress={
-                    onItemPress &&
-                    (item.type === "song" || item.type === "video")
+                    onItemPress && isQueueable(item)
                         ? () => onItemPress(item)
                         : undefined
                 }

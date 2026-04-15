@@ -1,5 +1,5 @@
 import { COLORS } from "@/constants/theme";
-import { Feather } from "@expo/vector-icons";
+import { Search, X } from "lucide-react-native";
 import { ActivityIndicator, StyleSheet, TextInput, View } from "react-native";
 
 interface SearchBarProps {
@@ -20,12 +20,7 @@ export default function SearchBar({
     return (
         <View style={styles.container}>
             <View style={styles.inputContainer}>
-                <Feather
-                    name="search"
-                    size={18}
-                    color={COLORS.gray600}
-                    style={styles.icon}
-                />
+                <Search size={18} color={COLORS.gray600} style={styles.icon} />
                 <TextInput
                     style={styles.input}
                     placeholder={placeholder}
@@ -37,8 +32,7 @@ export default function SearchBar({
                     autoCorrect={false}
                 />
                 {value.length > 0 && !isSearching && (
-                    <Feather
-                        name="x"
+                    <X
                         size={18}
                         color={COLORS.gray600}
                         style={styles.clearIcon}

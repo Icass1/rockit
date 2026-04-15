@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { COLORS } from "@/constants/theme";
-// Feather import needed for RelatedMock
-import { Feather } from "@expo/vector-icons";
+import { Radio } from "lucide-react-native";
 import {
     Animated,
     Dimensions,
@@ -85,7 +84,7 @@ export default function PlayerTabsPanel({
 function RelatedMock() {
     return (
         <View style={styles.mockContainer}>
-            <Feather name="radio" size={40} color={COLORS.gray400} />
+            <Radio size={40} color={COLORS.gray400} />
             <Text style={styles.mockTitle}>Related songs</Text>
             <Text style={styles.mockSubtitle}>Coming soon</Text>
         </View>

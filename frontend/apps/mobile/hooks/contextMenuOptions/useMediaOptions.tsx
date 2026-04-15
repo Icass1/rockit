@@ -4,6 +4,7 @@ import {
     LikeMediaRequestSchema,
 } from "@rockit/shared";
 import type { TMedia } from "@rockit/shared";
+import { Trash } from "lucide-react-native";
 import { apiPost } from "@/lib/api";
 import { ContextMenuOption } from "@/lib/ContextMenuContext";
 import { useVocabulary } from "@/lib/vocabulary";
@@ -27,7 +28,7 @@ export default function useBaseMediaOptions(media: TMedia) {
 
     options.push({
         label: vocabulary.REMOVE_FROM_LIBRARY,
-        icon: "trash",
+        icon: Trash,
         onPress: handleToggleLike,
     });
 

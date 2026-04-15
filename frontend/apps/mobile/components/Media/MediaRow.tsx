@@ -8,6 +8,7 @@ import {
 } from "@rockit/shared";
 import { Image } from "expo-image";
 import { Link } from "expo-router";
+import { Trash } from "lucide-react-native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { ContextMenuOption, useContextMenu } from "@/lib/ContextMenuContext";
 import { useVocabulary } from "@/lib/vocabulary";
@@ -33,7 +34,7 @@ function MediaRow({ media, onPress, rightElement }: MediaRowProps) {
 
         options.push({
             label: vocabulary.REMOVE_FROM_LIBRARY,
-            icon: "trash",
+            icon: Trash,
             onPress: () => {},
         });
 

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { COLORS } from "@/constants/theme";
-import { Feather } from "@expo/vector-icons";
+import { ChevronDown, ChevronRight, Trash2 } from "lucide-react-native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import type { DownloadGroup as DownloadGroupType } from "@/hooks/useDownloads";
 import DownloadItem from "./DownloadItem";
@@ -33,11 +33,11 @@ export default function DownloadGroup({ group, onClear }: DownloadGroupProps) {
                 onPress={() => setIsOpen(!isOpen)}
             >
                 <View style={styles.headerLeft}>
-                    <Feather
-                        name={isOpen ? "chevron-down" : "chevron-right"}
-                        size={14}
-                        color={COLORS.gray600}
-                    />
+                    {isOpen ? (
+                        <ChevronDown size={14} color={COLORS.gray600} />
+                    ) : (
+                        <ChevronRight size={14} color={COLORS.gray600} />
+                    )}
                     <View
                         style={[styles.dot, { backgroundColor: group.color }]}
                     />
@@ -52,11 +52,7 @@ export default function DownloadGroup({ group, onClear }: DownloadGroupProps) {
                             }}
                             hitSlop={8}
                         >
-                            <Feather
-                                name="trash-2"
-                                size={14}
-                                color={COLORS.white}
-                            />
+                            <Trash2 size={14} color={COLORS.white} />
                         </Pressable>
                     )}
                     <View

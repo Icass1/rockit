@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { COLORS } from "@/constants/theme";
-import { Feather } from "@expo/vector-icons";
 import DateTimePicker, {
     type DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
+import { BarChart3, User, Users } from "lucide-react-native";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { useUserStats, type Range } from "@/hooks/useUserStats";
 import { useVocabulary } from "@/lib/vocabulary";
@@ -36,7 +36,7 @@ function getRangeLabel(
 function EmptySection({ label }: { label: string }) {
     return (
         <View style={styles.emptyContainer}>
-            <Feather name="bar-chart-2" size={32} color={COLORS.bgCard} />
+            <BarChart3 size={32} color={COLORS.bgCard} />
             <Text style={styles.emptyLabel}>{label}</Text>
             <Text style={styles.emptySubtitle}>
                 Available once backend stats endpoints are ready
@@ -189,16 +189,14 @@ export default function StatsClient() {
                 </View>
 
                 <View style={styles.sectionTabs}>
-                    <Feather
-                        name="user"
+                    <User
                         size={20}
                         color={
                             section === "user" ? COLORS.accent : COLORS.gray600
                         }
                         onPress={() => setSection("user")}
                     />
-                    <Feather
-                        name="bar-chart-2"
+                    <BarChart3
                         size={20}
                         color={
                             section === "general"
@@ -207,8 +205,7 @@ export default function StatsClient() {
                         }
                         onPress={() => setSection("general")}
                     />
-                    <Feather
-                        name="users"
+                    <Users
                         size={20}
                         color={
                             section === "friends"

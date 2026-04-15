@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { COLORS } from "@/constants/theme";
-import { Feather } from "@expo/vector-icons";
+import { Download } from "lucide-react-native";
 import { Pressable, StyleSheet, TextInput, View } from "react-native";
 
 interface DownloadInputBarProps {
@@ -47,7 +47,7 @@ export default function DownloadInputBar({ onSubmit }: DownloadInputBarProps) {
                 onPress={handleSubmit}
                 disabled={!url.trim() || submitting}
             >
-                <Feather name="download" size={20} color={COLORS.white} />
+                <Download size={20} color={COLORS.white} />
             </Pressable>
         </View>
     );

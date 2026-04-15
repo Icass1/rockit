@@ -1,5 +1,5 @@
 import { COLORS } from "@/constants/theme";
-import { Feather } from "@expo/vector-icons";
+import { ChevronDown, MoreHorizontal } from "lucide-react-native";
 import { Pressable, StyleSheet, View } from "react-native";
 import useFullMediaOptions from "@/hooks/contextMenuOptions/useFullMediaOptions";
 import { useContextMenu } from "@/lib/ContextMenuContext";
@@ -29,7 +29,7 @@ export default function PlayerTopBar({
     return (
         <View style={styles.container}>
             <Pressable style={styles.button} onPress={onClose} hitSlop={12}>
-                <Feather name="chevron-down" size={28} color={COLORS.white} />
+                <ChevronDown size={28} color={COLORS.white} />
             </Pressable>
 
             {media && (
@@ -38,11 +38,7 @@ export default function PlayerTopBar({
                     onPress={() => show({ title: media.name ?? "", options })}
                     hitSlop={12}
                 >
-                    <Feather
-                        name="more-horizontal"
-                        size={22}
-                        color={COLORS.white}
-                    />
+                    <MoreHorizontal size={22} color={COLORS.white} />
                 </Pressable>
             )}
         </View>

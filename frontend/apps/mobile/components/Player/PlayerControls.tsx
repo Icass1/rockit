@@ -1,9 +1,16 @@
-// PlayerControls – solid (filled) icons using MaterialCommunityIcons
+// PlayerControls – solid (filled) icons using Lucide
 
 import React from "react";
 import { COLORS } from "@/constants/theme";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { ERepeatMode } from "@rockit/shared";
+import {
+    Pause,
+    Play,
+    Repeat,
+    Shuffle,
+    SkipBack,
+    SkipForward,
+} from "lucide-react-native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { usePlayer } from "@/lib/PlayerContext";
 
@@ -33,11 +40,7 @@ export default function PlayerControls() {
                 onPress={toggleShuffle}
                 hitSlop={12}
             >
-                <MaterialCommunityIcons
-                    name="shuffle"
-                    size={30}
-                    color={COLORS.white}
-                />
+                <Shuffle size={30} color={COLORS.white} />
             </Pressable>
 
             {/* Skip back */}
@@ -46,11 +49,7 @@ export default function PlayerControls() {
                 onPress={skipBack}
                 hitSlop={12}
             >
-                <MaterialCommunityIcons
-                    name="skip-previous"
-                    size={30}
-                    color={COLORS.white}
-                />
+                <SkipBack size={30} color={COLORS.white} />
             </Pressable>
 
             {/* Play / Pause – larger solid button */}
@@ -61,11 +60,11 @@ export default function PlayerControls() {
                 ]}
                 onPress={togglePlayPause}
             >
-                <MaterialCommunityIcons
-                    name={isPlaying ? "pause" : "play"}
-                    size={44}
-                    color={COLORS.white}
-                />
+                {isPlaying ? (
+                    <Pause size={44} color={COLORS.white} />
+                ) : (
+                    <Play size={44} color={COLORS.white} />
+                )}
             </Pressable>
 
             {/* Skip forward */}
@@ -74,11 +73,7 @@ export default function PlayerControls() {
                 onPress={skipForward}
                 hitSlop={12}
             >
-                <MaterialCommunityIcons
-                    name="skip-next"
-                    size={30}
-                    color={COLORS.white}
-                />
+                <SkipForward size={30} color={COLORS.white} />
             </Pressable>
 
             {/* Repeat */}
@@ -88,11 +83,7 @@ export default function PlayerControls() {
                 hitSlop={12}
             >
                 <View>
-                    <MaterialCommunityIcons
-                        name="repeat"
-                        size={30}
-                        color={repeatColor}
-                    />
+                    <Repeat size={30} color={repeatColor} />
                     {repeatMode === ERepeatMode.ONE && (
                         <View style={styles.repeatOneBadge}>
                             <Text style={styles.repeatOneLabel}>1</Text>

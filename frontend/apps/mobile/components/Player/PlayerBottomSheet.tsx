@@ -1,12 +1,12 @@
 // Bottom sheet for player tabs (Queue, Lyrics, Related, Crossfade)
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { COLORS } from "@/constants/theme";
-import { Feather } from "@expo/vector-icons";
 import {
     BottomSheetBackdrop,
     BottomSheetModal,
     type BottomSheetBackdropProps,
 } from "@gorhom/bottom-sheet";
+import { Radio } from "lucide-react-native";
 import { StyleSheet, Text, View } from "react-native";
 import type { PlayerTab } from "./FullPlayer";
 import PlayerLyrics from "./PlayerLyrics";
@@ -88,7 +88,7 @@ export default function PlayerBottomSheet({
 function RelatedMock() {
     return (
         <View style={styles.mockContainer}>
-            <Feather name="radio" size={40} color={COLORS.gray400} />
+            <Radio size={40} color={COLORS.gray400} />
             <Text style={styles.mockTitle}>Related songs</Text>
             <Text style={styles.mockSubtitle}>Coming soon</Text>
         </View>

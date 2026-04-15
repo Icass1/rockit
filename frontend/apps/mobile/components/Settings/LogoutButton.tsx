@@ -1,5 +1,5 @@
-import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { LogOut } from "lucide-react-native";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { clearSessionCookie } from "@/lib/api";
 import { useVocabulary } from "@/lib/vocabulary";
@@ -31,7 +31,7 @@ export default function LogoutButton() {
             onPress={handleLogout}
         >
             <View style={styles.content}>
-                <Feather name="log-out" size={18} color="#f87171" />
+                <LogOut size={18} color="#f87171" />
                 <Text style={styles.text}>{vocabulary.LOG_OUT}</Text>
             </View>
         </Pressable>

@@ -6,12 +6,12 @@ import {
     useState,
     type ReactNode,
 } from "react";
-import { Feather } from "@expo/vector-icons";
 import type { BottomSheetModal } from "@gorhom/bottom-sheet";
+import type { LucideIcon } from "lucide-react-native";
 
 export interface ContextMenuOption {
     label: string;
-    icon: React.ComponentProps<typeof Feather>["name"];
+    icon: LucideIcon;
     onPress: () => void;
     destructive?: boolean;
 }

@@ -1,9 +1,10 @@
 import { useEffect, useRef } from "react";
 import { COLORS } from "@/constants/theme";
-import { Feather } from "@expo/vector-icons";
 import { Image } from "expo-image";
+import { LinearGradient } from "expo-linear-gradient";
+import { Loader2, Pause, Play, SkipForward } from "lucide-react-native";
 import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
-import { usePlayer } from "@/lib/PlayerContext";
+import { usePlayer, usePlayerTime } from "@/lib/PlayerContext";
 
 export const MINI_PLAYER_HEIGHT = 56;
 
@@ -16,6 +17,7 @@ export default function MiniPlayer() {
         skipForward,
         showPlayer,
     } = usePlayer();
+    const { currentTime, duration } = usePlayerTime();
 
     const scale = useRef(new Animated.Value(1)).current;
     const { isPlayerVisible } = usePlayer();
@@ -43,6 +45,8 @@ export default function MiniPlayer() {
         }).start();
 
     if (!currentMedia) return null;
+
+    const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
 
     return (
         <Animated.View
@@ -86,13 +90,13 @@ export default function MiniPlayer() {
                     }}
                     hitSlop={12}
                 >
-                    <Feather
-                        name={
-                            isLoading ? "loader" : isPlaying ? "pause" : "play"
-                        }
-                        size={22}
-                        color={COLORS.white}
-                    />
+                    {isLoading ? (
+                        <Loader2 size={22} color={COLORS.white} />
+                    ) : isPlaying ? (
+                        <Pause size={22} color={COLORS.white} />
+                    ) : (
+                        <Play size={22} color={COLORS.white} />
+                    )}
                 </Pressable>
 
                 {/* Skip forward */}
@@ -104,16 +108,30 @@ export default function MiniPlayer() {
                     }}
                     hitSlop={12}
                 >
-                    <Feather
-                        name="skip-forward"
-                        size={22}
-                        color={COLORS.white}
-                    />
+                    <SkipForward size={22} color={COLORS.white} />
                 </Pressable>
             </Pressable>
 
             {/* Progress track hint at the very bottom */}
-            <View style={styles.progressTrack} />
+            <View style={styles.progressTrack}>
+                <View
+                    style={[
+                        styles.progressFill,
+                        { width: `${progressPercent}%` },
+                    ]}
+                >
+                    <LinearGradient
+                        colors={[
+                            COLORS.accent,
+                            COLORS.accentMid,
+                            COLORS.accentLight,
+                        ]}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
+                        style={StyleSheet.absoluteFill}
+                    />
+                </View>
+            </View>
         </Animated.View>
     );
 }
@@ -193,6 +211,10 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         height: 2,
-        backgroundColor: "rgba(238,16,134,0.3)",
+        backgroundColor: "rgba(255,255,255,0.1)",
+        overflow: "hidden",
+    },
+    progressFill: {
+        height: "100%",
     },
 });

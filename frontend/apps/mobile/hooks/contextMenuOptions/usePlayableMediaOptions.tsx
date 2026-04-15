@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import useHandlePlay from "@/callbacks/handlePlay";
 import { isDownloadable, TMedia, TPlayableMedia } from "@rockit/shared";
+import { Download, Play } from "lucide-react-native";
 import { useDownloads } from "@/hooks/useDownloads";
 import { ContextMenuOption } from "@/lib/ContextMenuContext";
 import { useVocabulary } from "@/lib/vocabulary";
@@ -22,13 +23,13 @@ export default function useBasePlayableMediaOptions(
     if (isDownloadable(media) && !media.downloaded) {
         options.push({
             label: vocabulary.DOWNLOAD,
-            icon: "download",
+            icon: Download,
             onPress: handleDownload,
         });
     } else {
         options.push({
             label: vocabulary.PLAY,
-            icon: "play",
+            icon: Play,
             onPress: handlePlay,
         });
     }

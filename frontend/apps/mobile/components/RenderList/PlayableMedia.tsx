@@ -1,7 +1,6 @@
 import { memo, useCallback } from "react";
 import useHandlePlay from "@/callbacks/handlePlay";
 import { COLORS } from "@/constants/theme";
-import { Feather } from "@expo/vector-icons";
 import {
     getMediaDuration,
     isDownloadable,
@@ -12,6 +11,7 @@ import {
     type TPlayableMedia,
 } from "@rockit/shared";
 import { Image } from "expo-image";
+import { Download } from "lucide-react-native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import useBaseMediaOptions from "@/hooks/contextMenuOptions/useMediaOptions";
 import useBasePlayableMediaOptions from "@/hooks/contextMenuOptions/usePlayableMediaOptions";
@@ -100,11 +100,7 @@ export const PlayableMedia = memo(function PlayableMedia({
                     />
                     {!downloaded && (
                         <View style={styles.downloadBadge}>
-                            <Feather
-                                name="download"
-                                size={10}
-                                color={COLORS.white}
-                            />
+                            <Download size={10} color={COLORS.white} />
                         </View>
                     )}
                 </View>

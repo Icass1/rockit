@@ -8,6 +8,7 @@ import {
     EventManager,
     UserPlaylistsResponseSchema,
 } from "@rockit/shared";
+import { Heart, Music, PlusCircle } from "lucide-react-native";
 import { FlatList, StyleSheet, View } from "react-native";
 import { apiGet } from "@/lib/api";
 import {
@@ -42,7 +43,7 @@ export default function SearchSection({
             options: [
                 {
                     label: "Add to library",
-                    icon: "heart",
+                    icon: Heart,
                     onPress: async () => {
                         hide();
                         const result = await apiGet(
@@ -59,7 +60,7 @@ export default function SearchSection({
                 },
                 {
                     label: "Add to playlist",
-                    icon: "plus-circle",
+                    icon: PlusCircle,
                     onPress: () => showPlaylistPicker(item),
                 },
             ],
@@ -92,7 +93,7 @@ export default function SearchSection({
                 backAction: () => show(buildMainMenu(item)),
                 options: playlists.map((pl) => ({
                     label: pl.name,
-                    icon: "music" as const,
+                    icon: Music,
                     onPress: async () => {
                         hide();
                         const result = await apiGet(

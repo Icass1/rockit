@@ -1,9 +1,15 @@
 import { useEffect } from "react";
 import { COLORS } from "@/constants/theme";
-import { Feather } from "@expo/vector-icons";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { Tabs, useRouter } from "expo-router";
+import {
+    BookOpen,
+    Download,
+    Home,
+    Search,
+    Settings,
+} from "lucide-react-native";
 import { Pressable, StyleSheet, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import {
@@ -145,7 +151,7 @@ function AppLayoutInner({
                     options={{
                         title: vocabulary.HOME,
                         tabBarIcon: ({ color, size }) => (
-                            <Feather name="home" color={color} size={size} />
+                            <Home color={color} size={size} />
                         ),
                     }}
                 />
@@ -154,11 +160,7 @@ function AppLayoutInner({
                     options={{
                         title: vocabulary.LIBRARY,
                         tabBarIcon: ({ color, size }) => (
-                            <Feather
-                                name="book-open"
-                                color={color}
-                                size={size}
-                            />
+                            <BookOpen color={color} size={size} />
                         ),
                     }}
                 />
@@ -167,7 +169,7 @@ function AppLayoutInner({
                     options={{
                         title: vocabulary.SEARCH,
                         tabBarIcon: ({ color, size }) => (
-                            <Feather name="search" color={color} size={size} />
+                            <Search color={color} size={size} />
                         ),
                     }}
                 />
@@ -176,11 +178,7 @@ function AppLayoutInner({
                     options={{
                         title: vocabulary.DOWNLOADS,
                         tabBarIcon: ({ color, size }) => (
-                            <Feather
-                                name="download"
-                                color={color}
-                                size={size}
-                            />
+                            <Download color={color} size={size} />
                         ),
                     }}
                 />
@@ -189,11 +187,7 @@ function AppLayoutInner({
                     options={{
                         title: vocabulary.SETTINGS,
                         tabBarIcon: ({ color, size }) => (
-                            <Feather
-                                name="settings"
-                                color={color}
-                                size={size}
-                            />
+                            <Settings color={color} size={size} />
                         ),
                     }}
                 />

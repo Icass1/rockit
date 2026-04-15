@@ -1,8 +1,8 @@
 import { useRef } from "react";
 import { COLORS } from "@/constants/theme";
-import { Feather } from "@expo/vector-icons";
 import type { TQueueMedia } from "@rockit/shared";
 import { Image } from "expo-image";
+import { Menu, Trash2 } from "lucide-react-native";
 import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 import { Swipeable } from "react-native-gesture-handler";
 
@@ -47,7 +47,7 @@ export default function QueueItem({
                 }}
             >
                 <Animated.View style={{ transform: [{ scale }] }}>
-                    <Feather name="trash-2" size={22} color="#fff" />
+                    <Trash2 size={22} color="#fff" />
                 </Animated.View>
             </Pressable>
         );
@@ -100,11 +100,7 @@ export default function QueueItem({
                         delayLongPress={150}
                         hitSlop={8}
                     >
-                        <Feather
-                            name="menu"
-                            size={18}
-                            color="rgba(255,255,255,0.35)"
-                        />
+                        <Menu size={18} color="rgba(255,255,255,0.35)" />
                     </Pressable>
                 )}
             </Pressable>

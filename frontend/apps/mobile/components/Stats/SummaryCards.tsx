@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { COLORS } from "@/constants/theme";
-import { Feather } from "@expo/vector-icons";
 import type { StatsSummaryResponse } from "@rockit/shared";
+import { Clock, Music, TrendingUp, Zap } from "lucide-react-native";
 import { StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { useVocabulary } from "@/lib/vocabulary";
 
@@ -75,29 +75,27 @@ export default function SummaryCards({ summary }: SummaryCardsProps) {
     const cards = [
         <SummaryCard
             key="songs"
-            icon={<Feather name="music" size={16} color={COLORS.accent} />}
+            icon={<Music size={16} color={COLORS.accent} />}
             label={vocabulary.SONGS_LISTENED}
             value={formatNumber(summary.songsListened)}
             accent
         />,
         <SummaryCard
             key="minutes"
-            icon={<Feather name="clock" size={16} color={COLORS.gray600} />}
+            icon={<Clock size={16} color={COLORS.gray600} />}
             label={vocabulary.MINUTES_LISTEND}
             value={minutesDisplay}
             onPress={() => setShowMinutes(!showMinutes)}
         />,
         <SummaryCard
             key="avg"
-            icon={
-                <Feather name="trending-up" size={16} color={COLORS.gray600} />
-            }
+            icon={<TrendingUp size={16} color={COLORS.gray600} />}
             label={vocabulary.AVERAGE_MINUTES_PER_SONG}
             value={summary.avgMinutesPerSong.toFixed(1)}
         />,
         <SummaryCard
             key="streak"
-            icon={<Feather name="zap" size={16} color={COLORS.gray600} />}
+            icon={<Zap size={16} color={COLORS.gray600} />}
             label={vocabulary.LEVEL_ABBR}
             value={`${summary.currentStreak}d`}
         />,

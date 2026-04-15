@@ -1,6 +1,5 @@
 import { useCallback, type RefObject } from "react";
 import { COLORS } from "@/constants/theme";
-import { Feather } from "@expo/vector-icons";
 import {
     BottomSheetBackdrop,
     BottomSheetModal,
@@ -9,6 +8,7 @@ import {
     type BottomSheetModal as BottomSheetModalType,
 } from "@gorhom/bottom-sheet";
 import { Image } from "expo-image";
+import { ArrowLeft, ChevronRight } from "lucide-react-native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import type { ContextMenuConfig } from "@/lib/ContextMenuContext";
 
@@ -59,11 +59,7 @@ export default function ContextMenuSheet({
                                     style={styles.backButton}
                                     hitSlop={12}
                                 >
-                                    <Feather
-                                        name="arrow-left"
-                                        size={22}
-                                        color={COLORS.white}
-                                    />
+                                    <ArrowLeft size={22} color={COLORS.white} />
                                 </Pressable>
                             </View>
                         )}
@@ -106,8 +102,7 @@ export default function ContextMenuSheet({
                                 ]}
                                 onPress={option.onPress}
                             >
-                                <Feather
-                                    name={option.icon}
+                                <option.icon
                                     size={20}
                                     color={
                                         option.destructive
@@ -124,8 +119,7 @@ export default function ContextMenuSheet({
                                 >
                                     {option.label}
                                 </Text>
-                                <Feather
-                                    name="chevron-right"
+                                <ChevronRight
                                     size={16}
                                     color={COLORS.gray600}
                                     style={styles.optionChevron}

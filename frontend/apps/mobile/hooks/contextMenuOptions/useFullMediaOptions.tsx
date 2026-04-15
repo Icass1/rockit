@@ -6,6 +6,16 @@ import {
     LikedMediaResponseSchema,
     LikeMediaRequestSchema,
 } from "@rockit/shared";
+import {
+    Info,
+    List,
+    Play,
+    PlusCircle,
+    PlusSquare,
+    Share2,
+    Shuffle,
+    Trash2,
+} from "lucide-react-native";
 import { Share } from "react-native";
 import { apiPost, BACKEND_URL } from "@/lib/api";
 import { ContextMenuOption, useContextMenu } from "@/lib/ContextMenuContext";
@@ -136,25 +146,25 @@ export default function useFullMediaOptions(
     if (showPlayOption && isPlayable(media)) {
         options.push({
             label: "Play",
-            icon: "play",
+            icon: Play,
             onPress: handlePlay,
         });
 
         options.push({
             label: "Play next",
-            icon: "plus-circle",
+            icon: PlusCircle,
             onPress: handlePlayNext,
         });
 
         options.push({
             label: "Add to queue",
-            icon: "plus-square",
+            icon: PlusSquare,
             onPress: handleAddToQueueEnd,
         });
 
         options.push({
             label: "Shuffle play",
-            icon: "shuffle",
+            icon: Shuffle,
             onPress: handleShufflePlay,
         });
     }
@@ -162,25 +172,25 @@ export default function useFullMediaOptions(
     if (isPlayable(media)) {
         options.push({
             label: "Add to playlist",
-            icon: "list",
+            icon: List,
             onPress: handleAddToPlaylist,
         });
 
         options.push({
             label: "Share",
-            icon: "share-2",
+            icon: Share2,
             onPress: handleShare,
         });
 
         options.push({
             label: "More info",
-            icon: "info",
+            icon: Info,
             onPress: handleShowInfo,
         });
 
         options.push({
             label: "Remove from library",
-            icon: "trash-2",
+            icon: Trash2,
             onPress: handleToggleLike,
             destructive: true,
         });

@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
 import { COLORS } from "@/constants/theme";
-import { Feather } from "@expo/vector-icons";
 import type { FilterMode, LibraryListsResponse } from "@rockit/shared";
 import { filterBySearch, sortItems } from "@rockit/shared";
+import { LayoutGrid, List } from "lucide-react-native";
 import { Pressable, StyleSheet, View } from "react-native";
 import { ELibraryActiveType } from "@/models/enums/libraryActiveType";
 import { usePlayer } from "@/lib/PlayerContext";
@@ -97,11 +97,11 @@ export default function LibraryScreen({
                         setViewMode(viewMode === "grid" ? "list" : "grid")
                     }
                 >
-                    <Feather
-                        name={viewMode === "grid" ? "list" : "grid"}
-                        size={28}
-                        color={COLORS.white}
-                    />
+                    {viewMode === "grid" ? (
+                        <List size={28} color={COLORS.white} />
+                    ) : (
+                        <LayoutGrid size={28} color={COLORS.white} />
+                    )}
                 </Pressable>
             </View>
 

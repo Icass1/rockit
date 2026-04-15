@@ -2,8 +2,8 @@
 // This component mirrors the behaviour of the web LikeButton but uses RN primitives.
 
 import { useEffect, useRef, useState } from "react";
-import { Feather } from "@expo/vector-icons";
 import { useStore } from "@nanostores/react";
+import { Heart } from "lucide-react-native";
 import { Animated, Easing, Pressable, StyleSheet, View } from "react-native";
 // Use built‑in easing definitions
 import { rockIt } from "@/lib/rockit/rockIt";
@@ -158,13 +158,10 @@ export default function MobileLikeButton({
                         ],
                     }}
                 >
-                    <Feather
-                        name="heart"
+                    <Heart
                         size={22}
-                        color={isLiked ? "white" : "transparent"}
-                        style={{
-                            color: isLiked ? "#202020" : "#A1A1AA",
-                        }}
+                        color={isLiked ? "#202020" : "#A1A1AA"}
+                        fill={isLiked ? "#202020" : "transparent"}
                     />
                 </Animated.View>
             </Pressable>

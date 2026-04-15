@@ -186,6 +186,7 @@ export interface Vocabulary {
     REPEAT_ALL: string;
     REPEAT_ONE: string;
     REPEAT_PASSWORD: string;
+    RETURN_BACK_HOME: string;
     SAVING: string;
     SEARCH: string;
     SEARCH_BAR: string;
@@ -230,4 +231,6 @@ export interface Vocabulary {
     YOUR_MIX: string;
     YT_VIDEOS: string;
     PLAY: string;
+    // Allow any additional vocabulary keys – fallback to key name if missing
+    [key: string]: string;
 }

@@ -43,6 +43,7 @@ export default function ContextMenuSheet({
             backdropComponent={renderBackdrop}
             backgroundStyle={styles.sheetBackground}
             handleIndicatorStyle={styles.handle}
+            style={styles.modal}
         >
             <BottomSheetScrollView
                 contentContainerStyle={styles.content}
@@ -139,6 +140,10 @@ export default function ContextMenuSheet({
 }
 
 const styles = StyleSheet.create({
+    modal: {
+        zIndex: 2000,
+        elevation: 2000,
+    },
     sheetBackground: {
         backgroundColor: COLORS.bgCard,
     },

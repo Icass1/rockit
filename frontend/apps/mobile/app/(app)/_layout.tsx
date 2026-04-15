@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
         borderTopWidth: StyleSheet.hairlineWidth,
         borderTopColor: COLORS.gray800,
         height: 50,
-        zIndex: 150,
+        zIndex: 1000,
     },
     tabItem: {
         flex: 1,
@@ -207,7 +207,7 @@ function AppLayoutInner({
                     left: 0,
                     right: 0,
                     bottom: 50 + safeBottom + 12,
-                    zIndex: 200,
+                    zIndex: 400,
                 }}
             >
                 <MiniPlayer />
@@ -225,7 +225,7 @@ function AppLayoutInner({
                     top: 0,
                     left: 0,
                     right: 0,
-                    zIndex: 150,
+                    zIndex: 1000,
                     pointerEvents: "box-none",
                 }}
             >

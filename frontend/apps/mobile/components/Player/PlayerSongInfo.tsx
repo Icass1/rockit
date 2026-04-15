@@ -1,9 +1,9 @@
-import { useState } from "react";
+import React from "react";
 import { COLORS } from "@/constants/theme";
-import { Feather } from "@expo/vector-icons";
 import { VideoView } from "expo-video";
 import type { VideoPlayer } from "expo-video";
-import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
+import { Dimensions, StyleSheet, Text, View } from "react-native";
+import MobileLikeButton from "./MobileLikeButton";
 import PlayerControls from "./PlayerControls";
 import PlayerCover from "./PlayerCover";
 import PlayerProgress from "./PlayerProgress";
@@ -25,8 +25,6 @@ export default function PlayerSongInfo({
     videoPlayer,
     hasVideo,
 }: PlayerSongInfoProps) {
-    const [liked, setLiked] = useState(false);
-
     return (
         <View style={styles.container}>
             {/* ── Album artwork / video ── */}
@@ -70,20 +68,10 @@ export default function PlayerSongInfo({
                         )}
                 </View>
 
-                {/* Like / heart button — wired to a local toggle; connect to
-                    your favourite API endpoint as needed */}
-                <Pressable
-                    style={styles.likeButton}
-                    hitSlop={12}
-                    onPress={() => setLiked((v) => !v)}
-                >
-                    <Feather
-                        name="heart"
-                        size={26}
-                        color={liked ? COLORS.accent : COLORS.white}
-                        style={liked ? { opacity: 1 } : { opacity: 0.85 }}
-                    />
-                </Pressable>
+                {/* Like button – hand + flame animation */}
+                {currentMedia?.publicId && (
+                    <MobileLikeButton mediaPublicId={currentMedia.publicId} />
+                )}
             </View>
 
             {/* ── Progress slider ── */}
@@ -157,6 +145,6 @@ const styles = StyleSheet.create({
         paddingTop: 10,
     },
     controlsContainer: {
-        paddingTop: 4,
+        paddingTop: 12,
     },
 });

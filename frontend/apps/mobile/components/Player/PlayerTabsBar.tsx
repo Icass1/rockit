@@ -1,16 +1,14 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { Feather } from "@expo/vector-icons";
 import { COLORS } from "@/constants/theme";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import type { PlayerTab } from "./FullPlayer";
 
 const TABS: {
     key: Exclude<PlayerTab, null | "crossfade">;
     label: string;
-    icon: keyof typeof Feather.glyphMap;
 }[] = [
-    { key: "queue", label: "Queue", icon: "list" },
-    { key: "lyrics", label: "Lyrics", icon: "file-text" },
-    { key: "related", label: "Related", icon: "users" },
+    { key: "queue", label: "Queue" },
+    { key: "lyrics", label: "Lyrics" },
+    { key: "related", label: "Related" },
 ];
 
 interface PlayerTabsBarProps {
@@ -25,9 +23,7 @@ export default function PlayerTabsBar({
     insetBottom,
 }: PlayerTabsBarProps) {
     return (
-        <View
-            style={[styles.container, { paddingBottom: insetBottom + 10 }]}
-        >
+        <View style={[styles.container, { paddingBottom: insetBottom }]}>
             {TABS.map((tab) => {
                 const isActive = activeTab === tab.key;
                 return (
@@ -39,15 +35,6 @@ export default function PlayerTabsBar({
                         ]}
                         onPress={() => onTabPress(tab.key)}
                     >
-                        <Feather
-                            name={tab.icon}
-                            size={20}
-                            color={
-                                isActive
-                                    ? COLORS.accent
-                                    : "rgba(255,255,255,0.5)"
-                            }
-                        />
                         <Text
                             style={[
                                 styles.tabLabel,
@@ -68,9 +55,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "space-around",
         paddingHorizontal: 16,
-        paddingTop: 12,
-        borderTopWidth: StyleSheet.hairlineWidth,
-        borderTopColor: "rgba(255,255,255,0.1)",
+        paddingTop: 20,
     },
     tabButton: {
         alignItems: "center",
@@ -83,9 +68,9 @@ const styles = StyleSheet.create({
         backgroundColor: "rgba(238, 16, 134, 0.15)",
     },
     tabLabel: {
-        fontSize: 12,
-        fontWeight: "500",
-        color: "rgba(255,255,255,0.5)",
+        fontSize: 20,
+        fontWeight: "700",
+        color: COLORS.white,
     },
     tabLabelActive: {
         color: COLORS.accent,

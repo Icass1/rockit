@@ -1,6 +1,8 @@
 import { COLORS } from "@/constants/theme";
 import { Feather } from "@expo/vector-icons";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
+import useFullMediaOptions from "@/hooks/contextMenuOptions/useFullMediaOptions";
+import { useContextMenu } from "@/lib/ContextMenuContext";
 
 interface PlayerTopBarProps {
     title: string;
@@ -9,6 +11,7 @@ interface PlayerTopBarProps {
     onQueue?: () => void;
     onLyrics?: () => void;
     onRelated?: () => void;
+    media?: any; // current media object for context menu
 }
 
 export default function PlayerTopBar({
@@ -18,57 +21,30 @@ export default function PlayerTopBar({
     onQueue,
     onLyrics,
     onRelated,
+    media,
 }: PlayerTopBarProps) {
+    const { show } = useContextMenu();
+    const options = useFullMediaOptions(media ?? {});
+
     return (
         <View style={styles.container}>
             <Pressable style={styles.button} onPress={onClose} hitSlop={12}>
                 <Feather name="chevron-down" size={28} color={COLORS.white} />
             </Pressable>
 
-            <Text style={styles.title} numberOfLines={1}>
-                {title}
-            </Text>
-
-            <View style={styles.rightContainer}>
-                {onQueue && (
-                    <Pressable
-                        style={styles.button}
-                        onPress={onQueue}
-                        hitSlop={12}
-                    >
-                        <Feather name="list" size={22} color={COLORS.white} />
-                    </Pressable>
-                )}
-                {onLyrics && (
-                    <Pressable
-                        style={styles.button}
-                        onPress={onLyrics}
-                        hitSlop={12}
-                    >
-                        <Feather
-                            name="file-text"
-                            size={22}
-                            color={COLORS.white}
-                        />
-                    </Pressable>
-                )}
-                {onRelated && (
-                    <Pressable
-                        style={styles.button}
-                        onPress={onRelated}
-                        hitSlop={12}
-                    >
-                        <Feather name="users" size={22} color={COLORS.white} />
-                    </Pressable>
-                )}
+            {media && (
                 <Pressable
                     style={styles.button}
-                    onPress={onSettings}
+                    onPress={() => show({ title: media.name ?? "", options })}
                     hitSlop={12}
                 >
-                    <Feather name="sliders" size={22} color={COLORS.white} />
+                    <Feather
+                        name="more-horizontal"
+                        size={22}
+                        color={COLORS.white}
+                    />
                 </Pressable>
-            </View>
+            )}
         </View>
     );
 }
@@ -80,6 +56,8 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
         paddingHorizontal: 16,
         paddingVertical: 10,
+        backgroundColor: "transparent",
+        zIndex: 5,
     },
     button: {
         width: 44,

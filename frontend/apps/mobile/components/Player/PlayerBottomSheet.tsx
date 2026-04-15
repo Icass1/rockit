@@ -8,7 +8,6 @@ import {
     type BottomSheetBackdropProps,
 } from "@gorhom/bottom-sheet";
 import { StyleSheet, Text, View } from "react-native";
-import CrossfadeSettings from "../Settings/CrossfadeSettings";
 import type { PlayerTab } from "./FullPlayer";
 import PlayerLyrics from "./PlayerLyrics";
 import PlayerQueue from "./PlayerQueue";
@@ -67,6 +66,7 @@ export default function PlayerBottomSheet({
             handleIndicatorStyle={{ backgroundColor: COLORS.gray600 }}
             backgroundStyle={styles.sheetBackground}
             onDismiss={handleClose}
+            style={styles.modal}
         >
             {/* Internal tabs bar */}
             <PlayerTabsBar
@@ -80,12 +80,6 @@ export default function PlayerBottomSheet({
                 {activeTab === "queue" && <PlayerQueue />}
                 {activeTab === "lyrics" && <PlayerLyrics />}
                 {activeTab === "related" && <RelatedMock />}
-                {activeTab === "crossfade" && (
-                    <View style={styles.crossfadeWrapper}>
-                        <Text style={styles.crossfadeTitle}>Crossfade</Text>
-                        <CrossfadeSettings />
-                    </View>
-                )}
             </View>
         </BottomSheetModal>
     );
@@ -104,6 +98,10 @@ function RelatedMock() {
 const styles = StyleSheet.create({
     sheetBackground: {
         backgroundColor: "#1c1c1c",
+    },
+    modal: {
+        zIndex: 600,
+        elevation: 16,
     },
     content: {
         flex: 1,

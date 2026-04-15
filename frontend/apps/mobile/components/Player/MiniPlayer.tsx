@@ -15,7 +15,6 @@ export default function MiniPlayer() {
         togglePlayPause,
         skipForward,
         showPlayer,
-        hasVideo,
     } = usePlayer();
 
     const scale = useRef(new Animated.Value(1)).current;
@@ -67,11 +66,6 @@ export default function MiniPlayer() {
                         contentFit="cover"
                         transition={200}
                     />
-                    {hasVideo && (
-                        <View style={styles.videoBadge}>
-                            <Feather name="video" size={10} color="#fff" />
-                        </View>
-                    )}
                 </View>
 
                 <View style={styles.info}>
@@ -128,8 +122,6 @@ const styles = StyleSheet.create({
     wrapper: {
         height: MINI_PLAYER_HEIGHT,
         width: "100%",
-        borderTopWidth: StyleSheet.hairlineWidth,
-        borderTopColor: "rgba(255,255,255,0.12)",
         overflow: "hidden",
         position: "relative",
         backgroundColor: "rgba(0,0,0,0.7)",
@@ -178,13 +170,13 @@ const styles = StyleSheet.create({
         minWidth: 0,
     },
     title: {
-        fontSize: 14,
+        fontSize: 16,
         fontWeight: "600",
         color: COLORS.white,
         marginBottom: 2,
     },
     artist: {
-        fontSize: 12,
+        fontSize: 14,
         color: COLORS.gray400,
     },
     controlButton: {

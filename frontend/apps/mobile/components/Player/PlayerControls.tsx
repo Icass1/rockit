@@ -1,5 +1,8 @@
+// PlayerControls – solid (filled) icons using MaterialCommunityIcons
+
+import React from "react";
 import { COLORS } from "@/constants/theme";
-import { Feather } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { ERepeatMode } from "@rockit/shared";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { usePlayer } from "@/lib/PlayerContext";
@@ -11,7 +14,6 @@ function getRepeatColor(mode: ERepeatMode, accent: string): string {
 export default function PlayerControls() {
     const {
         isPlaying,
-        shuffle,
         repeatMode,
         togglePlayPause,
         skipForward,
@@ -19,6 +21,9 @@ export default function PlayerControls() {
         toggleShuffle,
         cycleRepeat,
     } = usePlayer();
+
+    // Color for the repeat icon when active/inactive
+    const repeatColor = getRepeatColor(repeatMode, COLORS.accent);
 
     return (
         <View style={styles.container}>
@@ -28,12 +33,10 @@ export default function PlayerControls() {
                 onPress={toggleShuffle}
                 hitSlop={12}
             >
-                <Feather
+                <MaterialCommunityIcons
                     name="shuffle"
-                    size={22}
-                    color={
-                        shuffle ? COLORS.accent : "rgba(255,255,255,0.5)"
-                    }
+                    size={30}
+                    color={COLORS.white}
                 />
             </Pressable>
 
@@ -43,16 +46,14 @@ export default function PlayerControls() {
                 onPress={skipBack}
                 hitSlop={12}
             >
-                <Feather
-                    name="skip-back"
+                <MaterialCommunityIcons
+                    name="skip-previous"
                     size={30}
                     color={COLORS.white}
-                    // Filled look to match old MobilePlayerUI fill-current
-                    style={styles.filledIcon}
                 />
             </Pressable>
 
-            {/* Play / Pause — large circle, mirrors old MobilePlayerUI */}
+            {/* Play / Pause – larger solid button */}
             <Pressable
                 style={({ pressed }) => [
                     styles.playButton,
@@ -60,11 +61,10 @@ export default function PlayerControls() {
                 ]}
                 onPress={togglePlayPause}
             >
-                <Feather
+                <MaterialCommunityIcons
                     name={isPlaying ? "pause" : "play"}
-                    size={34}
+                    size={44}
                     color={COLORS.white}
-                    style={!isPlaying ? { marginLeft: 3 } : undefined}
                 />
             </Pressable>
 
@@ -74,11 +74,10 @@ export default function PlayerControls() {
                 onPress={skipForward}
                 hitSlop={12}
             >
-                <Feather
-                    name="skip-forward"
+                <MaterialCommunityIcons
+                    name="skip-next"
                     size={30}
                     color={COLORS.white}
-                    style={styles.filledIcon}
                 />
             </Pressable>
 
@@ -89,10 +88,10 @@ export default function PlayerControls() {
                 hitSlop={12}
             >
                 <View>
-                    <Feather
+                    <MaterialCommunityIcons
                         name="repeat"
-                        size={22}
-                        color={getRepeatColor(repeatMode, COLORS.accent)}
+                        size={30}
+                        color={repeatColor}
                     />
                     {repeatMode === ERepeatMode.ONE && (
                         <View style={styles.repeatOneBadge}>
@@ -114,20 +113,16 @@ const styles = StyleSheet.create({
         width: "100%",
     },
     sideButton: {
-        width: 52,
-        height: 52,
+        width: 60,
+        height: 60,
         alignItems: "center",
         justifyContent: "center",
-    },
-    // Simulates fill-current from the old web player
-    filledIcon: {
-        opacity: 1,
     },
     playButton: {
         width: 72,
         height: 72,
         borderRadius: 36,
-        backgroundColor: "rgba(255,255,255,0.15)",
+        backgroundColor: "transparent",
         alignItems: "center",
         justifyContent: "center",
     },

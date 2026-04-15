@@ -132,12 +132,12 @@ export default function FullPlayer() {
                 contentFit="cover"
                 blurRadius={30}
             />
-            <View style={styles.overlay} />
+            <View style={styles.overlay} pointerEvents="none" />
 
             {/* Main content wrapped in pan gesture detector */}
             <GestureDetector gesture={panGesture}>
                 <Animated.View
-                    style={[styles.inner, { paddingTop: insets.top + 4 }]}
+                    style={[styles.inner, { paddingTop: insets.top + 80 }]}
                 >
                     <PlayerTopBar
                         title={currentMedia?.name ?? ""}
@@ -147,6 +147,7 @@ export default function FullPlayer() {
                                 prev === "crossfade" ? null : "crossfade"
                             )
                         }
+                        media={currentMedia}
                     />
                     <PlayerSongInfo
                         currentMedia={currentMedia}
@@ -178,7 +179,7 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         // Height will be set dynamically to avoid covering the footer
-        zIndex: 20,
+        zIndex: 0, // default stacking; MiniPlayer is hidden when FullPlayer visible
         backgroundColor: "#0b0b0b",
         overflow: "hidden",
     },

@@ -39,7 +39,7 @@ export default function AppClientLayout({
 
             {/* Main content area */}
             <div className="fixed inset-0 bg-[#0b0b0b] pb-20 md:left-12 md:pb-0">
-                <div className="webkit-scroll h-full w-full overflow-y-auto py-24 md:px-8">
+                <div className="webkit-scroll h-full w-full overflow-y-auto py-24">
                     {children}
                 </div>
             </div>

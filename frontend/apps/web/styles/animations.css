@@ -147,3 +147,19 @@
         transform: rotate(0deg);
     }
 }
+
+.rotate-forever {
+    animation: key-frames-rotate 3s infinite ease-in-out;
+}
+
+@keyframes key-frames-rotate {
+    0% {
+        transform: rotate(20deg);
+    }
+    50% {
+        transform: rotate(-20deg);
+    }
+    100% {
+        transform: rotate(20deg);
+    }
+}

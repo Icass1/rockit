@@ -5,7 +5,7 @@ import { Image } from "expo-image";
 import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 import { usePlayer } from "@/lib/PlayerContext";
 
-export const MINI_PLAYER_HEIGHT = 64;
+export const MINI_PLAYER_HEIGHT = 56;
 
 export default function MiniPlayer() {
     const {
@@ -150,11 +150,13 @@ const styles = StyleSheet.create({
     },
     thumbnailContainer: {
         position: "relative",
+        width: MINI_PLAYER_HEIGHT,
+        aspectRatio: 1,
+        padding: 4,
     },
     thumbnail: {
-        width: MINI_PLAYER_HEIGHT,
-        height: MINI_PLAYER_HEIGHT,
-        borderRadius: 0,
+        flex: 1,
+        borderRadius: 4,
         backgroundColor: COLORS.bgCard,
     },
     videoBadge: {

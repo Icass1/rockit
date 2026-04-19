@@ -63,6 +63,10 @@ export {
 } from "./baseVideoResponse";
 export { BuildResponseSchema, type BuildResponse } from "./buildResponse";
 export {
+    CompleteChunkedUploadRequestSchema,
+    type CompleteChunkedUploadRequest,
+} from "./completeChunkedUploadRequest";
+export {
     CreatePlaylistRequestSchema,
     type CreatePlaylistRequest,
 } from "./createPlaylistRequest";
@@ -186,6 +190,14 @@ export {
     type SpotifyTrackResponse,
 } from "./spotifyTrackResponse";
 export {
+    StartChunkedUploadRequestSchema,
+    type StartChunkedUploadRequest,
+} from "./startChunkedUploadRequest";
+export {
+    StartChunkedUploadResponseSchema,
+    type StartChunkedUploadResponse,
+} from "./startChunkedUploadResponse";
+export {
     StartDownloadRequestSchema,
     type StartDownloadRequest,
 } from "./startDownloadRequest";
@@ -238,6 +250,14 @@ export {
     UploadApkResponseSchema,
     type UploadApkResponse,
 } from "./uploadApkResponse";
+export {
+    UploadChunkRequestSchema,
+    type UploadChunkRequest,
+} from "./uploadChunkRequest";
+export {
+    UploadChunkResponseSchema,
+    type UploadChunkResponse,
+} from "./uploadChunkResponse";
 export {
     UrlMatchResponseSchema,
     type UrlMatchResponse,

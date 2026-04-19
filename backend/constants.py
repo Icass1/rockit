@@ -65,6 +65,7 @@ CONSOLE_DUMP_LEVEL = get_env_str(
 )
 DOWNLOAD_THREADS = get_env_int("DOWNLOAD_THREADS")
 BUILDS_PATH = get_env_str("BUILDS_PATH")
+CHUNK_SIZE = 1024 * 1024  # 1MB per chunk
 CLIENT_ID = get_env_str("CLIENT_ID")
 CLIENT_SECRET = get_env_str("CLIENT_SECRET")
 YOUTUBE_API_KEY = get_env_str("YOUTUBE_API_KEY")

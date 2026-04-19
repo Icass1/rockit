@@ -4,8 +4,12 @@ import { useRef, useState } from "react";
 import {
     AllBuildsResponseSchema,
     BuildResponse,
-    UploadApkRequestSchema,
+    CompleteChunkedUploadRequestSchema,
+    StartChunkedUploadRequestSchema,
+    StartChunkedUploadResponseSchema,
     UploadApkResponseSchema,
+    UploadChunkRequestSchema,
+    UploadChunkResponseSchema,
 } from "@/dto";
 import { useStore } from "@nanostores/react";
 import {
@@ -65,6 +69,9 @@ export default function AdminClient({
         }
     };
 
+    const [uploadProgress, setUploadProgress] = useState(0);
+    const [currentChunk, setCurrentChunk] = useState(0);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!selectedFile) {
@@ -79,27 +86,99 @@ export default function AdminClient({
         setUploading(true);
         setError(null);
         setSuccess(null);
+        setUploadProgress(0);
+        setCurrentChunk(0);
 
-        const reader = new FileReader();
-        reader.onload = async () => {
-            const base64 = (reader.result as string).split(",")[1];
+        const CHUNK_SIZE = 1024 * 1024; // 1MB chunks
+        const fileSize = selectedFile.size;
+        const totalChunks = Math.ceil(fileSize / CHUNK_SIZE);
 
-            const result = await apiPostFetch(
-                "/admin/builds/upload",
-                UploadApkRequestSchema,
-                UploadApkResponseSchema,
-                {
-                    version,
-                    description: description || null,
-                    fileContent: base64,
-                    fileName: selectedFile.name,
+        const startResult = await apiPostFetch(
+            "/admin/builds/upload/start",
+            StartChunkedUploadRequestSchema,
+            StartChunkedUploadResponseSchema,
+            {
+                fileName: selectedFile.name,
+                totalSize: fileSize,
+                version,
+                description: description || null,
+            }
+        );
+
+        if (!startResult.isOk()) {
+            const errMsg =
+                typeof startResult.detail === "string"
+                    ? startResult.detail
+                    : $vocabulary.ADMIN_UPLOAD_FAILED;
+            setError(errMsg);
+            setUploading(false);
+            return;
+        }
+
+        const uploadId = startResult.result.uploadId;
+
+        const fileReader = new FileReader();
+        const blob = selectedFile.slice(0, fileSize);
+
+        fileReader.onload = async () => {
+            const base64 = (fileReader.result as string).split(",")[1];
+            const binaryString = atob(base64);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+
+            for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
+                setCurrentChunk(chunkIndex);
+
+                const start = chunkIndex * CHUNK_SIZE;
+                const end = Math.min(start + CHUNK_SIZE, fileSize);
+                const chunk = bytes.slice(start, end);
+
+                const chunkBase64 = btoa(
+                    String.fromCharCode.apply(null, Array.from(chunk))
+                );
+
+                const chunkResult = await apiPostFetch(
+                    "/admin/builds/upload/chunk",
+                    UploadChunkRequestSchema,
+                    UploadChunkResponseSchema,
+                    {
+                        uploadId,
+                        chunkIndex,
+                        chunkData: chunkBase64,
+                        chunkSize: chunk.length,
+                        totalChunks,
+                    }
+                );
+
+                if (chunkResult.isNotOk()) {
+                    const errMsg =
+                        typeof chunkResult.detail === "string"
+                            ? chunkResult.detail
+                            : $vocabulary.ADMIN_UPLOAD_FAILED;
+                    setError(errMsg);
+                    setUploading(false);
+                    return;
                 }
+
+                const progress = Math.round(
+                    ((chunkIndex + 1) / totalChunks) * 100
+                );
+                setUploadProgress(progress);
+            }
+
+            const completeResult = await apiPostFetch(
+                "/admin/builds/upload/complete",
+                CompleteChunkedUploadRequestSchema,
+                UploadApkResponseSchema,
+                { uploadId }
             );
 
-            if (result.isNotOk()) {
+            if (completeResult.isNotOk()) {
                 const errMsg =
-                    typeof result.detail === "string"
-                        ? result.detail
+                    typeof completeResult.detail === "string"
+                        ? completeResult.detail
                         : $vocabulary.ADMIN_UPLOAD_FAILED;
                 setError(errMsg);
                 setUploading(false);
@@ -115,12 +194,16 @@ export default function AdminClient({
             if (fileInputRef.current) fileInputRef.current.value = "";
             setShowForm(false);
             setUploading(false);
+            setUploadProgress(0);
+            setCurrentChunk(0);
         };
-        reader.onerror = () => {
+
+        fileReader.onerror = () => {
             setError($vocabulary.ADMIN_READ_FAILED);
             setUploading(false);
         };
-        reader.readAsDataURL(selectedFile);
+
+        fileReader.readAsDataURL(blob);
     };
 
     const tabs = [
@@ -276,6 +359,30 @@ export default function AdminClient({
                                     <p className="mt-4 text-sm text-emerald-400">
                                         {success}
                                     </p>
+                                )}
+
+                                {uploading && (
+                                    <div className="mt-4">
+                                        <div className="mb-1 flex justify-between text-sm">
+                                            <span className="text-neutral-400">
+                                                {uploadProgress}% (
+                                                {currentChunk + 1}/
+                                                {Math.ceil(
+                                                    selectedFile!.size /
+                                                        (1024 * 1024)
+                                                )}{" "}
+                                                chunks)
+                                            </span>
+                                        </div>
+                                        <div className="h-2 w-full rounded-full bg-neutral-800">
+                                            <div
+                                                className="h-2 rounded-full bg-[#ee1086] transition-all duration-300"
+                                                style={{
+                                                    width: `${uploadProgress}%`,
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
                                 )}
 
                                 <button

@@ -5,7 +5,6 @@ import { filterBySearch, sortItems } from "@rockit/shared";
 import { LayoutGrid, List } from "lucide-react-native";
 import { Pressable, StyleSheet, View } from "react-native";
 import { ELibraryActiveType } from "@/models/enums/libraryActiveType";
-import { usePlayer } from "@/lib/PlayerContext";
 import { useVocabulary } from "@/lib/vocabulary";
 import LibraryContent from "@/components/Library/LibraryContent";
 import LibraryFilters from "@/components/Library/LibraryFilters";
@@ -35,7 +34,6 @@ export default function LibraryScreen({
     sortMode,
 }: LibraryScreenProps) {
     const { vocabulary } = useVocabulary();
-    const { playMedia } = usePlayer();
     const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
     const filteredAlbums = useMemo(() => {
@@ -112,7 +110,6 @@ export default function LibraryScreen({
                 videos={filteredVideos}
                 activeType={activeType}
                 viewMode={viewMode}
-                playMedia={playMedia}
             />
         </>
     );

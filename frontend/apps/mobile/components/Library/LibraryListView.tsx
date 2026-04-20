@@ -1,39 +1,20 @@
 import { memo, useCallback } from "react";
-import { isQueueable, TMedia, TQueueMedia } from "@rockit/shared";
+import { TMedia } from "@rockit/shared";
 import { FlatList, StyleSheet, View } from "react-native";
 import MediaRow from "@/components/Media/MediaRow";
 
 interface LibraryListViewProps {
     items: TMedia[];
-    onItemPress?: (item: TQueueMedia) => void;
 }
 
-const ListItem = memo(function ListItem({
-    item,
-    onPress,
-}: {
-    item: TMedia;
-    onPress?: () => void;
-}) {
-    return <MediaRow media={item} onPress={onPress} />;
+const ListItem = memo(function ListItem({ item }: { item: TMedia }) {
+    return <MediaRow media={item} />;
 });
 
-export default function LibraryListView({
-    items,
-    onItemPress,
-}: LibraryListViewProps) {
+export default function LibraryListView({ items }: LibraryListViewProps) {
     const renderItem = useCallback(
-        ({ item }: { item: TMedia }) => (
-            <ListItem
-                item={item}
-                onPress={
-                    onItemPress && isQueueable(item)
-                        ? () => onItemPress(item)
-                        : undefined
-                }
-            />
-        ),
-        [onItemPress]
+        ({ item }: { item: TMedia }) => <ListItem item={item} />,
+        []
     );
 
     const keyExtractor = useCallback(

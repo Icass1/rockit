@@ -13,12 +13,27 @@ module.exports = defineConfig([
                 tsconfigRootDir: __dirname,
             },
         },
-        settings: {
-            "import/resolver": {
-                typescript: {
-                    project: path.resolve(__dirname, "./tsconfig.json"),
+        rules: {
+            "import/no-unresolved": [
+                "error",
+                {
+                    caseSensitive: false,
                 },
-            },
+            ],
+        },
+        settings: {
+            "import/resolver": [
+                {
+                    typescript: {
+                        project: path.resolve(__dirname, "./tsconfig.json"),
+                    },
+                },
+                {
+                    node: {
+                        extensions: [".js", ".jsx", ".ts", ".tsx", ".mjs"],
+                    },
+                },
+            ],
         },
     },
 ]);

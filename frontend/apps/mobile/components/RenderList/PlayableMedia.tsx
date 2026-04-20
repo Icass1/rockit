@@ -1,5 +1,4 @@
-import { memo, useCallback } from "react";
-import useHandlePlay from "@/callbacks/handlePlay";
+import { memo } from "react";
 import { COLORS } from "@/constants/theme";
 import {
     getMediaDuration,
@@ -12,11 +11,9 @@ import {
 } from "@rockit/shared";
 import { Image } from "expo-image";
 import { Download } from "lucide-react-native";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import useBaseMediaOptions from "@/hooks/contextMenuOptions/useMediaOptions";
-import useBasePlayableMediaOptions from "@/hooks/contextMenuOptions/usePlayableMediaOptions";
+import { StyleSheet, Text, View } from "react-native";
 import { useMedia } from "@/hooks/useMedia";
-import { useContextMenu } from "@/lib/ContextMenuContext";
+import MediaPressableWrapper from "@/components/Media/MediaPressableWrapper";
 
 function formatDuration(seconds: number): string {
     const totalSeconds = Math.floor(seconds);
@@ -45,47 +42,19 @@ export const PlayableMedia = memo(function PlayableMedia({
 }: {
     index: number;
     media: TPlayableMedia;
-    allMedia?: TMedia[];
+    allMedia: TMedia[];
     substractArtists?: string[];
     showMediaIndex: boolean;
     showMediaImage: boolean;
 }) {
     const $media = useMedia(_media);
-    const { show } = useContextMenu();
-
-    const mediaOptions = useBaseMediaOptions($media);
-    const playableMediaOptions = useBasePlayableMediaOptions(
-        $media,
-        allMedia ?? []
-    );
-
-    const handlePlay = useHandlePlay($media, allMedia ?? []);
 
     const artists = getArtistNames($media, substractArtists);
     const duration = getMediaDuration($media);
     const downloaded = !isDownloadable($media) || $media.downloaded;
 
-    const handleLongPress = useCallback(() => {
-        show({
-            imageUrl: $media.imageUrl,
-            title: $media.name,
-            subtitle:
-                artists.length > 0
-                    ? artists.map((a) => a.name).join(", ")
-                    : undefined,
-            options: [...mediaOptions, ...playableMediaOptions],
-        });
-    }, [$media, artists, mediaOptions, playableMediaOptions, show]);
-
     return (
-        <Pressable
-            onPress={handlePlay}
-            onLongPress={handleLongPress}
-            style={({ pressed }) => [
-                styles.container,
-                pressed && styles.pressed,
-            ]}
-        >
+        <MediaPressableWrapper media={$media} allMedia={allMedia}>
             {showMediaIndex && (
                 <View style={styles.indexContainer}>
                     <Text style={styles.indexText}>{index + 1}</Text>
@@ -130,7 +99,7 @@ export const PlayableMedia = memo(function PlayableMedia({
             {duration !== undefined && (
                 <Text style={styles.duration}>{formatDuration(duration)}</Text>
             )}
-        </Pressable>
+        </MediaPressableWrapper>
     );
 });
 

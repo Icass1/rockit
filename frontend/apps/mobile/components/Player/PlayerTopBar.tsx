@@ -1,8 +1,8 @@
 import { COLORS } from "@/constants/theme";
+import { TMedia } from "@rockit/shared";
 import { ChevronDown, MoreHorizontal } from "lucide-react-native";
 import { Pressable, StyleSheet, View } from "react-native";
-import useFullMediaOptions from "@/hooks/contextMenuOptions/useFullMediaOptions";
-import { useContextMenu } from "@/lib/ContextMenuContext";
+import MediaPressableWrapper from "@/components/Media/MediaPressableWrapper";
 
 interface PlayerTopBarProps {
     title: string;
@@ -11,7 +11,7 @@ interface PlayerTopBarProps {
     onQueue?: () => void;
     onLyrics?: () => void;
     onRelated?: () => void;
-    media?: any; // current media object for context menu
+    media?: TMedia; // current media object for context menu
 }
 
 export default function PlayerTopBar({
@@ -23,9 +23,6 @@ export default function PlayerTopBar({
     onRelated,
     media,
 }: PlayerTopBarProps) {
-    const { show } = useContextMenu();
-    const options = useFullMediaOptions(media ?? {});
-
     return (
         <View style={styles.container}>
             <Pressable style={styles.button} onPress={onClose} hitSlop={12}>
@@ -33,13 +30,9 @@ export default function PlayerTopBar({
             </Pressable>
 
             {media && (
-                <Pressable
-                    style={styles.button}
-                    onPress={() => show({ title: media.name ?? "", options })}
-                    hitSlop={12}
-                >
+                <MediaPressableWrapper media={media} allMedia={[media]}>
                     <MoreHorizontal size={22} color={COLORS.white} />
-                </Pressable>
+                </MediaPressableWrapper>
             )}
         </View>
     );

@@ -1,16 +1,12 @@
 import { useCallback, useMemo } from "react";
 import { COLORS } from "@/constants/theme";
 import {
-    isPlayable,
-    isQueueable,
     isSearchResult,
-    TPlayableMedia,
     type BaseAlbumWithoutSongsResponse,
     type BasePlaylistResponse,
     type BaseSongWithAlbumResponse,
     type BaseVideoResponse,
     type TMedia,
-    type TQueueMedia,
 } from "@rockit/shared";
 import { SectionList, StyleSheet, Text, View } from "react-native";
 import { ELibraryActiveType } from "@/models/enums/libraryActiveType";
@@ -28,7 +24,6 @@ interface LibraryContentProps {
     videos: BaseVideoResponse[];
     activeType: ELibraryActiveType;
     viewMode: "grid" | "list";
-    playMedia?: (media: TQueueMedia, queue: TQueueMedia[]) => Promise<void>;
 }
 
 type ItemType = "album" | "playlist" | "song" | "video";
@@ -46,21 +41,8 @@ export default function LibraryContent({
     videos,
     activeType,
     viewMode,
-    playMedia,
 }: LibraryContentProps) {
     const { vocabulary } = useVocabulary();
-
-    const handleItemPress = useCallback(
-        (item: TPlayableMedia) => {
-            if (!playMedia) return;
-
-            if (isQueueable(item)) {
-                const allQueueable = [...songs, ...videos].filter(isQueueable);
-                playMedia(item, allQueueable);
-            }
-        },
-        [playMedia, songs, videos]
-    );
 
     const sections: Section[] = useMemo(() => {
         const result: Section[] = [];
@@ -99,13 +81,6 @@ export default function LibraryContent({
         return result;
     }, [albums, playlists, songs, videos, vocabulary, viewMode]);
 
-    const onItemPress = useCallback(
-        (item: TMedia) => {
-            if (isPlayable(item)) handleItemPress(item);
-        },
-        [handleItemPress]
-    );
-
     const renderSectionHeader = useCallback(
         ({ section }: { section: Section }) => (
             <View style={styles.sectionHeader}>
@@ -117,20 +92,16 @@ export default function LibraryContent({
 
     const renderItem = useCallback(
         ({ item, section }: { item: TMedia; section: Section }) => {
-            const onPress = isQueueable(item)
-                ? () => onItemPress(item)
-                : undefined;
-
             if (section.renderType === "grid") {
                 return (
                     <View style={styles.gridItemWrapper}>
-                        <MediaCard media={item} onPress={onPress} />
+                        <MediaCard media={item} />
                     </View>
                 );
             }
-            return <MediaRow media={item} onPress={onPress} />;
+            return <MediaRow media={item} />;
         },
-        [onItemPress]
+        []
     );
 
     const keyExtractor = useCallback(
@@ -193,9 +164,9 @@ export default function LibraryContent({
     }
 
     return viewMode === "grid" ? (
-        <LibraryGrid items={items} onItemPress={onItemPress} />
+        <LibraryGrid items={items} />
     ) : (
-        <LibraryListView items={items} onItemPress={onItemPress} />
+        <LibraryListView items={items} />
     );
 }
 

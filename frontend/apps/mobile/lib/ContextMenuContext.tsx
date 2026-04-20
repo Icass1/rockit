@@ -14,6 +14,7 @@ export interface ContextMenuOption {
     icon: LucideIcon;
     onPress: () => void;
     destructive?: boolean;
+    showArrow?: boolean;
 }
 
 export interface ContextMenuConfig {

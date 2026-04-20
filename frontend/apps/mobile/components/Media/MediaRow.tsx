@@ -1,88 +1,46 @@
-import { memo, ReactNode, useCallback } from "react";
+import { memo, ReactNode } from "react";
 import { COLORS } from "@/constants/theme";
 import {
     BaseSearchResultsItem,
     getMediaSubtitle,
-    isNavigable,
+    isSearchResult,
     TMedia,
 } from "@rockit/shared";
 import { Image } from "expo-image";
-import { Link } from "expo-router";
-import { Trash } from "lucide-react-native";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { ContextMenuOption, useContextMenu } from "@/lib/ContextMenuContext";
-import { useVocabulary } from "@/lib/vocabulary";
+import { StyleSheet, Text, View } from "react-native";
+import MediaPressableWrapper from "@/components/Media/MediaPressableWrapper";
 
 interface MediaRowProps {
     media: TMedia | BaseSearchResultsItem;
-    onPress?: () => void;
     rightElement?: ReactNode;
 }
 
-function MediaRow({ media, onPress, rightElement }: MediaRowProps) {
-    const { show } = useContextMenu();
-    const { vocabulary } = useVocabulary();
-
-    // const imageStyle = circularImage
-    //     ? { width: imageSize, height: imageSize, borderRadius: imageSize / 2 }
-    //     : { width: imageSize, height: imageSize, borderRadius: 4 };
-
-    const imageStyle = "";
-
-    const handleLongPress = useCallback(() => {
-        const options: ContextMenuOption[] = [];
-
-        options.push({
-            label: vocabulary.REMOVE_FROM_LIBRARY,
-            icon: Trash,
-            onPress: () => {},
-        });
-
-        show({
-            imageUrl: media.imageUrl,
-            title: media.name,
-            subtitle: getMediaSubtitle(media),
-            options: options,
-        });
-    }, [media, vocabulary, show]);
-
-    const content = (
-        <Pressable style={styles.container} onLongPress={handleLongPress}>
-            <Image
-                source={media.imageUrl}
-                style={[styles.image, imageStyle]}
-                contentFit="cover"
-            />
-            <View style={styles.info}>
-                <Text style={styles.title} numberOfLines={1}>
-                    {media.name}
-                </Text>
-                <Text style={styles.subtitle} numberOfLines={1}>
-                    {getMediaSubtitle(media)}
-                </Text>
+function MediaRow({ media, rightElement }: MediaRowProps) {
+    return (
+        <MediaPressableWrapper
+            media={media}
+            allMedia={!isSearchResult(media) ? [media] : []}
+        >
+            <View style={styles.container}>
+                <Image
+                    source={media.imageUrl}
+                    style={[styles.image]}
+                    contentFit="cover"
+                />
+                <View style={styles.info}>
+                    <Text style={styles.title} numberOfLines={1}>
+                        {media.name}
+                    </Text>
+                    <Text style={styles.subtitle} numberOfLines={1}>
+                        {getMediaSubtitle(media)}
+                    </Text>
+                </View>
+                {rightElement && (
+                    <View style={styles.rightElement}>{rightElement}</View>
+                )}
             </View>
-            {rightElement && (
-                <View style={styles.rightElement}>{rightElement}</View>
-            )}
-        </Pressable>
+        </MediaPressableWrapper>
     );
-
-    if (onPress) {
-        return (
-            <Pressable
-                onPress={onPress}
-                style={({ pressed }) => pressed && styles.pressed}
-            >
-                {content}
-            </Pressable>
-        );
-    }
-
-    if (isNavigable(media)) {
-        return <Link href={("(app)/" + media.url) as never}>{content}</Link>;
-    }
-
-    return content;
 }
 
 const styles = StyleSheet.create({
@@ -95,6 +53,8 @@ const styles = StyleSheet.create({
     },
     image: {
         backgroundColor: COLORS.bgCard,
+        width: 48,
+        height: 48,
     },
     info: {
         flex: 1,

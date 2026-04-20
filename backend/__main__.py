@@ -246,7 +246,6 @@ async def main() -> None:
 
             elif command == "update-video-durations":
                 from backend.constants import MEDIA_PATH
-                from backend.youtube.access.db import rockit_db
                 from backend.youtube.access.videoAccess import VideoAccess
 
                 try:

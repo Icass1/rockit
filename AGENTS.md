@@ -2,7 +2,8 @@
 
 > Read this file before making any change. It covers architecture, conventions,
 > patterns and API routes for both frontend and backend.
-> You can read also the extended documentation located in docs/ where more detailed information is shown about frontend and backend rules
+> You can read also the extended documentation located in docs/ where more detailed information is shown about frontend and backend rules.
+> For practical, focused guidance, see the SKILLS directory containing frontend-web, frontend-mobile, and backend skills.
 
 ---
 
@@ -18,6 +19,7 @@
 8. [Code Conventions](#8-code-conventions)
 9. [Things to Never Do](#9-things-to-never-do)
 10. [Key Files Reference](#10-key-files-reference)
+11. [Skills](#11-skills)
 
 ---
 
@@ -1007,3 +1009,50 @@ When adding new vocabulary keys:
 - Use prefix based on feature (e.g., `ADMIN_` for admin, `SETTINGS_` for settings)
 - Add keys incrementally as you need them
 - The backend stores vocabulary per language, so keys need to be added to the database
+
+---
+
+## 12. Skills
+
+For practical, focused guidance on implementing features, see the skills in the `skills/` directory:
+
+### 12.1 Frontend Web Skill
+See `skills/frontend-web.md` for detailed conventions, patterns, and best practices for building the Next.js web application including:
+- Server vs Client Components rules
+- Data fetching patterns with `apiFetch` and `useFetch`
+- State management with nanostores
+- Styling with Tailwind CSS v4
+- Component structure and naming conventions
+- Hydration safety guidelines
+- Error handling approaches
+- Vocabulary/i18n usage
+- RockIt singleton usage
+- Manager reference
+- Critical rules to never do
+
+### 12.2 Frontend Mobile Skill
+See `skills/frontend-mobile.md` for detailed conventions, patterns, and best practices for building the Expo React Native mobile application including:
+- File structure and routing with Expo Router
+- State management with nanostores (shared with web)
+- Data fetching patterns (shared `apiFetch` and `useFetch`)
+- Component development with native components
+- Styling approaches (Tailwind RN or StyleSheet)
+- Platform-specific code handling
+- Image and icon handling
+- Permissions management
+- Mobile-specific manager adaptations
+- Critical rules for mobile development
+
+### 12.3 Backend Skill
+See `skills/backend.md` for detailed conventions, patterns, and best practices for building the FastAPI backend including:
+- Layered architecture (controllers → framework → access)
+- AResult pattern for error handling
+- Database connection and session management
+- Authentication implementation
+- Provider system for multiple music sources
+- Code style and import ordering
+- Critical rules to never do
+- Key files reference
+- Running the project commands
+
+---

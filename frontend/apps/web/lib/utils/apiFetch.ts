@@ -113,6 +113,7 @@ export async function apiPostFetch<T, G>(
 ): Promise<HttpResult<G>> {
     return apiFetch(path, responseSchema, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
     });
 }

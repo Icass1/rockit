@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+# type: ignore
 import json
 import os
 import sqlite3
@@ -114,7 +114,9 @@ async def migrate_artists(conn, sqlite_cursor):
         date_added_dt = parse_date_added(date_added)
         image_url = get_first_image_url(images) or image
 
-        image_id = await get_or_create_image(conn, f"/artists/{spotify_id}", image_url, date_added_dt)
+        image_id = await get_or_create_image(
+            conn, f"/artists/{spotify_id}", image_url, date_added_dt
+        )
 
         media_id = await conn.fetchval(
             """
@@ -160,14 +162,14 @@ async def migrate_artists(conn, sqlite_cursor):
 
 async def fetch_missing_albums_from_scraper(album_ids):
     print(f"Fetching {len(album_ids)} missing albums from Spotify scraper...")
-    
+
     from spotify_scraper import browsers, extractors
-    
+
     browser = browsers.create_browser()
     album_extractor = extractors.AlbumExtractor(browser)
-    
+
     albums_data = []
-    
+
     for i, album_id in enumerate(album_ids):
         try:
             print(f"  Fetching album {i+1}/{len(album_ids)}: {album_id}")
@@ -177,7 +179,7 @@ async def fetch_missing_albums_from_scraper(album_ids):
         except Exception as e:
             print(f"    Failed to fetch album {album_id}: {e}")
             continue
-    
+
     print(f"  Successfully fetched {len(albums_data)} albums")
     return albums_data
 
@@ -186,18 +188,20 @@ async def insert_scraped_album(conn, album_data):
     spotify_id = album_data.get("id")
     if not spotify_id:
         return None
-    
+
     name = album_data.get("name", "Unknown")
     release_date = album_data.get("release_date", "1970-01-01")
     total_tracks = album_data.get("total_tracks", 1)
-    
+
     images = album_data.get("images", [])
     image_url = images[0].get("url") if images else None
-    
+
     date_added_dt = datetime.now()
-    
-    image_id = await get_or_create_image(conn, f"/albums/{spotify_id}", image_url, date_added_dt)
-    
+
+    image_id = await get_or_create_image(
+        conn, f"/albums/{spotify_id}", image_url, date_added_dt
+    )
+
     public_id = str(uuid.uuid4())
     media_id = await conn.fetchval(
         """
@@ -211,13 +215,13 @@ async def insert_scraped_album(conn, album_data):
         2,
         date_added_dt,
     )
-    
+
     if not media_id:
         media_id = await conn.fetchval(
             "SELECT id FROM core.media WHERE public_id = $1",
             public_id,
         )
-    
+
     if media_id:
         await conn.execute(
             """
@@ -233,7 +237,7 @@ async def insert_scraped_album(conn, album_data):
             total_tracks,
             image_id,
         )
-        
+
         existing_id = await conn.fetchval(
             "SELECT id FROM spotify.album WHERE spotify_id = $1",
             spotify_id,
@@ -241,7 +245,7 @@ async def insert_scraped_album(conn, album_data):
         if existing_id:
             return existing_id
         return media_id
-    
+
     return None
 
 
@@ -277,7 +281,9 @@ async def migrate_albums(conn, sqlite_cursor):
         )
         image_url = get_first_image_url(images) or image
 
-        image_id = await get_or_create_image(conn, f"/albums/{spotify_id}", image_url, date_added_dt)
+        image_id = await get_or_create_image(
+            conn, f"/albums/{spotify_id}", image_url, date_added_dt
+        )
 
         media_id = await conn.fetchval(
             """
@@ -349,10 +355,12 @@ async def migrate_songs(conn, sqlite_cursor, album_core_id_map):
             missing_album_ids.add(album_id)
 
     print(f"  Found {len(missing_album_ids)} unique missing album IDs")
-    
+
     if missing_album_ids:
-        scraped_albums = await fetch_missing_albums_from_scraper(list(missing_album_ids))
-        
+        scraped_albums = await fetch_missing_albums_from_scraper(
+            list(missing_album_ids)
+        )
+
         for album_data in scraped_albums:
             album_id = await insert_scraped_album(conn, album_data)
             if album_id:
@@ -417,7 +425,9 @@ async def migrate_songs(conn, sqlite_cursor, album_core_id_map):
                 )
             continue
 
-        image_id = await get_or_create_image(conn, f"/songs/{spotify_id}", image_url, date_added_dt)
+        image_id = await get_or_create_image(
+            conn, f"/songs/{spotify_id}", image_url, date_added_dt
+        )
 
         media_id = await conn.fetchval(
             """
@@ -484,21 +494,21 @@ async def main():
         await migrate_songs(postgres_conn, sqlite_cursor, album_core_id_map)
 
         await migrate_genres(postgres_conn, sqlite_cursor)
-        
+
         await migrate_artist_genres(postgres_conn, sqlite_cursor)
-        
+
         await migrate_copyrights(postgres_conn, sqlite_cursor)
-        
+
         await migrate_album_copyrights(postgres_conn, sqlite_cursor)
-        
+
         await migrate_album_artists(postgres_conn, sqlite_cursor)
-        
+
         await migrate_track_artists(postgres_conn, sqlite_cursor)
-        
+
         await migrate_external_images(postgres_conn, sqlite_cursor)
-        
+
         await migrate_album_external_images(postgres_conn, sqlite_cursor)
-        
+
         await migrate_artist_external_images(postgres_conn, sqlite_cursor)
 
         print("Migration complete!")
@@ -510,15 +520,17 @@ async def main():
 
 async def migrate_genres(conn, sqlite_cursor):
     print("Migrating genres...")
-    
-    sqlite_cursor.execute("SELECT DISTINCT genres FROM artist WHERE genres IS NOT NULL AND genres != '[]'")
+
+    sqlite_cursor.execute(
+        "SELECT DISTINCT genres FROM artist WHERE genres IS NOT NULL AND genres != '[]'"
+    )
     all_genres = set()
     for row in sqlite_cursor.fetchall():
         genres = parse_json_safe(row[0])
         for g in genres:
             if g:
                 all_genres.add(g.lower())
-    
+
     for genre_name in all_genres:
         existing = await conn.fetchval(
             "SELECT id FROM spotify.genre WHERE name = $1",
@@ -529,16 +541,18 @@ async def migrate_genres(conn, sqlite_cursor):
                 "INSERT INTO spotify.genre (name) VALUES ($1)",
                 genre_name,
             )
-    
+
     print(f"  Migrated {len(all_genres)} genres")
 
 
 async def migrate_artist_genres(conn, sqlite_cursor):
     print("Migrating artist genres...")
-    
-    sqlite_cursor.execute("SELECT id, genres FROM artist WHERE genres IS NOT NULL AND genres != '[]'")
+
+    sqlite_cursor.execute(
+        "SELECT id, genres FROM artist WHERE genres IS NOT NULL AND genres != '[]'"
+    )
     artists = sqlite_cursor.fetchall()
-    
+
     count = 0
     for spotify_id, genres_json in artists:
         artist_id = await conn.fetchval(
@@ -547,7 +561,7 @@ async def migrate_artist_genres(conn, sqlite_cursor):
         )
         if not artist_id:
             continue
-        
+
         genres = parse_json_safe(genres_json)
         for genre_name in genres:
             if not genre_name:
@@ -559,29 +573,33 @@ async def migrate_artist_genres(conn, sqlite_cursor):
             if genre_id and artist_id:
                 existing = await conn.fetchval(
                     "SELECT 1 FROM spotify.artist_genre WHERE artist_id = $1 AND genre_id = $2",
-                    artist_id, genre_id,
+                    artist_id,
+                    genre_id,
                 )
                 if not existing:
                     await conn.execute(
                         "INSERT INTO spotify.artist_genre (artist_id, genre_id) VALUES ($1, $2)",
-                        artist_id, genre_id,
+                        artist_id,
+                        genre_id,
                     )
                     count += 1
-    
+
     print(f"  Migrated {count} artist-genre relations")
 
 
 async def migrate_copyrights(conn, sqlite_cursor):
     print("Migrating copyrights...")
-    
-    sqlite_cursor.execute("SELECT DISTINCT copyrights FROM album WHERE copyrights IS NOT NULL AND copyrights != ''")
+
+    sqlite_cursor.execute(
+        "SELECT DISTINCT copyrights FROM album WHERE copyrights IS NOT NULL AND copyrights != ''"
+    )
     all_copyrights = set()
     for row in sqlite_cursor.fetchall():
         copyrights = parse_json_safe(row[0])
         for cp in copyrights:
             if cp and cp.get("text"):
                 all_copyrights.add((cp.get("text", ""), cp.get("type", "P")))
-    
+
     count = 0
     for text, cp_type in all_copyrights:
         type_id = await conn.fetchval(
@@ -592,7 +610,7 @@ async def migrate_copyrights(conn, sqlite_cursor):
             type_id = await conn.fetchval(
                 "SELECT id FROM spotify.copyright_type_enum WHERE name = 'P'",
             )
-        
+
         existing = await conn.fetchval(
             "SELECT id FROM spotify.copyright WHERE text = $1",
             text,
@@ -604,19 +622,22 @@ async def migrate_copyrights(conn, sqlite_cursor):
                 VALUES ($1, $2)
                 RETURNING id
             """,
-                text, type_id,
+                text,
+                type_id,
             )
             count += 1
-    
+
     print(f"  Migrated {count} copyrights")
 
 
 async def migrate_album_copyrights(conn, sqlite_cursor):
     print("Migrating album copyrights...")
-    
-    sqlite_cursor.execute("SELECT id, copyrights FROM album WHERE copyrights IS NOT NULL AND copyrights != ''")
+
+    sqlite_cursor.execute(
+        "SELECT id, copyrights FROM album WHERE copyrights IS NOT NULL AND copyrights != ''"
+    )
     albums = sqlite_cursor.fetchall()
-    
+
     count = 0
     for spotify_id, copyrights_json in albums:
         album_id = await conn.fetchval(
@@ -625,7 +646,7 @@ async def migrate_album_copyrights(conn, sqlite_cursor):
         )
         if not album_id:
             continue
-        
+
         copyrights = parse_json_safe(copyrights_json)
         for cp in copyrights:
             if not cp or not cp.get("text"):
@@ -637,24 +658,28 @@ async def migrate_album_copyrights(conn, sqlite_cursor):
             if copyright_id:
                 existing = await conn.fetchval(
                     "SELECT 1 FROM spotify.album_copyright WHERE album_id = $1 AND copyright_id = $2",
-                    album_id, copyright_id,
+                    album_id,
+                    copyright_id,
                 )
                 if not existing:
                     await conn.execute(
                         "INSERT INTO spotify.album_copyright (album_id, copyright_id) VALUES ($1, $2)",
-                        album_id, copyright_id,
+                        album_id,
+                        copyright_id,
                     )
                     count += 1
-    
+
     print(f"  Migrated {count} album-copyright relations")
 
 
 async def migrate_album_artists(conn, sqlite_cursor):
     print("Migrating album artists...")
-    
-    sqlite_cursor.execute("SELECT id, artists FROM album WHERE artists IS NOT NULL AND artists != ''")
+
+    sqlite_cursor.execute(
+        "SELECT id, artists FROM album WHERE artists IS NOT NULL AND artists != ''"
+    )
     albums = sqlite_cursor.fetchall()
-    
+
     count = 0
     for spotify_id, artists_json in albums:
         album_id = await conn.fetchval(
@@ -663,7 +688,7 @@ async def migrate_album_artists(conn, sqlite_cursor):
         )
         if not album_id:
             continue
-        
+
         artists = parse_json_safe(artists_json)
         for artist_data in artists:
             if not artist_data or not artist_data.get("id"):
@@ -676,24 +701,28 @@ async def migrate_album_artists(conn, sqlite_cursor):
             if artist_id:
                 existing = await conn.fetchval(
                     "SELECT 1 FROM spotify.album_artist WHERE album_id = $1 AND artist_id = $2",
-                    album_id, artist_id,
+                    album_id,
+                    artist_id,
                 )
                 if not existing:
                     await conn.execute(
                         "INSERT INTO spotify.album_artist (album_id, artist_id) VALUES ($1, $2)",
-                        album_id, artist_id,
+                        album_id,
+                        artist_id,
                     )
                     count += 1
-    
+
     print(f"  Migrated {count} album-artist relations")
 
 
 async def migrate_track_artists(conn, sqlite_cursor):
     print("Migrating track artists...")
-    
-    sqlite_cursor.execute("SELECT id, artists FROM song WHERE artists IS NOT NULL AND artists != ''")
+
+    sqlite_cursor.execute(
+        "SELECT id, artists FROM song WHERE artists IS NOT NULL AND artists != ''"
+    )
     songs = sqlite_cursor.fetchall()
-    
+
     count = 0
     for spotify_id, artists_json in songs:
         track_id = await conn.fetchval(
@@ -702,7 +731,7 @@ async def migrate_track_artists(conn, sqlite_cursor):
         )
         if not track_id:
             continue
-        
+
         artists = parse_json_safe(artists_json)
         for artist_data in artists:
             if not artist_data or not artist_data.get("id"):
@@ -715,36 +744,42 @@ async def migrate_track_artists(conn, sqlite_cursor):
             if artist_id:
                 existing = await conn.fetchval(
                     "SELECT 1 FROM spotify.track_artist WHERE track_id = $1 AND artist_id = $2",
-                    track_id, artist_id,
+                    track_id,
+                    artist_id,
                 )
                 if not existing:
                     await conn.execute(
                         "INSERT INTO spotify.track_artist (track_id, artist_id) VALUES ($1, $2)",
-                        track_id, artist_id,
+                        track_id,
+                        artist_id,
                     )
                     count += 1
-    
+
     print(f"  Migrated {count} track-artist relations")
 
 
 async def migrate_external_images(conn, sqlite_cursor):
     print("Migrating external images...")
-    
-    sqlite_cursor.execute("SELECT images FROM album WHERE images IS NOT NULL AND images != '[]'")
+
+    sqlite_cursor.execute(
+        "SELECT images FROM album WHERE images IS NOT NULL AND images != '[]'"
+    )
     all_images = set()
     for row in sqlite_cursor.fetchall():
         images = parse_json_safe(row[0])
         for img in images:
             if img and img.get("url"):
                 all_images.add(img.get("url"))
-    
-    sqlite_cursor.execute("SELECT images FROM artist WHERE images IS NOT NULL AND images != '[]'")
+
+    sqlite_cursor.execute(
+        "SELECT images FROM artist WHERE images IS NOT NULL AND images != '[]'"
+    )
     for row in sqlite_cursor.fetchall():
         images = parse_json_safe(row[0])
         for img in images:
             if img and img.get("url"):
                 all_images.add(img.get("url"))
-    
+
     count = 0
     for url in all_images:
         existing = await conn.fetchval(
@@ -757,16 +792,18 @@ async def migrate_external_images(conn, sqlite_cursor):
                 url,
             )
             count += 1
-    
+
     print(f"  Migrated {count} external images")
 
 
 async def migrate_album_external_images(conn, sqlite_cursor):
     print("Migrating album external images...")
-    
-    sqlite_cursor.execute("SELECT id, images FROM album WHERE images IS NOT NULL AND images != '[]'")
+
+    sqlite_cursor.execute(
+        "SELECT id, images FROM album WHERE images IS NOT NULL AND images != '[]'"
+    )
     albums = sqlite_cursor.fetchall()
-    
+
     count = 0
     for spotify_id, images_json in albums:
         album_id = await conn.fetchval(
@@ -775,7 +812,7 @@ async def migrate_album_external_images(conn, sqlite_cursor):
         )
         if not album_id:
             continue
-        
+
         images = parse_json_safe(images_json)
         for img in images:
             if not img or not img.get("url"):
@@ -787,24 +824,28 @@ async def migrate_album_external_images(conn, sqlite_cursor):
             if external_image_id:
                 existing = await conn.fetchval(
                     "SELECT 1 FROM spotify.album_external_image WHERE album_id = $1 AND external_image_id = $2",
-                    album_id, external_image_id,
+                    album_id,
+                    external_image_id,
                 )
                 if not existing:
                     await conn.execute(
                         "INSERT INTO spotify.album_external_image (album_id, external_image_id) VALUES ($1, $2)",
-                        album_id, external_image_id,
+                        album_id,
+                        external_image_id,
                     )
                     count += 1
-    
+
     print(f"  Migrated {count} album-external-image relations")
 
 
 async def migrate_artist_external_images(conn, sqlite_cursor):
     print("Migrating artist external images...")
-    
-    sqlite_cursor.execute("SELECT id, images FROM artist WHERE images IS NOT NULL AND images != '[]'")
+
+    sqlite_cursor.execute(
+        "SELECT id, images FROM artist WHERE images IS NOT NULL AND images != '[]'"
+    )
     artists = sqlite_cursor.fetchall()
-    
+
     count = 0
     for spotify_id, images_json in artists:
         artist_id = await conn.fetchval(
@@ -813,7 +854,7 @@ async def migrate_artist_external_images(conn, sqlite_cursor):
         )
         if not artist_id:
             continue
-        
+
         images = parse_json_safe(images_json)
         for img in images:
             if not img or not img.get("url"):
@@ -825,15 +866,17 @@ async def migrate_artist_external_images(conn, sqlite_cursor):
             if external_image_id:
                 existing = await conn.fetchval(
                     "SELECT 1 FROM spotify.artist_external_image WHERE artist_id = $1 AND external_image_id = $2",
-                    artist_id, external_image_id,
+                    artist_id,
+                    external_image_id,
                 )
                 if not existing:
                     await conn.execute(
                         "INSERT INTO spotify.artist_external_image (artist_id, external_image_id) VALUES ($1, $2)",
-                        artist_id, external_image_id,
+                        artist_id,
+                        external_image_id,
                     )
                     count += 1
-    
+
     print(f"  Migrated {count} artist-external-image relations")
 
 

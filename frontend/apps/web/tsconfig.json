@@ -30,6 +30,9 @@
             "@/dto": [
                 "../../packages/shared/src/dto/index.ts"
             ],
+            "@/packages/dto": [
+                "../../packages/shared/src/dto/index.ts"
+            ],
             "@/environment": [
                 "../../packages/shared/src/environment"
             ],

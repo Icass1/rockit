@@ -152,7 +152,7 @@ async def start_chunked_upload(
         "description": payload.description,
     }
 
-    with open(file_path, "wb") as f:
+    with open(file_path, "wb"):
         pass
 
     return StartChunkedUploadResponse(

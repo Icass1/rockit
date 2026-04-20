@@ -87,3 +87,14 @@ class VideoAccess:
             )
 
         return AResult(code=AResultCode.OK, message="OK", result=video)
+
+    @staticmethod
+    @safe_async
+    async def get_all_videos_async(
+        session: AsyncSession,
+    ) -> AResult[list[VideoRow]]:
+        stmt: Select[Tuple[VideoRow]] = select(VideoRow)
+        result: Result[Tuple[VideoRow]] = await session.execute(stmt)
+        videos: list[VideoRow] = list(result.scalars().all())
+
+        return AResult(code=AResultCode.OK, message="OK", result=videos)

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { COLORS } from "@/constants/theme";
 import {
     AUTH_ENDPOINTS,
@@ -18,7 +18,7 @@ import {
     TextInput,
     View,
 } from "react-native";
-import { apiPostFetch, saveSessionCookie } from "@/lib/api";
+import { apiPostFetch } from "@/lib/api";
 
 function validateUsername(value: string): string | null {
     if (value === "") return null;

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { COLORS } from "@/constants/theme";
 import { BasePlaylistResponse, getPlaylistAsync } from "@rockit/shared";
 import { useLocalSearchParams } from "expo-router";
@@ -7,11 +7,11 @@ import RenderList from "@/components/RenderList/RenderList";
 
 export default function PlaylistPage() {
     const { publicId } = useLocalSearchParams<{ publicId: string }>();
-    const [playlist, setPlaylist] = React.useState<BasePlaylistResponse | null>(
+    const [playlist, setPlaylist] = useState<BasePlaylistResponse | null>(
         null
     );
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (!publicId) return;
         getPlaylistAsync(publicId).then(setPlaylist);
     }, [publicId]);

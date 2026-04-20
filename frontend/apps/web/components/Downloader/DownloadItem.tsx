@@ -1,6 +1,4 @@
 "use client";
-"use client";
-"use client";
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
@@ -99,7 +97,7 @@ export default function DownloadItem({ download }: DownloadItemProps) {
     return (
         <div className="flex items-start gap-4 border-b border-neutral-700 py-3">
             <MediaContextMenu media={$download}>
-                <div className="flex-shrink-0">
+                <div className="shrink-0">
                     <Image
                         width={300}
                         height={300}
@@ -112,7 +110,7 @@ export default function DownloadItem({ download }: DownloadItemProps) {
 
             <div className="min-w-0 flex-1 space-y-2">
                 <div className="flex items-start justify-between">
-                    <h3 className="max-w-[200px] truncate font-semibold text-white">
+                    <h3 className="max-w-50 truncate font-semibold text-white">
                         {$download.name}
                     </h3>
                     <span className="text-xs text-neutral-400">
@@ -125,7 +123,7 @@ export default function DownloadItem({ download }: DownloadItemProps) {
                         <>
                             <span
                                 key={index}
-                                className="max-w-[150px] truncate"
+                                className="max-w-37.5 truncate"
                             >
                                 {artist.name}
                             </span>

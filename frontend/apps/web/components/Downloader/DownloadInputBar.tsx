@@ -1,9 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { rockIt } from "@/lib/rockit/rockIt";
 
-export default function DownloadInputBar() {
+interface DownloadInputBarProps {
+  onSubmit: (url: string) => Promise<void>;
+}
+
+export default function DownloadInputBar({ onSubmit }: DownloadInputBarProps) {
     const [url, setUrl] = useState("");
     const [isDownloading, setIsDownloading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -16,7 +19,7 @@ export default function DownloadInputBar() {
         setError(null);
 
         try {
-            await rockIt.downloaderManager.startDownloadAsync(url);
+            await onSubmit(url);
             setUrl("");
         } catch (err) {
             const message =

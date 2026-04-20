@@ -139,7 +139,7 @@ export default function LibraryContent({
         );
     }
 
-    let items: any[] = [];
+    let items: TMedia[] = [];
     switch (activeType) {
         case ELibraryActiveType.Albums:
             items = albums;

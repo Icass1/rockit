@@ -8,6 +8,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { PlayerProvider } from "@/lib/PlayerContext";
 import { VocabularyProvider } from "@/lib/vocabulary";
 import { webSocketManager } from "@/lib/webSocketManager";
+import { Toaster } from "@/components/Toaster/Toaster";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -33,6 +34,7 @@ export default function RootLayout() {
                     <ThemeProvider value={RockItTheme}>
                         <StatusBar style="light" />
                         <PlayerProvider>
+                            <Toaster />
                             <Stack
                                 screenOptions={{
                                     headerShown: false,

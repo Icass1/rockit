@@ -1,6 +1,13 @@
-import { Linking, Modal, Pressable, StyleSheet, Text, View } from "react-native";
-import { APP_VERSION } from "@/constants/version";
 import { COLORS } from "@/constants/theme";
+import { APP_VERSION } from "@/constants/version";
+import {
+    Linking,
+    Modal,
+    Pressable,
+    StyleSheet,
+    Text,
+    View,
+} from "react-native";
 
 interface UpdateModalProps {
     visible: boolean;

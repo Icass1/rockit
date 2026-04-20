@@ -18,7 +18,7 @@ import {
     TextInput,
     View,
 } from "react-native";
-import { apiPostAuth, saveSessionCookie } from "@/lib/api";
+import { apiPostFetch, saveSessionCookie } from "@/lib/api";
 
 function validateUsername(value: string): string | null {
     if (value === "") return null;
@@ -68,15 +68,14 @@ export default function RegisterScreen() {
         setLoading(true);
 
         try {
-            const { response: res } = await apiPostAuth(
+            const result = await apiPostFetch(
                 AUTH_ENDPOINTS.register,
                 RegisterRequestSchema,
-                { username, password, repeatPassword, platform: "MOBILE" },
-                RegisterResponseSchema
+                RegisterResponseSchema,
+                { username, password, repeatPassword, platform: "MOBILE" }
             );
 
-            if (res.ok) {
-                await saveSessionCookie(res);
+            if (result.isOk()) {
                 router.replace("/");
             } else {
                 setError("Registration failed");

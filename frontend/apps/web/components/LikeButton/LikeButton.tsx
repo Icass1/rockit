@@ -21,7 +21,11 @@ export default function LikeButton({
     isLiked?: boolean;
 }) {
     const $likedMedias = useStore(rockIt.mediaManager.likedMediaAtom);
-    const mounted = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+    const mounted = useSyncExternalStore(
+        subscribe,
+        getSnapshot,
+        getServerSnapshot
+    );
 
     const isLiked = mounted
         ? $likedMedias.includes(mediaPublicId)

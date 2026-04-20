@@ -249,7 +249,7 @@ class YoutubeProvider(BaseProvider):
             return AResult(code=a_result_video.code(), message=a_result_video.message())
 
         video: VideoRow = a_result_video.result()
-        duration_ms = video.duration_ms or 0
+        duration_ms = video.real_duration_ms if video.real_duration_ms else video.duration_ms or 0
 
         return AResult(code=AResultCode.OK, message="OK", result=duration_ms)
 

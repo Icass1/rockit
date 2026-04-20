@@ -1,11 +1,23 @@
 import { useState } from "react";
 import { COLORS } from "@/constants/theme";
-import { UpdatePasswordRequestSchema } from "@rockit/shared";
+import { HttpResult, UpdatePasswordRequestSchema } from "@rockit/shared";
+import type { TZodSchema } from "@rockit/shared";
 import { Alert, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSettingsUser } from "@/hooks/useSettingsUser";
-import { apiPatchNoResponse } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
 import { useVocabulary } from "@/lib/vocabulary";
 import SettingRow from "./SettingRow";
+
+async function apiPatchNoResponse<T>(
+    path: string,
+    schema: TZodSchema<T>,
+    body: T
+): Promise<HttpResult<unknown>> {
+    return apiFetch(path, schema, {
+        method: "PATCH",
+        body: JSON.stringify(body),
+    });
+}
 
 export default function AccountSection() {
     const { username, isLoading } = useSettingsUser();

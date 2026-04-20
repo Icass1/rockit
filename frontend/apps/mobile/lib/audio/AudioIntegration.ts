@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useRef } from "react";
-import { AppState, AppStateStatus, Platform, TurboModuleRegistry } from "react-native";
+import {
+    AppState,
+    AppStateStatus,
+    Platform,
+    TurboModuleRegistry,
+} from "react-native";
 
 export interface AudioIntegrationConfig {
     stayActiveInBackground: boolean;

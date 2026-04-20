@@ -1,11 +1,7 @@
 {
     "compilerOptions": {
         "target": "ES2017",
-        "lib": [
-            "dom",
-            "dom.iterable",
-            "esnext"
-        ],
+        "lib": ["dom", "dom.iterable", "esnext"],
         "allowJs": true,
         "skipLibCheck": true,
         "strict": true,
@@ -24,46 +20,19 @@
             }
         ],
         "paths": {
-            "@/components/*": [
-                "./components/*"
-            ],
-            "@/dto": [
-                "../../packages/shared/src/dto/index.ts"
-            ],
-            "@/packages/dto": [
-                "../../packages/shared/src/dto/index.ts"
-            ],
-            "@/environment": [
-                "../../packages/shared/src/environment"
-            ],
-            "@/hooks/*": [
-                "./hooks/*"
-            ],
-            "@/styles/*": [
-                "./styles/*"
-            ],
-            "@/lib/*": [
-                "./lib/*"
-            ],
-            "@/models/*": [
-                "../../packages/shared/src/models/*",
-                "./models/*"
-            ],
-            "@/types/*": [
-                "../../packages/shared/src/types/*"
-            ],
-            "@rockit/packages/shared": [
-                "../../packages/shared/src/index.ts"
-            ],
-            "@rockit/packages/shared/*": [
-                "../../packages/shared/src/*"
-            ],
-            "@rockit/shared": [
-                "../../packages/shared/src/index.ts"
-            ],
-            "@rockit/shared/*": [
-                "../../packages/shared/src/*"
-            ]
+            "@/components/*": ["./components/*"],
+            "@/dto": ["../../packages/shared/src/dto/index.ts"],
+            "@/packages/dto": ["../../packages/shared/src/dto/index.ts"],
+            "@/environment": ["../../packages/shared/src/environment"],
+            "@/hooks/*": ["./hooks/*"],
+            "@/styles/*": ["./styles/*"],
+            "@/lib/*": ["./lib/*"],
+            "@/models/*": ["../../packages/shared/src/models/*", "./models/*"],
+            "@/types/*": ["../../packages/shared/src/types/*"],
+            "@rockit/packages/shared": ["../../packages/shared/src/index.ts"],
+            "@rockit/packages/shared/*": ["../../packages/shared/src/*"],
+            "@rockit/shared": ["../../packages/shared/src/index.ts"],
+            "@rockit/shared/*": ["../../packages/shared/src/*"]
         }
     },
     "include": [
@@ -79,9 +48,5 @@
         ".next/types/**/*.ts",
         ".next/dev/types/**/*.ts"
     ],
-    "exclude": [
-        "node_modules",
-        "../../mobile",
-        "../../apps/mobile"
-    ]
+    "exclude": ["node_modules", "../../mobile", "../../apps/mobile"]
 }

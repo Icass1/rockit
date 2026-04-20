@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { API_ENDPOINTS, SessionResponseSchema } from "@rockit/shared";
-import { apiGet } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
+import { toasterManager } from "@/lib/toasterManager";
+import { useVocabulary } from "@/lib/vocabulary";
 
 interface SettingsUser {
     username: string;
@@ -17,15 +19,20 @@ export function useSettingsUser(): SettingsUser {
         isLoading: true,
     });
 
+    const { vocabulary } = useVocabulary();
+
     useEffect(() => {
         let cancelled = false;
-        apiGet(API_ENDPOINTS.userSession, SessionResponseSchema)
-            .then((parsed) => {
-                if (!cancelled) {
+        apiFetch(API_ENDPOINTS.userSession, SessionResponseSchema)
+            .then((response) => {
+                if (!response.isOk()) {
+                    toasterManager.notifyError(vocabulary.ERROR_GETTING_USER);
+                }
+                if (!cancelled && response.isOk()) {
                     setUser({
-                        username: parsed.username ?? "",
-                        image: parsed.image ?? "",
-                        admin: parsed.admin ?? false,
+                        username: response.result.username,
+                        image: response.result.image,
+                        admin: response.result.admin,
                         isLoading: false,
                     });
                 }
@@ -39,7 +46,7 @@ export function useSettingsUser(): SettingsUser {
         return () => {
             cancelled = true;
         };
-    }, []);
+    }, [vocabulary.ERROR_GETTING_USER]);
 
     return user;
 }

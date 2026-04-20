@@ -6,7 +6,7 @@ import {
     type IMediaDownloadedEvent,
     type TMedia,
 } from "@rockit/shared";
-import { apiGet } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
 
 export function useMedia<T extends TMedia>(media: T): T {
     const [_media, setMedia] = useState<T>(media);
@@ -19,10 +19,12 @@ export function useMedia<T extends TMedia>(media: T): T {
         const handleDownloaded = (data: IMediaDownloadedEvent) => {
             if (data.publicId !== media.publicId) return;
 
-            apiGet(`/media/${media.publicId}`, MediaResponseSchema)
-                .then((result) => {
-                    if (result.type === media.type) {
-                        setMedia(result as T);
+            apiFetch(`/media/${media.publicId}`, MediaResponseSchema)
+                .then((response) => {
+                    if (response.isOk()) {
+                        if (response.result.type === media.type) {
+                            setMedia(response.result as T);
+                        }
                     }
                 })
                 .catch((err) =>

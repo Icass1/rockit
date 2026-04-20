@@ -1,4 +1,5 @@
 import { atom } from "nanostores";
+import { toasterManager } from "../toasterManager";
 
 // Minimal stub of the global RockIt singleton for mobile.
 // Only the parts used by MobileLikeButton are implemented.
@@ -22,4 +23,5 @@ class MediaManager {
 
 export const rockIt = {
     mediaManager: new MediaManager(),
+    toasterManager,
 };

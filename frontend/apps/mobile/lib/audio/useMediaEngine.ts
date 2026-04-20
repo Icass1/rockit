@@ -54,10 +54,12 @@ export function useMediaEngine(
 
     const audioEngine = useAudioEngine({
         onTimeUpdate: (pos, dur) => {
-            if (!hasVideoRef.current) callbacksRef.current.onTimeUpdate(pos, dur);
+            if (!hasVideoRef.current)
+                callbacksRef.current.onTimeUpdate(pos, dur);
         },
         onPlayingChange: (playing) => {
-            if (!hasVideoRef.current) callbacksRef.current.onPlayingChange(playing);
+            if (!hasVideoRef.current)
+                callbacksRef.current.onPlayingChange(playing);
         },
         onEnded: () => {
             if (!hasVideoRef.current) callbacksRef.current.onEnded();
@@ -83,10 +85,12 @@ export function useMediaEngine(
 
     const videoEngine = useVideoEngine({
         onTimeUpdate: (pos, dur) => {
-            if (hasVideoRef.current) callbacksRef.current.onTimeUpdate(pos, dur);
+            if (hasVideoRef.current)
+                callbacksRef.current.onTimeUpdate(pos, dur);
         },
         onPlayingChange: (playing) => {
-            if (hasVideoRef.current) callbacksRef.current.onPlayingChange(playing);
+            if (hasVideoRef.current)
+                callbacksRef.current.onPlayingChange(playing);
         },
         onEnded: () => {
             if (hasVideoRef.current) callbacksRef.current.onEnded();

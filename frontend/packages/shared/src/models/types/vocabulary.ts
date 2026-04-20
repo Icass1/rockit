@@ -5,11 +5,13 @@ export interface Vocabulary {
     ADD_LIST_RANDOMLY: string;
     ADD_LIST_TO_BOTTOM: string;
     ADD_LIST_TO_QUEUE: string;
+    ADD_MEDIA_TO_PLAYLIST: string;
     ADD_SONG_TO_PLAYLIST: string;
     ADD_SONG_TO_QUEUE: string;
     ADD_TO_LIBRARY: string;
     ADD_TO_LIKED: string;
     ADD_TO_QUEUE: string;
+    ADDED_TO_PLAYLIST: string;
     ADMIN_ADD_BUILD: string;
     ADMIN_APK_FILE: string;
     ADMIN_BUILDS_SUBTITLE: string;
@@ -84,11 +86,17 @@ export interface Vocabulary {
     ERROR_CREATING: string;
     ERROR_CREATING_PLAYLIST: string;
     ERROR_ENTER_NAME: string;
+    ERROR_GETTING_DOWNLOADS: string;
     ERROR_GETTING_QUEUE: string;
+    ERROR_GETTING_USER: string;
     ERROR_LIKING_MEDIA: string;
+    ERROR_SEARCHING: string;
     ERROR_STARTING_DOWNLOAD: string;
     ERROR_UNLIKING_MEDIA: string;
+    FAILED_TO_ADD_MEDIA_TO_LIBRARY: string;
+    FAILED_TO_ADD_MEDIA_TO_PLAYLIST: string;
     FAILED_TO_CHANGE_LANGUAGE: string;
+    FAILED_TO_FETCH_PLAYLISTS: string;
     FEATURED_ALBUMS: string;
     FEATURED_LISTS: string;
     FEBRUARY: string;
@@ -109,6 +117,7 @@ export interface Vocabulary {
     JULY: string;
     JUNE: string;
     LANGUAGE: string;
+    LANGUAGE_CHANGE_FAILED: string;
     LANGUAGE_CHANGED: string;
     LATEST_DOWNLOADS: string;
     LEVEL_ABBR: string;
@@ -119,6 +128,7 @@ export interface Vocabulary {
     LYRICS: string;
     MARCH: string;
     MAY: string;
+    MEDIA_ADDED_TO_LIBRARY: string;
     MEDIA_PROGRESS: string;
     MINUTES: string;
     MINUTES_LISTEND: string;
@@ -159,6 +169,7 @@ export interface Vocabulary {
     PLACEHOLDER_ARTIST: string;
     PLACEHOLDER_PLAYLIST_NAME: string;
     PLACEHOLDER_SONG: string;
+    PLAY: string;
     PLAY_LIST: string;
     PLAY_MEDIA: string;
     PLAY_NEXT: string;
@@ -186,6 +197,7 @@ export interface Vocabulary {
     REPEAT_ALL: string;
     REPEAT_ONE: string;
     REPEAT_PASSWORD: string;
+    RETURN_BACK_HOME: string;
     SAVING: string;
     SEARCH: string;
     SEARCH_BAR: string;
@@ -209,6 +221,7 @@ export interface Vocabulary {
     STATS: string;
     STOP: string;
     TO: string;
+    TODO: string;
     TOP_ALBUMS: string;
     TOP_SONGS: string;
     UNPIN: string;
@@ -229,7 +242,5 @@ export interface Vocabulary {
     YOUR_ALBUMS_PLAYLISTS: string;
     YOUR_MIX: string;
     YT_VIDEOS: string;
-    PLAY: string;
-    ADD_MEDIA_TO_PLAYLIST: string;
-    RETURN_BACK_HOME: string;
+    NEW_VERSION_AVAILABLE: string;
 }

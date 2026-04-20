@@ -1,8 +1,8 @@
-import { FlatList, StyleSheet, Text, View } from "react-native";
 import { COLORS } from "@/constants/theme";
+import type { TQueueMedia } from "@rockit/shared";
+import { FlatList, StyleSheet, Text, View } from "react-native";
 import { usePlayer } from "@/lib/PlayerContext";
 import QueueItem from "./QueueItem";
-import type { TQueueMedia } from "@rockit/shared";
 
 /**
  * PlayerQueue — inline queue list rendered inside the tabs panel.
@@ -37,9 +37,7 @@ export default function PlayerQueue() {
                         index={index}
                         isActive={item.publicId === currentMedia?.publicId}
                         onDelete={(idx) => removeFromQueue(idx)}
-                        onPlay={(media: TQueueMedia) =>
-                            playMedia(media, queue)
-                        }
+                        onPlay={(media: TQueueMedia) => playMedia(media, queue)}
                     />
                 )}
                 contentContainerStyle={styles.list}

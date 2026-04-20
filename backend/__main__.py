@@ -4,12 +4,24 @@ import asyncio
 from pathlib import Path
 from typing import Any, Dict, List
 from concurrent.futures import ThreadPoolExecutor
+import argparse
 
 from backend.utils.logger import getLogger
 
 logger = getLogger(__name__)
 
-command_to_run = sys.argv[1] if len(sys.argv) > 1 else ""
+parser = argparse.ArgumentParser()
+parser.add_argument("--env", type=str, help="Path to env file to load")
+parser.add_argument("command", nargs="?", help="Command to run")
+args, _ = parser.parse_known_args()
+command_to_run = args.command if args.command else ""
+
+if args.env:
+    if not os.path.exists(args.env):
+        print(f"Env file not found: {args.env}")
+        sys.exit(1)
+    print(f"Loading {args.env}...")
+    os.environ["ROCKIT_ENV_FILE"] = args.env
 
 
 async def import_vocabulary() -> None:
@@ -231,6 +243,71 @@ async def main() -> None:
                         logger.error(f"Error deleting {rel_path}: {e}")
 
                 logger.info(f"Deleted {deleted_count} files")
+
+            elif command == "update-video-durations":
+                from backend.constants import MEDIA_PATH
+                from backend.youtube.access.videoAccess import VideoAccess
+
+                try:
+                    import ffmpeg
+                except ImportError:
+                    logger.error(
+                        "ffmpeg-python is required. Install with: pip install ffmpeg-python"
+                    )
+                    continue
+
+                async with rockit_db.session_scope_async() as session:
+                    a_result = await VideoAccess.get_all_videos_async(session=session)
+                    if a_result.is_not_ok():
+                        logger.error(f"Error getting videos: {a_result.message()}")
+                        continue
+
+                    videos = a_result.result()
+                    logger.info(f"Found {len(videos)} videos")
+
+                    updated_count = 0
+                    error_count = 0
+
+                    for video in videos:
+                        if not video.video_path:
+                            logger.warning(
+                                f"Video {video.id} has no video_path, skipping"
+                            )
+                            error_count += 1
+                            continue
+
+                        full_path = os.path.join(MEDIA_PATH, video.video_path)
+                        if not os.path.exists(full_path):
+                            logger.warning(f"File not found: {full_path}, skipping")
+                            error_count += 1
+                            continue
+
+                        try:
+                            probe = ffmpeg.probe(full_path)
+                            video_info = next(
+                                s
+                                for s in probe["streams"]
+                                if s["codec_type"] == "video"
+                            )
+                            duration = float(probe["format"]["duration"])
+                            real_duration = int(
+                                float(video_info.get("duration", duration)) * 1000
+                            )
+
+                            video.duration_ms = int(duration * 1000)
+                            video.real_duration_ms = real_duration
+
+                            await session.commit()
+                            logger.info(
+                                f"Updated video {video.id}: duration={video.duration_ms}, "
+                                f"real_duration={video.real_duration_ms}"
+                            )
+                            updated_count += 1
+                        except Exception as e:
+                            logger.error(f"Error processing {video.id}: {e}")
+                            error_count += 1
+
+                    logger.info(f"Updated {updated_count} videos, {error_count} errors")
 
             else:
                 print("Command not found.")

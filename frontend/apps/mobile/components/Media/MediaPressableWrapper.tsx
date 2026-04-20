@@ -16,12 +16,13 @@ import {
 } from "@rockit/shared";
 import { Heart, Music, Play, PlusCircle } from "lucide-react-native";
 import { Pressable } from "react-native";
-import { apiGet } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
 import {
     ContextMenuConfig,
     ContextMenuOption,
     useContextMenu,
 } from "@/lib/ContextMenuContext";
+import { toasterManager } from "@/lib/toasterManager";
 import { useTypedRouter } from "@/lib/useTypedRouter";
 import { useVocabulary } from "@/lib/vocabulary";
 
@@ -46,20 +47,34 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
             const options: ContextMenuOption[] = [];
 
             options.push({
-                label: "Add to library",
+                label: vocabulary.ADD_TO_LIBRARY,
                 icon: Heart,
                 onPress: async () => {
                     hide();
-                    const result = await apiGet(
-                        `${API_ENDPOINTS.mediaAddFromUrl}?url=${encodeURIComponent(media.providerUrl)}`,
-                        BaseSongWithAlbumResponseSchema.or(
-                            BaseVideoResponseSchema
-                        )
-                    );
-                    EventManager.getInstance().dispatchEvent(
-                        EEvent.MediaAddedToLibrary,
-                        { publicId: result.publicId }
-                    );
+                    if (isSearchResult(media)) {
+                        toasterManager.notifyWarn(vocabulary.TODO);
+                    } else {
+                        const response = await apiFetch(
+                            `${API_ENDPOINTS.addMediaToLibrary}/${media.publicId}`,
+                            BaseSongWithAlbumResponseSchema.or(
+                                BaseVideoResponseSchema
+                            )
+                        );
+
+                        if (response.isOk()) {
+                            toasterManager.notifyInfo(
+                                vocabulary.MEDIA_ADDED_TO_LIBRARY
+                            );
+                            EventManager.getInstance().dispatchEvent(
+                                EEvent.MediaAddedToLibrary,
+                                { publicId: response.result.publicId }
+                            );
+                        } else {
+                            toasterManager.notifyError(
+                                vocabulary.FAILED_TO_ADD_MEDIA_TO_LIBRARY
+                            );
+                        }
+                    }
                 },
             });
 
@@ -100,14 +115,17 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                 name: string;
                 imageUrl: string;
             }[] = [];
-            try {
-                const res = await apiGet(
-                    API_ENDPOINTS.userPlaylists,
-                    UserPlaylistsResponseSchema
+            const res = await apiFetch(
+                API_ENDPOINTS.userPlaylists,
+                UserPlaylistsResponseSchema
+            );
+
+            if (res.isOk()) playlists = res.result.playlists;
+            else {
+                toasterManager.notifyError(
+                    vocabulary.FAILED_TO_FETCH_PLAYLISTS
                 );
-                playlists = res.playlists;
-            } catch {
-                // fall through with empty list
+                return;
             }
 
             show({
@@ -120,20 +138,31 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                     icon: Music,
                     onPress: async () => {
                         hide();
-                        const result = await apiGet(
+                        const response = await apiFetch(
                             `${API_ENDPOINTS.mediaAddFromUrl}?url=${encodeURIComponent(item.providerUrl)}&playlist_public_id=${encodeURIComponent(pl.publicId)}`,
                             BaseSongWithAlbumResponseSchema.or(
                                 BaseVideoResponseSchema
                             )
                         );
+                        if (response.isOk()) {
+                            toasterManager.notifySuccess(
+                                `${item.name} ${vocabulary.ADDED_TO_PLAYLIST}`
+                            );
+                        } else {
+                            toasterManager.notifyError(
+                                vocabulary.FAILED_TO_ADD_MEDIA_TO_PLAYLIST
+                            );
+                            return;
+                        }
+
                         const eventManager = EventManager.getInstance();
                         eventManager.dispatchEvent(EEvent.MediaAddedToLibrary, {
-                            publicId: result.publicId,
+                            publicId: response.result.publicId,
                         });
                         eventManager.dispatchEvent(
                             EEvent.MediaAddedToPlaylist,
                             {
-                                publicId: result.publicId,
+                                publicId: response.result.publicId,
                                 playlistPublicId: pl.publicId,
                             }
                         );
@@ -141,7 +170,7 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                 })),
             });
         },
-        [show, hide, buildMainMenu]
+        [vocabulary, show, hide, buildMainMenu]
     );
 
     const handleLongPress = useCallback(() => {

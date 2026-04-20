@@ -19,7 +19,7 @@ import {
     SessionResponseSchema,
 } from "@rockit/shared";
 import type { VideoPlayer } from "expo-video";
-import { apiGet } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
 import {
     AudioIntegrationService,
     type LockScreenMetadata,
@@ -179,19 +179,33 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         async function restoreSession() {
             try {
                 const [queueResponse, sessionResponse] = await Promise.all([
-                    apiGet(API_ENDPOINTS.userQueue, QueueResponseSchema),
-                    apiGet(API_ENDPOINTS.userSession, SessionResponseSchema),
+                    apiFetch(API_ENDPOINTS.userQueue, QueueResponseSchema),
+                    apiFetch(API_ENDPOINTS.userSession, SessionResponseSchema),
                 ]);
 
-                if (queueResponse.currentQueueMediaId === null) return;
+                if (!queueResponse.isOk()) {
+                    console.error(queueResponse.message, queueResponse.detail);
+                    return;
+                }
 
-                const currentItem = queueResponse.queue.find(
+                if (!sessionResponse.isOk()) {
+                    console.error(
+                        sessionResponse.message,
+                        sessionResponse.detail
+                    );
+                    return;
+                }
+
+                if (queueResponse.result.currentQueueMediaId === null) return;
+
+                const currentItem = queueResponse.result.queue.find(
                     (item) =>
-                        item.queueMediaId === queueResponse.currentQueueMediaId
+                        item.queueMediaId ===
+                        queueResponse.result.currentQueueMediaId
                 );
                 if (!currentItem) return;
 
-                const queueMedia = queueResponse.queue.map(
+                const queueMedia = queueResponse.result.queue.map(
                     (item) => item.media
                 );
                 const currentMedia = currentItem.media;
@@ -204,9 +218,9 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
                 await mediaEngine.loadTrack(uri, hasVideoSource(currentMedia));
                 await mediaEngine.pause();
 
-                if (sessionResponse.currentTimeMs !== null) {
+                if (sessionResponse.result.currentTimeMs !== null) {
                     await mediaEngine.seekTo(
-                        sessionResponse.currentTimeMs / 1000
+                        sessionResponse.result.currentTimeMs / 1000
                     );
                 }
             } catch {

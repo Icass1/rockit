@@ -1,13 +1,15 @@
+import {
+    BACKEND_URL,
+    FastApiError,
+    HttpResult,
+    type IApiFetchOptions,
+    type TZodSchema,
+} from "@rockit/shared";
 import * as SecureStore from "expo-secure-store";
-
-type ZodSchema<T> = {
-    parse: (data: unknown) => T;
-};
 
 const SESSION_KEY = "session_id";
 
-export const BACKEND_URL =
-    process.env.EXPO_PUBLIC_BACKEND_URL ?? "EXPO_PUBLIC_BACKEND_URL";
+export { BACKEND_URL };
 
 export async function getSessionCookie(): Promise<string | null> {
     return SecureStore.getItemAsync(SESSION_KEY);
@@ -29,83 +31,110 @@ export async function clearSessionCookie(): Promise<void> {
     await SecureStore.deleteItemAsync(SESSION_KEY);
 }
 
-export async function apiGet<T>(
+async function baseApiFetch(
     path: string,
-    schema: ZodSchema<T>
-): Promise<T> {
-    const response = await doFetch(path, { method: "GET" });
-    const json = await response.json();
-    return schema.parse(json);
-}
-
-export async function apiPost<TBody, TResponse>(
-    path: string,
-    bodySchema: ZodSchema<TBody>,
-    body: TBody,
-    responseSchema: ZodSchema<TResponse>
-): Promise<TResponse> {
-    bodySchema.parse(body);
-    const response = await doFetch(path, {
-        method: "POST",
-        body: JSON.stringify(body),
-    });
-    const json = await response.json();
-    return responseSchema.parse(json);
-}
-
-export async function apiPatch<TBody, TResponse>(
-    path: string,
-    bodySchema: ZodSchema<TBody>,
-    body: TBody,
-    responseSchema: ZodSchema<TResponse>
-): Promise<TResponse> {
-    bodySchema.parse(body);
-    const response = await doFetch(path, {
-        method: "PATCH",
-        body: JSON.stringify(body),
-    });
-    const json = await response.json();
-    return responseSchema.parse(json);
-}
-
-export async function apiPatchNoResponse<TBody>(
-    path: string,
-    bodySchema: ZodSchema<TBody>,
-    body: TBody
-): Promise<void> {
-    bodySchema.parse(body);
-    await doFetch(path, {
-        method: "PATCH",
-        body: JSON.stringify(body),
-    });
-}
-
-export async function apiPostAuth<TBody, TResponse>(
-    path: string,
-    bodySchema: ZodSchema<TBody>,
-    body: TBody,
-    responseSchema: ZodSchema<TResponse>
-): Promise<{ response: Response; data: TResponse }> {
-    bodySchema.parse(body);
-    const response = await doFetch(path, {
-        method: "POST",
-        body: JSON.stringify(body),
-    });
-    const json = await response.json();
-    const data = responseSchema.parse(json);
-    return { response, data };
-}
-
-async function doFetch(
-    path: string,
-    options: RequestInit = {}
+    options: IApiFetchOptions = {}
 ): Promise<Response> {
+    const { method = "GET", headers, body, signal } = options;
+
+    const cookie = await getSessionCookie();
+
+    const requestHeaders: Record<string, string> = {
+        "Content-Type": "application/json",
+        ...(typeof headers === "object" && !Array.isArray(headers)
+            ? (headers as Record<string, string>)
+            : {}),
+        ...(cookie ? { Cookie: `session_id=${cookie}` } : {}),
+    };
+
     return fetch(`${BACKEND_URL}${path}`, {
-        ...options,
+        method,
+        headers: requestHeaders,
+        body,
         credentials: "include",
-        headers: {
-            "Content-Type": "application/json",
-            ...options.headers,
-        },
+        signal,
+    });
+}
+
+export async function apiFetch<T>(
+    path: string,
+    schema: TZodSchema<T>,
+    options: IApiFetchOptions = {}
+): Promise<HttpResult<T>> {
+    let res: Response;
+
+    try {
+        res = await baseApiFetch(path, options);
+    } catch (err) {
+        return new HttpResult<T>({
+            ok: false,
+            code: 0,
+            message: "Network Error",
+            detail: (err as Error).message,
+        });
+    }
+
+    let json: unknown;
+
+    try {
+        json = await res.json();
+    } catch {
+        return new HttpResult<T>({
+            ok: false,
+            code: res.status,
+            message: res.statusText,
+            detail: "Invalid JSON response from server",
+        });
+    }
+
+    if (!res.ok) {
+        const obj = json as { detail?: FastApiError["detail"] };
+
+        return new HttpResult<T>({
+            ok: false,
+            code: res.status,
+            message: res.statusText,
+            detail: obj.detail ?? "Unknown error",
+        });
+    }
+
+    try {
+        const parsed = schema.parse(json);
+        return new HttpResult<T>({
+            ok: true,
+            code: res.status,
+            message: res.statusText,
+            result: parsed,
+        });
+    } catch (err) {
+        return new HttpResult<T>({
+            ok: false,
+            code: res.status,
+            message: "Validation Error",
+            detail: (err as Error).message,
+        });
+    }
+}
+
+export async function apiPostFetch<T, G>(
+    path: string,
+    _requestSchema: TZodSchema<T>,
+    responseSchema: TZodSchema<G>,
+    body: T
+): Promise<HttpResult<G>> {
+    return apiFetch(path, responseSchema, {
+        method: "POST",
+        body: JSON.stringify(body),
+    });
+}
+export async function apiPatchFetch<T, G>(
+    path: string,
+    _requestSchema: TZodSchema<T>,
+    responseSchema: TZodSchema<G>,
+    body: T
+): Promise<HttpResult<G>> {
+    return apiFetch(path, responseSchema, {
+        method: "PATCH",
+        body: JSON.stringify(body),
     });
 }

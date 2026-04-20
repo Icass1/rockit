@@ -1,71 +1,10 @@
 import { BACKEND_URL } from "@/environment";
-import { IApiFetchOptions, TZodSchema } from "@/models/types/api";
-
-// --------------------
-// HttpResult Types
-// --------------------
-
-/** FastAPI error format */
-export interface FastApiError {
-    detail: string | Record<string, unknown> | Array<unknown>;
-}
-
-/** Success result */
-export interface HttpSuccess<T> {
-    ok: true;
-    code: number;
-    message: string;
-    result: T;
-}
-
-/** Error result */
-export interface HttpFailure {
-    ok: false;
-    code: number;
-    message: string;
-    detail: FastApiError["detail"];
-}
-
-/** Discriminated union */
-export type HttpResultType<T> = HttpSuccess<T> | HttpFailure;
-
-// --------------------
-// HttpResult Class
-// --------------------
-
-export class HttpResult<T> {
-    public readonly code: number;
-    public readonly message: string;
-    public readonly result?: T;
-    public readonly detail?: FastApiError["detail"];
-
-    constructor(success: HttpSuccess<T>);
-    constructor(failure: HttpFailure);
-    constructor(data: HttpResultType<T>) {
-        this.code = data.code;
-        this.message = data.message;
-
-        if (data.ok) {
-            this.result = data.result;
-        } else {
-            this.detail = data.detail;
-        }
-    }
-
-    /** Narrow to success — use a method, not a getter, for type predicates */
-    isOk(): this is HttpResult<T> & { result: T } {
-        return this.code >= 200 && this.code < 300;
-    }
-
-    /** Narrow to failure */
-    isNotOk(): this is HttpResult<T> & { detail: FastApiError["detail"] } {
-        return !this.isOk();
-    }
-}
-
-// --------------------
-// baseApiFetch
-// --------------------
+import {
+    FastApiError,
+    HttpResult,
+    type IApiFetchOptions,
+    type TZodSchema,
+} from "@rockit/shared";
 
 async function baseApiFetch(path: string, options: IApiFetchOptions = {}) {
     const { method = "GET", headers, body, signal } = options;
@@ -74,7 +13,6 @@ async function baseApiFetch(path: string, options: IApiFetchOptions = {}) {
         console.warn(`'${path}' doesn't start with /`);
     }
 
-    // Server side (Next.js)
     if (typeof window === "undefined") {
         const { cookies } = await import("next/headers");
         const cookieStore = await cookies();
@@ -98,7 +36,6 @@ async function baseApiFetch(path: string, options: IApiFetchOptions = {}) {
         });
     }
 
-    // Client side
     return fetch(`${BACKEND_URL}${path}`, {
         method,
         headers,
@@ -107,10 +44,6 @@ async function baseApiFetch(path: string, options: IApiFetchOptions = {}) {
         signal,
     });
 }
-
-// --------------------
-// apiFetch
-// --------------------
 
 export async function apiFetch<T>(
     path: string,
@@ -172,19 +105,15 @@ export async function apiFetch<T>(
     }
 }
 
-// --------------------
-// apiPostFetch
-// --------------------
-
 export async function apiPostFetch<T, G>(
     path: string,
-    requestSchema: TZodSchema<T>,
+    _requestSchema: TZodSchema<T>,
     responseSchema: TZodSchema<G>,
     body: T
 ): Promise<HttpResult<G>> {
     return apiFetch(path, responseSchema, {
         method: "POST",
-        body: JSON.stringify(body),
         headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
     });
 }

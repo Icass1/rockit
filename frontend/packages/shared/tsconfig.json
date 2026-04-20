@@ -2,11 +2,7 @@
     "compilerOptions": {
         "target": "ES2020",
         "useDefineForClassFields": true,
-        "lib": [
-            "ES2020",
-            "DOM",
-            "DOM.Iterable"
-        ],
+        "lib": ["ES2020", "DOM", "DOM.Iterable"],
         "module": "ESNext",
         "skipLibCheck": true,
         "moduleResolution": "bundler",
@@ -18,35 +14,16 @@
         "noUnusedLocals": true,
         "noUnusedParameters": true,
         "noFallthroughCasesInSwitch": true,
-        "types": [
-            "node"
-        ],
+        "types": ["node"],
         "paths": {
-            "@/dto": [
-                "./src/dto"
-            ],
-            "@/dto/*": [
-                "./src/dto/*"
-            ],
-            "@/lib/*": [
-                "./src/lib/*"
-            ],
-            "@/types/*": [
-                "./src/types/*"
-            ],
-            "@/environment": [
-                "./src/environment"
-            ],
-            "@/models/*": [
-                "./src/models/*"
-            ]
+            "@/dto": ["./src/dto"],
+            "@/dto/*": ["./src/dto/*"],
+            "@/lib/*": ["./src/lib/*"],
+            "@/types/*": ["./src/types/*"],
+            "@/environment": ["./src/environment"],
+            "@/models/*": ["./src/models/*"]
         }
     },
-    "include": [
-        "**/*.ts",
-        "**/*.tsx"
-    ],
-    "exclude": [
-        "node_modules"
-    ]
+    "include": ["**/*.ts", "**/*.tsx"],
+    "exclude": ["node_modules"]
 }

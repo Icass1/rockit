@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { COLORS } from "@/constants/theme";
 import { BaseAlbumWithSongsResponse, getAlbumAsync } from "@rockit/shared";
 import { useLocalSearchParams } from "expo-router";

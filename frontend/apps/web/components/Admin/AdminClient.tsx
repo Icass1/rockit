@@ -135,9 +135,12 @@ export default function AdminClient({
                 const end = Math.min(start + CHUNK_SIZE, fileSize);
                 const chunk = bytes.slice(start, end);
 
-                const chunkBase64 = btoa(
-                    String.fromCharCode.apply(null, Array.from(chunk))
-                );
+                let binary = "";
+                const chunkLen = chunk.length;
+                for (let i = 0; i < chunkLen; i++) {
+                    binary += String.fromCharCode(chunk[i]);
+                }
+                const chunkBase64 = btoa(binary);
 
                 const chunkResult = await apiPostFetch(
                     "/admin/builds/upload/chunk",

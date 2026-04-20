@@ -16,4 +16,5 @@ export const API_ENDPOINTS = {
     userQueue: "/user/queue",
     userPlaylists: "/default/playlist",
     mediaAddFromUrl: "/media/url/add",
+    addMediaToLibrary: "/user/library/media",
 } as const;

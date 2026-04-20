@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { COLORS } from "@/constants/theme";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { usePlayer, usePlayerTime } from "@/lib/PlayerContext";
 
 interface LyricsLine {

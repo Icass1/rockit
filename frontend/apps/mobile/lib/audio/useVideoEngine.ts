@@ -43,16 +43,22 @@ export function useVideoEngine(
     });
 
     useEffect(() => {
-        const sub1 = videoPlayer.addListener("playingChange", ({ isPlaying }) => {
-            callbacksRef.current?.onPlayingChange?.(isPlaying);
-        });
-
-        const sub2 = videoPlayer.addListener("timeUpdate", ({ currentTime }) => {
-            const duration = videoPlayer.duration ?? 0;
-            if (duration > 0) {
-                callbacksRef.current?.onTimeUpdate?.(currentTime, duration);
+        const sub1 = videoPlayer.addListener(
+            "playingChange",
+            ({ isPlaying }) => {
+                callbacksRef.current?.onPlayingChange?.(isPlaying);
             }
-        });
+        );
+
+        const sub2 = videoPlayer.addListener(
+            "timeUpdate",
+            ({ currentTime }) => {
+                const duration = videoPlayer.duration ?? 0;
+                if (duration > 0) {
+                    callbacksRef.current?.onTimeUpdate?.(currentTime, duration);
+                }
+            }
+        );
 
         const sub3 = videoPlayer.addListener("playToEnd", () => {
             callbacksRef.current?.onEnded?.();

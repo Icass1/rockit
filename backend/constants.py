@@ -3,7 +3,11 @@ from dotenv import load_dotenv
 from typing import List
 import os
 
-env_files = [".env", ".env.production", ".dockerenv"]
+env_file = os.environ.get("ROCKIT_ENV_FILE")
+if env_file:
+    env_files = [env_file]
+else:
+    env_files = [".env", ".env.production", ".dockerenv"]
 
 for file in env_files:
     if os.path.exists(file):

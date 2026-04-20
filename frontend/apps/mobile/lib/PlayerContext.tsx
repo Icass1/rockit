@@ -43,7 +43,7 @@ const PlayerTimeContext = createContext<PlayerTimeContextType>({
 });
 
 interface PlayerContextType {
-    currentMedia: TQueueMedia | null;
+    currentMedia: TQueueMedia | undefined;
     queue: TQueueMedia[];
     currentIndex: number;
     isPlaying: boolean;
@@ -84,12 +84,16 @@ function hasVideoSource(
     return "videoSrc" in media && !!media.videoSrc;
 }
 
-function getLockScreenMetadata(media: TQueueMedia): LockScreenMetadata {
+function getLockScreenMetadata(
+    media: TQueueMedia,
+    duration: number
+): LockScreenMetadata {
     return {
         title: media.name,
         artist: media.artists?.[0]?.name,
         albumTitle: "album" in media ? media.album?.name : undefined,
         artworkUrl: media.imageUrl,
+        duration: duration > 0 ? duration : undefined,
     };
 }
 
@@ -153,8 +157,11 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     useEffect(() => {
-        if (isPlayerVisible && queue.currentMedia) {
-            const metadata = getLockScreenMetadata(queue.currentMedia);
+        if (queue.currentMedia) {
+            const metadata = getLockScreenMetadata(
+                queue.currentMedia,
+                duration
+            );
             AudioIntegrationService.setLockScreenActive(true, metadata, {
                 showSeekForward: true,
                 showSeekBackward: true,
@@ -162,11 +169,11 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         } else {
             AudioIntegrationService.setLockScreenActive(false);
         }
-    }, [queue.currentMedia, isPlayerVisible]);
+    }, [queue.currentMedia, duration]);
 
     useEffect(() => {
-        AudioIntegrationService.updatePlaybackState(isPlaying);
-    }, [isPlaying]);
+        AudioIntegrationService.updatePlaybackState(isPlaying, currentTime);
+    }, [isPlaying, currentTime]);
 
     useEffect(() => {
         async function restoreSession() {

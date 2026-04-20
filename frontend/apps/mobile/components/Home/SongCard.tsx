@@ -1,10 +1,9 @@
-import { memo, useCallback, useRef } from "react";
+import { memo, useRef } from "react";
 import { COLORS } from "@/constants/theme";
 import type { BaseSongWithAlbumResponse } from "@rockit/shared";
 import { Image } from "expo-image";
-import { Animated, StyleSheet, Text, TouchableOpacity } from "react-native";
-import useFullMediaOptions from "@/hooks/contextMenuOptions/useFullMediaOptions";
-import { useContextMenu } from "@/lib/ContextMenuContext";
+import { Animated, StyleSheet, Text } from "react-native";
+import MediaPressableWrapper from "@/components/Media/MediaPressableWrapper";
 
 const CARD_WIDTH = 140;
 
@@ -23,42 +22,10 @@ const SongCard = memo(function SongCard({
     onPress,
 }: SongCardProps) {
     const scale = useRef(new Animated.Value(1)).current;
-    const { show } = useContextMenu();
-    const fullOptions = useFullMediaOptions(song, songs);
-
-    const handlePressIn = () =>
-        Animated.spring(scale, {
-            toValue: 0.95,
-            useNativeDriver: true,
-            speed: 50,
-        }).start();
-
-    const handlePressOut = () =>
-        Animated.spring(scale, {
-            toValue: 1,
-            useNativeDriver: true,
-            speed: 50,
-        }).start();
-
-    const handleLongPress = useCallback(() => {
-        show({
-            imageUrl: song.imageUrl,
-            title: song.name,
-            subtitle: song.artists?.[0]?.name ?? "",
-            options: fullOptions,
-        });
-    }, [show, song, fullOptions]);
 
     return (
         <Animated.View style={{ transform: [{ scale }], width: CARD_WIDTH }}>
-            <TouchableOpacity
-                onPress={() => onPress?.(song, songs)}
-                onPressIn={handlePressIn}
-                onPressOut={handlePressOut}
-                onLongPress={handleLongPress}
-                delayLongPress={250}
-                activeOpacity={1}
-            >
+            <MediaPressableWrapper media={song} allMedia={songs}>
                 <Image
                     source={{ uri: song.imageUrl }}
                     style={styles.image}
@@ -71,7 +38,7 @@ const SongCard = memo(function SongCard({
                 <Text style={styles.artist} numberOfLines={1}>
                     {song.artists[0]?.name}
                 </Text>
-            </TouchableOpacity>
+            </MediaPressableWrapper>
         </Animated.View>
     );
 });

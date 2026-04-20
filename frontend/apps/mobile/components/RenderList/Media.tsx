@@ -13,7 +13,7 @@ export function Media({
 }: {
     index: number;
     media: TMedia;
-    allMedia?: TMedia[];
+    allMedia: TMedia[];
     substractArtists?: string[];
     showMediaIndex: boolean;
     showMediaImage: boolean;

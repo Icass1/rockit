@@ -5,27 +5,20 @@ import MediaCard from "@/components/Media/MediaCard";
 
 interface LibraryGridProps {
     items: TMedia[];
-    onItemPress?: (media: TMedia) => void;
 }
 
-const GridItem = memo(function GridItem({
-    media,
-    onPress,
-}: {
-    media: TMedia;
-    onPress?: () => void;
-}) {
-    return <MediaCard media={media} onPress={onPress} />;
+const GridItem = memo(function GridItem({ media }: { media: TMedia }) {
+    return <MediaCard media={media} />;
 });
 
-export default function LibraryGrid({ items, onItemPress }: LibraryGridProps) {
+export default function LibraryGrid({ items }: LibraryGridProps) {
     const renderItem = useCallback(
         ({ item }: { item: TMedia }) => (
             <View style={styles.itemWrapper}>
-                <GridItem media={item} onPress={() => onItemPress?.(item)} />
+                <GridItem media={item} />
             </View>
         ),
-        [onItemPress]
+        []
     );
 
     const keyExtractor = useCallback(

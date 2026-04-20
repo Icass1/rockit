@@ -130,17 +130,17 @@ export default function SearchSection({
     const renderGridItem = useCallback(
         ({ item }: { item: BaseSearchResultsItem }) => (
             <View style={styles.gridItem}>
-                <MediaCard media={item} onPress={() => handlePress(item)} />
+                <MediaCard media={item} />
             </View>
         ),
-        [handlePress]
+        []
     );
 
     const renderRowItem = useCallback(
         ({ item }: { item: BaseSearchResultsItem }) => (
-            <MediaRow media={item} onPress={() => handlePress(item)} />
+            <MediaRow media={item} />
         ),
-        [handlePress]
+        []
     );
 
     const renderArtistItem = useCallback(

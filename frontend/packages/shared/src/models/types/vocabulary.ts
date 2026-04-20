@@ -230,4 +230,6 @@ export interface Vocabulary {
     YOUR_MIX: string;
     YT_VIDEOS: string;
     PLAY: string;
+    ADD_MEDIA_TO_PLAYLIST: string;
+    RETURN_BACK_HOME: string;
 }

@@ -119,11 +119,13 @@ export default function ContextMenuSheet({
                                 >
                                     {option.label}
                                 </Text>
-                                <ChevronRight
-                                    size={16}
-                                    color={COLORS.gray600}
-                                    style={styles.optionChevron}
-                                />
+                                {option.showArrow && (
+                                    <ChevronRight
+                                        size={16}
+                                        color={COLORS.gray600}
+                                        style={styles.optionChevron}
+                                    />
+                                )}
                             </Pressable>
                         ))}
                     </>

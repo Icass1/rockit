@@ -11,7 +11,7 @@ import {
 interface UseQueueReturn {
     queue: TQueueMedia[];
     currentIndex: number;
-    currentMedia: TQueueMedia | null;
+    currentMedia: TQueueMedia | undefined;
     shuffle: boolean;
     repeatMode: ERepeatMode;
     setQueueAndPlay: (media: TQueueMedia, newQueue: TQueueMedia[]) => number;

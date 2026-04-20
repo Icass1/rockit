@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from "react";
-import { AppState, AppStateStatus, Platform } from "react-native";
+import { AppState, AppStateStatus, Platform, TurboModuleRegistry } from "react-native";
 
 export interface AudioIntegrationConfig {
     stayActiveInBackground: boolean;
@@ -40,14 +40,24 @@ interface AudioIntegrationCallbacks {
     onHeadsetDisconnect: () => void;
 }
 
+type MediaControlClass = any;
+type CommandEnum = any;
+type PlaybackStateEnum = any;
+
 class AudioIntegrationServiceClass {
     private callbacks: AudioIntegrationCallbacks | null = null;
     private config: AudioIntegrationConfig = DEFAULT_AUDIO_INTEGRATION_CONFIG;
     private currentMetadata: LockScreenMetadata | null = null;
     private isLockScreenActive = false;
+    private isMediaControlEnabled = false;
     private appStateListener: { remove: () => void } | null = null;
     private isInitialized = false;
-    private playbackListener: { remove: () => void } | null = null;
+    private mediaControlListener: (() => void) | null = null;
+    private skipForwardInterval = 10;
+    private skipBackwardInterval = 10;
+    private mediaControl: MediaControlClass | null = null;
+    private Command: CommandEnum | null = null;
+    private PlaybackState: PlaybackStateEnum | null = null;
 
     constructor() {
         if (Platform.OS !== "web") {
@@ -57,8 +67,23 @@ class AudioIntegrationServiceClass {
 
     private async init() {
         this.setupAppStateListener();
-        this.setupPlaybackListener();
+        await this.setupMediaControlListeners();
         this.isInitialized = true;
+    }
+
+    private async ensureMediaControlLoaded() {
+        if (this.mediaControl) return;
+        if (Platform.OS === "web") return;
+        if (!TurboModuleRegistry.get("ExpoMediaControl")) return;
+
+        try {
+            const mod = await import("expo-media-control");
+            this.mediaControl = mod.MediaControl;
+            this.Command = mod.Command;
+            this.PlaybackState = mod.PlaybackState;
+        } catch {
+            // Module not available
+        }
     }
 
     private setupAppStateListener() {
@@ -74,12 +99,42 @@ class AudioIntegrationServiceClass {
         }
     }
 
-    private setupPlaybackListener() {
-        // Listen for playback events from system
+    private async setupMediaControlListeners() {
+        await this.ensureMediaControlLoaded();
+        if (!this.mediaControl || !this.Command) return;
+
+        this.mediaControlListener = this.mediaControl.addListener(
+            this.handleMediaControlEvent.bind(this)
+        );
+    }
+
+    private handleMediaControlEvent(event: { command: string }) {
+        if (!this.Command) return;
+
+        switch (event.command) {
+            case this.Command.PLAY:
+                this.emitPlay();
+                break;
+            case this.Command.PAUSE:
+                this.emitPause();
+                break;
+            case this.Command.NEXT_TRACK:
+                this.emitNextTrack();
+                break;
+            case this.Command.PREVIOUS_TRACK:
+                this.emitPreviousTrack();
+                break;
+            case this.Command.SKIP_FORWARD:
+                this.emitSeekForward();
+                break;
+            case this.Command.SKIP_BACKWARD:
+                this.emitSeekBackward();
+                break;
+        }
     }
 
     private syncWithSystemMedia() {
-        // Sync playback state with system media session
+        // Sync playback state with system media session if needed
     }
 
     setCallbacks(callbacks: AudioIntegrationCallbacks) {
@@ -111,28 +166,77 @@ class AudioIntegrationServiceClass {
 
         if (active && metadata) {
             this.currentMetadata = metadata;
-            await this.updateNowPlayingMetadata();
+            this.skipForwardInterval =
+                options?.showSeekForward !== false ? 10 : 0;
+            this.skipBackwardInterval =
+                options?.showSeekBackward !== false ? 10 : 0;
+            await this.updateNowPlayingMetadata(metadata);
         } else if (!active) {
             this.currentMetadata = null;
             await this.clearNowPlayingMetadata();
         }
     }
 
-    private async updateNowPlayingMetadata() {
-        // Platform-specific lock screen metadata update
-        // For Android: uses expo-audio's setActiveForLockScreen when available
-        // This is handled by the audio engine through expo-audio
-    }
+    private async updateNowPlayingMetadata(
+        metadata: LockScreenMetadata
+    ): Promise<void> {
+        await this.ensureMediaControlLoaded();
+        if (!this.mediaControl || !this.Command) return;
 
-    private async clearNowPlayingMetadata() {
-        // Clear lock screen metadata
-    }
-
-    async updatePlaybackState(isPlaying: boolean): Promise<void> {
-        // Update system media session with current playback state
-        if (this.isLockScreenActive) {
-            // Notify system of playback state change for lock screen controls
+        if (!this.isMediaControlEnabled) {
+            await this.mediaControl.enableMediaControls({
+                capabilities: [
+                    this.Command.PLAY,
+                    this.Command.PAUSE,
+                    this.Command.NEXT_TRACK,
+                    this.Command.PREVIOUS_TRACK,
+                    this.Command.SKIP_FORWARD,
+                    this.Command.SKIP_BACKWARD,
+                ],
+            });
+            this.isMediaControlEnabled = true;
         }
+
+        const mediaMetadata: Record<string, unknown> = {
+            title: metadata.title,
+            artist: metadata.artist,
+            album: metadata.albumTitle,
+            duration: metadata.duration,
+            elapsedTime: 0,
+        };
+
+        if (metadata.artworkUrl) {
+            mediaMetadata.artwork = { uri: metadata.artworkUrl };
+        }
+
+        await this.mediaControl.updateMetadata(mediaMetadata);
+    }
+
+    private async clearNowPlayingMetadata(): Promise<void> {
+        await this.ensureMediaControlLoaded();
+        if (!this.mediaControl || !this.isMediaControlEnabled) return;
+        await this.mediaControl.disableMediaControls();
+        this.isMediaControlEnabled = false;
+    }
+
+    async updatePlaybackState(
+        isPlaying: boolean,
+        position: number = 0
+    ): Promise<void> {
+        await this.ensureMediaControlLoaded();
+        if (!this.mediaControl || !this.PlaybackState) return;
+        if (!this.isLockScreenActive || !this.currentMetadata) return;
+
+        const state = isPlaying
+            ? this.PlaybackState.PLAYING
+            : this.PlaybackState.PAUSED;
+        const playbackRate = isPlaying ? 1.0 : 0.0;
+
+        await this.mediaControl.updatePlaybackState(
+            state,
+            position,
+            playbackRate
+        );
     }
 
     emitPlay() {
@@ -144,11 +248,11 @@ class AudioIntegrationServiceClass {
     }
 
     emitSeekForward() {
-        this.callbacks?.onSeekForward(10);
+        this.callbacks?.onSeekForward(this.skipForwardInterval);
     }
 
     emitSeekBackward() {
-        this.callbacks?.onSeekBackward(10);
+        this.callbacks?.onSeekBackward(this.skipBackwardInterval);
     }
 
     emitNextTrack() {
@@ -185,7 +289,9 @@ class AudioIntegrationServiceClass {
 
     dispose() {
         this.appStateListener?.remove();
-        this.playbackListener?.remove();
+        if (this.mediaControlListener) {
+            this.mediaControlListener();
+        }
     }
 }
 
@@ -226,9 +332,15 @@ export function useAudioIntegration(callbacks: AudioIntegrationCallbacks) {
         []
     );
 
-    const updatePlaybackState = useCallback(async (isPlaying: boolean) => {
-        await AudioIntegrationService.updatePlaybackState(isPlaying);
-    }, []);
+    const updatePlaybackState = useCallback(
+        async (isPlaying: boolean, position: number = 0) => {
+            await AudioIntegrationService.updatePlaybackState(
+                isPlaying,
+                position
+            );
+        },
+        []
+    );
 
     const isAutoPlayOnBluetoothEnabled = useCallback(
         () => AudioIntegrationService.isAutoPlayOnBluetoothEnabled(),

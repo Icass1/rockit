@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { z } from "zod";
-import { apiGet } from "./api";
+import { apiFetch } from "./api";
 
 export function useApiFetch<T>(
     path: string,
@@ -15,10 +15,12 @@ export function useApiFetch<T>(
         let cancelled = false;
         setLoading(true);
         setError(null);
-        apiGet(path, schema)
-            .then((result) => {
-                if (!cancelled) {
-                    setData(result);
+        apiFetch(path, schema)
+            .then((response) => {
+                if (!response.isOk())
+                    console.error(response.message, response.detail);
+                if (!cancelled && response.isOk()) {
+                    setData(response.result);
                     setLoading(false);
                 }
             })

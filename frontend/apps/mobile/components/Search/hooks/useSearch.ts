@@ -4,7 +4,8 @@ import {
     SearchResultsResponseSchema,
     type BaseSearchResultsItem,
 } from "@rockit/shared";
-import { apiGet } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
+import { useVocabulary } from "@/lib/vocabulary";
 
 export interface SearchState {
     results: BaseSearchResultsItem[];
@@ -19,38 +20,43 @@ export function useSearch() {
     const [error, setError] = useState<string | null>(null);
     const [query, setQuery] = useState("");
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const { vocabulary } = useVocabulary();
 
-    const search = useCallback(async (text: string) => {
-        setQuery(text);
+    const search = useCallback(
+        async (text: string) => {
+            setQuery(text);
 
-        if (debounceRef.current) {
-            clearTimeout(debounceRef.current);
-        }
+            if (debounceRef.current) {
+                clearTimeout(debounceRef.current);
+            }
 
-        if (!text.trim()) {
-            setResults([]);
-            setError(null);
-            return;
-        }
+            if (!text.trim()) {
+                setResults([]);
+                setError(null);
+                return;
+            }
 
-        debounceRef.current = setTimeout(async () => {
-            setSearching(true);
-            setError(null);
+            debounceRef.current = setTimeout(async () => {
+                setSearching(true);
+                setError(null);
 
-            try {
-                const parsed = await apiGet(
+                const response = await apiFetch(
                     `${API_ENDPOINTS.search}?q=${encodeURIComponent(text)}`,
                     SearchResultsResponseSchema
                 );
-                setResults(parsed.results);
-            } catch (e) {
-                setError(e instanceof Error ? e.message : "Search failed");
-                setResults([]);
-            } finally {
+                if (response.isOk() && response.result) {
+                    setResults(response.result.results);
+                } else {
+                    setResults([]);
+                    setError(
+                        vocabulary.ERROR_SEARCHING + ": " + response.message
+                    );
+                }
                 setSearching(false);
-            }
-        }, 300);
-    }, []);
+            }, 300);
+        },
+        [vocabulary]
+    );
 
     const clearResults = useCallback(() => {
         if (debounceRef.current) {

@@ -3,7 +3,7 @@ import {
     UserStatsResponseSchema,
     type UserStatsResponse,
 } from "@rockit/shared";
-import { apiGet } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
 
 export type Range = "7d" | "30d" | "1y" | "custom";
 
@@ -36,10 +36,13 @@ export function useUserStats({
         }
 
         setLoading(true);
-        apiGet(`/stats/user?${params.toString()}`, UserStatsResponseSchema)
-            .then((parsed) => {
-                if (!cancelled) {
-                    setData(parsed);
+        apiFetch(`/stats/user?${params.toString()}`, UserStatsResponseSchema)
+            .then((response) => {
+                if (response.isNotOk()) {
+                    console.error(response.message, response.detail);
+                }
+                if (!cancelled && response.isOk()) {
+                    setData(response.result);
                     setLoading(false);
                 }
             })

@@ -7,11 +7,13 @@ import React, {
     type ReactNode,
 } from "react";
 import {
+    OkResponseSchema,
     UpdateLangRequestSchema,
     UserVocabularyResponseSchema,
     type Vocabulary,
 } from "@rockit/shared";
-import { apiGet, apiPatchNoResponse } from "./api";
+import { toasterManager } from "@/lib/toasterManager";
+import { apiFetch, apiPatchFetch } from "./api";
 
 function createVocabularyProxy(data: Record<string, string>): Vocabulary {
     return new Proxy(data, {
@@ -40,34 +42,41 @@ export function VocabularyProvider({ children }: { children: ReactNode }) {
 
     const refreshVocabulary = useCallback(async () => {
         setIsLoading(true);
-        try {
-            const res = await apiGet(
-                "/vocabulary/user",
-                UserVocabularyResponseSchema
-            );
-            setVocabulary(createVocabularyProxy(res.vocabulary));
-            setLang(res.currentLang);
-        } catch {
-            // Keep defaults on error
-        } finally {
+        const response = await apiFetch(
+            "/vocabulary/user",
+            UserVocabularyResponseSchema
+        );
+
+        if (!response.isOk()) {
+            console.error(response.message, response.detail);
+            toasterManager.notifyError("Failed to load vocabulary");
             setIsLoading(false);
+            return;
         }
+
+        const res = response.result;
+
+        setVocabulary(createVocabularyProxy(res.vocabulary));
+        setLang(res.currentLang);
+        setIsLoading(false);
     }, []);
 
     const setLanguage = useCallback(
         async (newLang: string) => {
-            try {
-                await apiPatchNoResponse(
-                    "/user/lang",
-                    UpdateLangRequestSchema,
-                    { lang: newLang }
-                );
-                await refreshVocabulary();
-            } catch {
-                // Error handling done in component
+            const response = await apiPatchFetch(
+                "/user/lang",
+                UpdateLangRequestSchema,
+                OkResponseSchema,
+                { lang: newLang }
+            );
+            if (response.isOk()) {
+                toasterManager.notifySuccess(vocabulary.LANGUAGE_CHANGED);
+            } else {
+                toasterManager.notifyError(vocabulary.LANGUAGE_CHANGE_FAILED);
             }
+            await refreshVocabulary();
         },
-        [refreshVocabulary]
+        [refreshVocabulary, vocabulary]
     );
 
     useEffect(() => {

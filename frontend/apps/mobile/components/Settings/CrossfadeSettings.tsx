@@ -1,10 +1,22 @@
 import { useEffect, useState } from "react";
 import { COLORS } from "@/constants/theme";
 import Slider from "@react-native-community/slider";
-import { UpdateCrossfadeRequestSchema } from "@rockit/shared";
+import { HttpResult, UpdateCrossfadeRequestSchema } from "@rockit/shared";
+import type { TZodSchema } from "@rockit/shared";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
-import { apiPatchNoResponse } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
 import { usePlayer } from "@/lib/PlayerContext";
+
+async function apiPatchNoResponse<T>(
+    path: string,
+    schema: TZodSchema<T>,
+    body: T
+): Promise<HttpResult<unknown>> {
+    return apiFetch(path, schema, {
+        method: "PATCH",
+        body: JSON.stringify(body),
+    });
+}
 
 /**
  * Crossfade settings UI used inside the Settings page.

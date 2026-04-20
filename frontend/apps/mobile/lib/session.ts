@@ -1,27 +1,20 @@
 import {
     AUTH_ENDPOINTS,
-    isDevFakeMode,
     SessionResponseSchema,
     type SessionResponse,
 } from "@rockit/shared";
-import { apiGet } from "./api";
-
-const FAKE_SESSION: SessionResponse = {
-    username: "dev",
-    image: "",
-    admin: false,
-    queueType: "RANDOM",
-    currentTimeMs: null,
-};
+import { apiFetch } from "./api";
 
 export async function getSession(): Promise<SessionResponse | null> {
-    if (isDevFakeMode()) {
-        return FAKE_SESSION;
-    }
+    const response = await apiFetch(
+        AUTH_ENDPOINTS.session,
+        SessionResponseSchema
+    );
 
-    try {
-        return await apiGet(AUTH_ENDPOINTS.session, SessionResponseSchema);
-    } catch {
+    if (response.isOk()) {
+        return response.result;
+    } else {
+        console.error(response.message, response.detail);
         return null;
     }
 }

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { COLORS } from "@/constants/theme";
+import type { DownloadProgressMessage } from "@rockit/shared";
 import {
     DownloadsResponseSchema,
     EWebSocketMessage,
@@ -8,8 +9,9 @@ import {
     StartDownloadRequestSchema,
     StartDownloadResponseSchema,
 } from "@rockit/shared";
-import type { DownloadProgressMessage } from "@rockit/shared";
-import { apiGet, apiPost } from "@/lib/api";
+import { apiFetch, apiPostFetch } from "@/lib/api";
+import { toasterManager } from "@/lib/toasterManager";
+import { useVocabulary } from "@/lib/vocabulary";
 import { webSocketManager } from "@/lib/webSocketManager";
 
 export interface DownloadInfo {
@@ -35,13 +37,19 @@ export interface DownloadGroup {
 
 export function useDownloads() {
     const [downloads, setDownloads] = useState<DownloadInfo[]>([]);
+    const { vocabulary } = useVocabulary();
 
     const fetchDownloads = useCallback(async () => {
-        const data = await apiGet(
+        const response = await apiFetch(
             "/downloader/downloads",
             DownloadsResponseSchema
         );
-        const downloadGroups = data.downloads || [];
+        if (!response.isOk()) {
+            toasterManager.notifyError(vocabulary.ERROR_GETTING_DOWNLOADS);
+            return;
+        }
+
+        const downloadGroups = response.result.downloads || [];
         const flatDownloads: DownloadInfo[] = [];
         for (const group of downloadGroups) {
             for (const item of group.items || []) {
@@ -59,7 +67,7 @@ export function useDownloads() {
             }
         }
         setDownloads(flatDownloads);
-    }, []);
+    }, [vocabulary.ERROR_GETTING_DOWNLOADS]);
 
     useEffect(() => {
         let cancelled = false;
@@ -122,17 +130,24 @@ export function useDownloads() {
 
     const startDownload = async (url: string) => {
         try {
-            const media = await apiGet(
+            const response = await apiFetch(
                 `/media/url/add?url=${encodeURIComponent(url)}`,
                 MediaResponseSchema
             );
-            const publicId = media.publicId;
 
-            await apiPost(
+            if (!response.isOk()) {
+                console.error(response.message, response.detail);
+                toasterManager.notifyError("Error starting download");
+                return;
+            }
+
+            const publicId = response.result.publicId;
+
+            await apiPostFetch(
                 "/downloader/start-downloads",
                 StartDownloadRequestSchema,
-                { ids: [publicId], title: "Download" },
-                StartDownloadResponseSchema
+                StartDownloadResponseSchema,
+                { ids: [publicId], title: "Download" }
             );
             await fetchDownloads();
             return { ok: true };
@@ -148,11 +163,11 @@ export function useDownloads() {
                 .map((d) => d.groupId)
         );
         for (const groupId of completedGroups) {
-            await apiPost(
+            await apiPostFetch(
                 `/downloader/downloads/${groupId}/seen`,
                 StartDownloadRequestSchema,
-                { ids: [], title: "" },
-                OkResponseSchema
+                OkResponseSchema,
+                { ids: [], title: "" }
             );
         }
         setDownloads((prev) => prev.filter((d) => d.completed !== 100));
@@ -166,11 +181,11 @@ export function useDownloads() {
         );
         for (const groupId of failedGroups) {
             try {
-                await apiPost(
+                await apiPostFetch(
                     `/downloader/downloads/${groupId}/seen`,
                     StartDownloadRequestSchema,
-                    { ids: [], title: "" },
-                    OkResponseSchema
+                    OkResponseSchema,
+                    { ids: [], title: "" }
                 );
             } catch {
                 // Ignore API errors, filter locally anyway

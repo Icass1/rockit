@@ -1,5 +1,10 @@
 import { useCallback } from "react";
-import type { BaseSearchResultsItem } from "@rockit/shared";
+import type {
+    BaseSearchResultsItem,
+    BaseSongWithAlbumResponse,
+    BaseVideoResponse,
+    UserPlaylistsResponse,
+} from "@rockit/shared";
 import {
     API_ENDPOINTS,
     BaseSongWithAlbumResponseSchema,
@@ -10,7 +15,7 @@ import {
 } from "@rockit/shared";
 import { Heart, Music, PlusCircle } from "lucide-react-native";
 import { FlatList, StyleSheet, View } from "react-native";
-import { apiGet } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
 import {
     useContextMenu,
     type ContextMenuConfig,
@@ -46,16 +51,20 @@ export default function SearchSection({
                     icon: Heart,
                     onPress: async () => {
                         hide();
-                        const result = await apiGet(
+                        const result = await apiFetch<
+                            BaseSongWithAlbumResponse | BaseVideoResponse
+                        >(
                             `${API_ENDPOINTS.mediaAddFromUrl}?url=${encodeURIComponent(item.providerUrl)}`,
                             BaseSongWithAlbumResponseSchema.or(
                                 BaseVideoResponseSchema
                             )
                         );
-                        EventManager.getInstance().dispatchEvent(
-                            EEvent.MediaAddedToLibrary,
-                            { publicId: result.publicId }
-                        );
+                        if (result.isOk() && result.result) {
+                            EventManager.getInstance().dispatchEvent(
+                                EEvent.MediaAddedToLibrary,
+                                { publicId: result.result.publicId }
+                            );
+                        }
                     },
                 },
                 {
@@ -77,11 +86,13 @@ export default function SearchSection({
                 imageUrl: string;
             }[] = [];
             try {
-                const res = await apiGet(
+                const res = await apiFetch<UserPlaylistsResponse>(
                     API_ENDPOINTS.userPlaylists,
                     UserPlaylistsResponseSchema
                 );
-                playlists = res.playlists;
+                if (res.isOk() && res.result) {
+                    playlists = res.result.playlists;
+                }
             } catch {
                 // fall through with empty list
             }
@@ -96,23 +107,28 @@ export default function SearchSection({
                     icon: Music,
                     onPress: async () => {
                         hide();
-                        const result = await apiGet(
+                        const result = await apiFetch<
+                            BaseSongWithAlbumResponse | BaseVideoResponse
+                        >(
                             `${API_ENDPOINTS.mediaAddFromUrl}?url=${encodeURIComponent(item.providerUrl)}&playlist_public_id=${encodeURIComponent(pl.publicId)}`,
                             BaseSongWithAlbumResponseSchema.or(
                                 BaseVideoResponseSchema
                             )
                         );
-                        const eventManager = EventManager.getInstance();
-                        eventManager.dispatchEvent(EEvent.MediaAddedToLibrary, {
-                            publicId: result.publicId,
-                        });
-                        eventManager.dispatchEvent(
-                            EEvent.MediaAddedToPlaylist,
-                            {
-                                publicId: result.publicId,
-                                playlistPublicId: pl.publicId,
-                            }
-                        );
+                        if (result.isOk() && result.result) {
+                            const eventManager = EventManager.getInstance();
+                            eventManager.dispatchEvent(
+                                EEvent.MediaAddedToLibrary,
+                                { publicId: result.result.publicId }
+                            );
+                            eventManager.dispatchEvent(
+                                EEvent.MediaAddedToPlaylist,
+                                {
+                                    publicId: result.result.publicId,
+                                    playlistPublicId: pl.publicId,
+                                }
+                            );
+                        }
                     },
                 })),
             });

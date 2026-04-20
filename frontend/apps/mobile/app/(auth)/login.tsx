@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { COLORS } from "@/constants/theme";
 import {
     AUTH_ENDPOINTS,
-    isDevFakeMode,
     LoginRequestSchema,
     LoginResponseSchema,
 } from "@rockit/shared";
@@ -19,7 +18,7 @@ import {
     TextInput,
     View,
 } from "react-native";
-import { apiPostAuth, saveSessionCookie } from "@/lib/api";
+import { apiPostFetch } from "@/lib/api";
 import { useVocabulary } from "@/lib/vocabulary";
 
 export default function LoginScreen() {
@@ -28,7 +27,6 @@ export default function LoginScreen() {
     const [password, setPassword] = useState("");
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
-    const fakeMode = isDevFakeMode();
 
     const { refreshVocabulary } = useVocabulary();
 
@@ -38,28 +36,18 @@ export default function LoginScreen() {
             return;
         }
 
-        if (fakeMode) {
-            await saveSessionCookie(new Response(null, { status: 200 }));
-            router.replace("/");
-            return;
-        }
-
         setError(null);
         setLoading(true);
 
         try {
-            const { response: res } = await apiPostAuth(
+            const result = await apiPostFetch(
                 AUTH_ENDPOINTS.login,
                 LoginRequestSchema,
-                { username, password, platform: "MOBILE" },
-                LoginResponseSchema
+                LoginResponseSchema,
+                { username, password, platform: "MOBILE" }
             );
 
-            console.log("Login response status:", res.status, res.ok); // Debug log, remove in production
-
-            if (res.ok) {
-                console.log("Login successful, saving session cookie..."); // Debug log, remove in production
-                await saveSessionCookie(res);
+            if (result.isOk()) {
                 router.replace("/");
                 refreshVocabulary();
             } else {
@@ -112,11 +100,7 @@ export default function LoginScreen() {
                         autoCapitalize="none"
                         autoCorrect={false}
                     />
-                    {fakeMode && (
-                        <View style={styles.fakeModeBadge}>
-                            <Text style={styles.fakeModeText}>DEV MODE</Text>
-                        </View>
-                    )}
+
                     {error && <Text style={styles.error}>{error}</Text>}
                     <Pressable
                         style={[

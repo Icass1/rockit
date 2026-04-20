@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
-import { z } from "zod";
-import { apiGet } from "@/lib/api";
 import { APP_VERSION } from "@/constants/version";
+import { z } from "zod";
+import { apiFetch } from "@/lib/api";
+import { toasterManager } from "@/lib/toasterManager";
+import { useVocabulary } from "@/lib/vocabulary";
 
 const LatestVersionSchema = z.object({
     version: z.string(),
@@ -26,20 +28,28 @@ export function useVersionCheck() {
     const [updateAvailable, setUpdateAvailable] = useState(false);
     const [apkUrl, setApkUrl] = useState<string | null>(null);
     const [latestVersion, setLatestVersion] = useState<string | null>(null);
+    const { vocabulary } = useVocabulary();
 
     useEffect(() => {
-        apiGet("/version/latest", LatestVersionSchema)
-            .then((data) => {
-                if (isNewerVersion(data.version, APP_VERSION)) {
-                    setUpdateAvailable(true);
-                    setApkUrl(data.apkUrl);
-                    setLatestVersion(data.version);
+        apiFetch("/version/latest", LatestVersionSchema)
+            .then((response) => {
+                if (response.isOk()) {
+                    if (isNewerVersion(response.result.version, APP_VERSION)) {
+                        toasterManager.notifyInfo(
+                            vocabulary.NEW_VERSION_AVAILABLE
+                        );
+                        setUpdateAvailable(true);
+                        setApkUrl(response.result.apkUrl);
+                        setLatestVersion(response.result.version);
+                    }
+                } else {
+                    console.error(response.message, response.detail);
                 }
             })
             .catch(() => {
                 // Silently ignore — no update check should not break the app
             });
-    }, []);
+    }, [vocabulary.NEW_VERSION_AVAILABLE]);
 
     return { updateAvailable, apkUrl, latestVersion };
 }

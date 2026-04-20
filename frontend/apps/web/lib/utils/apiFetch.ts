@@ -107,7 +107,7 @@ export async function apiFetch<T>(
 
 export async function apiPostFetch<T, G>(
     path: string,
-    requestSchema: TZodSchema<T>,
+    _requestSchema: TZodSchema<T>,
     responseSchema: TZodSchema<G>,
     body: T
 ): Promise<HttpResult<G>> {

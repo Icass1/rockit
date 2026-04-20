@@ -35,9 +35,13 @@ def _get_duration_with_ffprobe(filepath: str) -> Optional[int]:
         ]
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
         if result.returncode == 0 and result.stdout.strip():
-            return int(float(result.stdout.strip()) * 1000)
-    except Exception:
-        pass
+            duration_seconds = float(result.stdout.strip())
+            duration_ms = int(duration_seconds * 1000)
+            logger.info(f"FFprobe got duration: {duration_ms}ms for {filepath}")
+            return duration_ms
+        logger.warning(f"FFprobe failed for {filepath}: returncode={result.returncode}, stdout='{result.stdout.strip()}', stderr='{result.stderr.strip()}'")
+    except Exception as e:
+        logger.error(f"FFprobe exception for {filepath}: {e}", exc_info=True)
     return None
 
 

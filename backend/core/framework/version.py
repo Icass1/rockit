@@ -35,3 +35,21 @@ class Version:
             session=session,
             apk_filename=apk_filename,
         )
+
+    @staticmethod
+    async def get_latest_version_path_async(
+        session: AsyncSession,
+    ) -> AResult[str]:
+        a_result = await AdminVersionAccess.get_latest_version_async(session=session)
+        if a_result.is_not_ok():
+            return AResult(
+                code=a_result.code(),
+                message=a_result.message(),
+            )
+
+        row = a_result.result()
+        return AResult(
+            code=AResultCode.OK,
+            message="OK",
+            result=row.apk_filename,
+        )

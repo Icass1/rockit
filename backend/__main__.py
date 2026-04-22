@@ -249,7 +249,7 @@ async def main() -> None:
                 from backend.youtube.access.videoAccess import VideoAccess
 
                 try:
-                    import ffmpeg
+                    import ffmpeg  # type: ignore
                 except ImportError:
                     logger.error(
                         "ffmpeg-python is required. Install with: pip install ffmpeg-python"
@@ -283,15 +283,18 @@ async def main() -> None:
                             continue
 
                         try:
-                            probe = ffmpeg.probe(full_path)
-                            video_info = next(
+                            probe = ffmpeg.probe(full_path)  # type: ignore
+
+                            video_info = next(  # type: ignore
                                 s
-                                for s in probe["streams"]
-                                if s["codec_type"] == "video"
+                                for s in probe["streams"]  # type: ignore
+                                if s["codec_type"] == "video"  # type: ignore
                             )
-                            duration = float(probe["format"]["duration"])
+                            # type: ignore
+                            duration = float(probe["format"]["duration"])  # type: ignore
+
                             real_duration = int(
-                                float(video_info.get("duration", duration)) * 1000
+                                float(video_info.get("duration", duration)) * 1000  # type: ignore
                             )
 
                             video.duration_ms = int(duration * 1000)

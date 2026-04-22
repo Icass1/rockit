@@ -121,7 +121,8 @@ class DownloadsManager:
                                 )
                                 if a_result_download_row.is_ok():
                                     download_row = a_result_download_row.result()
-                                    if download_row.media_id:
+                                    # Disabled because icass doesn't like media to be added to library after download, it should have been added by user before.
+                                    if download_row.media_id and False:
                                         a_result_library = (
                                             await UserAccess.add_user_library_media(
                                                 session=session,

@@ -56,8 +56,8 @@ for module in modules_sorted:
     try:
         for schema in module.schemas:
             schemas.append(SchemaInfo(name=schema, base=module.base))
-    except:
-        logger.warning(f"{module} doesn't have an schemas variable declared.")
+    except Exception as e:
+        logger.exception(msg=f"{module} doesn't have an schemas variable declared")
 
 
 SET_UPDATED_TIMESTAMP_STMT = """

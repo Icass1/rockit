@@ -35,6 +35,7 @@ services:
             - ./images:/app/images
             - ./temp:/app/temp
             - ./logs:/app/logs
+            - ./builds:/app/builds
         networks:
             - rockit-beta
             - postgres_postgres-network

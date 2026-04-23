@@ -22,7 +22,9 @@ interface MediaEngineCallbacks {
     onAutoAdvance: () => void;
     onLoadStart: () => void;
     onLoaded: () => void;
+    onDeletePreviousCache: () => void;
     getNextUri: () => string | null;
+    getNextPublicId: () => string | null;
     getNextType: () => MediaType;
 }
 
@@ -73,6 +75,9 @@ export function useMediaEngine(
         onLoaded: () => {
             if (!hasVideoRef.current) callbacksRef.current.onLoaded();
         },
+        onDeletePreviousCache: () => {
+            callbacksRef.current.onDeletePreviousCache();
+        },
         getNextUri: () => {
             if (hasVideoRef.current) return null;
             // Only preload if the next track is also audio
@@ -80,6 +85,10 @@ export function useMediaEngine(
                 return callbacksRef.current.getNextUri();
             }
             return null;
+        },
+        getNextPublicId: () => {
+            if (hasVideoRef.current) return null;
+            return callbacksRef.current.getNextPublicId();
         },
     });
 

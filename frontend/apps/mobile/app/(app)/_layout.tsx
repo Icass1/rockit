@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, type ReactNode } from "react";
 import { COLORS } from "@/constants/theme";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
@@ -18,13 +18,13 @@ import {
 } from "react-native-safe-area-context";
 import { useVersionCheck } from "@/hooks/useVersionCheck";
 import { ContextMenuProvider, useContextMenu } from "@/lib/ContextMenuContext";
+import { ModalProvider } from "@/lib/ModalContext";
 import { PlayerProvider } from "@/lib/PlayerContext";
 import { getSession } from "@/lib/session";
 import { useVocabulary } from "@/lib/vocabulary";
 import ContextMenuSheet from "@/components/ContextMenu/ContextMenuSheet";
 import Header from "@/components/layout/Header";
 import { FullPlayer, MiniPlayer } from "@/components/Player";
-import UpdateModal from "@/components/UpdateModal";
 
 function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
     return (
@@ -97,7 +97,6 @@ function AppLayoutContent() {
     const { bottom: safeBottom } = useSafeAreaInsets();
     const { vocabulary } = useVocabulary();
     const { config, sheetRef } = useContextMenu();
-    const { updateAvailable, apkUrl, latestVersion } = useVersionCheck();
 
     useEffect(() => {
         getSession().then((session) => {
@@ -114,9 +113,6 @@ function AppLayoutContent() {
                 vocabulary={vocabulary}
                 config={config}
                 sheetRef={sheetRef}
-                updateAvailable={updateAvailable}
-                apkUrl={apkUrl}
-                latestVersion={latestVersion}
             />
         </PlayerProvider>
     );
@@ -128,17 +124,11 @@ function AppLayoutInner({
     vocabulary,
     config,
     sheetRef,
-    updateAvailable,
-    apkUrl,
-    latestVersion,
 }: {
     safeBottom: number;
     vocabulary: any;
     config: any;
     sheetRef: any;
-    updateAvailable: boolean;
-    apkUrl: string | null;
-    latestVersion: string | null;
 }) {
     return (
         <View style={{ flex: 1 }}>
@@ -207,12 +197,6 @@ function AppLayoutInner({
                 <MiniPlayer />
             </View>
 
-            <UpdateModal
-                visible={updateAvailable}
-                apkUrl={apkUrl}
-                latestVersion={latestVersion}
-            />
-
             <View
                 style={{
                     position: "absolute",
@@ -230,12 +214,21 @@ function AppLayoutInner({
     );
 }
 
+function VersionCheckWrapper({ children }: { children: ReactNode }) {
+    useVersionCheck();
+    return children;
+}
+
 export default function AppLayout() {
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
             <BottomSheetModalProvider>
                 <ContextMenuProvider>
-                    <AppLayoutContent />
+                    <ModalProvider>
+                        <VersionCheckWrapper>
+                            <AppLayoutContent />
+                        </VersionCheckWrapper>
+                    </ModalProvider>
                 </ContextMenuProvider>
             </BottomSheetModalProvider>
         </GestureHandlerRootView>

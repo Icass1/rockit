@@ -1,4 +1,11 @@
-import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+import {
+    createContext,
+    useCallback,
+    useContext,
+    useEffect,
+    useRef,
+    useState,
+} from "react";
 import type {
     BaseSongWithoutAlbumResponse,
     BaseVideoResponse,
@@ -17,6 +24,7 @@ import {
     AudioIntegrationService,
     type LockScreenMetadata,
 } from "@/lib/audio/AudioIntegration";
+import { mediaCacheManager } from "@/lib/audio/MediaCacheManager";
 import type { CrossfadeSettings } from "@/lib/audio/useAudioEngine";
 import { DEFAULT_CROSSFADE } from "@/lib/audio/useAudioEngine";
 import { useMediaEngine } from "@/lib/audio/useMediaEngine";
@@ -255,6 +263,16 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         onPlayingChange: setIsPlaying,
         onLoadStart: () => setIsLoading(true),
         onLoaded: () => setIsLoading(false),
+        onDeletePreviousCache: async () => {
+            // Delete the track that just finished (currentMedia before queue advances)
+            const finishedMedia = queue.currentMedia;
+            if (finishedMedia?.publicId) {
+                const uri = getUri(finishedMedia);
+                if (uri) {
+                    await mediaCacheManager.deleteCached(uri);
+                }
+            }
+        },
         onEnded: () => {
             const currentMedia = queueRef.current.currentMedia;
             if (currentMedia) {
@@ -268,11 +286,19 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
                 mediaEngine.seekTo(0).then(() => mediaEngine.play());
             } else if (action === "play" && index !== null) {
                 const nextMedia = queueRef.current.queue[index];
-                const uri = getUri(nextMedia);
-                if (uri) {
+                const rawUri = getUri(nextMedia);
+                if (rawUri) {
                     const nextHasVideo = hasVideoSource(nextMedia);
                     queueRef.current.setCurrentIndex(index);
-                    mediaEngine.loadTrack(uri, nextHasVideo);
+                    // Use cached URI if AudioPreloader already downloaded it
+                    mediaCacheManager
+                        .getCachedUri(rawUri, nextMedia.publicId)
+                        .then((cachedUri) => {
+                            mediaEngine.loadTrack(
+                                cachedUri ?? rawUri,
+                                nextHasVideo
+                            );
+                        });
                     webSocketManager.sendCurrentMedia({
                         mediaPublicId: nextMedia.publicId,
                         queueMediaId: index,
@@ -291,6 +317,11 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
             if (nextIndex === null) return null;
             return getUri(queue.queue[nextIndex]);
         },
+        getNextPublicId: () => {
+            const nextIndex = queue.getNextIndex();
+            if (nextIndex === null) return null;
+            return queue.queue[nextIndex]?.publicId ?? null;
+        },
         getNextType: () => {
             const nextIndex = queue.getNextIndex();
             if (nextIndex === null) return "audio";
@@ -302,14 +333,36 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
 
     const playMedia = useCallback(
         async (media: TQueueMedia, newQueue: TQueueMedia[]) => {
-            const uri = getUri(media);
-            if (!uri) return;
+            const rawUri = getUri(media);
+            if (!rawUri) return;
             const shouldHaveVideo = hasVideoSource(media);
+
+            // Clean up the outgoing track's cache before switching
+            const outgoingMedia = queue.currentMedia;
+            if (outgoingMedia) {
+                const outgoingUri = getUri(outgoingMedia);
+                if (outgoingUri)
+                    mediaCacheManager.deleteCached(outgoingUri);
+            }
+
             const index = queue.setQueueAndPlay(media, newQueue);
             setCurrentTime(0);
             currentTimeRef.current = 0;
             setDuration(0);
-            await mediaEngine.loadTrack(uri, shouldHaveVideo);
+
+            // Use cached URI if the track was already preloaded
+            const cachedUri = await mediaCacheManager.getCachedUri(
+                rawUri,
+                media.publicId
+            );
+            await mediaEngine.loadTrack(
+                cachedUri ?? rawUri,
+                shouldHaveVideo
+            );
+            // Cache current track in background while it plays (audio only)
+            if (!cachedUri && !shouldHaveVideo) {
+                mediaCacheManager.downloadToCache(rawUri, media.publicId);
+            }
             webSocketManager.sendMediaClicked({
                 mediaPublicId: media.publicId,
             });
@@ -358,12 +411,29 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         const nextIndex = queue.getNextIndex();
         if (nextIndex === null) return;
         const nextMedia = queue.queue[nextIndex];
-        const uri = getUri(nextMedia);
-        if (!uri) return;
+        const rawUri = getUri(nextMedia);
+        if (!rawUri) return;
         const shouldHaveVideo = hasVideoSource(nextMedia);
+
+        // Clean up the outgoing track's cache
+        const outgoingMedia = queue.currentMedia;
+        if (outgoingMedia) {
+            const outgoingUri = getUri(outgoingMedia);
+            if (outgoingUri) mediaCacheManager.deleteCached(outgoingUri);
+        }
+
         queue.setCurrentIndex(nextIndex);
         setCurrentTime(0);
-        await mediaEngine.loadTrack(uri, shouldHaveVideo);
+        // Use cached URI if AudioPreloader already downloaded it
+        const cachedUri = await mediaCacheManager.getCachedUri(
+            rawUri,
+            nextMedia.publicId
+        );
+        await mediaEngine.loadTrack(cachedUri ?? rawUri, shouldHaveVideo);
+        // Cache current track in background while it plays (audio only)
+        if (!cachedUri && !shouldHaveVideo) {
+            mediaCacheManager.downloadToCache(rawUri, nextMedia.publicId);
+        }
         webSocketManager.sendCurrentMedia({
             mediaPublicId: nextMedia.publicId,
             queueMediaId: nextIndex,
@@ -381,12 +451,29 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
             return;
         }
         const prevMedia = queue.queue[prevIndex];
-        const uri = getUri(prevMedia);
-        if (!uri) return;
+        const rawUri = getUri(prevMedia);
+        if (!rawUri) return;
         const shouldHaveVideo = hasVideoSource(prevMedia);
+
+        // Clean up the outgoing track's cache
+        const outgoingMedia = queue.currentMedia;
+        if (outgoingMedia) {
+            const outgoingUri = getUri(outgoingMedia);
+            if (outgoingUri) mediaCacheManager.deleteCached(outgoingUri);
+        }
+
         queue.setCurrentIndex(prevIndex);
         setCurrentTime(0);
-        await mediaEngine.loadTrack(uri, shouldHaveVideo);
+        // Use cached URI if available (unlikely for prev track, but consistent)
+        const cachedUri = await mediaCacheManager.getCachedUri(
+            rawUri,
+            prevMedia.publicId
+        );
+        await mediaEngine.loadTrack(cachedUri ?? rawUri, shouldHaveVideo);
+        // Cache current track in background while it plays (audio only)
+        if (!cachedUri && !shouldHaveVideo) {
+            mediaCacheManager.downloadToCache(rawUri, prevMedia.publicId);
+        }
         webSocketManager.sendCurrentMedia({
             mediaPublicId: prevMedia.publicId,
             queueMediaId: prevIndex,

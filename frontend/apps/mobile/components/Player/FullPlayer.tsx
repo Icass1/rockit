@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Image } from "expo-image";
-import { Dimensions, StyleSheet, View } from "react-native";
+import { Dimensions, Platform, StyleSheet, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
     runOnJS,
@@ -12,7 +12,7 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { usePlayer } from "@/lib/PlayerContext";
 import PlayerBottomSheet from "./PlayerBottomSheet";
-import PlayerSongInfo from "./PlayerSongInfo";
+import PlayerMediaInfo from "./PlayerMediaInfo";
 import PlayerTabsBar from "./PlayerTabsBar";
 import PlayerTopBar from "./PlayerTopBar";
 
@@ -35,8 +35,15 @@ export default function FullPlayer() {
 
     const insets = useSafeAreaInsets();
     const FOOTER_HEIGHT = 50; // Height of the custom tab bar
-    const containerHeight =
-        SCREEN_HEIGHT - FOOTER_HEIGHT - (insets.bottom || 0);
+
+    let containerHeight: number;
+
+    if (Platform.OS === "android") {
+        containerHeight = SCREEN_HEIGHT;
+    } else {
+        containerHeight = SCREEN_HEIGHT - FOOTER_HEIGHT - (insets.bottom || 0);
+    }
+
     const translateY = useSharedValue(SCREEN_HEIGHT + 10);
     const isHiding = useSharedValue(false);
     const [keepMounted, setKeepMounted] = useState(false);
@@ -149,7 +156,7 @@ export default function FullPlayer() {
                         }
                         media={currentMedia}
                     />
-                    <PlayerSongInfo
+                    <PlayerMediaInfo
                         currentMedia={currentMedia}
                         onSeek={seekTo}
                         videoPlayer={videoPlayer ?? null}

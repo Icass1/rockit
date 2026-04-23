@@ -24,7 +24,9 @@ interface AudioEngineCallbacks {
     onAutoAdvance: () => void;
     onLoadStart: () => void;
     onLoaded: () => void;
+    onDeletePreviousCache: () => void;
     getNextUri: () => string | null;
+    getNextPublicId: () => string | null;
 }
 
 export interface AudioEngineControls {
@@ -78,9 +80,16 @@ export function useAudioEngine(
             callbacksRef.current.onPlayingChange(status.playing ?? false);
 
             const nextUri = callbacksRef.current.getNextUri();
-            preloader.onTimeUpdate(positionSec, durationSec, nextUri);
+            const nextPublicId = callbacksRef.current.getNextPublicId();
+            preloader.onTimeUpdate(
+                positionSec,
+                durationSec,
+                nextUri,
+                nextPublicId
+            );
 
             if (status.didJustFinish) {
+                callbacksRef.current.onDeletePreviousCache();
                 const settings = crossfadeSettingsRef.current;
 
                 if (settings.durationMs > 0) {

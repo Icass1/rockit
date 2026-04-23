@@ -1,8 +1,11 @@
 import React from "react";
 import { COLORS } from "@/constants/theme";
-import { VideoView } from "expo-video";
+import { TMedia } from "@/shared/index";
 import type { VideoPlayer } from "expo-video";
+import { VideoView } from "expo-video";
 import { Dimensions, StyleSheet, Text, View } from "react-native";
+import MediaSubSubTitle from "@/components/MediaSubSubTitle";
+import MediaSubTitle from "@/components/MediaSubTitle";
 import MobileLikeButton from "./MobileLikeButton";
 import PlayerControls from "./PlayerControls";
 import PlayerCover from "./PlayerCover";
@@ -12,22 +15,22 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 // Cover size mirrors the old MobilePlayerUI — fills most of the screen width
 const COVER_SIZE = Math.min(SCREEN_WIDTH - 48, 340);
 
-interface PlayerSongInfoProps {
-    currentMedia: any; // TMedia from PlayerContext
+interface PlayerMediaInfoProps {
+    currentMedia: TMedia | undefined; // TMedia from PlayerContext
     onSeek: (seconds: number) => void;
     videoPlayer: VideoPlayer | null;
     hasVideo: boolean;
 }
 
-export default function PlayerSongInfo({
+export default function PlayerMediaInfo({
     currentMedia,
     onSeek,
     videoPlayer,
     hasVideo,
-}: PlayerSongInfoProps) {
+}: PlayerMediaInfoProps) {
     return (
         <View style={styles.container}>
-            {/* ── Album artwork / video ── */}
+            {/* Album artwork / video */}
             <View style={[styles.coverContainer, { height: COVER_SIZE }]}>
                 {hasVideo && videoPlayer ? (
                     <View
@@ -49,23 +52,20 @@ export default function PlayerSongInfo({
                 )}
             </View>
 
-            {/* ── Title / artist / like button ── */}
+            {/* Title / artist / like button */}
             <View style={styles.infoRow}>
                 <View style={styles.infoText}>
                     <Text style={styles.title} numberOfLines={1}>
                         {currentMedia?.name ?? ""}
                     </Text>
-                    <Text style={styles.artist} numberOfLines={1}>
-                        {currentMedia?.artists
-                            ?.map((a: { name: string }) => a.name)
-                            .join(", ") ?? ""}
+                    <Text style={styles.subTitle} numberOfLines={1}>
+                        {currentMedia && <MediaSubTitle media={currentMedia} />}
                     </Text>
-                    {currentMedia?.type === "song" &&
-                        currentMedia?.album?.name && (
-                            <Text style={styles.album} numberOfLines={1}>
-                                {currentMedia.album.name}
-                            </Text>
+                    <Text style={styles.subSubTitle} numberOfLines={1}>
+                        {currentMedia && (
+                            <MediaSubSubTitle media={currentMedia} />
                         )}
+                    </Text>
                 </View>
 
                 {/* Like button – hand + flame animation */}
@@ -74,12 +74,12 @@ export default function PlayerSongInfo({
                 )}
             </View>
 
-            {/* ── Progress slider ── */}
+            {/* Progress slider */}
             <View style={styles.progressContainer}>
                 <PlayerProgress onSeek={onSeek} />
             </View>
 
-            {/* ── Playback controls ── */}
+            {/* Playback controls */}
             <View style={styles.controlsContainer}>
                 <PlayerControls />
             </View>
@@ -123,13 +123,13 @@ const styles = StyleSheet.create({
         fontWeight: "700",
         color: COLORS.white,
     },
-    artist: {
+    subTitle: {
         fontSize: 15,
         color: "rgba(255,255,255,0.7)",
         fontWeight: "500",
         marginTop: 4,
     },
-    album: {
+    subSubTitle: {
         fontSize: 13,
         color: "rgba(255,255,255,0.45)",
         marginTop: 2,

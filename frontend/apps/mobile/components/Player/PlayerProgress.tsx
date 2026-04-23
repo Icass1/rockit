@@ -20,8 +20,16 @@ export default function PlayerProgress({ onSeek }: PlayerProgressProps) {
     const { currentTime, duration } = usePlayerTime();
     const [isSeeking, setIsSeeking] = useState(false);
     const [seekValue, setSeekValue] = useState(currentTime);
+    const [trackWidth, setTrackWidth] = useState(0);
 
-    const progressPercent = duration > 0 ? (seekValue / duration) * 100 : 0;
+    const thumbSize = 30;
+
+    const progress = duration > 0 ? seekValue / duration : 0;
+    // The slider pads thumbSize/2 on each side so the thumb doesn't overflow.
+    // Mirror that math so the gradient's right edge aligns with the thumb center.
+    const fillWidth = trackWidth > 0
+        ? thumbSize / 2 + progress * (trackWidth - thumbSize)
+        : 0;
 
     useEffect(() => {
         if (!isSeeking) setSeekValue(currentTime);
@@ -30,21 +38,23 @@ export default function PlayerProgress({ onSeek }: PlayerProgressProps) {
     return (
         <View style={styles.container}>
             <View style={styles.sliderContainer}>
-                <View style={styles.track}>
-                    <View
-                        style={[styles.fill, { width: `${progressPercent}%` }]}
-                    >
-                        <LinearGradient
-                            colors={[
-                                COLORS.accent,
-                                COLORS.accentMid,
-                                COLORS.accentLight,
-                            ]}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 0 }}
-                            style={StyleSheet.absoluteFill}
-                        />
-                    </View>
+                <View
+                    style={styles.track}
+                    onLayout={(e) => setTrackWidth(e.nativeEvent.layout.width)}
+                >
+                    <LinearGradient
+                        colors={[
+                            COLORS.accent,
+                            COLORS.accentMid,
+                            COLORS.accentLight,
+                        ]}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
+                        style={[
+                            styles.gradientFill,
+                            { width: fillWidth },
+                        ]}
+                    />
                 </View>
                 <Slider
                     style={styles.slider}
@@ -91,9 +101,11 @@ const styles = StyleSheet.create({
         borderRadius: 4,
         overflow: "hidden",
     },
-    fill: {
-        height: "100%",
-        width: "100%",
+    gradientFill: {
+        position: "absolute",
+        left: 0,
+        top: 0,
+        bottom: 0,
     },
     slider: {
         width: "100%",

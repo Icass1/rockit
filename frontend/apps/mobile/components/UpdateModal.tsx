@@ -1,90 +1,65 @@
 import { COLORS } from "@/constants/theme";
 import { APP_VERSION } from "@/constants/version";
-import {
-    Linking,
-    Modal,
-    Pressable,
-    StyleSheet,
-    Text,
-    View,
-} from "react-native";
+import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
+import { getModalRef, useModal, type ModalContent } from "@/lib/ModalContext";
 
-interface UpdateModalProps {
-    visible: boolean;
-    apkUrl: string | null;
-    latestVersion: string | null;
+interface UpdateModalContentProps {
+    apkUrl: string;
+    latestVersion: string;
 }
 
-export default function UpdateModal({
-    visible,
+export function UpdateModalContent({
     apkUrl,
     latestVersion,
-}: UpdateModalProps) {
-    const handleDownload = () => {
-        if (apkUrl) {
-            Linking.openURL(apkUrl);
-        }
-    };
+}: UpdateModalContentProps) {
+    const { hide } = useModal();
 
     return (
-        <Modal
-            visible={visible}
-            transparent
-            animationType="fade"
-            statusBarTranslucent
-        >
-            <View style={styles.overlay}>
-                <View style={styles.card}>
-                    <Text style={styles.title}>Update Available</Text>
-                    <Text style={styles.body}>
-                        A new version of RockIt! is available.
+        <>
+            <Text style={styles.body}>
+                A new version of RockIt! is available.
+            </Text>
+            <View style={styles.versions}>
+                <Text style={styles.versionLabel}>
+                    Current:{" "}
+                    <Text style={styles.versionValue}>{APP_VERSION}</Text>
+                </Text>
+                <Text style={styles.versionLabel}>
+                    New:{" "}
+                    <Text style={[styles.versionValue, styles.accent]}>
+                        {latestVersion}
                     </Text>
-                    <View style={styles.versions}>
-                        <Text style={styles.versionLabel}>
-                            Current:{" "}
-                            <Text style={styles.versionValue}>
-                                {APP_VERSION}
-                            </Text>
-                        </Text>
-                        <Text style={styles.versionLabel}>
-                            New:{" "}
-                            <Text style={[styles.versionValue, styles.accent]}>
-                                {latestVersion}
-                            </Text>
-                        </Text>
-                    </View>
-                    <Pressable style={styles.button} onPress={handleDownload}>
-                        <Text style={styles.buttonText}>
-                            Download &amp; Install
-                        </Text>
-                    </Pressable>
-                </View>
+                </Text>
             </View>
-        </Modal>
+            <Pressable
+                style={styles.button}
+                onPress={() => {
+                    Linking.openURL(apkUrl);
+                    hide();
+                }}
+            >
+                <Text style={styles.buttonText}>Download &amp; Install</Text>
+            </Pressable>
+        </>
     );
 }
 
+export function showUpdateModal(apkUrl: string, latestVersion: string): void {
+    console.log("showUpdateModal");
+
+    const ref = getModalRef();
+    const content: ModalContent = {
+        title: "Update Available",
+        content: (
+            <UpdateModalContent apkUrl={apkUrl} latestVersion={latestVersion} />
+        ),
+    };
+    console.log("ref.show", ref);
+
+    ref.show(content);
+}
+
 const styles = StyleSheet.create({
-    overlay: {
-        flex: 1,
-        backgroundColor: "rgba(0,0,0,0.75)",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 24,
-    },
-    card: {
-        backgroundColor: COLORS.bgCard,
-        borderRadius: 16,
-        padding: 24,
-        width: "100%",
-        maxWidth: 360,
-        gap: 12,
-    },
-    title: {
-        color: COLORS.white,
-        fontSize: 20,
-        fontWeight: "700",
-    },
     body: {
         color: COLORS.gray400,
         fontSize: 14,

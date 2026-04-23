@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { APP_VERSION } from "@/constants/version";
 import { z } from "zod";
 import { apiFetch } from "@/lib/api";
+import { useModal } from "@/lib/ModalContext";
 import { toasterManager } from "@/lib/toasterManager";
 import { useVocabulary } from "@/lib/vocabulary";
+import { UpdateModalContent } from "@/components/UpdateModal";
 
 const LatestVersionSchema = z.object({
     version: z.string(),
@@ -25,10 +27,10 @@ function isNewerVersion(remote: string, local: string): boolean {
 }
 
 export function useVersionCheck() {
-    const [updateAvailable, setUpdateAvailable] = useState(false);
     const [apkUrl, setApkUrl] = useState<string | null>(null);
     const [latestVersion, setLatestVersion] = useState<string | null>(null);
     const { vocabulary } = useVocabulary();
+    const { show } = useModal();
 
     useEffect(() => {
         apiFetch("/version/latest", LatestVersionSchema)
@@ -38,9 +40,17 @@ export function useVersionCheck() {
                         toasterManager.notifyInfo(
                             vocabulary.NEW_VERSION_AVAILABLE
                         );
-                        setUpdateAvailable(true);
                         setApkUrl(response.result.apkUrl);
                         setLatestVersion(response.result.version);
+                        show({
+                            title: "Update Available",
+                            content: (
+                                <UpdateModalContent
+                                    apkUrl={response.result.apkUrl}
+                                    latestVersion={response.result.version}
+                                />
+                            ),
+                        });
                     }
                 } else {
                     console.error(response.message, response.detail);
@@ -49,7 +59,7 @@ export function useVersionCheck() {
             .catch(() => {
                 // Silently ignore — no update check should not break the app
             });
-    }, [vocabulary.NEW_VERSION_AVAILABLE]);
+    }, [vocabulary.NEW_VERSION_AVAILABLE, show]);
 
-    return { updateAvailable, apkUrl, latestVersion };
+    return { apkUrl, latestVersion };
 }

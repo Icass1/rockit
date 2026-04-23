@@ -41,6 +41,7 @@ async def download_apk(request: Request, filename: str) -> FileResponse:
     apk_path = os.path.join(BUILDS_PATH, filename)
 
     if not os.path.exists(apk_path):
+        logger.error(f"Build not found: {filename}")
         raise HTTPException(status_code=404, detail="APK file not found.")
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)

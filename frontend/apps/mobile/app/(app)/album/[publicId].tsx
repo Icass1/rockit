@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { COLORS } from "@/constants/theme";
 import { BaseAlbumWithSongsResponse, getAlbumAsync } from "@rockit/shared";
 import { useLocalSearchParams } from "expo-router";
@@ -7,9 +7,7 @@ import RenderList from "@/components/RenderList/RenderList";
 
 export default function AlbumPage() {
     const { publicId } = useLocalSearchParams<{ publicId: string }>();
-    const [album, setAlbum] = useState<BaseAlbumWithSongsResponse | null>(
-        null
-    );
+    const [album, setAlbum] = useState<BaseAlbumWithSongsResponse | null>(null);
 
     useEffect(() => {
         if (!publicId) return;
@@ -38,8 +36,9 @@ export default function AlbumPage() {
             imageUrl={album.imageUrl}
             artists={album.artists}
             media={album.songs}
+            substractArtists={album.artists.map((a) => a.name)}
             showMediaIndex={true}
-            showMediaImage={true}
+            showMediaImage={false}
         />
     );
 }

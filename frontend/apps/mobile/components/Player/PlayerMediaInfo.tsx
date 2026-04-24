@@ -58,9 +58,13 @@ export default function PlayerMediaInfo({
                     <Text style={styles.title} numberOfLines={1}>
                         {currentMedia?.name ?? ""}
                     </Text>
-                    <Text style={styles.subTitle} numberOfLines={1}>
-                        {currentMedia && <MediaSubTitle media={currentMedia} />}
-                    </Text>
+                    {currentMedia && (
+                        <MediaSubTitle
+                            media={currentMedia}
+                            style={styles.subTitle}
+                            numberOfLines={1}
+                        />
+                    )}
                     <Text style={styles.subSubTitle} numberOfLines={1}>
                         {currentMedia && (
                             <MediaSubSubTitle media={currentMedia} />

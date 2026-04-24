@@ -3,9 +3,6 @@ import { COLORS } from "@/constants/theme";
 import {
     getMediaDuration,
     isDownloadable,
-    isSong,
-    isVideo,
-    type BaseArtistResponse,
     type TMedia,
     type TPlayableMedia,
 } from "@rockit/shared";
@@ -14,22 +11,13 @@ import { Download } from "lucide-react-native";
 import { StyleSheet, Text, View } from "react-native";
 import { useMedia } from "@/hooks/useMedia";
 import MediaPressableWrapper from "@/components/Media/MediaPressableWrapper";
+import MediaSubTitle from "@/components/MediaSubTitle";
 
 function formatDuration(seconds: number): string {
     const totalSeconds = Math.floor(seconds);
     const minutes = Math.floor(totalSeconds / 60);
     const secs = totalSeconds % 60;
     return `${minutes}:${secs.toString().padStart(2, "0")}`;
-}
-
-function getArtistNames(
-    media: TPlayableMedia,
-    substractArtists: string[]
-): BaseArtistResponse[] {
-    if (isSong(media) || isVideo(media)) {
-        return media.artists.filter((a) => !substractArtists.includes(a.name));
-    }
-    return [];
 }
 
 export const PlayableMedia = memo(function PlayableMedia({
@@ -49,56 +37,56 @@ export const PlayableMedia = memo(function PlayableMedia({
 }) {
     const $media = useMedia(_media);
 
-    const artists = getArtistNames($media, substractArtists);
     const duration = getMediaDuration($media);
     const downloaded = !isDownloadable($media) || $media.downloaded;
 
     return (
         <MediaPressableWrapper media={$media} allMedia={allMedia}>
-            {showMediaIndex && (
-                <View style={styles.indexContainer}>
-                    <Text style={styles.indexText}>{index + 1}</Text>
-                </View>
-            )}
-            {showMediaImage && (
-                <View style={styles.imageWrapper}>
-                    <Image
-                        source={{ uri: $media.imageUrl }}
-                        style={styles.image}
-                        contentFit="cover"
-                    />
-                    {!downloaded && (
-                        <View style={styles.downloadBadge}>
-                            <Download size={10} color={COLORS.white} />
-                        </View>
-                    )}
-                </View>
-            )}
-            <View style={styles.info}>
-                <Text
-                    style={[
-                        styles.title,
-                        !downloaded && styles.titleNotDownloaded,
-                    ]}
-                    numberOfLines={1}
-                >
-                    {$media.name}
-                </Text>
-                {artists.length > 0 && (
+            <View style={styles.container}>
+                {showMediaIndex && (
+                    <View style={styles.indexContainer}>
+                        <Text style={styles.indexText}>{index + 1}</Text>
+                    </View>
+                )}
+                {showMediaImage && (
+                    <View style={styles.imageWrapper}>
+                        <Image
+                            source={{ uri: $media.imageUrl }}
+                            style={styles.image}
+                            contentFit="cover"
+                        />
+                        {!downloaded && (
+                            <View style={styles.downloadBadge}>
+                                <Download size={10} color={COLORS.white} />
+                            </View>
+                        )}
+                    </View>
+                )}
+                <View style={styles.info}>
                     <Text
+                        style={[
+                            styles.title,
+                            !downloaded && styles.titleNotDownloaded,
+                        ]}
+                        numberOfLines={1}
+                    >
+                        {$media.name}
+                    </Text>
+                    <MediaSubTitle
                         style={[
                             styles.subtitle,
                             !downloaded && styles.subtitleNotDownloaded,
                         ]}
-                        numberOfLines={1}
-                    >
-                        {artists.map((a) => a.name).join(", ")}
+                        media={$media}
+                        substractArtists={substractArtists}
+                    />
+                </View>
+                {duration !== undefined && (
+                    <Text style={styles.duration}>
+                        {formatDuration(duration)}
                     </Text>
                 )}
             </View>
-            {duration !== undefined && (
-                <Text style={styles.duration}>{formatDuration(duration)}</Text>
-            )}
         </MediaPressableWrapper>
     );
 });

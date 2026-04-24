@@ -42,9 +42,11 @@ class AuthMiddleware:
             )
 
         if a_result_session.result().expires_at < datetime.now(timezone.utc):
+            logger.error("Session has expired.")
             raise HTTPException(status_code=401, detail="Session has expired.")
 
         if a_result_session.result().disabled:
+            logger.error("Session is disabled.")
             raise HTTPException(status_code=401, detail="Session is disabled.")
 
         a_result_user: AResult[UserRow] = await UserAccess.get_user_from_id(
@@ -59,6 +61,7 @@ class AuthMiddleware:
         user: UserRow = a_result_user.result()
 
         if not user:
+            logger.error("User not found.")
             raise HTTPException(404, "User not found.")
 
         request.state.user = user

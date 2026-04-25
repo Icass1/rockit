@@ -1,8 +1,6 @@
 from sqlalchemy import MetaData
-from sqlalchemy.orm import declarative_base
-
-global_metadata = MetaData(schema=None)
+from sqlalchemy.orm import DeclarativeBase
 
 
-CoreBase = declarative_base(metadata=global_metadata)
-CoreBase.metadata.schema = "core"
+class CoreBase(DeclarativeBase):
+    metadata = MetaData(schema="core")

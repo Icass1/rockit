@@ -1,9 +1,11 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.core.access.adminVersionAccess import AdminVersionAccess
-from backend.core.aResult import AResult, AResultCode
-from backend.core.responses.latestVersionResponse import LatestVersionResponse
 from backend.constants import BACKEND_URL
+from backend.core.aResult import AResult, AResultCode
+
+from backend.core.access.adminVersionAccess import AdminVersionAccess
+from backend.core.access.db.ormModels.appVersion import AppVersionRow
+from backend.core.responses.latestVersionResponse import LatestVersionResponse
 
 
 class Version:
@@ -39,7 +41,7 @@ class Version:
     @staticmethod
     async def get_latest_version_path_async(
         session: AsyncSession,
-    ) -> AResult[str]:
+    ) -> AResult[AppVersionRow]:
         a_result = await AdminVersionAccess.get_latest_version_async(session=session)
         if a_result.is_not_ok():
             return AResult(
@@ -47,9 +49,9 @@ class Version:
                 message=a_result.message(),
             )
 
-        row = a_result.result()
+        row: AppVersionRow = a_result.result()
         return AResult(
             code=AResultCode.OK,
             message="OK",
-            result=row.apk_filename,
+            result=row,
         )

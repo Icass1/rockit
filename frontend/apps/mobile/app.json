@@ -2,7 +2,7 @@
     "expo": {
         "name": "RockIt!",
         "slug": "rockit",
-        "version": "0.1.0",
+        "version": "0.2.2",
         "orientation": "portrait",
         "icon": "./assets/images/icon.png",
         "scheme": "mobile",
@@ -12,7 +12,9 @@
             "bundleIdentifier": "com.rockit.mobile",
             "icon": "./assets/images/icon.png",
             "infoPlist": {
-                "UIBackgroundModes": ["audio"]
+                "UIBackgroundModes": [
+                    "audio"
+                ]
             }
         },
         "android": {
@@ -41,6 +43,7 @@
         },
         "plugins": [
             "expo-router",
+            "expo-sqlite",
             [
                 "expo-splash-screen",
                 {

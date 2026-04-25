@@ -7,11 +7,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.utils.logger import getLogger
 from backend.constants import BUILDS_PATH
+from backend.core.aResult import AResult
 
 from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 
-from backend.core.framework.version import Version
+from backend.core.access.db.ormModels.appVersion import AppVersionRow
 
+from backend.core.framework.version import Version
 from backend.core.responses.latestVersionResponse import LatestVersionResponse
 
 logger: Logger = getLogger(__name__)
@@ -58,15 +60,17 @@ async def download_apk(request: Request, filename: str) -> FileResponse:
 async def download_latest_apk(request: Request) -> FileResponse:
     """Endpoint to download the latest APK file."""
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-    a_result = await Version.get_latest_version_path_async(session=session)
+    a_result: AResult[AppVersionRow] = await Version.get_latest_version_path_async(
+        session=session
+    )
     if a_result.is_not_ok():
         logger.error(f"Error fetching latest version. {a_result.info()}")
         raise HTTPException(
             status_code=a_result.get_http_code(), detail=a_result.message()
         )
-    filename: str = a_result.result()
+    version_row: AppVersionRow = a_result.result()
 
-    apk_path = os.path.join(BUILDS_PATH, filename)
+    apk_path = os.path.join(BUILDS_PATH, version_row.apk_filename)
 
     if not os.path.exists(apk_path):
         logger.error(f"Build not found: {apk_path}")
@@ -78,5 +82,5 @@ async def download_latest_apk(request: Request) -> FileResponse:
     return FileResponse(
         path=apk_path,
         media_type="application/vnd.android.package-archive",
-        filename=apk_path,
+        filename=f"rockit_v{version_row.version}.apk",
     )

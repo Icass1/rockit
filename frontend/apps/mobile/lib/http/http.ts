@@ -19,7 +19,7 @@ import {
 import { getUserById } from "../database/access/userAccess";
 import { libraryTypeLiked } from "../database/schema";
 
-const FORCE_OFFLINE = true;
+const FORCE_OFFLINE = false;
 
 async function checkNetworkConnection(): Promise<boolean> {
     if (FORCE_OFFLINE) return false;

@@ -1,6 +1,6 @@
-from sqlalchemy.orm import declarative_base
+from sqlalchemy import MetaData
+from sqlalchemy.orm import DeclarativeBase
 
-from backend.core.access.db.base import global_metadata
 
-YoutubeBase = declarative_base(metadata=global_metadata)
-YoutubeBase.metadata.schema = "youtube"
+class YoutubeBase(DeclarativeBase):
+    metadata = MetaData(schema="youtube")

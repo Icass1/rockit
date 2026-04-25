@@ -1,6 +1,6 @@
-from sqlalchemy.orm import declarative_base
+from sqlalchemy import MetaData
+from sqlalchemy.orm import DeclarativeBase
 
-from backend.core.access.db.base import global_metadata
 
-DefaultBase = declarative_base(metadata=global_metadata)
-DefaultBase.metadata.schema = "default_schema"
+class DefaultBase(DeclarativeBase):
+    metadata = MetaData(schema="default_schema")

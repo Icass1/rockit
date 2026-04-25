@@ -542,7 +542,7 @@ class SpotifyAccess:
                         session, genre_name
                     )
                     if a_genre.is_ok():
-                        artist_row.genres.add(a_genre.result())
+                        artist_row.genres.add(a_genre.result())  # type: ignore[arg-type]
 
             # Link external images
             if raw.images:
@@ -552,7 +552,7 @@ class SpotifyAccess:
                             session, img.url, img.width, img.height
                         )
                         if a_ext.is_ok():
-                            artist_row.external_images.add(a_ext.result())
+                            artist_row.external_images.add(a_ext.result())  # type: ignore[arg-type]
 
             await session.flush()
             return AResult(code=AResultCode.OK, message="OK", result=artist_row)
@@ -661,7 +661,7 @@ class SpotifyAccess:
                         cr = CopyrightRow(text=c.text or "", type_key=type_key)
                         session.add(cr)
                         await session.flush()
-                        album_row.copyrights.add(cr)
+                        album_row.copyrights.add(cr)  # type: ignore[arg-type]
 
             # Link external images
             if raw.images:
@@ -671,7 +671,7 @@ class SpotifyAccess:
                             session, img.url, img.width, img.height
                         )
                         if a_ext.is_ok():
-                            album_row.external_images.add(a_ext.result())
+                            album_row.external_images.add(a_ext.result())  # type: ignore[arg-type]
 
             await session.flush()
             return AResult(code=AResultCode.OK, message="OK", result=album_row)
@@ -733,7 +733,15 @@ class SpotifyAccess:
             result = await session.execute(stmt)
             existing: TrackRow | None = result.scalar_one_or_none()
             if existing:
-                return AResult(code=AResultCode.OK, message="OK", result=existing)
+                existing_core = await session.get(CoreMediaRow, existing.id)
+                if existing_core is None:
+                    return AResult(
+                        code=AResultCode.GENERAL_ERROR,
+                        message="CoreMediaRow not found for existing track",
+                    )
+                return AResult(
+                    code=AResultCode.OK, message="OK", result=(existing, existing_core)
+                )
 
             isrc = ""
             if raw.external_ids and raw.external_ids.isrc:
@@ -769,7 +777,7 @@ class SpotifyAccess:
             if raw.artists:
                 for a in raw.artists:
                     if a.id and a.id in artist_map:
-                        track_row.artists.add(artist_map[a.id])
+                        track_row.artists.add(artist_map[a.id])  # type: ignore[arg-type]
 
             await session.flush()
             return AResult(
@@ -848,7 +856,7 @@ class SpotifyAccess:
                             session, img.url, img.width, img.height
                         )
                         if a_ext.is_ok():
-                            playlist_row.external_images.add(a_ext.result())
+                            playlist_row.external_images.add(a_ext.result())  # type: ignore[arg-type]
 
             # Create PlaylistTrackRow links
             if raw.tracks and raw.tracks.items:

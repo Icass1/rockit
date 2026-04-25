@@ -64,7 +64,7 @@ class YouTube:
                     session=session, id=video_row.channel_id
                 )
             )
-            channel: ChannelRow = (
+            channel: ChannelRow | None = (
                 a_result_channel.result() if a_result_channel.is_ok() else None
             )
 
@@ -93,7 +93,7 @@ class YouTube:
                     if a_result_channel_image.is_ok():
                         channel_internal_image_url = f"{BACKEND_URL}/media/image/{a_result_channel_image.result().public_id}"
                     else:
-                        channel_internal_image_url = channel.image_url or ""
+                        channel_internal_image_url = ""
 
                 channel_response = YoutubeChannelResponse(
                     provider=YouTube.provider_name,
@@ -258,7 +258,7 @@ class YouTube:
                 session=session, youtube_id=channel_id
             )
         )
-        fetched_channel: ChannelRow = (
+        fetched_channel: ChannelRow | None = (
             a_result_fetched_channel.result()
             if a_result_fetched_channel.is_ok()
             else None
@@ -289,7 +289,7 @@ class YouTube:
                 if a_result_channel_image.is_ok():
                     channel_internal_image_url = f"{BACKEND_URL}/media/image/{a_result_channel_image.result().public_id}"
                 else:
-                    channel_internal_image_url = fetched_channel.image_url or ""
+                    channel_internal_image_url = ""
 
             channel_response = YoutubeChannelResponse(
                 provider=YouTube.provider_name,

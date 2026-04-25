@@ -616,7 +616,6 @@ class User:
 
         user: UserRow = a_result_user.result()
         user.current_time_ms = current_time_ms
-        user.current_media_public_id = media_public_id
 
         await session.commit()
 

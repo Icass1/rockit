@@ -1,4 +1,4 @@
-import { isSongWithAlbum, TMedia } from "@/shared/index";
+import { isSongWithAlbum, TMedia } from "@rockit/shared";
 
 export default function MediaSubSubTitle({ media }: { media: TMedia }) {
     if (isSongWithAlbum(media)) {

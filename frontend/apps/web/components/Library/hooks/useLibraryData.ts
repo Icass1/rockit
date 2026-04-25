@@ -56,7 +56,7 @@ export function useLibraryData({
     searchQuery,
 }: IUseLibraryDataProps): IUseLibraryDataReturn {
     const { data: libraryData, loading } = useFetch(
-        "/user/library/lists",
+        "/user/library/medias",
         LibraryListsResponseSchema
     );
 

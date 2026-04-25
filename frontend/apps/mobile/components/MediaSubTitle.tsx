@@ -1,4 +1,4 @@
-import { isSong, isVideo, TMedia } from "@/shared/index";
+import { isSong, isVideo, TMedia } from "@rockit/shared";
 import { StyleProp, Text, TextStyle } from "react-native";
 
 export default function MediaSubTitle({

@@ -1,15 +1,14 @@
 import { useMemo } from "react";
 import {
-    API_ENDPOINTS,
     filterBySearch,
     LibraryListsResponse,
-    LibraryListsResponseSchema,
     sortItems,
     TMedia,
     type FilterMode,
 } from "@rockit/shared";
 import { ELibraryActiveType } from "@/models/enums/libraryActiveType";
-import { useApiFetch } from "@/lib/useApiFetch";
+import { getLibraryMedias } from "@/lib/http/http";
+import { useApiFetch2 } from "@/lib/useApiFetch";
 
 interface UseLibraryDataResult {
     albums: LibraryListsResponse["albums"];
@@ -28,10 +27,12 @@ export function useLibraryData(options: {
     searchQuery: string;
     activeType: ELibraryActiveType;
 }): UseLibraryDataResult {
-    const { data, loading, error } = useApiFetch<LibraryListsResponse>(
-        API_ENDPOINTS.libraryLists,
-        LibraryListsResponseSchema
-    );
+    // const { data, loading, error } = useApiFetch<LibraryListsResponse>(
+    //     API_ENDPOINTS.libraryMedias,
+    //     LibraryListsResponseSchema
+    // );
+
+    const { data, loading, error } = useApiFetch2(getLibraryMedias);
 
     const filtered = useMemo(() => {
         if (!data) return [];

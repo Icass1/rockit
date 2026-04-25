@@ -2,6 +2,7 @@ import { useState } from "react";
 import { COLORS } from "@/constants/theme";
 import {
     AUTH_ENDPOINTS,
+    EPlatform,
     LoginRequestSchema,
     LoginResponseSchema,
 } from "@rockit/shared";
@@ -63,7 +64,7 @@ export default function LoginScreen() {
 
     return (
         <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : "height"} // TODO: Create EPlatform enum and replace all platform checks with it
+            behavior={Platform.OS === EPlatform.iOS ? "padding" : "height"} // TODO: Create EPlatform enum and replace all platform checks with it
             style={styles.container}
         >
             <ScrollView

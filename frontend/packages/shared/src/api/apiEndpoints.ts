@@ -4,7 +4,7 @@ export const API_ENDPOINTS = {
     ...AUTH_ENDPOINTS,
     homeStats: "/stats/home",
     userStats: "/stats/user",
-    libraryLists: "/user/library/lists",
+    libraryMedias: "/user/library/medias",
     search: "/media/search",
     userSession: "/user/session",
     userSettings: "/user",

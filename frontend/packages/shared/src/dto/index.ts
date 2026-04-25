@@ -120,6 +120,10 @@ export {
     type LibraryListsResponse,
 } from "./libraryListsResponse";
 export {
+    LibraryMediasResponseSchema,
+    type LibraryMediasResponse,
+} from "./libraryMediasResponse";
+export {
     LikeMediaRequestSchema,
     type LikeMediaRequest,
 } from "./likeMediaRequest";

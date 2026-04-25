@@ -94,7 +94,6 @@ ios/
 
 # Database
 *.db
-database/
 
 # Archivos de proyecto
 /songs/

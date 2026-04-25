@@ -20,6 +20,7 @@ import {
 } from "@rockit/shared";
 import type { VideoPlayer } from "expo-video";
 import { apiFetch } from "@/lib/api";
+import { getMediaByPublicId } from "@/lib/database";
 import {
     AudioIntegrationService,
     type LockScreenMetadata,
@@ -243,6 +244,25 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         return media.audioSrc;
     };
 
+    // Resolves the best URI for playback: local file → media cache → remote URL
+    const resolveUri = async (media: TQueueMedia): Promise<string | null> => {
+        try {
+            const dbMedia = await getMediaByPublicId(media.publicId);
+            if (dbMedia?.downloaded && dbMedia.localFilePath) {
+                return dbMedia.localFilePath;
+            }
+        } catch {
+            // Fall through to remote
+        }
+        const remoteUri = getUri(media);
+        if (!remoteUri) return null;
+        const cached = await mediaCacheManager.getCachedUri(
+            remoteUri,
+            media.publicId
+        );
+        return cached ?? remoteUri;
+    };
+
     const mediaEngine = useMediaEngine({
         onTimeUpdate: (pos, dur) => {
             setCurrentTime(pos);
@@ -290,15 +310,17 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
                 if (rawUri) {
                     const nextHasVideo = hasVideoSource(nextMedia);
                     queueRef.current.setCurrentIndex(index);
-                    // Use cached URI if AudioPreloader already downloaded it
-                    mediaCacheManager
-                        .getCachedUri(rawUri, nextMedia.publicId)
-                        .then((cachedUri) => {
-                            mediaEngine.loadTrack(
-                                cachedUri ?? rawUri,
-                                nextHasVideo
+                    resolveUri(nextMedia).then((playUri) => {
+                        if (!playUri) return;
+                        mediaEngine.loadTrack(playUri, nextHasVideo);
+                        const isLocal = playUri !== rawUri;
+                        if (!isLocal && !nextHasVideo) {
+                            mediaCacheManager.downloadToCache(
+                                rawUri,
+                                nextMedia.publicId
                             );
-                        });
+                        }
+                    });
                     webSocketManager.sendCurrentMedia({
                         mediaPublicId: nextMedia.publicId,
                         queueMediaId: index,
@@ -334,7 +356,6 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     const playMedia = useCallback(
         async (media: TQueueMedia, newQueue: TQueueMedia[]) => {
             const rawUri = getUri(media);
-            if (!rawUri) return;
             const shouldHaveVideo = hasVideoSource(media);
 
             // Clean up the outgoing track's cache before switching
@@ -350,17 +371,13 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
             currentTimeRef.current = 0;
             setDuration(0);
 
-            // Use cached URI if the track was already preloaded
-            const cachedUri = await mediaCacheManager.getCachedUri(
-                rawUri,
-                media.publicId
-            );
-            await mediaEngine.loadTrack(
-                cachedUri ?? rawUri,
-                shouldHaveVideo
-            );
-            // Cache current track in background while it plays (audio only)
-            if (!cachedUri && !shouldHaveVideo) {
+            // Prefer local downloaded file, then media cache, then remote URL
+            const playUri = await resolveUri(media);
+            if (!playUri) return;
+            await mediaEngine.loadTrack(playUri, shouldHaveVideo);
+            // Seed background cache only when playing a remote URL (not a local file)
+            const isLocal = !rawUri || playUri !== rawUri;
+            if (!isLocal && !shouldHaveVideo && rawUri) {
                 mediaCacheManager.downloadToCache(rawUri, media.publicId);
             }
             webSocketManager.sendMediaClicked({
@@ -424,14 +441,11 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
 
         queue.setCurrentIndex(nextIndex);
         setCurrentTime(0);
-        // Use cached URI if AudioPreloader already downloaded it
-        const cachedUri = await mediaCacheManager.getCachedUri(
-            rawUri,
-            nextMedia.publicId
-        );
-        await mediaEngine.loadTrack(cachedUri ?? rawUri, shouldHaveVideo);
-        // Cache current track in background while it plays (audio only)
-        if (!cachedUri && !shouldHaveVideo) {
+        const playUri = await resolveUri(nextMedia);
+        if (!playUri) return;
+        await mediaEngine.loadTrack(playUri, shouldHaveVideo);
+        const isLocal = playUri !== rawUri;
+        if (!isLocal && !shouldHaveVideo) {
             mediaCacheManager.downloadToCache(rawUri, nextMedia.publicId);
         }
         webSocketManager.sendCurrentMedia({
@@ -464,14 +478,11 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
 
         queue.setCurrentIndex(prevIndex);
         setCurrentTime(0);
-        // Use cached URI if available (unlikely for prev track, but consistent)
-        const cachedUri = await mediaCacheManager.getCachedUri(
-            rawUri,
-            prevMedia.publicId
-        );
-        await mediaEngine.loadTrack(cachedUri ?? rawUri, shouldHaveVideo);
-        // Cache current track in background while it plays (audio only)
-        if (!cachedUri && !shouldHaveVideo) {
+        const playUri = await resolveUri(prevMedia);
+        if (!playUri) return;
+        await mediaEngine.loadTrack(playUri, shouldHaveVideo);
+        const isLocal = playUri !== rawUri;
+        if (!isLocal && !shouldHaveVideo) {
             mediaCacheManager.downloadToCache(rawUri, prevMedia.publicId);
         }
         webSocketManager.sendCurrentMedia({

@@ -3,6 +3,7 @@ import { COLORS } from "@/constants/theme";
 import DateTimePicker, {
     type DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
+import { EPlatform } from "@rockit/shared";
 import { BarChart3, User, Users } from "lucide-react-native";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { useUserStats, type Range } from "@/hooks/useUserStats";
@@ -246,7 +247,7 @@ export default function StatsClient() {
                 </View>
             )}
 
-            {Platform.OS === "ios" && showStartPicker && (
+            {Platform.OS === EPlatform.iOS && showStartPicker && (
                 <View style={styles.pickerContainer}>
                     <View style={styles.pickerHeader}>
                         <Pressable onPress={() => setShowStartPicker(false)}>
@@ -264,7 +265,7 @@ export default function StatsClient() {
                 </View>
             )}
 
-            {Platform.OS === "ios" && showEndPicker && (
+            {Platform.OS === EPlatform.iOS && showEndPicker && (
                 <View style={styles.pickerContainer}>
                     <View style={styles.pickerHeader}>
                         <Pressable onPress={() => setShowEndPicker(false)}>

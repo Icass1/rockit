@@ -10,11 +10,13 @@ import {
     getMediaSubtitle,
     isList,
     isPlayable,
+    isQueueable,
     isSearchResult,
+    isVideo,
     TMedia,
     UserPlaylistsResponseSchema,
 } from "@rockit/shared";
-import { Heart, Music, Play, PlusCircle } from "lucide-react-native";
+import { Download, Heart, Music, Play, PlusCircle } from "lucide-react-native";
 import { Pressable } from "react-native";
 import { apiFetch } from "@/lib/api";
 import {
@@ -22,6 +24,8 @@ import {
     ContextMenuOption,
     useContextMenu,
 } from "@/lib/ContextMenuContext";
+import { createMediaFromDTO, markMediaDownloaded } from "@/lib/database";
+import { mediaStorage } from "@/lib/storage/mediaStorage";
 import { toasterManager } from "@/lib/toasterManager";
 import { useTypedRouter } from "@/lib/useTypedRouter";
 import { useVocabulary } from "@/lib/vocabulary";
@@ -93,6 +97,63 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                         console.log("Playing media from context menu", media);
                         handlePlay(media, allMedia);
                         hide();
+                    },
+                });
+            }
+
+            if (!isSearchResult(media) && isQueueable(media)) {
+                options.push({
+                    label: vocabulary.DOWNLOAD_MEDIA_TO_DEVICE,
+                    icon: Download,
+                    onPress: async () => {
+                        hide();
+                        try {
+                            toasterManager.notifyInfo(
+                                vocabulary.DOWNLOAD_STARTED
+                            );
+
+                            const dbMedia = await createMediaFromDTO(media);
+
+                            const url = isVideo(media)
+                                ? (media.audioSrc ?? media.videoSrc ?? null)
+                                : media.audioSrc;
+
+                            if (!url) {
+                                toasterManager.notifyError(
+                                    vocabulary.ERROR_STARTING_DOWNLOAD
+                                );
+                                return;
+                            }
+
+                            const localPath = isVideo(media)
+                                ? await mediaStorage.downloadVideo(
+                                      media.publicId,
+                                      url
+                                  )
+                                : await mediaStorage.downloadSong(
+                                      media.publicId,
+                                      url
+                                  );
+
+                            if (localPath) {
+                                await markMediaDownloaded(
+                                    dbMedia.id,
+                                    localPath
+                                );
+                                toasterManager.notifySuccess(
+                                    vocabulary.MEDIA_ADDED_TO_LIBRARY
+                                );
+                            } else {
+                                toasterManager.notifyError(
+                                    vocabulary.ERROR_STARTING_DOWNLOAD
+                                );
+                            }
+                        } catch (e) {
+                            console.error("Download failed:", e);
+                            toasterManager.notifyError(
+                                vocabulary.ERROR_STARTING_DOWNLOAD
+                            );
+                        }
                     },
                 });
             }

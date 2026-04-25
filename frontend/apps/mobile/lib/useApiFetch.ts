@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { HttpResult } from "@rockit/shared";
 import { z } from "zod";
 import { apiFetch } from "./api";
 
@@ -44,18 +45,55 @@ export function useApiFetch<T>(
     return { data, loading, error };
 }
 
-export function useDebounce<T>(value: T, delay: number): T {
-    const [debouncedValue, setDebouncedValue] = useState<T>(value);
+export function useApiFetch2<T>(func: () => Promise<HttpResult<T>>): {
+    data: T | null;
+    loading: boolean;
+    error: string | null;
+} {
+    const [data, setData] = useState<T | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        const handler = setTimeout(() => {
-            setDebouncedValue(value);
-        }, delay);
+        setLoading(true);
+        setError(null);
 
-        return () => {
-            clearTimeout(handler);
-        };
-    }, [value, delay]);
+        func()
+            .then((data) => {
+                setLoading(false);
+                if (!data.isOk) {
+                    console.error(
+                        "This should never happen 1",
+                        data.message,
+                        data.detail
+                    );
+                }
+                if (data.isOk()) {
+                    setData(data.result);
+                    setError(null);
+                } else if (data.isNotOk()) {
+                    setData(null);
+                    console.error(data.message, data.detail);
+                    setError(data.message);
+                } else {
+                    setError("Critical error 1");
+                    setData(null);
 
-    return debouncedValue;
+                    console.error(
+                        "This should never happen 2",
+                        data.message,
+                        data.detail
+                    );
+                }
+            })
+            .catch((error) => {
+                setLoading(false);
+                setData(null);
+                setError("Critical error 2");
+
+                console.error("This should never happen 3", error);
+            });
+    }, [func]);
+
+    return { data, loading, error };
 }

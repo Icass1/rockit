@@ -74,6 +74,7 @@ export default function LibraryScreen({
 
     return (
         <>
+            <View style={{ height: 140 }}></View>
             <SearchBar
                 value={searchQuery}
                 onChangeText={onSearchChange}

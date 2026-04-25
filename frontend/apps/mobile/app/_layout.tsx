@@ -5,7 +5,10 @@ import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { initDatabase } from "@/lib/database/db";
 import { PlayerProvider } from "@/lib/PlayerContext";
+import { mediaStorage } from "@/lib/storage/mediaStorage";
+import { syncManager } from "@/lib/syncManager";
 import { VocabularyProvider } from "@/lib/vocabulary";
 import { webSocketManager } from "@/lib/webSocketManager";
 import { Toaster } from "@/components/Toaster/Toaster";
@@ -23,8 +26,19 @@ const RockItTheme = {
 
 export default function RootLayout() {
     useEffect(() => {
-        SplashScreen.hideAsync();
-        webSocketManager.init();
+        async function init() {
+            try {
+                await initDatabase();
+                await mediaStorage.init();
+                await syncManager.init();
+                await webSocketManager.init();
+            } catch (e) {
+                console.error("Initialization error:", e);
+            } finally {
+                SplashScreen.hideAsync();
+            }
+        }
+        init();
     }, []);
 
     return (

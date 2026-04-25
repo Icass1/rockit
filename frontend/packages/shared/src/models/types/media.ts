@@ -95,10 +95,32 @@ export function isSong(
     return media.type === "song";
 }
 
+export function isAlbum(
+    media: TMedia
+): media is BaseAlbumWithSongsResponse | BaseAlbumWithoutSongsResponse {
+    return media.type === "album";
+}
+
+export function isAlbumWithSongs(
+    media: TMedia
+): media is BaseAlbumWithSongsResponse {
+    return (
+        media.type === "album" &&
+        (media as BaseAlbumWithSongsResponse).songs !== undefined
+    );
+}
+
+export function isPlaylist(media: TMedia): media is BasePlaylistResponse {
+    return media.type === "playlist";
+}
+
 export function isSongWithAlbum(
     media: TMedia
 ): media is BaseSongWithAlbumResponse {
-    return media.type === "song";
+    return (
+        media.type === "song" &&
+        (media as BaseSongWithAlbumResponse).album !== undefined
+    );
 }
 
 export function isNavigable(
@@ -152,12 +174,18 @@ export function getMediaSubtitle(media: TMediaWithSearch): string {
         );
     } else if (isSong(media)) {
         return media.artists.map((artist) => artist.name).join(", ");
-    } else {
-        console.log(
-            `Get subtitle implementation missing for media type ${media.type}`
+    } else if (isAlbumWithSongs(media)) {
+        const totalSongs = media.songs.length ?? 0;
+        return `${totalSongs} song${totalSongs !== 1 ? "s" : ""}`;
+    } else if (isPlaylist(media)) {
+        return (
+            media.description ??
+            `${media.medias?.length ?? 0} song${
+                (media.medias?.length ?? 0) !== 1 ? "s" : ""
+            }`
         );
-        return "";
     }
+    return "";
 }
 
 export function getMediaArtists(

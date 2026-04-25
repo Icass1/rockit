@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef } from "react";
+import { EPlatform } from "@/shared/models/enums/platform";
 import {
     AppState,
     AppStateStatus,
@@ -65,7 +66,7 @@ class AudioIntegrationServiceClass {
     private PlaybackState: PlaybackStateEnum | null = null;
 
     constructor() {
-        if (Platform.OS !== "web") {
+        if (Platform.OS !== EPlatform.Web) {
             this.init();
         }
     }
@@ -78,7 +79,7 @@ class AudioIntegrationServiceClass {
 
     private async ensureMediaControlLoaded() {
         if (this.mediaControl) return;
-        if (Platform.OS === "web") return;
+        if (Platform.OS === EPlatform.Web) return;
         if (!TurboModuleRegistry.get("ExpoMediaControl")) return;
 
         try {

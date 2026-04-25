@@ -1,6 +1,6 @@
 import React from "react";
 import { COLORS } from "@/constants/theme";
-import { TMedia } from "@/shared/index";
+import { TMedia } from "@rockit/shared";
 import type { VideoPlayer } from "expo-video";
 import { VideoView } from "expo-video";
 import { Dimensions, StyleSheet, Text, View } from "react-native";

@@ -1,6 +1,7 @@
-from sqlalchemy import MetaData
 from sqlalchemy.orm import DeclarativeBase
+
+from backend.core.access.db.shared_metadata import shared_metadata
 
 
 class DefaultBase(DeclarativeBase):
-    metadata = MetaData(schema="default_schema")
+    metadata = shared_metadata

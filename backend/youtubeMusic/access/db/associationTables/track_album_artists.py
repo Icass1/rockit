@@ -9,6 +9,7 @@ track_artists = Table(
     Column(
         "artist_id", Integer, ForeignKey("youtube_music.artist.id"), primary_key=True
     ),
+    schema="youtube_music",
 )
 
 album_artists = Table(
@@ -18,4 +19,5 @@ album_artists = Table(
     Column(
         "artist_id", Integer, ForeignKey("youtube_music.artist.id"), primary_key=True
     ),
+    schema="youtube_music",
 )

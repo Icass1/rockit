@@ -14,7 +14,7 @@ class UserDisabledPlaylistMediaRow(DefaultBase, TableAutoincrementId, TableDateA
     __tablename__ = "user_disabled_playlist_media"
     __table_args__ = (
         UniqueConstraint("user_id", "playlist_media_id", name="uq_user_playlist_media"),
-        {"extend_existing": True},
+        {"schema": "default_schema", "extend_existing": True},
     )
 
     user_id: Mapped[int] = mapped_column(

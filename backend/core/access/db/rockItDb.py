@@ -100,10 +100,9 @@ class RockItDB:
     async def async_init(self):
         await self.create_schemas()
 
-        # Create tables with run_sync
+        # Create tables with run_sync (single call — all bases share the same metadata)
         async with self.engine.begin() as conn:
-            for schema_info in schemas:
-                await conn.run_sync(schema_info.base.metadata.create_all)
+            await conn.run_sync(CoreBase.metadata.create_all)
 
         # Now set SessionLocal AFTER tables are created
         self.SessionLocal = async_sessionmaker(bind=self.engine, expire_on_commit=False)
@@ -263,5 +262,4 @@ class RockItDB:
         await self.create_schemas()
         logger.info("All schemas created")
 
-        for schema in schemas:
-            await schema.base.metadata.create_all(self.engine)
+        await CoreBase.metadata.create_all(self.engine)

@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 
 class PlaylistRow(DefaultBase, TableDateUpdated, TableDateAdded):
     __tablename__ = "playlist"
-    __table_args__ = ({"extend_existing": True},)
+    __table_args__ = ({"schema": "default_schema", "extend_existing": True},)
 
     id: Mapped[int] = mapped_column(
         Integer, ForeignKey("core.media.id"), primary_key=True

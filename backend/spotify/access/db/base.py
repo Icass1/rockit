@@ -1,6 +1,7 @@
-from sqlalchemy import MetaData
 from sqlalchemy.orm import DeclarativeBase
+
+from backend.core.access.db.shared_metadata import shared_metadata
 
 
 class SpotifyBase(DeclarativeBase):
-    metadata = MetaData(schema="spotify")
+    metadata = shared_metadata

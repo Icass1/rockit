@@ -18,37 +18,7 @@ import {
 } from "../database/access/playlistAccess";
 import { getUserById } from "../database/access/userAccess";
 import { libraryTypeLiked } from "../database/schema";
-
-const FORCE_OFFLINE = false;
-
-async function checkNetworkConnection(): Promise<boolean> {
-    if (FORCE_OFFLINE) return false;
-
-    console.log("[getLibraryMedias] Checking network connection...");
-    try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-        const response = await fetch("https://www.google.com/generate_204", {
-            method: "HEAD",
-            signal: controller.signal,
-        });
-
-        clearTimeout(timeoutId);
-        const isConnected = response.ok || response.status === 0;
-        console.log(
-            "[getLibraryMedias] Network connection check result:",
-            isConnected ? "online" : "offline"
-        );
-        return isConnected;
-    } catch (error) {
-        console.log(
-            "[getLibraryMedias] Network connection check failed, assuming offline:",
-            error
-        );
-        return false;
-    }
-}
+import { checkNetworkConnection } from "../network";
 
 async function getLibraryFromSqlite(): Promise<LibraryMediasResponse> {
     console.log("[getLibraryMedias] Getting library data from SQLite...");

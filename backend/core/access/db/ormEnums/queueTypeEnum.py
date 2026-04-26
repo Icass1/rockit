@@ -7,6 +7,7 @@ from backend.core.access.db.ormEnums.baseEnum import BaseEnumRow
 
 if TYPE_CHECKING:
     from backend.core.access.db.ormModels.user_queue import UserQueueRow
+    from backend.core.access.db.ormModels.user import UserRow
 
 
 class QueueTypeEnumRow(CoreBase, BaseEnumRow):
@@ -16,3 +17,5 @@ class QueueTypeEnumRow(CoreBase, BaseEnumRow):
     user_queues: Mapped[list["UserQueueRow"]] = relationship(
         "UserQueueRow", back_populates="queue_type_enum"
     )
+
+    user: Mapped["UserRow"] = relationship("UserRow", back_populates="queue_type_enum")

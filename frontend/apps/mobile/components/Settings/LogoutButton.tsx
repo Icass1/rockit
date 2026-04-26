@@ -2,6 +2,7 @@ import { useRouter } from "expo-router";
 import { LogOut } from "lucide-react-native";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { clearSessionCookie } from "@/lib/api";
+import { deleteAllUsers } from "@/lib/database/access/userAccess";
 import { useVocabulary } from "@/lib/vocabulary";
 
 export default function LogoutButton() {
@@ -16,6 +17,7 @@ export default function LogoutButton() {
                 style: "destructive",
                 onPress: async () => {
                     await clearSessionCookie();
+                    await deleteAllUsers();
                     router.replace("/(auth)/login");
                 },
             },

@@ -41,7 +41,7 @@ export async function createUser(
     const timestamp = now();
     const result = db.runSync(
         `INSERT INTO users (public_id, username, password_hash, provider, provider_account_id, current_station, current_time_ms, current_queue_media_id, queue_type_key, repeat_mode_key, volume, cross_fade_ms, lang_id, admin, super_admin, image_id, date_updated, date_added)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         user.publicId ?? null,
         user.username ?? null,
         user.passwordHash ?? null,
@@ -209,4 +209,14 @@ export async function updateUserLang(
 export async function deleteUser(userId: number): Promise<void> {
     const db = getDb();
     db.runSync("DELETE FROM users WHERE id = ?", userId);
+}
+
+export async function getFirstUser(): Promise<User | null> {
+    const db = getDb();
+    return db.getFirstSync<User | any>("SELECT * FROM users LIMIT 1") ?? null;
+}
+
+export async function deleteAllUsers(): Promise<void> {
+    const db = getDb();
+    db.runSync("DELETE FROM users");
 }

@@ -7,8 +7,8 @@ export const UserSettingsResponseSchema = z.object({
     username: z.string(),
     lang: z.string(),
     crossfade: z.number(),
-    randomQueue: z.boolean(),
-    repeatMode: z.string(),
+    queueType: z.enum(["RANDOM", "SORTED"]),
+    repeatMode: z.enum(["OFF", "ONE", "ALL"]),
 });
 
 export type UserSettingsResponse = z.infer<typeof UserSettingsResponseSchema>;

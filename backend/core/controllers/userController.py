@@ -14,11 +14,12 @@ from backend.core.middlewares.authMiddleware import AuthMiddleware
 from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 
 from backend.core.access.db.ormModels.user import UserRow
+from backend.core.access.db.ormModels.image import ImageRow
 from backend.core.access.db.ormModels.user_liked_media import UserLikedMediaRow
 from backend.core.access.db.ormModels.user_library_media import UserLibraryMediaRow
-from backend.core.access.db.ormModels.image import ImageRow
 
 from backend.core.enums.queueTypeEnum import QueueTypeEnum
+from backend.core.enums.repeatModeEnum import RepeatModeEnum
 
 from backend.core.framework.user.user import User
 from backend.core.framework.media.image import Image
@@ -69,8 +70,8 @@ async def get_user(request: Request) -> UserSettingsResponse:
         username=user.username,
         lang=user.language.lang_code,
         crossfade=user.cross_fade_ms,
-        randomQueue=user.queue_type_key == 1,
-        repeatMode=user.repeat_mode_enum.value,
+        queueType=QueueTypeEnum(user.queue_type_enum),
+        repeatMode=RepeatModeEnum(user.repeat_mode_enum),
     )
 
 

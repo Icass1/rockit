@@ -130,3 +130,5 @@ pnpm-debug.log*
 
 
 cache/
+
+lint.txt

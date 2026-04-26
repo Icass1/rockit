@@ -1,4 +1,4 @@
 export enum EQueueType {
-    RANDOM = 1,
-    SORTED = 2,
+    RANDOM = "RANDOM",
+    SORTED = "SORTED",
 }

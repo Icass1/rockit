@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     from backend.core.access.db.ormModels.language import LanguageRow
     from backend.core.access.db.ormModels.user_queue import UserQueueRow
     from backend.core.access.db.ormModels.requestLog import RequestLogRow
+    from backend.core.access.db.ormEnums.queueTypeEnum import QueueTypeEnumRow
     from backend.core.access.db.ormEnums.repeatModeEnum import RepeatModeEnumRow
     from backend.core.access.db.ormModels.user_library_media import UserLibraryMediaRow
 
@@ -59,6 +60,10 @@ class UserRow(
 
     repeat_mode_enum: Mapped["RepeatModeEnumRow"] = relationship(
         "RepeatModeEnumRow", back_populates="user", uselist=False
+    )
+
+    queue_type_enum: Mapped["QueueTypeEnumRow"] = relationship(
+        "QueueTypeEnumRow", back_populates="user", uselist=False
     )
 
     # one-to-many

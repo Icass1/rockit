@@ -114,7 +114,7 @@ async def create_playlist_async(
     )
 
 
-@router.get("/")
+@router.get("")
 async def get_user_playlists_async(
     request: Request,
 ) -> UserPlaylistsResponse:
